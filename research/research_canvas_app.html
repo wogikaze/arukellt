@@ -510,12 +510,31 @@
       return best ? best.l1 : null;
     }
 
+    function isRelationPath(node) {
+      if (!node || typeof node !== 'object') return false;
+      if (node.type !== 'path') return false;
+      if (node.name === 'RelationLine') return true;
+      return typeof node.id === 'string' && /^rel_/i.test(node.id) && /_line$/i.test(node.id);
+    }
+
+    function normalizeRelationLinesInPen(pen) {
+      const list = Array.isArray(pen?.children) ? pen.children : [];
+      for (const node of list) {
+        if (!isRelationPath(node)) continue;
+        if (!node.stroke || typeof node.stroke !== 'object') node.stroke = {};
+        node.stroke.thickness = 2;
+        node.stroke.strokeAlignment = 'outside';
+        node.strokeAlignment = 'outside';
+      }
+      return pen;
+    }
+
     async function boot() {
       const [indexRes, detailIndexRes] = await Promise.all([
         fetch(`research.pen?v=${Date.now()}`, { cache: 'no-store' }),
         fetch(`detail_index.json?v=${Date.now()}`, { cache: 'no-store' }),
       ]);
-      const indexPen = await indexRes.json();
+      const indexPen = normalizeRelationLinesInPen(await indexRes.json());
       const detailIndex = await detailIndexRes.json();
 
       const detailMap = new Map((detailIndex.details || []).map(d => [Number(d.l1), d]));
@@ -562,7 +581,7 @@
         detailMeta.textContent = `L1-${l1} ${title}`;
         detailStatus.textContent = `loading ${file} ...`;
         const res = await fetch(`${file}?v=${Date.now()}`, { cache: 'no-store' });
-        const pen = await res.json();
+        const pen = normalizeRelationLinesInPen(await res.json());
         detailViewer.setPen(pen);
         detailStatus.textContent = `${file} / cards: ${pen.children.filter(c => c.type === 'frame' && !frameIsNameplate(c.name)).length}`;
       }
