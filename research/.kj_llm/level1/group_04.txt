@@ -1,0 +1,75 @@
+LEVEL=1
+GROUP=4
+SIZE=70
+TOP_TERMS=va,av,Ja,た。,aの,る。,した,aは,al,re,hr,ea
+---
+Java は Project Loom で Virtual Thread を導入し、既存 Thread API の互換性を保ちながら軽量スレッド化した。
+Java の Virtual Thread はブロッキングスタイルの可読性を維持しつつ高並行性を狙う設計である。
+JavaはProject LoomでVirtual Threadsを導入し色分け依存を弱めた。
+Java Virtual Threadsは多数接続を同期スタイルで扱う実装を容易にした。
+Java Project Loom は Virtual Threads で thread-per-request の高コスト問題を緩和する。
+JVMはブロッキング時に仮想スレッドをアンマウントしてキャリアを再利用する。
+Virtual Threads はブロッキング時に JVM が unmount しキャリアスレッドを再利用できる。
+Java の Loom は従来のスレッド数上限問題を緩和し、Executor とブロッキング API の運用を改善した。
+Java JPMSは`module-info.java`で依存とエクスポートを明示しJDK自体の分割にも寄与した。
+JPMS（Project Jigsaw）はclass path中心の依存解決をmodule-info.java中心へ転換した。
+Java JPMSは既存Maven/OSGi資産との整合コストが高く全面採用は限定的である。
+JPMSはJAR Hellの実行時顕在化を明示依存宣言で抑制する狙いを持つ。
+JPMSはStrong EncapsulationでJDK内部APIへの非公開アクセスを制限した。
+JPMS導入はSpringなど反射依存ライブラリに移行負荷を生んだ。
+JPMS exportsとopensはJavaにモジュール境界での公開制御を追加した。
+Java 8 の Streams とラムダは checked exception との合成で追加ラッパーを要しやすい。
+Java は checked exception で回復可能エラー処理をコンパイル時に強制した。
+Java の checked exception は API 進化時に throws 連鎖更新を誘発し互換性負担を増やす。
+Javaの検査例外は大規模コードベースでthrows汚染とラップ例外増加を招きやすい。
+Javaは用途別にSerial GC、Parallel GC、G1 GC、ZGC、Shenandoah GCを提供してきた。
+JavaのSerial GCは小規模用途では有効だったが大規模ヒープでは長いポーズが問題化した。
+JavaのG1はリージョン単位管理と目標ポーズ時間制御で大規模ヒープ向け汎用性を狙った。
+JavaのG1は多くのサーバで実用的なバランスを実現した一方で設定項目が増えて複雑化した。
+Javaのnullableアノテーション方式は互換性に優れる一方で注釈欠落時の保証が弱い。
+Javaのnullableアノテーション方式はIDE支援に有効でもコンパイラ一貫保証は限定的である。
+Javaはオブジェクト参照を値渡しし、プリミティブ型は通常の値渡しにする。
+Javaはオブジェクト指向を前面に出しつつプリミティブ型を併存させた。
+Java 5はオートボクシングでプリミティブとオブジェクトの橋渡しをした。
+Java配列はオブジェクトとして扱われ、値として渡せる。
+Java 21のStructuredTaskScopeは関連サブタスクを一単位で管理する。
+JavaのShenandoahは並行エバキュエーションでコンパクション起因の長ポーズ回避を狙った。
+Java配列は長さを保持し、範囲外アクセスで例外を送出する。
+Java の Thread.stop はロック保持中停止で不整合を生みうるため非推奨となった。
+JavaのThread.stopとThread.suspendは不整合状態露出のため廃止された。
+Java は Thread.stop から interrupt と Future/Executor による協調的キャンセルへ移行した。
+Juliaは多重ディスパッチとJITで高水準記述と実行性能を両立する。
+JavaのParallel GCはマルチコアでスループット最大化を狙う設計を採用した。
+JavaのParallel GCは平均処理量に強い一方でレイテンシ重視用途には不向きだった。
+Javaのアノテーションプロセッサはコンパイル時生成と検証を標準API化しDIやORMで広く定着した。
+JavaアノテーションプロセッサはJavac段階で宣言的メタデータからコードを生成する。
+Javaはgotoを予約語にしつつ実用構文から外している。
+JavaのSerial GCは単純なSTW方式を採用して実装容易性と予測可能性を優先した。
+Javaのpackage-private既定は同一パッケージを内部実装境界として使う前提で設計された。
+Java package-privateは同一パッケージ内協調を容易にするがJAR境界を保証しない。
+Javaは参照オーバーヘッド反省からProject Valhallaで値クラス導入を進めている。
+Koka は evidence-passing と選択的 CPS で重いランタイム依存を抑える。
+GraalVMはTruffle/Graal上でJava JavaScript Ruby Python等を横断実行するポリグロット基盤を提供する。
+JavaとHaskellは真偽値型以外を条件式に入れない。
+JavaのSealed ClassesとRecordsは直和型と直積型を言語標準で表現可能にした。
+Javaは統一オブジェクトモデルを優先して参照型中心設計を採用した。
+Javaの参照型中心設計はポインタ追跡増加でキャッシュ効率を下げやすい。
+Javaは実装継承を単一に制限し、インターフェース多重実装で補う。
+Java方式の限界はより強いnull安全言語への移行動機になった。
+Javaはユーザー定義演算子を制限し、x + yよりx.add(y)が増えやすい。
+JavaのCMSは並行マークでSTW時間を削減して応答性向上を狙った。
+GraalVM Native ImageはJavaの起動遅延とメモリ負荷をAOTで大きく改善する。
+JavaのCMSは平均ポーズ短縮に成功したが断片化と予測不能なフルGCが運用負荷を増やした。
+Javaの従来GCは長ポーズにより低遅延分野で採用障壁になった歴史がある。
+Javaの歴史的switchは網羅性検査が弱くdefaultへ流れやすかった。
+Javaはintなどのサイズと範囲を言語仕様で固定する。
+CとJavaは固定幅整数を維持し、暗黙の多倍長化をしない。
+Javaはトップレベル変数を持たず、静的メンバで近い効果を作る。
+Javaはthisを暗黙に提供し必要時に明示参照できる。
+JavaとC99は整数除算を0方向へ丸める。
+J言語は負数を_1記法で表す。
+JavaのJEP 409とJEP 395はVisitor依存を減らし宣言的で安全な分岐を促進した。
+I/O 完了後の remount により Java は同期記述のまま高並行性を得られる。
+jlinkは必要モジュールのみのカスタムランタイム生成を可能にした。
+Javaは関数そのものを持たない時代があり、メソッド操作はリフレクション中心だった。
+Javaは文字列連結時にtoString相当の変換を許容する。

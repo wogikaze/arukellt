@@ -1,0 +1,58 @@
+LEVEL=2
+GROUP=3
+SIZE=53
+TOP_TERMS=た。,as,nc,した,sy,yn,ai,it,ix,aw,wa,同期
+---
+Python は PEP 3156 で asyncio を導入し、イベントループと Future/Task を標準化した。
+PythonはPEP 3156でasyncio基盤を標準化した。
+Swift は Concurrency Manifesto の流れで async/await と actor を導入し、非同期制御を構文で明示した。
+JavaScript は Promise を先に導入し、その後 async/await を重ねて callback hell の複雑性を下げた。
+JavaScript の async/await はエラーハンドリングを簡潔化したが、Promise API との相互運用設計を継続的に要した。
+Node.js は Promise と async/await の導入で callback hell を段階的に改善した。
+JavaScriptはcallbackとPromiseとasync/awaitが混在しエラースタイルが分断されやすい。
+JavaScriptはPromiseからasyncとawaitへ進化してエラー処理を単純化した。
+PromiseとasyncとawaitはNode.js非同期設計の可読性問題を大幅に改善した。
+Promise の .catch() と async/await は JavaScript 非同期エラー処理の標準経路を提供する。
+Rust の async/await はランタイム非同梱方針により Tokio と async-std などのエコシステム分断を生みやすい。
+C# は async/await を導入し、継続渡し中心の非同期 I/O を同期風の制御フローで記述可能にした。
+asyncとawaitは非同期制御を同期風に記述するための標準構文になった。
+C#は主要言語として早期にasyncとawaitを導入した。
+Swiftはasyncとawaitをthrowsと統合して非同期失敗処理を自然化した。
+Python では PEP 492 以降の async/await が asyncio 基盤と結合し、標準非同期スタックが確立した。
+PythonはPEP 492でnative asyncとawaitを導入して記述性を改善した。
+Swift の async/await はコールバック中心の記述を減らし、既存コードを段階的に移行しやすくした。
+C# の async/await は Task ベース非同期パターンの普及を後押しし、例外処理とリソース解放を自然化した。
+Python の asyncio は Twisted や Tornado など分散していた非同期流儀の収斂を狙って設計された。
+Rust の async/await はゼロコスト抽象化方針に従い、Future の状態機械化と Pin による移動制約を採用した。
+async main や TaskGroup や nursery の導入は非同期色の伝播をエントリポイントとスコープで吸収する戦略である。
+ElixirはErlangのlet it crash哲学を継承し監視プロセスで回復する。
+ElixirはBEAMの信頼性を保ったままRuby風構文で参入障壁を下げた。
+ElixirはRuby的な人間工学をBEAMの並行分散基盤に接続した設計である。
+ElixirやRubyの対話性は初期開発段階の心理的障壁を下げる。
+ElixirはRuby風表記の表面構文とLisp由来のメタプログラミング性を両立した。
+Elixir は BEAM の並行性と耐障害性を継承しつつ、モダンな構文とマクロで開発体験を改善した。
+ElixirはErlangの強固な耐障害性を保ちながら構文障壁を下げた。
+Elixir は OTP を DSL 的に扱いやすくし、Phoenix などの Web 開発でアクターモデル活用を広げた。
+ElixirはPhoenixなどを通じてRuby経験者の関数型移行を促進した。
+PhoenixはElixir採用をWeb分散領域で拡大した。
+ElixirはquoteとunquoteでASTを操作し、PhoenixのようなDSL形成を支えた。
+ElixirはJosé Valimの背景からErlang構文の心理的ハードル低減を狙った。
+Elixirは抽象度の高さゆえにErlangの素朴さを好む層には冗長と見なされることがある。
+ElixirマクロはErlang VM上でDSL中心フレームワーク開発を加速させる設計として機能している。
+ElixirのマクロとDSL機構はドメイン記述力を高めた。
+Project Loomの仮想スレッドは同期風コードでI/O待機を扱いやすくする。
+RubyはMatzの開発者幸福哲学に基づき自然言語寄りの柔らかい構文を採用した。
+RubyはMatzの人間中心哲学に基づき表現力と記述の楽しさを優先する。
+RubyはDSL記述に強くRailsの可読性重視スタイルを後押しした。
+Swift は structured concurrency で TaskGroup と async let を導入し、タスク階層を明示化した。
+Swift の TaskGroup は動的並列、async let は少数の静的並列に向く。
+C# の async/await モデルは JavaScript、Kotlin、Swift など後続言語の設計に強い影響を与えた。
+JavaScriptは非同期境界でtry-catchの有効範囲が直感とずれやすい。
+JavaScriptはtryとcatchで非同期失敗を追跡しやすくなった。
+JavaScript の同期 try/catch は setTimeout など非同期コールバック内の例外を直接捕捉できない。
+Elixirは{:ok, value}と{:error, reason}で失敗を値として扱う。
+Ruby は並列性補完のために Ractor を導入し、共有制限とメッセージパッシング中心のモデルを追加した。
+RubyはGVL制約下の並列化課題に対してRactorを導入した。
+Ruby の Ractor は真の並列実行を提供する一方で、既存ライブラリ適合と API 制約の課題を伴う。
+Swift ConcurrencyはData Isolationを言語仕様として前面化した。
+Node.jsはローカルI/O前提でCommonJSの同期ロードを採用した。

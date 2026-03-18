@@ -1,0 +1,64 @@
+{
+  "details": [
+    {
+      "l1": 0,
+      "file": "detail_L1-0_python.pen",
+      "title": "Pythonの設計・実装・運用"
+    },
+    {
+      "l1": 10,
+      "file": "detail_L1-10_cpp.pen",
+      "title": "C/C++設計の性能優先と安全"
+    },
+    {
+      "l1": 11,
+      "file": "detail_L1-11_async.pen",
+      "title": "非同期処理と言語人間工学の進化"
+    },
+    {
+      "l1": 1,
+      "file": "detail_L1-1_zig.pen",
+      "title": "Zigの明示性志向と安全な資源"
+    },
+    {
+      "l1": 2,
+      "file": "detail_L1-2_go.pen",
+      "title": "Goの単純設計と実務的並行・G"
+    },
+    {
+      "l1": 3,
+      "file": "detail_L1-3_typesafe.pen",
+      "title": "言語設計における型安全と移行互"
+    },
+    {
+      "l1": 4,
+      "file": "detail_L1-4_java.pen",
+      "title": "Java言語・JVM設計と進化"
+    },
+    {
+      "l1": 5,
+      "file": "detail_L1-5_tradeoff_cost.pen",
+      "title": "言語設計の利点と代償のトレード"
+    },
+    {
+      "l1": 6,
+      "file": "detail_L1-6_rust.pen",
+      "title": "Rustの安全性設計と学習・ビ"
+    },
+    {
+      "l1": 7,
+      "file": "detail_L1-7_concurrency.pen",
+      "title": "言語設計と並行・安全性の実践知"
+    },
+    {
+      "l1": 8,
+      "file": "detail_L1-8_kotlin.pen",
+      "title": "Kotlinの安全・簡潔設計と"
+    },
+    {
+      "l1": 9,
+      "file": "detail_L1-9_tradeoff_balance.pen",
+      "title": "言語設計は安全性と実用性の折衷"
+    }
+  ]
+}
