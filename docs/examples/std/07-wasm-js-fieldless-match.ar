@@ -1,0 +1,14 @@
+type Choice =
+  Left
+  Right
+
+fn choose(flag: Bool) -> Choice:
+  if flag:
+    Left
+  else:
+    Right
+
+fn main() -> Int:
+  match choose(false):
+    Left -> 1
+    Right -> 2

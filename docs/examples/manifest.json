@@ -52,6 +52,18 @@
     "mode": "build_wasi_ok"
   },
   {
+    "id": "std-wasm-js-scalar",
+    "doc": "docs/std.md",
+    "fixture": "docs/examples/std/06-wasm-js-scalar.ar",
+    "mode": "build_js_ok"
+  },
+  {
+    "id": "std-wasm-js-fieldless-match",
+    "doc": "docs/std.md",
+    "fixture": "docs/examples/std/07-wasm-js-fieldless-match.ar",
+    "mode": "build_js_ok"
+  },
+  {
     "id": "std-wasm-unsupported",
     "doc": "docs/std.md",
     "fixture": "docs/examples/std/05-wasm-unsupported.ar",

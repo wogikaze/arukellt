@@ -10,10 +10,11 @@ The repository already contains a working vertical slice:
 - `lang-core`: lexer, tolerant indent-aware parser, AST, typed AST, and structured diagnostics
 - `lang-ir`: High IR and Low IR lowering
 - `lang-interp`: interpreter for the typed/high-level subset
-- `lang-backend-wasm`: WASM backend for the current pure scalar subset
+- `lang-backend-wasm`: WASM backend for the current scalar, literal-string, and fieldless-ADT subset
 - `arktc`: compiler-facing `check` and `build` commands
 - `chef`: interpreter-facing `run`, `test`, and `benchmark` commands
 - `arktfmt`: source formatter
+- `arktup`: local toolchain-state manager for prototype installs and default selection
 - `lang-playground-core`: JSON/wasm-bindgen API for browser playground integration
 
 This is still a prototype. The language and toolchain are intentionally incomplete.
@@ -71,10 +72,13 @@ The repository includes language-surface examples in [`example/`](/home/wogikaze
 - file reads and `Result`-based error handling
 - closures
 - infinite iterators
+- a pure scalar WASM-friendly slice
 
 All bundled examples are executable through `chef run` and verifiable through `chef test`.
 Each example has an adjacent `.stdout` fixture that acts as the snapshot contract for the current toolchain.
 Each bundled example also passes `arktc check`.
+The machine-checkable source of truth for the bundled-example contract lives in [`example/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/matrix.json).
+After changing a bundled example or extending backend support, refresh the contract by updating that file and rerunning `cargo test -p arktc -p chef --test examples`.
 
 The current bundled-example matrix is:
 
@@ -90,14 +94,16 @@ The current bundled-example matrix is:
 | `map_filter_sum.ar` | pass | pass | pass | fail | fail |
 | `powers.ar` | pass | pass | pass | fail | fail |
 | `result_error_handling.ar` | pass | pass | pass | fail | fail |
+| `wasm_scalar.ar` | pass | pass | pass | pass | pass |
 
-No bundled example currently fits the WASM backend's pure scalar subset. `arktc build` is therefore expected to fail for every bundled example on both WASM targets until example coverage intentionally expands into that subset.
+Only `wasm_scalar.ar` currently fits the bundled WASM subset end to end. The backend also accepts constrained synthetic modules with literal-only `String` returns and fieldless user-defined ADTs plus binding-free `match`, but the rest of the bundled examples still fail on at least one WASM target because they depend on host calls or richer surface features that are not lowered yet.
 
 For release-facing reference material, see the executable docs in [`docs/language-tour.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/language-tour.md) and [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md). Their snippets are backed by checked-in fixtures and exercised by the test suite.
 
 ## Tooling
 
-The public CLI surface is split across `arktc`, `chef`, and `arktfmt`.
+The public CLI surface is split across `arktc`, `chef`, `arktfmt`, and `arktup`.
+Each public binary and subcommand also exposes a tested `--help` path that describes the current prototype contract, including intentionally limited surfaces such as the WASM subset, JSON-only docs output, and local-state-only toolchain management.
 
 ### Check
 
@@ -119,10 +125,13 @@ This runs the interpreter path and can optionally print a trace. The interpreter
 
 ```bash
 cargo run -p chef -- test path/to/file.ar
+cargo run -p chef -- test path/to/file.ar --json
 ```
 
 Functions whose names start with `test_` are executed and must return `Bool(true)`.
 If a file does not define any `test_` functions, `chef test` falls back to snapshot testing against the adjacent `.stdout` fixture.
+`--json` emits a versioned result payload listing discovered test names and any failures; compile failures also surface as structured diagnostics JSON.
+Without `--json`, compile failures still print actionable human-readable diagnostics before exiting non-zero.
 
 ### Format
 
@@ -132,6 +141,18 @@ cargo run -p arktfmt -- path/to/file.ar --write
 ```
 
 This formats the parsed module and either prints the result to stdout or writes it back to the source file.
+If lexer or parser errors are present, `arktfmt` fails explicitly and leaves the input file unchanged instead of emitting placeholder `<error>` nodes.
+
+### Docs
+
+```bash
+cargo run -p arktdoc -- path/to/file.ar --format json
+```
+
+This compiles a source file and prints versioned JSON documentation for the typed function surface.
+The current payload includes the input file path plus each function's name, visibility, parameter list, and return type.
+Only `--format json` is currently supported. Other format values fail explicitly instead of silently falling back to JSON.
+If the source does not compile, `arktdoc` exits non-zero and prints a short failure message instead of partial docs.
 
 ### Build
 
@@ -140,10 +161,12 @@ cargo run -p arktc -- build path/to/file.ar --target wasm-js --output out.wasm
 cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --output out.wasm
 ```
 
-The current WASM backend supports only a narrow pure scalar subset.
+The current WASM backend supports only a narrow scalar-plus-literal-string-plus-fieldless-ADT subset.
 `wasm-js` emits an embeddable module that exports compiled functions by their Arukel names.
 `wasm-wasi` emits a command-style module that exports only `_start`; it requires a zero-argument `main` function and drops any scalar return value at the ABI boundary.
-Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs such as strings, ADTs, `match`, closures, iterators, or host calls like `console.println`.
+`String` currently lowers only as a raw `i32` pointer into exported read-only `memory` containing NUL-terminated UTF-8 literals. Literal expressions and direct returns through user-defined functions are supported in that ABI slice.
+Fieldless user-defined ADTs currently lower as raw numeric tags, and `match` lowers only when the subject is one of those ADTs and each arm is either a bare variant name or a final wildcard.
+Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs such as string builtins and operations, payload-bearing ADTs, pattern bindings, closures, iterators, or host calls like `console.println`.
 
 ### Benchmark
 
@@ -152,6 +175,16 @@ cargo run -p chef -- benchmark benchmarks/pure_logic.json
 ```
 
 This reports parse, typecheck, execution, and pass counts for a JSON benchmark manifest. The sample manifest at [`benchmarks/pure_logic.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/benchmarks/pure_logic.json) is the current reference set.
+
+### Toolchain
+
+```bash
+cargo run -p arktup -- show
+ARKTUP_HOME=/tmp/arktup cargo run -p arktup -- install v0.1.0
+ARKTUP_HOME=/tmp/arktup cargo run -p arktup -- default v0.1.0
+```
+
+`arktup` currently manages local toolchain metadata only. It records installed versions and the selected default version in `ARKTUP_HOME/state.json`, or in `.arktup/state.json` under the current working directory when `ARKTUP_HOME` is unset.
 
 ## Browser Playground API
 
@@ -189,10 +222,17 @@ The executable prototype is still intentionally narrower than the full language 
 - The bundled examples are executable through the interpreter path, but most of them are intentionally outside the current WASM subset
 - The supported standard library remains small and purpose-built around the bundled examples
 - The WASM backend hard-fails on unsupported surface instead of emitting placeholder modules
-- The WASM backend does not yet support `String`, ADT, `match`, closures, iterators, or host call codegen
+- The WASM backend supports only literal-only `String` lowering via read-only memory; string builtins, string operations, and general string ABI tooling are still unsupported
+- The WASM backend supports only fieldless user-defined ADTs and binding-free `match`; payload-bearing constructors and pattern bindings are still unsupported, along with closures, iterators, and host call codegen
 - Host integrations are currently limited to the example-oriented `console` and `fs` interpreter shims
 - `clock`, `random`, `process`, package management, builders, and a richer standard library are not implemented yet
 - `arktfmt` currently preserves source rather than reprinting a canonical AST-based format
+- `arktdoc` currently emits JSON only; non-JSON `--format` values are rejected until another output contract is implemented
+
+## Workboard
+
+[`WORKBOARD.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/WORKBOARD.md) is the shared AI-managed queue for repository work.
+AI agents update it as work starts, blocks, splits, and completes; humans can read it for the current `Next`, `Ready`, `Blocked`, and `Done` state.
 
 ## Development
 

@@ -42,6 +42,12 @@ fn read_u32_leb(bytes: &[u8], cursor: &mut usize) -> u32 {
     }
 }
 
+fn contains_bytes(haystack: &[u8], needle: &[u8]) -> bool {
+    haystack
+        .windows(needle.len())
+        .any(|window| window == needle)
+}
+
 #[test]
 fn builds_a_valid_wasm_module_for_a_pure_function() {
     let source = "\
@@ -88,6 +94,105 @@ fn main(value: Int) -> Int:
     let message = error.to_string();
     assert!(
         message.contains("main") && message.contains("parameter"),
+        "unexpected error: {message}"
+    );
+}
+
+#[test]
+fn javascript_target_builds_string_literal_return_subset() {
+    let source = "\
+fn banner() -> String:
+  \"hello wasm\"
+
+fn main() -> String:
+  banner()
+";
+
+    let bytes = build_module_from_source(source, WasmTarget::JavaScriptHost)
+        .expect("wasm bytes for string subset");
+    let exports = export_names(&bytes);
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(exports.iter().any(|name| name == "memory"));
+    assert!(exports.iter().any(|name| name == "banner"));
+    assert!(exports.iter().any(|name| name == "main"));
+    assert!(
+        contains_bytes(&bytes, b"hello wasm\0"),
+        "expected string literal bytes in data section"
+    );
+}
+
+#[test]
+fn fieldless_adt_match_subset_builds_for_both_wasm_targets() {
+    let source = "\
+type Choice =
+  Left
+  Right
+
+fn choose(flag: Bool) -> Choice:
+  if flag:
+    Left
+  else:
+    Right
+
+fn main() -> Int:
+  match choose(false):
+    Left -> 1
+    Right -> 2
+";
+
+    let js_bytes =
+        build_module_from_source(source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(source, WasmTarget::Wasi).expect("wasi bytes");
+
+    assert!(js_bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(wasi_bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert_eq!(export_names(&js_bytes), vec!["choose", "main"]);
+    assert_eq!(export_names(&wasi_bytes), vec!["_start"]);
+}
+
+#[test]
+fn rejects_payload_carrying_adt_shapes_outside_the_supported_subset() {
+    let source = "\
+type Choice =
+  Left(value: Int)
+  Right(value: Int)
+
+fn choose(flag: Bool) -> Choice:
+  if flag:
+    Left(1)
+  else:
+    Right(2)
+
+fn main() -> Int:
+  match choose(false):
+    Left(value) -> value
+    Right(value) -> value
+";
+
+    let error = build_module_from_source(source, WasmTarget::JavaScriptHost)
+        .expect_err("payload-carrying ADTs should stay unsupported in wasm backend");
+    let message = error.to_string();
+
+    assert!(
+        message.contains("payload fields") && message.contains("not yet supported"),
+        "unexpected error: {message}"
+    );
+}
+
+#[test]
+fn rejects_builtin_string_calls_outside_the_supported_subset() {
+    let source = "\
+fn main() -> String:
+  string(42)
+";
+
+    let error = build_module_from_source(source, WasmTarget::JavaScriptHost)
+        .expect_err("string builtin should stay unsupported in wasm backend");
+    let message = error.to_string();
+
+    assert!(
+        message.contains("calls to `string`") && message.contains("not yet supported"),
         "unexpected error: {message}"
     );
 }

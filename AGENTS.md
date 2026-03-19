@@ -20,10 +20,12 @@ When you change behavior, keep that layering intact. Do not make public binary c
 ## Workflow
 
 - Work from the workspace root: `/home/wogikaze/arukellt/.worktrees/arukellt-v0`
+- Read `WORKBOARD.md` before substantial work and treat it as the shared AI-managed queue
 - Prefer small vertical slices over large speculative rewrites
 - Add or update tests before changing behavior
 - Keep diagnostics stable once a test depends on a diagnostic code
 - Prefer interpreter-first validation before extending WASM codegen
+- When you discover follow-up work or finish a queued task, update `WORKBOARD.md` in the same change
 
 ## Verification
 

@@ -1,0 +1,90 @@
+[
+  {
+    "name": "closure.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "factorial.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "fibonacci.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "file_read.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "fizz_buzz.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "hello_world.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "infinite_iter.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "map_filter_sum.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "powers.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "result_error_handling.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": false,
+    "wasm_wasi_build": false
+  },
+  {
+    "name": "wasm_scalar.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": true,
+    "wasm_wasi_build": true
+  }
+]

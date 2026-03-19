@@ -203,3 +203,38 @@ fn docs_examples_compile_or_fail_as_documented() {
         }
     }
 }
+
+#[test]
+fn docs_manifest_includes_a_positive_js_build_example() {
+    let manifest = load_manifest();
+    let example = manifest
+        .iter()
+        .find(|example| example.mode == "build_js_ok")
+        .expect("missing build_js_ok example");
+
+    assert_eq!(example.id, "std-wasm-js-scalar");
+    assert_eq!(example.doc, "docs/std.md");
+    assert_eq!(example.fixture, "docs/examples/std/06-wasm-js-scalar.ar");
+
+    let doc = read_repo_file("docs/std.md");
+    assert!(doc.contains("<!-- snippet: std-wasm-js-scalar -->"));
+}
+
+#[test]
+fn docs_manifest_includes_a_fieldless_match_wasm_example() {
+    let manifest = load_manifest();
+    let example = manifest
+        .iter()
+        .find(|example| example.id == "std-wasm-js-fieldless-match")
+        .expect("missing fieldless match wasm example");
+
+    assert_eq!(example.doc, "docs/std.md");
+    assert_eq!(
+        example.fixture,
+        "docs/examples/std/07-wasm-js-fieldless-match.ar"
+    );
+    assert_eq!(example.mode, "build_js_ok");
+
+    let doc = read_repo_file("docs/std.md");
+    assert!(doc.contains("<!-- snippet: std-wasm-js-fieldless-match -->"));
+}

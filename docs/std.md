@@ -54,7 +54,35 @@ fn main() -> Int:
   42
 ```
 
-Anything outside that scalar subset should fail hard during `arktc build`.
+The `wasm-js` target exports compiled functions by their source names instead of requiring a WASI entrypoint.
+
+<!-- snippet: std-wasm-js-scalar -->
+```arukel
+fn double(n: Int) -> Int:
+  n * 2
+```
+
+User-defined fieldless ADTs also lower on the current backend. Variants become numeric tags, and `match` is supported when each arm matches only a variant name or a final wildcard.
+
+<!-- snippet: std-wasm-js-fieldless-match -->
+```arukel
+type Choice =
+  Left
+  Right
+
+fn choose(flag: Bool) -> Choice:
+  if flag:
+    Left
+  else:
+    Right
+
+fn main() -> Int:
+  match choose(false):
+    Left -> 1
+    Right -> 2
+```
+
+Anything outside that subset should fail hard during `arktc build`. Payload-bearing constructors, pattern bindings, host calls, closures, and iterator helpers remain unsupported.
 
 <!-- snippet: std-wasm-unsupported -->
 ```arukel

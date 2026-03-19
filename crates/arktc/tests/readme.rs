@@ -116,3 +116,78 @@ fn main() -> Int:
     assert_eq!(export_names(&js_bytes), vec!["main"]);
     assert_eq!(export_names(&wasi_bytes), vec!["_start"]);
 }
+
+#[test]
+fn readme_build_contract_supports_literal_only_string_returns() {
+    let dir = tempdir().expect("tempdir");
+    let source = dir.path().join("string-return.ar");
+    fs::write(
+        &source,
+        "\
+fn main() -> String:
+  \"hello\"
+",
+    )
+    .expect("write source");
+    let wasm_js = dir.path().join("out-js.wasm");
+
+    let js_output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&source)
+        .arg("--target")
+        .arg("wasm-js")
+        .arg("--output")
+        .arg(&wasm_js)
+        .output()
+        .expect("run wasm-js build");
+
+    assert!(js_output.status.success(), "expected wasm-js build success");
+
+    let js_bytes = fs::read(&wasm_js).expect("read wasm-js");
+    let exports = export_names(&js_bytes);
+    assert!(exports.iter().any(|name| name == "memory"));
+    assert!(exports.iter().any(|name| name == "main"));
+}
+
+#[test]
+fn readme_build_contract_supports_fieldless_adt_matches() {
+    let dir = tempdir().expect("tempdir");
+    let source = dir.path().join("fieldless-match.ar");
+    fs::write(
+        &source,
+        "\
+type Choice =
+  Left
+  Right
+
+fn choose(flag: Bool) -> Choice:
+  if flag:
+    Left
+  else:
+    Right
+
+fn main() -> Int:
+  match choose(false):
+    Left -> 1
+    Right -> 2
+",
+    )
+    .expect("write source");
+    let wasm_js = dir.path().join("out-js.wasm");
+
+    let js_output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&source)
+        .arg("--target")
+        .arg("wasm-js")
+        .arg("--output")
+        .arg(&wasm_js)
+        .output()
+        .expect("run wasm-js build");
+
+    assert!(js_output.status.success(), "expected wasm-js build success");
+
+    let js_bytes = fs::read(&wasm_js).expect("read wasm-js");
+    let exports = export_names(&js_bytes);
+    assert_eq!(exports, vec!["choose", "main"]);
+}

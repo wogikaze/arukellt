@@ -146,9 +146,10 @@ fn main() -> Int:
 }
 
 #[test]
-fn build_command_rejects_unsupported_surface() {
+fn build_command_supports_string_literal_return_subset() {
     let dir = tempdir().expect("tempdir");
-    let file = dir.path().join("unsupported.lang");
+    let file = dir.path().join("string.lang");
+    let output_file = dir.path().join("out.wasm");
     fs::write(
         &file,
         "\
@@ -162,16 +163,61 @@ fn main() -> String:
         .arg("build")
         .arg(&file)
         .arg("--target")
-        .arg("wasm-wasi")
+        .arg("wasm-js")
+        .arg("--output")
+        .arg(&output_file)
         .output()
         .expect("run build");
 
-    assert!(!output.status.success(), "expected failing exit status");
-    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(output.status.success(), "expected successful exit status");
+    let bytes = fs::read(output_file).expect("read output wasm");
+    let exports = export_names(&bytes);
+
     assert!(
-        stderr.contains("not yet supported") || stderr.contains("unsupported wasm"),
-        "unexpected stderr: {stderr}"
+        exports.iter().any(|name| name == "memory") && exports.iter().any(|name| name == "main"),
+        "expected memory and main exports, got {exports:?}"
     );
+}
+
+#[test]
+fn build_command_supports_fieldless_adt_match_subset() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("fieldless-match.lang");
+    let output_file = dir.path().join("out.wasm");
+    fs::write(
+        &file,
+        "\
+type Choice =
+  Left
+  Right
+
+fn choose(flag: Bool) -> Choice:
+  if flag:
+    Left
+  else:
+    Right
+
+fn main() -> Int:
+  match choose(false):
+    Left -> 1
+    Right -> 2
+",
+    )
+    .expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-js")
+        .arg("--output")
+        .arg(&output_file)
+        .output()
+        .expect("run build");
+
+    assert!(output.status.success(), "expected successful exit status");
+    let bytes = fs::read(output_file).expect("read output wasm");
+    assert_eq!(export_names(&bytes), vec!["choose", "main"]);
 }
 
 #[test]
@@ -190,6 +236,61 @@ fn build_command_rejects_unsupported_bundled_example() {
     let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
     assert!(
         stderr.contains("console.println") && stderr.contains("not yet supported"),
+        "unexpected stderr: {stderr}"
+    );
+}
+
+#[test]
+fn build_command_rejects_string_builtin_calls() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("unsupported-string.lang");
+    fs::write(
+        &file,
+        "\
+fn main() -> String:
+  string(42)
+",
+    )
+    .expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-js")
+        .output()
+        .expect("run build");
+
+    assert!(!output.status.success(), "expected failing exit status");
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(
+        stderr.contains("calls to `string`") && stderr.contains("not yet supported"),
+        "unexpected stderr: {stderr}"
+    );
+}
+
+#[test]
+fn build_command_rejects_unknown_target_values() {
+    let file = repo_root().join("example/wasm_scalar.ar");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("bad-target")
+        .output()
+        .expect("run build");
+
+    assert_eq!(
+        output.status.code(),
+        Some(2),
+        "expected clap usage failure\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(
+        stderr.contains("invalid value 'bad-target'") && stderr.contains("wasm-js"),
         "unexpected stderr: {stderr}"
     );
 }

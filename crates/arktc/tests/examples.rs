@@ -2,66 +2,18 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
+use serde::Deserialize;
 use tempfile::tempdir;
 
+#[derive(Debug, Deserialize)]
 struct ExampleExpectation {
-    name: &'static str,
-    wasm_js_builds: bool,
-    wasm_wasi_builds: bool,
+    name: String,
+    arktc_check: bool,
+    chef_run: bool,
+    chef_test: bool,
+    wasm_js_build: bool,
+    wasm_wasi_build: bool,
 }
-
-const EXAMPLE_MATRIX: &[ExampleExpectation] = &[
-    ExampleExpectation {
-        name: "closure.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-    ExampleExpectation {
-        name: "factorial.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-    ExampleExpectation {
-        name: "fibonacci.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-    ExampleExpectation {
-        name: "file_read.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-    ExampleExpectation {
-        name: "fizz_buzz.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-    ExampleExpectation {
-        name: "hello_world.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-    ExampleExpectation {
-        name: "infinite_iter.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-    ExampleExpectation {
-        name: "map_filter_sum.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-    ExampleExpectation {
-        name: "powers.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-    ExampleExpectation {
-        name: "result_error_handling.ar",
-        wasm_js_builds: false,
-        wasm_wasi_builds: false,
-    },
-];
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -76,8 +28,17 @@ fn example_root() -> PathBuf {
     repo_root().join("example")
 }
 
+fn example_matrix() -> Vec<ExampleExpectation> {
+    let path = example_root().join("matrix.json");
+    let source = fs::read_to_string(&path)
+        .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
+    serde_json::from_str(&source)
+        .unwrap_or_else(|error| panic!("failed to parse {}: {error}", path.display()))
+}
+
 #[test]
 fn matrix_lists_every_bundled_example() {
+    let matrix = example_matrix();
     let mut actual = fs::read_dir(example_root())
         .expect("read example dir")
         .map(|entry| entry.expect("dir entry").path())
@@ -91,9 +52,9 @@ fn matrix_lists_every_bundled_example() {
         .collect::<Vec<_>>();
     actual.sort();
 
-    let mut expected = EXAMPLE_MATRIX
+    let mut expected = matrix
         .iter()
-        .map(|example| example.name.to_owned())
+        .map(|example| example.name.clone())
         .collect::<Vec<_>>();
     expected.sort();
 
@@ -102,19 +63,29 @@ fn matrix_lists_every_bundled_example() {
 
 #[test]
 fn check_command_accepts_all_bundled_examples() {
-    for example in EXAMPLE_MATRIX {
-        let path = example_root().join(example.name);
+    for example in example_matrix() {
+        assert!(
+            example.chef_run,
+            "expected chef_run coverage for {}",
+            example.name
+        );
+        assert!(
+            example.chef_test,
+            "expected chef_test coverage for {}",
+            example.name
+        );
+        let path = example_root().join(&example.name);
         let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
             .arg("check")
             .arg(&path)
             .output()
             .unwrap_or_else(|error| panic!("failed to check {}: {error}", path.display()));
 
-        assert!(
+        assert_eq!(
             output.status.success(),
-            "expected check success for {} but got status {:?}\nstdout:\n{}\nstderr:\n{}",
+            example.arktc_check,
+            "unexpected check status for {}\nstdout:\n{}\nstderr:\n{}",
             path.display(),
-            output.status.code(),
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
         );
@@ -123,14 +94,14 @@ fn check_command_accepts_all_bundled_examples() {
 
 #[test]
 fn build_command_matches_bundled_example_wasm_matrix() {
-    for example in EXAMPLE_MATRIX {
-        assert_build_status(example, "wasm-js", example.wasm_js_builds);
-        assert_build_status(example, "wasm-wasi", example.wasm_wasi_builds);
+    for example in example_matrix() {
+        assert_build_status(&example, "wasm-js", example.wasm_js_build);
+        assert_build_status(&example, "wasm-wasi", example.wasm_wasi_build);
     }
 }
 
 fn assert_build_status(example: &ExampleExpectation, target: &str, expect_success: bool) {
-    let path = example_root().join(example.name);
+    let path = example_root().join(&example.name);
     let dir = tempdir().expect("tempdir");
     let output_file = dir.path().join(format!("{}-{target}.wasm", example.name));
     let output = Command::new(env!("CARGO_BIN_EXE_arktc"))

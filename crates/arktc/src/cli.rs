@@ -12,16 +12,26 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Command {
+    #[command(about = "Parse and typecheck a source file")]
     Check {
+        #[arg(help = "Path to the .ar source file to check")]
         file: PathBuf,
-        #[arg(long)]
+        #[arg(
+            long,
+            help = "Emit structured diagnostics JSON instead of human-readable lines"
+        )]
         json: bool,
     },
+    #[command(about = "Compile a source file to WebAssembly for a supported prototype subset")]
     Build {
+        #[arg(help = "Path to the .ar source file to compile")]
         file: PathBuf,
-        #[arg(long)]
+        #[arg(
+            long,
+            help = "WebAssembly target; only the current limited wasm subset is supported"
+        )]
         target: BuildTarget,
-        #[arg(short, long)]
+        #[arg(short, long, help = "Write the compiled .wasm bytes to this path")]
         output: Option<PathBuf>,
     },
 }

@@ -80,6 +80,7 @@ dependencies = [
  "clap",
  "lang-core",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -96,7 +97,11 @@ dependencies = [
 name = "arktup"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap",
+ "serde",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]

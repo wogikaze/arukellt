@@ -2,6 +2,18 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
+struct ExampleExpectation {
+    name: String,
+    arktc_check: bool,
+    chef_run: bool,
+    chef_test: bool,
+    wasm_js_build: bool,
+    wasm_wasi_build: bool,
+}
+
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -15,6 +27,14 @@ fn example_root() -> PathBuf {
     repo_root().join("example")
 }
 
+fn example_matrix() -> Vec<ExampleExpectation> {
+    let path = example_root().join("matrix.json");
+    let source = fs::read_to_string(&path)
+        .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
+    serde_json::from_str(&source)
+        .unwrap_or_else(|error| panic!("failed to parse {}: {error}", path.display()))
+}
+
 fn stdout_fixture(path: &Path) -> String {
     let fixture = path.with_extension("stdout");
     fs::read_to_string(&fixture)
@@ -23,21 +43,14 @@ fn stdout_fixture(path: &Path) -> String {
 
 #[test]
 fn run_command_matches_example_stdout_fixtures() {
-    let examples = [
-        "hello_world.ar",
-        "factorial.ar",
-        "fibonacci.ar",
-        "closure.ar",
-        "map_filter_sum.ar",
-        "result_error_handling.ar",
-        "fizz_buzz.ar",
-        "infinite_iter.ar",
-        "file_read.ar",
-        "powers.ar",
-    ];
-
-    for name in examples {
-        let path = example_root().join(name);
+    for example in example_matrix() {
+        assert!(
+            example.arktc_check,
+            "expected arktc_check coverage for {}",
+            example.name
+        );
+        let _ = (example.wasm_js_build, example.wasm_wasi_build);
+        let path = example_root().join(&example.name);
         let output = Command::new(env!("CARGO_BIN_EXE_chef"))
             .arg("run")
             .arg(&path)
@@ -45,11 +58,11 @@ fn run_command_matches_example_stdout_fixtures() {
             .output()
             .unwrap_or_else(|error| panic!("failed to run {}: {error}", path.display()));
 
-        assert!(
+        assert_eq!(
             output.status.success(),
-            "expected success for {} but got status {:?}\nstdout:\n{}\nstderr:\n{}",
+            example.chef_run,
+            "unexpected run status for {}\nstdout:\n{}\nstderr:\n{}",
             path.display(),
-            output.status.code(),
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
         );
@@ -59,28 +72,15 @@ fn run_command_matches_example_stdout_fixtures() {
             stdout,
             stdout_fixture(&path),
             "stdout mismatch for {}",
-            name
+            example.name
         );
     }
 }
 
 #[test]
 fn test_command_uses_example_stdout_snapshots() {
-    let examples = [
-        "hello_world.ar",
-        "factorial.ar",
-        "fibonacci.ar",
-        "closure.ar",
-        "map_filter_sum.ar",
-        "result_error_handling.ar",
-        "fizz_buzz.ar",
-        "infinite_iter.ar",
-        "file_read.ar",
-        "powers.ar",
-    ];
-
-    for name in examples {
-        let path = example_root().join(name);
+    for example in example_matrix() {
+        let path = example_root().join(&example.name);
         let output = Command::new(env!("CARGO_BIN_EXE_chef"))
             .arg("test")
             .arg(&path)
@@ -88,11 +88,11 @@ fn test_command_uses_example_stdout_snapshots() {
             .output()
             .unwrap_or_else(|error| panic!("failed to test {}: {error}", path.display()));
 
-        assert!(
+        assert_eq!(
             output.status.success(),
-            "expected success for {} but got status {:?}\nstdout:\n{}\nstderr:\n{}",
+            example.chef_test,
+            "unexpected test status for {}\nstdout:\n{}\nstderr:\n{}",
             path.display(),
-            output.status.code(),
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
         );

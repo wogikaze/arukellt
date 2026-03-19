@@ -135,3 +135,59 @@ fn fmt_idempotent_on_hello_world() {
 
     assert_eq!(first, second, "formatter must be idempotent");
 }
+
+#[test]
+fn fmt_rejects_invalid_source_without_printing_placeholder_nodes() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("broken.lang");
+    fs::write(
+        &file,
+        "\
+fn broken(flag: Bool, value: Int) -> Int:
+  if flag:
+    value
+",
+    )
+    .expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktfmt"))
+        .arg(&file)
+        .output()
+        .expect("run fmt");
+
+    assert!(!output.status.success(), "expected failing exit status");
+    assert!(
+        output.stdout.is_empty(),
+        "unexpected stdout: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(
+        stderr.contains("E_IF_ELSE_REQUIRED")
+            && stderr.contains("cannot format invalid source")
+            && !stderr.contains("<error>"),
+        "unexpected stderr: {stderr}"
+    );
+}
+
+#[test]
+fn fmt_write_does_not_overwrite_invalid_source() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("broken-write.lang");
+    let source = "\
+fn broken(flag: Bool, value: Int) -> Int:
+  if flag:
+    value
+";
+    fs::write(&file, source).expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktfmt"))
+        .arg(&file)
+        .arg("--write")
+        .output()
+        .expect("run fmt --write");
+
+    assert!(!output.status.success(), "expected failing exit status");
+    let content = fs::read_to_string(&file).expect("read back file");
+    assert_eq!(content, source, "invalid source must not be rewritten");
+}

@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use anyhow::{Context, Result};
-use lang_core::{CompileResult, TypedModule, compile_module};
+use lang_core::{CompileResult, Diagnostic, TypedModule, compile_module};
 use lang_interp::{Interpreter, Value};
 use lang_ir::lower_to_high_ir;
 
@@ -51,6 +51,8 @@ fn test_command(file: &Path, json: bool) -> Result<ExitCode> {
     if result.error_count() > 0 {
         if json {
             println!("{}", serde_json::to_string_pretty(&result.to_json()?)?);
+        } else {
+            print_diagnostics(&result.diagnostics);
         }
         return Ok(ExitCode::from(1));
     }
@@ -196,5 +198,14 @@ fn render_run_output(value: &Value, captured_output: &str) -> String {
     match value {
         Value::Unit => String::new(),
         _ => format!("{}\n", render_value(value)),
+    }
+}
+
+fn print_diagnostics(diagnostics: &[Diagnostic]) {
+    for diagnostic in diagnostics {
+        println!(
+            "[{:?}] {} {}: {}",
+            diagnostic.stage, diagnostic.code, diagnostic.message, diagnostic.suggested_fix
+        );
     }
 }

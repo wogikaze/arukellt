@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Arukellt documentation shell for the language tour and standard surface."
+    >
+    <title>Arukellt Docs</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside id="sidebar" class="shell-panel sidebar" aria-label="Primary navigation"></aside>
+      <main id="doc-view" class="shell-panel doc-view" aria-live="polite"></main>
+      <section
+        id="playground-pane"
+        class="shell-panel playground-pane"
+        aria-label="Snippet interaction pane"
+      ></section>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
