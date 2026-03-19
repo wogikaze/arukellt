@@ -1,23 +1,25 @@
 # AGENTS
 
-This file describes how to work safely in the Arukel repository.
+This file describes how to work safely in the Arukellt repository.
 
 ## Scope
 
-Arukel is an experimental Rust workspace for an LLM-first language and toolchain. The codebase is small, but the crates are intentionally separated by pipeline stage:
+Arukellt is an experimental Rust workspace for an LLM-first language and toolchain. The codebase is small, but the crates are intentionally separated by pipeline stage:
 
 - `lang-core`: syntax, AST, diagnostics, and typechecking
 - `lang-ir`: IR lowering
 - `lang-interp`: execution on High IR
 - `lang-backend-wasm`: WASM emission
-- `lang-cli`: user-facing commands
+- `arktc`: compiler-facing public binary
+- `chef`: test, run, and benchmark public binary
+- `arktfmt`: formatter public binary
 - `lang-playground-core`: browser-facing JSON and wasm-bindgen wrapper
 
-When you change behavior, keep that layering intact. Do not make CLI code become the source of truth for compiler behavior.
+When you change behavior, keep that layering intact. Do not make public binary code become the source of truth for compiler behavior.
 
 ## Workflow
 
-- Work from the workspace root: `/home/wogikaze/arukellt/.worktrees/arukel-v0`
+- Work from the workspace root: `/home/wogikaze/arukellt/.worktrees/arukellt-v0`
 - Prefer small vertical slices over large speculative rewrites
 - Add or update tests before changing behavior
 - Keep diagnostics stable once a test depends on a diagnostic code
@@ -35,7 +37,7 @@ cargo test
 If you change benchmark behavior or CLI output relevant to evaluation, also run:
 
 ```bash
-cargo run -p lang-cli -- benchmark benchmarks/pure_logic.json
+cargo run -p chef -- benchmark benchmarks/pure_logic.json
 ```
 
 Do not claim a backend feature works unless you ran the matching test or command after the change.
@@ -67,9 +69,11 @@ If you need to add capability, do it in this order:
 2. Extend `lang-core` if syntax or typing changes
 3. Extend `lang-ir` if a new runtime representation is needed
 4. Extend `lang-interp` so the development loop stays usable
-5. Extend `lang-cli`
-6. Extend `lang-backend-wasm` if the feature is meant to compile to WASM now
-7. Extend `lang-playground-core` only if browser consumers need the new surface
+5. Extend `arktc` for compiler-facing behavior
+6. Extend `chef` for test/run/benchmark behavior
+7. Extend `arktfmt` for formatting behavior
+8. Extend `lang-backend-wasm` if the feature is meant to compile to WASM now
+9. Extend `lang-playground-core` only if browser consumers need the new surface
 
 ## Avoid
 

@@ -17,9 +17,8 @@ fn example_root() -> PathBuf {
 
 fn stdout_fixture(path: &Path) -> String {
     let fixture = path.with_extension("stdout");
-    fs::read_to_string(&fixture).unwrap_or_else(|error| {
-        panic!("failed to read fixture {}: {error}", fixture.display())
-    })
+    fs::read_to_string(&fixture)
+        .unwrap_or_else(|error| panic!("failed to read fixture {}: {error}", fixture.display()))
 }
 
 #[test]
@@ -56,7 +55,12 @@ fn run_command_matches_example_stdout_fixtures() {
         );
 
         let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
-        assert_eq!(stdout, stdout_fixture(&path), "stdout mismatch for {}", name);
+        assert_eq!(
+            stdout,
+            stdout_fixture(&path),
+            "stdout mismatch for {}",
+            name
+        );
     }
 }
 

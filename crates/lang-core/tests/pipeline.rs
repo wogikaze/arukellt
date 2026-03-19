@@ -344,7 +344,56 @@ fn make() -> Int:
 
     // tuple param type currently parsed as Named; just check no crash
     assert!(
-        !result.diagnostics.iter().any(|d| d.code == "E_NULL_FORBIDDEN"),
+        !result
+            .diagnostics
+            .iter()
+            .any(|d| d.code == "E_NULL_FORBIDDEN"),
         "unexpected null diagnostic"
     );
+}
+
+#[test]
+fn rejects_non_exhaustive_match_with_stable_diagnostic() {
+    let source = "\
+type Choice =
+  Left(value: Int)
+  Right(value: Int)
+
+fn main(choice: Choice) -> Int:
+  match choice:
+    Left(value) -> value
+";
+
+    let result = compile_module(source);
+
+    assert!(result.module.is_none(), "expected compile failure");
+    let diagnostic = result
+        .diagnostics
+        .iter()
+        .find(|diagnostic| diagnostic.code == "E_MATCH_NOT_EXHAUSTIVE")
+        .expect("match exhaustiveness diagnostic");
+    assert_eq!(diagnostic.stage, DiagnosticStage::Typecheck);
+    assert!(diagnostic.suggested_fix.contains("wildcard"));
+    let json = result.to_json().expect("json diagnostics");
+    assert_eq!(json["diagnostics"][0]["code"], "E_MATCH_NOT_EXHAUSTIVE");
+}
+
+#[test]
+fn rejects_return_type_mismatch_with_stable_diagnostic() {
+    let source = "\
+fn main() -> Int:
+  true
+";
+
+    let result = compile_module(source);
+
+    assert!(result.module.is_none(), "expected compile failure");
+    let diagnostic = result
+        .diagnostics
+        .iter()
+        .find(|diagnostic| diagnostic.code == "E_RETURN_MISMATCH")
+        .expect("return mismatch diagnostic");
+    assert_eq!(diagnostic.stage, DiagnosticStage::Typecheck);
+    assert_eq!(diagnostic.expected, "Int");
+    assert_eq!(diagnostic.actual, "Bool");
 }

@@ -65,3 +65,26 @@ fn main(choice: Choice) -> Int:
     let value: serde_json::Value = serde_json::from_str(&json).expect("json");
     assert_eq!(value["result"], 7);
 }
+
+#[test]
+fn run_source_returns_diagnostics_json_for_compile_failures() {
+    let json = run_source_json(
+        "\
+type Choice =
+  Left(value: Int)
+  Right(value: Int)
+
+fn main(choice: Choice) -> Int:
+  match choice:
+    Left(value) -> value
+",
+        "main",
+        r#"[{"tag":"Left","fields":[7]}]"#,
+        false,
+    )
+    .expect("diagnostics json");
+
+    let value: serde_json::Value = serde_json::from_str(&json).expect("json");
+    assert_eq!(value["version"], "v0.1");
+    assert_eq!(value["diagnostics"][0]["code"], "E_MATCH_NOT_EXHAUSTIVE");
+}

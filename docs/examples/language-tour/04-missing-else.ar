@@ -1,0 +1,3 @@
+fn main(flag: Bool) -> Int:
+  if flag:
+    1

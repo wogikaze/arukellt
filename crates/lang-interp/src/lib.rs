@@ -17,14 +17,20 @@ pub enum Value {
     String(String),
     List(Vec<Value>),
     Tuple(Vec<Value>),
-    Variant { name: String, fields: Vec<Value> },
+    Variant {
+        name: String,
+        fields: Vec<Value>,
+    },
     Function(String),
     Closure {
         param: String,
         body: HighExpr,
         env: HashMap<String, Value>,
     },
-    IterUnfold { state: Box<Value>, func: Box<Value> },
+    IterUnfold {
+        state: Box<Value>,
+        func: Box<Value>,
+    },
     Error,
 }
 
@@ -284,14 +290,12 @@ impl Interpreter {
                 self.call_callable(callable, args)
             }
             "__index" => match args.as_slice() {
-                [Value::Tuple(items), Value::Int(index)] => Ok(items
-                    .get(*index as usize)
-                    .cloned()
-                    .unwrap_or(Value::Error)),
-                [Value::List(items), Value::Int(index)] => Ok(items
-                    .get(*index as usize)
-                    .cloned()
-                    .unwrap_or(Value::Error)),
+                [Value::Tuple(items), Value::Int(index)] => {
+                    Ok(items.get(*index as usize).cloned().unwrap_or(Value::Error))
+                }
+                [Value::List(items), Value::Int(index)] => {
+                    Ok(items.get(*index as usize).cloned().unwrap_or(Value::Error))
+                }
                 _ => Err(InterpreterError::TypeMismatch("index operation")),
             },
             "range_inclusive" => match args.as_slice() {
@@ -360,7 +364,9 @@ impl Interpreter {
                     let callable = (**func).clone();
                     for _ in 0..*limit {
                         match self.call_callable(callable.clone(), vec![state.clone()])? {
-                            Value::Variant { name, fields } if name == "Next" && fields.len() == 2 => {
+                            Value::Variant { name, fields }
+                                if name == "Next" && fields.len() == 2 =>
+                            {
                                 items.push(fields[0].clone());
                                 state = fields[1].clone();
                             }
@@ -370,9 +376,9 @@ impl Interpreter {
                     }
                     Ok(Value::List(items))
                 }
-                [Value::List(items), Value::Int(limit)] => {
-                    Ok(Value::List(items.iter().take(*limit as usize).cloned().collect()))
-                }
+                [Value::List(items), Value::Int(limit)] => Ok(Value::List(
+                    items.iter().take(*limit as usize).cloned().collect(),
+                )),
                 _ => Err(InterpreterError::TypeMismatch("take(iter, n)")),
             },
             "iter.unfold" => match args.as_slice() {
@@ -391,7 +397,9 @@ impl Interpreter {
                     }
                     Ok(Value::Unit)
                 }
-                _ => Err(InterpreterError::ArityMismatch("console.println".to_owned())),
+                _ => Err(InterpreterError::ArityMismatch(
+                    "console.println".to_owned(),
+                )),
             },
             "fs.read_text" => match args.as_slice() {
                 [Value::String(path)] => self.read_text(path),
@@ -480,7 +488,10 @@ impl Interpreter {
     }
 
     fn has_named_function(&self, name: &str) -> bool {
-        self.module.functions.iter().any(|function| function.name == name)
+        self.module
+            .functions
+            .iter()
+            .any(|function| function.name == name)
     }
 }
 
@@ -511,18 +522,30 @@ fn render_value(value: &Value) -> String {
         Value::Bool(flag) => flag.to_string(),
         Value::String(text) => text.clone(),
         Value::List(items) => {
-            let rendered = items.iter().map(render_value).collect::<Vec<_>>().join(", ");
+            let rendered = items
+                .iter()
+                .map(render_value)
+                .collect::<Vec<_>>()
+                .join(", ");
             format!("[{rendered}]")
         }
         Value::Tuple(items) => {
-            let rendered = items.iter().map(render_value).collect::<Vec<_>>().join(", ");
+            let rendered = items
+                .iter()
+                .map(render_value)
+                .collect::<Vec<_>>()
+                .join(", ");
             format!("({rendered})")
         }
         Value::Variant { name, fields } => {
             if fields.is_empty() {
                 name.clone()
             } else {
-                let rendered = fields.iter().map(render_value).collect::<Vec<_>>().join(", ");
+                let rendered = fields
+                    .iter()
+                    .map(render_value)
+                    .collect::<Vec<_>>()
+                    .join(", ");
                 format!("{name}({rendered})")
             }
         }

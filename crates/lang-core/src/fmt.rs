@@ -167,7 +167,11 @@ fn format_expr_block(expr: &Expr, level: usize) -> String {
             )
         }
         Expr::Index { receiver, index } => {
-            format!("{prefix}{}[{}]", format_inline(receiver), format_inline(index))
+            format!(
+                "{prefix}{}[{}]",
+                format_inline(receiver),
+                format_inline(index)
+            )
         }
         Expr::Range { start, end } => {
             format!("{prefix}{}..={}", format_inline(start), format_inline(end))

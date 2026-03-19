@@ -1,0 +1,61 @@
+[
+  {
+    "id": "language-tour-hello-world",
+    "doc": "docs/language-tour.md",
+    "fixture": "docs/examples/language-tour/01-hello-world.ar",
+    "mode": "run",
+    "stdout_fixture": "docs/examples/language-tour/01-hello-world.stdout"
+  },
+  {
+    "id": "language-tour-pure-max",
+    "doc": "docs/language-tour.md",
+    "fixture": "docs/examples/language-tour/02-pure-max.ar",
+    "mode": "check_ok"
+  },
+  {
+    "id": "language-tour-adt-match",
+    "doc": "docs/language-tour.md",
+    "fixture": "docs/examples/language-tour/03-adt-match.ar",
+    "mode": "check_ok"
+  },
+  {
+    "id": "language-tour-missing-else",
+    "doc": "docs/language-tour.md",
+    "fixture": "docs/examples/language-tour/04-missing-else.ar",
+    "mode": "check_fail",
+    "error_code": "E_IF_ELSE_REQUIRED"
+  },
+  {
+    "id": "std-closure-map",
+    "doc": "docs/std.md",
+    "fixture": "docs/examples/std/01-closure-map.ar",
+    "mode": "run",
+    "stdout_fixture": "docs/examples/std/01-closure-map.stdout"
+  },
+  {
+    "id": "std-file-read",
+    "doc": "docs/std.md",
+    "fixture": "docs/examples/std/02-file-read.ar",
+    "mode": "run",
+    "stdout_fixture": "docs/examples/std/02-file-read.stdout"
+  },
+  {
+    "id": "std-inline-test",
+    "doc": "docs/std.md",
+    "fixture": "docs/examples/std/03-inline-test.ar",
+    "mode": "test_ok"
+  },
+  {
+    "id": "std-wasm-scalar",
+    "doc": "docs/std.md",
+    "fixture": "docs/examples/std/04-wasm-scalar.ar",
+    "mode": "build_wasi_ok"
+  },
+  {
+    "id": "std-wasm-unsupported",
+    "doc": "docs/std.md",
+    "fixture": "docs/examples/std/05-wasm-unsupported.ar",
+    "mode": "build_wasi_fail",
+    "error_substring": "console.println"
+  }
+]

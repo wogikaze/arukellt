@@ -2,22 +2,22 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make every file in `example/*.ar` executable through `lang run` and testable through `lang test`.
+**Goal:** Make every file in `example/*.ar` executable through `chef run` and testable through `chef test`.
 
 **Architecture:** Extend the current compiler/interpreter vertically instead of adding a parallel executor. The parser and typechecker gain only the surface needed by the examples, the interpreter gets the builtin runtime for console, fs, ranges, lists, pipes, lambdas, and iter/unfold, and the CLI gains snapshot-style example testing.
 
-**Tech Stack:** Rust workspace, `lang-core`, `lang-ir`, `lang-interp`, `lang-cli`, integration tests with `cargo test`
+**Tech Stack:** Rust workspace, `lang-core`, `lang-ir`, `lang-interp`, `arktc`, `chef`, integration tests with `cargo test`
 
 ---
 
 ### Task 1: Lock down example runner behavior with failing CLI tests
 
 **Files:**
-- Modify: `crates/lang-cli/tests/cli.rs`
+- Modify: `crates/chef/tests/examples.rs`
 - Create: `example/*.stdout`
 
-- [ ] Add failing integration tests that run representative examples via `lang run` and assert exact stdout.
-- [ ] Add failing integration tests that call `lang test example/<name>.ar` and assert snapshot success.
+- [ ] Add failing integration tests that run representative examples via `chef run` and assert exact stdout.
+- [ ] Add failing integration tests that call `chef test example/<name>.ar` and assert snapshot success.
 - [ ] Run the targeted CLI tests and confirm they fail for missing syntax/runtime support.
 
 ### Task 2: Extend surface syntax in `lang-core`
@@ -58,12 +58,12 @@
 ### Task 5: Wire CLI example execution and snapshot testing
 
 **Files:**
-- Modify: `crates/lang-cli/src/commands.rs`
-- Modify: `crates/lang-cli/src/cli.rs`
-- Modify: `crates/lang-cli/tests/cli.rs`
+- Modify: `crates/chef/src/commands.rs`
+- Modify: `crates/chef/src/cli.rs`
+- Modify: `crates/chef/tests/examples.rs`
 
-- [ ] Make `lang run` execute `main()` for the examples and emit captured console stdout without extra `result:` noise for unit-returning programs.
-- [ ] Make `lang test` fall back to snapshot testing using adjacent `.stdout` files when a source file has no `test_*` functions.
+- [ ] Make `chef run` execute `main()` for the examples and emit captured console stdout without extra `result:` noise for unit-returning programs.
+- [ ] Make `chef test` fall back to snapshot testing using adjacent `.stdout` files when a source file has no `test_*` functions.
 - [ ] Re-run CLI tests and keep the behavior stable.
 
 ### Task 6: Update example fixtures and docs, then verify end-to-end
@@ -75,7 +75,7 @@
 
 - [ ] Ensure every example source matches the implemented surface and has an expected stdout fixture.
 - [ ] Run `cargo test`.
-- [ ] Run `cargo run -p lang-cli -- run example/hello_world.ar`.
-- [ ] Run `cargo run -p lang-cli -- test example/hello_world.ar`.
-- [ ] Run a loop over every `example/*.ar` for both `lang run` and `lang test`, and confirm all pass.
+- [ ] Run `cargo run -p chef -- run example/hello_world.ar`.
+- [ ] Run `cargo run -p chef -- test example/hello_world.ar`.
+- [ ] Run a loop over every `example/*.ar` for both `chef run` and `chef test`, and confirm all pass.
 - [ ] Commit the runnable examples and CLI/runtime changes in one commit.

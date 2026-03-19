@@ -1,0 +1,8 @@
+type Choice =
+  Left(value: Int)
+  Right(value: Int)
+
+fn pick(choice: Choice) -> Int:
+  match choice:
+    Left(value) -> value
+    Right(value) -> value

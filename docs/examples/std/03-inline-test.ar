@@ -1,0 +1,5 @@
+fn double(n: Int) -> Int:
+  n * 2
+
+fn test_double() -> Bool:
+  double(21) == 42

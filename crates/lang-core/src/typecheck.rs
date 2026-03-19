@@ -223,7 +223,10 @@ impl<'a> FunctionChecker<'a> {
                 ty: Type::String,
             },
             Expr::List(items) => {
-                let typed_items = items.iter().map(|item| self.infer_expr(item)).collect::<Vec<_>>();
+                let typed_items = items
+                    .iter()
+                    .map(|item| self.infer_expr(item))
+                    .collect::<Vec<_>>();
                 let element_ty = typed_items
                     .first()
                     .map(|item| item.ty.clone())
@@ -234,8 +237,14 @@ impl<'a> FunctionChecker<'a> {
                 }
             }
             Expr::Tuple(items) => {
-                let typed_items = items.iter().map(|item| self.infer_expr(item)).collect::<Vec<_>>();
-                let item_types = typed_items.iter().map(|item| item.ty.clone()).collect::<Vec<_>>();
+                let typed_items = items
+                    .iter()
+                    .map(|item| self.infer_expr(item))
+                    .collect::<Vec<_>>();
+                let item_types = typed_items
+                    .iter()
+                    .map(|item| item.ty.clone())
+                    .collect::<Vec<_>>();
                 TypedExpr {
                     kind: TypedExprKind::Tuple(typed_items),
                     ty: Type::Tuple(item_types),
@@ -360,7 +369,9 @@ impl<'a> FunctionChecker<'a> {
                 let typed_else = self.infer_expr(else_branch);
                 self.expect_type("Bool", &typed_condition.ty, "if_condition");
                 let ty = merge_types(&typed_then.ty, &typed_else.ty);
-                if ty == Type::Unknown && typed_then.ty != Type::Unknown && typed_else.ty != Type::Unknown
+                if ty == Type::Unknown
+                    && typed_then.ty != Type::Unknown
+                    && typed_else.ty != Type::Unknown
                 {
                     self.diagnostics.push(make_error(
                         "E_IF_BRANCH_MISMATCH",
@@ -476,13 +487,23 @@ impl<'a> FunctionChecker<'a> {
                 if matches!(callee.as_str(), "Ok" | "Err") {
                     let ty = if callee == "Ok" {
                         Type::Result(
-                            Box::new(typed_args.first().map(|arg| arg.ty.clone()).unwrap_or(Type::Unknown)),
+                            Box::new(
+                                typed_args
+                                    .first()
+                                    .map(|arg| arg.ty.clone())
+                                    .unwrap_or(Type::Unknown),
+                            ),
                             Box::new(Type::Unknown),
                         )
                     } else {
                         Type::Result(
                             Box::new(Type::Unknown),
-                            Box::new(typed_args.first().map(|arg| arg.ty.clone()).unwrap_or(Type::Unknown)),
+                            Box::new(
+                                typed_args
+                                    .first()
+                                    .map(|arg| arg.ty.clone())
+                                    .unwrap_or(Type::Unknown),
+                            ),
                         )
                     };
                     return TypedExpr {
@@ -727,7 +748,10 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         "range_inclusive" => Type::List(Box::new(Type::Int)),
         "string" => Type::String,
         "map" => Type::List(Box::new(Type::Unknown)),
-        "filter" => args.first().map(|arg| arg.ty.clone()).unwrap_or(Type::Unknown),
+        "filter" => args
+            .first()
+            .map(|arg| arg.ty.clone())
+            .unwrap_or(Type::Unknown),
         "sum" => Type::Int,
         "join" => Type::String,
         "take" => Type::List(Box::new(Type::Unknown)),

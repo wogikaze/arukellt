@@ -12,12 +12,12 @@ pub use ast::{
 pub use diagnostics::{
     CompileResult, Diagnostic, DiagnosticLevel, DiagnosticStage, RelatedInformation, Span,
 };
+pub use fmt::format_module;
 pub use lexer::{LexOutput, Token, TokenKind, lex};
+pub use parser::ParseOutput;
 pub use typecheck::{
     TypedExpr, TypedExprKind, TypedFunction, TypedMatchArm, TypedModule, TypedParam,
 };
-pub use fmt::format_module;
-pub use parser::ParseOutput;
 pub use types::Type;
 
 use parser::parse;

@@ -198,21 +198,15 @@ impl<'a> Parser<'a> {
                     }
                     self.expect_kind(TokenKind::Greater, "closing >", ">");
                     match name.as_str() {
-                        "Result" if args.len() >= 2 => Type::Result(
-                            Box::new(args[0].clone()),
-                            Box::new(args[1].clone()),
-                        ),
-                        "Option" if !args.is_empty() => {
-                            Type::Option(Box::new(args[0].clone()))
+                        "Result" if args.len() >= 2 => {
+                            Type::Result(Box::new(args[0].clone()), Box::new(args[1].clone()))
                         }
+                        "Option" if !args.is_empty() => Type::Option(Box::new(args[0].clone())),
                         "List" if !args.is_empty() => Type::List(Box::new(args[0].clone())),
-                        "Seq" | "Iter" if !args.is_empty() => {
-                            Type::Seq(Box::new(args[0].clone()))
+                        "Seq" | "Iter" if !args.is_empty() => Type::Seq(Box::new(args[0].clone())),
+                        "Fn" if args.len() >= 2 => {
+                            Type::Fn(Box::new(args[0].clone()), Box::new(args[1].clone()))
                         }
-                        "Fn" if args.len() >= 2 => Type::Fn(
-                            Box::new(args[0].clone()),
-                            Box::new(args[1].clone()),
-                        ),
                         _ => Type::Unknown,
                     }
                 } else {
@@ -446,8 +440,7 @@ impl<'a> Parser<'a> {
                     actual: "wildcard before a later arm".to_owned(),
                     cause: "wildcard_not_last".to_owned(),
                     related: Vec::new(),
-                    suggested_fix: "Move `_ -> ...` to the end of the match expression."
-                        .to_owned(),
+                    suggested_fix: "Move `_ -> ...` to the end of the match expression.".to_owned(),
                     alternatives: vec!["List the specific variants first.".to_owned()],
                     confidence: 0.88,
                 });

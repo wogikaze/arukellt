@@ -135,10 +135,7 @@ pub fn lex(source: &str) -> LexOutput {
             }
 
             // Skip inline comments
-            if column + 1 < line.len()
-                && ch == '/'
-                && line.as_bytes()[column + 1] as char == '/'
-            {
+            if column + 1 < line.len() && ch == '/' && line.as_bytes()[column + 1] as char == '/' {
                 break;
             }
 

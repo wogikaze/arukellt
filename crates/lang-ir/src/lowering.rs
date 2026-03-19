@@ -51,12 +51,8 @@ fn lower_expr(expr: &TypedExpr) -> HighExpr {
         TypedExprKind::Bool(value) => HighExprKind::Bool(*value),
         TypedExprKind::String(value) => HighExprKind::String(value.clone()),
         TypedExprKind::Ident(name) => HighExprKind::Ident(name.clone()),
-        TypedExprKind::List(items) => {
-            HighExprKind::List(items.iter().map(lower_expr).collect())
-        }
-        TypedExprKind::Tuple(items) => {
-            HighExprKind::Tuple(items.iter().map(lower_expr).collect())
-        }
+        TypedExprKind::List(items) => HighExprKind::List(items.iter().map(lower_expr).collect()),
+        TypedExprKind::Tuple(items) => HighExprKind::Tuple(items.iter().map(lower_expr).collect()),
         TypedExprKind::Lambda { param, body } => HighExprKind::Lambda {
             param: param.clone(),
             body: Box::new(lower_expr(body)),
@@ -125,9 +121,7 @@ fn lower_expr_to_low(expr: &HighExpr, instructions: &mut Vec<LowInstruction>) {
         HighExprKind::List(_)
         | HighExprKind::Tuple(_)
         | HighExprKind::Lambda { .. }
-        | HighExprKind::Let { .. } => {
-            instructions.push(LowInstruction::Error)
-        }
+        | HighExprKind::Let { .. } => instructions.push(LowInstruction::Error),
         HighExprKind::Binary { op, left, right } => {
             lower_expr_to_low(left, instructions);
             lower_expr_to_low(right, instructions);

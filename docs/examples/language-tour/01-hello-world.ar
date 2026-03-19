@@ -1,0 +1,4 @@
+import console
+
+fn main():
+  "Hello, world!" |> console.println

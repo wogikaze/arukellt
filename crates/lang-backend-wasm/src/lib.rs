@@ -22,7 +22,7 @@ pub fn build_module_from_source(source: &str, target: WasmTarget) -> Result<Vec<
     emit_wasm(&high, target)
 }
 
-pub fn emit_wasm(module: &HighModule, _target: WasmTarget) -> Result<Vec<u8>> {
+pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
     let mut wat_module = String::from("(module\n");
     let function_names = module
         .functions
@@ -32,14 +32,41 @@ pub fn emit_wasm(module: &HighModule, _target: WasmTarget) -> Result<Vec<u8>> {
     for function in &module.functions {
         wat_module.push_str(&emit_function(function, &function_names)?);
     }
+    match target {
+        WasmTarget::JavaScriptHost => emit_javascript_exports(module, &mut wat_module),
+        WasmTarget::Wasi => emit_wasi_entrypoint(module, &mut wat_module)?,
+    }
+    wat_module.push_str(")\n");
+    Ok(wat::parse_str(&wat_module)?)
+}
+
+fn emit_javascript_exports(module: &HighModule, out: &mut String) {
     for function in &module.functions {
-        wat_module.push_str(&format!(
+        out.push_str(&format!(
             "  (export \"{}\" (func ${}))\n",
             function.name, function.name
         ));
     }
-    wat_module.push_str(")\n");
-    Ok(wat::parse_str(&wat_module)?)
+}
+
+fn emit_wasi_entrypoint(module: &HighModule, out: &mut String) -> Result<()> {
+    let main = module
+        .functions
+        .iter()
+        .find(|function| function.name == "main")
+        .ok_or_else(|| anyhow!("wasm-wasi target requires a `main` function"))?;
+    if !main.params.is_empty() {
+        bail!("wasm-wasi target requires `main` to take no parameters");
+    }
+
+    out.push_str("  (func $_start\n");
+    out.push_str("    call $main\n");
+    if wasm_type(&main.return_type)?.is_some() {
+        out.push_str("    drop\n");
+    }
+    out.push_str("  )\n");
+    out.push_str("  (export \"_start\" (func $_start))\n");
+    Ok(())
 }
 
 fn emit_function(function: &HighFunction, function_names: &HashSet<String>) -> Result<String> {
@@ -48,16 +75,21 @@ fn emit_function(function: &HighFunction, function_names: &HashSet<String>) -> R
         .params
         .iter()
         .filter_map(|param| {
-            wasm_type(&param.ty)
-                .transpose()
-                .map(|wasm_ty| wasm_ty.map(|wasm_ty| format!("(param ${} {})", param.name, wasm_ty)))
+            wasm_type(&param.ty).transpose().map(|wasm_ty| {
+                wasm_ty.map(|wasm_ty| format!("(param ${} {})", param.name, wasm_ty))
+            })
         })
         .collect::<Result<Vec<_>>>()?
         .join(" ");
     let locals = function
         .params
         .iter()
-        .filter_map(|param| wasm_type(&param.ty).ok().flatten().map(|_| param.name.clone()))
+        .filter_map(|param| {
+            wasm_type(&param.ty)
+                .ok()
+                .flatten()
+                .map(|_| param.name.clone())
+        })
         .collect::<HashSet<_>>();
     let mut out = String::new();
     out.push_str(&format!("  (func ${}", function.name));
@@ -97,13 +129,15 @@ fn emit_expr(
         | HighExprKind::Tuple(_)
         | HighExprKind::Lambda { .. }
         | HighExprKind::Let { .. } => {
-            emit_placeholder(expr, indent, out)?;
+            bail!("list, tuple, lambda, and let expressions are not yet supported in wasm backend");
         }
         HighExprKind::Ident(name) => {
             if locals.contains(name) {
                 out.push_str(&format!("{pad}local.get ${name}\n"));
             } else {
-                emit_placeholder(expr, indent, out)?;
+                bail!(
+                    "function references and non-local identifiers are not yet supported in wasm backend: {name}"
+                );
             }
         }
         HighExprKind::Binary { op, left, right } => {
@@ -149,26 +183,18 @@ fn emit_expr(
                 }
                 out.push_str(&format!("{pad}call ${callee}\n"));
             } else {
-                emit_placeholder(expr, indent, out)?;
+                bail!("calls to `{callee}` are not yet supported in wasm backend");
             }
         }
         HighExprKind::Match { .. } | HighExprKind::Construct { .. } => {
-            emit_placeholder(expr, indent, out)?;
+            bail!("adt and match codegen are not yet supported in wasm backend");
         }
-        HighExprKind::String(_) => {
-            emit_placeholder(expr, indent, out)?;
+        HighExprKind::String(text) => {
+            bail!("string literals are not yet supported in wasm codegen: {text}");
         }
         HighExprKind::Error => {
-            emit_placeholder(expr, indent, out)?;
+            bail!("cannot codegen erroneous expression");
         }
-    }
-    Ok(())
-}
-
-fn emit_placeholder(expr: &HighExpr, indent: usize, out: &mut String) -> Result<()> {
-    let pad = "  ".repeat(indent);
-    if wasm_type(&expr.ty)?.is_some() {
-        out.push_str(&format!("{pad}i32.const 0\n"));
     }
     Ok(())
 }
@@ -177,15 +203,6 @@ fn wasm_type(ty: &Type) -> Result<Option<&'static str>> {
     match ty {
         Type::Unit => Ok(None),
         Type::Int | Type::Bool => Ok(Some("i32")),
-        Type::String
-        | Type::List(_)
-        | Type::Seq(_)
-        | Type::Option(_)
-        | Type::Result(_, _)
-        | Type::Fn(_, _)
-        | Type::Tuple(_)
-        | Type::Record(_)
-        | Type::Named(_)
-        | Type::Unknown => Ok(Some("i32")),
+        other => bail!("unsupported wasm type: {other}"),
     }
 }

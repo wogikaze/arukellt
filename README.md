@@ -11,7 +11,9 @@ The repository already contains a working vertical slice:
 - `lang-ir`: High IR and Low IR lowering
 - `lang-interp`: interpreter for the typed/high-level subset
 - `lang-backend-wasm`: WASM backend for the current pure scalar subset
-- `lang-cli`: `check`, `run`, `test`, `fmt`, `build`, and `benchmark`
+- `arktc`: compiler-facing `check` and `build` commands
+- `chef`: interpreter-facing `run`, `test`, and `benchmark` commands
+- `arktfmt`: source formatter
 - `lang-playground-core`: JSON/wasm-bindgen API for browser playground integration
 
 This is still a prototype. The language and toolchain are intentionally incomplete.
@@ -70,17 +72,37 @@ The repository includes language-surface examples in [`example/`](/home/wogikaze
 - closures
 - infinite iterators
 
-All bundled examples are executable through `lang run` and verifiable through `lang test`.
-Each example has an adjacent `.stdout` fixture that acts as the snapshot contract for the current CLI.
+All bundled examples are executable through `chef run` and verifiable through `chef test`.
+Each example has an adjacent `.stdout` fixture that acts as the snapshot contract for the current toolchain.
+Each bundled example also passes `arktc check`.
+
+The current bundled-example matrix is:
+
+| example | `chef run` | `chef test` | `arktc check` | `arktc build --target wasm-js` | `arktc build --target wasm-wasi` |
+| --- | --- | --- | --- | --- | --- |
+| `closure.ar` | pass | pass | pass | fail | fail |
+| `factorial.ar` | pass | pass | pass | fail | fail |
+| `fibonacci.ar` | pass | pass | pass | fail | fail |
+| `file_read.ar` | pass | pass | pass | fail | fail |
+| `fizz_buzz.ar` | pass | pass | pass | fail | fail |
+| `hello_world.ar` | pass | pass | pass | fail | fail |
+| `infinite_iter.ar` | pass | pass | pass | fail | fail |
+| `map_filter_sum.ar` | pass | pass | pass | fail | fail |
+| `powers.ar` | pass | pass | pass | fail | fail |
+| `result_error_handling.ar` | pass | pass | pass | fail | fail |
+
+No bundled example currently fits the WASM backend's pure scalar subset. `arktc build` is therefore expected to fail for every bundled example on both WASM targets until example coverage intentionally expands into that subset.
+
+For release-facing reference material, see the executable docs in [`docs/language-tour.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/language-tour.md) and [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md). Their snippets are backed by checked-in fixtures and exercised by the test suite.
 
 ## Tooling
 
-The main entrypoint is the `lang` CLI binary in `crates/lang-cli`.
+The public CLI surface is split across `arktc`, `chef`, and `arktfmt`.
 
 ### Check
 
 ```bash
-cargo run -p lang-cli -- check path/to/file.ar --json
+cargo run -p arktc -- check path/to/file.ar --json
 ```
 
 This compiles the source through `lang-core` and prints structured diagnostics. The JSON payload includes versioned fields such as `code`, `stage`, `message`, `expected`, `actual`, `cause`, `suggested_fix`, `alternatives`, and `confidence`.
@@ -88,7 +110,7 @@ This compiles the source through `lang-core` and prints structured diagnostics. 
 ### Run
 
 ```bash
-cargo run -p lang-cli -- run path/to/file.ar --function main --args 3 9 --interpreter --step
+cargo run -p chef -- run path/to/file.ar --function main --args 3 9 --step
 ```
 
 This runs the interpreter path and can optionally print a trace. The interpreter is the default development loop because it is faster to diagnose than the WASM backend.
@@ -96,25 +118,37 @@ This runs the interpreter path and can optionally print a trace. The interpreter
 ### Test
 
 ```bash
-cargo run -p lang-cli -- test path/to/file.ar
+cargo run -p chef -- test path/to/file.ar
 ```
 
 Functions whose names start with `test_` are executed and must return `Bool(true)`.
-If a file does not define any `test_` functions, `lang test` falls back to snapshot testing against the adjacent `.stdout` fixture.
+If a file does not define any `test_` functions, `chef test` falls back to snapshot testing against the adjacent `.stdout` fixture.
+
+### Format
+
+```bash
+cargo run -p arktfmt -- path/to/file.ar
+cargo run -p arktfmt -- path/to/file.ar --write
+```
+
+This formats the parsed module and either prints the result to stdout or writes it back to the source file.
 
 ### Build
 
 ```bash
-cargo run -p lang-cli -- build path/to/file.ar --target wasm-js --output out.wasm
-cargo run -p lang-cli -- build path/to/file.ar --target wasm-wasi --output out.wasm
+cargo run -p arktc -- build path/to/file.ar --target wasm-js --output out.wasm
+cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --output out.wasm
 ```
 
-The current WASM backend supports the pure scalar subset used in the integration tests.
+The current WASM backend supports only a narrow pure scalar subset.
+`wasm-js` emits an embeddable module that exports compiled functions by their Arukel names.
+`wasm-wasi` emits a command-style module that exports only `_start`; it requires a zero-argument `main` function and drops any scalar return value at the ABI boundary.
+Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs such as strings, ADTs, `match`, closures, iterators, or host calls like `console.println`.
 
 ### Benchmark
 
 ```bash
-cargo run -p lang-cli -- benchmark benchmarks/pure_logic.json
+cargo run -p chef -- benchmark benchmarks/pure_logic.json
 ```
 
 This reports parse, typecheck, execution, and pass counts for a JSON benchmark manifest. The sample manifest at [`benchmarks/pure_logic.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/benchmarks/pure_logic.json) is the current reference set.
@@ -134,11 +168,15 @@ These are also exported via `wasm-bindgen` as `analyze_source` and `run_source`.
 .
 ├── benchmarks/
 ├── crates/
+│   ├── arktc/
+│   ├── arktdoc/
+│   ├── arktfmt/
+│   ├── arktup/
+│   ├── chef/
 │   ├── lang-core/
 │   ├── lang-ir/
 │   ├── lang-interp/
 │   ├── lang-backend-wasm/
-│   ├── lang-cli/
 │   └── lang-playground-core/
 └── Cargo.toml
 ```
@@ -148,12 +186,13 @@ These are also exported via `wasm-bindgen` as `analyze_source` and `run_source`.
 The executable prototype is still intentionally narrower than the full language plan:
 
 - `lang-core` still models integers as `Int` internally, while the surface examples use the explicit `i64` spelling
-- The bundled examples are executable, but the supported standard library remains small and purpose-built around those examples
-- The WASM backend does not yet support ADT or `match` codegen
-- `String` values typecheck and interpret, but are not yet lowered to WASM
+- The bundled examples are executable through the interpreter path, but most of them are intentionally outside the current WASM subset
+- The supported standard library remains small and purpose-built around the bundled examples
+- The WASM backend hard-fails on unsupported surface instead of emitting placeholder modules
+- The WASM backend does not yet support `String`, ADT, `match`, closures, iterators, or host call codegen
 - Host integrations are currently limited to the example-oriented `console` and `fs` interpreter shims
 - `clock`, `random`, `process`, package management, builders, and a richer standard library are not implemented yet
-- `fmt` currently preserves source rather than reprinting a canonical AST-based format
+- `arktfmt` currently preserves source rather than reprinting a canonical AST-based format
 
 ## Development
 

@@ -10,7 +10,11 @@ use crate::cli::{BuildTarget, Command};
 pub fn execute(command: Command) -> Result<ExitCode> {
     match command {
         Command::Check { file, json } => check_command(&file, json),
-        Command::Build { file, target, output } => build_command(&file, target, output.as_deref()),
+        Command::Build {
+            file,
+            target,
+            output,
+        } => build_command(&file, target, output.as_deref()),
     }
 }
 

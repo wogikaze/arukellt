@@ -23,12 +23,7 @@ pub fn execute(command: Command) -> Result<ExitCode> {
     }
 }
 
-fn run_command(
-    file: &Path,
-    function: &str,
-    args: &[String],
-    step: bool,
-) -> Result<ExitCode> {
+fn run_command(file: &Path, function: &str, args: &[String], step: bool) -> Result<ExitCode> {
     let result = compile_path(file)?;
     if result.error_count() > 0 {
         println!("{}", serde_json::to_string_pretty(&result.to_json()?)?);
@@ -76,10 +71,7 @@ fn test_command(file: &Path, json: bool) -> Result<ExitCode> {
                 Ok(value) => {
                     let actual = render_run_output(&value, interpreter.output());
                     if actual != expected {
-                        failures.push(format!(
-                            "snapshot mismatch for {}",
-                            file.display()
-                        ));
+                        failures.push(format!("snapshot mismatch for {}", file.display()));
                     }
                 }
                 Err(error) => failures.push(format!("main: {error}")),
@@ -163,11 +155,19 @@ fn render_value(value: &Value) -> String {
         Value::Bool(flag) => flag.to_string(),
         Value::String(text) => text.clone(),
         Value::List(items) => {
-            let rendered = items.iter().map(render_value).collect::<Vec<_>>().join(", ");
+            let rendered = items
+                .iter()
+                .map(render_value)
+                .collect::<Vec<_>>()
+                .join(", ");
             format!("[{rendered}]")
         }
         Value::Tuple(items) => {
-            let rendered = items.iter().map(render_value).collect::<Vec<_>>().join(", ");
+            let rendered = items
+                .iter()
+                .map(render_value)
+                .collect::<Vec<_>>()
+                .join(", ");
             format!("({rendered})")
         }
         Value::Variant { name, fields } => {
