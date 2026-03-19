@@ -92,10 +92,10 @@ fn main():
   "hello wasm" |> console.println
 ```
 
-Anything outside that subset should fail hard during `arktc build`. Payload-bearing constructors, closures, and iterator helpers remain unsupported.
+Anything outside that subset should fail hard during `arktc build`. Payload-bearing constructors and iterator helpers remain unsupported, and closures currently lower only on `wasm-wasi`.
 
 <!-- snippet: std-wasm-unsupported -->
 ```arukel
-fn make_adder(n: Int) -> Fn<Int, Int>:
-  m -> n + m
+fn main() -> Seq<Int>:
+  iter.unfold(0, n -> Next(n, n + 1))
 ```

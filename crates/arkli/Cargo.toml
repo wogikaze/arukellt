@@ -1,0 +1,11 @@
+[package]
+name = "arkli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+lang-core = { path = "../lang-core" }
+lang-interp = { path = "../lang-interp" }
+lang-ir = { path = "../lang-ir" }

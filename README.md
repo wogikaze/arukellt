@@ -13,6 +13,7 @@ The repository already contains a working vertical slice:
 - `lang-backend-wasm`: WASM backend for the current scalar, literal-string, and fieldless-ADT subset
 - `arktc`: compiler-facing `check` and `build` commands
 - `chef`: interpreter-facing `run`, `test`, and `benchmark` commands
+- `arkli`: interactive REPL for ad hoc evaluation and file loading
 - `arktfmt`: source formatter
 - `arktup`: local toolchain-state manager for prototype installs and default selection
 - `lang-playground-core`: JSON/wasm-bindgen API for browser playground integration
@@ -84,25 +85,25 @@ The current bundled-example matrix is:
 
 | example | `chef run` | `chef test` | `arktc check` | `arktc build --target wasm-js` | `arktc build --target wasm-wasi` |
 | --- | --- | --- | --- | --- | --- |
-| `closure.ar` | pass | pass | pass | fail | fail |
-| `factorial.ar` | pass | pass | pass | fail | fail |
-| `fibonacci.ar` | pass | pass | pass | fail | fail |
+| `closure.ar` | pass | pass | pass | fail | pass |
+| `factorial.ar` | pass | pass | pass | fail | pass |
+| `fibonacci.ar` | pass | pass | pass | fail | pass |
 | `file_read.ar` | pass | pass | pass | fail | fail |
-| `fizz_buzz.ar` | pass | pass | pass | fail | fail |
-| `hello_world.ar` | pass | pass | pass | fail | fail |
+| `fizz_buzz.ar` | pass | pass | pass | fail | pass |
+| `hello_world.ar` | pass | pass | pass | fail | pass |
 | `infinite_iter.ar` | pass | pass | pass | fail | fail |
 | `map_filter_sum.ar` | pass | pass | pass | fail | fail |
-| `powers.ar` | pass | pass | pass | fail | fail |
-| `result_error_handling.ar` | pass | pass | pass | fail | fail |
+| `powers.ar` | pass | pass | pass | fail | pass |
+| `result_error_handling.ar` | pass | pass | pass | fail | pass |
 | `wasm_scalar.ar` | pass | pass | pass | pass | pass |
 
-Only `wasm_scalar.ar` currently fits the bundled WASM subset end to end. The backend also accepts constrained synthetic modules with literal-only `String` returns and fieldless user-defined ADTs plus binding-free `match`, but the rest of the bundled examples still fail on at least one WASM target because they depend on host calls or richer surface features that are not lowered yet.
+`wasm_scalar.ar`, `closure.ar`, `hello_world.ar`, `factorial.ar`, `fibonacci.ar`, `powers.ar`, `fizz_buzz.ar`, and `result_error_handling.ar` currently fit the bundled WASM subset end to end on `wasm-wasi`. The backend also accepts constrained synthetic modules with payload-carrying `Result` values and user-defined ADTs on `wasm-wasi`, but the remaining bundled examples still fail on at least one WASM target because they depend on richer surface features that are not lowered yet.
 
 For release-facing reference material, see the executable docs in [`docs/language-tour.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/language-tour.md) and [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md). Their snippets are backed by checked-in fixtures and exercised by the test suite.
 
 ## Tooling
 
-The public CLI surface is split across `arktc`, `chef`, `arktfmt`, and `arktup`.
+The public CLI surface is split across `arktc`, `chef`, `arkli`, `arktfmt`, and `arktup`.
 Each public binary and subcommand also exposes a tested `--help` path that describes the current prototype contract, including intentionally limited surfaces such as the WASM subset, JSON-only docs output, and local-state-only toolchain management.
 
 ### Check
@@ -131,6 +132,12 @@ cargo run -p chef -- test path/to/file.ar --json
 
 Functions whose names start with `test_` are executed and must return `Bool(true)`.
 If a file does not define any `test_` functions, `chef test` falls back to snapshot testing against the adjacent `.stdout` fixture.
+
+```bash
+cargo run -p arkli
+```
+
+`arkli` provides a minimal GHCi-style REPL. It evaluates one-line expressions, keeps interactive `let` bindings for the current session, supports `:load path/to/file.ar`, `:reload`, `:type <expr>`, and exits via `:quit` or `:q`.
 `--json` emits a versioned result payload listing discovered test names and any failures; compile failures surface as structured diagnostics JSON on stderr.
 Without `--json`, compile failures still print actionable human-readable diagnostics on stderr before exiting non-zero.
 
@@ -162,13 +169,13 @@ cargo run -p arktc -- build path/to/file.ar --target wasm-js --output out.wasm
 cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --output out.wasm
 ```
 
-The current WASM backend supports only a narrow scalar-plus-literal-string-plus-fieldless-ADT subset.
+The current WASM backend supports a narrow scalar-plus-list-plus-string subset on `wasm-wasi`, plus a smaller literal-only subset on `wasm-js`.
 `--output` is currently optional; if you omit it, `arktc build` still performs codegen and exits successfully, but it discards the generated WASM bytes instead of printing them anywhere.
 `wasm-js` emits an embeddable module that exports compiled functions by their Arukel names.
 `wasm-wasi` emits a command-style module that exports only `_start`; it requires a zero-argument `main` function and drops any scalar return value at the ABI boundary.
 `String` currently lowers only as a raw `i32` pointer into exported read-only `memory` containing NUL-terminated UTF-8 literals. Literal expressions and direct returns through user-defined functions are supported in that ABI slice.
 Fieldless user-defined ADTs currently lower as raw numeric tags, and `match` lowers only when the subject is one of those ADTs and each arm is either a bare variant name or a final wildcard.
-Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs such as string builtins and operations, payload-bearing ADTs, pattern bindings, closures, iterators, or host calls like `console.println`.
+Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs such as string operations, payload-bearing ADTs, pattern bindings, iterators, or unsupported host calls on the selected target.
 
 ### Benchmark
 
@@ -206,6 +213,7 @@ These are also exported via `wasm-bindgen` as `analyze_source` and `run_source`.
 ├── benchmarks/
 ├── crates/
 │   ├── arktc/
+│   ├── arkli/
 │   ├── arktdoc/
 │   ├── arktfmt/
 │   ├── arktup/
@@ -226,8 +234,8 @@ The executable prototype is still intentionally narrower than the full language 
 - The bundled examples are executable through the interpreter path, but most of them are intentionally outside the current WASM subset
 - The supported standard library remains small and purpose-built around the bundled examples
 - The WASM backend hard-fails on unsupported surface instead of emitting placeholder modules
-- The WASM backend supports only literal-only `String` lowering via read-only memory; string builtins, string operations, and general string ABI tooling are still unsupported
-- The WASM backend supports only fieldless user-defined ADTs and binding-free `match`; payload-bearing constructors and pattern bindings are still unsupported, along with closures, iterators, and host call codegen
+- The WASM backend supports literal strings plus heap-backed strings from `string()`/`join()` on `wasm-wasi`; broader string operations and general string ABI tooling are still unsupported
+- The WASM backend supports fieldless user-defined ADTs, binding-free `match`, and unary closures on `wasm-wasi`; payload-bearing constructors, pattern bindings, iterators, and broader host-call codegen are still unsupported
 - Host integrations are currently limited to the example-oriented `console` and `fs` interpreter shims
 - `clock`, `random`, `process`, package management, builders, and a richer standard library are not implemented yet
 - `arktfmt` currently preserves source rather than reprinting a canonical AST-based format

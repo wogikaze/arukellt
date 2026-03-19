@@ -45,7 +45,37 @@ Field rules:
 
 ## Next
 
+### WB-013
+title: wasm-wasi でイテレータ (Seq<T> / iter.unfold / take) を実装
+area: wasm-backend
+status: NEXT
+priority: P3
+owner: unassigned
+depends_on: WB-011, WB-012
+source: infinite_iter.ar が `unsupported wasm type: Seq<Int>` で失敗
+done_when:
+- `infinite_iter.ar` が `arktc build --target wasm-wasi` で成功
+- `wasmer` 実行結果が infinite_iter.stdout と一致
+notes:
+- Seq は (state, step_fn) のペア; WB-011 クロージャが前提
+- take は有限化; map/join は WB-010 と共通実装になる可能性
+
 ## Ready
+
+### WB-014
+title: wasm-wasi で WASI ファイル I/O (fs.read_text) を実装
+area: wasm-backend
+status: READY
+priority: P3
+owner: unassigned
+depends_on: WB-012
+source: file_read.ar が match 不一致エラーで失敗 (Result<String, ReadError> のペイロード ADT が前提)
+done_when:
+- `file_read.ar` が `arktc build --target wasm-wasi` で成功
+- `wasmer` に hello.txt を渡した実行結果が file_read.stdout と一致
+notes:
+- WASI の path_open + fd_read を使う; preopen されたディレクトリが必要
+- WB-012 (ペイロード ADT) と WB-010 (文字列操作) が前提
 
 ## Blocked
 
@@ -67,3 +97,163 @@ notes:
 - blocked on repository settings rather than code in this worktree
 
 ## Done
+
+### WB-023
+title: wasm-wasi で List<i64> 向け map/filter/sum の組み込み lowering を追加
+area: wasm-backend
+status: DONE
+priority: P1
+owner: ai
+depends_on: WB-021, WB-022
+source: `map_filter_sum.ar` が `calls to \`sum\`` で失敗; list collection builtins 未実装
+done_when:
+- `map_filter_sum.ar` が `arktc build --target wasm-wasi` で成功する
+- `wasmer` 実行結果が `map_filter_sum.stdout` と一致する
+- backend tests cover `map`, `filter`, `sum` の `List<i64>` happy path
+notes:
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc --test examples`, `cargo run -p arktc -- build example/map_filter_sum.ar --target wasm-wasi --output /tmp/map_filter_sum.wasm`, `wasmer /tmp/map_filter_sum.wasm`, and `cargo test`
+- wasm-wasi now lowers `List<i64>.map`, `List<i64>.filter`, and `List<i64>.sum` with closure-backed callbacks and linear-memory list buffers
+
+### WB-010
+title: wasm-wasi で List リテラルと基本コレクション操作 (map / filter / join / sum) を実装
+area: wasm-backend
+status: DONE
+priority: P1
+owner: ai
+depends_on: WB-021, WB-022, WB-023, WB-024
+source: powers.ar, fizz_buzz.ar, map_filter_sum.ar が `calls to join` / `calls to sum` で失敗
+done_when:
+- `powers.ar` が `arktc build --target wasm-wasi` で成功し `wasmer` 実行結果が powers.stdout と一致
+- `fizz_buzz.ar` と `map_filter_sum.ar` も同様に一致
+notes:
+- umbrella slice is now closed by `WB-021` through `WB-024`; `powers.ar`, `fizz_buzz.ar`, and `map_filter_sum.ar` all build on wasm-wasi and match their stdout fixtures
+- implementation landed as four vertical slices so callback ABI, list runtime, numeric collection ops, and string joining stayed independently verifiable
+
+### WB-012
+title: wasm-wasi でペイロード付き ADT (Result / 任意コンストラクタ) を実装
+area: wasm-backend
+status: DONE
+priority: P2
+owner: ai
+depends_on: WB-009
+source: result_error_handling.ar が `ADT payload fields are not yet supported in wasm backend` で失敗
+done_when:
+- `result_error_handling.ar` が `arktc build --target wasm-wasi` で成功
+- `wasmer` 実行結果が result_error_handling.stdout と一致
+notes:
+- verified with `cargo fmt`, `cargo test`, `cargo run -p arktc -- build example/result_error_handling.ar --target wasm-wasi --output /tmp/result_error_handling.wasm`, and `wasmer /tmp/result_error_handling.wasm`
+- wasm-wasi ADTs now lower to heap-backed `{tag, field0, ...}` objects, and match pattern bindings read payload fields by offset
+
+### WB-025
+title: arkli — GHCi 風インタラクティブ REPL の新規バイナリを追加する
+area: repl
+status: DONE
+priority: P2
+owner: ai
+depends_on: none
+source: ユーザー指摘「chef run で実行できるが Haskell インタープリタ風の arkli がない」
+done_when:
+- `cargo run -p arkli` で起動し、式を入力すると評価結果が表示される
+- `:load file.ar` でファイルをロードし、その関数を呼び出せる
+- `:quit` / `:q` で終了できる
+- `cargo test -p arkli` が通る基本的な REPL ループテストが存在する
+notes:
+- verified with `cargo test -p arkli`, `printf 'let base = 40\nbase + 2\n:q\n' | cargo run -q -p arkli`, and `cargo test`
+- added new `arkli` binary with expression evaluation, persistent session `let` bindings, `:load`, `:reload`, `:type`, and `:quit` / `:q`
+
+### WB-024
+title: wasm-wasi に heap-backed String 連結を追加し join を実装
+area: wasm-backend
+status: DONE
+priority: P1
+owner: ai
+depends_on: WB-021, WB-022
+source: `powers.ar` / `fizz_buzz.ar` が `calls to \`join\`` で失敗; 現状 String は literal pointer のみ
+done_when:
+- `List<String>.join(sep)` の wasm-wasi lowering が追加される
+- `powers.ar` と `fizz_buzz.ar` が `arktc build --target wasm-wasi` で成功する
+- `wasmer` 実行結果が各 `.stdout` fixture と一致する
+notes:
+- verified with `cargo fmt`, `cargo test`, `cargo run -p arktc -- build example/powers.ar --target wasm-wasi --output /tmp/powers.wasm`, `wasmer /tmp/powers.wasm`, `cargo run -p arktc -- build example/fizz_buzz.ar --target wasm-wasi --output /tmp/fizz_buzz.wasm`, and `wasmer /tmp/fizz_buzz.wasm`
+- wasm-wasi strings now use heap-backed writable buffers for `string()` and `join()`, while `console.println` keeps consuming NUL-terminated UTF-8 pointers
+
+### WB-022
+title: wasm-wasi で関数参照と unary closure 呼び出しをコレクション組み込みから使えるようにする
+area: wasm-backend
+status: DONE
+priority: P1
+owner: ai
+depends_on: WB-011
+source: `map(fizz_buzz_label)` / `map(n -> ...)` / `filter(n -> ...)` が collection lowering の前提
+done_when:
+- named function referencesと unary closure values を collection helper 呼び出しに渡せる
+- wasm backend tests cover one named-function and one lambda callback path
+- 非対応の多引数/高階値ケースは明示的に拒否されたまま
+notes:
+- verified with `cargo test -p lang-backend-wasm --test build` and `cargo test`
+- collection helpers now accept unary named-function references and lambda closures through the shared closure object ABI, while non-unary and higher-order callback cases remain hard errors
+
+### WB-021
+title: wasm-wasi に最小 List<i64> ランタイムを追加し list literal / range を lower する
+area: wasm-backend
+status: DONE
+priority: P1
+owner: ai
+depends_on: WB-009
+source: `HighExprKind::List` が wasm backend で即 bail されている; `powers.ar` / `map_filter_sum.ar` の前提
+done_when:
+- `List<i64>` を線形メモリ上の `{len, items_ptr}` 表現で保持できる
+- list literal と `range_inclusive` の wasm-wasi codegen テストが追加される
+- 依然未対応の higher-order / string collection 操作は明示的に失敗する
+notes:
+- verified with `cargo test -p lang-backend-wasm`, `cargo test -p arktc --test examples`, and `cargo test`
+- list values now lower to heap-backed `{len, items_ptr}` objects on wasm-wasi
+- backend tests cover both int list literals and `range_inclusive`
+
+### WB-011
+title: wasm-wasi でクロージャ (Lambda / Fn<A,B>) を実装
+area: wasm-backend
+status: DONE
+priority: P2
+owner: ai
+depends_on: WB-009
+source: closure.ar が `unsupported wasm type: Fn<Int, Int>` で失敗
+done_when:
+- `closure.ar` が `arktc build --target wasm-wasi` で成功
+- `wasmer` 実行結果が closure.stdout と一致
+notes:
+- verified with `cargo run -p arktc -- build example/closure.ar --target wasm-wasi --output /tmp/closure.wasm` and `wasmer /tmp/closure.wasm`
+- wasm backend now lowers unary closures as heap objects `{table_index, captures...}` and applies them via `call_indirect`
+
+### WB-009
+title: wasm-wasi で Let バインディングを実装し factorial/fibonacci 以外の単純パイプラインを解放する
+area: wasm-backend
+status: DONE
+priority: P1
+owner: ai
+depends_on: none
+source: HighExprKind::Let が emit_expr で bail! されている; powers.ar 等で必要
+done_when:
+- `let x = ...; body` 形式の HighExprKind::Let が WASI ターゲットで WAT local として emit される
+- `cargo test -p lang-backend-wasm` が全 pass
+notes:
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc --test examples`, and `cargo test`
+- wasm backend now lowers nested `HighExprKind::Let` bindings into declared locals with `local.set` / `local.get`, including shadow-safe local renaming
+
+### WB-015
+
+title: wasm-wasi で console.println と string() ビルトインを実装し hello_world / factorial / fibonacci を解放
+area: wasm-backend
+status: DONE
+priority: P1
+owner: ai
+depends_on: none
+source: ユーザー要求 "arktc build --target wasm-wasi で予想通りの出力ができるまで開発を進めてください"
+done_when:
+- `wasmer example/hello_world.wasm` → `Hello, world!`
+- `wasmer example/factorial.wasm` → `3628800`
+- `wasmer example/fibonacci.wasm` → `55`
+notes:
+- commit 61b3bd6: fd_write import + $console.println helper + $string helper 実装
+- scratch memory 28 bytes (iovec + nwritten + newline + str_buf) を string table 末尾に確保
+- matrix.json で 3 例を wasm_wasi_build: true に更新; 全テスト green

@@ -5,6 +5,7 @@ members = [
   "crates/lang-interp",
   "crates/lang-backend-wasm",
   "crates/lang-playground-core",
+  "crates/arkli",
   "crates/arktc",
   "crates/arktfmt",
   "crates/arktdoc",

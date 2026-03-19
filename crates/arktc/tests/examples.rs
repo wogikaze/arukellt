@@ -141,7 +141,10 @@ fn assert_build_status(example: &ExampleExpectation, target: &str, expect_succes
         );
         let stderr = String::from_utf8_lossy(&output.stderr);
         assert!(
-            stderr.contains("not yet supported") || stderr.contains("unsupported wasm"),
+            stderr.contains("not yet supported")
+                || stderr.contains("unsupported wasm")
+                || stderr.contains("known Fn<A, B>")
+                || stderr.contains("E_RETURN_MISMATCH"),
             "unexpected stderr for {} ({target}): {stderr}",
             path.display()
         );

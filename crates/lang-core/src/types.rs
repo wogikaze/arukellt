@@ -2,7 +2,7 @@ use std::fmt;
 
 use serde::Serialize;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize)]
 pub enum Type {
     Int,
     Bool,

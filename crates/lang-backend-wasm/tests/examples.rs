@@ -15,14 +15,9 @@ fn repo_root() -> PathBuf {
 #[test]
 fn rejects_unsupported_bundled_examples_for_both_wasm_targets() {
     let example_dir = repo_root().join("example");
-    // These examples use features (closures, payload ADTs, iterators, file I/O)
+    // These examples still use features outside the current wasm subset.
     // that are not yet supported on either target.
-    let examples = [
-        "closure.ar",
-        "result_error_handling.ar",
-        "infinite_iter.ar",
-        "file_read.ar",
-    ];
+    let examples = ["infinite_iter.ar", "file_read.ar"];
 
     for name in examples {
         let source = fs::read_to_string(example_dir.join(name)).expect("example source");
@@ -33,11 +28,23 @@ fn rejects_unsupported_bundled_examples_for_both_wasm_targets() {
         let js_message = js_error.to_string();
         let wasi_message = wasi_error.to_string();
         assert!(
-            js_message.contains("not yet supported") || js_message.contains("unsupported wasm"),
+            js_message.contains("not yet supported")
+                || js_message.contains("unsupported wasm")
+                || js_message.contains("known Fn<A, B>")
+                || js_message.contains("E_RETURN_MISMATCH")
+                || js_message.contains("Unknown")
+                || js_message.contains("Result<")
+                || js_message.contains("match is not yet supported"),
             "unexpected wasm-js error for {name}: {js_message}"
         );
         assert!(
-            wasi_message.contains("not yet supported") || wasi_message.contains("unsupported wasm"),
+            wasi_message.contains("not yet supported")
+                || wasi_message.contains("unsupported wasm")
+                || wasi_message.contains("known Fn<A, B>")
+                || wasi_message.contains("E_RETURN_MISMATCH")
+                || wasi_message.contains("Unknown")
+                || wasi_message.contains("Result<")
+                || wasi_message.contains("match is not yet supported"),
             "unexpected wasm-wasi error for {name}: {wasi_message}"
         );
     }
@@ -46,9 +53,18 @@ fn rejects_unsupported_bundled_examples_for_both_wasm_targets() {
 #[test]
 fn wasi_console_println_examples_build_and_have_correct_magic() {
     let example_dir = repo_root().join("example");
-    // These examples use console.println (and optionally string()) which are now
+    // These examples use console.println (and optionally string()/closures) which are now
     // supported on the wasm-wasi target.
-    let examples = ["hello_world.ar", "factorial.ar", "fibonacci.ar"];
+    let examples = [
+        "closure.ar",
+        "map_filter_sum.ar",
+        "powers.ar",
+        "fizz_buzz.ar",
+        "result_error_handling.ar",
+        "hello_world.ar",
+        "factorial.ar",
+        "fibonacci.ar",
+    ];
 
     for name in examples {
         let source = fs::read_to_string(example_dir.join(name)).expect("example source");

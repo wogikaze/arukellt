@@ -21,7 +21,7 @@ pub use typecheck::{
 pub use types::Type;
 
 use parser::parse;
-use typecheck::typecheck;
+use typecheck::{typecheck, typecheck_partial};
 
 /// Lex and parse source into a raw `Module` AST without typechecking.
 pub fn parse_source(source: &str) -> ParseOutput {
@@ -35,4 +35,12 @@ pub fn compile_module(source: &str) -> CompileResult<TypedModule> {
     let mut diagnostics = lex_output.diagnostics;
     diagnostics.extend(parse_output.diagnostics);
     typecheck(parse_output.module, diagnostics)
+}
+
+pub fn compile_module_partial(source: &str) -> CompileResult<TypedModule> {
+    let lex_output = lex(source);
+    let parse_output = parse(&lex_output.tokens);
+    let mut diagnostics = lex_output.diagnostics;
+    diagnostics.extend(parse_output.diagnostics);
+    typecheck_partial(parse_output.module, diagnostics)
 }

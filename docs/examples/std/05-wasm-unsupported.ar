@@ -1,2 +1,2 @@
-fn make_adder(n: Int) -> Fn<Int, Int>:
-  m -> n + m
+fn main() -> Seq<Int>:
+  iter.unfold(0, n -> Next(n, n + 1))

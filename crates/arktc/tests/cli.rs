@@ -221,23 +221,42 @@ fn main() -> Int:
 }
 
 #[test]
-fn build_command_rejects_unsupported_bundled_example() {
-    // closure.ar uses Fn<Int, Int> which is not yet supported in the wasm backend
+fn build_command_runs_closure_example_on_wasi() {
     let file = repo_root().join("example/closure.ar");
+    let expected = fs::read_to_string(repo_root().join("example/closure.stdout")).expect("stdout");
+    let dir = tempdir().expect("tempdir");
+    let output_file = dir.path().join("closure.wasm");
 
     let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
         .arg("build")
         .arg(&file)
         .arg("--target")
         .arg("wasm-wasi")
+        .arg("--output")
+        .arg(&output_file)
         .output()
         .expect("run build");
 
-    assert!(!output.status.success(), "expected failing exit status");
-    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
     assert!(
-        stderr.contains("not yet supported") || stderr.contains("unsupported wasm"),
-        "unexpected stderr: {stderr}"
+        output.status.success(),
+        "expected successful exit status\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let run = Command::new("wasmer")
+        .arg(&output_file)
+        .output()
+        .expect("run wasmer");
+    assert!(
+        run.status.success(),
+        "expected wasmer success\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&run.stdout),
+        String::from_utf8_lossy(&run.stderr)
+    );
+    assert_eq!(
+        String::from_utf8(run.stdout).expect("utf8 stdout"),
+        expected
     );
 }
 

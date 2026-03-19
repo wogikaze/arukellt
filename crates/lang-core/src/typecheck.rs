@@ -80,7 +80,22 @@ pub struct TypedMatchArm {
     pub expr: TypedExpr,
 }
 
-pub fn typecheck(module: Module, mut diagnostics: Vec<Diagnostic>) -> CompileResult<TypedModule> {
+pub fn typecheck(module: Module, diagnostics: Vec<Diagnostic>) -> CompileResult<TypedModule> {
+    typecheck_with_mode(module, diagnostics, false)
+}
+
+pub fn typecheck_partial(
+    module: Module,
+    diagnostics: Vec<Diagnostic>,
+) -> CompileResult<TypedModule> {
+    typecheck_with_mode(module, diagnostics, true)
+}
+
+fn typecheck_with_mode(
+    module: Module,
+    mut diagnostics: Vec<Diagnostic>,
+    allow_partial_module: bool,
+) -> CompileResult<TypedModule> {
     let capabilities = module
         .imports
         .iter()
@@ -129,7 +144,25 @@ pub fn typecheck(module: Module, mut diagnostics: Vec<Diagnostic>) -> CompileRes
             &type_map,
             &constructors,
         );
-        let body = checker.infer_expr(&function.body);
+        let mut body = checker.infer_expr(&function.body);
+        if let (
+            TypedExprKind::Lambda {
+                body: lambda_body, ..
+            },
+            Type::Fn(expected_arg, expected_result),
+            Type::Fn(actual_arg, actual_result),
+        ) = (&body.kind, &function.return_type, &body.ty)
+        {
+            if matches!(actual_arg.as_ref(), Type::Unknown)
+                && (**actual_result == **expected_result
+                    || matches!(actual_result.as_ref(), Type::Unknown))
+            {
+                body.ty = Type::Fn(expected_arg.clone(), expected_result.clone());
+                if matches!(lambda_body.ty, Type::Unknown) {
+                    body.ty = function.return_type.clone();
+                }
+            }
+        }
         if body.ty != function.return_type && body.ty != Type::Unknown {
             diagnostics.push(make_error(
                 "E_RETURN_MISMATCH",
@@ -164,9 +197,10 @@ pub fn typecheck(module: Module, mut diagnostics: Vec<Diagnostic>) -> CompileRes
     };
 
     CompileResult {
-        module: if diagnostics
-            .iter()
-            .any(|diagnostic| diagnostic.level == DiagnosticLevel::Error)
+        module: if !allow_partial_module
+            && diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.level == DiagnosticLevel::Error)
         {
             None
         } else {
@@ -254,13 +288,14 @@ impl<'a> FunctionChecker<'a> {
                 let saved = self.env.clone();
                 self.env.insert(param.clone(), Type::Unknown);
                 let typed_body = self.infer_expr(body);
+                let lambda_ty = Type::Fn(Box::new(Type::Unknown), Box::new(typed_body.ty.clone()));
                 self.env = saved;
                 TypedExpr {
                     kind: TypedExprKind::Lambda {
                         param: param.clone(),
                         body: Box::new(typed_body),
                     },
-                    ty: Type::Unknown,
+                    ty: lambda_ty,
                 }
             }
             Expr::Ident(name) => TypedExpr {
@@ -294,8 +329,17 @@ impl<'a> FunctionChecker<'a> {
                         ));
                         Type::Named(owner_type.clone())
                     }
-                } else if self.signatures.contains_key(name) || is_builtin_function(name) {
-                    Type::Named("Fn".to_owned())
+                } else if let Some((return_type, params)) = self.signatures.get(name) {
+                    if params.len() == 1 {
+                        Type::Fn(
+                            Box::new(params[0].ty.clone()),
+                            Box::new(return_type.clone()),
+                        )
+                    } else {
+                        Type::Named("Fn".to_owned())
+                    }
+                } else if let Some((arg, result)) = builtin_function_type(name) {
+                    Type::Fn(Box::new(arg), Box::new(result))
                 } else {
                     self.diagnostics.push(make_error(
                         "E_UNKNOWN_IDENT",
@@ -739,7 +783,10 @@ impl<'a> FunctionChecker<'a> {
 
 fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
     Some(match callee {
-        "__apply" => Type::Unknown,
+        "__apply" => match args.first().map(|arg| &arg.ty) {
+            Some(Type::Fn(_, result)) => (**result).clone(),
+            _ => Type::Unknown,
+        },
         "__index" => match args.first().map(|arg| &arg.ty) {
             Some(Type::List(inner)) => (**inner).clone(),
             Some(Type::Tuple(items)) => items.first().cloned().unwrap_or(Type::Unknown),
@@ -747,7 +794,10 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         },
         "range_inclusive" => Type::List(Box::new(Type::Int)),
         "string" => Type::String,
-        "map" => Type::List(Box::new(Type::Unknown)),
+        "map" => match args.get(1).map(|arg| &arg.ty) {
+            Some(Type::Fn(_, result)) => Type::List(Box::new((**result).clone())),
+            _ => Type::List(Box::new(Type::Unknown)),
+        },
         "filter" => args
             .first()
             .map(|arg| arg.ty.clone())
@@ -813,6 +863,13 @@ fn is_builtin_function(name: &str) -> bool {
             | "Next"
             | "Done"
     )
+}
+
+fn builtin_function_type(name: &str) -> Option<(Type, Type)> {
+    match name {
+        "string" => Some((Type::Int, Type::String)),
+        _ => None,
+    }
 }
 
 fn make_error(

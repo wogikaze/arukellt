@@ -74,6 +74,6 @@
     "doc": "docs/std.md",
     "fixture": "docs/examples/std/05-wasm-unsupported.ar",
     "mode": "build_wasi_fail",
-    "error_substring": "unsupported wasm"
+    "error_substring": "unsupported wasm type"
   }
 ]
