@@ -147,6 +147,12 @@ impl Interpreter {
                 body: (**body).clone(),
                 env: env.clone(),
             }),
+            HighExprKind::Let { name, value, body } => {
+                let value = self.eval_expr(value, env)?;
+                let mut scoped = env.clone();
+                scoped.insert(name.clone(), value);
+                self.eval_expr(body, &scoped)
+            }
             HighExprKind::Binary { op, left, right } => {
                 let left_value = self.eval_expr(left, env)?;
                 let right_value = self.eval_expr(right, env)?;
@@ -174,6 +180,9 @@ impl Interpreter {
                         Ok(Value::Bool(left < right))
                     }
                     (lang_core::BinaryOp::Equal, left, right) => Ok(Value::Bool(left == right)),
+                    (lang_core::BinaryOp::And, Value::Bool(left), Value::Bool(right)) => {
+                        Ok(Value::Bool(left && right))
+                    }
                     (lang_core::BinaryOp::Or, Value::Bool(left), Value::Bool(right)) => {
                         Ok(Value::Bool(left || right))
                     }

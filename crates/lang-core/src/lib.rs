@@ -1,5 +1,6 @@
 mod ast;
 mod diagnostics;
+mod fmt;
 mod lexer;
 mod parser;
 mod typecheck;
@@ -15,10 +16,18 @@ pub use lexer::{LexOutput, Token, TokenKind, lex};
 pub use typecheck::{
     TypedExpr, TypedExprKind, TypedFunction, TypedMatchArm, TypedModule, TypedParam,
 };
+pub use fmt::format_module;
+pub use parser::ParseOutput;
 pub use types::Type;
 
 use parser::parse;
 use typecheck::typecheck;
+
+/// Lex and parse source into a raw `Module` AST without typechecking.
+pub fn parse_source(source: &str) -> ParseOutput {
+    let lex_output = lex(source);
+    parse(&lex_output.tokens)
+}
 
 pub fn compile_module(source: &str) -> CompileResult<TypedModule> {
     let lex_output = lex(source);

@@ -12,6 +12,16 @@ pub struct ParseOutput {
     pub diagnostics: Vec<Diagnostic>,
 }
 
+impl ParseOutput {
+    #[must_use]
+    pub fn has_errors(&self) -> bool {
+        use crate::diagnostics::DiagnosticLevel;
+        self.diagnostics
+            .iter()
+            .any(|d| d.level == DiagnosticLevel::Error)
+    }
+}
+
 pub fn parse(tokens: &[Token]) -> ParseOutput {
     Parser::new(tokens).parse_module()
 }
@@ -227,10 +237,31 @@ impl<'a> Parser<'a> {
     fn parse_block_expr(&mut self) -> Expr {
         self.consume_newline();
         self.expect_kind(TokenKind::Indent, "indented block", "indent");
-        let expr = self.parse_expr();
-        self.skip_newlines();
+        let expr = self.parse_block_contents();
         self.expect_kind(TokenKind::Dedent, "dedent", "dedent");
         expr
+    }
+
+    /// Parse one or more lines inside an indented block.
+    /// Lines starting with `let` introduce a binding; the last line is the value.
+    fn parse_block_contents(&mut self) -> Expr {
+        self.skip_newlines();
+        if self.match_kind(&TokenKind::Let) {
+            let name = self.expect_ident("binding name");
+            self.expect_kind(TokenKind::Equal, "assignment operator", "=");
+            let value = self.parse_expr();
+            self.consume_newline();
+            let body = self.parse_block_contents();
+            Expr::Let {
+                name,
+                value: Box::new(value),
+                body: Box::new(body),
+            }
+        } else {
+            let expr = self.parse_expr();
+            self.skip_newlines();
+            expr
+        }
     }
 
     fn parse_expr(&mut self) -> Expr {
@@ -256,16 +287,36 @@ impl<'a> Parser<'a> {
             return self.parse_chain(expr);
         }
 
-        let expr = self.parse_comparison();
+        let expr = self.parse_logical();
         self.parse_chain(expr)
+    }
+
+    fn parse_logical(&mut self) -> Expr {
+        let mut expr = self.parse_comparison();
+        loop {
+            let op = if self.match_kind(&TokenKind::And) {
+                Some(BinaryOp::And)
+            } else if self.match_kind(&TokenKind::Or) {
+                Some(BinaryOp::Or)
+            } else {
+                None
+            };
+            let Some(op) = op else { break };
+            let right = self.parse_comparison();
+            expr = Expr::Binary {
+                op,
+                left: Box::new(expr),
+                right: Box::new(right),
+            };
+        }
+        expr
     }
 
     fn parse_lambda_body(&mut self) -> Expr {
         if self.check(&TokenKind::Newline) {
             self.consume_newline();
             self.expect_kind(TokenKind::Indent, "lambda body indent", "indent");
-            let expr = self.parse_expr();
-            self.skip_newlines();
+            let expr = self.parse_block_contents();
             self.expect_kind(TokenKind::Dedent, "lambda body dedent", "dedent");
             expr
         } else {
@@ -412,11 +463,10 @@ impl<'a> Parser<'a> {
 
     fn parse_arm_body(&mut self) -> Expr {
         if self.check(&TokenKind::Newline) {
-            // Block arm body: -> NEWLINE INDENT expr NEWLINE DEDENT
+            // Block arm body: -> NEWLINE INDENT [let ...] expr DEDENT
             self.consume_newline();
             self.expect_kind(TokenKind::Indent, "arm body indent", "indent");
-            let expr = self.parse_expr();
-            self.skip_newlines();
+            let expr = self.parse_block_contents();
             self.expect_kind(TokenKind::Dedent, "arm body dedent", "dedent");
             expr
         } else {

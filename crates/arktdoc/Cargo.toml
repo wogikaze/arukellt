@@ -1,0 +1,15 @@
+[package]
+name = "arktdoc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+lang-core = { path = "../lang-core" }
+serde_json.workspace = true
+
+[[bin]]
+name = "arktdoc"
+path = "src/main.rs"

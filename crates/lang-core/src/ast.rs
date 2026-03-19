@@ -83,6 +83,11 @@ pub enum Expr {
         param: String,
         body: Box<Expr>,
     },
+    Let {
+        name: String,
+        value: Box<Expr>,
+        body: Box<Expr>,
+    },
     MethodCall {
         receiver: Box<Expr>,
         method: String,
@@ -105,6 +110,7 @@ pub enum BinaryOp {
     Greater,
     Less,
     Equal,
+    And,
     Or,
 }
 

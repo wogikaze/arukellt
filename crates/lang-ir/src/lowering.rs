@@ -61,6 +61,11 @@ fn lower_expr(expr: &TypedExpr) -> HighExpr {
             param: param.clone(),
             body: Box::new(lower_expr(body)),
         },
+        TypedExprKind::Let { name, value, body } => HighExprKind::Let {
+            name: name.clone(),
+            value: Box::new(lower_expr(value)),
+            body: Box::new(lower_expr(body)),
+        },
         TypedExprKind::Binary { op, left, right } => HighExprKind::Binary {
             op: *op,
             left: Box::new(lower_expr(left)),
@@ -117,7 +122,10 @@ fn lower_expr_to_low(expr: &HighExpr, instructions: &mut Vec<LowInstruction>) {
             instructions.push(LowInstruction::ConstString(value.clone()))
         }
         HighExprKind::Ident(name) => instructions.push(LowInstruction::Load(name.clone())),
-        HighExprKind::List(_) | HighExprKind::Tuple(_) | HighExprKind::Lambda { .. } => {
+        HighExprKind::List(_)
+        | HighExprKind::Tuple(_)
+        | HighExprKind::Lambda { .. }
+        | HighExprKind::Let { .. } => {
             instructions.push(LowInstruction::Error)
         }
         HighExprKind::Binary { op, left, right } => {
@@ -132,6 +140,7 @@ fn lower_expr_to_low(expr: &HighExpr, instructions: &mut Vec<LowInstruction>) {
                 BinaryOp::Greater => LowInstruction::Greater,
                 BinaryOp::Less => LowInstruction::Error,
                 BinaryOp::Equal => LowInstruction::Equal,
+                BinaryOp::And => LowInstruction::Error,
                 BinaryOp::Or => LowInstruction::Error,
             });
         }

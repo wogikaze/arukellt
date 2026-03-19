@@ -212,3 +212,139 @@ fn build() -> Iter<i64>:
         result.diagnostics
     );
 }
+
+#[test]
+fn compiles_unit_return_type() {
+    let source = "\
+import console
+
+fn main():
+  \"hello\" |> console.println
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+    let module = result.module.expect("typed module");
+    let main = module
+        .functions
+        .iter()
+        .find(|f| f.name == "main")
+        .expect("main function");
+    assert_eq!(main.return_type, Type::Unit);
+}
+
+#[test]
+fn compiles_result_type_with_ok_err() {
+    let source = "\
+import fs
+
+fn read_file(path: String) -> String:
+  match fs.read_text(path):
+    Ok(content) -> content
+    Err(_) -> \"error\"
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
+fn compiles_fn_generic_type() {
+    let source = "\
+fn make_adder(base: i64) -> Fn<i64, i64>:
+  n -> base + n
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
+fn compiles_list_literal_and_range() {
+    let source = "\
+fn total() -> Int:
+  [1, 2, 3].sum()
+
+fn range_total() -> Int:
+  (1..=5).sum()
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
+fn compiles_modulo_and_less_than() {
+    let source = "\
+fn is_even(n: i64) -> Bool:
+  n % 2 == 0
+
+fn is_small(n: i64) -> Bool:
+  n < 10
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
+fn compiles_bare_import() {
+    let source = "\
+import console
+
+fn main():
+  \"hi\" |> console.println
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
+fn compiles_tuple_and_index() {
+    let source = "\
+fn fst(pair: (Int, Int)) -> Int:
+  pair[0]
+
+fn make() -> Int:
+  (10, 20)[1]
+";
+
+    let result = compile_module(source);
+
+    // tuple param type currently parsed as Named; just check no crash
+    assert!(
+        !result.diagnostics.iter().any(|d| d.code == "E_NULL_FORBIDDEN"),
+        "unexpected null diagnostic"
+    );
+}

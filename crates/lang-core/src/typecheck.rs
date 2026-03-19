@@ -66,6 +66,11 @@ pub enum TypedExprKind {
         callee: String,
         args: Vec<TypedExpr>,
     },
+    Let {
+        name: String,
+        value: Box<TypedExpr>,
+        body: Box<TypedExpr>,
+    },
     Error,
 }
 
@@ -246,7 +251,7 @@ impl<'a> FunctionChecker<'a> {
                         param: param.clone(),
                         body: Box::new(typed_body),
                     },
-                    ty: Type::Named("Fn".to_owned()),
+                    ty: Type::Unknown,
                 }
             }
             Expr::Ident(name) => TypedExpr {
@@ -325,6 +330,11 @@ impl<'a> FunctionChecker<'a> {
                         }
                         Type::Bool
                     }
+                    BinaryOp::And => {
+                        self.expect_type("Bool", &typed_left.ty, "and_left_operand");
+                        self.expect_type("Bool", &typed_right.ty, "and_right_operand");
+                        Type::Bool
+                    }
                     BinaryOp::Or => {
                         self.expect_type("Bool", &typed_left.ty, "or_left_operand");
                         self.expect_type("Bool", &typed_right.ty, "or_right_operand");
@@ -371,6 +381,21 @@ impl<'a> FunctionChecker<'a> {
                 }
             }
             Expr::Match { subject, arms } => self.infer_match(subject, arms),
+            Expr::Let { name, value, body } => {
+                let typed_value = self.infer_expr(value);
+                let saved = self.env.clone();
+                self.env.insert(name.clone(), typed_value.ty.clone());
+                let typed_body = self.infer_expr(body);
+                self.env = saved;
+                TypedExpr {
+                    kind: TypedExprKind::Let {
+                        name: name.clone(),
+                        value: Box::new(typed_value),
+                        body: Box::new(typed_body.clone()),
+                    },
+                    ty: typed_body.ty,
+                }
+            }
             Expr::Apply { func, args } => {
                 let typed_func = self.infer_expr(func);
                 let mut typed_args = vec![typed_func];
@@ -706,7 +731,7 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         "sum" => Type::Int,
         "join" => Type::String,
         "take" => Type::List(Box::new(Type::Unknown)),
-        "iter.unfold" => Type::Named("Iter".to_owned()),
+        "iter.unfold" => Type::Unknown,
         "console.println" => Type::Unit,
         "fs.read_text" => Type::Result(Box::new(Type::String), Box::new(Type::Unknown)),
         "Next" => Type::Named("Next".to_owned()),

@@ -40,6 +40,11 @@ pub enum HighExprKind {
         param: String,
         body: Box<HighExpr>,
     },
+    Let {
+        name: String,
+        value: Box<HighExpr>,
+        body: Box<HighExpr>,
+    },
     Binary {
         op: BinaryOp,
         left: Box<HighExpr>,

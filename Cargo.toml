@@ -4,8 +4,12 @@ members = [
   "crates/lang-ir",
   "crates/lang-interp",
   "crates/lang-backend-wasm",
-  "crates/lang-cli",
   "crates/lang-playground-core",
+  "crates/arktc",
+  "crates/arktfmt",
+  "crates/arktdoc",
+  "crates/arktup",
+  "crates/chef",
 ]
 resolver = "2"
 

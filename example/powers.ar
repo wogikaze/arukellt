@@ -1,0 +1,14 @@
+import console
+
+fn power(base: i64, exp: i64) -> i64:
+  if exp == 0:
+    1
+  else:
+    base * power(base, exp - 1)
+
+fn main():
+  (0..=10)
+    .map(n -> power(2, n))
+    .map(string)
+    .join(", ")
+    |> console.println
