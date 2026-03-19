@@ -29,7 +29,7 @@ pub fn benchmark_command(file: &Path) -> Result<ExitCode> {
                     || diagnostic.stage == DiagnosticStage::Parser
             })
             .count();
-        if parser_errors == 0 && result.error_count() == 0 {
+        if parser_errors == 0 {
             parse_success += 1;
         }
         if result.error_count() == 0 {

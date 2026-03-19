@@ -1,6 +1,9 @@
 use std::fs;
+use std::net::{TcpListener, TcpStream};
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Child, Command, Stdio};
+use std::thread::sleep;
+use std::time::{Duration, Instant};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -9,6 +12,58 @@ fn repo_root() -> PathBuf {
         .parent()
         .expect("workspace root")
         .to_path_buf()
+}
+
+fn reserve_local_port() -> u16 {
+    TcpListener::bind(("127.0.0.1", 0))
+        .expect("bind ephemeral port")
+        .local_addr()
+        .expect("read local addr")
+        .port()
+}
+
+fn chrome_binary() -> &'static str {
+    "google-chrome"
+}
+
+fn start_docs_server(port: u16) -> Child {
+    Command::new("python3")
+        .arg("-m")
+        .arg("http.server")
+        .arg(port.to_string())
+        .arg("--directory")
+        .arg("docs")
+        .current_dir(repo_root())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("start docs http.server")
+}
+
+fn wait_for_server(port: u16) {
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while Instant::now() < deadline {
+        if TcpStream::connect(("127.0.0.1", port)).is_ok() {
+            return;
+        }
+        sleep(Duration::from_millis(100));
+    }
+    panic!("docs server on port {port} did not become ready in time");
+}
+
+fn dump_dom(url: &str, user_data_dir: &std::path::Path) -> std::process::Output {
+    Command::new(chrome_binary())
+        .arg("--headless=new")
+        .arg("--no-sandbox")
+        .arg("--disable-gpu")
+        .arg("--disable-dev-shm-usage")
+        .arg("--disable-crash-reporter")
+        .arg(format!("--user-data-dir={}", user_data_dir.display()))
+        .arg("--dump-dom")
+        .arg("--virtual-time-budget=5000")
+        .arg(url)
+        .output()
+        .expect("run headless chrome docs smoke")
 }
 
 #[test]
@@ -253,5 +308,74 @@ if (malformed.entries.length !== 1) {
         "expected node docs-site smoke to pass\nstdout:\n{}\nstderr:\n{}",
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+#[ignore = "requires a local http server and headless Chrome"]
+fn docs_site_routes_render_in_headless_browser() {
+    let port = reserve_local_port();
+    let mut server = start_docs_server(port);
+    wait_for_server(port);
+
+    let root = repo_root();
+    let tour_profile = tempfile::tempdir_in(&root).expect("temp user data dir for language-tour");
+    let std_profile = tempfile::tempdir_in(&root).expect("temp user data dir for std");
+    let fallback_profile = tempfile::tempdir_in(&root).expect("temp user data dir for root route");
+
+    let language_tour = dump_dom(
+        &format!("http://127.0.0.1:{port}/#/language-tour"),
+        tour_profile.path(),
+    );
+    let std_route = dump_dom(
+        &format!("http://127.0.0.1:{port}/#/std"),
+        std_profile.path(),
+    );
+    let root_route = dump_dom(
+        &format!("http://127.0.0.1:{port}/"),
+        fallback_profile.path(),
+    );
+
+    let _ = server.kill();
+    let _ = server.wait();
+
+    assert!(
+        language_tour.status.success(),
+        "expected language-tour browser smoke to pass\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&language_tour.stdout),
+        String::from_utf8_lossy(&language_tour.stderr)
+    );
+    let language_tour_dom = String::from_utf8(language_tour.stdout).expect("utf8 language-tour");
+    assert!(
+        language_tour_dom.contains("Arukellt Language Tour")
+            && language_tour_dom.contains("chef run")
+            && language_tour_dom.contains("#/std"),
+        "unexpected language-tour DOM:\n{language_tour_dom}"
+    );
+
+    assert!(
+        std_route.status.success(),
+        "expected std browser smoke to pass\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&std_route.stdout),
+        String::from_utf8_lossy(&std_route.stderr)
+    );
+    let std_dom = String::from_utf8(std_route.stdout).expect("utf8 std route");
+    assert!(
+        std_dom.contains("Arukellt Standard Surface")
+            && std_dom.contains("WASM Boundary")
+            && std_dom.contains("#/language-tour"),
+        "unexpected std DOM:\n{std_dom}"
+    );
+
+    assert!(
+        root_route.status.success(),
+        "expected root browser smoke to pass\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&root_route.stdout),
+        String::from_utf8_lossy(&root_route.stderr)
+    );
+    let root_dom = String::from_utf8(root_route.stdout).expect("utf8 root route");
+    assert!(
+        root_dom.contains("Arukellt Language Tour") && root_dom.contains("#/language-tour"),
+        "unexpected root DOM:\n{root_dom}"
     );
 }

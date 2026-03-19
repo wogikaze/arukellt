@@ -152,7 +152,7 @@ cargo run -p arktdoc -- path/to/file.ar --format json
 This compiles a source file and prints versioned JSON documentation for the typed function surface.
 The current payload includes the input file path plus each function's name, visibility, parameter list, and return type.
 Only `--format json` is currently supported. Other format values fail explicitly instead of silently falling back to JSON.
-If the source does not compile, `arktdoc` exits non-zero and prints a short failure message instead of partial docs.
+If the source does not compile, `arktdoc` exits non-zero and prints a short compilation-failure message instead of partial docs, even when an unsupported `--format` value was also passed.
 
 ### Build
 
@@ -162,6 +162,7 @@ cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --output out.wasm
 ```
 
 The current WASM backend supports only a narrow scalar-plus-literal-string-plus-fieldless-ADT subset.
+`--output` is currently optional; if you omit it, `arktc build` still performs codegen and exits successfully, but it discards the generated WASM bytes instead of printing them anywhere.
 `wasm-js` emits an embeddable module that exports compiled functions by their Arukel names.
 `wasm-wasi` emits a command-style module that exports only `_start`; it requires a zero-argument `main` function and drops any scalar return value at the ABI boundary.
 `String` currently lowers only as a raw `i32` pointer into exported read-only `memory` containing NUL-terminated UTF-8 literals. Literal expressions and direct returns through user-defined functions are supported in that ABI slice.
@@ -174,7 +175,9 @@ Unsupported surface does not degrade silently: `arktc build` fails with a hard e
 cargo run -p chef -- benchmark benchmarks/pure_logic.json
 ```
 
-This reports parse, typecheck, execution, and pass counts for a JSON benchmark manifest. The sample manifest at [`benchmarks/pure_logic.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/benchmarks/pure_logic.json) is the current reference set.
+This reports parse, typecheck, execution, and pass counts for a JSON benchmark manifest.
+`parse_success` counts cases that get past lexing and parsing even if typechecking later fails, while `typecheck_success` counts only fully compiled cases.
+The sample manifest at [`benchmarks/pure_logic.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/benchmarks/pure_logic.json) is the current reference set.
 
 ### Toolchain
 
@@ -241,6 +244,14 @@ Run the workspace test suite from the repository root:
 ```bash
 cargo test
 ```
+
+For a browser-level smoke pass of the static docs shell, run:
+
+```bash
+cargo test -p arktc --test docs_site docs_site_routes_render_in_headless_browser -- --exact --ignored --nocapture
+```
+
+That command starts a local `python3 -m http.server` rooted at `docs/` and uses headless `google-chrome` to verify the `#/language-tour`, `#/std`, and no-hash fallback routes without manual inspection.
 
 This project is currently validated primarily through:
 

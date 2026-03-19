@@ -39,39 +39,39 @@ fn main() -> ExitCode {
 fn run(cli: Cli) -> Result<ExitCode> {
     let source = std::fs::read_to_string(&cli.file)?;
     let result = compile_module(&source);
+    if result.module.is_none() {
+        eprintln!("arktdoc: compilation failed — cannot generate docs");
+        return Ok(ExitCode::from(1));
+    }
     if cli.format != OutputFormat::Json {
         bail!(
             "arktdoc: output format `{:?}` is not supported yet; use --format json",
             cli.format
         );
     }
-    if let Some(module) = result.module {
-        let functions: Vec<_> = module
-            .functions
-            .iter()
-            .map(|f| {
-                serde_json::json!({
-                    "name": f.name,
-                    "public": f.public,
-                    "params": f.params.iter().map(|p| serde_json::json!({
-                        "name": p.name,
-                        "type": p.ty.to_string(),
-                    })).collect::<Vec<_>>(),
-                    "return_type": f.return_type.to_string(),
-                })
+    let module = result.module.expect("typed module after compile success");
+    let functions: Vec<_> = module
+        .functions
+        .iter()
+        .map(|f| {
+            serde_json::json!({
+                "name": f.name,
+                "public": f.public,
+                "params": f.params.iter().map(|p| serde_json::json!({
+                    "name": p.name,
+                    "type": p.ty.to_string(),
+                })).collect::<Vec<_>>(),
+                "return_type": f.return_type.to_string(),
             })
-            .collect();
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&serde_json::json!({
-                "version": "v0.1",
-                "file": cli.file.display().to_string(),
-                "functions": functions,
-            }))?
-        );
-    } else {
-        eprintln!("arktdoc: compilation failed — cannot generate docs");
-        return Ok(ExitCode::from(1));
-    }
+        })
+        .collect();
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&serde_json::json!({
+            "version": "v0.1",
+            "file": cli.file.display().to_string(),
+            "functions": functions,
+        }))?
+    );
     Ok(ExitCode::SUCCESS)
 }

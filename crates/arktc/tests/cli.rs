@@ -294,3 +294,33 @@ fn build_command_rejects_unknown_target_values() {
         "unexpected stderr: {stderr}"
     );
 }
+
+#[test]
+fn build_command_succeeds_without_output_and_discards_wasm_bytes() {
+    let file = repo_root().join("example/wasm_scalar.ar");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-js")
+        .output()
+        .expect("run build");
+
+    assert!(
+        output.status.success(),
+        "expected successful exit status\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        output.stdout.is_empty(),
+        "expected no stdout when --output is omitted, got:\n{}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    assert!(
+        output.stderr.is_empty(),
+        "expected no stderr when --output is omitted, got:\n{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}

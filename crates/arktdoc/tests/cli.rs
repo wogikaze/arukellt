@@ -88,3 +88,33 @@ fn broken(flag: Bool, value: Int) -> Int:
         "unexpected stderr: {stderr}"
     );
 }
+
+#[test]
+fn cli_reports_compile_failure_before_unsupported_format_errors() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("broken.ar");
+    fs::write(
+        &file,
+        "\
+fn broken(flag: Bool, value: Int) -> Int:
+  if flag:
+    value
+",
+    )
+    .expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktdoc"))
+        .arg(&file)
+        .arg("--format")
+        .arg("markdown")
+        .output()
+        .expect("run arktdoc with broken source and unsupported format");
+
+    assert!(!output.status.success(), "expected failing exit status");
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(
+        stderr.contains("arktdoc: compilation failed")
+            && !stderr.contains("output format `Markdown` is not supported yet"),
+        "unexpected stderr: {stderr}"
+    );
+}
