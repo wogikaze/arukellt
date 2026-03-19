@@ -66,23 +66,23 @@ done_when:
 notes:
 - blocked on repository settings rather than code in this worktree
 
+## Done
+
 ### WB-031
 title: 文字列処理の最小競プロ surface を追加して `stdin.read_text().split_whitespace()` を成立させる
 area: stdlib/lang-core
-status: BLOCKED
+status: DONE
 priority: P2
-owner: unassigned
-depends_on: WB-029
-source: `stdin.read_text` だけでは AtCoder 入力を実用的に分解できない
+owner: ai
+depends_on: WB-029, WB-030
+source: `stdin.read_text` の I/O 経路はできたが、AtCoder 入力を実用的に分解する文字列 API がまだない
 done_when:
-- 文字列の空白分割と最小整数変換のどちらか一式が追加される
-- `practicea` のような ABS 問題が Arukel 単体で解ける
-- parser/typecheck/interpreter の対応テストが揃う
+- `split_whitespace() -> List<String>` と `parse_int() -> Result<Int, _>` が parser/typecheck/interpreter を通って動作する
+- `practicea` 相当の入力を `stdin.read_text().split_whitespace()` 経由で解ける
+- parser/typecheck/interpreter/CLI の対応テストが揃う
 notes:
-- `split_whitespace` + `parse_int` 相当が最小候補
-- ここを始める前に `stdin.read_text` の I/O 経路を固定したい
-
-## Done
+- verified with `cargo fmt`, `cargo test -p lang-core`, `cargo test -p lang-interp`, and `cargo test -p chef`; full `cargo test` currently still fails in unrelated `arktc` wasm-wasi regressions covered by WB-026
+- `parse_int()` は `Result<Int, _>` を返し、invalid input は `Err(InvalidInt)` として明示的に失敗する
 
 ### WB-026
 title: wasm-wasi の heap object codegen で nested allocation 時の base pointer 破壊を潰す

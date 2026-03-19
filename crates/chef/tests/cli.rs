@@ -199,12 +199,19 @@ fn run_command_reads_stdin_for_practicea_style_program() {
 import stdin
 import console
 
+fn parse_or_zero(text: String) -> Int:
+  let parsed = parse_int(text)
+  match parsed:
+    Ok(value) -> value
+    Err(_) -> 0
+
 fn main():
-  let input = stdin.read_text()
-  if input == \"1\\n2 3\\ntest\\n\":
-    \"6 test\" |> console.println
-  else:
-    \"unexpected input\" |> console.println
+  let tokens = stdin.read_text().split_whitespace()
+  let a = parse_or_zero(tokens[0])
+  let b = parse_or_zero(tokens[1])
+  let c = parse_or_zero(tokens[2])
+  let result = [string(a + b + c), tokens[3]].join(\" \")
+  result |> console.println
 ",
     )
     .expect("write source");

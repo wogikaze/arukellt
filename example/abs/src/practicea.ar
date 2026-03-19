@@ -1,2 +1,3 @@
 fn solve(a: Int, b: Int, c: Int, s: String) -> String:
   [string(a + b + c), s].join(" ")
+

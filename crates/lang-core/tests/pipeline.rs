@@ -294,6 +294,35 @@ fn range_total() -> Int:
 }
 
 #[test]
+fn compiles_split_whitespace_and_parse_int_pipeline() {
+    let source = "\
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  let parsed = parse_int(text)
+  match parsed:
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn main():
+  let tokens = \"1 2 3 test\".split_whitespace()
+  let a = parse_or_zero(tokens[0])
+  let b = parse_or_zero(tokens[1])
+  let c = parse_or_zero(tokens[2])
+  let result = [string(a + b + c), tokens[3]].join(\" \")
+  result |> console.println
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
 fn compiles_modulo_and_less_than() {
     let source = "\
 fn is_even(n: i64) -> Bool:

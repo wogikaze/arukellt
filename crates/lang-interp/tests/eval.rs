@@ -172,11 +172,22 @@ fn evaluates_stdin_read_text_with_injected_input() {
 import stdin
 import console
 
+fn parse_or_zero(text: String) -> Int:
+  let parsed = parse_int(text)
+  match parsed:
+    Ok(value) -> value
+    Err(_) -> 0
+
 fn main():
-  stdin.read_text() |> console.println
+  let tokens = stdin.read_text().split_whitespace()
+  let a = parse_or_zero(tokens[0])
+  let b = parse_or_zero(tokens[1])
+  let c = parse_or_zero(tokens[2])
+  let result = [string(a + b + c), tokens[3]].join(\" \")
+  result |> console.println
 ";
-    let output = compile_and_run_output_with_stdin(source, "1 2 3 hello\n");
-    assert_eq!(output, "1 2 3 hello\n");
+    let output = compile_and_run_output_with_stdin(source, "1\n2 3\ntest\n");
+    assert_eq!(output, "6 test\n");
 }
 
 #[test]

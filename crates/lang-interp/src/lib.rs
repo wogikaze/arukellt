@@ -329,6 +329,30 @@ impl Interpreter {
                 [value] => Ok(Value::String(render_value(value))),
                 _ => Err(InterpreterError::ArityMismatch("string".to_owned())),
             },
+            "split_whitespace" => match args.as_slice() {
+                [Value::String(text)] => Ok(Value::List(
+                    text.split_whitespace()
+                        .map(|item| Value::String(item.to_owned()))
+                        .collect(),
+                )),
+                _ => Err(InterpreterError::TypeMismatch("split_whitespace(string)")),
+            },
+            "parse_int" => match args.as_slice() {
+                [Value::String(text)] => match text.parse::<i64>() {
+                    Ok(value) => Ok(Value::Variant {
+                        name: "Ok".to_owned(),
+                        fields: vec![Value::Int(value)],
+                    }),
+                    Err(_) => Ok(Value::Variant {
+                        name: "Err".to_owned(),
+                        fields: vec![Value::Variant {
+                            name: "InvalidInt".to_owned(),
+                            fields: Vec::new(),
+                        }],
+                    }),
+                },
+                _ => Err(InterpreterError::TypeMismatch("parse_int(string)")),
+            },
             "map" => match args.as_slice() {
                 [Value::List(items), callable] => {
                     let mut out = Vec::with_capacity(items.len());
@@ -529,6 +553,8 @@ fn is_builtin(name: &str) -> bool {
             | "__index"
             | "range_inclusive"
             | "string"
+            | "split_whitespace"
+            | "parse_int"
             | "map"
             | "filter"
             | "sum"
