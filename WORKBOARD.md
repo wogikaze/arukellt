@@ -45,37 +45,39 @@ Field rules:
 
 ## Next
 
-### WB-013
-title: wasm-wasi でイテレータ (Seq<T> / iter.unfold / take) を実装
+### WB-026
+title: wasm-wasi の heap object codegen で nested allocation 時の base pointer 破壊を潰す
 area: wasm-backend
 status: NEXT
-priority: P3
+priority: P2
 owner: unassigned
-depends_on: WB-011, WB-012
-source: infinite_iter.ar が `unsupported wasm type: Seq<Int>` で失敗
+depends_on: none
+source: WB-013 で `emit_iter_step` が nested tuple allocation 後に誤った base pointer を返していた
 done_when:
-- `infinite_iter.ar` が `arktc build --target wasm-wasi` で成功
-- `wasmer` 実行結果が infinite_iter.stdout と一致
+- nested allocation を含む heap-backed emitters が `heap_ptr - size` 再計算ではなく固定 base pointer で返る
+- nested payload を持つ構築パスに回帰テストが追加される
 notes:
-- Seq は (state, step_fn) のペア; WB-011 クロージャが前提
-- take は有限化; map/join は WB-010 と共通実装になる可能性
+- `emit_iter_step` は scratch local で修正済み; 同じパターンが `emit_construct` などにも潜む可能性がある
 
 ## Ready
 
-### WB-014
-title: wasm-wasi で WASI ファイル I/O (fs.read_text) を実装
-area: wasm-backend
+### WB-027
+title: arktc build に `--target wat` を追加し WAT テキストを直接出力できるようにする
+area: arktc
 status: READY
-priority: P3
+priority: P2
 owner: unassigned
-depends_on: WB-012
-source: file_read.ar が match 不一致エラーで失敗 (Result<String, ReadError> のペイロード ADT が前提)
+depends_on: none
+source: ユーザー要求「target に wat も欲しい」
 done_when:
-- `file_read.ar` が `arktc build --target wasm-wasi` で成功
-- `wasmer` に hello.txt を渡した実行結果が file_read.stdout と一致
+- `arktc build file.ar --target wat` が WAT テキストを stdout に出力する
+- `arktc build file.ar --target wat --output out.wat` がファイルに書き出す
+- `cargo test -p arktc` が通る新規テストが存在する
 notes:
-- WASI の path_open + fd_read を使う; preopen されたディレクトリが必要
-- WB-012 (ペイロード ADT) と WB-010 (文字列操作) が前提
+- `emit_wasm` の前に WAT 文字列を生成するステップが既にある; それを `--output` に書くだけでよい
+- `--output` 省略時は stdout への印字が自然 (wasm-js/wasm-wasi と違いバイナリでないため)
+- `lang-backend-wasm` に `emit_wat(module, target) -> Result<String>` を公開し `arktc` から呼ぶ設計が最小変更
+- `wat` / `wasm-js` / `wasm-wasi` と並ぶ第三の target 文字列として CLI に追加する
 
 ## Blocked
 
@@ -97,6 +99,36 @@ notes:
 - blocked on repository settings rather than code in this worktree
 
 ## Done
+
+### WB-013
+title: wasm-wasi でイテレータ (Seq<T> / iter.unfold / take) を実装
+area: wasm-backend
+status: DONE
+priority: P3
+owner: ai
+depends_on: WB-011, WB-012
+source: infinite_iter.ar が `unsupported wasm type: Seq<Int>` で失敗
+done_when:
+- `infinite_iter.ar` が `arktc build --target wasm-wasi` で成功
+- `wasmer` 実行結果が infinite_iter.stdout と一致
+notes:
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc --test examples`, `cargo run -p arktc -- build example/infinite_iter.ar --target wasm-wasi --output /tmp/infinite_iter.wasm`, `wasmer /tmp/infinite_iter.wasm`, and `cargo test`
+- wasm-wasi now lowers `Seq<i64>` from `iter.unfold` into heap-backed iterator objects, materializes `take` into `List<i64>`, and supports tuple state plus `Next` / `Done` step objects
+
+### WB-014
+title: wasm-wasi で WASI ファイル I/O (fs.read_text) を実装
+area: wasm-backend
+status: DONE
+priority: P3
+owner: ai
+depends_on: WB-012
+source: file_read.ar が match 不一致エラーで失敗 (Result<String, ReadError> のペイロード ADT が前提)
+done_when:
+- `file_read.ar` が `arktc build --target wasm-wasi` で成功
+- `wasmer` に hello.txt を渡した実行結果が file_read.stdout と一致
+notes:
+- verified with `cargo test -p lang-backend-wasm --test build --test examples`, `cargo run -p arktc -- build example/file_read.ar --target wasm-wasi --output /tmp/file_read.wasm`, `wasmer run --dir=. /tmp/file_read.wasm`, and `cargo test`
+- wasm-wasi now lowers `fs.read_text` through WASI `path_open` + `fd_read` + `fd_close`, returning heap-backed `Result<String, ReadError>` values that existing match/ADT lowering can consume
 
 ### WB-023
 title: wasm-wasi で List<i64> 向け map/filter/sum の組み込み lowering を追加

@@ -70,10 +70,9 @@
     "mode": "build_wasi_ok"
   },
   {
-    "id": "std-wasm-unsupported",
+    "id": "std-wasm-wasi-iter",
     "doc": "docs/std.md",
     "fixture": "docs/examples/std/05-wasm-unsupported.ar",
-    "mode": "build_wasi_fail",
-    "error_substring": "unsupported wasm type"
+    "mode": "build_wasi_ok"
   }
 ]

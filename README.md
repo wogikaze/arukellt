@@ -88,16 +88,16 @@ The current bundled-example matrix is:
 | `closure.ar` | pass | pass | pass | fail | pass |
 | `factorial.ar` | pass | pass | pass | fail | pass |
 | `fibonacci.ar` | pass | pass | pass | fail | pass |
-| `file_read.ar` | pass | pass | pass | fail | fail |
+| `file_read.ar` | pass | pass | pass | fail | pass |
 | `fizz_buzz.ar` | pass | pass | pass | fail | pass |
 | `hello_world.ar` | pass | pass | pass | fail | pass |
 | `infinite_iter.ar` | pass | pass | pass | fail | fail |
-| `map_filter_sum.ar` | pass | pass | pass | fail | fail |
+| `map_filter_sum.ar` | pass | pass | pass | fail | pass |
 | `powers.ar` | pass | pass | pass | fail | pass |
 | `result_error_handling.ar` | pass | pass | pass | fail | pass |
 | `wasm_scalar.ar` | pass | pass | pass | pass | pass |
 
-`wasm_scalar.ar`, `closure.ar`, `hello_world.ar`, `factorial.ar`, `fibonacci.ar`, `powers.ar`, `fizz_buzz.ar`, and `result_error_handling.ar` currently fit the bundled WASM subset end to end on `wasm-wasi`. The backend also accepts constrained synthetic modules with payload-carrying `Result` values and user-defined ADTs on `wasm-wasi`, but the remaining bundled examples still fail on at least one WASM target because they depend on richer surface features that are not lowered yet.
+`wasm_scalar.ar`, `closure.ar`, `hello_world.ar`, `factorial.ar`, `fibonacci.ar`, `map_filter_sum.ar`, `powers.ar`, `fizz_buzz.ar`, `file_read.ar`, and `result_error_handling.ar` currently fit the bundled WASM subset end to end on `wasm-wasi`. Among the bundled examples, only `infinite_iter.ar` still fails on `wasm-wasi`; `wasm-js` remains a much narrower literal-first subset.
 
 For release-facing reference material, see the executable docs in [`docs/language-tour.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/language-tour.md) and [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md). Their snippets are backed by checked-in fixtures and exercised by the test suite.
 
@@ -235,8 +235,8 @@ The executable prototype is still intentionally narrower than the full language 
 - The supported standard library remains small and purpose-built around the bundled examples
 - The WASM backend hard-fails on unsupported surface instead of emitting placeholder modules
 - The WASM backend supports literal strings plus heap-backed strings from `string()`/`join()` on `wasm-wasi`; broader string operations and general string ABI tooling are still unsupported
-- The WASM backend supports fieldless user-defined ADTs, binding-free `match`, and unary closures on `wasm-wasi`; payload-bearing constructors, pattern bindings, iterators, and broader host-call codegen are still unsupported
-- Host integrations are currently limited to the example-oriented `console` and `fs` interpreter shims
+- The WASM backend supports payload-bearing `Result` values, heap-backed user-defined ADTs, pattern bindings, unary closures, `List<i64>` collection helpers, minimal `Seq<i64>` materialization via `iter.unfold(...).take(n)`, `console.println`, and `fs.read_text` on `wasm-wasi`; broader host-call codegen is still unsupported
+- Host integrations are currently limited to the example-oriented `console.println` and `fs.read_text` shims
 - `clock`, `random`, `process`, package management, builders, and a richer standard library are not implemented yet
 - `arktfmt` currently preserves source rather than reprinting a canonical AST-based format
 - `arktdoc` currently emits JSON only; non-JSON `--format` values are rejected until another output contract is implemented

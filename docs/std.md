@@ -82,7 +82,7 @@ fn main() -> Int:
     Right -> 2
 ```
 
-The `wasm-wasi` target also supports `console.println` with string literals and the `string` builtin for integer-to-string conversion.
+The `wasm-wasi` target also supports `console.println` with string literals, the `string` builtin for integer-to-string conversion, and minimal iterator materialization through `iter.unfold(...).take(n)`.
 
 <!-- snippet: std-wasm-wasi-console -->
 ```arukel
@@ -92,9 +92,9 @@ fn main():
   "hello wasm" |> console.println
 ```
 
-Anything outside that subset should fail hard during `arktc build`. Payload-bearing constructors and iterator helpers remain unsupported, and closures currently lower only on `wasm-wasi`.
+Anything outside that subset should fail hard during `arktc build`. Broader host calls and the still-unimplemented iterator/collection surface remain unsupported, and closures currently lower only on `wasm-wasi`.
 
-<!-- snippet: std-wasm-unsupported -->
+<!-- snippet: std-wasm-wasi-iter -->
 ```arukel
 fn main() -> Seq<Int>:
   iter.unfold(0, n -> Next(n, n + 1))

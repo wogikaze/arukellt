@@ -17,7 +17,7 @@ fn rejects_unsupported_bundled_examples_for_both_wasm_targets() {
     let example_dir = repo_root().join("example");
     // These examples still use features outside the current wasm subset.
     // that are not yet supported on either target.
-    let examples = ["infinite_iter.ar", "file_read.ar"];
+    let examples: [&str; 0] = [];
 
     for name in examples {
         let source = fs::read_to_string(example_dir.join(name)).expect("example source");
@@ -57,9 +57,11 @@ fn wasi_console_println_examples_build_and_have_correct_magic() {
     // supported on the wasm-wasi target.
     let examples = [
         "closure.ar",
+        "infinite_iter.ar",
         "map_filter_sum.ar",
         "powers.ar",
         "fizz_buzz.ar",
+        "file_read.ar",
         "result_error_handling.ar",
         "hello_world.ar",
         "factorial.ar",

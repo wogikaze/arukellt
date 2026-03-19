@@ -1,6 +1,18 @@
+use std::fs;
+use std::path::PathBuf;
+
 use lang_backend_wasm::{WasmTarget, build_module_from_source, emit_wasm};
 use lang_core::{BinaryOp, Type};
 use lang_ir::{HighExpr, HighExprKind, HighFunction, HighModule, HighParam};
+
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .expect("workspace crates dir")
+        .parent()
+        .expect("workspace root")
+        .to_path_buf()
+}
 
 fn export_names(bytes: &[u8]) -> Vec<String> {
     let mut cursor = 8;
@@ -220,6 +232,22 @@ fn main():
     assert!(export_names(&bytes).iter().any(|name| name == "_start"));
     assert!(export_names(&bytes).iter().any(|name| name == "memory"));
     assert!(contains_bytes(&bytes, b"fd_write"));
+}
+
+#[test]
+fn wasi_target_supports_fs_read_text_result_payloads() {
+    let source = fs::read_to_string(repo_root().join("example/file_read.ar"))
+        .expect("file_read example source");
+
+    let bytes =
+        build_module_from_source(&source, WasmTarget::Wasi).expect("wasi fs.read_text bytes");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(export_names(&bytes).iter().any(|name| name == "_start"));
+    assert!(export_names(&bytes).iter().any(|name| name == "memory"));
+    assert!(contains_bytes(&bytes, b"path_open"));
+    assert!(contains_bytes(&bytes, b"fd_read"));
+    assert!(contains_bytes(&bytes, b"fd_close"));
 }
 
 #[test]
@@ -502,4 +530,29 @@ fn wasi_target_rejects_higher_order_named_function_callbacks() {
         message.contains("higher-order function references") && message.contains("callbacks"),
         "unexpected error: {message}"
     );
+}
+
+#[test]
+fn wasi_target_supports_iter_unfold_take_with_tuple_state() {
+    let source = "\
+import console
+
+fn fibonacci_iter() -> Iter<i64>:
+  iter.unfold((0, 1), state ->
+    Next(state[0], (state[1], state[0] + state[1]))
+  )
+
+fn main():
+  fibonacci_iter()
+    .take(10)
+    .map(string)
+    .join(\", \")
+    |> console.println
+";
+
+    let bytes = build_module_from_source(source, WasmTarget::Wasi)
+        .expect("wasi bytes for iter.unfold/take");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(export_names(&bytes).iter().any(|name| name == "_start"));
 }

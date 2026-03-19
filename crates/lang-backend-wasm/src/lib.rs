@@ -36,11 +36,28 @@ pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
              (func $fd_write (param i32 i32 i32 i32) (result i32)))\n",
         );
     }
+    if target == WasmTarget::Wasi && abi.uses_fs_read_text {
+        wat_module.push_str(
+            "  (import \"wasi_snapshot_preview1\" \"path_open\" \
+             (func $path_open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))\n",
+        );
+        wat_module.push_str(
+            "  (import \"wasi_snapshot_preview1\" \"fd_read\" \
+             (func $fd_read (param i32 i32 i32 i32) (result i32)))\n",
+        );
+        wat_module.push_str(
+            "  (import \"wasi_snapshot_preview1\" \"fd_close\" \
+             (func $fd_close (param i32) (result i32)))\n",
+        );
+    }
     emit_all_memory(&abi, &mut wat_module);
     emit_heap_primitives(&abi, &mut wat_module);
     if target == WasmTarget::Wasi {
         if abi.uses_string_builtin {
             emit_string_helper(&abi, &mut wat_module);
+        }
+        if abi.uses_fs_read_text {
+            emit_fs_read_text_helper(&abi, &mut wat_module)?;
         }
     }
     emit_closure_support(&abi, &function_names, &mut wat_module)?;
@@ -271,6 +288,161 @@ fn emit_string_helper(abi: &WasmAbi, out: &mut String) {
     out.push_str("  )\n");
 }
 
+fn emit_fs_read_text_helper(abi: &WasmAbi, out: &mut String) -> Result<()> {
+    let opened_fd = abi.fs_opened_fd_base();
+    let iovec = abi.fs_iovec_base();
+    let iovec_len = abi.fs_iovec_base() + 4;
+    let nread = abi.fs_nread_base();
+    let buffer = abi.fs_read_buffer_base();
+    let buffer_len = abi.fs_read_buffer_len() - 1;
+    let file_not_found_tag = abi.required_fieldless_variant_tag("FileNotFound")?;
+    let permission_denied_tag = abi.required_fieldless_variant_tag("PermissionDenied")?;
+    let unknown_read_error_tag = abi.required_fieldless_variant_tag("UnknownReadError")?;
+
+    out.push_str("  (func $fs.read_text (param $path i32) (result i32)\n");
+    out.push_str("    (local $path_len i32)\n");
+    out.push_str("    (local $errno i32)\n");
+    out.push_str("    (local $fd i32)\n");
+    out.push_str("    (local $bytes_read i32)\n");
+    out.push_str("    (local $text_ptr i32)\n");
+    out.push_str("    (local $error_tag i32)\n");
+    out.push_str("    (local $error_ptr i32)\n");
+    out.push_str("    (local $result_ptr i32)\n");
+    out.push_str("    local.get $path\n");
+    out.push_str("    call $__strlen\n");
+    out.push_str("    local.set $path_len\n");
+    out.push_str("    i32.const 3\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    local.get $path\n");
+    out.push_str("    local.get $path_len\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i64.const 2\n");
+    out.push_str("    i64.const 0\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str(&format!("    i32.const {opened_fd}\n"));
+    out.push_str("    call $path_open\n");
+    out.push_str("    local.set $errno\n");
+    out.push_str("    local.get $errno\n");
+    out.push_str("    i32.eqz\n");
+    out.push_str("    (if (result i32)\n");
+    out.push_str("      (then\n");
+    out.push_str(&format!("        i32.const {opened_fd}\n"));
+    out.push_str("        i32.load\n");
+    out.push_str("        local.set $fd\n");
+    out.push_str(&format!("        i32.const {iovec}\n"));
+    out.push_str(&format!("        i32.const {buffer}\n"));
+    out.push_str("        i32.store\n");
+    out.push_str(&format!("        i32.const {iovec_len}\n"));
+    out.push_str(&format!("        i32.const {buffer_len}\n"));
+    out.push_str("        i32.store\n");
+    out.push_str("        local.get $fd\n");
+    out.push_str(&format!("        i32.const {iovec}\n"));
+    out.push_str("        i32.const 1\n");
+    out.push_str(&format!("        i32.const {nread}\n"));
+    out.push_str("        call $fd_read\n");
+    out.push_str("        local.set $errno\n");
+    out.push_str("        local.get $fd\n");
+    out.push_str("        call $fd_close\n");
+    out.push_str("        drop\n");
+    out.push_str("        local.get $errno\n");
+    out.push_str("        i32.eqz\n");
+    out.push_str("        (if (result i32)\n");
+    out.push_str("          (then\n");
+    out.push_str(&format!("            i32.const {nread}\n"));
+    out.push_str("            i32.load\n");
+    out.push_str("            local.set $bytes_read\n");
+    out.push_str("            local.get $bytes_read\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            call $__alloc\n");
+    out.push_str("            local.set $text_ptr\n");
+    out.push_str("            local.get $text_ptr\n");
+    out.push_str(&format!("            i32.const {buffer}\n"));
+    out.push_str("            local.get $bytes_read\n");
+    out.push_str("            call $__memcpy\n");
+    out.push_str("            local.get $text_ptr\n");
+    out.push_str("            local.get $bytes_read\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            i32.store8\n");
+    out.push_str("            i32.const 8\n");
+    out.push_str("            call $__alloc\n");
+    out.push_str("            local.set $result_ptr\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            i32.store\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            local.get $text_ptr\n");
+    out.push_str("            i32.store offset=4\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("          )\n");
+    out.push_str("          (else\n");
+    out.push_str(&format!("            i32.const {unknown_read_error_tag}\n"));
+    out.push_str("            local.set $error_tag\n");
+    out.push_str("            i32.const 4\n");
+    out.push_str("            call $__alloc\n");
+    out.push_str("            local.set $error_ptr\n");
+    out.push_str("            local.get $error_ptr\n");
+    out.push_str("            local.get $error_tag\n");
+    out.push_str("            i32.store\n");
+    out.push_str("            i32.const 8\n");
+    out.push_str("            call $__alloc\n");
+    out.push_str("            local.set $result_ptr\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.store\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            local.get $error_ptr\n");
+    out.push_str("            i32.store offset=4\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("      )\n");
+    out.push_str("      (else\n");
+    out.push_str("        local.get $errno\n");
+    out.push_str("        i32.const 44\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        (if (result i32)\n");
+    out.push_str(&format!(
+        "          (then i32.const {file_not_found_tag})\n"
+    ));
+    out.push_str("          (else\n");
+    out.push_str("            local.get $errno\n");
+    out.push_str("            i32.const 2\n");
+    out.push_str("            i32.eq\n");
+    out.push_str("            (if (result i32)\n");
+    out.push_str(&format!(
+        "              (then i32.const {permission_denied_tag})\n"
+    ));
+    out.push_str(&format!(
+        "              (else i32.const {unknown_read_error_tag})\n"
+    ));
+    out.push_str("            )\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.set $error_tag\n");
+    out.push_str("        i32.const 4\n");
+    out.push_str("        call $__alloc\n");
+    out.push_str("        local.set $error_ptr\n");
+    out.push_str("        local.get $error_ptr\n");
+    out.push_str("        local.get $error_tag\n");
+    out.push_str("        i32.store\n");
+    out.push_str("        i32.const 8\n");
+    out.push_str("        call $__alloc\n");
+    out.push_str("        local.set $result_ptr\n");
+    out.push_str("        local.get $result_ptr\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.store\n");
+    out.push_str("        local.get $result_ptr\n");
+    out.push_str("        local.get $error_ptr\n");
+    out.push_str("        i32.store offset=4\n");
+    out.push_str("        local.get $result_ptr\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("  )\n");
+    Ok(())
+}
+
 fn emit_function(
     function: &HighFunction,
     function_names: &HashSet<String>,
@@ -327,6 +499,9 @@ fn emit_function(
     out.push('\n');
     for (local_name, local_ty) in &let_locals {
         out.push_str(&format!("    (local ${local_name} {local_ty})\n"));
+    }
+    if abi.needs_heap() {
+        out.push_str("    (local $__tmp_ptr0 i32)\n");
     }
     let mut emit_local_names = locals.clone();
     emit_expr(
@@ -392,8 +567,19 @@ fn emit_expr(
                 out,
             )?;
         }
-        HighExprKind::Tuple(_) => {
-            bail!("tuple expressions are not yet supported in wasm backend");
+        HighExprKind::Tuple(items) => {
+            emit_tuple_literal(
+                items,
+                indent,
+                locals,
+                declared_local_names,
+                match_bindings,
+                captures,
+                env_local,
+                function_names,
+                abi,
+                out,
+            )?;
         }
         HighExprKind::Ident(name) => {
             if let Some(binding) = locals.get(name) {
@@ -524,7 +710,30 @@ fn emit_expr(
             out.push_str(&format!("{pad})\n"));
         }
         HighExprKind::Call { callee, args } => {
-            if callee == "range_inclusive" && abi.target == WasmTarget::Wasi {
+            if callee == "__index" && abi.target == WasmTarget::Wasi {
+                let [receiver, index] = args.as_slice() else {
+                    bail!("`__index` expects exactly two arguments in wasm backend");
+                };
+                let HighExprKind::Int(index_value) = index.kind else {
+                    bail!("wasm backend currently requires constant tuple indexes");
+                };
+                if index_value < 0 {
+                    bail!("wasm backend does not support negative indexes");
+                }
+                emit_expr(
+                    receiver,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}i32.load offset={}\n", index_value * 4));
+            } else if callee == "range_inclusive" && abi.target == WasmTarget::Wasi {
                 let [start, end] = args.as_slice() else {
                     bail!("`range_inclusive` expects exactly two arguments in wasm backend");
                 };
@@ -553,6 +762,67 @@ fn emit_expr(
                     out,
                 )?;
                 out.push_str(&format!("{pad}call $__range_inclusive\n"));
+            } else if callee == "iter.unfold" && abi.target == WasmTarget::Wasi {
+                let [seed, callback] = args.as_slice() else {
+                    bail!("`iter.unfold` expects exactly two arguments in wasm backend");
+                };
+                emit_expr(
+                    seed,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                emit_expr(
+                    callback,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}call $__iter_unfold_new\n"));
+            } else if callee == "take" && abi.target == WasmTarget::Wasi {
+                let [receiver, limit] = args.as_slice() else {
+                    bail!("`take` expects exactly two arguments in wasm backend");
+                };
+                if expr_item_type(&receiver.ty) != Type::Int {
+                    bail!("only Seq<i64>.take is currently supported in wasm backend");
+                }
+                emit_expr(
+                    receiver,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                emit_expr(
+                    limit,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}call $__iter_take_i64\n"));
             } else if callee == "map" && abi.target == WasmTarget::Wasi {
                 let [receiver, callback] = args.as_slice() else {
                     bail!("`map` expects exactly two arguments in wasm backend");
@@ -760,6 +1030,59 @@ fn emit_expr(
                     )?;
                 }
                 out.push_str(&format!("{pad}call $string\n"));
+            } else if abi.target == WasmTarget::Wasi && callee == "fs.read_text" {
+                let [path] = args.as_slice() else {
+                    bail!("`fs.read_text` expects exactly one path argument in wasm backend");
+                };
+                emit_expr(
+                    path,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}call $fs.read_text\n"));
+            } else if callee == "Next" && abi.target == WasmTarget::Wasi {
+                let [item, state] = args.as_slice() else {
+                    bail!("`Next` expects exactly two arguments in wasm backend");
+                };
+                emit_iter_step(
+                    0,
+                    Some(item),
+                    Some(state),
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+            } else if callee == "Done" && abi.target == WasmTarget::Wasi {
+                if !args.is_empty() {
+                    bail!("`Done` expects no arguments in wasm backend");
+                }
+                emit_iter_step(
+                    1,
+                    None,
+                    None,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
             } else {
                 bail!("calls to `{callee}` are not yet supported in wasm backend");
             }
@@ -978,6 +1301,52 @@ fn emit_list_literal(
     Ok(())
 }
 
+fn emit_tuple_literal(
+    items: &[HighExpr],
+    indent: usize,
+    locals: &mut HashMap<String, Option<String>>,
+    declared_local_names: &mut HashSet<String>,
+    match_bindings: &HashMap<String, MatchBinding>,
+    captures: &HashMap<String, u32>,
+    env_local: Option<&str>,
+    function_names: &HashSet<String>,
+    abi: &WasmAbi,
+    out: &mut String,
+) -> Result<()> {
+    if abi.target != WasmTarget::Wasi {
+        bail!("tuple expressions are not yet supported in wasm backend");
+    }
+
+    let pad = "  ".repeat(indent);
+    let total_bytes = u32::try_from(items.len()).expect("tuple length fits") * 4;
+    out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
+    out.push_str(&format!("{pad}call $__alloc\n"));
+    out.push_str(&format!("{pad}drop\n"));
+    for (index, item) in items.iter().enumerate() {
+        let offset = u32::try_from(index).expect("tuple index fits") * 4;
+        out.push_str(&format!("{pad}global.get $heap_ptr\n"));
+        out.push_str(&format!("{pad}i32.const {}\n", total_bytes - offset));
+        out.push_str(&format!("{pad}i32.sub\n"));
+        emit_expr(
+            item,
+            indent,
+            locals,
+            declared_local_names,
+            match_bindings,
+            captures,
+            env_local,
+            function_names,
+            abi,
+            out,
+        )?;
+        out.push_str(&format!("{pad}i32.store\n"));
+    }
+    out.push_str(&format!("{pad}global.get $heap_ptr\n"));
+    out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
+    out.push_str(&format!("{pad}i32.sub\n"));
+    Ok(())
+}
+
 fn ensure_wasi_int_list_type(list_ty: &Type, abi: &WasmAbi) -> Result<()> {
     if abi.target != WasmTarget::Wasi {
         bail!("list expressions are not yet supported in wasm backend");
@@ -1023,6 +1392,67 @@ fn emit_lambda(
     }
     let pad = "  ".repeat(indent);
     out.push_str(&format!("{pad}call ${}\n", closure.alloc_name));
+    Ok(())
+}
+
+fn emit_iter_step(
+    tag: i32,
+    item: Option<&HighExpr>,
+    state: Option<&HighExpr>,
+    indent: usize,
+    locals: &mut HashMap<String, Option<String>>,
+    declared_local_names: &mut HashSet<String>,
+    match_bindings: &HashMap<String, MatchBinding>,
+    captures: &HashMap<String, u32>,
+    env_local: Option<&str>,
+    function_names: &HashSet<String>,
+    abi: &WasmAbi,
+    out: &mut String,
+) -> Result<()> {
+    let pad = "  ".repeat(indent);
+    out.push_str(&format!("{pad}i32.const 12\n"));
+    out.push_str(&format!("{pad}call $__alloc\n"));
+    out.push_str(&format!("{pad}local.set $__tmp_ptr0\n"));
+    out.push_str(&format!("{pad}local.get $__tmp_ptr0\n"));
+    out.push_str(&format!("{pad}i32.const {tag}\n"));
+    out.push_str(&format!("{pad}i32.store\n"));
+    if let Some(item) = item {
+        out.push_str(&format!("{pad}local.get $__tmp_ptr0\n"));
+        out.push_str(&format!("{pad}i32.const 4\n"));
+        out.push_str(&format!("{pad}i32.add\n"));
+        emit_expr(
+            item,
+            indent,
+            locals,
+            declared_local_names,
+            match_bindings,
+            captures,
+            env_local,
+            function_names,
+            abi,
+            out,
+        )?;
+        out.push_str(&format!("{pad}i32.store\n"));
+    }
+    if let Some(state) = state {
+        out.push_str(&format!("{pad}local.get $__tmp_ptr0\n"));
+        out.push_str(&format!("{pad}i32.const 8\n"));
+        out.push_str(&format!("{pad}i32.add\n"));
+        emit_expr(
+            state,
+            indent,
+            locals,
+            declared_local_names,
+            match_bindings,
+            captures,
+            env_local,
+            function_names,
+            abi,
+            out,
+        )?;
+        out.push_str(&format!("{pad}i32.store\n"));
+    }
+    out.push_str(&format!("{pad}local.get $__tmp_ptr0\n"));
     Ok(())
 }
 
@@ -1337,9 +1767,12 @@ struct WasmAbi {
     variants: HashMap<String, VariantLayout>,
     uses_console_println: bool,
     uses_string_builtin: bool,
+    uses_fs_read_text: bool,
     uses_list_runtime: bool,
     uses_adt_runtime: bool,
     uses_range_inclusive: bool,
+    uses_iter_runtime: bool,
+    uses_take_builtin: bool,
     uses_map_builtin: bool,
     uses_filter_builtin: bool,
     uses_sum_builtin: bool,
@@ -1389,9 +1822,12 @@ impl WasmAbi {
 
         let mut uses_console_println = false;
         let mut uses_string_builtin = false;
+        let mut uses_fs_read_text = false;
         let mut uses_list_runtime = false;
         let mut uses_adt_runtime = false;
         let mut uses_range_inclusive = false;
+        let mut uses_iter_runtime = false;
+        let mut uses_take_builtin = false;
         let mut uses_map_builtin = false;
         let mut uses_filter_builtin = false;
         let mut uses_sum_builtin = false;
@@ -1402,9 +1838,12 @@ impl WasmAbi {
                     &function.body,
                     &mut uses_console_println,
                     &mut uses_string_builtin,
+                    &mut uses_fs_read_text,
                     &mut uses_list_runtime,
                     &mut uses_adt_runtime,
                     &mut uses_range_inclusive,
+                    &mut uses_iter_runtime,
+                    &mut uses_take_builtin,
                     &mut uses_map_builtin,
                     &mut uses_filter_builtin,
                     &mut uses_sum_builtin,
@@ -1425,9 +1864,12 @@ impl WasmAbi {
             variants,
             uses_console_println,
             uses_string_builtin,
+            uses_fs_read_text,
             uses_list_runtime,
             uses_adt_runtime,
             uses_range_inclusive,
+            uses_iter_runtime,
+            uses_take_builtin,
             uses_map_builtin,
             uses_filter_builtin,
             uses_sum_builtin,
@@ -1446,7 +1888,8 @@ impl WasmAbi {
     }
 
     fn needs_scratch(&self) -> bool {
-        self.target == WasmTarget::Wasi && (self.uses_console_println || self.uses_string_builtin)
+        self.target == WasmTarget::Wasi
+            && (self.uses_console_println || self.uses_string_builtin || self.uses_fs_read_text)
     }
 
     fn iovec_base(&self) -> u32 {
@@ -1465,9 +1908,29 @@ impl WasmAbi {
         self.scratch_base + 28
     }
 
+    fn fs_opened_fd_base(&self) -> u32 {
+        self.scratch_base + 28
+    }
+
+    fn fs_iovec_base(&self) -> u32 {
+        self.scratch_base + 32
+    }
+
+    fn fs_nread_base(&self) -> u32 {
+        self.scratch_base + 40
+    }
+
+    fn fs_read_buffer_base(&self) -> u32 {
+        self.scratch_base + 44
+    }
+
+    fn fs_read_buffer_len(&self) -> u32 {
+        4096
+    }
+
     fn heap_base(&self) -> u32 {
         let base = if self.needs_scratch() {
-            self.scratch_base + 28
+            self.fs_read_buffer_base() + self.fs_read_buffer_len()
         } else {
             self.string_table.next_offset
         };
@@ -1480,6 +1943,8 @@ impl WasmAbi {
             || self.uses_list_runtime
             || self.uses_adt_runtime
             || self.uses_range_inclusive
+            || self.uses_iter_runtime
+            || self.uses_take_builtin
             || self.uses_map_builtin
             || self.uses_filter_builtin
             || self.uses_sum_builtin
@@ -1491,7 +1956,7 @@ impl WasmAbi {
         if self.needs_heap() {
             self.heap_base()
         } else if self.needs_scratch() {
-            self.scratch_base + 28
+            self.fs_read_buffer_base() + self.fs_read_buffer_len()
         } else {
             self.string_table.next_offset
         }
@@ -1503,6 +1968,16 @@ impl WasmAbi {
 
     fn variant_layout(&self, name: &str) -> Option<&VariantLayout> {
         self.variants.get(name)
+    }
+
+    fn required_fieldless_variant_tag(&self, name: &str) -> Result<u32> {
+        let layout = self
+            .variant_layout(name)
+            .ok_or_else(|| anyhow!("missing variant `{name}` required by wasm backend helper"))?;
+        if layout.field_count != 0 {
+            bail!("variant `{name}` must stay fieldless for wasm backend helper support");
+        }
+        Ok(layout.tag)
     }
 
     fn variant_layout_for_construct(&self, variant: &str, expr_ty: &Type) -> Result<VariantLayout> {
@@ -1613,6 +2088,8 @@ impl WasmAbi {
             Type::String if self.target == WasmTarget::JavaScriptHost => Ok(Some("i32")),
             Type::String if self.target == WasmTarget::Wasi => Ok(Some("i32")),
             Type::List(_) if self.target == WasmTarget::Wasi => Ok(Some("i32")),
+            Type::Tuple(_) if self.target == WasmTarget::Wasi => Ok(Some("i32")),
+            Type::Seq(_) if self.target == WasmTarget::Wasi => Ok(Some("i32")),
             Type::Result(_, _) if self.target == WasmTarget::Wasi => Ok(Some("i32")),
             Type::Named(name) => match self.named_types.get(name) {
                 Some(NamedTypeAbi::FieldlessEnum) => Ok(Some("i32")),
@@ -1740,6 +2217,21 @@ impl WasmAbi {
                         } else {
                             self.collect_closures_in_expr(callback, None, scope)?;
                         }
+                    }
+                } else if callee == "iter.unfold" {
+                    if let [seed, callback] = &args[..] {
+                        self.collect_closures_in_expr(seed, None, scope)?;
+                        let expected = Type::Fn(
+                            Box::new(seed.ty.clone()),
+                            Box::new(Type::Result(
+                                Box::new(Type::Tuple(vec![
+                                    expr_item_type(&expr.ty),
+                                    seed.ty.clone(),
+                                ])),
+                                Box::new(Type::Unit),
+                            )),
+                        );
+                        self.collect_closures_in_expr(callback, Some(&expected), scope)?;
                     }
                 } else {
                     for arg in args {
@@ -2034,8 +2526,15 @@ fn emit_closure_support(
     for callback in &abi.named_callback_thunks {
         emit_named_callback_thunk(callback, out);
     }
+    if abi.uses_take_builtin {
+        emit_apply_dynamic_helper(abi, out)?;
+        emit_take_helper(out);
+    }
     if abi.uses_range_inclusive {
         emit_range_inclusive_helper(out);
+    }
+    if abi.uses_iter_runtime {
+        emit_iter_unfold_helper(out);
     }
     if abi.uses_join_builtin {
         emit_join_helper(out);
@@ -2182,6 +2681,91 @@ fn emit_apply_helper(abi: &WasmAbi, signature: &ClosureSignature, out: &mut Stri
     ));
     out.push_str("  )\n");
     Ok(())
+}
+
+fn emit_apply_dynamic_helper(abi: &WasmAbi, out: &mut String) -> Result<()> {
+    let signature = abi
+        .closure_signatures
+        .first()
+        .ok_or_else(|| anyhow!("iterator lowering requires at least one closure signature"))?;
+    out.push_str(
+        "  (func $__apply_closure_dyn (param $closure i32) (param $arg i32) (result i32)\n",
+    );
+    out.push_str("    local.get $closure\n");
+    out.push_str("    local.get $arg\n");
+    out.push_str("    local.get $closure\n");
+    out.push_str("    i32.load\n");
+    out.push_str(&format!(
+        "    call_indirect (type ${})\n",
+        abi.closure_type_name(signature.index)
+    ));
+    out.push_str("  )\n");
+    Ok(())
+}
+
+fn emit_take_helper(out: &mut String) {
+    out.push_str("  (func $__iter_take_i64 (param $iter i32) (param $limit i32) (result i32)\n");
+    out.push_str("    (local $state i32)\n");
+    out.push_str("    (local $callback i32)\n");
+    out.push_str("    (local $items i32)\n");
+    out.push_str("    (local $list i32)\n");
+    out.push_str("    (local $len i32)\n");
+    out.push_str("    (local $step i32)\n");
+    out.push_str("    local.get $limit\n");
+    out.push_str("    i32.const 4\n");
+    out.push_str("    i32.mul\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $items\n");
+    out.push_str("    local.get $iter\n");
+    out.push_str("    i32.load\n");
+    out.push_str("    local.set $state\n");
+    out.push_str("    local.get $iter\n");
+    out.push_str("    i32.load offset=4\n");
+    out.push_str("    local.set $callback\n");
+    out.push_str("    (block $break\n");
+    out.push_str("      (loop $loop\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        local.get $limit\n");
+    out.push_str("        i32.ge_u\n");
+    out.push_str("        br_if $break\n");
+    out.push_str("        local.get $callback\n");
+    out.push_str("        local.get $state\n");
+    out.push_str("        call $__apply_closure_dyn\n");
+    out.push_str("        local.set $step\n");
+    out.push_str("        local.get $step\n");
+    out.push_str("        i32.load\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        br_if $break\n");
+    out.push_str("        local.get $items\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        i32.const 4\n");
+    out.push_str("        i32.mul\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.get $step\n");
+    out.push_str("        i32.load offset=4\n");
+    out.push_str("        i32.store\n");
+    out.push_str("        local.get $step\n");
+    out.push_str("        i32.load offset=8\n");
+    out.push_str("        local.set $state\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $len\n");
+    out.push_str("        br $loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    i32.const 8\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $list\n");
+    out.push_str("    local.get $list\n");
+    out.push_str("    local.get $len\n");
+    out.push_str("    i32.store\n");
+    out.push_str("    local.get $list\n");
+    out.push_str("    local.get $items\n");
+    out.push_str("    i32.store offset=4\n");
+    out.push_str("    local.get $list\n");
+    out.push_str("  )\n");
 }
 
 fn emit_map_helper(abi: &WasmAbi, signature: &ClosureSignature, out: &mut String) -> Result<()> {
@@ -2459,6 +3043,24 @@ fn emit_range_inclusive_helper(out: &mut String) {
     out.push_str("  )\n");
 }
 
+fn emit_iter_unfold_helper(out: &mut String) {
+    out.push_str(
+        "  (func $__iter_unfold_new (param $state i32) (param $callback i32) (result i32)\n",
+    );
+    out.push_str("    (local $iter i32)\n");
+    out.push_str("    i32.const 8\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $iter\n");
+    out.push_str("    local.get $iter\n");
+    out.push_str("    local.get $state\n");
+    out.push_str("    i32.store\n");
+    out.push_str("    local.get $iter\n");
+    out.push_str("    local.get $callback\n");
+    out.push_str("    i32.store offset=4\n");
+    out.push_str("    local.get $iter\n");
+    out.push_str("  )\n");
+}
+
 fn emit_join_helper(out: &mut String) {
     out.push_str("  (func $__list_join_strings (param $list i32) (param $sep i32) (result i32)\n");
     out.push_str("    (local $len i32)\n");
@@ -2623,6 +3225,9 @@ fn emit_closure_thunk(
     for (local_name, local_ty) in &let_locals {
         out.push_str(&format!("    (local ${local_name} {local_ty})\n"));
     }
+    if abi.needs_heap() {
+        out.push_str("    (local $__tmp_ptr0 i32)\n");
+    }
     emit_expr(
         &closure.body,
         2,
@@ -2725,9 +3330,12 @@ fn scan_expr(
     expr: &HighExpr,
     uses_console_println: &mut bool,
     uses_string_builtin: &mut bool,
+    uses_fs_read_text: &mut bool,
     uses_list_runtime: &mut bool,
     uses_adt_runtime: &mut bool,
     uses_range_inclusive: &mut bool,
+    uses_iter_runtime: &mut bool,
+    uses_take_builtin: &mut bool,
     uses_map_builtin: &mut bool,
     uses_filter_builtin: &mut bool,
     uses_sum_builtin: &mut bool,
@@ -2741,9 +3349,20 @@ fn scan_expr(
             if callee == "string" {
                 *uses_string_builtin = true;
             }
+            if callee == "fs.read_text" {
+                *uses_fs_read_text = true;
+                *uses_adt_runtime = true;
+            }
             if callee == "range_inclusive" {
                 *uses_list_runtime = true;
                 *uses_range_inclusive = true;
+            }
+            if callee == "iter.unfold" {
+                *uses_iter_runtime = true;
+            }
+            if callee == "take" {
+                *uses_iter_runtime = true;
+                *uses_take_builtin = true;
             }
             if callee == "map" {
                 *uses_list_runtime = true;
@@ -2765,9 +3384,12 @@ fn scan_expr(
                     arg,
                     uses_console_println,
                     uses_string_builtin,
+                    uses_fs_read_text,
                     uses_list_runtime,
                     uses_adt_runtime,
                     uses_range_inclusive,
+                    uses_iter_runtime,
+                    uses_take_builtin,
                     uses_map_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
@@ -2780,9 +3402,12 @@ fn scan_expr(
                 left,
                 uses_console_println,
                 uses_string_builtin,
+                uses_fs_read_text,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
+                uses_iter_runtime,
+                uses_take_builtin,
                 uses_map_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -2792,9 +3417,12 @@ fn scan_expr(
                 right,
                 uses_console_println,
                 uses_string_builtin,
+                uses_fs_read_text,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
+                uses_iter_runtime,
+                uses_take_builtin,
                 uses_map_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -2810,9 +3438,12 @@ fn scan_expr(
                 condition,
                 uses_console_println,
                 uses_string_builtin,
+                uses_fs_read_text,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
+                uses_iter_runtime,
+                uses_take_builtin,
                 uses_map_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -2822,9 +3453,12 @@ fn scan_expr(
                 then_branch,
                 uses_console_println,
                 uses_string_builtin,
+                uses_fs_read_text,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
+                uses_iter_runtime,
+                uses_take_builtin,
                 uses_map_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -2834,9 +3468,12 @@ fn scan_expr(
                 else_branch,
                 uses_console_println,
                 uses_string_builtin,
+                uses_fs_read_text,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
+                uses_iter_runtime,
+                uses_take_builtin,
                 uses_map_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -2849,9 +3486,12 @@ fn scan_expr(
                 subject,
                 uses_console_println,
                 uses_string_builtin,
+                uses_fs_read_text,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
+                uses_iter_runtime,
+                uses_take_builtin,
                 uses_map_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -2862,9 +3502,12 @@ fn scan_expr(
                     &arm.expr,
                     uses_console_println,
                     uses_string_builtin,
+                    uses_fs_read_text,
                     uses_list_runtime,
                     uses_adt_runtime,
                     uses_range_inclusive,
+                    uses_iter_runtime,
+                    uses_take_builtin,
                     uses_map_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
@@ -2879,9 +3522,12 @@ fn scan_expr(
                     arg,
                     uses_console_println,
                     uses_string_builtin,
+                    uses_fs_read_text,
                     uses_list_runtime,
                     uses_adt_runtime,
                     uses_range_inclusive,
+                    uses_iter_runtime,
+                    uses_take_builtin,
                     uses_map_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
@@ -2898,9 +3544,12 @@ fn scan_expr(
                     item,
                     uses_console_println,
                     uses_string_builtin,
+                    uses_fs_read_text,
                     uses_list_runtime,
                     uses_adt_runtime,
                     uses_range_inclusive,
+                    uses_iter_runtime,
+                    uses_take_builtin,
                     uses_map_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
@@ -2913,9 +3562,12 @@ fn scan_expr(
                 body,
                 uses_console_println,
                 uses_string_builtin,
+                uses_fs_read_text,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
+                uses_iter_runtime,
+                uses_take_builtin,
                 uses_map_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -2927,9 +3579,12 @@ fn scan_expr(
                 value,
                 uses_console_println,
                 uses_string_builtin,
+                uses_fs_read_text,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
+                uses_iter_runtime,
+                uses_take_builtin,
                 uses_map_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -2939,9 +3594,12 @@ fn scan_expr(
                 body,
                 uses_console_println,
                 uses_string_builtin,
+                uses_fs_read_text,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
+                uses_iter_runtime,
+                uses_take_builtin,
                 uses_map_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -2965,6 +3623,13 @@ fn list_item_type(ty: &Type) -> Option<Type> {
         Some((**item).clone())
     } else {
         None
+    }
+}
+
+fn expr_item_type(ty: &Type) -> Type {
+    match ty {
+        Type::List(item) | Type::Seq(item) => (**item).clone(),
+        _ => Type::Unknown,
     }
 }
 

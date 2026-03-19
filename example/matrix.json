@@ -29,7 +29,7 @@
     "chef_run": true,
     "chef_test": true,
     "wasm_js_build": false,
-    "wasm_wasi_build": false
+    "wasm_wasi_build": true
   },
   {
     "name": "fizz_buzz.ar",
@@ -53,7 +53,7 @@
     "chef_run": true,
     "chef_test": true,
     "wasm_js_build": false,
-    "wasm_wasi_build": false
+    "wasm_wasi_build": true
   },
   {
     "name": "map_filter_sum.ar",

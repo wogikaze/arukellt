@@ -284,20 +284,7 @@ impl<'a> FunctionChecker<'a> {
                     ty: Type::Tuple(item_types),
                 }
             }
-            Expr::Lambda { param, body } => {
-                let saved = self.env.clone();
-                self.env.insert(param.clone(), Type::Unknown);
-                let typed_body = self.infer_expr(body);
-                let lambda_ty = Type::Fn(Box::new(Type::Unknown), Box::new(typed_body.ty.clone()));
-                self.env = saved;
-                TypedExpr {
-                    kind: TypedExprKind::Lambda {
-                        param: param.clone(),
-                        body: Box::new(typed_body),
-                    },
-                    ty: lambda_ty,
-                }
-            }
+            Expr::Lambda { param, body } => self.infer_lambda_expr(param, body, Type::Unknown),
             Expr::Ident(name) => TypedExpr {
                 kind: if self
                     .constructors
@@ -515,6 +502,31 @@ impl<'a> FunctionChecker<'a> {
                 }
             }
             Expr::Call { callee, args } => {
+                if callee == "iter.unfold" {
+                    let mut typed_args = Vec::with_capacity(args.len());
+                    if let Some(seed) = args.first() {
+                        typed_args.push(self.infer_expr(seed));
+                    }
+                    if let Some(callback) = args.get(1) {
+                        let typed_callback = match callback {
+                            Expr::Lambda { param, body } if !typed_args.is_empty() => {
+                                self.infer_lambda_expr(param, body, typed_args[0].ty.clone())
+                            }
+                            _ => self.infer_expr(callback),
+                        };
+                        typed_args.push(typed_callback);
+                    }
+                    typed_args.extend(args.iter().skip(2).map(|arg| self.infer_expr(arg)));
+                    if let Some(ty) = builtin_return_type(callee, &typed_args) {
+                        return TypedExpr {
+                            kind: TypedExprKind::Call {
+                                callee: callee.clone(),
+                                args: typed_args,
+                            },
+                            ty,
+                        };
+                    }
+                }
                 let typed_args = args
                     .iter()
                     .map(|arg| self.infer_expr(arg))
@@ -640,6 +652,21 @@ impl<'a> FunctionChecker<'a> {
                 kind: TypedExprKind::Error,
                 ty: Type::Unknown,
             },
+        }
+    }
+
+    fn infer_lambda_expr(&mut self, param: &str, body: &Expr, param_ty: Type) -> TypedExpr {
+        let saved = self.env.clone();
+        self.env.insert(param.to_owned(), param_ty.clone());
+        let typed_body = self.infer_expr(body);
+        let lambda_ty = Type::Fn(Box::new(param_ty), Box::new(typed_body.ty.clone()));
+        self.env = saved;
+        TypedExpr {
+            kind: TypedExprKind::Lambda {
+                param: param.to_owned(),
+                body: Box::new(typed_body),
+            },
+            ty: lambda_ty,
         }
     }
 
@@ -789,7 +816,12 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         },
         "__index" => match args.first().map(|arg| &arg.ty) {
             Some(Type::List(inner)) => (**inner).clone(),
-            Some(Type::Tuple(items)) => items.first().cloned().unwrap_or(Type::Unknown),
+            Some(Type::Tuple(items)) => match args.get(1).map(|arg| &arg.kind) {
+                Some(TypedExprKind::Int(index)) if *index >= 0 => {
+                    items.get(*index as usize).cloned().unwrap_or(Type::Unknown)
+                }
+                _ => Type::Unknown,
+            },
             _ => Type::Unknown,
         },
         "range_inclusive" => Type::List(Box::new(Type::Int)),
@@ -804,15 +836,47 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
             .unwrap_or(Type::Unknown),
         "sum" => Type::Int,
         "join" => Type::String,
-        "take" => Type::List(Box::new(Type::Unknown)),
-        "iter.unfold" => Type::Unknown,
+        "take" => match args.first().map(|arg| &arg.ty) {
+            Some(Type::List(inner)) | Some(Type::Seq(inner)) => Type::List(inner.clone()),
+            _ => Type::List(Box::new(Type::Unknown)),
+        },
+        "iter.unfold" => match args.get(1).map(|arg| &arg.ty) {
+            Some(Type::Fn(_, result)) => iter_item_type_from_step(result)
+                .map(|item| Type::Seq(Box::new(item)))
+                .unwrap_or(Type::Seq(Box::new(Type::Unknown))),
+            _ => Type::Seq(Box::new(Type::Unknown)),
+        },
         "console.println" => Type::Unit,
         "fs.read_text" => Type::Result(Box::new(Type::String), Box::new(Type::Unknown)),
-        "Next" => Type::Named("Next".to_owned()),
-        "Done" => Type::Named("Done".to_owned()),
+        "Next" => {
+            let item_ty = args
+                .first()
+                .map(|arg| arg.ty.clone())
+                .unwrap_or(Type::Unknown);
+            let state_ty = args
+                .get(1)
+                .map(|arg| arg.ty.clone())
+                .unwrap_or(Type::Unknown);
+            Type::Result(
+                Box::new(Type::Tuple(vec![item_ty, state_ty])),
+                Box::new(Type::Unit),
+            )
+        }
+        "Done" => Type::Result(Box::new(Type::Unknown), Box::new(Type::Unit)),
         _ if callee.starts_with("console.") => Type::Unit,
         _ => return None,
     })
+}
+
+fn iter_item_type_from_step(step_ty: &Type) -> Option<Type> {
+    match step_ty {
+        Type::Result(ok, _) => match ok.as_ref() {
+            Type::Tuple(items) if items.len() >= 2 => Some(items[0].clone()),
+            Type::Unknown => Some(Type::Unknown),
+            _ => None,
+        },
+        _ => None,
+    }
 }
 
 fn merge_types(left: &Type, right: &Type) -> Type {
