@@ -120,6 +120,7 @@ cargo run -p chef -- run path/to/file.ar --function main --args 3 9 --step
 ```
 
 This runs the interpreter path and can optionally print a trace. The interpreter is the default development loop because it is faster to diagnose than the WASM backend.
+If compilation fails before execution starts, `chef run` exits non-zero and writes structured diagnostics JSON to stderr.
 
 ### Test
 
@@ -130,8 +131,8 @@ cargo run -p chef -- test path/to/file.ar --json
 
 Functions whose names start with `test_` are executed and must return `Bool(true)`.
 If a file does not define any `test_` functions, `chef test` falls back to snapshot testing against the adjacent `.stdout` fixture.
-`--json` emits a versioned result payload listing discovered test names and any failures; compile failures also surface as structured diagnostics JSON.
-Without `--json`, compile failures still print actionable human-readable diagnostics before exiting non-zero.
+`--json` emits a versioned result payload listing discovered test names and any failures; compile failures surface as structured diagnostics JSON on stderr.
+Without `--json`, compile failures still print actionable human-readable diagnostics on stderr before exiting non-zero.
 
 ### Format
 
@@ -176,7 +177,7 @@ cargo run -p chef -- benchmark benchmarks/pure_logic.json
 ```
 
 This reports parse, typecheck, execution, and pass counts for a JSON benchmark manifest.
-`parse_success` counts cases that get past lexing and parsing even if typechecking later fails, while `typecheck_success` counts only fully compiled cases.
+`parse_success` counts cases that get past lexing and parsing without lexer/parser errors, even if typechecking later fails; lexer/parser warnings still count as parse success. `typecheck_success` counts only fully compiled cases.
 The sample manifest at [`benchmarks/pure_logic.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/benchmarks/pure_logic.json) is the current reference set.
 
 ### Toolchain

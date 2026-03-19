@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use anyhow::{Context, Result};
-use lang_core::{DiagnosticStage, compile_module};
+use lang_core::{DiagnosticLevel, DiagnosticStage, compile_module};
 use lang_interp::{Interpreter, value_from_json, value_to_json};
 use lang_ir::lower_to_high_ir;
 use serde::Deserialize;
@@ -25,8 +25,9 @@ pub fn benchmark_command(file: &Path) -> Result<ExitCode> {
             .diagnostics
             .iter()
             .filter(|diagnostic| {
-                diagnostic.stage == DiagnosticStage::Lexer
-                    || diagnostic.stage == DiagnosticStage::Parser
+                diagnostic.level == DiagnosticLevel::Error
+                    && (diagnostic.stage == DiagnosticStage::Lexer
+                        || diagnostic.stage == DiagnosticStage::Parser)
             })
             .count();
         if parser_errors == 0 {

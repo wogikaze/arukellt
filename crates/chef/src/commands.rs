@@ -26,7 +26,7 @@ pub fn execute(command: Command) -> Result<ExitCode> {
 fn run_command(file: &Path, function: &str, args: &[String], step: bool) -> Result<ExitCode> {
     let result = compile_path(file)?;
     if result.error_count() > 0 {
-        println!("{}", serde_json::to_string_pretty(&result.to_json()?)?);
+        eprintln!("{}", serde_json::to_string_pretty(&result.to_json()?)?);
         return Ok(ExitCode::from(1));
     }
     let typed = result.module.expect("typed module");
@@ -50,7 +50,7 @@ fn test_command(file: &Path, json: bool) -> Result<ExitCode> {
     let result = compile_path(file)?;
     if result.error_count() > 0 {
         if json {
-            println!("{}", serde_json::to_string_pretty(&result.to_json()?)?);
+            eprintln!("{}", serde_json::to_string_pretty(&result.to_json()?)?);
         } else {
             print_diagnostics(&result.diagnostics);
         }
@@ -203,7 +203,7 @@ fn render_run_output(value: &Value, captured_output: &str) -> String {
 
 fn print_diagnostics(diagnostics: &[Diagnostic]) {
     for diagnostic in diagnostics {
-        println!(
+        eprintln!(
             "[{:?}] {} {}: {}",
             diagnostic.stage, diagnostic.code, diagnostic.message, diagnostic.suggested_fix
         );

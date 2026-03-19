@@ -111,8 +111,13 @@ fn broken(flag: Bool, value: Int) -> Int:
         .expect("run failing test --json");
 
     assert!(!output.status.success(), "expected failing exit status");
-    let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
-    let json: serde_json::Value = serde_json::from_str(&stdout).expect("json");
+    assert!(
+        output.stdout.is_empty(),
+        "expected empty stdout, got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    let json: serde_json::Value = serde_json::from_str(&stderr).expect("json");
     assert_eq!(json["version"], "v0.1");
     assert_eq!(json["diagnostics"][0]["code"], "E_IF_ELSE_REQUIRED");
 }
@@ -138,12 +143,49 @@ fn broken(flag: Bool, value: Int) -> Int:
         .expect("run failing test");
 
     assert!(!output.status.success(), "expected failing exit status");
-    let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
+    assert!(
+        output.stdout.is_empty(),
+        "expected empty stdout, got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let stdout = String::from_utf8(output.stderr).expect("utf8 stderr");
     assert!(
         stdout.contains("[Parser] E_IF_ELSE_REQUIRED If expressions must include an else branch")
             && stdout.contains("Add an `else:` block with the fallback expression."),
         "unexpected stdout: {stdout}"
     );
+}
+
+#[test]
+fn run_command_reports_compile_failures_on_stderr() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("broken-run.lang");
+    fs::write(
+        &file,
+        "\
+fn broken(flag: Bool, value: Int) -> Int:
+  if flag:
+    value
+",
+    )
+    .expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_chef"))
+        .arg("run")
+        .arg(&file)
+        .output()
+        .expect("run broken source");
+
+    assert!(!output.status.success(), "expected failing exit status");
+    assert!(
+        output.stdout.is_empty(),
+        "expected empty stdout, got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    let json: serde_json::Value = serde_json::from_str(&stderr).expect("json");
+    assert_eq!(json["version"], "v0.1");
+    assert_eq!(json["diagnostics"][0]["code"], "E_IF_ELSE_REQUIRED");
 }
 
 #[test]
@@ -191,6 +233,40 @@ fn benchmark_command_reports_metrics() {
     assert_eq!(json["passed"], 1);
     assert_eq!(json["parse_success"], 2);
     assert_eq!(json["typecheck_success"], 1);
+}
+
+#[test]
+fn benchmark_command_counts_parser_warnings_as_parse_success() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("bench-warning.json");
+    fs::write(
+        &file,
+        r#"[
+  {
+    "name": "wildcard_warning",
+    "source": "type Choice =\n  Left(value: Int)\n  Right(value: Int)\n\nfn main() -> Int:\n  match Right(7):\n    _ -> 0\n    Right(value) -> value\n",
+    "function": "main",
+    "args": [],
+    "expected": 0
+  }
+]"#,
+    )
+    .expect("write benchmark manifest");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_chef"))
+        .arg("benchmark")
+        .arg(&file)
+        .output()
+        .expect("run benchmark");
+
+    assert!(output.status.success(), "expected successful exit status");
+    let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
+    let json: serde_json::Value = serde_json::from_str(&stdout).expect("json");
+    assert_eq!(json["total"], 1);
+    assert_eq!(json["parse_success"], 1);
+    assert_eq!(json["typecheck_success"], 1);
+    assert_eq!(json["execution_success"], 1);
+    assert_eq!(json["passed"], 1);
 }
 
 #[test]
