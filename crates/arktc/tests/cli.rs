@@ -55,6 +55,24 @@ fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
+fn scalar_source() -> &'static str {
+    "\
+fn main() -> Int:
+  42
+"
+}
+
+fn assert_wat_shape(stdout: &str, export_name: &str) {
+    assert!(
+        stdout.starts_with("(module"),
+        "expected wat module on stdout, got:\n{stdout}"
+    );
+    assert!(
+        stdout.contains(&format!("(func ${export_name}")) || stdout.contains("(func $_start"),
+        "expected function body in wat, got:\n{stdout}"
+    );
+}
+
 #[test]
 fn check_json_emits_structured_diagnostics() {
     let dir = tempdir().expect("tempdir");
@@ -143,6 +161,143 @@ fn main() -> Int:
     assert!(output.status.success(), "expected successful exit status");
     let bytes = fs::read(output_file).expect("read output wasm");
     assert_eq!(export_names(&bytes), vec!["_start"]);
+}
+
+#[test]
+fn build_command_supports_all_target_emit_output_combinations() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("matrix.lang");
+    fs::write(&file, scalar_source()).expect("write source");
+
+    for (target, emit, extension, expected_export) in [
+        ("wasm-js", "wasm", "wasm", "main"),
+        ("wasm-js", "wat", "wat", "main"),
+        ("wasm-js", "wat-min", "wat", "main"),
+        ("wasm-wasi", "wasm", "wasm", "_start"),
+        ("wasm-wasi", "wat", "wat", "_start"),
+        ("wasm-wasi", "wat-min", "wat", "_start"),
+    ] {
+        let output_file = dir.path().join(format!("{target}-{emit}.{extension}"));
+        let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+            .arg("build")
+            .arg(&file)
+            .arg("--target")
+            .arg(target)
+            .arg("--emit")
+            .arg(emit)
+            .arg("--output")
+            .arg(&output_file)
+            .output()
+            .expect("run build");
+
+        assert!(
+            output.status.success(),
+            "expected successful exit status for {target}/{emit}\nstdout:\n{}\nstderr:\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+
+        match emit {
+            "wasm" => {
+                let bytes = fs::read(&output_file).expect("read output wasm");
+                assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+                assert_eq!(export_names(&bytes), vec![expected_export]);
+            }
+            "wat" => {
+                let wat = fs::read_to_string(&output_file).expect("read output wat");
+                assert_wat_shape(&wat, expected_export);
+                assert!(
+                    wat.contains('\n'),
+                    "expected multi-line wat for {target}/{emit}"
+                );
+            }
+            "wat-min" => {
+                let wat = fs::read_to_string(&output_file).expect("read output wat");
+                assert_wat_shape(&wat, expected_export);
+                assert!(
+                    !wat.contains('\n'),
+                    "expected one-line wat-min output for {target}/{emit}, got:\n{wat}"
+                );
+            }
+            _ => unreachable!(),
+        }
+    }
+}
+
+#[test]
+fn build_command_prints_wat_to_stdout_without_output_path() {
+    let file = repo_root().join("example/wasm_scalar.ar");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-js")
+        .arg("--emit")
+        .arg("wat")
+        .output()
+        .expect("run build");
+
+    assert!(
+        output.status.success(),
+        "expected successful exit status\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
+    assert_wat_shape(&stdout, "main");
+    assert!(
+        output.stderr.is_empty(),
+        "expected no stderr when printing wat, got:\n{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn build_command_supports_deprecated_target_wat_alias() {
+    let file = repo_root().join("example/wasm_scalar.ar");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wat")
+        .output()
+        .expect("run build");
+
+    assert!(
+        output.status.success(),
+        "expected successful exit status\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert_wat_shape(&stdout, "main");
+    assert!(
+        stderr.contains("deprecated") && stderr.contains("--target wasm-js --emit wat"),
+        "expected deprecation warning, got:\n{stderr}"
+    );
+}
+
+#[test]
+fn build_command_prints_wat_min_to_stdout_without_output_path() {
+    let file = repo_root().join("example/wasm_scalar.ar");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-wasi")
+        .arg("--emit")
+        .arg("wat-min")
+        .output()
+        .expect("run build");
+
+    assert!(output.status.success(), "expected successful exit status");
+    let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
+    assert_wat_shape(&stdout, "_start");
+    assert!(!stdout.contains('\n'), "expected wat-min on one line");
 }
 
 #[test]
@@ -310,7 +465,29 @@ fn build_command_rejects_unknown_target_values() {
     );
     let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
     assert!(
-        stderr.contains("invalid value 'bad-target'") && stderr.contains("wasm-js"),
+        stderr.contains("invalid value 'bad-target'") && stderr.contains("wasm-wasi"),
+        "unexpected stderr: {stderr}"
+    );
+}
+
+#[test]
+fn build_command_rejects_target_wat_when_emit_is_also_set() {
+    let file = repo_root().join("example/wasm_scalar.ar");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wat")
+        .arg("--emit")
+        .arg("wat-min")
+        .output()
+        .expect("run build");
+
+    assert!(!output.status.success(), "expected failing exit status");
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(
+        stderr.contains("cannot be combined with `--emit`"),
         "unexpected stderr: {stderr}"
     );
 }

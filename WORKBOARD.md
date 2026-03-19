@@ -61,24 +61,6 @@ notes:
 
 ## Ready
 
-### WB-027
-title: arktc build に `--target wat` を追加し WAT テキストを直接出力できるようにする
-area: arktc
-status: READY
-priority: P2
-owner: unassigned
-depends_on: none
-source: ユーザー要求「target に wat も欲しい」
-done_when:
-- `arktc build file.ar --target wat` が WAT テキストを stdout に出力する
-- `arktc build file.ar --target wat --output out.wat` がファイルに書き出す
-- `cargo test -p arktc` が通る新規テストが存在する
-notes:
-- `emit_wasm` の前に WAT 文字列を生成するステップが既にある; それを `--output` に書くだけでよい
-- `--output` 省略時は stdout への印字が自然 (wasm-js/wasm-wasi と違いバイナリでないため)
-- `lang-backend-wasm` に `emit_wat(module, target) -> Result<String>` を公開し `arktc` から呼ぶ設計が最小変更
-- `wat` / `wasm-js` / `wasm-wasi` と並ぶ第三の target 文字列として CLI に追加する
-
 ## Blocked
 
 ### WB-008
@@ -99,6 +81,39 @@ notes:
 - blocked on repository settings rather than code in this worktree
 
 ## Done
+
+### WB-028
+title: arktc build の --target と --emit を分離し 2×3 の出力マトリクスを完成させる
+area: arktc
+status: DONE
+priority: P2
+owner: ai
+depends_on: none
+source: ユーザー指摘「--target wasm-js,wasm-wasi と --emit wat,wat-min で 2x3 のビルド先がある」
+done_when:
+- `--target wasm-js --emit wat` と `--target wasm-wasi --emit wat` が両方動作する
+- `--emit wat-min` が空白を除去した 1 行 WAT を出力する
+- `--target wat` は廃止または `--target wasm-js --emit wat` へのエイリアスとして維持する
+- `cargo test -p arktc` が 2×3 のすべての有効な組み合わせをカバーするテストを持つ
+notes:
+- verified with `cargo fmt`, `cargo test -p arktc`, and `cargo test`
+- `arktc build` now separates ABI selection (`--target wasm-js|wasm-wasi`) from output selection (`--emit wasm|wat|wat-min`), while keeping `--target wat` as a deprecated alias to JS-host WAT
+
+### WB-027
+title: arktc build に `--target wat` を追加し WAT テキストを直接出力できるようにする
+area: arktc
+status: DONE
+priority: P2
+owner: ai
+depends_on: none
+source: ユーザー要求「target に wat も欲しい」
+done_when:
+- `arktc build file.ar --target wat` が WAT テキストを stdout に出力する
+- `arktc build file.ar --target wat --output out.wat` がファイルに書き出す
+- `cargo test -p arktc` が通る新規テストが存在する
+notes:
+- verified with `cargo fmt`, `cargo test -p arktc`, and `cargo test`
+- `lang-backend-wasm` now exposes `emit_wat`, and `arktc build --target wat` prints JS-host WAT to stdout by default or writes it via `--output`
 
 ### WB-013
 title: wasm-wasi でイテレータ (Seq<T> / iter.unfold / take) を実装

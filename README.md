@@ -167,10 +167,14 @@ If the source does not compile, `arktdoc` exits non-zero and prints a short comp
 ```bash
 cargo run -p arktc -- build path/to/file.ar --target wasm-js --output out.wasm
 cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --output out.wasm
+cargo run -p arktc -- build path/to/file.ar --target wasm-js --emit wat
+cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --emit wat-min
 ```
 
 The current WASM backend supports a narrow scalar-plus-list-plus-string subset on `wasm-wasi`, plus a smaller literal-only subset on `wasm-js`.
-`--output` is currently optional; if you omit it, `arktc build` still performs codegen and exits successfully, but it discards the generated WASM bytes instead of printing them anywhere.
+`--target` selects the ABI (`wasm-js` or `wasm-wasi`) while `--emit` selects the output format (`wasm`, `wat`, or `wat-min`).
+`--output` is currently optional; if you omit it, `arktc build` prints WAT for `--emit wat` / `--emit wat-min`, and otherwise discards the generated WASM bytes after successful codegen.
+`--target wat` is still accepted as a deprecated alias for `--target wasm-js --emit wat`.
 `wasm-js` emits an embeddable module that exports compiled functions by their Arukel names.
 `wasm-wasi` emits a command-style module that exports only `_start`; it requires a zero-argument `main` function and drops any scalar return value at the ABI boundary.
 `String` currently lowers only as a raw `i32` pointer into exported read-only `memory` containing NUL-terminated UTF-8 literals. Literal expressions and direct returns through user-defined functions are supported in that ABI slice.
@@ -235,7 +239,7 @@ The executable prototype is still intentionally narrower than the full language 
 - The supported standard library remains small and purpose-built around the bundled examples
 - The WASM backend hard-fails on unsupported surface instead of emitting placeholder modules
 - The WASM backend supports literal strings plus heap-backed strings from `string()`/`join()` on `wasm-wasi`; broader string operations and general string ABI tooling are still unsupported
-- The WASM backend supports payload-bearing `Result` values, heap-backed user-defined ADTs, pattern bindings, unary closures, `List<i64>` collection helpers, minimal `Seq<i64>` materialization via `iter.unfold(...).take(n)`, `console.println`, and `fs.read_text` on `wasm-wasi`; broader host-call codegen is still unsupported
+- The WASM backend supports payload-bearing `Result` values, heap-backed user-defined ADTs, pattern bindings, unary closures, `List<i64>` collection helpers, minimal `Seq<i64>` materialization via `iter.unfold(...).take(n)`, `console.println`, and `fs.read_text` on `wasm-wasi`; broader iterator/host-call codegen is still unsupported
 - Host integrations are currently limited to the example-oriented `console.println` and `fs.read_text` shims
 - `clock`, `random`, `process`, package management, builders, and a richer standard library are not implemented yet
 - `arktfmt` currently preserves source rather than reprinting a canonical AST-based format

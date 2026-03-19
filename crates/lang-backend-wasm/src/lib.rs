@@ -22,7 +22,7 @@ pub fn build_module_from_source(source: &str, target: WasmTarget) -> Result<Vec<
     emit_wasm(&high, target)
 }
 
-pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
+pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     let abi = WasmAbi::from_module(module, target)?;
     let mut wat_module = String::from("(module\n");
     let function_names = module
@@ -72,7 +72,11 @@ pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
         WasmTarget::Wasi => emit_wasi_entrypoint(module, &abi, &mut wat_module)?,
     }
     wat_module.push_str(")\n");
-    Ok(wat::parse_str(&wat_module)?)
+    Ok(wat_module)
+}
+
+pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
+    Ok(wat::parse_str(&emit_wat(module, target)?)?)
 }
 
 fn emit_javascript_exports(module: &HighModule, out: &mut String) {

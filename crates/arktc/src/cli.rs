@@ -28,16 +28,30 @@ pub enum Command {
         file: PathBuf,
         #[arg(
             long,
-            help = "WebAssembly target; only the current limited wasm subset is supported"
+            help = "WASM ABI target; `wat` is kept as a deprecated alias for `--target wasm-js --emit wat`"
         )]
         target: BuildTarget,
-        #[arg(short, long, help = "Write the compiled .wasm bytes to this path")]
+        #[arg(
+            long,
+            help = "Output format to emit for the selected target ABI",
+            default_value = "wasm"
+        )]
+        emit: BuildEmit,
+        #[arg(short, long, help = "Write the build output to this path")]
         output: Option<PathBuf>,
     },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
 pub enum BuildTarget {
+    Wat,
     WasmJs,
     WasmWasi,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
+pub enum BuildEmit {
+    Wasm,
+    Wat,
+    WatMin,
 }

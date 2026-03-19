@@ -2,10 +2,11 @@ use std::fs;
 use std::path::Path;
 use std::process::ExitCode;
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use lang_core::{CompileResult, TypedModule, compile_module};
+use lang_ir::lower_to_high_ir;
 
-use crate::cli::{BuildTarget, Command};
+use crate::cli::{BuildEmit, BuildTarget, Command};
 
 pub fn execute(command: Command) -> Result<ExitCode> {
     match command {
@@ -13,8 +14,9 @@ pub fn execute(command: Command) -> Result<ExitCode> {
         Command::Build {
             file,
             target,
+            emit,
             output,
-        } => build_command(&file, target, output.as_deref()),
+        } => build_command(&file, target, emit, output.as_deref()),
     }
 }
 
@@ -33,19 +35,112 @@ fn check_command(file: &Path, json: bool) -> Result<ExitCode> {
     Ok(exit_code_for_result(&result))
 }
 
-fn build_command(file: &Path, target: BuildTarget, output: Option<&Path>) -> Result<ExitCode> {
+fn build_command(
+    file: &Path,
+    target: BuildTarget,
+    emit: BuildEmit,
+    output: Option<&Path>,
+) -> Result<ExitCode> {
     let source = load_source(file)?;
-    let bytes = lang_backend_wasm::build_module_from_source(
-        &source,
-        match target {
-            BuildTarget::WasmJs => lang_backend_wasm::WasmTarget::JavaScriptHost,
-            BuildTarget::WasmWasi => lang_backend_wasm::WasmTarget::Wasi,
-        },
-    )?;
-    if let Some(path) = output {
-        fs::write(path, bytes).with_context(|| format!("failed to write {}", path.display()))?;
+    let (wasm_target, emit) = resolve_build_mode(target, emit)?;
+    match emit {
+        BuildEmit::Wasm => {
+            let bytes = lang_backend_wasm::build_module_from_source(&source, wasm_target)?;
+            if let Some(path) = output {
+                fs::write(path, bytes)
+                    .with_context(|| format!("failed to write {}", path.display()))?;
+            }
+        }
+        BuildEmit::Wat | BuildEmit::WatMin => {
+            let result = compile_module(&source);
+            if result.error_count() > 0 {
+                anyhow::bail!("{}", serde_json::to_string_pretty(&result.to_json()?)?);
+            }
+            let typed = result
+                .module
+                .ok_or_else(|| anyhow!("typed module missing"))?;
+            let mut wat = lang_backend_wasm::emit_wat(&lower_to_high_ir(&typed), wasm_target)?;
+            if emit == BuildEmit::WatMin {
+                wat = minify_wat(&wat);
+            }
+            if let Some(path) = output {
+                fs::write(path, wat.as_bytes())
+                    .with_context(|| format!("failed to write {}", path.display()))?;
+            } else {
+                print!("{wat}");
+            }
+        }
     }
     Ok(ExitCode::SUCCESS)
+}
+
+fn resolve_build_mode(
+    target: BuildTarget,
+    emit: BuildEmit,
+) -> Result<(lang_backend_wasm::WasmTarget, BuildEmit)> {
+    match target {
+        BuildTarget::Wat => {
+            if emit != BuildEmit::Wasm {
+                anyhow::bail!(
+                    "`--target wat` cannot be combined with `--emit`; use `--target wasm-js --emit {}` instead",
+                    match emit {
+                        BuildEmit::Wasm => "wasm",
+                        BuildEmit::Wat => "wat",
+                        BuildEmit::WatMin => "wat-min",
+                    }
+                );
+            }
+            eprintln!(
+                "warning: `--target wat` is deprecated; use `--target wasm-js --emit wat` instead"
+            );
+            Ok((
+                lang_backend_wasm::WasmTarget::JavaScriptHost,
+                BuildEmit::Wat,
+            ))
+        }
+        BuildTarget::WasmJs => Ok((lang_backend_wasm::WasmTarget::JavaScriptHost, emit)),
+        BuildTarget::WasmWasi => Ok((lang_backend_wasm::WasmTarget::Wasi, emit)),
+    }
+}
+
+fn minify_wat(source: &str) -> String {
+    let mut out = String::with_capacity(source.len());
+    let mut in_string = false;
+    let mut escaped = false;
+    let mut pending_space = false;
+
+    for ch in source.chars() {
+        if in_string {
+            out.push(ch);
+            if escaped {
+                escaped = false;
+            } else if ch == '\\' {
+                escaped = true;
+            } else if ch == '"' {
+                in_string = false;
+            }
+            continue;
+        }
+
+        if ch == '"' {
+            if pending_space && !out.is_empty() {
+                out.push(' ');
+            }
+            pending_space = false;
+            in_string = true;
+            out.push(ch);
+        } else if ch.is_whitespace() {
+            pending_space = !out.is_empty();
+        } else {
+            if pending_space && !out.is_empty() {
+                out.push(' ');
+            }
+            pending_space = false;
+            out.push(ch);
+        }
+    }
+
+    out.trim().to_owned()
 }
 
 fn load_source(file: &Path) -> Result<String> {
