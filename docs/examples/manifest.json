@@ -64,10 +64,16 @@
     "mode": "build_js_ok"
   },
   {
+    "id": "std-wasm-wasi-console",
+    "doc": "docs/std.md",
+    "fixture": "docs/examples/std/08-wasm-wasi-console.ar",
+    "mode": "build_wasi_ok"
+  },
+  {
     "id": "std-wasm-unsupported",
     "doc": "docs/std.md",
     "fixture": "docs/examples/std/05-wasm-unsupported.ar",
     "mode": "build_wasi_fail",
-    "error_substring": "console.println"
+    "error_substring": "unsupported wasm"
   }
 ]

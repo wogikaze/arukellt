@@ -222,7 +222,8 @@ fn main() -> Int:
 
 #[test]
 fn build_command_rejects_unsupported_bundled_example() {
-    let file = repo_root().join("example/hello_world.ar");
+    // closure.ar uses Fn<Int, Int> which is not yet supported in the wasm backend
+    let file = repo_root().join("example/closure.ar");
 
     let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
         .arg("build")
@@ -235,7 +236,7 @@ fn build_command_rejects_unsupported_bundled_example() {
     assert!(!output.status.success(), "expected failing exit status");
     let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
     assert!(
-        stderr.contains("console.println") && stderr.contains("not yet supported"),
+        stderr.contains("not yet supported") || stderr.contains("unsupported wasm"),
         "unexpected stderr: {stderr}"
     );
 }

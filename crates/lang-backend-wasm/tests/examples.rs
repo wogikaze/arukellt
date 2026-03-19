@@ -15,8 +15,9 @@ fn repo_root() -> PathBuf {
 #[test]
 fn rejects_unsupported_bundled_examples_for_both_wasm_targets() {
     let example_dir = repo_root().join("example");
+    // These examples use features (closures, payload ADTs, iterators, file I/O)
+    // that are not yet supported on either target.
     let examples = [
-        "hello_world.ar",
         "closure.ar",
         "result_error_handling.ar",
         "infinite_iter.ar",
@@ -38,6 +39,35 @@ fn rejects_unsupported_bundled_examples_for_both_wasm_targets() {
         assert!(
             wasi_message.contains("not yet supported") || wasi_message.contains("unsupported wasm"),
             "unexpected wasm-wasi error for {name}: {wasi_message}"
+        );
+    }
+}
+
+#[test]
+fn wasi_console_println_examples_build_and_have_correct_magic() {
+    let example_dir = repo_root().join("example");
+    // These examples use console.println (and optionally string()) which are now
+    // supported on the wasm-wasi target.
+    let examples = ["hello_world.ar", "factorial.ar", "fibonacci.ar"];
+
+    for name in examples {
+        let source = fs::read_to_string(example_dir.join(name)).expect("example source");
+
+        // wasm-js still doesn't support console.println
+        build_module_from_source(&source, WasmTarget::JavaScriptHost)
+            .expect_err(&format!("wasm-js build should still fail for {name}"));
+
+        // wasm-wasi should now succeed
+        let bytes = build_module_from_source(&source, WasmTarget::Wasi)
+            .unwrap_or_else(|e| panic!("wasm-wasi build should succeed for {name}: {e}"));
+        assert!(
+            bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]),
+            "expected wasm magic for {name}"
+        );
+        // The WASM module must export _start (WASI command ABI)
+        assert!(
+            bytes.windows(6).any(|w| w == b"_start"),
+            "expected _start export in wasm bytes for {name}"
         );
     }
 }

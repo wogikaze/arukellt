@@ -196,3 +196,52 @@ fn main() -> String:
         "unexpected error: {message}"
     );
 }
+
+#[test]
+fn wasi_target_supports_console_println_with_string_literal() {
+    let source = "\
+import console
+
+fn main():
+  \"Hello, world!\" |> console.println
+";
+
+    let bytes =
+        build_module_from_source(source, WasmTarget::Wasi).expect("wasi console.println bytes");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    // Must export _start and memory
+    assert!(export_names(&bytes).iter().any(|n| n == "_start"));
+    assert!(export_names(&bytes).iter().any(|n| n == "memory"));
+    // String literal must appear in the data section
+    assert!(
+        contains_bytes(&bytes, b"Hello, world!\0"),
+        "expected string literal in data section"
+    );
+    // fd_write import from WASI must be present
+    assert!(
+        contains_bytes(&bytes, b"fd_write"),
+        "expected fd_write import in wasm bytes"
+    );
+}
+
+#[test]
+fn wasi_target_supports_string_builtin_for_int_to_string_conversion() {
+    let source = "\
+import console
+
+fn main():
+  42 |> string |> console.println
+";
+
+    let bytes = build_module_from_source(source, WasmTarget::Wasi)
+        .expect("wasi string builtin bytes");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(export_names(&bytes).iter().any(|n| n == "_start"));
+    assert!(export_names(&bytes).iter().any(|n| n == "memory"));
+    assert!(
+        contains_bytes(&bytes, b"fd_write"),
+        "expected fd_write import in wasm bytes"
+    );
+}

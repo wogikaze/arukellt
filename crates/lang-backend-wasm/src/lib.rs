@@ -25,7 +25,13 @@ pub fn build_module_from_source(source: &str, target: WasmTarget) -> Result<Vec<
 pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
     let abi = WasmAbi::from_module(module, target);
     let mut wat_module = String::from("(module\n");
-    emit_string_memory(&abi.string_table, &mut wat_module);
+    if target == WasmTarget::Wasi && abi.uses_console_println {
+        wat_module.push_str(
+            "  (import \"wasi_snapshot_preview1\" \"fd_write\" \
+             (func $fd_write (param i32 i32 i32 i32) (result i32)))\n",
+        );
+    }
+    emit_all_memory(&abi, &mut wat_module);
     let function_names = module
         .functions
         .iter()
@@ -33,6 +39,14 @@ pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
         .collect::<HashSet<_>>();
     for function in &module.functions {
         wat_module.push_str(&emit_function(function, &function_names, &abi)?);
+    }
+    if target == WasmTarget::Wasi {
+        if abi.uses_console_println {
+            emit_console_println_helper(&abi, &mut wat_module);
+        }
+        if abi.uses_string_builtin {
+            emit_string_helper(&abi, &mut wat_module);
+        }
     }
     match target {
         WasmTarget::JavaScriptHost => emit_javascript_exports(module, &mut wat_module),
@@ -69,6 +83,162 @@ fn emit_wasi_entrypoint(module: &HighModule, abi: &WasmAbi, out: &mut String) ->
     out.push_str("  )\n");
     out.push_str("  (export \"_start\" (func $_start))\n");
     Ok(())
+}
+
+/// Emit the `$console.println` WASI helper: computes strlen, writes the string
+/// to stdout via fd_write, then writes a trailing newline.
+fn emit_console_println_helper(abi: &WasmAbi, out: &mut String) {
+    let iovec_ptr = abi.iovec_base();
+    let iovec_len = abi.iovec_base() + 4;
+    let nwritten = abi.nwritten_base();
+    let newline = abi.newline_base();
+
+    out.push_str("  (func $console.println (param $ptr i32)\n");
+    out.push_str("    (local $len i32)\n");
+    out.push_str("    (local $cur i32)\n");
+    // Compute strlen: scan for NUL byte
+    out.push_str("    local.get $ptr\n");
+    out.push_str("    local.set $cur\n");
+    out.push_str("    (block $strlen_break\n");
+    out.push_str("      (loop $strlen_loop\n");
+    out.push_str("        local.get $cur\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        i32.eqz\n");
+    out.push_str("        br_if $strlen_break\n");
+    out.push_str("        local.get $cur\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $cur\n");
+    out.push_str("        br $strlen_loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $cur\n");
+    out.push_str("    local.get $ptr\n");
+    out.push_str("    i32.sub\n");
+    out.push_str("    local.set $len\n");
+    // Set iovec: {ptr, len}
+    out.push_str(&format!("    i32.const {iovec_ptr}\n"));
+    out.push_str("    local.get $ptr\n");
+    out.push_str("    i32.store\n");
+    out.push_str(&format!("    i32.const {iovec_len}\n"));
+    out.push_str("    local.get $len\n");
+    out.push_str("    i32.store\n");
+    // fd_write(1, iovec_base, 1, nwritten)
+    out.push_str("    i32.const 1\n");
+    out.push_str(&format!("    i32.const {iovec_ptr}\n"));
+    out.push_str("    i32.const 1\n");
+    out.push_str(&format!("    i32.const {nwritten}\n"));
+    out.push_str("    call $fd_write\n");
+    out.push_str("    drop\n");
+    // Write newline: iovec = {newline_base, 1}
+    out.push_str(&format!("    i32.const {iovec_ptr}\n"));
+    out.push_str(&format!("    i32.const {newline}\n"));
+    out.push_str("    i32.store\n");
+    out.push_str(&format!("    i32.const {iovec_len}\n"));
+    out.push_str("    i32.const 1\n");
+    out.push_str("    i32.store\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str(&format!("    i32.const {iovec_ptr}\n"));
+    out.push_str("    i32.const 1\n");
+    out.push_str(&format!("    i32.const {nwritten}\n"));
+    out.push_str("    call $fd_write\n");
+    out.push_str("    drop\n");
+    out.push_str("  )\n");
+}
+
+/// Emit the `$string` helper: converts an i32 to a decimal ASCII string in the
+/// scratch buffer (writing backward from str_buf_end) and returns a pointer.
+fn emit_string_helper(abi: &WasmAbi, out: &mut String) {
+    // str_buf occupies [scratch_base+16, scratch_base+28), written backward.
+    // str_buf_end is the exclusive end; we start by placing NUL at str_buf_end-1.
+    let nul_pos = abi.str_buf_end() - 1;
+
+    out.push_str("  (func $string (param $n i32) (result i32)\n");
+    out.push_str("    (local $abs i32)\n");
+    out.push_str("    (local $neg i32)\n");
+    out.push_str("    (local $pos i32)\n");
+    // Write NUL at nul_pos
+    out.push_str(&format!("    i32.const {nul_pos}\n"));
+    out.push_str("    local.set $pos\n");
+    out.push_str("    local.get $pos\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.store8\n");
+    // neg = (n < 0)
+    out.push_str("    local.get $n\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.lt_s\n");
+    out.push_str("    local.set $neg\n");
+    // Special case: n == 0 → write '0'
+    out.push_str("    local.get $n\n");
+    out.push_str("    i32.eqz\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        local.get $pos\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.sub\n");
+    out.push_str("        local.set $pos\n");
+    out.push_str("        local.get $pos\n");
+    out.push_str("        i32.const 48\n");
+    out.push_str("        i32.store8\n");
+    out.push_str("      )\n");
+    out.push_str("      (else\n");
+    // abs = neg ? (0 - n wrapping) : n
+    // Wrapping subtraction is safe: for INT_MIN, (0 - INT_MIN) wraps to INT_MIN,
+    // but i32.rem_u / i32.div_u treat it as unsigned 2147483648, giving correct digits.
+    out.push_str("        local.get $neg\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            local.get $n\n");
+    out.push_str("            i32.sub\n");
+    out.push_str("            local.set $abs\n");
+    out.push_str("          )\n");
+    out.push_str("          (else\n");
+    out.push_str("            local.get $n\n");
+    out.push_str("            local.set $abs\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    // Loop: extract digits backward
+    out.push_str("        (block $digits_break\n");
+    out.push_str("          (loop $digits_loop\n");
+    out.push_str("            local.get $abs\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $digits_break\n");
+    out.push_str("            local.get $pos\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.sub\n");
+    out.push_str("            local.set $pos\n");
+    out.push_str("            local.get $pos\n");
+    out.push_str("            local.get $abs\n");
+    out.push_str("            i32.const 10\n");
+    out.push_str("            i32.rem_u\n");
+    out.push_str("            i32.const 48\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            i32.store8\n");
+    out.push_str("            local.get $abs\n");
+    out.push_str("            i32.const 10\n");
+    out.push_str("            i32.div_u\n");
+    out.push_str("            local.set $abs\n");
+    out.push_str("            br $digits_loop\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    // Write '-' if negative
+    out.push_str("    local.get $neg\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        local.get $pos\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.sub\n");
+    out.push_str("        local.set $pos\n");
+    out.push_str("        local.get $pos\n");
+    out.push_str("        i32.const 45\n");
+    out.push_str("        i32.store8\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $pos\n");
+    out.push_str("  )\n");
 }
 
 fn emit_function(
@@ -194,6 +364,16 @@ fn emit_expr(
                     emit_expr(arg, indent, locals, function_names, abi, out)?;
                 }
                 out.push_str(&format!("{pad}call ${callee}\n"));
+            } else if abi.target == WasmTarget::Wasi && callee == "console.println" {
+                for arg in args {
+                    emit_expr(arg, indent, locals, function_names, abi, out)?;
+                }
+                out.push_str(&format!("{pad}call $console.println\n"));
+            } else if abi.target == WasmTarget::Wasi && callee == "string" {
+                for arg in args {
+                    emit_expr(arg, indent, locals, function_names, abi, out)?;
+                }
+                out.push_str(&format!("{pad}call $string\n"));
             } else {
                 bail!("calls to `{callee}` are not yet supported in wasm backend");
             }
@@ -323,6 +503,9 @@ struct WasmAbi {
     string_table: StringTable,
     named_types: HashMap<String, NamedTypeAbi>,
     variants: HashMap<String, VariantLayout>,
+    uses_console_println: bool,
+    uses_string_builtin: bool,
+    scratch_base: u32,
 }
 
 impl WasmAbi {
@@ -355,12 +538,74 @@ impl WasmAbi {
             }
         }
 
+        let string_table = StringTable::collect(module);
+
+        let mut uses_console_println = false;
+        let mut uses_string_builtin = false;
+        if target == WasmTarget::Wasi {
+            for function in &module.functions {
+                scan_expr(
+                    &function.body,
+                    &mut uses_console_println,
+                    &mut uses_string_builtin,
+                );
+            }
+        }
+
+        // Scratch memory layout (only allocated when needed for WASI builtins):
+        //   [scratch_base +  0]: iovec.ptr  (4 bytes)
+        //   [scratch_base +  4]: iovec.len  (4 bytes)
+        //   [scratch_base +  8]: nwritten   (4 bytes)
+        //   [scratch_base + 12]: newline '\n' (1 byte, initialised in data section)
+        //   [scratch_base + 16]: str_buf (12 bytes, written backward; max "-2147483648\0")
+        //   Total: 28 bytes
+        let scratch_base = {
+            let base = string_table.next_offset;
+            (base + 3) & !3 // align to 4 bytes; valid even when base == 0
+        };
+
         Self {
             target,
-            string_table: StringTable::collect(module),
+            string_table,
             named_types,
             variants,
+            uses_console_println,
+            uses_string_builtin,
+            scratch_base,
         }
+    }
+
+    fn needs_scratch(&self) -> bool {
+        self.target == WasmTarget::Wasi
+            && (self.uses_console_println || self.uses_string_builtin)
+    }
+
+    fn iovec_base(&self) -> u32 {
+        self.scratch_base
+    }
+
+    fn nwritten_base(&self) -> u32 {
+        self.scratch_base + 8
+    }
+
+    fn newline_base(&self) -> u32 {
+        self.scratch_base + 12
+    }
+
+    fn str_buf_end(&self) -> u32 {
+        self.scratch_base + 28
+    }
+
+    fn memory_end(&self) -> u32 {
+        if self.needs_scratch() {
+            self.scratch_base + 28
+        } else {
+            self.string_table.next_offset
+        }
+    }
+
+    fn needs_memory(&self) -> bool {
+        !self.string_table.is_empty() || self.needs_scratch()
     }
 
     fn supports_fieldless_enum(&self, type_name: &str) -> bool {
@@ -379,6 +624,9 @@ impl WasmAbi {
             Type::Unit => Ok(None),
             Type::Int | Type::Bool => Ok(Some("i32")),
             Type::String if self.target == WasmTarget::JavaScriptHost => Ok(Some("i32")),
+            Type::String if self.target == WasmTarget::Wasi && self.needs_scratch() => {
+                Ok(Some("i32"))
+            }
             Type::Named(name) => match self.named_types.get(name) {
                 Some(NamedTypeAbi::FieldlessEnum) => Ok(Some("i32")),
                 Some(NamedTypeAbi::Unsupported) => {
@@ -388,6 +636,63 @@ impl WasmAbi {
             },
             other => bail!("unsupported wasm type: {other}"),
         }
+    }
+}
+
+fn scan_expr(expr: &HighExpr, uses_console_println: &mut bool, uses_string_builtin: &mut bool) {
+    match &expr.kind {
+        HighExprKind::Call { callee, args } => {
+            if callee == "console.println" {
+                *uses_console_println = true;
+            }
+            if callee == "string" {
+                *uses_string_builtin = true;
+            }
+            for arg in args {
+                scan_expr(arg, uses_console_println, uses_string_builtin);
+            }
+        }
+        HighExprKind::Binary { left, right, .. } => {
+            scan_expr(left, uses_console_println, uses_string_builtin);
+            scan_expr(right, uses_console_println, uses_string_builtin);
+        }
+        HighExprKind::If {
+            condition,
+            then_branch,
+            else_branch,
+        } => {
+            scan_expr(condition, uses_console_println, uses_string_builtin);
+            scan_expr(then_branch, uses_console_println, uses_string_builtin);
+            scan_expr(else_branch, uses_console_println, uses_string_builtin);
+        }
+        HighExprKind::Match { subject, arms } => {
+            scan_expr(subject, uses_console_println, uses_string_builtin);
+            for arm in arms {
+                scan_expr(&arm.expr, uses_console_println, uses_string_builtin);
+            }
+        }
+        HighExprKind::Construct { args, .. } => {
+            for arg in args {
+                scan_expr(arg, uses_console_println, uses_string_builtin);
+            }
+        }
+        HighExprKind::List(items) | HighExprKind::Tuple(items) => {
+            for item in items {
+                scan_expr(item, uses_console_println, uses_string_builtin);
+            }
+        }
+        HighExprKind::Lambda { body, .. } => {
+            scan_expr(body, uses_console_println, uses_string_builtin);
+        }
+        HighExprKind::Let { value, body, .. } => {
+            scan_expr(value, uses_console_println, uses_string_builtin);
+            scan_expr(body, uses_console_println, uses_string_builtin);
+        }
+        HighExprKind::Int(_)
+        | HighExprKind::Bool(_)
+        | HighExprKind::String(_)
+        | HighExprKind::Ident(_)
+        | HighExprKind::Error => {}
     }
 }
 
@@ -487,23 +792,22 @@ impl StringTable {
     fn is_empty(&self) -> bool {
         self.offsets.is_empty()
     }
-
-    fn pages(&self) -> u32 {
-        let bytes = self.next_offset.max(1);
-        bytes.div_ceil(65_536)
-    }
 }
 
-fn emit_string_memory(strings: &StringTable, out: &mut String) {
-    if strings.is_empty() {
+fn emit_all_memory(abi: &WasmAbi, out: &mut String) {
+    if !abi.needs_memory() {
         return;
     }
 
-    out.push_str(&format!(
-        "  (memory (export \"memory\") {})\n",
-        strings.pages()
-    ));
-    let mut entries = strings
+    let pages = {
+        let bytes = abi.memory_end().max(1);
+        bytes.div_ceil(65_536)
+    };
+    out.push_str(&format!("  (memory (export \"memory\") {pages})\n"));
+
+    // String literals
+    let mut entries = abi
+        .string_table
         .offsets
         .iter()
         .map(|(text, offset)| (*offset, text.as_str()))
@@ -513,6 +817,14 @@ fn emit_string_memory(strings: &StringTable, out: &mut String) {
         out.push_str(&format!(
             "  (data (i32.const {offset}) \"{}\")\n",
             wat_string_literal(text)
+        ));
+    }
+
+    // Newline byte for console.println
+    if abi.needs_scratch() && abi.uses_console_println {
+        out.push_str(&format!(
+            "  (data (i32.const {}) \"\\0a\")\n",
+            abi.newline_base()
         ));
     }
 }

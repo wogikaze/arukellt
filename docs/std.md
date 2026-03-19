@@ -82,12 +82,20 @@ fn main() -> Int:
     Right -> 2
 ```
 
-Anything outside that subset should fail hard during `arktc build`. Payload-bearing constructors, pattern bindings, host calls, closures, and iterator helpers remain unsupported.
+The `wasm-wasi` target also supports `console.println` with string literals and the `string` builtin for integer-to-string conversion.
 
-<!-- snippet: std-wasm-unsupported -->
+<!-- snippet: std-wasm-wasi-console -->
 ```arukel
 import console
 
 fn main():
-  "hi" |> console.println
+  "hello wasm" |> console.println
+```
+
+Anything outside that subset should fail hard during `arktc build`. Payload-bearing constructors, closures, and iterator helpers remain unsupported.
+
+<!-- snippet: std-wasm-unsupported -->
+```arukel
+fn make_adder(n: Int) -> Fn<Int, Int>:
+  m -> n + m
 ```

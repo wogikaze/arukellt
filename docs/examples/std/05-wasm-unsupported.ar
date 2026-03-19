@@ -1,4 +1,2 @@
-import console
-
-fn main():
-  "hi" |> console.println
+fn make_adder(n: Int) -> Fn<Int, Int>:
+  m -> n + m
