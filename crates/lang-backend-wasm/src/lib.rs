@@ -79,6 +79,12 @@ pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
     Ok(wat::parse_str(&emit_wat(module, target)?)?)
 }
 
+const HEAP_TMP_PTR_LOCAL_COUNT: usize = 16;
+
+fn heap_tmp_ptr_local(indent: usize) -> String {
+    format!("__tmp_ptr{}", indent.min(HEAP_TMP_PTR_LOCAL_COUNT - 1))
+}
+
 fn emit_javascript_exports(module: &HighModule, out: &mut String) {
     for function in &module.functions {
         out.push_str(&format!(
@@ -505,7 +511,9 @@ fn emit_function(
         out.push_str(&format!("    (local ${local_name} {local_ty})\n"));
     }
     if abi.needs_heap() {
-        out.push_str("    (local $__tmp_ptr0 i32)\n");
+        for index in 0..HEAP_TMP_PTR_LOCAL_COUNT {
+            out.push_str(&format!("    (local $__tmp_ptr{index} i32)\n"));
+        }
     }
     let mut emit_local_names = locals.clone();
     emit_expr(
@@ -1257,6 +1265,8 @@ fn emit_list_literal(
     ensure_wasi_int_list_type(list_ty, abi)?;
 
     let pad = "  ".repeat(indent);
+    let tmp_ptr_local = heap_tmp_ptr_local(indent);
+    let nested_indent = indent + 1;
     let len = u32::try_from(items.len()).expect("list length fits into u32");
     let total_bytes = 8 + len * 4;
 
@@ -1264,29 +1274,28 @@ fn emit_list_literal(
     out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
     out.push_str(&format!("{pad}i32.add\n"));
     out.push_str(&format!("{pad}global.set $heap_ptr\n"));
-
     out.push_str(&format!("{pad}global.get $heap_ptr\n"));
     out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
     out.push_str(&format!("{pad}i32.sub\n"));
+    out.push_str(&format!("{pad}local.set ${tmp_ptr_local}\n"));
+    out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
     out.push_str(&format!("{pad}i32.const {len}\n"));
     out.push_str(&format!("{pad}i32.store\n"));
 
-    out.push_str(&format!("{pad}global.get $heap_ptr\n"));
-    out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
-    out.push_str(&format!("{pad}i32.sub\n"));
-    out.push_str(&format!("{pad}global.get $heap_ptr\n"));
-    out.push_str(&format!("{pad}i32.const {}\n", total_bytes - 8));
-    out.push_str(&format!("{pad}i32.sub\n"));
+    out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
+    out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
+    out.push_str(&format!("{pad}i32.const 8\n"));
+    out.push_str(&format!("{pad}i32.add\n"));
     out.push_str(&format!("{pad}i32.store offset=4\n"));
 
     for (index, item) in items.iter().enumerate() {
         let item_offset = 8 + u32::try_from(index).expect("list index fits into u32") * 4;
-        out.push_str(&format!("{pad}global.get $heap_ptr\n"));
-        out.push_str(&format!("{pad}i32.const {}\n", total_bytes - item_offset));
-        out.push_str(&format!("{pad}i32.sub\n"));
+        out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
+        out.push_str(&format!("{pad}i32.const {item_offset}\n"));
+        out.push_str(&format!("{pad}i32.add\n"));
         emit_expr(
             item,
-            indent,
+            nested_indent,
             locals,
             declared_local_names,
             match_bindings,
@@ -1299,9 +1308,7 @@ fn emit_list_literal(
         out.push_str(&format!("{pad}i32.store\n"));
     }
 
-    out.push_str(&format!("{pad}global.get $heap_ptr\n"));
-    out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
-    out.push_str(&format!("{pad}i32.sub\n"));
+    out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
     Ok(())
 }
 
@@ -1322,18 +1329,20 @@ fn emit_tuple_literal(
     }
 
     let pad = "  ".repeat(indent);
+    let tmp_ptr_local = heap_tmp_ptr_local(indent);
+    let nested_indent = indent + 1;
     let total_bytes = u32::try_from(items.len()).expect("tuple length fits") * 4;
     out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
     out.push_str(&format!("{pad}call $__alloc\n"));
-    out.push_str(&format!("{pad}drop\n"));
+    out.push_str(&format!("{pad}local.set ${tmp_ptr_local}\n"));
     for (index, item) in items.iter().enumerate() {
         let offset = u32::try_from(index).expect("tuple index fits") * 4;
-        out.push_str(&format!("{pad}global.get $heap_ptr\n"));
-        out.push_str(&format!("{pad}i32.const {}\n", total_bytes - offset));
-        out.push_str(&format!("{pad}i32.sub\n"));
+        out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
+        out.push_str(&format!("{pad}i32.const {offset}\n"));
+        out.push_str(&format!("{pad}i32.add\n"));
         emit_expr(
             item,
-            indent,
+            nested_indent,
             locals,
             declared_local_names,
             match_bindings,
@@ -1345,9 +1354,7 @@ fn emit_tuple_literal(
         )?;
         out.push_str(&format!("{pad}i32.store\n"));
     }
-    out.push_str(&format!("{pad}global.get $heap_ptr\n"));
-    out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
-    out.push_str(&format!("{pad}i32.sub\n"));
+    out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
     Ok(())
 }
 
@@ -1414,19 +1421,21 @@ fn emit_iter_step(
     out: &mut String,
 ) -> Result<()> {
     let pad = "  ".repeat(indent);
+    let tmp_ptr_local = heap_tmp_ptr_local(indent);
+    let nested_indent = indent + 1;
     out.push_str(&format!("{pad}i32.const 12\n"));
     out.push_str(&format!("{pad}call $__alloc\n"));
-    out.push_str(&format!("{pad}local.set $__tmp_ptr0\n"));
-    out.push_str(&format!("{pad}local.get $__tmp_ptr0\n"));
+    out.push_str(&format!("{pad}local.set ${tmp_ptr_local}\n"));
+    out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
     out.push_str(&format!("{pad}i32.const {tag}\n"));
     out.push_str(&format!("{pad}i32.store\n"));
     if let Some(item) = item {
-        out.push_str(&format!("{pad}local.get $__tmp_ptr0\n"));
+        out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
         out.push_str(&format!("{pad}i32.const 4\n"));
         out.push_str(&format!("{pad}i32.add\n"));
         emit_expr(
             item,
-            indent,
+            nested_indent,
             locals,
             declared_local_names,
             match_bindings,
@@ -1439,12 +1448,12 @@ fn emit_iter_step(
         out.push_str(&format!("{pad}i32.store\n"));
     }
     if let Some(state) = state {
-        out.push_str(&format!("{pad}local.get $__tmp_ptr0\n"));
+        out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
         out.push_str(&format!("{pad}i32.const 8\n"));
         out.push_str(&format!("{pad}i32.add\n"));
         emit_expr(
             state,
-            indent,
+            nested_indent,
             locals,
             declared_local_names,
             match_bindings,
@@ -1456,7 +1465,7 @@ fn emit_iter_step(
         )?;
         out.push_str(&format!("{pad}i32.store\n"));
     }
-    out.push_str(&format!("{pad}local.get $__tmp_ptr0\n"));
+    out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
     Ok(())
 }
 
@@ -1476,6 +1485,8 @@ fn emit_construct(
 ) -> Result<()> {
     let variant = abi.variant_layout_for_construct(variant, expr_ty)?;
     let pad = "  ".repeat(indent);
+    let tmp_ptr_local = heap_tmp_ptr_local(indent);
+    let nested_indent = indent + 1;
     if abi.target == WasmTarget::JavaScriptHost {
         if variant.field_count != 0 || !args.is_empty() {
             bail!("ADT payload fields are not yet supported in wasm backend");
@@ -1498,20 +1509,18 @@ fn emit_construct(
     let total_bytes = 4 + u32::try_from(variant.field_count).expect("field count fits") * 4;
     out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
     out.push_str(&format!("{pad}call $__alloc\n"));
-    out.push_str(&format!("{pad}drop\n"));
-    out.push_str(&format!("{pad}global.get $heap_ptr\n"));
-    out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
-    out.push_str(&format!("{pad}i32.sub\n"));
+    out.push_str(&format!("{pad}local.set ${tmp_ptr_local}\n"));
+    out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
     out.push_str(&format!("{pad}i32.const {}\n", variant.tag));
     out.push_str(&format!("{pad}i32.store\n"));
     for (index, arg) in args.iter().enumerate() {
         let offset = 4 + u32::try_from(index).expect("field index fits") * 4;
-        out.push_str(&format!("{pad}global.get $heap_ptr\n"));
-        out.push_str(&format!("{pad}i32.const {}\n", total_bytes - offset));
-        out.push_str(&format!("{pad}i32.sub\n"));
+        out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
+        out.push_str(&format!("{pad}i32.const {offset}\n"));
+        out.push_str(&format!("{pad}i32.add\n"));
         emit_expr(
             arg,
-            indent,
+            nested_indent,
             &mut locals.clone(),
             &mut declared_local_names.clone(),
             match_bindings,
@@ -1523,9 +1532,7 @@ fn emit_construct(
         )?;
         out.push_str(&format!("{pad}i32.store\n"));
     }
-    out.push_str(&format!("{pad}global.get $heap_ptr\n"));
-    out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
-    out.push_str(&format!("{pad}i32.sub\n"));
+    out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
     Ok(())
 }
 
@@ -3230,7 +3237,9 @@ fn emit_closure_thunk(
         out.push_str(&format!("    (local ${local_name} {local_ty})\n"));
     }
     if abi.needs_heap() {
-        out.push_str("    (local $__tmp_ptr0 i32)\n");
+        for index in 0..HEAP_TMP_PTR_LOCAL_COUNT {
+            out.push_str(&format!("    (local $__tmp_ptr{index} i32)\n"));
+        }
     }
     emit_expr(
         &closure.body,

@@ -45,20 +45,6 @@ Field rules:
 
 ## Next
 
-### WB-026
-title: wasm-wasi の heap object codegen で nested allocation 時の base pointer 破壊を潰す
-area: wasm-backend
-status: NEXT
-priority: P2
-owner: unassigned
-depends_on: none
-source: WB-013 で `emit_iter_step` が nested tuple allocation 後に誤った base pointer を返していた
-done_when:
-- nested allocation を含む heap-backed emitters が `heap_ptr - size` 再計算ではなく固定 base pointer で返る
-- nested payload を持つ構築パスに回帰テストが追加される
-notes:
-- `emit_iter_step` は scratch local で修正済み; 同じパターンが `emit_construct` などにも潜む可能性がある
-
 ## Ready
 
 ## Blocked
@@ -80,7 +66,70 @@ done_when:
 notes:
 - blocked on repository settings rather than code in this worktree
 
+### WB-031
+title: 文字列処理の最小競プロ surface を追加して `stdin.read_text().split_whitespace()` を成立させる
+area: stdlib/lang-core
+status: BLOCKED
+priority: P2
+owner: unassigned
+depends_on: WB-029
+source: `stdin.read_text` だけでは AtCoder 入力を実用的に分解できない
+done_when:
+- 文字列の空白分割と最小整数変換のどちらか一式が追加される
+- `practicea` のような ABS 問題が Arukel 単体で解ける
+- parser/typecheck/interpreter の対応テストが揃う
+notes:
+- `split_whitespace` + `parse_int` 相当が最小候補
+- ここを始める前に `stdin.read_text` の I/O 経路を固定したい
+
 ## Done
+
+### WB-026
+title: wasm-wasi の heap object codegen で nested allocation 時の base pointer 破壊を潰す
+area: wasm-backend
+status: DONE
+priority: P2
+owner: ai
+depends_on: none
+source: WB-013 で `emit_iter_step` が nested tuple allocation 後に誤った base pointer を返していた
+done_when:
+- nested allocation を含む heap-backed emitters が `heap_ptr - size` 再計算ではなく固定 base pointer で返る
+- nested payload を持つ構築パスに回帰テストが追加される
+notes:
+- verified with `cargo fmt`, `cargo test -p arktc --test cli`, and `cargo test`
+- `emit_construct`, `emit_tuple_literal`, and `emit_list_literal` now pin their base pointer in depth-scoped temp locals before emitting nested heap-backed children
+
+### WB-030
+title: CLI に標準入力注入オプションを追加して `arktc` / `chef` から競技入出力を試せるようにする
+area: cli
+status: DONE
+priority: P3
+owner: ai
+depends_on: WB-029
+source: `stdin.read_text` を追加しても CLI 側に入力注入手段がないと実用化できない
+done_when:
+- `chef run` が process stdin をそのまま `stdin.read_text()` に流し込める
+- `chef run --help` と README に最小の pipe 使用例が追加される
+- CLI テストが入力付き実行をカバーする
+notes:
+- verified with `cargo fmt`, `cargo test -p chef`, and `cargo test -p lang-interp`; full `cargo test` currently still fails in unrelated `arktc` wasm-wasi regressions covered by WB-026
+- `--stdin-file` は追加せず、既存の pipe 経路を正式仕様として help/README/CLI tests で固定した
+
+### WB-029
+title: インタープリタに `stdin.read_text` を追加して競技プログラミング向け入力経路を作る
+area: stdlib/interpreter
+status: DONE
+priority: P2
+owner: ai
+depends_on: none
+source: ユーザー要求「abs/practiceA.arを解いてみよう」時に AtCoder 向けの標準入力 API が存在しなかった
+done_when:
+- `stdin.read_text()` が `lang-interp` で動作し、テストから入力文字列を注入できる
+- `chef run` か同等の開発経路から標準入力付き実行を検証する回帰が追加される
+- `practicea` 相当の 1 問が interpreter 経路で入出力つき完走できる
+notes:
+- verified with `cargo fmt`, `cargo test -p lang-interp`, and `cargo test -p chef`; full `cargo test` currently still fails in unrelated `arktc` wasm-wasi regressions covered by WB-026
+- `lang-interp` now exposes injected stdin text to `stdin.read_text()`, and `chef run` forwards process stdin into the interpreter for competitive-programming style runs
 
 ### WB-028
 title: arktc build の --target と --emit を分離し 2×3 の出力マトリクスを完成させる

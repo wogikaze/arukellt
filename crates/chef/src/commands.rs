@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::{self, Read};
 use std::path::Path;
 use std::process::ExitCode;
 
@@ -35,7 +36,8 @@ fn run_command(file: &Path, function: &str, args: &[String], step: bool) -> Resu
         .iter()
         .map(|value| parse_scalar_value(value))
         .collect::<Result<Vec<_>>>()?;
-    let mut interpreter = Interpreter::with_base_dir(&high, file.parent().map(Path::to_path_buf));
+    let stdin = read_stdin()?;
+    let mut interpreter = Interpreter::with_io(&high, file.parent().map(Path::to_path_buf), stdin);
     let value = interpreter.call_function(function, parsed_args)?;
     if step {
         for line in interpreter.last_trace() {
@@ -44,6 +46,14 @@ fn run_command(file: &Path, function: &str, args: &[String], step: bool) -> Resu
     }
     print!("{}", render_run_output(&value, interpreter.output()));
     Ok(ExitCode::SUCCESS)
+}
+
+fn read_stdin() -> Result<String> {
+    let mut stdin = String::new();
+    io::stdin()
+        .read_to_string(&mut stdin)
+        .context("failed to read stdin")?;
+    Ok(stdin)
 }
 
 fn test_command(file: &Path, json: bool) -> Result<ExitCode> {

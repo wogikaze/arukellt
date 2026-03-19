@@ -12,7 +12,10 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Command {
-    #[command(about = "Run a function through the interpreter")]
+    #[command(
+        about = "Run a function through the interpreter",
+        long_about = "Run a function through the interpreter.\n\nIf the program calls stdin.read_text(), input is read from this process stdin, so you can pipe data into `chef run`."
+    )]
     Run {
         #[arg(help = "Path to the .ar source file to run")]
         file: PathBuf,

@@ -53,6 +53,7 @@ pub struct Interpreter {
     last_trace: Vec<String>,
     output: String,
     base_dir: Option<PathBuf>,
+    stdin: String,
 }
 
 impl Interpreter {
@@ -68,7 +69,27 @@ impl Interpreter {
             last_trace: Vec::new(),
             output: String::new(),
             base_dir,
+            stdin: String::new(),
         }
+    }
+
+    #[must_use]
+    pub fn with_io(
+        module: &HighModule,
+        base_dir: Option<PathBuf>,
+        stdin: impl Into<String>,
+    ) -> Self {
+        Self {
+            module: module.clone(),
+            last_trace: Vec::new(),
+            output: String::new(),
+            base_dir,
+            stdin: stdin.into(),
+        }
+    }
+
+    pub fn set_stdin_text(&mut self, stdin: impl Into<String>) {
+        self.stdin = stdin.into();
     }
 
     pub fn call_function(
@@ -405,6 +426,12 @@ impl Interpreter {
                 [Value::String(path)] => self.read_text(path),
                 _ => Err(InterpreterError::TypeMismatch("fs.read_text(path)")),
             },
+            "stdin.read_text" => match args.as_slice() {
+                [] => Ok(Value::String(self.stdin.clone())),
+                _ => Err(InterpreterError::ArityMismatch(
+                    "stdin.read_text".to_owned(),
+                )),
+            },
             "Next" => Ok(Value::Variant {
                 name: "Next".to_owned(),
                 fields: args,
@@ -510,6 +537,7 @@ fn is_builtin(name: &str) -> bool {
             | "iter.unfold"
             | "console.println"
             | "fs.read_text"
+            | "stdin.read_text"
             | "Next"
             | "Done"
     )

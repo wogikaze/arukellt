@@ -73,6 +73,43 @@ fn assert_wat_shape(stdout: &str, export_name: &str) {
     );
 }
 
+fn build_and_run_wasi_source(source: &str) -> String {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("input.ar");
+    let output_file = dir.path().join("out.wasm");
+    fs::write(&file, source).expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-wasi")
+        .arg("--output")
+        .arg(&output_file)
+        .output()
+        .expect("run build");
+
+    assert!(
+        output.status.success(),
+        "expected successful wasm-wasi build\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let run = Command::new("wasmer")
+        .arg(&output_file)
+        .output()
+        .expect("run wasmer");
+    assert!(
+        run.status.success(),
+        "expected wasmer success\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&run.stdout),
+        String::from_utf8_lossy(&run.stderr)
+    );
+
+    String::from_utf8(run.stdout).expect("utf8 stdout")
+}
+
 #[test]
 fn check_json_emits_structured_diagnostics() {
     let dir = tempdir().expect("tempdir");
@@ -413,6 +450,51 @@ fn build_command_runs_closure_example_on_wasi() {
         String::from_utf8(run.stdout).expect("utf8 stdout"),
         expected
     );
+}
+
+#[test]
+fn build_command_preserves_nested_tuple_payload_base_pointers_on_wasi() {
+    let stdout = build_and_run_wasi_source(
+        "\
+import console
+
+type Pair =
+  Pair(left: Int, right: Int)
+
+type Payload =
+  Wrapped(pair: Pair)
+
+fn pair_sum(pair: Pair) -> Int:
+  match pair:
+    Pair(left, right) -> left + right
+
+fn main():
+  match Wrapped(Pair(20 + 1, 21)):
+    Wrapped(pair) ->
+      pair |> pair_sum |> string |> console.println
+",
+    );
+
+    assert_eq!(stdout, "42\n");
+}
+
+#[test]
+fn build_command_preserves_nested_list_payload_base_pointers_on_wasi() {
+    let stdout = build_and_run_wasi_source(
+        "\
+import console
+
+type Payload =
+  Wrapped(values: List<Int>)
+
+fn main():
+  match Wrapped([20, 22]):
+    Wrapped(values) ->
+      values |> sum |> string |> console.println
+",
+    );
+
+    assert_eq!(stdout, "42\n");
 }
 
 #[test]

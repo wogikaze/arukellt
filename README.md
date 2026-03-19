@@ -118,9 +118,11 @@ This compiles the source through `lang-core` and prints structured diagnostics. 
 
 ```bash
 cargo run -p chef -- run path/to/file.ar --function main --args 3 9 --step
+printf '1\n2 3\ntest\n' | cargo run -p chef -- run path/to/practicea.ar
 ```
 
 This runs the interpreter path and can optionally print a trace. The interpreter is the default development loop because it is faster to diagnose than the WASM backend.
+If the program calls `stdin.read_text()`, `chef run` reads from the invoking process stdin, so competitive-programming style input can be piped in directly.
 If compilation fails before execution starts, `chef run` exits non-zero and writes structured diagnostics JSON to stderr.
 
 ### Test

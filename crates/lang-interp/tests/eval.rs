@@ -23,6 +23,16 @@ fn compile_and_run_output(source: &str) -> String {
     interpreter.output().to_owned()
 }
 
+fn compile_and_run_output_with_stdin(source: &str, stdin: &str) -> String {
+    let typed = compile_module(source)
+        .module
+        .unwrap_or_else(|| panic!("compile failed for:\n{source}"));
+    let high = lower_to_high_ir(&typed);
+    let mut interpreter = Interpreter::with_io(&high, None, stdin);
+    interpreter.call_function("main", vec![]).expect("main");
+    interpreter.output().to_owned()
+}
+
 #[test]
 fn evaluates_a_pure_function_through_high_ir() {
     let source = "\
@@ -154,6 +164,19 @@ fn main():
 ";
     let output = compile_and_run_output(source);
     assert_eq!(output, "Hello, arukellt!\n");
+}
+
+#[test]
+fn evaluates_stdin_read_text_with_injected_input() {
+    let source = "\
+import stdin
+import console
+
+fn main():
+  stdin.read_text() |> console.println
+";
+    let output = compile_and_run_output_with_stdin(source, "1 2 3 hello\n");
+    assert_eq!(output, "1 2 3 hello\n");
 }
 
 #[test]

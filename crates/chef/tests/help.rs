@@ -26,6 +26,8 @@ fn run_help_describes_trace_and_function_options() {
     assert!(stdout.contains("Run a function through the interpreter"));
     assert!(stdout.contains("Function name to call"));
     assert!(stdout.contains("execution trace"));
+    assert!(stdout.contains("stdin.read_text()"));
+    assert!(stdout.contains("pipe data into `chef run`"));
 }
 
 #[test]

@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::Write;
 use std::process::Command;
 
 use tempfile::tempdir;
@@ -186,6 +187,55 @@ fn broken(flag: Bool, value: Int) -> Int:
     let json: serde_json::Value = serde_json::from_str(&stderr).expect("json");
     assert_eq!(json["version"], "v0.1");
     assert_eq!(json["diagnostics"][0]["code"], "E_IF_ELSE_REQUIRED");
+}
+
+#[test]
+fn run_command_reads_stdin_for_practicea_style_program() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("practicea.lang");
+    fs::write(
+        &file,
+        "\
+import stdin
+import console
+
+fn main():
+  let input = stdin.read_text()
+  if input == \"1\\n2 3\\ntest\\n\":
+    \"6 test\" |> console.println
+  else:
+    \"unexpected input\" |> console.println
+",
+    )
+    .expect("write source");
+
+    let mut child = Command::new(env!("CARGO_BIN_EXE_chef"))
+        .arg("run")
+        .arg(&file)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .expect("spawn chef run");
+    child
+        .stdin
+        .as_mut()
+        .expect("child stdin")
+        .write_all(b"1\n2 3\ntest\n")
+        .expect("write stdin");
+
+    let output = child.wait_with_output().expect("wait for chef run");
+
+    assert!(
+        output.status.success(),
+        "expected successful exit status\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        String::from_utf8(output.stdout).expect("utf8 stdout"),
+        "6 test\n"
+    );
 }
 
 #[test]
