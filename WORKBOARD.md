@@ -47,24 +47,6 @@ Field rules:
 
 ## Ready
 
-### WB-007
-
-title: Add a browser-level smoke path for the static docs app shell
-area: docs
-status: READY
-priority: P3
-owner: unassigned
-depends_on: none
-source: `docs/index.html`; `docs/app.js`; `crates/arktc/tests/docs_site.rs`
-done_when:
-
-- a repeatable smoke command validates `#/language-tour` and `#/std`
-- the smoke path is documented in repo contributor docs
-- the check can fail without needing manual browser inspection
-notes:
-- current docs-site tests lock the static contract and asset paths, but not route rendering in a browser runtime
-- the existing headless-browser route test is still environment-dependent and ignored by default
-
 ## Blocked
 
 ### WB-008
