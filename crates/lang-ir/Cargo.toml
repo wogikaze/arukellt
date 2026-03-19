@@ -1,0 +1,10 @@
+[package]
+name = "lang-ir"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+lang-core = { path = "../lang-core" }
+serde.workspace = true
+

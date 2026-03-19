@@ -1,0 +1,13 @@
+import console
+
+fn fibonacci_iter() -> Iter<i64>:
+  iter.unfold((0, 1), state ->
+    Next(state[0], (state[1], state[0] + state[1]))
+  )
+
+fn main():
+  fibonacci_iter()
+    .take(10)
+    .map(string)
+    .join(", ")
+    |> console.println

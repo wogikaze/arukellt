@@ -1,0 +1,37 @@
+[
+  {
+    "name": "max_two_numbers",
+    "source": "fn main(a: Int, b: Int) -> Int:\n  if a > b:\n    a\n  else:\n    b\n",
+    "function": "main",
+    "args": [3, 9],
+    "expected": 9
+  },
+  {
+    "name": "prefer_first_on_greater",
+    "source": "fn main(a: Int, b: Int) -> Int:\n  if a > b:\n    a\n  else:\n    b\n",
+    "function": "main",
+    "args": [11, 4],
+    "expected": 11
+  },
+  {
+    "name": "boolean_equality",
+    "source": "fn main(a: Int, b: Int) -> Bool:\n  a == b\n",
+    "function": "main",
+    "args": [7, 7],
+    "expected": true
+  },
+  {
+    "name": "adt_match_left",
+    "source": "type Choice =\n  Left(value: Int)\n  Right(value: Int)\n\nfn choose(flag: Bool) -> Choice:\n  if flag:\n    Left(7)\n  else:\n    Right(2)\n\nfn main(flag: Bool) -> Int:\n  match choose(flag):\n    Left(value) -> value\n    Right(value) -> value\n",
+    "function": "main",
+    "args": [true],
+    "expected": 7
+  },
+  {
+    "name": "adt_match_right",
+    "source": "type Choice =\n  Left(value: Int)\n  Right(value: Int)\n\nfn choose(flag: Bool) -> Choice:\n  if flag:\n    Left(7)\n  else:\n    Right(2)\n\nfn main(flag: Bool) -> Int:\n  match choose(flag):\n    Left(value) -> value\n    Right(value) -> value\n",
+    "function": "main",
+    "args": [false],
+    "expected": 2
+  }
+]

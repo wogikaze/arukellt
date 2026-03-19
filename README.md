@@ -1,0 +1,173 @@
+# Arukellt
+
+Arukellt is an experimental LLM-first language toolchain implemented in Rust.
+The current `v0` prototype is optimized for small pure-logic programs that are easy for an LLM to generate, repair, and validate. The pipeline is expression-first, immutable by default, and designed around structured diagnostics instead of opaque compiler failures.
+
+## Current Status
+
+The repository already contains a working vertical slice:
+
+- `lang-core`: lexer, tolerant indent-aware parser, AST, typed AST, and structured diagnostics
+- `lang-ir`: High IR and Low IR lowering
+- `lang-interp`: interpreter for the typed/high-level subset
+- `lang-backend-wasm`: WASM backend for the current pure scalar subset
+- `lang-cli`: `check`, `run`, `test`, `fmt`, `build`, and `benchmark`
+- `lang-playground-core`: JSON/wasm-bindgen API for browser playground integration
+
+This is still a prototype. The language and toolchain are intentionally incomplete.
+
+## Target Surface
+
+The target `v0` surface is centered on clarity, recoverability, and low-ambiguity generation for LLMs:
+
+- Indentation-based blocks
+- Top-level order: `import` -> `type` -> `fn`
+- Host effects imported by name, for example `import console` and `import fs`
+- `i64` as the default integer type in user-facing examples
+- Function types written as `Fn<arg, result>` to avoid overloading `->`
+- Expression-first `if` with mandatory `else`
+- ADTs with constructor calls
+- `match` with wildcard warnings and exhaustiveness checks
+- Range literals such as `1..=100`
+- Lambda shorthand such as `n -> expr`, with callback parameter types inferred from context
+- Method chains stay pure; side effects happen at the boundary through trailing pipe, for example `value |> console.println`
+- Structured diagnostics with stable JSON schema version `v0.1`
+- No `null`, exceptions, macros, implicit coercions, or shared mutable state
+
+Example:
+
+```text
+import console
+
+type Error =
+  DivisionByZero
+
+fn divide(a: i64, b: i64) -> Result<i64, Error>:
+  if b == 0:
+    Err(DivisionByZero)
+  else:
+    Ok(a / b)
+
+fn render_error(error: Error) -> String:
+  match error:
+    DivisionByZero -> "error"
+
+fn main():
+  match divide(10, 0):
+    Ok(value) -> value |> string |> console.println
+    Err(error) -> error |> render_error |> console.println
+```
+
+## Examples
+
+The repository includes language-surface examples in [`example/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example):
+
+- hello world
+- fizz buzz over `1..=100`, keeping the chain pure until the final `|> console.println`
+- factorial and fibonacci
+- `map` / `filter` / `sum`
+- file reads and `Result`-based error handling
+- closures
+- infinite iterators
+
+All bundled examples are executable through `lang run` and verifiable through `lang test`.
+Each example has an adjacent `.stdout` fixture that acts as the snapshot contract for the current CLI.
+
+## Tooling
+
+The main entrypoint is the `lang` CLI binary in `crates/lang-cli`.
+
+### Check
+
+```bash
+cargo run -p lang-cli -- check path/to/file.ar --json
+```
+
+This compiles the source through `lang-core` and prints structured diagnostics. The JSON payload includes versioned fields such as `code`, `stage`, `message`, `expected`, `actual`, `cause`, `suggested_fix`, `alternatives`, and `confidence`.
+
+### Run
+
+```bash
+cargo run -p lang-cli -- run path/to/file.ar --function main --args 3 9 --interpreter --step
+```
+
+This runs the interpreter path and can optionally print a trace. The interpreter is the default development loop because it is faster to diagnose than the WASM backend.
+
+### Test
+
+```bash
+cargo run -p lang-cli -- test path/to/file.ar
+```
+
+Functions whose names start with `test_` are executed and must return `Bool(true)`.
+If a file does not define any `test_` functions, `lang test` falls back to snapshot testing against the adjacent `.stdout` fixture.
+
+### Build
+
+```bash
+cargo run -p lang-cli -- build path/to/file.ar --target wasm-js --output out.wasm
+cargo run -p lang-cli -- build path/to/file.ar --target wasm-wasi --output out.wasm
+```
+
+The current WASM backend supports the pure scalar subset used in the integration tests.
+
+### Benchmark
+
+```bash
+cargo run -p lang-cli -- benchmark benchmarks/pure_logic.json
+```
+
+This reports parse, typecheck, execution, and pass counts for a JSON benchmark manifest. The sample manifest at [`benchmarks/pure_logic.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/benchmarks/pure_logic.json) is the current reference set.
+
+## Browser Playground API
+
+`crates/lang-playground-core` exposes two JSON-oriented functions for browser integration:
+
+- `analyze_source_json(source)` returns versioned diagnostics JSON
+- `run_source_json(source, function, args_json, step)` returns result and optional trace JSON
+
+These are also exported via `wasm-bindgen` as `analyze_source` and `run_source`.
+
+## Repository Layout
+
+```text
+.
+├── benchmarks/
+├── crates/
+│   ├── lang-core/
+│   ├── lang-ir/
+│   ├── lang-interp/
+│   ├── lang-backend-wasm/
+│   ├── lang-cli/
+│   └── lang-playground-core/
+└── Cargo.toml
+```
+
+## Limitations
+
+The executable prototype is still intentionally narrower than the full language plan:
+
+- `lang-core` still models integers as `Int` internally, while the surface examples use the explicit `i64` spelling
+- The bundled examples are executable, but the supported standard library remains small and purpose-built around those examples
+- The WASM backend does not yet support ADT or `match` codegen
+- `String` values typecheck and interpret, but are not yet lowered to WASM
+- Host integrations are currently limited to the example-oriented `console` and `fs` interpreter shims
+- `clock`, `random`, `process`, package management, builders, and a richer standard library are not implemented yet
+- `fmt` currently preserves source rather than reprinting a canonical AST-based format
+
+## Development
+
+Run the workspace test suite from the repository root:
+
+```bash
+cargo test
+```
+
+This project is currently validated primarily through:
+
+- core pipeline tests
+- IR lowering tests
+- interpreter evaluation tests
+- CLI integration tests
+- playground API tests
+- benchmark loop smoke tests

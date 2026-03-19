@@ -1,0 +1,7 @@
+import console
+
+fn make_adder(base: i64) -> Fn<i64, i64>:
+  n -> base + n
+
+fn main():
+  make_adder(10)(32) |> string |> console.println

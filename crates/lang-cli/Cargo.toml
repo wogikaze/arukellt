@@ -1,0 +1,22 @@
+[package]
+name = "lang-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+lang-backend-wasm = { path = "../lang-backend-wasm" }
+lang-core = { path = "../lang-core" }
+lang-interp = { path = "../lang-interp" }
+lang-ir = { path = "../lang-ir" }
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+tempfile = "3.23"
+
+[[bin]]
+name = "lang"
+path = "src/main.rs"

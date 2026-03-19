@@ -1,0 +1,21 @@
+import console
+
+type Error =
+  DivisionByZero
+
+fn divide(a: i64, b: i64) -> Result<i64, Error>:
+  if b == 0:
+    Err(DivisionByZero)
+  else:
+    Ok(a / b)
+
+fn render_error(error: Error) -> String:
+  match error:
+    DivisionByZero -> "error"
+
+fn main():
+  match divide(10, 0):
+    Ok(value) ->
+      value |> string |> console.println
+    Err(error) ->
+      error |> render_error |> console.println

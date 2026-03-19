@@ -1,0 +1,22 @@
+import console
+
+fn fizz_buzz_label(n: i64) -> String:
+  if divisible_by(n, 15):
+    "FizzBuzz"
+  else:
+    if divisible_by(n, 3):
+      "Fizz"
+    else:
+      if divisible_by(n, 5):
+        "Buzz"
+      else:
+        string(n)
+
+fn divisible_by(value: i64, divisor: i64) -> Bool:
+  value % divisor == 0
+
+fn main():
+  (1..=100)
+    .map(fizz_buzz_label)
+    .join("\n")
+    |> console.println

@@ -1,0 +1,20 @@
+import console
+import fs
+
+type ReadError =
+  FileNotFound
+  PermissionDenied
+  UnknownReadError
+
+fn render_read_error(error: ReadError) -> String:
+  match error:
+    FileNotFound -> "file not found"
+    PermissionDenied -> "permission denied"
+    UnknownReadError -> "read failed"
+
+fn main():
+  match fs.read_text("hello.txt"):
+    Ok(text) ->
+      text |> console.println
+    Err(error) ->
+      error |> render_read_error |> console.println
