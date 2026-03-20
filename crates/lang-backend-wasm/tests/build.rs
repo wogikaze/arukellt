@@ -2,9 +2,11 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
-use lang_backend_wasm::{WasmTarget, build_module_from_source, emit_wasm};
-use lang_core::{BinaryOp, Type};
-use lang_ir::{HighExpr, HighExprKind, HighFunction, HighModule, HighParam};
+use lang_backend_wasm::{
+    WasmTarget, build_module_from_source, emit_wasm, emit_wat, postprocess_wasm,
+};
+use lang_core::{BinaryOp, Type, compile_module};
+use lang_ir::{HighExpr, HighExprKind, HighFunction, HighModule, HighParam, lower_to_high_ir};
 use tempfile::tempdir;
 
 fn repo_root() -> PathBuf {
@@ -124,6 +126,41 @@ fn contains_bytes(haystack: &[u8], needle: &[u8]) -> bool {
         .any(|window| window == needle)
 }
 
+fn custom_section_names(bytes: &[u8]) -> Vec<String> {
+    let mut cursor = 8;
+    let mut names = Vec::new();
+    while cursor < bytes.len() {
+        let section_id = bytes[cursor];
+        cursor += 1;
+        let section_size = read_u32_leb(bytes, &mut cursor) as usize;
+        let section_end = cursor + section_size;
+        if section_id == 0 {
+            let name_len = read_u32_leb(bytes, &mut cursor) as usize;
+            let name = std::str::from_utf8(&bytes[cursor..cursor + name_len])
+                .expect("custom section name utf8")
+                .to_owned();
+            names.push(name);
+        }
+        cursor = section_end;
+    }
+    names
+}
+
+fn defined_function_count(bytes: &[u8]) -> u32 {
+    let mut cursor = 8;
+    while cursor < bytes.len() {
+        let section_id = bytes[cursor];
+        cursor += 1;
+        let section_size = read_u32_leb(bytes, &mut cursor) as usize;
+        let section_end = cursor + section_size;
+        if section_id == 3 {
+            return read_u32_leb(bytes, &mut cursor);
+        }
+        cursor = section_end;
+    }
+    0
+}
+
 #[test]
 fn builds_a_valid_wasm_module_for_a_pure_function() {
     let source = "\
@@ -138,6 +175,57 @@ fn main(a: Int, b: Int) -> Int:
 
     assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
     assert_eq!(export_names(&bytes), vec!["main"]);
+}
+
+#[test]
+fn wasi_target_inlines_small_pure_helpers_and_prunes_dead_functions() {
+    let source = "\
+import console
+
+fn add_one(n: Int) -> Int:
+  n + 1
+
+fn wrap(n: Int) -> Int:
+  add_one(n)
+
+fn dead_helper() -> Int:
+  99
+
+fn main():
+  wrap(41) |> string |> console.println
+";
+
+    let typed = compile_module(source).module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let wat = emit_wat(&high, WasmTarget::Wasi).expect("wasi wat");
+    let bytes = emit_wasm(&high, WasmTarget::Wasi).expect("wasi wasm");
+
+    assert!(!wat.contains("(func $add_one "));
+    assert!(!wat.contains("(func $wrap "));
+    assert!(!wat.contains("(func $dead_helper "));
+    assert_eq!(run_wasm_wasi_stdout(&bytes), "42\n");
+}
+
+#[test]
+fn wasi_target_keeps_non_inlineable_helpers_when_binders_are_present() {
+    let source = "\
+import console
+
+fn wrap(n: Int) -> Int:
+  let one = 1
+  n + one
+
+fn main():
+  wrap(41) |> string |> console.println
+";
+
+    let typed = compile_module(source).module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let wat = emit_wat(&high, WasmTarget::Wasi).expect("wasi wat");
+    let bytes = emit_wasm(&high, WasmTarget::Wasi).expect("wasi wasm");
+
+    assert!(wat.contains("(func $wrap "));
+    assert_eq!(run_wasm_wasi_stdout(&bytes), "42\n");
 }
 
 #[test]
@@ -195,6 +283,58 @@ fn main() -> String:
     assert!(
         contains_bytes(&bytes, b"hello wasm\0"),
         "expected string literal bytes in data section"
+    );
+}
+
+#[test]
+fn postprocess_strips_custom_metadata_and_dead_functions() {
+    let raw = wat::parse_str(
+        r#"
+(module
+  (func $live (export "live") (result i32)
+    i32.const 1)
+  (func $dead (result i32)
+    i32.const 2))
+"#,
+    )
+    .expect("raw wasm");
+
+    let optimized = postprocess_wasm(&raw).expect("postprocessed wasm");
+
+    assert_eq!(defined_function_count(&raw), 2);
+    assert_eq!(defined_function_count(&optimized), 1);
+    assert!(
+        custom_section_names(&raw).iter().any(|name| name == "name"),
+        "expected raw wat parse to include a name section"
+    );
+    assert!(
+        custom_section_names(&optimized).is_empty(),
+        "expected postprocess to strip custom sections"
+    );
+    assert_eq!(run_wasm_js_i32(&optimized, "live"), 1);
+}
+
+#[test]
+fn representative_example_gets_smaller_after_postprocess() {
+    let source = fs::read_to_string(repo_root().join("example/hello_world.ar"))
+        .expect("hello_world example source");
+    let result = compile_module(&source);
+    assert_eq!(result.error_count(), 0, "example should typecheck");
+    let typed = result.module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let raw = wat::parse_str(&emit_wat(&high, WasmTarget::Wasi).expect("emit wat"))
+        .expect("raw wat parse");
+    let optimized = emit_wasm(&high, WasmTarget::Wasi).expect("emit wasm");
+
+    assert!(
+        optimized.len() < raw.len(),
+        "expected postprocess to reduce size, raw={} optimized={}",
+        raw.len(),
+        optimized.len()
+    );
+    assert!(
+        custom_section_names(&optimized).is_empty(),
+        "expected optimized wasm to omit custom metadata"
     );
 }
 
@@ -327,12 +467,16 @@ fn main():
 
     let bytes =
         build_module_from_source(source, WasmTarget::Wasi).expect("wasi stdin.read_text bytes");
+    let typed = compile_module(source).module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let wat = emit_wat(&high, WasmTarget::Wasi).expect("wasi wat");
 
     assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
     assert!(export_names(&bytes).iter().any(|name| name == "_start"));
     assert!(export_names(&bytes).iter().any(|name| name == "memory"));
     assert!(contains_bytes(&bytes, b"fd_read"));
-    assert!(contains_bytes(&bytes, b"split_whitespace"));
+    assert!(wat.contains("(func $split_whitespace "));
+    assert!(wat.contains("(func $__list_join_strings "));
 }
 
 #[test]
@@ -353,9 +497,19 @@ fn main():
     let js_bytes =
         build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
     let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+    let js_high = lower_to_high_ir(&compile_module(js_source).module.expect("typed js module"));
+    let wasi_high = lower_to_high_ir(
+        &compile_module(wasi_source)
+            .module
+            .expect("typed wasi module"),
+    );
+    let js_wat = emit_wat(&js_high, WasmTarget::JavaScriptHost).expect("js wat");
+    let wasi_wat = emit_wat(&wasi_high, WasmTarget::Wasi).expect("wasi wat");
 
-    assert!(contains_bytes(&js_bytes, b"__list_join_strings"));
-    assert!(contains_bytes(&wasi_bytes, b"__list_join_strings"));
+    assert!(js_bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(wasi_bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(js_wat.contains("(func $__list_join_strings "));
+    assert!(wasi_wat.contains("(func $__list_join_strings "));
 }
 
 #[test]
@@ -426,9 +580,12 @@ fn main():
 
     let bytes =
         build_module_from_source(source, WasmTarget::Wasi).expect("stdin.read_line should build");
+    let typed = compile_module(source).module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let wat = emit_wat(&high, WasmTarget::Wasi).expect("wasi wat");
 
     assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
-    assert!(contains_bytes(&bytes, b"stdin.read_line"));
+    assert!(wat.contains("(func $stdin.read_line "));
 }
 
 #[test]
@@ -524,9 +681,23 @@ fn main():
     let js_bytes =
         build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
     let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+    let js_high = lower_to_high_ir(&compile_module(js_source).module.expect("typed js module"));
+    let wasi_high = lower_to_high_ir(
+        &compile_module(wasi_source)
+            .module
+            .expect("typed wasi module"),
+    );
+    let js_wat = emit_wat(&js_high, WasmTarget::JavaScriptHost).expect("js wat");
+    let wasi_wat = emit_wat(&wasi_high, WasmTarget::Wasi).expect("wasi wat");
 
     assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 42);
     assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "alpha\n");
+    assert!(js_wat.contains("$__split_whitespace_nth"));
+    assert!(wasi_wat.contains("$__split_whitespace_nth"));
+    assert!(!js_wat.contains("(func $split_whitespace "));
+    assert!(!wasi_wat.contains("(func $split_whitespace "));
+    assert!(!js_wat.contains("$__list_get"));
+    assert!(!wasi_wat.contains("$__list_get"));
 }
 
 #[test]
@@ -543,9 +714,57 @@ fn main() -> Int:
 
     let bytes = build_module_from_source(source, WasmTarget::Wasi)
         .expect("dynamic list indexing should build on wasi");
+    let typed = compile_module(source).module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let wat = emit_wat(&high, WasmTarget::Wasi).expect("wasi wat");
 
     assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
-    assert!(contains_bytes(&bytes, b"__list_get"));
+    assert!(wat.contains("$__list_get"));
+}
+
+#[test]
+fn parse_or_zero_wrapper_lowers_to_a_direct_parse_helper_on_both_wasm_targets() {
+    let js_source = "\
+fn parse_or_zero(text: String) -> Int:
+  let parsed = parse.i64(text)
+  match parsed:
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn main() -> Int:
+  parse_or_zero(\"41\") + parse_or_zero(\"oops\")
+";
+    let wasi_source = "\
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  let parsed = parse.i64(text)
+  match parsed:
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn main():
+  string(parse_or_zero(\"41\") + parse_or_zero(\"oops\")) |> console.println
+";
+
+    let js_bytes =
+        build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+    let js_high = lower_to_high_ir(&compile_module(js_source).module.expect("typed js module"));
+    let wasi_high = lower_to_high_ir(
+        &compile_module(wasi_source)
+            .module
+            .expect("typed wasi module"),
+    );
+    let js_wat = emit_wat(&js_high, WasmTarget::JavaScriptHost).expect("js wat");
+    let wasi_wat = emit_wat(&wasi_high, WasmTarget::Wasi).expect("wasi wat");
+
+    assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 41);
+    assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "41\n");
+    assert!(js_wat.contains("$__parse_i64_or_zero"));
+    assert!(wasi_wat.contains("$__parse_i64_or_zero"));
+    assert!(!js_wat.contains("(func $parse.i64 "));
+    assert!(!wasi_wat.contains("(func $parse.i64 "));
 }
 
 #[test]
@@ -585,7 +804,136 @@ fn main():
 
     assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 1);
     assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "YES\n");
-    assert!(contains_bytes(&wasi_bytes, b"strip_suffix"));
+}
+
+#[test]
+fn compact_suffix_recursion_uses_an_optimized_path_for_large_inputs() {
+    let text = "dream".repeat(20_000);
+    let js_source = format!(
+        "\
+fn can_form(text: String) -> Bool:
+  if text == \"\":
+    true
+  else:
+    [\"dreamer\", \"eraser\", \"dream\", \"erase\"].any(suffix -> strip_suffix(text, suffix).map(can_form).unwrap_or(false))
+
+fn main() -> Int:
+  if can_form(\"{text}\"):
+    1
+  else:
+    0
+"
+    );
+    let wasi_source = format!(
+        "\
+import console
+
+fn can_form(text: String) -> Bool:
+  if text == \"\":
+    true
+  else:
+    [\"dreamer\", \"eraser\", \"dream\", \"erase\"].any(suffix -> strip_suffix(text, suffix).map(can_form).unwrap_or(false))
+
+fn main():
+  if can_form(\"{text}\"):
+    \"YES\" |> console.println
+  else:
+    \"NO\" |> console.println
+"
+    );
+
+    let js_typed = compile_module(&js_source).module.expect("typed js module");
+    let js_high = lower_to_high_ir(&js_typed);
+    let js_wat = emit_wat(&js_high, WasmTarget::JavaScriptHost).expect("js wat");
+    let wasi_typed = compile_module(&wasi_source)
+        .module
+        .expect("typed wasi module");
+    let wasi_high = lower_to_high_ir(&wasi_typed);
+    let wasi_wat = emit_wat(&wasi_high, WasmTarget::Wasi).expect("wasi wat");
+
+    assert!(js_wat.contains("$__suffix_rec_can_form"));
+    assert!(wasi_wat.contains("$__suffix_rec_can_form"));
+    assert!(!js_wat.contains("(func $strip_suffix "));
+    assert!(!wasi_wat.contains("(func $strip_suffix "));
+    assert!(!js_wat.contains("(func $__option_unwrap_or "));
+    assert!(!wasi_wat.contains("(func $__option_unwrap_or "));
+    assert!(!js_wat.contains("__option_map_"));
+    assert!(!wasi_wat.contains("__option_map_"));
+    assert!(!js_wat.contains("__list_any_"));
+    assert!(!wasi_wat.contains("__list_any_"));
+
+    let js_bytes =
+        build_module_from_source(&js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(&wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+
+    assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 1);
+    assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "YES\n");
+}
+
+#[test]
+fn specialized_suffix_recursion_drops_generic_option_and_closure_helpers() {
+    let source = "\
+fn can_form(text: String) -> Bool:
+  if text == \"\":
+    true
+  else:
+    [\"dreamer\", \"eraser\", \"dream\", \"erase\"].any(suffix -> strip_suffix(text, suffix).map(can_form).unwrap_or(false))
+
+fn main() -> Int:
+  if can_form(\"dreameraser\"):
+    1
+  else:
+    0
+";
+
+    let typed = compile_module(source).module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let wat = emit_wat(&high, WasmTarget::JavaScriptHost).expect("js wat");
+
+    assert!(wat.contains("$__suffix_rec_can_form"));
+    assert!(!wat.contains("$strip_suffix"));
+    assert!(!wat.contains("$__option_unwrap_or"));
+    assert!(!wat.contains("$__option_map_"));
+    assert!(!wat.contains("$__apply_closure_"));
+    assert!(!wat.contains("(table "));
+}
+
+#[test]
+fn list_map_emits_only_list_helpers_needed_by_the_program() {
+    let source = "\
+fn double(n: Int) -> Int:
+  n * 2
+
+fn main() -> Int:
+  [1, 2, 3].map(double).sum()
+";
+
+    let typed = compile_module(source).module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let wat = emit_wat(&high, WasmTarget::JavaScriptHost).expect("js wat");
+
+    assert!(wat.contains("$__list_map_"));
+    assert!(!wat.contains("$__option_map_"));
+    assert!(!wat.contains("$__list_get"));
+}
+
+#[test]
+fn option_map_emits_only_option_helpers_needed_by_the_program() {
+    let source = "\
+fn one(text: String) -> Int:
+  1
+
+fn main() -> Int:
+  strip_suffix(\"dreamer\", \"er\").map(one).unwrap_or(0)
+";
+
+    let typed = compile_module(source).module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let wat = emit_wat(&high, WasmTarget::JavaScriptHost).expect("js wat");
+
+    assert!(wat.contains("$__option_map_"));
+    assert!(!wat.contains("$__list_map_"));
+    assert!(!wat.contains("$__list_get"));
 }
 
 #[test]

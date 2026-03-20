@@ -47,6 +47,26 @@ fn read_u32_leb(bytes: &[u8], cursor: &mut usize) -> u32 {
     }
 }
 
+fn custom_section_names(bytes: &[u8]) -> Vec<String> {
+    let mut cursor = 8;
+    let mut names = Vec::new();
+    while cursor < bytes.len() {
+        let section_id = bytes[cursor];
+        cursor += 1;
+        let section_size = read_u32_leb(bytes, &mut cursor) as usize;
+        let section_end = cursor + section_size;
+        if section_id == 0 {
+            let name_len = read_u32_leb(bytes, &mut cursor) as usize;
+            let name = std::str::from_utf8(&bytes[cursor..cursor + name_len])
+                .expect("custom section name utf8")
+                .to_owned();
+            names.push(name);
+        }
+        cursor = section_end;
+    }
+    names
+}
+
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -309,6 +329,36 @@ fn main() -> Int:
     assert!(output.status.success(), "expected successful exit status");
     let bytes = fs::read(output_file).expect("read output wasm");
     assert_eq!(export_names(&bytes), vec!["_start"]);
+}
+
+#[test]
+fn build_command_writes_postprocessed_wasm_without_custom_metadata() {
+    let file = repo_root().join("example/hello_world.ar");
+    let dir = tempdir().expect("tempdir");
+    let output_file = dir.path().join("hello_world.wasm");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-wasi")
+        .arg("--output")
+        .arg(&output_file)
+        .output()
+        .expect("run build");
+
+    assert!(
+        output.status.success(),
+        "expected successful exit status\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let bytes = fs::read(output_file).expect("read output wasm");
+    assert!(
+        custom_section_names(&bytes).is_empty(),
+        "expected postprocessed cli wasm to omit custom metadata"
+    );
 }
 
 #[test]

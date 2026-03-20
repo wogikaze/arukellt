@@ -47,24 +47,113 @@ Field rules:
 
 ## Next
 
-### WB-047
+### WB-051
 
-title: Recover a non-allocating suffix fast path under the new Option surface
-area: lang-backend-wasm
+title: Add a small pure-function inline and dead-code pass before wasm emission
+area: lang-ir/lang-backend-wasm
 status: NEXT
 priority: P1
-owner: ai
-depends_on: WB-046
-source: follow-up after `abc049c` moved back to whole-string `strip_suffix(...).map(...).unwrap_or(...)`
+owner: unassigned
+depends_on: none
+source: user request: classify Wado optimizer ideas for Arukellt
 done_when:
 
-- compact whole-string suffix recursion no longer materializes shrinking strings on active WASM targets
-- a large `abc049c`-style input regression covers the optimized path
-- `cargo test` passes with the optimized runtime path in place
+- Arukellt removes obviously dead helper functions and inlines small pure wrappers in a controlled pass before wasm codegen
+- regression tests cover both size-oriented and behavior-preserving cases
+- `cargo test` passes or any unrelated pre-existing failures are explicitly recorded
 notes:
-- preserve the `Option` / `any` surface from `WB-046`; optimize lowering/runtime rather than reverting the example syntax
+- high-impact Wado idea with moderate implementation cost
+- keep the first slice intentionally small: no whole optimizer framework, just call-graph reachability plus conservative inlining
 
 ## Ready
+
+### WB-052
+
+title: Add wasm binary postprocessing for size-oriented cleanup
+area: lang-backend-wasm
+status: READY
+priority: P2
+owner: unassigned
+depends_on: WB-049
+source: user request: classify Wado wasm-size techniques for Arukellt
+done_when:
+
+- emitted wasm can be postprocessed to drop obviously unnecessary binary baggage such as unused helper bodies or nonessential metadata
+- the size win is measured on at least one representative example program
+- `cargo test -p lang-backend-wasm && cargo test -p arktc` passes
+notes:
+- high-impact Wado idea, but Arukellt currently emits WAT strings directly, so this requires a new binary-stage hook
+- likely implementation path uses wasmparser/wasm-encoder or walrus rather than more WAT string surgery
+
+### WB-053
+
+title: Introduce a backend-oriented wasm IR between High IR and WAT emission
+area: lang-ir/lang-backend-wasm
+status: READY
+priority: P2
+owner: unassigned
+depends_on: WB-051
+source: user request: classify Wado architecture ideas for Arukellt
+done_when:
+
+- a new backend-facing IR exists for wasm-specific rewrites that are awkward in the current direct High-IR-to-WAT pipeline
+- at least one existing codegen optimization is moved onto that IR
+- `cargo test` passes or unrelated worktree failures are explicitly recorded
+notes:
+- this is the structural prerequisite for accumulating Wado-style optimizer wins without turning `lang-backend-wasm` into a giant pattern matcher
+- not an immediate slice; take only after the conservative inline/DCE pass proves where the pressure points are
+
+### WB-056
+
+title: Add an explicit experimental `wasm-js-gc` target contract
+area: targets/lang-backend-wasm
+status: READY
+priority: P3
+owner: unassigned
+depends_on: none
+source: follow-up from `WB-054` Wasm GC feasibility spike
+done_when:
+
+- the CLI and docs define a separate opt-in target contract for GC-capable JavaScript hosts instead of overloading today's `wasm-js` ABI
+- the contract states which exported params/results may remain scalar-only in the first slice and which values may stay internal GC refs
+- target selection tests and docs cover failure modes on non-GC-capable toolchains or runtimes
+notes:
+- keep this separate from `wasm-wasi`; the first realistic track is a JS-host-only experimental target
+
+### WB-057
+
+title: Introduce GC-aware wasm value representations in backend codegen
+area: lang-backend-wasm
+status: READY
+priority: P3
+owner: unassigned
+depends_on: WB-056
+source: follow-up from `WB-054` Wasm GC feasibility spike
+done_when:
+
+- backend typing and expression emission can represent non-`i32` wasm values such as nullable refs and emitted GC type definitions
+- at least one internal surface type (`Option<Int>` from the spike) lowers through the new representation path without `__alloc` or linear-memory option helpers
+- focused backend tests assert both the new GC instructions/types and the continued behavior of the existing linear-memory targets
+notes:
+- this likely starts by replacing the current stringly `wasm_type()` contract with a richer emitted-type/value-repr layer
+
+### WB-055
+
+title: Evaluate a separate Component Model / post-preview1 target track
+area: targets/lang-backend-wasm
+status: READY
+priority: P3
+owner: unassigned
+depends_on: none
+source: user request: classify Wado's Component Model alignment for Arukellt
+done_when:
+
+- the repo documents whether a new Component-Model-oriented target should exist separately from today's `wasm-js` and `wasm-wasi`
+- target-boundary risks and benefits are written down with at least one concrete host scenario
+- follow-up work is queued if the direction is judged viable
+notes:
+- Wado's Component Model alignment is real, but it does not fit cleanly into Arukellt's current prototype boundaries
+- keep this isolated from short-term backend size/perf work
 
 ## Blocked
 
@@ -86,6 +175,98 @@ notes:
 - blocked on repository settings rather than code in this worktree
 
 ## Done
+
+### WB-054
+
+title: Spike a separate Wasm GC backend for zero-runtime-wrapper data layouts
+area: lang-backend-wasm
+status: DONE
+priority: P3
+owner: ai
+depends_on: none
+source: user request: classify Wado's Wasm GC strategy for Arukellt
+done_when:
+
+- the repo records a concrete feasibility spike for representing at least one Arukellt surface type with Wasm GC instead of linear-memory helpers
+- the spike identifies what would need to change in codegen, tests, and target contracts before broader adoption
+- follow-up tasks are added for any realistic migration path
+notes:
+- recorded the feasibility spike in `docs/wasm-gc-spike.md`, centered on `Option<Int>` lowering to a nullable Wasm GC struct instead of a tag-plus-payload heap cell
+- follow-up tasks now split the migration into a target-contract slice and a backend representation slice before any production rollout
+- later backend cleanup slices restored `cargo test -p lang-backend-wasm`; this spike remains documentation-first and does not ship a GC target
+
+### WB-049
+
+title: Generalize feature-gated helper emission across the std surface
+area: lang-backend-wasm
+status: DONE
+priority: P1
+owner: ai
+depends_on: WB-048
+source: user request: classify Wado-style size tactics by Arukellt transferability
+done_when:
+
+- helper emission is driven by precise usage for newly added std-surface helpers rather than broad target-level defaults
+- codegen tests assert that unused Option/list/string helpers do not appear in representative WAT output
+- `cargo test -p lang-backend-wasm` passes
+notes:
+- helper gating now follows wasm-lowered helper usage, including option-vs-list map helpers and list-index-specific emission, and the crate is green again under `cargo test -p lang-backend-wasm`
+- this slice now also keeps callback-only functions reachable through the optimizer so helper pruning does not break named/lambda callback paths
+
+### WB-048
+
+title: Trim dead generic helper emission when suffix-recursion specialization fires
+area: lang-backend-wasm
+status: DONE
+priority: P2
+owner: ai
+depends_on: WB-047
+source: follow-up after `WB-047`; specialized `abc049c` codegen still starts from the generic source shape and can over-emit helpers
+done_when:
+
+- specialized suffix-recursion modules stop emitting unused generic `strip_suffix` / closure helper baggage
+- codegen tests assert the specialized WAT stays lean
+- `cargo test -p lang-backend-wasm` passes
+notes:
+- specialized suffix-recursion functions now skip generic call scanning, closure collection, and named-callback collection so the emitted WAT only keeps the hidden `__suffix_rec_*` path plus `ends_with_at`
+
+### WB-050
+
+title: Add more source-shape peephole lowerings for common LLM-style pipelines
+area: lang-backend-wasm
+status: DONE
+priority: P1
+owner: ai
+depends_on: WB-048
+source: user request: classify Wado techniques by near-term value for Arukellt
+done_when:
+
+- at least two recurring high-level patterns beyond suffix recursion lower to leaner wasm paths without changing source syntax
+- new tests prove both semantic parity and reduced helper/function emission for the chosen patterns
+- `cargo test -p lang-backend-wasm` passes
+notes:
+- added a direct `parse.i64`-to-zero peephole for `parse_or_zero` wrappers and a non-list `split_whitespace()[idx]` lowering through `__split_whitespace_nth`
+- helper usage analysis now understands the specialized source shapes, so generic `parse.i64`, `split_whitespace`, and `__list_get` baggage is not emitted for those paths
+- fixed the optimizer/backend handoff so callback-only function references remain reachable and lambda closure ABI collection runs against the same wasm-lowered tree used for emission
+- `cargo fmt && cargo test -p lang-backend-wasm`
+
+### WB-047
+
+title: Recover a non-allocating suffix fast path under the new Option surface
+area: lang-backend-wasm
+status: DONE
+priority: P1
+owner: ai
+depends_on: WB-046
+source: follow-up after `abc049c` moved back to whole-string `strip_suffix(...).map(...).unwrap_or(...)`
+done_when:
+
+- compact whole-string suffix recursion no longer materializes shrinking strings on active WASM targets
+- a large `abc049c`-style input regression covers the optimized path
+- `cargo test` passes with the optimized runtime path in place
+notes:
+- added backend pattern-matching for the compact suffix-recursion shape and lowered it to an iterative hidden helper over `(text, end)` without changing source syntax
+- `cargo test -p lang-backend-wasm` and the relevant `arktc` CLI regression pass; full `cargo test` is still blocked by the pre-existing `docs_site` failures in this worktree
 
 ### WB-046
 

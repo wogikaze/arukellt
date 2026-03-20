@@ -2,7 +2,12 @@ use std::collections::{HashMap, HashSet};
 
 use anyhow::{Result, anyhow, bail};
 use lang_core::{Pattern, Type, compile_module};
-use lang_ir::{HighExpr, HighExprKind, HighFunction, HighMatchArm, HighModule, lower_to_high_ir};
+use lang_ir::{
+    HighExpr, HighExprKind, HighMatchArm, HighModule, WasmFunction, WasmFunctionBody, WasmModule,
+    lower_to_high_ir, lower_to_wasm_ir, optimize_high_module,
+};
+
+mod postprocess;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WasmTarget {
@@ -23,15 +28,17 @@ pub fn build_module_from_source(source: &str, target: WasmTarget) -> Result<Vec<
 }
 
 pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
-    let abi = WasmAbi::from_module(module, target)?;
-    let uses_ends_with_at = module_uses_call(module, "ends_with_at");
-    let uses_split_whitespace = module_uses_call(module, "split_whitespace");
-    let uses_parse_i64 = module_uses_call(module, "parse.i64");
-    let uses_parse_bool = module_uses_call(module, "parse.bool");
-    let uses_strip_suffix = module_uses_call(module, "strip_suffix");
-    let uses_unwrap_or = module_uses_call(module, "unwrap_or");
+    let optimized_module = optimize_high_module(module, &wasm_entry_roots(module, target));
+    let module = &optimized_module;
+    let wasm_module = lower_to_wasm_ir(module);
+    let abi = WasmAbi::from_module(module, &wasm_module, target)?;
+    let helper_usage = &wasm_module.helper_usage;
+    let uses_split_whitespace_nth = module
+        .functions
+        .iter()
+        .any(|function| expr_uses_split_whitespace_nth(&function.body));
     let mut wat_module = String::from("(module\n");
-    let function_names = module
+    let function_names = wasm_module
         .functions
         .iter()
         .map(|function| function.name.clone())
@@ -71,22 +78,31 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     if abi.uses_string_builtin {
         emit_string_helper(&abi, &mut wat_module);
     }
-    if uses_split_whitespace {
+    if helper_usage.uses_split_whitespace || uses_split_whitespace_nth {
+        emit_ascii_whitespace_helper(&mut wat_module);
+    }
+    if helper_usage.uses_split_whitespace {
         emit_split_whitespace_helper(&mut wat_module);
     }
-    if uses_parse_i64 {
+    if uses_split_whitespace_nth {
+        emit_split_whitespace_nth_helper(&mut wat_module);
+    }
+    if helper_usage.uses_parse_i64 {
         emit_parse_i64_helper(&abi, &mut wat_module);
     }
-    if uses_parse_bool {
+    if helper_usage.uses_parse_i64_or_zero {
+        emit_parse_i64_or_zero_helper(&mut wat_module);
+    }
+    if helper_usage.uses_parse_bool {
         emit_parse_bool_helper(&abi, &mut wat_module);
     }
-    if uses_ends_with_at {
+    if helper_usage.uses_ends_with_at {
         emit_ends_with_at_helper(&mut wat_module);
     }
-    if uses_strip_suffix {
+    if helper_usage.uses_strip_suffix {
         emit_strip_suffix_helper(&mut wat_module);
     }
-    if uses_unwrap_or {
+    if helper_usage.uses_unwrap_or {
         emit_option_unwrap_or_helper(&mut wat_module);
     }
     if target == WasmTarget::Wasi {
@@ -101,98 +117,73 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
         }
     }
     emit_closure_support(&abi, &function_names, &mut wat_module)?;
-    for function in &module.functions {
+    for function in &wasm_module.functions {
         wat_module.push_str(&emit_function(function, &function_names, &abi)?);
     }
     if abi.uses_console_println {
         emit_console_println_helper(&abi, &mut wat_module);
     }
     match target {
-        WasmTarget::JavaScriptHost => emit_javascript_exports(module, &mut wat_module),
-        WasmTarget::Wasi => emit_wasi_entrypoint(module, &abi, &mut wat_module)?,
+        WasmTarget::JavaScriptHost => emit_javascript_exports(&wasm_module, &mut wat_module),
+        WasmTarget::Wasi => emit_wasi_entrypoint(&wasm_module, &abi, &mut wat_module)?,
     }
     wat_module.push_str(")\n");
     Ok(wat_module)
 }
 
+fn wasm_entry_roots(module: &HighModule, target: WasmTarget) -> HashSet<String> {
+    match target {
+        WasmTarget::JavaScriptHost => module
+            .functions
+            .iter()
+            .map(|function| function.name.clone())
+            .collect(),
+        WasmTarget::Wasi => HashSet::from([String::from("main")]),
+    }
+}
+
 pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
-    Ok(wat::parse_str(&emit_wat(module, target)?)?)
+    let bytes = wat::parse_str(&emit_wat(module, target)?)?;
+    postprocess::postprocess_wasm(&bytes)
 }
 
-fn module_uses_call(module: &HighModule, callee: &str) -> bool {
-    module
-        .functions
-        .iter()
-        .any(|function| expr_uses_call(&function.body, callee))
+pub fn postprocess_wasm(bytes: &[u8]) -> Result<Vec<u8>> {
+    postprocess::postprocess_wasm(bytes)
 }
 
-fn expr_uses_call(expr: &HighExpr, callee: &str) -> bool {
+fn expr_uses_split_whitespace_nth(expr: &HighExpr) -> bool {
     match &expr.kind {
-        HighExprKind::Call {
-            callee: actual,
-            args,
-        } => actual == callee || args.iter().any(|arg| expr_uses_call(arg, callee)),
-        HighExprKind::Binary { left, right, .. } => {
-            expr_uses_call(left, callee) || expr_uses_call(right, callee)
+        HighExprKind::Call { callee, args } if callee == "__index" => {
+            matches_split_whitespace_nth_expr(args.first()).is_some()
+                || args.iter().any(expr_uses_split_whitespace_nth)
         }
-        HighExprKind::If {
-            condition,
-            then_branch,
-            else_branch,
-        } => {
-            expr_uses_call(condition, callee)
-                || expr_uses_call(then_branch, callee)
-                || expr_uses_call(else_branch, callee)
-        }
-        HighExprKind::Match { subject, arms } => {
-            expr_uses_call(subject, callee)
-                || arms.iter().any(|arm| expr_uses_call(&arm.expr, callee))
-        }
-        HighExprKind::Construct { args, .. }
-        | HighExprKind::List(args)
-        | HighExprKind::Tuple(args) => args.iter().any(|arg| expr_uses_call(arg, callee)),
-        HighExprKind::Lambda { body, .. } => expr_uses_call(body, callee),
-        HighExprKind::Let { value, body, .. } => {
-            expr_uses_call(value, callee) || expr_uses_call(body, callee)
-        }
-        HighExprKind::Int(_)
-        | HighExprKind::Bool(_)
-        | HighExprKind::String(_)
-        | HighExprKind::Ident(_)
-        | HighExprKind::Error => false,
-    }
-}
-
-fn expr_uses_option_runtime(expr: &HighExpr) -> bool {
-    if matches!(expr.ty, Type::Option(_)) {
-        return true;
-    }
-    match &expr.kind {
         HighExprKind::Call { args, .. } | HighExprKind::Construct { args, .. } => {
-            args.iter().any(expr_uses_option_runtime)
+            args.iter().any(expr_uses_split_whitespace_nth)
         }
         HighExprKind::Binary { left, right, .. } => {
-            expr_uses_option_runtime(left) || expr_uses_option_runtime(right)
+            expr_uses_split_whitespace_nth(left) || expr_uses_split_whitespace_nth(right)
         }
         HighExprKind::If {
             condition,
             then_branch,
             else_branch,
         } => {
-            expr_uses_option_runtime(condition)
-                || expr_uses_option_runtime(then_branch)
-                || expr_uses_option_runtime(else_branch)
+            expr_uses_split_whitespace_nth(condition)
+                || expr_uses_split_whitespace_nth(then_branch)
+                || expr_uses_split_whitespace_nth(else_branch)
         }
         HighExprKind::Match { subject, arms } => {
-            expr_uses_option_runtime(subject)
-                || arms.iter().any(|arm| expr_uses_option_runtime(&arm.expr))
+            expr_uses_split_whitespace_nth(subject)
+                || arms
+                    .iter()
+                    .any(|arm| expr_uses_split_whitespace_nth(&arm.expr))
         }
         HighExprKind::List(items) | HighExprKind::Tuple(items) => {
-            items.iter().any(expr_uses_option_runtime)
+            items.iter().any(expr_uses_split_whitespace_nth)
         }
-        HighExprKind::Lambda { body, .. } => expr_uses_option_runtime(body),
+        HighExprKind::Lambda { body, .. } => expr_uses_split_whitespace_nth(body),
         HighExprKind::Let { value, body, .. } => {
-            expr_uses_option_runtime(value) || expr_uses_option_runtime(body)
+            expr_uses_split_whitespace_nth(value) || expr_uses_split_whitespace_nth(body)
         }
         HighExprKind::Int(_)
         | HighExprKind::Bool(_)
@@ -200,6 +191,17 @@ fn expr_uses_option_runtime(expr: &HighExpr) -> bool {
         | HighExprKind::Ident(_)
         | HighExprKind::Error => false,
     }
+}
+
+fn matches_split_whitespace_nth_expr(receiver: Option<&HighExpr>) -> Option<&HighExpr> {
+    let receiver = receiver?;
+    let HighExprKind::Call { callee, args } = &receiver.kind else {
+        return None;
+    };
+    if callee != "split_whitespace" || args.len() != 1 {
+        return None;
+    }
+    Some(&args[0])
 }
 
 const HEAP_TMP_PTR_LOCAL_COUNT: usize = 16;
@@ -208,7 +210,7 @@ fn heap_tmp_ptr_local(indent: usize) -> String {
     format!("__tmp_ptr{}", indent.min(HEAP_TMP_PTR_LOCAL_COUNT - 1))
 }
 
-fn emit_javascript_exports(module: &HighModule, out: &mut String) {
+fn emit_javascript_exports(module: &WasmModule, out: &mut String) {
     for function in &module.functions {
         out.push_str(&format!(
             "  (export \"{}\" (func ${}))\n",
@@ -232,13 +234,13 @@ fn emit_heap_primitives(abi: &WasmAbi, out: &mut String) {
     if abi.needs_heap() {
         emit_alloc_helper(out);
         emit_memcpy_helper(out);
-        if abi.uses_list_runtime {
+        if abi.uses_list_index_builtin {
             emit_list_get_helper(out);
         }
     }
 }
 
-fn emit_wasi_entrypoint(module: &HighModule, abi: &WasmAbi, out: &mut String) -> Result<()> {
+fn emit_wasi_entrypoint(module: &WasmModule, abi: &WasmAbi, out: &mut String) -> Result<()> {
     let main = module
         .functions
         .iter()
@@ -791,7 +793,7 @@ fn emit_stdin_read_line_helper(out: &mut String) {
     out.push_str("  )\n");
 }
 
-fn emit_split_whitespace_helper(out: &mut String) {
+fn emit_ascii_whitespace_helper(out: &mut String) {
     out.push_str("  (func $__is_ascii_whitespace (param $byte i32) (result i32)\n");
     out.push_str("    local.get $byte\n");
     out.push_str("    i32.const 32\n");
@@ -817,7 +819,9 @@ fn emit_split_whitespace_helper(out: &mut String) {
     out.push_str("    i32.eq\n");
     out.push_str("    i32.or\n");
     out.push_str("  )\n");
+}
 
+fn emit_split_whitespace_helper(out: &mut String) {
     out.push_str("  (func $split_whitespace (param $text i32) (result i32)\n");
     out.push_str("    (local $scan i32)\n");
     out.push_str("    (local $byte i32)\n");
@@ -972,6 +976,114 @@ fn emit_split_whitespace_helper(out: &mut String) {
     out.push_str("  )\n");
 }
 
+fn emit_split_whitespace_nth_helper(out: &mut String) {
+    out.push_str(
+        "  (func $__split_whitespace_nth (param $text i32) (param $target i32) (result i32)\n",
+    );
+    out.push_str("    (local $scan i32)\n");
+    out.push_str("    (local $byte i32)\n");
+    out.push_str("    (local $index i32)\n");
+    out.push_str("    (local $start i32)\n");
+    out.push_str("    (local $len i32)\n");
+    out.push_str("    (local $token_ptr i32)\n");
+    out.push_str("    local.get $target\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.lt_s\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        call $__alloc\n");
+    out.push_str("        local.tee $token_ptr\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        i32.store8\n");
+    out.push_str("        local.get $token_ptr\n");
+    out.push_str("        return\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $text\n");
+    out.push_str("    local.set $scan\n");
+    out.push_str("    (block $done\n");
+    out.push_str("      (loop $outer\n");
+    out.push_str("        (block $skip_done\n");
+    out.push_str("          (loop $skip\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.load8_u\n");
+    out.push_str("            local.tee $byte\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $done\n");
+    out.push_str("            local.get $byte\n");
+    out.push_str("            call $__is_ascii_whitespace\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $skip_done\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            local.set $scan\n");
+    out.push_str("            br $skip\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        local.set $start\n");
+    out.push_str("        (block $token_done\n");
+    out.push_str("          (loop $token\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.load8_u\n");
+    out.push_str("            local.tee $byte\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $token_done\n");
+    out.push_str("            local.get $byte\n");
+    out.push_str("            call $__is_ascii_whitespace\n");
+    out.push_str("            br_if $token_done\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            local.set $scan\n");
+    out.push_str("            br $token\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $index\n");
+    out.push_str("        local.get $target\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            local.get $start\n");
+    out.push_str("            i32.sub\n");
+    out.push_str("            local.set $len\n");
+    out.push_str("            local.get $len\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            call $__alloc\n");
+    out.push_str("            local.set $token_ptr\n");
+    out.push_str("            local.get $token_ptr\n");
+    out.push_str("            local.get $start\n");
+    out.push_str("            local.get $len\n");
+    out.push_str("            call $__memcpy\n");
+    out.push_str("            local.get $token_ptr\n");
+    out.push_str("            local.get $len\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            i32.store8\n");
+    out.push_str("            local.get $token_ptr\n");
+    out.push_str("            return\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $index\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $index\n");
+    out.push_str("        br $outer\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.tee $token_ptr\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.store8\n");
+    out.push_str("    local.get $token_ptr\n");
+    out.push_str("  )\n");
+}
+
 fn emit_strip_suffix_helper(out: &mut String) {
     out.push_str("  (func $strip_suffix (param $text i32) (param $suffix i32) (result i32)\n");
     out.push_str("    (local $text_len i32)\n");
@@ -1085,6 +1197,88 @@ fn emit_option_unwrap_or_helper(out: &mut String) {
     out.push_str("        local.get $fallback\n");
     out.push_str("      )\n");
     out.push_str("    )\n");
+    out.push_str("  )\n");
+}
+
+fn emit_parse_i64_or_zero_helper(out: &mut String) {
+    out.push_str("  (func $__parse_i64_or_zero (param $text i32) (result i32)\n");
+    out.push_str("    (local $scan i32)\n");
+    out.push_str("    (local $byte i32)\n");
+    out.push_str("    (local $value i32)\n");
+    out.push_str("    (local $sign i32)\n");
+    out.push_str("    (local $has_digits i32)\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    local.set $sign\n");
+    out.push_str("    local.get $text\n");
+    out.push_str("    local.set $scan\n");
+    out.push_str("    local.get $scan\n");
+    out.push_str("    i32.load8_u\n");
+    out.push_str("    i32.const 45\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        i32.const -1\n");
+    out.push_str("        local.set $sign\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $scan\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    (block $invalid\n");
+    out.push_str("      (loop $loop\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        local.set $byte\n");
+    out.push_str("        local.get $byte\n");
+    out.push_str("        i32.eqz\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            local.get $has_digits\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $invalid\n");
+    out.push_str("            local.get $sign\n");
+    out.push_str("            i32.const -1\n");
+    out.push_str("            i32.eq\n");
+    out.push_str("            (if (result i32)\n");
+    out.push_str("              (then\n");
+    out.push_str("                i32.const 0\n");
+    out.push_str("                local.get $value\n");
+    out.push_str("                i32.sub\n");
+    out.push_str("              )\n");
+    out.push_str("              (else\n");
+    out.push_str("                local.get $value\n");
+    out.push_str("              )\n");
+    out.push_str("            )\n");
+    out.push_str("            return\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $byte\n");
+    out.push_str("        i32.const 48\n");
+    out.push_str("        i32.lt_u\n");
+    out.push_str("        br_if $invalid\n");
+    out.push_str("        local.get $byte\n");
+    out.push_str("        i32.const 57\n");
+    out.push_str("        i32.gt_u\n");
+    out.push_str("        br_if $invalid\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        local.set $has_digits\n");
+    out.push_str("        local.get $value\n");
+    out.push_str("        i32.const 10\n");
+    out.push_str("        i32.mul\n");
+    out.push_str("        local.get $byte\n");
+    out.push_str("        i32.const 48\n");
+    out.push_str("        i32.sub\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $value\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $scan\n");
+    out.push_str("        br $loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    i32.const 0\n");
     out.push_str("  )\n");
 }
 
@@ -1285,7 +1479,22 @@ fn emit_parse_bool_helper(_abi: &WasmAbi, out: &mut String) {
 }
 
 fn emit_function(
-    function: &HighFunction,
+    function: &WasmFunction,
+    function_names: &HashSet<String>,
+    abi: &WasmAbi,
+) -> Result<String> {
+    match &function.body {
+        WasmFunctionBody::SuffixRecursion(spec) => {
+            emit_suffix_recursion_function(function, spec, abi)
+        }
+        WasmFunctionBody::ParseI64OrZero(spec) => emit_parse_or_zero_function(function, spec),
+        WasmFunctionBody::High(body) => emit_high_function(function, body, function_names, abi),
+    }
+}
+
+fn emit_high_function(
+    function: &WasmFunction,
+    body: &HighExpr,
     function_names: &HashSet<String>,
     abi: &WasmAbi,
 ) -> Result<String> {
@@ -1322,12 +1531,7 @@ fn emit_function(
         .collect::<HashMap<_, _>>();
     let mut collect_local_names = locals.clone();
     let mut let_locals = Vec::new();
-    collect_let_locals(
-        &function.body,
-        abi,
-        &mut collect_local_names,
-        &mut let_locals,
-    )?;
+    collect_let_locals(body, abi, &mut collect_local_names, &mut let_locals)?;
     let mut out = String::new();
     out.push_str(&format!("  (func ${}", function.name));
     if !params.is_empty() {
@@ -1348,7 +1552,7 @@ fn emit_function(
     }
     let mut emit_local_names = locals.clone();
     emit_expr(
-        &function.body,
+        body,
         2,
         &mut local_bindings,
         &mut emit_local_names,
@@ -1359,13 +1563,94 @@ fn emit_function(
         abi,
         &mut out,
     )?;
-    if abi.wasm_type(&function.return_type)?.is_none()
-        && abi.wasm_type(&function.body.ty)?.is_some()
-    {
+    if abi.wasm_type(&function.return_type)?.is_none() && abi.wasm_type(&body.ty)?.is_some() {
         out.push_str("    drop\n");
     }
     out.push_str("  )\n");
     Ok(out)
+}
+
+fn emit_suffix_recursion_function(
+    function: &WasmFunction,
+    spec: &lang_ir::SuffixRecursionSpec,
+    abi: &WasmAbi,
+) -> Result<String> {
+    let helper_name = format!("__suffix_rec_{}", function.name);
+    let mut out = String::new();
+    out.push_str(&format!(
+        "  (func ${} (param ${} i32) (result i32)\n",
+        function.name, spec.param_name
+    ));
+    out.push_str(&format!("    local.get ${}\n", spec.param_name));
+    out.push_str(&format!("    local.get ${}\n", spec.param_name));
+    out.push_str("    call $__strlen\n");
+    out.push_str(&format!("    call ${helper_name}\n"));
+    out.push_str("  )\n");
+    out.push_str(&format!(
+        "  (func ${helper_name} (param $text i32) (param $end i32) (result i32)\n"
+    ));
+    out.push_str("    (block $done\n");
+    out.push_str("      (loop $loop\n");
+    out.push_str("        local.get $end\n");
+    out.push_str("        i32.eqz\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            return\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    emit_suffix_iteration_cases(spec, 4, abi, &mut out)?;
+    out.push_str("        i32.const 0\n");
+    out.push_str("        return\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("  )\n");
+    Ok(out)
+}
+
+fn emit_parse_or_zero_function(
+    function: &WasmFunction,
+    spec: &lang_ir::ParseOrZeroSpec,
+) -> Result<String> {
+    let mut out = String::new();
+    out.push_str(&format!(
+        "  (func ${} (param ${} i32) (result i32)\n",
+        function.name, spec.param_name
+    ));
+    out.push_str(&format!("    local.get ${}\n", spec.param_name));
+    out.push_str("    call $__parse_i64_or_zero\n");
+    out.push_str("  )\n");
+    Ok(out)
+}
+
+fn emit_suffix_iteration_cases(
+    spec: &lang_ir::SuffixRecursionSpec,
+    indent: usize,
+    abi: &WasmAbi,
+    out: &mut String,
+) -> Result<()> {
+    let pad = "  ".repeat(indent);
+    for suffix in &spec.suffixes {
+        let suffix_offset = abi
+            .string_table
+            .offset_for(suffix)
+            .ok_or_else(|| anyhow!("missing suffix literal in string table: {suffix}"))?;
+        out.push_str(&format!("{pad}local.get $text\n"));
+        out.push_str(&format!("{pad}i32.const {suffix_offset}\n"));
+        out.push_str(&format!("{pad}local.get $end\n"));
+        out.push_str(&format!("{pad}call $ends_with_at\n"));
+        out.push_str(&format!("{pad}(if\n"));
+        out.push_str(&format!("{pad}  (then\n"));
+        out.push_str(&format!("{pad}    local.get $end\n"));
+        out.push_str(&format!("{pad}    i32.const {}\n", suffix.len()));
+        out.push_str(&format!("{pad}    i32.sub\n"));
+        out.push_str(&format!("{pad}    local.set $end\n"));
+        out.push_str(&format!("{pad}    br $loop\n"));
+        out.push_str(&format!("{pad}  )\n"));
+        out.push_str(&format!("{pad})\n"));
+    }
+    Ok(())
 }
 
 #[derive(Clone, Debug)]
@@ -1588,6 +1873,34 @@ fn emit_expr(
                 let [receiver, index] = args.as_slice() else {
                     bail!("`__index` expects exactly two arguments in wasm backend");
                 };
+                if let Some(text) = matches_split_whitespace_nth_expr(Some(receiver)) {
+                    emit_expr(
+                        text,
+                        indent,
+                        locals,
+                        declared_local_names,
+                        match_bindings,
+                        captures,
+                        env_local,
+                        function_names,
+                        abi,
+                        out,
+                    )?;
+                    emit_expr(
+                        index,
+                        indent,
+                        locals,
+                        declared_local_names,
+                        match_bindings,
+                        captures,
+                        env_local,
+                        function_names,
+                        abi,
+                        out,
+                    )?;
+                    out.push_str(&format!("{pad}call $__split_whitespace_nth\n"));
+                    return Ok(());
+                }
                 emit_expr(
                     receiver,
                     indent,
@@ -2954,15 +3267,18 @@ struct WasmAbi {
     uses_fs_read_text: bool,
     uses_stdin_read_text: bool,
     uses_stdin_read_line: bool,
+    uses_split_whitespace_nth: bool,
     uses_parse_i64: bool,
     uses_parse_bool: bool,
     uses_list_runtime: bool,
     uses_adt_runtime: bool,
     uses_option_runtime: bool,
+    uses_list_index_builtin: bool,
     uses_range_inclusive: bool,
     uses_iter_runtime: bool,
     uses_take_builtin: bool,
     uses_map_builtin: bool,
+    uses_option_map_builtin: bool,
     uses_any_builtin: bool,
     uses_filter_builtin: bool,
     uses_sum_builtin: bool,
@@ -2977,7 +3293,12 @@ struct WasmAbi {
 }
 
 impl WasmAbi {
-    fn from_module(module: &HighModule, target: WasmTarget) -> Result<Self> {
+    fn from_module(
+        module: &HighModule,
+        wasm_module: &WasmModule,
+        target: WasmTarget,
+    ) -> Result<Self> {
+        let specialized_functions = wasm_module.specialized_function_names();
         let mut named_types = HashMap::new();
         let mut variants = HashMap::new();
 
@@ -3019,19 +3340,26 @@ impl WasmAbi {
         let mut uses_stdin_read_text = false;
         let mut uses_stdin_read_line = false;
         let mut uses_split_whitespace = false;
+        let mut uses_split_whitespace_nth = false;
         let mut uses_parse_i64 = false;
         let mut uses_parse_bool = false;
         let mut uses_list_runtime = false;
         let mut uses_adt_runtime = false;
+        let mut uses_option_runtime = wasm_module.helper_usage.uses_option_runtime;
+        let mut uses_list_index_builtin = false;
         let mut uses_range_inclusive = false;
         let mut uses_iter_runtime = false;
         let mut uses_take_builtin = false;
         let mut uses_map_builtin = false;
+        let mut uses_option_map_builtin = false;
         let mut uses_any_builtin = false;
         let mut uses_filter_builtin = false;
         let mut uses_sum_builtin = false;
         let mut uses_join_builtin = false;
         for function in &module.functions {
+            if specialized_functions.contains(&function.name) {
+                continue;
+            }
             scan_expr(
                 &function.body,
                 &mut uses_console_println,
@@ -3043,14 +3371,18 @@ impl WasmAbi {
                 &mut uses_stdin_read_text,
                 &mut uses_stdin_read_line,
                 &mut uses_split_whitespace,
+                &mut uses_split_whitespace_nth,
                 &mut uses_parse_i64,
                 &mut uses_parse_bool,
                 &mut uses_list_runtime,
                 &mut uses_adt_runtime,
+                &mut uses_option_runtime,
+                &mut uses_list_index_builtin,
                 &mut uses_range_inclusive,
                 &mut uses_iter_runtime,
                 &mut uses_take_builtin,
                 &mut uses_map_builtin,
+                &mut uses_option_map_builtin,
                 &mut uses_any_builtin,
                 &mut uses_filter_builtin,
                 &mut uses_sum_builtin,
@@ -3063,11 +3395,9 @@ impl WasmAbi {
             uses_stdin_read_line = false;
             uses_adt_runtime = false;
         }
-
-        let uses_option_runtime = module
-            .functions
-            .iter()
-            .any(|function| expr_uses_option_runtime(&function.body));
+        if wasm_module.helper_usage.uses_ends_with_at {
+            uses_ends_with_at_builtin = true;
+        }
 
         let scratch_base = {
             let base = string_table.next_offset;
@@ -3087,15 +3417,18 @@ impl WasmAbi {
             uses_fs_read_text,
             uses_stdin_read_text,
             uses_stdin_read_line,
+            uses_split_whitespace_nth,
             uses_parse_i64,
             uses_parse_bool,
             uses_list_runtime,
             uses_adt_runtime,
             uses_option_runtime,
+            uses_list_index_builtin,
             uses_range_inclusive,
             uses_iter_runtime,
             uses_take_builtin,
             uses_map_builtin,
+            uses_option_map_builtin,
             uses_any_builtin,
             uses_filter_builtin,
             uses_sum_builtin,
@@ -3108,8 +3441,8 @@ impl WasmAbi {
             named_callback_thunks: Vec::new(),
             named_callback_map: HashMap::new(),
         };
-        abi.collect_closures(module)?;
-        abi.collect_named_callbacks(module)?;
+        abi.collect_closures(wasm_module)?;
+        abi.collect_named_callbacks(module, wasm_module)?;
         Ok(abi)
     }
 
@@ -3173,12 +3506,14 @@ impl WasmAbi {
             || self.uses_list_runtime
             || self.uses_adt_runtime
             || self.uses_option_runtime
+            || self.uses_split_whitespace_nth
             || self.uses_parse_i64
             || self.uses_parse_bool
             || self.uses_range_inclusive
             || self.uses_iter_runtime
             || self.uses_take_builtin
             || self.uses_map_builtin
+            || self.uses_option_map_builtin
             || self.uses_filter_builtin
             || self.uses_sum_builtin
             || self.uses_join_builtin
@@ -3373,13 +3708,16 @@ impl WasmAbi {
         }
     }
 
-    fn collect_closures(&mut self, module: &HighModule) -> Result<()> {
-        for function in &module.functions {
+    fn collect_closures(&mut self, wasm_module: &WasmModule) -> Result<()> {
+        for function in &wasm_module.functions {
+            let WasmFunctionBody::High(body) = &function.body else {
+                continue;
+            };
             let mut scope = HashMap::new();
             for param in &function.params {
                 scope.insert(param.name.clone(), param.ty.clone());
             }
-            self.collect_closures_in_expr(&function.body, Some(&function.return_type), &scope)?;
+            self.collect_closures_in_expr(body, Some(&function.return_type), &scope)?;
         }
         Ok(())
     }
@@ -3545,9 +3883,16 @@ impl WasmAbi {
         index
     }
 
-    fn collect_named_callbacks(&mut self, module: &HighModule) -> Result<()> {
-        for function in &module.functions {
-            self.collect_named_callbacks_in_expr(&function.body, module)?;
+    fn collect_named_callbacks(
+        &mut self,
+        module: &HighModule,
+        wasm_module: &WasmModule,
+    ) -> Result<()> {
+        for function in &wasm_module.functions {
+            let WasmFunctionBody::High(body) = &function.body else {
+                continue;
+            };
+            self.collect_named_callbacks_in_expr(body, module)?;
         }
         Ok(())
     }
@@ -3785,6 +4130,8 @@ fn emit_closure_support(
         emit_apply_helper(abi, signature, out)?;
         if abi.uses_map_builtin {
             emit_map_helper(abi, signature, out)?;
+        }
+        if abi.uses_option_map_builtin {
             emit_option_map_helper(abi, signature, out)?;
         }
         if abi.uses_any_builtin {
@@ -4910,14 +5257,18 @@ fn scan_expr(
     uses_stdin_read_text: &mut bool,
     uses_stdin_read_line: &mut bool,
     uses_split_whitespace: &mut bool,
+    uses_split_whitespace_nth: &mut bool,
     uses_parse_i64: &mut bool,
     uses_parse_bool: &mut bool,
     uses_list_runtime: &mut bool,
     uses_adt_runtime: &mut bool,
+    uses_option_runtime: &mut bool,
+    uses_list_index_builtin: &mut bool,
     uses_range_inclusive: &mut bool,
     uses_iter_runtime: &mut bool,
     uses_take_builtin: &mut bool,
     uses_map_builtin: &mut bool,
+    uses_option_map_builtin: &mut bool,
     uses_any_builtin: &mut bool,
     uses_filter_builtin: &mut bool,
     uses_sum_builtin: &mut bool,
@@ -4952,10 +5303,10 @@ fn scan_expr(
                 *uses_list_runtime = true;
             }
             if callee == "strip_suffix" {
-                *uses_adt_runtime = true;
+                *uses_option_runtime = true;
             }
             if callee == "unwrap_or" {
-                *uses_adt_runtime = true;
+                *uses_option_runtime = true;
             }
             if callee == "parse.i64" {
                 *uses_parse_i64 = true;
@@ -4977,10 +5328,16 @@ fn scan_expr(
                 *uses_take_builtin = true;
             }
             if callee == "map" {
-                *uses_list_runtime = true;
-                *uses_map_builtin = true;
-                if matches!(args.first().map(|arg| &arg.ty), Some(Type::Option(_))) {
-                    *uses_adt_runtime = true;
+                match args.first().map(|arg| &arg.ty) {
+                    Some(Type::List(_)) => {
+                        *uses_list_runtime = true;
+                        *uses_map_builtin = true;
+                    }
+                    Some(Type::Option(_)) => {
+                        *uses_option_runtime = true;
+                        *uses_option_map_builtin = true;
+                    }
+                    _ => {}
                 }
             }
             if callee == "any" {
@@ -4998,6 +5355,14 @@ fn scan_expr(
                 *uses_list_runtime = true;
                 *uses_join_builtin = true;
             }
+            if callee == "__index" {
+                if matches_split_whitespace_nth_expr(args.first()).is_some() {
+                    *uses_split_whitespace_nth = true;
+                } else if matches!(args.first().map(|arg| &arg.ty), Some(Type::List(_))) {
+                    *uses_list_runtime = true;
+                    *uses_list_index_builtin = true;
+                }
+            }
             for arg in args {
                 scan_expr(
                     arg,
@@ -5010,14 +5375,18 @@ fn scan_expr(
                     uses_stdin_read_text,
                     uses_stdin_read_line,
                     uses_split_whitespace,
+                    uses_split_whitespace_nth,
                     uses_parse_i64,
                     uses_parse_bool,
                     uses_list_runtime,
                     uses_adt_runtime,
+                    uses_option_runtime,
+                    uses_list_index_builtin,
                     uses_range_inclusive,
                     uses_iter_runtime,
                     uses_take_builtin,
                     uses_map_builtin,
+                    uses_option_map_builtin,
                     uses_any_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
@@ -5043,14 +5412,18 @@ fn scan_expr(
                 uses_stdin_read_text,
                 uses_stdin_read_line,
                 uses_split_whitespace,
+                uses_split_whitespace_nth,
                 uses_parse_i64,
                 uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
+                uses_option_runtime,
+                uses_list_index_builtin,
                 uses_range_inclusive,
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_option_map_builtin,
                 uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -5067,14 +5440,18 @@ fn scan_expr(
                 uses_stdin_read_text,
                 uses_stdin_read_line,
                 uses_split_whitespace,
+                uses_split_whitespace_nth,
                 uses_parse_i64,
                 uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
+                uses_option_runtime,
+                uses_list_index_builtin,
                 uses_range_inclusive,
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_option_map_builtin,
                 uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -5097,14 +5474,18 @@ fn scan_expr(
                 uses_stdin_read_text,
                 uses_stdin_read_line,
                 uses_split_whitespace,
+                uses_split_whitespace_nth,
                 uses_parse_i64,
                 uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
+                uses_option_runtime,
+                uses_list_index_builtin,
                 uses_range_inclusive,
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_option_map_builtin,
                 uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -5121,14 +5502,18 @@ fn scan_expr(
                 uses_stdin_read_text,
                 uses_stdin_read_line,
                 uses_split_whitespace,
+                uses_split_whitespace_nth,
                 uses_parse_i64,
                 uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
+                uses_option_runtime,
+                uses_list_index_builtin,
                 uses_range_inclusive,
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_option_map_builtin,
                 uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -5145,14 +5530,18 @@ fn scan_expr(
                 uses_stdin_read_text,
                 uses_stdin_read_line,
                 uses_split_whitespace,
+                uses_split_whitespace_nth,
                 uses_parse_i64,
                 uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
+                uses_option_runtime,
+                uses_list_index_builtin,
                 uses_range_inclusive,
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_option_map_builtin,
                 uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -5161,6 +5550,9 @@ fn scan_expr(
         }
         HighExprKind::Match { subject, arms } => {
             *uses_adt_runtime = true;
+            if matches!(subject.ty, Type::Option(_)) {
+                *uses_option_runtime = true;
+            }
             scan_expr(
                 subject,
                 uses_console_println,
@@ -5172,14 +5564,18 @@ fn scan_expr(
                 uses_stdin_read_text,
                 uses_stdin_read_line,
                 uses_split_whitespace,
+                uses_split_whitespace_nth,
                 uses_parse_i64,
                 uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
+                uses_option_runtime,
+                uses_list_index_builtin,
                 uses_range_inclusive,
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_option_map_builtin,
                 uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -5197,14 +5593,18 @@ fn scan_expr(
                     uses_stdin_read_text,
                     uses_stdin_read_line,
                     uses_split_whitespace,
+                    uses_split_whitespace_nth,
                     uses_parse_i64,
                     uses_parse_bool,
                     uses_list_runtime,
                     uses_adt_runtime,
+                    uses_option_runtime,
+                    uses_list_index_builtin,
                     uses_range_inclusive,
                     uses_iter_runtime,
                     uses_take_builtin,
                     uses_map_builtin,
+                    uses_option_map_builtin,
                     uses_any_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
@@ -5214,6 +5614,9 @@ fn scan_expr(
         }
         HighExprKind::Construct { args, .. } => {
             *uses_adt_runtime = true;
+            if matches!(expr.ty, Type::Option(_)) {
+                *uses_option_runtime = true;
+            }
             for arg in args {
                 scan_expr(
                     arg,
@@ -5226,14 +5629,18 @@ fn scan_expr(
                     uses_stdin_read_text,
                     uses_stdin_read_line,
                     uses_split_whitespace,
+                    uses_split_whitespace_nth,
                     uses_parse_i64,
                     uses_parse_bool,
                     uses_list_runtime,
                     uses_adt_runtime,
+                    uses_option_runtime,
+                    uses_list_index_builtin,
                     uses_range_inclusive,
                     uses_iter_runtime,
                     uses_take_builtin,
                     uses_map_builtin,
+                    uses_option_map_builtin,
                     uses_any_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
@@ -5257,14 +5664,18 @@ fn scan_expr(
                     uses_stdin_read_text,
                     uses_stdin_read_line,
                     uses_split_whitespace,
+                    uses_split_whitespace_nth,
                     uses_parse_i64,
                     uses_parse_bool,
                     uses_list_runtime,
                     uses_adt_runtime,
+                    uses_option_runtime,
+                    uses_list_index_builtin,
                     uses_range_inclusive,
                     uses_iter_runtime,
                     uses_take_builtin,
                     uses_map_builtin,
+                    uses_option_map_builtin,
                     uses_any_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
@@ -5284,14 +5695,18 @@ fn scan_expr(
                 uses_stdin_read_text,
                 uses_stdin_read_line,
                 uses_split_whitespace,
+                uses_split_whitespace_nth,
                 uses_parse_i64,
                 uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
+                uses_option_runtime,
+                uses_list_index_builtin,
                 uses_range_inclusive,
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_option_map_builtin,
                 uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -5310,14 +5725,18 @@ fn scan_expr(
                 uses_stdin_read_text,
                 uses_stdin_read_line,
                 uses_split_whitespace,
+                uses_split_whitespace_nth,
                 uses_parse_i64,
                 uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
+                uses_option_runtime,
+                uses_list_index_builtin,
                 uses_range_inclusive,
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_option_map_builtin,
                 uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -5334,14 +5753,18 @@ fn scan_expr(
                 uses_stdin_read_text,
                 uses_stdin_read_line,
                 uses_split_whitespace,
+                uses_split_whitespace_nth,
                 uses_parse_i64,
                 uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
+                uses_option_runtime,
+                uses_list_index_builtin,
                 uses_range_inclusive,
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_option_map_builtin,
                 uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
@@ -5355,6 +5778,9 @@ fn scan_expr(
         HighExprKind::Ident(name) => {
             if name == "string" {
                 *uses_string_builtin = true;
+            }
+            if name == "None" {
+                *uses_option_runtime = true;
             }
         }
     }
