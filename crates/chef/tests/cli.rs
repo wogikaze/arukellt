@@ -190,6 +190,66 @@ fn broken(flag: Bool, value: Int) -> Int:
 }
 
 #[test]
+fn build_command_writes_wasm_output() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("hello.lang");
+    let output_path = dir.path().join("out.wasm");
+    fs::write(
+        &file,
+        "\
+import console
+
+fn main():
+  \"Hello\" |> console.println
+",
+    )
+    .expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_chef"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-wasi")
+        .arg("--output")
+        .arg(&output_path)
+        .output()
+        .expect("run build");
+
+    assert!(output.status.success(), "expected successful exit status");
+    let bytes = fs::read(&output_path).expect("read wasm");
+    assert!(bytes.starts_with(b"\0asm"), "expected wasm magic");
+}
+
+#[test]
+fn build_command_prints_wat_to_stdout() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("hello.lang");
+    fs::write(
+        &file,
+        "\
+fn answer() -> Int:
+  42
+",
+    )
+    .expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_chef"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-js")
+        .arg("--emit")
+        .arg("wat")
+        .output()
+        .expect("run build --emit wat");
+
+    assert!(output.status.success(), "expected successful exit status");
+    let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
+    assert!(stdout.contains("(module"));
+    assert!(stdout.contains("(func $answer"));
+}
+
+#[test]
 fn run_command_reads_stdin_for_practicea_style_program() {
     let dir = tempdir().expect("tempdir");
     let file = dir.path().join("practicea.lang");

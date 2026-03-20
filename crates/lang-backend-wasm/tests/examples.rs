@@ -71,10 +71,6 @@ fn wasi_console_println_examples_build_and_have_correct_magic() {
     for name in examples {
         let source = fs::read_to_string(example_dir.join(name)).expect("example source");
 
-        // wasm-js still doesn't support console.println
-        build_module_from_source(&source, WasmTarget::JavaScriptHost)
-            .expect_err(&format!("wasm-js build should still fail for {name}"));
-
         // wasm-wasi should now succeed
         let bytes = build_module_from_source(&source, WasmTarget::Wasi)
             .unwrap_or_else(|e| panic!("wasm-wasi build should succeed for {name}: {e}"));
@@ -88,4 +84,19 @@ fn wasi_console_println_examples_build_and_have_correct_magic() {
             "expected _start export in wasm bytes for {name}"
         );
     }
+}
+
+#[test]
+fn javascript_target_builds_hello_world_console_example() {
+    let source = fs::read_to_string(repo_root().join("example/hello_world.ar")).expect("source");
+    let bytes = build_module_from_source(&source, WasmTarget::JavaScriptHost)
+        .expect("hello_world should now build on wasm-js");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(
+        bytes
+            .windows("console.println".len())
+            .any(|w| w == b"console.println")
+    );
+    assert!(bytes.windows("memory".len()).any(|w| w == b"memory"));
 }

@@ -2,6 +2,28 @@
 
 The current v0.0.1 standard surface is intentionally narrow. It is centered on builtins and host integrations that are already exercised by the interpreter.
 
+## Target Support Matrix
+
+Use this table when choosing `arktc build --target ...` or `chef build --target ...`.
+[`example/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/matrix.json) is the example-level contract; this section is the API-level contract.
+
+| surface | interpreter | `wasm-js` | `wasm-wasi` | notes |
+| --- | --- | --- | --- | --- |
+| `console.println(String)` | yes | yes | yes | `wasm-js` uses a minimal host `console.println(ptr, len)` bridge; `wasm-wasi` lowers to WASI `fd_write` |
+| `fs.read_text(path)` | yes | no | yes | file I/O stays capability-scoped |
+| `stdin.read_text()` | yes | no | yes | full stdin ingestion on `wasm-wasi` |
+| `stdin.read_line()` | yes | no | no | interpreter-only for now |
+| `string(i64)` | yes | yes | yes | canonical integer-to-string conversion |
+| `text.split_whitespace()` | yes | yes | yes | whitespace tokenization lowers on both WASM targets |
+| `parse.i64(text)` | yes | yes | yes | pure parse helper available across interpreter and both WASM targets |
+| `parse.bool(text)` | yes | yes | yes | same boundary as `parse.i64` |
+| `[1, 2, 3]` and `1..=3` as `List<i64>` | yes | yes | yes | current heap-backed WASM list runtime is `List<i64>`-only |
+| `list.map(...)`, `list.filter(...)`, `list.sum()` on `List<i64>` | yes | yes | yes | current lowering stays scoped to `List<i64>` |
+| `list.join(", ")` | yes | yes | yes | current runtime coverage is string-joining output paths |
+| `iter.unfold(...).take(n)` | yes | yes | yes | current lowering materializes `Seq<i64>` through `take` |
+
+If a build fails with an unsupported-call error such as `calls to \`parse.i64\` are not yet supported in wasm backend`, that is expected whenever this table says `no` for the selected target.
+
 ## Collection Pipelines and Closures
 
 <!-- snippet: std-closure-map -->
@@ -92,7 +114,7 @@ fn main():
   "hello wasm" |> console.println
 ```
 
-Anything outside that subset should fail hard during `arktc build`. Broader host calls and the still-unimplemented iterator/collection surface remain unsupported, and closures currently lower only on `wasm-wasi`.
+Anything outside that subset should fail hard during `arktc build`. Broader host calls and any API marked `no` in the target support matrix above remain unsupported, and closures currently lower only on `wasm-wasi`.
 
 <!-- snippet: std-wasm-wasi-iter -->
 ```arukel

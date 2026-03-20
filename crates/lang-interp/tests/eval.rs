@@ -219,6 +219,18 @@ fn parse_flag(text: String) -> Bool:
 }
 
 #[test]
+fn invalid_parse_i64_matches_err_variant() {
+    let source = "\
+fn parse_flag(text: String) -> Int:
+  match parse.i64(text):
+    Ok(_) -> 0
+    Err(_) -> 2
+";
+    let result = compile_and_run(source, "parse_flag", vec![Value::String("abc".to_owned())]);
+    assert_eq!(result, Value::Int(2));
+}
+
+#[test]
 fn evaluates_inclusive_range_to_list() {
     let source = "\
 fn nums() -> Int:

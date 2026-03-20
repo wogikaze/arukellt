@@ -85,19 +85,19 @@ The current bundled-example matrix is:
 
 | example | `chef run` | `chef test` | `arktc check` | `arktc build --target wasm-js` | `arktc build --target wasm-wasi` |
 | --- | --- | --- | --- | --- | --- |
-| `closure.ar` | pass | pass | pass | fail | pass |
-| `factorial.ar` | pass | pass | pass | fail | pass |
-| `fibonacci.ar` | pass | pass | pass | fail | pass |
+| `closure.ar` | pass | pass | pass | pass | pass |
+| `factorial.ar` | pass | pass | pass | pass | pass |
+| `fibonacci.ar` | pass | pass | pass | pass | pass |
 | `file_read.ar` | pass | pass | pass | fail | pass |
-| `fizz_buzz.ar` | pass | pass | pass | fail | pass |
-| `hello_world.ar` | pass | pass | pass | fail | pass |
-| `infinite_iter.ar` | pass | pass | pass | fail | fail |
-| `map_filter_sum.ar` | pass | pass | pass | fail | pass |
-| `powers.ar` | pass | pass | pass | fail | pass |
-| `result_error_handling.ar` | pass | pass | pass | fail | pass |
+| `fizz_buzz.ar` | pass | pass | pass | pass | pass |
+| `hello_world.ar` | pass | pass | pass | pass | pass |
+| `infinite_iter.ar` | pass | pass | pass | pass | pass |
+| `map_filter_sum.ar` | pass | pass | pass | pass | pass |
+| `powers.ar` | pass | pass | pass | pass | pass |
+| `result_error_handling.ar` | pass | pass | pass | pass | pass |
 | `wasm_scalar.ar` | pass | pass | pass | pass | pass |
 
-`wasm_scalar.ar`, `closure.ar`, `hello_world.ar`, `factorial.ar`, `fibonacci.ar`, `map_filter_sum.ar`, `powers.ar`, `fizz_buzz.ar`, `file_read.ar`, and `result_error_handling.ar` currently fit the bundled WASM subset end to end on `wasm-wasi`. Among the bundled examples, only `infinite_iter.ar` still fails on `wasm-wasi`; `wasm-js` remains a much narrower literal-first subset.
+`wasm-wasi` now builds every bundled example in the repository. `wasm-js` also builds every bundled example except `file_read.ar`, so the remaining cross-target gap in the example set is host file I/O rather than lists, iterators, or string output.
 
 For release-facing reference material, see the executable docs in [`docs/language-tour.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/language-tour.md) and [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md). Their snippets are backed by checked-in fixtures and exercised by the test suite.
 
@@ -171,17 +171,20 @@ cargo run -p arktc -- build path/to/file.ar --target wasm-js --output out.wasm
 cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --output out.wasm
 cargo run -p arktc -- build path/to/file.ar --target wasm-js --emit wat
 cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --emit wat-min
+cargo run -p chef -- build path/to/file.ar --target wasm-wasi --output out.wasm
 ```
 
-The current WASM backend supports a narrow scalar-plus-list-plus-string subset on `wasm-wasi`, plus a smaller literal-only subset on `wasm-js`.
+The current WASM backend supports a narrow scalar-plus-list-plus-string subset on `wasm-wasi`, and a smaller but now collection-capable `List<i64>` subset on `wasm-js`.
+`chef build` now exposes the same target and emit matrix as `arktc build`, which is useful when you want run/test/build workflows under one CLI.
 `--target` selects the ABI (`wasm-js` or `wasm-wasi`) while `--emit` selects the output format (`wasm`, `wat`, or `wat-min`).
+For API-by-API target coverage, see the target support matrix in [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md). The bundled example matrix above is example-level; the std doc is the source of truth for questions such as whether `parse.i64`, `split_whitespace`, or `stdin.read_line` lower on a given WASM target.
 `--output` is currently optional; if you omit it, `arktc build` prints WAT for `--emit wat` / `--emit wat-min`, and otherwise discards the generated WASM bytes after successful codegen.
 `--target wat` is still accepted as a deprecated alias for `--target wasm-js --emit wat`.
 `wasm-js` emits an embeddable module that exports compiled functions by their Arukel names.
 `wasm-wasi` emits a command-style module that exports only `_start`; it requires a zero-argument `main` function and drops any scalar return value at the ABI boundary.
 `String` currently lowers only as a raw `i32` pointer into exported read-only `memory` containing NUL-terminated UTF-8 literals. Literal expressions and direct returns through user-defined functions are supported in that ABI slice.
 Fieldless user-defined ADTs currently lower as raw numeric tags, and `match` lowers only when the subject is one of those ADTs and each arm is either a bare variant name or a final wildcard.
-Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs such as string operations, payload-bearing ADTs, pattern bindings, iterators, or unsupported host calls on the selected target.
+Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs such as string operations, payload-bearing ADTs, pattern bindings, or unsupported host calls on the selected target, and the error now points back to the API-level support matrix in [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md).
 
 ### Benchmark
 
@@ -240,7 +243,7 @@ The executable prototype is still intentionally narrower than the full language 
 - The bundled examples are executable through the interpreter path, but most of them are intentionally outside the current WASM subset
 - The supported standard library remains small and purpose-built around the bundled examples
 - The WASM backend hard-fails on unsupported surface instead of emitting placeholder modules
-- The WASM backend supports literal strings plus heap-backed strings from `string()`/`join()` on `wasm-wasi`; broader string operations and general string ABI tooling are still unsupported
+- The WASM backend supports literal strings plus heap-backed strings from `string()`/`join()` on both WASM targets; broader string operations and general string ABI tooling are still unsupported
 - The WASM backend supports payload-bearing `Result` values, heap-backed user-defined ADTs, pattern bindings, unary closures, `List<i64>` collection helpers, minimal `Seq<i64>` materialization via `iter.unfold(...).take(n)`, `console.println`, and `fs.read_text` on `wasm-wasi`; broader iterator/host-call codegen is still unsupported
 - Host integrations are currently limited to the example-oriented `console.println` and `fs.read_text` shims
 - `clock`, `random`, `process`, package management, builders, and a richer standard library are not implemented yet

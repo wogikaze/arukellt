@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::Write;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -100,6 +101,116 @@ fn build_and_run_wasi_source(source: &str) -> String {
         .arg(&output_file)
         .output()
         .expect("run wasmer");
+    assert!(
+        run.status.success(),
+        "expected wasmer success\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&run.stdout),
+        String::from_utf8_lossy(&run.stderr)
+    );
+
+    String::from_utf8(run.stdout).expect("utf8 stdout")
+}
+
+fn build_and_run_js_source(source: &str) -> String {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("input.ar");
+    let output_file = dir.path().join("out.wasm");
+    fs::write(&file, source).expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-js")
+        .arg("--output")
+        .arg(&output_file)
+        .output()
+        .expect("run build");
+
+    assert!(
+        output.status.success(),
+        "expected successful wasm-js build\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let script = format!(
+        r#"
+import {{ readFileSync }} from 'node:fs';
+
+const bytes = readFileSync({path:?});
+let instance;
+const lines = [];
+const imports = {{
+  arukellt_host: {{
+    "console.println": (ptr, len) => {{
+      const view = new Uint8Array(instance.exports.memory.buffer, ptr, len);
+      lines.push(new TextDecoder().decode(view));
+    }},
+  }},
+}};
+({{ instance }} = await WebAssembly.instantiate(bytes, imports));
+instance.exports.main();
+process.stdout.write(lines.join("\n"));
+"#,
+        path = output_file.display().to_string(),
+    );
+
+    let run = Command::new("node")
+        .arg("--input-type=module")
+        .arg("-e")
+        .arg(script)
+        .output()
+        .expect("run node");
+    assert!(
+        run.status.success(),
+        "expected node success\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&run.stdout),
+        String::from_utf8_lossy(&run.stderr)
+    );
+
+    String::from_utf8(run.stdout).expect("utf8 stdout")
+}
+
+fn build_and_run_wasi_source_with_stdin(source: &str, stdin: &str) -> String {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("input.ar");
+    let output_file = dir.path().join("out.wasm");
+    fs::write(&file, source).expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-wasi")
+        .arg("--output")
+        .arg(&output_file)
+        .output()
+        .expect("run build");
+
+    assert!(
+        output.status.success(),
+        "expected successful wasm-wasi build\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let mut child = Command::new("wasmer")
+        .arg(&output_file)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .expect("spawn wasmer");
+
+    child
+        .stdin
+        .take()
+        .expect("child stdin")
+        .write_all(stdin.as_bytes())
+        .expect("write stdin");
+
+    let run = child.wait_with_output().expect("wait for wasmer");
     assert!(
         run.status.success(),
         "expected wasmer success\nstdout:\n{}\nstderr:\n{}",
@@ -498,32 +609,89 @@ fn main():
 }
 
 #[test]
-fn build_command_rejects_string_builtin_calls() {
-    let dir = tempdir().expect("tempdir");
-    let file = dir.path().join("unsupported-string.lang");
-    fs::write(
-        &file,
+fn build_command_reads_stdin_text_and_splits_whitespace_on_wasi() {
+    let stdout = build_and_run_wasi_source_with_stdin(
         "\
-fn main() -> String:
-  string(42)
+import console
+import stdin
+
+fn main():
+  stdin.read_text()
+    .split_whitespace()
+    .join(\",\")
+    |> console.println
 ",
-    )
-    .expect("write source");
-
-    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
-        .arg("build")
-        .arg(&file)
-        .arg("--target")
-        .arg("wasm-js")
-        .output()
-        .expect("run build");
-
-    assert!(!output.status.success(), "expected failing exit status");
-    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
-    assert!(
-        stderr.contains("calls to `string`") && stderr.contains("not yet supported"),
-        "unexpected stderr: {stderr}"
+        "alpha beta\ngamma\n",
     );
+
+    assert_eq!(stdout, "alpha,beta,gamma\n");
+}
+
+#[test]
+fn build_command_runs_joined_string_output_on_wasm_js() {
+    let stdout = build_and_run_js_source(
+        "\
+import console
+
+fn main():
+  \"red blue green\".split_whitespace().join(\"-\") |> console.println
+",
+    );
+
+    assert_eq!(stdout, "red-blue-green");
+}
+
+#[test]
+fn build_command_runs_joined_string_output_on_wasm_wasi() {
+    let stdout = build_and_run_wasi_source_with_stdin(
+        "\
+import console
+
+fn main():
+  \"red blue green\".split_whitespace().join(\"-\") |> console.println
+",
+        "",
+    );
+
+    assert_eq!(stdout, "red-blue-green\n");
+}
+
+#[test]
+fn build_command_runs_string_output_through_console_on_wasm_js() {
+    let stdout = build_and_run_js_source(
+        "\
+import console
+
+fn main():
+  42 |> string |> console.println
+",
+    );
+
+    assert_eq!(stdout, "42");
+}
+
+#[test]
+fn build_command_runs_hello_world_example_on_wasm_js() {
+    let source = fs::read_to_string(repo_root().join("example/hello_world.ar")).expect("source");
+    let stdout = build_and_run_js_source(&source);
+
+    assert_eq!(stdout, "Hello, world!");
+}
+
+#[test]
+fn build_command_runs_parse_i64_err_branch_on_wasm_js() {
+    let stdout = build_and_run_js_source(
+        "\
+import console
+
+fn main():
+  match parse.i64(\"oops\"):
+    Ok(value) -> value |> string |> console.println
+    Err(_) -> 0 |> string |> console.println
+",
+    );
+
+    assert_eq!(stdout, "0");
 }
 
 #[test]

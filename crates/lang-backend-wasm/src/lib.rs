@@ -24,6 +24,9 @@ pub fn build_module_from_source(source: &str, target: WasmTarget) -> Result<Vec<
 
 pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     let abi = WasmAbi::from_module(module, target)?;
+    let uses_split_whitespace = module_uses_call(module, "split_whitespace");
+    let uses_parse_i64 = module_uses_call(module, "parse.i64");
+    let uses_parse_bool = module_uses_call(module, "parse.bool");
     let mut wat_module = String::from("(module\n");
     let function_names = module
         .functions
@@ -36,14 +39,22 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
              (func $fd_write (param i32 i32 i32 i32) (result i32)))\n",
         );
     }
+    if target == WasmTarget::JavaScriptHost && abi.uses_console_println {
+        wat_module.push_str(
+            "  (import \"arukellt_host\" \"console.println\" \
+             (func $__host_console_println (param i32 i32)))\n",
+        );
+    }
+    if target == WasmTarget::Wasi && (abi.uses_fs_read_text || abi.uses_stdin_read_text) {
+        wat_module.push_str(
+            "  (import \"wasi_snapshot_preview1\" \"fd_read\" \
+             (func $fd_read (param i32 i32 i32 i32) (result i32)))\n",
+        );
+    }
     if target == WasmTarget::Wasi && abi.uses_fs_read_text {
         wat_module.push_str(
             "  (import \"wasi_snapshot_preview1\" \"path_open\" \
              (func $path_open (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32)))\n",
-        );
-        wat_module.push_str(
-            "  (import \"wasi_snapshot_preview1\" \"fd_read\" \
-             (func $fd_read (param i32 i32 i32 i32) (result i32)))\n",
         );
         wat_module.push_str(
             "  (import \"wasi_snapshot_preview1\" \"fd_close\" \
@@ -52,19 +63,31 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     }
     emit_all_memory(&abi, &mut wat_module);
     emit_heap_primitives(&abi, &mut wat_module);
+    if abi.uses_string_builtin {
+        emit_string_helper(&abi, &mut wat_module);
+    }
+    if uses_split_whitespace {
+        emit_split_whitespace_helper(&mut wat_module);
+    }
+    if uses_parse_i64 {
+        emit_parse_i64_helper(&abi, &mut wat_module);
+    }
+    if uses_parse_bool {
+        emit_parse_bool_helper(&abi, &mut wat_module);
+    }
     if target == WasmTarget::Wasi {
-        if abi.uses_string_builtin {
-            emit_string_helper(&abi, &mut wat_module);
-        }
         if abi.uses_fs_read_text {
             emit_fs_read_text_helper(&abi, &mut wat_module)?;
+        }
+        if abi.uses_stdin_read_text {
+            emit_stdin_read_text_helper(&abi, &mut wat_module);
         }
     }
     emit_closure_support(&abi, &function_names, &mut wat_module)?;
     for function in &module.functions {
         wat_module.push_str(&emit_function(function, &function_names, &abi)?);
     }
-    if target == WasmTarget::Wasi && abi.uses_console_println {
+    if abi.uses_console_println {
         emit_console_println_helper(&abi, &mut wat_module);
     }
     match target {
@@ -77,6 +100,50 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
 
 pub fn emit_wasm(module: &HighModule, target: WasmTarget) -> Result<Vec<u8>> {
     Ok(wat::parse_str(&emit_wat(module, target)?)?)
+}
+
+fn module_uses_call(module: &HighModule, callee: &str) -> bool {
+    module
+        .functions
+        .iter()
+        .any(|function| expr_uses_call(&function.body, callee))
+}
+
+fn expr_uses_call(expr: &HighExpr, callee: &str) -> bool {
+    match &expr.kind {
+        HighExprKind::Call {
+            callee: actual,
+            args,
+        } => actual == callee || args.iter().any(|arg| expr_uses_call(arg, callee)),
+        HighExprKind::Binary { left, right, .. } => {
+            expr_uses_call(left, callee) || expr_uses_call(right, callee)
+        }
+        HighExprKind::If {
+            condition,
+            then_branch,
+            else_branch,
+        } => {
+            expr_uses_call(condition, callee)
+                || expr_uses_call(then_branch, callee)
+                || expr_uses_call(else_branch, callee)
+        }
+        HighExprKind::Match { subject, arms } => {
+            expr_uses_call(subject, callee)
+                || arms.iter().any(|arm| expr_uses_call(&arm.expr, callee))
+        }
+        HighExprKind::Construct { args, .. }
+        | HighExprKind::List(args)
+        | HighExprKind::Tuple(args) => args.iter().any(|arg| expr_uses_call(arg, callee)),
+        HighExprKind::Lambda { body, .. } => expr_uses_call(body, callee),
+        HighExprKind::Let { value, body, .. } => {
+            expr_uses_call(value, callee) || expr_uses_call(body, callee)
+        }
+        HighExprKind::Int(_)
+        | HighExprKind::Bool(_)
+        | HighExprKind::String(_)
+        | HighExprKind::Ident(_)
+        | HighExprKind::Error => false,
+    }
 }
 
 const HEAP_TMP_PTR_LOCAL_COUNT: usize = 16;
@@ -95,12 +162,15 @@ fn emit_javascript_exports(module: &HighModule, out: &mut String) {
 }
 
 fn emit_heap_primitives(abi: &WasmAbi, out: &mut String) {
-    if !abi.needs_heap() {
+    if !abi.needs_heap() && !(abi.target == WasmTarget::JavaScriptHost && abi.uses_console_println)
+    {
         return;
     }
-    emit_alloc_helper(out);
     emit_strlen_helper(out);
-    emit_memcpy_helper(out);
+    if abi.needs_heap() {
+        emit_alloc_helper(out);
+        emit_memcpy_helper(out);
+    }
 }
 
 fn emit_wasi_entrypoint(module: &HighModule, abi: &WasmAbi, out: &mut String) -> Result<()> {
@@ -123,9 +193,18 @@ fn emit_wasi_entrypoint(module: &HighModule, abi: &WasmAbi, out: &mut String) ->
     Ok(())
 }
 
-/// Emit the `$console.println` WASI helper: computes strlen, writes the string
-/// to stdout via fd_write, then writes a trailing newline.
+/// Emit the `$console.println` helper for the selected target ABI.
 fn emit_console_println_helper(abi: &WasmAbi, out: &mut String) {
+    if abi.target == WasmTarget::JavaScriptHost {
+        out.push_str("  (func $console.println (param $ptr i32)\n");
+        out.push_str("    local.get $ptr\n");
+        out.push_str("    local.get $ptr\n");
+        out.push_str("    call $__strlen\n");
+        out.push_str("    call $__host_console_println\n");
+        out.push_str("  )\n");
+        return;
+    }
+
     let iovec_ptr = abi.iovec_base();
     let iovec_len = abi.iovec_base() + 4;
     let nwritten = abi.nwritten_base();
@@ -453,6 +532,464 @@ fn emit_fs_read_text_helper(abi: &WasmAbi, out: &mut String) -> Result<()> {
     Ok(())
 }
 
+fn emit_stdin_read_text_helper(abi: &WasmAbi, out: &mut String) {
+    let iovec = abi.fs_iovec_base();
+    let iovec_len = abi.fs_iovec_base() + 4;
+    let nread = abi.fs_nread_base();
+    let buffer = abi.fs_read_buffer_base();
+    let buffer_len = abi.fs_read_buffer_len() - 1;
+
+    out.push_str("  (func $stdin.read_text (result i32)\n");
+    out.push_str("    (local $result_ptr i32)\n");
+    out.push_str("    (local $len i32)\n");
+    out.push_str("    (local $chunk_len i32)\n");
+    out.push_str("    (local $new_ptr i32)\n");
+    out.push_str("    (local $new_len i32)\n");
+    out.push_str("    (local $errno i32)\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $result_ptr\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.store8\n");
+    out.push_str("    (block $done\n");
+    out.push_str("      (loop $loop\n");
+    out.push_str(&format!("        i32.const {iovec}\n"));
+    out.push_str(&format!("        i32.const {buffer}\n"));
+    out.push_str("        i32.store\n");
+    out.push_str(&format!("        i32.const {iovec_len}\n"));
+    out.push_str(&format!("        i32.const {buffer_len}\n"));
+    out.push_str("        i32.store\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str(&format!("        i32.const {iovec}\n"));
+    out.push_str("        i32.const 1\n");
+    out.push_str(&format!("        i32.const {nread}\n"));
+    out.push_str("        call $fd_read\n");
+    out.push_str("        local.set $errno\n");
+    out.push_str("        local.get $errno\n");
+    out.push_str("        i32.eqz\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then)\n");
+    out.push_str("          (else unreachable)\n");
+    out.push_str("        )\n");
+    out.push_str(&format!("        i32.const {nread}\n"));
+    out.push_str("        i32.load\n");
+    out.push_str("        local.set $chunk_len\n");
+    out.push_str("        local.get $chunk_len\n");
+    out.push_str("        i32.eqz\n");
+    out.push_str("        br_if $done\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        local.get $chunk_len\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $new_len\n");
+    out.push_str("        local.get $new_len\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        call $__alloc\n");
+    out.push_str("        local.set $new_ptr\n");
+    out.push_str("        local.get $new_ptr\n");
+    out.push_str("        local.get $result_ptr\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        call $__memcpy\n");
+    out.push_str("        local.get $new_ptr\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        i32.add\n");
+    out.push_str(&format!("        i32.const {buffer}\n"));
+    out.push_str("        local.get $chunk_len\n");
+    out.push_str("        call $__memcpy\n");
+    out.push_str("        local.get $new_ptr\n");
+    out.push_str("        local.get $new_len\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        i32.store8\n");
+    out.push_str("        local.get $new_ptr\n");
+    out.push_str("        local.set $result_ptr\n");
+    out.push_str("        local.get $new_len\n");
+    out.push_str("        local.set $len\n");
+    out.push_str("        br $loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("  )\n");
+}
+
+fn emit_split_whitespace_helper(out: &mut String) {
+    out.push_str("  (func $__is_ascii_whitespace (param $byte i32) (result i32)\n");
+    out.push_str("    local.get $byte\n");
+    out.push_str("    i32.const 32\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    local.get $byte\n");
+    out.push_str("    i32.const 9\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    i32.or\n");
+    out.push_str("    local.get $byte\n");
+    out.push_str("    i32.const 10\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    i32.or\n");
+    out.push_str("    local.get $byte\n");
+    out.push_str("    i32.const 11\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    i32.or\n");
+    out.push_str("    local.get $byte\n");
+    out.push_str("    i32.const 12\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    i32.or\n");
+    out.push_str("    local.get $byte\n");
+    out.push_str("    i32.const 13\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    i32.or\n");
+    out.push_str("  )\n");
+
+    out.push_str("  (func $split_whitespace (param $text i32) (result i32)\n");
+    out.push_str("    (local $scan i32)\n");
+    out.push_str("    (local $byte i32)\n");
+    out.push_str("    (local $count i32)\n");
+    out.push_str("    (local $items_ptr i32)\n");
+    out.push_str("    (local $list_ptr i32)\n");
+    out.push_str("    (local $index i32)\n");
+    out.push_str("    (local $start i32)\n");
+    out.push_str("    (local $len i32)\n");
+    out.push_str("    (local $token_ptr i32)\n");
+    out.push_str("    local.get $text\n");
+    out.push_str("    local.set $scan\n");
+    out.push_str("    (block $count_done\n");
+    out.push_str("      (loop $count_loop\n");
+    out.push_str("        (block $skip_done\n");
+    out.push_str("          (loop $skip_loop\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.load8_u\n");
+    out.push_str("            local.tee $byte\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $count_done\n");
+    out.push_str("            local.get $byte\n");
+    out.push_str("            call $__is_ascii_whitespace\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $skip_done\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            local.set $scan\n");
+    out.push_str("            br $skip_loop\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $count\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $count\n");
+    out.push_str("        (block $token_done\n");
+    out.push_str("          (loop $token_loop\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.load8_u\n");
+    out.push_str("            local.tee $byte\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $count_done\n");
+    out.push_str("            local.get $byte\n");
+    out.push_str("            call $__is_ascii_whitespace\n");
+    out.push_str("            br_if $token_done\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            local.set $scan\n");
+    out.push_str("            br $token_loop\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        br $count_loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $count\n");
+    out.push_str("    i32.eqz\n");
+    out.push_str("    (if (result i32)\n");
+    out.push_str("      (then i32.const 4)\n");
+    out.push_str("      (else\n");
+    out.push_str("        local.get $count\n");
+    out.push_str("        i32.const 4\n");
+    out.push_str("        i32.mul\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $items_ptr\n");
+    out.push_str("    local.get $text\n");
+    out.push_str("    local.set $scan\n");
+    out.push_str("    (block $emit_done\n");
+    out.push_str("      (loop $emit_loop\n");
+    out.push_str("        (block $emit_skip_done\n");
+    out.push_str("          (loop $emit_skip_loop\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.load8_u\n");
+    out.push_str("            local.tee $byte\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $emit_done\n");
+    out.push_str("            local.get $byte\n");
+    out.push_str("            call $__is_ascii_whitespace\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $emit_skip_done\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            local.set $scan\n");
+    out.push_str("            br $emit_skip_loop\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        local.set $start\n");
+    out.push_str("        (block $emit_token_done\n");
+    out.push_str("          (loop $emit_token_loop\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.load8_u\n");
+    out.push_str("            local.tee $byte\n");
+    out.push_str("            i32.eqz\n");
+    out.push_str("            br_if $emit_token_done\n");
+    out.push_str("            local.get $byte\n");
+    out.push_str("            call $__is_ascii_whitespace\n");
+    out.push_str("            br_if $emit_token_done\n");
+    out.push_str("            local.get $scan\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            local.set $scan\n");
+    out.push_str("            br $emit_token_loop\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        local.get $start\n");
+    out.push_str("        i32.sub\n");
+    out.push_str("        local.set $len\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        call $__alloc\n");
+    out.push_str("        local.set $token_ptr\n");
+    out.push_str("        local.get $token_ptr\n");
+    out.push_str("        local.get $start\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        call $__memcpy\n");
+    out.push_str("        local.get $token_ptr\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        i32.store8\n");
+    out.push_str("        local.get $items_ptr\n");
+    out.push_str("        local.get $index\n");
+    out.push_str("        i32.const 4\n");
+    out.push_str("        i32.mul\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.get $token_ptr\n");
+    out.push_str("        i32.store\n");
+    out.push_str("        local.get $index\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $index\n");
+    out.push_str("        br $emit_loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    i32.const 8\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $list_ptr\n");
+    out.push_str("    local.get $list_ptr\n");
+    out.push_str("    local.get $count\n");
+    out.push_str("    i32.store\n");
+    out.push_str("    local.get $list_ptr\n");
+    out.push_str("    local.get $items_ptr\n");
+    out.push_str("    i32.store offset=4\n");
+    out.push_str("    local.get $list_ptr\n");
+    out.push_str("  )\n");
+}
+
+fn emit_parse_i64_helper(_abi: &WasmAbi, out: &mut String) {
+    out.push_str("  (func $parse.i64 (param $text i32) (result i32)\n");
+    out.push_str("    (local $scan i32)\n");
+    out.push_str("    (local $byte i32)\n");
+    out.push_str("    (local $value i32)\n");
+    out.push_str("    (local $sign i32)\n");
+    out.push_str("    (local $has_digits i32)\n");
+    out.push_str("    (local $result_ptr i32)\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    local.set $sign\n");
+    out.push_str("    local.get $text\n");
+    out.push_str("    local.set $scan\n");
+    out.push_str("    local.get $scan\n");
+    out.push_str("    i32.load8_u\n");
+    out.push_str("    i32.const 45\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        i32.const -1\n");
+    out.push_str("        local.set $sign\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $scan\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    (block $parse_err\n");
+    out.push_str("      (block $parse_done\n");
+    out.push_str("        (loop $parse_loop\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        local.tee $byte\n");
+    out.push_str("        i32.eqz\n");
+    out.push_str("        br_if $parse_done\n");
+    out.push_str("        local.get $byte\n");
+    out.push_str("        i32.const 48\n");
+    out.push_str("        i32.lt_u\n");
+    out.push_str("        br_if $parse_err\n");
+    out.push_str("        local.get $byte\n");
+    out.push_str("        i32.const 57\n");
+    out.push_str("        i32.gt_u\n");
+    out.push_str("        br_if $parse_err\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        local.set $has_digits\n");
+    out.push_str("        local.get $value\n");
+    out.push_str("        i32.const 10\n");
+    out.push_str("        i32.mul\n");
+    out.push_str("        local.get $byte\n");
+    out.push_str("        i32.const 48\n");
+    out.push_str("        i32.sub\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $value\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $scan\n");
+    out.push_str("        br $parse_loop\n");
+    out.push_str("        )\n");
+    out.push_str("      )\n");
+    out.push_str("      local.get $has_digits\n");
+    out.push_str("      i32.eqz\n");
+    out.push_str("      br_if $parse_err\n");
+    out.push_str("      i32.const 8\n");
+    out.push_str("      call $__alloc\n");
+    out.push_str("      local.set $result_ptr\n");
+    out.push_str("      local.get $result_ptr\n");
+    out.push_str("      i32.const 0\n");
+    out.push_str("      i32.store\n");
+    out.push_str("      local.get $result_ptr\n");
+    out.push_str("      local.get $value\n");
+    out.push_str("      local.get $sign\n");
+    out.push_str("      i32.mul\n");
+    out.push_str("      i32.store offset=4\n");
+    out.push_str("      local.get $result_ptr\n");
+    out.push_str("      return\n");
+    out.push_str("    )\n");
+    out.push_str("    i32.const 8\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $result_ptr\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    i32.store\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.store offset=4\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("  )\n");
+}
+
+fn emit_parse_bool_helper(_abi: &WasmAbi, out: &mut String) {
+    out.push_str("  (func $parse.bool (param $text i32) (result i32)\n");
+    out.push_str("    (local $len i32)\n");
+    out.push_str("    (local $result_ptr i32)\n");
+    out.push_str("    local.get $text\n");
+    out.push_str("    call $__strlen\n");
+    out.push_str("    local.set $len\n");
+    out.push_str("    local.get $len\n");
+    out.push_str("    i32.const 4\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        i32.const 116\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        i32.load8_u offset=1\n");
+    out.push_str("        i32.const 114\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        i32.and\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        i32.load8_u offset=2\n");
+    out.push_str("        i32.const 117\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        i32.and\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        i32.load8_u offset=3\n");
+    out.push_str("        i32.const 101\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        i32.and\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            i32.const 8\n");
+    out.push_str("            call $__alloc\n");
+    out.push_str("            local.set $result_ptr\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            i32.store\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.store offset=4\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            return\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $len\n");
+    out.push_str("    i32.const 5\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        i32.const 102\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        i32.load8_u offset=1\n");
+    out.push_str("        i32.const 97\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        i32.and\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        i32.load8_u offset=2\n");
+    out.push_str("        i32.const 108\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        i32.and\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        i32.load8_u offset=3\n");
+    out.push_str("        i32.const 115\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        i32.and\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        i32.load8_u offset=4\n");
+    out.push_str("        i32.const 101\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        i32.and\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            i32.const 8\n");
+    out.push_str("            call $__alloc\n");
+    out.push_str("            local.set $result_ptr\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            i32.store\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            i32.store offset=4\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            return\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    i32.const 8\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $result_ptr\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    i32.store\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.store offset=4\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("  )\n");
+}
+
 fn emit_function(
     function: &HighFunction,
     function_names: &HashSet<String>,
@@ -722,12 +1259,12 @@ fn emit_expr(
             out.push_str(&format!("{pad})\n"));
         }
         HighExprKind::Call { callee, args } => {
-            if callee == "__index" && abi.target == WasmTarget::Wasi {
+            if callee == "__index" {
                 let [receiver, index] = args.as_slice() else {
                     bail!("`__index` expects exactly two arguments in wasm backend");
                 };
                 let HighExprKind::Int(index_value) = index.kind else {
-                    bail!("wasm backend currently requires constant tuple indexes");
+                    bail!("wasm backend currently requires constant indexes");
                 };
                 if index_value < 0 {
                     bail!("wasm backend does not support negative indexes");
@@ -744,8 +1281,23 @@ fn emit_expr(
                     abi,
                     out,
                 )?;
-                out.push_str(&format!("{pad}i32.load offset={}\n", index_value * 4));
-            } else if callee == "range_inclusive" && abi.target == WasmTarget::Wasi {
+                match &receiver.ty {
+                    Type::Tuple(_)
+                        if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost) =>
+                    {
+                        out.push_str(&format!("{pad}i32.load offset={}\n", index_value * 4));
+                    }
+                    Type::List(_) => {
+                        out.push_str(&format!("{pad}i32.load offset=4\n"));
+                        out.push_str(&format!("{pad}i32.const {}\n", index_value * 4));
+                        out.push_str(&format!("{pad}i32.add\n"));
+                        out.push_str(&format!("{pad}i32.load\n"));
+                    }
+                    _ => bail!("unsupported index receiver type in wasm backend"),
+                }
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "range_inclusive"
+            {
                 let [start, end] = args.as_slice() else {
                     bail!("`range_inclusive` expects exactly two arguments in wasm backend");
                 };
@@ -774,7 +1326,9 @@ fn emit_expr(
                     out,
                 )?;
                 out.push_str(&format!("{pad}call $__range_inclusive\n"));
-            } else if callee == "iter.unfold" && abi.target == WasmTarget::Wasi {
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "iter.unfold"
+            {
                 let [seed, callback] = args.as_slice() else {
                     bail!("`iter.unfold` expects exactly two arguments in wasm backend");
                 };
@@ -803,7 +1357,9 @@ fn emit_expr(
                     out,
                 )?;
                 out.push_str(&format!("{pad}call $__iter_unfold_new\n"));
-            } else if callee == "take" && abi.target == WasmTarget::Wasi {
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "take"
+            {
                 let [receiver, limit] = args.as_slice() else {
                     bail!("`take` expects exactly two arguments in wasm backend");
                 };
@@ -835,7 +1391,9 @@ fn emit_expr(
                     out,
                 )?;
                 out.push_str(&format!("{pad}call $__iter_take_i64\n"));
-            } else if callee == "map" && abi.target == WasmTarget::Wasi {
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "map"
+            {
                 let [receiver, callback] = args.as_slice() else {
                     bail!("`map` expects exactly two arguments in wasm backend");
                 };
@@ -872,7 +1430,9 @@ fn emit_expr(
                     "{pad}call ${}\n",
                     abi.map_helper_name(signature.index)
                 ));
-            } else if callee == "filter" && abi.target == WasmTarget::Wasi {
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "filter"
+            {
                 let [receiver, callback] = args.as_slice() else {
                     bail!("`filter` expects exactly two arguments in wasm backend");
                 };
@@ -919,7 +1479,9 @@ fn emit_expr(
                     "{pad}call ${}\n",
                     abi.filter_helper_name(signature.index)
                 ));
-            } else if callee == "sum" && abi.target == WasmTarget::Wasi {
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "sum"
+            {
                 let [receiver] = args.as_slice() else {
                     bail!("`sum` expects exactly one argument in wasm backend");
                 };
@@ -941,7 +1503,9 @@ fn emit_expr(
                     out,
                 )?;
                 out.push_str(&format!("{pad}call ${}\n", abi.sum_helper_name()));
-            } else if callee == "join" && abi.target == WasmTarget::Wasi {
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "join"
+            {
                 let [receiver, separator] = args.as_slice() else {
                     bail!("`join` expects exactly two arguments in wasm backend");
                 };
@@ -1010,7 +1574,9 @@ fn emit_expr(
                     abi,
                     out,
                 )?;
-            } else if abi.target == WasmTarget::Wasi && callee == "console.println" {
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "console.println"
+            {
                 for arg in args {
                     emit_expr(
                         arg,
@@ -1026,7 +1592,9 @@ fn emit_expr(
                     )?;
                 }
                 out.push_str(&format!("{pad}call $console.println\n"));
-            } else if abi.target == WasmTarget::Wasi && callee == "string" {
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "string"
+            {
                 for arg in args {
                     emit_expr(
                         arg,
@@ -1042,6 +1610,11 @@ fn emit_expr(
                     )?;
                 }
                 out.push_str(&format!("{pad}call $string\n"));
+            } else if abi.target == WasmTarget::Wasi && callee == "stdin.read_text" {
+                if !args.is_empty() {
+                    bail!("`stdin.read_text` expects no arguments in wasm backend");
+                }
+                out.push_str(&format!("{pad}call $stdin.read_text\n"));
             } else if abi.target == WasmTarget::Wasi && callee == "fs.read_text" {
                 let [path] = args.as_slice() else {
                     bail!("`fs.read_text` expects exactly one path argument in wasm backend");
@@ -1059,7 +1632,63 @@ fn emit_expr(
                     out,
                 )?;
                 out.push_str(&format!("{pad}call $fs.read_text\n"));
-            } else if callee == "Next" && abi.target == WasmTarget::Wasi {
+            } else if callee == "split_whitespace" {
+                let [text] = args.as_slice() else {
+                    bail!("`split_whitespace` expects exactly one string in wasm backend");
+                };
+                if !matches!(text.ty, Type::String) {
+                    bail!("`split_whitespace` expects a String receiver in wasm backend");
+                }
+                emit_expr(
+                    text,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}call $split_whitespace\n"));
+            } else if callee == "parse.i64" {
+                let [text] = args.as_slice() else {
+                    bail!("`parse.i64` expects exactly one string in wasm backend");
+                };
+                emit_expr(
+                    text,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}call $parse.i64\n"));
+            } else if callee == "parse.bool" {
+                let [text] = args.as_slice() else {
+                    bail!("`parse.bool` expects exactly one string in wasm backend");
+                };
+                emit_expr(
+                    text,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}call $parse.bool\n"));
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "Next"
+            {
                 let [item, state] = args.as_slice() else {
                     bail!("`Next` expects exactly two arguments in wasm backend");
                 };
@@ -1077,7 +1706,9 @@ fn emit_expr(
                     abi,
                     out,
                 )?;
-            } else if callee == "Done" && abi.target == WasmTarget::Wasi {
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "Done"
+            {
                 if !args.is_empty() {
                     bail!("`Done` expects no arguments in wasm backend");
                 }
@@ -1096,7 +1727,13 @@ fn emit_expr(
                     out,
                 )?;
             } else {
-                bail!("calls to `{callee}` are not yet supported in wasm backend");
+                bail!(
+                    "calls to `{callee}` are not yet supported in wasm backend for target `{}`; see docs/std.md#target-support-matrix",
+                    match abi.target {
+                        WasmTarget::JavaScriptHost => "wasm-js",
+                        WasmTarget::Wasi => "wasm-wasi",
+                    }
+                );
             }
         }
         HighExprKind::Lambda { .. } => {
@@ -1262,7 +1899,7 @@ fn emit_list_literal(
     abi: &WasmAbi,
     out: &mut String,
 ) -> Result<()> {
-    ensure_wasi_int_list_type(list_ty, abi)?;
+    ensure_int_list_type(list_ty, abi)?;
 
     let pad = "  ".repeat(indent);
     let tmp_ptr_local = heap_tmp_ptr_local(indent);
@@ -1324,7 +1961,7 @@ fn emit_tuple_literal(
     abi: &WasmAbi,
     out: &mut String,
 ) -> Result<()> {
-    if abi.target != WasmTarget::Wasi {
+    if !matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost) {
         bail!("tuple expressions are not yet supported in wasm backend");
     }
 
@@ -1358,8 +1995,8 @@ fn emit_tuple_literal(
     Ok(())
 }
 
-fn ensure_wasi_int_list_type(list_ty: &Type, abi: &WasmAbi) -> Result<()> {
-    if abi.target != WasmTarget::Wasi {
+fn ensure_int_list_type(list_ty: &Type, abi: &WasmAbi) -> Result<()> {
+    if !matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost) {
         bail!("list expressions are not yet supported in wasm backend");
     }
     match list_ty {
@@ -1487,7 +2124,7 @@ fn emit_construct(
     let pad = "  ".repeat(indent);
     let tmp_ptr_local = heap_tmp_ptr_local(indent);
     let nested_indent = indent + 1;
-    if abi.target == WasmTarget::JavaScriptHost {
+    if abi.target == WasmTarget::JavaScriptHost && !matches!(expr_ty, Type::Result(_, _)) {
         if variant.field_count != 0 || !args.is_empty() {
             bail!("ADT payload fields are not yet supported in wasm backend");
         }
@@ -1609,7 +2246,7 @@ fn emit_match_arms(
                 abi,
                 out,
             )?;
-            if abi.target == WasmTarget::Wasi {
+            if abi.match_subject_is_heap(&subject.ty) {
                 out.push_str(&format!("{pad}i32.load\n"));
             }
             out.push_str(&format!("{pad}i32.const {}\n", variant.tag));
@@ -1779,6 +2416,9 @@ struct WasmAbi {
     uses_console_println: bool,
     uses_string_builtin: bool,
     uses_fs_read_text: bool,
+    uses_stdin_read_text: bool,
+    uses_parse_i64: bool,
+    uses_parse_bool: bool,
     uses_list_runtime: bool,
     uses_adt_runtime: bool,
     uses_range_inclusive: bool,
@@ -1834,6 +2474,10 @@ impl WasmAbi {
         let mut uses_console_println = false;
         let mut uses_string_builtin = false;
         let mut uses_fs_read_text = false;
+        let mut uses_stdin_read_text = false;
+        let mut uses_split_whitespace = false;
+        let mut uses_parse_i64 = false;
+        let mut uses_parse_bool = false;
         let mut uses_list_runtime = false;
         let mut uses_adt_runtime = false;
         let mut uses_range_inclusive = false;
@@ -1843,24 +2487,31 @@ impl WasmAbi {
         let mut uses_filter_builtin = false;
         let mut uses_sum_builtin = false;
         let mut uses_join_builtin = false;
-        if target == WasmTarget::Wasi {
-            for function in &module.functions {
-                scan_expr(
-                    &function.body,
-                    &mut uses_console_println,
-                    &mut uses_string_builtin,
-                    &mut uses_fs_read_text,
-                    &mut uses_list_runtime,
-                    &mut uses_adt_runtime,
-                    &mut uses_range_inclusive,
-                    &mut uses_iter_runtime,
-                    &mut uses_take_builtin,
-                    &mut uses_map_builtin,
-                    &mut uses_filter_builtin,
-                    &mut uses_sum_builtin,
-                    &mut uses_join_builtin,
-                );
-            }
+        for function in &module.functions {
+            scan_expr(
+                &function.body,
+                &mut uses_console_println,
+                &mut uses_string_builtin,
+                &mut uses_fs_read_text,
+                &mut uses_stdin_read_text,
+                &mut uses_split_whitespace,
+                &mut uses_parse_i64,
+                &mut uses_parse_bool,
+                &mut uses_list_runtime,
+                &mut uses_adt_runtime,
+                &mut uses_range_inclusive,
+                &mut uses_iter_runtime,
+                &mut uses_take_builtin,
+                &mut uses_map_builtin,
+                &mut uses_filter_builtin,
+                &mut uses_sum_builtin,
+                &mut uses_join_builtin,
+            );
+        }
+        if target == WasmTarget::JavaScriptHost {
+            uses_fs_read_text = false;
+            uses_stdin_read_text = false;
+            uses_adt_runtime = false;
         }
 
         let scratch_base = {
@@ -1876,6 +2527,9 @@ impl WasmAbi {
             uses_console_println,
             uses_string_builtin,
             uses_fs_read_text,
+            uses_stdin_read_text,
+            uses_parse_i64,
+            uses_parse_bool,
             uses_list_runtime,
             uses_adt_runtime,
             uses_range_inclusive,
@@ -1899,8 +2553,11 @@ impl WasmAbi {
     }
 
     fn needs_scratch(&self) -> bool {
-        self.target == WasmTarget::Wasi
-            && (self.uses_console_println || self.uses_string_builtin || self.uses_fs_read_text)
+        self.uses_string_builtin
+            || (self.target == WasmTarget::Wasi
+                && (self.uses_console_println
+                    || self.uses_fs_read_text
+                    || self.uses_stdin_read_text))
     }
 
     fn iovec_base(&self) -> u32 {
@@ -1953,6 +2610,8 @@ impl WasmAbi {
             || !self.named_callback_thunks.is_empty()
             || self.uses_list_runtime
             || self.uses_adt_runtime
+            || self.uses_parse_i64
+            || self.uses_parse_bool
             || self.uses_range_inclusive
             || self.uses_iter_runtime
             || self.uses_take_builtin
@@ -2029,6 +2688,14 @@ impl WasmAbi {
         }
     }
 
+    fn match_subject_is_heap(&self, ty: &Type) -> bool {
+        match ty {
+            Type::Result(_, _) => true,
+            Type::Named(name) => matches!(self.named_types.get(name), Some(NamedTypeAbi::HeapEnum)),
+            _ => false,
+        }
+    }
+
     fn closure_for_expr(&self, expr: &HighExpr) -> Option<&ClosureThunk> {
         let expr_id = expr as *const HighExpr as usize;
         self.closure_expr_map
@@ -2098,10 +2765,26 @@ impl WasmAbi {
             Type::Int | Type::Bool | Type::Fn(_, _) => Ok(Some("i32")),
             Type::String if self.target == WasmTarget::JavaScriptHost => Ok(Some("i32")),
             Type::String if self.target == WasmTarget::Wasi => Ok(Some("i32")),
-            Type::List(_) if self.target == WasmTarget::Wasi => Ok(Some("i32")),
-            Type::Tuple(_) if self.target == WasmTarget::Wasi => Ok(Some("i32")),
-            Type::Seq(_) if self.target == WasmTarget::Wasi => Ok(Some("i32")),
-            Type::Result(_, _) if self.target == WasmTarget::Wasi => Ok(Some("i32")),
+            Type::List(_)
+                if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
+            {
+                Ok(Some("i32"))
+            }
+            Type::Tuple(_)
+                if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
+            {
+                Ok(Some("i32"))
+            }
+            Type::Seq(_)
+                if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
+            {
+                Ok(Some("i32"))
+            }
+            Type::Result(_, _)
+                if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
+            {
+                Ok(Some("i32"))
+            }
             Type::Named(name) => match self.named_types.get(name) {
                 Some(NamedTypeAbi::FieldlessEnum) => Ok(Some("i32")),
                 Some(NamedTypeAbi::HeapEnum) => Ok(Some("i32")),
@@ -3344,6 +4027,10 @@ fn scan_expr(
     uses_console_println: &mut bool,
     uses_string_builtin: &mut bool,
     uses_fs_read_text: &mut bool,
+    uses_stdin_read_text: &mut bool,
+    uses_split_whitespace: &mut bool,
+    uses_parse_i64: &mut bool,
+    uses_parse_bool: &mut bool,
     uses_list_runtime: &mut bool,
     uses_adt_runtime: &mut bool,
     uses_range_inclusive: &mut bool,
@@ -3364,6 +4051,21 @@ fn scan_expr(
             }
             if callee == "fs.read_text" {
                 *uses_fs_read_text = true;
+                *uses_adt_runtime = true;
+            }
+            if callee == "stdin.read_text" {
+                *uses_stdin_read_text = true;
+            }
+            if callee == "split_whitespace" {
+                *uses_split_whitespace = true;
+                *uses_list_runtime = true;
+            }
+            if callee == "parse.i64" {
+                *uses_parse_i64 = true;
+                *uses_adt_runtime = true;
+            }
+            if callee == "parse.bool" {
+                *uses_parse_bool = true;
                 *uses_adt_runtime = true;
             }
             if callee == "range_inclusive" {
@@ -3398,6 +4100,10 @@ fn scan_expr(
                     uses_console_println,
                     uses_string_builtin,
                     uses_fs_read_text,
+                    uses_stdin_read_text,
+                    uses_split_whitespace,
+                    uses_parse_i64,
+                    uses_parse_bool,
                     uses_list_runtime,
                     uses_adt_runtime,
                     uses_range_inclusive,
@@ -3416,6 +4122,10 @@ fn scan_expr(
                 uses_console_println,
                 uses_string_builtin,
                 uses_fs_read_text,
+                uses_stdin_read_text,
+                uses_split_whitespace,
+                uses_parse_i64,
+                uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
@@ -3431,6 +4141,10 @@ fn scan_expr(
                 uses_console_println,
                 uses_string_builtin,
                 uses_fs_read_text,
+                uses_stdin_read_text,
+                uses_split_whitespace,
+                uses_parse_i64,
+                uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
@@ -3452,6 +4166,10 @@ fn scan_expr(
                 uses_console_println,
                 uses_string_builtin,
                 uses_fs_read_text,
+                uses_stdin_read_text,
+                uses_split_whitespace,
+                uses_parse_i64,
+                uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
@@ -3467,6 +4185,10 @@ fn scan_expr(
                 uses_console_println,
                 uses_string_builtin,
                 uses_fs_read_text,
+                uses_stdin_read_text,
+                uses_split_whitespace,
+                uses_parse_i64,
+                uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
@@ -3482,6 +4204,10 @@ fn scan_expr(
                 uses_console_println,
                 uses_string_builtin,
                 uses_fs_read_text,
+                uses_stdin_read_text,
+                uses_split_whitespace,
+                uses_parse_i64,
+                uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
@@ -3500,6 +4226,10 @@ fn scan_expr(
                 uses_console_println,
                 uses_string_builtin,
                 uses_fs_read_text,
+                uses_stdin_read_text,
+                uses_split_whitespace,
+                uses_parse_i64,
+                uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
@@ -3516,6 +4246,10 @@ fn scan_expr(
                     uses_console_println,
                     uses_string_builtin,
                     uses_fs_read_text,
+                    uses_stdin_read_text,
+                    uses_split_whitespace,
+                    uses_parse_i64,
+                    uses_parse_bool,
                     uses_list_runtime,
                     uses_adt_runtime,
                     uses_range_inclusive,
@@ -3536,6 +4270,10 @@ fn scan_expr(
                     uses_console_println,
                     uses_string_builtin,
                     uses_fs_read_text,
+                    uses_stdin_read_text,
+                    uses_split_whitespace,
+                    uses_parse_i64,
+                    uses_parse_bool,
                     uses_list_runtime,
                     uses_adt_runtime,
                     uses_range_inclusive,
@@ -3558,6 +4296,10 @@ fn scan_expr(
                     uses_console_println,
                     uses_string_builtin,
                     uses_fs_read_text,
+                    uses_stdin_read_text,
+                    uses_split_whitespace,
+                    uses_parse_i64,
+                    uses_parse_bool,
                     uses_list_runtime,
                     uses_adt_runtime,
                     uses_range_inclusive,
@@ -3576,6 +4318,10 @@ fn scan_expr(
                 uses_console_println,
                 uses_string_builtin,
                 uses_fs_read_text,
+                uses_stdin_read_text,
+                uses_split_whitespace,
+                uses_parse_i64,
+                uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
@@ -3593,6 +4339,10 @@ fn scan_expr(
                 uses_console_println,
                 uses_string_builtin,
                 uses_fs_read_text,
+                uses_stdin_read_text,
+                uses_split_whitespace,
+                uses_parse_i64,
+                uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
@@ -3608,6 +4358,10 @@ fn scan_expr(
                 uses_console_println,
                 uses_string_builtin,
                 uses_fs_read_text,
+                uses_stdin_read_text,
+                uses_split_whitespace,
+                uses_parse_i64,
+                uses_parse_bool,
                 uses_list_runtime,
                 uses_adt_runtime,
                 uses_range_inclusive,
@@ -3803,7 +4557,7 @@ fn emit_all_memory(abi: &WasmAbi, out: &mut String) {
     }
 
     // Newline byte for console.println
-    if abi.needs_scratch() && abi.uses_console_println {
+    if abi.target == WasmTarget::Wasi && abi.uses_console_println {
         out.push_str(&format!(
             "  (data (i32.const {}) \"\\0a\")\n",
             abi.newline_base()

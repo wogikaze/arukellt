@@ -1,9 +1,11 @@
 use std::fs;
 use std::path::PathBuf;
+use std::process::Command;
 
 use lang_backend_wasm::{WasmTarget, build_module_from_source, emit_wasm};
 use lang_core::{BinaryOp, Type};
 use lang_ir::{HighExpr, HighExprKind, HighFunction, HighModule, HighParam};
+use tempfile::tempdir;
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -40,6 +42,66 @@ fn export_names(bytes: &[u8]) -> Vec<String> {
         cursor = section_end;
     }
     Vec::new()
+}
+
+fn run_wasm_js_i32(bytes: &[u8], function: &str) -> i32 {
+    let dir = tempdir().expect("tempdir");
+    let wasm = dir.path().join("module.wasm");
+    fs::write(&wasm, bytes).expect("write wasm");
+    let script = format!(
+        r#"
+import fs from 'node:fs/promises';
+const bytes = await fs.readFile({wasm:?});
+const {{ instance }} = await WebAssembly.instantiate(bytes, {{}});
+console.log(instance.exports[{function:?}]());
+"#
+    );
+    let output = Command::new("node")
+        .arg("--input-type=module")
+        .arg("-e")
+        .arg(script)
+        .output()
+        .expect("run node wasm-js");
+    assert!(
+        output.status.success(),
+        "expected node wasm-js success\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8(output.stdout)
+        .expect("utf8 stdout")
+        .trim()
+        .parse()
+        .expect("parse i32 result")
+}
+
+fn run_wasm_wasi_stdout(bytes: &[u8]) -> String {
+    let dir = tempdir().expect("tempdir");
+    let wasm = dir.path().join("module.wasm");
+    fs::write(&wasm, bytes).expect("write wasm");
+    let script = format!(
+        r#"
+import fs from 'node:fs/promises';
+import {{ WASI }} from 'node:wasi';
+const wasi = new WASI({{ version: 'preview1' }});
+const bytes = await fs.readFile({wasm:?});
+const {{ instance }} = await WebAssembly.instantiate(bytes, wasi.getImportObject());
+wasi.start(instance);
+"#
+    );
+    let output = Command::new("node")
+        .arg("--input-type=module")
+        .arg("-e")
+        .arg(script)
+        .output()
+        .expect("run node wasi");
+    assert!(
+        output.status.success(),
+        "expected node wasi success\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    String::from_utf8(output.stdout).expect("utf8 stdout")
 }
 
 fn read_u32_leb(bytes: &[u8], cursor: &mut usize) -> u32 {
@@ -251,20 +313,269 @@ fn wasi_target_supports_fs_read_text_result_payloads() {
 }
 
 #[test]
-fn rejects_builtin_string_calls_outside_the_supported_subset() {
+fn wasi_target_supports_stdin_read_text_split_whitespace_pipeline() {
     let source = "\
-fn main() -> String:
-  string(42)
+import console
+import stdin
+
+fn main():
+  stdin.read_text()
+    .split_whitespace()
+    .join(\",\")
+    |> console.println
 ";
 
-    let error = build_module_from_source(source, WasmTarget::JavaScriptHost)
-        .expect_err("string builtin should stay unsupported in wasm backend");
+    let bytes =
+        build_module_from_source(source, WasmTarget::Wasi).expect("wasi stdin.read_text bytes");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(export_names(&bytes).iter().any(|name| name == "_start"));
+    assert!(export_names(&bytes).iter().any(|name| name == "memory"));
+    assert!(contains_bytes(&bytes, b"fd_read"));
+    assert!(contains_bytes(&bytes, b"split_whitespace"));
+}
+
+#[test]
+fn join_runs_on_both_wasm_targets() {
+    let js_source = "\
+import console
+
+fn main():
+  \"red blue green\".split_whitespace().join(\"-\") |> console.println
+";
+    let wasi_source = "\
+import console
+
+fn main():
+  \"red blue green\".split_whitespace().join(\"-\") |> console.println
+";
+
+    let js_bytes =
+        build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+
+    assert!(contains_bytes(&js_bytes, b"__list_join_strings"));
+    assert!(contains_bytes(&wasi_bytes, b"__list_join_strings"));
+}
+
+#[test]
+fn javascript_target_supports_console_println_with_string_literals() {
+    let source = "\
+import console
+
+fn main():
+  \"hello js\" |> console.println
+";
+
+    let bytes = build_module_from_source(source, WasmTarget::JavaScriptHost)
+        .expect("console.println literal should build on wasm-js");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(export_names(&bytes).iter().any(|name| name == "memory"));
+    assert!(export_names(&bytes).iter().any(|name| name == "main"));
+    assert!(contains_bytes(&bytes, b"console.println"));
+}
+
+#[test]
+fn javascript_target_supports_string_builtin_for_int_to_string_conversion() {
+    let source = "\
+import console
+
+fn main():
+  42 |> string |> console.println
+";
+
+    let bytes = build_module_from_source(source, WasmTarget::JavaScriptHost)
+        .expect("string builtin should build on wasm-js");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(export_names(&bytes).iter().any(|name| name == "memory"));
+    assert!(export_names(&bytes).iter().any(|name| name == "main"));
+    assert!(contains_bytes(&bytes, b"console.println"));
+}
+
+#[test]
+fn unsupported_builtin_errors_point_to_the_target_support_matrix() {
+    let source = "\
+import stdin
+
+fn main() -> String:
+  stdin.read_line()
+";
+
+    let error = build_module_from_source(source, WasmTarget::Wasi)
+        .expect_err("stdin.read_line should stay unsupported in wasm backend");
     let message = error.to_string();
 
     assert!(
-        message.contains("calls to `string`") && message.contains("not yet supported"),
+        message.contains("calls to `stdin.read_line`")
+            && message.contains("wasm-wasi")
+            && message.contains("docs/std.md#target-support-matrix"),
         "unexpected error: {message}"
     );
+}
+
+#[test]
+fn parse_i64_runs_on_both_wasm_targets() {
+    let js_source = "\
+fn main() -> Int:
+  match parse.i64(\"41\"):
+    Ok(value) -> value + 1
+    Err(_) -> 0
+";
+    let wasi_source = "\
+import console
+
+fn main():
+  match parse.i64(\"41\"):
+    Ok(value) -> string(value + 1) |> console.println
+    Err(_) -> \"0\" |> console.println
+";
+
+    let js_bytes =
+        build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+
+    assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 42);
+    assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "42\n");
+}
+
+#[test]
+fn parse_bool_runs_on_both_wasm_targets() {
+    let js_source = "\
+fn main() -> Bool:
+  match parse.bool(\"false\"):
+    Ok(value) -> value
+    Err(_) -> true
+";
+    let wasi_source = "\
+import console
+
+fn main():
+  match parse.bool(\"false\"):
+    Ok(value) ->
+      if value:
+        \"true\" |> console.println
+      else:
+        \"false\" |> console.println
+    Err(_) -> \"err\" |> console.println
+";
+
+    let js_bytes =
+        build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+
+    assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 0);
+    assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "false\n");
+}
+
+#[test]
+fn split_whitespace_runs_on_both_wasm_targets() {
+    let js_source = "\
+fn main() -> Int:
+  match parse.i64(\"41 beta\".split_whitespace()[0]):
+    Ok(value) -> value + 1
+    Err(_) -> 0
+";
+    let wasi_source = "\
+import console
+
+fn main():
+  \"alpha beta\".split_whitespace()[0] |> console.println
+";
+
+    let js_bytes =
+        build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+
+    assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 42);
+    assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "alpha\n");
+}
+
+#[test]
+fn javascript_target_supports_int_list_literals() {
+    let source = "\
+fn main() -> Int:
+  let values = [20, 22]
+  values[0] + values[1]
+";
+
+    let bytes =
+        build_module_from_source(source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+
+    assert_eq!(run_wasm_js_i32(&bytes, "main"), 42);
+}
+
+#[test]
+fn javascript_target_supports_range_inclusive_lists() {
+    let source = "\
+fn main() -> Int:
+  (1..=6).sum()
+";
+
+    let bytes =
+        build_module_from_source(source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+
+    assert_eq!(run_wasm_js_i32(&bytes, "main"), 21);
+}
+
+#[test]
+fn javascript_target_supports_map_filter_sum_for_int_lists() {
+    let source = "\
+fn double(n: Int) -> Int:
+  n * 2
+
+fn divisible_by_three(n: Int) -> Bool:
+  n % 3 == 0
+
+fn main() -> Int:
+  (1..=10).map(double).filter(divisible_by_three).sum()
+";
+
+    let bytes =
+        build_module_from_source(source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+
+    assert_eq!(run_wasm_js_i32(&bytes, "main"), 36);
+}
+
+#[test]
+fn javascript_target_supports_iter_unfold_take_for_int_sequences() {
+    let source = "\
+fn main() -> Int:
+  iter.unfold(1, n ->
+    Next(n, n + 1)
+  ).take(3).sum()
+";
+
+    let bytes =
+        build_module_from_source(source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+
+    assert_eq!(run_wasm_js_i32(&bytes, "main"), 6);
+}
+
+#[test]
+fn invalid_parse_i64_matches_err_shape_on_both_wasm_targets() {
+    let js_source = "\
+fn main() -> Int:
+  match parse.i64(\"abc\"):
+    Ok(_) -> 0
+    Err(_) -> 2
+";
+    let wasi_source = "\
+import console
+
+fn main():
+  match parse.i64(\"abc\"):
+    Ok(_) -> \"0\" |> console.println
+    Err(_) -> \"2\" |> console.println
+";
+
+    let js_bytes =
+        build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+
+    assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 2);
+    assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "2\n");
 }
 
 #[test]

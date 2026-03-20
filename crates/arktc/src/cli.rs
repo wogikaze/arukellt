@@ -22,7 +22,10 @@ pub enum Command {
         )]
         json: bool,
     },
-    #[command(about = "Compile a source file to WebAssembly for a supported prototype subset")]
+    #[command(
+        about = "Compile a source file to WebAssembly for a supported prototype subset",
+        long_about = "Compile a source file to WebAssembly for a supported prototype subset.\n\nFor API-by-target coverage, see docs/std.md#target-support-matrix."
+    )]
     Build {
         #[arg(help = "Path to the .ar source file to compile")]
         file: PathBuf,

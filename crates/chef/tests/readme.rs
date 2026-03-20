@@ -51,3 +51,22 @@ fn readme_benchmark_command_example_succeeds() {
     assert_eq!(json["total"], 5);
     assert_eq!(json["passed"], 5);
 }
+
+#[test]
+fn readme_build_command_example_succeeds() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let output_path = temp.path().join("out.wasm");
+    let output = Command::new(env!("CARGO_BIN_EXE_chef"))
+        .arg("build")
+        .arg(repo_root().join("example/hello_world.ar"))
+        .arg("--target")
+        .arg("wasm-wasi")
+        .arg("--output")
+        .arg(&output_path)
+        .output()
+        .expect("run chef build");
+
+    assert!(output.status.success(), "expected successful exit status");
+    let bytes = std::fs::read(output_path).expect("read wasm");
+    assert!(bytes.starts_with(b"\0asm"), "expected wasm magic");
+}

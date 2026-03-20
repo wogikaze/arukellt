@@ -72,6 +72,135 @@ notes:
 
 ### WB-034
 
+title: Add cross-target pure text helpers on WASM backends
+area: lang-backend-wasm
+status: DONE
+priority: P1
+owner: ai
+depends_on: WB-037
+source: target-support review for surface matrix
+done_when:
+
+- `text.split_whitespace()`, `parse.i64(text)`, and `parse.bool(text)` run on both `wasm-js` and `wasm-wasi`
+- invalid integer input returns the same error shape on interpreter, `wasm-js`, and `wasm-wasi`
+- `cargo test -p lang-backend-wasm && cargo test -p lang-interp && cargo test -p arktc` passes
+notes:
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p lang-interp`, `cargo test -p arktc`, `cargo test -p chef`, and `cargo test`
+- wasm backends now expose pure `split_whitespace`, `parse.i64`, and `parse.bool` helpers on both `wasm-js` and `wasm-wasi`
+
+### WB-038
+
+title: Add wasm-wasi stdin.read_text for command-style programs
+area: lang-backend-wasm
+status: DONE
+priority: P1
+owner: ai
+depends_on: none
+source: target-support review for surface matrix
+done_when:
+
+- `stdin.read_text()` lowers and runs on `wasm-wasi`
+- a CLI/integration test proves `stdin.read_text().split_whitespace()` input can flow through the wasi target
+- `cargo test -p lang-backend-wasm && cargo test -p arktc` passes
+notes:
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc`, and `cargo test`
+- the user-provided `WB-033` identifier collided with an existing completed task, so this slice is recorded as `WB-038`
+- keep `stdin.read_line()` out of scope for this slice
+- target the full-text stdin ingestion path first
+
+### WB-039
+
+title: Add wasm-js List<i64> parity for literals, range, map/filter/sum, and iter.take
+area: lang-backend-wasm
+status: DONE
+priority: P2
+owner: ai
+depends_on: WB-037
+source: target-support review for surface matrix
+done_when:
+
+- `[1, 2, 3]` and `1..=3` lower to `List<i64>` on `wasm-js`
+- `list.map(...)`, `list.filter(...)`, `list.sum()`, and `iter.unfold(...).take(n)` run on `wasm-js`
+- `cargo test -p lang-backend-wasm` passes with parity coverage against interpreter results
+notes:
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc`, and `cargo test`
+- the user-provided `WB-035` identifier collided with an existing completed task, so this slice is recorded as `WB-039`
+- keep the scope to `List<i64>` only
+- do not expand to generic collection lowering in this slice
+
+### WB-040
+
+title: Add list.join(String) on both WASM targets
+area: lang-backend-wasm
+status: DONE
+priority: P2
+owner: ai
+depends_on: WB-037
+source: target-support review for surface matrix
+done_when:
+
+- `list.join(", ")` lowers and runs on both `wasm-js` and `wasm-wasi`
+- joined string output can be piped into `console.println` on both targets
+- `cargo test -p lang-backend-wasm && cargo test -p arktc` passes
+notes:
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc`, and `cargo test`
+- the user-provided `WB-036` identifier collided with an existing completed task, so this slice is recorded as `WB-040`
+- keep separator handling identical across interpreter and both WASM targets
+
+### WB-037
+
+title: Add wasm-js string output path for console.println(String)
+area: lang-backend-wasm
+status: DONE
+priority: P1
+owner: ai
+depends_on: none
+source: target-support review for surface matrix
+done_when:
+
+- `string(i64)` lowers and runs on `wasm-js`
+- `console.println(String)` lowers and runs on `wasm-js` through a host console bridge
+- `cargo test -p lang-backend-wasm && cargo test -p arktc` passes with a wasm-js console output fixture
+notes:
+- keep the bridge minimal and capability-scoped
+- do not introduce bare `println`; preserve `console.println`
+
+### WB-036
+
+title: Add an API-by-target support matrix for WASM-facing development
+area: docs/dx
+status: DONE
+priority: P2
+owner: ai
+depends_on: none
+source: user request after `parse.i64` failed under `chef build --target wasm-wasi`
+done_when:
+
+- `docs/std.md` documents the current API x target contract separately from the bundled-example matrix
+- `arktc build` / `chef build` help or diagnostics point readers to that matrix
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc`, `cargo test -p chef`, and `cargo test`
+notes:
+- the unsupported-call diagnostic now points directly to `docs/std.md#target-support-matrix`
+
+### WB-035
+
+title: Add `chef build` so run/test/build flows are available from one CLI
+area: chef/cli
+status: DONE
+priority: P2
+owner: ai
+depends_on: none
+source: user request
+done_when:
+
+- `chef build` supports the same `--target` / `--emit` / `--output` matrix as `arktc build`
+- `chef` help, CLI tests, and README cover the new build path
+- verified with `cargo fmt`, `cargo test -p chef`, and `cargo test`
+notes:
+- implemented as a thin wrapper over the existing WASM backend rather than shelling out to `arktc`
+
+### WB-034
+
 title: Add parser and typechecker diagnostics for canonical-style guidance
 area: diagnostics
 status: DONE

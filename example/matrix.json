@@ -4,7 +4,7 @@
     "arktc_check": true,
     "chef_run": true,
     "chef_test": true,
-    "wasm_js_build": false,
+    "wasm_js_build": true,
     "wasm_wasi_build": true
   },
   {
@@ -12,7 +12,7 @@
     "arktc_check": true,
     "chef_run": true,
     "chef_test": true,
-    "wasm_js_build": false,
+    "wasm_js_build": true,
     "wasm_wasi_build": true
   },
   {
@@ -20,7 +20,7 @@
     "arktc_check": true,
     "chef_run": true,
     "chef_test": true,
-    "wasm_js_build": false,
+    "wasm_js_build": true,
     "wasm_wasi_build": true
   },
   {
@@ -36,7 +36,7 @@
     "arktc_check": true,
     "chef_run": true,
     "chef_test": true,
-    "wasm_js_build": false,
+    "wasm_js_build": true,
     "wasm_wasi_build": true
   },
   {
@@ -44,7 +44,7 @@
     "arktc_check": true,
     "chef_run": true,
     "chef_test": true,
-    "wasm_js_build": false,
+    "wasm_js_build": true,
     "wasm_wasi_build": true
   },
   {
@@ -52,7 +52,7 @@
     "arktc_check": true,
     "chef_run": true,
     "chef_test": true,
-    "wasm_js_build": false,
+    "wasm_js_build": true,
     "wasm_wasi_build": true
   },
   {
@@ -60,7 +60,7 @@
     "arktc_check": true,
     "chef_run": true,
     "chef_test": true,
-    "wasm_js_build": false,
+    "wasm_js_build": true,
     "wasm_wasi_build": true
   },
   {
@@ -68,7 +68,7 @@
     "arktc_check": true,
     "chef_run": true,
     "chef_test": true,
-    "wasm_js_build": false,
+    "wasm_js_build": true,
     "wasm_wasi_build": true
   },
   {
@@ -76,7 +76,7 @@
     "arktc_check": true,
     "chef_run": true,
     "chef_test": true,
-    "wasm_js_build": false,
+    "wasm_js_build": true,
     "wasm_wasi_build": true
   },
   {
