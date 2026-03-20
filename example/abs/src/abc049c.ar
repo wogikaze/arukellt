@@ -1,0 +1,26 @@
+import stdin
+import console
+
+fn can_form(text: String) -> Bool:
+  if text == "":
+    true
+  else:
+    match strip_suffix(text, "dreamer"):
+      Ok(rest) -> can_form(rest)
+      Err(_) ->
+        match strip_suffix(text, "eraser"):
+          Ok(rest) -> can_form(rest)
+          Err(_) ->
+            match strip_suffix(text, "dream"):
+              Ok(rest) -> can_form(rest)
+              Err(_) ->
+                match strip_suffix(text, "erase"):
+                  Ok(rest) -> can_form(rest)
+                  Err(_) -> false
+
+fn main():
+  let text = stdin.read_text().split_whitespace()[0]
+  if can_form(text):
+    "YES" |> console.println
+  else:
+    "NO" |> console.println

@@ -1,0 +1,33 @@
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn has_value(tokens: List<String>, count: Int, target: Int, index: Int) -> Bool:
+  if index == count:
+    false
+  else:
+    if parse_or_zero(tokens[index + 1]) == target:
+      true
+    else:
+      has_value(tokens, count, target, index + 1)
+
+fn count_if_present(tokens: List<String>, count: Int, value: Int) -> Int:
+  if has_value(tokens, count, value, 0):
+    1
+  else:
+    0
+
+fn count_distinct(tokens: List<String>, count: Int, value: Int) -> Int:
+  if value == 0:
+    0
+  else:
+    count_if_present(tokens, count, value) + count_distinct(tokens, count, value - 1)
+
+fn main():
+  let tokens = stdin.read_text().split_whitespace()
+  let count = parse_or_zero(tokens[0])
+  count_distinct(tokens, count, 100) |> string |> console.println

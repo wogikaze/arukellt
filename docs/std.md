@@ -12,9 +12,10 @@ Use this table when choosing `arktc build --target ...` or `chef build --target 
 | `console.println(String)` | yes | yes | yes | `wasm-js` uses a minimal host `console.println(ptr, len)` bridge; `wasm-wasi` lowers to WASI `fd_write` |
 | `fs.read_text(path)` | yes | no | yes | file I/O stays capability-scoped |
 | `stdin.read_text()` | yes | no | yes | full stdin ingestion on `wasm-wasi` |
-| `stdin.read_line()` | yes | no | no | interpreter-only for now |
+| `stdin.read_line()` | yes | no | yes | `wasm-wasi` reads incrementally and trims trailing `\n` / `\r` like the interpreter |
 | `string(i64)` | yes | yes | yes | canonical integer-to-string conversion |
 | `text.split_whitespace()` | yes | yes | yes | whitespace tokenization lowers on both WASM targets |
+| `strip_suffix(text, suffix)` | yes | no | yes | current WASI support is enough for ABS-style suffix parsing; `wasm-js` still rejects it |
 | `parse.i64(text)` | yes | yes | yes | pure parse helper available across interpreter and both WASM targets |
 | `parse.bool(text)` | yes | yes | yes | same boundary as `parse.i64` |
 | `[1, 2, 3]` and `1..=3` as `List<i64>` | yes | yes | yes | current heap-backed WASM list runtime is `List<i64>`-only |

@@ -219,6 +219,22 @@ fn parse_flag(text: String) -> Bool:
 }
 
 #[test]
+fn evaluates_strip_suffix_builtin() {
+    let source = "\
+fn trim_word(text: String) -> String:
+  match strip_suffix(text, \"er\"):
+    Ok(value) -> value
+    Err(_) -> text
+";
+    let result = compile_and_run(
+        source,
+        "trim_word",
+        vec![Value::String("dreamer".to_owned())],
+    );
+    assert_eq!(result, Value::String("dream".to_owned()));
+}
+
+#[test]
 fn invalid_parse_i64_matches_err_variant() {
     let source = "\
 fn parse_flag(text: String) -> Int:

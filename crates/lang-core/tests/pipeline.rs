@@ -323,6 +323,24 @@ fn main():
 }
 
 #[test]
+fn compiles_strip_suffix_result_matching() {
+    let source = "\
+fn trim_word(text: String) -> String:
+  match strip_suffix(text, \"er\"):
+    Ok(value) -> value
+    Err(_) -> text
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
 fn compiles_parse_bool_result_matching() {
     let source = "\
 fn parse_flag(text: String) -> Bool:

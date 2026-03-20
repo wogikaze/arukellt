@@ -13,7 +13,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/practicea",
-        "submit": "src/practicea.nepl"
+        "submit": "src/practicea.ar"
       }
     },
     {
@@ -24,7 +24,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc086a",
-        "submit": "src/abc086a.nepl"
+        "submit": "src/abc086a.ar"
       }
     },
     {
@@ -35,7 +35,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc081a",
-        "submit": "src/abc081a.nepl"
+        "submit": "src/abc081a.ar"
       }
     },
     {
@@ -46,7 +46,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc081b",
-        "submit": "src/abc081b.nepl"
+        "submit": "src/abc081b.ar"
       }
     },
     {
@@ -57,7 +57,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc087b",
-        "submit": "src/abc087b.nepl"
+        "submit": "src/abc087b.ar"
       }
     },
     {
@@ -68,7 +68,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc083b",
-        "submit": "src/abc083b.nepl"
+        "submit": "src/abc083b.ar"
       }
     },
     {
@@ -79,7 +79,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc088b",
-        "submit": "src/abc088b.nepl"
+        "submit": "src/abc088b.ar"
       }
     },
     {
@@ -90,7 +90,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc085b",
-        "submit": "src/abc085b.nepl"
+        "submit": "src/abc085b.ar"
       }
     },
     {
@@ -101,7 +101,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc085c",
-        "submit": "src/abc085c.nepl"
+        "submit": "src/abc085c.ar"
       }
     },
     {
@@ -112,7 +112,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc049c",
-        "submit": "src/abc049c.nepl"
+        "submit": "src/abc049c.ar"
       }
     },
     {
@@ -123,7 +123,7 @@
       "directory": {
         "path": "./",
         "testdir": "tests/abc086c",
-        "submit": "src/abc086c.nepl"
+        "submit": "src/abc086c.ar"
       }
     }
   ]

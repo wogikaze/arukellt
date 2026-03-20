@@ -363,6 +363,27 @@ impl Interpreter {
                 )),
                 _ => Err(InterpreterError::TypeMismatch("split_whitespace(string)")),
             },
+            "strip_suffix" => match args.as_slice() {
+                [Value::String(text), Value::String(suffix)] => {
+                    if let Some(rest) = text.strip_suffix(suffix) {
+                        Ok(Value::Variant {
+                            name: "Ok".to_owned(),
+                            fields: vec![Value::String(rest.to_owned())],
+                        })
+                    } else {
+                        Ok(Value::Variant {
+                            name: "Err".to_owned(),
+                            fields: vec![Value::Variant {
+                                name: "PrefixSuffixMismatch".to_owned(),
+                                fields: Vec::new(),
+                            }],
+                        })
+                    }
+                }
+                _ => Err(InterpreterError::TypeMismatch(
+                    "strip_suffix(string, suffix)",
+                )),
+            },
             "parse.i64" => match args.as_slice() {
                 [Value::String(text)] => match text.parse::<i64>() {
                     Ok(value) => Ok(Value::Variant {
@@ -656,6 +677,7 @@ fn is_builtin(name: &str) -> bool {
             | "range_inclusive"
             | "string"
             | "split_whitespace"
+            | "strip_suffix"
             | "parse.i64"
             | "parse.bool"
             | "map"

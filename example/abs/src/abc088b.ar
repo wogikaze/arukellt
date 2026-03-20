@@ -1,0 +1,50 @@
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn count_occurrences(tokens: List<String>, count: Int, target: Int, index: Int) -> Int:
+  if index == count:
+    0
+  else:
+    let current = count_if_value(tokens, target, index)
+    current + count_occurrences(tokens, count, target, index + 1)
+
+fn count_if_value(tokens: List<String>, target: Int, index: Int) -> Int:
+  if parse_or_zero(tokens[index + 1]) == target:
+    1
+  else:
+    0
+
+fn batch_diff(value: Int, copies: Int, alice_turn: Bool) -> Int:
+  if copies % 2 == 0:
+    0
+  else:
+    if alice_turn:
+      value
+    else:
+      0 - value
+
+fn next_turn(alice_turn: Bool, copies: Int) -> Bool:
+  if copies % 2 == 0:
+    alice_turn
+  else:
+    if alice_turn:
+      false
+    else:
+      true
+
+fn score_from_value(tokens: List<String>, count: Int, value: Int, alice_turn: Bool) -> Int:
+  if value == 0:
+    0
+  else:
+    let copies = count_occurrences(tokens, count, value, 0)
+    batch_diff(value, copies, alice_turn) + score_from_value(tokens, count, value - 1, next_turn(alice_turn, copies))
+
+fn main():
+  let tokens = stdin.read_text().split_whitespace()
+  let count = parse_or_zero(tokens[0])
+  score_from_value(tokens, count, 100, true) |> string |> console.println

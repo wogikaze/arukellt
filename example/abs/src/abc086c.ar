@@ -1,0 +1,41 @@
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn abs_int(value: Int) -> Int:
+  if value < 0:
+    0 - value
+  else:
+    value
+
+fn can_reach(dt: Int, dx: Int, dy: Int) -> Bool:
+  let distance = abs_int(dx) + abs_int(dy)
+  if dt < distance:
+    false
+  else:
+    (dt - distance) % 2 == 0
+
+fn validate_plan(tokens: List<String>, count: Int, step: Int, prev_t: Int, prev_x: Int, prev_y: Int) -> Bool:
+  if step == count:
+    true
+  else:
+    let base = 1 + step * 3
+    let t = parse_or_zero(tokens[base])
+    let x = parse_or_zero(tokens[base + 1])
+    let y = parse_or_zero(tokens[base + 2])
+    if can_reach(t - prev_t, x - prev_x, y - prev_y):
+      validate_plan(tokens, count, step + 1, t, x, y)
+    else:
+      false
+
+fn main():
+  let tokens = stdin.read_text().split_whitespace()
+  let count = parse_or_zero(tokens[0])
+  if validate_plan(tokens, count, 0, 0, 0, 0):
+    "Yes" |> console.println
+  else:
+    "No" |> console.println

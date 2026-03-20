@@ -359,6 +359,23 @@ fn main():
 }
 
 #[test]
+fn wasi_target_supports_join_with_dynamic_string_items() {
+    let source = "\
+import console
+
+fn main():
+  let s = \"test\"
+  let result = [string(6), s].join(\" \")
+  result |> console.println
+";
+
+    let bytes =
+        build_module_from_source(source, WasmTarget::Wasi).expect("dynamic string join on wasi");
+
+    assert_eq!(run_wasm_wasi_stdout(&bytes), "6 test\n");
+}
+
+#[test]
 fn javascript_target_supports_console_println_with_string_literals() {
     let source = "\
 import console
@@ -395,6 +412,26 @@ fn main():
 }
 
 #[test]
+fn wasi_target_supports_stdin_read_line() {
+    let source = "\
+import stdin
+import console
+
+fn main():
+  let first = stdin.read_line()
+  let second = stdin.read_line()
+  let parts = [first, second]
+  join(parts, \"|\") |> console.println
+";
+
+    let bytes =
+        build_module_from_source(source, WasmTarget::Wasi).expect("stdin.read_line should build");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(contains_bytes(&bytes, b"stdin.read_line"));
+}
+
+#[test]
 fn unsupported_builtin_errors_point_to_the_target_support_matrix() {
     let source = "\
 import stdin
@@ -403,13 +440,13 @@ fn main() -> String:
   stdin.read_line()
 ";
 
-    let error = build_module_from_source(source, WasmTarget::Wasi)
-        .expect_err("stdin.read_line should stay unsupported in wasm backend");
+    let error = build_module_from_source(source, WasmTarget::JavaScriptHost)
+        .expect_err("stdin.read_line should stay unsupported on wasm-js");
     let message = error.to_string();
 
     assert!(
         message.contains("calls to `stdin.read_line`")
-            && message.contains("wasm-wasi")
+            && message.contains("wasm-js")
             && message.contains("docs/std.md#target-support-matrix"),
         "unexpected error: {message}"
     );
@@ -490,6 +527,45 @@ fn main():
 
     assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 42);
     assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "alpha\n");
+}
+
+#[test]
+fn dynamic_list_index_builds_for_wasi() {
+    let source = "\
+import stdin
+
+fn main() -> Int:
+  let tokens = stdin.read_text().split_whitespace()
+  match parse.i64(tokens[1]):
+    Ok(value) -> value
+    Err(_) -> 0
+";
+
+    let bytes = build_module_from_source(source, WasmTarget::Wasi)
+        .expect("dynamic list indexing should build on wasi");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(contains_bytes(&bytes, b"__list_get"));
+}
+
+#[test]
+fn strip_suffix_builds_for_wasi() {
+    let source = "\
+fn main() -> Int:
+  match strip_suffix(\"dreamer\", \"er\"):
+    Ok(rest) ->
+      if rest == \"dream\":
+        1
+      else:
+        0
+    Err(_) -> 0
+";
+
+    let bytes = build_module_from_source(source, WasmTarget::Wasi)
+        .expect("strip_suffix should build on wasi");
+
+    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
+    assert!(contains_bytes(&bytes, b"strip_suffix"));
 }
 
 #[test]

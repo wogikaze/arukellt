@@ -1,3 +1,5 @@
 .worktrees/
 target/
 .claude/
+
+**/*.wat

@@ -1,0 +1,17 @@
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn digit_sum(n: Int) -> Int:
+  if n < 10:
+    n
+  else:
+    n % 10 + digit_sum(n / 10)
+
+fn main():
+  let token = stdin.read_text().split_whitespace()[0]
+  parse_or_zero(token) |> digit_sum |> string |> console.println

@@ -184,7 +184,7 @@ For API-by-API target coverage, see the target support matrix in [`docs/std.md`]
 `wasm-wasi` emits a command-style module that exports only `_start`; it requires a zero-argument `main` function and drops any scalar return value at the ABI boundary.
 `String` currently lowers only as a raw `i32` pointer into exported read-only `memory` containing NUL-terminated UTF-8 literals. Literal expressions and direct returns through user-defined functions are supported in that ABI slice.
 Fieldless user-defined ADTs currently lower as raw numeric tags, and `match` lowers only when the subject is one of those ADTs and each arm is either a bare variant name or a final wildcard.
-Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs such as string operations, payload-bearing ADTs, pattern bindings, or unsupported host calls on the selected target, and the error now points back to the API-level support matrix in [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md).
+Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs outside the documented subset, such as unsupported string helpers on the selected target, payload-bearing ADTs, pattern bindings, or unsupported host calls, and the error points back to the API-level support matrix in [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md).
 
 ### Benchmark
 

@@ -70,6 +70,58 @@ notes:
 
 ## Done
 
+### WB-043
+
+title: Close the remaining WASI gaps needed to emit WAT for all ABS examples
+area: lang-backend-wasm/examples
+status: DONE
+priority: P2
+owner: ai
+depends_on: WB-042
+source: user request to emit WAT for every file under `example/abs`
+done_when:
+
+- `stdin.read_line()` lowers on `wasm-wasi`
+- ABS-style `List<String>` indexing and `strip_suffix` build on `wasm-wasi`
+- verified with `cargo fmt`, `cargo test`, and WAT generation for every `example/abs/src/*.ar`
+notes:
+- added WASI helpers for incremental stdin line reads, dynamic list indexing, and `strip_suffix`, plus string equality support needed by `abc049c`
+
+### WB-042
+
+title: Implement the bundled AtCoder ABS example programs end to end
+area: examples/abs
+status: DONE
+priority: P2
+owner: ai
+depends_on: WB-031
+source: user request
+done_when:
+
+- every `example/abs/src/*.ar` task file has a concrete implementation
+- the ABS sample inputs run successfully under `chef run`
+- verified with `cargo fmt`, `cargo test`, and direct ABS example runs
+notes:
+- added the minimal `strip_suffix` pure helper so `abc049c` can be expressed directly in Arukel
+- `abc085c` now uses a closed-form diophantine solve instead of deep recursion to avoid interpreter stack overflow
+
+### WB-041
+
+title: Grow wasm linear memory in `__alloc` for large list pipelines
+area: lang-backend-wasm
+status: DONE
+priority: P1
+owner: ai
+depends_on: none
+source: user report: `abc444b.wat` crashed with `Exception: out of bounds memory access` on `99999 45`
+done_when:
+
+- large `wasm-wasi` list pipelines grow memory instead of trapping at the initial page
+- a regression runs an `abc444b`-shaped pipeline under `wasmer` with `99999 45`
+- verified with `cargo fmt`, `cargo test -p arktc`, and `cargo test`
+notes:
+- `__alloc` now calls `memory.grow` before advancing `heap_ptr` when the requested heap end exceeds current linear memory
+
 ### WB-034
 
 title: Add cross-target pure text helpers on WASM backends

@@ -1,0 +1,31 @@
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn count_twos(n: Int) -> Int:
+  if n % 2 == 0:
+    1 + count_twos(n / 2)
+  else:
+    0
+
+fn min_int(a: Int, b: Int) -> Int:
+  if a < b:
+    a
+  else:
+    b
+
+fn min_two_count(tokens: List<String>, count: Int, index: Int) -> Int:
+  let current = count_twos(parse_or_zero(tokens[index + 1]))
+  if index + 1 == count:
+    current
+  else:
+    min_int(current, min_two_count(tokens, count, index + 1))
+
+fn main():
+  let tokens = stdin.read_text().split_whitespace()
+  let count = parse_or_zero(tokens[0])
+  min_two_count(tokens, count, 0) |> string |> console.println

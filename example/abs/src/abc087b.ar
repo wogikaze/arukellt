@@ -1,0 +1,43 @@
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn count_with_c(c: Int, remaining: Int) -> Int:
+  let count_c = remaining / 50
+  if remaining < 0:
+    0
+  else:
+    if remaining % 50 == 0:
+      if c < count_c:
+        0
+      else:
+        1
+    else:
+      0
+
+fn count_with_b(a: Int, b: Int, c: Int, target: Int, used_a: Int, used_b: Int) -> Int:
+  let remaining = target - used_a * 500 - used_b * 100
+  let current = count_with_c(c, remaining)
+  if used_b == b:
+    current
+  else:
+    current + count_with_b(a, b, c, target, used_a, used_b + 1)
+
+fn count_with_a(a: Int, b: Int, c: Int, target: Int, used_a: Int) -> Int:
+  let current = count_with_b(a, b, c, target, used_a, 0)
+  if used_a == a:
+    current
+  else:
+    current + count_with_a(a, b, c, target, used_a + 1)
+
+fn main():
+  let tokens = stdin.read_text().split_whitespace()
+  let a = parse_or_zero(tokens[0])
+  let b = parse_or_zero(tokens[1])
+  let c = parse_or_zero(tokens[2])
+  let target = parse_or_zero(tokens[3])
+  count_with_a(a, b, c, target, 0) |> string |> console.println

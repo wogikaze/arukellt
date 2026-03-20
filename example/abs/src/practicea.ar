@@ -10,8 +10,8 @@ fn parse_or_zero(text: String) -> Int:
 fn main():
   let a = parse_or_zero(stdin.read_line())
   let bc = stdin.read_line().split_whitespace()
-  let s = stdin.read_line()
   let b = parse_or_zero(bc[0])
   let c = parse_or_zero(bc[1])
+  let s = stdin.read_line()
   let result = [string(a + b + c), s].join(" ")
   result |> console.println

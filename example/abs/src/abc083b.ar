@@ -1,0 +1,41 @@
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn digit_sum(n: Int) -> Int:
+  if n < 10:
+    n
+  else:
+    n % 10 + digit_sum(n / 10)
+
+fn within_range(value: Int, low: Int, high: Int) -> Bool:
+  if value < low:
+    false
+  else:
+    if high < value:
+      false
+    else:
+      true
+
+fn contribution(n: Int, low: Int, high: Int) -> Int:
+  if within_range(digit_sum(n), low, high):
+    n
+  else:
+    0
+
+fn sum_matching(current: Int, limit: Int, low: Int, high: Int) -> Int:
+  if limit < current:
+    0
+  else:
+    contribution(current, low, high) + sum_matching(current + 1, limit, low, high)
+
+fn main():
+  let tokens = stdin.read_text().split_whitespace()
+  let n = parse_or_zero(tokens[0])
+  let a = parse_or_zero(tokens[1])
+  let b = parse_or_zero(tokens[2])
+  sum_matching(1, n, a, b) |> string |> console.println

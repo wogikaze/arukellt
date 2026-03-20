@@ -628,6 +628,86 @@ fn main():
 }
 
 #[test]
+fn build_command_reads_stdin_lines_on_wasi() {
+    let stdout = build_and_run_wasi_source_with_stdin(
+        "\
+import console
+import stdin
+
+fn main():
+  let first = stdin.read_line()
+  let second = stdin.read_line()
+  let parts = [first, second]
+  join(parts, \"|\") |> console.println
+",
+        "alpha\nbeta\n",
+    );
+
+    assert_eq!(stdout, "alpha|beta\n");
+}
+
+#[test]
+fn build_command_runs_strip_suffix_and_string_equality_on_wasi() {
+    let stdout = build_and_run_wasi_source_with_stdin(
+        "\
+import console
+
+fn main():
+  match strip_suffix(\"dreamer\", \"er\"):
+    Ok(rest) ->
+      if rest == \"dream\":
+        \"YES\" |> console.println
+      else:
+        \"NO\" |> console.println
+    Err(_) -> \"NO\" |> console.println
+",
+        "",
+    );
+
+    assert_eq!(stdout, "YES\n");
+}
+
+#[test]
+fn build_command_grows_wasi_memory_for_large_list_pipelines() {
+    let stdout = build_and_run_wasi_source_with_stdin(
+        "\
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn digit_sum(n: Int) -> Int:
+  if n < 10:
+    n
+  else:
+    n % 10 + digit_sum(n / 10)
+
+fn count_if_digit_sum_matches(n: Int, target: Int) -> Int:
+  if digit_sum(n) == target:
+    1
+  else:
+    0
+
+fn main():
+  let tokens = stdin.read_text().split_whitespace()
+  let n = parse_or_zero(tokens[0])
+  let k = parse_or_zero(tokens[1])
+  (1..=n)
+    .map(value -> count_if_digit_sum_matches(value, k))
+    .sum()
+    |> string
+    |> console.println
+",
+        "99999 45\n",
+    );
+
+    assert_eq!(stdout, "1\n");
+}
+
+#[test]
 fn build_command_runs_joined_string_output_on_wasm_js() {
     let stdout = build_and_run_js_source(
         "\

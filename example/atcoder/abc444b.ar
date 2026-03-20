@@ -1,0 +1,30 @@
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn digit_sum(n: Int) -> Int:
+  if n < 10:
+    n
+  else:
+    n % 10 + digit_sum(n / 10)
+
+fn count_if_digit_sum_matches(n: Int, target: Int) -> Int:
+  if digit_sum(n) == target:
+    1
+  else:
+    0
+
+fn count_with_digit_sum(limit: Int, target: Int) -> Int:
+  (1..=limit)
+    .map(n -> count_if_digit_sum_matches(n, target))
+    .sum()
+
+fn main():
+  let tokens = stdin.read_text().split_whitespace()
+  let n = parse_or_zero(tokens[0])
+  let k = parse_or_zero(tokens[1])
+  count_with_digit_sum(n, k) |> string |> console.println

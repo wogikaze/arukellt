@@ -855,6 +855,7 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         "range_inclusive" => Type::List(Box::new(Type::Int)),
         "string" => Type::String,
         "split_whitespace" => Type::List(Box::new(Type::String)),
+        "strip_suffix" => Type::Result(Box::new(Type::String), Box::new(Type::Unknown)),
         "parse.i64" => Type::Result(Box::new(Type::Int), Box::new(Type::Unknown)),
         "parse.bool" => Type::Result(Box::new(Type::Bool), Box::new(Type::Unknown)),
         "map" => match args.get(1).map(|arg| &arg.ty) {
@@ -947,6 +948,7 @@ fn is_builtin_function(name: &str) -> bool {
         name,
         "string"
             | "split_whitespace"
+            | "strip_suffix"
             | "parse.i64"
             | "parse.bool"
             | "map"

@@ -27,6 +27,7 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     let uses_split_whitespace = module_uses_call(module, "split_whitespace");
     let uses_parse_i64 = module_uses_call(module, "parse.i64");
     let uses_parse_bool = module_uses_call(module, "parse.bool");
+    let uses_strip_suffix = module_uses_call(module, "strip_suffix");
     let mut wat_module = String::from("(module\n");
     let function_names = module
         .functions
@@ -45,7 +46,9 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
              (func $__host_console_println (param i32 i32)))\n",
         );
     }
-    if target == WasmTarget::Wasi && (abi.uses_fs_read_text || abi.uses_stdin_read_text) {
+    if target == WasmTarget::Wasi
+        && (abi.uses_fs_read_text || abi.uses_stdin_read_text || abi.uses_stdin_read_line)
+    {
         wat_module.push_str(
             "  (import \"wasi_snapshot_preview1\" \"fd_read\" \
              (func $fd_read (param i32 i32 i32 i32) (result i32)))\n",
@@ -75,12 +78,18 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     if uses_parse_bool {
         emit_parse_bool_helper(&abi, &mut wat_module);
     }
+    if uses_strip_suffix {
+        emit_strip_suffix_helper(&mut wat_module);
+    }
     if target == WasmTarget::Wasi {
         if abi.uses_fs_read_text {
             emit_fs_read_text_helper(&abi, &mut wat_module)?;
         }
-        if abi.uses_stdin_read_text {
+        if abi.uses_stdin_read_text || abi.uses_stdin_read_line {
             emit_stdin_read_text_helper(&abi, &mut wat_module);
+        }
+        if abi.uses_stdin_read_line {
+            emit_stdin_read_line_helper(&mut wat_module);
         }
     }
     emit_closure_support(&abi, &function_names, &mut wat_module)?;
@@ -167,9 +176,13 @@ fn emit_heap_primitives(abi: &WasmAbi, out: &mut String) {
         return;
     }
     emit_strlen_helper(out);
+    emit_string_eq_helper(out);
     if abi.needs_heap() {
         emit_alloc_helper(out);
         emit_memcpy_helper(out);
+        if abi.uses_list_runtime {
+            emit_list_get_helper(out);
+        }
     }
 }
 
@@ -613,6 +626,119 @@ fn emit_stdin_read_text_helper(abi: &WasmAbi, out: &mut String) {
     out.push_str("  )\n");
 }
 
+fn emit_stdin_read_line_helper(out: &mut String) {
+    out.push_str("  (global $__stdin_line_text_ptr (mut i32) (i32.const 0))\n");
+    out.push_str("  (global $__stdin_line_pos (mut i32) (i32.const 0))\n");
+    out.push_str("  (func $stdin.read_line (result i32)\n");
+    out.push_str("    (local $text_ptr i32)\n");
+    out.push_str("    (local $scan i32)\n");
+    out.push_str("    (local $start i32)\n");
+    out.push_str("    (local $len i32)\n");
+    out.push_str("    (local $copy_len i32)\n");
+    out.push_str("    (local $line_ptr i32)\n");
+    out.push_str("    global.get $__stdin_line_text_ptr\n");
+    out.push_str("    local.tee $text_ptr\n");
+    out.push_str("    i32.eqz\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        call $stdin.read_text\n");
+    out.push_str("        local.tee $text_ptr\n");
+    out.push_str("        global.set $__stdin_line_text_ptr\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        global.set $__stdin_line_pos\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    global.get $__stdin_line_pos\n");
+    out.push_str("    local.tee $start\n");
+    out.push_str("    local.set $scan\n");
+    out.push_str("    (block $scan_done\n");
+    out.push_str("      (loop $scan_loop\n");
+    out.push_str("        local.get $text_ptr\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        i32.eqz\n");
+    out.push_str("        br_if $scan_done\n");
+    out.push_str("        local.get $text_ptr\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        i32.const 10\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        br_if $scan_done\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $scan\n");
+    out.push_str("        br $scan_loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $scan\n");
+    out.push_str("    local.get $start\n");
+    out.push_str("    i32.sub\n");
+    out.push_str("    local.set $len\n");
+    out.push_str("    local.get $len\n");
+    out.push_str("    local.set $copy_len\n");
+    out.push_str("    local.get $copy_len\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.gt_s\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        local.get $text_ptr\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.sub\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        i32.const 13\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            local.get $copy_len\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.sub\n");
+    out.push_str("            local.set $copy_len\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $copy_len\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    i32.add\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $line_ptr\n");
+    out.push_str("    local.get $line_ptr\n");
+    out.push_str("    local.get $text_ptr\n");
+    out.push_str("    local.get $start\n");
+    out.push_str("    i32.add\n");
+    out.push_str("    local.get $copy_len\n");
+    out.push_str("    call $__memcpy\n");
+    out.push_str("    local.get $line_ptr\n");
+    out.push_str("    local.get $copy_len\n");
+    out.push_str("    i32.add\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.store8\n");
+    out.push_str("    local.get $text_ptr\n");
+    out.push_str("    local.get $scan\n");
+    out.push_str("    i32.add\n");
+    out.push_str("    i32.load8_u\n");
+    out.push_str("    i32.eqz\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        global.set $__stdin_line_pos\n");
+    out.push_str("      )\n");
+    out.push_str("      (else\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        global.set $__stdin_line_pos\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $line_ptr\n");
+    out.push_str("  )\n");
+}
+
 fn emit_split_whitespace_helper(out: &mut String) {
     out.push_str("  (func $__is_ascii_whitespace (param $byte i32) (result i32)\n");
     out.push_str("    local.get $byte\n");
@@ -791,6 +917,108 @@ fn emit_split_whitespace_helper(out: &mut String) {
     out.push_str("    local.get $items_ptr\n");
     out.push_str("    i32.store offset=4\n");
     out.push_str("    local.get $list_ptr\n");
+    out.push_str("  )\n");
+}
+
+fn emit_strip_suffix_helper(out: &mut String) {
+    out.push_str("  (func $strip_suffix (param $text i32) (param $suffix i32) (result i32)\n");
+    out.push_str("    (local $text_len i32)\n");
+    out.push_str("    (local $suffix_len i32)\n");
+    out.push_str("    (local $rest_len i32)\n");
+    out.push_str("    (local $scan i32)\n");
+    out.push_str("    (local $result_ptr i32)\n");
+    out.push_str("    (local $rest_ptr i32)\n");
+    out.push_str("    local.get $text\n");
+    out.push_str("    call $__strlen\n");
+    out.push_str("    local.set $text_len\n");
+    out.push_str("    local.get $suffix\n");
+    out.push_str("    call $__strlen\n");
+    out.push_str("    local.set $suffix_len\n");
+    out.push_str("    local.get $text_len\n");
+    out.push_str("    local.get $suffix_len\n");
+    out.push_str("    i32.lt_u\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        i32.const 8\n");
+    out.push_str("        call $__alloc\n");
+    out.push_str("        local.set $result_ptr\n");
+    out.push_str("        local.get $result_ptr\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.store\n");
+    out.push_str("        local.get $result_ptr\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        i32.store offset=4\n");
+    out.push_str("        local.get $result_ptr\n");
+    out.push_str("        return\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $text_len\n");
+    out.push_str("    local.get $suffix_len\n");
+    out.push_str("    i32.sub\n");
+    out.push_str("    local.set $rest_len\n");
+    out.push_str("    (block $mismatch\n");
+    out.push_str("      (loop $compare\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        local.get $suffix_len\n");
+    out.push_str("        i32.ge_u\n");
+    out.push_str("        br_if $mismatch\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        local.get $rest_len\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        local.get $suffix\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        i32.ne\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            i32.const 8\n");
+    out.push_str("            call $__alloc\n");
+    out.push_str("            local.set $result_ptr\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            i32.store\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            i32.store offset=4\n");
+    out.push_str("            local.get $result_ptr\n");
+    out.push_str("            return\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $scan\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $scan\n");
+    out.push_str("        br $compare\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $rest_len\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    i32.add\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $rest_ptr\n");
+    out.push_str("    local.get $rest_ptr\n");
+    out.push_str("    local.get $text\n");
+    out.push_str("    local.get $rest_len\n");
+    out.push_str("    call $__memcpy\n");
+    out.push_str("    local.get $rest_ptr\n");
+    out.push_str("    local.get $rest_len\n");
+    out.push_str("    i32.add\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.store8\n");
+    out.push_str("    i32.const 8\n");
+    out.push_str("    call $__alloc\n");
+    out.push_str("    local.set $result_ptr\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.store\n");
+    out.push_str("    local.get $result_ptr\n");
+    out.push_str("    local.get $rest_ptr\n");
+    out.push_str("    i32.store offset=4\n");
+    out.push_str("    local.get $result_ptr\n");
     out.push_str("  )\n");
 }
 
@@ -1166,6 +1394,37 @@ fn emit_expr(
         }
         HighExprKind::Binary { op, left, right } => {
             if left.ty == Type::String || right.ty == Type::String {
+                if matches!(op, lang_core::BinaryOp::Equal)
+                    && left.ty == Type::String
+                    && right.ty == Type::String
+                {
+                    emit_expr(
+                        left,
+                        indent,
+                        locals,
+                        declared_local_names,
+                        match_bindings,
+                        captures,
+                        env_local,
+                        function_names,
+                        abi,
+                        out,
+                    )?;
+                    emit_expr(
+                        right,
+                        indent,
+                        locals,
+                        declared_local_names,
+                        match_bindings,
+                        captures,
+                        env_local,
+                        function_names,
+                        abi,
+                        out,
+                    )?;
+                    out.push_str(&format!("{pad}call $__streq\n"));
+                    return Ok(());
+                }
                 bail!("string operations are not yet supported in wasm backend");
             }
             emit_expr(
@@ -1263,12 +1522,6 @@ fn emit_expr(
                 let [receiver, index] = args.as_slice() else {
                     bail!("`__index` expects exactly two arguments in wasm backend");
                 };
-                let HighExprKind::Int(index_value) = index.kind else {
-                    bail!("wasm backend currently requires constant indexes");
-                };
-                if index_value < 0 {
-                    bail!("wasm backend does not support negative indexes");
-                }
                 emit_expr(
                     receiver,
                     indent,
@@ -1285,13 +1538,28 @@ fn emit_expr(
                     Type::Tuple(_)
                         if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost) =>
                     {
+                        let HighExprKind::Int(index_value) = index.kind else {
+                            bail!("wasm backend currently requires constant indexes");
+                        };
+                        if index_value < 0 {
+                            bail!("wasm backend does not support negative indexes");
+                        }
                         out.push_str(&format!("{pad}i32.load offset={}\n", index_value * 4));
                     }
                     Type::List(_) => {
-                        out.push_str(&format!("{pad}i32.load offset=4\n"));
-                        out.push_str(&format!("{pad}i32.const {}\n", index_value * 4));
-                        out.push_str(&format!("{pad}i32.add\n"));
-                        out.push_str(&format!("{pad}i32.load\n"));
+                        emit_expr(
+                            index,
+                            indent,
+                            locals,
+                            declared_local_names,
+                            match_bindings,
+                            captures,
+                            env_local,
+                            function_names,
+                            abi,
+                            out,
+                        )?;
+                        out.push_str(&format!("{pad}call $__list_get\n"));
                     }
                     _ => bail!("unsupported index receiver type in wasm backend"),
                 }
@@ -1615,6 +1883,11 @@ fn emit_expr(
                     bail!("`stdin.read_text` expects no arguments in wasm backend");
                 }
                 out.push_str(&format!("{pad}call $stdin.read_text\n"));
+            } else if abi.target == WasmTarget::Wasi && callee == "stdin.read_line" {
+                if !args.is_empty() {
+                    bail!("`stdin.read_line` expects no arguments in wasm backend");
+                }
+                out.push_str(&format!("{pad}call $stdin.read_line\n"));
             } else if abi.target == WasmTarget::Wasi && callee == "fs.read_text" {
                 let [path] = args.as_slice() else {
                     bail!("`fs.read_text` expects exactly one path argument in wasm backend");
@@ -1686,6 +1959,40 @@ fn emit_expr(
                     out,
                 )?;
                 out.push_str(&format!("{pad}call $parse.bool\n"));
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "strip_suffix"
+            {
+                let [text, suffix] = args.as_slice() else {
+                    bail!("`strip_suffix` expects exactly two string arguments in wasm backend");
+                };
+                if !matches!(text.ty, Type::String) || !matches!(suffix.ty, Type::String) {
+                    bail!("`strip_suffix` expects String arguments in wasm backend");
+                }
+                emit_expr(
+                    text,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                emit_expr(
+                    suffix,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}call $strip_suffix\n"));
             } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
                 && callee == "Next"
             {
@@ -1899,7 +2206,7 @@ fn emit_list_literal(
     abi: &WasmAbi,
     out: &mut String,
 ) -> Result<()> {
-    ensure_int_list_type(list_ty, abi)?;
+    ensure_wasm_list_type(list_ty, abi)?;
 
     let pad = "  ".repeat(indent);
     let tmp_ptr_local = heap_tmp_ptr_local(indent);
@@ -1995,13 +2302,16 @@ fn emit_tuple_literal(
     Ok(())
 }
 
-fn ensure_int_list_type(list_ty: &Type, abi: &WasmAbi) -> Result<()> {
+fn ensure_wasm_list_type(list_ty: &Type, abi: &WasmAbi) -> Result<()> {
     if !matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost) {
         bail!("list expressions are not yet supported in wasm backend");
     }
     match list_ty {
         Type::List(item) if matches!(item.as_ref(), Type::Int) => Ok(()),
-        Type::List(_) => bail!("only List<i64> is currently supported in wasm backend"),
+        Type::List(item) if matches!(item.as_ref(), Type::String) => Ok(()),
+        Type::List(_) => {
+            bail!("only List<i64> and List<String> are currently supported in wasm backend")
+        }
         _ => bail!("expected list type in wasm backend"),
     }
 }
@@ -2417,6 +2727,7 @@ struct WasmAbi {
     uses_string_builtin: bool,
     uses_fs_read_text: bool,
     uses_stdin_read_text: bool,
+    uses_stdin_read_line: bool,
     uses_parse_i64: bool,
     uses_parse_bool: bool,
     uses_list_runtime: bool,
@@ -2475,6 +2786,7 @@ impl WasmAbi {
         let mut uses_string_builtin = false;
         let mut uses_fs_read_text = false;
         let mut uses_stdin_read_text = false;
+        let mut uses_stdin_read_line = false;
         let mut uses_split_whitespace = false;
         let mut uses_parse_i64 = false;
         let mut uses_parse_bool = false;
@@ -2494,6 +2806,7 @@ impl WasmAbi {
                 &mut uses_string_builtin,
                 &mut uses_fs_read_text,
                 &mut uses_stdin_read_text,
+                &mut uses_stdin_read_line,
                 &mut uses_split_whitespace,
                 &mut uses_parse_i64,
                 &mut uses_parse_bool,
@@ -2511,6 +2824,7 @@ impl WasmAbi {
         if target == WasmTarget::JavaScriptHost {
             uses_fs_read_text = false;
             uses_stdin_read_text = false;
+            uses_stdin_read_line = false;
             uses_adt_runtime = false;
         }
 
@@ -2528,6 +2842,7 @@ impl WasmAbi {
             uses_string_builtin,
             uses_fs_read_text,
             uses_stdin_read_text,
+            uses_stdin_read_line,
             uses_parse_i64,
             uses_parse_bool,
             uses_list_runtime,
@@ -2557,7 +2872,8 @@ impl WasmAbi {
             || (self.target == WasmTarget::Wasi
                 && (self.uses_console_println
                     || self.uses_fs_read_text
-                    || self.uses_stdin_read_text))
+                    || self.uses_stdin_read_text
+                    || self.uses_stdin_read_line))
     }
 
     fn iovec_base(&self) -> u32 {
@@ -3244,6 +3560,10 @@ fn emit_alloc_helper(out: &mut String) {
     out.push_str("  (func $__alloc (param $size i32) (result i32)\n");
     out.push_str("    (local $ptr i32)\n");
     out.push_str("    (local $aligned i32)\n");
+    out.push_str("    (local $needed_end i32)\n");
+    out.push_str("    (local $current_bytes i32)\n");
+    out.push_str("    (local $grow_bytes i32)\n");
+    out.push_str("    (local $grow_pages i32)\n");
     out.push_str("    global.get $heap_ptr\n");
     out.push_str("    local.set $ptr\n");
     out.push_str("    local.get $size\n");
@@ -3255,6 +3575,36 @@ fn emit_alloc_helper(out: &mut String) {
     out.push_str("    local.get $ptr\n");
     out.push_str("    local.get $aligned\n");
     out.push_str("    i32.add\n");
+    out.push_str("    local.set $needed_end\n");
+    out.push_str("    memory.size\n");
+    out.push_str("    i32.const 16\n");
+    out.push_str("    i32.shl\n");
+    out.push_str("    local.set $current_bytes\n");
+    out.push_str("    local.get $needed_end\n");
+    out.push_str("    local.get $current_bytes\n");
+    out.push_str("    i32.gt_u\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        local.get $needed_end\n");
+    out.push_str("        local.get $current_bytes\n");
+    out.push_str("        i32.sub\n");
+    out.push_str("        local.set $grow_bytes\n");
+    out.push_str("        local.get $grow_bytes\n");
+    out.push_str("        i32.const 65535\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.const 16\n");
+    out.push_str("        i32.shr_u\n");
+    out.push_str("        local.set $grow_pages\n");
+    out.push_str("        local.get $grow_pages\n");
+    out.push_str("        memory.grow\n");
+    out.push_str("        i32.const -1\n");
+    out.push_str("        i32.eq\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then unreachable)\n");
+    out.push_str("        )\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $needed_end\n");
     out.push_str("    global.set $heap_ptr\n");
     out.push_str("    local.get $ptr\n");
     out.push_str("  )\n");
@@ -3284,6 +3634,62 @@ fn emit_strlen_helper(out: &mut String) {
     out.push_str("  )\n");
 }
 
+fn emit_string_eq_helper(out: &mut String) {
+    out.push_str("  (func $__streq (param $left i32) (param $right i32) (result i32)\n");
+    out.push_str("    (local $left_len i32)\n");
+    out.push_str("    (local $right_len i32)\n");
+    out.push_str("    (local $i i32)\n");
+    out.push_str("    (local $equal i32)\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    local.set $equal\n");
+    out.push_str("    local.get $left\n");
+    out.push_str("    call $__strlen\n");
+    out.push_str("    local.set $left_len\n");
+    out.push_str("    local.get $right\n");
+    out.push_str("    call $__strlen\n");
+    out.push_str("    local.set $right_len\n");
+    out.push_str("    local.get $left_len\n");
+    out.push_str("    local.get $right_len\n");
+    out.push_str("    i32.ne\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        return\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    (block $done\n");
+    out.push_str("      (loop $loop\n");
+    out.push_str("        local.get $i\n");
+    out.push_str("        local.get $left_len\n");
+    out.push_str("        i32.ge_u\n");
+    out.push_str("        br_if $done\n");
+    out.push_str("        local.get $left\n");
+    out.push_str("        local.get $i\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        local.get $right\n");
+    out.push_str("        local.get $i\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        i32.ne\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            local.set $equal\n");
+    out.push_str("            br $done\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $i\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $i\n");
+    out.push_str("        br $loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $equal\n");
+    out.push_str("  )\n");
+}
+
 fn emit_memcpy_helper(out: &mut String) {
     out.push_str("  (func $__memcpy (param $dst i32) (param $src i32) (param $len i32)\n");
     out.push_str("    (local $i i32)\n");
@@ -3306,6 +3712,35 @@ fn emit_memcpy_helper(out: &mut String) {
     out.push_str("        i32.add\n");
     out.push_str("        local.set $i\n");
     out.push_str("        br $loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("  )\n");
+}
+
+fn emit_list_get_helper(out: &mut String) {
+    out.push_str("  (func $__list_get (param $list i32) (param $index i32) (result i32)\n");
+    out.push_str("    local.get $index\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.lt_s\n");
+    out.push_str("    (if (result i32)\n");
+    out.push_str("      (then i32.const 0)\n");
+    out.push_str("      (else\n");
+    out.push_str("        local.get $index\n");
+    out.push_str("        local.get $list\n");
+    out.push_str("        i32.load\n");
+    out.push_str("        i32.ge_u\n");
+    out.push_str("        (if (result i32)\n");
+    out.push_str("          (then i32.const 0)\n");
+    out.push_str("          (else\n");
+    out.push_str("            local.get $list\n");
+    out.push_str("            i32.load offset=4\n");
+    out.push_str("            local.get $index\n");
+    out.push_str("            i32.const 4\n");
+    out.push_str("            i32.mul\n");
+    out.push_str("            i32.add\n");
+    out.push_str("            i32.load\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
     out.push_str("      )\n");
     out.push_str("    )\n");
     out.push_str("  )\n");
@@ -4028,6 +4463,7 @@ fn scan_expr(
     uses_string_builtin: &mut bool,
     uses_fs_read_text: &mut bool,
     uses_stdin_read_text: &mut bool,
+    uses_stdin_read_line: &mut bool,
     uses_split_whitespace: &mut bool,
     uses_parse_i64: &mut bool,
     uses_parse_bool: &mut bool,
@@ -4056,9 +4492,15 @@ fn scan_expr(
             if callee == "stdin.read_text" {
                 *uses_stdin_read_text = true;
             }
+            if callee == "stdin.read_line" {
+                *uses_stdin_read_line = true;
+            }
             if callee == "split_whitespace" {
                 *uses_split_whitespace = true;
                 *uses_list_runtime = true;
+            }
+            if callee == "strip_suffix" {
+                *uses_adt_runtime = true;
             }
             if callee == "parse.i64" {
                 *uses_parse_i64 = true;
@@ -4101,6 +4543,7 @@ fn scan_expr(
                     uses_string_builtin,
                     uses_fs_read_text,
                     uses_stdin_read_text,
+                    uses_stdin_read_line,
                     uses_split_whitespace,
                     uses_parse_i64,
                     uses_parse_bool,
@@ -4123,6 +4566,7 @@ fn scan_expr(
                 uses_string_builtin,
                 uses_fs_read_text,
                 uses_stdin_read_text,
+                uses_stdin_read_line,
                 uses_split_whitespace,
                 uses_parse_i64,
                 uses_parse_bool,
@@ -4142,6 +4586,7 @@ fn scan_expr(
                 uses_string_builtin,
                 uses_fs_read_text,
                 uses_stdin_read_text,
+                uses_stdin_read_line,
                 uses_split_whitespace,
                 uses_parse_i64,
                 uses_parse_bool,
@@ -4167,6 +4612,7 @@ fn scan_expr(
                 uses_string_builtin,
                 uses_fs_read_text,
                 uses_stdin_read_text,
+                uses_stdin_read_line,
                 uses_split_whitespace,
                 uses_parse_i64,
                 uses_parse_bool,
@@ -4186,6 +4632,7 @@ fn scan_expr(
                 uses_string_builtin,
                 uses_fs_read_text,
                 uses_stdin_read_text,
+                uses_stdin_read_line,
                 uses_split_whitespace,
                 uses_parse_i64,
                 uses_parse_bool,
@@ -4205,6 +4652,7 @@ fn scan_expr(
                 uses_string_builtin,
                 uses_fs_read_text,
                 uses_stdin_read_text,
+                uses_stdin_read_line,
                 uses_split_whitespace,
                 uses_parse_i64,
                 uses_parse_bool,
@@ -4227,6 +4675,7 @@ fn scan_expr(
                 uses_string_builtin,
                 uses_fs_read_text,
                 uses_stdin_read_text,
+                uses_stdin_read_line,
                 uses_split_whitespace,
                 uses_parse_i64,
                 uses_parse_bool,
@@ -4247,6 +4696,7 @@ fn scan_expr(
                     uses_string_builtin,
                     uses_fs_read_text,
                     uses_stdin_read_text,
+                    uses_stdin_read_line,
                     uses_split_whitespace,
                     uses_parse_i64,
                     uses_parse_bool,
@@ -4271,6 +4721,7 @@ fn scan_expr(
                     uses_string_builtin,
                     uses_fs_read_text,
                     uses_stdin_read_text,
+                    uses_stdin_read_line,
                     uses_split_whitespace,
                     uses_parse_i64,
                     uses_parse_bool,
@@ -4297,6 +4748,7 @@ fn scan_expr(
                     uses_string_builtin,
                     uses_fs_read_text,
                     uses_stdin_read_text,
+                    uses_stdin_read_line,
                     uses_split_whitespace,
                     uses_parse_i64,
                     uses_parse_bool,
@@ -4319,6 +4771,7 @@ fn scan_expr(
                 uses_string_builtin,
                 uses_fs_read_text,
                 uses_stdin_read_text,
+                uses_stdin_read_line,
                 uses_split_whitespace,
                 uses_parse_i64,
                 uses_parse_bool,
@@ -4340,6 +4793,7 @@ fn scan_expr(
                 uses_string_builtin,
                 uses_fs_read_text,
                 uses_stdin_read_text,
+                uses_stdin_read_line,
                 uses_split_whitespace,
                 uses_parse_i64,
                 uses_parse_bool,
@@ -4359,6 +4813,7 @@ fn scan_expr(
                 uses_string_builtin,
                 uses_fs_read_text,
                 uses_stdin_read_text,
+                uses_stdin_read_line,
                 uses_split_whitespace,
                 uses_parse_i64,
                 uses_parse_bool,

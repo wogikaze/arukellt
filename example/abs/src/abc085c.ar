@@ -1,0 +1,46 @@
+import stdin
+import console
+
+fn parse_or_zero(text: String) -> Int:
+  match parse.i64(text):
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn render_answer(x: Int, y: Int, z: Int) -> String:
+  [string(x), string(y), string(z)].join(" ")
+
+fn no_answer() -> String:
+  render_answer(0 - 1, 0 - 1, 0 - 1)
+
+fn modulo(value: Int, base: Int) -> Int:
+  let remainder = value % base
+  if remainder < 0:
+    remainder + base
+  else:
+    remainder
+
+fn solve(count: Int, total: Int) -> String:
+  let target_units = total / 1000 - count
+  if target_units < 0:
+    no_answer()
+  else:
+    let y_base = modulo(7 * modulo(target_units, 9), 9)
+    let remaining = target_units - 4 * y_base
+    if remaining < 0:
+      no_answer()
+    else:
+      if remaining % 9 == 0:
+        let x_base = remaining / 9
+        let z_base = count - x_base - y_base
+        if z_base < 0:
+          no_answer()
+        else:
+          render_answer(x_base, y_base, z_base)
+      else:
+        no_answer()
+
+fn main():
+  let tokens = stdin.read_text().split_whitespace()
+  let count = parse_or_zero(tokens[0])
+  let total = parse_or_zero(tokens[1])
+  solve(count, total) |> console.println
