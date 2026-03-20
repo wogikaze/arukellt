@@ -28,8 +28,12 @@ fn example_root() -> PathBuf {
     repo_root().join("example")
 }
 
+fn example_meta_root() -> PathBuf {
+    example_root().join("meta")
+}
+
 fn example_matrix() -> Vec<ExampleExpectation> {
-    let path = example_root().join("matrix.json");
+    let path = example_meta_root().join("matrix.json");
     let source = fs::read_to_string(&path)
         .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
     serde_json::from_str(&source)

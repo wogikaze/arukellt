@@ -244,10 +244,21 @@ fn minify_wat(source: &str) -> String {
 }
 
 fn load_stdout_fixture(file: &Path) -> Result<Option<String>> {
-    let fixture = file.with_extension("stdout");
-    if fixture.exists() {
-        return fs::read_to_string(&fixture)
-            .with_context(|| format!("failed to read {}", fixture.display()))
+    if let (Some(dir), Some(stem)) = (file.parent(), file.file_stem()) {
+        let meta_fixture = dir
+            .join("meta")
+            .join(format!("{}.stdout", stem.to_string_lossy()));
+        if meta_fixture.exists() {
+            return fs::read_to_string(&meta_fixture)
+                .with_context(|| format!("failed to read {}", meta_fixture.display()))
+                .map(Some);
+        }
+    }
+
+    let adjacent_fixture = file.with_extension("stdout");
+    if adjacent_fixture.exists() {
+        return fs::read_to_string(&adjacent_fixture)
+            .with_context(|| format!("failed to read {}", adjacent_fixture.display()))
             .map(Some);
     }
     Ok(None)

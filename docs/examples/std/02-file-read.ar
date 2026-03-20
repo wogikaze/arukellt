@@ -2,6 +2,6 @@ import console
 import fs
 
 fn main():
-  match fs.read_text("hello.txt"):
+  match fs.read_text("meta/hello.txt"):
     Ok(text) -> text |> console.println
     Err(_) -> "read failed" |> console.println

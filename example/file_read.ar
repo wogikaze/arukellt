@@ -18,6 +18,6 @@ fn render_read_result(result: Result<String, ReadError>) -> String:
     Err(error) -> error |> render_read_error
 
 fn main():
-  fs.read_text("hello.txt")
+  fs.read_text("meta/hello.txt")
     |> render_read_result
     |> console.println

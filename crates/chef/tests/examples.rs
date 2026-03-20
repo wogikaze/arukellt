@@ -27,8 +27,12 @@ fn example_root() -> PathBuf {
     repo_root().join("example")
 }
 
+fn example_meta_root() -> PathBuf {
+    example_root().join("meta")
+}
+
 fn example_matrix() -> Vec<ExampleExpectation> {
-    let path = example_root().join("matrix.json");
+    let path = example_meta_root().join("matrix.json");
     let source = fs::read_to_string(&path)
         .unwrap_or_else(|error| panic!("failed to read {}: {error}", path.display()));
     serde_json::from_str(&source)
@@ -36,7 +40,10 @@ fn example_matrix() -> Vec<ExampleExpectation> {
 }
 
 fn stdout_fixture(path: &Path) -> String {
-    let fixture = path.with_extension("stdout");
+    let fixture = example_meta_root().join(format!(
+        "{}.stdout",
+        path.file_stem().expect("example stem").to_string_lossy()
+    ));
     fs::read_to_string(&fixture)
         .unwrap_or_else(|error| panic!("failed to read fixture {}: {error}", fixture.display()))
 }

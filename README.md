@@ -76,9 +76,9 @@ The repository includes language-surface examples in [`example/`](/home/wogikaze
 - a pure scalar WASM-friendly slice
 
 All bundled examples are executable through `chef run` and verifiable through `chef test`.
-Each example has an adjacent `.stdout` fixture that acts as the snapshot contract for the current toolchain.
+Each example has a matching fixture under [`example/meta/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/meta) that acts as the snapshot contract for the current toolchain.
 Each bundled example also passes `arktc check`.
-The machine-checkable source of truth for the bundled-example contract lives in [`example/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/matrix.json).
+The machine-checkable source of truth for the bundled-example contract lives in [`example/meta/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/meta/matrix.json).
 After changing a bundled example or extending backend support, refresh the contract by updating that file and rerunning `cargo test -p arktc -p chef --test examples`.
 
 The current bundled-example matrix is:

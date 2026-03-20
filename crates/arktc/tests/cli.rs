@@ -526,7 +526,8 @@ fn main() -> Int:
 #[test]
 fn build_command_runs_closure_example_on_wasi() {
     let file = repo_root().join("example/closure.ar");
-    let expected = fs::read_to_string(repo_root().join("example/closure.stdout")).expect("stdout");
+    let expected =
+        fs::read_to_string(repo_root().join("example/meta/closure.stdout")).expect("stdout");
     let dir = tempdir().expect("tempdir");
     let output_file = dir.path().join("closure.wasm");
 

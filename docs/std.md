@@ -5,7 +5,7 @@ The current v0.0.1 standard surface is intentionally narrow. It is centered on b
 ## Target Support Matrix
 
 Use this table when choosing `arktc build --target ...` or `chef build --target ...`.
-[`example/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/matrix.json) is the example-level contract; this section is the API-level contract.
+[`example/meta/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/meta/matrix.json) is the example-level contract; this section is the API-level contract.
 
 | surface | interpreter | `wasm-js` | `wasm-wasi` | notes |
 | --- | --- | --- | --- | --- |
@@ -49,7 +49,7 @@ import console
 import fs
 
 fn main():
-  match fs.read_text("hello.txt"):
+  match fs.read_text("meta/hello.txt"):
     Ok(text) -> text |> console.println
     Err(_) -> "read failed" |> console.println
 ```
