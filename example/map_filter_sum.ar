@@ -3,13 +3,16 @@ import console
 fn main():
   [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     .map(double)
-    .filter(n -> divisible_by(n, 3))
+    .filter(is_divisible_by_three)
     .sum()
     |> string
     |> console.println
 
 fn double(value: i64) -> i64:
   value * 2
+
+fn is_divisible_by_three(value: i64) -> Bool:
+  divisible_by(value, 3)
 
 fn divisible_by(value: i64, divisor: i64) -> Bool:
   value % divisor == 0

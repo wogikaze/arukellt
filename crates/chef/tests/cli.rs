@@ -200,7 +200,7 @@ import stdin
 import console
 
 fn parse_or_zero(text: String) -> Int:
-  let parsed = parse_int(text)
+  let parsed = parse.i64(text)
   match parsed:
     Ok(value) -> value
     Err(_) -> 0

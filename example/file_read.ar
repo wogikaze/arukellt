@@ -12,9 +12,12 @@ fn render_read_error(error: ReadError) -> String:
     PermissionDenied -> "permission denied"
     UnknownReadError -> "read failed"
 
+fn render_read_result(result: Result<String, ReadError>) -> String:
+  match result:
+    Ok(text) -> text
+    Err(error) -> error |> render_read_error
+
 fn main():
-  match fs.read_text("hello.txt"):
-    Ok(text) ->
-      text |> console.println
-    Err(error) ->
-      error |> render_read_error |> console.println
+  fs.read_text("hello.txt")
+    |> render_read_result
+    |> console.println

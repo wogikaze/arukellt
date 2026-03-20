@@ -13,9 +13,12 @@ fn render_error(error: Error) -> String:
   match error:
     DivisionByZero -> "error"
 
+fn render_result(result: Result<i64, Error>) -> String:
+  match result:
+    Ok(value) -> value |> string
+    Err(error) -> error |> render_error
+
 fn main():
-  match divide(10, 0):
-    Ok(value) ->
-      value |> string |> console.println
-    Err(error) ->
-      error |> render_error |> console.println
+  divide(10, 0)
+    |> render_result
+    |> console.println

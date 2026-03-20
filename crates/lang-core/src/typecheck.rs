@@ -471,6 +471,23 @@ impl<'a> FunctionChecker<'a> {
                 args,
             } => {
                 let typed_receiver = self.infer_expr(receiver);
+                if method == "to_string" && args.is_empty() {
+                    self.diagnostics.push(make_warning(
+                        "W_CANONICAL_TO_STRING",
+                        "Use the canonical string conversion helper",
+                        "string(value)",
+                        format!("{}.to_string()", render_expr(receiver)),
+                        "discouraged_to_string_method",
+                        &format!("Rewrite this as `string({})`.", render_expr(receiver)),
+                    ));
+                    return TypedExpr {
+                        kind: TypedExprKind::Call {
+                            callee: "string".to_owned(),
+                            args: vec![typed_receiver],
+                        },
+                        ty: Type::String,
+                    };
+                }
                 let mut typed_args = vec![typed_receiver];
                 typed_args.extend(args.iter().map(|arg| self.infer_expr(arg)));
                 let ty = builtin_return_type(method, &typed_args).unwrap_or_else(|| {
@@ -502,6 +519,16 @@ impl<'a> FunctionChecker<'a> {
                 }
             }
             Expr::Call { callee, args } => {
+                if callee == "parse_int" && args.len() == 1 {
+                    self.diagnostics.push(make_warning(
+                        "W_CANONICAL_PARSE_API",
+                        "Use the canonical parse API spelling",
+                        "parse.i64(value)",
+                        format!("parse_int({})", render_expr(&args[0])),
+                        "discouraged_parse_entrypoint",
+                        &format!("Rewrite this as `parse.i64({})`.", render_expr(&args[0])),
+                    ));
+                }
                 if callee == "iter.unfold" {
                     let mut typed_args = Vec::with_capacity(args.len());
                     if let Some(seed) = args.first() {
@@ -636,7 +663,8 @@ impl<'a> FunctionChecker<'a> {
                         "known function",
                         callee.clone(),
                         "unknown_call_target",
-                        "Declare the function before calling it.",
+                        canonical_call_suggestion(callee)
+                            .unwrap_or("Declare the function before calling it."),
                     ));
                     Type::Unknown
                 };
@@ -827,7 +855,8 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         "range_inclusive" => Type::List(Box::new(Type::Int)),
         "string" => Type::String,
         "split_whitespace" => Type::List(Box::new(Type::String)),
-        "parse_int" => Type::Result(Box::new(Type::Int), Box::new(Type::Unknown)),
+        "parse.i64" => Type::Result(Box::new(Type::Int), Box::new(Type::Unknown)),
+        "parse.bool" => Type::Result(Box::new(Type::Bool), Box::new(Type::Unknown)),
         "map" => match args.get(1).map(|arg| &arg.ty) {
             Some(Type::Fn(_, result)) => Type::List(Box::new((**result).clone())),
             _ => Type::List(Box::new(Type::Unknown)),
@@ -917,7 +946,8 @@ fn is_builtin_function(name: &str) -> bool {
         name,
         "string"
             | "split_whitespace"
-            | "parse_int"
+            | "parse.i64"
+            | "parse.bool"
             | "map"
             | "filter"
             | "sum"
@@ -938,6 +968,14 @@ fn is_builtin_function(name: &str) -> bool {
 fn builtin_function_type(name: &str) -> Option<(Type, Type)> {
     match name {
         "string" => Some((Type::Int, Type::String)),
+        _ => None,
+    }
+}
+
+fn canonical_call_suggestion(callee: &str) -> Option<&'static str> {
+    match callee {
+        "parse_int" | "parse_i64" => Some("Use `parse.i64(value)` instead."),
+        "parse_bool" => Some("Use `parse.bool(value)` instead."),
         _ => None,
     }
 }
@@ -966,5 +1004,73 @@ fn make_error(
             "Rewrite the expression to the expected type.".to_owned(),
         ],
         confidence: 0.86,
+    }
+}
+
+fn make_warning(
+    code: &str,
+    message: &str,
+    expected: impl Into<String>,
+    actual: impl Into<String>,
+    cause: &str,
+    suggested_fix: &str,
+) -> Diagnostic {
+    Diagnostic {
+        code: code.to_owned(),
+        message: message.to_owned(),
+        level: DiagnosticLevel::Warning,
+        stage: DiagnosticStage::Typecheck,
+        range: Span { start: 0, end: 0 },
+        expected: expected.into(),
+        actual: actual.into(),
+        cause: cause.to_owned(),
+        related: Vec::new(),
+        suggested_fix: suggested_fix.to_owned(),
+        alternatives: vec!["Prefer the canonical language form.".to_owned()],
+        confidence: 0.93,
+    }
+}
+
+fn render_expr(expr: &Expr) -> String {
+    match expr {
+        Expr::Int(value) => value.to_string(),
+        Expr::Bool(value) => value.to_string(),
+        Expr::String(value) => format!("{value:?}"),
+        Expr::Ident(name) => name.clone(),
+        Expr::Call { callee, args } => format!(
+            "{callee}({})",
+            args.iter().map(render_expr).collect::<Vec<_>>().join(", ")
+        ),
+        Expr::MethodCall {
+            receiver,
+            method,
+            args,
+        } => {
+            if args.is_empty() {
+                format!("{}.{}", render_expr(receiver), method)
+            } else {
+                format!(
+                    "{}.{}({})",
+                    render_expr(receiver),
+                    method,
+                    args.iter().map(render_expr).collect::<Vec<_>>().join(", ")
+                )
+            }
+        }
+        Expr::Apply { func, args } => format!(
+            "{}({})",
+            render_expr(func),
+            args.iter().map(render_expr).collect::<Vec<_>>().join(", ")
+        ),
+        Expr::Lambda { param, body } => format!("{param} -> {}", render_expr(body)),
+        Expr::Binary { .. }
+        | Expr::If { .. }
+        | Expr::Match { .. }
+        | Expr::List(_)
+        | Expr::Tuple(_)
+        | Expr::Range { .. }
+        | Expr::Let { .. }
+        | Expr::Index { .. }
+        | Expr::Error => "<expr>".to_owned(),
     }
 }

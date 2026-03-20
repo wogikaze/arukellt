@@ -337,7 +337,7 @@ impl Interpreter {
                 )),
                 _ => Err(InterpreterError::TypeMismatch("split_whitespace(string)")),
             },
-            "parse_int" => match args.as_slice() {
+            "parse.i64" => match args.as_slice() {
                 [Value::String(text)] => match text.parse::<i64>() {
                     Ok(value) => Ok(Value::Variant {
                         name: "Ok".to_owned(),
@@ -351,7 +351,27 @@ impl Interpreter {
                         }],
                     }),
                 },
-                _ => Err(InterpreterError::TypeMismatch("parse_int(string)")),
+                _ => Err(InterpreterError::TypeMismatch("parse.i64(string)")),
+            },
+            "parse.bool" => match args.as_slice() {
+                [Value::String(text)] => match text.as_str() {
+                    "true" => Ok(Value::Variant {
+                        name: "Ok".to_owned(),
+                        fields: vec![Value::Bool(true)],
+                    }),
+                    "false" => Ok(Value::Variant {
+                        name: "Ok".to_owned(),
+                        fields: vec![Value::Bool(false)],
+                    }),
+                    _ => Ok(Value::Variant {
+                        name: "Err".to_owned(),
+                        fields: vec![Value::Variant {
+                            name: "InvalidBool".to_owned(),
+                            fields: Vec::new(),
+                        }],
+                    }),
+                },
+                _ => Err(InterpreterError::TypeMismatch("parse.bool(string)")),
             },
             "map" => match args.as_slice() {
                 [Value::List(items), callable] => {
@@ -554,7 +574,8 @@ fn is_builtin(name: &str) -> bool {
             | "range_inclusive"
             | "string"
             | "split_whitespace"
-            | "parse_int"
+            | "parse.i64"
+            | "parse.bool"
             | "map"
             | "filter"
             | "sum"

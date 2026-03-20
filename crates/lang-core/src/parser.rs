@@ -327,7 +327,38 @@ impl<'a> Parser<'a> {
             while self.match_kind(&TokenKind::Newline) {}
 
             if self.match_kind(&TokenKind::Pipe) {
-                // |> callee
+                if let TokenKind::Ident(param) = self.current().kind.clone() {
+                    if self.peek_kind(1) == Some(&TokenKind::Arrow) {
+                        let span = self.current_span();
+                        self.position += 1; // consume ident
+                        self.position += 1; // consume ->
+                        let body = self.parse_lambda_body();
+                        if let Some(callee) = passthrough_pipe_lambda_callee(&param, &body) {
+                            self.push_warning(
+                                "W_CANONICAL_PIPE_LAMBDA",
+                                "Redundant pipe lambda can use the callee directly",
+                                span,
+                                "canonical pipeline callee",
+                                format!("{param} -> {callee}({param})"),
+                                "redundant_pipe_lambda",
+                                &format!("Rewrite the pipe as `value |> {callee}`."),
+                            );
+                            expr = Expr::Call {
+                                callee,
+                                args: vec![expr],
+                            };
+                        } else {
+                            expr = Expr::Apply {
+                                func: Box::new(Expr::Lambda {
+                                    param,
+                                    body: Box::new(body),
+                                }),
+                                args: vec![expr],
+                            };
+                        }
+                        continue;
+                    }
+                }
                 let callee = self.parse_pipe_callee();
                 expr = Expr::Call {
                     callee,
@@ -833,6 +864,43 @@ impl<'a> Parser<'a> {
             ],
             confidence: 0.9,
         });
+    }
+
+    fn push_warning(
+        &mut self,
+        code: &str,
+        message: &str,
+        span: Span,
+        expected: impl Into<String>,
+        actual: impl Into<String>,
+        cause: &str,
+        suggested_fix: &str,
+    ) {
+        self.diagnostics.push(Diagnostic {
+            code: code.to_owned(),
+            message: message.to_owned(),
+            level: DiagnosticLevel::Warning,
+            stage: DiagnosticStage::Parser,
+            range: span,
+            expected: expected.into(),
+            actual: actual.into(),
+            cause: cause.to_owned(),
+            related: Vec::new(),
+            suggested_fix: suggested_fix.to_owned(),
+            alternatives: vec!["Prefer the canonical language form.".to_owned()],
+            confidence: 0.93,
+        });
+    }
+}
+
+fn passthrough_pipe_lambda_callee(param: &str, body: &Expr) -> Option<String> {
+    match body {
+        Expr::Call { callee, args }
+            if args.len() == 1 && args[0] == Expr::Ident(param.to_owned()) =>
+        {
+            Some(callee.clone())
+        }
+        _ => None,
     }
 }
 

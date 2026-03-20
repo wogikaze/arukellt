@@ -294,12 +294,12 @@ fn range_total() -> Int:
 }
 
 #[test]
-fn compiles_split_whitespace_and_parse_int_pipeline() {
+fn compiles_split_whitespace_and_parse_i64_pipeline() {
     let source = "\
 import console
 
 fn parse_or_zero(text: String) -> Int:
-  let parsed = parse_int(text)
+  let parsed = parse.i64(text)
   match parsed:
     Ok(value) -> value
     Err(_) -> 0
@@ -319,6 +319,101 @@ fn main():
         result.error_count() == 0,
         "unexpected diagnostics: {:?}",
         result.diagnostics
+    );
+}
+
+#[test]
+fn compiles_parse_bool_result_matching() {
+    let source = "\
+fn parse_flag(text: String) -> Bool:
+  match parse.bool(text):
+    Ok(value) -> value
+    Err(_) -> false
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
+fn rejects_legacy_parse_int_with_canonical_guidance() {
+    let source = "\
+fn parse_or_zero(text: String) -> Int:
+  let parsed = parse_int(text)
+  match parsed:
+    Ok(value) -> value
+    Err(_) -> 0
+";
+
+    let result = compile_module(source);
+    let diagnostic = result
+        .diagnostics
+        .iter()
+        .find(|diagnostic| diagnostic.code == "E_UNKNOWN_CALL")
+        .expect("unknown call diagnostic");
+    assert_eq!(diagnostic.actual, "parse_int");
+    assert_eq!(diagnostic.suggested_fix, "Use `parse.i64(value)` instead.");
+}
+
+#[test]
+fn warns_for_to_string_method_and_suggests_string_builtin() {
+    let source = "\
+fn stringify() -> String:
+  42.to_string()
+";
+
+    let result = compile_module(source);
+
+    assert!(result.module.is_some(), "expected typed module");
+    assert_eq!(
+        result.error_count(),
+        0,
+        "unexpected errors: {:?}",
+        result.diagnostics
+    );
+    let diagnostic = result
+        .diagnostics
+        .iter()
+        .find(|diagnostic| diagnostic.code == "W_CANONICAL_TO_STRING")
+        .expect("missing canonical to_string warning");
+    assert_eq!(diagnostic.level, DiagnosticLevel::Warning);
+    assert_eq!(diagnostic.suggested_fix, "Rewrite this as `string(42)`.");
+
+    let json = result.to_json().expect("json diagnostics");
+    assert_eq!(json["warning_count"], 1);
+    assert_eq!(json["diagnostics"][0]["code"], "W_CANONICAL_TO_STRING");
+}
+
+#[test]
+fn warns_for_redundant_pipe_lambda_and_suggests_direct_pipe() {
+    let source = "\
+fn stringify() -> String:
+  42 |> x -> string(x)
+";
+
+    let result = compile_module(source);
+
+    assert!(result.module.is_some(), "expected typed module");
+    assert_eq!(
+        result.error_count(),
+        0,
+        "unexpected errors: {:?}",
+        result.diagnostics
+    );
+    let diagnostic = result
+        .diagnostics
+        .iter()
+        .find(|diagnostic| diagnostic.code == "W_CANONICAL_PIPE_LAMBDA")
+        .expect("missing redundant pipe lambda warning");
+    assert_eq!(diagnostic.level, DiagnosticLevel::Warning);
+    assert_eq!(
+        diagnostic.suggested_fix,
+        "Rewrite the pipe as `value |> string`."
     );
 }
 

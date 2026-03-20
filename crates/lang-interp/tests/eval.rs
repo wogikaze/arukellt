@@ -173,7 +173,7 @@ import stdin
 import console
 
 fn parse_or_zero(text: String) -> Int:
-  let parsed = parse_int(text)
+  let parsed = parse.i64(text)
   match parsed:
     Ok(value) -> value
     Err(_) -> 0
@@ -188,6 +188,18 @@ fn main():
 ";
     let output = compile_and_run_output_with_stdin(source, "1\n2 3\ntest\n");
     assert_eq!(output, "6 test\n");
+}
+
+#[test]
+fn evaluates_parse_bool_builtin() {
+    let source = "\
+fn parse_flag(text: String) -> Bool:
+  match parse.bool(text):
+    Ok(value) -> value
+    Err(_) -> false
+";
+    let result = compile_and_run(source, "parse_flag", vec![Value::String("true".to_owned())]);
+    assert_eq!(result, Value::Bool(true));
 }
 
 #[test]
