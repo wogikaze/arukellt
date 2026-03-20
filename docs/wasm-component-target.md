@@ -12,7 +12,7 @@ Do not mutate today's targets in place:
 - keep `wasm-wasi` as the current preview1 command-style ABI
 - add a new target only when Arukellt is ready to commit to a Component-Model-specific host contract
 
-The likely first shape is something like `wasm-component-js` or `wasm-component-preview2`, not a silent upgrade of `wasm-js`.
+The concrete first shape for Arukellt is `wasm-component-js`, not a silent upgrade of `wasm-js`.
 
 ## Why A Separate Target
 
@@ -27,7 +27,7 @@ The Component Model changes the boundary itself:
 - host imports are described as interfaces rather than raw imports on a core Wasm module
 - adapter generation and runtime expectations change even when the source language stays the same
 
-Because the ABI contract changes, overloading `wasm-js` or `wasm-wasi` would blur three materially different targets under the same name.
+Because the ABI contract changes, overloading `wasm-js` or `wasm-wasi` would blur materially different targets under the same name.
 
 ## Benefits
 
@@ -54,7 +54,7 @@ There is also a product risk: introducing a component target too early would mak
 If this direction is pursued, the first concrete host scenario should be:
 
 - a JavaScript or Node host that instantiates a component through component-aware tooling
-- no browser promise at first
+- the component boundary is used for host-facing typed interfaces, not for browser-specific integration
 - no parity promise with `wasm-wasi`
 
 Why this scenario:
@@ -67,11 +67,12 @@ Why this scenario:
 
 The safest initial contract is:
 
-- new target name, separate from `wasm-js` and `wasm-wasi`
+- new target name, `wasm-component-js`, separate from `wasm-js` and `wasm-wasi`
 - explicit experimental label
 - scalar-only guarantees can remain narrow at first
 - typed lifting/lowering for strings and small aggregates may be added only when tested end to end
 - no guarantee that existing `wasm-js` host glue continues to work unchanged
+- current builds should reject the target until a component-aware backend exists
 
 ## Recommendation
 

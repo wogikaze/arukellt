@@ -6,7 +6,7 @@ The current v0.0.1 standard surface is intentionally narrow. It is centered on b
 
 Use this table when choosing `arktc build --target ...` or `chef build --target ...`.
 [`example/meta/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/meta/matrix.json) is the example-level contract; this section is the API-level contract.
-The table below covers the currently implemented targets. `wasm-js-gc` is a separate experimental contract described later in this document, and current builds intentionally reject it until a GC backend exists.
+The table below covers the currently implemented targets. `wasm-js-gc` and `wasm-component-js` are separate experimental contracts described later in this document, and current builds intentionally reject them until their backends exist.
 
 | surface | interpreter | `wasm-js` | `wasm-wasi` | notes |
 | --- | --- | --- | --- | --- |
@@ -180,3 +180,23 @@ First-slice contract, once implemented:
 - string/host adapters may stay unsupported or remain linear-memory-based until explicitly documented
 
 This target is intentionally JS-host-only for now; it does not imply a `wasm-wasi` GC track.
+
+### Experimental `wasm-component-js` contract
+
+`wasm-component-js` is a separate opt-in target contract for a future Component Model backend aimed at JavaScript or Node hosts.
+It exists so the repo can describe a component-aware path without changing the meaning of today's `wasm-js` or `wasm-wasi` targets.
+
+Current status:
+
+- the target is visible in `arktc build` and `chef build`
+- the repo currently rejects it immediately with a contract error because the component backend does not exist yet
+- rejection is intentional, not a fallback to `wasm-js`
+
+First-slice contract, once implemented:
+
+- typed host interfaces at the component boundary, rather than raw core Wasm imports
+- scalar-only public exports can remain a first-slice guarantee
+- internal component lowering may support richer lifted values later, but not as a compatibility promise
+- no guarantee that the current `wasm-js` or `wasm-wasi` host glue will continue to apply unchanged
+
+This target is intentionally separate from `wasm-js` and `wasm-wasi`; it does not imply a `wasm-wasi` component track.

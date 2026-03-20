@@ -150,6 +150,6 @@ fn parse_or_zero(text: String) -> Int:
         }
         other => panic!("expected parse-or-zero specialization, got {other:?}"),
     }
-    assert!(wasm.helper_usage.uses_parse_i64);
+    assert!(!wasm.helper_usage.uses_parse_i64);
     assert!(wasm.helper_usage.uses_parse_i64_or_zero);
 }

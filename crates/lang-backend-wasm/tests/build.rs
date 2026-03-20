@@ -768,6 +768,35 @@ fn main():
 }
 
 #[test]
+fn experimental_gc_target_lowers_internal_option_i32_without_linear_option_helpers() {
+    let source = "\
+fn pick(flag: Int) -> Int:
+  let maybe = if flag == 0:
+    None()
+  else:
+    Some(7)
+  unwrap_or(maybe, 5)
+
+fn main() -> Int:
+  pick(0) + pick(1)
+";
+
+    let typed = compile_module(source).module.expect("typed module");
+    let high = lower_to_high_ir(&typed);
+    let gc_wat = emit_wat(&high, WasmTarget::JavaScriptHostGc).expect("gc wat");
+    let js_wat = emit_wat(&high, WasmTarget::JavaScriptHost).expect("js wat");
+
+    assert!(gc_wat.contains("(type $__gc_option_i32 (struct (field (mut i32))))"));
+    assert!(gc_wat.contains("(ref null $__gc_option_i32)"));
+    assert!(gc_wat.contains("struct.new $__gc_option_i32"));
+    assert!(gc_wat.contains("struct.get $__gc_option_i32 0"));
+    assert!(!gc_wat.contains("$__option_unwrap_or"));
+    assert!(!gc_wat.contains("call $__alloc"));
+    assert!(!js_wat.contains("(type $__gc_option_i32"));
+    assert!(!js_wat.contains("struct.new $__gc_option_i32"));
+}
+
+#[test]
 fn strip_suffix_option_map_unwrap_or_and_any_run_on_both_wasm_targets() {
     let js_source = "\
 fn can_form(text: String) -> Bool:

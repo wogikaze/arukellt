@@ -200,3 +200,12 @@ fn readme_documents_the_experimental_wasm_js_gc_contract() {
     assert!(readme.contains("internal GC refs"));
     assert!(readme.contains("current builds reject"));
 }
+
+#[test]
+fn readme_documents_the_experimental_wasm_component_js_contract() {
+    let readme = fs::read_to_string(repo_root().join("README.md")).expect("read README");
+    assert!(readme.contains("wasm-component-js"));
+    assert!(readme.contains("Component Model backend"));
+    assert!(readme.contains("typed host interfaces"));
+    assert!(readme.contains("current builds reject"));
+}

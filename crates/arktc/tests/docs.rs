@@ -247,3 +247,12 @@ fn std_docs_define_the_experimental_wasm_js_gc_contract() {
     assert!(doc.contains("internal GC refs"));
     assert!(doc.contains("currently rejects"));
 }
+
+#[test]
+fn std_docs_define_the_experimental_wasm_component_js_contract() {
+    let doc = read_repo_file("docs/std.md");
+    assert!(doc.contains("wasm-component-js"));
+    assert!(doc.contains("Component Model backend"));
+    assert!(doc.contains("typed host interfaces"));
+    assert!(doc.contains("rejects it immediately"));
+}

@@ -47,41 +47,24 @@ Field rules:
 
 ## Next
 
-### WB-057
+### WB-059
 
-title: Introduce GC-aware wasm value representations in backend codegen
-area: lang-backend-wasm
+title: Expose the experimental `wasm-js-gc` backend contract through public build commands
+area: arktc/chef/lang-backend-wasm
 status: NEXT
 priority: P3
 owner: unassigned
-depends_on: WB-056
-source: follow-up from `WB-054` Wasm GC feasibility spike
+depends_on: WB-056, WB-057
+source: follow-up after `WB-057` internal GC lowering path landed
 done_when:
 
-- backend typing and expression emission can represent non-`i32` wasm values such as nullable refs and emitted GC type definitions
-- at least one internal surface type (`Option<Int>` from the spike) lowers through the new representation path without `__alloc` or linear-memory option helpers
-- focused backend tests assert both the new GC instructions/types and the continued behavior of the existing linear-memory targets
+- `arktc build` and `chef build` can opt into the experimental `wasm-js-gc` target behind an explicit contract gate instead of unconditional rejection
+- docs/help explain that the target currently emits inspection-oriented GC WAT first and does not promise executable parity with `wasm-js`
+- CLI regressions cover target selection, emitted contract text, and at least one focused GC WAT fixture
 notes:
-- this likely starts by replacing the current stringly `wasm_type()` contract with a richer emitted-type/value-repr layer
+- `WB-057` added an internal GC-aware `Option<Int>` lowering path and richer wasm value representations, but the public CLI still hard-rejects the target
 
 ## Ready
-
-### WB-058
-
-title: Define the experimental Component Model target contract and naming
-area: targets/lang-backend-wasm
-status: READY
-priority: P3
-owner: unassigned
-depends_on: none
-source: follow-up from `WB-055` Component Model evaluation
-done_when:
-
-- a concrete target name such as `wasm-component-js` or equivalent is chosen and documented
-- CLI/help/docs state the host scenario, non-goals, and ABI boundary differences from `wasm-js` and `wasm-wasi`
-- one target-selection or docs regression covers the new contract text
-notes:
-- keep this contract-only at first; do not promise backend implementation parity yet
 
 ## Blocked
 
@@ -104,6 +87,25 @@ notes:
 
 ## Done
 
+### WB-057
+
+title: Introduce GC-aware wasm value representations in backend codegen
+area: lang-backend-wasm
+status: DONE
+priority: P3
+owner: unassigned
+depends_on: WB-056
+source: follow-up from `WB-054` Wasm GC feasibility spike
+done_when:
+
+- backend typing and expression emission can represent non-`i32` wasm values such as nullable refs and emitted GC type definitions
+- at least one internal surface type (`Option<Int>` from the spike) lowers through the new representation path without `__alloc` or linear-memory option helpers
+- focused backend tests assert both the new GC instructions/types and the continued behavior of the existing linear-memory targets
+notes:
+- added an internal `WasmTarget::JavaScriptHostGc` path, a richer emitted wasm type representation layer, and GC type emission for `Option<Int>` as `(ref null $__gc_option_i32)`
+- `unwrap_or(Some/None)` for `Option<Int>` now lowers on the GC path without linear-memory option helpers or `__alloc`, while the existing `wasm-js` path stays on the prior representation
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc --test cli --test help --test docs --test readme`, `cargo test -p chef --test cli --test help`, and `cargo test`
+
 ### WB-053
 
 title: Introduce a backend-oriented wasm IR between High IR and WAT emission
@@ -124,6 +126,25 @@ notes:
 - verified with `cargo test -p lang-ir --test lowering --quiet`, `cargo test -p lang-backend-wasm compact_suffix_recursion_uses_an_optimized_path_for_large_inputs --quiet`, and `cargo test -p lang-backend-wasm strip_suffix_option_map_unwrap_or_and_any_run_on_both_wasm_targets --quiet`
 - full `cargo test --quiet` still has unrelated pre-existing failures in `crates/arktc/tests/docs_site.rs` (`docs_site_uses_relative_assets_and_known_routes`, `docs_site_runtime_helpers_work_in_node`)
 - `cargo test -p lang-backend-wasm --tests --quiet` still has unrelated pre-existing closure/lambda failures in `javascript_target_supports_iter_unfold_take_for_int_sequences`, `wasi_target_supports_filter_with_lambda_callbacks`, `wasi_target_supports_iter_unfold_take_with_tuple_state`, and `wasi_target_supports_lambda_callback_values_via_apply`
+
+### WB-058
+
+title: Define the experimental Component Model target contract and naming
+area: targets/lang-backend-wasm
+status: DONE
+priority: P3
+owner: unassigned
+depends_on: none
+source: follow-up from `WB-055` Component Model evaluation
+done_when:
+
+- a concrete target name such as `wasm-component-js` or equivalent is chosen and documented
+- CLI/help/docs state the host scenario, non-goals, and ABI boundary differences from `wasm-js` and `wasm-wasi`
+- one target-selection or docs regression covers the new contract text
+notes:
+- chose `wasm-component-js` as the experimental Component Model contract for JS/Node hosts
+- contract-only slice: current `arktc` and `chef` builds reject the target until a component-aware backend exists
+- CLI/help/docs tests now pin the contract text and target selection failure path
 
 ### WB-054
 

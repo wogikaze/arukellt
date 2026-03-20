@@ -874,6 +874,28 @@ fn build_command_rejects_experimental_wasm_js_gc_until_backend_exists() {
 }
 
 #[test]
+fn build_command_rejects_experimental_wasm_component_js_until_backend_exists() {
+    let file = repo_root().join("example/wasm_scalar.ar");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-component-js")
+        .output()
+        .expect("run build");
+
+    assert!(!output.status.success(), "expected failing exit status");
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(
+        stderr.contains("reserved experimental Component Model contract")
+            && stderr.contains("scalar-only public exports")
+            && stderr.contains("typed host interfaces"),
+        "unexpected stderr: {stderr}"
+    );
+}
+
+#[test]
 fn build_command_rejects_target_wat_when_emit_is_also_set() {
     let file = repo_root().join("example/wasm_scalar.ar");
 

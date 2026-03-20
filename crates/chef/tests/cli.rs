@@ -281,6 +281,37 @@ fn answer() -> Int:
 }
 
 #[test]
+fn build_command_rejects_experimental_wasm_component_js_until_backend_exists() {
+    let dir = tempdir().expect("tempdir");
+    let file = dir.path().join("answer.lang");
+    fs::write(
+        &file,
+        "\
+fn answer() -> Int:
+  42
+",
+    )
+    .expect("write source");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_chef"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-component-js")
+        .output()
+        .expect("run build");
+
+    assert!(!output.status.success(), "expected failing exit status");
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(
+        stderr.contains("reserved experimental Component Model contract")
+            && stderr.contains("scalar-only public exports")
+            && stderr.contains("typed host interfaces"),
+        "unexpected stderr: {stderr}"
+    );
+}
+
+#[test]
 fn run_command_reads_stdin_for_practicea_style_program() {
     let dir = tempdir().expect("tempdir");
     let file = dir.path().join("practicea.lang");

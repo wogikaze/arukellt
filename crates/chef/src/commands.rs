@@ -202,6 +202,9 @@ fn resolve_build_mode(
         BuildTarget::WasmJsGc => anyhow::bail!(
             "`--target wasm-js-gc` is a reserved experimental contract for a future Wasm GC JS-host backend; current builds reject it until that backend exists. First-slice ABI plan: scalar exports only, GC refs internal to the module."
         ),
+        BuildTarget::WasmComponentJs => anyhow::bail!(
+            "`--target wasm-component-js` is a reserved experimental Component Model contract for a future JS-host backend; current builds reject it until that backend exists. First-slice ABI plan: scalar-only public exports, typed host interfaces, and no parity promise with `wasm-js` or `wasm-wasi`."
+        ),
         BuildTarget::WasmWasi => Ok((lang_backend_wasm::WasmTarget::Wasi, emit)),
     }
 }

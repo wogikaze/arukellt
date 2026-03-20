@@ -5,7 +5,7 @@ Arukellt v0.0.1 is an expression-first, indentation-sensitive language aimed at 
 - `arktc check` for syntax/typechecking
 - `chef run` for interpreter execution
 - `chef test` for executable examples and inline tests
-- `arktc build --target wasm-js|wasm-wasi` / `chef build` for WebAssembly output, with a reserved experimental `wasm-js-gc` contract documented separately
+- `arktc build --target wasm-js|wasm-wasi` / `chef build` for WebAssembly output, with reserved experimental `wasm-js-gc` and `wasm-component-js` contracts documented separately
 - `arkli` for interactive REPL exploration
 
 ## Hello World

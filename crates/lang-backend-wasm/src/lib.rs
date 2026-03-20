@@ -12,7 +12,23 @@ mod postprocess;
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WasmTarget {
     JavaScriptHost,
+    JavaScriptHostGc,
     Wasi,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum WasmTypeRepr {
+    I32,
+    RefNull(&'static str),
+}
+
+impl std::fmt::Display for WasmTypeRepr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::I32 => f.write_str("i32"),
+            Self::RefNull(name) => write!(f, "(ref null {name})"),
+        }
+    }
 }
 
 pub fn build_module_from_source(source: &str, target: WasmTarget) -> Result<Vec<u8>> {
@@ -49,7 +65,11 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
              (func $fd_write (param i32 i32 i32 i32) (result i32)))\n",
         );
     }
-    if target == WasmTarget::JavaScriptHost && abi.uses_console_println {
+    if matches!(
+        target,
+        WasmTarget::JavaScriptHost | WasmTarget::JavaScriptHostGc
+    ) && abi.uses_console_println
+    {
         wat_module.push_str(
             "  (import \"arukellt_host\" \"console.println\" \
              (func $__host_console_println (param i32 i32)))\n",
@@ -73,6 +93,7 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
              (func $fd_close (param i32) (result i32)))\n",
         );
     }
+    emit_gc_type_defs(&abi, &mut wat_module);
     emit_all_memory(&abi, &mut wat_module);
     emit_heap_primitives(&abi, &mut wat_module);
     if abi.uses_string_builtin {
@@ -102,7 +123,9 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     if helper_usage.uses_strip_suffix {
         emit_strip_suffix_helper(&mut wat_module);
     }
-    if helper_usage.uses_unwrap_or {
+    if helper_usage.uses_unwrap_or
+        && !(abi.target == WasmTarget::JavaScriptHostGc && abi.uses_gc_option_i32)
+    {
         emit_option_unwrap_or_helper(&mut wat_module);
     }
     if target == WasmTarget::Wasi {
@@ -124,7 +147,9 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
         emit_console_println_helper(&abi, &mut wat_module);
     }
     match target {
-        WasmTarget::JavaScriptHost => emit_javascript_exports(&wasm_module, &mut wat_module),
+        WasmTarget::JavaScriptHost | WasmTarget::JavaScriptHostGc => {
+            emit_javascript_exports(&wasm_module, &mut wat_module)
+        }
         WasmTarget::Wasi => emit_wasi_entrypoint(&wasm_module, &abi, &mut wat_module)?,
     }
     wat_module.push_str(")\n");
@@ -133,7 +158,7 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
 
 fn wasm_entry_roots(module: &HighModule, target: WasmTarget) -> HashSet<String> {
     match target {
-        WasmTarget::JavaScriptHost => module
+        WasmTarget::JavaScriptHost | WasmTarget::JavaScriptHostGc => module
             .functions
             .iter()
             .map(|function| function.name.clone())
@@ -204,6 +229,62 @@ fn matches_split_whitespace_nth_expr(receiver: Option<&HighExpr>) -> Option<&Hig
     Some(&args[0])
 }
 
+fn module_uses_gc_option_i32(module: &HighModule) -> bool {
+    module.functions.iter().any(function_uses_gc_option_i32)
+}
+
+fn function_uses_gc_option_i32(function: &lang_ir::HighFunction) -> bool {
+    function
+        .params
+        .iter()
+        .any(|param| is_gc_option_i32_type(&param.ty))
+        || is_gc_option_i32_type(&function.return_type)
+        || expr_uses_gc_option_i32(&function.body)
+}
+
+fn is_gc_option_i32_type(ty: &Type) -> bool {
+    matches!(ty, Type::Option(inner) if **inner == Type::Int)
+}
+
+fn expr_uses_gc_option_i32(expr: &HighExpr) -> bool {
+    if is_gc_option_i32_type(&expr.ty) {
+        return true;
+    }
+    match &expr.kind {
+        HighExprKind::Call { args, .. } | HighExprKind::Construct { args, .. } => {
+            args.iter().any(expr_uses_gc_option_i32)
+        }
+        HighExprKind::Binary { left, right, .. } => {
+            expr_uses_gc_option_i32(left) || expr_uses_gc_option_i32(right)
+        }
+        HighExprKind::If {
+            condition,
+            then_branch,
+            else_branch,
+        } => {
+            expr_uses_gc_option_i32(condition)
+                || expr_uses_gc_option_i32(then_branch)
+                || expr_uses_gc_option_i32(else_branch)
+        }
+        HighExprKind::Match { subject, arms } => {
+            expr_uses_gc_option_i32(subject)
+                || arms.iter().any(|arm| expr_uses_gc_option_i32(&arm.expr))
+        }
+        HighExprKind::List(items) | HighExprKind::Tuple(items) => {
+            items.iter().any(expr_uses_gc_option_i32)
+        }
+        HighExprKind::Lambda { body, .. } => expr_uses_gc_option_i32(body),
+        HighExprKind::Let { value, body, .. } => {
+            expr_uses_gc_option_i32(value) || expr_uses_gc_option_i32(body)
+        }
+        HighExprKind::Int(_)
+        | HighExprKind::Bool(_)
+        | HighExprKind::String(_)
+        | HighExprKind::Ident(_)
+        | HighExprKind::Error => false,
+    }
+}
+
 const HEAP_TMP_PTR_LOCAL_COUNT: usize = 16;
 
 fn heap_tmp_ptr_local(indent: usize) -> String {
@@ -216,6 +297,12 @@ fn emit_javascript_exports(module: &WasmModule, out: &mut String) {
             "  (export \"{}\" (func ${}))\n",
             function.name, function.name
         ));
+    }
+}
+
+fn emit_gc_type_defs(abi: &WasmAbi, out: &mut String) {
+    if abi.uses_gc_option_i32 {
+        out.push_str("  (type $__gc_option_i32 (struct (field (mut i32))))\n");
     }
 }
 
@@ -1545,6 +1632,9 @@ fn emit_high_function(
     for (local_name, local_ty) in &let_locals {
         out.push_str(&format!("    (local ${local_name} {local_ty})\n"));
     }
+    if abi.uses_gc_option_i32 {
+        out.push_str("    (local $__gc_option_tmp (ref null $__gc_option_i32))\n");
+    }
     if abi.needs_heap() {
         for index in 0..HEAP_TMP_PTR_LOCAL_COUNT {
             out.push_str(&format!("    (local $__tmp_ptr{index} i32)\n"));
@@ -2118,6 +2208,52 @@ fn emit_expr(
                     out,
                 )?;
                 out.push_str(&format!("{pad}call $__option_unwrap_or\n"));
+            } else if abi.target == WasmTarget::JavaScriptHostGc && callee == "unwrap_or" {
+                let [option, fallback] = args.as_slice() else {
+                    bail!("`unwrap_or` expects exactly two arguments in wasm-js-gc backend");
+                };
+                if !is_gc_option_i32_type(&option.ty) {
+                    bail!("`unwrap_or` only supports Option<Int> in wasm-js-gc backend");
+                }
+                emit_expr(
+                    option,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}local.set $__gc_option_tmp\n"));
+                out.push_str(&format!("{pad}local.get $__gc_option_tmp\n"));
+                out.push_str(&format!("{pad}ref.is_null\n"));
+                out.push_str(&format!("{pad}(if"));
+                if let Some(result_ty) = abi.wasm_type(&expr.ty)? {
+                    out.push_str(&format!(" (result {result_ty})"));
+                }
+                out.push('\n');
+                out.push_str(&format!("{pad}  (then\n"));
+                emit_expr(
+                    fallback,
+                    indent + 2,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}  )\n"));
+                out.push_str(&format!("{pad}  (else\n"));
+                out.push_str(&format!("{pad}    local.get $__gc_option_tmp\n"));
+                out.push_str(&format!("{pad}    struct.get $__gc_option_i32 0\n"));
+                out.push_str(&format!("{pad}  )\n"));
+                out.push_str(&format!("{pad})\n"));
             } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
                 && callee == "any"
             {
@@ -2574,6 +2710,7 @@ fn emit_expr(
                     "calls to `{callee}` are not yet supported in wasm backend for target `{}`; see docs/std.md#target-support-matrix",
                     match abi.target {
                         WasmTarget::JavaScriptHost => "wasm-js",
+                        WasmTarget::JavaScriptHostGc => "wasm-js-gc",
                         WasmTarget::Wasi => "wasm-wasi",
                     }
                 );
@@ -2966,6 +3103,43 @@ fn emit_construct(
     abi: &WasmAbi,
     out: &mut String,
 ) -> Result<()> {
+    if abi.target == WasmTarget::JavaScriptHostGc
+        && matches!(variant, "Some" | "None")
+        && (is_gc_option_i32_type(expr_ty)
+            || (variant == "None" && args.is_empty())
+            || (variant == "Some" && matches!(args, [value] if value.ty == Type::Int)))
+    {
+        let pad = "  ".repeat(indent);
+        match variant {
+            "Some" => {
+                let [value] = args else {
+                    bail!("`Some` expects exactly one payload in wasm-js-gc backend");
+                };
+                emit_expr(
+                    value,
+                    indent,
+                    &mut locals.clone(),
+                    &mut declared_local_names.clone(),
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}struct.new $__gc_option_i32\n"));
+                return Ok(());
+            }
+            "None" => {
+                if !args.is_empty() {
+                    bail!("`None` must stay fieldless in wasm-js-gc backend");
+                }
+                out.push_str(&format!("{pad}ref.null $__gc_option_i32\n"));
+                return Ok(());
+            }
+            _ => bail!("unknown Option variant in wasm-js-gc backend: {variant}"),
+        }
+    }
     let variant = abi.variant_layout_for_construct(variant, expr_ty)?;
     let pad = "  ".repeat(indent);
     let tmp_ptr_local = heap_tmp_ptr_local(indent);
@@ -3142,7 +3316,7 @@ fn collect_let_locals(
     expr: &HighExpr,
     abi: &WasmAbi,
     declared_local_names: &mut HashSet<String>,
-    locals: &mut Vec<(String, &'static str)>,
+    locals: &mut Vec<(String, WasmTypeRepr)>,
 ) -> Result<()> {
     match &expr.kind {
         HighExprKind::Let { name, value, body } => {
@@ -3273,6 +3447,7 @@ struct WasmAbi {
     uses_list_runtime: bool,
     uses_adt_runtime: bool,
     uses_option_runtime: bool,
+    uses_gc_option_i32: bool,
     uses_list_index_builtin: bool,
     uses_range_inclusive: bool,
     uses_iter_runtime: bool,
@@ -3330,6 +3505,8 @@ impl WasmAbi {
         }
 
         let string_table = StringTable::collect(module);
+        let uses_gc_option_i32 =
+            target == WasmTarget::JavaScriptHostGc && module_uses_gc_option_i32(module);
 
         let mut uses_console_println = false;
         let mut uses_string_builtin = false;
@@ -3395,6 +3572,10 @@ impl WasmAbi {
             uses_stdin_read_line = false;
             uses_adt_runtime = false;
         }
+        if uses_gc_option_i32 {
+            uses_adt_runtime = false;
+            uses_option_runtime = false;
+        }
         if wasm_module.helper_usage.uses_ends_with_at {
             uses_ends_with_at_builtin = true;
         }
@@ -3423,6 +3604,7 @@ impl WasmAbi {
             uses_list_runtime,
             uses_adt_runtime,
             uses_option_runtime,
+            uses_gc_option_i32,
             uses_list_index_builtin,
             uses_range_inclusive,
             uses_iter_runtime,
@@ -3670,35 +3852,43 @@ impl WasmAbi {
         "__list_sum_i64"
     }
 
-    fn wasm_type(&self, ty: &Type) -> Result<Option<&'static str>> {
+    fn wasm_type(&self, ty: &Type) -> Result<Option<WasmTypeRepr>> {
         match ty {
             Type::Unit => Ok(None),
-            Type::Int | Type::Bool | Type::Fn(_, _) => Ok(Some("i32")),
-            Type::String if self.target == WasmTarget::JavaScriptHost => Ok(Some("i32")),
-            Type::String if self.target == WasmTarget::Wasi => Ok(Some("i32")),
+            Type::Int | Type::Bool | Type::Fn(_, _) => Ok(Some(WasmTypeRepr::I32)),
+            Type::String
+                if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
+            {
+                Ok(Some(WasmTypeRepr::I32))
+            }
             Type::List(_)
                 if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
             {
-                Ok(Some("i32"))
+                Ok(Some(WasmTypeRepr::I32))
             }
             Type::Tuple(_)
                 if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
             {
-                Ok(Some("i32"))
+                Ok(Some(WasmTypeRepr::I32))
             }
             Type::Seq(_)
                 if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
             {
-                Ok(Some("i32"))
+                Ok(Some(WasmTypeRepr::I32))
             }
             Type::Result(_, _) | Type::Option(_)
                 if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
             {
-                Ok(Some("i32"))
+                Ok(Some(WasmTypeRepr::I32))
+            }
+            Type::Option(inner)
+                if self.target == WasmTarget::JavaScriptHostGc && **inner == Type::Int =>
+            {
+                Ok(Some(WasmTypeRepr::RefNull("__gc_option_i32")))
             }
             Type::Named(name) => match self.named_types.get(name) {
-                Some(NamedTypeAbi::FieldlessEnum) => Ok(Some("i32")),
-                Some(NamedTypeAbi::HeapEnum) => Ok(Some("i32")),
+                Some(NamedTypeAbi::FieldlessEnum) => Ok(Some(WasmTypeRepr::I32)),
+                Some(NamedTypeAbi::HeapEnum) => Ok(Some(WasmTypeRepr::I32)),
                 Some(NamedTypeAbi::Unsupported) => {
                     bail!("ADT payload fields are not yet supported in wasm backend")
                 }
@@ -4761,7 +4951,7 @@ fn emit_filter_helper(abi: &WasmAbi, signature: &ClosureSignature, out: &mut Str
     let arg_ty = abi
         .wasm_type(&signature.key.arg)?
         .ok_or_else(|| anyhow!("unsupported filter argument type in wasm backend"))?;
-    if arg_ty != "i32" || signature.key.result != Type::Bool {
+    if arg_ty != WasmTypeRepr::I32 || signature.key.result != Type::Bool {
         return Ok(());
     }
 

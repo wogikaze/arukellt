@@ -56,6 +56,7 @@ fn build_help_mentions_wasm_targets_and_emit_modes() {
     assert!(stdout.contains("Compile a source file to WebAssembly"));
     assert!(stdout.contains("wasm-js"));
     assert!(stdout.contains("wasm-js-gc"));
+    assert!(stdout.contains("wasm-component-js"));
     assert!(stdout.contains("wat-min"));
     assert!(stdout.contains("Write the build output"));
     assert!(stdout.contains("docs/std.md#target-support-matrix"));

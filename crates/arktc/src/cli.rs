@@ -31,7 +31,7 @@ pub enum Command {
         file: PathBuf,
         #[arg(
             long,
-            help = "WASM ABI target; `wat` is a deprecated alias for `--target wasm-js --emit wat`, and `wasm-js-gc` is an explicit experimental JS-host GC contract"
+            help = "WASM ABI target; `wat` is a deprecated alias for `--target wasm-js --emit wat`, `wasm-js-gc` is an explicit experimental JS-host GC contract, and `wasm-component-js` is the experimental Component Model JS-host contract"
         )]
         target: BuildTarget,
         #[arg(
@@ -50,6 +50,7 @@ pub enum BuildTarget {
     Wat,
     WasmJs,
     WasmJsGc,
+    WasmComponentJs,
     WasmWasi,
 }
 
