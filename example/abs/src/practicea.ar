@@ -1,3 +1,17 @@
-fn solve(a: Int, b: Int, c: Int, s: String) -> String:
-  [string(a + b + c), s].join(" ")
+import stdin
+import console
 
+fn parse_or_zero(text: String) -> Int:
+  let parsed = parse.i64(text)
+  match parsed:
+    Ok(value) -> value
+    Err(_) -> 0
+
+fn main():
+  let a = parse_or_zero(stdin.read_line())
+  let bc = stdin.read_line().split_whitespace()
+  let s = stdin.read_line()
+  let b = parse_or_zero(bc[0])
+  let c = parse_or_zero(bc[1])
+  let result = [string(a + b + c), s].join(" ")
+  result |> console.println

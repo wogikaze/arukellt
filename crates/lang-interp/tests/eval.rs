@@ -191,6 +191,22 @@ fn main():
 }
 
 #[test]
+fn evaluates_stdin_read_line_with_injected_input() {
+    let source = "\
+import stdin
+import console
+
+fn main():
+  let first = stdin.read_line()
+  let second = stdin.read_line()
+  let result = [first, second].join(\"|\")
+  result |> console.println
+";
+    let output = compile_and_run_output_with_stdin(source, "alpha\nbeta\n");
+    assert_eq!(output, "alpha|beta\n");
+}
+
+#[test]
 fn evaluates_parse_bool_builtin() {
     let source = "\
 fn parse_flag(text: String) -> Bool:

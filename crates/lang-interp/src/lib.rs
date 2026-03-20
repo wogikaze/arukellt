@@ -3,6 +3,7 @@ mod json_bridge;
 pub use json_bridge::{JsonBridgeError, value_from_json, value_to_json, values_from_json_str};
 
 use std::collections::HashMap;
+use std::io::{self, BufRead, Read};
 use std::path::{Path, PathBuf};
 
 use lang_core::Pattern;
@@ -53,7 +54,12 @@ pub struct Interpreter {
     last_trace: Vec<String>,
     output: String,
     base_dir: Option<PathBuf>,
-    stdin: String,
+    stdin: StdinSource,
+}
+
+enum StdinSource {
+    Buffered { text: String, position: usize },
+    Live,
 }
 
 impl Interpreter {
@@ -69,7 +75,10 @@ impl Interpreter {
             last_trace: Vec::new(),
             output: String::new(),
             base_dir,
-            stdin: String::new(),
+            stdin: StdinSource::Buffered {
+                text: String::new(),
+                position: 0,
+            },
         }
     }
 
@@ -84,12 +93,29 @@ impl Interpreter {
             last_trace: Vec::new(),
             output: String::new(),
             base_dir,
-            stdin: stdin.into(),
+            stdin: StdinSource::Buffered {
+                text: stdin.into(),
+                position: 0,
+            },
+        }
+    }
+
+    #[must_use]
+    pub fn with_live_io(module: &HighModule, base_dir: Option<PathBuf>) -> Self {
+        Self {
+            module: module.clone(),
+            last_trace: Vec::new(),
+            output: String::new(),
+            base_dir,
+            stdin: StdinSource::Live,
         }
     }
 
     pub fn set_stdin_text(&mut self, stdin: impl Into<String>) {
-        self.stdin = stdin.into();
+        self.stdin = StdinSource::Buffered {
+            text: stdin.into(),
+            position: 0,
+        };
     }
 
     pub fn call_function(
@@ -471,9 +497,15 @@ impl Interpreter {
                 _ => Err(InterpreterError::TypeMismatch("fs.read_text(path)")),
             },
             "stdin.read_text" => match args.as_slice() {
-                [] => Ok(Value::String(self.stdin.clone())),
+                [] => Ok(Value::String(self.read_stdin_text()?)),
                 _ => Err(InterpreterError::ArityMismatch(
                     "stdin.read_text".to_owned(),
+                )),
+            },
+            "stdin.read_line" => match args.as_slice() {
+                [] => Ok(Value::String(self.read_stdin_line()?)),
+                _ => Err(InterpreterError::ArityMismatch(
+                    "stdin.read_line".to_owned(),
                 )),
             },
             "Next" => Ok(Value::Variant {
@@ -517,6 +549,56 @@ impl Interpreter {
                         fields: Vec::new(),
                     }],
                 })
+            }
+        }
+    }
+
+    fn read_stdin_text(&mut self) -> Result<String, InterpreterError> {
+        match &mut self.stdin {
+            StdinSource::Buffered { text, position } => {
+                let remaining = text.get(*position..).unwrap_or("").to_owned();
+                *position = text.len();
+                Ok(remaining)
+            }
+            StdinSource::Live => {
+                let mut buffer = String::new();
+                io::stdin()
+                    .read_to_string(&mut buffer)
+                    .map_err(|error| InterpreterError::Io(error.to_string()))?;
+                Ok(buffer)
+            }
+        }
+    }
+
+    fn read_stdin_line(&mut self) -> Result<String, InterpreterError> {
+        match &mut self.stdin {
+            StdinSource::Buffered { text, position } => {
+                let remaining = text.get(*position..).unwrap_or("");
+                if remaining.is_empty() {
+                    return Ok(String::new());
+                }
+                if let Some(offset) = remaining.find('\n') {
+                    let mut line = remaining[..offset].to_owned();
+                    if line.ends_with('\r') {
+                        line.pop();
+                    }
+                    *position += offset + 1;
+                    Ok(line)
+                } else {
+                    *position = text.len();
+                    Ok(remaining.trim_end_matches('\r').to_owned())
+                }
+            }
+            StdinSource::Live => {
+                let mut line = String::new();
+                io::stdin()
+                    .lock()
+                    .read_line(&mut line)
+                    .map_err(|error| InterpreterError::Io(error.to_string()))?;
+                while matches!(line.chars().last(), Some('\n' | '\r')) {
+                    line.pop();
+                }
+                Ok(line)
             }
         }
     }
@@ -585,6 +667,7 @@ fn is_builtin(name: &str) -> bool {
             | "console.println"
             | "fs.read_text"
             | "stdin.read_text"
+            | "stdin.read_line"
             | "Next"
             | "Done"
     )

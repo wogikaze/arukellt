@@ -880,6 +880,7 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         "console.println" => Type::Unit,
         "fs.read_text" => Type::Result(Box::new(Type::String), Box::new(Type::Unknown)),
         "stdin.read_text" => Type::String,
+        "stdin.read_line" => Type::String,
         "Next" => {
             let item_ty = args
                 .first()
@@ -957,6 +958,7 @@ fn is_builtin_function(name: &str) -> bool {
             | "console.println"
             | "fs.read_text"
             | "stdin.read_text"
+            | "stdin.read_line"
             | "iter.unfold"
             | "Ok"
             | "Err"
