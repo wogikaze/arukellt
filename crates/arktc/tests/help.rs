@@ -37,6 +37,7 @@ fn build_help_mentions_supported_wasm_subset() {
     assert!(stdout.contains("wat-min"));
     assert!(stdout.contains("wat"));
     assert!(stdout.contains("wasm-js"));
+    assert!(stdout.contains("wasm-js-gc"));
     assert!(stdout.contains("wasm-wasi"));
     assert!(stdout.contains("docs/std.md#target-support-matrix"));
 }

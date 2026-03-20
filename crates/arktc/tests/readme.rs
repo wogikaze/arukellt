@@ -191,3 +191,12 @@ fn main() -> Int:
     let exports = export_names(&js_bytes);
     assert_eq!(exports, vec!["choose", "main"]);
 }
+
+#[test]
+fn readme_documents_the_experimental_wasm_js_gc_contract() {
+    let readme = fs::read_to_string(repo_root().join("README.md")).expect("read README");
+    assert!(readme.contains("wasm-js-gc"));
+    assert!(readme.contains("scalar-only public ABI"));
+    assert!(readme.contains("internal GC refs"));
+    assert!(readme.contains("current builds reject"));
+}

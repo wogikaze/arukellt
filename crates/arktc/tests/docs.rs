@@ -238,3 +238,12 @@ fn docs_manifest_includes_a_fieldless_match_wasm_example() {
     let doc = read_repo_file("docs/std.md");
     assert!(doc.contains("<!-- snippet: std-wasm-js-fieldless-match -->"));
 }
+
+#[test]
+fn std_docs_define_the_experimental_wasm_js_gc_contract() {
+    let doc = read_repo_file("docs/std.md");
+    assert!(doc.contains("wasm-js-gc"));
+    assert!(doc.contains("scalar-only public ABI"));
+    assert!(doc.contains("internal GC refs"));
+    assert!(doc.contains("currently rejects"));
+}

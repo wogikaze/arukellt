@@ -846,7 +846,29 @@ fn build_command_rejects_unknown_target_values() {
     );
     let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
     assert!(
-        stderr.contains("invalid value 'bad-target'") && stderr.contains("wasm-wasi"),
+        stderr.contains("invalid value 'bad-target'") && stderr.contains("wasm-js-gc"),
+        "unexpected stderr: {stderr}"
+    );
+}
+
+#[test]
+fn build_command_rejects_experimental_wasm_js_gc_until_backend_exists() {
+    let file = repo_root().join("example/wasm_scalar.ar");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_arktc"))
+        .arg("build")
+        .arg(&file)
+        .arg("--target")
+        .arg("wasm-js-gc")
+        .output()
+        .expect("run build");
+
+    assert!(!output.status.success(), "expected failing exit status");
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(
+        stderr.contains("reserved experimental contract")
+            && stderr.contains("scalar exports only")
+            && stderr.contains("GC refs internal"),
         "unexpected stderr: {stderr}"
     );
 }

@@ -47,84 +47,11 @@ Field rules:
 
 ## Next
 
-### WB-051
-
-title: Add a small pure-function inline and dead-code pass before wasm emission
-area: lang-ir/lang-backend-wasm
-status: NEXT
-priority: P1
-owner: unassigned
-depends_on: none
-source: user request: classify Wado optimizer ideas for Arukellt
-done_when:
-
-- Arukellt removes obviously dead helper functions and inlines small pure wrappers in a controlled pass before wasm codegen
-- regression tests cover both size-oriented and behavior-preserving cases
-- `cargo test` passes or any unrelated pre-existing failures are explicitly recorded
-notes:
-- high-impact Wado idea with moderate implementation cost
-- keep the first slice intentionally small: no whole optimizer framework, just call-graph reachability plus conservative inlining
-
-## Ready
-
-### WB-052
-
-title: Add wasm binary postprocessing for size-oriented cleanup
-area: lang-backend-wasm
-status: READY
-priority: P2
-owner: unassigned
-depends_on: WB-049
-source: user request: classify Wado wasm-size techniques for Arukellt
-done_when:
-
-- emitted wasm can be postprocessed to drop obviously unnecessary binary baggage such as unused helper bodies or nonessential metadata
-- the size win is measured on at least one representative example program
-- `cargo test -p lang-backend-wasm && cargo test -p arktc` passes
-notes:
-- high-impact Wado idea, but Arukellt currently emits WAT strings directly, so this requires a new binary-stage hook
-- likely implementation path uses wasmparser/wasm-encoder or walrus rather than more WAT string surgery
-
-### WB-053
-
-title: Introduce a backend-oriented wasm IR between High IR and WAT emission
-area: lang-ir/lang-backend-wasm
-status: READY
-priority: P2
-owner: unassigned
-depends_on: WB-051
-source: user request: classify Wado architecture ideas for Arukellt
-done_when:
-
-- a new backend-facing IR exists for wasm-specific rewrites that are awkward in the current direct High-IR-to-WAT pipeline
-- at least one existing codegen optimization is moved onto that IR
-- `cargo test` passes or unrelated worktree failures are explicitly recorded
-notes:
-- this is the structural prerequisite for accumulating Wado-style optimizer wins without turning `lang-backend-wasm` into a giant pattern matcher
-- not an immediate slice; take only after the conservative inline/DCE pass proves where the pressure points are
-
-### WB-056
-
-title: Add an explicit experimental `wasm-js-gc` target contract
-area: targets/lang-backend-wasm
-status: READY
-priority: P3
-owner: unassigned
-depends_on: none
-source: follow-up from `WB-054` Wasm GC feasibility spike
-done_when:
-
-- the CLI and docs define a separate opt-in target contract for GC-capable JavaScript hosts instead of overloading today's `wasm-js` ABI
-- the contract states which exported params/results may remain scalar-only in the first slice and which values may stay internal GC refs
-- target selection tests and docs cover failure modes on non-GC-capable toolchains or runtimes
-notes:
-- keep this separate from `wasm-wasi`; the first realistic track is a JS-host-only experimental target
-
 ### WB-057
 
 title: Introduce GC-aware wasm value representations in backend codegen
 area: lang-backend-wasm
-status: READY
+status: NEXT
 priority: P3
 owner: unassigned
 depends_on: WB-056
@@ -137,23 +64,24 @@ done_when:
 notes:
 - this likely starts by replacing the current stringly `wasm_type()` contract with a richer emitted-type/value-repr layer
 
-### WB-055
+## Ready
 
-title: Evaluate a separate Component Model / post-preview1 target track
+### WB-058
+
+title: Define the experimental Component Model target contract and naming
 area: targets/lang-backend-wasm
 status: READY
 priority: P3
 owner: unassigned
 depends_on: none
-source: user request: classify Wado's Component Model alignment for Arukellt
+source: follow-up from `WB-055` Component Model evaluation
 done_when:
 
-- the repo documents whether a new Component-Model-oriented target should exist separately from today's `wasm-js` and `wasm-wasi`
-- target-boundary risks and benefits are written down with at least one concrete host scenario
-- follow-up work is queued if the direction is judged viable
+- a concrete target name such as `wasm-component-js` or equivalent is chosen and documented
+- CLI/help/docs state the host scenario, non-goals, and ABI boundary differences from `wasm-js` and `wasm-wasi`
+- one target-selection or docs regression covers the new contract text
 notes:
-- Wado's Component Model alignment is real, but it does not fit cleanly into Arukellt's current prototype boundaries
-- keep this isolated from short-term backend size/perf work
+- keep this contract-only at first; do not promise backend implementation parity yet
 
 ## Blocked
 
@@ -175,6 +103,27 @@ notes:
 - blocked on repository settings rather than code in this worktree
 
 ## Done
+
+### WB-053
+
+title: Introduce a backend-oriented wasm IR between High IR and WAT emission
+area: lang-ir/lang-backend-wasm
+status: DONE
+priority: P2
+owner: ai
+depends_on: WB-051
+source: user request: classify Wado architecture ideas for Arukellt
+done_when:
+
+- a new backend-facing IR exists for wasm-specific rewrites that are awkward in the current direct High-IR-to-WAT pipeline
+- at least one existing codegen optimization is moved onto that IR
+- `cargo test` passes or unrelated worktree failures are explicitly recorded
+notes:
+- added `lang-ir` wasm IR lowering in `crates/lang-ir/src/wasm.rs`, exported via `lang-ir`, with backend-facing `WasmModule` / `WasmFunctionBody` plus helper-usage analysis
+- moved suffix-recursion specialization and the parse-or-zero fast path onto that wasm IR, and `lang-backend-wasm` now lowers through it before helper selection and WAT emission
+- verified with `cargo test -p lang-ir --test lowering --quiet`, `cargo test -p lang-backend-wasm compact_suffix_recursion_uses_an_optimized_path_for_large_inputs --quiet`, and `cargo test -p lang-backend-wasm strip_suffix_option_map_unwrap_or_and_any_run_on_both_wasm_targets --quiet`
+- full `cargo test --quiet` still has unrelated pre-existing failures in `crates/arktc/tests/docs_site.rs` (`docs_site_uses_relative_assets_and_known_routes`, `docs_site_runtime_helpers_work_in_node`)
+- `cargo test -p lang-backend-wasm --tests --quiet` still has unrelated pre-existing closure/lambda failures in `javascript_target_supports_iter_unfold_take_for_int_sequences`, `wasi_target_supports_filter_with_lambda_callbacks`, `wasi_target_supports_iter_unfold_take_with_tuple_state`, and `wasi_target_supports_lambda_callback_values_via_apply`
 
 ### WB-054
 

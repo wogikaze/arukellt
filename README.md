@@ -169,19 +169,22 @@ If the source does not compile, `arktdoc` exits non-zero and prints a short comp
 ```bash
 cargo run -p arktc -- build path/to/file.ar --target wasm-js --output out.wasm
 cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --output out.wasm
+cargo run -p arktc -- build path/to/file.ar --target wasm-js-gc --emit wat
 cargo run -p arktc -- build path/to/file.ar --target wasm-js --emit wat
 cargo run -p arktc -- build path/to/file.ar --target wasm-wasi --emit wat-min
 cargo run -p chef -- build path/to/file.ar --target wasm-wasi --output out.wasm
 ```
 
 The current WASM backend supports a narrow scalar-plus-list-plus-string subset on `wasm-wasi`, and a smaller but now collection-capable `List<i64>` subset on `wasm-js`.
+`wasm-js-gc` is now a documented explicit experimental target contract for a future GC-capable JavaScript-host backend, but current builds reject it until that backend exists.
 `chef build` now exposes the same target and emit matrix as `arktc build`, which is useful when you want run/test/build workflows under one CLI.
-`--target` selects the ABI (`wasm-js` or `wasm-wasi`) while `--emit` selects the output format (`wasm`, `wat`, or `wat-min`).
+`--target` selects the ABI (`wasm-js`, `wasm-wasi`, or the reserved experimental `wasm-js-gc` contract) while `--emit` selects the output format (`wasm`, `wat`, or `wat-min`).
 For API-by-API target coverage, see the target support matrix in [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md). The bundled example matrix above is example-level; the std doc is the source of truth for questions such as whether `parse.i64`, `split_whitespace`, or `stdin.read_line` lower on a given WASM target.
 `--output` is currently optional; if you omit it, `arktc build` prints WAT for `--emit wat` / `--emit wat-min`, and otherwise discards the generated WASM bytes after successful codegen.
 `--target wat` is still accepted as a deprecated alias for `--target wasm-js --emit wat`.
 `wasm-js` emits an embeddable module that exports compiled functions by their Arukel names.
 `wasm-wasi` emits a command-style module that exports only `_start`; it requires a zero-argument `main` function and drops any scalar return value at the ABI boundary.
+`wasm-js-gc` is intentionally separate from `wasm-js`: its first-slice contract is planned as a scalar-only public ABI with internal GC refs allowed inside the module, and current builds reject the target with a contract error until the GC backend lands.
 `String` currently lowers only as a raw `i32` pointer into exported read-only `memory` containing NUL-terminated UTF-8 literals. Literal expressions and direct returns through user-defined functions are supported in that ABI slice.
 Fieldless user-defined ADTs currently lower as raw numeric tags, and `match` lowers only when the subject is one of those ADTs and each arm is either a bare variant name or a final wildcard.
 Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs outside the documented subset, such as unsupported string helpers on the selected target, payload-bearing ADTs, pattern bindings, or unsupported host calls, and the error points back to the API-level support matrix in [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md).

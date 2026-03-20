@@ -99,6 +99,9 @@ fn resolve_build_mode(
             ))
         }
         BuildTarget::WasmJs => Ok((lang_backend_wasm::WasmTarget::JavaScriptHost, emit)),
+        BuildTarget::WasmJsGc => anyhow::bail!(
+            "`--target wasm-js-gc` is a reserved experimental contract for a future Wasm GC JS-host backend; current builds reject it until that backend exists. First-slice ABI plan: scalar exports only, GC refs internal to the module."
+        ),
         BuildTarget::WasmWasi => Ok((lang_backend_wasm::WasmTarget::Wasi, emit)),
     }
 }

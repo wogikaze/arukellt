@@ -6,6 +6,7 @@ The current v0.0.1 standard surface is intentionally narrow. It is centered on b
 
 Use this table when choosing `arktc build --target ...` or `chef build --target ...`.
 [`example/meta/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/meta/matrix.json) is the example-level contract; this section is the API-level contract.
+The table below covers the currently implemented targets. `wasm-js-gc` is a separate experimental contract described later in this document, and current builds intentionally reject it until a GC backend exists.
 
 | surface | interpreter | `wasm-js` | `wasm-wasi` | notes |
 | --- | --- | --- | --- | --- |
@@ -95,7 +96,7 @@ chef build --target wasm-js --emit wat --output out.wat src/main.ar
 
 ## WASM Boundary
 
-Both WASM targets now cover most of the interpreter surface described in the Target Support Matrix above. Use `--target wasm-js` for a JavaScript host and `--target wasm-wasi` for a WASI runtime.
+Both implemented WASM targets now cover most of the interpreter surface described in the Target Support Matrix above. Use `--target wasm-js` for a JavaScript host and `--target wasm-wasi` for a WASI runtime.
 
 The output format is controlled separately with `--emit`:
 
@@ -160,3 +161,22 @@ fn main() -> Seq<Int>:
 ```
 
 Any API marked `no` in the Target Support Matrix above will fail hard during `arktc build` with an unsupported-call error.
+
+### Experimental `wasm-js-gc` contract
+
+`wasm-js-gc` is a separate opt-in target contract for a future GC-capable JavaScript-host backend. It exists so the repo can talk about a GC path without changing the meaning of today's `wasm-js` target.
+
+Current status:
+
+- the target is visible in `arktc build` and `chef build`
+- the repo currently rejects it immediately with a contract error because the GC backend does not exist yet
+- rejection is intentional, not a fallback to linear-memory `wasm-js`
+
+First-slice contract, once implemented:
+
+- scalar-only public ABI at the module boundary
+- internal GC refs may flow between non-exported functions inside the module
+- exported `memory` is not implied by the contract
+- string/host adapters may stay unsupported or remain linear-memory-based until explicitly documented
+
+This target is intentionally JS-host-only for now; it does not imply a `wasm-wasi` GC track.
