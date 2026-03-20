@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
+
+pub use arktc_driver::{BuildEmit, BuildTarget};
 
 #[derive(Parser)]
 #[command(name = "chef")]
@@ -67,20 +69,4 @@ pub enum Command {
         #[arg(help = "Path to the benchmark manifest JSON file")]
         file: PathBuf,
     },
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
-pub enum BuildTarget {
-    Wat,
-    WasmJs,
-    WasmJsGc,
-    WasmComponentJs,
-    WasmWasi,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
-pub enum BuildEmit {
-    Wasm,
-    Wat,
-    WatMin,
 }

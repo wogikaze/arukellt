@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
+
+pub use arktc_driver::{BuildEmit, BuildTarget};
 
 #[derive(Parser)]
 #[command(name = "arktc")]
@@ -43,20 +45,4 @@ pub enum Command {
         #[arg(short, long, help = "Write the build output to this path")]
         output: Option<PathBuf>,
     },
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
-pub enum BuildTarget {
-    Wat,
-    WasmJs,
-    WasmJsGc,
-    WasmComponentJs,
-    WasmWasi,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
-pub enum BuildEmit {
-    Wasm,
-    Wat,
-    WatMin,
 }

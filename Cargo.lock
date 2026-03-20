@@ -73,6 +73,7 @@ name = "arktc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arktc-driver",
  "clap",
  "lang-backend-wasm",
  "lang-core",
@@ -80,6 +81,18 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
+]
+
+[[package]]
+name = "arktc-driver"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "lang-backend-wasm",
+ "lang-core",
+ "lang-ir",
+ "serde_json",
 ]
 
 [[package]]
@@ -143,6 +156,7 @@ name = "chef"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arktc-driver",
  "clap",
  "lang-backend-wasm",
  "lang-core",

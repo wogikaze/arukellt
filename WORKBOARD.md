@@ -87,6 +87,42 @@ notes:
 
 ## Done
 
+### WB-061
+
+title: Split lang-backend-wasm into target, ABI, helper analysis, emitter, runtime, closure, and postprocess modules
+area: lang-backend-wasm
+status: DONE
+priority: P2
+owner: ai
+depends_on: none
+source: user request: split the oversized wasm backend crate
+done_when:
+
+- `lang-backend-wasm` no longer keeps target contract, ABI/layout, helper usage analysis, WAT emission, runtime helpers, closure/callback lowering, and postprocess logic in one source file
+- the public backend API still builds and the crate tests stay green after the split
+- the workboard records the refactor and its verification
+notes:
+- verified with `cargo fmt`, `cargo test -p lang-backend-wasm --quiet`, and `cargo test`
+- split `crates/lang-backend-wasm/src/lib.rs` into `target_contract.rs`, `abi_layout.rs`, `helper_usage_analysis.rs`, `wat_emitter.rs`, `runtime_helpers.rs`, and `closure_callback_lowering.rs`, keeping `postprocess.rs` separate
+
+### WB-060
+
+title: Share compiler build driver between `arktc` and `chef`
+area: arktc/chef
+status: DONE
+priority: P1
+owner: ai
+depends_on: none
+source: user request: make `chef` relate to `arktc` more like `cargo` to `rustc`
+done_when:
+
+- `chef build` no longer carries its own copy of the WASM build pipeline and instead calls the same shared driver API as `arktc build`
+- build target and emit contracts stay defined in one place for both CLIs
+- `cargo fmt` and `cargo test` are run, with any unrelated pre-existing failures recorded
+notes:
+- verified with `cargo fmt` and `cargo test`
+- added a new `arktc-driver` crate that owns the shared build contract and execution path, and both `arktc` and `chef` now import its `BuildTarget` / `BuildEmit` types plus `build_path`
+
 ### WB-057
 
 title: Introduce GC-aware wasm value representations in backend codegen

@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "crates/arktc-driver",
   "crates/lang-core",
   "crates/lang-ir",
   "crates/lang-interp",

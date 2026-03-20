@@ -6,6 +6,7 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+arktc-driver = { path = "../arktc-driver" }
 clap.workspace = true
 lang-backend-wasm = { path = "../lang-backend-wasm" }
 lang-core = { path = "../lang-core" }
