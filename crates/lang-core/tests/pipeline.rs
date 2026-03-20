@@ -341,6 +341,28 @@ fn trim_word(text: String) -> String:
 }
 
 #[test]
+fn compiles_len_and_ends_with_at_pipeline() {
+    let source = "\
+fn can_form_at(text: String, end: Int) -> Bool:
+  if end == 0:
+    true
+  else:
+    if ends_with_at(text, \"dream\", end):
+      can_form_at(text, end - len(\"dream\"))
+    else:
+      false
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
 fn compiles_parse_bool_result_matching() {
     let source = "\
 fn parse_flag(text: String) -> Bool:

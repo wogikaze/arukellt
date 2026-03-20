@@ -70,6 +70,23 @@ notes:
 
 ## Done
 
+### WB-044
+
+title: Replace `abc049c` substring peeling with index-based suffix checks
+area: examples/abs/lang-surface
+status: DONE
+priority: P1
+owner: ai
+depends_on: none
+source: user report: `ABC049C` hit MLE under the generated WASM path
+done_when:
+
+- the language exposes non-allocating suffix-check primitives needed by `abc049c`
+- `example/abs/src/abc049c.ar` no longer materializes shrinking strings at each step
+- verified with `cargo test`, ABS sample runs, and regenerated `abc049c.wat`
+notes:
+- added `len` and `ends_with_at` so `abc049c` can recurse on an integer end position instead of allocating substring copies
+
 ### WB-043
 
 title: Close the remaining WASI gaps needed to emit WAT for all ABS examples

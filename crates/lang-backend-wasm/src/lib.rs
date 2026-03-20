@@ -24,6 +24,7 @@ pub fn build_module_from_source(source: &str, target: WasmTarget) -> Result<Vec<
 
 pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     let abi = WasmAbi::from_module(module, target)?;
+    let uses_ends_with_at = module_uses_call(module, "ends_with_at");
     let uses_split_whitespace = module_uses_call(module, "split_whitespace");
     let uses_parse_i64 = module_uses_call(module, "parse.i64");
     let uses_parse_bool = module_uses_call(module, "parse.bool");
@@ -77,6 +78,9 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     }
     if uses_parse_bool {
         emit_parse_bool_helper(&abi, &mut wat_module);
+    }
+    if uses_ends_with_at {
+        emit_ends_with_at_helper(&mut wat_module);
     }
     if uses_strip_suffix {
         emit_strip_suffix_helper(&mut wat_module);
@@ -171,12 +175,17 @@ fn emit_javascript_exports(module: &HighModule, out: &mut String) {
 }
 
 fn emit_heap_primitives(abi: &WasmAbi, out: &mut String) {
-    if !abi.needs_heap() && !(abi.target == WasmTarget::JavaScriptHost && abi.uses_console_println)
+    if !abi.needs_heap()
+        && !abi.uses_len_builtin
+        && !abi.uses_ends_with_at_builtin
+        && !(abi.target == WasmTarget::JavaScriptHost && abi.uses_console_println)
     {
         return;
     }
     emit_strlen_helper(out);
-    emit_string_eq_helper(out);
+    if abi.uses_string_eq || abi.uses_ends_with_at_builtin {
+        emit_string_eq_helper(out);
+    }
     if abi.needs_heap() {
         emit_alloc_helper(out);
         emit_memcpy_helper(out);
@@ -1878,6 +1887,75 @@ fn emit_expr(
                     )?;
                 }
                 out.push_str(&format!("{pad}call $string\n"));
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "len"
+            {
+                let [value] = args.as_slice() else {
+                    bail!("`len` expects exactly one argument in wasm backend");
+                };
+                emit_expr(
+                    value,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                match &value.ty {
+                    Type::String => out.push_str(&format!("{pad}call $__strlen\n")),
+                    Type::List(_) => out.push_str(&format!("{pad}i32.load\n")),
+                    _ => bail!("`len` expects a String or List receiver in wasm backend"),
+                }
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "ends_with_at"
+            {
+                let [text, suffix, end] = args.as_slice() else {
+                    bail!("`ends_with_at` expects exactly three arguments in wasm backend");
+                };
+                if !matches!(text.ty, Type::String) || !matches!(suffix.ty, Type::String) {
+                    bail!("`ends_with_at` expects String arguments in wasm backend");
+                }
+                emit_expr(
+                    text,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                emit_expr(
+                    suffix,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                emit_expr(
+                    end,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}call $ends_with_at\n"));
             } else if abi.target == WasmTarget::Wasi && callee == "stdin.read_text" {
                 if !args.is_empty() {
                     bail!("`stdin.read_text` expects no arguments in wasm backend");
@@ -2725,6 +2803,9 @@ struct WasmAbi {
     variants: HashMap<String, VariantLayout>,
     uses_console_println: bool,
     uses_string_builtin: bool,
+    uses_len_builtin: bool,
+    uses_ends_with_at_builtin: bool,
+    uses_string_eq: bool,
     uses_fs_read_text: bool,
     uses_stdin_read_text: bool,
     uses_stdin_read_line: bool,
@@ -2784,6 +2865,9 @@ impl WasmAbi {
 
         let mut uses_console_println = false;
         let mut uses_string_builtin = false;
+        let mut uses_len_builtin = false;
+        let mut uses_ends_with_at_builtin = false;
+        let mut uses_string_eq = false;
         let mut uses_fs_read_text = false;
         let mut uses_stdin_read_text = false;
         let mut uses_stdin_read_line = false;
@@ -2804,6 +2888,9 @@ impl WasmAbi {
                 &function.body,
                 &mut uses_console_println,
                 &mut uses_string_builtin,
+                &mut uses_len_builtin,
+                &mut uses_ends_with_at_builtin,
+                &mut uses_string_eq,
                 &mut uses_fs_read_text,
                 &mut uses_stdin_read_text,
                 &mut uses_stdin_read_line,
@@ -2840,6 +2927,9 @@ impl WasmAbi {
             variants,
             uses_console_println,
             uses_string_builtin,
+            uses_len_builtin,
+            uses_ends_with_at_builtin,
+            uses_string_eq,
             uses_fs_read_text,
             uses_stdin_read_text,
             uses_stdin_read_line,
@@ -3690,6 +3780,87 @@ fn emit_string_eq_helper(out: &mut String) {
     out.push_str("  )\n");
 }
 
+fn emit_ends_with_at_helper(out: &mut String) {
+    out.push_str("  (func $ends_with_at (param $text i32) (param $suffix i32) (param $end i32) (result i32)\n");
+    out.push_str("    (local $text_len i32)\n");
+    out.push_str("    (local $suffix_len i32)\n");
+    out.push_str("    (local $start i32)\n");
+    out.push_str("    (local $i i32)\n");
+    out.push_str("    (local $matches i32)\n");
+    out.push_str("    i32.const 1\n");
+    out.push_str("    local.set $matches\n");
+    out.push_str("    local.get $end\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.lt_s\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        return\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $text\n");
+    out.push_str("    call $__strlen\n");
+    out.push_str("    local.set $text_len\n");
+    out.push_str("    local.get $suffix\n");
+    out.push_str("    call $__strlen\n");
+    out.push_str("    local.set $suffix_len\n");
+    out.push_str("    local.get $end\n");
+    out.push_str("    local.get $text_len\n");
+    out.push_str("    i32.gt_u\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        return\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $suffix_len\n");
+    out.push_str("    local.get $end\n");
+    out.push_str("    i32.gt_u\n");
+    out.push_str("    (if\n");
+    out.push_str("      (then\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        return\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $end\n");
+    out.push_str("    local.get $suffix_len\n");
+    out.push_str("    i32.sub\n");
+    out.push_str("    local.set $start\n");
+    out.push_str("    (block $done\n");
+    out.push_str("      (loop $loop\n");
+    out.push_str("        local.get $i\n");
+    out.push_str("        local.get $suffix_len\n");
+    out.push_str("        i32.ge_u\n");
+    out.push_str("        br_if $done\n");
+    out.push_str("        local.get $text\n");
+    out.push_str("        local.get $start\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.get $i\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        local.get $suffix\n");
+    out.push_str("        local.get $i\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load8_u\n");
+    out.push_str("        i32.ne\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            i32.const 0\n");
+    out.push_str("            local.set $matches\n");
+    out.push_str("            br $done\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $i\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $i\n");
+    out.push_str("        br $loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    local.get $matches\n");
+    out.push_str("  )\n");
+}
+
 fn emit_memcpy_helper(out: &mut String) {
     out.push_str("  (func $__memcpy (param $dst i32) (param $src i32) (param $len i32)\n");
     out.push_str("    (local $i i32)\n");
@@ -4461,6 +4632,9 @@ fn scan_expr(
     expr: &HighExpr,
     uses_console_println: &mut bool,
     uses_string_builtin: &mut bool,
+    uses_len_builtin: &mut bool,
+    uses_ends_with_at_builtin: &mut bool,
+    uses_string_eq: &mut bool,
     uses_fs_read_text: &mut bool,
     uses_stdin_read_text: &mut bool,
     uses_stdin_read_line: &mut bool,
@@ -4484,6 +4658,12 @@ fn scan_expr(
             }
             if callee == "string" {
                 *uses_string_builtin = true;
+            }
+            if callee == "len" {
+                *uses_len_builtin = true;
+            }
+            if callee == "ends_with_at" {
+                *uses_ends_with_at_builtin = true;
             }
             if callee == "fs.read_text" {
                 *uses_fs_read_text = true;
@@ -4541,6 +4721,9 @@ fn scan_expr(
                     arg,
                     uses_console_println,
                     uses_string_builtin,
+                    uses_len_builtin,
+                    uses_ends_with_at_builtin,
+                    uses_string_eq,
                     uses_fs_read_text,
                     uses_stdin_read_text,
                     uses_stdin_read_line,
@@ -4559,11 +4742,20 @@ fn scan_expr(
                 );
             }
         }
-        HighExprKind::Binary { left, right, .. } => {
+        HighExprKind::Binary { left, right, op } => {
+            if *op == lang_core::BinaryOp::Equal
+                && left.ty == Type::String
+                && right.ty == Type::String
+            {
+                *uses_string_eq = true;
+            }
             scan_expr(
                 left,
                 uses_console_println,
                 uses_string_builtin,
+                uses_len_builtin,
+                uses_ends_with_at_builtin,
+                uses_string_eq,
                 uses_fs_read_text,
                 uses_stdin_read_text,
                 uses_stdin_read_line,
@@ -4584,6 +4776,9 @@ fn scan_expr(
                 right,
                 uses_console_println,
                 uses_string_builtin,
+                uses_len_builtin,
+                uses_ends_with_at_builtin,
+                uses_string_eq,
                 uses_fs_read_text,
                 uses_stdin_read_text,
                 uses_stdin_read_line,
@@ -4610,6 +4805,9 @@ fn scan_expr(
                 condition,
                 uses_console_println,
                 uses_string_builtin,
+                uses_len_builtin,
+                uses_ends_with_at_builtin,
+                uses_string_eq,
                 uses_fs_read_text,
                 uses_stdin_read_text,
                 uses_stdin_read_line,
@@ -4630,6 +4828,9 @@ fn scan_expr(
                 then_branch,
                 uses_console_println,
                 uses_string_builtin,
+                uses_len_builtin,
+                uses_ends_with_at_builtin,
+                uses_string_eq,
                 uses_fs_read_text,
                 uses_stdin_read_text,
                 uses_stdin_read_line,
@@ -4650,6 +4851,9 @@ fn scan_expr(
                 else_branch,
                 uses_console_println,
                 uses_string_builtin,
+                uses_len_builtin,
+                uses_ends_with_at_builtin,
+                uses_string_eq,
                 uses_fs_read_text,
                 uses_stdin_read_text,
                 uses_stdin_read_line,
@@ -4673,6 +4877,9 @@ fn scan_expr(
                 subject,
                 uses_console_println,
                 uses_string_builtin,
+                uses_len_builtin,
+                uses_ends_with_at_builtin,
+                uses_string_eq,
                 uses_fs_read_text,
                 uses_stdin_read_text,
                 uses_stdin_read_line,
@@ -4694,6 +4901,9 @@ fn scan_expr(
                     &arm.expr,
                     uses_console_println,
                     uses_string_builtin,
+                    uses_len_builtin,
+                    uses_ends_with_at_builtin,
+                    uses_string_eq,
                     uses_fs_read_text,
                     uses_stdin_read_text,
                     uses_stdin_read_line,
@@ -4719,6 +4929,9 @@ fn scan_expr(
                     arg,
                     uses_console_println,
                     uses_string_builtin,
+                    uses_len_builtin,
+                    uses_ends_with_at_builtin,
+                    uses_string_eq,
                     uses_fs_read_text,
                     uses_stdin_read_text,
                     uses_stdin_read_line,
@@ -4746,6 +4959,9 @@ fn scan_expr(
                     item,
                     uses_console_println,
                     uses_string_builtin,
+                    uses_len_builtin,
+                    uses_ends_with_at_builtin,
+                    uses_string_eq,
                     uses_fs_read_text,
                     uses_stdin_read_text,
                     uses_stdin_read_line,
@@ -4769,6 +4985,9 @@ fn scan_expr(
                 body,
                 uses_console_println,
                 uses_string_builtin,
+                uses_len_builtin,
+                uses_ends_with_at_builtin,
+                uses_string_eq,
                 uses_fs_read_text,
                 uses_stdin_read_text,
                 uses_stdin_read_line,
@@ -4791,6 +5010,9 @@ fn scan_expr(
                 value,
                 uses_console_println,
                 uses_string_builtin,
+                uses_len_builtin,
+                uses_ends_with_at_builtin,
+                uses_string_eq,
                 uses_fs_read_text,
                 uses_stdin_read_text,
                 uses_stdin_read_line,
@@ -4811,6 +5033,9 @@ fn scan_expr(
                 body,
                 uses_console_println,
                 uses_string_builtin,
+                uses_len_builtin,
+                uses_ends_with_at_builtin,
+                uses_string_eq,
                 uses_fs_read_text,
                 uses_stdin_read_text,
                 uses_stdin_read_line,

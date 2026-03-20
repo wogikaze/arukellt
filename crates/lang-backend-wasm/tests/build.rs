@@ -569,6 +569,33 @@ fn main() -> Int:
 }
 
 #[test]
+fn len_and_ends_with_at_run_on_both_wasm_targets() {
+    let js_source = "\
+fn main() -> Int:
+  if ends_with_at(\"erase dream\", \"dream\", len(\"erase dream\")):
+    1
+  else:
+    0
+";
+    let wasi_source = "\
+import console
+
+fn main():
+  if ends_with_at(\"erase dream\", \"dream\", len(\"erase dream\")):
+    \"YES\" |> console.println
+  else:
+    \"NO\" |> console.println
+";
+
+    let js_bytes =
+        build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
+
+    assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 1);
+    assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "YES\n");
+}
+
+#[test]
 fn javascript_target_supports_int_list_literals() {
     let source = "\
 fn main() -> Int:

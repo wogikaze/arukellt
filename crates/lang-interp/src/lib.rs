@@ -355,6 +355,31 @@ impl Interpreter {
                 [value] => Ok(Value::String(render_value(value))),
                 _ => Err(InterpreterError::ArityMismatch("string".to_owned())),
             },
+            "len" => match args.as_slice() {
+                [Value::String(text)] => Ok(Value::Int(text.len() as i64)),
+                [Value::List(items)] => Ok(Value::Int(items.len() as i64)),
+                _ => Err(InterpreterError::TypeMismatch("len(string|list)")),
+            },
+            "ends_with_at" => match args.as_slice() {
+                [Value::String(text), Value::String(suffix), Value::Int(end)] => {
+                    if *end < 0 {
+                        Ok(Value::Bool(false))
+                    } else {
+                        let end = *end as usize;
+                        let text_bytes = text.as_bytes();
+                        let suffix_bytes = suffix.as_bytes();
+                        if end > text_bytes.len() || suffix_bytes.len() > end {
+                            Ok(Value::Bool(false))
+                        } else {
+                            let start = end - suffix_bytes.len();
+                            Ok(Value::Bool(&text_bytes[start..end] == suffix_bytes))
+                        }
+                    }
+                }
+                _ => Err(InterpreterError::TypeMismatch(
+                    "ends_with_at(string, suffix, end)",
+                )),
+            },
             "split_whitespace" => match args.as_slice() {
                 [Value::String(text)] => Ok(Value::List(
                     text.split_whitespace()
@@ -676,6 +701,8 @@ fn is_builtin(name: &str) -> bool {
             | "__index"
             | "range_inclusive"
             | "string"
+            | "len"
+            | "ends_with_at"
             | "split_whitespace"
             | "strip_suffix"
             | "parse.i64"

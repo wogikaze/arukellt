@@ -235,6 +235,20 @@ fn trim_word(text: String) -> String:
 }
 
 #[test]
+fn evaluates_len_and_ends_with_at_builtins() {
+    let source = "\
+fn suffix_ok(text: String) -> Bool:
+  ends_with_at(text, \"dream\", len(text))
+";
+    let result = compile_and_run(
+        source,
+        "suffix_ok",
+        vec![Value::String("erase dream".to_owned())],
+    );
+    assert_eq!(result, Value::Bool(true));
+}
+
+#[test]
 fn invalid_parse_i64_matches_err_variant() {
     let source = "\
 fn parse_flag(text: String) -> Int:

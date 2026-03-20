@@ -854,6 +854,8 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         },
         "range_inclusive" => Type::List(Box::new(Type::Int)),
         "string" => Type::String,
+        "len" => Type::Int,
+        "ends_with_at" => Type::Bool,
         "split_whitespace" => Type::List(Box::new(Type::String)),
         "strip_suffix" => Type::Result(Box::new(Type::String), Box::new(Type::Unknown)),
         "parse.i64" => Type::Result(Box::new(Type::Int), Box::new(Type::Unknown)),
@@ -947,6 +949,8 @@ fn is_builtin_function(name: &str) -> bool {
     matches!(
         name,
         "string"
+            | "len"
+            | "ends_with_at"
             | "split_whitespace"
             | "strip_suffix"
             | "parse.i64"

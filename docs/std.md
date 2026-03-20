@@ -14,6 +14,8 @@ Use this table when choosing `arktc build --target ...` or `chef build --target 
 | `stdin.read_text()` | yes | no | yes | full stdin ingestion on `wasm-wasi` |
 | `stdin.read_line()` | yes | no | yes | `wasm-wasi` reads incrementally and trims trailing `\n` / `\r` like the interpreter |
 | `string(i64)` | yes | yes | yes | canonical integer-to-string conversion |
+| `len(text)` | yes | yes | yes | current surface also accepts `len(list)`; string length is byte length |
+| `ends_with_at(text, suffix, end)` | yes | yes | yes | allows suffix checks without allocating substrings |
 | `text.split_whitespace()` | yes | yes | yes | whitespace tokenization lowers on both WASM targets |
 | `strip_suffix(text, suffix)` | yes | no | yes | current WASI support is enough for ABS-style suffix parsing; `wasm-js` still rejects it |
 | `parse.i64(text)` | yes | yes | yes | pure parse helper available across interpreter and both WASM targets |
