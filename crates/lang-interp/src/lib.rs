@@ -176,6 +176,16 @@ impl Interpreter {
                 .get(name)
                 .cloned()
                 .or_else(|| {
+                    if name == "None" {
+                        Some(Value::Variant {
+                            name: "None".to_owned(),
+                            fields: Vec::new(),
+                        })
+                    } else {
+                        None
+                    }
+                })
+                .or_else(|| {
                     if self.has_named_function(name) || is_builtin(name) {
                         Some(Value::Function(name.clone()))
                     } else {
@@ -392,16 +402,13 @@ impl Interpreter {
                 [Value::String(text), Value::String(suffix)] => {
                     if let Some(rest) = text.strip_suffix(suffix) {
                         Ok(Value::Variant {
-                            name: "Ok".to_owned(),
+                            name: "Some".to_owned(),
                             fields: vec![Value::String(rest.to_owned())],
                         })
                     } else {
                         Ok(Value::Variant {
-                            name: "Err".to_owned(),
-                            fields: vec![Value::Variant {
-                                name: "PrefixSuffixMismatch".to_owned(),
-                                fields: Vec::new(),
-                            }],
+                            name: "None".to_owned(),
+                            fields: Vec::new(),
                         })
                     }
                 }
@@ -453,7 +460,41 @@ impl Interpreter {
                     }
                     Ok(Value::List(out))
                 }
+                [Value::Variant { name, fields }, callable] if name == "Some" => {
+                    let value = fields.first().cloned().unwrap_or(Value::Error);
+                    Ok(Value::Variant {
+                        name: "Some".to_owned(),
+                        fields: vec![self.call_callable(callable.clone(), vec![value])?],
+                    })
+                }
+                [Value::Variant { name, .. }, _] if name == "None" => Ok(Value::Variant {
+                    name: "None".to_owned(),
+                    fields: Vec::new(),
+                }),
                 _ => Err(InterpreterError::TypeMismatch("map(list, fn)")),
+            },
+            "unwrap_or" => match args.as_slice() {
+                [Value::Variant { name, fields }, _] if name == "Some" => {
+                    Ok(fields.first().cloned().unwrap_or(Value::Error))
+                }
+                [Value::Variant { name, .. }, fallback] if name == "None" => Ok(fallback.clone()),
+                _ => Err(InterpreterError::TypeMismatch(
+                    "unwrap_or(option, fallback)",
+                )),
+            },
+            "any" => match args.as_slice() {
+                [Value::List(items), callable] => {
+                    for item in items {
+                        if matches!(
+                            self.call_callable(callable.clone(), vec![item.clone()])?,
+                            Value::Bool(true)
+                        ) {
+                            return Ok(Value::Bool(true));
+                        }
+                    }
+                    Ok(Value::Bool(false))
+                }
+                _ => Err(InterpreterError::TypeMismatch("any(list, fn)")),
             },
             "filter" => match args.as_slice() {
                 [Value::List(items), callable] => {
@@ -560,6 +601,14 @@ impl Interpreter {
             }),
             "Done" => Ok(Value::Variant {
                 name: "Done".to_owned(),
+                fields: args,
+            }),
+            "Some" => Ok(Value::Variant {
+                name: "Some".to_owned(),
+                fields: args,
+            }),
+            "None" => Ok(Value::Variant {
+                name: "None".to_owned(),
                 fields: args,
             }),
             other => Err(InterpreterError::UnknownFunction(other.to_owned())),
@@ -708,6 +757,8 @@ fn is_builtin(name: &str) -> bool {
             | "parse.i64"
             | "parse.bool"
             | "map"
+            | "unwrap_or"
+            | "any"
             | "filter"
             | "sum"
             | "join"
@@ -717,6 +768,8 @@ fn is_builtin(name: &str) -> bool {
             | "fs.read_text"
             | "stdin.read_text"
             | "stdin.read_line"
+            | "Some"
+            | "None"
             | "Next"
             | "Done"
     )

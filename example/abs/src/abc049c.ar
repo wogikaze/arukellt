@@ -1,27 +1,15 @@
 import stdin
 import console
 
-fn can_form_at(text: String, end: Int) -> Bool:
-  if end == 0:
+fn can_form(text: String) -> Bool:
+  if text == "":
     true
   else:
-    if ends_with_at(text, "dreamer", end):
-      can_form_at(text, end - 7)
-    else:
-      if ends_with_at(text, "eraser", end):
-        can_form_at(text, end - 6)
-      else:
-        if ends_with_at(text, "dream", end):
-          can_form_at(text, end - 5)
-        else:
-          if ends_with_at(text, "erase", end):
-            can_form_at(text, end - 5)
-          else:
-            false
+    ["dreamer", "eraser", "dream", "erase"].any(suffix -> strip_suffix(text, suffix).map(can_form).unwrap_or(false))
 
 fn main():
   let text = stdin.read_text().split_whitespace()[0]
-  if can_form_at(text, len(text)):
+  if can_form(text):
     "YES" |> console.println
   else:
     "NO" |> console.println

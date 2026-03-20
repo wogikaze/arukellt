@@ -29,6 +29,7 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     let uses_parse_i64 = module_uses_call(module, "parse.i64");
     let uses_parse_bool = module_uses_call(module, "parse.bool");
     let uses_strip_suffix = module_uses_call(module, "strip_suffix");
+    let uses_unwrap_or = module_uses_call(module, "unwrap_or");
     let mut wat_module = String::from("(module\n");
     let function_names = module
         .functions
@@ -84,6 +85,9 @@ pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     }
     if uses_strip_suffix {
         emit_strip_suffix_helper(&mut wat_module);
+    }
+    if uses_unwrap_or {
+        emit_option_unwrap_or_helper(&mut wat_module);
     }
     if target == WasmTarget::Wasi {
         if abi.uses_fs_read_text {
@@ -150,6 +154,45 @@ fn expr_uses_call(expr: &HighExpr, callee: &str) -> bool {
         HighExprKind::Lambda { body, .. } => expr_uses_call(body, callee),
         HighExprKind::Let { value, body, .. } => {
             expr_uses_call(value, callee) || expr_uses_call(body, callee)
+        }
+        HighExprKind::Int(_)
+        | HighExprKind::Bool(_)
+        | HighExprKind::String(_)
+        | HighExprKind::Ident(_)
+        | HighExprKind::Error => false,
+    }
+}
+
+fn expr_uses_option_runtime(expr: &HighExpr) -> bool {
+    if matches!(expr.ty, Type::Option(_)) {
+        return true;
+    }
+    match &expr.kind {
+        HighExprKind::Call { args, .. } | HighExprKind::Construct { args, .. } => {
+            args.iter().any(expr_uses_option_runtime)
+        }
+        HighExprKind::Binary { left, right, .. } => {
+            expr_uses_option_runtime(left) || expr_uses_option_runtime(right)
+        }
+        HighExprKind::If {
+            condition,
+            then_branch,
+            else_branch,
+        } => {
+            expr_uses_option_runtime(condition)
+                || expr_uses_option_runtime(then_branch)
+                || expr_uses_option_runtime(else_branch)
+        }
+        HighExprKind::Match { subject, arms } => {
+            expr_uses_option_runtime(subject)
+                || arms.iter().any(|arm| expr_uses_option_runtime(&arm.expr))
+        }
+        HighExprKind::List(items) | HighExprKind::Tuple(items) => {
+            items.iter().any(expr_uses_option_runtime)
+        }
+        HighExprKind::Lambda { body, .. } => expr_uses_option_runtime(body),
+        HighExprKind::Let { value, body, .. } => {
+            expr_uses_option_runtime(value) || expr_uses_option_runtime(body)
         }
         HighExprKind::Int(_)
         | HighExprKind::Bool(_)
@@ -948,15 +991,12 @@ fn emit_strip_suffix_helper(out: &mut String) {
     out.push_str("    i32.lt_u\n");
     out.push_str("    (if\n");
     out.push_str("      (then\n");
-    out.push_str("        i32.const 8\n");
+    out.push_str("        i32.const 4\n");
     out.push_str("        call $__alloc\n");
     out.push_str("        local.set $result_ptr\n");
     out.push_str("        local.get $result_ptr\n");
     out.push_str("        i32.const 1\n");
     out.push_str("        i32.store\n");
-    out.push_str("        local.get $result_ptr\n");
-    out.push_str("        i32.const 0\n");
-    out.push_str("        i32.store offset=4\n");
     out.push_str("        local.get $result_ptr\n");
     out.push_str("        return\n");
     out.push_str("      )\n");
@@ -984,15 +1024,12 @@ fn emit_strip_suffix_helper(out: &mut String) {
     out.push_str("        i32.ne\n");
     out.push_str("        (if\n");
     out.push_str("          (then\n");
-    out.push_str("            i32.const 8\n");
+    out.push_str("            i32.const 4\n");
     out.push_str("            call $__alloc\n");
     out.push_str("            local.set $result_ptr\n");
     out.push_str("            local.get $result_ptr\n");
     out.push_str("            i32.const 1\n");
     out.push_str("            i32.store\n");
-    out.push_str("            local.get $result_ptr\n");
-    out.push_str("            i32.const 0\n");
-    out.push_str("            i32.store offset=4\n");
     out.push_str("            local.get $result_ptr\n");
     out.push_str("            return\n");
     out.push_str("          )\n");
@@ -1028,6 +1065,26 @@ fn emit_strip_suffix_helper(out: &mut String) {
     out.push_str("    local.get $rest_ptr\n");
     out.push_str("    i32.store offset=4\n");
     out.push_str("    local.get $result_ptr\n");
+    out.push_str("  )\n");
+}
+
+fn emit_option_unwrap_or_helper(out: &mut String) {
+    out.push_str(
+        "  (func $__option_unwrap_or (param $option i32) (param $fallback i32) (result i32)\n",
+    );
+    out.push_str("    local.get $option\n");
+    out.push_str("    i32.load\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    (if (result i32)\n");
+    out.push_str("      (then\n");
+    out.push_str("        local.get $option\n");
+    out.push_str("        i32.load offset=4\n");
+    out.push_str("      )\n");
+    out.push_str("      (else\n");
+    out.push_str("        local.get $fallback\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
     out.push_str("  )\n");
 }
 
@@ -1703,9 +1760,95 @@ fn emit_expr(
                     abi,
                     out,
                 )?;
+                match &receiver.ty {
+                    Type::List(_) => out.push_str(&format!(
+                        "{pad}call ${}\n",
+                        abi.map_helper_name(signature.index)
+                    )),
+                    Type::Option(_) => out.push_str(&format!(
+                        "{pad}call ${}\n",
+                        abi.option_map_helper_name(signature.index)
+                    )),
+                    _ => bail!("`map` expects a List or Option receiver in wasm backend"),
+                }
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "unwrap_or"
+            {
+                let [option, fallback] = args.as_slice() else {
+                    bail!("`unwrap_or` expects exactly two arguments in wasm backend");
+                };
+                if !matches!(option.ty, Type::Option(_)) {
+                    bail!("`unwrap_or` expects an Option receiver in wasm backend");
+                }
+                emit_expr(
+                    option,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                emit_expr(
+                    fallback,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                out.push_str(&format!("{pad}call $__option_unwrap_or\n"));
+            } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
+                && callee == "any"
+            {
+                let [receiver, callback] = args.as_slice() else {
+                    bail!("`any` expects exactly two arguments in wasm backend");
+                };
+                let Some(_) = list_item_type(&receiver.ty) else {
+                    bail!("`any` expects a list receiver in wasm backend");
+                };
+                let signature = abi
+                    .closure_signature_for_apply(callback, callback)
+                    .ok_or_else(|| {
+                        anyhow!("unsupported callback shape for `any` in wasm backend")
+                    })?;
+                if signature.key.result != Type::Bool {
+                    bail!("`any` callback must return Bool in wasm backend");
+                }
+                emit_expr(
+                    receiver,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
+                emit_expr(
+                    callback,
+                    indent,
+                    locals,
+                    declared_local_names,
+                    match_bindings,
+                    captures,
+                    env_local,
+                    function_names,
+                    abi,
+                    out,
+                )?;
                 out.push_str(&format!(
                     "{pad}call ${}\n",
-                    abi.map_helper_name(signature.index)
+                    abi.any_helper_name(signature.index)
                 ));
             } else if matches!(abi.target, WasmTarget::Wasi | WasmTarget::JavaScriptHost)
                 && callee == "filter"
@@ -2043,7 +2186,9 @@ fn emit_expr(
                 let [text, suffix] = args.as_slice() else {
                     bail!("`strip_suffix` expects exactly two string arguments in wasm backend");
                 };
-                if !matches!(text.ty, Type::String) || !matches!(suffix.ty, Type::String) {
+                if !matches!(text.ty, Type::String | Type::Unknown)
+                    || !matches!(suffix.ty, Type::String | Type::Unknown)
+                {
                     bail!("`strip_suffix` expects String arguments in wasm backend");
                 }
                 emit_expr(
@@ -2512,7 +2657,7 @@ fn emit_construct(
     let pad = "  ".repeat(indent);
     let tmp_ptr_local = heap_tmp_ptr_local(indent);
     let nested_indent = indent + 1;
-    if abi.target == WasmTarget::JavaScriptHost && !matches!(expr_ty, Type::Result(_, _)) {
+    if abi.target == WasmTarget::JavaScriptHost && !abi.match_subject_is_heap(expr_ty) {
         if variant.field_count != 0 || !args.is_empty() {
             bail!("ADT payload fields are not yet supported in wasm backend");
         }
@@ -2813,10 +2958,12 @@ struct WasmAbi {
     uses_parse_bool: bool,
     uses_list_runtime: bool,
     uses_adt_runtime: bool,
+    uses_option_runtime: bool,
     uses_range_inclusive: bool,
     uses_iter_runtime: bool,
     uses_take_builtin: bool,
     uses_map_builtin: bool,
+    uses_any_builtin: bool,
     uses_filter_builtin: bool,
     uses_sum_builtin: bool,
     uses_join_builtin: bool,
@@ -2880,6 +3027,7 @@ impl WasmAbi {
         let mut uses_iter_runtime = false;
         let mut uses_take_builtin = false;
         let mut uses_map_builtin = false;
+        let mut uses_any_builtin = false;
         let mut uses_filter_builtin = false;
         let mut uses_sum_builtin = false;
         let mut uses_join_builtin = false;
@@ -2903,6 +3051,7 @@ impl WasmAbi {
                 &mut uses_iter_runtime,
                 &mut uses_take_builtin,
                 &mut uses_map_builtin,
+                &mut uses_any_builtin,
                 &mut uses_filter_builtin,
                 &mut uses_sum_builtin,
                 &mut uses_join_builtin,
@@ -2914,6 +3063,11 @@ impl WasmAbi {
             uses_stdin_read_line = false;
             uses_adt_runtime = false;
         }
+
+        let uses_option_runtime = module
+            .functions
+            .iter()
+            .any(|function| expr_uses_option_runtime(&function.body));
 
         let scratch_base = {
             let base = string_table.next_offset;
@@ -2937,10 +3091,12 @@ impl WasmAbi {
             uses_parse_bool,
             uses_list_runtime,
             uses_adt_runtime,
+            uses_option_runtime,
             uses_range_inclusive,
             uses_iter_runtime,
             uses_take_builtin,
             uses_map_builtin,
+            uses_any_builtin,
             uses_filter_builtin,
             uses_sum_builtin,
             uses_join_builtin,
@@ -3016,6 +3172,7 @@ impl WasmAbi {
             || !self.named_callback_thunks.is_empty()
             || self.uses_list_runtime
             || self.uses_adt_runtime
+            || self.uses_option_runtime
             || self.uses_parse_i64
             || self.uses_parse_bool
             || self.uses_range_inclusive
@@ -3060,6 +3217,8 @@ impl WasmAbi {
         match expr_ty {
             Type::Result(_, _) => result_variant_layout(variant)
                 .ok_or_else(|| anyhow!("unknown Result variant in wasm backend: {variant}")),
+            Type::Option(_) => option_variant_layout(variant)
+                .ok_or_else(|| anyhow!("unknown Option variant in wasm backend: {variant}")),
             Type::Named(owner_type) => {
                 let layout = self
                     .variant_layout(variant)
@@ -3079,6 +3238,8 @@ impl WasmAbi {
         match subject_ty {
             Type::Result(_, _) => result_variant_layout(variant)
                 .ok_or_else(|| anyhow!("unknown Result pattern in wasm backend: {variant}")),
+            Type::Option(_) => option_variant_layout(variant)
+                .ok_or_else(|| anyhow!("unknown Option pattern in wasm backend: {variant}")),
             Type::Named(owner_type) => {
                 let layout = self
                     .variant_layout(variant)
@@ -3097,6 +3258,7 @@ impl WasmAbi {
     fn match_subject_is_heap(&self, ty: &Type) -> bool {
         match ty {
             Type::Result(_, _) => true,
+            Type::Option(_) => true,
             Type::Named(name) => matches!(self.named_types.get(name), Some(NamedTypeAbi::HeapEnum)),
             _ => false,
         }
@@ -3157,6 +3319,14 @@ impl WasmAbi {
         format!("__list_map_{index}")
     }
 
+    fn option_map_helper_name(&self, index: usize) -> String {
+        format!("__option_map_{index}")
+    }
+
+    fn any_helper_name(&self, index: usize) -> String {
+        format!("__list_any_{index}")
+    }
+
     fn filter_helper_name(&self, index: usize) -> String {
         format!("__list_filter_{index}")
     }
@@ -3186,7 +3356,7 @@ impl WasmAbi {
             {
                 Ok(Some("i32"))
             }
-            Type::Result(_, _)
+            Type::Result(_, _) | Type::Option(_)
                 if matches!(self.target, WasmTarget::JavaScriptHost | WasmTarget::Wasi) =>
             {
                 Ok(Some("i32"))
@@ -3299,7 +3469,7 @@ impl WasmAbi {
                 } else if callee == "map" {
                     if let [receiver, callback] = &args[..] {
                         self.collect_closures_in_expr(receiver, None, scope)?;
-                        if let Some(input_ty) = list_item_type(&receiver.ty) {
+                        if let Some(input_ty) = callback_receiver_item_type(&receiver.ty, callee) {
                             let output_ty =
                                 callback_result_type(callback, scope).unwrap_or(Type::Unknown);
                             let expected = Type::Fn(Box::new(input_ty), Box::new(output_ty));
@@ -3308,10 +3478,10 @@ impl WasmAbi {
                             self.collect_closures_in_expr(callback, None, scope)?;
                         }
                     }
-                } else if callee == "filter" {
+                } else if callee == "filter" || callee == "any" {
                     if let [receiver, callback] = &args[..] {
                         self.collect_closures_in_expr(receiver, None, scope)?;
-                        if let Some(input_ty) = list_item_type(&receiver.ty) {
+                        if let Some(input_ty) = callback_receiver_item_type(&receiver.ty, callee) {
                             let expected = Type::Fn(Box::new(input_ty), Box::new(Type::Bool));
                             self.collect_closures_in_expr(callback, Some(&expected), scope)?;
                         } else {
@@ -3397,7 +3567,7 @@ impl WasmAbi {
                         self.collect_named_callbacks_in_expr(callback, module)?;
                         self.collect_named_callbacks_in_expr(arg, module)?;
                     }
-                } else if callee == "map" || callee == "filter" {
+                } else if callee == "map" || callee == "filter" || callee == "any" {
                     if let [receiver, callback] = &args[..] {
                         if let HighExprKind::Ident(name) = &callback.kind {
                             self.intern_named_callback(name, receiver, callee, module)?;
@@ -3464,7 +3634,7 @@ impl WasmAbi {
             return Ok(());
         }
 
-        let Some(input_ty) = list_item_type(&receiver.ty) else {
+        let Some(input_ty) = callback_receiver_item_type(&receiver.ty, callee) else {
             return Ok(());
         };
 
@@ -3493,7 +3663,7 @@ impl WasmAbi {
             return Ok(());
         };
 
-        let result_ty = if callee == "filter" {
+        let result_ty = if callee == "filter" || callee == "any" {
             Type::Bool
         } else {
             result_ty
@@ -3615,6 +3785,10 @@ fn emit_closure_support(
         emit_apply_helper(abi, signature, out)?;
         if abi.uses_map_builtin {
             emit_map_helper(abi, signature, out)?;
+            emit_option_map_helper(abi, signature, out)?;
+        }
+        if abi.uses_any_builtin {
+            emit_any_helper(abi, signature, out)?;
         }
         if abi.uses_filter_builtin {
             emit_filter_helper(abi, signature, out)?;
@@ -3782,7 +3956,6 @@ fn emit_string_eq_helper(out: &mut String) {
 
 fn emit_ends_with_at_helper(out: &mut String) {
     out.push_str("  (func $ends_with_at (param $text i32) (param $suffix i32) (param $end i32) (result i32)\n");
-    out.push_str("    (local $text_len i32)\n");
     out.push_str("    (local $suffix_len i32)\n");
     out.push_str("    (local $start i32)\n");
     out.push_str("    (local $i i32)\n");
@@ -3798,21 +3971,9 @@ fn emit_ends_with_at_helper(out: &mut String) {
     out.push_str("        return\n");
     out.push_str("      )\n");
     out.push_str("    )\n");
-    out.push_str("    local.get $text\n");
-    out.push_str("    call $__strlen\n");
-    out.push_str("    local.set $text_len\n");
     out.push_str("    local.get $suffix\n");
     out.push_str("    call $__strlen\n");
     out.push_str("    local.set $suffix_len\n");
-    out.push_str("    local.get $end\n");
-    out.push_str("    local.get $text_len\n");
-    out.push_str("    i32.gt_u\n");
-    out.push_str("    (if\n");
-    out.push_str("      (then\n");
-    out.push_str("        i32.const 0\n");
-    out.push_str("        return\n");
-    out.push_str("      )\n");
-    out.push_str("    )\n");
     out.push_str("    local.get $suffix_len\n");
     out.push_str("    local.get $end\n");
     out.push_str("    i32.gt_u\n");
@@ -4135,6 +4296,116 @@ fn emit_map_helper(abi: &WasmAbi, signature: &ClosureSignature, out: &mut String
     out.push_str("    local.get $out_items\n");
     out.push_str("    i32.store offset=4\n");
     out.push_str("    local.get $out_list\n");
+    out.push_str("  )\n");
+    Ok(())
+}
+
+fn emit_option_map_helper(
+    abi: &WasmAbi,
+    signature: &ClosureSignature,
+    out: &mut String,
+) -> Result<()> {
+    let _ = abi
+        .wasm_type(&signature.key.arg)?
+        .ok_or_else(|| anyhow!("unsupported option map argument type in wasm backend"))?;
+    let _ = abi
+        .wasm_type(&signature.key.result)?
+        .ok_or_else(|| anyhow!("unsupported option map result type in wasm backend"))?;
+    out.push_str(&format!(
+        "  (func ${} (param $option i32) (param $callback i32) (result i32)\n",
+        abi.option_map_helper_name(signature.index)
+    ));
+    out.push_str("    (local $out i32)\n");
+    out.push_str("    local.get $option\n");
+    out.push_str("    i32.load\n");
+    out.push_str("    i32.const 0\n");
+    out.push_str("    i32.eq\n");
+    out.push_str("    (if (result i32)\n");
+    out.push_str("      (then\n");
+    out.push_str("        i32.const 8\n");
+    out.push_str("        call $__alloc\n");
+    out.push_str("        local.set $out\n");
+    out.push_str("        local.get $out\n");
+    out.push_str("        i32.const 0\n");
+    out.push_str("        i32.store\n");
+    out.push_str("        local.get $out\n");
+    out.push_str("        local.get $callback\n");
+    out.push_str("        local.get $option\n");
+    out.push_str("        i32.load offset=4\n");
+    out.push_str(&format!(
+        "        call ${}\n",
+        abi.apply_helper_name(signature.index)
+    ));
+    out.push_str("        i32.store offset=4\n");
+    out.push_str("        local.get $out\n");
+    out.push_str("      )\n");
+    out.push_str("      (else\n");
+    out.push_str("        i32.const 4\n");
+    out.push_str("        call $__alloc\n");
+    out.push_str("        local.set $out\n");
+    out.push_str("        local.get $out\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.store\n");
+    out.push_str("        local.get $out\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("  )\n");
+    Ok(())
+}
+
+fn emit_any_helper(abi: &WasmAbi, signature: &ClosureSignature, out: &mut String) -> Result<()> {
+    let _ = abi
+        .wasm_type(&signature.key.arg)?
+        .ok_or_else(|| anyhow!("unsupported any argument type in wasm backend"))?;
+    out.push_str(&format!(
+        "  (func ${} (param $list i32) (param $callback i32) (result i32)\n",
+        abi.any_helper_name(signature.index)
+    ));
+    out.push_str("    (local $len i32)\n");
+    out.push_str("    (local $items i32)\n");
+    out.push_str("    (local $index i32)\n");
+    out.push_str("    (local $value i32)\n");
+    out.push_str("    local.get $list\n");
+    out.push_str("    i32.load\n");
+    out.push_str("    local.set $len\n");
+    out.push_str("    local.get $list\n");
+    out.push_str("    i32.load offset=4\n");
+    out.push_str("    local.set $items\n");
+    out.push_str("    (block $break\n");
+    out.push_str("      (loop $loop\n");
+    out.push_str("        local.get $index\n");
+    out.push_str("        local.get $len\n");
+    out.push_str("        i32.ge_u\n");
+    out.push_str("        br_if $break\n");
+    out.push_str("        local.get $items\n");
+    out.push_str("        local.get $index\n");
+    out.push_str("        i32.const 4\n");
+    out.push_str("        i32.mul\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        i32.load\n");
+    out.push_str("        local.set $value\n");
+    out.push_str("        local.get $callback\n");
+    out.push_str("        local.get $value\n");
+    out.push_str(&format!(
+        "        call ${}\n",
+        abi.apply_helper_name(signature.index)
+    ));
+    out.push_str("        i32.const 0\n");
+    out.push_str("        i32.ne\n");
+    out.push_str("        (if\n");
+    out.push_str("          (then\n");
+    out.push_str("            i32.const 1\n");
+    out.push_str("            return\n");
+    out.push_str("          )\n");
+    out.push_str("        )\n");
+    out.push_str("        local.get $index\n");
+    out.push_str("        i32.const 1\n");
+    out.push_str("        i32.add\n");
+    out.push_str("        local.set $index\n");
+    out.push_str("        br $loop\n");
+    out.push_str("      )\n");
+    out.push_str("    )\n");
+    out.push_str("    i32.const 0\n");
     out.push_str("  )\n");
     Ok(())
 }
@@ -4647,6 +4918,7 @@ fn scan_expr(
     uses_iter_runtime: &mut bool,
     uses_take_builtin: &mut bool,
     uses_map_builtin: &mut bool,
+    uses_any_builtin: &mut bool,
     uses_filter_builtin: &mut bool,
     uses_sum_builtin: &mut bool,
     uses_join_builtin: &mut bool,
@@ -4682,6 +4954,9 @@ fn scan_expr(
             if callee == "strip_suffix" {
                 *uses_adt_runtime = true;
             }
+            if callee == "unwrap_or" {
+                *uses_adt_runtime = true;
+            }
             if callee == "parse.i64" {
                 *uses_parse_i64 = true;
                 *uses_adt_runtime = true;
@@ -4704,6 +4979,13 @@ fn scan_expr(
             if callee == "map" {
                 *uses_list_runtime = true;
                 *uses_map_builtin = true;
+                if matches!(args.first().map(|arg| &arg.ty), Some(Type::Option(_))) {
+                    *uses_adt_runtime = true;
+                }
+            }
+            if callee == "any" {
+                *uses_list_runtime = true;
+                *uses_any_builtin = true;
             }
             if callee == "filter" {
                 *uses_list_runtime = true;
@@ -4736,6 +5018,7 @@ fn scan_expr(
                     uses_iter_runtime,
                     uses_take_builtin,
                     uses_map_builtin,
+                    uses_any_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
                     uses_join_builtin,
@@ -4768,6 +5051,7 @@ fn scan_expr(
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
                 uses_join_builtin,
@@ -4791,6 +5075,7 @@ fn scan_expr(
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
                 uses_join_builtin,
@@ -4820,6 +5105,7 @@ fn scan_expr(
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
                 uses_join_builtin,
@@ -4843,6 +5129,7 @@ fn scan_expr(
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
                 uses_join_builtin,
@@ -4866,6 +5153,7 @@ fn scan_expr(
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
                 uses_join_builtin,
@@ -4892,6 +5180,7 @@ fn scan_expr(
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
                 uses_join_builtin,
@@ -4916,6 +5205,7 @@ fn scan_expr(
                     uses_iter_runtime,
                     uses_take_builtin,
                     uses_map_builtin,
+                    uses_any_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
                     uses_join_builtin,
@@ -4944,6 +5234,7 @@ fn scan_expr(
                     uses_iter_runtime,
                     uses_take_builtin,
                     uses_map_builtin,
+                    uses_any_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
                     uses_join_builtin,
@@ -4974,6 +5265,7 @@ fn scan_expr(
                     uses_iter_runtime,
                     uses_take_builtin,
                     uses_map_builtin,
+                    uses_any_builtin,
                     uses_filter_builtin,
                     uses_sum_builtin,
                     uses_join_builtin,
@@ -5000,6 +5292,7 @@ fn scan_expr(
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
                 uses_join_builtin,
@@ -5025,6 +5318,7 @@ fn scan_expr(
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
                 uses_join_builtin,
@@ -5048,6 +5342,7 @@ fn scan_expr(
                 uses_iter_runtime,
                 uses_take_builtin,
                 uses_map_builtin,
+                uses_any_builtin,
                 uses_filter_builtin,
                 uses_sum_builtin,
                 uses_join_builtin,
@@ -5070,6 +5365,22 @@ fn list_item_type(ty: &Type) -> Option<Type> {
         Some((**item).clone())
     } else {
         None
+    }
+}
+
+fn option_item_type(ty: &Type) -> Option<Type> {
+    if let Type::Option(item) = ty {
+        Some((**item).clone())
+    } else {
+        None
+    }
+}
+
+fn callback_receiver_item_type(ty: &Type, callee: &str) -> Option<Type> {
+    match callee {
+        "map" => list_item_type(ty).or_else(|| option_item_type(ty)),
+        "filter" | "any" => list_item_type(ty),
+        _ => None,
     }
 }
 
@@ -5120,6 +5431,22 @@ fn result_variant_layout(name: &str) -> Option<VariantLayout> {
             owner_type: "__result".to_owned(),
             tag: 1,
             field_count: 1,
+        }),
+        _ => None,
+    }
+}
+
+fn option_variant_layout(name: &str) -> Option<VariantLayout> {
+    match name {
+        "Some" => Some(VariantLayout {
+            owner_type: "__option".to_owned(),
+            tag: 0,
+            field_count: 1,
+        }),
+        "None" => Some(VariantLayout {
+            owner_type: "__option".to_owned(),
+            tag: 1,
+            field_count: 0,
         }),
         _ => None,
     }

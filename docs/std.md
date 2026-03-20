@@ -17,7 +17,10 @@ Use this table when choosing `arktc build --target ...` or `chef build --target 
 | `len(text)` | yes | yes | yes | current surface also accepts `len(list)`; string length is byte length |
 | `ends_with_at(text, suffix, end)` | yes | yes | yes | allows suffix checks without allocating substrings |
 | `text.split_whitespace()` | yes | yes | yes | whitespace tokenization lowers on both WASM targets |
-| `strip_suffix(text, suffix)` | yes | no | yes | current WASI support is enough for ABS-style suffix parsing; `wasm-js` still rejects it |
+| `strip_suffix(text, suffix)` | yes | yes | yes | returns `Option<String>` with `Some` / `None` |
+| `option.map(callback)` | yes | yes | yes | current WASM lowering covers `Option<T>` payloads representable as `i32` |
+| `option.unwrap_or(fallback)` | yes | yes | yes | branch-compression helper for compact recursive code |
+| `list.any(callback)` | yes | yes | yes | short-circuits on the first `true` callback result |
 | `parse.i64(text)` | yes | yes | yes | pure parse helper available across interpreter and both WASM targets |
 | `parse.bool(text)` | yes | yes | yes | same boundary as `parse.i64` |
 | `[1, 2, 3]` and `1..=3` as `List<i64>` | yes | yes | yes | current heap-backed WASM list runtime is `List<i64>`-only |

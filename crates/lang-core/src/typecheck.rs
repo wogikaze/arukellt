@@ -302,6 +302,8 @@ impl<'a> FunctionChecker<'a> {
                 },
                 ty: if let Some(ty) = self.env.get(name) {
                     ty.clone()
+                } else if name == "None" {
+                    Type::Option(Box::new(Type::Unknown))
                 } else if let Some((owner_type, field_types)) = self.constructors.get(name) {
                     if field_types.is_empty() {
                         Type::Named(owner_type.clone())
@@ -554,6 +556,36 @@ impl<'a> FunctionChecker<'a> {
                         };
                     }
                 }
+                if matches!(callee.as_str(), "map" | "filter" | "any") {
+                    let mut typed_args = Vec::with_capacity(args.len());
+                    if let Some(receiver) = args.first() {
+                        typed_args.push(self.infer_expr(receiver));
+                    }
+                    if let Some(callback) = args.get(1) {
+                        let typed_callback = match (
+                            callback,
+                            typed_args
+                                .first()
+                                .and_then(|arg| callback_receiver_item_type(&arg.ty)),
+                        ) {
+                            (Expr::Lambda { param, body }, Some(param_ty)) => {
+                                self.infer_lambda_expr(param, body, param_ty)
+                            }
+                            _ => self.infer_expr(callback),
+                        };
+                        typed_args.push(typed_callback);
+                    }
+                    typed_args.extend(args.iter().skip(2).map(|arg| self.infer_expr(arg)));
+                    if let Some(ty) = builtin_return_type(callee, &typed_args) {
+                        return TypedExpr {
+                            kind: TypedExprKind::Call {
+                                callee: callee.clone(),
+                                args: typed_args,
+                            },
+                            ty,
+                        };
+                    }
+                }
                 let typed_args = args
                     .iter()
                     .map(|arg| self.infer_expr(arg))
@@ -567,9 +599,9 @@ impl<'a> FunctionChecker<'a> {
                         ty,
                     };
                 }
-                if matches!(callee.as_str(), "Ok" | "Err") {
-                    let ty = if callee == "Ok" {
-                        Type::Result(
+                if matches!(callee.as_str(), "Ok" | "Err" | "Some" | "None") {
+                    let ty = match callee.as_str() {
+                        "Ok" => Type::Result(
                             Box::new(
                                 typed_args
                                     .first()
@@ -577,9 +609,8 @@ impl<'a> FunctionChecker<'a> {
                                     .unwrap_or(Type::Unknown),
                             ),
                             Box::new(Type::Unknown),
-                        )
-                    } else {
-                        Type::Result(
+                        ),
+                        "Err" => Type::Result(
                             Box::new(Type::Unknown),
                             Box::new(
                                 typed_args
@@ -587,7 +618,15 @@ impl<'a> FunctionChecker<'a> {
                                     .map(|arg| arg.ty.clone())
                                     .unwrap_or(Type::Unknown),
                             ),
-                        )
+                        ),
+                        "Some" => Type::Option(Box::new(
+                            typed_args
+                                .first()
+                                .map(|arg| arg.ty.clone())
+                                .unwrap_or(Type::Unknown),
+                        )),
+                        "None" => Type::Option(Box::new(Type::Unknown)),
+                        _ => unreachable!(),
                     };
                     return TypedExpr {
                         kind: TypedExprKind::Construct {
@@ -712,12 +751,14 @@ impl<'a> FunctionChecker<'a> {
                     has_wildcard = true;
                 }
                 Pattern::Variant { name, bindings } => {
-                    if matches!(name.as_str(), "Ok" | "Err") {
+                    if matches!(name.as_str(), "Ok" | "Err" | "Some" | "None") {
                         let builtin_binding_ty = match (&typed_subject.ty, name.as_str()) {
                             (Type::Result(ok, _), "Ok") => (**ok).clone(),
                             (Type::Result(_, err), "Err") => (**err).clone(),
+                            (Type::Option(inner), "Some") => (**inner).clone(),
                             _ => Type::Unknown,
                         };
+                        seen_variants.push(name.clone());
                         for binding in bindings {
                             arm_env.insert(binding.clone(), builtin_binding_ty.clone());
                         }
@@ -788,27 +829,32 @@ impl<'a> FunctionChecker<'a> {
             });
         }
 
-        if let Type::Named(type_name) = &typed_subject.ty {
-            if let Some(type_decl) = self.type_map.get(type_name) {
-                let all_variants = type_decl
+        let all_variants = match &typed_subject.ty {
+            Type::Named(type_name) => self.type_map.get(type_name).map(|type_decl| {
+                type_decl
                     .variants
                     .iter()
                     .map(|variant| variant.name.clone())
-                    .collect::<Vec<_>>();
-                if !has_wildcard
-                    && all_variants
-                        .iter()
-                        .any(|variant| !seen_variants.contains(variant))
-                {
-                    self.diagnostics.push(make_error(
-                        "E_MATCH_NOT_EXHAUSTIVE",
-                        "Match expression is not exhaustive",
-                        format!("{all_variants:?}"),
-                        format!("{seen_variants:?}"),
-                        "match_not_exhaustive",
-                        "Cover every variant or add a final wildcard arm.",
-                    ));
-                }
+                    .collect::<Vec<_>>()
+            }),
+            Type::Option(_) => Some(vec!["Some".to_owned(), "None".to_owned()]),
+            Type::Result(_, _) => Some(vec!["Ok".to_owned(), "Err".to_owned()]),
+            _ => None,
+        };
+        if let Some(all_variants) = all_variants {
+            if !has_wildcard
+                && all_variants
+                    .iter()
+                    .any(|variant| !seen_variants.contains(variant))
+            {
+                self.diagnostics.push(make_error(
+                    "E_MATCH_NOT_EXHAUSTIVE",
+                    "Match expression is not exhaustive",
+                    format!("{all_variants:?}"),
+                    format!("{seen_variants:?}"),
+                    "match_not_exhaustive",
+                    "Cover every variant or add a final wildcard arm.",
+                ));
             }
         }
 
@@ -857,13 +903,30 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         "len" => Type::Int,
         "ends_with_at" => Type::Bool,
         "split_whitespace" => Type::List(Box::new(Type::String)),
-        "strip_suffix" => Type::Result(Box::new(Type::String), Box::new(Type::Unknown)),
+        "strip_suffix" => Type::Option(Box::new(Type::String)),
         "parse.i64" => Type::Result(Box::new(Type::Int), Box::new(Type::Unknown)),
         "parse.bool" => Type::Result(Box::new(Type::Bool), Box::new(Type::Unknown)),
-        "map" => match args.get(1).map(|arg| &arg.ty) {
-            Some(Type::Fn(_, result)) => Type::List(Box::new((**result).clone())),
+        "map" => match (
+            args.first().map(|arg| &arg.ty),
+            args.get(1).map(|arg| &arg.ty),
+        ) {
+            (Some(Type::List(_)), Some(Type::Fn(_, result))) => {
+                Type::List(Box::new((**result).clone()))
+            }
+            (Some(Type::Option(_)), Some(Type::Fn(_, result))) => {
+                Type::Option(Box::new((**result).clone()))
+            }
+            (Some(Type::Option(_)), _) => Type::Option(Box::new(Type::Unknown)),
             _ => Type::List(Box::new(Type::Unknown)),
         },
+        "unwrap_or" => match args.first().map(|arg| &arg.ty) {
+            Some(Type::Option(inner)) => (**inner).clone(),
+            _ => args
+                .get(1)
+                .map(|arg| arg.ty.clone())
+                .unwrap_or(Type::Unknown),
+        },
+        "any" => Type::Bool,
         "filter" => args
             .first()
             .map(|arg| arg.ty.clone())
@@ -915,6 +978,13 @@ fn iter_item_type_from_step(step_ty: &Type) -> Option<Type> {
     }
 }
 
+fn callback_receiver_item_type(receiver_ty: &Type) -> Option<Type> {
+    match receiver_ty {
+        Type::List(inner) | Type::Option(inner) => Some((**inner).clone()),
+        _ => None,
+    }
+}
+
 fn merge_types(left: &Type, right: &Type) -> Type {
     if left == right {
         return left.clone();
@@ -927,6 +997,9 @@ fn merge_types(left: &Type, right: &Type) -> Type {
             Box::new(merge_types(left_ok, right_ok)),
             Box::new(merge_types(left_err, right_err)),
         ),
+        (Type::Option(left_inner), Type::Option(right_inner)) => {
+            Type::Option(Box::new(merge_types(left_inner, right_inner)))
+        }
         (Type::List(left_inner), Type::List(right_inner)) => {
             Type::List(Box::new(merge_types(left_inner, right_inner)))
         }
@@ -956,6 +1029,8 @@ fn is_builtin_function(name: &str) -> bool {
             | "parse.i64"
             | "parse.bool"
             | "map"
+            | "unwrap_or"
+            | "any"
             | "filter"
             | "sum"
             | "join"
@@ -966,6 +1041,8 @@ fn is_builtin_function(name: &str) -> bool {
             | "stdin.read_text"
             | "stdin.read_line"
             | "iter.unfold"
+            | "Some"
+            | "None"
             | "Ok"
             | "Err"
             | "Next"

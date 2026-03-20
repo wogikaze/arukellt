@@ -323,12 +323,31 @@ fn main():
 }
 
 #[test]
-fn compiles_strip_suffix_result_matching() {
+fn compiles_strip_suffix_option_matching() {
     let source = "\
 fn trim_word(text: String) -> String:
   match strip_suffix(text, \"er\"):
-    Ok(value) -> value
-    Err(_) -> text
+    Some(value) -> value
+    None -> text
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}
+
+#[test]
+fn compiles_option_map_unwrap_or_and_list_any_suffix_parser() {
+    let source = "\
+fn can_form(text: String) -> Bool:
+  if text == \"\":
+    true
+  else:
+    [\"dreamer\", \"eraser\", \"dream\", \"erase\"].any(suffix -> strip_suffix(text, suffix).map(can_form).unwrap_or(false))
 ";
 
     let result = compile_module(source);

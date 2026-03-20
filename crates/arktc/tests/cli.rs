@@ -655,12 +655,12 @@ import console
 
 fn main():
   match strip_suffix(\"dreamer\", \"er\"):
-    Ok(rest) ->
+    Some(rest) ->
       if rest == \"dream\":
         \"YES\" |> console.println
       else:
         \"NO\" |> console.println
-    Err(_) -> \"NO\" |> console.println
+    None -> \"NO\" |> console.println
 ",
         "",
     );

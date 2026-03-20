@@ -47,6 +47,23 @@ Field rules:
 
 ## Next
 
+### WB-047
+
+title: Recover a non-allocating suffix fast path under the new Option surface
+area: lang-backend-wasm
+status: NEXT
+priority: P1
+owner: ai
+depends_on: WB-046
+source: follow-up after `abc049c` moved back to whole-string `strip_suffix(...).map(...).unwrap_or(...)`
+done_when:
+
+- compact whole-string suffix recursion no longer materializes shrinking strings on active WASM targets
+- a large `abc049c`-style input regression covers the optimized path
+- `cargo test` passes with the optimized runtime path in place
+notes:
+- preserve the `Option` / `any` surface from `WB-046`; optimize lowering/runtime rather than reverting the example syntax
+
 ## Ready
 
 ## Blocked
@@ -69,6 +86,40 @@ notes:
 - blocked on repository settings rather than code in this worktree
 
 ## Done
+
+### WB-046
+
+title: Add Option-first suffix and branch-compression surface
+area: lang-surface/std
+status: DONE
+priority: P1
+owner: ai
+depends_on: none
+source: user request: string recursion should avoid index plumbing and explicit Result matching
+done_when:
+
+- `strip_suffix(text, suffix)` returns `Option<String>` with `Some` / `None`
+- `Option.map`, `Option.unwrap_or`, and `List.any` compile and run on interpreter and active WASM targets
+- `abc049c` can be expressed in the compact whole-string recursive style and verified with `cargo test`
+notes:
+- updated `abc049c` to the compact whole-string recursive style and covered the new surface in `lang-core`, `lang-interp`, and `lang-backend-wasm`
+
+### WB-045
+
+title: Rewrite `abc049c` around whole-string `strip_suffix`
+area: examples/abs/lang-surface
+status: DONE
+priority: P1
+owner: ai
+depends_on: none
+source: user request: current example complexity comes from missing whole-string primitives, not the logic itself
+done_when:
+
+- `example/abs/src/abc049c.ar` no longer threads `end` indices through the recursion
+- a compile regression covers the recursive `strip_suffix` style
+- verified with `cargo fmt` and `cargo test`
+notes:
+- this keeps the current `Result`-shaped builtin surface but removes the manual index plumbing from the example
 
 ### WB-044
 

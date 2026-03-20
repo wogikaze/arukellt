@@ -549,23 +549,43 @@ fn main() -> Int:
 }
 
 #[test]
-fn strip_suffix_builds_for_wasi() {
-    let source = "\
+fn strip_suffix_option_map_unwrap_or_and_any_run_on_both_wasm_targets() {
+    let js_source = "\
+fn can_form(text: String) -> Bool:
+  if text == \"\":
+    true
+  else:
+    [\"dreamer\", \"eraser\", \"dream\", \"erase\"].any(suffix -> strip_suffix(text, suffix).map(can_form).unwrap_or(false))
+
 fn main() -> Int:
-  match strip_suffix(\"dreamer\", \"er\"):
-    Ok(rest) ->
-      if rest == \"dream\":
-        1
-      else:
-        0
-    Err(_) -> 0
+  if can_form(\"dreameraser\"):
+    1
+  else:
+    0
+";
+    let wasi_source = "\
+import console
+
+fn can_form(text: String) -> Bool:
+  if text == \"\":
+    true
+  else:
+    [\"dreamer\", \"eraser\", \"dream\", \"erase\"].any(suffix -> strip_suffix(text, suffix).map(can_form).unwrap_or(false))
+
+fn main():
+  if can_form(\"dreameraser\"):
+    \"YES\" |> console.println
+  else:
+    \"NO\" |> console.println
 ";
 
-    let bytes = build_module_from_source(source, WasmTarget::Wasi)
-        .expect("strip_suffix should build on wasi");
+    let js_bytes =
+        build_module_from_source(js_source, WasmTarget::JavaScriptHost).expect("wasm-js bytes");
+    let wasi_bytes = build_module_from_source(wasi_source, WasmTarget::Wasi).expect("wasi bytes");
 
-    assert!(bytes.starts_with(&[0x00, 0x61, 0x73, 0x6d]));
-    assert!(contains_bytes(&bytes, b"strip_suffix"));
+    assert_eq!(run_wasm_js_i32(&js_bytes, "main"), 1);
+    assert_eq!(run_wasm_wasi_stdout(&wasi_bytes), "YES\n");
+    assert!(contains_bytes(&wasi_bytes, b"strip_suffix"));
 }
 
 #[test]

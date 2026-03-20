@@ -223,8 +223,8 @@ fn evaluates_strip_suffix_builtin() {
     let source = "\
 fn trim_word(text: String) -> String:
   match strip_suffix(text, \"er\"):
-    Ok(value) -> value
-    Err(_) -> text
+    Some(value) -> value
+    None -> text
 ";
     let result = compile_and_run(
         source,
@@ -232,6 +232,29 @@ fn trim_word(text: String) -> String:
         vec![Value::String("dreamer".to_owned())],
     );
     assert_eq!(result, Value::String("dream".to_owned()));
+}
+
+#[test]
+fn evaluates_option_map_unwrap_or_and_list_any() {
+    let source = "\
+fn can_form(text: String) -> Bool:
+  if text == \"\":
+    true
+  else:
+    [\"dreamer\", \"eraser\", \"dream\", \"erase\"].any(suffix -> strip_suffix(text, suffix).map(can_form).unwrap_or(false))
+";
+    let yes = compile_and_run(
+        source,
+        "can_form",
+        vec![Value::String("dreameraser".to_owned())],
+    );
+    let no = compile_and_run(
+        source,
+        "can_form",
+        vec![Value::String("dreamerer".to_owned())],
+    );
+    assert_eq!(yes, Value::Bool(true));
+    assert_eq!(no, Value::Bool(false));
 }
 
 #[test]

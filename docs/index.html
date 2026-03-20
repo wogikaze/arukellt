@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arukellt</title>
+  <meta name="description" content="An expression-first language for small, recoverable programs.">
+  <link rel="stylesheet" href="styles.css">
+  <!-- highlight.js for doc code blocks -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- marked for markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@11/marked.min.js"></script>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="#" class="nav-logo">arukellt<span>.</span></a>
+  <div class="nav-links">
+    <a href="#docs/tour"   class="nav-link" data-route="docs/tour">Tour</a>
+    <a href="#docs/std"    class="nav-link" data-route="docs/std">Std</a>
+    <a href="#playground"  class="nav-link" data-route="playground">Playground</a>
+  </div>
+  <div class="nav-right">
+    <span class="nav-badge">v0.0.1</span>
+    <a href="https://github.com/wogikaze/arukellt" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
+<main id="app"><!-- router renders here --></main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

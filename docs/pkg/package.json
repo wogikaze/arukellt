@@ -1,0 +1,16 @@
+{
+  "name": "lang-playground-core",
+  "type": "module",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": [
+    "lang_playground_core_bg.wasm",
+    "lang_playground_core.js",
+    "lang_playground_core.d.ts"
+  ],
+  "main": "lang_playground_core.js",
+  "types": "lang_playground_core.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
