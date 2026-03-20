@@ -66,9 +66,42 @@ fn test_double() -> Bool:
   double(21) == 42
 ```
 
+## Interactive REPL
+
+`arkli` provides a GHCi-style interactive interpreter. Each expression is wrapped in a synthetic function and re-evaluated against the accumulated session source, so bindings defined earlier remain in scope.
+
+```
+$ arkli
+> 1 + 1
+2
+> fn double(n: Int) -> Int: n * 2
+> double(21)
+42
+```
+
+## Chef Build
+
+`chef build` mirrors `arktc build` with the same `--target`, `--emit`, and `--output` flags. Use it inside a project managed by a `Chef.toml` to pick up workspace paths automatically.
+
+```
+chef build --target wasm-js --emit wat --output out.wat src/main.ar
+```
+
 ## WASM Boundary
 
-The current WASM subset is much smaller than the interpreter surface.
+Both WASM targets now cover most of the interpreter surface described in the Target Support Matrix above. Use `--target wasm-js` for a JavaScript host and `--target wasm-wasi` for a WASI runtime.
+
+The output format is controlled separately with `--emit`:
+
+| `--emit` | description |
+| --- | --- |
+| `wasm` | binary `.wasm` file (default) |
+| `wat` | human-readable WebAssembly Text format |
+| `wat-min` | minified WAT, collapsed to a single line |
+
+### wasm-js examples
+
+The `wasm-js` target exports compiled functions by their source names instead of requiring a WASI entrypoint.
 
 <!-- snippet: std-wasm-scalar -->
 ```arukel
@@ -76,15 +109,13 @@ fn main() -> Int:
   42
 ```
 
-The `wasm-js` target exports compiled functions by their source names instead of requiring a WASI entrypoint.
-
 <!-- snippet: std-wasm-js-scalar -->
 ```arukel
 fn double(n: Int) -> Int:
   n * 2
 ```
 
-User-defined fieldless ADTs also lower on the current backend. Variants become numeric tags, and `match` is supported when each arm matches only a variant name or a final wildcard.
+User-defined fieldless ADTs also lower on this target. Variants become numeric tags, and `match` is supported when each arm matches only a variant name or a final wildcard.
 
 <!-- snippet: std-wasm-js-fieldless-match -->
 ```arukel
@@ -104,7 +135,9 @@ fn main() -> Int:
     Right -> 2
 ```
 
-The `wasm-wasi` target also supports `console.println` with string literals, the `string` builtin for integer-to-string conversion, and minimal iterator materialization through `iter.unfold(...).take(n)`.
+### wasm-wasi examples
+
+The `wasm-wasi` target supports `console.println` with string literals, the `string` builtin for integer-to-string conversion, and iterator materialization through `iter.unfold(...).take(n)`.
 
 <!-- snippet: std-wasm-wasi-console -->
 ```arukel
@@ -114,10 +147,10 @@ fn main():
   "hello wasm" |> console.println
 ```
 
-Anything outside that subset should fail hard during `arktc build`. Broader host calls and any API marked `no` in the target support matrix above remain unsupported, and closures currently lower only on `wasm-wasi`.
-
 <!-- snippet: std-wasm-wasi-iter -->
 ```arukel
 fn main() -> Seq<Int>:
   iter.unfold(0, n -> Next(n, n + 1))
 ```
+
+Any API marked `no` in the Target Support Matrix above will fail hard during `arktc build` with an unsupported-call error.
