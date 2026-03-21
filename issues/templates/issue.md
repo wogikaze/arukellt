@@ -7,9 +7,10 @@
   "status": "ready",
   "priority": "p2",
   "area": ["crate-or-area"],
-  "owner": "unassigned",
   "depends_on": [],
+  "blocked_on": [],
   "source": "user request or concrete origin",
+  "created_at": "2026-03-21",
   "updated_at": "2026-03-21"
 }
 ```

@@ -21,11 +21,13 @@ struct IndexEntry {
     priority: String,
     area: Vec<String>,
     depends_on: Vec<String>,
-    owner: String,
-    file: String,
-    summary: String,
     #[serde(default)]
     blocked_on: Vec<String>,
+    source: String,
+    created_at: String,
+    updated_at: String,
+    file: String,
+    summary: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -35,14 +37,12 @@ struct IssueMetadata {
     status: String,
     priority: String,
     area: Vec<String>,
-    owner: String,
     depends_on: Vec<String>,
-    source: String,
-    updated_at: String,
     #[serde(default)]
     blocked_on: Vec<String>,
-    #[serde(default)]
-    legacy_id: Option<String>,
+    source: String,
+    created_at: String,
+    updated_at: String,
 }
 
 fn extract_json_block(contents: &str) -> &str {
@@ -164,13 +164,13 @@ fn issue_index_and_files_are_consistent_and_semantically_valid() {
                 path.display()
             );
             assert!(
-                !metadata.owner.is_empty(),
-                "missing owner in {}",
+                !metadata.source.is_empty(),
+                "missing source in {}",
                 path.display()
             );
             assert!(
-                !metadata.source.is_empty(),
-                "missing source in {}",
+                !metadata.created_at.is_empty(),
+                "missing created_at in {}",
                 path.display()
             );
             assert!(
@@ -239,8 +239,18 @@ fn issue_index_and_files_are_consistent_and_semantically_valid() {
             entry.id
         );
         assert!(
-            !entry.owner.is_empty(),
-            "missing owner in index for {}",
+            !entry.source.is_empty(),
+            "missing source in index for {}",
+            entry.id
+        );
+        assert!(
+            !entry.created_at.is_empty(),
+            "missing created_at in index for {}",
+            entry.id
+        );
+        assert!(
+            !entry.updated_at.is_empty(),
+            "missing updated_at in index for {}",
             entry.id
         );
         assert!(
@@ -269,11 +279,6 @@ fn issue_index_and_files_are_consistent_and_semantically_valid() {
         );
         assert_eq!(entry.area, metadata.area, "area mismatch for {}", entry.id);
         assert_eq!(
-            entry.owner, metadata.owner,
-            "owner mismatch for {}",
-            entry.id
-        );
-        assert_eq!(
             entry.depends_on, metadata.depends_on,
             "depends_on mismatch for {}",
             entry.id
@@ -281,6 +286,21 @@ fn issue_index_and_files_are_consistent_and_semantically_valid() {
         assert_eq!(
             entry.blocked_on, metadata.blocked_on,
             "blocked_on mismatch for {}",
+            entry.id
+        );
+        assert_eq!(
+            entry.source, metadata.source,
+            "source mismatch for {}",
+            entry.id
+        );
+        assert_eq!(
+            entry.created_at, metadata.created_at,
+            "created_at mismatch for {}",
+            entry.id
+        );
+        assert_eq!(
+            entry.updated_at, metadata.updated_at,
+            "updated_at mismatch for {}",
             entry.id
         );
 
@@ -429,12 +449,5 @@ fn issue_index_and_files_are_consistent_and_semantically_valid() {
     assert!(
         file_metadata.contains_key("WB-062"),
         "missing normalized WB-062 issue"
-    );
-    assert_eq!(
-        file_metadata
-            .get("WB-062")
-            .and_then(|metadata| metadata.legacy_id.as_deref()),
-        Some("WB-034"),
-        "WB-062 should preserve the duplicate legacy id"
     );
 }

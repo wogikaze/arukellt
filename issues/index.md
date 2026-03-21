@@ -9,7 +9,7 @@ Read this first for the current active set, dependency shape, and the location o
 - Keep `active` limited to the tasks that are intentionally in flight; use `priority` and dependency order instead of a single `NEXT` slot.
 - Add newly discovered work to `issues/open/` and register it in the JSON index block below in the same change.
 - Move completed work from `issues/open/` to `issues/done/`, set `status` to `done`, and update this file in the same change.
-- Preserve `WB-###` IDs once assigned. If a legacy duplicate is discovered, normalize it to a new ID and record the old ID in `legacy_id` or `Notes`.
+- Preserve `WB-###` IDs once assigned. Keep any migration-specific history in `Notes` rather than extra metadata fields.
 - Keep summaries short so cross-issue reasoning usually fits in this file without reopening every detailed issue file.
 
 ## Active
@@ -57,7 +57,10 @@ Read this first for the current active set, dependency shape, and the location o
       "WB-056",
       "WB-057"
     ],
-    "owner": "unassigned",
+    "blocked_on": [],
+    "source": "follow-up after `WB-057` internal GC lowering path landed",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/open/WB-059.md",
     "summary": "`WB-057` added an internal GC-aware `Option<Int>` lowering path and richer wasm value representations, but the public CLI still hard-rejects the target"
   },
@@ -71,12 +74,14 @@ Read this first for the current active set, dependency shape, and the location o
       "release"
     ],
     "depends_on": [],
-    "owner": "unassigned",
-    "file": "issues/open/WB-008.md",
-    "summary": "blocked on repository settings rather than code in this worktree",
     "blocked_on": [
       "repo-level GitHub Pages configuration"
-    ]
+    ],
+    "source": "docs app shell exists, but deployment settings live outside the workspace",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
+    "file": "issues/open/WB-008.md",
+    "summary": "blocked on repository settings rather than code in this worktree"
   },
   {
     "id": "WB-009",
@@ -87,7 +92,10 @@ Read this first for the current active set, dependency shape, and the location o
       "wasm-backend"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "HighExprKind::Let が emit_expr で bail! されている; powers.ar 等で必要",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-009.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc --test examples`, and `cargo test`"
   },
@@ -105,7 +113,10 @@ Read this first for the current active set, dependency shape, and the location o
       "WB-023",
       "WB-024"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "powers.ar, fizz_buzz.ar, map_filter_sum.ar が `calls to join` / `calls to sum` で失敗",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-010.md",
     "summary": "umbrella slice is now closed by `WB-021` through `WB-024`; `powers.ar`, `fizz_buzz.ar`, and `map_filter_sum.ar` all build on wasm-wasi and match their stdout fixtures"
   },
@@ -118,7 +129,10 @@ Read this first for the current active set, dependency shape, and the location o
       "wasm-backend"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "ユーザー要求 \"arktc build --target wasm-wasi で予想通りの出力ができるまで開発を進めてください\"",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-015.md",
     "summary": "commit 61b3bd6: fd_write import + $console.println helper + $string helper 実装"
   },
@@ -133,7 +147,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-009"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "`HighExprKind::List` が wasm backend で即 bail されている; `powers.ar` / `map_filter_sum.ar` の前提",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-021.md",
     "summary": "verified with `cargo test -p lang-backend-wasm`, `cargo test -p arktc --test examples`, and `cargo test`"
   },
@@ -148,7 +165,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-011"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "`map(fizz_buzz_label)` / `map(n -> ...)` / `filter(n -> ...)` が collection lowering の前提",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-022.md",
     "summary": "verified with `cargo test -p lang-backend-wasm --test build` and `cargo test`"
   },
@@ -164,7 +184,10 @@ Read this first for the current active set, dependency shape, and the location o
       "WB-021",
       "WB-022"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "`map_filter_sum.ar` が `calls to \\`sum\\`` で失敗; list collection builtins 未実装",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-023.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc --test examples`, `cargo run -p arktc -- build example/map_filter_sum.ar --target wasm-wasi --output /tmp/map_filter_sum.wasm`, `wasmer /tmp/map_filter_sum.wasm`, and `cargo test`"
   },
@@ -180,7 +203,10 @@ Read this first for the current active set, dependency shape, and the location o
       "WB-021",
       "WB-022"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "`powers.ar` / `fizz_buzz.ar` が `calls to \\`join\\`` で失敗; 現状 String は literal pointer のみ",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-024.md",
     "summary": "verified with `cargo fmt`, `cargo test`, `cargo run -p arktc -- build example/powers.ar --target wasm-wasi --output /tmp/powers.wasm`, `wasmer /tmp/powers.wasm`, `cargo run -p arktc -- build example/fizz_buzz.ar --target wasm-wasi --output /tmp/fizz_buzz.wasm`, and `wasmer /tmp/fizz_buzz.wasm`"
   },
@@ -193,7 +219,10 @@ Read this first for the current active set, dependency shape, and the location o
       "lang-core"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-032.md",
     "summary": "keep `string(value)` as the only canonical value-to-string conversion"
   },
@@ -208,7 +237,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-032"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "example/*.ar review",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-033.md",
     "summary": "verified with `cargo fmt`, `cargo test -p chef`, `cargo test -p arktc --test examples`, and `cargo test`"
   },
@@ -223,7 +255,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-037"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "target-support review for surface matrix",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-034.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p lang-interp`, `cargo test -p arktc`, `cargo test -p chef`, and `cargo test`"
   },
@@ -236,7 +271,10 @@ Read this first for the current active set, dependency shape, and the location o
       "lang-backend-wasm"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "target-support review for surface matrix",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-037.md",
     "summary": "keep the bridge minimal and capability-scoped"
   },
@@ -249,7 +287,10 @@ Read this first for the current active set, dependency shape, and the location o
       "lang-backend-wasm"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "target-support review for surface matrix",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-038.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc`, and `cargo test`"
   },
@@ -262,7 +303,10 @@ Read this first for the current active set, dependency shape, and the location o
       "lang-backend-wasm"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user report: `abc444b.wat` crashed with `Exception: out of bounds memory access` on `99999 45`",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-041.md",
     "summary": "`__alloc` now calls `memory.grow` before advancing `heap_ptr` when the requested heap end exceeds current linear memory"
   },
@@ -277,7 +321,10 @@ Read this first for the current active set, dependency shape, and the location o
       "lang-surface"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user report: `ABC049C` hit MLE under the generated WASM path",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-044.md",
     "summary": "added `len` and `ends_with_at` so `abc049c` can recurse on an integer end position instead of allocating substring copies"
   },
@@ -292,7 +339,10 @@ Read this first for the current active set, dependency shape, and the location o
       "lang-surface"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request: current example complexity comes from missing whole-string primitives, not the logic itself",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-045.md",
     "summary": "this keeps the current `Result`-shaped builtin surface but removes the manual index plumbing from the example"
   },
@@ -306,7 +356,10 @@ Read this first for the current active set, dependency shape, and the location o
       "std"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request: string recursion should avoid index plumbing and explicit Result matching",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-046.md",
     "summary": "updated `abc049c` to the compact whole-string recursive style and covered the new surface in `lang-core`, `lang-interp`, and `lang-backend-wasm`"
   },
@@ -321,7 +374,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-046"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "follow-up after `abc049c` moved back to whole-string `strip_suffix(...).map(...).unwrap_or(...)`",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-047.md",
     "summary": "added backend pattern-matching for the compact suffix-recursion shape and lowered it to an iterative hidden helper over `(text, end)` without changing source syntax"
   },
@@ -336,7 +392,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-048"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request: classify Wado-style size tactics by Arukellt transferability",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-049.md",
     "summary": "helper gating now follows wasm-lowered helper usage, including option-vs-list map helpers and list-index-specific emission, and the crate is green again under `cargo test -p lang-backend-wasm`"
   },
@@ -351,7 +410,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-048"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request: classify Wado techniques by near-term value for Arukellt",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-050.md",
     "summary": "added a direct `parse.i64`-to-zero peephole for `parse_or_zero` wrappers and a non-list `split_whitespace()[idx]` lowering through `__split_whitespace_nth`"
   },
@@ -365,7 +427,10 @@ Read this first for the current active set, dependency shape, and the location o
       "chef"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request: make `chef` relate to `arktc` more like `cargo` to `rustc`",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-060.md",
     "summary": "verified with `cargo fmt` and `cargo test`"
   },
@@ -380,7 +445,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-009"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "closure.ar が `unsupported wasm type: Fn<Int, Int>` で失敗",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-011.md",
     "summary": "verified with `cargo run -p arktc -- build example/closure.ar --target wasm-wasi --output /tmp/closure.wasm` and `wasmer /tmp/closure.wasm`"
   },
@@ -395,7 +463,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-009"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "result_error_handling.ar が `ADT payload fields are not yet supported in wasm backend` で失敗",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-012.md",
     "summary": "verified with `cargo fmt`, `cargo test`, `cargo run -p arktc -- build example/result_error_handling.ar --target wasm-wasi --output /tmp/result_error_handling.wasm`, and `wasmer /tmp/result_error_handling.wasm`"
   },
@@ -408,7 +479,10 @@ Read this first for the current active set, dependency shape, and the location o
       "repl"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "ユーザー指摘「chef run で実行できるが Haskell インタープリタ風の arkli がない」",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-025.md",
     "summary": "verified with `cargo test -p arkli`, `printf 'let base = 40\\nbase + 2\\n:q\\n' | cargo run -q -p arkli`, and `cargo test`"
   },
@@ -421,7 +495,10 @@ Read this first for the current active set, dependency shape, and the location o
       "wasm-backend"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "WB-013 で `emit_iter_step` が nested tuple allocation 後に誤った base pointer を返していた",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-026.md",
     "summary": "verified with `cargo fmt`, `cargo test -p arktc --test cli`, and `cargo test`"
   },
@@ -434,7 +511,10 @@ Read this first for the current active set, dependency shape, and the location o
       "arktc"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "ユーザー要求「target に wat も欲しい」",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-027.md",
     "summary": "verified with `cargo fmt`, `cargo test -p arktc`, and `cargo test`"
   },
@@ -447,7 +527,10 @@ Read this first for the current active set, dependency shape, and the location o
       "arktc"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "ユーザー指摘「--target wasm-js,wasm-wasi と --emit wat,wat-min で 2x3 のビルド先がある」",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-028.md",
     "summary": "verified with `cargo fmt`, `cargo test -p arktc`, and `cargo test`"
   },
@@ -461,7 +544,10 @@ Read this first for the current active set, dependency shape, and the location o
       "interpreter"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "ユーザー要求「abs/practiceA.arを解いてみよう」時に AtCoder 向けの標準入力 API が存在しなかった",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-029.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-interp`, and `cargo test -p chef`; full `cargo test` currently still fails in unrelated `arktc` wasm-wasi regressions covered by WB-026"
   },
@@ -478,7 +564,10 @@ Read this first for the current active set, dependency shape, and the location o
       "WB-029",
       "WB-030"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "`stdin.read_text` の I/O 経路はできたが、AtCoder 入力を実用的に分解する文字列 API がまだない",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-031.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-core`, `cargo test -p lang-interp`, and `cargo test -p chef`; full `cargo test` currently still fails in unrelated `arktc` wasm-wasi regressions covered by WB-026"
   },
@@ -492,7 +581,10 @@ Read this first for the current active set, dependency shape, and the location o
       "cli"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-035.md",
     "summary": "implemented as a thin wrapper over the existing WASM backend rather than shelling out to `arktc`"
   },
@@ -506,7 +598,10 @@ Read this first for the current active set, dependency shape, and the location o
       "dx"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request after `parse.i64` failed under `chef build --target wasm-wasi`",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-036.md",
     "summary": "the unsupported-call diagnostic now points directly to `docs/std.md#target-support-matrix`"
   },
@@ -521,7 +616,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-037"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "target-support review for surface matrix",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-039.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc`, and `cargo test`"
   },
@@ -536,7 +634,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-037"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "target-support review for surface matrix",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-040.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc`, and `cargo test`"
   },
@@ -552,7 +653,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-031"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-042.md",
     "summary": "added the minimal `strip_suffix` pure helper so `abc049c` can be expressed directly in Arukel"
   },
@@ -568,7 +672,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-042"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request to emit WAT for every file under `example/abs`",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-043.md",
     "summary": "added WASI helpers for incremental stdin line reads, dynamic list indexing, and `strip_suffix`, plus string equality support needed by `abc049c`"
   },
@@ -583,7 +690,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-047"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "follow-up after `WB-047`; specialized `abc049c` codegen still starts from the generic source shape and can over-emit helpers",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-048.md",
     "summary": "specialized suffix-recursion functions now skip generic call scanning, closure collection, and named-callback collection so the emitted WAT only keeps the hidden `__suffix_rec_*` path plus `ends_with_at`"
   },
@@ -599,7 +709,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-051"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request: classify Wado architecture ideas for Arukellt",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-053.md",
     "summary": "added `lang-ir` wasm IR lowering in `crates/lang-ir/src/wasm.rs`, exported via `lang-ir`, with backend-facing `WasmModule` / `WasmFunctionBody` plus helper-usage analysis"
   },
@@ -612,7 +725,10 @@ Read this first for the current active set, dependency shape, and the location o
       "lang-backend-wasm"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request: split the oversized wasm backend crate",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-061.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-backend-wasm --quiet`, and `cargo test`"
   },
@@ -627,9 +743,12 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-032"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-062.md",
-    "summary": "canonical-style diagnostics guidance formerly lived under a duplicate `WB-034` entry and is now normalized as `WB-062`"
+    "summary": "migrated from a duplicate `WB-034` entry during the `issues/` transition; the original ID is preserved here for historical searchability"
   },
   {
     "id": "WB-013",
@@ -643,7 +762,10 @@ Read this first for the current active set, dependency shape, and the location o
       "WB-011",
       "WB-012"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "infinite_iter.ar が `unsupported wasm type: Seq<Int>` で失敗",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-013.md",
     "summary": "verified with `cargo fmt`, `cargo test -p lang-backend-wasm`, `cargo test -p arktc --test examples`, `cargo run -p arktc -- build example/infinite_iter.ar --target wasm-wasi --output /tmp/infinite_iter.wasm`, `wasmer /tmp/infinite_iter.wasm`, and `cargo test`"
   },
@@ -658,7 +780,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-012"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "file_read.ar が match 不一致エラーで失敗 (Result<String, ReadError> のペイロード ADT が前提)",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-014.md",
     "summary": "verified with `cargo test -p lang-backend-wasm --test build --test examples`, `cargo run -p arktc -- build example/file_read.ar --target wasm-wasi --output /tmp/file_read.wasm`, `wasmer run --dir=. /tmp/file_read.wasm`, and `cargo test`"
   },
@@ -673,7 +798,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-029"
     ],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "`stdin.read_text` を追加しても CLI 側に入力注入手段がないと実用化できない",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-030.md",
     "summary": "verified with `cargo fmt`, `cargo test -p chef`, and `cargo test -p lang-interp`; full `cargo test` currently still fails in unrelated `arktc` wasm-wasi regressions covered by WB-026"
   },
@@ -687,9 +815,12 @@ Read this first for the current active set, dependency shape, and the location o
       "workboard"
     ],
     "depends_on": [],
-    "owner": "unassigned",
+    "blocked_on": [],
+    "source": "migration placeholder created because `WB-053` depends on `WB-051`, but the original task body is missing from `WORKBOARD.md`",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-051.md",
-    "summary": "historical placeholder that preserves the missing predecessor referenced by `WB-053`"
+    "summary": "no standalone `WB-051` entry exists in the last `WORKBOARD.md`; keep this placeholder until the original task history is recovered"
   },
   {
     "id": "WB-054",
@@ -700,7 +831,10 @@ Read this first for the current active set, dependency shape, and the location o
       "lang-backend-wasm"
     ],
     "depends_on": [],
-    "owner": "ai",
+    "blocked_on": [],
+    "source": "user request: classify Wado's Wasm GC strategy for Arukellt",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-054.md",
     "summary": "recorded the feasibility spike in `docs/wasm-gc-spike.md`, centered on `Option<Int>` lowering to a nullable Wasm GC struct instead of a tag-plus-payload heap cell"
   },
@@ -714,9 +848,12 @@ Read this first for the current active set, dependency shape, and the location o
       "workboard"
     ],
     "depends_on": [],
-    "owner": "unassigned",
+    "blocked_on": [],
+    "source": "migration placeholder created because `WB-057` and `WB-059` depend on `WB-056`, but the original task body is missing from `WORKBOARD.md`",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-056.md",
-    "summary": "historical placeholder that preserves the missing predecessor referenced by `WB-057` and `WB-059`"
+    "summary": "no standalone `WB-056` entry exists in the last `WORKBOARD.md`; keep this placeholder until the original task history is recovered"
   },
   {
     "id": "WB-057",
@@ -729,7 +866,10 @@ Read this first for the current active set, dependency shape, and the location o
     "depends_on": [
       "WB-056"
     ],
-    "owner": "unassigned",
+    "blocked_on": [],
+    "source": "follow-up from `WB-054` Wasm GC feasibility spike",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-057.md",
     "summary": "added an internal `WasmTarget::JavaScriptHostGc` path, a richer emitted wasm type representation layer, and GC type emission for `Option<Int>` as `(ref null $__gc_option_i32)`"
   },
@@ -743,7 +883,10 @@ Read this first for the current active set, dependency shape, and the location o
       "lang-backend-wasm"
     ],
     "depends_on": [],
-    "owner": "unassigned",
+    "blocked_on": [],
+    "source": "follow-up from `WB-055` Component Model evaluation",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
     "file": "issues/done/WB-058.md",
     "summary": "chose `wasm-component-js` as the experimental Component Model contract for JS/Node hosts"
   }
