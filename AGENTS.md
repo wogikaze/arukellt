@@ -42,7 +42,7 @@ If you change benchmark behavior or CLI output relevant to evaluation, also run:
 cargo run -p chef -- benchmark benchmarks/pure_logic.json
 ```
 
-`./scripts/verify-harness.sh` runs the deterministic local guardrails for formatter drift, a failing clippy gate on workspace libs and bins, workboard consistency, and the full test suite.
+`./scripts/verify-harness.sh` runs the deterministic local guardrails for formatter drift, a failing clippy gate on workspace libs and bins, issues queue consistency, and the full test suite.
 Do not claim a backend feature works unless you ran the matching test or command after the change.
 
 ## Conventions

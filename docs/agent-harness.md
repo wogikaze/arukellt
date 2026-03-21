@@ -11,7 +11,7 @@ Start here:
 Trust executable sources of truth over descriptive prose:
 
 - queue state: [`issues/index.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/index.md) and the matching file under [`issues/open/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/open) or [`issues/done/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/done)
-- repository guardrails: [`crates/arktc/tests/workboard.rs`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/crates/arktc/tests/workboard.rs)
+- repository guardrails: [`crates/arktc/tests/issues.rs`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/crates/arktc/tests/issues.rs)
 - language and CLI behavior: crate tests plus executable docs under [`docs/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs)
 
 Before claiming completion:

@@ -10,8 +10,8 @@ cargo fmt --check
 echo "[verify-harness] cargo clippy --workspace --lib --bins -- -D warnings"
 cargo clippy --workspace --lib --bins -- -D warnings
 
-echo "[verify-harness] cargo test -p arktc --test workboard"
-cargo test -p arktc --test workboard
+echo "[verify-harness] cargo test -p arktc --test issues"
+cargo test -p arktc --test issues
 
 echo "[verify-harness] cargo test"
 cargo test

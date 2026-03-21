@@ -22,6 +22,7 @@ Read this first for the current active set, dependency shape, and the location o
 
 ## Recently Done
 
+- WB-066: Remove the legacy `WORKBOARD.md` redirect and rename queue guardrails to `issues`
 - WB-065: Make the workspace clippy-clean enough to gate the harness
 - WB-064: Bootstrap a minimum viable harness for agent-driven repo hygiene
 - WB-063: Allow shebang-executable `.ar` programs through `chef run`
@@ -42,6 +43,26 @@ Read this first for the current active set, dependency shape, and the location o
 
 ```json
 [
+  {
+    "id": "WB-066",
+    "title": "Remove the legacy `WORKBOARD.md` redirect and rename queue guardrails to `issues`",
+    "status": "done",
+    "priority": "p3",
+    "area": [
+      "tooling",
+      "docs",
+      "issues"
+    ],
+    "depends_on": [
+      "WB-064"
+    ],
+    "blocked_on": [],
+    "source": "user request: delete `WORKBOARD.md` if the repository is fully migrated to `issues/`",
+    "created_at": "2026-03-22",
+    "updated_at": "2026-03-22",
+    "file": "issues/done/WB-066.md",
+    "summary": "`WORKBOARD.md` is gone; queue guardrails and harness docs now validate the `issues/` layout directly"
+  },
   {
     "id": "WB-059",
     "title": "Expose the experimental `wasm-js-gc` backend contract through public build commands",

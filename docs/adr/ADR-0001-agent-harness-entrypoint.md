@@ -18,7 +18,7 @@ The entrypoint must:
 - point agents to executable sources of truth such as tests and issue files
 - require `./scripts/verify-harness.sh` before completion claims
 
-`./scripts/verify-harness.sh` is the minimum deterministic local guardrail for repository hygiene. It runs formatter drift checks, a failing clippy gate for workspace libs and bins, workboard structure validation, and the full workspace test suite.
+`./scripts/verify-harness.sh` is the minimum deterministic local guardrail for repository hygiene. It runs formatter drift checks, a failing clippy gate for workspace libs and bins, issues queue validation, and the full workspace test suite.
 
 The clippy gate is currently scoped to `--lib --bins`. Test-target clippy cleanup is intentionally deferred until the repository is ready for that broader policy.
 

@@ -272,7 +272,7 @@ Before an agent claims completion, run:
 ./scripts/verify-harness.sh
 ```
 
-That guardrail runs `cargo fmt --check`, `cargo clippy --workspace --lib --bins -- -D warnings`, `cargo test -p arktc --test workboard`, and `cargo test`.
+That guardrail runs `cargo fmt --check`, `cargo clippy --workspace --lib --bins -- -D warnings`, `cargo test -p arktc --test issues`, and `cargo test`.
 The clippy gate currently covers workspace libs and bins; test-target clippy enforcement remains a separate follow-up decision.
 
 ## Development

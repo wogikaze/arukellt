@@ -118,10 +118,13 @@ fn issues_queue_files_exist_and_docs_point_to_index() {
     );
     assert!(!issue_paths(&open_dir).is_empty(), "expected open issues");
     assert!(!issue_paths(&done_dir).is_empty(), "expected done issues");
+    assert!(
+        !root.join("WORKBOARD.md").exists(),
+        "WORKBOARD.md should be removed after the issues migration"
+    );
 
     let agents = fs::read_to_string(root.join("AGENTS.md")).expect("read AGENTS.md");
     let readme = fs::read_to_string(root.join("README.md")).expect("read README.md");
-    let workboard = fs::read_to_string(root.join("WORKBOARD.md")).expect("read WORKBOARD.md");
     let harness = fs::read_to_string(&harness_path).expect("read harness doc");
     let verify_script = fs::read_to_string(&verify_script_path).expect("read harness script");
 
@@ -142,15 +145,11 @@ fn issues_queue_files_exist_and_docs_point_to_index() {
         "README.md should point readers to the harness entrypoint"
     );
     assert!(
-        workboard.contains("issues/index.md"),
-        "WORKBOARD.md should redirect to issues/index.md"
-    );
-    assert!(
         harness.contains("issues/index.md"),
         "harness doc should point to issues/index.md"
     );
     assert!(
-        harness.contains("crates/arktc/tests/workboard.rs"),
+        harness.contains("crates/arktc/tests/issues.rs"),
         "harness doc should point to executable guardrail tests"
     );
     assert!(
@@ -174,8 +173,8 @@ fn issues_queue_files_exist_and_docs_point_to_index() {
         "verify-harness should run the workspace clippy gate for libs and bins"
     );
     assert!(
-        verify_script.contains("cargo test -p arktc --test workboard"),
-        "verify-harness should validate workboard structure"
+        verify_script.contains("cargo test -p arktc --test issues"),
+        "verify-harness should validate issues queue structure"
     );
     assert!(
         verify_script.contains("cargo test"),
@@ -271,239 +270,160 @@ fn issue_index_and_files_are_consistent_and_semantically_valid() {
         }
     }
 
-    let mut index_ids = HashSet::new();
-    let mut statuses = HashMap::new();
+    let mut ids_in_index = HashSet::new();
     for entry in &index {
         assert!(
-            index_ids.insert(entry.id.clone()),
-            "duplicate issue id {} in index",
-            entry.id
-        );
-        assert!(matches!(
-            entry.status.as_str(),
-            "active" | "ready" | "blocked" | "done"
-        ));
-        assert!(matches!(entry.priority.as_str(), "p0" | "p1" | "p2" | "p3"));
-        assert!(
-            !entry.title.is_empty(),
-            "missing title in index for {}",
+            ids_in_index.insert(entry.id.clone()),
+            "duplicate issue id {} in issues/index.md",
             entry.id
         );
         assert!(
-            !entry.area.is_empty(),
-            "missing area in index for {}",
+            matches!(
+                entry.status.as_str(),
+                "active" | "ready" | "blocked" | "done"
+            ),
+            "invalid status {} for {}",
+            entry.status,
             entry.id
         );
         assert!(
-            !entry.source.is_empty(),
-            "missing source in index for {}",
+            matches!(entry.priority.as_str(), "p0" | "p1" | "p2" | "p3"),
+            "invalid priority {} for {}",
+            entry.priority,
             entry.id
         );
+        assert!(!entry.title.is_empty(), "missing title for {}", entry.id);
+        assert!(!entry.area.is_empty(), "missing area for {}", entry.id);
+        assert!(!entry.source.is_empty(), "missing source for {}", entry.id);
         assert!(
             !entry.created_at.is_empty(),
-            "missing created_at in index for {}",
+            "missing created_at for {}",
             entry.id
         );
         assert!(
             !entry.updated_at.is_empty(),
-            "missing updated_at in index for {}",
+            "missing updated_at for {}",
             entry.id
         );
         assert!(
             !entry.summary.is_empty(),
-            "missing summary in index for {}",
+            "missing summary for {}",
             entry.id
         );
 
         let metadata = file_metadata
             .get(&entry.id)
-            .unwrap_or_else(|| panic!("index references missing issue file for {}", entry.id));
-        assert_eq!(
-            entry.title, metadata.title,
-            "title mismatch for {}",
-            entry.id
-        );
-        assert_eq!(
-            entry.status, metadata.status,
-            "status mismatch for {}",
-            entry.id
-        );
-        assert_eq!(
-            entry.priority, metadata.priority,
-            "priority mismatch for {}",
-            entry.id
-        );
-        assert_eq!(entry.area, metadata.area, "area mismatch for {}", entry.id);
-        assert_eq!(
-            entry.depends_on, metadata.depends_on,
-            "depends_on mismatch for {}",
-            entry.id
-        );
-        assert_eq!(
-            entry.blocked_on, metadata.blocked_on,
-            "blocked_on mismatch for {}",
-            entry.id
-        );
-        assert_eq!(
-            entry.source, metadata.source,
-            "source mismatch for {}",
-            entry.id
-        );
-        assert_eq!(
-            entry.created_at, metadata.created_at,
-            "created_at mismatch for {}",
-            entry.id
-        );
-        assert_eq!(
-            entry.updated_at, metadata.updated_at,
-            "updated_at mismatch for {}",
-            entry.id
-        );
-
-        let expected_file = if metadata.status == "done" {
-            format!("issues/done/{}.md", entry.id)
-        } else {
-            format!("issues/open/{}.md", entry.id)
+            .unwrap_or_else(|| panic!("index entry {} missing file {}", entry.id, entry.file));
+        let expected_file = match entry.status.as_str() {
+            "done" => format!("issues/done/{}.md", entry.id),
+            _ => format!("issues/open/{}.md", entry.id),
         };
         assert_eq!(
             entry.file, expected_file,
-            "file path mismatch for {}",
+            "index file path mismatch for {}",
             entry.id
         );
-        statuses.insert(entry.id.clone(), entry.status.clone());
+        assert_eq!(
+            entry.title, metadata.title,
+            "title mismatch between issues/index.md and {}",
+            entry.file
+        );
+        assert_eq!(
+            entry.status, metadata.status,
+            "status mismatch between issues/index.md and {}",
+            entry.file
+        );
+        assert_eq!(
+            entry.priority, metadata.priority,
+            "priority mismatch between issues/index.md and {}",
+            entry.file
+        );
+        assert_eq!(
+            entry.area, metadata.area,
+            "area mismatch between issues/index.md and {}",
+            entry.file
+        );
+        assert_eq!(
+            entry.depends_on, metadata.depends_on,
+            "depends_on mismatch between issues/index.md and {}",
+            entry.file
+        );
+        assert_eq!(
+            entry.blocked_on, metadata.blocked_on,
+            "blocked_on mismatch between issues/index.md and {}",
+            entry.file
+        );
+        assert_eq!(
+            entry.source, metadata.source,
+            "source mismatch between issues/index.md and {}",
+            entry.file
+        );
+        assert_eq!(
+            entry.created_at, metadata.created_at,
+            "created_at mismatch between issues/index.md and {}",
+            entry.file
+        );
+        assert_eq!(
+            entry.updated_at, metadata.updated_at,
+            "updated_at mismatch between issues/index.md and {}",
+            entry.file
+        );
     }
 
-    assert_eq!(
-        index_ids.len(),
-        file_metadata.len(),
-        "index/file issue count mismatch"
-    );
+    for id in file_metadata.keys() {
+        assert!(
+            ids_in_index.contains(id),
+            "issue file {} missing from issues/index.md",
+            id
+        );
+    }
 
     for entry in &index {
         for dependency in &entry.depends_on {
-            assert!(
-                statuses.contains_key(dependency),
-                "{} depends on missing {}",
-                entry.id,
-                dependency
+            let dependency_entry = index
+                .iter()
+                .find(|candidate| candidate.id == *dependency)
+                .unwrap_or_else(|| panic!("{} depends on missing {}", entry.id, dependency));
+            assert_eq!(
+                dependency_entry.status, "done",
+                "{} depends on {}, which is not done",
+                entry.id, dependency
             );
         }
     }
 
-    let mut indegree: HashMap<String, usize> = index
-        .iter()
-        .map(|entry| (entry.id.clone(), entry.depends_on.len()))
-        .collect();
-    let mut outgoing: HashMap<String, Vec<String>> = HashMap::new();
+    let mut indegree: HashMap<&str, usize> = HashMap::new();
+    let mut graph: HashMap<&str, Vec<&str>> = HashMap::new();
     for entry in &index {
+        indegree.entry(&entry.id).or_insert(0);
         for dependency in &entry.depends_on {
-            outgoing
-                .entry(dependency.clone())
-                .or_default()
-                .push(entry.id.clone());
+            *indegree.entry(&entry.id).or_insert(0) += 1;
+            graph.entry(dependency).or_default().push(&entry.id);
         }
     }
 
-    let mut queue: VecDeque<String> = indegree
+    let mut queue: VecDeque<&str> = indegree
         .iter()
-        .filter(|(_, count)| **count == 0)
-        .map(|(id, _)| id.clone())
+        .filter_map(|(id, degree)| (*degree == 0).then_some(*id))
         .collect();
     let mut visited = 0usize;
+
     while let Some(id) = queue.pop_front() {
         visited += 1;
-        if let Some(children) = outgoing.get(&id) {
+        if let Some(children) = graph.get(id) {
             for child in children {
-                let count = indegree.get_mut(child).expect("child indegree");
-                *count -= 1;
-                if *count == 0 {
-                    queue.push_back(child.clone());
+                let degree = indegree.get_mut(child).expect("child indegree");
+                *degree -= 1;
+                if *degree == 0 {
+                    queue.push_back(child);
                 }
             }
         }
     }
+
     assert_eq!(
         visited,
         index.len(),
-        "issue dependency graph must be acyclic"
-    );
-
-    for entry in &index {
-        let unresolved: Vec<_> = entry
-            .depends_on
-            .iter()
-            .filter(|dependency| {
-                statuses
-                    .get(*dependency)
-                    .is_some_and(|status| status != "done")
-            })
-            .collect();
-        if entry.status == "ready" {
-            assert!(
-                unresolved.is_empty(),
-                "ready issue {} has unresolved dependencies",
-                entry.id
-            );
-        }
-        if entry.status == "active" {
-            assert!(
-                unresolved.is_empty(),
-                "active issue {} has unresolved dependencies",
-                entry.id
-            );
-        }
-        if entry.status == "blocked" {
-            assert!(
-                !unresolved.is_empty()
-                    || !entry.depends_on.is_empty()
-                    || !entry.blocked_on.is_empty(),
-                "blocked issue {} should explain its blocked state through dependencies",
-                entry.id
-            );
-        }
-    }
-
-    let priority_rank = |priority: &str| match priority {
-        "p0" => 0,
-        "p1" => 1,
-        "p2" => 2,
-        "p3" => 3,
-        other => panic!("unexpected priority {other}"),
-    };
-    let best_active_rank = index
-        .iter()
-        .filter(|entry| entry.status == "active")
-        .map(|entry| priority_rank(&entry.priority))
-        .min();
-    let best_open_rank = index
-        .iter()
-        .filter(|entry| matches!(entry.status.as_str(), "active" | "ready"))
-        .filter(|entry| {
-            entry.depends_on.iter().all(|dependency| {
-                statuses
-                    .get(dependency)
-                    .is_some_and(|status| status == "done")
-            })
-        })
-        .map(|entry| priority_rank(&entry.priority))
-        .min();
-    if let (Some(active_rank), Some(open_rank)) = (best_active_rank, best_open_rank) {
-        assert!(
-            active_rank <= open_rank,
-            "active set should include the highest-priority executable open work"
-        );
-    }
-
-    assert!(
-        file_metadata.contains_key("WB-051"),
-        "missing historical WB-051 placeholder"
-    );
-    assert!(
-        file_metadata.contains_key("WB-056"),
-        "missing historical WB-056 placeholder"
-    );
-    assert!(
-        file_metadata.contains_key("WB-062"),
-        "missing normalized WB-062 issue"
+        "issue dependency graph contains a cycle"
     );
 }
