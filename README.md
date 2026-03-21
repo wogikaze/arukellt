@@ -256,10 +256,11 @@ The executable prototype is still intentionally narrower than the full language 
 - `arktfmt` currently preserves source rather than reprinting a canonical AST-based format
 - `arktdoc` currently emits JSON only; non-JSON `--format` values are rejected until another output contract is implemented
 
-## Workboard
+## Work Queue
 
-[`WORKBOARD.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/WORKBOARD.md) is the shared AI-managed queue for repository work.
-AI agents update it as work starts, blocks, splits, and completes; humans can read it for the current `Next`, `Ready`, `Blocked`, and `Done` state.
+[`issues/index.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/index.md) is the shared AI-managed queue for repository work.
+AI agents update it together with the matching files under [`issues/open/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/open) and [`issues/done/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/done) as work starts, blocks, splits, and completes.
+The index stays intentionally dense so humans and LLMs can inspect priorities, dependencies, and summaries without reopening every issue file.
 
 ## Development
 

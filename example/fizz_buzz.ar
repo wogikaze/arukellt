@@ -1,3 +1,4 @@
+#!/usr/bin/env -S chef run
 import console
 
 fn fizz_buzz_label(n: i64) -> String:
