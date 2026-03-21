@@ -36,7 +36,9 @@ fn run_command(file: &Path, function: &str, args: &[String], step: bool) -> Resu
         eprintln!("{}", serde_json::to_string_pretty(&result.to_json()?)?);
         return Ok(ExitCode::from(1));
     }
-    let typed = result.module.expect("typed module");
+    let typed = result
+        .module
+        .ok_or_else(|| anyhow::anyhow!("compile succeeded without a typed module"))?;
     let high = lower_to_high_ir(&typed);
     let parsed_args = args
         .iter()
@@ -63,7 +65,9 @@ fn test_command(file: &Path, json: bool) -> Result<ExitCode> {
         }
         return Ok(ExitCode::from(1));
     }
-    let typed = result.module.expect("typed module");
+    let typed = result
+        .module
+        .ok_or_else(|| anyhow::anyhow!("compile succeeded without a typed module"))?;
     let high = lower_to_high_ir(&typed);
     let test_names = high
         .functions

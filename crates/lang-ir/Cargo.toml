@@ -8,3 +8,5 @@ license.workspace = true
 lang-core = { path = "../lang-core" }
 serde.workspace = true
 
+[lints]
+workspace = true

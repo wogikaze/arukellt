@@ -9,3 +9,6 @@ anyhow.workspace = true
 lang-core = { path = "../lang-core" }
 lang-interp = { path = "../lang-interp" }
 lang-ir = { path = "../lang-ir" }
+
+[lints]
+workspace = true

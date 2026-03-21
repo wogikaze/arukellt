@@ -16,16 +16,14 @@ Read this first for the current active set, dependency shape, and the location o
 
 - WB-059: Expose the experimental `wasm-js-gc` backend contract through public build commands (`p3`; depends on WB-056, WB-057)
 
-## Ready
-
-- none
-
 ## Blocked
 
 - WB-008: Record a deployed GitHub Pages smoke URL for the docs shell (`p3`; blocked on repo-level GitHub Pages configuration)
 
 ## Recently Done
 
+- WB-065: Make the workspace clippy-clean enough to gate the harness
+- WB-064: Bootstrap a minimum viable harness for agent-driven repo hygiene
 - WB-063: Allow shebang-executable `.ar` programs through `chef run`
 - WB-062: Add parser and typechecker diagnostics for canonical-style guidance
 - WB-061: Split lang-backend-wasm into target, ABI, helper analysis, emitter, runtime, closure, and postprocess modules
@@ -64,6 +62,44 @@ Read this first for the current active set, dependency shape, and the location o
     "updated_at": "2026-03-21",
     "file": "issues/open/WB-059.md",
     "summary": "`WB-057` added an internal GC-aware `Option<Int>` lowering path and richer wasm value representations, but the public CLI still hard-rejects the target"
+  },
+  {
+    "id": "WB-064",
+    "title": "Bootstrap a minimum viable harness for agent-driven repo hygiene",
+    "status": "done",
+    "priority": "p3",
+    "area": [
+      "tooling",
+      "docs",
+      "workboard"
+    ],
+    "depends_on": [],
+    "blocked_on": [],
+    "source": "user request: respect https://nyosegawa.com/posts/harness-engineering-best-practices-2026/ and add the first minimum-viable harness slice",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
+    "file": "issues/done/WB-064.md",
+    "summary": "short pointer docs, a first ADR, and `./scripts/verify-harness.sh` now define and verify the minimum viable agent harness entrypoint"
+  },
+  {
+    "id": "WB-065",
+    "title": "Make the workspace clippy-clean enough to gate the harness",
+    "status": "done",
+    "priority": "p3",
+    "area": [
+      "tooling",
+      "lang-core",
+      "workboard"
+    ],
+    "depends_on": [
+      "WB-064"
+    ],
+    "blocked_on": [],
+    "source": "follow-up after `WB-064`: workspace `Cargo.toml` now declares stricter clippy policy, but `cargo clippy` still fails on pre-existing warnings and widespread test `expect()` usage",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
+    "file": "issues/done/WB-065.md",
+    "summary": "workspace lint inheritance plus a scoped clippy allowlist now let `verify-harness.sh` fail on `cargo clippy --workspace --lib --bins -- -D warnings`"
   },
   {
     "id": "WB-008",

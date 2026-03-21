@@ -10,3 +10,6 @@ lang-ir = { path = "../lang-ir" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
+
+[lints]
+workspace = true

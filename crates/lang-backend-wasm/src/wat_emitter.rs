@@ -1,5 +1,9 @@
 use super::*;
 
+fn usize_to_u32(value: usize, what: &str) -> Result<u32> {
+    u32::try_from(value).map_err(|_| anyhow!("{what} exceeds u32 range in wasm backend"))
+}
+
 pub fn emit_wat(module: &HighModule, target: WasmTarget) -> Result<String> {
     let optimized_module = optimize_high_module(module, &wasm_entry_roots(module, target));
     let module = &optimized_module;
@@ -135,10 +139,10 @@ pub(crate) fn emit_gc_type_defs(abi: &WasmAbi, out: &mut String) {
 }
 
 pub(crate) fn emit_heap_primitives(abi: &WasmAbi, out: &mut String) {
-    if !abi.needs_heap()
-        && !abi.uses_len_builtin
-        && !abi.uses_ends_with_at_builtin
-        && !(abi.target == WasmTarget::JavaScriptHost && abi.uses_console_println)
+    if !(abi.needs_heap()
+        || abi.uses_len_builtin
+        || abi.uses_ends_with_at_builtin
+        || (abi.target == WasmTarget::JavaScriptHost && abi.uses_console_println))
     {
         return;
     }
@@ -1498,7 +1502,7 @@ pub(crate) fn emit_list_literal(
     let pad = "  ".repeat(indent);
     let tmp_ptr_local = heap_tmp_ptr_local(indent);
     let nested_indent = indent + 1;
-    let len = u32::try_from(items.len()).expect("list length fits into u32");
+    let len = usize_to_u32(items.len(), "list length")?;
     let total_bytes = 8 + len * 4;
 
     out.push_str(&format!("{pad}global.get $heap_ptr\n"));
@@ -1520,7 +1524,7 @@ pub(crate) fn emit_list_literal(
     out.push_str(&format!("{pad}i32.store offset=4\n"));
 
     for (index, item) in items.iter().enumerate() {
-        let item_offset = 8 + u32::try_from(index).expect("list index fits into u32") * 4;
+        let item_offset = 8 + usize_to_u32(index, "list index")? * 4;
         out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
         out.push_str(&format!("{pad}i32.const {item_offset}\n"));
         out.push_str(&format!("{pad}i32.add\n"));
@@ -1562,12 +1566,12 @@ pub(crate) fn emit_tuple_literal(
     let pad = "  ".repeat(indent);
     let tmp_ptr_local = heap_tmp_ptr_local(indent);
     let nested_indent = indent + 1;
-    let total_bytes = u32::try_from(items.len()).expect("tuple length fits") * 4;
+    let total_bytes = usize_to_u32(items.len(), "tuple length")? * 4;
     out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
     out.push_str(&format!("{pad}call $__alloc\n"));
     out.push_str(&format!("{pad}local.set ${tmp_ptr_local}\n"));
     for (index, item) in items.iter().enumerate() {
-        let offset = u32::try_from(index).expect("tuple index fits") * 4;
+        let offset = usize_to_u32(index, "tuple index")? * 4;
         out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
         out.push_str(&format!("{pad}i32.const {offset}\n"));
         out.push_str(&format!("{pad}i32.add\n"));
@@ -1777,7 +1781,7 @@ pub(crate) fn emit_construct(
     if variant.field_count != args.len() {
         bail!("constructor field count does not match payload arity in wasm backend");
     }
-    let total_bytes = 4 + u32::try_from(variant.field_count).expect("field count fits") * 4;
+    let total_bytes = 4 + usize_to_u32(variant.field_count, "field count")? * 4;
     out.push_str(&format!("{pad}i32.const {total_bytes}\n"));
     out.push_str(&format!("{pad}call $__alloc\n"));
     out.push_str(&format!("{pad}local.set ${tmp_ptr_local}\n"));
@@ -1785,7 +1789,7 @@ pub(crate) fn emit_construct(
     out.push_str(&format!("{pad}i32.const {}\n", variant.tag));
     out.push_str(&format!("{pad}i32.store\n"));
     for (index, arg) in args.iter().enumerate() {
-        let offset = 4 + u32::try_from(index).expect("field index fits") * 4;
+        let offset = 4 + usize_to_u32(index, "field index")? * 4;
         out.push_str(&format!("{pad}local.get ${tmp_ptr_local}\n"));
         out.push_str(&format!("{pad}i32.const {offset}\n"));
         out.push_str(&format!("{pad}i32.add\n"));
@@ -1848,7 +1852,7 @@ pub(crate) fn emit_match_arms(
                     binding_name.clone(),
                     MatchBinding {
                         subject: subject.clone(),
-                        offset: 4 + u32::try_from(index).expect("field index fits") * 4,
+                        offset: 4 + usize_to_u32(index, "field index")? * 4,
                     },
                 );
             }

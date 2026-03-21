@@ -18,6 +18,9 @@ serde_json.workspace = true
 [dev-dependencies]
 tempfile = "3.23"
 
+[lints]
+workspace = true
+
 [[bin]]
 name = "chef"
 path = "src/main.rs"

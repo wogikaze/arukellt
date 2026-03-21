@@ -59,6 +59,9 @@ impl<T> CompileResult<T> {
             .count()
     }
 
+    /// # Errors
+    ///
+    /// Returns any serialization error produced while building the JSON payload.
     pub fn to_json(&self) -> serde_json::Result<Value> {
         Ok(json!({
             "version": "v0.1",

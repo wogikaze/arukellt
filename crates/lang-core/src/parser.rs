@@ -55,15 +55,15 @@ impl<'a> Parser<'a> {
 
             if self.match_kind(&TokenKind::Import) {
                 if stage > TopLevelStage::Imports {
-                    self.push_error(
-                        "E_TOPLEVEL_ORDER",
-                        "Imports must appear before type and function declarations",
-                        self.previous_span(),
-                        "import capability declarations first",
-                        "import after later item".to_owned(),
-                        "toplevel_order_violation",
-                        "Move imports to the top of the file.",
-                    );
+                    self.push_error(ParserDiagnosticDetails {
+                        code: "E_TOPLEVEL_ORDER",
+                        message: "Imports must appear before type and function declarations",
+                        span: self.previous_span(),
+                        expected: "import capability declarations first".into(),
+                        actual: "import after later item".into(),
+                        cause: "toplevel_order_violation",
+                        suggested_fix: "Move imports to the top of the file.",
+                    });
                 }
                 imports.push(self.parse_import());
                 continue;
@@ -71,15 +71,15 @@ impl<'a> Parser<'a> {
 
             if self.match_kind(&TokenKind::Type) {
                 if stage > TopLevelStage::Types {
-                    self.push_error(
-                        "E_TOPLEVEL_ORDER",
-                        "Type declarations must appear before functions",
-                        self.previous_span(),
-                        "type declarations before functions",
-                        "type after function".to_owned(),
-                        "toplevel_order_violation",
-                        "Move type declarations before functions.",
-                    );
+                    self.push_error(ParserDiagnosticDetails {
+                        code: "E_TOPLEVEL_ORDER",
+                        message: "Type declarations must appear before functions",
+                        span: self.previous_span(),
+                        expected: "type declarations before functions".into(),
+                        actual: "type after function".into(),
+                        cause: "toplevel_order_violation",
+                        suggested_fix: "Move type declarations before functions.",
+                    });
                 }
                 stage = TopLevelStage::Types;
                 types.push(self.parse_type_decl());
@@ -110,9 +110,9 @@ impl<'a> Parser<'a> {
 
     fn parse_type_decl(&mut self) -> TypeDecl {
         let name = self.expect_ident("type name");
-        self.expect_kind(TokenKind::Equal, "type definition marker", "=");
+        self.expect_kind(&TokenKind::Equal, "type definition marker", "=");
         self.consume_newline();
-        self.expect_kind(TokenKind::Indent, "indented type body", "indent");
+        self.expect_kind(&TokenKind::Indent, "indented type body", "indent");
         let mut variants = Vec::new();
         while !self.check(&TokenKind::Dedent) && !self.at_eof() {
             self.skip_newlines();
@@ -121,7 +121,7 @@ impl<'a> Parser<'a> {
             }
             variants.push(self.parse_variant_decl());
         }
-        self.expect_kind(TokenKind::Dedent, "dedent", "dedent");
+        self.expect_kind(&TokenKind::Dedent, "dedent", "dedent");
         TypeDecl { name, variants }
     }
 
@@ -131,7 +131,7 @@ impl<'a> Parser<'a> {
         if self.match_kind(&TokenKind::LParen) {
             while !self.check(&TokenKind::RParen) && !self.at_eof() {
                 let field_name = self.expect_ident("variant field name");
-                self.expect_kind(TokenKind::Colon, "field type separator", ":");
+                self.expect_kind(&TokenKind::Colon, "field type separator", ":");
                 let field_ty = self.parse_type();
                 fields.push(VariantField {
                     name: field_name,
@@ -141,7 +141,7 @@ impl<'a> Parser<'a> {
                     break;
                 }
             }
-            self.expect_kind(TokenKind::RParen, "closing parenthesis", ")");
+            self.expect_kind(&TokenKind::RParen, "closing parenthesis", ")");
         }
         self.consume_newline();
         VariantDecl { name, fields }
@@ -149,13 +149,13 @@ impl<'a> Parser<'a> {
 
     fn parse_function(&mut self) -> Function {
         let public = self.match_kind(&TokenKind::Pub);
-        self.expect_kind(TokenKind::Fn, "fn keyword", "fn");
+        self.expect_kind(&TokenKind::Fn, "fn keyword", "fn");
         let name = self.expect_ident("function name");
-        self.expect_kind(TokenKind::LParen, "opening parenthesis", "(");
+        self.expect_kind(&TokenKind::LParen, "opening parenthesis", "(");
         let mut params = Vec::new();
         while !self.check(&TokenKind::RParen) && !self.at_eof() {
             let param_name = self.expect_ident("parameter name");
-            self.expect_kind(TokenKind::Colon, "type annotation", ":");
+            self.expect_kind(&TokenKind::Colon, "type annotation", ":");
             let param_ty = self.parse_type();
             params.push(Param {
                 name: param_name,
@@ -165,14 +165,14 @@ impl<'a> Parser<'a> {
                 break;
             }
         }
-        self.expect_kind(TokenKind::RParen, "closing parenthesis", ")");
+        self.expect_kind(&TokenKind::RParen, "closing parenthesis", ")");
         // Return type is optional; defaults to Unit
         let return_type = if self.match_kind(&TokenKind::Arrow) {
             self.parse_type()
         } else {
             Type::Unit
         };
-        self.expect_kind(TokenKind::Colon, "function body marker", ":");
+        self.expect_kind(&TokenKind::Colon, "function body marker", ":");
         let body = self.parse_block_expr();
 
         Function {
@@ -196,7 +196,7 @@ impl<'a> Parser<'a> {
                             break;
                         }
                     }
-                    self.expect_kind(TokenKind::Greater, "closing >", ">");
+                    self.expect_kind(&TokenKind::Greater, "closing >", ">");
                     match name.as_str() {
                         "Result" if args.len() >= 2 => {
                             Type::Result(Box::new(args[0].clone()), Box::new(args[1].clone()))
@@ -214,15 +214,15 @@ impl<'a> Parser<'a> {
                 }
             }
             other => {
-                self.push_error(
-                    "E_EXPECTED_TYPE",
-                    "Expected a type name",
-                    self.previous_span(),
-                    "type name",
-                    format!("{other:?}"),
-                    "missing_type_name",
-                    "Insert a type name such as Int or Bool.",
-                );
+                self.push_error(ParserDiagnosticDetails {
+                    code: "E_EXPECTED_TYPE",
+                    message: "Expected a type name",
+                    span: self.previous_span(),
+                    expected: "type name".into(),
+                    actual: format!("{other:?}").into(),
+                    cause: "missing_type_name",
+                    suggested_fix: "Insert a type name such as Int or Bool.",
+                });
                 Type::Unknown
             }
         }
@@ -230,9 +230,9 @@ impl<'a> Parser<'a> {
 
     fn parse_block_expr(&mut self) -> Expr {
         self.consume_newline();
-        self.expect_kind(TokenKind::Indent, "indented block", "indent");
+        self.expect_kind(&TokenKind::Indent, "indented block", "indent");
         let expr = self.parse_block_contents();
-        self.expect_kind(TokenKind::Dedent, "dedent", "dedent");
+        self.expect_kind(&TokenKind::Dedent, "dedent", "dedent");
         expr
     }
 
@@ -242,7 +242,7 @@ impl<'a> Parser<'a> {
         self.skip_newlines();
         if self.match_kind(&TokenKind::Let) {
             let name = self.expect_ident("binding name");
-            self.expect_kind(TokenKind::Equal, "assignment operator", "=");
+            self.expect_kind(&TokenKind::Equal, "assignment operator", "=");
             let value = self.parse_expr();
             self.consume_newline();
             let body = self.parse_block_contents();
@@ -260,16 +260,16 @@ impl<'a> Parser<'a> {
 
     fn parse_expr(&mut self) -> Expr {
         // Lambda: Ident -> body
-        if let TokenKind::Ident(name) = self.current().kind.clone() {
-            if self.peek_kind(1) == Some(&TokenKind::Arrow) {
-                self.position += 1; // consume ident
-                self.position += 1; // consume ->
-                let body = self.parse_lambda_body();
-                return Expr::Lambda {
-                    param: name,
-                    body: Box::new(body),
-                };
-            }
+        if let TokenKind::Ident(name) = self.current().kind.clone()
+            && self.peek_kind(1) == Some(&TokenKind::Arrow)
+        {
+            self.position += 1; // consume ident
+            self.position += 1; // consume ->
+            let body = self.parse_lambda_body();
+            return Expr::Lambda {
+                param: name,
+                body: Box::new(body),
+            };
         }
 
         if self.match_kind(&TokenKind::If) {
@@ -309,16 +309,16 @@ impl<'a> Parser<'a> {
     fn parse_lambda_body(&mut self) -> Expr {
         if self.check(&TokenKind::Newline) {
             self.consume_newline();
-            self.expect_kind(TokenKind::Indent, "lambda body indent", "indent");
+            self.expect_kind(&TokenKind::Indent, "lambda body indent", "indent");
             let expr = self.parse_block_contents();
-            self.expect_kind(TokenKind::Dedent, "lambda body dedent", "dedent");
+            self.expect_kind(&TokenKind::Dedent, "lambda body dedent", "dedent");
             expr
         } else {
             self.parse_expr()
         }
     }
 
-    /// Handle postfix chain: .method(), |> pipe, [index], (Apply), ..=range
+    /// Handle postfix chain: `.method()`, `|>` pipe, `[index]`, `(apply)`, `..=range`
     /// Skips newlines to handle multi-line continuation chains.
     fn parse_chain(&mut self, mut expr: Expr) -> Expr {
         loop {
@@ -327,37 +327,38 @@ impl<'a> Parser<'a> {
             while self.match_kind(&TokenKind::Newline) {}
 
             if self.match_kind(&TokenKind::Pipe) {
-                if let TokenKind::Ident(param) = self.current().kind.clone() {
-                    if self.peek_kind(1) == Some(&TokenKind::Arrow) {
-                        let span = self.current_span();
-                        self.position += 1; // consume ident
-                        self.position += 1; // consume ->
-                        let body = self.parse_lambda_body();
-                        if let Some(callee) = passthrough_pipe_lambda_callee(&param, &body) {
-                            self.push_warning(
-                                "W_CANONICAL_PIPE_LAMBDA",
-                                "Redundant pipe lambda can use the callee directly",
-                                span,
-                                "canonical pipeline callee",
-                                format!("{param} -> {callee}({param})"),
-                                "redundant_pipe_lambda",
-                                &format!("Rewrite the pipe as `value |> {callee}`."),
-                            );
-                            expr = Expr::Call {
-                                callee,
-                                args: vec![expr],
-                            };
-                        } else {
-                            expr = Expr::Apply {
-                                func: Box::new(Expr::Lambda {
-                                    param,
-                                    body: Box::new(body),
-                                }),
-                                args: vec![expr],
-                            };
-                        }
-                        continue;
+                if let TokenKind::Ident(param) = self.current().kind.clone()
+                    && self.peek_kind(1) == Some(&TokenKind::Arrow)
+                {
+                    let span = self.current_span();
+                    self.position += 1; // consume ident
+                    self.position += 1; // consume ->
+                    let body = self.parse_lambda_body();
+                    if let Some(callee) = passthrough_pipe_lambda_callee(&param, &body) {
+                        let suggested_fix = format!("Rewrite the pipe as `value |> {callee}`.");
+                        self.push_warning(ParserDiagnosticDetails {
+                            code: "W_CANONICAL_PIPE_LAMBDA",
+                            message: "Redundant pipe lambda can use the callee directly",
+                            span,
+                            expected: "canonical pipeline callee".into(),
+                            actual: format!("{param} -> {callee}({param})").into(),
+                            cause: "redundant_pipe_lambda",
+                            suggested_fix: &suggested_fix,
+                        });
+                        expr = Expr::Call {
+                            callee,
+                            args: vec![expr],
+                        };
+                    } else {
+                        expr = Expr::Apply {
+                            func: Box::new(Expr::Lambda {
+                                param,
+                                body: Box::new(body),
+                            }),
+                            args: vec![expr],
+                        };
                     }
+                    continue;
                 }
                 let callee = self.parse_pipe_callee();
                 expr = Expr::Call {
@@ -375,7 +376,7 @@ impl<'a> Parser<'a> {
                             break;
                         }
                     }
-                    self.expect_kind(TokenKind::RParen, "closing parenthesis", ")");
+                    self.expect_kind(&TokenKind::RParen, "closing parenthesis", ")");
                 }
                 expr = Expr::MethodCall {
                     receiver: Box::new(expr),
@@ -385,7 +386,7 @@ impl<'a> Parser<'a> {
             } else if self.check(&TokenKind::LBracket) {
                 self.position += 1; // consume [
                 let index = self.parse_expr();
-                self.expect_kind(TokenKind::RBracket, "closing bracket", "]");
+                self.expect_kind(&TokenKind::RBracket, "closing bracket", "]");
                 expr = Expr::Index {
                     receiver: Box::new(expr),
                     index: Box::new(index),
@@ -411,22 +412,22 @@ impl<'a> Parser<'a> {
 
     fn parse_if_expr(&mut self) -> Expr {
         let condition = self.parse_comparison();
-        self.expect_kind(TokenKind::Colon, "if block marker", ":");
+        self.expect_kind(&TokenKind::Colon, "if block marker", ":");
         let then_branch = self.parse_block_expr();
         self.skip_newlines();
         let else_branch = if self.match_kind(&TokenKind::Else) {
-            self.expect_kind(TokenKind::Colon, "else block marker", ":");
+            self.expect_kind(&TokenKind::Colon, "else block marker", ":");
             self.parse_block_expr()
         } else {
-            self.push_error(
-                "E_IF_ELSE_REQUIRED",
-                "If expressions must include an else branch",
-                self.current_span(),
-                "else branch",
-                "end of block".to_owned(),
-                "missing_else_branch",
-                "Add an `else:` block with the fallback expression.",
-            );
+            self.push_error(ParserDiagnosticDetails {
+                code: "E_IF_ELSE_REQUIRED",
+                message: "If expressions must include an else branch",
+                span: self.current_span(),
+                expected: "else branch".into(),
+                actual: "end of block".into(),
+                cause: "missing_else_branch",
+                suggested_fix: "Add an `else:` block with the fallback expression.",
+            });
             Expr::Error
         };
         Expr::If {
@@ -438,9 +439,9 @@ impl<'a> Parser<'a> {
 
     fn parse_match_expr(&mut self) -> Expr {
         let subject = self.parse_comparison();
-        self.expect_kind(TokenKind::Colon, "match block marker", ":");
+        self.expect_kind(&TokenKind::Colon, "match block marker", ":");
         self.consume_newline();
-        self.expect_kind(TokenKind::Indent, "indented match body", "indent");
+        self.expect_kind(&TokenKind::Indent, "indented match body", "indent");
         let mut arms = Vec::new();
         while !self.check(&TokenKind::Dedent) && !self.at_eof() {
             self.skip_newlines();
@@ -449,13 +450,13 @@ impl<'a> Parser<'a> {
             }
             let pattern = self.parse_pattern();
             let pattern_span = self.previous_span();
-            self.expect_kind(TokenKind::Arrow, "match arm arrow", "->");
+            self.expect_kind(&TokenKind::Arrow, "match arm arrow", "->");
             // Arm body can be inline or on the next line (indented block)
             let expr = self.parse_arm_body();
             self.consume_newline();
             arms.push((pattern, pattern_span, expr));
         }
-        self.expect_kind(TokenKind::Dedent, "dedent", "dedent");
+        self.expect_kind(&TokenKind::Dedent, "dedent", "dedent");
 
         let arm_count = arms.len();
         let mut final_arms = Vec::with_capacity(arm_count);
@@ -489,9 +490,9 @@ impl<'a> Parser<'a> {
         if self.check(&TokenKind::Newline) {
             // Block arm body: -> NEWLINE INDENT [let ...] expr DEDENT
             self.consume_newline();
-            self.expect_kind(TokenKind::Indent, "arm body indent", "indent");
+            self.expect_kind(&TokenKind::Indent, "arm body indent", "indent");
             let expr = self.parse_block_contents();
-            self.expect_kind(TokenKind::Dedent, "arm body dedent", "dedent");
+            self.expect_kind(&TokenKind::Dedent, "arm body dedent", "dedent");
             expr
         } else {
             // Inline arm body
@@ -511,20 +512,20 @@ impl<'a> Parser<'a> {
                             break;
                         }
                     }
-                    self.expect_kind(TokenKind::RParen, "closing parenthesis", ")");
+                    self.expect_kind(&TokenKind::RParen, "closing parenthesis", ")");
                 }
                 Pattern::Variant { name, bindings }
             }
             other => {
-                self.push_error(
-                    "E_EXPECTED_PATTERN",
-                    "Expected a match pattern",
-                    self.previous_span(),
-                    "pattern",
-                    format!("{other:?}"),
-                    "missing_pattern",
-                    "Insert a variant pattern or `_`.",
-                );
+                self.push_error(ParserDiagnosticDetails {
+                    code: "E_EXPECTED_PATTERN",
+                    message: "Expected a match pattern",
+                    span: self.previous_span(),
+                    expected: "pattern".into(),
+                    actual: format!("{other:?}").into(),
+                    cause: "missing_pattern",
+                    suggested_fix: "Insert a variant pattern or `_`.",
+                });
                 Pattern::Wildcard
             }
         }
@@ -623,7 +624,7 @@ impl<'a> Parser<'a> {
             } else if self.check(&TokenKind::LBracket) {
                 self.position += 1; // consume [
                 let index = self.parse_expr();
-                self.expect_kind(TokenKind::RBracket, "closing bracket", "]");
+                self.expect_kind(&TokenKind::RBracket, "closing bracket", "]");
                 expr = Expr::Index {
                     receiver: Box::new(expr),
                     index: Box::new(index),
@@ -638,7 +639,7 @@ impl<'a> Parser<'a> {
                         break;
                     }
                 }
-                self.expect_kind(TokenKind::RParen, "closing parenthesis", ")");
+                self.expect_kind(&TokenKind::RParen, "closing parenthesis", ")");
                 expr = Expr::Apply {
                     func: Box::new(expr),
                     args,
@@ -660,15 +661,15 @@ impl<'a> Parser<'a> {
             TokenKind::String(value) => Expr::String(value),
             TokenKind::Ident(name) => {
                 if name == "null" {
-                    self.push_error(
-                        "E_NULL_FORBIDDEN",
-                        "The language does not allow `null`",
-                        token.span,
-                        "Option<T> or Result<T, E>",
-                        "null".to_owned(),
-                        "null_forbidden",
-                        "Replace `null` with an explicit Option or Result value.",
-                    );
+                    self.push_error(ParserDiagnosticDetails {
+                        code: "E_NULL_FORBIDDEN",
+                        message: "The language does not allow `null`",
+                        span: token.span,
+                        expected: "Option<T> or Result<T, E>".into(),
+                        actual: "null".into(),
+                        cause: "null_forbidden",
+                        suggested_fix: "Replace `null` with an explicit Option or Result value.",
+                    });
                     return Expr::Error;
                 }
                 if self.match_kind(&TokenKind::Dot) {
@@ -701,10 +702,10 @@ impl<'a> Parser<'a> {
                             break;
                         }
                     }
-                    self.expect_kind(TokenKind::RParen, "closing parenthesis", ")");
+                    self.expect_kind(&TokenKind::RParen, "closing parenthesis", ")");
                     Expr::Tuple(items)
                 } else {
-                    self.expect_kind(TokenKind::RParen, "closing parenthesis", ")");
+                    self.expect_kind(&TokenKind::RParen, "closing parenthesis", ")");
                     first
                 }
             }
@@ -717,19 +718,19 @@ impl<'a> Parser<'a> {
                         break;
                     }
                 }
-                self.expect_kind(TokenKind::RBracket, "closing bracket", "]");
+                self.expect_kind(&TokenKind::RBracket, "closing bracket", "]");
                 Expr::List(items)
             }
             other => {
-                self.push_error(
-                    "E_EXPECTED_EXPR",
-                    "Expected an expression",
-                    token.span,
-                    "expression",
-                    format!("{other:?}"),
-                    "missing_expression",
-                    "Insert a literal, identifier, or expression.",
-                );
+                self.push_error(ParserDiagnosticDetails {
+                    code: "E_EXPECTED_EXPR",
+                    message: "Expected an expression",
+                    span: token.span,
+                    expected: "expression".into(),
+                    actual: format!("{other:?}").into(),
+                    cause: "missing_expression",
+                    suggested_fix: "Insert a literal, identifier, or expression.",
+                });
                 Expr::Error
             }
         }
@@ -743,7 +744,7 @@ impl<'a> Parser<'a> {
                 break;
             }
         }
-        self.expect_kind(TokenKind::RParen, "closing parenthesis", ")");
+        self.expect_kind(&TokenKind::RParen, "closing parenthesis", ")");
         args
     }
 
@@ -751,33 +752,35 @@ impl<'a> Parser<'a> {
         match self.advance().kind {
             TokenKind::Ident(name) => name,
             other => {
-                self.push_error(
-                    "E_EXPECTED_IDENT",
-                    "Expected an identifier",
-                    self.previous_span(),
-                    expected,
-                    format!("{other:?}"),
-                    "missing_identifier",
-                    "Insert an identifier name.",
-                );
+                self.push_error(ParserDiagnosticDetails {
+                    code: "E_EXPECTED_IDENT",
+                    message: "Expected an identifier",
+                    span: self.previous_span(),
+                    expected: expected.into(),
+                    actual: format!("{other:?}").into(),
+                    cause: "missing_identifier",
+                    suggested_fix: "Insert an identifier name.",
+                });
                 "__error".to_owned()
             }
         }
     }
 
-    fn expect_kind(&mut self, kind: TokenKind, expected: &str, expected_short: &str) {
-        if self.match_kind(&kind) {
+    fn expect_kind(&mut self, kind: &TokenKind, expected: &str, expected_short: &str) {
+        if self.match_kind(kind) {
             return;
         }
-        self.push_error(
-            "E_EXPECTED_TOKEN",
-            &format!("Expected {expected}"),
-            self.current_span(),
-            expected_short,
-            format!("{:?}", self.current().kind),
-            "missing_token",
-            &format!("Insert `{expected_short}`."),
-        );
+        let message = format!("Expected {expected}");
+        let suggested_fix = format!("Insert `{expected_short}`.");
+        self.push_error(ParserDiagnosticDetails {
+            code: "E_EXPECTED_TOKEN",
+            message: &message,
+            span: self.current_span(),
+            expected: expected_short.into(),
+            actual: format!("{:?}", self.current().kind).into(),
+            cause: "missing_token",
+            suggested_fix: &suggested_fix,
+        });
     }
 
     fn consume_newline(&mut self) {
@@ -789,7 +792,7 @@ impl<'a> Parser<'a> {
     }
 
     fn check(&self, kind: &TokenKind) -> bool {
-        self.same_variant(&self.current().kind, kind)
+        Self::same_variant(&self.current().kind, kind)
     }
 
     fn match_kind(&mut self, kind: &TokenKind) -> bool {
@@ -833,31 +836,22 @@ impl<'a> Parser<'a> {
         matches!(self.current().kind, TokenKind::Eof)
     }
 
-    fn same_variant(&self, left: &TokenKind, right: &TokenKind) -> bool {
+    fn same_variant(left: &TokenKind, right: &TokenKind) -> bool {
         std::mem::discriminant(left) == std::mem::discriminant(right)
     }
 
-    fn push_error(
-        &mut self,
-        code: &str,
-        message: &str,
-        span: Span,
-        expected: impl Into<String>,
-        actual: impl Into<String>,
-        cause: &str,
-        suggested_fix: &str,
-    ) {
+    fn push_error(&mut self, details: ParserDiagnosticDetails<'_>) {
         self.diagnostics.push(Diagnostic {
-            code: code.to_owned(),
-            message: message.to_owned(),
+            code: details.code.to_owned(),
+            message: details.message.to_owned(),
             level: DiagnosticLevel::Error,
             stage: DiagnosticStage::Parser,
-            range: span,
-            expected: expected.into(),
-            actual: actual.into(),
-            cause: cause.to_owned(),
+            range: details.span,
+            expected: details.expected.into_owned(),
+            actual: details.actual.into_owned(),
+            cause: details.cause.to_owned(),
             related: Vec::new(),
-            suggested_fix: suggested_fix.to_owned(),
+            suggested_fix: details.suggested_fix.to_owned(),
             alternatives: vec![
                 "Keep one expression per indented block.".to_owned(),
                 "Check the surrounding punctuation and indentation.".to_owned(),
@@ -866,31 +860,32 @@ impl<'a> Parser<'a> {
         });
     }
 
-    fn push_warning(
-        &mut self,
-        code: &str,
-        message: &str,
-        span: Span,
-        expected: impl Into<String>,
-        actual: impl Into<String>,
-        cause: &str,
-        suggested_fix: &str,
-    ) {
+    fn push_warning(&mut self, details: ParserDiagnosticDetails<'_>) {
         self.diagnostics.push(Diagnostic {
-            code: code.to_owned(),
-            message: message.to_owned(),
+            code: details.code.to_owned(),
+            message: details.message.to_owned(),
             level: DiagnosticLevel::Warning,
             stage: DiagnosticStage::Parser,
-            range: span,
-            expected: expected.into(),
-            actual: actual.into(),
-            cause: cause.to_owned(),
+            range: details.span,
+            expected: details.expected.into_owned(),
+            actual: details.actual.into_owned(),
+            cause: details.cause.to_owned(),
             related: Vec::new(),
-            suggested_fix: suggested_fix.to_owned(),
+            suggested_fix: details.suggested_fix.to_owned(),
             alternatives: vec!["Prefer the canonical language form.".to_owned()],
             confidence: 0.93,
         });
     }
+}
+
+struct ParserDiagnosticDetails<'a> {
+    code: &'a str,
+    message: &'a str,
+    span: Span,
+    expected: std::borrow::Cow<'a, str>,
+    actual: std::borrow::Cow<'a, str>,
+    cause: &'a str,
+    suggested_fix: &'a str,
 }
 
 fn passthrough_pipe_lambda_callee(param: &str, body: &Expr) -> Option<String> {

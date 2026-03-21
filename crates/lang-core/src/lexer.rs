@@ -101,7 +101,7 @@ pub fn lex(source: &str) -> LexOutput {
         }
 
         let indent = indent_spaces / 2;
-        let current_indent = *indent_stack.last().expect("indent stack");
+        let current_indent = indent_stack.last().copied().unwrap_or_default();
         if !is_continuation && indent > current_indent {
             for level in current_indent + 1..=indent {
                 indent_stack.push(level);
@@ -114,7 +114,7 @@ pub fn lex(source: &str) -> LexOutput {
                 });
             }
         } else if !is_continuation && indent < current_indent {
-            while indent < *indent_stack.last().expect("indent stack") {
+            while indent < indent_stack.last().copied().unwrap_or_default() {
                 indent_stack.pop();
                 tokens.push(Token {
                     kind: TokenKind::Dedent,
@@ -274,8 +274,8 @@ pub fn lex(source: &str) -> LexOutput {
                             break;
                         }
                     }
-                    let ident = &line[column..end];
-                    let kind = match ident {
+                    let ident_text = &line[column..end];
+                    let kind = match ident_text {
                         "pub" => TokenKind::Pub,
                         "fn" => TokenKind::Fn,
                         "if" => TokenKind::If,
@@ -289,7 +289,7 @@ pub fn lex(source: &str) -> LexOutput {
                         "match" => TokenKind::Match,
                         "true" => TokenKind::True,
                         "false" => TokenKind::False,
-                        _ => TokenKind::Ident(ident.to_owned()),
+                        _ => TokenKind::Ident(ident_text.to_owned()),
                     };
                     push(kind, end - column, &mut tokens);
                     column = end;
@@ -363,12 +363,11 @@ fn unescape_string_literal(raw: &str) -> String {
                 Some('n') => out.push('\n'),
                 Some('t') => out.push('\t'),
                 Some('"') => out.push('"'),
-                Some('\\') => out.push('\\'),
+                Some('\\') | None => out.push('\\'),
                 Some(other) => {
                     out.push('\\');
                     out.push(other);
                 }
-                None => out.push('\\'),
             }
         } else {
             out.push(ch);

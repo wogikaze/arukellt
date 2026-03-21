@@ -115,7 +115,7 @@ fn lower_expr_to_low(expr: &HighExpr, instructions: &mut Vec<LowInstruction>) {
         HighExprKind::Int(value) => instructions.push(LowInstruction::ConstInt(*value)),
         HighExprKind::Bool(value) => instructions.push(LowInstruction::ConstBool(*value)),
         HighExprKind::String(value) => {
-            instructions.push(LowInstruction::ConstString(value.clone()))
+            instructions.push(LowInstruction::ConstString(value.clone()));
         }
         HighExprKind::Ident(name) => instructions.push(LowInstruction::Load(name.clone())),
         HighExprKind::List(_)

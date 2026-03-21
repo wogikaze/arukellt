@@ -1,6 +1,10 @@
 use super::*;
 use crate::wat_emitter::{HEAP_TMP_PTR_LOCAL_COUNT, collect_let_locals, emit_expr};
 
+fn usize_to_u32(value: usize, what: &str) -> Result<u32> {
+    u32::try_from(value).map_err(|_| anyhow!("{what} exceeds u32 range in wasm backend"))
+}
+
 impl WasmAbi {
     pub(crate) fn collect_closures(&mut self, wasm_module: &WasmModule) -> Result<()> {
         for function in &wasm_module.functions {
@@ -38,7 +42,7 @@ impl WasmAbi {
                     captures.push(ClosureCapture {
                         name,
                         ty,
-                        offset: 4 + u32::try_from(index).expect("capture index fits in u32") * 4,
+                        offset: 4 + usize_to_u32(index, "capture index")? * 4,
                     });
                 }
                 for capture in &captures {
@@ -52,10 +56,10 @@ impl WasmAbi {
                     func_name: format!("__closure_thunk_{thunk_index}"),
                     alloc_name: format!("__closure_alloc_{thunk_index}"),
                     signature_index,
-                    table_index: u32::try_from(thunk_index).expect("closure table index fits"),
+                    table_index: usize_to_u32(thunk_index, "closure table index")?,
                     param_name: param.clone(),
                     body: (**body).clone(),
-                    env_size: 4 + u32::try_from(captures.len()).expect("capture count fits") * 4,
+                    env_size: 4 + usize_to_u32(captures.len(), "capture count")? * 4,
                     captures,
                 };
                 self.closure_expr_map.insert(closure.expr_id, thunk_index);
@@ -313,7 +317,7 @@ impl WasmAbi {
             func_name: format!("__named_callback_thunk_{thunk_index}"),
             alloc_name: format!("__named_callback_alloc_{thunk_index}"),
             signature_index,
-            table_index: u32::try_from(thunk_index).expect("callback table index fits"),
+            table_index: usize_to_u32(thunk_index, "callback table index")?,
             target,
         };
         let index = self.named_callback_thunks.len();
@@ -363,7 +367,7 @@ impl WasmAbi {
             func_name: format!("__named_callback_thunk_{thunk_index}"),
             alloc_name: format!("__named_callback_alloc_{thunk_index}"),
             signature_index,
-            table_index: u32::try_from(thunk_index).expect("callback table index fits"),
+            table_index: usize_to_u32(thunk_index, "callback table index")?,
             target,
         };
         let index = self.named_callback_thunks.len();

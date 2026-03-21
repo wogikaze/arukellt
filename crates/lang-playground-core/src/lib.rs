@@ -51,9 +51,8 @@ pub fn run_program_json(source: &str) -> String {
             .collect();
         return json!({ "ok": false, "errors": errors }).to_string();
     }
-    let typed = match result.module {
-        Some(m) => m,
-        None => return json!({ "ok": false, "errors": ["typed module missing"] }).to_string(),
+    let Some(typed) = result.module else {
+        return json!({ "ok": false, "errors": ["typed module missing"] }).to_string();
     };
     let has_main = typed.functions.iter().any(|f| f.name == "main");
     if !has_main {

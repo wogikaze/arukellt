@@ -262,6 +262,19 @@ The executable prototype is still intentionally narrower than the full language 
 AI agents update it together with the matching files under [`issues/open/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/open) and [`issues/done/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/done) as work starts, blocks, splits, and completes.
 The index stays intentionally dense so humans and LLMs can inspect priorities, dependencies, and summaries without reopening every issue file.
 
+## Agent Harness
+
+The minimum-viable harness entrypoint is [`docs/agent-harness.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/agent-harness.md).
+It keeps agent-facing instructions short and points to the queue, executable tests, and the current ADR-backed workflow decision.
+Before an agent claims completion, run:
+
+```bash
+./scripts/verify-harness.sh
+```
+
+That guardrail runs `cargo fmt --check`, `cargo clippy --workspace --lib --bins -- -D warnings`, `cargo test -p arktc --test workboard`, and `cargo test`.
+The clippy gate currently covers workspace libs and bins; test-target clippy enforcement remains a separate follow-up decision.
+
 ## Development
 
 Run the workspace test suite from the repository root:

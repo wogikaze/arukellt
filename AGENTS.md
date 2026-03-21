@@ -20,6 +20,7 @@ When you change behavior, keep that layering intact. Do not make public binary c
 ## Workflow
 
 - Work from the workspace root: `/home/wogikaze/arukellt/.worktrees/arukellt-v0`
+- Start agent-driven repo hygiene from `docs/agent-harness.md`; keep this file short and follow its pointers to queue state, tests, and ADRs
 - Read `issues/index.md` before substantial work and treat it as the shared AI-managed queue
 - Prefer small vertical slices over large speculative rewrites
 - Add or update tests before changing behavior
@@ -32,8 +33,7 @@ When you change behavior, keep that layering intact. Do not make public binary c
 Before claiming work is complete, run the full suite:
 
 ```bash
-cargo fmt
-cargo test
+./scripts/verify-harness.sh
 ```
 
 If you change benchmark behavior or CLI output relevant to evaluation, also run:
@@ -42,6 +42,7 @@ If you change benchmark behavior or CLI output relevant to evaluation, also run:
 cargo run -p chef -- benchmark benchmarks/pure_logic.json
 ```
 
+`./scripts/verify-harness.sh` runs the deterministic local guardrails for formatter drift, a failing clippy gate on workspace libs and bins, workboard consistency, and the full test suite.
 Do not claim a backend feature works unless you ran the matching test or command after the change.
 
 ## Conventions

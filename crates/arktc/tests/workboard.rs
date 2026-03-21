@@ -97,6 +97,9 @@ fn issues_queue_files_exist_and_docs_point_to_index() {
     let done_dir = issues_dir.join("done");
     let index_path = issues_dir.join("index.md");
     let template_path = issues_dir.join("templates/issue.md");
+    let harness_path = root.join("docs/agent-harness.md");
+    let adr_path = root.join("docs/adr/ADR-0001-agent-harness-entrypoint.md");
+    let verify_script_path = root.join("scripts/verify-harness.sh");
 
     assert!(index_path.exists(), "missing {}", index_path.display());
     assert!(open_dir.exists(), "missing {}", open_dir.display());
@@ -106,24 +109,77 @@ fn issues_queue_files_exist_and_docs_point_to_index() {
         "missing {}",
         template_path.display()
     );
+    assert!(harness_path.exists(), "missing {}", harness_path.display());
+    assert!(adr_path.exists(), "missing {}", adr_path.display());
+    assert!(
+        verify_script_path.exists(),
+        "missing {}",
+        verify_script_path.display()
+    );
     assert!(!issue_paths(&open_dir).is_empty(), "expected open issues");
     assert!(!issue_paths(&done_dir).is_empty(), "expected done issues");
 
     let agents = fs::read_to_string(root.join("AGENTS.md")).expect("read AGENTS.md");
     let readme = fs::read_to_string(root.join("README.md")).expect("read README.md");
     let workboard = fs::read_to_string(root.join("WORKBOARD.md")).expect("read WORKBOARD.md");
+    let harness = fs::read_to_string(&harness_path).expect("read harness doc");
+    let verify_script = fs::read_to_string(&verify_script_path).expect("read harness script");
 
     assert!(
         agents.contains("issues/index.md"),
         "AGENTS.md should point contributors to issues/index.md"
     );
     assert!(
+        agents.contains("docs/agent-harness.md"),
+        "AGENTS.md should point contributors to the harness entrypoint"
+    );
+    assert!(
         readme.contains("issues/index.md"),
         "README.md should point readers to issues/index.md"
     );
     assert!(
+        readme.contains("docs/agent-harness.md"),
+        "README.md should point readers to the harness entrypoint"
+    );
+    assert!(
         workboard.contains("issues/index.md"),
         "WORKBOARD.md should redirect to issues/index.md"
+    );
+    assert!(
+        harness.contains("issues/index.md"),
+        "harness doc should point to issues/index.md"
+    );
+    assert!(
+        harness.contains("crates/arktc/tests/workboard.rs"),
+        "harness doc should point to executable guardrail tests"
+    );
+    assert!(
+        harness.contains("docs/adr/ADR-0001-agent-harness-entrypoint.md"),
+        "harness doc should point to the current ADR"
+    );
+    assert!(
+        harness.contains("./scripts/verify-harness.sh"),
+        "harness doc should point to the verification entrypoint"
+    );
+    assert!(
+        harness.contains("cargo clippy --workspace --lib --bins -- -D warnings"),
+        "harness doc should describe the current clippy gate"
+    );
+    assert!(
+        verify_script.contains("cargo fmt --check"),
+        "verify-harness should check formatter drift"
+    );
+    assert!(
+        verify_script.contains("cargo clippy --workspace --lib --bins -- -D warnings"),
+        "verify-harness should run the workspace clippy gate for libs and bins"
+    );
+    assert!(
+        verify_script.contains("cargo test -p arktc --test workboard"),
+        "verify-harness should validate workboard structure"
+    );
+    assert!(
+        verify_script.contains("cargo test"),
+        "verify-harness should run the workspace tests"
     );
 }
 

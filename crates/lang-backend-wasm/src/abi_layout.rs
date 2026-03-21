@@ -1,5 +1,9 @@
 use super::*;
 
+fn usize_to_u32(value: usize, what: &str) -> Result<u32> {
+    u32::try_from(value).map_err(|_| anyhow::anyhow!("{what} exceeds u32 range in wasm backend"))
+}
+
 #[derive(Clone, Debug)]
 pub(crate) struct ClosureCapture {
     pub(crate) name: String,
@@ -132,7 +136,7 @@ impl WasmAbi {
                     variant.name.clone(),
                     VariantLayout {
                         owner_type: type_decl.name.clone(),
-                        tag: u32::try_from(tag).expect("variant tag fits into u32"),
+                        tag: usize_to_u32(tag, "variant tag")?,
                         field_count: variant.fields.len(),
                     },
                 );

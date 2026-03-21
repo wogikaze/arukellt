@@ -152,15 +152,13 @@ fn typecheck_with_mode(
             Type::Fn(expected_arg, expected_result),
             Type::Fn(actual_arg, actual_result),
         ) = (&body.kind, &function.return_type, &body.ty)
+            && matches!(actual_arg.as_ref(), Type::Unknown)
+            && (**actual_result == **expected_result
+                || matches!(actual_result.as_ref(), Type::Unknown))
         {
-            if matches!(actual_arg.as_ref(), Type::Unknown)
-                && (**actual_result == **expected_result
-                    || matches!(actual_result.as_ref(), Type::Unknown))
-            {
-                body.ty = Type::Fn(expected_arg.clone(), expected_result.clone());
-                if matches!(lambda_body.ty, Type::Unknown) {
-                    body.ty = function.return_type.clone();
-                }
+            body.ty = Type::Fn(expected_arg.clone(), expected_result.clone());
+            if matches!(lambda_body.ty, Type::Unknown) {
+                body.ty = function.return_type.clone();
             }
         }
         if body.ty != function.return_type && body.ty != Type::Unknown {
@@ -263,8 +261,7 @@ impl<'a> FunctionChecker<'a> {
                     .collect::<Vec<_>>();
                 let element_ty = typed_items
                     .first()
-                    .map(|item| item.ty.clone())
-                    .unwrap_or(Type::Unknown);
+                    .map_or(Type::Unknown, |item| item.ty.clone());
                 TypedExpr {
                     kind: TypedExprKind::List(typed_items),
                     ty: Type::List(Box::new(element_ty)),
@@ -295,8 +292,6 @@ impl<'a> FunctionChecker<'a> {
                         variant: name.clone(),
                         args: Vec::new(),
                     }
-                } else if self.signatures.contains_key(name) || is_builtin_function(name) {
-                    TypedExprKind::Ident(name.clone())
                 } else {
                     TypedExprKind::Ident(name.clone())
                 },
@@ -841,21 +836,20 @@ impl<'a> FunctionChecker<'a> {
             Type::Result(_, _) => Some(vec!["Ok".to_owned(), "Err".to_owned()]),
             _ => None,
         };
-        if let Some(all_variants) = all_variants {
-            if !has_wildcard
-                && all_variants
-                    .iter()
-                    .any(|variant| !seen_variants.contains(variant))
-            {
-                self.diagnostics.push(make_error(
-                    "E_MATCH_NOT_EXHAUSTIVE",
-                    "Match expression is not exhaustive",
-                    format!("{all_variants:?}"),
-                    format!("{seen_variants:?}"),
-                    "match_not_exhaustive",
-                    "Cover every variant or add a final wildcard arm.",
-                ));
-            }
+        if let Some(all_variants) = all_variants
+            && !has_wildcard
+            && all_variants
+                .iter()
+                .any(|variant| !seen_variants.contains(variant))
+        {
+            self.diagnostics.push(make_error(
+                "E_MATCH_NOT_EXHAUSTIVE",
+                "Match expression is not exhaustive",
+                format!("{all_variants:?}"),
+                format!("{seen_variants:?}"),
+                "match_not_exhaustive",
+                "Cover every variant or add a final wildcard arm.",
+            ));
         }
 
         TypedExpr {
@@ -934,7 +928,7 @@ fn builtin_return_type(callee: &str, args: &[TypedExpr]) -> Option<Type> {
         "sum" => Type::Int,
         "join" => Type::String,
         "take" => match args.first().map(|arg| &arg.ty) {
-            Some(Type::List(inner)) | Some(Type::Seq(inner)) => Type::List(inner.clone()),
+            Some(Type::List(inner) | Type::Seq(inner)) => Type::List(inner.clone()),
             _ => Type::List(Box::new(Type::Unknown)),
         },
         "iter.unfold" => match args.get(1).map(|arg| &arg.ty) {
@@ -1016,38 +1010,6 @@ fn merge_types(left: &Type, right: &Type) -> Type {
         }
         _ => Type::Unknown,
     }
-}
-
-fn is_builtin_function(name: &str) -> bool {
-    matches!(
-        name,
-        "string"
-            | "len"
-            | "ends_with_at"
-            | "split_whitespace"
-            | "strip_suffix"
-            | "parse.i64"
-            | "parse.bool"
-            | "map"
-            | "unwrap_or"
-            | "any"
-            | "filter"
-            | "sum"
-            | "join"
-            | "take"
-            | "range_inclusive"
-            | "console.println"
-            | "fs.read_text"
-            | "stdin.read_text"
-            | "stdin.read_line"
-            | "iter.unfold"
-            | "Some"
-            | "None"
-            | "Ok"
-            | "Err"
-            | "Next"
-            | "Done"
-    )
 }
 
 fn builtin_function_type(name: &str) -> Option<(Type, Type)> {

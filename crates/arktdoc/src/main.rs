@@ -49,7 +49,9 @@ fn run(cli: Cli) -> Result<ExitCode> {
             cli.format
         );
     }
-    let module = result.module.expect("typed module after compile success");
+    let Some(module) = result.module else {
+        bail!("arktdoc: compilation succeeded without a typed module");
+    };
     let functions: Vec<_> = module
         .functions
         .iter()

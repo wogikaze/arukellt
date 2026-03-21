@@ -317,7 +317,11 @@ impl Interpreter {
                     return Err(InterpreterError::ArityMismatch("<lambda>".to_owned()));
                 }
                 let mut scoped = env;
-                scoped.insert(param, args.into_iter().next().expect("lambda arg"));
+                let arg = args
+                    .into_iter()
+                    .next()
+                    .ok_or_else(|| InterpreterError::ArityMismatch("<lambda>".to_owned()))?;
+                scoped.insert(param, arg);
                 self.eval_expr(&body, &scoped)
             }
             other => Err(InterpreterError::TypeMismatch(match other {

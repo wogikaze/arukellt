@@ -2,6 +2,7 @@ use crate::Type;
 use crate::ast::{BinaryOp, Expr, Function, MatchArm, Module, Pattern, TypeDecl};
 
 /// Render a parsed `Module` back to canonical arukellt source.
+#[must_use]
 pub fn format_module(module: &Module) -> String {
     let mut out = String::new();
 

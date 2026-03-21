@@ -11,3 +11,6 @@ lang-backend-wasm = { path = "../lang-backend-wasm" }
 lang-core = { path = "../lang-core" }
 lang-ir = { path = "../lang-ir" }
 serde_json.workspace = true
+
+[lints]
+workspace = true
