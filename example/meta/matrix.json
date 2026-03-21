@@ -80,6 +80,14 @@
     "wasm_wasi_build": true
   },
   {
+    "name": "shebang_hello.ar",
+    "arktc_check": true,
+    "chef_run": true,
+    "chef_test": true,
+    "wasm_js_build": true,
+    "wasm_wasi_build": true
+  },
+  {
     "name": "wasm_scalar.ar",
     "arktc_check": true,
     "chef_run": true,

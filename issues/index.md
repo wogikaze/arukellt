@@ -26,6 +26,7 @@ Read this first for the current active set, dependency shape, and the location o
 
 ## Recently Done
 
+- WB-063: Allow shebang-executable `.ar` programs through `chef run`
 - WB-062: Add parser and typechecker diagnostics for canonical-style guidance
 - WB-061: Split lang-backend-wasm into target, ABI, helper analysis, emitter, runtime, closure, and postprocess modules
 - WB-060: Share compiler build driver between `arktc` and `chef`
@@ -749,6 +750,24 @@ Read this first for the current active set, dependency shape, and the location o
     "updated_at": "2026-03-21",
     "file": "issues/done/WB-062.md",
     "summary": "migrated from a duplicate `WB-034` entry during the `issues/` transition; the original ID is preserved here for historical searchability"
+  },
+  {
+    "id": "WB-063",
+    "title": "Allow shebang-executable `.ar` programs through `chef run`",
+    "status": "done",
+    "priority": "p2",
+    "area": [
+      "lang-core",
+      "chef",
+      "examples"
+    ],
+    "depends_on": [],
+    "blocked_on": [],
+    "source": "user request: permit `#!/usr/bin/env -S chef run` at the top of `.ar` files and add one bundled example that exercises it",
+    "created_at": "2026-03-21",
+    "updated_at": "2026-03-21",
+    "file": "issues/done/WB-063.md",
+    "summary": "verified with `cargo fmt`, `cargo test -p lang-core`, `cargo test -p arktfmt`, `cargo test -p chef`, `cargo test -p arktc --test examples`, `cargo test -p arktc --test workboard`, and `cargo test`"
   },
   {
     "id": "WB-013",

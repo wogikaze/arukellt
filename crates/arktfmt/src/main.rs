@@ -4,7 +4,7 @@ use std::process::ExitCode;
 
 use anyhow::{Context, Result, bail};
 use clap::Parser;
-use lang_core::{Diagnostic, DiagnosticLevel, format_module, lex, parse_source};
+use lang_core::{Diagnostic, DiagnosticLevel, format_module, lex, parse_source, split_shebang};
 
 #[derive(Parser)]
 #[command(name = "arktfmt")]
@@ -32,7 +32,8 @@ fn main() -> ExitCode {
 fn run(cli: Cli) -> Result<ExitCode> {
     let source = fs::read_to_string(&cli.file)
         .with_context(|| format!("failed to read {}", cli.file.display()))?;
-    let lex_output = lex(&source);
+    let (shebang, normalized_source) = split_shebang(&source);
+    let lex_output = lex(normalized_source);
     let lexer_diagnostics = lex_output
         .diagnostics
         .iter()
@@ -43,7 +44,7 @@ fn run(cli: Cli) -> Result<ExitCode> {
         print_diagnostics(&lexer_diagnostics);
         bail!("arktfmt: cannot format invalid source");
     }
-    let parse_output = parse_source(&source);
+    let parse_output = parse_source(normalized_source);
     let parser_diagnostics = parse_output
         .diagnostics
         .iter()
@@ -55,11 +56,15 @@ fn run(cli: Cli) -> Result<ExitCode> {
         bail!("arktfmt: cannot format invalid source");
     }
     let formatted = format_module(&parse_output.module);
+    let output = match shebang {
+        Some(shebang) => format!("{shebang}{formatted}"),
+        None => formatted,
+    };
     if cli.write {
-        fs::write(&cli.file, &formatted)
+        fs::write(&cli.file, &output)
             .with_context(|| format!("failed to write {}", cli.file.display()))?;
     } else {
-        print!("{formatted}");
+        print!("{output}");
     }
     Ok(ExitCode::SUCCESS)
 }

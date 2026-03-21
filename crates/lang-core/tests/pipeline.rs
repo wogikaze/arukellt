@@ -580,3 +580,22 @@ fn main() -> Int:
     assert_eq!(diagnostic.expected, "Int");
     assert_eq!(diagnostic.actual, "Bool");
 }
+
+#[test]
+fn compiles_shebang_prefixed_source() {
+    let source = "\
+#!/usr/bin/env -S chef run
+import console
+
+fn main():
+  \"Hello, world!\" |> console.println
+";
+
+    let result = compile_module(source);
+
+    assert!(
+        result.error_count() == 0,
+        "unexpected diagnostics: {:?}",
+        result.diagnostics
+    );
+}

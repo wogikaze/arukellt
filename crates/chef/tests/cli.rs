@@ -4,6 +4,9 @@ use std::process::Command;
 
 use tempfile::tempdir;
 
+#[cfg(unix)]
+use std::os::unix::fs::{PermissionsExt, symlink};
+
 #[test]
 fn run_interpreter_executes_main_and_emits_step_trace() {
     let dir = tempdir().expect("tempdir");
@@ -36,6 +39,42 @@ fn main(a: Int, b: Int) -> Int:
     let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
     assert!(stdout.ends_with("9\n"));
     assert!(stdout.contains("trace: if"));
+}
+
+#[cfg(unix)]
+#[test]
+fn shebang_prefixed_program_runs_via_direct_execution() {
+    let dir = tempdir().expect("tempdir");
+    let bin_dir = dir.path().join("bin");
+    fs::create_dir(&bin_dir).expect("create bin dir");
+    symlink(env!("CARGO_BIN_EXE_chef"), bin_dir.join("chef")).expect("symlink chef");
+
+    let file = dir.path().join("shebang_hello.ar");
+    fs::write(
+        &file,
+        "\
+#!/usr/bin/env -S chef run
+import console
+
+fn main():
+  \"Hello, world!\" |> console.println
+",
+    )
+    .expect("write source");
+
+    let mut permissions = fs::metadata(&file).expect("metadata").permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(&file, permissions).expect("set executable bit");
+
+    let existing_path = std::env::var("PATH").unwrap_or_default();
+    let output = Command::new(&file)
+        .env("PATH", format!("{}:{existing_path}", bin_dir.display()))
+        .output()
+        .expect("run shebang program");
+
+    assert!(output.status.success(), "expected successful exit status");
+    let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
+    assert_eq!(stdout, "Hello, world!\n");
 }
 
 #[test]
