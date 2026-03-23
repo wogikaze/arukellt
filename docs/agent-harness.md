@@ -4,15 +4,15 @@ Minimum viable harness entrypoint for agent-driven repo hygiene in Arukellt.
 
 Start here:
 
-- Read [`issues/index.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/index.md) for the executable queue state and the location of the issue you are working.
-- Read [`AGENTS.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/AGENTS.md) for repository boundaries and extension order.
-- Read [`docs/adr/ADR-0001-agent-harness-entrypoint.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/adr/ADR-0001-agent-harness-entrypoint.md) for the current decision on short pointer docs plus deterministic guardrails.
+- Read [`issues/index.md`](./issues/index.md) for the executable queue state and the location of the issue you are working.
+- Read [`AGENTS.md`](./AGENTS.md) for repository boundaries and extension order.
+- Read [`docs/adr/ADR-0001-agent-harness-entrypoint.md`](./docs/adr/ADR-0001-agent-harness-entrypoint.md) for the current decision on short pointer docs plus deterministic guardrails.
 
 Trust executable sources of truth over descriptive prose:
 
-- queue state: [`issues/index.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/index.md) and the matching file under [`issues/open/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/open) or [`issues/done/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/done)
-- repository guardrails: [`crates/arktc/tests/issues.rs`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/crates/arktc/tests/issues.rs)
-- language and CLI behavior: crate tests plus executable docs under [`docs/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs)
+- queue state: [`issues/index.md`](./issues/index.md) and the matching file under [`issues/open/`](./issues/open) or [`issues/done/`](./issues/done)
+- repository guardrails: [`crates/arktc/tests/issues.rs`](./crates/arktc/tests/issues.rs)
+- language and CLI behavior: crate tests plus executable docs under [`docs/`](./docs)
 
 Before claiming completion:
 

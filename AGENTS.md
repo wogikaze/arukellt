@@ -19,7 +19,7 @@ When you change behavior, keep that layering intact. Do not make public binary c
 
 ## Workflow
 
-- Work from the workspace root: `/home/wogikaze/arukellt/.worktrees/arukellt-v0`
+- Work from the workspace root: `.`
 - Start agent-driven repo hygiene from `docs/agent-harness.md`; keep this file short and follow its pointers to queue state, tests, and ADRs
 - Read `issues/index.md` before substantial work and treat it as the shared AI-managed queue
 - Prefer small vertical slices over large speculative rewrites

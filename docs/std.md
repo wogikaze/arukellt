@@ -5,7 +5,7 @@ The current v0.0.1 standard surface is intentionally narrow. It is centered on b
 ## Target Support Matrix
 
 Use this table when choosing `arktc build --target ...` or `chef build --target ...`.
-[`example/meta/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/meta/matrix.json) is the example-level contract; this section is the API-level contract.
+[`example/meta/matrix.json`](./example/meta/matrix.json) is the example-level contract; this section is the API-level contract.
 The table below covers the currently implemented targets. `wasm-js-gc` and `wasm-component-js` are separate experimental contracts described later in this document, and current builds intentionally reject them until their backends exist.
 
 | surface | interpreter | `wasm-js` | `wasm-wasi` | notes |

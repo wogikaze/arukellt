@@ -64,7 +64,7 @@ fn main():
 
 ## Examples
 
-The repository includes language-surface examples in [`example/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example):
+The repository includes language-surface examples in [`example/`](./example):
 
 - hello world
 - fizz buzz over `1..=100`, keeping the chain pure until the final `|> console.println`
@@ -76,9 +76,9 @@ The repository includes language-surface examples in [`example/`](/home/wogikaze
 - a pure scalar WASM-friendly slice
 
 All bundled examples are executable through `chef run` and verifiable through `chef test`.
-Each example has a matching fixture under [`example/meta/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/meta) that acts as the snapshot contract for the current toolchain.
+Each example has a matching fixture under [`example/meta/`](./example/meta) that acts as the snapshot contract for the current toolchain.
 Each bundled example also passes `arktc check`.
-The machine-checkable source of truth for the bundled-example contract lives in [`example/meta/matrix.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/example/meta/matrix.json).
+The machine-checkable source of truth for the bundled-example contract lives in [`example/meta/matrix.json`](./example/meta/matrix.json).
 After changing a bundled example or extending backend support, refresh the contract by updating that file and rerunning `cargo test -p arktc -p chef --test examples`.
 
 The current bundled-example matrix is:
@@ -99,7 +99,7 @@ The current bundled-example matrix is:
 
 `wasm-wasi` now builds every bundled example in the repository. `wasm-js` also builds every bundled example except `file_read.ar`, so the remaining cross-target gap in the example set is host file I/O rather than lists, iterators, or string output.
 
-For release-facing reference material, see the executable docs in [`docs/language-tour.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/language-tour.md) and [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md). Their snippets are backed by checked-in fixtures and exercised by the test suite.
+For release-facing reference material, see the executable docs in [`docs/language-tour.md`](./docs/language-tour.md) and [`docs/std.md`](./docs/std.md). Their snippets are backed by checked-in fixtures and exercised by the test suite.
 
 ## Tooling
 
@@ -181,7 +181,7 @@ The current WASM backend supports a narrow scalar-plus-list-plus-string subset o
 `wasm-component-js` is a separate explicit experimental target contract for a future Component Model backend aimed at JavaScript or Node hosts, but current builds reject it until that backend exists.
 `chef build` now exposes the same target and emit matrix as `arktc build`, which is useful when you want run/test/build workflows under one CLI.
 `--target` selects the ABI (`wasm-js`, `wasm-wasi`, or the reserved experimental contracts `wasm-js-gc` and `wasm-component-js`) while `--emit` selects the output format (`wasm`, `wat`, or `wat-min`).
-For API-by-API target coverage, see the target support matrix in [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md). The bundled example matrix above is example-level; the std doc is the source of truth for questions such as whether `parse.i64`, `split_whitespace`, or `stdin.read_line` lower on a given WASM target.
+For API-by-API target coverage, see the target support matrix in [`docs/std.md`](./docs/std.md). The bundled example matrix above is example-level; the std doc is the source of truth for questions such as whether `parse.i64`, `split_whitespace`, or `stdin.read_line` lower on a given WASM target.
 `--output` is currently optional; if you omit it, `arktc build` prints WAT for `--emit wat` / `--emit wat-min`, and otherwise discards the generated WASM bytes after successful codegen.
 `--target wat` is still accepted as a deprecated alias for `--target wasm-js --emit wat`.
 `wasm-js` emits an embeddable module that exports compiled functions by their Arukel names.
@@ -190,7 +190,7 @@ For API-by-API target coverage, see the target support matrix in [`docs/std.md`]
 `wasm-component-js` is intentionally separate from `wasm-js`: its first-slice contract is planned as a component-aware JavaScript or Node host ABI with typed host interfaces and scalar-only public exports, and current builds reject the target with a contract error until the component backend lands.
 `String` currently lowers only as a raw `i32` pointer into exported read-only `memory` containing NUL-terminated UTF-8 literals. Literal expressions and direct returns through user-defined functions are supported in that ABI slice.
 Fieldless user-defined ADTs currently lower as raw numeric tags, and `match` lowers only when the subject is one of those ADTs and each arm is either a bare variant name or a final wildcard.
-Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs outside the documented subset, such as unsupported string helpers on the selected target, payload-bearing ADTs, pattern bindings, or unsupported host calls, and the error points back to the API-level support matrix in [`docs/std.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/std.md).
+Unsupported surface does not degrade silently: `arktc build` fails with a hard error as soon as codegen encounters unsupported types or constructs outside the documented subset, such as unsupported string helpers on the selected target, payload-bearing ADTs, pattern bindings, or unsupported host calls, and the error points back to the API-level support matrix in [`docs/std.md`](./docs/std.md).
 
 ### Benchmark
 
@@ -200,7 +200,7 @@ cargo run -p chef -- benchmark benchmarks/pure_logic.json
 
 This reports parse, typecheck, execution, and pass counts for a JSON benchmark manifest.
 `parse_success` counts cases that get past lexing and parsing without lexer/parser errors, even if typechecking later fails; lexer/parser warnings still count as parse success. `typecheck_success` counts only fully compiled cases.
-The sample manifest at [`benchmarks/pure_logic.json`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/benchmarks/pure_logic.json) is the current reference set.
+The sample manifest at [`benchmarks/pure_logic.json`](./benchmarks/pure_logic.json) is the current reference set.
 
 ### Toolchain
 
@@ -258,13 +258,13 @@ The executable prototype is still intentionally narrower than the full language 
 
 ## Work Queue
 
-[`issues/index.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/index.md) is the shared AI-managed queue for repository work.
-AI agents update it together with the matching files under [`issues/open/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/open) and [`issues/done/`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/issues/done) as work starts, blocks, splits, and completes.
+[`issues/index.md`](./issues/index.md) is the shared AI-managed queue for repository work.
+AI agents update it together with the matching files under [`issues/open/`](./issues/open) and [`issues/done/`](./issues/done) as work starts, blocks, splits, and completes.
 The index stays intentionally dense so humans and LLMs can inspect priorities, dependencies, and summaries without reopening every issue file.
 
 ## Agent Harness
 
-The minimum-viable harness entrypoint is [`docs/agent-harness.md`](/home/wogikaze/arukellt/.worktrees/arukellt-v0/docs/agent-harness.md).
+The minimum-viable harness entrypoint is [`docs/agent-harness.md`](./docs/agent-harness.md).
 It keeps agent-facing instructions short and points to the queue, executable tests, and the current ADR-backed workflow decision.
 Before an agent claims completion, run:
 
