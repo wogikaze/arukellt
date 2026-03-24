@@ -38,22 +38,43 @@ v0 での基本:
 
 ## 型の ABI 表現（wasm32, v0）
 
-| arukellt の型 | ABI 表現 |
-|--------------|---------|
+ADR-002 により **Wasm GC 採用**。
+
+### Layer 2（Wasm 公開 ABI）
+
+GC 参照を直接使用:
+
+| arukellt の型 | Wasm GC 表現 |
+|--------------|-------------|
 | `i32` | `i32` |
 | `i64` | `i64` |
 | `f32` | `f32` |
 | `f64` | `f64` |
 | `bool` | `i32`（0 = false, 1 = true） |
 | `char` | `i32`（Unicode scalar value） |
-| `struct` | linear memory 上のポインタ（`i32`）|
-| `enum` | discriminant（`i32`）+ payload（メモリ上）|
-| `[T]`（スライス） | `i32` ptr + `i32` len（2値）|
-| `str` | `i32` ptr + `i32` len（2値）|
-| `Option[T]` | enum と同様 |
-| `Result[T, E]` | enum と同様 |
+| `struct` | `(ref $struct_type)` |
+| `enum` | `(ref $enum_type)`（tag + payload） |
+| `String` | `(ref $string)` |
+| `Vec[T]` | `(ref $vec_T)` |
+| `Option[T]` | `(ref null $T)` または tagged struct |
+| `Result[T, E]` | `(ref $result_T_E)` |
 
-GC を選んだ場合の表現は ADR-002 決定後に更新する。
+### Layer 3（native 公開 ABI）
+
+C ABI では GC 参照を直接渡せない。linear memory 経由でコピー:
+
+| arukellt の型 | C ABI 表現 |
+|--------------|-----------|
+| `i32` | `int32_t` |
+| `i64` | `int64_t` |
+| `f32` | `float` |
+| `f64` | `double` |
+| `bool` | `int32_t` |
+| `String` | `(ptr, len)` — linear memory にコピー |
+| `struct` | `ptr` — linear memory にコピー |
+| `Vec[T]` | `(ptr, len)` — linear memory にコピー |
+
+詳細は `docs/design/gc-c-abi-bridge.md` を参照。
 
 ---
 
