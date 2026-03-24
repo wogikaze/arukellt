@@ -67,11 +67,11 @@ generic function の生成:
 2. 値型の組み合わせごとに specialized 版を生成
 3. 参照型は統一表現で共有
 
-例: fn foo[T](x: T) -> T
-- foo[i32]: specialized
-- foo[i64]: specialized
-- foo[String]: 共通の foo[ref] を使用
-- foo[Vec[i32]]: 共通の foo[ref] を使用
+例: fn foo<T>(x: T) -> T
+- foo<i32>: specialized
+- foo<i64>: specialized
+- foo<String>: 共通の foo<ref> を使用
+- foo<Vec<i32>>: 共通の foo<ref> を使用
 ```
 
 ---

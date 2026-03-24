@@ -99,12 +99,12 @@ GC 参照を統一表現として使用。
 
 ```
 // ジェネリック関数
-fn identity[T](x: T) -> T {
+fn identity<T>(x: T) -> T {
     x
 }
 
 // 型パラメータの複数指定
-fn pair[A, B](a: A, b: B) -> (A, B) {
+fn pair<A, B>(a: A, b: B) -> (A, B) {
     (a, b)
 }
 

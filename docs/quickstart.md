@@ -229,7 +229,8 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
     let dir: DirCap = cwd(caps)
     
     // ファイル読み込み
-    let content: String = fs_read_file(dir, RelPath_from("input.txt"))?
+    let path = RelPath_from("input.txt")?  // Result<RelPath, IOError>
+    let content: String = fs_read_file(dir, path)?
     
     print(content)
     
@@ -244,7 +245,8 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
     let dir = cwd(caps)
     
     // 読み込み
-    let content = fs_read_file(dir, RelPath_from("input.txt"))?
+    let path = RelPath_from("input.txt")?
+    let content = fs_read_file(dir, path)?
     
     // 処理（行ごとに分割して大文字化）
     let lines: Vec[String] = split(content, "\n")
@@ -268,7 +270,7 @@ fn to_upper(s: String) -> String {
 ```
 fn main(caps: Capabilities) -> Result[(), IOError] {
     let dir = cwd(caps)
-    let path = RelPath_from("data.txt")
+    let path = RelPath_from("data.txt")?
     
     let result = fs_read_file(dir, path)
     

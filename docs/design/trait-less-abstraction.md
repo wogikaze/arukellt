@@ -110,7 +110,7 @@ fn area(s: Shape) -> f64 {
 
 ```
 // これは書けない（trait が必要）
-fn map[T, U](arr: [T], f: fn(T) -> U) -> Vec[U]
+fn map<T, U>(arr: [T], f: fn(T) -> U) -> Vec<U>
 ```
 
 **代替**: 型ごとに `Vec_i32_map`, `Vec_String_map` 等を使用。

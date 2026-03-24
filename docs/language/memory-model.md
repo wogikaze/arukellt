@@ -203,10 +203,11 @@ let s1: String = "hello"
 let s2 = s1  // s1 と s2 は同じオブジェクトを参照
 ```
 
-**v0 の `clone`**: shallow clone を実装。struct/enum のフィールドをコピーするが、ネストした参照型は共有される。deep clone は未導入。
+**v0 の `clone`**: deep clone を実装。ネストした参照型も含めて完全に複製する。
 
 ```
-let s2 = clone(s1)  // s1 の shallow copy（別オブジェクト）
+let s2 = clone(s1)  // s1 の deep copy（完全に別のオブジェクト）
+// s1 を変更しても s2 は影響を受けない
 ```
 
 ---

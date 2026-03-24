@@ -96,7 +96,7 @@ std の各関数にコストを記載:
 /// # Cost
 /// - Time: O(1) amortized
 /// - Space: may trigger reallocation
-fn Vec[T].push(self, val: T)
+fn Vec<T>.push(self, val: T)
 ```
 
 ---

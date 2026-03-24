@@ -19,17 +19,17 @@ let p2 = p1  // p1 と p2 は同じオブジェクトを指す（値コピーで
 
 **共有の挙動例（Vec で示す）:**
 ```
-let mut v1 = vec_new()
-vec_push(v1, 10)
+let mut v1 = Vec_new_i32()
+push(v1, 10)
 
 let v2 = v1  // v1 と v2 は同じ Vec を指す
-vec_push(v2, 20)
+push(v2, 20)
 // v1 も v2 も [10, 20] を指す（共有）
 ```
 
 深いコピーが必要な場合は `clone` を使う:
 ```
-let p2 = clone(p1)  // 別オブジェクト（shallow clone）
+let p2 = clone(p1)  // 別オブジェクト（deep copy）
 ```
 
 ---
@@ -77,14 +77,14 @@ I/O は capability 経由でのみ使用可能:
 ```
 import io
 
-fn main(caps: io.Caps) -> Result<(), io.Error> {
-    io.println(caps, "Hello")           // stdout
+fn main(caps: io.Capabilities) -> Result<(), io.IOError> {
+    io.print(caps, "Hello")           // stdout
     let content = io.read_file(caps, "data.txt")?  // ファイル読み取り
     Ok(())
 }
 ```
 
-`io.Caps` は `main` の引数として渡される。純粋関数からは I/O できない。
+`io.Capabilities` は `main` の引数として渡される。純粋関数からは I/O できない。
 
 ---
 
@@ -250,14 +250,14 @@ let s2 = concat(s, " world")
 let length = len(s)
 
 // Vec（可変）
-let v = vec_new()
-vec_push(v, 42)      // v に要素を追加
-vec_push(v, 100)
-let first = vec_get(v, 0)   // Some(42)
-let last = vec_pop(v)       // Some(100)
+let v = Vec_new_i32()
+push(v, 42)      // v に要素を追加
+push(v, 100)
+let first = get(v, 0)   // Some(42)
+let last = pop(v)       // Some(100)
 ```
 
-**重要**: Vec は参照型で可変操作可能。`vec_push` は v 自体を変更する（新しい Vec を返さない）。
+**重要**: Vec は参照型で可変操作可能。`push` は v 自体を変更する（新しい Vec を返さない）。
 
 ### フィールドアクセスと参照セマンティクス
 
@@ -529,9 +529,9 @@ fn main() -> i32 {
 ```
 import io
 
-fn main(caps: io.Caps) -> Result<(), io.Error> {
+fn main(caps: io.Capabilities) -> Result<(), io.IOError> {
     // caps を通じて I/O にアクセス
-    io.println(caps, "Hello, arukellt!")
+    io.print(caps, "Hello, arukellt!")
     Ok(())
 }
 ```

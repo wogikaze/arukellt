@@ -111,7 +111,7 @@ enum Item {
     FnDef(FnDef),
     StructDef(StructDef),
     EnumDef(EnumDef),
-    ImplBlock(ImplBlock),
+    // ImplBlock は v1 でサポート（v0 では禁止）
 }
 
 struct FnDef {
@@ -155,8 +155,8 @@ enum Expr {
     Ident(String),
     Binary(Box[Expr], BinOp, Box[Expr]),
     Unary(UnaryOp, Box[Expr]),
-    Call(Box[Expr], Vec[Type], Vec[Expr]),   // func[T](args)
-    MethodCall(Box[Expr], String, Vec[Expr]),
+    Call(Box[Expr], Vec[Type], Vec[Expr]),   // func<T>(args) - 型パラメータは明示的
+    // MethodCall は v1 でサポート（v0 では関数呼び出しのみ）
     FieldAccess(Box[Expr], String),
     Index(Box[Expr], Box[Expr]),
     If(Box[Expr], Block, Option[Block]),
@@ -196,7 +196,7 @@ enum Pattern {
     Tuple(Vec[Pattern]),
     Struct(String, Vec[(String, Pattern)]),
     Enum(String, String, Vec[Pattern]),  // EnumName::Variant(patterns)
-    Or(Vec[Pattern]),
+    // Or パターンは v1 でサポート
 }
 ```
 

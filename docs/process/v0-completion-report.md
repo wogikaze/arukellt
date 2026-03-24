@@ -164,8 +164,27 @@ v0 で意図的に除外した機能：
 - [x] エラー診断設計完了
 - [x] API 仕様完了
 - [x] 統合仕様書作成完了
+- [x] 文書間一貫性確認完了（2026-03-24 横断レビュー）
 
 **判定**: 実装開始可能 ✅
+
+### 文書間一貫性の確認（2026-03-24）
+
+横断レビューで発見された8件の不整合を修正：
+
+**高優先度（実装阻害レベル）:**
+- [x] Generics 記法を `<T>` に統一（ADR-003, syntax, type-system, spec）
+- [x] clone セマンティクスを deep copy に統一（value-semantics, memory-model）
+- [x] I/O 境界名を Capabilities/IOError/print に統一（syntax.md）
+- [x] Vec API 命名を型特化形式に統一（spec, syntax）
+
+**中優先度（仕様明確化）:**
+- [x] v0 禁止構文を AST から削除（pipeline.md を v0 仕様に合わせた）
+- [x] wasi-resource-model.md のステータスを DECIDED に修正
+- [x] quickstart.md の `RelPath_from` に `?` 演算子を追加
+
+**低優先度（メタ文書）:**
+- [x] completion-report.md を最新状態に更新
 
 ---
 

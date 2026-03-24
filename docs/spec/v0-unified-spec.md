@@ -285,22 +285,29 @@ String は不変（immutable）。変更には新しい String を作成。
 
 ### 5.3 Vec API
 
+v0 では trait がないため、型特化関数として実装：
+
 ```
-fn vec_new<T>() -> Vec<T>
+// 型ごとの専用コンストラクタ
+fn Vec_new_i32() -> Vec<i32>
+fn Vec_new_i64() -> Vec<i64>
+fn Vec_new_String() -> Vec<String>
+
+// 型パラメータを持つ共通関数（実装では型特化される）
 fn len<T>(v: Vec<T>) -> i32
 fn is_empty<T>(v: Vec<T>) -> bool
-fn vec_push<T>(v: Vec<T>, val: T)
-fn vec_pop<T>(v: Vec<T>) -> Option<T>
-fn vec_get<T>(v: Vec<T>, idx: i32) -> Option<T>
-fn vec_set<T>(v: Vec<T>, idx: i32, val: T)
+fn push<T>(v: Vec<T>, val: T)
+fn pop<T>(v: Vec<T>) -> Option<T>
+fn get<T>(v: Vec<T>, idx: i32) -> Option<T>
+fn set<T>(v: Vec<T>, idx: i32, val: T)
 fn clone<T>(v: Vec<T>) -> Vec<T>
 ```
 
-型特化関数（trait がないため）:
+高階関数（型特化）:
 ```
-fn vec_i32_map(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32>
-fn vec_i32_filter(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32>
-fn vec_i32_sort(v: Vec<i32>)
+fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32>
+fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32>
+fn sort_i32(v: Vec<i32>)
 ```
 
 ### 5.4 Option API
