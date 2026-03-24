@@ -93,10 +93,8 @@ v0 では配列は固定長のみ。可変長配列は `Vec<T>` を使用。
 ### スライス
 
 ```
-import vec
-
 let arr: [i32; 3] = [1, 2, 3]
-let slice: [i32] = vec.as_slice(arr)
+let slice: [i32] = as_slice(arr)  // import vec が必要
 let length = len(slice)
 ```
 
@@ -153,9 +151,14 @@ let b = identity<String>(s)  // 明示指定
 
 ### 制限（v0）
 
+**重要**: ネストした型引数は禁止。以下は全て ❌：
+- `Vec<Vec<i32>>`
+- `Vec<Option<T>>`
+- `Result<Vec<String>, E>`
+- `Option<Result<T, E>>`
+
 - 型パラメータは 2 個まで
-- ネストしたジェネリクス禁止（`Vec<Vec<T>>`）
-- ユーザー定義 generic struct は後回し
+- ユーザー定義 generic struct は後回し（stdlib の `Option<T>`, `Result<T, E>`, `Vec<T>` のみ）
 
 ---
 
@@ -185,8 +188,12 @@ let z = foo(42)   // 42 は i32、z は i64
 // エラー: 型が確定しない
 let arr = []  // 何の配列？
 
-// OK: 型注釈で解決
-let arr: [i32] = []
+// OK: 型注釈で解決（固定長配列）
+let arr: [i32; 0] = []
+
+// スライスは as_slice で作成（import vec 必要）
+let v = vec_new()
+let slice: [i32] = as_slice(v)
 ```
 
 ---

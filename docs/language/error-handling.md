@@ -38,7 +38,10 @@ fn safe_get(v: Vec<i32>, i: i32) -> i32 {
         panic("index out of bounds")
     }
     // 境界チェック済みなので unwrap は安全
-    unwrap(vec_get(v, i))
+    match vec_get(v, i) {
+        Some(val) => val,
+        None => panic("unreachable"),
+    }
 }
 ```
 

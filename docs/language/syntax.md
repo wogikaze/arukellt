@@ -15,13 +15,21 @@ struct Point { x: f64, y: f64 }
 
 let p1 = Point { x: 1.0, y: 2.0 }
 let p2 = p1  // p1 と p2 は同じオブジェクトを指す（値コピーではない）
+```
 
-// p1.x を変更すると p2.x も変わる（共有）
+**共有の挙動例（Vec で示す）:**
+```
+let mut v1 = vec_new()
+vec_push(v1, 10)
+
+let v2 = v1  // v1 と v2 は同じ Vec を指す
+vec_push(v2, 20)
+// v1 も v2 も [10, 20] を指す（共有）
 ```
 
 深いコピーが必要な場合は `clone` を使う:
 ```
-let p2 = clone(p1)  // 別オブジェクト
+let p2 = clone(p1)  // 別オブジェクト（shallow clone）
 ```
 
 ---
@@ -46,11 +54,11 @@ fn main() {
 |---------|------|
 | 型 | `Option`, `Result`, `String`, `Vec` |
 | コンストラクタ | `Some`, `None`, `Ok`, `Err` |
-| 基本関数 | `len`, `clone`, `panic` |
-| Vec 操作 | `vec_new`, `vec_push`, `vec_pop`, `vec_get` |
-| String 操作 | `concat` |
-| 出力 | `println`, `print` |
-| 数学 | `sqrt`, `abs`, `min`, `max` |
+| 基本関数 | `len`, `clone`, `unwrap`, `panic` |
+
+**`unwrap` について**: `Option<T>` と `Result<T, E>` から値を取り出す。`None`/`Err` の場合は panic。
+
+**`clone` について**: v0 では shallow clone を実装。struct/enum のフィールドをコピーするが、ネストした参照型は共有される。
 
 **注**: `Some`/`None`/`Ok`/`Err` だけは裸で書ける。他の enum は `Color::Red` のように修飾必須。
 
@@ -58,7 +66,7 @@ fn main() {
 
 ```
 import vec    // vec_set, vec_with_capacity, vec_clear, ...
-import string // string_slice, string_push_char, ...
+import string // string_slice, string_append_char, ...
 import io     // 下記参照
 ```
 
@@ -125,16 +133,17 @@ fn main() {
 ```
 // pub がないものは内部のみ
 fn internal_fn() {
-    // ...
+    println("internal")
 }
 
 // pub をつけると外部から参照可能
 pub fn public_fn() {
-    // ...
+    println("public")
 }
 
 pub struct PublicStruct {
     field: i32,
+}
 }
 ```
 
@@ -196,9 +205,16 @@ enum Option<T> {
 
 enum Message {
     Quit,
-    Move { x: i32, y: i32 },
+    Move { x: i32, y: i32 },  // struct-like variant
     Write(String),
 }
+```
+
+**注意**: struct-like variant（`Move { x, y }`）は定義可能だが、**v0 の match では分解不可**（v1 で対応）。生成例：
+
+```
+let m = Message::Move { x: 10, y: 20 }  // OK
+// match での分解は v1
 ```
 
 ---
@@ -485,7 +501,7 @@ fn documented_fn() {
 ```
 #!/usr/bin/env arukellt run
 fn main() {
-    // ...
+    println("Hello, arukellt!")
 }
 ```
 
@@ -512,8 +528,11 @@ fn main() -> i32 {
 ### Capability 付き（アプリケーション境界）
 
 ```
-fn main(caps: Capabilities) -> Result<(), AppError> {
+import io
+
+fn main(caps: io.Caps) -> Result<(), io.Error> {
     // caps を通じて I/O にアクセス
+    io.println(caps, "Hello, arukellt!")
     Ok(())
 }
 ```

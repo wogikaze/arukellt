@@ -100,7 +100,7 @@ fn string_to_bytes(s: String) -> [i32]  // UTF-8 バイト列
 
 // 連結（新しい String を返す）
 fn concat(a: String, b: String) -> String
-fn string_push_char(s: String, c: char) -> String  // 新しい String を返す
+fn string_append_char(s: String, c: char) -> String  // 新しい String を返す（不変）
 ```
 
 **v0 での制限**:

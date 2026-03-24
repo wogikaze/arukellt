@@ -115,9 +115,39 @@ LLM にとって最も重要なのは簡潔さより正規形の少なさ。「R
 
 ---
 
-## 2026-03-24 追加レビュー
+## 2026-03-24 第3段階レビュー
 
-Phase 1-6 の修正後、以下の残留問題を確認:
+Phase 1-6 およびフォローアップ修正後、API 境界とセマンティクス境界の canonicalization を実施:
+
+### 実施済み修正
+
+1. **API 境界の明確化** ✅
+   - Prelude / stdlib / capability 依存を 3 層で明示
+   - Vec 基本操作を Prelude に追加（vec_new, vec_push, vec_pop, vec_get）
+   - I/O は io.Caps 経由と明記
+
+2. **mutation surface の固定** ✅
+   - vec_push が in-place 変更であることを明示
+   - struct フィールド更新は v0 では不可（v1 予定）と明記
+   - 不変更新パターン（新規作成）を例示
+
+3. **`[]` の意味の絞り込み** ✅
+   - `[]` = 空固定長配列（型注釈必須）
+   - 空 Vec は `vec_new()` を使用
+   - スライス作成は `vec.as_slice` (import 必要)
+
+4. **参照型の強調** ✅
+   - syntax.md 冒頭に「重要: 参照型について」セクション追加
+   - struct/enum/String/Vec/[T] が参照型であることを繰り返し強調
+   - 代入 = オブジェクト共有（値コピーではない）を明示
+
+5. **変数パターンの注意** ✅
+   - catch-all であることを明記
+   - 最後のアームでのみ使用するよう推奨
+
+6. **未定義名の除去** ✅
+   - error-handling.md の例を io.Caps, io.Error に統一
+   - DirCap, RelPath, fs_read_file などの未定義名を削除
 
 ### 優先度: 高（v0 正規形を濁らせる）
 
