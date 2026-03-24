@@ -144,7 +144,6 @@ pub fn public_fn() {
 pub struct PublicStruct {
     field: i32,
 }
-}
 ```
 
 ---
