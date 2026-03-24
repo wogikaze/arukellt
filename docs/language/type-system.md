@@ -88,11 +88,28 @@ let arr: [i32; 3] = [1, 2, 3]
 let first = arr[0]
 ```
 
+v0 では配列は固定長のみ。可変長配列は `Vec<T>` を使用。
+
 ### スライス
 
 ```
-let slice: [i32] = as_slice(arr)
+import vec
+
+let arr: [i32; 3] = [1, 2, 3]
+let slice: [i32] = vec.as_slice(arr)
 let length = len(slice)
+```
+
+スライス `[T]` は配列または Vec への不変ビュー（参照型）。
+
+**注意**: `[]` は空配列リテラル。型注釈が必要:
+```
+let empty: [i32; 0] = []   // 空の固定長配列
+```
+
+空の Vec は `vec_new()` を使用:
+```
+let v = vec_new()  // 空の Vec<i32>（型推論が必要な場合は型注釈）
 ```
 
 ---

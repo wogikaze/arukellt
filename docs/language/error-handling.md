@@ -25,35 +25,20 @@ fn divide(a: f64, b: f64) -> Result<f64, DivideError> {
 
 ---
 
-## ? 演算子（早期リターン）
-
-```
-fn read_and_parse(dir: DirCap, path: RelPath) -> Result<i64, AppError> {
-    let content = fs_read_file(dir, path)?
-    let n = parse_int(content)?
-    Ok(n * 2)
-}
-```
-
-`?` は Err なら即 return Err(...)。
-
-**v0（trait なし）ではエラー型が一致する場合のみ使える。** 型が違えばコンパイルエラー。trait あり版では `From<E>` で自動変換。
-
----
-
 ## panic
 
 回復不能なバグのみ。通常フローに使うのは禁止。
 
 ```
-fn get(vec: Vec<i32>, i: i32) -> i32 {
+fn safe_get(v: Vec<i32>, i: i32) -> i32 {
     if i < 0 {
         panic("negative index")
     }
-    if i >= len(vec) {
+    if i >= len(v) {
         panic("index out of bounds")
     }
-    vec_get(vec, i)
+    // 境界チェック済みなので unwrap は安全
+    unwrap(vec_get(v, i))
 }
 ```
 
@@ -64,9 +49,11 @@ fn get(vec: Vec<i32>, i: i32) -> i32 {
 各モジュールが自分で enum を定義する。標準エラー型の継承階層は持たない。
 
 ```
+import io
+
 enum AppError {
-    Parse(ParseError),
-    Io(IoError),
+    Io(io.Error),
+    Parse,
     NotFound,
 }
 ```

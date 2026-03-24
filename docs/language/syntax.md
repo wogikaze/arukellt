@@ -4,6 +4,28 @@ ADR-004 により trait なし、for 構文なし、メソッド構文なしの 
 
 ---
 
+## 重要: 参照型について
+
+**arukellt では struct, enum, String, Vec, [T] はすべて参照型。**
+
+代入や関数引数渡しは参照のコピー（オブジェクト共有）。値のコピーではない。
+
+```
+struct Point { x: f64, y: f64 }
+
+let p1 = Point { x: 1.0, y: 2.0 }
+let p2 = p1  // p1 と p2 は同じオブジェクトを指す（値コピーではない）
+
+// p1.x を変更すると p2.x も変わる（共有）
+```
+
+深いコピーが必要な場合は `clone` を使う:
+```
+let p2 = clone(p1)  // 別オブジェクト
+```
+
+---
+
 ## 最小例
 
 ```
@@ -14,27 +36,47 @@ fn main() {
 
 ---
 
-## Prelude（自動で見える名前）
+## 名前空間の階層
 
-以下の名前は import なしで使用可能:
+### Prelude（import 不要）
+
+以下は自動で見える:
+
+| カテゴリ | 名前 |
+|---------|------|
+| 型 | `Option`, `Result`, `String`, `Vec` |
+| コンストラクタ | `Some`, `None`, `Ok`, `Err` |
+| 基本関数 | `len`, `clone`, `panic` |
+| Vec 操作 | `vec_new`, `vec_push`, `vec_pop`, `vec_get` |
+| String 操作 | `concat` |
+| 出力 | `println`, `print` |
+| 数学 | `sqrt`, `abs`, `min`, `max` |
+
+**注**: `Some`/`None`/`Ok`/`Err` だけは裸で書ける。他の enum は `Color::Red` のように修飾必須。
+
+### stdlib（import 必要）
 
 ```
-// 型
-Option, Some, None
-Result, Ok, Err
-String, Vec
-
-// 組み込み関数
-len, println, print, panic
-
-// 数学関数
-sqrt, abs, min, max
+import vec    // vec_set, vec_with_capacity, vec_clear, ...
+import string // string_slice, string_push_char, ...
+import io     // 下記参照
 ```
 
-**注**: `Some`, `None`, `Ok`, `Err` は Prelude で裸で使える例外的なコンストラクタ。
-他の enum（`Color::Red` など）は修飾が必要。
+### Capability 依存（main 引数から取得）
 
-その他の機能は明示的な `import` が必要。
+I/O は capability 経由でのみ使用可能:
+
+```
+import io
+
+fn main(caps: io.Caps) -> Result<(), io.Error> {
+    io.println(caps, "Hello")           // stdout
+    let content = io.read_file(caps, "data.txt")?  // ファイル読み取り
+    Ok(())
+}
+```
+
+`io.Caps` は `main` の引数として渡される。純粋関数からは I/O できない。
 
 ---
 
@@ -136,6 +178,12 @@ fn point_distance(p: Point, other: Point) -> f64 {
     let dy = p.y - other.y
     sqrt(dx * dx + dy * dy)
 }
+
+// v0 ではフィールド更新なし（v1 で追加予定）
+// 更新が必要な場合は新しい struct を作成
+fn point_move(p: Point, dx: f64, dy: f64) -> Point {
+    Point { x: p.x + dx, y: p.y + dy }
+}
 ```
 
 ### 列挙型宣言
@@ -176,13 +224,25 @@ let mut z = 0  // 可変
 z = z + 1
 ```
 
-### 関数呼び出し
+### 関数呼び出しと可変長配列の操作
 
 ```
 let result = foo(1, 2)
+
+// String（不変）
 let s = "hello"
+let s2 = concat(s, " world")
 let length = len(s)
+
+// Vec（可変）
+let v = vec_new()
+vec_push(v, 42)      // v に要素を追加
+vec_push(v, 100)
+let first = vec_get(v, 0)   // Some(42)
+let last = vec_pop(v)       // Some(100)
 ```
+
+**重要**: Vec は参照型で可変操作可能。`vec_push` は v 自体を変更する（新しい Vec を返さない）。
 
 ### フィールドアクセスと参照セマンティクス
 
@@ -352,13 +412,15 @@ match x {
 }
 ```
 
-### 変数パターン
+### 変数パターン（catch-all）
 
 ```
 match x {
-    n => println(n),  // n に束縛
+    n => println(n),  // n に束縛（catch-all、最後のアームで使用）
 }
 ```
+
+**注意**: 変数パターンはすべての値にマッチする。他のアームを死なせないよう、最後のアームでのみ使用。
 
 ### ワイルドカードパターン
 
