@@ -96,7 +96,7 @@ help: did you mean `known_func`?
 | コード | 説明 | 例 |
 |--------|------|-----|
 | E0200 | type mismatch | `let x: i32 = "hello"` |
-| E0201 | missing type annotation | `let x = Vec::new()` |
+| E0201 | missing type annotation | `let x = Vec_new_T()` で T が推論不能 |
 | E0202 | wrong argument count | `foo(1, 2)` when expects 1 |
 | E0203 | invalid generic argument | `Vec[Vec[i32]]` (ネスト禁止) |
 
@@ -119,13 +119,13 @@ help: parse the string to integer
 error[E0201]: missing type annotation
   --> src/main.ark:12:9
    |
-12 |     let v = Vec::new()
-   |         ^ cannot infer type of `T` in `Vec[T]`
+12 |     let v = Vec_new_T()
+   |         ^ cannot infer type `T` in generic constructor
    |
-help: add a type annotation
+help: use a type-specific constructor
    |
-12 |     let v: Vec[i32] = Vec::new()
-   |          ++++++++++
+12 |     let v = Vec_new_i32()
+   |             ~~~~~~~~~~~~~
 ```
 
 ### E03xx: v0制約違反
@@ -176,8 +176,8 @@ help: use `while` loop with index
 
 **LLMが書きやすいコード**:
 ```
-let v = Vec::new()
-vec_push(v, 42)
+let v = Vec_new_T()  // T が推論不能
+push(v, 42)
 ```
 
 **診断**:
@@ -185,18 +185,18 @@ vec_push(v, 42)
 error[E0201]: missing type annotation
   --> src/main.ark:1:9
    |
- 1 |     let v = Vec::new()
-   |         ^ cannot infer type
-help: add type annotation
+ 1 |     let v = Vec_new_T()
+   |         ^ cannot infer generic type parameter
+help: use concrete type constructor
    |
- 1 |     let v: Vec[i32] = Vec::new()
-   |          ++++++++++
+ 1 |     let v = Vec_new_i32()
+   |             ~~~~~~~~~~~~~
 ```
 
 **修正後**:
 ```
-let v: Vec[i32] = Vec::new()
-vec_push(v, 42)
+let v = Vec_new_i32()
+push(v, 42)
 ```
 
 ### パターン2: メソッド構文の誤用
@@ -297,7 +297,7 @@ print(content)
 
 **LLMが書きやすいコード**:
 ```
-let matrix: Vec[Vec[i32]] = Vec::new()
+let matrix: Vec<Vec<i32>> = Vec_new_Vec()  // ネスト禁止
 ```
 
 **診断**:
@@ -305,12 +305,12 @@ let matrix: Vec[Vec[i32]] = Vec::new()
 error[E0302]: nested generic not allowed
   --> src/main.ark:1:17
    |
- 1 |     let matrix: Vec[Vec[i32]] = Vec::new()
+ 1 |     let matrix: Vec<Vec<i32>> = Vec_new_Vec()
    |                     ^^^^^^^^^ v0 prohibits nested generics
    |
 help: flatten to single Vec with manual indexing
    |
-   |     let matrix: Vec[i32] = Vec::new()
+   |     let matrix: Vec<i32> = Vec_new_i32()
    |     let rows = 10
    |     let cols = 10
    |     // access: get(matrix, row * cols + col)
@@ -318,7 +318,7 @@ help: flatten to single Vec with manual indexing
 
 **修正後**:
 ```
-let matrix: Vec[i32] = Vec::new()
+let matrix: Vec<i32> = Vec_new_i32()
 let rows = 10
 let cols = 10
 // access: get(matrix, row * cols + col)

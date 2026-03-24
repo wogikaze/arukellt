@@ -58,7 +58,7 @@ fn main() {
 
 **`unwrap` について**: `Option<T>` と `Result<T, E>` から値を取り出す。`None`/`Err` の場合は panic。
 
-**`clone` について**: v0 では shallow clone を実装。struct/enum のフィールドをコピーするが、ネストした参照型は共有される。
+**`clone` について**: v0 では deep clone を実装。ネストした参照型も含めて完全に複製する。
 
 **注**: `Some`/`None`/`Ok`/`Err` だけは裸で書ける。他の enum は `Color::Red` のように修飾必須。
 
@@ -116,17 +116,26 @@ self     Self
 
 ```
 // ファイル: src/main.ark
-import math
-import util.string as ustr
+import io
 
-fn main() {
-    let result = math.add(1, 2)
-}
+fn main(caps: io.Capabilities) { ... }
 ```
 
+**v0 モジュールシステム**:
+- 標準ライブラリ: `import mem`, `import io`
+- ユーザーモジュール: `import mymod`（同ディレクトリ、`mymod.ark`）
+
+**Import 解決規則**:
+1. 標準ライブラリを優先（`mem`, `io`, `prelude` 等）
+2. 見つからない場合、カレントディレクトリの `<name>.ark` を探す
+3. それでも見つからない場合はエラー
+
+**制約**:
+- パス区切り不可（`import foo/bar` 禁止）
+- 再帰 import 禁止
+- 循環 import はコンパイルエラー
 - 1 ファイル = 1 モジュール
 - モジュール名はファイルパスから決定
-- 循環 import はコンパイルエラー
 
 ### 公開範囲
 
@@ -298,6 +307,22 @@ a & b    a | b    a ^ b    ~a    a << n    a >> n
 
 注: 論理否定は `!a`（bool）、ビット否定は `~a`（整数）で区別する。
 
+**演算子優先順位**（高い順）:
+1. 単項演算子: `!`, `~`, `-`（負号）
+2. 乗除算: `*`, `/`, `%`
+3. 加減算: `+`, `-`
+4. シフト: `<<`, `>>`
+5. ビット AND: `&`
+6. ビット XOR: `^`
+7. ビット OR: `|`
+8. 比較: `<`, `<=`, `>`, `>=`, `==`, `!=`
+9. 論理 AND: `&&`
+10. 論理 OR: `||`
+
+**結合規則**: すべて左結合（`a - b - c` は `(a - b) - c`）
+
+**注意**: 優先順位が曖昧な場合は括弧を使用（推奨）
+
 ### ブロック式
 
 ```
@@ -461,6 +486,30 @@ match option {
     None => default,
 }
 ```
+
+**v0 の match 網羅性規則**:
+
+1. **enum の網羅性**: すべてのvariantをカバーする必要あり
+   ```
+   match opt {
+       Some(x) => x,
+       None => 0,      // 必須（wildcard不可）
+   }
+   ```
+
+2. **wildcard パターン**: `_` はすべてをマッチ
+   ```
+   match color {
+       Color::Red => 1,
+       _ => 0,         // 残り全て
+   }
+   ```
+
+3. **コンパイラチェック**: 
+   - すべての variant が明示的または wildcard でカバーされているか確認
+   - 未カバーの場合は `E0250: non-exhaustive match` エラー
+
+**v1 で追加予定**: guard (`if` 条件), or-pattern (`|`)
 
 ---
 

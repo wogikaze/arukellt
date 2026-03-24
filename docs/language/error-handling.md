@@ -55,7 +55,7 @@ fn safe_get(v: Vec<i32>, i: i32) -> i32 {
 import io
 
 enum AppError {
-    Io(io.Error),
+    Io(io.IOError),
     Parse,
     NotFound,
 }
@@ -74,10 +74,10 @@ enum AppError {
 
 ---
 
-## 未決定事項
+## v0 で決定済みの事項
 
-| 事項 | 依存 ADR |
-|------|---------|
-| `?` のエラー型自動変換（From trait） | ADR-004 |
-| panic のキャッチ機構（unwind vs abort） | ADR-002 |
-| `assert!` の構文 | syntax-principles.md |
+| 事項 | 決定内容 | 理由 |
+|------|---------|------|
+| `?` のエラー型自動変換 | **なし**（型が完全一致のみ） | ADR-004: trait なし |
+| panic のキャッチ機構 | **abort**（unwind なし） | ADR-002: 単純さ優先 |
+| `assert!` の構文 | v1 で検討 | マクロ未サポート |

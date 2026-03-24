@@ -335,14 +335,21 @@ fn result_map_i32(res: Result<i32, E>, f: fn(i32) -> i32) -> Result<i32, E>
 Capability-based 設計:
 
 ```
-fn main(caps: Caps) {
-    // stdin/stdout/stderr
-    stdout_write(caps, "Hello\n")
-    let line = stdin_read_line(caps)
+fn main(caps: Capabilities) -> Result[(), IOError] {
+    // stdin/stdout 取得
+    let stdin_h = stdin(caps)
+    let stdout_h = stdout(caps)
+    
+    // I/O 操作
+    stdout_write(stdout_h, "Hello\n")?
+    let line = stdin_read_line(stdin_h)?
     
     // ファイルシステム（DirCap + RelPath）
-    let dir = preopened_dir(caps, ".")
-    let content = read_file(dir, "data.txt")
+    let dir = cwd(caps)
+    let path = RelPath_from("data.txt")?
+    let content = fs_read_file(dir, path)?
+    
+    Ok(())
 }
 ```
 
