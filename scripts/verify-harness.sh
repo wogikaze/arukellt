@@ -43,7 +43,7 @@ check_fail() {
 # 1. Check documentation structure
 echo -e "\n${YELLOW}[1/5] Checking documentation structure...${NC}"
 doc_ok=true
-for doc in "AGENTS.md" "docs/agent-harness.md"; do
+for doc in "AGENTS.md" "docs/process/agent-harness.md"; do
     if [ ! -f "$doc" ]; then
         check_fail "$doc not found"
         doc_ok=false
@@ -91,7 +91,7 @@ fi
 # 4. Check platform documents
 echo -e "\n${YELLOW}[4/5] Checking platform specification...${NC}"
 platform_ok=true
-for pdoc in "docs/platform/wasm-features.md" "docs/abi.md" "docs/wasi-resource-model.md"; do
+for pdoc in "docs/platform/wasm-features.md" "docs/platform/abi.md" "docs/platform/wasi-resource-model.md"; do
     if [ ! -f "$pdoc" ]; then
         check_fail "Missing: $pdoc"
         platform_ok=false
@@ -104,7 +104,7 @@ fi
 # 5. Check stdlib documents
 echo -e "\n${YELLOW}[5/5] Checking stdlib specification...${NC}"
 stdlib_ok=true
-for sdoc in "docs/stdlib/README.md" "docs/core.md" "docs/io.md"; do
+for sdoc in "docs/stdlib/README.md" "docs/stdlib/core.md" "docs/stdlib/io.md"; do
     if [ ! -f "$sdoc" ]; then
         check_fail "Missing: $sdoc"
         stdlib_ok=false

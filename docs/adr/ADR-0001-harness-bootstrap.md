@@ -37,7 +37,7 @@ This is the "minimum viable harness" from `harness/blueprint.md`.
 The minimum viable harness includes:
 
 - `AGENTS.md` - Repository contract and verification boundaries
-- `docs/agent-harness.md` - Pointer document for developers
+- `docs/process/agent-harness.md` - Pointer document for developers
 - `docs/adr/` - Workflow and design decisions
 - `issues/open/` and `issues/done/` - Work queue
 - `scripts/verify-harness.sh` - Root completion gate

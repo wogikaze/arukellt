@@ -210,5 +210,5 @@ let s2 = s1  // s1 と s2 は同じオブジェクトを参照
 ## 関連
 
 - ADR-002: この文書の根拠
-- `docs/core.md`: String / Vec の API 詳細
-- `docs/abi.md`: FFI 境界でのメモリ表現
+- `docs/stdlib/core.md`: String / Vec の API 詳細
+- `docs/platform/abi.md`: FFI 境界でのメモリ表現

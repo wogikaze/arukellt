@@ -497,4 +497,4 @@ fn main(caps: Capabilities) -> Result<(), AppError> {
 ## 関連
 
 - `docs/language/type-system.md`: 型システム詳細
-- `docs/compiler-phases.md`: パーサの AST 定義
+- `docs/compiler/pipeline.md`: パーサの AST 定義

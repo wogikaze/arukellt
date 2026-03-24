@@ -86,5 +86,5 @@
 ## 関連
 
 - ADR-005: LLVM IR の役割制限
-- `docs/abi.md`: ABI 詳細
+- `docs/platform/abi.md`: ABI 詳細
 - `docs/platform/wasm-features.md`: 使用する Wasm 機能

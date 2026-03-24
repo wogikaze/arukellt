@@ -106,5 +106,5 @@ std/
 ## 関連
 
 - ADR-004: trait 戦略
-- `docs/core.md`: core モジュール API
-- `docs/io.md`: I/O モジュール API
+- `docs/stdlib/core.md`: core モジュール API
+- `docs/stdlib/io.md`: I/O モジュール API

@@ -49,7 +49,7 @@
 次プロジェクトでまず導入すべき最小セットは次です。
 
 - repository boundary と完了条件を定義する `AGENTS.md`
-- 短い pointer doc としての `docs/agent-harness.md`
+- 短い pointer doc としての `docs/process/agent-harness.md`
 - `issues/index.md`、`issues/open/`、`issues/done/`
 - 最初の判断を記録する `docs/adr/ADR-0001-*.md`
 - `scripts/verify-harness.sh`

@@ -19,7 +19,7 @@
 
 ```text
 AGENTS.md
-docs/agent-harness.md
+docs/process/agent-harness.md
 docs/adr/ADR-0001-agent-harness-entrypoint.md
 issues/index.md
 issues/open/
@@ -51,7 +51,7 @@ docs/generated/      # or another explicit generated-docs directory
 
 changelog や architecture manual の重複にしてはいけません。
 
-## `docs/agent-harness.md`
+## `docs/process/agent-harness.md`
 
 これは最短の human entrypoint です。
 
@@ -182,7 +182,7 @@ CI はこの層を dedicated integrity job で replay し、working tree が dir
 次プロジェクトの docs は 3 tier に分けます。
 
 1. short operational docs
-   `AGENTS.md`、`docs/agent-harness.md`、queue files
+   `AGENTS.md`、`docs/process/agent-harness.md`、queue files
 2. decision docs
    ADR または WEP 風の判断記録
 3. executable または generated reference docs
@@ -214,7 +214,7 @@ repo-local agent augmentation は推奨ですが optional です。
 ## Phase 0: minimum viable harness
 
 - `AGENTS.md`
-- `docs/agent-harness.md`
+- `docs/process/agent-harness.md`
 - `issues/`
 - 1 本の ADR
 - 1 本の root verify script

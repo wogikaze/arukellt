@@ -73,5 +73,5 @@ native FFI は C ABI のみサポート。arukellt 独自の ABI 拡張は行わ
 ## 関連
 
 - ADR-006: 公開 ABI（3 層構造）
-- `docs/compiler-phases.md`: MIR からの分岐
-- `docs/abi.md`: native ABI 詳細
+- `docs/compiler/pipeline.md`: MIR からの分岐
+- `docs/platform/abi.md`: native ABI 詳細

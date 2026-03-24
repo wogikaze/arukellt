@@ -4,7 +4,7 @@ This is a short pointer document for developers and agents working in this repos
 
 ## Quick Start
 
-1. **Setup**: Follow `docs/agent-harness.md` for bootstrap instructions
+1. **Setup**: Follow `docs/process/agent-harness.md` for bootstrap instructions
 2. **Tasks**: See `AGENTS.md` for repository contract and `scripts/verify-harness.sh` for verification
 3. **Queue**: Check `issues/open/` for active work; see `issues/done/` for completed items
 4. **Decisions**: Review `docs/adr/` for workflow and design decisions
@@ -29,7 +29,7 @@ This is your completion gate. Make sure it passes before marking work done.
 
 - **AGENTS.md** - Repository contract and boundaries
 - **docs/adr/** - Architectural and workflow decisions
-- **docs/agent-harness.md** - This document
+- **docs/process/agent-harness.md** - This document
 - **issues/open/** - Active work queue
 - **scripts/verify-harness.sh** - Root verification command
 

@@ -130,4 +130,4 @@ v0 完成後のベンチマークで性能問題が判明した場合:
 - [x] `docs/language/memory-model.md` — メモリモデル詳細仕様（新規作成）
 - [x] `docs/language/type-system.md` — ADR-002 待ちセクション更新
 - [x] `docs/platform/wasm-features.md` — reference types / Wasm GC を Layer 1 に
-- [x] `docs/core.md` — String / Vec の実装方針を GC 前提で記載
+- [x] `docs/stdlib/core.md` — String / Vec の実装方針を GC 前提で記載

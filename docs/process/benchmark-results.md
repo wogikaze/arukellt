@@ -19,7 +19,7 @@
 
 ## 暫定決定
 
-`docs/decision-guide.md` の暫定決定ルールに従う:
+`docs/process/decision-guide.md` の暫定決定ルールに従う:
 
 > **LLM フレンドリを最優先に近く置くなら: Wasm GC を選ぶ**
 
