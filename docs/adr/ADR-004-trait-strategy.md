@@ -107,13 +107,20 @@ match x {
 
 ```
 // for がないため while で書く
-let i = 0
-while i < vec.len() {
-    let item = vec.get(i).unwrap()
-    // process item
+let mut i = 0
+while i < len(v) {
+    let item = get(v, i)
+    match item {
+        Some(x) => {
+            // process x
+        },
+        None => {},
+    }
     i = i + 1
 }
 ```
+
+**v1 段階的導入**: trait 導入前に、限定版 `for`（P1: `for i in 0..n`, `for x in values(v)`）と文字列補間（P2）を先行導入可能。組み込み反復プロトコルで橋渡しし、trait 導入（P3）後にメソッド構文（P4）と演算子オーバーロード（P5）を追加する。
 
 ### 根拠
 

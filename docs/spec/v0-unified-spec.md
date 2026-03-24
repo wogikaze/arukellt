@@ -32,17 +32,23 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 
 | 機能 | 理由 | v1 優先度 |
 |------|------|----------|
-| for ループ（限定版） | trait 不要の範囲/Vec 走査を先行導入可能 | **P1** |
-| 文字列補間 | concat ネストの解消 | **P2** |
-| iterator / 高階走査 | any, find, map, filter 等 | P3 |
-| impl / メソッド構文 | 関数呼び出しで十分だが UX 向上 | P4 |
-| trait / interface | 複雑さ回避 | P4 |
+| for ループ（限定版） | trait 不要。範囲 `0..n` と Vec 走査 `values(v)` のみ。解決規則を増やさず LLM フレンドリを壊さない | **P1** |
+| 文字列補間 `f"..."` | concat ネスト解消。diagnostics/std 実装品質に直結 | **P2** |
+| trait / iterator | 設計コスト高。v0→v1 の橋として先に組み込み反復プロトコルや Vec 専用高階関数で稼ぐ方が安全 | P3 |
+| impl / メソッド構文 | 読みやすさ向上だが本質改善ではない。trait(P3) の後 | P4 |
 | 演算子オーバーロード | trait 依存 | P5 |
-| マクロ | 複雑さ回避 | 未定 |
+| マクロ | 設計が必要 | 未定 |
 | async/await | v0 スコープ外 | 未定 |
 | ネストしたジェネリクス | コード膨張防止 | 未定 |
 
+**注**: `break` / `continue` は v0 に含まれている（syntax.md 参照）。v1 項目ではない。
+
 **v1 優先度の根拠**: parser.rs → parser.ark 翻訳での実測。詳細は `docs/process/parser-ark-evaluation.md`。
+
+**v1 段階的導入戦略**:
+1. P1（限定 for）と P2（文字列補間）は trait なしで導入可能。解決規則を増やさない。
+2. P3（trait）導入前に、組み込みの反復プロトコルと Vec 専用高階関数（`any`, `find`, `map`, `filter`）で現実的な走査パターンを先にカバー。
+3. P3 で trait を導入後、P4（メソッド構文）と P5（演算子オーバーロード）を追加。
 
 ---
 

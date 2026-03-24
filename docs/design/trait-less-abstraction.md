@@ -208,10 +208,31 @@ repeat(5, || print("hello"))
 
 ## v1 への移行パス
 
-v1 で trait を導入した際:
+parser.rs → parser.ark 翻訳の実測結果に基づく段階的導入戦略:
+
+### Stage 1: 限定 for + 文字列補間（P1・P2、trait 不要）
+
+trait なしで導入可能。解決規則を増やさず LLM フレンドリを壊さない:
+- `for i in 0..n { ... }` — 範囲ベース反復
+- `for item in values(v) { ... }` — Vec 走査（組み込み）
+- `f"...{expr}..."` — 文字列補間
+
+### Stage 2: 組み込み高階関数（trait 前の橋渡し）
+
+trait 導入前に、Vec 専用の高階関数で実用的な走査パターンをカバー:
+- `any(v, |x| ...)`, `find(v, |x| ...)`, `map(v, |x| ...)`, `filter(v, |x| ...)`
+
+### Stage 3: trait 導入（P3）
+
 - 組み込み関数 → trait メソッドに移行
 - 既存コードは動作を維持（後方互換）
-- 新しい抽象化パターンが利用可能に
+- Iterator trait による汎用走査
+- Eq/Hash/Ord による HashMap 等のサポート
+
+### Stage 4: メソッド構文・演算子オーバーロード（P4・P5）
+
+- `impl` ブロックによるメソッド定義
+- trait ベースの演算子オーバーロード
 
 ---
 

@@ -513,17 +513,21 @@ match option {
 
 ---
 
-## v1 以降の機能
+## v1 以降の機能（優先度順）
 
 v1 で追加予定の機能は `docs/language/syntax-v1-preview.md` を参照。
 
-- メソッド構文（`impl`）
-- 構造体パターン
-- ガード
-- or-pattern
-- match でのタプルパターン
-- for ループ
-- 演算子オーバーロード
+実測（parser.rs → parser.ark 翻訳）に基づく優先度順:
+
+1. **P1**: `for` ループ（限定版: 範囲 `0..n` + Vec 走査 `values(v)`、trait 不要）
+2. **P2**: 文字列補間 `f"...{expr}..."`
+3. **P3**: trait / iterator（`any`, `find`, `map`, `filter` 等）
+4. **P4**: メソッド構文（`impl`）
+5. **P5**: 演算子オーバーロード
+
+その他（優先度未定）: 構造体パターン、ガード、or-pattern、match でのタプルパターン
+
+**注**: `break` / `continue` は v0 に含まれている（上記「break / continue」節参照）。
 
 ---
 

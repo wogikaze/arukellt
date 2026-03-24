@@ -77,14 +77,22 @@ v0 は以下の原則に基づいて設計:
 - [] 露出を削減（vec_new() 推奨）
 - typo 修正
 
-## What's NOT in v0 (v1 Preview)
+## What's NOT in v0 (v1 Preview — 優先度順)
 
-- `impl` ブロック・メソッド構文
-- trait・演算子オーバーロード
-- `for` ループ・イテレータ
-- match の guard/or-pattern/struct pattern
-- `?` のエラー型自動変換
-- struct field update
+**注**: `break` / `continue` は v0 に含まれている。v1 項目ではない。
+
+| 優先度 | 機能 | 設計コスト |
+|--------|------|-----------|
+| **P1** | `for` ループ（限定版: `0..n`, `values(v)`） | 低（trait 不要） |
+| **P2** | 文字列補間 `f"..."` | 低 |
+| **P3** | trait / iterator / 高階走査 | 高 |
+| **P4** | `impl` / メソッド構文 | 中（trait 後） |
+| **P5** | 演算子オーバーロード | 中（trait 後） |
+| — | match guard / or-pattern / struct pattern | 低 |
+| — | `?` エラー型自動変換（`From` trait） | trait 後 |
+| — | struct field update | 低 |
+
+**段階的導入**: P1・P2 は trait なしで導入可能。P3 導入前に組み込み反復プロトコルで橋渡し。
 
 ## Next Steps (Post-Freeze)
 
