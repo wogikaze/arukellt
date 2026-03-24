@@ -1,0 +1,44 @@
+# Issues Index
+
+This directory tracks work queue and completion status.
+
+## Organization
+
+- **`open/`** - Active work items waiting to be completed
+- **`done/`** - Completed work for reference and history
+
+## Issue Format
+
+Each issue is a markdown file with:
+
+```markdown
+# [TITLE]
+
+**Status**: open | done
+**Created**: YYYY-MM-DD
+**Updated**: YYYY-MM-DD
+
+## Summary
+Brief description of what needs to be done.
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
+
+## Notes
+Any context, blockers, or implementation notes.
+```
+
+## Workflow
+
+1. Add new issues to `open/`
+2. Reference in AGENTS.md as active focus
+3. When verification passes and work is complete, move to `done/`
+4. Maintain timestamp consistency for traceability
+
+## Queue Operations
+
+- **Start work**: Note in issue, update status
+- **Blocked**: Document reason in Notes section
+- **Complete**: Move file to `done/` with completion timestamp
