@@ -91,7 +91,7 @@ let first = arr[0]
 ### スライス
 
 ```
-let slice: [i32] = arr.as_slice()
+let slice: [i32] = as_slice(arr)
 let length = len(slice)
 ```
 
@@ -99,13 +99,13 @@ let length = len(slice)
 
 ## 参照型
 
-GC ヒープ上に配置される型。
+GC ヒープ上に配置される型。代入は参照のコピー（オブジェクト共有）。
 
 | 型 | 説明 |
 |----|------|
-| `String` | 可変長文字列 |
+| `String` | 不変の UTF-8 文字列 |
 | `Vec<T>` | 可変長配列 |
-| `[T]` | 配列スライス |
+| `[T]` | 配列スライス（不変ビュー） |
 | struct | ユーザー定義構造体 |
 | enum | ユーザー定義列挙型 |
 
@@ -156,7 +156,9 @@ let x = 42        // x: i32
 let y: i64 = 42   // 42 を i64 としてチェック
 
 // 関数呼び出しでの推論
-fn foo(x: i32) -> i64 { ... }
+fn foo(x: i32) -> i64 {
+    x as i64
+}
 let z = foo(42)   // 42 は i32、z は i64
 ```
 
