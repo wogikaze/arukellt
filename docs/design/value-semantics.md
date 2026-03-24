@@ -56,12 +56,12 @@ y = y + 1      // y は 43、x は 42 のまま
 ### 参照型の代入
 
 ```
-let s1: String = String::from("hello")
+let s1 = "hello"
 let s2 = s1    // s1 の参照がコピーされる
 // s1 と s2 は同じオブジェクトを指す
 ```
 
-**動作**: 参照のコピー。オブジェクトは共有される（shallow copy）。
+**動作**: 参照のコピー。オブジェクトは共有される。
 
 ```
 // 図解
@@ -77,6 +77,34 @@ let s1 = "hello"
 let s2 = clone(s1)  // 新しいオブジェクトが作られる（deep copy）
 // s1 と s2 は別のオブジェクト
 ```
+
+### ⚠️ 共有の暗黙性（最大の UX リスク）
+
+**この言語の難しさは「所有権」ではなく「共有の暗黙性」にある。**
+
+Rust や Go と異なり、参照型の代入は常に共有を意味する。
+LLM と人間の両方が頻繁に間違えるパターン：
+
+```
+// ❌ 事故パターン: 意図しない共有
+let a = Vec_new_i32()
+push(a, 1)
+let b = a        // b と a は同じ Vec を指す
+push(b, 2)       // a も [1, 2] になる！
+
+// ✅ 正しいパターン: 独立したコピーが必要な場合
+let a = Vec_new_i32()
+push(a, 1)
+let b = clone(a)  // b は a の deep copy
+push(b, 2)        // a は [1] のまま、b は [1, 2]
+```
+
+**設計上の立場**: これは仕様通りの動作であり、バグではない。
+ただし UX リスクが高いため、以下で緩和する：
+
+1. **診断**: 「代入後の可変操作」に対して W0001 warning を出す（→ diagnostics.md）
+2. **Cookbook**: 共有 vs 独立のパターンを必ず掲載（→ cookbook.md）
+3. **v1 検討**: `let b = copy a` のような明示的構文の導入
 
 ---
 
@@ -120,11 +148,40 @@ let s2 = s1.clone()  // 新しい String オブジェクトを作成
 
 **v0 での制限**: `clone()` は trait が必要なため、組み込み型のみ提供。
 
-| 型 | clone() |
-|----|---------|
-| `String` | ✅ 提供 |
-| `Vec[T]` | ✅ 提供（shallow: 要素は clone しない） |
-| ユーザー struct | ❌ v1 以降 |
+| 型 | clone() | 動作 |
+|----|---------|------|
+| `String` | ✅ 提供 | 新しい String を作成（内容をコピー） |
+| `Vec<T>` | ✅ 提供 | **deep copy**: Vec 自体 + 全要素を再帰的に clone |
+| ユーザー struct | ❌ v1 以降 | — |
+
+**重要: `clone` は常に deep copy（再帰的複製）**
+
+```
+// Vec<String> の clone
+let a = Vec_new_String()
+push(a, "hello")
+push(a, "world")
+
+let b = clone(a)
+// b は新しい Vec、中身も新しい String
+// a と b は完全に独立
+```
+
+```
+// 図解: clone(a) の結果
+a ──▶ [Vec: "hello", "world"]  ← GC heap 上のオブジェクト A
+b ──▶ [Vec: "hello", "world"]  ← GC heap 上のオブジェクト B（完全に別物）
+```
+
+**コストモデル**:
+| 操作 | コスト |
+|------|--------|
+| `clone(x: i32)` | O(1) — ビットコピー |
+| `clone(s: String)` | O(n) — 文字列長に比例 |
+| `clone(v: Vec<T>)` | O(n × clone(T)) — 要素数 × 要素の clone コスト |
+
+**注意**: deep clone はコストが高い。不要な clone を避けること。
+参照共有で十分な場合は `let b = a` を使う（→ 共有の暗黙性に注意）。
 
 ---
 

@@ -38,20 +38,40 @@ Layer 2 と Layer 3 の接続点が未定義:
 
 GC ヒープのデータを linear memory にコピーして渡す。
 
+**重要**: `mem.alloc` / `mem.free` は **std 内部専用**。ユーザーコードからは呼べない。
+
 ```
-// arukellt 側
+// ❌ ユーザーコードではこう書けない
 fn call_c_function(s: String) -> i32 {
-    // String を linear memory にコピー
-    let ptr = mem.alloc(s.len())
-    mem.copy_from_string(ptr, s)
-    
-    // C 関数を呼ぶ（ポインタと長さを渡す）
-    let result = extern_c_function(ptr, s.len())
-    
-    // 解放
-    mem.free(ptr)
-    result
+    let ptr = mem.alloc(s.len())    // コンパイルエラー: 非公開 API
+    mem.free(ptr)                   // コンパイルエラー: 非公開 API
 }
+
+// ✅ std が提供する安全な FFI ラッパーを使う
+// （v0 では WASI import のみ、ユーザー定義 FFI は v1 以降）
+```
+
+std 内部での実装（参考）：
+```
+// std/internal/ffi.ark（非公開モジュール）
+fn __ffi_string_to_linear(s: String) -> (i32, i32) {
+    let ptr = mem.__alloc(len(s))   // 内部 API
+    mem.__copy_from_string(ptr, s)
+    (ptr, len(s))
+}
+
+fn __ffi_linear_cleanup(ptr: i32) {
+    mem.__free(ptr)                 // 内部 API
+}
+```
+
+**設計根拠**: `mem.alloc` / `mem.free` をユーザーに露出すると：
+- free 忘れ → リーク
+- 二重 free → UB
+- サイズミス → UB
+
+これは LLM フレンドリ設計に真っ向から反する。
+v0 では WASI の FFI 変換はすべて std が内部で行う。
 ```
 
 ```c
@@ -151,29 +171,39 @@ v0 では FFI は WASI import のみ。ユーザー定義 FFI は v1 以降。
 WASI p1 は linear memory ベース。GC との変換が必要:
 
 ```
-// fd_write を呼ぶ場合
-fn print(s: String) {
+// std/internal/wasi.ark（非公開モジュール — ユーザーコードには見えない）
+fn __wasi_print(s: String) {
     // 1. String を linear memory にコピー
-    let buf_ptr = mem.alloc(s.len())
-    mem.copy_from_string(buf_ptr, s)
+    let buf_ptr = mem.__alloc(len(s))
+    mem.__copy_from_string(buf_ptr, s)
     
     // 2. iovec を構築
-    let iovec_ptr = mem.alloc(8)
-    mem.store_i32(iovec_ptr, buf_ptr)
-    mem.store_i32(iovec_ptr + 4, s.len())
+    let iovec_ptr = mem.__alloc(8)
+    mem.__store_i32(iovec_ptr, buf_ptr)
+    mem.__store_i32(iovec_ptr + 4, len(s))
     
     // 3. fd_write 呼び出し
-    let nwritten_ptr = mem.alloc(4)
+    let nwritten_ptr = mem.__alloc(4)
     wasi.fd_write(1, iovec_ptr, 1, nwritten_ptr)
     
-    // 4. 解放
-    mem.free(buf_ptr)
-    mem.free(iovec_ptr)
-    mem.free(nwritten_ptr)
+    // 4. 解放（すべて std 内部で完結）
+    mem.__free(buf_ptr)
+    mem.__free(iovec_ptr)
+    mem.__free(nwritten_ptr)
 }
 ```
 
-この変換は std が内部で行う。ユーザーは意識しない。
+**ユーザーが呼ぶ API**:
+```
+// ユーザーコード
+fn main(caps: Capabilities) -> Result<(), IOError> {
+    let stdout_h = stdout(caps)
+    stdout_write(stdout_h, "Hello\n")?  // std が内部で WASI 変換
+    Ok(())
+}
+```
+
+この変換は std が内部で行う。ユーザーは `mem.__alloc` / `mem.__free` に一切触れない。
 
 ---
 

@@ -148,6 +148,29 @@ error[E0301]: method call syntax not available in v0
    |
 help: use function call syntax instead
    |
+
+### W0xxx: 警告
+
+| コード | 説明 | 例 |
+|--------|------|-----|
+| W0001 | unintended sharing | 可変参照型を代入後に両方から変更 |
+
+**fix-it 例**:
+```
+warning[W0001]: possible unintended sharing of mutable reference
+  --> src/main.ark:3:9
+   |
+ 2 |     let a = Vec_new_i32()
+ 3 |     let b = a
+   |         ^ `b` aliases `a`; mutations to `b` also affect `a`
+ 4 |     push(b, 42)
+   |     ----------- mutates shared Vec
+   |
+help: if independent copy is needed, use clone
+   |
+ 3 |     let b = clone(a)
+   |             ~~~~~~~~
+```
 15 |     vec_push(v, 42)
    |     ~~~~~~~~ ~  ~~
 ```
