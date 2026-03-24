@@ -183,3 +183,62 @@ Phase 1-6 およびフォローアップ修正後、API 境界とセマンティ
 - [x] Option/Result Prelude 例外を明記
 - [x] `?` 演算子の v0 制約を syntax に追記
 - [x] `[T]` スライスを参照型一覧に追加
+
+---
+
+## 2026-03-24 Phase 2 完了 - LLM Surface Canonicalization
+
+全 10 項目の Critical 矛盾を解消:
+
+### 実施内容
+
+**Phase A: Critical 矛盾解消**
+1. `clone` を v0 正式採用（shallow clone、ネスト参照は共有）
+2. `[]` を固定長配列専用に固定（スライスは `as_slice()` で作成）
+3. `unwrap` を Prelude に追加
+4. `Capabilities`/`AppError` を `io.Caps`/`io.Error` に統一
+
+**Phase B: API 形の統一**
+5. `vec.as_slice` → `as_slice`（裸関数に統一）
+6. `string_push_char` → `string_append_char`（不変性を反映）
+
+**Phase C: 説明の正規化**
+7. field update コメント削除（Vec 例で共有を実例説明）
+8. mutation boundary 明文化（Vec のみ in-place 変更可能）
+9. struct-like variant 注意書き追加（定義 OK、match 分解は v1）
+
+**Phase D: コード品質向上**
+10. `// ...` プレースホルダを全削除（実行可能コードに置換）
+11. generic ネスト禁止を強調（`Vec<Vec<T>>` 等の禁止例を明示）
+
+**Commit**: `c8137a9`
+
+### Phase 2 受け入れ条件達成状況
+
+- [x] `clone` の v0/v1 矛盾が解消
+- [x] `[]` の意味が一つに固定
+- [x] Prelude/stdlib の全名前が定義済み
+- [x] Vec/slice API の呼び出し形が統一
+- [x] 存在しない構文を説明に使用していない
+- [x] mutation 可能な型が明文化
+- [x] コードブロックが全て型検査可能
+
+---
+
+## 次のステップ
+
+Phase 2 で「LLM が最初に書きたくなる形と実際に許される形のズレ」は大幅に縮小。
+
+今後の canonicalization 方向:
+
+1. **診断設計** (search.md の原則に従う)
+   - 構造化診断、expected/actual、fix-it hint
+   - 生成→型検査→自己修正ループの安定化
+
+2. **stdlib API の完全性**
+   - v0 で必要な Vec 操作の全列挙
+   - String 操作の正規形確定
+
+3. **実装との同期**
+   - コンパイラ側で v0 制限を強制
+   - 禁止構文に対する明確なエラーメッセージ
