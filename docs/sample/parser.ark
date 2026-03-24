@@ -579,7 +579,7 @@ fn parse_blocks(
         // Blank
         if len(tline) == 0 {
             i = i + 1
-            // skip (continue via while)
+            // blank line — no action needed
         } else if starts_with(tline, "[^") && is_some(str_find(tline, "]: ")) {
             // Footnote definition — skip
             i = i + 1
@@ -698,11 +698,9 @@ fn parse_blocks(
                     push(bq_lines, "")
                     j = j + 1
                 } else {
-                    // break out of while — v0 has no break, use flag
-                    j = len(lines) + 1
+                    break
                 }
             }
-            if j > len(lines) { j = j - 1 }  // adjust for break simulation
 
             let src_hash = fnv1a_lines(bq_lines)
             push(events, Event::BlockId(src_hash))
@@ -774,10 +772,9 @@ fn parse_blocks(
                     push(events, Event::End(Tag::Item))
                     j = j + 1
                 } else {
-                    j = len(lines) + 1  // break
+                    break
                 }
             }
-            if j > len(lines) { j = j - 1 }
             push(events, Event::End(Tag::List(is_ol)))
             i = j
         } else {
@@ -940,13 +937,12 @@ fn parse_paragraph(
         let ln = get(lines, j)
         let t = trim_start(ln)
         if is_block_start(ln, t) {
-            j = len(lines) + 1  // break
+            break
         } else {
             push(para, ln)
             j = j + 1
         }
     }
-    if j > len(lines) { j = j - 1 }
 
     if len(para) > 0 {
         let para_hash = fnv1a_lines(para)

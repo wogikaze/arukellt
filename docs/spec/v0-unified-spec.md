@@ -30,15 +30,19 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 
 以下は**明示的に v0 から除外**。v1 以降で検討:
 
-| 機能 | 理由 |
-|------|------|
-| trait / interface | 複雑さ回避 |
-| impl / メソッド構文 | 関数呼び出しで統一 |
-| iterator / for ループ | trait 依存 |
-| 演算子オーバーロード | trait 依存 |
-| マクロ | 複雑さ回避 |
-| async/await | v0 スコープ外 |
-| ネストしたジェネリクス | コード膨張防止 |
+| 機能 | 理由 | v1 優先度 |
+|------|------|----------|
+| for ループ（限定版） | trait 不要の範囲/Vec 走査を先行導入可能 | **P1** |
+| 文字列補間 | concat ネストの解消 | **P2** |
+| iterator / 高階走査 | any, find, map, filter 等 | P3 |
+| impl / メソッド構文 | 関数呼び出しで十分だが UX 向上 | P4 |
+| trait / interface | 複雑さ回避 | P4 |
+| 演算子オーバーロード | trait 依存 | P5 |
+| マクロ | 複雑さ回避 | 未定 |
+| async/await | v0 スコープ外 | 未定 |
+| ネストしたジェネリクス | コード膨張防止 | 未定 |
+
+**v1 優先度の根拠**: parser.rs → parser.ark 翻訳での実測。詳細は `docs/process/parser-ark-evaluation.md`。
 
 ---
 
@@ -548,3 +552,4 @@ while i < len(items) { }
 |------|---------|
 | 2025-01-XX | 初版作成 |
 | 2026-03-24 | v0 canonical surface に統一（generics `<T>`、メソッドなし）|
+| 2026-03-24 | parser.ark 翻訳結果に基づく v1 優先度追加 |
