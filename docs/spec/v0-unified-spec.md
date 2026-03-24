@@ -2,6 +2,8 @@
 
 本文書は、arukellt 言語 v0 の完全仕様を一箇所に統合したものである。
 
+**Status**: Frozen for v0 implementation
+
 ---
 
 ## 1. 言語概要
@@ -18,19 +20,25 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 ### v0 で提供するもの
 
 - 基本的な型システム（プリミティブ、struct、enum、tuple）
-- 制限付き generics（`Vec<T>`、`Option<T>`、`Result<T, E>`）
+- 制限付き generics（`Vec[T]`、`Option[T]`、`Result[T, E]`）
 - 高階関数と closure
-- パターンマッチ（リテラル、enum variant、ワイルドカード、変数束縛）
+- パターンマッチ
 - WASI p1 サポート
+- 関数呼び出し構文のみ（メソッド構文なし）
 
-### v0 で提供しないもの
+### v0 で提供しないもの（Non-goals）
 
-- trait / interface
-- impl / メソッド構文
-- iterator / for ループ
-- 演算子オーバーロード
-- マクロ
-- async/await
+以下は**明示的に v0 から除外**。v1 以降で検討:
+
+| 機能 | 理由 |
+|------|------|
+| trait / interface | 複雑さ回避 |
+| impl / メソッド構文 | 関数呼び出しで統一 |
+| iterator / for ループ | trait 依存 |
+| 演算子オーバーロード | trait 依存 |
+| マクロ | 複雑さ回避 |
+| async/await | v0 スコープ外 |
+| ネストしたジェネリクス | コード膨張防止 |
 
 ---
 
@@ -438,7 +446,37 @@ Source (.ark)
 
 ---
 
-## 9. 関連文書
+## 9. 診断システム
+
+### 9.1 エラー分類
+
+| カテゴリ | コード範囲 | 例 |
+|----------|-----------|-----|
+| 構文エラー | E00xx | unexpected token, missing token |
+| 名前解決 | E01xx | unresolved name, duplicate definition |
+| 型エラー | E02xx | type mismatch, missing type annotation |
+| v0制約違反 | E03xx | method call, for loop, nested generic |
+
+### 9.2 エラーフォーマット
+
+```
+error[E0200]: type mismatch
+  --> src/main.ark:5:10
+   |
+ 5 |     let x: i32 = "hello"
+   |                  ^^^^^^^ expected `i32`, found `String`
+   |
+help: change the type annotation
+   |
+ 5 |     let x: String = "hello"
+   |            ^^^^^^
+```
+
+詳細: `docs/compiler/diagnostics.md`
+
+---
+
+## 10. API 正規形
 
 | 文書 | 内容 |
 |------|------|
@@ -453,9 +491,44 @@ Source (.ark)
 | `docs/design/trait-less-abstraction.md` | 抽象化戦略 |
 | `docs/design/reference-control.md` | 参照過多の制御 |
 
+すべての操作は**関数呼び出し形式**のみ:
+
+### Vec 操作
+
+```
+let v: Vec[i32] = Vec_new_i32()
+push(v, 42)
+let x: Option[i32] = get(v, 0)
+let n: i32 = len(v)
+```
+
+### String 操作
+
+```
+let s: String = String_from("hello")
+let s2: String = concat(s, " world")
+let n: i32 = len(s)
+```
+
+### 禁止パターン
+
+```
+// ❌ メソッド構文
+v.push(42)
+
+// ❌ for ループ
+for x in items { }
+
+// ✅ 正しい
+push(v, 42)
+while i < len(items) { }
+```
+
+詳細: `docs/stdlib/cookbook.md`
+
 ---
 
-## 10. 変更履歴
+## 11. 関連文書
 
 | 日付 | 変更内容 |
 |------|---------|
