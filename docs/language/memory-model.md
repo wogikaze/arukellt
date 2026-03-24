@@ -38,7 +38,7 @@ GC ヒープ上に配置される型。参照として渡される。
 | `struct` | `(ref $struct_type)` |
 | `enum` | `(ref $enum_type)` |
 | `String` | `(ref $string)` |
-| `Vec[T]` | `(ref $vec_T)` |
+| `Vec<T>` | `(ref $vec_T)` |
 | `[T]` (slice) | `(ref $array_T)` + length |
 | closure | `(ref $closure)` |
 
@@ -203,7 +203,7 @@ let s1: String = "hello"
 let s2 = s1  // s1 と s2 は同じオブジェクトを参照
 ```
 
-深いコピーが必要な場合は明示的に `clone()` を呼ぶ（trait 導入後に設計）。
+深いコピーが必要な場合は明示的に `clone(s)` を呼ぶ（v1 で設計）。
 
 ---
 

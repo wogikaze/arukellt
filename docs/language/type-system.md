@@ -92,7 +92,7 @@ let first = arr[0]
 
 ```
 let slice: [i32] = arr.as_slice()
-let len = slice.len()
+let length = len(slice)
 ```
 
 ---
@@ -104,8 +104,7 @@ GC ヒープ上に配置される型。
 | 型 | 説明 |
 |----|------|
 | `String` | 可変長文字列 |
-| `str` | 文字列スライス |
-| `Vec[T]` | 可変長配列 |
+| `Vec<T>` | 可変長配列 |
 | `[T]` | 配列スライス |
 | struct | ユーザー定義構造体 |
 | enum | ユーザー定義列挙型 |
@@ -113,7 +112,7 @@ GC ヒープ上に配置される型。
 ### 参照のコピーセマンティクス
 
 ```
-let s1: String = String::from("hello")
+let s1: String = "hello"
 let s2 = s1  // 参照のコピー（s1 と s2 は同じオブジェクト）
 ```
 
@@ -126,19 +125,19 @@ GC 前提のため、所有権・借用の概念はない。
 ### ジェネリック関数
 
 ```
-fn identity[T](x: T) -> T {
+fn identity<T>(x: T) -> T {
     x
 }
 
 // 使用
 let a = identity(42)         // T = i32（推論）
-let b = identity[String](s)  // 明示指定
+let b = identity<String>(s)  // 明示指定
 ```
 
 ### 制限（v0）
 
 - 型パラメータは 2 個まで
-- ネストしたジェネリクス禁止（`Vec[Vec[T]]`）
+- ネストしたジェネリクス禁止（`Vec<Vec<T>>`）
 - ユーザー定義 generic struct は後回し
 
 ---
@@ -175,27 +174,27 @@ let arr: [i32] = []
 
 ## Option と Result
 
-### Option[T]
+### Option<T>
 
 ```
-enum Option[T] {
+enum Option<T> {
     None,
     Some(T),
 }
 
-let x: Option[i32] = Some(42)
-let y: Option[i32] = None
+let x: Option<i32> = Some(42)
+let y: Option<i32> = None
 ```
 
-### Result[T, E]
+### Result<T, E>
 
 ```
-enum Result[T, E] {
+enum Result<T, E> {
     Ok(T),
     Err(E),
 }
 
-fn divide(a: i64, b: i64) -> Result[i64, String] {
+fn divide(a: i64, b: i64) -> Result<i64, String> {
     if b == 0 {
         Err("division by zero")
     } else {
@@ -224,8 +223,8 @@ struct Point2 { x: f64, y: f64 }
 型引数が同じなら等しい。
 
 ```
-Option[i32] == Option[i32]  // 等しい
-Option[i32] != Option[i64]  // 異なる
+Option<i32> == Option<i32>  // 等しい
+Option<i32> != Option<i64>  // 異なる
 ```
 
 ---

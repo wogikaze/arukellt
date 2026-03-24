@@ -134,6 +134,6 @@ while i < vec.len() {
 
 以下のスコープ変更を反映:
 
-- [ ] `docs/stdlib/README.md`: iter/HashMap を Phase 2 以降に
-- [ ] `docs/language/syntax.md`: for 構文なし
-- [ ] `docs/process/v0-scope.md`: trait なしの明記
+- [x] `docs/stdlib/README.md`: iter/HashMap を Phase 2 以降に
+- [x] `docs/language/syntax.md`: for 構文なし、impl/メソッド構文なし
+- [x] `docs/process/v0-scope.md`: trait なしの明記

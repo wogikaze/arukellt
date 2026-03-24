@@ -1,6 +1,16 @@
 # 構文仕様
 
-ADR-004 により trait なし、for 構文なしの v0 仕様。
+ADR-004 により trait なし、for 構文なし、メソッド構文なしの v0 仕様。
+
+---
+
+## 最小例
+
+```
+fn main() {
+    // 最小のエントリポイント
+}
+```
 
 ---
 
@@ -12,7 +22,7 @@ ADR-004 により trait なし、for 構文なしの v0 仕様。
 fn       struct   enum     let      mut
 if       else     match    while    loop
 break    continue return   pub      import
-as       true     false    self     Self
+as       true     false
 ```
 
 ### v1 以降の予約
@@ -21,6 +31,7 @@ as       true     false    self     Self
 trait    impl     for      in       async
 await    dyn      where    type     const
 unsafe   extern   use      mod      super
+self     Self
 ```
 
 ---
@@ -34,9 +45,8 @@ unsafe   extern   use      mod      super
 import math
 import util.string as ustr
 
-fn main(caps: Capabilities) -> Result[(), AppError] {
+fn main() {
     let result = math.add(1, 2)
-    Ok(())
 }
 ```
 
@@ -73,7 +83,7 @@ fn no_return(x: i32) {
 }
 
 // ジェネリック関数
-fn identity[T](x: T) -> T {
+fn identity<T>(x: T) -> T {
     x
 }
 ```
@@ -86,24 +96,22 @@ struct Point {
     y: f64,
 }
 
-// メソッド
-impl Point {
-    fn new(x: f64, y: f64) -> Point {
-        Point { x: x, y: y }
-    }
-    
-    fn distance(self, other: Point) -> f64 {
-        let dx = self.x - other.x
-        let dy = self.y - other.y
-        (dx * dx + dy * dy).sqrt()
-    }
+// 関連関数（v0 ではモジュールレベル関数として定義）
+fn point_new(x: f64, y: f64) -> Point {
+    Point { x: x, y: y }
+}
+
+fn point_distance(p: Point, other: Point) -> f64 {
+    let dx = p.x - other.x
+    let dy = p.y - other.y
+    sqrt(dx * dx + dy * dy)
 }
 ```
 
 ### 列挙型宣言
 
 ```
-enum Option[T] {
+enum Option<T> {
     None,
     Some(T),
 }
@@ -126,7 +134,7 @@ enum Message {
 3.14        // f64
 true        // bool
 'a'         // char
-"hello"     // str
+"hello"     // String
 ```
 
 ### 変数束縛
@@ -142,32 +150,40 @@ z = z + 1
 
 ```
 let result = foo(1, 2)
-let s = String::from("hello")
-let len = s.len()
+let s = "hello"
+let length = len(s)
 ```
 
-### メソッド呼び出し
+### フィールドアクセス
 
 ```
-let p = Point::new(1.0, 2.0)
-let d = p.distance(Point::new(0.0, 0.0))
+let p = point_new(1.0, 2.0)
+let d = point_distance(p, point_new(0.0, 0.0))
+let px = p.x  // フィールドアクセス
 ```
 
 ### 演算子
 
+v0 では演算子オーバーロードなし。以下は組み込み演算子で、適用可能型が固定されている。
+
 ```
-// 算術
+// 算術（i32, i64, f32, f64）
 a + b    a - b    a * b    a / b    a % b
 
-// 比較
-a == b   a != b   a < b    a <= b   a > b   a >= b
+// 比較: 等値（全プリミティブ型, String）
+a == b   a != b
 
-// 論理
+// 比較: 順序（数値型, char）
+a < b    a <= b   a > b   a >= b
+
+// 論理（bool のみ）
 a && b   a || b   !a
 
-// ビット演算
-a & b    a | b    a ^ b    !a    a << n    a >> n
+// ビット演算（i32, i64 のみ）
+a & b    a | b    a ^ b    ~a    a << n    a >> n
 ```
+
+注: 論理否定は `!a`（bool）、ビット否定は `~a`（整数）で区別する。
 
 ### ブロック式
 
@@ -198,11 +214,16 @@ let result = if x > 0 {
 
 ### match 式
 
+v0 の match は以下のパターンのみサポート:
+- リテラルパターン
+- enum variant パターン
+- ワイルドカード `_`
+- 変数束縛
+
 ```
 match value {
     0 => "zero",
-    1 | 2 => "one or two",
-    n if n < 0 => "negative",
+    1 => "one",
     _ => "other",
 }
 
@@ -211,11 +232,25 @@ match option {
     Some(x) => x,
     None => 0,
 }
+```
 
-// struct のマッチ
+v1 以降のパターン（guard, or-pattern, struct destructuring）:
+```
+// v1: guard
+match x {
+    n if n < 0 => "negative",
+    _ => "non-negative",
+}
+
+// v1: or-pattern
+match x {
+    1 | 2 => "one or two",
+    _ => "other",
+}
+
+// v1: struct destructuring
 match point {
     Point { x: 0, y } => "on y-axis",
-    Point { x, y: 0 } => "on x-axis",
     Point { x, y } => "elsewhere",
 }
 ```
@@ -274,7 +309,7 @@ fn early_return(x: i32) -> i32 {
 ### ? 演算子
 
 ```
-fn fallible() -> Result[i32, Error] {
+fn fallible() -> Result<i32, Error> {
     let x = may_fail()?  // Err なら即 return
     Ok(x + 1)
 }
@@ -283,6 +318,8 @@ fn fallible() -> Result[i32, Error] {
 ---
 
 ## パターン
+
+v0 でサポートするパターン:
 
 ### リテラルパターン
 
@@ -316,14 +353,6 @@ match x {
 let (a, b) = (1, 2)
 ```
 
-### 構造体パターン
-
-```
-match point {
-    Point { x, y } => x + y,
-}
-```
-
 ### enum パターン
 
 ```
@@ -333,13 +362,36 @@ match option {
 }
 ```
 
-### ガード
+---
+
+## v1 以降のパターン
+
+以下のパターンは v1 で追加予定:
+
+### 構造体パターン（v1）
+
+```
+match point {
+    Point { x, y } => x + y,
+}
+```
+
+### ガード（v1）
 
 ```
 match x {
     n if n > 0 => "positive",
     n if n < 0 => "negative",
     _ => "zero",
+}
+```
+
+### or-pattern（v1）
+
+```
+match x {
+    1 | 2 | 3 => "small",
+    _ => "large",
 }
 ```
 
@@ -364,8 +416,37 @@ fn documented_fn() { ... }
 
 ```
 #!/usr/bin/env arukellt run
-fn main(caps: Capabilities) -> Result[(), AppError] {
+fn main() {
     // ...
+}
+```
+
+---
+
+## エントリポイントの形式
+
+### 最小形式
+
+```
+fn main() {
+    // 戻り値なし
+}
+```
+
+### 終了コード付き
+
+```
+fn main() -> i32 {
+    0  // 成功
+}
+```
+
+### Capability 付き（アプリケーション境界）
+
+```
+fn main(caps: Capabilities) -> Result<(), AppError> {
+    // caps を通じて I/O にアクセス
+    Ok(())
 }
 ```
 
