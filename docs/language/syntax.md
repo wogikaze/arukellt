@@ -31,6 +31,9 @@ len, println, print, panic
 sqrt, abs, min, max
 ```
 
+**注**: `Some`, `None`, `Ok`, `Err` は Prelude で裸で使える例外的なコンストラクタ。
+他の enum（`Color::Red` など）は修飾が必要。
+
 その他の機能は明示的な `import` が必要。
 
 ---
@@ -189,7 +192,7 @@ let d = point_distance(p, point_new(0.0, 0.0))
 let px = p.x  // フィールドアクセス
 ```
 
-注: struct/enum/String/Vec は参照型。代入や関数引数渡しは参照のコピー（オブジェクト共有）。
+注: struct/enum/String/Vec/[T] は参照型。代入や関数引数渡しは参照のコピー（オブジェクト共有）。
 
 ```
 let p1 = point_new(1.0, 2.0)
@@ -325,11 +328,13 @@ fn early_return(x: i32) -> i32 {
 ### ? 演算子
 
 ```
-fn fallible() -> Result<i32, Error> {
+fn fallible() -> Result<i32, MyError> {
     let x = may_fail()?  // Err なら即 return
     Ok(x + 1)
 }
 ```
+
+**v0 制約**: エラー型が一致する場合のみ使用可能。自動変換なし。
 
 ---
 
@@ -384,56 +389,15 @@ match option {
 
 ## v1 以降の機能
 
-以下は v1 で追加予定。v0 では使用不可。
+v1 で追加予定の機能は `docs/language/syntax-v1-preview.md` を参照。
 
-### 構造体パターン
-
-```
-match point {
-    Point { x, y } => x + y,
-}
-```
-
-### ガード
-
-```
-match x {
-    n if n > 0 => "positive",
-    n if n < 0 => "negative",
-    _ => "zero",
-}
-```
-
-### or-pattern
-
-```
-match x {
-    1 | 2 | 3 => "small",
-    _ => "large",
-}
-```
-
-### match でのタプルパターン
-
-```
-match pair {
-    (0, y) => y,
-    (x, 0) => x,
-    (x, y) => x + y,
-}
-```
-
-### メソッド構文
-
-```
-impl Point {
-    fn distance(self, other: Point) -> f64 {
-        // ...
-    }
-}
-
-let d = p.distance(other)
-```
+- メソッド構文（`impl`）
+- 構造体パターン
+- ガード
+- or-pattern
+- match でのタプルパターン
+- for ループ
+- 演算子オーバーロード
 
 ---
 

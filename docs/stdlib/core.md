@@ -1,6 +1,7 @@
 # std/core — コアモジュール
 
 ADR-002 により **Wasm GC 前提** で設計する。
+ADR-004 により **v0 ではメソッド構文なし**。組み込み関数として提供。
 
 ---
 
@@ -10,15 +11,12 @@ Wasm GC 前提での低レベル操作。
 
 ```
 // 型のサイズとアライメント（コンパイル時定数）
-fn size_of[T]() -> usize
-fn align_of[T]() -> usize
-
-// 値のコピー（値型は暗黙コピー、参照型は参照コピー）
-// GC 環境では明示的な copy 関数は基本不要
+fn size_of<T>() -> i32
+fn align_of<T>() -> i32
 
 // linear memory 操作（WASI 連携用）
-fn mem_copy(dst: *mut u8, src: *const u8, n: usize)
-fn mem_set(dst: *mut u8, val: u8, n: usize)
+fn mem_copy(dst: i32, src: i32, n: i32)
+fn mem_set(dst: i32, val: i32, n: i32)
 ```
 
 **GC 環境での変更点**:
@@ -30,52 +28,48 @@ fn mem_set(dst: *mut u8, val: u8, n: usize)
 ## core/option
 
 ```
-enum Option[T] {
+enum Option<T> {
     None,
     Some(T),
 }
 
-impl Option[T] {
-    fn is_some(self) -> bool
-    fn is_none(self) -> bool
-    fn unwrap(self) -> T                          // None なら panic
-    fn unwrap_or(self, default: T) -> T
-    fn unwrap_or_else(self, f: fn() -> T) -> T
-    fn map[U](self, f: fn(T) -> U) -> Option[U]
-    fn and_then[U](self, f: fn(T) -> Option[U]) -> Option[U]
-    fn or(self, other: Option[T]) -> Option[T]
-    fn ok_or[E](self, err: E) -> Result[T, E]
-    fn filter(self, f: fn(T) -> bool) -> Option[T]
-}
+// 組み込み関数として提供
+fn is_some<T>(opt: Option<T>) -> bool
+fn is_none<T>(opt: Option<T>) -> bool
+fn unwrap<T>(opt: Option<T>) -> T                      // None なら panic
+fn unwrap_or<T>(opt: Option<T>, default: T) -> T
+fn unwrap_or_else<T>(opt: Option<T>, f: fn() -> T) -> T
+
+// 型特化版（trait なし）
+fn option_i32_map(opt: Option<i32>, f: fn(i32) -> i32) -> Option<i32>
+fn option_i32_and_then(opt: Option<i32>, f: fn(i32) -> Option<i32>) -> Option<i32>
+fn option_i32_filter(opt: Option<i32>, f: fn(i32) -> bool) -> Option<i32>
 ```
 
 **Wasm GC での表現**:
-- `Option[ref T]`: null 許容参照 `(ref null $T)` — None は `ref.null`
-- `Option[i32]` 等: tagged union 構造体
+- `Option<ref T>`: null 許容参照 `(ref null $T)` — None は `ref.null`
+- `Option<i32>` 等: tagged union 構造体
 
 ---
 
 ## core/result
 
 ```
-enum Result[T, E] {
+enum Result<T, E> {
     Ok(T),
     Err(E),
 }
 
-impl Result[T, E] {
-    fn is_ok(self) -> bool
-    fn is_err(self) -> bool
-    fn unwrap(self) -> T                          // Err なら panic
-    fn unwrap_err(self) -> E                      // Ok なら panic
-    fn unwrap_or(self, default: T) -> T
-    fn map[U](self, f: fn(T) -> U) -> Result[U, E]
-    fn map_err[F](self, f: fn(E) -> F) -> Result[T, F]
-    fn and_then[U](self, f: fn(T) -> Result[U, E]) -> Result[U, E]
-    fn or[F](self, other: Result[T, F]) -> Result[T, F]
-    fn ok(self) -> Option[T]
-    fn err(self) -> Option[E]
-}
+// 組み込み関数として提供
+fn is_ok<T, E>(res: Result<T, E>) -> bool
+fn is_err<T, E>(res: Result<T, E>) -> bool
+fn unwrap<T, E>(res: Result<T, E>) -> T                // Err なら panic
+fn unwrap_err<T, E>(res: Result<T, E>) -> E            // Ok なら panic
+fn unwrap_or<T, E>(res: Result<T, E>, default: T) -> T
+
+// 型特化版（trait なし）
+fn result_i32_map(res: Result<i32, E>, f: fn(i32) -> i32) -> Result<i32, E>
+fn result_i32_and_then(res: Result<i32, E>, f: fn(i32) -> Result<i32, E>) -> Result<i32, E>
 ```
 
 ---
@@ -96,20 +90,17 @@ impl Result[T, E] {
 - UTF-8 エンコード
 - **不変（immutable）** — 変更には新しい String を作成
 - GC ヒープ上に配置
-- `str` は String のビュー（実体は同じ参照）
 
-API:
+API（組み込み関数）:
 ```
-fn String::new() -> String
-fn String::from(s: str) -> String
-fn String::len(self) -> usize           // バイト数
-fn String::is_empty(self) -> bool
-fn String::as_str(self) -> str
-fn String::to_bytes(self) -> [u8]       // UTF-8 バイト列
+fn string_new() -> String
+fn len(s: String) -> i32            // バイト数
+fn is_empty(s: String) -> bool
+fn string_to_bytes(s: String) -> [i32]  // UTF-8 バイト列
 
 // 連結（新しい String を返す）
-fn String::concat(self, other: str) -> String
-fn String::push_char(self, c: char) -> String  // 新しい String を返す
+fn concat(a: String, b: String) -> String
+fn string_push_char(s: String, c: char) -> String  // 新しい String を返す
 ```
 
 **v0 での制限**:
@@ -137,19 +128,19 @@ fn String::push_char(self, c: char) -> String  // 新しい String を返す
 - capacity 超過時に配列を grow（古い配列は GC が回収）
 - `[T]`（スライス）はビュー
 
-API:
+API（組み込み関数）:
 ```
-fn Vec[T]::new() -> Vec[T]
-fn Vec[T]::with_capacity(cap: usize) -> Vec[T]
-fn Vec[T]::len(self) -> usize
-fn Vec[T]::is_empty(self) -> bool
-fn Vec[T]::capacity(self) -> usize
-fn Vec[T]::push(self, val: T)                   // in-place 変更
-fn Vec[T]::pop(self) -> Option[T]
-fn Vec[T]::get(self, i: usize) -> Option[T]     // 境界チェックあり
-fn Vec[T]::get_unchecked(self, i: usize) -> T   // 境界チェックなし
-fn Vec[T]::as_slice(self) -> [T]
-fn Vec[T]::clear(self)
+fn vec_new<T>() -> Vec<T>
+fn vec_with_capacity<T>(cap: i32) -> Vec<T>
+fn len<T>(v: Vec<T>) -> i32
+fn is_empty<T>(v: Vec<T>) -> bool
+fn vec_capacity<T>(v: Vec<T>) -> i32
+fn vec_push<T>(v: Vec<T>, val: T)           // in-place 変更
+fn vec_pop<T>(v: Vec<T>) -> Option<T>
+fn vec_get<T>(v: Vec<T>, i: i32) -> Option<T>    // 境界チェックあり
+fn vec_get_unchecked<T>(v: Vec<T>, i: i32) -> T  // 境界チェックなし
+fn as_slice<T>(v: Vec<T>) -> [T]
+fn vec_clear<T>(v: Vec<T>)
 ```
 
 **v0 での制限**:

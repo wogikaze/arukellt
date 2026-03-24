@@ -18,14 +18,15 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 ### v0 で提供するもの
 
 - 基本的な型システム（プリミティブ、struct、enum、tuple）
-- 制限付き generics（Vec[T]、Option[T]、Result[T,E]）
+- 制限付き generics（`Vec<T>`、`Option<T>`、`Result<T, E>`）
 - 高階関数と closure
-- パターンマッチ
+- パターンマッチ（リテラル、enum variant、ワイルドカード、変数束縛）
 - WASI p1 サポート
 
 ### v0 で提供しないもの
 
 - trait / interface
+- impl / メソッド構文
 - iterator / for ループ
 - 演算子オーバーロード
 - マクロ
@@ -76,22 +77,22 @@ let pair: (i32, String) = (42, "hello")
 
 | 型 | 説明 | 制限 |
 |----|------|------|
-| `Vec[T]` | 可変長配列 | T はネスト不可 |
-| `Option[T]` | 省略可能値 | T はネスト不可 |
-| `Result[T, E]` | エラー処理 | T, E はネスト不可 |
+| `Vec<T>` | 可変長配列 | T はネスト不可 |
+| `Option<T>` | 省略可能値 | T はネスト不可 |
+| `Result<T, E>` | エラー処理 | T, E はネスト不可 |
 
 **許可される例**:
 ```
-Vec[i32]
-Vec[String]
-Option[Point]
-Result[i32, String]
+Vec<i32>
+Vec<String>
+Option<Point>
+Result<i32, String>
 ```
 
 **禁止される例**:
 ```
-Vec[Vec[i32]]      // ネスト禁止
-Vec[Option[i32]]   // ネスト禁止
+Vec<Vec<i32>>       // ネスト禁止
+Vec<Option<i32>>    // ネスト禁止
 ```
 
 ### 2.4 関数型
@@ -115,23 +116,23 @@ Wasm GC 提案を使用。手動メモリ管理不要。
 | 型カテゴリ | コピー動作 | 例 |
 |-----------|-----------|-----|
 | 値型 | ビット単位コピー | i32, f64, bool, tuple |
-| 参照型 | 参照コピー（オブジェクト共有） | String, Vec, struct |
+| 参照型 | 参照コピー（オブジェクト共有） | String, Vec, struct, enum, [T] |
 
 ```
 let a: i32 = 42
 let b = a        // 値コピー（独立）
 
-let s1 = String::from("hello")
+let s1 = "hello"
 let s2 = s1      // 参照コピー（同じオブジェクト）
 ```
 
-### 3.3 clone()
+### 3.3 clone
 
-明示的な深いコピーには `clone()` を使用:
+明示的な深いコピーには `clone` 関数を使用:
 
 ```
-let s1 = String::from("hello")
-let s2 = s1.clone()  // 新しいオブジェクト
+let s1 = "hello"
+let s2 = clone(s1)  // 新しいオブジェクト
 ```
 
 ### 3.4 move なし
@@ -157,11 +158,13 @@ fn add(a: i32, b: i32) -> i32 {
 }
 
 fn greet(name: String) {
-    print("Hello, " + name)
+    print(concat("Hello, ", name))
 }
 ```
 
 ### 4.3 構造体
+
+v0 ではメソッド構文なし。モジュールレベル関数として定義:
 
 ```
 struct Point {
@@ -169,34 +172,38 @@ struct Point {
     y: f64,
 }
 
-impl Point {
-    fn new(x: f64, y: f64) -> Point {
-        Point { x, y }
-    }
-    
-    fn distance(self, other: Point) -> f64 {
-        let dx = self.x - other.x
-        let dy = self.y - other.y
-        (dx * dx + dy * dy).sqrt()
-    }
+fn point_new(x: f64, y: f64) -> Point {
+    Point { x: x, y: y }
+}
+
+fn point_distance(p: Point, other: Point) -> f64 {
+    let dx = p.x - other.x
+    let dy = p.y - other.y
+    sqrt(dx * dx + dy * dy)
 }
 ```
 
 ### 4.4 列挙型
 
 ```
-enum Option[T] {
+enum Option<T> {
     Some(T),
     None,
 }
 
-enum Result[T, E] {
+enum Result<T, E> {
     Ok(T),
     Err(E),
 }
 ```
 
 ### 4.5 パターンマッチ
+
+v0 でサポートするパターン:
+- リテラル
+- enum variant
+- ワイルドカード `_`
+- 変数束縛
 
 ```
 match value {
@@ -255,56 +262,57 @@ let add_n = |x| x + n
 
 ### 5.2 String API
 
+v0 ではメソッド構文なし。組み込み関数として提供:
+
 ```
-String::new() -> String
-String::from(s: &str) -> String
-String.len(self) -> i32
-String.is_empty(self) -> bool
-String.push(self, c: char)
-String.concat(self, other: String) -> String
-String.slice(self, start: i32, end: i32) -> String
-String.eq(self, other: String) -> bool
-String.clone(self) -> String
+fn string_new() -> String
+fn len(s: String) -> i32
+fn is_empty(s: String) -> bool
+fn concat(a: String, b: String) -> String
+fn string_slice(s: String, start: i32, end: i32) -> String
+fn clone(s: String) -> String
 ```
+
+String は不変（immutable）。変更には新しい String を作成。
 
 ### 5.3 Vec API
 
 ```
-Vec[T]::new() -> Vec[T]
-Vec[T].len(self) -> i32
-Vec[T].is_empty(self) -> bool
-Vec[T].push(self, val: T)
-Vec[T].pop(self) -> Option[T]
-Vec[T].get(self, idx: i32) -> Option[T]
-Vec[T].set(self, idx: i32, val: T)
-Vec[T].clone(self) -> Vec[T]
+fn vec_new<T>() -> Vec<T>
+fn len<T>(v: Vec<T>) -> i32
+fn is_empty<T>(v: Vec<T>) -> bool
+fn vec_push<T>(v: Vec<T>, val: T)
+fn vec_pop<T>(v: Vec<T>) -> Option<T>
+fn vec_get<T>(v: Vec<T>, idx: i32) -> Option<T>
+fn vec_set<T>(v: Vec<T>, idx: i32, val: T)
+fn clone<T>(v: Vec<T>) -> Vec<T>
 ```
 
 型特化関数（trait がないため）:
 ```
-Vec_i32_map(v: Vec[i32], f: fn(i32) -> i32) -> Vec[i32]
-Vec_i32_filter(v: Vec[i32], f: fn(i32) -> bool) -> Vec[i32]
-Vec_i32_sort(v: Vec[i32])
+fn vec_i32_map(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32>
+fn vec_i32_filter(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32>
+fn vec_i32_sort(v: Vec<i32>)
 ```
 
 ### 5.4 Option API
 
 ```
-Option[T].is_some(self) -> bool
-Option[T].is_none(self) -> bool
-Option[T].unwrap(self) -> T
-Option[T].unwrap_or(self, default: T) -> T
-Option[T].map(self, f: fn(T) -> U) -> Option[U]  // 型ごとに特化
+fn is_some<T>(opt: Option<T>) -> bool
+fn is_none<T>(opt: Option<T>) -> bool
+fn unwrap<T>(opt: Option<T>) -> T
+fn unwrap_or<T>(opt: Option<T>, default: T) -> T
+fn option_map_i32(opt: Option<i32>, f: fn(i32) -> i32) -> Option<i32>
 ```
 
 ### 5.5 Result API
 
 ```
-Result[T,E].is_ok(self) -> bool
-Result[T,E].is_err(self) -> bool
-Result[T,E].unwrap(self) -> T
-Result[T,E].unwrap_err(self) -> E
-Result[T,E].map(self, f: fn(T) -> U) -> Result[U,E]  // 型ごとに特化
+fn is_ok<T, E>(res: Result<T, E>) -> bool
+fn is_err<T, E>(res: Result<T, E>) -> bool
+fn unwrap<T, E>(res: Result<T, E>) -> T
+fn unwrap_err<T, E>(res: Result<T, E>) -> E
+fn result_map_i32(res: Result<i32, E>, f: fn(i32) -> i32) -> Result<i32, E>
 ```
 
 ### 5.6 I/O API
@@ -312,14 +320,14 @@ Result[T,E].map(self, f: fn(T) -> U) -> Result[U,E]  // 型ごとに特化
 Capability-based 設計:
 
 ```
-fn main(caps: Capabilities) {
+fn main(caps: Caps) {
     // stdin/stdout/stderr
-    caps.stdout.write("Hello\n")
-    let line = caps.stdin.read_line()
+    stdout_write(caps, "Hello\n")
+    let line = stdin_read_line(caps)
     
     // ファイルシステム（DirCap + RelPath）
-    let preopened = caps.preopened_dir(".")
-    let content = preopened.read_file(RelPath::from("data.txt"))
+    let dir = preopened_dir(caps, ".")
+    let content = read_file(dir, "data.txt")
 }
 ```
 
@@ -350,7 +358,7 @@ fn main(caps: Capabilities) {
 | bool | i32 (0/1) |
 | char | i32 |
 | String | (ref $string) where $string = (struct (field (ref $array_u8))) |
-| Vec[T] | (ref (array T)) |
+| Vec<T> | (ref (array T)) |
 | struct | (ref (struct ...)) |
 | enum | (ref (struct (field i32) (field (ref $data)))) |
 
@@ -421,7 +429,7 @@ Source (.ark)
 ### 8.2 trait なし
 
 抽象化は型ごとの関数で代替:
-- `Vec_i32_map`, `Vec_String_map` など
+- `vec_i32_map`, `vec_string_map` など
 - v1 で trait 導入後に移行
 
 ### 8.3 GC ⇔ C 境界
@@ -452,3 +460,4 @@ Source (.ark)
 | 日付 | 変更内容 |
 |------|---------|
 | 2025-01-XX | 初版作成 |
+| 2026-03-24 | v0 canonical surface に統一（generics `<T>`、メソッドなし）|

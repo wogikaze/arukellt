@@ -3,16 +3,16 @@
 ## 方針（確定）
 
 - 例外なし
-- Result[T, E] ベース
+- `Result<T, E>` ベース
 - panic は「回復不能なバグ」専用。通常のエラーフローには使わない
-- null なし（Option[T] で代替）
+- null なし（`Option<T>` で代替）
 
 ---
 
 ## Result の基本形
 
 ```
-fn divide(a: f64, b: f64) -> Result[f64, DivideError] {
+fn divide(a: f64, b: f64) -> Result<f64, DivideError> {
     if b == 0.0 {
         Err(DivideError::DivByZero)
     } else {
@@ -28,8 +28,8 @@ fn divide(a: f64, b: f64) -> Result[f64, DivideError] {
 ## ? 演算子（早期リターン）
 
 ```
-fn read_and_parse(dir: DirCap, path: RelPath) -> Result[i64, AppError] {
-    let content = fs.read_file(dir, path)?
+fn read_and_parse(dir: DirCap, path: RelPath) -> Result<i64, AppError> {
+    let content = fs_read_file(dir, path)?
     let n = parse_int(content)?
     Ok(n * 2)
 }
@@ -37,7 +37,7 @@ fn read_and_parse(dir: DirCap, path: RelPath) -> Result[i64, AppError] {
 
 `?` は Err なら即 return Err(...)。
 
-**v0（trait なし）ではエラー型が一致する場合のみ使える。** 型が違えばコンパイルエラー。trait あり版では From[E] で自動変換。
+**v0（trait なし）ではエラー型が一致する場合のみ使える。** 型が違えばコンパイルエラー。trait あり版では `From<E>` で自動変換。
 
 ---
 
@@ -46,11 +46,14 @@ fn read_and_parse(dir: DirCap, path: RelPath) -> Result[i64, AppError] {
 回復不能なバグのみ。通常フローに使うのは禁止。
 
 ```
-fn get(vec: Vec[i32], i: usize) -> i32 {
-    if i >= vec.len() {
+fn get(vec: Vec<i32>, i: i32) -> i32 {
+    if i < 0 {
+        panic("negative index")
+    }
+    if i >= len(vec) {
         panic("index out of bounds")
     }
-    vec.data[i]
+    vec_get(vec, i)
 }
 ```
 
@@ -63,7 +66,7 @@ fn get(vec: Vec[i32], i: usize) -> i32 {
 ```
 enum AppError {
     Parse(ParseError),
-    Io(IOError),
+    Io(IoError),
     NotFound,
 }
 ```
@@ -76,8 +79,8 @@ enum AppError {
 
 | 型 | 使う場面 |
 |----|---------|
-| `Option[T]` | 値がない、が正常状態。「見つからなかった」等 |
-| `Result[T, E]` | 失敗が例外的状態。I/O・パース等 |
+| `Option<T>` | 値がない、が正常状態。「見つからなかった」等 |
+| `Result<T, E>` | 失敗が例外的状態。I/O・パース等 |
 
 ---
 
