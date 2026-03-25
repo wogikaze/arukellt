@@ -46,7 +46,8 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 | arukellt run | ✅ |
 | 複数エラーの一括報告 | ✅ |
 | Wasm バイナリ出力 | ✅ |
-| WASI p1 サポート | ✅ |
+| WASI p1 サポート（AtCoder / wasm32） | ✅ |
+| WASI p2 サポート（Component Model / WIT, wasm-gc） | ✅ |
 
 ---
 
@@ -82,7 +83,6 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 | ツール | 理由 | 予定 |
 |--------|------|------|
 | LLVM バックエンド | Wasm 優先 | v1 |
-| WASI p2 サポート | Component Model 対応が必要 | v1 |
 | LSP サーバー | v0 後に追加 | v1 |
 | インクリメンタルコンパイル | v0 後に追加 | v1 |
 

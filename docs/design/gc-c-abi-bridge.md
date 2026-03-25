@@ -168,7 +168,7 @@ v0 では FFI は WASI import のみ。ユーザー定義 FFI は v1 以降。
 
 ## WASI との関係
 
-WASI p1 は linear memory ベース。GC との変換が必要:
+v0 は WASI p1 / p2 を併用する。WASI p1 は linear memory ベースのため、GC との変換が必要:
 
 ```
 // std/internal/wasi.ark（非公開モジュール — ユーザーコードには見えない）
@@ -204,6 +204,8 @@ fn main(caps: Capabilities) -> Result<(), IOError> {
 ```
 
 この変換は std が内部で行う。ユーザーは `mem.__alloc` / `mem.__free` に一切触れない。
+
+WASI p2（Component Model / WIT）経由の公開面では canonical ABI の lower/lift を使うが、言語の意味論は p1 面と分岐させない。
 
 ---
 

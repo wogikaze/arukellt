@@ -141,6 +141,7 @@ fn main() {
 - **制御構文**: if/else, while, loop, match, ?演算子
 - **高階関数**: closure、関数ポインタ
 - **標準ライブラリ**: mem, option, result, string, vec, fs, clock, random
+- **WASI 公開面**: p1（AtCoder/wasm32）+ p2（Component Model/WIT on wasm-gc）
 
 ### 提供しない機能（v1以降）
 

@@ -8,11 +8,11 @@
 
 ## 文脈
 
-公開 ABI を増やすと保守コストが増大する。以下のリスクがある:
+公開 ABI を無秩序に増やすと保守コストが増大する。以下のリスクがある:
 
-- WIT / native-posix / C ABI の三重化
+- Layer の無制限増加
 - バージョン間の互換性維持が困難
-- 各 ABI でのテストが必要
+- 各公開面でのテストが必要
 
 ---
 
@@ -36,14 +36,12 @@
 
 ### Layer 2: WASM 公開 ABI
 
-- 素の Wasm import / export
-- 数値型は Wasm value type そのまま
-- 複合型は GC heap 上の参照で渡す
-
-将来の拡張:
-- Component Model / WIT は Layer 2 の拡張として扱う
+- v0 では 2 つの公開面を持つ:
+  - **Layer 2A: raw Wasm ABI**（素の import/export）
+  - **Layer 2B: Component Model / WIT ABI**（WASI Preview 2、canonical ABI）
+- どちらも Layer 2 の範囲に含める
 - 独立した Layer 4 にはしない
-- v0 では対応しない
+- raw Wasm 面と WIT 面は同じ言語セマンティクスから生成する
 
 ### Layer 3: native 公開 ABI
 
@@ -60,13 +58,21 @@
    - 「WIT 専用層」「POSIX 専用層」は作らない
    - 必要なら Layer 2 または Layer 3 の拡張として吸収
 
-2. **ABI の独自拡張禁止**
+2. **Layer 2A / 2B の意味論分岐禁止**
+   - raw Wasm 面と WIT 面で言語仕様を分岐させない
+   - 片方のみで成功する API 形は v0 の正規 API にしない
+
+3. **ABI の独自拡張禁止**
    - 標準から外れる呼び出し規約は入れない
    - 他ツールとの相互運用性を維持
 
 ---
 
 ## 型の ABI 表現（WASM 公開 ABI）
+
+Layer 2A / 2B で共有する型意味論:
+- Layer 2A（raw Wasm）は GC 参照や value type を直接使う
+- Layer 2B（WIT）は canonical ABI の lower/lift で同値な値表現に落とす
 
 | arukellt の型 | ABI 表現 |
 |--------------|---------|

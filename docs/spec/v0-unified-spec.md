@@ -23,7 +23,7 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 - 制限付き generics（`Vec[T]`、`Option[T]`、`Result[T, E]`）
 - 高階関数と closure
 - パターンマッチ
-- WASI p1 サポート
+- WASI p1 + p2 サポート（p1: wasm32/AtCoder、p2: Component Model/WIT on wasm-gc）
 - 関数呼び出し構文のみ（メソッド構文なし）
 
 ### v0 で提供しないもの（Non-goals）
@@ -370,13 +370,19 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
 
 ### 6.1 使用する Wasm 機能
 
-**Layer 1（必須）**:
+**Layer 1（必須機能）**:
 - Wasm GC: struct, array, i31ref
 - Multi-value returns
 - Reference types
 - WASI p1
+- Component Model / WIT（WASI p2）
 
-**Layer 2（オプション）**:
+**Layer 2（公開面ルール）**:
+- Layer 2A: raw Wasm ABI
+- Layer 2B: Component Model/WIT ABI
+- 両面で同じ言語意味論を維持
+
+**参考: Optional（v0 使用可能）**:
 - Tail call
 - Exception handling
 
@@ -402,7 +408,7 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
 | Layer | 用途 | 規約 |
 |-------|------|------|
 | 1 | 内部 | 非公開、変更可能 |
-| 2 | Wasm | GC 参照で渡す |
+| 2 | Wasm | raw Wasm ABI + Component Model/WIT ABI の 2 面を併用 |
 | 3 | native | C ABI（値コピー） |
 
 ---
