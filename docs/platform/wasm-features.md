@@ -1,10 +1,20 @@
 # Wasm 機能の 3 層分類
 
-ADR-002 により **Wasm GC 前提** で設計する。
+ADR-002 により **言語セマンティクスは Wasm GC ベース** で設計する。
+コンパイルターゲットは `wasm-gc`（デフォルト）と `wasm32`（AtCoder 等の非GC 環境）の 2 種類。
 
 ---
 
-## 概要
+## コンパイルターゲット概要
+
+| ターゲット | フラグ | 対応ランタイム |
+|-----------|--------|--------------|
+| `wasm-gc` | デフォルト | wasmtime 28.0+ / V8 / SpiderMonkey |
+| `wasm32` | `--target wasm32` | wabt 1.0.34 / iwasm 2.4.1 / 非GC 環境 |
+
+---
+
+## `wasm-gc` ターゲット: 機能層
 
 arukellt が使用する Wasm 機能を 3 層に分類する。
 
@@ -152,9 +162,41 @@ Wasm GC をサポートするランタイム:
 - V8 (Chrome 119+)
 - SpiderMonkey (Firefox 120+)
 
-### 非サポートの扱い
+---
 
-Wasm GC 非対応ランタイムでは arukellt の Wasm は動作しない。フォールバックは提供しない。
+## `wasm32` ターゲット: 使用機能層
+
+AtCoder（wabt 1.0.34 + iwasm 2.4.1）向け。Wasm GC 命令は使用しない。
+
+### Layer 1: wasm32 必須機能
+
+| 機能 | 用途 |
+|------|------|
+| Core Wasm 1.0（i32/i64/f32/f64、制御フロー、ローカル変数） | 基本演算・制御 |
+| Multi-value | tuple / Result の lowering |
+| `memory` / load / store 命令 | arena / RC のヒープ操作 |
+| WASI Preview 1（fd_write / fd_read / proc_exit） | I/O |
+| `funcref` | クロージャ関数ポインタ |
+
+### 使用しない機能（wasm32 では禁止）
+
+| 機能 | 理由 |
+|------|------|
+| `struct` / `array` 型（Wasm GC） | iwasm 非対応 |
+| `ref` / `ref null`（GC 参照） | iwasm 非対応 |
+| `ref.cast` / `ref.test` | iwasm 非対応 |
+
+### GC 型の lowering 方針（wasm32 時）
+
+| wasm-gc 型 | wasm32 での表現 |
+|-----------|----------------|
+| `(ref $struct_T)` | linear memory ポインタ（`i32` オフセット） |
+| `(ref $array_T)` | `(i32 ptr, i32 len)` のペア |
+| `(ref $string)` | `(i32 ptr, i32 byte_len)` のペア |
+| クロージャ | `(i32 fn_ptr, i32 env_ptr)` のペア |
+| `ref null` | `i32` の 0（null pointer） |
+
+メモリ管理は ADR-002 補足決定に従い arena + RC hybrid。
 
 ---
 

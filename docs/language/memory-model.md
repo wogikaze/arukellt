@@ -210,6 +210,124 @@ let s2 = clone(s1)  // s1 の deep copy（完全に別のオブジェクト）
 // s1 を変更しても s2 は影響を受けない
 ```
 
+## wasm32 ターゲット: linear memory lowering モデル
+
+ADR-002 補足決定により `--target wasm32` プロファイルを追加。
+GC セマンティクスを linear memory 上に lowering して出力する。
+
+---
+
+### 基本方針
+
+「arena ベース + escape/共有のみ RC」の hybrid:
+
+| 値の種類 | メモリ管理 |
+|---------|----------|
+| 短命な値・一時オブジェクト | arena |
+| 関数外へ escape する値 | RC に昇格 |
+| 複数箇所から共有される値 | RC に昇格 |
+| クロージャ環境 | RC に昇格 |
+
+---
+
+### arena アロケータ
+
+```
+[arena header]
+┌──────────────────────┐  <- arena_base
+│ next_offset: i32     │
+│ capacity: i32        │
+├──────────────────────┤
+│ object 0             │
+│ object 1             │
+│ ...                  │
+└──────────────────────┘  <- arena_base + capacity
+```
+
+- `arena_alloc(size) -> i32`: bump pointer を進めてアドレスを返す
+- 実行単位ごとに region を確保（典型: main 全体で 1 arena）
+- オプション: 「関数内一時領域 + 昇格領域」の二層構成
+- プログラム終了時に一括解放（解放コード不要）
+
+---
+
+### RC オブジェクトレイアウト
+
+```
+┌──────────────────────┐  <- rc_ptr
+│ ref_count: i32       │  +0
+│ data ...             │  +4
+└──────────────────────┘
+```
+
+- `rc_inc(ptr)` / `rc_dec(ptr)`: 参照カウント操作
+- `rc_dec` がカウント 0 になったとき `free()` を呼ぶ
+- `free()` の実装: `wasm_allocator` モジュール提供（bump alloc は解放なし、RC には linked free list）
+
+---
+
+### 型ごとの lowering
+
+#### struct
+
+```wasm
+;; wasm-gc
+(struct.new $Point (f64.const 1.0) (f64.const 2.0))
+
+;; wasm32 (arena)
+;; arena_alloc(16) -> ptr
+;; f64.store ptr+0, 1.0
+;; f64.store ptr+8, 2.0
+```
+
+#### String（wasm32）
+
+```
+┌──────────┬──────────┐
+│ ptr: i32 │ len: i32 │  <- 8 bytes のヘッダ
+└──────────┴──────────┘
+  ↓
+┌────────────────┐
+│ UTF-8 bytes... │  <- ptr が指す先
+└────────────────┘
+```
+
+#### Vec\<T\>（wasm32）
+
+```
+┌──────────┬──────────┬──────────┐
+│ ptr: i32 │ len: i32 │ cap: i32 │  <- 12 bytes
+└──────────┴──────────┴──────────┘
+```
+
+grow 時は RC alloc で新バッファを確保し旧バッファを解放。
+
+#### クロージャ（wasm32）
+
+```
+┌─────────────┬─────────────┐
+│ fn_ptr: i32 │ env_ptr: i32│  <- 8 bytes、env は RC に昇格
+└─────────────┴─────────────┘
+```
+
+#### Option / Result（wasm32）
+
+| 型 | lowering |
+|----|---------|
+| `Option<i32>` | `(i32 tag, i32 value)` の 2 ワード |
+| `Option<ref T>` | `i32` ポインタ（0 = None） |
+| `Result<T, E>` | `(i32 tag, T ok, E err)` |
+
+---
+
+### 言語設計制約（lowering 不可機能）
+
+| 除外機能 | 理由 |
+|---------|------|
+| finalizer の実行タイミング保証 | arena では解放タイミングが不定 |
+| `Weak<T>` | GC の到達可能性に依存（当面禁止） |
+| 循環参照グラフのユーザー作成 | RC ではリーク |
+
 ---
 
 ## 関連
