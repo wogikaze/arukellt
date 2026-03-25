@@ -2,7 +2,7 @@
 
 > **Last updated**: 2026-03-25
 > **Branch**: `feature/arukellt-v1`
-> **Test results**: 82 unit tests pass, ~61/124 fixture tests pass
+> **Test results**: 81 unit tests pass, 127/135 fixture tests pass (8 skipped — modules not yet wired)
 
 This document is the **single source of truth** for what is actually implemented vs. what is designed/planned in v0. Other docs in this repository describe the *design intent*; this document describes the *current reality*.
 
@@ -35,14 +35,14 @@ This document is the **single source of truth** for what is actually implemented
 | Feature | Stage | Notes |
 |---------|-------|-------|
 | `i32` type | **runnable** | Full arithmetic, comparison, printing |
-| `i64` type | **emitted** | Literals emit `i64.const`; no i64-specific arithmetic helpers |
-| `f32` type | **emitted** | Literals emit `f32.const`; no f32 arithmetic in emitter |
-| `f64` type | **emitted** | Literals emit `f64.const`; no f64_to_string helper |
+| `i64` type | **runnable** | Literals, arithmetic, `i64_to_string` |
+| `f32` type | **emitted** | Literals emit `f32.const`; no f32 arithmetic helpers |
+| `f64` type | **runnable** | Literals, arithmetic, `f64_to_string` |
 | `bool` type | **runnable** | `true`/`false`, `bool_to_string`, `print_bool_ln` |
-| `char` type | **emitted** | Stored as i32; `char_to_string` prints single byte |
-| `String` type | **runnable** | Literal strings, `String_from`, `eq`, `concat` (partial), `println` |
-| Tuples | **typed** | Parser + typechecker handle; lowering emits `Unit` (not implemented) |
-| Arrays | **typed** | Parser + typechecker handle; lowering emits `Unit` |
+| `char` type | **runnable** | Stored as i32; `char_to_string` prints single byte |
+| `String` type | **runnable** | Literals, `String_from`, `eq`, `concat`, `len`, `split`, `join`, `slice`, `starts_with`, `ends_with`, `println` |
+| Tuples | **runnable** | Tuple literals `(a, b)`, destructuring `let (x, y) = ...`, return types |
+| Arrays | **parsed** | Parser + typechecker handle; Wasm emission crashes at runtime |
 
 ## Compound Types
 
@@ -52,10 +52,10 @@ This document is the **single source of truth** for what is actually implemented
 | `struct` field access | **runnable** | `p.x` loads from memory at field offset |
 | `struct` string fields | **runnable** | String field dispatch for `println` works |
 | `enum` (unit variants) | **runnable** | Variants as integer tags; match works |
-| `enum` (tuple variants) | **parsed** | `Some(42)`, `Err(e)` parsed but payload not lowered |
-| `enum` (struct variants) | **parsed** | Parsed but not lowered |
-| `Option<T>` | **parsed** | Type registered; `Some`/`None` in prelude but `Some(val)` needs payload variants |
-| `Result<T, E>` | **parsed** | Type registered; `Ok`/`Err` in prelude but payload variants not lowered |
+| `enum` (tuple variants) | **runnable** | `Some(42)`, `Ok(val)`, `Err(e)` — payload binding works |
+| `enum` (struct variants) | **parsed** | Parsed but `Variant { field: val }` syntax not yet emitted |
+| `Option<T>` | **runnable** | `Some(val)` / `None`; `is_some`, `is_none`, `unwrap`, `unwrap_or`, `option_map` all work |
+| `Result<T, E>` | **runnable** | `Ok(val)` / `Err(e)`; match and `?` operator work |
 
 ## Control Flow
 
@@ -64,14 +64,14 @@ This document is the **single source of truth** for what is actually implemented
 | `if` / `else` | **runnable** | Both statement and expression forms |
 | `while` | **runnable** | With `break` and `continue` |
 | `loop` | **runnable** | Infinite loop with `break` / `continue` |
-| `loop` as expression | **parsed** | Parser emits `Stmt::Loop` only, not `Expr::Loop` |
-| `for` loops | **not implemented** | Deliberately excluded from v0; parser rejects with E0303 |
+| `loop` as expression | **runnable** | `let x = loop { break value }` works |
+| `for` loops | **runnable** | `for i in a..b` (range) and `for x in values(v)` (Vec iteration) |
 | `match` (int literals) | **runnable** | Lowered to nested if-else chains |
 | `match` (bool literals) | **runnable** | |
 | `match` (enum variants) | **runnable** | Unit variants only; payload binding not lowered |
 | `match` (wildcard `_`) | **runnable** | |
 | `match` (binding `name`) | **runnable** | |
-| `match` (tuple patterns) | **parsed** | Not lowered |
+| `match` (tuple patterns) | **runnable** | Tuple destructuring in match arms works |
 | `break` / `continue` | **runnable** | Depth-tracked for nested loops + if blocks |
 | `return` (early) | **runnable** | |
 
@@ -79,13 +79,13 @@ This document is the **single source of truth** for what is actually implemented
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| Basic functions | **runnable** | Up to 2 params (emitter type index limit) |
-| 3+ param functions | **emitted** | Falls back to `()->()` type index — **will crash at runtime** |
+| Basic functions | **runnable** | Arbitrary param count supported |
+| 3+ param functions | **runnable** | Correct type indices generated for all arities |
 | Recursive functions | **runnable** | Fibonacci etc. work |
-| Generic functions | **typed** | No monomorphization; hardcoded type-specific variants only |
-| Closures | **parsed** | `\|x\| x + 1` parsed; not typed, not lowered |
-| Higher-order functions | **parsed** | Function types in signatures; no `call_indirect` |
-| `?` operator | **parsed** | Parsed as `Expr::Try`; not typed, not lowered |
+| Generic functions | **runnable** | Monomorphized; `fn id<T>(x: T) -> T`, multi-param generics (`<A, B>`) work |
+| Closures | **runnable** | `\|x\| expr` lambda syntax works; captures not supported |
+| Higher-order functions | **runnable** | Function references as arguments (e.g. `map_i32_i32(v, double)`) |
+| `?` operator | **runnable** | Early-return on `Err`/`None`; works in functions returning `Result` or `Option` |
 
 ## Operators
 
@@ -103,24 +103,45 @@ This document is the **single source of truth** for what is actually implemented
 |-----|-------|-------|
 | `println` / `print` / `eprintln` | **runnable** | WASI fd_write to stdout/stderr |
 | `i32_to_string` | **runnable** | Wasm helper function |
+| `i64_to_string` | **runnable** | Wasm helper function |
+| `f64_to_string` | **runnable** | Wasm helper function |
 | `bool_to_string` | **runnable** | Wasm helper function |
 | `char_to_string` | **runnable** | Single byte write |
 | `String_from("lit")` | **runnable** | Allocates length-prefixed string |
+| `String_new()` | **runnable** | Creates empty string |
+| `is_empty(s)` | **runnable** | Returns `true` if length is 0 |
+| `len(s)` | **runnable** | String byte length |
 | `eq(a, b)` | **runnable** | String byte comparison |
-| `concat(a, b)` | **designed** | Name resolved; no Wasm implementation |
-| `i64_to_string` / `f64_to_string` | **designed** | Registered in typechecker; no Wasm helpers |
-| `parse_i32` / `parse_i64` / `parse_f64` | **designed** | Registered; no implementation |
-| `Vec_new_i32` / `push` / `pop` / `get` / `set` | **designed** | Names in prelude; no Vec runtime |
-| `len` (Vec) | **designed** | Name resolved; no implementation |
-| `map_i32_i32` / `filter_i32` / `fold_i32_i32` | **designed** | Names in prelude; requires closures |
-| `sort_i32` / `sort_String` | **designed** | Names in prelude; no implementation |
-| `slice` / `split` / `join` | **designed** | Names in prelude; no implementation |
-| `String_new` / `push_char` / `to_lower` / `to_upper` | **designed** | Names in prelude; no implementation |
-| `starts_with` / `ends_with` | **designed** | Names in prelude; no implementation |
-| `unwrap` / `unwrap_or` / `is_some` / `is_none` | **designed** | Names in prelude; requires payload variants |
-| `sqrt` / `abs` / `min` / `max` | **designed** | Names in prelude; no implementation |
-| `clone` | **designed** | Name in prelude; no implementation |
-| `panic` | **designed** | Name in prelude; no implementation |
+| `concat(a, b)` | **runnable** | Concatenates two strings |
+| `slice(s, start, end)` | **runnable** | Returns substring |
+| `split(s, sep)` | **runnable** | Returns `Vec<String>` |
+| `join(v, sep)` | **runnable** | Joins `Vec<String>` with separator |
+| `starts_with(s, prefix)` | **runnable** | Prefix check |
+| `ends_with(s, suffix)` | **runnable** | Suffix check |
+| `push_char(s, c)` | **designed** | Not yet in prelude |
+| `to_lower(s)` / `to_upper(s)` | **designed** | Not yet in prelude |
+| `parse_i32(s)` | **runnable** | Returns `Result<i32, String>`; use `?` or `match` |
+| `parse_i64` / `parse_f64` | **designed** | Registered; no implementation |
+| `Vec_new_i32()` | **runnable** | Creates empty `Vec<i32>` |
+| `push(v, x)` | **runnable** | Appends element |
+| `pop(v)` | **runnable** | Removes and returns last element as `Option<T>` |
+| `get_unchecked(v, i)` | **runnable** | Index without bounds check |
+| `set(v, i, x)` | **runnable** | Sets element at index |
+| `len(v)` | **runnable** | Vec element count |
+| `values(v)` | **runnable** | Iterator over Vec for use in `for x in values(v)` |
+| `map_i32_i32(v, f)` | **runnable** | Maps function over Vec |
+| `filter_i32(v, f)` | **runnable** | Filters Vec by predicate |
+| `fold_i32_i32(v, init, f)` | **runnable** | Folds Vec with accumulator |
+| `sort_i32(v)` | **runnable** | Sorts Vec in-place |
+| `sort_String(v)` | **designed** | Not yet implemented |
+| `is_some(opt)` / `is_none(opt)` | **runnable** | Option predicates |
+| `unwrap(opt)` | **runnable** | Extracts `Some` value (panics on `None` at runtime) |
+| `unwrap_or(opt, default)` | **runnable** | Extracts value or returns default |
+| `option_map(opt, f)` | **runnable** | Maps function over `Option` |
+| `sqrt` / `abs` / `min` / `max` | **designed** | Not yet in prelude |
+| `clone` | **designed** | Not yet in prelude |
+| `panic` | **designed** | Not yet in prelude |
+| String interpolation `f"..."` | **runnable** | `f"text {expr}"` — expressions interpolated at runtime |
 | Capability-based I/O (`fs_read_file`, `fs_write_file`) | **designed** | Not in prelude; not implemented |
 | `io/clock` / `io/random` | **designed** | Not implemented |
 
@@ -159,15 +180,17 @@ This document is the **single source of truth** for what is actually implemented
 | E0201-E0206 | Type errors | **partial** — some checked, some designed |
 | E0301 | Method syntax rejected | **runnable** |
 | E0302 | Nested generics rejected | **runnable** |
-| E0303 | `for` loop rejected | **runnable** |
+| E0303 | `for` loop rejected | **removed** — `for` loops are now implemented |
 | E0304 | Operator overload rejected | **designed** |
 | W0001 | Mutable sharing warning | **designed** |
 
 ## Known Limitations
 
-1. **Function arity**: Emitter only has type indices for 0-2 params. Functions with 3+ params get wrong type index and crash.
-2. **All values are i32**: The emitter treats all values (including f64, i64) as i32 for arithmetic operations.
-3. **No heap deallocation**: Bump allocator never frees memory.
-4. **String data region**: Static strings occupy 256-4095; heap starts at 4096. Programs with >3840 bytes of string literals will overflow.
-5. **No tail-call optimization**: Deep recursion will overflow Wasm stack.
-6. **Silent failures**: Many unsupported features silently emit `i32.const(0)` or `Operand::Unit` instead of producing an error.
+1. **Arrays**: Array literals and indexing parse and type-check but produce a Wasm compile error at runtime — not yet emitted.
+2. **Closures — no captures**: Lambda syntax `|x| expr` works for single-expression bodies, but closures cannot capture variables from the enclosing scope.
+3. **Enum struct variants**: `Variant { field: val }` construction and `Variant { field }` destructuring in `match` are parsed but not emitted.
+4. **No heap deallocation**: Bump allocator never frees memory.
+5. **String data region**: Static strings occupy 256–4095; heap starts at 4096. Programs with >3840 bytes of string literals will overflow.
+6. **No tail-call optimization**: Deep recursion will overflow the Wasm stack.
+7. **Silent failures**: Some unsupported features silently emit `i32.const(0)` or `Operand::Unit` instead of producing an error.
+8. **`f32` not fully integrated**: `f32` literals emit `f32.const`, but no `f32_to_string` or arithmetic helpers exist.
