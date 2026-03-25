@@ -40,6 +40,19 @@ let result = f"Expected {expected}, got {actual}"
 
 concat ネスト `concat(a, concat(b, c))` の完全解消。diagnostics 実装の品質に直結。
 
+**制約（P2 時点）**: `{expr}` に置ける型はコンパイラ組み込み変換が存在するプリミティブ型のみ。
+
+| 型 | 変換 |
+|----|------|
+| `String` | そのまま |
+| `i32`, `i64` | 10 進数表記 |
+| `f32`, `f64` | 小数点表記 |
+| `bool` | `true` / `false` |
+| `char` | 文字そのまま |
+
+カスタム型（struct / enum）を `f"..."` に渡すには P3 の `Display` trait 実装が必要。
+`fmt` モジュール自体も P3 以降（`Display` 依存のため）。
+
 ---
 
 ## P3: trait / iterator
