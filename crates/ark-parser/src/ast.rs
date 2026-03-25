@@ -122,7 +122,7 @@ pub enum Expr {
     Array { elements: Vec<Expr>, span: Span },
     ArrayRepeat { value: Box<Expr>, count: Box<Expr>, span: Span },
     StructInit { name: String, fields: Vec<(String, Expr)>, span: Span },
-    Closure { params: Vec<ClosureParam>, body: Box<Expr>, span: Span },
+    Closure { params: Vec<ClosureParam>, return_type: Option<TypeExpr>, body: Box<Expr>, span: Span },
     Return { value: Option<Box<Expr>>, span: Span },
     Break { value: Option<Box<Expr>>, span: Span },
     Continue { span: Span },

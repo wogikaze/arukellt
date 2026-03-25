@@ -1,0 +1,19 @@
+pub fn println(s: String) {
+    __intrinsic_println(s)
+}
+
+pub fn print(s: String) {
+    __intrinsic_print(s)
+}
+
+pub fn eprintln(s: String) {
+    __intrinsic_eprintln(s)
+}
+
+pub fn String_from(s: String) -> String {
+    __intrinsic_string_from(s)
+}
+
+pub fn eq(a: String, b: String) -> bool {
+    __intrinsic_string_eq(a, b)
+}

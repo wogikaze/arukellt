@@ -171,6 +171,17 @@ pub enum Operand {
         body: Vec<MirStmt>,
         result: Box<Operand>,
     },
+    /// Try expression (`expr?`): unwrap Ok or early-return Err.
+    TryExpr {
+        expr: Box<Operand>,
+    },
+    /// Reference to a named function (for passing as value).
+    FnRef(String),
+    /// Indirect call via function pointer.
+    CallIndirect {
+        callee: Box<Operand>,
+        args: Vec<Operand>,
+    },
 }
 
 /// Binary operations.

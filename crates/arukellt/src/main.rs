@@ -106,8 +106,9 @@ fn compile_file(path: &PathBuf) -> Result<Vec<u8>, String> {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));
     }
 
-    // Name resolution
-    let resolved = ark_resolve::resolve_module(module, &mut sink);
+    // Name resolution + module loading
+    let resolved = ark_resolve::resolve_program_entry(path.as_path(), &mut sink)
+        .unwrap_or_else(|_| ark_resolve::resolve_module(module, &mut sink));
     if sink.has_errors() {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));
     }
@@ -152,8 +153,9 @@ fn check_file(path: &PathBuf) -> Result<(), String> {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));
     }
 
-    // Name resolution
-    let resolved = ark_resolve::resolve_module(module, &mut sink);
+    // Name resolution + module loading
+    let resolved = ark_resolve::resolve_program_entry(path.as_path(), &mut sink)
+        .unwrap_or_else(|_| ark_resolve::resolve_module(module, &mut sink));
     if sink.has_errors() {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));
     }

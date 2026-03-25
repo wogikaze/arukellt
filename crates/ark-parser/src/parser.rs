@@ -862,7 +862,7 @@ impl<'a> Parser<'a> {
                 self.advance();
                 let body = self.parse_expr();
                 let span = start.merge(body.span());
-                Expr::Closure { params: Vec::new(), body: Box::new(body), span }
+                Expr::Closure { params: Vec::new(), return_type: None, body: Box::new(body), span }
             }
             _ => {
                 let sp = self.span();
@@ -1052,12 +1052,18 @@ impl<'a> Parser<'a> {
             if !self.eat(&TokenKind::Comma) { break; }
         }
         self.expect(&TokenKind::Pipe);
+        // Optional return type annotation: -> Type
+        let return_type = if self.eat(&TokenKind::Arrow) {
+            Some(self.parse_type_expr())
+        } else {
+            None
+        };
         let body = if *self.peek() == TokenKind::LBrace {
             Expr::Block(self.parse_block())
         } else {
             self.parse_expr()
         };
         let span = start.merge(body.span());
-        Expr::Closure { params, body: Box::new(body), span }
+        Expr::Closure { params, return_type, body: Box::new(body), span }
     }
 }

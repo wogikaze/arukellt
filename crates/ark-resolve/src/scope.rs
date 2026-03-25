@@ -35,7 +35,7 @@ pub struct Symbol {
 }
 
 /// A lexical scope containing symbol bindings.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Scope {
     pub id: ScopeId,
     pub parent: Option<ScopeId>,
@@ -43,7 +43,7 @@ pub struct Scope {
 }
 
 /// The symbol table managing all scopes and symbols.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SymbolTable {
     scopes: Vec<Scope>,
     symbols: Vec<Symbol>,

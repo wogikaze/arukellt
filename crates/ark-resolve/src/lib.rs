@@ -7,4 +7,4 @@ pub mod scope;
 pub mod resolve;
 
 pub use scope::{Scope, ScopeId, Symbol, SymbolKind, SymbolTable};
-pub use resolve::{resolve_module, ResolvedModule};
+pub use resolve::{resolve_module, resolve_program_entry, ResolvedModule};

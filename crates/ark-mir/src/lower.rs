@@ -97,6 +97,18 @@ pub fn lower_to_mir(
         struct_defs.insert(name, fields);
     }
 
+    // Build fn_return_types map for resolving generic enum payloads in match
+    let mut fn_return_types: HashMap<String, ast::TypeExpr> = HashMap::new();
+    let mut user_fn_names: HashSet<String> = HashSet::new();
+    for item in &module.items {
+        if let ast::Item::FnDef(f) = item {
+            user_fn_names.insert(f.name.clone());
+            if let Some(ret_ty) = &f.return_type {
+                fn_return_types.insert(f.name.clone(), ret_ty.clone());
+            }
+        }
+    }
+
     for item in &module.items {
         if let ast::Item::FnDef(f) = item {
             let fn_id = FnId(next_fn_id);
@@ -109,6 +121,8 @@ pub fn lower_to_mir(
                 variant_to_enum.clone(),
                 bare_variant_tags.clone(),
                 enum_defs.clone(),
+                fn_return_types.clone(),
+                user_fn_names.clone(),
             );
 
             for param in &f.params {
@@ -210,6 +224,13 @@ pub fn lower_to_mir(
             }
 
             mir.functions.push(mir_fn);
+
+            // Collect any synthetic closure functions generated during this function's lowering
+            for mut closure_fn in ctx.pending_closures.drain(..) {
+                let closure_id = FnId(mir.functions.len() as u32);
+                closure_fn.id = closure_id;
+                mir.functions.push(closure_fn);
+            }
         }
     }
 
@@ -246,6 +267,18 @@ struct LowerCtx {
     vec_string_locals: HashSet<u32>,
     /// Local to assign break values to (for loop-as-expression).
     loop_result_local: Option<LocalId>,
+    /// Function name -> return type expression (for resolving generic enum payloads in match).
+    fn_return_types: HashMap<String, ast::TypeExpr>,
+    /// Set of user-defined function names (for function references).
+    user_fn_names: HashSet<String>,
+    /// Closure info: local_id -> (synthetic function name, captured variable names)
+    closure_locals: HashMap<u32, (String, Vec<String>)>,
+    /// Pending synthetic closure functions to add to the module.
+    pending_closures: Vec<MirFunction>,
+    /// Counter for generating unique closure names.
+    closure_counter: u32,
+    /// Synthetic closure function name -> captured variable names (for call-site injection).
+    closure_fn_captures: HashMap<String, Vec<String>>,
 }
 
 impl LowerCtx {
@@ -256,6 +289,8 @@ impl LowerCtx {
         variant_to_enum: HashMap<String, String>,
         bare_variant_tags: HashMap<String, (String, i32, usize)>,
         enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
+        fn_return_types: HashMap<String, ast::TypeExpr>,
+        user_fn_names: HashSet<String>,
     ) -> Self {
         Self {
             locals: Vec::new(),
@@ -274,6 +309,12 @@ impl LowerCtx {
             enum_defs,
             vec_string_locals: HashSet::new(),
             loop_result_local: None,
+            fn_return_types,
+            user_fn_names,
+            closure_locals: HashMap::new(),
+            pending_closures: Vec::new(),
+            closure_counter: 0,
+            closure_fn_captures: HashMap::new(),
         }
     }
 
@@ -318,6 +359,139 @@ impl LowerCtx {
         self.bare_variant_tags.contains_key(name)
     }
 
+    /// Collect free variables in an expression that are not in the given bound set.
+    fn collect_free_vars(&self, expr: &ast::Expr, bound: &HashSet<&str>, out: &mut Vec<String>) {
+        match expr {
+            ast::Expr::Ident { name, .. } => {
+                if !bound.contains(name.as_str()) {
+                    // Check if it's a local in the enclosing scope (not a function or builtin)
+                    if self.lookup_local(name).is_some() && !out.contains(name) {
+                        out.push(name.clone());
+                    }
+                }
+            }
+            ast::Expr::Binary { left, right, .. } => {
+                self.collect_free_vars(left, bound, out);
+                self.collect_free_vars(right, bound, out);
+            }
+            ast::Expr::Unary { operand, .. } => {
+                self.collect_free_vars(operand, bound, out);
+            }
+            ast::Expr::Call { callee, args, .. } => {
+                self.collect_free_vars(callee, bound, out);
+                for a in args { self.collect_free_vars(a, bound, out); }
+            }
+            ast::Expr::If { cond, then_block, else_block, .. } => {
+                self.collect_free_vars(cond, bound, out);
+                for s in &then_block.stmts { self.collect_free_vars_stmt(s, bound, out); }
+                if let Some(t) = &then_block.tail_expr { self.collect_free_vars(t, bound, out); }
+                if let Some(b) = else_block {
+                    for s in &b.stmts { self.collect_free_vars_stmt(s, bound, out); }
+                    if let Some(t) = &b.tail_expr { self.collect_free_vars(t, bound, out); }
+                }
+            }
+            ast::Expr::Block(block) => {
+                for s in &block.stmts { self.collect_free_vars_stmt(s, bound, out); }
+                if let Some(t) = &block.tail_expr { self.collect_free_vars(t, bound, out); }
+            }
+            _ => {}
+        }
+    }
+
+    fn collect_free_vars_stmt(&self, stmt: &ast::Stmt, bound: &HashSet<&str>, out: &mut Vec<String>) {
+        match stmt {
+            ast::Stmt::Let { init, .. } => {
+                self.collect_free_vars(init, bound, out);
+            }
+            ast::Stmt::Expr(e) => {
+                self.collect_free_vars(e, bound, out);
+            }
+            _ => {}
+        }
+    }
+
+    /// Detect which elements of a tuple-returning expression are strings.
+    /// For a call like `pair(42, String_from("hello"))`, returns {1} since arg[1] is String.
+    fn detect_string_tuple_elements(&self, init_expr: &ast::Expr, op: &Operand, _arity: usize) -> HashSet<usize> {
+        let mut result = HashSet::new();
+        // If the init expression is a direct tuple, check each element
+        if let ast::Expr::Tuple { elements, .. } = init_expr {
+            for (i, elem) in elements.iter().enumerate() {
+                if self.is_string_ast_expr(elem) {
+                    result.insert(i);
+                }
+            }
+            return result;
+        }
+        // If the init expression is a call to a generic function, check the arguments
+        if let ast::Expr::Call { callee, args, .. } = init_expr {
+            if let ast::Expr::Ident { name, .. } = callee.as_ref() {
+                // Look up the function's return type
+                if let Some(ret_ty) = self.fn_return_types.get(name) {
+                    // If the return type is a tuple, map args to tuple elements
+                    if let ast::TypeExpr::Tuple(tuple_types, _) = ret_ty {
+                        // Check if the function maps args directly to tuple elements
+                        // (common for pair-like functions)
+                        if tuple_types.len() == args.len() {
+                            for (i, arg) in args.iter().enumerate() {
+                                if self.is_string_ast_expr(arg) {
+                                    result.insert(i);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // If the operand itself is a StructInit (lowered tuple), check fields
+        if let Operand::StructInit { fields, .. } = op {
+            for (i, (_, field_op)) in fields.iter().enumerate() {
+                if self.is_string_operand_mir(field_op) {
+                    result.insert(i);
+                }
+            }
+        }
+        result
+    }
+
+    /// Check if an AST expression produces a String value.
+    fn is_string_ast_expr(&self, expr: &ast::Expr) -> bool {
+        match expr {
+            ast::Expr::StringLit { .. } => true,
+            ast::Expr::Call { callee, .. } => {
+                if let ast::Expr::Ident { name, .. } = callee.as_ref() {
+                    matches!(name.as_str(), "String_from" | "String_new" | "concat" | "slice"
+                        | "join" | "i32_to_string" | "i64_to_string" | "f64_to_string"
+                        | "bool_to_string" | "char_to_string" | "to_lower" | "to_upper")
+                } else {
+                    false
+                }
+            }
+            ast::Expr::Ident { name, .. } => {
+                if let Some(lid) = self.lookup_local(name) {
+                    self.string_locals.contains(&lid.0)
+                } else {
+                    false
+                }
+            }
+            _ => false,
+        }
+    }
+
+    /// Check if a MIR operand represents a String value.
+    fn is_string_operand_mir(&self, op: &Operand) -> bool {
+        match op {
+            Operand::ConstString(_) => true,
+            Operand::Call(name, _) => {
+                matches!(name.as_str(), "String_from" | "String_new" | "concat" | "slice"
+                    | "join" | "i32_to_string" | "i64_to_string" | "f64_to_string"
+                    | "bool_to_string" | "char_to_string" | "to_lower" | "to_upper")
+            }
+            Operand::Place(Place::Local(lid)) => self.string_locals.contains(&lid.0),
+            _ => false,
+        }
+    }
+
     fn lower_block(&mut self, block: &ast::Block) -> Vec<MirStmt> {
         let mut stmts = Vec::new();
         for stmt in &block.stmts {
@@ -343,11 +517,16 @@ impl LowerCtx {
                     let tuple_name = format!("__tuple{}", elements.len());
                     let local_id = self.declare_local(name);
                     let op = self.lower_expr(init);
-                    out.push(MirStmt::Assign(Place::Local(local_id), Rvalue::Use(op)));
+                    out.push(MirStmt::Assign(Place::Local(local_id), Rvalue::Use(op.clone())));
+                    // Detect which tuple elements are strings from the init expression
+                    let string_element_indices = self.detect_string_tuple_elements(init, &op, elements.len());
                     // Destructure each element
                     for (i, elem) in elements.iter().enumerate() {
                         if let ast::Pattern::Ident { name: elem_name, .. } = elem {
                             let elem_id = self.declare_local(elem_name);
+                            if string_element_indices.contains(&i) {
+                                self.string_locals.insert(elem_id.0);
+                            }
                             let access = Operand::FieldAccess {
                                 object: Box::new(Operand::Place(Place::Local(local_id))),
                                 struct_name: tuple_name.clone(),
@@ -418,6 +597,12 @@ impl LowerCtx {
                     }
                 }
                 let op = self.lower_expr(init);
+                // Track closure locals: if the init expression was a closure, record captures
+                if let Operand::FnRef(ref fn_name) = op {
+                    if let Some(caps) = self.closure_fn_captures.get(fn_name).cloned() {
+                        self.closure_locals.insert(local_id.0, (fn_name.clone(), caps));
+                    }
+                }
                 // Promote integer literals to i64 when type annotation is i64
                 let op = if self.i64_locals.contains(&local_id.0) {
                     match op {
@@ -506,11 +691,59 @@ impl LowerCtx {
     /// Lower a match expression used as a statement (result discarded).
     /// Converts to nested if-else chains.
     fn lower_match_stmt(&mut self, scrutinee: &ast::Expr, arms: &[ast::MatchArm], out: &mut Vec<MirStmt>) {
-        let scrut = self.lower_expr(scrutinee);
-        // Build a chain of if-else from the arms
+        let scrut_val = self.lower_expr(scrutinee);
+        // Store complex scrutinees in a temp local to avoid re-evaluation
+        let scrut = match &scrut_val {
+            Operand::Place(_) | Operand::ConstI32(_) | Operand::ConstBool(_) | Operand::ConstString(_) | Operand::Unit => scrut_val,
+            _ => {
+                let tmp = self.declare_local("__match_scrut");
+                out.push(MirStmt::Assign(Place::Local(tmp), Rvalue::Use(scrut_val)));
+                // If scrutinee is a function call, resolve generic enum payload types
+                if let ast::Expr::Call { callee, .. } = scrutinee {
+                    if let ast::Expr::Ident { name: fn_name, .. } = callee.as_ref() {
+                        self.resolve_enum_payload_types_for_local(tmp, fn_name);
+                    }
+                }
+                Operand::Place(Place::Local(tmp))
+            }
+        };
         let stmt = self.build_match_if_chain(&scrut, arms, 0, true);
         if let Some(s) = stmt {
             out.push(s);
+        }
+    }
+
+    /// Resolve generic enum payload types for a local holding a function return value.
+    /// E.g., if fn returns Result<i32, String>, mark the Err variant's payload as String.
+    fn resolve_enum_payload_types_for_local(&mut self, local: LocalId, fn_name: &str) {
+        let ret_ty = if let Some(ty) = self.fn_return_types.get(fn_name) {
+            ty.clone()
+        } else {
+            return;
+        };
+        match &ret_ty {
+            ast::TypeExpr::Generic { name, args, .. } if name == "Result" || name == "Option" => {
+                self.enum_typed_locals.insert(local.0, name.clone());
+                let mut payload_strings = HashSet::new();
+                if name == "Result" && args.len() == 2 {
+                    // Result<T, E>: Ok payload is args[0], Err payload is args[1]
+                    if is_string_type(&args[0]) {
+                        payload_strings.insert(("Ok".to_string(), 0u32));
+                    }
+                    if is_string_type(&args[1]) {
+                        payload_strings.insert(("Err".to_string(), 0u32));
+                    }
+                } else if name == "Option" && args.len() == 1 {
+                    // Option<T>: Some payload is args[0]
+                    if is_string_type(&args[0]) {
+                        payload_strings.insert(("Some".to_string(), 0u32));
+                    }
+                }
+                if !payload_strings.is_empty() {
+                    self.enum_local_payload_strings.insert(local.0, payload_strings);
+                }
+            }
+            _ => {}
         }
     }
 
@@ -622,12 +855,15 @@ impl LowerCtx {
                                     self.string_locals.insert(local_id.0);
                                 }
                             }
-                            // Check if this payload field is f64
+                            // Check if this payload field is f64 or String
                             if let Some(variants) = self.enum_defs.get(path.as_str()) {
                                 if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant) {
                                     if let Some(t) = types.get(i) {
                                         if t == "f64" {
                                             self.f64_locals.insert(local_id.0);
+                                        }
+                                        if t == "String" {
+                                            self.string_locals.insert(local_id.0);
                                         }
                                     }
                                 }
@@ -745,12 +981,15 @@ impl LowerCtx {
                                     self.string_locals.insert(local_id.0);
                                 }
                             }
-                            // Check if this payload field is f64
+                            // Check if this payload field is f64 or String
                             if let Some(variants) = self.enum_defs.get(path.as_str()) {
                                 if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant) {
                                     if let Some(t) = types.get(i) {
                                         if t == "f64" {
                                             self.f64_locals.insert(local_id.0);
+                                        }
+                                        if t == "String" {
+                                            self.string_locals.insert(local_id.0);
                                         }
                                     }
                                 }
@@ -815,6 +1054,8 @@ impl LowerCtx {
                 }
                 if let Some(local_id) = self.lookup_local(name) {
                     Operand::Place(Place::Local(local_id))
+                } else if self.user_fn_names.contains(name) {
+                    Operand::FnRef(name.clone())
                 } else {
                     Operand::Unit
                 }
@@ -923,7 +1164,29 @@ impl LowerCtx {
                         _ => {}
                     }
                     let mir_args: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
-                    Operand::Call(name.clone(), mir_args)
+                    // Check if callee is a local (function pointer parameter) → indirect call
+                    if let Some(local_id) = self.lookup_local(name) {
+                        // Check if this is a closure with captures → direct call with injected args
+                        if let Some((synth_fn, cap_names)) = self.closure_locals.get(&local_id.0).cloned() {
+                            let mut all_args = mir_args;
+                            for cap_name in &cap_names {
+                                if let Some(cap_lid) = self.lookup_local(cap_name) {
+                                    all_args.push(Operand::Place(Place::Local(cap_lid)));
+                                } else {
+                                    all_args.push(Operand::ConstI32(0));
+                                }
+                            }
+                            Operand::Call(synth_fn, all_args)
+                        } else {
+                            let callee_op = self.lower_expr(callee);
+                            Operand::CallIndirect {
+                                callee: Box::new(callee_op),
+                                args: mir_args,
+                            }
+                        }
+                    } else {
+                        Operand::Call(name.clone(), mir_args)
+                    }
                 } else if let ast::Expr::QualifiedIdent { module, name, .. } = callee.as_ref() {
                     // Qualified enum variant constructor: Shape::Circle(5.0)
                     let key = format!("{}::{}", module, name);
@@ -1047,6 +1310,121 @@ impl LowerCtx {
                     struct_name: struct_name.unwrap_or_default(),
                     field: field.clone(),
                 }
+            }
+            ast::Expr::Try { expr, .. } => {
+                let inner = self.lower_expr(expr);
+                Operand::TryExpr { expr: Box::new(inner) }
+            }
+            ast::Expr::Closure { params, body, .. } => {
+                // Lambda-lift: create a synthetic function
+                let synth_name = format!("__closure_{}", self.closure_counter);
+                self.closure_counter += 1;
+
+                // Identify free variables (captured from enclosing scope)
+                let param_names: HashSet<&str> = params.iter().map(|p| p.name.as_str()).collect();
+                let mut captures: Vec<String> = Vec::new();
+                self.collect_free_vars(body, &param_names, &mut captures);
+                captures.dedup();
+
+                // Build params for the synthetic function: closure params first, then captures
+                let mut mir_params: Vec<MirLocal> = Vec::new();
+                let mut param_idx = 0u32;
+                for p in params {
+                    let ty = match &p.ty {
+                        Some(te) if is_string_type(te) => ark_typecheck::types::Type::String,
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "i64" => ark_typecheck::types::Type::I64,
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "f64" => ark_typecheck::types::Type::F64,
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => ark_typecheck::types::Type::Bool,
+                        _ => ark_typecheck::types::Type::I32,
+                    };
+                    mir_params.push(MirLocal { id: LocalId(param_idx), name: Some(p.name.clone()), ty });
+                    param_idx += 1;
+                }
+                for cap in &captures {
+                    let ty = if let Some(lid) = self.lookup_local(cap) {
+                        if self.string_locals.contains(&lid.0) {
+                            ark_typecheck::types::Type::String
+                        } else if self.f64_locals.contains(&lid.0) {
+                            ark_typecheck::types::Type::F64
+                        } else if self.i64_locals.contains(&lid.0) {
+                            ark_typecheck::types::Type::I64
+                        } else {
+                            ark_typecheck::types::Type::I32
+                        }
+                    } else {
+                        ark_typecheck::types::Type::I32
+                    };
+                    mir_params.push(MirLocal { id: LocalId(param_idx), name: Some(cap.clone()), ty });
+                    param_idx += 1;
+                }
+
+                // Lower closure body in a fresh sub-context
+                let mut sub_ctx = LowerCtx::new(
+                    self.enum_tags.clone(),
+                    self.struct_defs.clone(),
+                    self.enum_variants.clone(),
+                    self.variant_to_enum.clone(),
+                    self.bare_variant_tags.clone(),
+                    self.enum_defs.clone(),
+                    self.fn_return_types.clone(),
+                    self.user_fn_names.clone(),
+                );
+                for p in &mir_params {
+                    let lid = sub_ctx.declare_local(p.name.as_deref().unwrap_or("_"));
+                    match &p.ty {
+                        ark_typecheck::types::Type::String => { sub_ctx.string_locals.insert(lid.0); }
+                        ark_typecheck::types::Type::F64 => { sub_ctx.f64_locals.insert(lid.0); }
+                        ark_typecheck::types::Type::I64 => { sub_ctx.i64_locals.insert(lid.0); }
+                        _ => {}
+                    }
+                }
+
+                // Lower body
+                let (body_stmts, tail_op) = match body.as_ref() {
+                    ast::Expr::Block(block) => {
+                        let stmts = sub_ctx.lower_block(block);
+                        let tail = block.tail_expr.as_ref().map(|e| sub_ctx.lower_expr(e));
+                        (stmts, tail)
+                    }
+                    other => {
+                        let op = sub_ctx.lower_expr(other);
+                        (vec![], Some(op))
+                    }
+                };
+
+                let return_ty = ark_typecheck::types::Type::I32;
+                let num_locals = sub_ctx.next_local;
+                let entry = BlockId(0);
+                let mir_fn = MirFunction {
+                    id: FnId(0), // will be reassigned in lower_module
+                    name: synth_name.clone(),
+                    params: mir_params,
+                    return_ty,
+                    locals: (0..num_locals).map(|i| MirLocal {
+                        id: LocalId(i),
+                        name: Some(format!("_l{}", i)),
+                        ty: ark_typecheck::types::Type::I32,
+                    }).collect(),
+                    blocks: vec![BasicBlock {
+                        id: entry,
+                        stmts: body_stmts,
+                        terminator: if let Some(op) = tail_op {
+                            Terminator::Return(Some(op))
+                        } else {
+                            Terminator::Return(None)
+                        },
+                    }],
+                    entry,
+                };
+                self.pending_closures.push(mir_fn);
+                self.user_fn_names.insert(synth_name.clone());
+
+                // Store captures for call-site injection
+                if !captures.is_empty() {
+                    self.closure_fn_captures.insert(synth_name.clone(), captures);
+                }
+
+                Operand::FnRef(synth_name)
             }
             _ => Operand::Unit,
         }

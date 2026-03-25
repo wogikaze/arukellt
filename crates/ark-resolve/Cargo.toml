@@ -6,3 +6,4 @@ edition.workspace = true
 [dependencies]
 ark-parser = { workspace = true }
 ark-diagnostics = { workspace = true }
+ark-lexer = { workspace = true }

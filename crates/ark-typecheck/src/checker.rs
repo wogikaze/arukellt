@@ -154,7 +154,25 @@ impl TypeChecker {
             type_id: res_id,
         });
 
-        // Builtin I/O functions
+        // Builtin I/O intrinsics
+        self.fn_sigs.insert("__intrinsic_println".into(), FnSig {
+            name: "__intrinsic_println".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::Unit,
+        });
+        self.fn_sigs.insert("__intrinsic_print".into(), FnSig {
+            name: "__intrinsic_print".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::Unit,
+        });
+        self.fn_sigs.insert("__intrinsic_eprintln".into(), FnSig {
+            name: "__intrinsic_eprintln".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::Unit,
+        });
         self.fn_sigs.insert("println".into(), FnSig {
             name: "println".into(),
             type_params: vec![],
@@ -193,6 +211,12 @@ impl TypeChecker {
             params: vec![Type::Bool],
             ret: Type::String,
         });
+        self.fn_sigs.insert("__intrinsic_string_from".into(), FnSig {
+            name: "__intrinsic_string_from".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::String,
+        });
         self.fn_sigs.insert("String_from".into(), FnSig {
             name: "String_from".into(),
             type_params: vec![],
@@ -212,6 +236,12 @@ impl TypeChecker {
             ret: Type::String,
         });
         // String equality
+        self.fn_sigs.insert("__intrinsic_string_eq".into(), FnSig {
+            name: "__intrinsic_string_eq".into(),
+            type_params: vec![],
+            params: vec![Type::String, Type::String],
+            ret: Type::Bool,
+        });
         self.fn_sigs.insert("eq".into(), FnSig {
             name: "eq".into(),
             type_params: vec![],
@@ -352,6 +382,31 @@ impl TypeChecker {
             type_params: vec![],
             params: vec![],
             ret: Type::Vec(Box::new(Type::String)),
+        });
+        // Higher-order Vec functions
+        self.fn_sigs.insert("map_i32_i32".into(), FnSig {
+            name: "map_i32_i32".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
+            ret: Type::Vec(Box::new(Type::I32)),
+        });
+        self.fn_sigs.insert("filter_i32".into(), FnSig {
+            name: "filter_i32".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
+            ret: Type::Vec(Box::new(Type::I32)),
+        });
+        self.fn_sigs.insert("fold_i32_i32".into(), FnSig {
+            name: "fold_i32_i32".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32], // vec, init, fn ptr
+            ret: Type::I32,
+        });
+        self.fn_sigs.insert("map_option_i32_i32".into(), FnSig {
+            name: "map_option_i32_i32".into(),
+            type_params: vec![],
+            params: vec![Type::Option(Box::new(Type::I32)), Type::I32], // option, fn ptr
+            ret: Type::Option(Box::new(Type::I32)),
         });
     }
 
@@ -599,6 +654,12 @@ impl TypeChecker {
                 } else if name == "None" || name == "true" || name == "false" {
                     // Known prelude values — don't emit an error
                     Type::I32
+                } else if name.starts_with("Vec_new_") {
+                    // Dynamic Vec constructor for any type (e.g., Vec_new_Point)
+                    Type::Function {
+                        params: vec![],
+                        ret: Box::new(Type::I32),
+                    }
                 } else {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0100)
@@ -977,9 +1038,9 @@ impl TypeChecker {
         }
         // Generic enum types (Option<T>, Result<T,E>) are represented as
         // Option/Result/Enum variants. Constructors produce I32 (pointer).
-        // Be lenient: accept mismatches involving enum/option/result types.
-        if matches!(a, Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_))
-            || matches!(b, Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_))
+        // Structs are also heap pointers (i32). Be lenient for these compound types.
+        if matches!(a, Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_) | Type::Struct(_))
+            || matches!(b, Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_) | Type::Struct(_))
         {
             return true;
         }
