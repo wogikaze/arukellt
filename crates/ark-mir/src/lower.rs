@@ -43,7 +43,10 @@ pub fn lower_to_mir(
             enum_tags.insert(key.clone(), i as i32);
             variant_to_enum.insert(key, enum_name.to_string());
             variants_info.push((vname.to_string(), field_count));
-            bare_variant_tags.insert(vname.to_string(), (enum_name.to_string(), i as i32, field_count));
+            bare_variant_tags.insert(
+                vname.to_string(),
+                (enum_name.to_string(), i as i32, field_count),
+            );
             // Payload types: assume i32 for each field (generic T → i32 at runtime)
             let payload_types: Vec<String> = (0..field_count).map(|_| "i32".to_string()).collect();
             variants_defs.push((vname.to_string(), payload_types));
@@ -60,11 +63,12 @@ pub fn lower_to_mir(
                 let (vname, field_count, payload_types) = match variant {
                     ast::Variant::Unit { name, .. } => (name.clone(), 0, vec![]),
                     ast::Variant::Tuple { name, fields, .. } => {
-                        let types: Vec<String> = fields.iter().map(|f| type_expr_name(f)).collect();
+                        let types: Vec<String> = fields.iter().map(type_expr_name).collect();
                         (name.clone(), fields.len(), types)
                     }
                     ast::Variant::Struct { name, fields, .. } => {
-                        let types: Vec<String> = fields.iter().map(|f| type_expr_name(&f.ty)).collect();
+                        let types: Vec<String> =
+                            fields.iter().map(|f| type_expr_name(&f.ty)).collect();
                         (name.clone(), fields.len(), types)
                     }
                 };
@@ -80,10 +84,14 @@ pub fn lower_to_mir(
             enum_defs.insert(e.name.clone(), variants_defs);
         }
         if let ast::Item::StructDef(s) = item {
-            let fields: Vec<(String, String)> = s.fields.iter().map(|f| {
-                let type_name = type_expr_name(&f.ty);
-                (f.name.clone(), type_name)
-            }).collect();
+            let fields: Vec<(String, String)> = s
+                .fields
+                .iter()
+                .map(|f| {
+                    let type_name = type_expr_name(&f.ty);
+                    (f.name.clone(), type_name)
+                })
+                .collect();
             struct_defs.insert(s.name.clone(), fields);
         }
     }
@@ -154,8 +162,8 @@ pub fn lower_to_mir(
 
             let entry = BlockId(0);
             let mut stmts = ctx.lower_block(&f.body);
-            
-            // Handle tail expression: if it's a void call (println etc.), 
+
+            // Handle tail expression: if it's a void call (println etc.),
             // lower it as a statement. Otherwise, it's the return value.
             let tail_op = if let Some(tail) = &f.body.tail_expr {
                 if is_void_expr(tail) {
@@ -171,42 +179,69 @@ pub fn lower_to_mir(
             let mir_fn = MirFunction {
                 id: fn_id,
                 name: f.name.clone(),
-                params: f.params.iter().enumerate().map(|(i, p)| MirLocal {
-                    id: LocalId(i as u32),
-                    name: Some(p.name.clone()),
-                    ty: match &p.ty {
-                        ty if is_string_type(ty) => ark_typecheck::types::Type::String,
-                        ast::TypeExpr::Named { name, .. } if name == "f64" => ark_typecheck::types::Type::F64,
-                        ast::TypeExpr::Named { name, .. } if name == "f32" => ark_typecheck::types::Type::F32,
-                        ast::TypeExpr::Named { name, .. } if name == "i64" => ark_typecheck::types::Type::I64,
-                        ast::TypeExpr::Named { name, .. } if name == "bool" => ark_typecheck::types::Type::Bool,
-                        _ => ark_typecheck::types::Type::I32,
-                    },
-                }).collect(),
+                params: f
+                    .params
+                    .iter()
+                    .enumerate()
+                    .map(|(i, p)| MirLocal {
+                        id: LocalId(i as u32),
+                        name: Some(p.name.clone()),
+                        ty: match &p.ty {
+                            ty if is_string_type(ty) => ark_typecheck::types::Type::String,
+                            ast::TypeExpr::Named { name, .. } if name == "f64" => {
+                                ark_typecheck::types::Type::F64
+                            }
+                            ast::TypeExpr::Named { name, .. } if name == "f32" => {
+                                ark_typecheck::types::Type::F32
+                            }
+                            ast::TypeExpr::Named { name, .. } if name == "i64" => {
+                                ark_typecheck::types::Type::I64
+                            }
+                            ast::TypeExpr::Named { name, .. } if name == "bool" => {
+                                ark_typecheck::types::Type::Bool
+                            }
+                            _ => ark_typecheck::types::Type::I32,
+                        },
+                    })
+                    .collect(),
                 return_ty: match &f.return_type {
                     Some(ty) if is_string_type(ty) => ark_typecheck::types::Type::String,
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "f64" => ark_typecheck::types::Type::F64,
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "f32" => ark_typecheck::types::Type::F32,
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "i64" => ark_typecheck::types::Type::I64,
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => ark_typecheck::types::Type::Bool,
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "f64" => {
+                        ark_typecheck::types::Type::F64
+                    }
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "f32" => {
+                        ark_typecheck::types::Type::F32
+                    }
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "i64" => {
+                        ark_typecheck::types::Type::I64
+                    }
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => {
+                        ark_typecheck::types::Type::Bool
+                    }
                     Some(_) => ark_typecheck::types::Type::I32,
                     None => ark_typecheck::types::Type::Unit,
                 },
-                locals: ctx.locals.iter().map(|(name, id)| MirLocal {
-                    id: *id,
-                    name: Some(name.clone()),
-                    ty: if ctx.string_locals.contains(&id.0) {
-                        ark_typecheck::types::Type::String
-                    } else if ctx.f64_locals.contains(&id.0) {
-                        ark_typecheck::types::Type::F64
-                    } else if ctx.i64_locals.contains(&id.0) {
-                        ark_typecheck::types::Type::I64
-                    } else if ctx.vec_string_locals.contains(&id.0) {
-                        ark_typecheck::types::Type::Vec(Box::new(ark_typecheck::types::Type::String))
-                    } else {
-                        ark_typecheck::types::Type::I32
-                    },
-                }).collect(),
+                locals: ctx
+                    .locals
+                    .iter()
+                    .map(|(name, id)| MirLocal {
+                        id: *id,
+                        name: Some(name.clone()),
+                        ty: if ctx.string_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::String
+                        } else if ctx.f64_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::F64
+                        } else if ctx.i64_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::I64
+                        } else if ctx.vec_string_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::Vec(Box::new(
+                                ark_typecheck::types::Type::String,
+                            ))
+                        } else {
+                            ark_typecheck::types::Type::I32
+                        },
+                    })
+                    .collect(),
                 blocks: vec![BasicBlock {
                     id: entry,
                     stmts,
@@ -282,6 +317,7 @@ struct LowerCtx {
 }
 
 impl LowerCtx {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         enum_tags: HashMap<String, i32>,
         struct_defs: HashMap<String, Vec<(String, String)>>,
@@ -326,7 +362,11 @@ impl LowerCtx {
     }
 
     fn lookup_local(&self, name: &str) -> Option<LocalId> {
-        self.locals.iter().rev().find(|(n, _)| n == name).map(|(_, id)| *id)
+        self.locals
+            .iter()
+            .rev()
+            .find(|(n, _)| n == name)
+            .map(|(_, id)| *id)
     }
 
     /// Infer the struct type name of an expression (for field access).
@@ -340,7 +380,8 @@ impl LowerCtx {
                 // Chained field access: get parent struct, look up field type
                 let parent_struct = self.infer_struct_type(object)?;
                 let fields = self.struct_defs.get(&parent_struct)?;
-                let field_type = fields.iter()
+                let field_type = fields
+                    .iter()
                     .find(|(fname, _)| fname == field)
                     .map(|(_, ftype)| ftype.clone())?;
                 // The field type is the struct name for the nested struct
@@ -355,6 +396,7 @@ impl LowerCtx {
     }
 
     /// Check if an identifier is a known enum variant constructor.
+    #[allow(dead_code)]
     fn is_enum_variant_call(&self, name: &str) -> bool {
         self.bare_variant_tags.contains_key(name)
     }
@@ -379,26 +421,50 @@ impl LowerCtx {
             }
             ast::Expr::Call { callee, args, .. } => {
                 self.collect_free_vars(callee, bound, out);
-                for a in args { self.collect_free_vars(a, bound, out); }
+                for a in args {
+                    self.collect_free_vars(a, bound, out);
+                }
             }
-            ast::Expr::If { cond, then_block, else_block, .. } => {
+            ast::Expr::If {
+                cond,
+                then_block,
+                else_block,
+                ..
+            } => {
                 self.collect_free_vars(cond, bound, out);
-                for s in &then_block.stmts { self.collect_free_vars_stmt(s, bound, out); }
-                if let Some(t) = &then_block.tail_expr { self.collect_free_vars(t, bound, out); }
+                for s in &then_block.stmts {
+                    self.collect_free_vars_stmt(s, bound, out);
+                }
+                if let Some(t) = &then_block.tail_expr {
+                    self.collect_free_vars(t, bound, out);
+                }
                 if let Some(b) = else_block {
-                    for s in &b.stmts { self.collect_free_vars_stmt(s, bound, out); }
-                    if let Some(t) = &b.tail_expr { self.collect_free_vars(t, bound, out); }
+                    for s in &b.stmts {
+                        self.collect_free_vars_stmt(s, bound, out);
+                    }
+                    if let Some(t) = &b.tail_expr {
+                        self.collect_free_vars(t, bound, out);
+                    }
                 }
             }
             ast::Expr::Block(block) => {
-                for s in &block.stmts { self.collect_free_vars_stmt(s, bound, out); }
-                if let Some(t) = &block.tail_expr { self.collect_free_vars(t, bound, out); }
+                for s in &block.stmts {
+                    self.collect_free_vars_stmt(s, bound, out);
+                }
+                if let Some(t) = &block.tail_expr {
+                    self.collect_free_vars(t, bound, out);
+                }
             }
             _ => {}
         }
     }
 
-    fn collect_free_vars_stmt(&self, stmt: &ast::Stmt, bound: &HashSet<&str>, out: &mut Vec<String>) {
+    fn collect_free_vars_stmt(
+        &self,
+        stmt: &ast::Stmt,
+        bound: &HashSet<&str>,
+        out: &mut Vec<String>,
+    ) {
         match stmt {
             ast::Stmt::Let { init, .. } => {
                 self.collect_free_vars(init, bound, out);
@@ -412,7 +478,12 @@ impl LowerCtx {
 
     /// Detect which elements of a tuple-returning expression are strings.
     /// For a call like `pair(42, String_from("hello"))`, returns {1} since arg[1] is String.
-    fn detect_string_tuple_elements(&self, init_expr: &ast::Expr, op: &Operand, _arity: usize) -> HashSet<usize> {
+    fn detect_string_tuple_elements(
+        &self,
+        init_expr: &ast::Expr,
+        op: &Operand,
+        _arity: usize,
+    ) -> HashSet<usize> {
         let mut result = HashSet::new();
         // If the init expression is a direct tuple, check each element
         if let ast::Expr::Tuple { elements, .. } = init_expr {
@@ -425,6 +496,7 @@ impl LowerCtx {
         }
         // If the init expression is a call to a generic function, check the arguments
         if let ast::Expr::Call { callee, args, .. } = init_expr {
+            #[allow(clippy::collapsible_match)]
             if let ast::Expr::Ident { name, .. } = callee.as_ref() {
                 // Look up the function's return type
                 if let Some(ret_ty) = self.fn_return_types.get(name) {
@@ -460,9 +532,21 @@ impl LowerCtx {
             ast::Expr::StringLit { .. } => true,
             ast::Expr::Call { callee, .. } => {
                 if let ast::Expr::Ident { name, .. } = callee.as_ref() {
-                    matches!(name.as_str(), "String_from" | "String_new" | "concat" | "slice"
-                        | "join" | "i32_to_string" | "i64_to_string" | "f64_to_string"
-                        | "bool_to_string" | "char_to_string" | "to_lower" | "to_upper")
+                    matches!(
+                        name.as_str(),
+                        "String_from"
+                            | "String_new"
+                            | "concat"
+                            | "slice"
+                            | "join"
+                            | "i32_to_string"
+                            | "i64_to_string"
+                            | "f64_to_string"
+                            | "bool_to_string"
+                            | "char_to_string"
+                            | "to_lower"
+                            | "to_upper"
+                    )
                 } else {
                     false
                 }
@@ -483,9 +567,21 @@ impl LowerCtx {
         match op {
             Operand::ConstString(_) => true,
             Operand::Call(name, _) => {
-                matches!(name.as_str(), "String_from" | "String_new" | "concat" | "slice"
-                    | "join" | "i32_to_string" | "i64_to_string" | "f64_to_string"
-                    | "bool_to_string" | "char_to_string" | "to_lower" | "to_upper")
+                matches!(
+                    name.as_str(),
+                    "String_from"
+                        | "String_new"
+                        | "concat"
+                        | "slice"
+                        | "join"
+                        | "i32_to_string"
+                        | "i64_to_string"
+                        | "f64_to_string"
+                        | "bool_to_string"
+                        | "char_to_string"
+                        | "to_lower"
+                        | "to_upper"
+                )
             }
             Operand::Place(Place::Local(lid)) => self.string_locals.contains(&lid.0),
             _ => false,
@@ -511,18 +607,31 @@ impl LowerCtx {
 
     fn lower_stmt(&mut self, stmt: &ast::Stmt, out: &mut Vec<MirStmt>) {
         match stmt {
-            ast::Stmt::Let { name, init, ty, pattern, .. } => {
+            ast::Stmt::Let {
+                name,
+                init,
+                ty,
+                pattern,
+                ..
+            } => {
                 // Handle tuple destructuring: let (a, b) = expr
                 if let Some(ast::Pattern::Tuple { elements, .. }) = pattern {
                     let tuple_name = format!("__tuple{}", elements.len());
                     let local_id = self.declare_local(name);
                     let op = self.lower_expr(init);
-                    out.push(MirStmt::Assign(Place::Local(local_id), Rvalue::Use(op.clone())));
+                    out.push(MirStmt::Assign(
+                        Place::Local(local_id),
+                        Rvalue::Use(op.clone()),
+                    ));
                     // Detect which tuple elements are strings from the init expression
-                    let string_element_indices = self.detect_string_tuple_elements(init, &op, elements.len());
+                    let string_element_indices =
+                        self.detect_string_tuple_elements(init, &op, elements.len());
                     // Destructure each element
                     for (i, elem) in elements.iter().enumerate() {
-                        if let ast::Pattern::Ident { name: elem_name, .. } = elem {
+                        if let ast::Pattern::Ident {
+                            name: elem_name, ..
+                        } = elem
+                        {
                             let elem_id = self.declare_local(elem_name);
                             if string_element_indices.contains(&i) {
                                 self.string_locals.insert(elem_id.0);
@@ -542,6 +651,10 @@ impl LowerCtx {
                     self.lower_expr_stmt(init, out);
                     return;
                 }
+                // Evaluate init BEFORE declaring the local so that shadowed
+                // names (e.g. `let list = prepend(list, 3)`) resolve to the
+                // previous binding.
+                let op = self.lower_expr(init);
                 let local_id = self.declare_local(name);
                 if let Some(type_expr) = ty {
                     if is_string_type(type_expr) {
@@ -566,11 +679,12 @@ impl LowerCtx {
                         }
                     }
                     // Track generic enum types: Option<i32>, Result<i32, String>
-                    if let ast::TypeExpr::Generic { name: tname, args, .. } = type_expr {
-                        if tname == "Vec" {
-                            if args.first().map_or(false, is_string_type) {
-                                self.vec_string_locals.insert(local_id.0);
-                            }
+                    if let ast::TypeExpr::Generic {
+                        name: tname, args, ..
+                    } = type_expr
+                    {
+                        if tname == "Vec" && args.first().is_some_and(is_string_type) {
+                            self.vec_string_locals.insert(local_id.0);
                         }
                         if self.enum_variants.contains_key(tname.as_str()) {
                             self.enum_typed_locals.insert(local_id.0, tname.clone());
@@ -578,29 +692,28 @@ impl LowerCtx {
                             // For Option<T>: Some has payload 0 = T
                             // For Result<T, E>: Ok has payload 0 = T, Err has payload 0 = E
                             let mut payload_strings = HashSet::new();
-                            if tname == "Option" {
-                                if args.first().map_or(false, is_string_type) {
-                                    payload_strings.insert(("Some".to_string(), 0u32));
-                                }
+                            if tname == "Option" && args.first().is_some_and(is_string_type) {
+                                payload_strings.insert(("Some".to_string(), 0u32));
                             } else if tname == "Result" {
-                                if args.first().map_or(false, is_string_type) {
+                                if args.first().is_some_and(is_string_type) {
                                     payload_strings.insert(("Ok".to_string(), 0u32));
                                 }
-                                if args.get(1).map_or(false, is_string_type) {
+                                if args.get(1).is_some_and(is_string_type) {
                                     payload_strings.insert(("Err".to_string(), 0u32));
                                 }
                             }
                             if !payload_strings.is_empty() {
-                                self.enum_local_payload_strings.insert(local_id.0, payload_strings);
+                                self.enum_local_payload_strings
+                                    .insert(local_id.0, payload_strings);
                             }
                         }
                     }
                 }
-                let op = self.lower_expr(init);
                 // Track closure locals: if the init expression was a closure, record captures
                 if let Operand::FnRef(ref fn_name) = op {
                     if let Some(caps) = self.closure_fn_captures.get(fn_name).cloned() {
-                        self.closure_locals.insert(local_id.0, (fn_name.clone(), caps));
+                        self.closure_locals
+                            .insert(local_id.0, (fn_name.clone(), caps));
                     }
                 }
                 // Promote integer literals to i64 when type annotation is i64
@@ -653,10 +766,16 @@ impl LowerCtx {
                     }
                 }
             }
-            ast::Expr::If { cond, then_block, else_block, .. } => {
+            ast::Expr::If {
+                cond,
+                then_block,
+                else_block,
+                ..
+            } => {
                 let c = self.lower_expr(cond);
                 let then_stmts = self.lower_block_all(then_block);
-                let else_stmts = else_block.as_ref()
+                let else_stmts = else_block
+                    .as_ref()
                     .map(|b| self.lower_block_all(b))
                     .unwrap_or_default();
                 out.push(MirStmt::IfStmt {
@@ -681,8 +800,16 @@ impl LowerCtx {
                 let op = value.as_ref().map(|v| self.lower_expr(v));
                 out.push(MirStmt::Return(op));
             }
-            ast::Expr::Match { scrutinee, arms, .. } => {
+            ast::Expr::Match {
+                scrutinee, arms, ..
+            } => {
                 self.lower_match_stmt(scrutinee, arms, out);
+            }
+            ast::Expr::Block(block) => {
+                out.extend(self.lower_block(block));
+                if let Some(tail) = &block.tail_expr {
+                    self.lower_expr_stmt(tail, out);
+                }
             }
             _ => {}
         }
@@ -690,11 +817,20 @@ impl LowerCtx {
 
     /// Lower a match expression used as a statement (result discarded).
     /// Converts to nested if-else chains.
-    fn lower_match_stmt(&mut self, scrutinee: &ast::Expr, arms: &[ast::MatchArm], out: &mut Vec<MirStmt>) {
+    fn lower_match_stmt(
+        &mut self,
+        scrutinee: &ast::Expr,
+        arms: &[ast::MatchArm],
+        out: &mut Vec<MirStmt>,
+    ) {
         let scrut_val = self.lower_expr(scrutinee);
         // Store complex scrutinees in a temp local to avoid re-evaluation
         let scrut = match &scrut_val {
-            Operand::Place(_) | Operand::ConstI32(_) | Operand::ConstBool(_) | Operand::ConstString(_) | Operand::Unit => scrut_val,
+            Operand::Place(_)
+            | Operand::ConstI32(_)
+            | Operand::ConstBool(_)
+            | Operand::ConstString(_)
+            | Operand::Unit => scrut_val,
             _ => {
                 let tmp = self.declare_local("__match_scrut");
                 out.push(MirStmt::Assign(Place::Local(tmp), Rvalue::Use(scrut_val)));
@@ -740,7 +876,8 @@ impl LowerCtx {
                     }
                 }
                 if !payload_strings.is_empty() {
-                    self.enum_local_payload_strings.insert(local.0, payload_strings);
+                    self.enum_local_payload_strings
+                        .insert(local.0, payload_strings);
                 }
             }
             _ => {}
@@ -749,7 +886,14 @@ impl LowerCtx {
 
     /// Build a nested if-else chain from match arms starting at `idx`.
     /// `as_stmt` indicates whether arm bodies should be lowered as statements.
-    fn build_match_if_chain(&mut self, scrut: &Operand, arms: &[ast::MatchArm], idx: usize, as_stmt: bool) -> Option<MirStmt> {
+    #[allow(clippy::only_used_in_recursion)]
+    fn build_match_if_chain(
+        &mut self,
+        scrut: &Operand,
+        arms: &[ast::MatchArm],
+        idx: usize,
+        as_stmt: bool,
+    ) -> Option<MirStmt> {
         if idx >= arms.len() {
             return None;
         }
@@ -778,12 +922,17 @@ impl LowerCtx {
                 );
                 let mut then_body = Vec::new();
                 self.lower_expr_stmt(&arm.body, &mut then_body);
-                let else_body = if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
-                    vec![next]
-                } else {
-                    vec![]
-                };
-                Some(MirStmt::IfStmt { cond, then_body, else_body })
+                let else_body =
+                    if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
+                        vec![next]
+                    } else {
+                        vec![]
+                    };
+                Some(MirStmt::IfStmt {
+                    cond,
+                    then_body,
+                    else_body,
+                })
             }
             ast::Pattern::BoolLit { value, .. } => {
                 let cond = Operand::BinOp(
@@ -793,12 +942,17 @@ impl LowerCtx {
                 );
                 let mut then_body = Vec::new();
                 self.lower_expr_stmt(&arm.body, &mut then_body);
-                let else_body = if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
-                    vec![next]
-                } else {
-                    vec![]
-                };
-                Some(MirStmt::IfStmt { cond, then_body, else_body })
+                let else_body =
+                    if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
+                        vec![next]
+                    } else {
+                        vec![]
+                    };
+                Some(MirStmt::IfStmt {
+                    cond,
+                    then_body,
+                    else_body,
+                })
             }
             ast::Pattern::StringLit { value, .. } => {
                 // String match — for now, treat as literal comparison
@@ -809,19 +963,25 @@ impl LowerCtx {
                 );
                 let mut then_body = Vec::new();
                 self.lower_expr_stmt(&arm.body, &mut then_body);
-                let else_body = if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
-                    vec![next]
-                } else {
-                    vec![]
-                };
-                Some(MirStmt::IfStmt { cond, then_body, else_body })
+                let else_body =
+                    if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
+                        vec![next]
+                    } else {
+                        vec![]
+                    };
+                Some(MirStmt::IfStmt {
+                    cond,
+                    then_body,
+                    else_body,
+                })
             }
             ast::Pattern::Ident { name, .. } => {
                 // Binding pattern — bind the scrutinee to the name
                 let local_id = self.declare_local(name);
-                let mut then_body = vec![
-                    MirStmt::Assign(Place::Local(local_id), Rvalue::Use(scrut.clone()))
-                ];
+                let mut then_body = vec![MirStmt::Assign(
+                    Place::Local(local_id),
+                    Rvalue::Use(scrut.clone()),
+                )];
                 self.lower_expr_stmt(&arm.body, &mut then_body);
                 Some(MirStmt::IfStmt {
                     cond: Operand::ConstBool(true),
@@ -829,7 +989,12 @@ impl LowerCtx {
                     else_body: vec![],
                 })
             }
-            ast::Pattern::Enum { path, variant, fields, .. } => {
+            ast::Pattern::Enum {
+                path,
+                variant,
+                fields,
+                ..
+            } => {
                 let key = format!("{}::{}", path, variant);
                 if let Some(&tag) = self.enum_tags.get(&key) {
                     // Compare tag: enum ptr -> i32.load at offset 0
@@ -857,7 +1022,9 @@ impl LowerCtx {
                             }
                             // Check if this payload field is f64 or String
                             if let Some(variants) = self.enum_defs.get(path.as_str()) {
-                                if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant) {
+                                if let Some((_, types)) =
+                                    variants.iter().find(|(vn, _)| vn == variant)
+                                {
                                     if let Some(t) = types.get(i) {
                                         if t == "f64" {
                                             self.f64_locals.insert(local_id.0);
@@ -881,12 +1048,18 @@ impl LowerCtx {
                         }
                     }
                     self.lower_expr_stmt(&arm.body, &mut then_body);
-                    let else_body = if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
+                    let else_body = if let Some(next) =
+                        self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                    {
                         vec![next]
                     } else {
                         vec![]
                     };
-                    Some(MirStmt::IfStmt { cond, then_body, else_body })
+                    Some(MirStmt::IfStmt {
+                        cond,
+                        then_body,
+                        else_body,
+                    })
                 } else {
                     self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
                 }
@@ -899,7 +1072,12 @@ impl LowerCtx {
     }
 
     /// Build a nested IfExpr from match arms for value-returning match.
-    fn build_match_if_expr(&mut self, scrut: &Operand, arms: &[ast::MatchArm], idx: usize) -> Operand {
+    fn build_match_if_expr(
+        &mut self,
+        scrut: &Operand,
+        arms: &[ast::MatchArm],
+        idx: usize,
+    ) -> Operand {
         if idx >= arms.len() {
             return Operand::Unit;
         }
@@ -916,9 +1094,10 @@ impl LowerCtx {
                 let body_val = self.lower_expr(&arm.body);
                 Operand::IfExpr {
                     cond: Box::new(Operand::ConstBool(true)),
-                    then_body: vec![
-                        MirStmt::Assign(Place::Local(local_id), Rvalue::Use(scrut.clone()))
-                    ],
+                    then_body: vec![MirStmt::Assign(
+                        Place::Local(local_id),
+                        Rvalue::Use(scrut.clone()),
+                    )],
                     then_result: Some(Box::new(body_val)),
                     else_body: vec![],
                     else_result: Some(Box::new(Operand::Unit)),
@@ -956,7 +1135,12 @@ impl LowerCtx {
                     else_result: Some(Box::new(else_result)),
                 }
             }
-            ast::Pattern::Enum { path, variant, fields, .. } => {
+            ast::Pattern::Enum {
+                path,
+                variant,
+                fields,
+                ..
+            } => {
                 let key = format!("{}::{}", path, variant);
                 if let Some(&tag) = self.enum_tags.get(&key) {
                     let cond = Operand::BinOp(
@@ -983,7 +1167,9 @@ impl LowerCtx {
                             }
                             // Check if this payload field is f64 or String
                             if let Some(variants) = self.enum_defs.get(path.as_str()) {
-                                if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant) {
+                                if let Some((_, types)) =
+                                    variants.iter().find(|(vn, _)| vn == variant)
+                                {
                                     if let Some(t) = types.get(i) {
                                         if t == "f64" {
                                             self.f64_locals.insert(local_id.0);
@@ -1060,7 +1246,9 @@ impl LowerCtx {
                     Operand::Unit
                 }
             }
-            ast::Expr::Binary { op, left, right, .. } => {
+            ast::Expr::Binary {
+                op, left, right, ..
+            } => {
                 match op {
                     // Short-circuit: a && b  =>  if a { b } else { false }
                     ast::BinOp::And => {
@@ -1100,8 +1288,11 @@ impl LowerCtx {
             ast::Expr::Call { callee, args, .. } => {
                 if let ast::Expr::Ident { name, .. } = callee.as_ref() {
                     // Check if this is a bare enum variant constructor (e.g., Some(42), Ok(100))
-                    if let Some((enum_name, tag, _field_count)) = self.bare_variant_tags.get(name).cloned() {
-                        let payload: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
+                    if let Some((enum_name, tag, _field_count)) =
+                        self.bare_variant_tags.get(name).cloned()
+                    {
+                        let payload: Vec<Operand> =
+                            args.iter().map(|a| self.lower_expr(a)).collect();
                         return Operand::EnumInit {
                             enum_name,
                             variant: name.clone(),
@@ -1167,7 +1358,9 @@ impl LowerCtx {
                     // Check if callee is a local (function pointer parameter) → indirect call
                     if let Some(local_id) = self.lookup_local(name) {
                         // Check if this is a closure with captures → direct call with injected args
-                        if let Some((synth_fn, cap_names)) = self.closure_locals.get(&local_id.0).cloned() {
+                        if let Some((synth_fn, cap_names)) =
+                            self.closure_locals.get(&local_id.0).cloned()
+                        {
                             let mut all_args = mir_args;
                             for cap_name in &cap_names {
                                 if let Some(cap_lid) = self.lookup_local(cap_name) {
@@ -1191,7 +1384,8 @@ impl LowerCtx {
                     // Qualified enum variant constructor: Shape::Circle(5.0)
                     let key = format!("{}::{}", module, name);
                     if let Some(&tag) = self.enum_tags.get(&key) {
-                        let payload: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
+                        let payload: Vec<Operand> =
+                            args.iter().map(|a| self.lower_expr(a)).collect();
                         return Operand::EnumInit {
                             enum_name: module.clone(),
                             variant: name.clone(),
@@ -1199,19 +1393,29 @@ impl LowerCtx {
                             payload,
                         };
                     }
-                    // Fall through: not an enum variant
+                    // Qualified module function call: module::func(args)
+                    // Loaded modules are flattened into the merged module, so codegen resolves by item name.
                     let mir_args: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
-                    Operand::Call(format!("{}::{}", module, name), mir_args)
+                    Operand::Call(name.clone(), mir_args)
                 } else {
                     Operand::Unit
                 }
             }
-            ast::Expr::If { cond, then_block, else_block, .. } => {
+            ast::Expr::If {
+                cond,
+                then_block,
+                else_block,
+                ..
+            } => {
                 let c = self.lower_expr(cond);
                 let then_stmts = self.lower_block(then_block);
                 let then_tail = then_block.tail_expr.as_ref().map(|e| self.lower_expr(e));
-                let else_stmts = else_block.as_ref().map(|b| self.lower_block(b)).unwrap_or_default();
-                let else_tail = else_block.as_ref()
+                let else_stmts = else_block
+                    .as_ref()
+                    .map(|b| self.lower_block(b))
+                    .unwrap_or_default();
+                let else_tail = else_block
+                    .as_ref()
                     .and_then(|b| b.tail_expr.as_ref().map(|e| self.lower_expr(e)));
                 Operand::IfExpr {
                     cond: Box::new(c),
@@ -1228,7 +1432,9 @@ impl LowerCtx {
                     Operand::Unit
                 }
             }
-            ast::Expr::Match { scrutinee, arms, .. } => {
+            ast::Expr::Match {
+                scrutinee, arms, ..
+            } => {
                 let scrut = self.lower_expr(scrutinee);
                 self.build_match_if_expr(&scrut, arms, 0)
             }
@@ -1245,12 +1451,13 @@ impl LowerCtx {
                 }
                 self.loop_result_local = prev;
                 // Emit as a while(true) loop
-                let mut outer = Vec::new();
-                outer.push(MirStmt::Assign(Place::Local(result_id), Rvalue::Use(Operand::ConstI32(0))));
-                outer.push(MirStmt::WhileStmt {
-                    cond: Operand::ConstBool(true),
-                    body: body_stmts,
-                });
+                let outer = vec![
+                    MirStmt::Assign(Place::Local(result_id), Rvalue::Use(Operand::ConstI32(0))),
+                    MirStmt::WhileStmt {
+                        cond: Operand::ConstBool(true),
+                        body: body_stmts,
+                    },
+                ];
                 // Return the stmts as side effects and the result local as value
                 // We need a way to emit statements before returning an operand.
                 // Use the Block operand approach: lower stmts as a sequence, then return the local
@@ -1265,9 +1472,11 @@ impl LowerCtx {
                 let key = format!("{}::{}", module, name);
                 if let Some(&tag) = self.enum_tags.get(&key) {
                     // Check if this variant has fields
-                    let has_fields = self.enum_variants.get(module.as_str())
+                    let has_fields = self
+                        .enum_variants
+                        .get(module.as_str())
                         .and_then(|vs| vs.iter().find(|(vn, _)| vn == name))
-                        .map_or(false, |(_, fc)| *fc > 0);
+                        .is_some_and(|(_, fc)| *fc > 0);
                     if has_fields {
                         // Variant with payload but called without args — shouldn't happen
                         Operand::ConstI32(tag)
@@ -1292,14 +1501,20 @@ impl LowerCtx {
                     .enumerate()
                     .map(|(i, e)| (i.to_string(), self.lower_expr(e)))
                     .collect();
-                Operand::StructInit { name: tuple_name, fields: lowered_fields }
+                Operand::StructInit {
+                    name: tuple_name,
+                    fields: lowered_fields,
+                }
             }
             ast::Expr::StructInit { name, fields, .. } => {
                 let lowered_fields: Vec<(String, Operand)> = fields
                     .iter()
                     .map(|(fname, fexpr)| (fname.clone(), self.lower_expr(fexpr)))
                     .collect();
-                Operand::StructInit { name: name.clone(), fields: lowered_fields }
+                Operand::StructInit {
+                    name: name.clone(),
+                    fields: lowered_fields,
+                }
             }
             ast::Expr::FieldAccess { object, field, .. } => {
                 // Try to determine the struct type from the object
@@ -1313,7 +1528,9 @@ impl LowerCtx {
             }
             ast::Expr::Try { expr, .. } => {
                 let inner = self.lower_expr(expr);
-                Operand::TryExpr { expr: Box::new(inner) }
+                Operand::TryExpr {
+                    expr: Box::new(inner),
+                }
             }
             ast::Expr::Closure { params, body, .. } => {
                 // Lambda-lift: create a synthetic function
@@ -1332,12 +1549,22 @@ impl LowerCtx {
                 for p in params {
                     let ty = match &p.ty {
                         Some(te) if is_string_type(te) => ark_typecheck::types::Type::String,
-                        Some(ast::TypeExpr::Named { name, .. }) if name == "i64" => ark_typecheck::types::Type::I64,
-                        Some(ast::TypeExpr::Named { name, .. }) if name == "f64" => ark_typecheck::types::Type::F64,
-                        Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => ark_typecheck::types::Type::Bool,
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "i64" => {
+                            ark_typecheck::types::Type::I64
+                        }
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "f64" => {
+                            ark_typecheck::types::Type::F64
+                        }
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => {
+                            ark_typecheck::types::Type::Bool
+                        }
                         _ => ark_typecheck::types::Type::I32,
                     };
-                    mir_params.push(MirLocal { id: LocalId(param_idx), name: Some(p.name.clone()), ty });
+                    mir_params.push(MirLocal {
+                        id: LocalId(param_idx),
+                        name: Some(p.name.clone()),
+                        ty,
+                    });
                     param_idx += 1;
                 }
                 for cap in &captures {
@@ -1354,7 +1581,11 @@ impl LowerCtx {
                     } else {
                         ark_typecheck::types::Type::I32
                     };
-                    mir_params.push(MirLocal { id: LocalId(param_idx), name: Some(cap.clone()), ty });
+                    mir_params.push(MirLocal {
+                        id: LocalId(param_idx),
+                        name: Some(cap.clone()),
+                        ty,
+                    });
                     param_idx += 1;
                 }
 
@@ -1372,9 +1603,15 @@ impl LowerCtx {
                 for p in &mir_params {
                     let lid = sub_ctx.declare_local(p.name.as_deref().unwrap_or("_"));
                     match &p.ty {
-                        ark_typecheck::types::Type::String => { sub_ctx.string_locals.insert(lid.0); }
-                        ark_typecheck::types::Type::F64 => { sub_ctx.f64_locals.insert(lid.0); }
-                        ark_typecheck::types::Type::I64 => { sub_ctx.i64_locals.insert(lid.0); }
+                        ark_typecheck::types::Type::String => {
+                            sub_ctx.string_locals.insert(lid.0);
+                        }
+                        ark_typecheck::types::Type::F64 => {
+                            sub_ctx.f64_locals.insert(lid.0);
+                        }
+                        ark_typecheck::types::Type::I64 => {
+                            sub_ctx.i64_locals.insert(lid.0);
+                        }
                         _ => {}
                     }
                 }
@@ -1400,11 +1637,13 @@ impl LowerCtx {
                     name: synth_name.clone(),
                     params: mir_params,
                     return_ty,
-                    locals: (0..num_locals).map(|i| MirLocal {
-                        id: LocalId(i),
-                        name: Some(format!("_l{}", i)),
-                        ty: ark_typecheck::types::Type::I32,
-                    }).collect(),
+                    locals: (0..num_locals)
+                        .map(|i| MirLocal {
+                            id: LocalId(i),
+                            name: Some(format!("_l{}", i)),
+                            ty: ark_typecheck::types::Type::I32,
+                        })
+                        .collect(),
                     blocks: vec![BasicBlock {
                         id: entry,
                         stmts: body_stmts,
@@ -1421,7 +1660,8 @@ impl LowerCtx {
 
                 // Store captures for call-site injection
                 if !captures.is_empty() {
-                    self.closure_fn_captures.insert(synth_name.clone(), captures);
+                    self.closure_fn_captures
+                        .insert(synth_name.clone(), captures);
                 }
 
                 Operand::FnRef(synth_name)
@@ -1473,15 +1713,17 @@ fn is_void_expr(expr: &ast::Expr) -> bool {
             }
         }
         ast::Expr::Assign { .. } => true,
-        ast::Expr::If { then_block, .. } => {
-            match &then_block.tail_expr {
-                None => true,
-                Some(tail) => is_void_expr(tail),
-            }
-        }
+        ast::Expr::Block(block) => match &block.tail_expr {
+            None => true,
+            Some(tail) => is_void_expr(tail),
+        },
+        ast::Expr::If { then_block, .. } => match &then_block.tail_expr {
+            None => true,
+            Some(tail) => is_void_expr(tail),
+        },
         ast::Expr::Match { arms, .. } => {
             // Match is void if its first arm body is void
-            arms.first().map_or(true, |arm| is_void_expr(&arm.body))
+            arms.first().is_none_or(|arm| is_void_expr(&arm.body))
         }
         _ => false,
     }

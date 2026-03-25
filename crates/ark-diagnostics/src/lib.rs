@@ -14,11 +14,19 @@ pub struct Span {
 
 impl Span {
     pub fn new(file_id: u32, start: u32, end: u32) -> Self {
-        Self { file_id, start, end }
+        Self {
+            file_id,
+            start,
+            end,
+        }
     }
 
     pub fn dummy() -> Self {
-        Self { file_id: 0, start: 0, end: 0 }
+        Self {
+            file_id: 0,
+            start: 0,
+            end: 0,
+        }
     }
 
     pub fn merge(self, other: Span) -> Span {
@@ -191,7 +199,10 @@ impl Diagnostic {
     }
 
     pub fn with_label(mut self, span: Span, msg: impl Into<String>) -> Self {
-        self.labels.push(Label { span, message: msg.into() });
+        self.labels.push(Label {
+            span,
+            message: msg.into(),
+        });
         self
     }
 
@@ -231,7 +242,9 @@ pub struct DiagnosticSink {
 
 impl DiagnosticSink {
     pub fn new() -> Self {
-        Self { diagnostics: Vec::new() }
+        Self {
+            diagnostics: Vec::new(),
+        }
     }
 
     pub fn emit(&mut self, diag: Diagnostic) {
@@ -273,7 +286,11 @@ impl SourceFile {
         let line_starts = std::iter::once(0)
             .chain(source.match_indices('\n').map(|(i, _)| (i + 1) as u32))
             .collect();
-        Self { name, source, line_starts }
+        Self {
+            name,
+            source,
+            line_starts,
+        }
     }
 
     /// Convert byte offset to (line, column), both 1-based.
@@ -297,7 +314,9 @@ impl SourceFile {
             .get(idx + 1)
             .map(|&e| e as usize)
             .unwrap_or(self.source.len());
-        self.source[start..end].trim_end_matches('\n').trim_end_matches('\r')
+        self.source[start..end]
+            .trim_end_matches('\n')
+            .trim_end_matches('\r')
     }
 }
 
@@ -332,12 +351,11 @@ pub fn render_diagnostics(diagnostics: &[Diagnostic], source_map: &SourceMap) ->
             let file = source_map.get_file(label.span.file_id);
             let (line, col) = file.offset_to_line_col(label.span.start);
             out.push_str(&format!("  --> {}:{}:{}\n", file.name, line, col));
-            out.push_str(&format!("   |\n"));
+            out.push_str("   |\n");
             let line_text = file.line_text(line);
             out.push_str(&format!("{:>3} | {}\n", line, line_text));
             let underline_start = (col - 1) as usize;
-            let underline_len =
-                (label.span.end - label.span.start).max(1) as usize;
+            let underline_len = (label.span.end - label.span.start).max(1) as usize;
             out.push_str(&format!(
                 "   | {}{} {}\n",
                 " ".repeat(underline_start),
@@ -350,7 +368,7 @@ pub fn render_diagnostics(diagnostics: &[Diagnostic], source_map: &SourceMap) ->
             let file = source_map.get_file(fix_it.span.file_id);
             let (line, _col) = file.offset_to_line_col(fix_it.span.start);
             out.push_str(&format!("help: {}\n", fix_it.message));
-            out.push_str(&format!("   |\n"));
+            out.push_str("   |\n");
             out.push_str(&format!("{:>3} | {}\n", line, fix_it.replacement));
         }
 

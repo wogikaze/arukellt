@@ -7,20 +7,19 @@ use ark_diagnostics::DiagnosticSink;
 use ark_mir::mir::*;
 use std::collections::HashSet;
 use wasm_encoder::{
-    CodeSection, DataSection, ExportKind, ExportSection, Function,
-    FunctionSection, ImportSection, Instruction, MemArg, MemorySection, MemoryType,
-    Module, TypeSection, ValType,
+    CodeSection, DataSection, ExportKind, ExportSection, Function, FunctionSection, ImportSection,
+    Instruction, MemArg, MemorySection, MemoryType, Module, TypeSection, ValType,
 };
 
 const IOV_BASE: u32 = 0;
 const NWRITTEN: u32 = 8;
-const SCRATCH: u32 = 16;  // temp for i32_to_string length
-const I32BUF: u32 = 48;   // buffer for i32_to_string output (20 bytes max)
+const SCRATCH: u32 = 16; // temp for i32_to_string length
+const I32BUF: u32 = 48; // buffer for i32_to_string output (20 bytes max)
 const STRUCT_BASE: u32 = 96; // scratch area for struct init base pointers (8 slots × 4 bytes = 96..128)
 const ENUM_BASE: u32 = 128; // scratch area for enum init base pointers (8 slots × 4 bytes = 128..160)
 const BOOL_TRUE: u32 = 80; // "true" (4 bytes)
 const BOOL_FALSE: u32 = 84; // "false" (5 bytes)
-const NEWLINE: u32 = 89;   // "\n" (1 byte)
+const NEWLINE: u32 = 89; // "\n" (1 byte)
 const DATA_START: u32 = 256;
 
 // Function indices:
@@ -50,7 +49,8 @@ const FN_USER_BASE: u32 = 13;
 
 pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
     // Build struct layouts and string field tracking
-    let mut struct_layouts: std::collections::HashMap<String, Vec<(String, String)>> = std::collections::HashMap::new();
+    let mut struct_layouts: std::collections::HashMap<String, Vec<(String, String)>> =
+        std::collections::HashMap::new();
     let mut struct_string_fields = HashSet::new();
     for (sname, fields) in &mir.struct_defs {
         for (fname, ftype) in fields {
@@ -71,7 +71,9 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         vec_string_locals: HashSet::new(),
         f64_locals: HashSet::new(),
         i64_locals: HashSet::new(),
-        fn_return_types: mir.functions.iter()
+        fn_return_types: mir
+            .functions
+            .iter()
             .map(|f| (f.name.clone(), f.return_ty.clone()))
             .collect(),
         struct_layouts,
@@ -153,7 +155,10 @@ impl EmitCtx {
     /// Total size of a struct in bytes
     fn struct_total_size(&self, struct_name: &str) -> u32 {
         if let Some(fields) = self.struct_layouts.get(struct_name) {
-            fields.iter().map(|(_, ftype)| Self::field_type_info(ftype).0).sum()
+            fields
+                .iter()
+                .map(|(_, ftype)| Self::field_type_info(ftype).0)
+                .sum()
         } else {
             0
         }
@@ -161,7 +166,12 @@ impl EmitCtx {
 
     /// Get payload offset and type info for an enum variant field
     /// Returns (offset_from_tag, is_f64) for a given field index
-    fn enum_payload_info(&self, enum_name: &str, variant_name: &str, field_index: usize) -> (u32, bool) {
+    fn enum_payload_info(
+        &self,
+        enum_name: &str,
+        variant_name: &str,
+        field_index: usize,
+    ) -> (u32, bool) {
         if let Some(variants) = self.enum_payload_types.get(enum_name) {
             if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant_name) {
                 let mut offset = 4u32; // skip tag
@@ -190,7 +200,12 @@ impl EmitCtx {
     }
 
     /// Register a function type signature and return its type index.
-    fn register_type(&mut self, types: &mut TypeSection, params: Vec<ValType>, results: Vec<ValType>) -> u32 {
+    fn register_type(
+        &mut self,
+        types: &mut TypeSection,
+        params: Vec<ValType>,
+        results: Vec<ValType>,
+    ) -> u32 {
         let key = (params.clone(), results.clone());
         if let Some(&idx) = self.type_registry.get(&key) {
             return idx;
@@ -224,7 +239,8 @@ impl EmitCtx {
         let len = bytes.len() as u32;
         let offset = self.data_offset;
         // Write length as 4 bytes (little-endian)
-        self.string_literals.push((offset, len.to_le_bytes().to_vec()));
+        self.string_literals
+            .push((offset, len.to_le_bytes().to_vec()));
         // Write data
         self.string_literals.push((offset + 4, bytes.to_vec()));
         self.data_offset += 4 + len;
@@ -232,7 +248,10 @@ impl EmitCtx {
     }
 
     fn resolve_fn(&self, name: &str) -> Option<u32> {
-        self.fn_names.iter().position(|n| n == name).map(|i| FN_USER_BASE + i as u32)
+        self.fn_names
+            .iter()
+            .position(|n| n == name)
+            .map(|i| FN_USER_BASE + i as u32)
     }
 
     fn emit_module(&mut self, mir: &MirModule) -> Vec<u8> {
@@ -245,23 +264,33 @@ impl EmitCtx {
         let ty_void_void = self.register_type(&mut types, vec![], vec![]);
         let _ty_void_i32 = self.register_type(&mut types, vec![], vec![ValType::I32]);
         let ty_i32_void = self.register_type(&mut types, vec![ValType::I32], vec![]);
-        let ty_i32_i32_i32 = self.register_type(&mut types, vec![ValType::I32, ValType::I32], vec![ValType::I32]);
+        let ty_i32_i32_i32 = self.register_type(
+            &mut types,
+            vec![ValType::I32, ValType::I32],
+            vec![ValType::I32],
+        );
         let _ty_i32_i32 = self.register_type(&mut types, vec![ValType::I32], vec![ValType::I32]);
         // Register f64-related types
         let ty_f64_i32 = self.register_type(&mut types, vec![ValType::F64], vec![ValType::I32]);
         // Register i64-related types
         let ty_i64_i32 = self.register_type(&mut types, vec![ValType::I64], vec![ValType::I32]);
         // Register HOF helper types
-        let ty_i32x3_i32 = self.register_type(&mut types, vec![ValType::I32; 3], vec![ValType::I32]);
+        let ty_i32x3_i32 =
+            self.register_type(&mut types, vec![ValType::I32; 3], vec![ValType::I32]);
         // Pre-register user function types
         let mut user_func_type_indices = Vec::new();
         for func in &mir.functions {
-            let params: Vec<ValType> = func.params.iter().map(|p| Self::type_to_valtype(&p.ty)).collect();
-            let results: Vec<ValType> = if matches!(func.return_ty, ark_typecheck::types::Type::Unit) {
-                vec![]
-            } else {
-                vec![Self::type_to_valtype(&func.return_ty)]
-            };
+            let params: Vec<ValType> = func
+                .params
+                .iter()
+                .map(|p| Self::type_to_valtype(&p.ty))
+                .collect();
+            let results: Vec<ValType> =
+                if matches!(func.return_ty, ark_typecheck::types::Type::Unit) {
+                    vec![]
+                } else {
+                    vec![Self::type_to_valtype(&func.return_ty)]
+                };
             let idx = self.register_type(&mut types, params, results);
             user_func_type_indices.push(idx);
         }
@@ -269,23 +298,26 @@ impl EmitCtx {
 
         // Import section
         let mut imports = ImportSection::new();
-        imports.import("wasi_snapshot_preview1", "fd_write",
-            wasm_encoder::EntityType::Function(ty_fd_write));
+        imports.import(
+            "wasi_snapshot_preview1",
+            "fd_write",
+            wasm_encoder::EntityType::Function(ty_fd_write),
+        );
         module.section(&imports);
 
         // Function section (declare types for helpers + user funcs)
         let mut functions = FunctionSection::new();
-        functions.function(ty_i32_void);    // __i32_to_string: (i32)->()
-        functions.function(ty_i32_void);    // __print_i32_ln: (i32)->()
-        functions.function(ty_i32_void);    // __print_bool_ln: (i32)->()
-        functions.function(ty_i32_void);    // __print_str_ln: (i32)->()
+        functions.function(ty_i32_void); // __i32_to_string: (i32)->()
+        functions.function(ty_i32_void); // __print_i32_ln: (i32)->()
+        functions.function(ty_i32_void); // __print_bool_ln: (i32)->()
+        functions.function(ty_i32_void); // __print_str_ln: (i32)->()
         functions.function(ty_i32_i32_i32); // __str_eq: (i32,i32)->i32
         functions.function(ty_i32_i32_i32); // __concat: (i32,i32)->i32
-        functions.function(ty_f64_i32);     // __f64_to_str: (f64)->i32
-        functions.function(ty_i64_i32);     // __i64_to_str: (i64)->i32
+        functions.function(ty_f64_i32); // __f64_to_str: (f64)->i32
+        functions.function(ty_i64_i32); // __i64_to_str: (i64)->i32
         functions.function(ty_i32_i32_i32); // __map_i32: (vec,fn)->vec
         functions.function(ty_i32_i32_i32); // __filter_i32: (vec,fn)->vec
-        functions.function(ty_i32x3_i32);   // __fold_i32: (vec,init,fn)->i32
+        functions.function(ty_i32x3_i32); // __fold_i32: (vec,init,fn)->i32
         functions.function(ty_i32_i32_i32); // __map_opt_i32: (opt,fn)->opt
         let mut needs_start_wrapper = false;
         for (i, func) in mir.functions.iter().enumerate() {
@@ -304,7 +336,8 @@ impl EmitCtx {
         module.section(&functions);
 
         // Table section — for indirect calls (higher-order functions)
-        let total_funcs = 1 + 12 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
+        let total_funcs =
+            1 + 12 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
         let mut tables = wasm_encoder::TableSection::new();
         tables.table(wasm_encoder::TableType {
             element_type: wasm_encoder::RefType::FUNCREF,
@@ -318,7 +351,11 @@ impl EmitCtx {
         // Memory section
         let mut memory = MemorySection::new();
         memory.memory(MemoryType {
-            minimum: 1, maximum: None, memory64: false, shared: false, page_size_log2: None,
+            minimum: 1,
+            maximum: None,
+            memory64: false,
+            shared: false,
+            page_size_log2: None,
         });
         module.section(&memory);
 
@@ -326,7 +363,11 @@ impl EmitCtx {
         // Heap starts at 4096 (after static data region 256-4095)
         let mut globals = wasm_encoder::GlobalSection::new();
         globals.global(
-            wasm_encoder::GlobalType { val_type: ValType::I32, mutable: true, shared: false },
+            wasm_encoder::GlobalType {
+                val_type: ValType::I32,
+                mutable: true,
+                shared: false,
+            },
             &wasm_encoder::ConstExpr::i32_const(4096),
         );
         module.section(&globals);
@@ -375,8 +416,12 @@ impl EmitCtx {
         }
         if needs_start_wrapper {
             // _start wrapper: call main, drop result
-            let main_idx = mir.functions.iter().position(|f| f.name == "main")
-                .map(|i| FN_USER_BASE + i as u32).unwrap();
+            let main_idx = mir
+                .functions
+                .iter()
+                .position(|f| f.name == "main")
+                .map(|i| FN_USER_BASE + i as u32)
+                .unwrap();
             let mut wrapper = Function::new(vec![]);
             wrapper.instruction(&Instruction::Call(main_idx));
             wrapper.instruction(&Instruction::Drop);
@@ -388,18 +433,30 @@ impl EmitCtx {
         // Data section — include static bool strings
         let mut data = DataSection::new();
         // "true" at BOOL_TRUE (80)
-        data.active(0, &wasm_encoder::ConstExpr::i32_const(BOOL_TRUE as i32),
-            b"true".iter().copied());
+        data.active(
+            0,
+            &wasm_encoder::ConstExpr::i32_const(BOOL_TRUE as i32),
+            b"true".iter().copied(),
+        );
         // "false" at BOOL_FALSE (84)
-        data.active(0, &wasm_encoder::ConstExpr::i32_const(BOOL_FALSE as i32),
-            b"false".iter().copied());
+        data.active(
+            0,
+            &wasm_encoder::ConstExpr::i32_const(BOOL_FALSE as i32),
+            b"false".iter().copied(),
+        );
         // "\n" at NEWLINE (89)
-        data.active(0, &wasm_encoder::ConstExpr::i32_const(NEWLINE as i32),
-            b"\n".iter().copied());
+        data.active(
+            0,
+            &wasm_encoder::ConstExpr::i32_const(NEWLINE as i32),
+            b"\n".iter().copied(),
+        );
 
         for (offset, bytes) in &self.string_literals {
-            data.active(0, &wasm_encoder::ConstExpr::i32_const(*offset as i32),
-                bytes.iter().copied());
+            data.active(
+                0,
+                &wasm_encoder::ConstExpr::i32_const(*offset as i32),
+                bytes.iter().copied(),
+            );
         }
         module.section(&data);
 
@@ -409,8 +466,16 @@ impl EmitCtx {
     /// __i32_to_string(value: i32) -> void
     /// Writes decimal string to I32BUF, stores offset at SCRATCH, length at SCRATCH+4
     fn build_i32_to_string(&self) -> Function {
-        let ma = MemArg { offset: 0, align: 0, memory_index: 0 };
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         let buf_end = I32BUF + 20; // write digits right-to-left
         // Locals: 0=value(param), 1=is_neg, 2=pos, 3=abs_val
         let mut f = Function::new(vec![(3, ValType::I32)]);
@@ -516,7 +581,11 @@ impl EmitCtx {
     /// __print_i32_ln(value: i32) -> void
     /// Prints value as decimal string + newline to stdout
     fn build_print_i32_ln(&self) -> Function {
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         let mut f = Function::new(vec![]);
 
         // Call __i32_to_string(value)
@@ -552,7 +621,11 @@ impl EmitCtx {
     /// __print_bool_ln(value: i32) -> void
     /// Prints "true\n" or "false\n" to stdout
     fn build_print_bool_ln(&self) -> Function {
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         // Locals: 0=value(param), 1=ptr, 2=len
         let mut f = Function::new(vec![(2, ValType::I32)]);
 
@@ -600,7 +673,11 @@ impl EmitCtx {
     /// ptr points to string data; length is at (ptr - 4) as i32.
     /// Prints the string + newline to stdout.
     fn build_print_str_ln(&self) -> Function {
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         let mut f = Function::new(vec![]);
 
         // iov.base = ptr
@@ -633,7 +710,11 @@ impl EmitCtx {
 
     /// Emit fd_write for a static data segment at known offset/length.
     fn emit_static_print(&self, f: &mut Function, offset: u32, len: u32) {
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(offset as i32));
         f.instruction(&Instruction::I32Store(ma2));
@@ -652,8 +733,16 @@ impl EmitCtx {
     /// Compares two length-prefixed strings for equality.
     /// Length is at ptr-4, data at ptr.
     fn build_str_eq(&self) -> Function {
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
-        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
         // params: 0=ptr1, 1=ptr2; locals: 2=len1, 3=len2, 4=i
         let mut f = Function::new(vec![(3, ValType::I32)]);
 
@@ -730,8 +819,16 @@ impl EmitCtx {
     /// __concat(ptr1: i32, ptr2: i32) -> i32 (pointer to new length-prefixed string)
     /// Allocates new string = len1 + len2, copies data from both, returns data pointer.
     fn build_concat(&self) -> Function {
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
-        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
         // params: 0=ptr1, 1=ptr2; locals: 2=len1, 3=len2, 4=total_len, 5=dst, 6=i
         let mut f = Function::new(vec![(5, ValType::I32)]);
 
@@ -846,8 +943,16 @@ impl EmitCtx {
     /// Locals: 0=value(f64 param), 1=is_neg(i32), 2=int_part(i32), 3=frac_digits(i32),
     ///         4=pos(i32), 5=digit(i32), 6=len(i32), 7=dst(i32)
     fn build_f64_to_string(&self) -> Function {
-        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         let buf = I32BUF;
         // Locals: 7 i32 locals
         let mut f = Function::new(vec![(7, ValType::I32)]);
@@ -1160,8 +1265,16 @@ impl EmitCtx {
     /// Locals: 0=value(i64 param), 1=is_neg(i32), 2=pos(i32), 3=digit_count(i32),
     ///         4=digit(i32), 5=dst(i32), 6=len(i32)
     fn build_i64_to_string(&self) -> Function {
-        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         let buf = I32BUF;
         let buf_end = buf + 22; // max 20 digits for i64 + sign
         let mut f = Function::new(vec![(6, ValType::I32)]);
@@ -1316,7 +1429,11 @@ impl EmitCtx {
     /// __map_i32(vec_ptr: i32, fn_idx: i32) -> i32 (new vec ptr)
     /// Allocates a new Vec, iterates src, applies fn via call_indirect, pushes result.
     fn build_map_i32(&self) -> Function {
-        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         // params: 0=vec_ptr, 1=fn_idx
         // locals: 2=i, 3=n, 4=src_data, 5=new_vec, 6=new_data
         let mut f = Function::new(vec![(5, ValType::I32)]);
@@ -1388,8 +1505,12 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Load(ma)); // src_data[i]
         f.instruction(&Instruction::LocalGet(1)); // fn table index
-        let ty_i32_i32 = self.lookup_or_register_indirect_type(vec![ValType::I32], vec![ValType::I32]);
-        f.instruction(&Instruction::CallIndirect { type_index: ty_i32_i32, table_index: 0 });
+        let ty_i32_i32 =
+            self.lookup_or_register_indirect_type(vec![ValType::I32], vec![ValType::I32]);
+        f.instruction(&Instruction::CallIndirect {
+            type_index: ty_i32_i32,
+            table_index: 0,
+        });
         f.instruction(&Instruction::I32Store(ma)); // store result
         // i++
         f.instruction(&Instruction::LocalGet(2));
@@ -1407,7 +1528,11 @@ impl EmitCtx {
 
     /// __filter_i32(vec_ptr: i32, fn_idx: i32) -> i32 (new vec ptr)
     fn build_filter_i32(&self) -> Function {
-        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         // params: 0=vec_ptr, 1=fn_idx
         // locals: 2=i, 3=n, 4=src_data, 5=new_vec, 6=new_data, 7=new_len
         let mut f = Function::new(vec![(6, ValType::I32)]);
@@ -1482,8 +1607,12 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Load(ma)); // val again for fn call
         f.instruction(&Instruction::LocalGet(1)); // fn table index
-        let ty_i32_i32 = self.lookup_or_register_indirect_type(vec![ValType::I32], vec![ValType::I32]);
-        f.instruction(&Instruction::CallIndirect { type_index: ty_i32_i32, table_index: 0 });
+        let ty_i32_i32 =
+            self.lookup_or_register_indirect_type(vec![ValType::I32], vec![ValType::I32]);
+        f.instruction(&Instruction::CallIndirect {
+            type_index: ty_i32_i32,
+            table_index: 0,
+        });
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
         // new_data[new_len] = val (val is on stack from earlier load)
         f.instruction(&Instruction::LocalGet(6));
@@ -1527,7 +1656,11 @@ impl EmitCtx {
 
     /// __fold_i32(vec_ptr: i32, init: i32, fn_idx: i32) -> i32
     fn build_fold_i32(&self) -> Function {
-        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         // params: 0=vec_ptr, 1=init, 2=fn_idx
         // locals: 3=i, 4=n, 5=src_data, 6=acc
         let mut f = Function::new(vec![(4, ValType::I32)]);
@@ -1563,8 +1696,12 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Load(ma)); // src_data[i]
         f.instruction(&Instruction::LocalGet(2)); // fn table index
-        let ty_i32x2_i32 = self.lookup_or_register_indirect_type(vec![ValType::I32; 2], vec![ValType::I32]);
-        f.instruction(&Instruction::CallIndirect { type_index: ty_i32x2_i32, table_index: 0 });
+        let ty_i32x2_i32 =
+            self.lookup_or_register_indirect_type(vec![ValType::I32; 2], vec![ValType::I32]);
+        f.instruction(&Instruction::CallIndirect {
+            type_index: ty_i32x2_i32,
+            table_index: 0,
+        });
         f.instruction(&Instruction::LocalSet(6));
         // i++
         f.instruction(&Instruction::LocalGet(3));
@@ -1583,7 +1720,11 @@ impl EmitCtx {
     /// __map_option_i32(opt_ptr: i32, fn_idx: i32) -> i32 (new option ptr)
     /// Option layout: [tag: i32, payload: i32] — tag 0 = Some, tag 1 = None
     fn build_map_option_i32(&self) -> Function {
-        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         // params: 0=opt_ptr, 1=fn_idx
         // locals: 2=new_opt
         let mut f = Function::new(vec![(1, ValType::I32)]);
@@ -1616,8 +1757,12 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Load(ma)); // payload
         f.instruction(&Instruction::LocalGet(1)); // fn table index
-        let ty_i32_i32 = self.lookup_or_register_indirect_type(vec![ValType::I32], vec![ValType::I32]);
-        f.instruction(&Instruction::CallIndirect { type_index: ty_i32_i32, table_index: 0 });
+        let ty_i32_i32 =
+            self.lookup_or_register_indirect_type(vec![ValType::I32], vec![ValType::I32]);
+        f.instruction(&Instruction::CallIndirect {
+            type_index: ty_i32_i32,
+            table_index: 0,
+        });
         f.instruction(&Instruction::I32Store(ma));
         f.instruction(&Instruction::End);
         // return new_opt
@@ -1647,9 +1792,15 @@ impl EmitCtx {
         self.i64_locals.clear();
         for local in &func.locals {
             match &local.ty {
-                ark_typecheck::types::Type::String => { self.string_locals.insert(local.id.0); }
-                ark_typecheck::types::Type::F64 => { self.f64_locals.insert(local.id.0); }
-                ark_typecheck::types::Type::I64 => { self.i64_locals.insert(local.id.0); }
+                ark_typecheck::types::Type::String => {
+                    self.string_locals.insert(local.id.0);
+                }
+                ark_typecheck::types::Type::F64 => {
+                    self.f64_locals.insert(local.id.0);
+                }
+                ark_typecheck::types::Type::I64 => {
+                    self.i64_locals.insert(local.id.0);
+                }
                 ark_typecheck::types::Type::Vec(inner) => {
                     if matches!(inner.as_ref(), ark_typecheck::types::Type::String) {
                         self.vec_string_locals.insert(local.id.0);
@@ -1684,7 +1835,11 @@ impl EmitCtx {
                         self.string_locals.insert(id.0);
                     }
                 }
-                MirStmt::IfStmt { then_body, else_body, .. } => {
+                MirStmt::IfStmt {
+                    then_body,
+                    else_body,
+                    ..
+                } => {
                     self.scan_string_locals(then_body);
                     self.scan_string_locals(else_body);
                 }
@@ -1700,7 +1855,18 @@ impl EmitCtx {
         match op {
             Operand::ConstString(_) => true,
             Operand::Call(name, args) => {
-                if matches!(name.as_str(), "String_from" | "__intrinsic_string_from" | "concat" | "i32_to_string" | "f64_to_string" | "i64_to_string" | "bool_to_string" | "join" | "slice") {
+                if matches!(
+                    name.as_str(),
+                    "String_from"
+                        | "__intrinsic_string_from"
+                        | "concat"
+                        | "i32_to_string"
+                        | "f64_to_string"
+                        | "i64_to_string"
+                        | "bool_to_string"
+                        | "join"
+                        | "slice"
+                ) {
                     return true;
                 }
                 // get/get_unchecked on Vec<String> returns String
@@ -1712,33 +1878,68 @@ impl EmitCtx {
                     }
                 }
                 // Check if function returns String
-                if self.fn_return_types.get(name.as_str())
-                    .map_or(false, |t| matches!(t, ark_typecheck::types::Type::String)) {
+                if self
+                    .fn_return_types
+                    .get(name.as_str())
+                    .is_some_and(|t| matches!(t, ark_typecheck::types::Type::String))
+                {
                     return true;
                 }
                 // Heuristic: if any arg is a string, generic function might return string
                 // Exclude functions known to NOT return String
-                if matches!(name.as_str(), "split" | "push" | "set" | "len" | "is_empty"
-                    | "starts_with" | "ends_with" | "eq" | "println" | "print" | "eprintln"
-                    | "Vec_new_String" | "Vec_new_i32" | "sort_i32" | "parse_i32"
-                    | "map_i32_i32" | "filter_i32" | "fold_i32_i32" | "map_option_i32_i32")
-                    || name.starts_with("Vec_new_") {
+                if matches!(
+                    name.as_str(),
+                    "split"
+                        | "push"
+                        | "set"
+                        | "len"
+                        | "is_empty"
+                        | "starts_with"
+                        | "ends_with"
+                        | "eq"
+                        | "println"
+                        | "print"
+                        | "eprintln"
+                        | "Vec_new_String"
+                        | "Vec_new_i32"
+                        | "sort_i32"
+                        | "parse_i32"
+                        | "map_i32_i32"
+                        | "filter_i32"
+                        | "fold_i32_i32"
+                        | "map_option_i32_i32"
+                ) || name.starts_with("Vec_new_")
+                {
                     return false;
                 }
                 args.iter().any(|a| self.is_string_operand(a))
             }
-            Operand::IfExpr { then_result, else_result, .. } => {
-                let t = then_result.as_ref().map_or(false, |r| self.is_string_operand(r));
-                let e = else_result.as_ref().map_or(false, |r| self.is_string_operand(r));
+            Operand::IfExpr {
+                then_result,
+                else_result,
+                ..
+            } => {
+                let t = then_result
+                    .as_ref()
+                    .is_some_and(|r| self.is_string_operand(r));
+                let e = else_result
+                    .as_ref()
+                    .is_some_and(|r| self.is_string_operand(r));
                 t || e
             }
-            Operand::FieldAccess { struct_name, field, .. } => {
-                self.struct_string_fields.contains(&(struct_name.clone(), field.clone()))
-            }
-            Operand::Place(Place::Local(id)) => {
-                self.string_locals.contains(&id.0)
-            }
-            Operand::EnumPayload { object, enum_name, variant_name, index, .. } => {
+            Operand::FieldAccess {
+                struct_name, field, ..
+            } => self
+                .struct_string_fields
+                .contains(&(struct_name.clone(), field.clone())),
+            Operand::Place(Place::Local(id)) => self.string_locals.contains(&id.0),
+            Operand::EnumPayload {
+                object,
+                enum_name,
+                variant_name,
+                index,
+                ..
+            } => {
                 // Check if this payload field is a String type
                 if let Some(variants) = self.enum_payload_types.get(enum_name.as_str()) {
                     if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant_name) {
@@ -1822,8 +2023,10 @@ impl EmitCtx {
                         }
                         if let Some(idx) = self.resolve_fn(other) {
                             f.instruction(&Instruction::Call(idx));
-                            let returns_value = self.fn_return_types.get(other)
-                                .map_or(false, |t| !matches!(t, ark_typecheck::types::Type::Unit));
+                            let returns_value = self
+                                .fn_return_types
+                                .get(other)
+                                .is_some_and(|t| !matches!(t, ark_typecheck::types::Type::Unit));
                             if returns_value {
                                 f.instruction(&Instruction::Drop);
                             }
@@ -1831,11 +2034,17 @@ impl EmitCtx {
                     }
                 }
             }
-            MirStmt::IfStmt { cond, then_body, else_body } => {
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
                 self.emit_operand(f, cond);
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                 // Track block depth for break/continue
-                if let Some(d) = self.loop_depths.last_mut() { *d += 1; }
+                if let Some(d) = self.loop_depths.last_mut() {
+                    *d += 1;
+                }
                 for s in then_body {
                     self.emit_stmt(f, s);
                 }
@@ -1846,22 +2055,24 @@ impl EmitCtx {
                     }
                 }
                 f.instruction(&Instruction::End);
-                if let Some(d) = self.loop_depths.last_mut() { *d -= 1; }
+                if let Some(d) = self.loop_depths.last_mut() {
+                    *d -= 1;
+                }
             }
             MirStmt::WhileStmt { cond, body } => {
-                f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));  // break target
-                f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));   // continue target
+                f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // break target
+                f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty)); // continue target
                 self.emit_operand(f, cond);
                 f.instruction(&Instruction::I32Eqz);
-                f.instruction(&Instruction::BrIf(1));  // exit if cond is false
+                f.instruction(&Instruction::BrIf(1)); // exit if cond is false
                 self.loop_depths.push(0);
                 for s in body {
                     self.emit_stmt(f, s);
                 }
                 self.loop_depths.pop();
-                f.instruction(&Instruction::Br(0));    // loop back
-                f.instruction(&Instruction::End);      // end loop
-                f.instruction(&Instruction::End);      // end block
+                f.instruction(&Instruction::Br(0)); // loop back
+                f.instruction(&Instruction::End); // end loop
+                f.instruction(&Instruction::End); // end block
             }
             MirStmt::Break => {
                 // break: jump to the outer block of the enclosing while
@@ -1933,8 +2144,16 @@ impl EmitCtx {
                         "char_to_string" => {
                             // Write char byte to scratch, print it + newline
                             if let Some(inner) = inner_args.first() {
-                                let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
-                                let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+                                let ma0 = MemArg {
+                                    offset: 0,
+                                    align: 0,
+                                    memory_index: 0,
+                                };
+                                let ma2 = MemArg {
+                                    offset: 0,
+                                    align: 2,
+                                    memory_index: 0,
+                                };
                                 let char_addr = SCRATCH + 12;
                                 f.instruction(&Instruction::I32Const(char_addr as i32));
                                 self.emit_operand(f, inner);
@@ -1976,10 +2195,11 @@ impl EmitCtx {
                                 }
                                 let idx = self.resolve_fn(other).unwrap();
                                 f.instruction(&Instruction::Call(idx));
-                                let is_str = self.fn_return_types.get(other)
-                                    .map_or(false, |t| matches!(t, ark_typecheck::types::Type::String));
-                                let args_suggest_str = inner_args.iter()
-                                    .any(|a| self.is_string_operand(a));
+                                let is_str = self.fn_return_types.get(other).is_some_and(|t| {
+                                    matches!(t, ark_typecheck::types::Type::String)
+                                });
+                                let args_suggest_str =
+                                    inner_args.iter().any(|a| self.is_string_operand(a));
                                 if is_str || args_suggest_str {
                                     f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
                                 } else {
@@ -2047,7 +2267,11 @@ impl EmitCtx {
                     // Print i32 without newline — call i32_to_string then fd_write
                     self.emit_operand(f, arg);
                     f.instruction(&Instruction::Call(FN_I32_TO_STR));
-                    let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+                    let ma2 = MemArg {
+                        offset: 0,
+                        align: 2,
+                        memory_index: 0,
+                    };
                     // iov setup from SCRATCH
                     f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                     f.instruction(&Instruction::I32Const(SCRATCH as i32));
@@ -2069,7 +2293,11 @@ impl EmitCtx {
     }
 
     fn emit_fd_write(&mut self, f: &mut Function, fd: u32, str_offset: u32, str_len: u32) {
-        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(str_offset as i32));
         f.instruction(&Instruction::I32Store(ma2));
@@ -2086,18 +2314,32 @@ impl EmitCtx {
 
     fn emit_operand(&mut self, f: &mut Function, op: &Operand) {
         match op {
-            Operand::ConstI32(v) => { f.instruction(&Instruction::I32Const(*v)); }
-            Operand::ConstI64(v) => { f.instruction(&Instruction::I64Const(*v)); }
-            Operand::ConstF64(v) => { f.instruction(&Instruction::F64Const(*v)); }
-            Operand::ConstF32(v) => { f.instruction(&Instruction::F32Const(*v)); }
-            Operand::ConstBool(v) => { f.instruction(&Instruction::I32Const(if *v { 1 } else { 0 })); }
-            Operand::ConstChar(c) => { f.instruction(&Instruction::I32Const(*c as i32)); }
+            Operand::ConstI32(v) => {
+                f.instruction(&Instruction::I32Const(*v));
+            }
+            Operand::ConstI64(v) => {
+                f.instruction(&Instruction::I64Const(*v));
+            }
+            Operand::ConstF64(v) => {
+                f.instruction(&Instruction::F64Const(*v));
+            }
+            Operand::ConstF32(v) => {
+                f.instruction(&Instruction::F32Const(*v));
+            }
+            Operand::ConstBool(v) => {
+                f.instruction(&Instruction::I32Const(if *v { 1 } else { 0 }));
+            }
+            Operand::ConstChar(c) => {
+                f.instruction(&Instruction::I32Const(*c as i32));
+            }
             Operand::ConstString(s) => {
                 // Allocate as length-prefixed string, return pointer
                 let ptr = self.alloc_length_prefixed_string(s);
                 f.instruction(&Instruction::I32Const(ptr as i32));
             }
-            Operand::Place(Place::Local(id)) => { f.instruction(&Instruction::LocalGet(id.0)); }
+            Operand::Place(Place::Local(id)) => {
+                f.instruction(&Instruction::LocalGet(id.0));
+            }
             Operand::BinOp(op, left, right) => {
                 let is_f64 = self.is_f64_operand(left) || self.is_f64_operand(right);
                 let is_i64 = !is_f64 && (self.is_i64_operand(left) || self.is_i64_operand(right));
@@ -2130,8 +2372,16 @@ impl EmitCtx {
                         f.instruction(&Instruction::Call(FN_I32_TO_STR));
                         // After __i32_to_string: SCRATCH has offset, SCRATCH+4 has len
                         // Allocate length-prefixed string on heap
-                        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        let ma2 = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        let ma0 = MemArg {
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
+                        };
                         // Write length at heap_ptr
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(SCRATCH as i32 + 4));
@@ -2237,9 +2487,16 @@ impl EmitCtx {
                         }
                         f.instruction(&Instruction::Call(FN_I64_TO_STR));
                     }
-                    name if name == "Vec_new_i32" || name == "Vec_new_String" || name.starts_with("Vec_new_") => {
+                    name if name == "Vec_new_i32"
+                        || name == "Vec_new_String"
+                        || name.starts_with("Vec_new_") =>
+                    {
                         // Allocate Vec header: {len:0, cap:8, data_ptr}
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
                         // len = 0
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(0));
@@ -2275,13 +2532,25 @@ impl EmitCtx {
                     }
                     "push" => {
                         // push(v, x): grow if needed, store x at data[len], increment len
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        let ma0 = MemArg {
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
+                        };
 
                         // Check if len >= cap, if so grow
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Load(ma)); // len
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma)); // cap
@@ -2295,7 +2564,9 @@ impl EmitCtx {
 
                             // Bump heap: heap_ptr += old_cap * 2 * 4
                             f.instruction(&Instruction::GlobalGet(0));
-                            if let Some(v) = args.first() { self.emit_operand(f, v); }
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
                             f.instruction(&Instruction::I32Const(4));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::I32Load(ma)); // old_cap
@@ -2313,7 +2584,9 @@ impl EmitCtx {
                             // if i >= len*4, break
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                             f.instruction(&Instruction::I32Load(ma)); // i
-                            if let Some(v) = args.first() { self.emit_operand(f, v); }
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
                             f.instruction(&Instruction::I32Load(ma)); // len
                             f.instruction(&Instruction::I32Const(4));
                             f.instruction(&Instruction::I32Mul); // len*4
@@ -2325,7 +2598,9 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                             f.instruction(&Instruction::I32Load(ma)); // i
                             f.instruction(&Instruction::I32Add); // dst
-                            if let Some(v) = args.first() { self.emit_operand(f, v); }
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::I32Load(ma)); // old_data
@@ -2346,7 +2621,9 @@ impl EmitCtx {
                             f.instruction(&Instruction::End); // end block
 
                             // Update v.data_ptr = new_data
-                            if let Some(v) = args.first() { self.emit_operand(f, v); }
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
@@ -2354,10 +2631,14 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Store(ma));
 
                             // Update v.cap = old_cap * 2
-                            if let Some(v) = args.first() { self.emit_operand(f, v); }
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
                             f.instruction(&Instruction::I32Const(4));
                             f.instruction(&Instruction::I32Add);
-                            if let Some(v) = args.first() { self.emit_operand(f, v); }
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
                             f.instruction(&Instruction::I32Const(4));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::I32Load(ma)); // old_cap
@@ -2368,27 +2649,41 @@ impl EmitCtx {
                         f.instruction(&Instruction::End); // end if
 
                         // Now do the actual push: data[len] = value
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma)); // data_ptr
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Load(ma)); // len
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Mul);
                         f.instruction(&Instruction::I32Add); // data_ptr + len*4
-                        if let Some(x) = args.get(1) { self.emit_operand(f, x); }
+                        if let Some(x) = args.get(1) {
+                            self.emit_operand(f, x);
+                        }
                         f.instruction(&Instruction::I32Store(ma));
                         // Increment len
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Store(ma));
                     }
                     "len" => {
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
                         if let Some(v) = args.first() {
                             if self.is_string_operand(v) {
                                 // String len: load from ptr - 4
@@ -2405,14 +2700,22 @@ impl EmitCtx {
                     }
                     "get_unchecked" => {
                         // get_unchecked(v, i): load data[i]
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
                         // Load data_ptr
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma));
                         // Add i*4
-                        if let Some(i) = args.get(1) { self.emit_operand(f, i); }
+                        if let Some(i) = args.get(1) {
+                            self.emit_operand(f, i);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Mul);
                         f.instruction(&Instruction::I32Add);
@@ -2420,14 +2723,26 @@ impl EmitCtx {
                     }
                     "get" => {
                         // get(v, i) -> Option<i32>: bounds check, return Some(data[i]) or None
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
                         // Check i < len
-                        if let Some(i_arg) = args.get(1) { self.emit_operand(f, i_arg); }
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(i_arg) = args.get(1) {
+                            self.emit_operand(f, i_arg);
+                        }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Load(ma)); // len
                         f.instruction(&Instruction::I32LtU);
-                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
-                        if let Some(d) = self.loop_depths.last_mut() { *d += 1; }
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                            ValType::I32,
+                        )));
+                        if let Some(d) = self.loop_depths.last_mut() {
+                            *d += 1;
+                        }
                         // In bounds: construct Some(data[i])
                         // Allocate enum: tag=0 (Some), payload=data[i]
                         f.instruction(&Instruction::GlobalGet(0));
@@ -2437,11 +2752,15 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         // Load data[i]
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma)); // data_ptr
-                        if let Some(i_arg) = args.get(1) { self.emit_operand(f, i_arg); }
+                        if let Some(i_arg) = args.get(1) {
+                            self.emit_operand(f, i_arg);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Mul);
                         f.instruction(&Instruction::I32Add);
@@ -2463,35 +2782,61 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
                         f.instruction(&Instruction::End);
-                        if let Some(d) = self.loop_depths.last_mut() { *d -= 1; }
+                        if let Some(d) = self.loop_depths.last_mut() {
+                            *d -= 1;
+                        }
                     }
                     "set" => {
                         // set(v, i, x): store x at data[i]
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma)); // data_ptr
-                        if let Some(i_arg) = args.get(1) { self.emit_operand(f, i_arg); }
+                        if let Some(i_arg) = args.get(1) {
+                            self.emit_operand(f, i_arg);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Mul);
                         f.instruction(&Instruction::I32Add);
-                        if let Some(x) = args.get(2) { self.emit_operand(f, x); }
+                        if let Some(x) = args.get(2) {
+                            self.emit_operand(f, x);
+                        }
                         f.instruction(&Instruction::I32Store(ma));
                     }
                     "pop" => {
                         // pop(v) -> Option<i32>: if len > 0, decrement len, return Some(data[len-1]); else None
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
                         // Check len > 0
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Load(ma)); // len
                         f.instruction(&Instruction::I32Const(0));
                         f.instruction(&Instruction::I32GtU);
-                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
-                        if let Some(d) = self.loop_depths.last_mut() { *d += 1; }
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                            ValType::I32,
+                        )));
+                        if let Some(d) = self.loop_depths.last_mut() {
+                            *d += 1;
+                        }
                         // Decrement len
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Load(ma)); // current len
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Sub);
@@ -2504,11 +2849,15 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         // Load data[new_len]: data_ptr + new_len * 4
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma)); // data_ptr
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Load(ma)); // new len
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Mul);
@@ -2531,16 +2880,22 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
                         f.instruction(&Instruction::End);
-                        if let Some(d) = self.loop_depths.last_mut() { *d -= 1; }
+                        if let Some(d) = self.loop_depths.last_mut() {
+                            *d -= 1;
+                        }
                     }
                     "sort_i32" => {
                         // Bubble sort in-place
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
                         // We need locals for the sort loop. Since we can't easily declare
                         // new locals mid-function in wasm-encoder, we'll use scratch memory.
                         // scratch[16..32]: sort temporaries
                         // SCRATCH+0 (16): outer i
-                        // SCRATCH+4 (20): inner j  
+                        // SCRATCH+4 (20): inner j
                         // SCRATCH+8 (24): n (len)
                         // SCRATCH+12 (28): data_ptr
                         // SCRATCH+16 (32): temp for swap
@@ -2551,12 +2906,16 @@ impl EmitCtx {
                         let s_tmp = SCRATCH + 16;
                         // Load n = len(v)
                         f.instruction(&Instruction::I32Const(s_n as i32));
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Store(ma));
                         // Load data_ptr
                         f.instruction(&Instruction::I32Const(s_data as i32));
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma));
@@ -2688,20 +3047,32 @@ impl EmitCtx {
                     }
                     "string_len" => {
                         // string_len(s) -> i32: load length from length-prefixed string
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma));
                     }
                     "string_eq" => {
                         // string_eq(a, b) -> bool
-                        for a in args { self.emit_operand(f, a); }
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
                         f.instruction(&Instruction::Call(FN_STR_EQ));
                     }
                     "String_new" => {
                         // Empty string: allocate [len=0] on heap, return data ptr
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(0));
                         f.instruction(&Instruction::I32Store(ma));
@@ -2716,8 +3087,14 @@ impl EmitCtx {
                     }
                     "is_empty" => {
                         // is_empty(s): len(s) == 0
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma));
@@ -2725,13 +3102,25 @@ impl EmitCtx {
                     }
                     "slice" => {
                         // slice(s, start, end) -> String: copy bytes [start..end] to new string
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        let ma0 = MemArg {
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
+                        };
                         // new_len = end - start
                         // Write new_len at heap[0]
                         f.instruction(&Instruction::GlobalGet(0));
-                        if let Some(end_arg) = args.get(2) { self.emit_operand(f, end_arg); }
-                        if let Some(start_arg) = args.get(1) { self.emit_operand(f, start_arg); }
+                        if let Some(end_arg) = args.get(2) {
+                            self.emit_operand(f, end_arg);
+                        }
+                        if let Some(start_arg) = args.get(1) {
+                            self.emit_operand(f, start_arg);
+                        }
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Store(ma));
                         // Copy bytes: mem[heap+4+i] = mem[s+start+i] for i in 0..new_len
@@ -2756,8 +3145,12 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
                         // src = s + start + i
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
-                        if let Some(start_arg) = args.get(1) { self.emit_operand(f, start_arg); }
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
+                        if let Some(start_arg) = args.get(1) {
+                            self.emit_operand(f, start_arg);
+                        }
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Load(ma));
@@ -2790,24 +3183,42 @@ impl EmitCtx {
                     "starts_with" => {
                         // starts_with(s, prefix) -> bool
                         // Compare first prefix_len bytes of s with prefix
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        let ma0 = MemArg {
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
+                        };
                         // Check s_len >= prefix_len
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma)); // s_len
-                        if let Some(p) = args.get(1) { self.emit_operand(f, p); }
+                        if let Some(p) = args.get(1) {
+                            self.emit_operand(f, p);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma)); // p_len
                         f.instruction(&Instruction::I32GeU);
-                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
-                        if let Some(d) = self.loop_depths.last_mut() { *d += 1; }
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                            ValType::I32,
+                        )));
+                        if let Some(d) = self.loop_depths.last_mut() {
+                            *d += 1;
+                        }
                         // Compare byte by byte using NWRITTEN as counter
                         // Store prefix_len in SCRATCH
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
-                        if let Some(p) = args.get(1) { self.emit_operand(f, p); }
+                        if let Some(p) = args.get(1) {
+                            self.emit_operand(f, p);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma));
@@ -2830,12 +3241,16 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32GeU);
                         f.instruction(&Instruction::BrIf(1));
                         // if s[i] != prefix[i], set result=0 and break
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load8U(ma0));
-                        if let Some(p) = args.get(1) { self.emit_operand(f, p); }
+                        if let Some(p) = args.get(1) {
+                            self.emit_operand(f, p);
+                        }
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
@@ -2864,32 +3279,54 @@ impl EmitCtx {
                         // s_len < prefix_len → false
                         f.instruction(&Instruction::I32Const(0));
                         f.instruction(&Instruction::End);
-                        if let Some(d) = self.loop_depths.last_mut() { *d -= 1; }
+                        if let Some(d) = self.loop_depths.last_mut() {
+                            *d -= 1;
+                        }
                     }
                     "ends_with" => {
                         // ends_with(s, suffix) -> bool
                         // Compare last suffix_len bytes of s with suffix
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        let ma0 = MemArg {
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
+                        };
                         // Check s_len >= suffix_len
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma)); // s_len
-                        if let Some(p) = args.get(1) { self.emit_operand(f, p); }
+                        if let Some(p) = args.get(1) {
+                            self.emit_operand(f, p);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma)); // suffix_len
                         f.instruction(&Instruction::I32GeU);
-                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
-                        if let Some(d) = self.loop_depths.last_mut() { *d += 1; }
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                            ValType::I32,
+                        )));
+                        if let Some(d) = self.loop_depths.last_mut() {
+                            *d += 1;
+                        }
                         // offset = s_len - suffix_len
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma));
-                        if let Some(p) = args.get(1) { self.emit_operand(f, p); }
+                        if let Some(p) = args.get(1) {
+                            self.emit_operand(f, p);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma));
@@ -2897,7 +3334,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Store(ma)); // scratch[0] = offset
                         // suffix_len
                         f.instruction(&Instruction::I32Const(SCRATCH as i32 + 4));
-                        if let Some(p) = args.get(1) { self.emit_operand(f, p); }
+                        if let Some(p) = args.get(1) {
+                            self.emit_operand(f, p);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma));
@@ -2919,7 +3358,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32GeU);
                         f.instruction(&Instruction::BrIf(1));
                         // if s[offset+i] != suffix[i], set result=0 and break
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
                         f.instruction(&Instruction::I32Load(ma)); // offset
                         f.instruction(&Instruction::I32Add);
@@ -2927,7 +3368,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load8U(ma0));
-                        if let Some(p) = args.get(1) { self.emit_operand(f, p); }
+                        if let Some(p) = args.get(1) {
+                            self.emit_operand(f, p);
+                        }
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
@@ -2954,19 +3397,31 @@ impl EmitCtx {
                         f.instruction(&Instruction::Else);
                         f.instruction(&Instruction::I32Const(0));
                         f.instruction(&Instruction::End);
-                        if let Some(d) = self.loop_depths.last_mut() { *d -= 1; }
+                        if let Some(d) = self.loop_depths.last_mut() {
+                            *d -= 1;
+                        }
                     }
                     "join" => {
                         // join(parts: Vec<String>, sep: String) -> String
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        let ma0 = MemArg {
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
+                        };
                         let s_i = SCRATCH;
                         let s_n = SCRATCH + 4;
                         let s_out_start = SCRATCH + 8;
                         let s_out_pos = SCRATCH + 12;
                         // n = len(parts)
                         f.instruction(&Instruction::I32Const(s_n as i32));
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Store(ma));
                         // out_start = heap
@@ -3008,7 +3463,9 @@ impl EmitCtx {
                             // if j >= sep_len, break
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                             f.instruction(&Instruction::I32Load(ma));
-                            if let Some(sep) = args.get(1) { self.emit_operand(f, sep); }
+                            if let Some(sep) = args.get(1) {
+                                self.emit_operand(f, sep);
+                            }
                             f.instruction(&Instruction::I32Const(4));
                             f.instruction(&Instruction::I32Sub);
                             f.instruction(&Instruction::I32Load(ma));
@@ -3020,7 +3477,9 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                             f.instruction(&Instruction::I32Load(ma));
                             f.instruction(&Instruction::I32Add);
-                            if let Some(sep) = args.get(1) { self.emit_operand(f, sep); }
+                            if let Some(sep) = args.get(1) {
+                                self.emit_operand(f, sep);
+                            }
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                             f.instruction(&Instruction::I32Load(ma));
                             f.instruction(&Instruction::I32Add);
@@ -3040,7 +3499,9 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(s_out_pos as i32));
                             f.instruction(&Instruction::I32Const(s_out_pos as i32));
                             f.instruction(&Instruction::I32Load(ma));
-                            if let Some(sep) = args.get(1) { self.emit_operand(f, sep); }
+                            if let Some(sep) = args.get(1) {
+                                self.emit_operand(f, sep);
+                            }
                             f.instruction(&Instruction::I32Const(4));
                             f.instruction(&Instruction::I32Sub);
                             f.instruction(&Instruction::I32Load(ma));
@@ -3058,7 +3519,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         // str_ptr = parts.data_ptr + i*4, deref to get string ptr
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma)); // data_ptr
@@ -3080,7 +3543,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
                         // str_ptr again
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma));
@@ -3109,7 +3574,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(s_out_pos as i32));
                         f.instruction(&Instruction::I32Const(s_out_pos as i32));
                         f.instruction(&Instruction::I32Load(ma));
-                        if let Some(v) = args.first() { self.emit_operand(f, v); }
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Load(ma));
@@ -3158,8 +3625,16 @@ impl EmitCtx {
                     "split" => {
                         // split(s: String, delim: String) -> Vec<String>
                         // Note: single-char delim only
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        let ma0 = MemArg {
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
+                        };
                         let s_i = SCRATCH;
                         let s_slen = SCRATCH + 4;
                         let s_seg = SCRATCH + 8;
@@ -3193,7 +3668,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::GlobalSet(0));
                         // Init: slen = len(s), i = 0, seg_start = 0
                         f.instruction(&Instruction::I32Const(s_slen as i32));
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma));
@@ -3206,7 +3683,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Store(ma));
                         // Store delim char in I32BUF
                         f.instruction(&Instruction::I32Const(I32BUF as i32));
-                        if let Some(d) = args.get(1) { self.emit_operand(f, d); }
+                        if let Some(d) = args.get(1) {
+                            self.emit_operand(f, d);
+                        }
                         f.instruction(&Instruction::I32Load8U(ma0));
                         f.instruction(&Instruction::I32Store(ma));
                         // Scan loop
@@ -3220,7 +3699,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32GeU);
                         f.instruction(&Instruction::BrIf(1));
                         // if s[i] == delim_char
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(s_i as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
@@ -3261,7 +3742,9 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                             f.instruction(&Instruction::I32Load(ma));
                             f.instruction(&Instruction::I32Add);
-                            if let Some(s) = args.first() { self.emit_operand(f, s); }
+                            if let Some(s) = args.first() {
+                                self.emit_operand(f, s);
+                            }
                             f.instruction(&Instruction::I32Const(s_seg as i32));
                             f.instruction(&Instruction::I32Load(ma));
                             f.instruction(&Instruction::I32Add);
@@ -3361,7 +3844,9 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
-                        if let Some(s) = args.first() { self.emit_operand(f, s); }
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
                         f.instruction(&Instruction::I32Const(s_seg as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
@@ -3419,11 +3904,21 @@ impl EmitCtx {
                     "parse_i32" => {
                         // parse_i32(s: String) -> Result<i32, String>
                         // Returns enum ptr: tag=0 (Ok) + payload=value, or tag=1 (Err) + payload=err_string
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
-                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        let ma0 = MemArg {
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
+                        };
                         // Save string ptr to SCRATCH+8
                         f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
-                        if let Some(a) = args.first() { self.emit_operand(f, a); }
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
                         f.instruction(&Instruction::I32Store(ma));
                         // Get string len
                         f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
@@ -3553,7 +4048,9 @@ impl EmitCtx {
                         // Check is_err
                         f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
                         f.instruction(&Instruction::I32Load(ma));
-                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                            ValType::I32,
+                        )));
                         {
                             // Build Err Result: tag=1, payload=error string ptr
                             // First, create the error string "parse error: invalid integer"
@@ -3636,20 +4133,137 @@ impl EmitCtx {
                     }
                     "map_i32_i32" => {
                         // map_i32_i32(vec, fn) -> call __map_i32 helper
-                        for a in args { self.emit_operand(f, a); }
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
                         f.instruction(&Instruction::Call(FN_MAP_I32));
                     }
                     "filter_i32" => {
-                        for a in args { self.emit_operand(f, a); }
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
                         f.instruction(&Instruction::Call(FN_FILTER_I32));
                     }
                     "fold_i32_i32" => {
-                        for a in args { self.emit_operand(f, a); }
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
                         f.instruction(&Instruction::Call(FN_FOLD_I32));
                     }
                     "map_option_i32_i32" => {
-                        for a in args { self.emit_operand(f, a); }
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
                         f.instruction(&Instruction::Call(FN_MAP_OPT_I32));
+                    }
+                    "Box_new" => {
+                        // Box_new(value): allocate sizeof(enum) on heap, copy value, return pointer
+                        // For enum payloads, the value is already a pointer to tag+payloads
+                        // Box just stores that pointer
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        // Store the value (an enum pointer) at heap_ptr
+                        f.instruction(&Instruction::GlobalGet(0)); // heap_ptr
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Return current heap_ptr, then bump by 4
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                    }
+                    "unbox" => {
+                        // unbox(box_ptr): load the stored value (enum pointer) from box
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Load(ma));
+                    }
+                    "unwrap" => {
+                        // unwrap(opt): Option/Result → payload at offset 4
+                        // Assumes tag 0 = Some/Ok (has payload)
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load(ma));
+                    }
+                    "unwrap_or" => {
+                        // unwrap_or(opt, default): if Some/Ok return payload, else default
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        // Store opt ptr to scratch
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 8));
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Check tag
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 8));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Load(ma)); // load tag
+                        f.instruction(&Instruction::I32Eqz); // tag == 0 means Some/Ok
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                            ValType::I32,
+                        )));
+                        // Some: load payload
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 8));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::Else);
+                        // None: return default
+                        if let Some(a) = args.get(1) {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::End);
+                    }
+                    "is_some" => {
+                        // is_some(opt): tag == 0 (Some)
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Load(ma)); // load tag
+                        f.instruction(&Instruction::I32Eqz); // tag == 0 → true
+                    }
+                    "is_none" => {
+                        // is_none(opt): tag != 0 (None)
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Load(ma)); // load tag
+                        // tag != 0 → tag itself is truthy (None=1 → true)
                     }
                     other => {
                         for a in args {
@@ -3663,11 +4277,22 @@ impl EmitCtx {
                     }
                 }
             }
-            Operand::IfExpr { cond, then_body, then_result, else_body, else_result, .. } => {
+            Operand::IfExpr {
+                cond,
+                then_body,
+                then_result,
+                else_body,
+                else_result,
+                ..
+            } => {
                 self.emit_operand(f, cond);
-                f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
+                f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                    ValType::I32,
+                )));
                 // Track depth for break/continue
-                if let Some(d) = self.loop_depths.last_mut() { *d += 1; }
+                if let Some(d) = self.loop_depths.last_mut() {
+                    *d += 1;
+                }
                 for s in then_body {
                     self.emit_stmt(f, s);
                 }
@@ -3691,13 +4316,22 @@ impl EmitCtx {
                     f.instruction(&Instruction::I32Const(0));
                 }
                 f.instruction(&Instruction::End);
-                if let Some(d) = self.loop_depths.last_mut() { *d -= 1; }
+                if let Some(d) = self.loop_depths.last_mut() {
+                    *d -= 1;
+                }
             }
-                        Operand::StructInit { name, fields } => {
-                let ma_i32 = MemArg { offset: 0, align: 2, memory_index: 0 };
-                let ma_f64 = MemArg { offset: 0, align: 3, memory_index: 0 };
-                let total_size = self.struct_total_size(name)
-                    .max(fields.len() as u32 * 4);
+            Operand::StructInit { name, fields } => {
+                let ma_i32 = MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                };
+                let ma_f64 = MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                };
+                let total_size = self.struct_total_size(name).max(fields.len() as u32 * 4);
                 let layout_fields = self.struct_layouts.get(name).cloned().unwrap_or_default();
                 let save_addr = STRUCT_BASE + self.struct_init_depth * 4;
                 self.struct_init_depth += 1;
@@ -3713,7 +4347,8 @@ impl EmitCtx {
                 // Store each field at saved_base + field_offset
                 let mut offset = 0u32;
                 for (i, (_fname, fval)) in fields.iter().enumerate() {
-                    let (fsize, is_f64) = layout_fields.get(i)
+                    let (fsize, is_f64) = layout_fields
+                        .get(i)
                         .map(|(_, ftype)| Self::field_type_info(ftype))
                         .unwrap_or((4, false));
                     // Load saved base
@@ -3736,9 +4371,21 @@ impl EmitCtx {
                 f.instruction(&Instruction::I32Const(save_addr as i32));
                 f.instruction(&Instruction::I32Load(ma_i32));
             }
-            Operand::FieldAccess { object, struct_name, field } => {
-                let ma_i32 = MemArg { offset: 0, align: 2, memory_index: 0 };
-                let ma_f64 = MemArg { offset: 0, align: 3, memory_index: 0 };
+            Operand::FieldAccess {
+                object,
+                struct_name,
+                field,
+            } => {
+                let ma_i32 = MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                };
+                let ma_f64 = MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                };
                 let (field_offset, is_f64) = self.struct_field_info(struct_name, field);
                 self.emit_operand(f, object);
                 if field_offset > 0 {
@@ -3751,9 +4398,22 @@ impl EmitCtx {
                     f.instruction(&Instruction::I32Load(ma_i32));
                 }
             }
-            Operand::EnumInit { enum_name, variant, tag, payload } => {
-                let ma_i32 = MemArg { offset: 0, align: 2, memory_index: 0 };
-                let ma_f64 = MemArg { offset: 0, align: 3, memory_index: 0 };
+            Operand::EnumInit {
+                enum_name,
+                variant,
+                tag,
+                payload,
+            } => {
+                let ma_i32 = MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                };
+                let ma_f64 = MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                };
                 let total_size = self.enum_variant_total_size(enum_name, variant);
                 let depth = self.enum_init_depth;
                 self.enum_init_depth += 1;
@@ -3793,25 +4453,47 @@ impl EmitCtx {
                 self.enum_init_depth -= 1;
             }
             Operand::EnumTag(inner) => {
-                let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                let ma = MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                };
                 // Load tag (i32) from enum pointer at offset 0
                 self.emit_operand(f, inner);
                 f.instruction(&Instruction::I32Load(ma));
             }
-            Operand::EnumPayload { object, index, enum_name, variant_name } => {
-                let (offset, is_f64) = self.enum_payload_info(enum_name, variant_name, *index as usize);
+            Operand::EnumPayload {
+                object,
+                index,
+                enum_name,
+                variant_name,
+            } => {
+                let (offset, is_f64) =
+                    self.enum_payload_info(enum_name, variant_name, *index as usize);
                 self.emit_operand(f, object);
                 f.instruction(&Instruction::I32Const(offset as i32));
                 f.instruction(&Instruction::I32Add);
                 if is_f64 {
-                    let ma = MemArg { offset: 0, align: 3, memory_index: 0 };
+                    let ma = MemArg {
+                        offset: 0,
+                        align: 3,
+                        memory_index: 0,
+                    };
                     f.instruction(&Instruction::F64Load(ma));
                 } else {
-                    let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                    let ma = MemArg {
+                        offset: 0,
+                        align: 2,
+                        memory_index: 0,
+                    };
                     f.instruction(&Instruction::I32Load(ma));
                 }
             }
-            Operand::LoopExpr { init: _, body, result } => {
+            Operand::LoopExpr {
+                init: _,
+                body,
+                result,
+            } => {
                 for stmt in body {
                     self.emit_stmt(f, stmt);
                 }
@@ -3825,25 +4507,49 @@ impl EmitCtx {
                 // 4. If Ok (tag=0), load payload at offset 4
                 f.instruction(&Instruction::I32Const(SCRATCH as i32 + 24));
                 self.emit_operand(f, expr);
-                f.instruction(&Instruction::I32Store(MemArg { offset: 0, align: 2, memory_index: 0 }));
+                f.instruction(&Instruction::I32Store(MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                }));
 
                 // Check tag
                 f.instruction(&Instruction::I32Const(SCRATCH as i32 + 24));
-                f.instruction(&Instruction::I32Load(MemArg { offset: 0, align: 2, memory_index: 0 }));
-                f.instruction(&Instruction::I32Load(MemArg { offset: 0, align: 2, memory_index: 0 }));
+                f.instruction(&Instruction::I32Load(MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                }));
+                f.instruction(&Instruction::I32Load(MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                }));
                 // Stack: [tag]
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                 {
                     // tag != 0 (Err) — early return with the Result ptr
                     f.instruction(&Instruction::I32Const(SCRATCH as i32 + 24));
-                    f.instruction(&Instruction::I32Load(MemArg { offset: 0, align: 2, memory_index: 0 }));
+                    f.instruction(&Instruction::I32Load(MemArg {
+                        offset: 0,
+                        align: 2,
+                        memory_index: 0,
+                    }));
                     f.instruction(&Instruction::Return);
                 }
                 f.instruction(&Instruction::End);
                 // tag == 0 (Ok) — extract payload at offset 4
                 f.instruction(&Instruction::I32Const(SCRATCH as i32 + 24));
-                f.instruction(&Instruction::I32Load(MemArg { offset: 0, align: 2, memory_index: 0 }));
-                f.instruction(&Instruction::I32Load(MemArg { offset: 4, align: 2, memory_index: 0 }));
+                f.instruction(&Instruction::I32Load(MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                }));
+                f.instruction(&Instruction::I32Load(MemArg {
+                    offset: 4,
+                    align: 2,
+                    memory_index: 0,
+                }));
             }
             Operand::FnRef(name) => {
                 // Push the function's table index (== function index)
@@ -3864,73 +4570,172 @@ impl EmitCtx {
                 let params: Vec<ValType> = args.iter().map(|_| ValType::I32).collect();
                 let results = vec![ValType::I32];
                 let type_idx = self.lookup_or_register_indirect_type(params, results);
-                f.instruction(&Instruction::CallIndirect { type_index: type_idx, table_index: 0 });
+                f.instruction(&Instruction::CallIndirect {
+                    type_index: type_idx,
+                    table_index: 0,
+                });
             }
             Operand::Unit => { /* nothing to push */ }
-            _ => { f.instruction(&Instruction::I32Const(0)); }
+            _ => {
+                f.instruction(&Instruction::I32Const(0));
+            }
         }
     }
 
     fn emit_binop(&mut self, f: &mut Function, op: &BinOp) {
         match op {
-            BinOp::Add => { f.instruction(&Instruction::I32Add); }
-            BinOp::Sub => { f.instruction(&Instruction::I32Sub); }
-            BinOp::Mul => { f.instruction(&Instruction::I32Mul); }
-            BinOp::Div => { f.instruction(&Instruction::I32DivS); }
-            BinOp::Mod => { f.instruction(&Instruction::I32RemS); }
-            BinOp::Eq => { f.instruction(&Instruction::I32Eq); }
-            BinOp::Ne => { f.instruction(&Instruction::I32Ne); }
-            BinOp::Lt => { f.instruction(&Instruction::I32LtS); }
-            BinOp::Le => { f.instruction(&Instruction::I32LeS); }
-            BinOp::Gt => { f.instruction(&Instruction::I32GtS); }
-            BinOp::Ge => { f.instruction(&Instruction::I32GeS); }
-            BinOp::And => { f.instruction(&Instruction::I32And); }
-            BinOp::Or => { f.instruction(&Instruction::I32Or); }
-            BinOp::BitAnd => { f.instruction(&Instruction::I32And); }
-            BinOp::BitOr => { f.instruction(&Instruction::I32Or); }
-            BinOp::BitXor => { f.instruction(&Instruction::I32Xor); }
-            BinOp::Shl => { f.instruction(&Instruction::I32Shl); }
-            BinOp::Shr => { f.instruction(&Instruction::I32ShrS); }
+            BinOp::Add => {
+                f.instruction(&Instruction::I32Add);
+            }
+            BinOp::Sub => {
+                f.instruction(&Instruction::I32Sub);
+            }
+            BinOp::Mul => {
+                f.instruction(&Instruction::I32Mul);
+            }
+            BinOp::Div => {
+                f.instruction(&Instruction::I32DivS);
+            }
+            BinOp::Mod => {
+                f.instruction(&Instruction::I32RemS);
+            }
+            BinOp::Eq => {
+                f.instruction(&Instruction::I32Eq);
+            }
+            BinOp::Ne => {
+                f.instruction(&Instruction::I32Ne);
+            }
+            BinOp::Lt => {
+                f.instruction(&Instruction::I32LtS);
+            }
+            BinOp::Le => {
+                f.instruction(&Instruction::I32LeS);
+            }
+            BinOp::Gt => {
+                f.instruction(&Instruction::I32GtS);
+            }
+            BinOp::Ge => {
+                f.instruction(&Instruction::I32GeS);
+            }
+            BinOp::And => {
+                f.instruction(&Instruction::I32And);
+            }
+            BinOp::Or => {
+                f.instruction(&Instruction::I32Or);
+            }
+            BinOp::BitAnd => {
+                f.instruction(&Instruction::I32And);
+            }
+            BinOp::BitOr => {
+                f.instruction(&Instruction::I32Or);
+            }
+            BinOp::BitXor => {
+                f.instruction(&Instruction::I32Xor);
+            }
+            BinOp::Shl => {
+                f.instruction(&Instruction::I32Shl);
+            }
+            BinOp::Shr => {
+                f.instruction(&Instruction::I32ShrS);
+            }
         };
     }
 
     fn emit_binop_i64(&mut self, f: &mut Function, op: &BinOp) {
         match op {
-            BinOp::Add => { f.instruction(&Instruction::I64Add); }
-            BinOp::Sub => { f.instruction(&Instruction::I64Sub); }
-            BinOp::Mul => { f.instruction(&Instruction::I64Mul); }
-            BinOp::Div => { f.instruction(&Instruction::I64DivS); }
-            BinOp::Mod => { f.instruction(&Instruction::I64RemS); }
-            BinOp::Eq => { f.instruction(&Instruction::I64Eq); }
-            BinOp::Ne => { f.instruction(&Instruction::I64Ne); }
-            BinOp::Lt => { f.instruction(&Instruction::I64LtS); }
-            BinOp::Le => { f.instruction(&Instruction::I64LeS); }
-            BinOp::Gt => { f.instruction(&Instruction::I64GtS); }
-            BinOp::Ge => { f.instruction(&Instruction::I64GeS); }
-            BinOp::And => { f.instruction(&Instruction::I64And); }
-            BinOp::Or => { f.instruction(&Instruction::I64Or); }
-            BinOp::BitAnd => { f.instruction(&Instruction::I64And); }
-            BinOp::BitOr => { f.instruction(&Instruction::I64Or); }
-            BinOp::BitXor => { f.instruction(&Instruction::I64Xor); }
-            BinOp::Shl => { f.instruction(&Instruction::I64Shl); }
-            BinOp::Shr => { f.instruction(&Instruction::I64ShrS); }
+            BinOp::Add => {
+                f.instruction(&Instruction::I64Add);
+            }
+            BinOp::Sub => {
+                f.instruction(&Instruction::I64Sub);
+            }
+            BinOp::Mul => {
+                f.instruction(&Instruction::I64Mul);
+            }
+            BinOp::Div => {
+                f.instruction(&Instruction::I64DivS);
+            }
+            BinOp::Mod => {
+                f.instruction(&Instruction::I64RemS);
+            }
+            BinOp::Eq => {
+                f.instruction(&Instruction::I64Eq);
+            }
+            BinOp::Ne => {
+                f.instruction(&Instruction::I64Ne);
+            }
+            BinOp::Lt => {
+                f.instruction(&Instruction::I64LtS);
+            }
+            BinOp::Le => {
+                f.instruction(&Instruction::I64LeS);
+            }
+            BinOp::Gt => {
+                f.instruction(&Instruction::I64GtS);
+            }
+            BinOp::Ge => {
+                f.instruction(&Instruction::I64GeS);
+            }
+            BinOp::And => {
+                f.instruction(&Instruction::I64And);
+            }
+            BinOp::Or => {
+                f.instruction(&Instruction::I64Or);
+            }
+            BinOp::BitAnd => {
+                f.instruction(&Instruction::I64And);
+            }
+            BinOp::BitOr => {
+                f.instruction(&Instruction::I64Or);
+            }
+            BinOp::BitXor => {
+                f.instruction(&Instruction::I64Xor);
+            }
+            BinOp::Shl => {
+                f.instruction(&Instruction::I64Shl);
+            }
+            BinOp::Shr => {
+                f.instruction(&Instruction::I64ShrS);
+            }
         };
     }
 
     fn emit_binop_f64(&mut self, f: &mut Function, op: &BinOp) {
         match op {
-            BinOp::Add => { f.instruction(&Instruction::F64Add); }
-            BinOp::Sub => { f.instruction(&Instruction::F64Sub); }
-            BinOp::Mul => { f.instruction(&Instruction::F64Mul); }
-            BinOp::Div => { f.instruction(&Instruction::F64Div); }
-            BinOp::Eq => { f.instruction(&Instruction::F64Eq); }
-            BinOp::Ne => { f.instruction(&Instruction::F64Ne); }
-            BinOp::Lt => { f.instruction(&Instruction::F64Lt); }
-            BinOp::Le => { f.instruction(&Instruction::F64Le); }
-            BinOp::Gt => { f.instruction(&Instruction::F64Gt); }
-            BinOp::Ge => { f.instruction(&Instruction::F64Ge); }
+            BinOp::Add => {
+                f.instruction(&Instruction::F64Add);
+            }
+            BinOp::Sub => {
+                f.instruction(&Instruction::F64Sub);
+            }
+            BinOp::Mul => {
+                f.instruction(&Instruction::F64Mul);
+            }
+            BinOp::Div => {
+                f.instruction(&Instruction::F64Div);
+            }
+            BinOp::Eq => {
+                f.instruction(&Instruction::F64Eq);
+            }
+            BinOp::Ne => {
+                f.instruction(&Instruction::F64Ne);
+            }
+            BinOp::Lt => {
+                f.instruction(&Instruction::F64Lt);
+            }
+            BinOp::Le => {
+                f.instruction(&Instruction::F64Le);
+            }
+            BinOp::Gt => {
+                f.instruction(&Instruction::F64Gt);
+            }
+            BinOp::Ge => {
+                f.instruction(&Instruction::F64Ge);
+            }
             // Mod and bitwise ops don't apply to f64, fall back to i32
-            _ => { self.emit_binop(f, op); }
+            _ => {
+                self.emit_binop(f, op);
+            }
         };
     }
 
@@ -3958,8 +4763,12 @@ impl EmitCtx {
     /// Emit an operand as f64, promoting i32/i64 constants if needed
     fn emit_f64_operand(&mut self, f: &mut Function, op: &Operand) {
         match op {
-            Operand::ConstI32(v) => { f.instruction(&Instruction::F64Const(*v as f64)); }
-            Operand::ConstI64(v) => { f.instruction(&Instruction::F64Const(*v as f64)); }
+            Operand::ConstI32(v) => {
+                f.instruction(&Instruction::F64Const(*v as f64));
+            }
+            Operand::ConstI64(v) => {
+                f.instruction(&Instruction::F64Const(*v as f64));
+            }
             _ => self.emit_operand(f, op),
         }
     }
@@ -3967,7 +4776,9 @@ impl EmitCtx {
     /// Emit an operand as i64, promoting i32 constants if needed
     fn emit_i64_operand(&mut self, f: &mut Function, op: &Operand) {
         match op {
-            Operand::ConstI32(v) => { f.instruction(&Instruction::I64Const(*v as i64)); }
+            Operand::ConstI32(v) => {
+                f.instruction(&Instruction::I64Const(*v as i64));
+            }
             _ => self.emit_operand(f, op),
         }
     }

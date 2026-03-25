@@ -67,22 +67,55 @@ pub struct EnumDef {
 
 #[derive(Debug, Clone)]
 pub enum Variant {
-    Unit { name: String, span: Span },
-    Tuple { name: String, fields: Vec<TypeExpr>, span: Span },
-    Struct { name: String, fields: Vec<Field>, span: Span },
+    Unit {
+        name: String,
+        span: Span,
+    },
+    Tuple {
+        name: String,
+        fields: Vec<TypeExpr>,
+        span: Span,
+    },
+    Struct {
+        name: String,
+        fields: Vec<Field>,
+        span: Span,
+    },
 }
 
 /// Type expression in source.
 #[derive(Debug, Clone)]
 pub enum TypeExpr {
-    Named { name: String, span: Span },
-    Generic { name: String, args: Vec<TypeExpr>, span: Span },
+    Named {
+        name: String,
+        span: Span,
+    },
+    Generic {
+        name: String,
+        args: Vec<TypeExpr>,
+        span: Span,
+    },
     Tuple(Vec<TypeExpr>, Span),
-    Array { elem: Box<TypeExpr>, size: u64, span: Span },
-    Slice { elem: Box<TypeExpr>, span: Span },
-    Function { params: Vec<TypeExpr>, ret: Box<TypeExpr>, span: Span },
+    Array {
+        elem: Box<TypeExpr>,
+        size: u64,
+        span: Span,
+    },
+    Slice {
+        elem: Box<TypeExpr>,
+        span: Span,
+    },
+    Function {
+        params: Vec<TypeExpr>,
+        ret: Box<TypeExpr>,
+        span: Span,
+    },
     Unit(Span),
-    Qualified { module: String, name: String, span: Span },
+    Qualified {
+        module: String,
+        name: String,
+        span: Span,
+    },
 }
 
 impl TypeExpr {
@@ -103,32 +136,122 @@ impl TypeExpr {
 /// Expression.
 #[derive(Debug, Clone)]
 pub enum Expr {
-    IntLit { value: i64, span: Span },
-    FloatLit { value: f64, span: Span },
-    StringLit { value: String, span: Span },
-    CharLit { value: char, span: Span },
-    BoolLit { value: bool, span: Span },
-    Ident { name: String, span: Span },
-    QualifiedIdent { module: String, name: String, span: Span },
-    Binary { left: Box<Expr>, op: BinOp, right: Box<Expr>, span: Span },
-    Unary { op: UnaryOp, operand: Box<Expr>, span: Span },
-    Call { callee: Box<Expr>, type_args: Vec<TypeExpr>, args: Vec<Expr>, span: Span },
-    FieldAccess { object: Box<Expr>, field: String, span: Span },
-    Index { object: Box<Expr>, index: Box<Expr>, span: Span },
-    If { cond: Box<Expr>, then_block: Block, else_block: Option<Block>, span: Span },
-    Match { scrutinee: Box<Expr>, arms: Vec<MatchArm>, span: Span },
+    IntLit {
+        value: i64,
+        span: Span,
+    },
+    FloatLit {
+        value: f64,
+        span: Span,
+    },
+    StringLit {
+        value: String,
+        span: Span,
+    },
+    CharLit {
+        value: char,
+        span: Span,
+    },
+    BoolLit {
+        value: bool,
+        span: Span,
+    },
+    Ident {
+        name: String,
+        span: Span,
+    },
+    QualifiedIdent {
+        module: String,
+        name: String,
+        span: Span,
+    },
+    Binary {
+        left: Box<Expr>,
+        op: BinOp,
+        right: Box<Expr>,
+        span: Span,
+    },
+    Unary {
+        op: UnaryOp,
+        operand: Box<Expr>,
+        span: Span,
+    },
+    Call {
+        callee: Box<Expr>,
+        type_args: Vec<TypeExpr>,
+        args: Vec<Expr>,
+        span: Span,
+    },
+    FieldAccess {
+        object: Box<Expr>,
+        field: String,
+        span: Span,
+    },
+    Index {
+        object: Box<Expr>,
+        index: Box<Expr>,
+        span: Span,
+    },
+    If {
+        cond: Box<Expr>,
+        then_block: Block,
+        else_block: Option<Block>,
+        span: Span,
+    },
+    Match {
+        scrutinee: Box<Expr>,
+        arms: Vec<MatchArm>,
+        span: Span,
+    },
     Block(Block),
-    Tuple { elements: Vec<Expr>, span: Span },
-    Array { elements: Vec<Expr>, span: Span },
-    ArrayRepeat { value: Box<Expr>, count: Box<Expr>, span: Span },
-    StructInit { name: String, fields: Vec<(String, Expr)>, span: Span },
-    Closure { params: Vec<ClosureParam>, return_type: Option<TypeExpr>, body: Box<Expr>, span: Span },
-    Return { value: Option<Box<Expr>>, span: Span },
-    Break { value: Option<Box<Expr>>, span: Span },
-    Continue { span: Span },
-    Try { expr: Box<Expr>, span: Span },
-    Assign { target: Box<Expr>, value: Box<Expr>, span: Span },
-    Loop { body: Block, span: Span },
+    Tuple {
+        elements: Vec<Expr>,
+        span: Span,
+    },
+    Array {
+        elements: Vec<Expr>,
+        span: Span,
+    },
+    ArrayRepeat {
+        value: Box<Expr>,
+        count: Box<Expr>,
+        span: Span,
+    },
+    StructInit {
+        name: String,
+        fields: Vec<(String, Expr)>,
+        span: Span,
+    },
+    Closure {
+        params: Vec<ClosureParam>,
+        return_type: Option<TypeExpr>,
+        body: Box<Expr>,
+        span: Span,
+    },
+    Return {
+        value: Option<Box<Expr>>,
+        span: Span,
+    },
+    Break {
+        value: Option<Box<Expr>>,
+        span: Span,
+    },
+    Continue {
+        span: Span,
+    },
+    Try {
+        expr: Box<Expr>,
+        span: Span,
+    },
+    Assign {
+        target: Box<Expr>,
+        value: Box<Expr>,
+        span: Span,
+    },
+    Loop {
+        body: Block,
+        span: Span,
+    },
 }
 
 impl Expr {
@@ -173,10 +296,24 @@ pub struct ClosureParam {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinOp {
-    Add, Sub, Mul, Div, Mod,
-    Eq, Ne, Lt, Le, Gt, Ge,
-    And, Or,
-    BitAnd, BitOr, BitXor, Shl, Shr,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Mod,
+    Eq,
+    Ne,
+    Lt,
+    Le,
+    Gt,
+    Ge,
+    And,
+    Or,
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    Shr,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -196,14 +333,40 @@ pub struct MatchArm {
 #[derive(Debug, Clone)]
 pub enum Pattern {
     Wildcard(Span),
-    Ident { name: String, span: Span },
-    IntLit { value: i64, span: Span },
-    FloatLit { value: f64, span: Span },
-    StringLit { value: String, span: Span },
-    CharLit { value: char, span: Span },
-    BoolLit { value: bool, span: Span },
-    Tuple { elements: Vec<Pattern>, span: Span },
-    Enum { path: String, variant: String, fields: Vec<Pattern>, span: Span },
+    Ident {
+        name: String,
+        span: Span,
+    },
+    IntLit {
+        value: i64,
+        span: Span,
+    },
+    FloatLit {
+        value: f64,
+        span: Span,
+    },
+    StringLit {
+        value: String,
+        span: Span,
+    },
+    CharLit {
+        value: char,
+        span: Span,
+    },
+    BoolLit {
+        value: bool,
+        span: Span,
+    },
+    Tuple {
+        elements: Vec<Pattern>,
+        span: Span,
+    },
+    Enum {
+        path: String,
+        variant: String,
+        fields: Vec<Pattern>,
+        span: Span,
+    },
 }
 
 impl Pattern {
@@ -233,8 +396,15 @@ pub enum Stmt {
         span: Span,
     },
     Expr(Expr),
-    While { cond: Expr, body: Block, span: Span },
-    Loop { body: Block, span: Span },
+    While {
+        cond: Expr,
+        body: Block,
+        span: Span,
+    },
+    Loop {
+        body: Block,
+        span: Span,
+    },
 }
 
 #[derive(Debug, Clone)]

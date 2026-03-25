@@ -187,16 +187,32 @@ pub enum Operand {
 /// Binary operations.
 #[derive(Debug, Clone, Copy)]
 pub enum BinOp {
-    Add, Sub, Mul, Div, Mod,
-    Eq, Ne, Lt, Le, Gt, Ge,
-    And, Or,
-    BitAnd, BitOr, BitXor, Shl, Shr,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Mod,
+    Eq,
+    Ne,
+    Lt,
+    Le,
+    Gt,
+    Ge,
+    And,
+    Or,
+    BitAnd,
+    BitOr,
+    BitXor,
+    Shl,
+    Shr,
 }
 
 /// Unary operations.
 #[derive(Debug, Clone, Copy)]
 pub enum UnaryOp {
-    Neg, Not, BitNot,
+    Neg,
+    Not,
+    BitNot,
 }
 
 /// Kind of aggregate being constructed.
@@ -210,7 +226,12 @@ pub enum AggregateKind {
 
 impl MirModule {
     pub fn new() -> Self {
-        Self { functions: Vec::new(), entry_fn: None, struct_defs: std::collections::HashMap::new(), enum_defs: std::collections::HashMap::new() }
+        Self {
+            functions: Vec::new(),
+            entry_fn: None,
+            struct_defs: std::collections::HashMap::new(),
+            enum_defs: std::collections::HashMap::new(),
+        }
     }
 }
 

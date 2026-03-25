@@ -94,7 +94,8 @@ mod tests {
 
     #[test]
     fn test_match_expr() {
-        let (_module, sink) = parse_src(r#"
+        let (_module, sink) = parse_src(
+            r#"
             fn main() {
                 match x {
                     0 => "zero",
@@ -102,7 +103,8 @@ mod tests {
                     _ => "other",
                 }
             }
-        "#);
+        "#,
+        );
         assert!(!sink.has_errors());
     }
 
@@ -133,14 +135,22 @@ mod tests {
     fn test_for_rejected() {
         let (_, sink) = parse_src("for x in items { }");
         assert!(sink.has_errors());
-        assert!(sink.diagnostics().iter().any(|d| d.code == ark_diagnostics::DiagnosticCode::E0303));
+        assert!(
+            sink.diagnostics()
+                .iter()
+                .any(|d| d.code == ark_diagnostics::DiagnosticCode::E0303)
+        );
     }
 
     #[test]
     fn test_trait_rejected() {
         let (_, sink) = parse_src("trait Foo { }");
         assert!(sink.has_errors());
-        assert!(sink.diagnostics().iter().any(|d| d.code == ark_diagnostics::DiagnosticCode::E0300));
+        assert!(
+            sink.diagnostics()
+                .iter()
+                .any(|d| d.code == ark_diagnostics::DiagnosticCode::E0300)
+        );
     }
 
     #[test]
@@ -190,7 +200,8 @@ mod tests {
 
     #[test]
     fn test_pattern_matching_variants() {
-        let (module, sink) = parse_src(r#"
+        let (module, sink) = parse_src(
+            r#"
             fn test() {
                 match x {
                     true => 1,
@@ -200,15 +211,22 @@ mod tests {
                     _ => 5,
                 }
             }
-        "#);
+        "#,
+        );
         assert!(!sink.has_errors());
         if let ast::Item::FnDef(f) = &module.items[0] {
             if let Some(tail) = &f.body.tail_expr {
                 if let ast::Expr::Match { arms, .. } = tail.as_ref() {
                     assert_eq!(arms.len(), 5);
-                    assert!(matches!(arms[0].pattern, ast::Pattern::BoolLit { value: true, .. }));
+                    assert!(matches!(
+                        arms[0].pattern,
+                        ast::Pattern::BoolLit { value: true, .. }
+                    ));
                     assert!(matches!(arms[2].pattern, ast::Pattern::Tuple { .. }));
-                    assert!(matches!(arms[3].pattern, ast::Pattern::IntLit { value: -1, .. }));
+                    assert!(matches!(
+                        arms[3].pattern,
+                        ast::Pattern::IntLit { value: -1, .. }
+                    ));
                     assert!(matches!(arms[4].pattern, ast::Pattern::Wildcard(_)));
                 } else {
                     panic!("expected Match");
@@ -267,7 +285,11 @@ mod tests {
     fn test_impl_rejected() {
         let (_, sink) = parse_src("impl Foo { }");
         assert!(sink.has_errors());
-        assert!(sink.diagnostics().iter().any(|d| d.code == ark_diagnostics::DiagnosticCode::E0300));
+        assert!(
+            sink.diagnostics()
+                .iter()
+                .any(|d| d.code == ark_diagnostics::DiagnosticCode::E0300)
+        );
     }
 
     #[test]

@@ -223,8 +223,11 @@ impl<'src> Lexer<'src> {
     }
 
     fn emit(&mut self, span: Span, code: DiagnosticCode, msg: &str) {
-        self.diagnostics
-            .emit(Diagnostic::new(code).with_message(msg).with_label(span, msg));
+        self.diagnostics.emit(
+            Diagnostic::new(code)
+                .with_message(msg)
+                .with_label(span, msg),
+        );
     }
 
     // ── Main dispatch ────────────────────────────────────────────────────
@@ -504,9 +507,7 @@ impl<'src> Lexer<'src> {
         let mut is_float = false;
 
         // Fractional part: '.' followed by a digit
-        if self.peek() == Some(b'.')
-            && self.peek_at(1).is_some_and(|b| b.is_ascii_digit())
-        {
+        if self.peek() == Some(b'.') && self.peek_at(1).is_some_and(|b| b.is_ascii_digit()) {
             is_float = true;
             self.advance();
             self.eat_digits(|b| b.is_ascii_digit());
@@ -545,12 +546,7 @@ impl<'src> Lexer<'src> {
         }
     }
 
-    fn lex_radix_int(
-        &mut self,
-        start: usize,
-        radix: u32,
-        is_digit: fn(u8) -> bool,
-    ) -> Token {
+    fn lex_radix_int(&mut self, start: usize, radix: u32, is_digit: fn(u8) -> bool) -> Token {
         let digit_start = self.pos;
         while let Some(b) = self.peek() {
             if is_digit(b) || b == b'_' {
@@ -657,8 +653,7 @@ impl<'src> Lexer<'src> {
                 Some(c) => c,
                 None => {
                     // Recover: skip to closing quote or end of line
-                    while !matches!(self.peek(), None | Some(b'\'') | Some(b'\n') | Some(b'\r'))
-                    {
+                    while !matches!(self.peek(), None | Some(b'\'') | Some(b'\n') | Some(b'\r')) {
                         self.pos += 1;
                     }
                     if self.peek() == Some(b'\'') {
@@ -818,7 +813,7 @@ fn hex_val(b: u8) -> Option<u8> {
 }
 
 fn is_hex_digit(b: u8) -> bool {
-    matches!(b, b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F')
+    b.is_ascii_hexdigit()
 }
 
 fn is_bin_digit(b: u8) -> bool {
@@ -832,7 +827,7 @@ pub fn tokenize(file_id: u32, source: &str) -> (Vec<Token>, Vec<Diagnostic>) {
 
 // ── Iterator ─────────────────────────────────────────────────────────────────
 
-impl<'src> Iterator for Lexer<'src> {
+impl Iterator for Lexer<'_> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
@@ -897,7 +892,11 @@ mod tests {
     fn bool_literals() {
         assert_eq!(
             kinds("true false"),
-            vec![TokenKind::BoolLit(true), TokenKind::BoolLit(false), TokenKind::Eof]
+            vec![
+                TokenKind::BoolLit(true),
+                TokenKind::BoolLit(false),
+                TokenKind::Eof
+            ]
         );
     }
 
@@ -979,7 +978,10 @@ mod tests {
 
     #[test]
     fn float_basic() {
-        assert_eq!(kinds("3.14"), vec![TokenKind::FloatLit(3.14), TokenKind::Eof]);
+        assert_eq!(
+            kinds("3.14"),
+            vec![TokenKind::FloatLit(3.14), TokenKind::Eof]
+        );
         assert_eq!(kinds("0.5"), vec![TokenKind::FloatLit(0.5), TokenKind::Eof]);
     }
 
@@ -1061,7 +1063,10 @@ mod tests {
 
     #[test]
     fn char_escapes() {
-        assert_eq!(kinds(r"'\n'"), vec![TokenKind::CharLit('\n'), TokenKind::Eof]);
+        assert_eq!(
+            kinds(r"'\n'"),
+            vec![TokenKind::CharLit('\n'), TokenKind::Eof]
+        );
         assert_eq!(
             kinds(r"'\\'"),
             vec![TokenKind::CharLit('\\'), TokenKind::Eof]
@@ -1199,7 +1204,11 @@ mod tests {
         let src = "#!/usr/bin/env arukellt\nfn main";
         assert_eq!(
             kinds(src),
-            vec![TokenKind::Fn, TokenKind::Ident("main".into()), TokenKind::Eof,]
+            vec![
+                TokenKind::Fn,
+                TokenKind::Ident("main".into()),
+                TokenKind::Eof,
+            ]
         );
     }
 

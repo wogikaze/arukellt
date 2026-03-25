@@ -13,7 +13,11 @@ pub struct Parser<'a> {
 
 impl<'a> Parser<'a> {
     pub fn new(tokens: &'a [Token], sink: &'a mut DiagnosticSink) -> Self {
-        let mut p = Self { tokens, pos: 0, sink };
+        let mut p = Self {
+            tokens,
+            pos: 0,
+            sink,
+        };
         p.skip_newlines();
         p
     }
@@ -25,11 +29,17 @@ impl<'a> Parser<'a> {
     }
 
     fn peek(&self) -> &TokenKind {
-        self.tokens.get(self.pos).map(|t| &t.kind).unwrap_or(&TokenKind::Eof)
+        self.tokens
+            .get(self.pos)
+            .map(|t| &t.kind)
+            .unwrap_or(&TokenKind::Eof)
     }
 
     fn span(&self) -> Span {
-        self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span::dummy())
+        self.tokens
+            .get(self.pos)
+            .map(|t| t.span)
+            .unwrap_or(Span::dummy())
     }
 
     fn advance(&mut self) -> &Token {
@@ -48,7 +58,11 @@ impl<'a> Parser<'a> {
             let sp = self.span();
             self.sink.emit(
                 Diagnostic::new(DiagnosticCode::E0002)
-                    .with_message(format!("expected `{:?}`, found `{:?}`", expected, self.peek()))
+                    .with_message(format!(
+                        "expected `{:?}`, found `{:?}`",
+                        expected,
+                        self.peek()
+                    ))
                     .with_label(sp, "here"),
             );
             sp
@@ -124,10 +138,18 @@ impl<'a> Parser<'a> {
     fn synchronize(&mut self) {
         while *self.peek() != TokenKind::Eof {
             match self.peek() {
-                TokenKind::Fn | TokenKind::Struct | TokenKind::Enum
-                | TokenKind::Import | TokenKind::Pub => return,
-                TokenKind::RBrace => { self.advance(); return; }
-                _ => { self.advance(); }
+                TokenKind::Fn
+                | TokenKind::Struct
+                | TokenKind::Enum
+                | TokenKind::Import
+                | TokenKind::Pub => return,
+                TokenKind::RBrace => {
+                    self.advance();
+                    return;
+                }
+                _ => {
+                    self.advance();
+                }
             }
         }
     }
@@ -141,7 +163,11 @@ impl<'a> Parser<'a> {
         } else {
             None
         };
-        Import { module_name: name, alias, span: start.merge(self.span()) }
+        Import {
+            module_name: name,
+            alias,
+            span: start.merge(self.span()),
+        }
     }
 
     fn parse_item(&mut self) -> Option<Item> {
@@ -154,7 +180,10 @@ impl<'a> Parser<'a> {
                 let sp = self.span();
                 self.sink.emit(
                     Diagnostic::new(DiagnosticCode::E0001)
-                        .with_message(format!("expected item (fn, struct, enum), found `{:?}`", self.peek()))
+                        .with_message(format!(
+                            "expected item (fn, struct, enum), found `{:?}`",
+                            self.peek()
+                        ))
                         .with_label(sp, "here"),
                 );
                 None
@@ -188,16 +217,28 @@ impl<'a> Parser<'a> {
 
         let body = self.parse_block();
         let span = start.merge(body.span);
-        FnDef { name, type_params, params, return_type, body, is_pub, span }
+        FnDef {
+            name,
+            type_params,
+            params,
+            return_type,
+            body,
+            is_pub,
+            span,
+        }
     }
 
     fn parse_type_params(&mut self) -> Vec<String> {
         self.expect(&TokenKind::Lt);
         let mut params = Vec::new();
         loop {
-            if *self.peek() == TokenKind::Gt { break; }
+            if *self.peek() == TokenKind::Gt {
+                break;
+            }
             params.push(self.expect_ident());
-            if !self.eat(&TokenKind::Comma) { break; }
+            if !self.eat(&TokenKind::Comma) {
+                break;
+            }
         }
         self.expect(&TokenKind::Gt);
         params
@@ -213,20 +254,30 @@ impl<'a> Parser<'a> {
                 self.sink.emit(
                     Diagnostic::new(DiagnosticCode::E0201)
                         .with_message("missing type annotation")
-                        .with_label(sp, format!("parameter `{}` requires a type annotation", name)),
+                        .with_label(
+                            sp,
+                            format!("parameter `{}` requires a type annotation", name),
+                        ),
                 );
                 // Skip to next comma or rparen
-                while *self.peek() != TokenKind::Comma && *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
+                while *self.peek() != TokenKind::Comma
+                    && *self.peek() != TokenKind::RParen
+                    && *self.peek() != TokenKind::Eof
+                {
                     self.advance();
                 }
-                if self.eat(&TokenKind::Comma) { continue; }
+                if self.eat(&TokenKind::Comma) {
+                    continue;
+                }
                 break;
             }
             self.expect(&TokenKind::Colon);
             let ty = self.parse_type_expr();
             let span = start.merge(self.span());
             params.push(Param { name, ty, span });
-            if !self.eat(&TokenKind::Comma) { break; }
+            if !self.eat(&TokenKind::Comma) {
+                break;
+            }
         }
         params
     }
@@ -238,7 +289,12 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::LBrace);
         let fields = self.parse_fields();
         let end = self.expect(&TokenKind::RBrace);
-        StructDef { name, fields, is_pub, span: start.merge(end) }
+        StructDef {
+            name,
+            fields,
+            is_pub,
+            span: start.merge(end),
+        }
     }
 
     fn parse_fields(&mut self) -> Vec<Field> {
@@ -278,23 +334,42 @@ impl<'a> Parser<'a> {
                 let mut fields = Vec::new();
                 while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
                     fields.push(self.parse_type_expr());
-                    if !self.eat(&TokenKind::Comma) { break; }
+                    if !self.eat(&TokenKind::Comma) {
+                        break;
+                    }
                 }
                 let end = self.expect(&TokenKind::RParen);
-                variants.push(Variant::Tuple { name: vname, fields, span: vstart.merge(end) });
+                variants.push(Variant::Tuple {
+                    name: vname,
+                    fields,
+                    span: vstart.merge(end),
+                });
             } else if *self.peek() == TokenKind::LBrace {
                 // Struct variant
                 self.advance();
                 let fields = self.parse_fields();
                 let end = self.expect(&TokenKind::RBrace);
-                variants.push(Variant::Struct { name: vname, fields, span: vstart.merge(end) });
+                variants.push(Variant::Struct {
+                    name: vname,
+                    fields,
+                    span: vstart.merge(end),
+                });
             } else {
-                variants.push(Variant::Unit { name: vname, span: vstart.merge(self.span()) });
+                variants.push(Variant::Unit {
+                    name: vname,
+                    span: vstart.merge(self.span()),
+                });
             }
             self.eat(&TokenKind::Comma);
         }
         let end = self.expect(&TokenKind::RBrace);
-        EnumDef { name, type_params, variants, is_pub, span: start.merge(end) }
+        EnumDef {
+            name,
+            type_params,
+            variants,
+            is_pub,
+            span: start.merge(end),
+        }
     }
 
     // === Type expressions ===
@@ -327,15 +402,26 @@ impl<'a> Parser<'a> {
                     if let TokenKind::IntLit(n) = self.peek().clone() {
                         self.advance();
                         let end = self.expect(&TokenKind::RBracket);
-                        TypeExpr::Array { elem: Box::new(elem), size: n as u64, span: start.merge(end) }
+                        TypeExpr::Array {
+                            elem: Box::new(elem),
+                            size: n as u64,
+                            span: start.merge(end),
+                        }
                     } else {
                         self.expect(&TokenKind::RBracket);
-                        TypeExpr::Array { elem: Box::new(elem), size: 0, span: start.merge(self.span()) }
+                        TypeExpr::Array {
+                            elem: Box::new(elem),
+                            size: 0,
+                            span: start.merge(self.span()),
+                        }
                     }
                 } else {
                     // Slice [T]
                     let end = self.expect(&TokenKind::RBracket);
-                    TypeExpr::Slice { elem: Box::new(elem), span: start.merge(end) }
+                    TypeExpr::Slice {
+                        elem: Box::new(elem),
+                        span: start.merge(end),
+                    }
                 }
             }
             TokenKind::Fn => {
@@ -344,12 +430,18 @@ impl<'a> Parser<'a> {
                 let mut params = Vec::new();
                 while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
                     params.push(self.parse_type_expr());
-                    if !self.eat(&TokenKind::Comma) { break; }
+                    if !self.eat(&TokenKind::Comma) {
+                        break;
+                    }
                 }
                 self.expect(&TokenKind::RParen);
                 self.expect(&TokenKind::Arrow);
                 let ret = self.parse_type_expr();
-                TypeExpr::Function { params, ret: Box::new(ret), span: start.merge(self.span()) }
+                TypeExpr::Function {
+                    params,
+                    ret: Box::new(ret),
+                    span: start.merge(self.span()),
+                }
             }
             TokenKind::Ident(name) => {
                 self.advance();
@@ -357,16 +449,24 @@ impl<'a> Parser<'a> {
                 if *self.peek() == TokenKind::Dot {
                     self.advance();
                     let type_name = self.expect_ident();
-                    return TypeExpr::Qualified { module: name, name: type_name, span: start.merge(self.span()) };
+                    return TypeExpr::Qualified {
+                        module: name,
+                        name: type_name,
+                        span: start.merge(self.span()),
+                    };
                 }
                 // Check for generic type: Type<A, B>
                 if *self.peek() == TokenKind::Lt {
                     self.advance();
                     let mut args = Vec::new();
                     loop {
-                        if *self.peek() == TokenKind::Gt { break; }
+                        if *self.peek() == TokenKind::Gt {
+                            break;
+                        }
                         args.push(self.parse_type_expr());
-                        if !self.eat(&TokenKind::Comma) { break; }
+                        if !self.eat(&TokenKind::Comma) {
+                            break;
+                        }
                     }
                     // Detect nested generics: Vec<Vec<i32>> produces Shr (`>>`) token
                     if *self.peek() == TokenKind::Shr {
@@ -377,12 +477,23 @@ impl<'a> Parser<'a> {
                                 .with_label(sp, "nested generic type"),
                         );
                         self.advance();
-                        return TypeExpr::Generic { name, args, span: start.merge(self.span()) };
+                        return TypeExpr::Generic {
+                            name,
+                            args,
+                            span: start.merge(self.span()),
+                        };
                     }
                     self.expect(&TokenKind::Gt);
-                    return TypeExpr::Generic { name, args, span: start.merge(self.span()) };
+                    return TypeExpr::Generic {
+                        name,
+                        args,
+                        span: start.merge(self.span()),
+                    };
                 }
-                TypeExpr::Named { name, span: start.merge(self.span()) }
+                TypeExpr::Named {
+                    name,
+                    span: start.merge(self.span()),
+                }
             }
             _ => {
                 let sp = self.span();
@@ -392,7 +503,10 @@ impl<'a> Parser<'a> {
                         .with_label(sp, "here"),
                 );
                 self.advance();
-                TypeExpr::Named { name: "<error>".to_string(), span: sp }
+                TypeExpr::Named {
+                    name: "<error>".to_string(),
+                    span: sp,
+                }
             }
         }
     }
@@ -449,7 +563,11 @@ impl<'a> Parser<'a> {
             }
         }
         let end = self.expect(&TokenKind::RBrace);
-        Block { stmts, tail_expr, span: start.merge(end) }
+        Block {
+            stmts,
+            tail_expr,
+            span: start.merge(end),
+        }
     }
 
     fn parse_let_stmt(&mut self) -> Stmt {
@@ -476,7 +594,14 @@ impl<'a> Parser<'a> {
         // Optional semicolon
         self.eat(&TokenKind::Semi);
 
-        Stmt::Let { name, ty, init, is_mut, pattern, span: start.merge(self.span()) }
+        Stmt::Let {
+            name,
+            ty,
+            init,
+            is_mut,
+            pattern,
+            span: start.merge(self.span()),
+        }
     }
 
     fn parse_while_stmt(&mut self) -> Stmt {
@@ -484,14 +609,21 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::While);
         let cond = self.parse_expr();
         let body = self.parse_block();
-        Stmt::While { cond, body, span: start.merge(self.span()) }
+        Stmt::While {
+            cond,
+            body,
+            span: start.merge(self.span()),
+        }
     }
 
     fn parse_loop_stmt(&mut self) -> Stmt {
         let start = self.span();
         self.expect(&TokenKind::Loop);
         let body = self.parse_block();
-        Stmt::Loop { body, span: start.merge(self.span()) }
+        Stmt::Loop {
+            body,
+            span: start.merge(self.span()),
+        }
     }
 
     // === Expressions (Pratt parser) ===
@@ -507,7 +639,11 @@ impl<'a> Parser<'a> {
             self.advance();
             let value = self.parse_assignment();
             let span = start.merge(value.span());
-            Expr::Assign { target: Box::new(expr), value: Box::new(value), span }
+            Expr::Assign {
+                target: Box::new(expr),
+                value: Box::new(value),
+                span,
+            }
         } else {
             expr
         }
@@ -520,7 +656,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_and();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op: BinOp::Or, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op: BinOp::Or,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -532,7 +673,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_equality();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op: BinOp::And, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op: BinOp::And,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -549,7 +695,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_comparison();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -568,7 +719,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_bitor();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -580,7 +736,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_bitxor();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op: BinOp::BitOr, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op: BinOp::BitOr,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -592,7 +753,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_bitand();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op: BinOp::BitXor, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op: BinOp::BitXor,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -604,7 +770,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_shift();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op: BinOp::BitAnd, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op: BinOp::BitAnd,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -621,7 +792,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_additive();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -638,7 +814,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_multiplicative();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -656,7 +837,12 @@ impl<'a> Parser<'a> {
             self.advance();
             let right = self.parse_unary();
             let span = start.merge(right.span());
-            left = Expr::Binary { left: Box::new(left), op, right: Box::new(right), span };
+            left = Expr::Binary {
+                left: Box::new(left),
+                op,
+                right: Box::new(right),
+                span,
+            };
         }
         left
     }
@@ -668,19 +854,31 @@ impl<'a> Parser<'a> {
                 self.advance();
                 let operand = self.parse_unary();
                 let span = start.merge(operand.span());
-                Expr::Unary { op: UnaryOp::Neg, operand: Box::new(operand), span }
+                Expr::Unary {
+                    op: UnaryOp::Neg,
+                    operand: Box::new(operand),
+                    span,
+                }
             }
             TokenKind::Bang => {
                 self.advance();
                 let operand = self.parse_unary();
                 let span = start.merge(operand.span());
-                Expr::Unary { op: UnaryOp::Not, operand: Box::new(operand), span }
+                Expr::Unary {
+                    op: UnaryOp::Not,
+                    operand: Box::new(operand),
+                    span,
+                }
             }
             TokenKind::Tilde => {
                 self.advance();
                 let operand = self.parse_unary();
                 let span = start.merge(operand.span());
-                Expr::Unary { op: UnaryOp::BitNot, operand: Box::new(operand), span }
+                Expr::Unary {
+                    op: UnaryOp::BitNot,
+                    operand: Box::new(operand),
+                    span,
+                }
             }
             _ => self.parse_postfix(),
         }
@@ -696,7 +894,12 @@ impl<'a> Parser<'a> {
                     let args = self.parse_call_args();
                     let end = self.expect(&TokenKind::RParen);
                     let span = expr.span().merge(end);
-                    expr = Expr::Call { callee: Box::new(expr), type_args: Vec::new(), args, span };
+                    expr = Expr::Call {
+                        callee: Box::new(expr),
+                        type_args: Vec::new(),
+                        args,
+                        span,
+                    };
                 }
                 TokenKind::LBracket => {
                     // Index
@@ -704,7 +907,11 @@ impl<'a> Parser<'a> {
                     let index = self.parse_expr();
                     let end = self.expect(&TokenKind::RBracket);
                     let span = expr.span().merge(end);
-                    expr = Expr::Index { object: Box::new(expr), index: Box::new(index), span };
+                    expr = Expr::Index {
+                        object: Box::new(expr),
+                        index: Box::new(index),
+                        span,
+                    };
                 }
                 TokenKind::Dot => {
                     self.advance();
@@ -723,13 +930,20 @@ impl<'a> Parser<'a> {
                         self.expect(&TokenKind::RParen);
                     }
                     let span = expr.span().merge(self.span());
-                    expr = Expr::FieldAccess { object: Box::new(expr), field, span };
+                    expr = Expr::FieldAccess {
+                        object: Box::new(expr),
+                        field,
+                        span,
+                    };
                 }
                 TokenKind::Question => {
                     let start = expr.span();
                     self.advance();
                     let span = start.merge(self.span());
-                    expr = Expr::Try { expr: Box::new(expr), span };
+                    expr = Expr::Try {
+                        expr: Box::new(expr),
+                        span,
+                    };
                 }
                 _ => break,
             }
@@ -741,7 +955,9 @@ impl<'a> Parser<'a> {
         let mut args = Vec::new();
         while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
             args.push(self.parse_expr());
-            if !self.eat(&TokenKind::Comma) { break; }
+            if !self.eat(&TokenKind::Comma) {
+                break;
+            }
         }
         args
     }
@@ -749,11 +965,41 @@ impl<'a> Parser<'a> {
     fn parse_primary(&mut self) -> Expr {
         let start = self.span();
         match self.peek().clone() {
-            TokenKind::IntLit(v) => { self.advance(); Expr::IntLit { value: v, span: start } }
-            TokenKind::FloatLit(v) => { self.advance(); Expr::FloatLit { value: v, span: start } }
-            TokenKind::StringLit(v) => { self.advance(); Expr::StringLit { value: v, span: start } }
-            TokenKind::CharLit(v) => { self.advance(); Expr::CharLit { value: v, span: start } }
-            TokenKind::BoolLit(v) => { self.advance(); Expr::BoolLit { value: v, span: start } }
+            TokenKind::IntLit(v) => {
+                self.advance();
+                Expr::IntLit {
+                    value: v,
+                    span: start,
+                }
+            }
+            TokenKind::FloatLit(v) => {
+                self.advance();
+                Expr::FloatLit {
+                    value: v,
+                    span: start,
+                }
+            }
+            TokenKind::StringLit(v) => {
+                self.advance();
+                Expr::StringLit {
+                    value: v,
+                    span: start,
+                }
+            }
+            TokenKind::CharLit(v) => {
+                self.advance();
+                Expr::CharLit {
+                    value: v,
+                    span: start,
+                }
+            }
+            TokenKind::BoolLit(v) => {
+                self.advance();
+                Expr::BoolLit {
+                    value: v,
+                    span: start,
+                }
+            }
             TokenKind::Ident(name) => {
                 self.advance();
                 // Qualified: Name::Variant or module.name
@@ -766,10 +1012,23 @@ impl<'a> Parser<'a> {
                         let args = self.parse_call_args();
                         let end = self.expect(&TokenKind::RParen);
                         let span = start.merge(end);
-                        let callee = Expr::QualifiedIdent { module: name, name: variant, span: start.merge(self.span()) };
-                        return Expr::Call { callee: Box::new(callee), type_args: Vec::new(), args, span };
+                        let callee = Expr::QualifiedIdent {
+                            module: name,
+                            name: variant,
+                            span: start.merge(self.span()),
+                        };
+                        return Expr::Call {
+                            callee: Box::new(callee),
+                            type_args: Vec::new(),
+                            args,
+                            span,
+                        };
                     }
-                    return Expr::QualifiedIdent { module: name, name: variant, span: start.merge(self.span()) };
+                    return Expr::QualifiedIdent {
+                        module: name,
+                        name: variant,
+                        span: start.merge(self.span()),
+                    };
                 }
                 // Struct init: Name { field: value, ... }
                 if *self.peek() == TokenKind::LBrace && self.could_be_struct_init(&name) {
@@ -782,7 +1041,10 @@ impl<'a> Parser<'a> {
                 if *self.peek() == TokenKind::RParen {
                     // Unit literal ()
                     let end = self.advance().span;
-                    return Expr::Tuple { elements: Vec::new(), span: start.merge(end) };
+                    return Expr::Tuple {
+                        elements: Vec::new(),
+                        span: start.merge(end),
+                    };
                 }
                 let expr = self.parse_expr();
                 if self.eat(&TokenKind::Comma) {
@@ -790,10 +1052,15 @@ impl<'a> Parser<'a> {
                     let mut elements = vec![expr];
                     while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
                         elements.push(self.parse_expr());
-                        if !self.eat(&TokenKind::Comma) { break; }
+                        if !self.eat(&TokenKind::Comma) {
+                            break;
+                        }
                     }
                     let end = self.expect(&TokenKind::RParen);
-                    Expr::Tuple { elements, span: start.merge(end) }
+                    Expr::Tuple {
+                        elements,
+                        span: start.merge(end),
+                    }
                 } else {
                     self.expect(&TokenKind::RParen);
                     expr // parenthesized expression
@@ -803,47 +1070,65 @@ impl<'a> Parser<'a> {
                 self.advance();
                 if *self.peek() == TokenKind::RBracket {
                     let end = self.advance().span;
-                    return Expr::Array { elements: Vec::new(), span: start.merge(end) };
+                    return Expr::Array {
+                        elements: Vec::new(),
+                        span: start.merge(end),
+                    };
                 }
                 let first = self.parse_expr();
                 if self.eat(&TokenKind::Semi) {
                     // Array repeat [value; count]
                     let count = self.parse_expr();
                     let end = self.expect(&TokenKind::RBracket);
-                    Expr::ArrayRepeat { value: Box::new(first), count: Box::new(count), span: start.merge(end) }
+                    Expr::ArrayRepeat {
+                        value: Box::new(first),
+                        count: Box::new(count),
+                        span: start.merge(end),
+                    }
                 } else {
                     // Array literal [a, b, c]
                     let mut elements = vec![first];
                     while self.eat(&TokenKind::Comma) {
-                        if *self.peek() == TokenKind::RBracket { break; }
+                        if *self.peek() == TokenKind::RBracket {
+                            break;
+                        }
                         elements.push(self.parse_expr());
                     }
                     let end = self.expect(&TokenKind::RBracket);
-                    Expr::Array { elements, span: start.merge(end) }
+                    Expr::Array {
+                        elements,
+                        span: start.merge(end),
+                    }
                 }
             }
-            TokenKind::LBrace => {
-                Expr::Block(self.parse_block())
-            }
+            TokenKind::LBrace => Expr::Block(self.parse_block()),
             TokenKind::If => self.parse_if_expr(),
             TokenKind::Match => self.parse_match_expr(),
             TokenKind::Return => {
                 self.advance();
-                let value = if *self.peek() != TokenKind::Semi && *self.peek() != TokenKind::RBrace {
+                let value = if *self.peek() != TokenKind::Semi && *self.peek() != TokenKind::RBrace
+                {
                     Some(Box::new(self.parse_expr()))
                 } else {
                     None
                 };
-                Expr::Return { value, span: start.merge(self.span()) }
+                Expr::Return {
+                    value,
+                    span: start.merge(self.span()),
+                }
             }
             TokenKind::Break => {
                 self.advance();
-                let value = if *self.peek() != TokenKind::Semi && *self.peek() != TokenKind::RBrace {
+                let value = if *self.peek() != TokenKind::Semi && *self.peek() != TokenKind::RBrace
+                {
                     Some(Box::new(self.parse_expr()))
                 } else {
                     None
                 };
-                Expr::Break { value, span: start.merge(self.span()) }
+                Expr::Break {
+                    value,
+                    span: start.merge(self.span()),
+                }
             }
             TokenKind::Continue => {
                 self.advance();
@@ -852,17 +1137,23 @@ impl<'a> Parser<'a> {
             TokenKind::Loop => {
                 self.advance();
                 let body = self.parse_block();
-                Expr::Loop { body, span: start.merge(self.span()) }
+                Expr::Loop {
+                    body,
+                    span: start.merge(self.span()),
+                }
             }
-            TokenKind::Pipe => {
-                self.parse_closure(start)
-            }
+            TokenKind::Pipe => self.parse_closure(start),
             TokenKind::PipePipe => {
                 // || closure (no params)
                 self.advance();
                 let body = self.parse_expr();
                 let span = start.merge(body.span());
-                Expr::Closure { params: Vec::new(), return_type: None, body: Box::new(body), span }
+                Expr::Closure {
+                    params: Vec::new(),
+                    return_type: None,
+                    body: Box::new(body),
+                    span,
+                }
             }
             _ => {
                 let sp = self.span();
@@ -907,10 +1198,16 @@ impl<'a> Parser<'a> {
             self.expect(&TokenKind::Colon);
             let fval = self.parse_expr();
             fields.push((fname, fval));
-            if !self.eat(&TokenKind::Comma) { break; }
+            if !self.eat(&TokenKind::Comma) {
+                break;
+            }
         }
         let end = self.expect(&TokenKind::RBrace);
-        Expr::StructInit { name, fields, span: start.merge(end) }
+        Expr::StructInit {
+            name,
+            fields,
+            span: start.merge(end),
+        }
     }
 
     fn parse_if_expr(&mut self) -> Expr {
@@ -923,7 +1220,11 @@ impl<'a> Parser<'a> {
                 // else if -> wrap in block
                 let elif = self.parse_if_expr();
                 let sp = elif.span();
-                Some(Block { stmts: Vec::new(), tail_expr: Some(Box::new(elif)), span: sp })
+                Some(Block {
+                    stmts: Vec::new(),
+                    tail_expr: Some(Box::new(elif)),
+                    span: sp,
+                })
             } else {
                 Some(self.parse_block())
             }
@@ -931,7 +1232,12 @@ impl<'a> Parser<'a> {
             None
         };
         let span = start.merge(self.span());
-        Expr::If { cond: Box::new(cond), then_block, else_block, span }
+        Expr::If {
+            cond: Box::new(cond),
+            then_block,
+            else_block,
+            span,
+        }
     }
 
     fn parse_match_expr(&mut self) -> Expr {
@@ -946,11 +1252,19 @@ impl<'a> Parser<'a> {
             self.expect(&TokenKind::FatArrow);
             let body = self.parse_expr();
             let arm_span = arm_start.merge(body.span());
-            arms.push(MatchArm { pattern, body, span: arm_span });
+            arms.push(MatchArm {
+                pattern,
+                body,
+                span: arm_span,
+            });
             self.eat(&TokenKind::Comma);
         }
         let end = self.expect(&TokenKind::RBrace);
-        Expr::Match { scrutinee: Box::new(scrutinee), arms, span: start.merge(end) }
+        Expr::Match {
+            scrutinee: Box::new(scrutinee),
+            arms,
+            span: start.merge(end),
+        }
     }
 
     fn parse_pattern(&mut self) -> Pattern {
@@ -971,23 +1285,34 @@ impl<'a> Parser<'a> {
                         let mut pats = Vec::new();
                         while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
                             pats.push(self.parse_pattern());
-                            if !self.eat(&TokenKind::Comma) { break; }
+                            if !self.eat(&TokenKind::Comma) {
+                                break;
+                            }
                         }
                         self.expect(&TokenKind::RParen);
                         pats
                     } else {
                         Vec::new()
                     };
-                    return Pattern::Enum { path: name, variant, fields, span: start.merge(self.span()) };
+                    return Pattern::Enum {
+                        path: name,
+                        variant,
+                        fields,
+                        span: start.merge(self.span()),
+                    };
                 }
                 // Plain identifier or variant without path
                 // Check if it matches Some/None/Ok/Err (common enum constructors)
-                if *self.peek() == TokenKind::LParen && matches!(name.as_str(), "Some" | "Ok" | "Err") {
+                if *self.peek() == TokenKind::LParen
+                    && matches!(name.as_str(), "Some" | "Ok" | "Err")
+                {
                     self.advance();
                     let mut fields = Vec::new();
                     while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
                         fields.push(self.parse_pattern());
-                        if !self.eat(&TokenKind::Comma) { break; }
+                        if !self.eat(&TokenKind::Comma) {
+                            break;
+                        }
                     }
                     self.expect(&TokenKind::RParen);
                     let enum_name = match name.as_str() {
@@ -995,23 +1320,64 @@ impl<'a> Parser<'a> {
                         "Ok" | "Err" => "Result",
                         _ => "<unknown>",
                     };
-                    return Pattern::Enum { path: enum_name.to_string(), variant: name, fields, span: start.merge(self.span()) };
+                    return Pattern::Enum {
+                        path: enum_name.to_string(),
+                        variant: name,
+                        fields,
+                        span: start.merge(self.span()),
+                    };
                 }
                 Pattern::Ident { name, span: start }
             }
-            TokenKind::IntLit(v) => { self.advance(); Pattern::IntLit { value: v, span: start } }
-            TokenKind::FloatLit(v) => { self.advance(); Pattern::FloatLit { value: v, span: start } }
-            TokenKind::StringLit(v) => { self.advance(); Pattern::StringLit { value: v, span: start } }
-            TokenKind::CharLit(v) => { self.advance(); Pattern::CharLit { value: v, span: start } }
-            TokenKind::BoolLit(v) => { self.advance(); Pattern::BoolLit { value: v, span: start } }
+            TokenKind::IntLit(v) => {
+                self.advance();
+                Pattern::IntLit {
+                    value: v,
+                    span: start,
+                }
+            }
+            TokenKind::FloatLit(v) => {
+                self.advance();
+                Pattern::FloatLit {
+                    value: v,
+                    span: start,
+                }
+            }
+            TokenKind::StringLit(v) => {
+                self.advance();
+                Pattern::StringLit {
+                    value: v,
+                    span: start,
+                }
+            }
+            TokenKind::CharLit(v) => {
+                self.advance();
+                Pattern::CharLit {
+                    value: v,
+                    span: start,
+                }
+            }
+            TokenKind::BoolLit(v) => {
+                self.advance();
+                Pattern::BoolLit {
+                    value: v,
+                    span: start,
+                }
+            }
             TokenKind::Minus => {
                 // Negative literal pattern
                 self.advance();
                 if let TokenKind::IntLit(v) = self.peek().clone() {
                     self.advance();
-                    Pattern::IntLit { value: -v, span: start.merge(self.span()) }
+                    Pattern::IntLit {
+                        value: -v,
+                        span: start.merge(self.span()),
+                    }
                 } else {
-                    Pattern::IntLit { value: 0, span: start }
+                    Pattern::IntLit {
+                        value: 0,
+                        span: start,
+                    }
                 }
             }
             TokenKind::LParen => {
@@ -1019,10 +1385,15 @@ impl<'a> Parser<'a> {
                 let mut elements = Vec::new();
                 while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
                     elements.push(self.parse_pattern());
-                    if !self.eat(&TokenKind::Comma) { break; }
+                    if !self.eat(&TokenKind::Comma) {
+                        break;
+                    }
                 }
                 let end = self.expect(&TokenKind::RParen);
-                Pattern::Tuple { elements, span: start.merge(end) }
+                Pattern::Tuple {
+                    elements,
+                    span: start.merge(end),
+                }
             }
             _ => {
                 let sp = self.span();
@@ -1048,8 +1419,14 @@ impl<'a> Parser<'a> {
             } else {
                 None
             };
-            params.push(ClosureParam { name, ty, span: pstart.merge(self.span()) });
-            if !self.eat(&TokenKind::Comma) { break; }
+            params.push(ClosureParam {
+                name,
+                ty,
+                span: pstart.merge(self.span()),
+            });
+            if !self.eat(&TokenKind::Comma) {
+                break;
+            }
         }
         self.expect(&TokenKind::Pipe);
         // Optional return type annotation: -> Type
@@ -1064,6 +1441,11 @@ impl<'a> Parser<'a> {
             self.parse_expr()
         };
         let span = start.merge(body.span());
-        Expr::Closure { params, return_type, body: Box::new(body), span }
+        Expr::Closure {
+            params,
+            return_type,
+            body: Box::new(body),
+            span,
+        }
     }
 }

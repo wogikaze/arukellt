@@ -17,11 +17,19 @@ pub struct TypeEnv {
 
 impl TypeEnv {
     pub fn new() -> Self {
-        Self { bindings: HashMap::new(), mutable_vars: HashSet::new(), parent: None }
+        Self {
+            bindings: HashMap::new(),
+            mutable_vars: HashSet::new(),
+            parent: None,
+        }
     }
 
     pub fn child(&self) -> Self {
-        Self { bindings: HashMap::new(), mutable_vars: HashSet::new(), parent: Some(Box::new(self.clone())) }
+        Self {
+            bindings: HashMap::new(),
+            mutable_vars: HashSet::new(),
+            parent: Some(Box::new(self.clone())),
+        }
     }
 
     pub fn bind(&mut self, name: String, ty: Type) {
@@ -38,9 +46,9 @@ impl TypeEnv {
     }
 
     pub fn lookup(&self, name: &str) -> Option<&Type> {
-        self.bindings.get(name).or_else(|| {
-            self.parent.as_ref().and_then(|p| p.lookup(name))
-        })
+        self.bindings
+            .get(name)
+            .or_else(|| self.parent.as_ref().and_then(|p| p.lookup(name)))
     }
 }
 
@@ -132,282 +140,476 @@ impl TypeChecker {
     pub fn register_builtins(&mut self) {
         // Option<T> is an enum with None and Some(T)
         let opt_id = self.fresh_type_id();
-        self.enum_defs.insert("Option".into(), EnumInfo {
-            name: "Option".into(),
-            variants: vec![
-                VariantInfo { name: "None".into(), fields: vec![] },
-                VariantInfo { name: "Some".into(), fields: vec![Type::TypeVar(0)] },
-            ],
-            type_params: vec!["T".into()],
-            type_id: opt_id,
-        });
+        self.enum_defs.insert(
+            "Option".into(),
+            EnumInfo {
+                name: "Option".into(),
+                variants: vec![
+                    VariantInfo {
+                        name: "None".into(),
+                        fields: vec![],
+                    },
+                    VariantInfo {
+                        name: "Some".into(),
+                        fields: vec![Type::TypeVar(0)],
+                    },
+                ],
+                type_params: vec!["T".into()],
+                type_id: opt_id,
+            },
+        );
 
         // Result<T, E>
         let res_id = self.fresh_type_id();
-        self.enum_defs.insert("Result".into(), EnumInfo {
-            name: "Result".into(),
-            variants: vec![
-                VariantInfo { name: "Ok".into(), fields: vec![Type::TypeVar(0)] },
-                VariantInfo { name: "Err".into(), fields: vec![Type::TypeVar(1)] },
-            ],
-            type_params: vec!["T".into(), "E".into()],
-            type_id: res_id,
-        });
+        self.enum_defs.insert(
+            "Result".into(),
+            EnumInfo {
+                name: "Result".into(),
+                variants: vec![
+                    VariantInfo {
+                        name: "Ok".into(),
+                        fields: vec![Type::TypeVar(0)],
+                    },
+                    VariantInfo {
+                        name: "Err".into(),
+                        fields: vec![Type::TypeVar(1)],
+                    },
+                ],
+                type_params: vec!["T".into(), "E".into()],
+                type_id: res_id,
+            },
+        );
 
         // Builtin I/O intrinsics
-        self.fn_sigs.insert("__intrinsic_println".into(), FnSig {
-            name: "__intrinsic_println".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::Unit,
-        });
-        self.fn_sigs.insert("__intrinsic_print".into(), FnSig {
-            name: "__intrinsic_print".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::Unit,
-        });
-        self.fn_sigs.insert("__intrinsic_eprintln".into(), FnSig {
-            name: "__intrinsic_eprintln".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::Unit,
-        });
-        self.fn_sigs.insert("println".into(), FnSig {
-            name: "println".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::Unit,
-        });
-        self.fn_sigs.insert("print".into(), FnSig {
-            name: "print".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::Unit,
-        });
-        self.fn_sigs.insert("eprintln".into(), FnSig {
-            name: "eprintln".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::Unit,
-        });
+        self.fn_sigs.insert(
+            "__intrinsic_println".into(),
+            FnSig {
+                name: "__intrinsic_println".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_print".into(),
+            FnSig {
+                name: "__intrinsic_print".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_eprintln".into(),
+            FnSig {
+                name: "__intrinsic_eprintln".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "println".into(),
+            FnSig {
+                name: "println".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "print".into(),
+            FnSig {
+                name: "print".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "eprintln".into(),
+            FnSig {
+                name: "eprintln".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::Unit,
+            },
+        );
 
         // Conversion functions
-        self.fn_sigs.insert("i32_to_string".into(), FnSig {
-            name: "i32_to_string".into(),
-            type_params: vec![],
-            params: vec![Type::I32],
-            ret: Type::String,
-        });
-        self.fn_sigs.insert("i64_to_string".into(), FnSig {
-            name: "i64_to_string".into(),
-            type_params: vec![],
-            params: vec![Type::I64],
-            ret: Type::String,
-        });
-        self.fn_sigs.insert("bool_to_string".into(), FnSig {
-            name: "bool_to_string".into(),
-            type_params: vec![],
-            params: vec![Type::Bool],
-            ret: Type::String,
-        });
-        self.fn_sigs.insert("__intrinsic_string_from".into(), FnSig {
-            name: "__intrinsic_string_from".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::String,
-        });
-        self.fn_sigs.insert("String_from".into(), FnSig {
-            name: "String_from".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::String,
-        });
-        self.fn_sigs.insert("char_to_string".into(), FnSig {
-            name: "char_to_string".into(),
-            type_params: vec![],
-            params: vec![Type::Char],
-            ret: Type::String,
-        });
-        self.fn_sigs.insert("f64_to_string".into(), FnSig {
-            name: "f64_to_string".into(),
-            type_params: vec![],
-            params: vec![Type::F64],
-            ret: Type::String,
-        });
+        self.fn_sigs.insert(
+            "i32_to_string".into(),
+            FnSig {
+                name: "i32_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "i64_to_string".into(),
+            FnSig {
+                name: "i64_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::I64],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "bool_to_string".into(),
+            FnSig {
+                name: "bool_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::Bool],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_string_from".into(),
+            FnSig {
+                name: "__intrinsic_string_from".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "String_from".into(),
+            FnSig {
+                name: "String_from".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "char_to_string".into(),
+            FnSig {
+                name: "char_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::Char],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "f64_to_string".into(),
+            FnSig {
+                name: "f64_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::F64],
+                ret: Type::String,
+            },
+        );
         // String equality
-        self.fn_sigs.insert("__intrinsic_string_eq".into(), FnSig {
-            name: "__intrinsic_string_eq".into(),
-            type_params: vec![],
-            params: vec![Type::String, Type::String],
-            ret: Type::Bool,
-        });
-        self.fn_sigs.insert("eq".into(), FnSig {
-            name: "eq".into(),
-            type_params: vec![],
-            params: vec![Type::String, Type::String],
-            ret: Type::Bool,
-        });
+        self.fn_sigs.insert(
+            "__intrinsic_string_eq".into(),
+            FnSig {
+                name: "__intrinsic_string_eq".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "eq".into(),
+            FnSig {
+                name: "eq".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Bool,
+            },
+        );
         // String concatenation
-        self.fn_sigs.insert("concat".into(), FnSig {
-            name: "concat".into(),
-            type_params: vec![],
-            params: vec![Type::String, Type::String],
-            ret: Type::String,
-        });
+        self.fn_sigs.insert(
+            "concat".into(),
+            FnSig {
+                name: "concat".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::String,
+            },
+        );
         // parse_i32: String -> Result<i32, String>
-        self.fn_sigs.insert("parse_i32".into(), FnSig {
-            name: "parse_i32".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::I32,
-        });
+        self.fn_sigs.insert(
+            "parse_i32".into(),
+            FnSig {
+                name: "parse_i32".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::I32,
+            },
+        );
         // Enum variant constructors (treated as functions for type checking)
-        self.fn_sigs.insert("Some".into(), FnSig {
-            name: "Some".into(),
-            type_params: vec![],
-            params: vec![Type::I32], // generic but we treat as i32 for now
-            ret: Type::I32,
-        });
-        self.fn_sigs.insert("Ok".into(), FnSig {
-            name: "Ok".into(),
-            type_params: vec![],
-            params: vec![Type::I32],
-            ret: Type::I32,
-        });
-        self.fn_sigs.insert("Err".into(), FnSig {
-            name: "Err".into(),
-            type_params: vec![],
-            params: vec![Type::I32],
-            ret: Type::I32,
-        });
+        self.fn_sigs.insert(
+            "Some".into(),
+            FnSig {
+                name: "Some".into(),
+                type_params: vec![],
+                params: vec![Type::I32], // generic but we treat as i32 for now
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "Ok".into(),
+            FnSig {
+                name: "Ok".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "Err".into(),
+            FnSig {
+                name: "Err".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
 
         // Vec stdlib
-        self.fn_sigs.insert("Vec_new_i32".into(), FnSig {
-            name: "Vec_new_i32".into(),
-            type_params: vec![],
-            params: vec![],
-            ret: Type::Vec(Box::new(Type::I32)),
-        });
-        self.fn_sigs.insert("push".into(), FnSig {
-            name: "push".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
-            ret: Type::Unit,
-        });
-        self.fn_sigs.insert("pop".into(), FnSig {
-            name: "pop".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32))],
-            ret: Type::Option(Box::new(Type::I32)),
-        });
-        self.fn_sigs.insert("len".into(), FnSig {
-            name: "len".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32))],
-            ret: Type::I32,
-        });
-        self.fn_sigs.insert("get".into(), FnSig {
-            name: "get".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
-            ret: Type::Option(Box::new(Type::I32)),
-        });
-        self.fn_sigs.insert("get_unchecked".into(), FnSig {
-            name: "get_unchecked".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
-            ret: Type::I32,
-        });
-        self.fn_sigs.insert("set".into(), FnSig {
-            name: "set".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32],
-            ret: Type::Unit,
-        });
-        self.fn_sigs.insert("sort_i32".into(), FnSig {
-            name: "sort_i32".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32))],
-            ret: Type::Unit,
-        });
+        self.fn_sigs.insert(
+            "Vec_new_i32".into(),
+            FnSig {
+                name: "Vec_new_i32".into(),
+                type_params: vec![],
+                params: vec![],
+                ret: Type::Vec(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "push".into(),
+            FnSig {
+                name: "push".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "pop".into(),
+            FnSig {
+                name: "pop".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32))],
+                ret: Type::Option(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "len".into(),
+            FnSig {
+                name: "len".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32))],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "get".into(),
+            FnSig {
+                name: "get".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+                ret: Type::Option(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "get_unchecked".into(),
+            FnSig {
+                name: "get_unchecked".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "set".into(),
+            FnSig {
+                name: "set".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "sort_i32".into(),
+            FnSig {
+                name: "sort_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32))],
+                ret: Type::Unit,
+            },
+        );
 
         // String stdlib
-        self.fn_sigs.insert("String_new".into(), FnSig {
-            name: "String_new".into(),
-            type_params: vec![],
-            params: vec![],
-            ret: Type::String,
-        });
-        self.fn_sigs.insert("is_empty".into(), FnSig {
-            name: "is_empty".into(),
-            type_params: vec![],
-            params: vec![Type::String],
-            ret: Type::Bool,
-        });
-        self.fn_sigs.insert("slice".into(), FnSig {
-            name: "slice".into(),
-            type_params: vec![],
-            params: vec![Type::String, Type::I32, Type::I32],
-            ret: Type::String,
-        });
-        self.fn_sigs.insert("starts_with".into(), FnSig {
-            name: "starts_with".into(),
-            type_params: vec![],
-            params: vec![Type::String, Type::String],
-            ret: Type::Bool,
-        });
-        self.fn_sigs.insert("ends_with".into(), FnSig {
-            name: "ends_with".into(),
-            type_params: vec![],
-            params: vec![Type::String, Type::String],
-            ret: Type::Bool,
-        });
-        self.fn_sigs.insert("split".into(), FnSig {
-            name: "split".into(),
-            type_params: vec![],
-            params: vec![Type::String, Type::String],
-            ret: Type::Vec(Box::new(Type::String)),
-        });
-        self.fn_sigs.insert("join".into(), FnSig {
-            name: "join".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::String)), Type::String],
-            ret: Type::String,
-        });
+        self.fn_sigs.insert(
+            "String_new".into(),
+            FnSig {
+                name: "String_new".into(),
+                type_params: vec![],
+                params: vec![],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "is_empty".into(),
+            FnSig {
+                name: "is_empty".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "slice".into(),
+            FnSig {
+                name: "slice".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::I32, Type::I32],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "starts_with".into(),
+            FnSig {
+                name: "starts_with".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "ends_with".into(),
+            FnSig {
+                name: "ends_with".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "split".into(),
+            FnSig {
+                name: "split".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "join".into(),
+            FnSig {
+                name: "join".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::String)), Type::String],
+                ret: Type::String,
+            },
+        );
 
         // Vec<String>
-        self.fn_sigs.insert("Vec_new_String".into(), FnSig {
-            name: "Vec_new_String".into(),
-            type_params: vec![],
-            params: vec![],
-            ret: Type::Vec(Box::new(Type::String)),
-        });
+        self.fn_sigs.insert(
+            "Vec_new_String".into(),
+            FnSig {
+                name: "Vec_new_String".into(),
+                type_params: vec![],
+                params: vec![],
+                ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
         // Higher-order Vec functions
-        self.fn_sigs.insert("map_i32_i32".into(), FnSig {
-            name: "map_i32_i32".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
-            ret: Type::Vec(Box::new(Type::I32)),
-        });
-        self.fn_sigs.insert("filter_i32".into(), FnSig {
-            name: "filter_i32".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
-            ret: Type::Vec(Box::new(Type::I32)),
-        });
-        self.fn_sigs.insert("fold_i32_i32".into(), FnSig {
-            name: "fold_i32_i32".into(),
-            type_params: vec![],
-            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32], // vec, init, fn ptr
-            ret: Type::I32,
-        });
-        self.fn_sigs.insert("map_option_i32_i32".into(), FnSig {
-            name: "map_option_i32_i32".into(),
-            type_params: vec![],
-            params: vec![Type::Option(Box::new(Type::I32)), Type::I32], // option, fn ptr
-            ret: Type::Option(Box::new(Type::I32)),
-        });
+        self.fn_sigs.insert(
+            "map_i32_i32".into(),
+            FnSig {
+                name: "map_i32_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
+                ret: Type::Vec(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "filter_i32".into(),
+            FnSig {
+                name: "filter_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
+                ret: Type::Vec(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "fold_i32_i32".into(),
+            FnSig {
+                name: "fold_i32_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32], // vec, init, fn ptr
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "map_option_i32_i32".into(),
+            FnSig {
+                name: "map_option_i32_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Option(Box::new(Type::I32)), Type::I32], // option, fn ptr
+                ret: Type::Option(Box::new(Type::I32)),
+            },
+        );
+
+        // Box builtins (Box<T> is represented as an i32 pointer)
+        self.fn_sigs.insert(
+            "Box_new".into(),
+            FnSig {
+                name: "Box_new".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "unbox".into(),
+            FnSig {
+                name: "unbox".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "unwrap".into(),
+            FnSig {
+                name: "unwrap".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "unwrap_or".into(),
+            FnSig {
+                name: "unwrap_or".into(),
+                type_params: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "is_some".into(),
+            FnSig {
+                name: "is_some".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "is_none".into(),
+            FnSig {
+                name: "is_none".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::Bool,
+            },
+        );
     }
 
     /// Resolve a type expression to a Type.
@@ -432,94 +634,118 @@ impl TypeChecker {
                 }
             },
             ast::TypeExpr::Generic { name, args, .. } => {
-                let resolved_args: Vec<Type> = args.iter().map(|a| self.resolve_type_expr(a)).collect();
+                let resolved_args: Vec<Type> =
+                    args.iter().map(|a| self.resolve_type_expr(a)).collect();
                 match name.as_str() {
-                    "Vec" if resolved_args.len() == 1 => Type::Vec(Box::new(resolved_args[0].clone())),
-                    "Option" if resolved_args.len() == 1 => Type::Option(Box::new(resolved_args[0].clone())),
-                    "Result" if resolved_args.len() == 2 => {
-                        Type::Result(Box::new(resolved_args[0].clone()), Box::new(resolved_args[1].clone()))
+                    "Vec" if resolved_args.len() == 1 => {
+                        Type::Vec(Box::new(resolved_args[0].clone()))
                     }
+                    "Option" if resolved_args.len() == 1 => {
+                        Type::Option(Box::new(resolved_args[0].clone()))
+                    }
+                    "Result" if resolved_args.len() == 2 => Type::Result(
+                        Box::new(resolved_args[0].clone()),
+                        Box::new(resolved_args[1].clone()),
+                    ),
+                    "Box" if resolved_args.len() == 1 => Type::I32, // Box is a pointer
                     _ => Type::Error,
                 }
-            },
+            }
             ast::TypeExpr::Tuple(types, _) => {
                 Type::Tuple(types.iter().map(|t| self.resolve_type_expr(t)).collect())
-            },
+            }
             ast::TypeExpr::Array { elem, size, .. } => {
                 Type::Array(Box::new(self.resolve_type_expr(elem)), *size)
-            },
+            }
             ast::TypeExpr::Slice { elem, .. } => {
                 Type::Slice(Box::new(self.resolve_type_expr(elem)))
-            },
-            ast::TypeExpr::Function { params, ret, .. } => {
-                Type::Function {
-                    params: params.iter().map(|p| self.resolve_type_expr(p)).collect(),
-                    ret: Box::new(self.resolve_type_expr(ret)),
-                }
+            }
+            ast::TypeExpr::Function { params, ret, .. } => Type::Function {
+                params: params.iter().map(|p| self.resolve_type_expr(p)).collect(),
+                ret: Box::new(self.resolve_type_expr(ret)),
             },
             ast::TypeExpr::Unit(_) => Type::Unit,
             ast::TypeExpr::Qualified { .. } => {
                 // e.g., io.Capabilities — treated as opaque for now
                 Type::Error
-            },
+            }
         }
     }
 
     /// Type check a module.
-    pub fn check_module(
-        &mut self,
-        resolved: &ResolvedModule,
-        sink: &mut DiagnosticSink,
-    ) {
+    pub fn check_module(&mut self, resolved: &ResolvedModule, sink: &mut DiagnosticSink) {
         // Register user-defined structs and enums
         for item in &resolved.module.items {
             match item {
                 ast::Item::StructDef(s) => {
                     let type_id = self.fresh_type_id();
-                    let fields: Vec<(String, Type)> = s.fields.iter()
+                    let fields: Vec<(String, Type)> = s
+                        .fields
+                        .iter()
                         .map(|f| (f.name.clone(), self.resolve_type_expr(&f.ty)))
                         .collect();
-                    self.struct_defs.insert(s.name.clone(), StructInfo {
-                        name: s.name.clone(),
-                        fields,
-                        type_id,
-                    });
+                    self.struct_defs.insert(
+                        s.name.clone(),
+                        StructInfo {
+                            name: s.name.clone(),
+                            fields,
+                            type_id,
+                        },
+                    );
                 }
                 ast::Item::EnumDef(e) => {
                     let type_id = self.fresh_type_id();
-                    let variants: Vec<VariantInfo> = e.variants.iter()
+                    let variants: Vec<VariantInfo> = e
+                        .variants
+                        .iter()
                         .map(|v| match v {
-                            ast::Variant::Unit { name, .. } => VariantInfo { name: name.clone(), fields: vec![] },
+                            ast::Variant::Unit { name, .. } => VariantInfo {
+                                name: name.clone(),
+                                fields: vec![],
+                            },
                             ast::Variant::Tuple { name, fields, .. } => VariantInfo {
                                 name: name.clone(),
                                 fields: fields.iter().map(|t| self.resolve_type_expr(t)).collect(),
                             },
                             ast::Variant::Struct { name, fields, .. } => VariantInfo {
                                 name: name.clone(),
-                                fields: fields.iter().map(|f| self.resolve_type_expr(&f.ty)).collect(),
+                                fields: fields
+                                    .iter()
+                                    .map(|f| self.resolve_type_expr(&f.ty))
+                                    .collect(),
                             },
                         })
                         .collect();
-                    self.enum_defs.insert(e.name.clone(), EnumInfo {
-                        name: e.name.clone(),
-                        variants,
-                        type_params: e.type_params.clone(),
-                        type_id,
-                    });
+                    self.enum_defs.insert(
+                        e.name.clone(),
+                        EnumInfo {
+                            name: e.name.clone(),
+                            variants,
+                            type_params: e.type_params.clone(),
+                            type_id,
+                        },
+                    );
                 }
                 ast::Item::FnDef(f) => {
-                    let params: Vec<Type> = f.params.iter()
+                    let params: Vec<Type> = f
+                        .params
+                        .iter()
                         .map(|p| self.resolve_type_expr(&p.ty))
                         .collect();
-                    let ret = f.return_type.as_ref()
+                    let ret = f
+                        .return_type
+                        .as_ref()
                         .map(|t| self.resolve_type_expr(t))
                         .unwrap_or(Type::Unit);
-                    self.fn_sigs.insert(f.name.clone(), FnSig {
-                        name: f.name.clone(),
-                        type_params: f.type_params.clone(),
-                        params,
-                        ret,
-                    });
+                    self.fn_sigs.insert(
+                        f.name.clone(),
+                        FnSig {
+                            name: f.name.clone(),
+                            type_params: f.type_params.clone(),
+                            params,
+                            ret,
+                        },
+                    );
                 }
             }
         }
@@ -546,7 +772,9 @@ impl TypeChecker {
             env.bind(tp.clone(), self.fresh_type_var());
         }
 
-        let expected_ret = f.return_type.as_ref()
+        let expected_ret = f
+            .return_type
+            .as_ref()
             .map(|t| self.resolve_type_expr(t))
             .unwrap_or(Type::Unit);
 
@@ -578,7 +806,29 @@ impl TypeChecker {
 
     fn check_stmt(&mut self, stmt: &ast::Stmt, env: &mut TypeEnv, sink: &mut DiagnosticSink) {
         match stmt {
-            ast::Stmt::Let { name, ty, init, is_mut, .. } => {
+            ast::Stmt::Let {
+                name,
+                ty,
+                init,
+                is_mut,
+                pattern,
+                ..
+            } => {
+                // Handle tuple destructuring: let (a, b) = expr
+                if let Some(ast::Pattern::Tuple { elements, .. }) = pattern {
+                    let init_type = self.synthesize_expr(init, env, sink);
+                    // Bind each element name as i32 (our universal runtime type)
+                    for elem in elements {
+                        if let ast::Pattern::Ident {
+                            name: elem_name, ..
+                        } = elem
+                        {
+                            env.bind(elem_name.clone(), Type::I32);
+                        }
+                    }
+                    let _ = init_type;
+                    return;
+                }
                 let init_type = if let Some(type_expr) = ty {
                     let declared_type = self.resolve_type_expr(type_expr);
                     // For numeric literals, allow them to match declared type
@@ -589,13 +839,10 @@ impl TypeChecker {
                         _ => self.synthesize_expr(init, env, sink),
                     };
                     if !self.types_compatible(&init_type, &declared_type) {
-                        sink.emit(
-                            Diagnostic::new(DiagnosticCode::E0200)
-                                .with_message(format!(
-                                    "expected `{}`, found `{}`",
-                                    declared_type, init_type
-                                ))
-                        );
+                        sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(format!(
+                            "expected `{}`, found `{}`",
+                            declared_type, init_type
+                        )));
                     }
                     if *is_mut {
                         env.bind_mut(name.clone(), declared_type.clone());
@@ -620,10 +867,10 @@ impl TypeChecker {
             ast::Stmt::While { cond, body, .. } => {
                 let cond_ty = self.synthesize_expr(cond, env, sink);
                 if cond_ty != Type::Bool && cond_ty != Type::Error {
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!("while condition must be `bool`, found `{}`", cond_ty))
-                    );
+                    sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(format!(
+                        "while condition must be `bool`, found `{}`",
+                        cond_ty
+                    )));
                 }
                 self.check_block(body, env, &Type::Unit, sink);
             }
@@ -634,7 +881,12 @@ impl TypeChecker {
     }
 
     /// Synthesize the type of an expression.
-    fn synthesize_expr(&mut self, expr: &ast::Expr, env: &mut TypeEnv, sink: &mut DiagnosticSink) -> Type {
+    fn synthesize_expr(
+        &mut self,
+        expr: &ast::Expr,
+        env: &mut TypeEnv,
+        sink: &mut DiagnosticSink,
+    ) -> Type {
         match expr {
             ast::Expr::IntLit { .. } => Type::I32,
             ast::Expr::FloatLit { .. } => Type::F64,
@@ -663,12 +915,14 @@ impl TypeChecker {
                 } else {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0100)
-                            .with_label(*span, format!("unresolved name `{}`", name))
+                            .with_label(*span, format!("unresolved name `{}`", name)),
                     );
                     Type::Error
                 }
             }
-            ast::Expr::Binary { left, op, right, .. } => {
+            ast::Expr::Binary {
+                left, op, right, ..
+            } => {
                 let left_ty = self.synthesize_expr(left, env, sink);
                 let right_ty = self.synthesize_expr(right, env, sink);
                 self.check_binary_op(op, &left_ty, &right_ty, sink)
@@ -682,57 +936,104 @@ impl TypeChecker {
                 match callee_ty {
                     Type::Function { params, ret } => {
                         if args.len() != params.len() {
-                            sink.emit(
-                                Diagnostic::new(DiagnosticCode::E0202)
-                                    .with_message(format!(
-                                        "expected {} argument(s), found {}",
-                                        params.len(), args.len()
-                                    ))
-                            );
+                            sink.emit(Diagnostic::new(DiagnosticCode::E0202).with_message(
+                                format!(
+                                    "expected {} argument(s), found {}",
+                                    params.len(),
+                                    args.len()
+                                ),
+                            ));
                         }
-                        *ret
+                        // Generic Vec function inference: if the declared param is Vec<i32>
+                        // but actual arg is Vec<String>, adjust the return type accordingly.
+                        let callee_name = match callee.as_ref() {
+                            ast::Expr::Ident { name, .. } => Some(name.as_str()),
+                            _ => None,
+                        };
+                        if let Some(fname) = callee_name {
+                            let arg_types: Vec<Type> = args
+                                .iter()
+                                .map(|a| self.synthesize_expr(a, env, sink))
+                                .collect();
+                            match fname {
+                                "len" | "sort_i32" => {
+                                    // Always returns i32/Unit regardless of element type
+                                    *ret
+                                }
+                                "get_unchecked" => {
+                                    if let Some(Type::Vec(elem_ty)) = arg_types.first() {
+                                        *elem_ty.clone()
+                                    } else {
+                                        *ret
+                                    }
+                                }
+                                "get" => {
+                                    if let Some(Type::Vec(elem_ty)) = arg_types.first() {
+                                        Type::Option(elem_ty.clone())
+                                    } else {
+                                        *ret
+                                    }
+                                }
+                                "push" | "set" => Type::Unit,
+                                "pop" => {
+                                    if let Some(Type::Vec(elem_ty)) = arg_types.first() {
+                                        Type::Option(elem_ty.clone())
+                                    } else {
+                                        *ret
+                                    }
+                                }
+                                _ => *ret,
+                            }
+                        } else {
+                            *ret
+                        }
                     }
                     Type::Error => Type::Error,
                     _ => {
                         sink.emit(
                             Diagnostic::new(DiagnosticCode::E0200)
-                                .with_message(format!("expected function, found `{}`", callee_ty))
+                                .with_message(format!("expected function, found `{}`", callee_ty)),
                         );
                         Type::Error
                     }
                 }
             }
-            ast::Expr::If { cond, then_block, else_block, .. } => {
+            ast::Expr::If {
+                cond,
+                then_block,
+                else_block,
+                ..
+            } => {
                 let cond_ty = self.synthesize_expr(cond, env, sink);
                 if cond_ty != Type::Bool && cond_ty != Type::Error {
                     sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!("if condition must be `bool`, found `{}`", cond_ty))
+                        Diagnostic::new(DiagnosticCode::E0200).with_message(format!(
+                            "if condition must be `bool`, found `{}`",
+                            cond_ty
+                        )),
                     );
                 }
                 let then_ty = self.check_block(then_block, env, &Type::Unit, sink);
                 if let Some(else_blk) = else_block {
                     let else_ty = self.check_block(else_blk, env, &then_ty, sink);
                     if !self.types_compatible(&then_ty, &else_ty) {
-                        sink.emit(
-                            Diagnostic::new(DiagnosticCode::E0205)
-                                .with_message(format!(
-                                    "if/else branches have incompatible types: `{}` vs `{}`",
-                                    then_ty, else_ty
-                                ))
-                        );
+                        sink.emit(Diagnostic::new(DiagnosticCode::E0205).with_message(format!(
+                            "if/else branches have incompatible types: `{}` vs `{}`",
+                            then_ty, else_ty
+                        )));
                     }
                     then_ty
                 } else {
                     Type::Unit
                 }
             }
-            ast::Expr::Block(block) => {
-                self.check_block(block, env, &Type::Unit, sink)
-            }
-            ast::Expr::Tuple { elements, .. } => {
-                Type::Tuple(elements.iter().map(|e| self.synthesize_expr(e, env, sink)).collect())
-            }
+            ast::Expr::Block(block) => self.check_block(block, env, &Type::Unit, sink),
+            ast::Expr::Tuple { elements, .. } => Type::Tuple(
+                elements
+                    .iter()
+                    .map(|e| self.synthesize_expr(e, env, sink))
+                    .collect(),
+            ),
             ast::Expr::Array { elements, .. } => {
                 if elements.is_empty() {
                     Type::Error // need type annotation
@@ -766,25 +1067,30 @@ impl TypeChecker {
                     if env.lookup(name).is_some() && !env.is_mutable(name) {
                         sink.emit(
                             Diagnostic::new(DiagnosticCode::E0207)
-                                .with_message(format!("cannot assign to immutable variable `{}`", name))
+                                .with_message(format!(
+                                    "cannot assign to immutable variable `{}`",
+                                    name
+                                ))
                                 .with_label(*span, "cannot assign to immutable variable"),
                         );
                     }
                     if let Some(target_ty) = env.lookup(name) {
                         let target_ty = target_ty.clone();
                         if !self.types_compatible(&val_ty, &target_ty) {
-                            sink.emit(
-                                Diagnostic::new(DiagnosticCode::E0200)
-                                    .with_label(*span, format!(
-                                        "expected `{}`, found `{}`", target_ty, val_ty
-                                    ))
-                            );
+                            sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_label(
+                                *span,
+                                format!("expected `{}`, found `{}`", target_ty, val_ty),
+                            ));
                         }
                     }
                 }
                 Type::Unit
             }
-            ast::Expr::Match { scrutinee, arms, span } => {
+            ast::Expr::Match {
+                scrutinee,
+                arms,
+                span,
+            } => {
                 let scrutinee_ty = self.synthesize_expr(scrutinee, env, sink);
                 let mut result_ty: Option<Type> = None;
                 let mut has_wildcard = false;
@@ -802,7 +1108,12 @@ impl TypeChecker {
                             has_wildcard = true;
                             arm_env.bind(name.clone(), scrutinee_ty.clone());
                         }
-                        ast::Pattern::Enum { path, variant, fields, .. } => {
+                        ast::Pattern::Enum {
+                            path,
+                            variant,
+                            fields,
+                            ..
+                        } => {
                             covered_variants.push(if path.is_empty() {
                                 variant.clone()
                             } else {
@@ -812,7 +1123,8 @@ impl TypeChecker {
                             let enum_name = if path.is_empty() {
                                 // Try to infer from scrutinee type
                                 if let Type::Enum(ref tid) = scrutinee_ty {
-                                    self.enum_defs.iter()
+                                    self.enum_defs
+                                        .iter()
                                         .find(|(_, info)| &info.type_id == tid)
                                         .map(|(n, _)| n.clone())
                                 } else {
@@ -823,10 +1135,14 @@ impl TypeChecker {
                             };
                             if let Some(ref ename) = enum_name {
                                 if let Some(info) = self.enum_defs.get(ename) {
-                                    if let Some(vinfo) = info.variants.iter().find(|v| v.name == *variant) {
+                                    if let Some(vinfo) =
+                                        info.variants.iter().find(|v| v.name == *variant)
+                                    {
                                         for (i, field_pat) in fields.iter().enumerate() {
                                             if let ast::Pattern::Ident { name, .. } = field_pat {
-                                                let field_ty = vinfo.fields.get(i)
+                                                let field_ty = vinfo
+                                                    .fields
+                                                    .get(i)
                                                     .cloned()
                                                     .unwrap_or(Type::Error);
                                                 arm_env.bind(name.clone(), field_ty);
@@ -841,13 +1157,17 @@ impl TypeChecker {
                     // Synthesize arm body type with the arm's env
                     let arm_ty = self.synthesize_expr(&arm.body, &mut arm_env, sink);
                     if let Some(ref first) = result_ty {
-                        if !self.types_compatible(&arm_ty, first) && arm_ty != Type::Error && *first != Type::Error {
+                        if !self.types_compatible(&arm_ty, first)
+                            && arm_ty != Type::Error
+                            && *first != Type::Error
+                        {
                             sink.emit(
                                 Diagnostic::new(DiagnosticCode::E0205)
                                     .with_message("mismatched match arm types")
-                                    .with_label(*span, format!(
-                                        "expected `{}`, found `{}`", first, arm_ty
-                                    ))
+                                    .with_label(
+                                        *span,
+                                        format!("expected `{}`, found `{}`", first, arm_ty),
+                                    ),
                             );
                         }
                     } else {
@@ -858,23 +1178,36 @@ impl TypeChecker {
                 if !has_wildcard {
                     if let Type::Enum(ref type_id) = scrutinee_ty {
                         // Find enum info by TypeId
-                        let enum_entry = self.enum_defs.iter()
+                        let enum_entry = self
+                            .enum_defs
+                            .iter()
                             .find(|(_, info)| &info.type_id == type_id);
                         if let Some((enum_name, info)) = enum_entry {
                             let enum_name = enum_name.clone();
-                            let all_variants: Vec<String> = info.variants.iter()
+                            let all_variants: Vec<String> = info
+                                .variants
+                                .iter()
                                 .map(|v| format!("{}::{}", enum_name, v.name))
                                 .collect();
-                            let missing: Vec<&String> = all_variants.iter()
+                            let missing: Vec<&String> = all_variants
+                                .iter()
                                 .filter(|v| !covered_variants.contains(v))
                                 .collect();
                             if !missing.is_empty() {
                                 sink.emit(
                                     Diagnostic::new(DiagnosticCode::E0204)
                                         .with_message("non-exhaustive match")
-                                        .with_label(*span, format!(
-                                            "missing patterns: {}", missing.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", ")
-                                        ))
+                                        .with_label(
+                                            *span,
+                                            format!(
+                                                "missing patterns: {}",
+                                                missing
+                                                    .iter()
+                                                    .map(|s| s.as_str())
+                                                    .collect::<Vec<_>>()
+                                                    .join(", ")
+                                            ),
+                                        ),
                                 );
                             }
                         }
@@ -885,15 +1218,13 @@ impl TypeChecker {
             ast::Expr::Try { expr, span } => {
                 let inner_ty = self.synthesize_expr(expr, env, sink);
                 // Check that the current function returns Result
-                let fn_returns_result = matches!(
-                    &self.current_fn_return_type,
-                    Some(Type::Result(_, _))
-                );
+                let fn_returns_result =
+                    matches!(&self.current_fn_return_type, Some(Type::Result(_, _)));
                 if !fn_returns_result {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0210)
                             .with_message("? operator requires function to return Result")
-                            .with_label(*span, "used here".to_string())
+                            .with_label(*span, "used here".to_string()),
                     );
                 }
                 // The type of ? on Result<T, E> is T
@@ -909,23 +1240,33 @@ impl TypeChecker {
         }
     }
 
-    fn check_binary_op(&self, op: &ast::BinOp, left: &Type, right: &Type, sink: &mut DiagnosticSink) -> Type {
+    fn check_binary_op(
+        &self,
+        op: &ast::BinOp,
+        left: &Type,
+        right: &Type,
+        sink: &mut DiagnosticSink,
+    ) -> Type {
         use ast::BinOp::*;
         if *left == Type::Error || *right == Type::Error {
             return Type::Error;
         }
+        // Promote i32 to wider numeric types for mixed operations
+        let (left, right) = match (left, right) {
+            (Type::I64, Type::I32) | (Type::I32, Type::I64) => (&Type::I64, &Type::I64),
+            (Type::F64, Type::I32) | (Type::I32, Type::F64) => (&Type::F64, &Type::F64),
+            (Type::F64, Type::I64) | (Type::I64, Type::F64) => (&Type::F64, &Type::F64),
+            _ => (left, right),
+        };
         match op {
             Add | Sub | Mul | Div | Mod => {
                 if left.is_numeric() && left == right {
                     left.clone()
                 } else {
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!(
-                                "cannot apply arithmetic operator to `{}` and `{}`",
-                                left, right
-                            ))
-                    );
+                    sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(format!(
+                        "cannot apply arithmetic operator to `{}` and `{}`",
+                        left, right
+                    )));
                     Type::Error
                 }
             }
@@ -935,10 +1276,7 @@ impl TypeChecker {
                 } else {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!(
-                                "cannot compare `{}` with `{}`",
-                                left, right
-                            ))
+                            .with_message(format!("cannot compare `{}` with `{}`", left, right)),
                     );
                     Type::Error
                 }
@@ -949,10 +1287,7 @@ impl TypeChecker {
                 } else {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!(
-                                "cannot order `{}` and `{}`",
-                                left, right
-                            ))
+                            .with_message(format!("cannot order `{}` and `{}`", left, right)),
                     );
                     Type::Error
                 }
@@ -961,13 +1296,10 @@ impl TypeChecker {
                 if *left == Type::Bool && *right == Type::Bool {
                     Type::Bool
                 } else {
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!(
-                                "logical operators require `bool`, found `{}` and `{}`",
-                                left, right
-                            ))
-                    );
+                    sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(format!(
+                        "logical operators require `bool`, found `{}` and `{}`",
+                        left, right
+                    )));
                     Type::Error
                 }
             }
@@ -975,13 +1307,10 @@ impl TypeChecker {
                 if left.is_integer() && left == right {
                     left.clone()
                 } else {
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!(
-                                "bitwise operators require integer types, found `{}` and `{}`",
-                                left, right
-                            ))
-                    );
+                    sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(format!(
+                        "bitwise operators require integer types, found `{}` and `{}`",
+                        left, right
+                    )));
                     Type::Error
                 }
             }
@@ -999,7 +1328,7 @@ impl TypeChecker {
                 } else {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!("cannot negate `{}`", operand))
+                            .with_message(format!("cannot negate `{}`", operand)),
                     );
                     Type::Error
                 }
@@ -1009,8 +1338,10 @@ impl TypeChecker {
                     Type::Bool
                 } else {
                     sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!("logical NOT requires `bool`, found `{}`", operand))
+                        Diagnostic::new(DiagnosticCode::E0200).with_message(format!(
+                            "logical NOT requires `bool`, found `{}`",
+                            operand
+                        )),
                     );
                     Type::Error
                 }
@@ -1019,10 +1350,10 @@ impl TypeChecker {
                 if operand.is_integer() {
                     operand.clone()
                 } else {
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0200)
-                            .with_message(format!("bitwise NOT requires integer, found `{}`", operand))
-                    );
+                    sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(format!(
+                        "bitwise NOT requires integer, found `{}`",
+                        operand
+                    )));
                     Type::Error
                 }
             }
@@ -1039,9 +1370,13 @@ impl TypeChecker {
         // Generic enum types (Option<T>, Result<T,E>) are represented as
         // Option/Result/Enum variants. Constructors produce I32 (pointer).
         // Structs are also heap pointers (i32). Be lenient for these compound types.
-        if matches!(a, Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_) | Type::Struct(_))
-            || matches!(b, Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_) | Type::Struct(_))
-        {
+        if matches!(
+            a,
+            Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_) | Type::Struct(_)
+        ) || matches!(
+            b,
+            Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_) | Type::Struct(_)
+        ) {
             return true;
         }
         false

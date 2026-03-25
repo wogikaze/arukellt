@@ -2,8 +2,8 @@
 //!
 //! Bidirectional type inference with monomorphization support.
 
-pub mod types;
 pub mod checker;
+pub mod types;
 
-pub use types::Type;
 pub use checker::TypeChecker;
+pub use types::Type;

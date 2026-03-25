@@ -51,7 +51,12 @@ fn main() {
                         eprintln!("error: failed to write {}: {}", output.display(), e);
                         process::exit(1);
                     });
-                    eprintln!("Compiled {} -> {} ({} bytes)", file.display(), output.display(), wasm.len());
+                    eprintln!(
+                        "Compiled {} -> {} ({} bytes)",
+                        file.display(),
+                        output.display(),
+                        wasm.len()
+                    );
                 }
                 Err(errors) => {
                     eprint!("{}", errors);
@@ -59,36 +64,33 @@ fn main() {
                 }
             }
         }
-        Commands::Run { file } => {
-            match compile_file(&file) {
-                Ok(wasm) => {
-                    if let Err(e) = run_wasm(&wasm) {
-                        eprintln!("error: runtime: {}", e);
-                        process::exit(1);
-                    }
-                }
-                Err(errors) => {
-                    eprint!("{}", errors);
+        Commands::Run { file } => match compile_file(&file) {
+            Ok(wasm) => {
+                if let Err(e) = run_wasm(&wasm) {
+                    eprintln!("error: runtime: {}", e);
                     process::exit(1);
                 }
             }
-        }
-        Commands::Check { file } => {
-            match check_file(&file) {
-                Ok(()) => {
-                    eprintln!("OK: {}", file.display());
-                }
-                Err(errors) => {
-                    eprint!("{}", errors);
-                    process::exit(1);
-                }
+            Err(errors) => {
+                eprint!("{}", errors);
+                process::exit(1);
             }
-        }
+        },
+        Commands::Check { file } => match check_file(&file) {
+            Ok(()) => {
+                eprintln!("OK: {}", file.display());
+            }
+            Err(errors) => {
+                eprint!("{}", errors);
+                process::exit(1);
+            }
+        },
     }
 }
 
 fn compile_file(path: &PathBuf) -> Result<Vec<u8>, String> {
-    let source = std::fs::read_to_string(path).map_err(|e| format!("error: {}: {}", path.display(), e))?;
+    let source =
+        std::fs::read_to_string(path).map_err(|e| format!("error: {}: {}", path.display(), e))?;
 
     let mut source_map = SourceMap::new();
     let file_id = source_map.add_file(path.display().to_string(), source.clone());
@@ -135,7 +137,8 @@ fn compile_file(path: &PathBuf) -> Result<Vec<u8>, String> {
 }
 
 fn check_file(path: &PathBuf) -> Result<(), String> {
-    let source = std::fs::read_to_string(path).map_err(|e| format!("error: {}: {}", path.display(), e))?;
+    let source =
+        std::fs::read_to_string(path).map_err(|e| format!("error: {}: {}", path.display(), e))?;
 
     let mut source_map = SourceMap::new();
     let file_id = source_map.add_file(path.display().to_string(), source.clone());
@@ -173,8 +176,8 @@ fn check_file(path: &PathBuf) -> Result<(), String> {
 
 fn run_wasm(wasm_bytes: &[u8]) -> Result<(), String> {
     use wasmtime::*;
+    use wasmtime_wasi::WasiCtxBuilder;
     use wasmtime_wasi::preview1::WasiP1Ctx;
-    use wasmtime_wasi::{WasiCtxBuilder};
 
     let engine = Engine::default();
     let module = wasmtime::Module::new(&engine, wasm_bytes)
@@ -184,19 +187,20 @@ fn run_wasm(wasm_bytes: &[u8]) -> Result<(), String> {
     wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |cx| cx)
         .map_err(|e| format!("wasi link error: {}", e))?;
 
-    let wasi_ctx = WasiCtxBuilder::new()
-        .inherit_stdio()
-        .build_p1();
+    let wasi_ctx = WasiCtxBuilder::new().inherit_stdio().build_p1();
 
     let mut store = Store::new(&engine, wasi_ctx);
 
-    let instance = linker.instantiate(&mut store, &module)
+    let instance = linker
+        .instantiate(&mut store, &module)
         .map_err(|e| format!("wasm instantiation error: {}", e))?;
 
-    let start = instance.get_typed_func::<(), ()>(&mut store, "_start")
+    let start = instance
+        .get_typed_func::<(), ()>(&mut store, "_start")
         .map_err(|e| format!("missing _start: {}", e))?;
 
-    start.call(&mut store, ())
+    start
+        .call(&mut store, ())
         .map_err(|e| format!("runtime error: {}", e))?;
 
     Ok(())

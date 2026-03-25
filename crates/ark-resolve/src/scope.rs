@@ -72,7 +72,13 @@ impl SymbolTable {
         id
     }
 
-    pub fn define(&mut self, scope: ScopeId, name: String, kind: SymbolKind, span: Span) -> SymbolId {
+    pub fn define(
+        &mut self,
+        scope: ScopeId,
+        name: String,
+        kind: SymbolKind,
+        span: Span,
+    ) -> SymbolId {
         let id = SymbolId(self.next_symbol);
         self.next_symbol += 1;
         self.symbols.push(Symbol {
@@ -125,8 +131,18 @@ mod tests {
         let global = table.create_scope(None);
         let inner = table.create_scope(Some(global));
 
-        table.define(global, "x".into(), SymbolKind::Variable { is_mut: false }, Span::dummy());
-        table.define(inner, "y".into(), SymbolKind::Variable { is_mut: true }, Span::dummy());
+        table.define(
+            global,
+            "x".into(),
+            SymbolKind::Variable { is_mut: false },
+            Span::dummy(),
+        );
+        table.define(
+            inner,
+            "y".into(),
+            SymbolKind::Variable { is_mut: true },
+            Span::dummy(),
+        );
 
         // inner can see both x and y
         assert!(table.lookup(inner, "x").is_some());
@@ -143,8 +159,18 @@ mod tests {
         let global = table.create_scope(None);
         let inner = table.create_scope(Some(global));
 
-        let id1 = table.define(global, "x".into(), SymbolKind::Variable { is_mut: false }, Span::dummy());
-        let id2 = table.define(inner, "x".into(), SymbolKind::Variable { is_mut: true }, Span::dummy());
+        let id1 = table.define(
+            global,
+            "x".into(),
+            SymbolKind::Variable { is_mut: false },
+            Span::dummy(),
+        );
+        let id2 = table.define(
+            inner,
+            "x".into(),
+            SymbolKind::Variable { is_mut: true },
+            Span::dummy(),
+        );
 
         assert_ne!(id1, id2);
         assert_eq!(table.lookup(inner, "x"), Some(id2)); // shadows

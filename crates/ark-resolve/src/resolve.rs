@@ -34,41 +34,80 @@ pub struct ResolvedProgram {
 }
 
 /// Prelude names automatically available in every module.
-const PRELUDE_TYPES: &[&str] = &[
-    "Option", "Result", "String", "Vec",
-];
+const PRELUDE_TYPES: &[&str] = &["Option", "Result", "String", "Vec"];
 
-const PRELUDE_VALUES: &[&str] = &[
-    "Some", "None", "Ok", "Err",
-    "true", "false",
-];
+const PRELUDE_VALUES: &[&str] = &["Some", "None", "Ok", "Err", "true", "false"];
 
 const PRELUDE_FUNCTIONS: &[&str] = &[
-    "len", "clone", "unwrap", "unwrap_or", "unwrap_or_else",
+    "len",
+    "clone",
+    "unwrap",
+    "unwrap_or",
+    "unwrap_or_else",
     "panic",
-    "sqrt", "abs", "min", "max",
-    "push", "pop", "get", "set", "is_empty", "clear",
-    "concat", "slice", "split", "join",
-    "is_some", "is_none", "is_ok", "is_err",
-    "i32_to_string", "i64_to_string", "f64_to_string",
-    "bool_to_string", "char_to_string",
-    "parse_i32", "parse_i64", "parse_f64",
-    "Vec_new_i32", "Vec_new_i64", "Vec_new_f64", "Vec_new_String",
-    "Vec_with_capacity_i32", "Vec_with_capacity_String",
-    "map_i32_i32", "map_String_String",
-    "filter_i32", "filter_String",
+    "sqrt",
+    "abs",
+    "min",
+    "max",
+    "push",
+    "pop",
+    "get",
+    "get_unchecked",
+    "set",
+    "is_empty",
+    "clear",
+    "concat",
+    "slice",
+    "split",
+    "join",
+    "is_some",
+    "is_none",
+    "is_ok",
+    "is_err",
+    "i32_to_string",
+    "i64_to_string",
+    "f64_to_string",
+    "bool_to_string",
+    "char_to_string",
+    "parse_i32",
+    "parse_i64",
+    "parse_f64",
+    "Vec_new_i32",
+    "Vec_new_i64",
+    "Vec_new_f64",
+    "Vec_new_String",
+    "Vec_with_capacity_i32",
+    "Vec_with_capacity_String",
+    "map_i32_i32",
+    "map_String_String",
+    "filter_i32",
+    "filter_String",
     "fold_i32_i32",
-    "sort_i32", "sort_i64", "sort_f64", "sort_String",
+    "sort_i32",
+    "sort_i64",
+    "sort_f64",
+    "sort_String",
     "as_slice",
     "String_new",
-    "push_char", "to_lower", "to_upper",
-    "starts_with", "ends_with",
-    "ok_or", "ok", "err",
+    "push_char",
+    "to_lower",
+    "to_upper",
+    "starts_with",
+    "ends_with",
+    "ok_or",
+    "ok",
+    "err",
     "expect",
-    "map_option_i32_i32", "map_option_String_String",
+    "map_option_i32_i32",
+    "map_option_String_String",
     "map_result_i32_i32",
-    "__intrinsic_println", "__intrinsic_print", "__intrinsic_eprintln",
-    "__intrinsic_string_from", "__intrinsic_string_eq",
+    "Box_new",
+    "unbox",
+    "__intrinsic_println",
+    "__intrinsic_print",
+    "__intrinsic_eprintln",
+    "__intrinsic_string_from",
+    "__intrinsic_string_eq",
 ];
 
 /// Inject prelude symbols into the global scope.
@@ -121,12 +160,7 @@ fn collect_module_items(
                         s.span,
                     );
                     let vec_new_name = format!("Vec_new_{}", s.name);
-                    symbols.define(
-                        global_scope,
-                        vec_new_name,
-                        SymbolKind::BuiltinFn,
-                        s.span,
-                    );
+                    symbols.define(global_scope, vec_new_name, SymbolKind::BuiltinFn, s.span);
                 }
             }
             ast::Item::EnumDef(e) => {
@@ -152,7 +186,9 @@ fn collect_module_items(
                         symbols.define(
                             global_scope,
                             qualified,
-                            SymbolKind::EnumVariant { enum_name: e.name.clone() },
+                            SymbolKind::EnumVariant {
+                                enum_name: e.name.clone(),
+                            },
                             e.span,
                         );
                     }
@@ -163,8 +199,8 @@ fn collect_module_items(
 }
 
 fn parse_module_file(path: &Path, sink: &mut DiagnosticSink) -> Result<ast::Module, String> {
-    let source = std::fs::read_to_string(path)
-        .map_err(|e| format!("error: {}: {}", path.display(), e))?;
+    let source =
+        std::fs::read_to_string(path).map_err(|e| format!("error: {}: {}", path.display(), e))?;
     let lexer = Lexer::new(0, &source);
     let tokens: Vec<_> = lexer.collect();
     Ok(parse(&tokens, sink))
@@ -215,7 +251,10 @@ fn load_module_recursive(
     for import in &module.imports {
         let import_path = resolve_import_path(&path, &import.module_name, std_root);
         load_module_recursive(
-            import.alias.clone().unwrap_or_else(|| import.module_name.clone()),
+            import
+                .alias
+                .clone()
+                .unwrap_or_else(|| import.module_name.clone()),
             import_path,
             std_root,
             sink,
@@ -235,7 +274,10 @@ fn load_module_recursive(
     );
 }
 
-pub fn resolve_program(entry_path: &Path, sink: &mut DiagnosticSink) -> Result<ResolvedProgram, String> {
+pub fn resolve_program(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+) -> Result<ResolvedProgram, String> {
     let std_root = entry_path
         .ancestors()
         .find(|p| p.join("std").is_dir())
@@ -250,7 +292,10 @@ pub fn resolve_program(entry_path: &Path, sink: &mut DiagnosticSink) -> Result<R
     for import in &entry_module.imports {
         let import_path = resolve_import_path(entry_path, &import.module_name, &std_root);
         load_module_recursive(
-            import.alias.clone().unwrap_or_else(|| import.module_name.clone()),
+            import
+                .alias
+                .clone()
+                .unwrap_or_else(|| import.module_name.clone()),
             import_path,
             &std_root,
             sink,
@@ -281,7 +326,11 @@ pub fn resolve_module(module: ast::Module, sink: &mut DiagnosticSink) -> Resolve
     let global_scope = symbols.create_scope(None);
     inject_prelude(&mut symbols, global_scope);
     collect_module_items(&module, &mut symbols, global_scope, sink);
-    ResolvedModule { module, symbols, global_scope }
+    ResolvedModule {
+        module,
+        symbols,
+        global_scope,
+    }
 }
 
 pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
@@ -303,10 +352,20 @@ pub fn resolved_program_entry(program: ResolvedProgram) -> ResolvedModule {
 pub fn intrinsic_prelude_module() -> ast::Module {
     use ast::*;
     let dummy = Span::dummy();
-    let mk_param = |name: &str, ty: TypeExpr| Param { name: name.into(), ty, span: dummy };
-    let named = |name: &str| TypeExpr::Named { name: name.into(), span: dummy };
+    let mk_param = |name: &str, ty: TypeExpr| Param {
+        name: name.into(),
+        ty,
+        span: dummy,
+    };
+    let named = |name: &str| TypeExpr::Named {
+        name: name.into(),
+        span: dummy,
+    };
     let mk_call = |callee: &str, args: Vec<Expr>| Expr::Call {
-        callee: Box::new(Expr::Ident { name: callee.into(), span: dummy }),
+        callee: Box::new(Expr::Ident {
+            name: callee.into(),
+            span: dummy,
+        }),
         type_args: vec![],
         args,
         span: dummy,
@@ -317,7 +376,17 @@ pub fn intrinsic_prelude_module() -> ast::Module {
             type_params: vec![],
             params: vec![mk_param("s", named("String"))],
             return_type: None,
-            body: Block { stmts: vec![Stmt::Expr(mk_call("__intrinsic_println", vec![Expr::Ident { name: "s".into(), span: dummy }]))], tail_expr: None, span: dummy },
+            body: Block {
+                stmts: vec![Stmt::Expr(mk_call(
+                    "__intrinsic_println",
+                    vec![Expr::Ident {
+                        name: "s".into(),
+                        span: dummy,
+                    }],
+                ))],
+                tail_expr: None,
+                span: dummy,
+            },
             is_pub: true,
             span: dummy,
         }),
@@ -326,7 +395,17 @@ pub fn intrinsic_prelude_module() -> ast::Module {
             type_params: vec![],
             params: vec![mk_param("s", named("String"))],
             return_type: None,
-            body: Block { stmts: vec![Stmt::Expr(mk_call("__intrinsic_print", vec![Expr::Ident { name: "s".into(), span: dummy }]))], tail_expr: None, span: dummy },
+            body: Block {
+                stmts: vec![Stmt::Expr(mk_call(
+                    "__intrinsic_print",
+                    vec![Expr::Ident {
+                        name: "s".into(),
+                        span: dummy,
+                    }],
+                ))],
+                tail_expr: None,
+                span: dummy,
+            },
             is_pub: true,
             span: dummy,
         }),
@@ -335,7 +414,17 @@ pub fn intrinsic_prelude_module() -> ast::Module {
             type_params: vec![],
             params: vec![mk_param("s", named("String"))],
             return_type: None,
-            body: Block { stmts: vec![Stmt::Expr(mk_call("__intrinsic_eprintln", vec![Expr::Ident { name: "s".into(), span: dummy }]))], tail_expr: None, span: dummy },
+            body: Block {
+                stmts: vec![Stmt::Expr(mk_call(
+                    "__intrinsic_eprintln",
+                    vec![Expr::Ident {
+                        name: "s".into(),
+                        span: dummy,
+                    }],
+                ))],
+                tail_expr: None,
+                span: dummy,
+            },
             is_pub: true,
             span: dummy,
         }),
@@ -344,21 +433,53 @@ pub fn intrinsic_prelude_module() -> ast::Module {
             type_params: vec![],
             params: vec![mk_param("s", named("String"))],
             return_type: Some(named("String")),
-            body: Block { stmts: vec![], tail_expr: Some(Box::new(mk_call("__intrinsic_string_from", vec![Expr::Ident { name: "s".into(), span: dummy }]))), span: dummy },
+            body: Block {
+                stmts: vec![],
+                tail_expr: Some(Box::new(mk_call(
+                    "__intrinsic_string_from",
+                    vec![Expr::Ident {
+                        name: "s".into(),
+                        span: dummy,
+                    }],
+                ))),
+                span: dummy,
+            },
             is_pub: true,
             span: dummy,
         }),
         Item::FnDef(FnDef {
             name: "eq".into(),
             type_params: vec![],
-            params: vec![mk_param("a", named("String")), mk_param("b", named("String"))],
+            params: vec![
+                mk_param("a", named("String")),
+                mk_param("b", named("String")),
+            ],
             return_type: Some(named("bool")),
-            body: Block { stmts: vec![], tail_expr: Some(Box::new(mk_call("__intrinsic_string_eq", vec![Expr::Ident { name: "a".into(), span: dummy }, Expr::Ident { name: "b".into(), span: dummy }]))), span: dummy },
+            body: Block {
+                stmts: vec![],
+                tail_expr: Some(Box::new(mk_call(
+                    "__intrinsic_string_eq",
+                    vec![
+                        Expr::Ident {
+                            name: "a".into(),
+                            span: dummy,
+                        },
+                        Expr::Ident {
+                            name: "b".into(),
+                            span: dummy,
+                        },
+                    ],
+                ))),
+                span: dummy,
+            },
             is_pub: true,
             span: dummy,
         }),
     ];
-    Module { imports: vec![], items: wrappers }
+    Module {
+        imports: vec![],
+        items: wrappers,
+    }
 }
 
 pub fn merge_prelude(program: &mut ResolvedProgram, sink: &mut DiagnosticSink) {
@@ -371,13 +492,19 @@ pub fn merge_prelude(program: &mut ResolvedProgram, sink: &mut DiagnosticSink) {
     });
 }
 
-pub fn resolve_program_entry(entry_path: &Path, sink: &mut DiagnosticSink) -> Result<ResolvedModule, String> {
+pub fn resolve_program_entry(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+) -> Result<ResolvedModule, String> {
     let mut program = resolve_program(entry_path, sink)?;
     merge_prelude(&mut program, sink);
     Ok(resolved_program_entry(program))
 }
 
-pub fn resolve_module_with_intrinsic_prelude(module: ast::Module, sink: &mut DiagnosticSink) -> ResolvedModule {
+pub fn resolve_module_with_intrinsic_prelude(
+    module: ast::Module,
+    sink: &mut DiagnosticSink,
+) -> ResolvedModule {
     let mut program = ResolvedProgram {
         entry_module: module,
         modules: vec![],
@@ -386,7 +513,12 @@ pub fn resolve_module_with_intrinsic_prelude(module: ast::Module, sink: &mut Dia
     };
     program.global_scope = program.symbols.create_scope(None);
     inject_prelude(&mut program.symbols, program.global_scope);
-    collect_module_items(&program.entry_module, &mut program.symbols, program.global_scope, sink);
+    collect_module_items(
+        &program.entry_module,
+        &mut program.symbols,
+        program.global_scope,
+        sink,
+    );
     merge_prelude(&mut program, sink);
     resolved_program_entry(program)
 }

@@ -25,24 +25,21 @@ pub enum Type {
     Struct(TypeId),
     Enum(TypeId),
     Tuple(Vec<Type>),
-    Array(Box<Type>, u64),     // [T; N]
-    Slice(Box<Type>),          // [T]
-    Vec(Box<Type>),            // Vec<T>
-    Option(Box<Type>),         // Option<T>
+    Array(Box<Type>, u64),        // [T; N]
+    Slice(Box<Type>),             // [T]
+    Vec(Box<Type>),               // Vec<T>
+    Option(Box<Type>),            // Option<T>
     Result(Box<Type>, Box<Type>), // Result<T, E>
 
     // Function type
-    Function {
-        params: Vec<Type>,
-        ret: Box<Type>,
-    },
+    Function { params: Vec<Type>, ret: Box<Type> },
 
     // Inference
-    TypeVar(u32),              // unresolved type variable
+    TypeVar(u32), // unresolved type variable
 
     // Special
-    Never,                     // diverging (return, panic, break)
-    Error,                     // error recovery sentinel
+    Never, // diverging (return, panic, break)
+    Error, // error recovery sentinel
 }
 
 impl Type {
@@ -109,7 +106,9 @@ impl fmt::Display for Type {
             Type::Tuple(types) => {
                 write!(f, "(")?;
                 for (i, t) in types.iter().enumerate() {
-                    if i > 0 { write!(f, ", ")?; }
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
                     write!(f, "{}", t)?;
                 }
                 write!(f, ")")
@@ -122,7 +121,9 @@ impl fmt::Display for Type {
             Type::Function { params, ret } => {
                 write!(f, "fn(")?;
                 for (i, p) in params.iter().enumerate() {
-                    if i > 0 { write!(f, ", ")?; }
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
                     write!(f, "{}", p)?;
                 }
                 write!(f, ") -> {}", ret)
