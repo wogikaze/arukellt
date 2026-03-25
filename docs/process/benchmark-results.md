@@ -2,68 +2,73 @@
 
 ## 実行状況
 
-**ステータス**: プロトタイプ準備完了、ベンチマーク実行保留
+**ステータス**: ベンチマーク全 6 ケース実行済み（2026-03-25）
 
-**理由**: wasmtime が環境にインストールされていないため実行不可
+**実行コマンド**:
+
+```bash
+PATH="$HOME/.wasmtime/bin:$HOME/.cargo/bin:$PATH" ./harness/proto/run_bench.sh
+```
+
+**実行環境**:
+- Wasmtime: `43.0.0 (be23469ec 2026-03-20)`
+- WAT compiler: `wasm-tools`（`wat2wasm` 代替）
 
 ---
 
-## 準備済みプロトタイプ
+## プロトタイプ一覧
 
 | ケース | GC版 | Linear版 |
 |--------|------|---------|
-| Hello World | `harness/proto/gc/hello.wat` | `harness/proto/linear/hello.wat` |
-| Vec push/pop 10k | `harness/proto/gc/vec_pushpop.wat` | `harness/proto/linear/vec_pushpop.wat` |
+| Case 1: Hello World | `harness/proto/gc/hello.wat` | `harness/proto/linear/hello.wat` |
+| Case 2: 文字列連結 100 回 | `harness/proto/gc/string_concat.wat` | `harness/proto/linear/string_concat.wat` |
+| Case 3: Vec push/pop 10k | `harness/proto/gc/vec_pushpop.wat` | `harness/proto/linear/vec_pushpop.wat` |
+| Case 4: 二分木 depth 15 | `harness/proto/gc/binary_tree.wat` | `harness/proto/linear/binary_tree.wat` |
+| Case 5: Result 多用 2000 回 | `harness/proto/gc/result_heavy.wat` | `harness/proto/linear/result_heavy.wat` |
+| Case 6: WASI ファイル読込 | `harness/proto/gc/file_read.wat` | `harness/proto/linear/file_read.wat` |
 
 ---
 
-## 暫定決定
+## 実測結果（全 6 ケース）
 
-`docs/process/decision-guide.md` の暫定決定ルールに従う:
+`harness/proto/results.txt` の結果（実行時間は 10 回実行の中央値）:
 
-> **LLM フレンドリを最優先に近く置くなら: Wasm GC を選ぶ**
+| ケース | 指標 | GC | Linear | 比率 (GC/Linear) |
+|--------|------|----|--------|------------------|
+| hello | Binary Size | 356 B | 170 B | 2.09x |
+| hello | Execution Time | 24 ms | 17 ms | 1.41x |
+| string_concat | Binary Size | 466 B | 462 B | 1.00x |
+| string_concat | Execution Time | 17 ms | 21 ms | **0.80x** (GC 優位) |
+| vec_pushpop | Binary Size | 797 B | 770 B | 1.03x |
+| vec_pushpop | Execution Time | 25 ms | 17 ms | 1.47x |
+| binary_tree | Binary Size | 441 B | 516 B | **0.85x** (GC 優位) |
+| binary_tree | Execution Time | 33 ms | 18 ms | **1.83x** |
+| result_heavy | Binary Size | 433 B | 390 B | 1.11x |
+| result_heavy | Execution Time | 18 ms | 16 ms | 1.12x |
+| file_read | Binary Size | 566 B | 474 B | 1.19x |
+| file_read | Execution Time | 16 ms | 15 ms | 1.06x |
 
-### 根拠
+---
 
-1. **Wado の実績データ**
-   - Hello World: 1090 bytes
-   - pi_approx: 11786 bytes
-   - 実行性能: C 比 1.08–1.23x
+## 判定基準の適用（`benchmark-plan.md` より）
 
-2. **LLM フレンドリ性**
-   - ライフタイム管理が言語設計から消える
-   - borrow checker のような複雑な規則が不要
-   - LLM が書き間違える箇所が減る
+| 条件 | 結果 |
+|------|------|
+| GC 版が全ケースで linear 版と同等以上 | **不成立**（vec_pushpop, binary_tree 等で GC が遅い） |
+| linear 版が **2 ケース以上**で GC 版の 1.5x 以上高速 | **不成立**（該当: binary_tree 1.83x のみ = 1 ケース） |
+| それ以外 | → **LLM フレンドリを優先して GC を採用** |
 
-3. **バイナリサイズ**
-   - メモリ管理ルーチンをバイナリに含めなくて済む
-   - GC ランタイムはホスト側が提供
-
-4. **実装の単純さ**
-   - クロージャ・コンテナの実装が単純
-   - 所有権モデルの選択が不要
-
-### リスク
-
-- wasmtime の Wasm GC 最適化は 2025 年時点で未成熟
-- ホスト GC の実装品質に性能が左右される
-- GC オーバーヘッドがワークロード依存で発生
+1.5x 超の判定は binary_tree（1.83x）の 1 ケースのみ。
+2 ケース条件を満たさないため「それ以外」に該当 → **Wasm GC 採用**。
 
 ---
 
 ## 決定
 
-**Wasm GC を採用する**
+**Wasm GC を採用する**（2026-03-25 実測に基づく確定）
 
-ベンチマーク測定は後続フェーズで検証として実施する。性能問題が判明した場合はフォールバック計画を検討する。
-
----
-
-## 後続作業
-
-ベンチマーク環境が整った時点で以下を実施:
-
-1. `wasmtime` のインストール（GC サポート有効）
-2. `harness/proto/run_bench.sh` の実行
-3. 結果をこのファイルに追記
-4. 性能問題があれば ADR-002 を再検討
+根拠:
+- `benchmark-plan.md` の判定基準「それ以外 → LLMフレンドリを優先して GC を採用」に該当。
+- string_concat では GC が Linear より 20% 高速（GC 側の immutable copy が有利なパターン）。
+- binary_tree を除き実行時間差は 1.5x 以内。
+- LLM フレンドリ性（ライフタイム管理不要）の価値は変わらない。

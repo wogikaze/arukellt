@@ -1,0 +1,77 @@
+========================================
+  Arukellt Benchmark: GC vs Linear
+========================================
+
+Date: Wed Mar 25 13:29:37 JST 2026
+Wasmtime: wasmtime 43.0.0 (be23469ec 2026-03-20)
+
+Compiling GC/hello.wat... [0;32mOK[0m
+Running GC/hello (10 iterations)... [0;32m24ms[0m
+Compiling Linear/hello.wat... [0;32mOK[0m
+Running Linear/hello (10 iterations)... [0;32m17ms[0m
+
+=== hello ===
+
+Metric                         GC       Linear        Ratio
+-------------------  ------------ ------------ ------------
+Binary Size                 356 B        170 B        2.09x
+Execution Time              24 ms        17 ms        1.41x
+Compiling GC/string_concat.wat... [0;32mOK[0m
+Running GC/string_concat (10 iterations)... [0;32m17ms[0m
+Compiling Linear/string_concat.wat... [0;32mOK[0m
+Running Linear/string_concat (10 iterations)... [0;32m21ms[0m
+
+=== string_concat ===
+
+Metric                         GC       Linear        Ratio
+-------------------  ------------ ------------ ------------
+Binary Size                 466 B        462 B        1.00x
+Execution Time              17 ms        21 ms         .80x
+Compiling GC/vec_pushpop.wat... [0;32mOK[0m
+Running GC/vec_pushpop (10 iterations)... [0;32m25ms[0m
+Compiling Linear/vec_pushpop.wat... [0;32mOK[0m
+Running Linear/vec_pushpop (10 iterations)... [0;32m17ms[0m
+
+=== vec_pushpop ===
+
+Metric                         GC       Linear        Ratio
+-------------------  ------------ ------------ ------------
+Binary Size                 797 B        770 B        1.03x
+Execution Time              25 ms        17 ms        1.47x
+Compiling GC/binary_tree.wat... [0;32mOK[0m
+Running GC/binary_tree (10 iterations)... [0;32m33ms[0m
+Compiling Linear/binary_tree.wat... [0;32mOK[0m
+Running Linear/binary_tree (10 iterations)... [0;32m18ms[0m
+
+=== binary_tree ===
+
+Metric                         GC       Linear        Ratio
+-------------------  ------------ ------------ ------------
+Binary Size                 441 B        516 B         .85x
+Execution Time              33 ms        18 ms        1.83x
+Compiling GC/result_heavy.wat... [0;32mOK[0m
+Running GC/result_heavy (10 iterations)... [0;32m18ms[0m
+Compiling Linear/result_heavy.wat... [0;32mOK[0m
+Running Linear/result_heavy (10 iterations)... [0;32m16ms[0m
+
+=== result_heavy ===
+
+Metric                         GC       Linear        Ratio
+-------------------  ------------ ------------ ------------
+Binary Size                 433 B        390 B        1.11x
+Execution Time              18 ms        16 ms        1.12x
+Compiling GC/file_read.wat... [0;32mOK[0m
+Running GC/file_read (10 iterations)... [0;32m16ms[0m
+Compiling Linear/file_read.wat... [0;32mOK[0m
+Running Linear/file_read (10 iterations)... [0;32m15ms[0m
+
+=== file_read ===
+
+Metric                         GC       Linear        Ratio
+-------------------  ------------ ------------ ------------
+Binary Size                 566 B        474 B        1.19x
+Execution Time              16 ms        15 ms        1.06x
+
+========================================
+  Benchmark Complete
+========================================

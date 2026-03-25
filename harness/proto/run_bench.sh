@@ -54,10 +54,12 @@ measure_size() {
 }
 
 # Run benchmark
+# $1: wasm file, $2: gc_enabled, $3: iterations, $4: optional --dir path for file_read
 run_bench() {
     local wasm_file=$1
     local gc_enabled=$2
     local iterations=${3:-10}
+    local dir_path="${4:-}"
     
     local total_time=0
     local times=()
@@ -65,9 +67,17 @@ run_bench() {
     for ((i=1; i<=iterations; i++)); do
         local start_ns=$(date +%s%N)
         if [[ "$gc_enabled" == "true" ]]; then
-            wasmtime run --wasm gc "$wasm_file" > /dev/null 2>&1
+            if [[ -n "$dir_path" ]]; then
+                wasmtime run --wasm gc --dir "$dir_path" "$wasm_file" > /dev/null 2>&1
+            else
+                wasmtime run --wasm gc "$wasm_file" > /dev/null 2>&1
+            fi
         else
-            wasmtime run "$wasm_file" > /dev/null 2>&1
+            if [[ -n "$dir_path" ]]; then
+                wasmtime run --dir "$dir_path" "$wasm_file" > /dev/null 2>&1
+            else
+                wasmtime run "$wasm_file" > /dev/null 2>&1
+            fi
         fi
         local end_ns=$(date +%s%N)
         local elapsed_ms=$(( (end_ns - start_ns) / 1000000 ))
@@ -115,12 +125,24 @@ run_all_benchmarks() {
     echo "Wasmtime: $(wasmtime --version)"
     echo ""
     
-    # Test cases
-    local tests=("hello" "vec_pushpop")
+    # Test cases: all 6 (Case 1,2,3,4,5,6)
+    local tests=("hello" "string_concat" "vec_pushpop" "binary_tree" "result_heavy" "file_read")
+
+    # Ensure testdata exists for file_read
+    if [[ ! -f "$SCRIPT_DIR/testdata/input.txt" ]]; then
+        mkdir -p "$SCRIPT_DIR/testdata"
+        python3 -c "import sys; sys.stdout.buffer.write(b'A'*1024)" > "$SCRIPT_DIR/testdata/input.txt"
+    fi
     
     for test in "${tests[@]}"; do
         local gc_wat="$GC_DIR/${test}.wat"
         local linear_wat="$LINEAR_DIR/${test}.wat"
+        local dir_path=""
+        
+        # file_read needs --dir to expose testdata as /
+        if [[ "$test" == "file_read" ]]; then
+            dir_path="$SCRIPT_DIR/testdata/"
+        fi
         
         local gc_size="" gc_time=""
         local linear_size="" linear_time=""
@@ -132,7 +154,7 @@ run_all_benchmarks() {
                 echo -e "${GREEN}OK${NC}"
                 gc_size=$(measure_size "$gc_wasm")
                 echo -n "Running GC/${test} (10 iterations)... "
-                gc_time=$(run_bench "$gc_wasm" "true" 10)
+                gc_time=$(run_bench "$gc_wasm" "true" 10 "$dir_path")
                 echo -e "${GREEN}${gc_time}ms${NC}"
             else
                 echo -e "${RED}FAILED${NC}"
@@ -147,7 +169,7 @@ run_all_benchmarks() {
                 echo -e "${GREEN}OK${NC}"
                 linear_size=$(measure_size "$linear_wasm")
                 echo -n "Running Linear/${test} (10 iterations)... "
-                linear_time=$(run_bench "$linear_wasm" "false" 10)
+                linear_time=$(run_bench "$linear_wasm" "false" 10 "$dir_path")
                 echo -e "${GREEN}${linear_time}ms${NC}"
             else
                 echo -e "${RED}FAILED${NC}"
