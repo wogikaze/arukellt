@@ -85,6 +85,21 @@ pub enum TypeExpr {
     Qualified { module: String, name: String, span: Span },
 }
 
+impl TypeExpr {
+    pub fn span(&self) -> Span {
+        match self {
+            TypeExpr::Named { span, .. }
+            | TypeExpr::Generic { span, .. }
+            | TypeExpr::Array { span, .. }
+            | TypeExpr::Slice { span, .. }
+            | TypeExpr::Function { span, .. }
+            | TypeExpr::Unit(span)
+            | TypeExpr::Qualified { span, .. } => *span,
+            TypeExpr::Tuple(_, span) => *span,
+        }
+    }
+}
+
 /// Expression.
 #[derive(Debug, Clone)]
 pub enum Expr {
@@ -113,6 +128,38 @@ pub enum Expr {
     Continue { span: Span },
     Try { expr: Box<Expr>, span: Span },
     Assign { target: Box<Expr>, value: Box<Expr>, span: Span },
+}
+
+impl Expr {
+    pub fn span(&self) -> Span {
+        match self {
+            Expr::IntLit { span, .. }
+            | Expr::FloatLit { span, .. }
+            | Expr::StringLit { span, .. }
+            | Expr::CharLit { span, .. }
+            | Expr::BoolLit { span, .. }
+            | Expr::Ident { span, .. }
+            | Expr::QualifiedIdent { span, .. }
+            | Expr::Binary { span, .. }
+            | Expr::Unary { span, .. }
+            | Expr::Call { span, .. }
+            | Expr::FieldAccess { span, .. }
+            | Expr::Index { span, .. }
+            | Expr::If { span, .. }
+            | Expr::Match { span, .. }
+            | Expr::Tuple { span, .. }
+            | Expr::Array { span, .. }
+            | Expr::ArrayRepeat { span, .. }
+            | Expr::StructInit { span, .. }
+            | Expr::Closure { span, .. }
+            | Expr::Return { span, .. }
+            | Expr::Break { span, .. }
+            | Expr::Continue { span }
+            | Expr::Try { span, .. }
+            | Expr::Assign { span, .. } => *span,
+            Expr::Block(block) => block.span,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -155,6 +202,22 @@ pub enum Pattern {
     BoolLit { value: bool, span: Span },
     Tuple { elements: Vec<Pattern>, span: Span },
     Enum { path: String, variant: String, fields: Vec<Pattern>, span: Span },
+}
+
+impl Pattern {
+    pub fn span(&self) -> Span {
+        match self {
+            Pattern::Wildcard(span) => *span,
+            Pattern::Ident { span, .. }
+            | Pattern::IntLit { span, .. }
+            | Pattern::FloatLit { span, .. }
+            | Pattern::StringLit { span, .. }
+            | Pattern::CharLit { span, .. }
+            | Pattern::BoolLit { span, .. }
+            | Pattern::Tuple { span, .. }
+            | Pattern::Enum { span, .. } => *span,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

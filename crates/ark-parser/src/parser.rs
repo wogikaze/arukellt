@@ -1004,24 +1004,3 @@ impl<'a> Parser<'a> {
         Expr::Closure { params, body: Box::new(body), span }
     }
 }
-
-// Helper to get span from Expr
-impl Expr {
-    pub fn span(&self) -> Span {
-        match self {
-            Expr::IntLit { span, .. } | Expr::FloatLit { span, .. }
-            | Expr::StringLit { span, .. } | Expr::CharLit { span, .. }
-            | Expr::BoolLit { span, .. } | Expr::Ident { span, .. }
-            | Expr::QualifiedIdent { span, .. } | Expr::Binary { span, .. }
-            | Expr::Unary { span, .. } | Expr::Call { span, .. }
-            | Expr::FieldAccess { span, .. } | Expr::Index { span, .. }
-            | Expr::If { span, .. } | Expr::Match { span, .. }
-            | Expr::Tuple { span, .. } | Expr::Array { span, .. }
-            | Expr::ArrayRepeat { span, .. } | Expr::StructInit { span, .. }
-            | Expr::Closure { span, .. } | Expr::Return { span, .. }
-            | Expr::Break { span, .. } | Expr::Continue { span }
-            | Expr::Try { span, .. } | Expr::Assign { span, .. } => *span,
-            Expr::Block(block) => block.span,
-        }
-    }
-}
