@@ -17,3 +17,5 @@ ark-wasm = { workspace = true }
 ark-diagnostics = { workspace = true }
 ark-stdlib = { workspace = true }
 clap = { workspace = true }
+wasmtime = { workspace = true }
+wasmtime-wasi = "29"

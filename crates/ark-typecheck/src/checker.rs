@@ -141,6 +141,26 @@ impl TypeChecker {
             type_params: vec!["T".into(), "E".into()],
             type_id: res_id,
         });
+
+        // Builtin I/O functions
+        self.fn_sigs.insert("println".into(), FnSig {
+            name: "println".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::Unit,
+        });
+        self.fn_sigs.insert("print".into(), FnSig {
+            name: "print".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::Unit,
+        });
+        self.fn_sigs.insert("eprintln".into(), FnSig {
+            name: "eprintln".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::Unit,
+        });
     }
 
     /// Resolve a type expression to a Type.

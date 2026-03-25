@@ -62,8 +62,10 @@ fn main() {
         Commands::Run { file } => {
             match compile_file(&file) {
                 Ok(wasm) => {
-                    // TODO: run with wasmtime
-                    eprintln!("Compiled {} ({} bytes). Runtime execution not yet implemented.", file.display(), wasm.len());
+                    if let Err(e) = run_wasm(&wasm) {
+                        eprintln!("error: runtime: {}", e);
+                        process::exit(1);
+                    }
                 }
                 Err(errors) => {
                     eprint!("{}", errors);
@@ -164,6 +166,37 @@ fn check_file(path: &PathBuf) -> Result<(), String> {
     if sink.has_errors() {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));
     }
+
+    Ok(())
+}
+
+fn run_wasm(wasm_bytes: &[u8]) -> Result<(), String> {
+    use wasmtime::*;
+    use wasmtime_wasi::preview1::WasiP1Ctx;
+    use wasmtime_wasi::{WasiCtxBuilder};
+
+    let engine = Engine::default();
+    let module = wasmtime::Module::new(&engine, wasm_bytes)
+        .map_err(|e| format!("wasm compile error: {}", e))?;
+
+    let mut linker = Linker::<WasiP1Ctx>::new(&engine);
+    wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |cx| cx)
+        .map_err(|e| format!("wasi link error: {}", e))?;
+
+    let wasi_ctx = WasiCtxBuilder::new()
+        .inherit_stdio()
+        .build_p1();
+
+    let mut store = Store::new(&engine, wasi_ctx);
+
+    let instance = linker.instantiate(&mut store, &module)
+        .map_err(|e| format!("wasm instantiation error: {}", e))?;
+
+    let start = instance.get_typed_func::<(), ()>(&mut store, "_start")
+        .map_err(|e| format!("missing _start: {}", e))?;
+
+    start.call(&mut store, ())
+        .map_err(|e| format!("runtime error: {}", e))?;
 
     Ok(())
 }
