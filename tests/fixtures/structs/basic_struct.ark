@@ -1,0 +1,10 @@
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let p: Point = Point { x: 10, y: 20 }
+    println(i32_to_string(p.x))
+    println(i32_to_string(p.y))
+}

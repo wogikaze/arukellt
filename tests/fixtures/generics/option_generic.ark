@@ -1,0 +1,13 @@
+fn unwrap_or_default<T>(opt: Option<T>, default: T) -> T {
+    match opt {
+        Some(val) => val,
+        None => default,
+    }
+}
+
+fn main() {
+    let a: Option<i32> = Some(42)
+    let b: Option<i32> = None
+    println(i32_to_string(unwrap_or_default(a, 0)))
+    println(i32_to_string(unwrap_or_default(b, 0)))
+}

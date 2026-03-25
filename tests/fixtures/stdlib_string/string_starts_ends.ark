@@ -1,0 +1,7 @@
+fn main() {
+    let s: String = String_from("hello world")
+    println(bool_to_string(starts_with(s, String_from("hello"))))
+    println(bool_to_string(starts_with(s, String_from("world"))))
+    println(bool_to_string(ends_with(s, String_from("world"))))
+    println(bool_to_string(ends_with(s, String_from("hello"))))
+}

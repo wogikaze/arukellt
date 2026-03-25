@@ -1,0 +1,5 @@
+fn main() {
+    let x: i32 = 5
+    println(i32_to_string(-x))
+    println(bool_to_string(!true))
+}

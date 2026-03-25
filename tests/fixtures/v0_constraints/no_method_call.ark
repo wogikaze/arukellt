@@ -1,0 +1,4 @@
+fn main() {
+    let s: String = String_from("hello")
+    let n = s.len()
+}

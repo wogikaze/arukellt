@@ -1,0 +1,19 @@
+enum Traffic {
+    Red,
+    Yellow,
+    Green,
+}
+
+fn action(light: Traffic) -> String {
+    match light {
+        Traffic::Red => String_from("stop"),
+        Traffic::Yellow => String_from("caution"),
+        Traffic::Green => String_from("go"),
+    }
+}
+
+fn main() {
+    println(action(Traffic::Red))
+    println(action(Traffic::Yellow))
+    println(action(Traffic::Green))
+}

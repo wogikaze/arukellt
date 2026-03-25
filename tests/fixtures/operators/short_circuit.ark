@@ -1,0 +1,17 @@
+fn returns_true() -> bool {
+    println("evaluated")
+    true
+}
+
+fn returns_false() -> bool {
+    println("evaluated")
+    false
+}
+
+fn main() {
+    println("test &&:")
+    let _ = false && returns_true()
+    println("test ||:")
+    let _ = true || returns_false()
+    println("done")
+}

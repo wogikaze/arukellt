@@ -1,0 +1,4 @@
+fn main() {
+    let x: i64 = 1000000000000
+    println(i64_to_string(x))
+}

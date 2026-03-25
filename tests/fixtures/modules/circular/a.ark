@@ -1,0 +1,5 @@
+import b
+
+pub fn from_a() -> i32 {
+    b::from_b()
+}

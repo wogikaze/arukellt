@@ -1,0 +1,4 @@
+fn main() {
+    let c: char = 'A'
+    println(char_to_string(c))
+}

@@ -1,0 +1,7 @@
+fn secret() -> i32 {
+    42
+}
+
+pub fn public_fn() -> i32 {
+    secret()
+}

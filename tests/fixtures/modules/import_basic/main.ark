@@ -1,0 +1,6 @@
+import math
+
+fn main() {
+    let result: i32 = math::add(3, 4)
+    println(i32_to_string(result))
+}

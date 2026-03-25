@@ -1,0 +1,23 @@
+fn count_words(s: String) -> i32 {
+    if is_empty(s) {
+        return 0
+    }
+    let words: Vec<String> = split(s, String_from(" "))
+    let mut count: i32 = 0
+    let mut i: i32 = 0
+    while i < len(words) {
+        let word: String = get_unchecked(words, i)
+        if !is_empty(word) {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}
+
+fn main() {
+    println(i32_to_string(count_words(String_from("hello world"))))
+    println(i32_to_string(count_words(String_from("the quick brown fox jumps"))))
+    println(i32_to_string(count_words(String_from(""))))
+    println(i32_to_string(count_words(String_from("single"))))
+}

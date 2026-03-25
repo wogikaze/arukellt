@@ -1,0 +1,17 @@
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+fn color_name(c: Color) -> String {
+    match c {
+        Color::Red => String_from("red"),
+        Color::Green => String_from("green"),
+        Color::Blue => String_from("blue"),
+    }
+}
+
+fn main() {
+    println(color_name(Color::Green))
+}

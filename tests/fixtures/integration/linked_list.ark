@@ -1,0 +1,37 @@
+enum List {
+    Nil,
+    Cons(i32, Box<List>),
+}
+
+fn list_new() -> List {
+    List::Nil
+}
+
+fn prepend(list: List, val: i32) -> List {
+    List::Cons(val, Box_new(list))
+}
+
+fn list_to_string(list: List) -> String {
+    match list {
+        List::Nil => String_from("nil"),
+        List::Cons(head, tail) => {
+            concat(concat(i32_to_string(head), String_from(" -> ")), list_to_string(unbox(tail)))
+        },
+    }
+}
+
+fn list_sum(list: List) -> i32 {
+    match list {
+        List::Nil => 0,
+        List::Cons(head, tail) => head + list_sum(unbox(tail)),
+    }
+}
+
+fn main() {
+    let list: List = list_new()
+    let list: List = prepend(list, 3)
+    let list: List = prepend(list, 2)
+    let list: List = prepend(list, 1)
+    println(list_to_string(list))
+    println(i32_to_string(list_sum(list)))
+}

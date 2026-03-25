@@ -1,0 +1,9 @@
+fn main() {
+    let s: String = String_from("a,b,c")
+    let parts: Vec<String> = split(s, String_from(","))
+    let mut i: i32 = 0
+    while i < len(parts) {
+        println(get_unchecked(parts, i))
+        i = i + 1
+    }
+}

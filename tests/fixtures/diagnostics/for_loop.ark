@@ -1,0 +1,7 @@
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    for x in v {
+        println(i32_to_string(x))
+    }
+}

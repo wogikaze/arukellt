@@ -1,0 +1,10 @@
+fn main() {
+    let mut i: i32 = 0
+    loop {
+        if i >= 3 {
+            break
+        }
+        println(i32_to_string(i))
+        i = i + 1
+    }
+}

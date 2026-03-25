@@ -1,0 +1,8 @@
+fn main() {
+    let a: i32 = 10
+    let b: i64 = 20
+    let c: f64 = 3.5
+    println(i32_to_string(a + 5))
+    println(i64_to_string(b + 10))
+    println(f64_to_string(c * 2.0))
+}

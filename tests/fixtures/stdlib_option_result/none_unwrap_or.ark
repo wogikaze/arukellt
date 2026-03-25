@@ -1,0 +1,4 @@
+fn main() {
+    let x: Option<i32> = None
+    println(i32_to_string(unwrap_or(x, 99)))
+}

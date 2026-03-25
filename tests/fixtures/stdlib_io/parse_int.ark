@@ -1,0 +1,7 @@
+fn main() {
+    let r: Result<i32, String> = parse_i32(String_from("42"))
+    match r {
+        Ok(val) => println(i32_to_string(val)),
+        Err(e) => println(e),
+    }
+}

@@ -1,0 +1,9 @@
+fn foo() -> i32 {
+    let r: Result<i32, String> = Ok(42)
+    let val = r?
+    val
+}
+
+fn main() {
+    foo()
+}

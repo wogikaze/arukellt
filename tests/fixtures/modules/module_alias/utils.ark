@@ -1,0 +1,3 @@
+pub fn greet(name: String) -> String {
+    concat(String_from("hello, "), name)
+}

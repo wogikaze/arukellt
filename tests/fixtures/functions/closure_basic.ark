@@ -1,0 +1,4 @@
+fn main() {
+    let add_one = |x: i32| -> i32 { x + 1 }
+    println(i32_to_string(add_one(41)))
+}

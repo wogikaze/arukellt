@@ -1,0 +1,6 @@
+fn main() {
+    let t: bool = true
+    let f: bool = false
+    println(bool_to_string(t))
+    println(bool_to_string(f))
+}

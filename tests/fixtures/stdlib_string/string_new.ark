@@ -1,0 +1,5 @@
+fn main() {
+    let s: String = String_new()
+    println(i32_to_string(len(s)))
+    println(bool_to_string(is_empty(s)))
+}

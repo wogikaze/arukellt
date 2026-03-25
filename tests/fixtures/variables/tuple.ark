@@ -1,0 +1,6 @@
+fn main() {
+    let pair: (i32, i32) = (10, 20)
+    let (a, b) = pair
+    println(i32_to_string(a))
+    println(i32_to_string(b))
+}

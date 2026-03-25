@@ -1,0 +1,8 @@
+fn main() {
+    let x: i32 = 3
+    if x > 5 {
+        println("big")
+    } else {
+        println("small")
+    }
+}

@@ -1,0 +1,7 @@
+fn main() {
+    let r: Result<i32, String> = Err(String_from("bad input"))
+    match r {
+        Ok(val) => println(i32_to_string(val)),
+        Err(e) => println(concat(String_from("error: "), e)),
+    }
+}

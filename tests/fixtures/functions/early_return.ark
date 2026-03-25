@@ -1,0 +1,15 @@
+fn classify(x: i32) -> String {
+    if x < 0 {
+        return String_from("negative")
+    }
+    if x == 0 {
+        return String_from("zero")
+    }
+    String_from("positive")
+}
+
+fn main() {
+    println(classify(-5))
+    println(classify(0))
+    println(classify(42))
+}

@@ -1,0 +1,6 @@
+fn main() {
+    println(i32_to_string(2 + 3 * 4))
+    println(i32_to_string((2 + 3) * 4))
+    println(i32_to_string(10 - 2 * 3 + 1))
+    println(i32_to_string(10 / 2 + 3))
+}

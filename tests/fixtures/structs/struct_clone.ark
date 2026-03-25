@@ -1,0 +1,15 @@
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn clone_point(p: Point) -> Point {
+    Point { x: p.x, y: p.y }
+}
+
+fn main() {
+    let p1: Point = Point { x: 10, y: 20 }
+    let p2: Point = clone_point(p1)
+    println(i32_to_string(p2.x))
+    println(i32_to_string(p2.y))
+}

@@ -1,0 +1,10 @@
+struct Person {
+    name: String,
+    age: i32,
+}
+
+fn main() {
+    let p: Person = Person { name: String_from("Alice"), age: 30 }
+    println(p.name)
+    println(i32_to_string(p.age))
+}

@@ -1,0 +1,7 @@
+fn main() {
+    println(i32_to_string(0b1100 & 0b1010))
+    println(i32_to_string(0b1100 | 0b1010))
+    println(i32_to_string(0b1100 ^ 0b1010))
+    println(i32_to_string(1 << 4))
+    println(i32_to_string(16 >> 2))
+}

@@ -1,0 +1,16 @@
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+fn main() {
+    let d: Direction = Direction::South
+    match d {
+        Direction::North => println("north"),
+        Direction::South => println("south"),
+        Direction::East => println("east"),
+        Direction::West => println("west"),
+    }
+}

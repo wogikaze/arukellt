@@ -1,0 +1,9 @@
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    println(i32_to_string(len(v)))
+    push(v, 1)
+    push(v, 2)
+    println(i32_to_string(len(v)))
+    let _ = pop(v)
+    println(i32_to_string(len(v)))
+}

@@ -1,0 +1,15 @@
+fn parse_and_double(s: String) -> Result<i32, String> {
+    let val: i32 = parse_i32(s)?
+    Ok(val * 2)
+}
+
+fn main() {
+    match parse_and_double(String_from("21")) {
+        Ok(val) => println(i32_to_string(val)),
+        Err(e) => println(e),
+    }
+    match parse_and_double(String_from("abc")) {
+        Ok(val) => println(i32_to_string(val)),
+        Err(e) => println(e),
+    }
+}

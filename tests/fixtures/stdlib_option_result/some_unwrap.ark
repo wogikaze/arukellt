@@ -1,0 +1,4 @@
+fn main() {
+    let x: Option<i32> = Some(42)
+    println(i32_to_string(unwrap(x)))
+}

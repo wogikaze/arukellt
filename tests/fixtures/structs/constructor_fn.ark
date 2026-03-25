@@ -1,0 +1,14 @@
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+fn point_new(x: f64, y: f64) -> Point {
+    Point { x: x, y: y }
+}
+
+fn main() {
+    let p: Point = point_new(3.0, 4.0)
+    println(f64_to_string(p.x))
+    println(f64_to_string(p.y))
+}

@@ -1,0 +1,5 @@
+fn main() {
+    println(i32_to_string(0))
+    println(i32_to_string(42))
+    println(i32_to_string(-100))
+}

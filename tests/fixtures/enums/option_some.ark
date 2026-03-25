@@ -1,0 +1,7 @@
+fn main() {
+    let x: Option<i32> = Some(42)
+    match x {
+        Some(val) => println(i32_to_string(val)),
+        None => println("none"),
+    }
+}

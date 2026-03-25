@@ -1,0 +1,18 @@
+fn double(x: i32) -> i32 {
+    x * 2
+}
+
+fn main() {
+    let a: Option<i32> = Some(21)
+    let b: Option<i32> = None
+    let mapped_a: Option<i32> = map_option_i32_i32(a, double)
+    let mapped_b: Option<i32> = map_option_i32_i32(b, double)
+    match mapped_a {
+        Some(val) => println(i32_to_string(val)),
+        None => println("none"),
+    }
+    match mapped_b {
+        Some(val) => println(i32_to_string(val)),
+        None => println("none"),
+    }
+}

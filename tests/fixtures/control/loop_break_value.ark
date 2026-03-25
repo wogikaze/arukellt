@@ -1,0 +1,10 @@
+fn main() {
+    let mut i: i32 = 0
+    let result: i32 = loop {
+        if i >= 5 {
+            break i * 10
+        }
+        i = i + 1
+    }
+    println(i32_to_string(result))
+}
