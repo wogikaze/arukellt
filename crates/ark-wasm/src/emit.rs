@@ -71,6 +71,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         vec_string_locals: HashSet::new(),
         f64_locals: HashSet::new(),
         i64_locals: HashSet::new(),
+        bool_locals: HashSet::new(),
         fn_return_types: mir
             .functions
             .iter()
@@ -103,6 +104,8 @@ struct EmitCtx {
     f64_locals: HashSet<u32>,
     /// Locals known to hold i64 values.
     i64_locals: HashSet<u32>,
+    /// Locals known to hold bool values.
+    bool_locals: HashSet<u32>,
     /// Function return types (for println dispatch on user function calls).
     fn_return_types: std::collections::HashMap<String, ark_typecheck::types::Type>,
     /// Struct layouts: struct name -> ordered field names
@@ -1790,6 +1793,7 @@ impl EmitCtx {
         self.vec_string_locals.clear();
         self.f64_locals.clear();
         self.i64_locals.clear();
+        self.bool_locals.clear();
         for local in &func.locals {
             match &local.ty {
                 ark_typecheck::types::Type::String => {
@@ -1800,6 +1804,9 @@ impl EmitCtx {
                 }
                 ark_typecheck::types::Type::I64 => {
                     self.i64_locals.insert(local.id.0);
+                }
+                ark_typecheck::types::Type::Bool => {
+                    self.bool_locals.insert(local.id.0);
                 }
                 ark_typecheck::types::Type::Vec(inner) => {
                     if matches!(inner.as_ref(), ark_typecheck::types::Type::String) {
@@ -1860,6 +1867,7 @@ impl EmitCtx {
                     "String_from"
                         | "__intrinsic_string_from"
                         | "concat"
+                        | "to_string"
                         | "i32_to_string"
                         | "f64_to_string"
                         | "i64_to_string"
@@ -2364,6 +2372,34 @@ impl EmitCtx {
             }
             Operand::Call(name, args) => {
                 match name.as_str() {
+                    "to_string" => {
+                        // Polymorphic to_string: dispatch based on argument type
+                        if let Some(arg) = args.first() {
+                            if self.is_string_operand(arg) {
+                                // Already a string — just emit it
+                                self.emit_operand(f, arg);
+                            } else if self.is_f64_operand(arg) {
+                                let converted =
+                                    Operand::Call("f64_to_string".to_string(), args.clone());
+                                self.emit_operand(f, &converted);
+                            } else if self.is_i64_operand(arg) {
+                                let converted =
+                                    Operand::Call("i64_to_string".to_string(), args.clone());
+                                self.emit_operand(f, &converted);
+                            } else if matches!(arg, Operand::ConstBool(_))
+                                || self.is_bool_operand(arg)
+                            {
+                                let converted =
+                                    Operand::Call("bool_to_string".to_string(), args.clone());
+                                self.emit_operand(f, &converted);
+                            } else {
+                                // Default: i32_to_string
+                                let converted =
+                                    Operand::Call("i32_to_string".to_string(), args.clone());
+                                self.emit_operand(f, &converted);
+                            }
+                        }
+                    }
                     "i32_to_string" => {
                         // Convert i32 to length-prefixed string on heap
                         if let Some(a) = args.first() {
@@ -2441,11 +2477,20 @@ impl EmitCtx {
                         f.instruction(&Instruction::GlobalSet(0));
                     }
                     "bool_to_string" => {
-                        // Similar to i32_to_string — not directly usable as a value
+                        // Convert bool (i32) to "true" or "false" string
+                        // Pre-allocate both string literals
+                        let true_ptr = self.alloc_length_prefixed_string("true");
+                        let false_ptr = self.alloc_length_prefixed_string("false");
                         if let Some(a) = args.first() {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::I32Const(0)); // placeholder
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                            wasm_encoder::ValType::I32,
+                        )));
+                        f.instruction(&Instruction::I32Const(true_ptr as i32));
+                        f.instruction(&Instruction::Else);
+                        f.instruction(&Instruction::I32Const(false_ptr as i32));
+                        f.instruction(&Instruction::End);
                     }
                     "String_from" | "__intrinsic_string_from" => {
                         // String_from("literal") → allocate length-prefixed string, return ptr
@@ -4756,6 +4801,28 @@ impl EmitCtx {
             Operand::Place(Place::Local(id)) => self.i64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_i64_operand(l) || self.is_i64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_i64_operand(inner),
+            _ => false,
+        }
+    }
+
+    fn is_bool_operand(&self, op: &Operand) -> bool {
+        match op {
+            Operand::ConstBool(_) => true,
+            Operand::Place(Place::Local(id)) => self.bool_locals.contains(&id.0),
+            Operand::BinOp(op, _, _) => {
+                matches!(
+                    op,
+                    BinOp::Eq
+                        | BinOp::Ne
+                        | BinOp::Lt
+                        | BinOp::Le
+                        | BinOp::Gt
+                        | BinOp::Ge
+                        | BinOp::And
+                        | BinOp::Or
+                )
+            }
+            Operand::UnaryOp(op, _) => matches!(op, UnaryOp::Not),
             _ => false,
         }
     }

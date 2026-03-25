@@ -1,0 +1,8 @@
+fn main() {
+    let a: i32 = 10
+    let b: i32 = 20
+    println(f"sum = {a + b}")
+
+    let x: i32 = 5
+    println(f"{x} * 2 = {x * 2}")
+}

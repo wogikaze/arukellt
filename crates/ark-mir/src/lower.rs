@@ -233,6 +233,8 @@ pub fn lower_to_mir(
                             ark_typecheck::types::Type::F64
                         } else if ctx.i64_locals.contains(&id.0) {
                             ark_typecheck::types::Type::I64
+                        } else if ctx.bool_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::Bool
                         } else if ctx.vec_string_locals.contains(&id.0) {
                             ark_typecheck::types::Type::Vec(Box::new(
                                 ark_typecheck::types::Type::String,
@@ -280,6 +282,7 @@ struct LowerCtx {
     string_locals: HashSet<u32>,
     f64_locals: HashSet<u32>,
     i64_locals: HashSet<u32>,
+    bool_locals: HashSet<u32>,
     enum_tags: HashMap<String, i32>,
     /// enum name -> variant info: (variant_name, field_count)
     enum_variants: HashMap<String, Vec<(String, usize)>>,
@@ -334,6 +337,7 @@ impl LowerCtx {
             string_locals: HashSet::new(),
             f64_locals: HashSet::new(),
             i64_locals: HashSet::new(),
+            bool_locals: HashSet::new(),
             enum_tags,
             enum_variants,
             variant_to_enum,
@@ -671,6 +675,9 @@ impl LowerCtx {
                         }
                         if tname == "i64" {
                             self.i64_locals.insert(local_id.0);
+                        }
+                        if tname == "bool" {
+                            self.bool_locals.insert(local_id.0);
                         }
                     }
                     // Track struct-typed locals
@@ -1769,6 +1776,9 @@ impl LowerCtx {
                         }
                         ark_typecheck::types::Type::I64 => {
                             sub_ctx.i64_locals.insert(lid.0);
+                        }
+                        ark_typecheck::types::Type::Bool => {
+                            sub_ctx.bool_locals.insert(lid.0);
                         }
                         _ => {}
                     }

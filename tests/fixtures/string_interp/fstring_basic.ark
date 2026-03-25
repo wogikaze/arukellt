@@ -1,0 +1,13 @@
+fn main() {
+    let name: String = String_from("world")
+    println(f"Hello, {name}!")
+
+    let x: i32 = 42
+    println(f"The answer is {x}.")
+
+    let flag: bool = true
+    println(f"flag is {flag}")
+
+    let pi: f64 = 3.14
+    println(f"pi = {pi}")
+}

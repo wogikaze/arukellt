@@ -300,6 +300,16 @@ impl TypeChecker {
                 ret: Type::String,
             },
         );
+        // Polymorphic to_string (accepts any type, dispatched in MIR/emitter)
+        self.fn_sigs.insert(
+            "to_string".into(),
+            FnSig {
+                name: "to_string".into(),
+                type_params: vec![],
+                params: vec![Type::I32], // placeholder; overridden in call handling
+                ret: Type::String,
+            },
+        );
         // String equality
         self.fn_sigs.insert(
             "__intrinsic_string_eq".into(),
@@ -1014,6 +1024,10 @@ impl TypeChecker {
                                     } else {
                                         *ret
                                     }
+                                }
+                                "to_string" => {
+                                    // Polymorphic: accepts any primitive, returns String
+                                    Type::String
                                 }
                                 _ => *ret,
                             }

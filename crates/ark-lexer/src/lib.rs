@@ -7,6 +7,15 @@ use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
 
 // ── Token types ──────────────────────────────────────────────────────────────
 
+/// A part of an f-string literal.
+#[derive(Debug, Clone, PartialEq)]
+pub enum FStringPart {
+    /// A literal string fragment.
+    Lit(String),
+    /// An expression to be interpolated (raw source text).
+    Expr(String),
+}
+
 /// The kind of a lexical token.
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
@@ -37,6 +46,7 @@ pub enum TokenKind {
     IntLit(i64),
     FloatLit(f64),
     StringLit(String),
+    FStringLit(Vec<FStringPart>),
     CharLit(char),
     BoolLit(bool),
 
@@ -494,7 +504,13 @@ impl<'src> Lexer<'src> {
             | "unsafe" | "extern" | "use" | "mod" | "super" | "self" | "Self" => {
                 TokenKind::Reserved(text.to_owned())
             }
-            _ => TokenKind::Ident(text.to_owned()),
+            _ => {
+                // f"..." string interpolation
+                if text == "f" && self.peek() == Some(b'"') {
+                    return self.lex_fstring(start);
+                }
+                TokenKind::Ident(text.to_owned())
+            }
         };
         Token::new(kind, span)
     }
@@ -631,6 +647,98 @@ impl<'src> Lexer<'src> {
                 Some(_) => {
                     let ch = self.source[self.pos..].chars().next().unwrap();
                     value.push(ch);
+                    self.pos += ch.len_utf8();
+                }
+            }
+        }
+    }
+
+    fn lex_fstring(&mut self, start: usize) -> Token {
+        self.advance(); // opening '"'
+        let mut parts: Vec<FStringPart> = Vec::new();
+        let mut current_lit = String::new();
+
+        loop {
+            match self.peek() {
+                None | Some(b'\n') | Some(b'\r') => {
+                    let span = self.span(start);
+                    self.emit(span, DiagnosticCode::E0003, "unterminated f-string literal");
+                    return Token::new(TokenKind::Error, span);
+                }
+                Some(b'"') => {
+                    self.advance();
+                    if !current_lit.is_empty() {
+                        parts.push(FStringPart::Lit(current_lit));
+                    }
+                    return Token::new(TokenKind::FStringLit(parts), self.span(start));
+                }
+                Some(b'{') => {
+                    self.advance();
+                    // {{ is literal {
+                    if self.peek() == Some(b'{') {
+                        self.advance();
+                        current_lit.push('{');
+                        continue;
+                    }
+                    if !current_lit.is_empty() {
+                        parts.push(FStringPart::Lit(std::mem::take(&mut current_lit)));
+                    }
+                    // Collect expression text until matching }
+                    let mut expr_text = String::new();
+                    let mut depth = 1u32;
+                    loop {
+                        match self.peek() {
+                            None | Some(b'\n') | Some(b'\r') => {
+                                let span = self.span(start);
+                                self.emit(
+                                    span,
+                                    DiagnosticCode::E0003,
+                                    "unterminated interpolation in f-string",
+                                );
+                                return Token::new(TokenKind::Error, span);
+                            }
+                            Some(b'{') => {
+                                depth += 1;
+                                expr_text.push('{');
+                                self.advance();
+                            }
+                            Some(b'}') => {
+                                depth -= 1;
+                                self.advance();
+                                if depth == 0 {
+                                    break;
+                                }
+                                expr_text.push('}');
+                            }
+                            Some(_) => {
+                                let ch = self.source[self.pos..].chars().next().unwrap();
+                                expr_text.push(ch);
+                                self.pos += ch.len_utf8();
+                            }
+                        }
+                    }
+                    parts.push(FStringPart::Expr(expr_text));
+                }
+                Some(b'}') => {
+                    self.advance();
+                    // }} is literal }
+                    if self.peek() == Some(b'}') {
+                        self.advance();
+                        current_lit.push('}');
+                    } else {
+                        current_lit.push('}');
+                    }
+                }
+                Some(b'\\') => match self.parse_escape() {
+                    Some(ch) => current_lit.push(ch),
+                    None => {
+                        let span = self.span(start);
+                        return Token::new(TokenKind::Error, span);
+                    }
+                },
+                Some(_) => {
+                    let ch = self.source[self.pos..].chars().next().unwrap();
+                    current_lit.push(ch);
                     self.pos += ch.len_utf8();
                 }
             }

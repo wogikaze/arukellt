@@ -1034,6 +1034,10 @@ impl<'a> Parser<'a> {
                     span: start,
                 }
             }
+            TokenKind::FStringLit(parts) => {
+                self.advance();
+                self.desugar_fstring(&parts, start)
+            }
             TokenKind::CharLit(v) => {
                 self.advance();
                 Expr::CharLit {
@@ -1495,5 +1499,65 @@ impl<'a> Parser<'a> {
             body: Box::new(body),
             span,
         }
+    }
+
+    /// Desugar `f"hello {x} world"` to `concat(concat("hello ", to_string(x)), " world")`.
+    fn desugar_fstring(&mut self, parts: &[ark_lexer::FStringPart], span: Span) -> Expr {
+        let mut exprs: Vec<Expr> = Vec::new();
+
+        for part in parts {
+            match part {
+                ark_lexer::FStringPart::Lit(s) => {
+                    exprs.push(Expr::StringLit {
+                        value: s.clone(),
+                        span,
+                    });
+                }
+                ark_lexer::FStringPart::Expr(text) => {
+                    // Parse the expression text
+                    let (tokens, _diags) = ark_lexer::tokenize(0, text);
+                    let mut sub_parser = Parser::new(&tokens, self.sink);
+                    let expr = sub_parser.parse_expr();
+                    // Wrap in to_string() call
+                    exprs.push(Expr::Call {
+                        callee: Box::new(Expr::Ident {
+                            name: "to_string".to_string(),
+                            span,
+                        }),
+                        type_args: vec![],
+                        args: vec![expr],
+                        span,
+                    });
+                }
+            }
+        }
+
+        // If empty: return ""
+        if exprs.is_empty() {
+            return Expr::StringLit {
+                value: String::new(),
+                span,
+            };
+        }
+
+        // If single: return it directly
+        if exprs.len() == 1 {
+            return exprs.pop().unwrap();
+        }
+
+        // Chain with concat: concat(concat(a, b), c)
+        let mut result = exprs.remove(0);
+        for expr in exprs {
+            result = Expr::Call {
+                callee: Box::new(Expr::Ident {
+                    name: "concat".to_string(),
+                    span,
+                }),
+                type_args: vec![],
+                args: vec![result, expr],
+                span,
+            };
+        }
+        result
     }
 }
