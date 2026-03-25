@@ -165,6 +165,12 @@ pub enum Operand {
         enum_name: String,
         variant_name: String,
     },
+    /// Loop as expression: execute body (which includes WhileStmt), then return result.
+    LoopExpr {
+        init: Box<Operand>,
+        body: Vec<MirStmt>,
+        result: Box<Operand>,
+    },
 }
 
 /// Binary operations.

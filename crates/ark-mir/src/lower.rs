@@ -88,6 +88,15 @@ pub fn lower_to_mir(
         }
     }
 
+    // Register tuple struct layouts for common arities
+    for arity in 2..=4u32 {
+        let name = format!("__tuple{}", arity);
+        let fields: Vec<(String, String)> = (0..arity)
+            .map(|i| (i.to_string(), "i32".to_string()))
+            .collect();
+        struct_defs.insert(name, fields);
+    }
+
     for item in &module.items {
         if let ast::Item::FnDef(f) = item {
             let fn_id = FnId(next_fn_id);
@@ -178,6 +187,8 @@ pub fn lower_to_mir(
                         ark_typecheck::types::Type::F64
                     } else if ctx.i64_locals.contains(&id.0) {
                         ark_typecheck::types::Type::I64
+                    } else if ctx.vec_string_locals.contains(&id.0) {
+                        ark_typecheck::types::Type::Vec(Box::new(ark_typecheck::types::Type::String))
                     } else {
                         ark_typecheck::types::Type::I32
                     },
@@ -231,6 +242,10 @@ struct LowerCtx {
     enum_local_payload_strings: HashMap<u32, HashSet<(String, u32)>>,
     /// enum name -> [(variant_name, [payload_type_names])]
     enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
+    /// Locals known to hold Vec<String> values.
+    vec_string_locals: HashSet<u32>,
+    /// Local to assign break values to (for loop-as-expression).
+    loop_result_local: Option<LocalId>,
 }
 
 impl LowerCtx {
@@ -257,6 +272,8 @@ impl LowerCtx {
             enum_typed_locals: HashMap::new(),
             enum_local_payload_strings: HashMap::new(),
             enum_defs,
+            vec_string_locals: HashSet::new(),
+            loop_result_local: None,
         }
     }
 
@@ -320,7 +337,27 @@ impl LowerCtx {
 
     fn lower_stmt(&mut self, stmt: &ast::Stmt, out: &mut Vec<MirStmt>) {
         match stmt {
-            ast::Stmt::Let { name, init, ty, .. } => {
+            ast::Stmt::Let { name, init, ty, pattern, .. } => {
+                // Handle tuple destructuring: let (a, b) = expr
+                if let Some(ast::Pattern::Tuple { elements, .. }) = pattern {
+                    let tuple_name = format!("__tuple{}", elements.len());
+                    let local_id = self.declare_local(name);
+                    let op = self.lower_expr(init);
+                    out.push(MirStmt::Assign(Place::Local(local_id), Rvalue::Use(op)));
+                    // Destructure each element
+                    for (i, elem) in elements.iter().enumerate() {
+                        if let ast::Pattern::Ident { name: elem_name, .. } = elem {
+                            let elem_id = self.declare_local(elem_name);
+                            let access = Operand::FieldAccess {
+                                object: Box::new(Operand::Place(Place::Local(local_id))),
+                                struct_name: tuple_name.clone(),
+                                field: i.to_string(),
+                            };
+                            out.push(MirStmt::Assign(Place::Local(elem_id), Rvalue::Use(access)));
+                        }
+                    }
+                    return;
+                }
                 if name == "_" {
                     // Wildcard binding: evaluate for side effects only
                     self.lower_expr_stmt(init, out);
@@ -351,6 +388,11 @@ impl LowerCtx {
                     }
                     // Track generic enum types: Option<i32>, Result<i32, String>
                     if let ast::TypeExpr::Generic { name: tname, args, .. } = type_expr {
+                        if tname == "Vec" {
+                            if args.first().map_or(false, is_string_type) {
+                                self.vec_string_locals.insert(local_id.0);
+                            }
+                        }
                         if self.enum_variants.contains_key(tname.as_str()) {
                             self.enum_typed_locals.insert(local_id.0, tname.clone());
                             // Map generic args to variant payload types
@@ -438,7 +480,13 @@ impl LowerCtx {
                     else_body: else_stmts,
                 });
             }
-            ast::Expr::Break { .. } => {
+            ast::Expr::Break { value, .. } => {
+                if let Some(val) = value {
+                    if let Some(result_id) = self.loop_result_local {
+                        let op = self.lower_expr(val);
+                        out.push(MirStmt::Assign(Place::Local(result_id), Rvalue::Use(op)));
+                    }
+                }
                 out.push(MirStmt::Break);
             }
             ast::Expr::Continue { .. } => {
@@ -921,6 +969,34 @@ impl LowerCtx {
                 let scrut = self.lower_expr(scrutinee);
                 self.build_match_if_expr(&scrut, arms, 0)
             }
+            ast::Expr::Loop { body, .. } => {
+                let result_id = self.declare_local("__loop_result");
+                let prev = self.loop_result_local;
+                self.loop_result_local = Some(result_id);
+                let mut body_stmts = Vec::new();
+                for stmt in &body.stmts {
+                    self.lower_stmt(stmt, &mut body_stmts);
+                }
+                if let Some(tail) = &body.tail_expr {
+                    self.lower_expr_stmt(tail, &mut body_stmts);
+                }
+                self.loop_result_local = prev;
+                // Emit as a while(true) loop
+                let mut outer = Vec::new();
+                outer.push(MirStmt::Assign(Place::Local(result_id), Rvalue::Use(Operand::ConstI32(0))));
+                outer.push(MirStmt::WhileStmt {
+                    cond: Operand::ConstBool(true),
+                    body: body_stmts,
+                });
+                // Return the stmts as side effects and the result local as value
+                // We need a way to emit statements before returning an operand.
+                // Use the Block operand approach: lower stmts as a sequence, then return the local
+                Operand::LoopExpr {
+                    init: Box::new(Operand::ConstI32(0)),
+                    body: outer,
+                    result: Box::new(Operand::Place(Place::Local(result_id))),
+                }
+            }
             ast::Expr::QualifiedIdent { module, name, .. } => {
                 // Enum variant reference: Direction::South -> EnumInit with no payload
                 let key = format!("{}::{}", module, name);
@@ -944,6 +1020,16 @@ impl LowerCtx {
                 } else {
                     Operand::Unit
                 }
+            }
+            ast::Expr::Tuple { elements, .. } => {
+                // Lower tuple as a struct with numbered fields
+                let tuple_name = format!("__tuple{}", elements.len());
+                let lowered_fields: Vec<(String, Operand)> = elements
+                    .iter()
+                    .enumerate()
+                    .map(|(i, e)| (i.to_string(), self.lower_expr(e)))
+                    .collect();
+                Operand::StructInit { name: tuple_name, fields: lowered_fields }
             }
             ast::Expr::StructInit { name, fields, .. } => {
                 let lowered_fields: Vec<(String, Operand)> = fields

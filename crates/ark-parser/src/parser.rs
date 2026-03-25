@@ -849,6 +849,11 @@ impl<'a> Parser<'a> {
                 self.advance();
                 Expr::Continue { span: start }
             }
+            TokenKind::Loop => {
+                self.advance();
+                let body = self.parse_block();
+                Expr::Loop { body, span: start.merge(self.span()) }
+            }
             TokenKind::Pipe => {
                 self.parse_closure(start)
             }

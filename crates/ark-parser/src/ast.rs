@@ -128,6 +128,7 @@ pub enum Expr {
     Continue { span: Span },
     Try { expr: Box<Expr>, span: Span },
     Assign { target: Box<Expr>, value: Box<Expr>, span: Span },
+    Loop { body: Block, span: Span },
 }
 
 impl Expr {
@@ -156,7 +157,8 @@ impl Expr {
             | Expr::Break { span, .. }
             | Expr::Continue { span }
             | Expr::Try { span, .. }
-            | Expr::Assign { span, .. } => *span,
+            | Expr::Assign { span, .. }
+            | Expr::Loop { span, .. } => *span,
             Expr::Block(block) => block.span,
         }
     }

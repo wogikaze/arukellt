@@ -101,6 +101,7 @@ pub struct TypeChecker {
     pub fn_sigs: HashMap<String, FnSig>,
     next_type_id: u32,
     next_type_var: u32,
+    current_fn_return_type: Option<Type>,
 }
 
 impl TypeChecker {
@@ -111,6 +112,7 @@ impl TypeChecker {
             fn_sigs: HashMap::new(),
             next_type_id: 0,
             next_type_var: 0,
+            current_fn_return_type: None,
         }
     }
 
@@ -222,6 +224,13 @@ impl TypeChecker {
             type_params: vec![],
             params: vec![Type::String, Type::String],
             ret: Type::String,
+        });
+        // parse_i32: String -> Result<i32, String>
+        self.fn_sigs.insert("parse_i32".into(), FnSig {
+            name: "parse_i32".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::I32,
         });
         // Enum variant constructors (treated as functions for type checking)
         self.fn_sigs.insert("Some".into(), FnSig {
@@ -486,10 +495,12 @@ impl TypeChecker {
             .map(|t| self.resolve_type_expr(t))
             .unwrap_or(Type::Unit);
 
+        self.current_fn_return_type = Some(expected_ret.clone());
+
         // Check body block
         let _body_type = self.check_block(&f.body, &mut env, &expected_ret, sink);
 
-        // TODO: verify body_type matches expected_ret
+        self.current_fn_return_type = None;
     }
 
     fn check_block(
@@ -682,6 +693,11 @@ impl TypeChecker {
                 Type::Never
             }
             ast::Expr::Continue { .. } => Type::Never,
+            ast::Expr::Loop { body, .. } => {
+                self.check_block(body, env, &Type::Unit, sink);
+                // Loop as expression: type comes from break value
+                Type::I32
+            }
             ast::Expr::Assign { target, value, .. } => {
                 let val_ty = self.synthesize_expr(value, env, sink);
                 if let ast::Expr::Ident { name, span } = target.as_ref() {
@@ -706,6 +722,124 @@ impl TypeChecker {
                     }
                 }
                 Type::Unit
+            }
+            ast::Expr::Match { scrutinee, arms, span } => {
+                let scrutinee_ty = self.synthesize_expr(scrutinee, env, sink);
+                let mut result_ty: Option<Type> = None;
+                let mut has_wildcard = false;
+                let mut covered_variants: Vec<String> = Vec::new();
+                for arm in arms {
+                    // Create a child env for each arm to bind pattern variables
+                    let mut arm_env = env.clone();
+
+                    // Track pattern coverage and bind pattern variables
+                    match &arm.pattern {
+                        ast::Pattern::Wildcard(_) => {
+                            has_wildcard = true;
+                        }
+                        ast::Pattern::Ident { name, .. } => {
+                            has_wildcard = true;
+                            arm_env.bind(name.clone(), scrutinee_ty.clone());
+                        }
+                        ast::Pattern::Enum { path, variant, fields, .. } => {
+                            covered_variants.push(if path.is_empty() {
+                                variant.clone()
+                            } else {
+                                format!("{}::{}", path, variant)
+                            });
+                            // Bind fields from enum variant payload
+                            let enum_name = if path.is_empty() {
+                                // Try to infer from scrutinee type
+                                if let Type::Enum(ref tid) = scrutinee_ty {
+                                    self.enum_defs.iter()
+                                        .find(|(_, info)| &info.type_id == tid)
+                                        .map(|(n, _)| n.clone())
+                                } else {
+                                    None
+                                }
+                            } else {
+                                Some(path.clone())
+                            };
+                            if let Some(ref ename) = enum_name {
+                                if let Some(info) = self.enum_defs.get(ename) {
+                                    if let Some(vinfo) = info.variants.iter().find(|v| v.name == *variant) {
+                                        for (i, field_pat) in fields.iter().enumerate() {
+                                            if let ast::Pattern::Ident { name, .. } = field_pat {
+                                                let field_ty = vinfo.fields.get(i)
+                                                    .cloned()
+                                                    .unwrap_or(Type::Error);
+                                                arm_env.bind(name.clone(), field_ty);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                    // Synthesize arm body type with the arm's env
+                    let arm_ty = self.synthesize_expr(&arm.body, &mut arm_env, sink);
+                    if let Some(ref first) = result_ty {
+                        if !self.types_compatible(&arm_ty, first) && arm_ty != Type::Error && *first != Type::Error {
+                            sink.emit(
+                                Diagnostic::new(DiagnosticCode::E0205)
+                                    .with_message("mismatched match arm types")
+                                    .with_label(*span, format!(
+                                        "expected `{}`, found `{}`", first, arm_ty
+                                    ))
+                            );
+                        }
+                    } else {
+                        result_ty = Some(arm_ty);
+                    }
+                }
+                // Check exhaustiveness for enum types
+                if !has_wildcard {
+                    if let Type::Enum(ref type_id) = scrutinee_ty {
+                        // Find enum info by TypeId
+                        let enum_entry = self.enum_defs.iter()
+                            .find(|(_, info)| &info.type_id == type_id);
+                        if let Some((enum_name, info)) = enum_entry {
+                            let enum_name = enum_name.clone();
+                            let all_variants: Vec<String> = info.variants.iter()
+                                .map(|v| format!("{}::{}", enum_name, v.name))
+                                .collect();
+                            let missing: Vec<&String> = all_variants.iter()
+                                .filter(|v| !covered_variants.contains(v))
+                                .collect();
+                            if !missing.is_empty() {
+                                sink.emit(
+                                    Diagnostic::new(DiagnosticCode::E0204)
+                                        .with_message("non-exhaustive match")
+                                        .with_label(*span, format!(
+                                            "missing patterns: {}", missing.iter().map(|s| s.as_str()).collect::<Vec<_>>().join(", ")
+                                        ))
+                                );
+                            }
+                        }
+                    }
+                }
+                result_ty.unwrap_or(Type::Unit)
+            }
+            ast::Expr::Try { expr, span } => {
+                let inner_ty = self.synthesize_expr(expr, env, sink);
+                // Check that the current function returns Result
+                let fn_returns_result = matches!(
+                    &self.current_fn_return_type,
+                    Some(Type::Result(_, _))
+                );
+                if !fn_returns_result {
+                    sink.emit(
+                        Diagnostic::new(DiagnosticCode::E0210)
+                            .with_message("? operator requires function to return Result")
+                            .with_label(*span, "used here".to_string())
+                    );
+                }
+                // The type of ? on Result<T, E> is T
+                match inner_ty {
+                    Type::Result(ok, _) => *ok,
+                    _ => Type::Error,
+                }
             }
             _ => {
                 // TODO: handle remaining expression types
