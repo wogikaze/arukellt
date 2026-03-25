@@ -1,16 +1,22 @@
 # Wasm 機能の 3 層分類
 
 ADR-002 により **言語セマンティクスは Wasm GC ベース** で設計する。
-コンパイルターゲットは `wasm-gc`（デフォルト）と `wasm32`（AtCoder 等の非GC 環境）の 2 種類。
+
+> **⚠️ 現在の実装状況**: v0 実装は **wasm32 linear memory + WASI Preview 1** を使用。
+> Wasm GC 型（struct/array/ref）および Component Model/WIT は**未実装**。
+> 以下の分類は設計方針であり、実装完了を意味しない。
+> 現在の実装状況は [`docs/process/v0-status.md`](../process/v0-status.md) を参照。
+
+コンパイルターゲットは `wasm-gc`（設計上のデフォルト）と `wasm32`（AtCoder 等の非GC 環境）の 2 種類。
 
 ---
 
 ## コンパイルターゲット概要
 
-| ターゲット | フラグ | 対応ランタイム |
-|-----------|--------|--------------|
-| `wasm-gc` | デフォルト | wasmtime 28.0+ / V8 / SpiderMonkey |
-| `wasm32` | `--target wasm32` | wabt 1.0.34 / iwasm 2.4.1 / 非GC 環境 |
+| ターゲット | フラグ | 対応ランタイム | 実装状況 |
+|-----------|--------|--------------|---------|
+| `wasm-gc` | 設計上のデフォルト | wasmtime 28.0+ / V8 / SpiderMonkey | **未実装** — 現在は linear memory |
+| `wasm32` | `--target wasm32` | wabt 1.0.34 / iwasm 2.4.1 / 非GC 環境 | **現在のバックエンドはこちらに近い** |
 
 ---
 

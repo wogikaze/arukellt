@@ -2,7 +2,10 @@
 
 本文書は、arukellt 言語 v0 の完全仕様を一箇所に統合したものである。
 
-**Status**: Frozen for v0 implementation
+**Status**: Design specification — 実装は進行中（[v0-status.md](../process/v0-status.md) 参照）
+
+> **注意**: 本文書は v0 の *設計仕様* である。全機能が実装済みであることを意味しない。
+> 現在の実装到達度は `docs/process/v0-status.md` を参照のこと。
 
 ---
 
@@ -20,11 +23,16 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 ### v0 で提供するもの
 
 - 基本的な型システム（プリミティブ、struct、enum、tuple）
-- 制限付き generics（`Vec[T]`、`Option[T]`、`Result[T, E]`）
+- 制限付き generics（`Vec<T>`、`Option<T>`、`Result<T, E>`）
 - 高階関数と closure
 - パターンマッチ
-- WASI p1 + p2 サポート（p1: wasm32/AtCoder、p2: Component Model/WIT on wasm-gc）
+- WASI p1 サポート（fd_write 経由の I/O）
 - 関数呼び出し構文のみ（メソッド構文なし）
+
+> **設計と実装の差異**: 上記は v0 設計仕様の完成形。現時点の実装は
+> WASI p1 + linear memory バックエンドで、i32/bool/String/struct/enum(unit) が
+> end-to-end 動作。Wasm GC / WASI p2 / closure / generics / payload enum は未実装。
+> 詳細は `docs/process/v0-status.md` 参照。
 
 ### v0 で提供しないもの（Non-goals）
 
