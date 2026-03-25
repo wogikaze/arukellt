@@ -1,5 +1,7 @@
 //! Lower typed AST to MIR.
 
+use std::collections::HashSet;
+
 use ark_diagnostics::DiagnosticSink;
 use ark_parser::ast;
 use ark_typecheck::TypeChecker;
@@ -23,7 +25,10 @@ pub fn lower_to_mir(
             let mut ctx = LowerCtx::new();
 
             for param in &f.params {
-                ctx.declare_local(&param.name);
+                let pid = ctx.declare_local(&param.name);
+                if is_string_type(&param.ty) {
+                    ctx.string_locals.insert(pid.0);
+                }
             }
 
             let entry = BlockId(0);
@@ -50,15 +55,19 @@ pub fn lower_to_mir(
                     name: Some(p.name.clone()),
                     ty: ark_typecheck::types::Type::I32,
                 }).collect(),
-                return_ty: if f.return_type.is_some() {
-                    ark_typecheck::types::Type::I32
-                } else {
-                    ark_typecheck::types::Type::Unit
+                return_ty: match &f.return_type {
+                    Some(ty) if is_string_type(ty) => ark_typecheck::types::Type::String,
+                    Some(_) => ark_typecheck::types::Type::I32,
+                    None => ark_typecheck::types::Type::Unit,
                 },
                 locals: ctx.locals.iter().map(|(name, id)| MirLocal {
                     id: *id,
                     name: Some(name.clone()),
-                    ty: ark_typecheck::types::Type::I32,
+                    ty: if ctx.string_locals.contains(&id.0) {
+                        ark_typecheck::types::Type::String
+                    } else {
+                        ark_typecheck::types::Type::I32
+                    },
                 }).collect(),
                 blocks: vec![BasicBlock {
                     id: entry,
@@ -86,11 +95,12 @@ pub fn lower_to_mir(
 struct LowerCtx {
     locals: Vec<(String, LocalId)>,
     next_local: u32,
+    string_locals: HashSet<u32>,
 }
 
 impl LowerCtx {
     fn new() -> Self {
-        Self { locals: Vec::new(), next_local: 0 }
+        Self { locals: Vec::new(), next_local: 0, string_locals: HashSet::new() }
     }
 
     fn declare_local(&mut self, name: &str) -> LocalId {
@@ -123,13 +133,18 @@ impl LowerCtx {
 
     fn lower_stmt(&mut self, stmt: &ast::Stmt, out: &mut Vec<MirStmt>) {
         match stmt {
-            ast::Stmt::Let { name, init, .. } => {
+            ast::Stmt::Let { name, init, ty, .. } => {
                 if name == "_" {
                     // Wildcard binding: evaluate for side effects only
                     self.lower_expr_stmt(init, out);
                     return;
                 }
                 let local_id = self.declare_local(name);
+                if let Some(type_expr) = ty {
+                    if is_string_type(type_expr) {
+                        self.string_locals.insert(local_id.0);
+                    }
+                }
                 let op = self.lower_expr(init);
                 out.push(MirStmt::Assign(Place::Local(local_id), Rvalue::Use(op)));
             }
@@ -194,7 +209,160 @@ impl LowerCtx {
                 let op = value.as_ref().map(|v| self.lower_expr(v));
                 out.push(MirStmt::Return(op));
             }
+            ast::Expr::Match { scrutinee, arms, .. } => {
+                self.lower_match_stmt(scrutinee, arms, out);
+            }
             _ => {}
+        }
+    }
+
+    /// Lower a match expression used as a statement (result discarded).
+    /// Converts to nested if-else chains.
+    fn lower_match_stmt(&mut self, scrutinee: &ast::Expr, arms: &[ast::MatchArm], out: &mut Vec<MirStmt>) {
+        let scrut = self.lower_expr(scrutinee);
+        // Build a chain of if-else from the arms
+        let stmt = self.build_match_if_chain(&scrut, arms, 0, true);
+        if let Some(s) = stmt {
+            out.push(s);
+        }
+    }
+
+    /// Build a nested if-else chain from match arms starting at `idx`.
+    /// `as_stmt` indicates whether arm bodies should be lowered as statements.
+    fn build_match_if_chain(&mut self, scrut: &Operand, arms: &[ast::MatchArm], idx: usize, as_stmt: bool) -> Option<MirStmt> {
+        if idx >= arms.len() {
+            return None;
+        }
+        let arm = &arms[idx];
+        match &arm.pattern {
+            ast::Pattern::Wildcard(_) => {
+                // Default arm — just emit the body
+                let mut body = Vec::new();
+                self.lower_expr_stmt(&arm.body, &mut body);
+                if body.len() == 1 {
+                    Some(body.remove(0))
+                } else {
+                    // Wrap in an always-true if
+                    Some(MirStmt::IfStmt {
+                        cond: Operand::ConstBool(true),
+                        then_body: body,
+                        else_body: vec![],
+                    })
+                }
+            }
+            ast::Pattern::IntLit { value, .. } => {
+                let cond = Operand::BinOp(
+                    BinOp::Eq,
+                    Box::new(scrut.clone()),
+                    Box::new(Operand::ConstI32(*value as i32)),
+                );
+                let mut then_body = Vec::new();
+                self.lower_expr_stmt(&arm.body, &mut then_body);
+                let else_body = if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
+                    vec![next]
+                } else {
+                    vec![]
+                };
+                Some(MirStmt::IfStmt { cond, then_body, else_body })
+            }
+            ast::Pattern::BoolLit { value, .. } => {
+                let cond = Operand::BinOp(
+                    BinOp::Eq,
+                    Box::new(scrut.clone()),
+                    Box::new(Operand::ConstBool(*value)),
+                );
+                let mut then_body = Vec::new();
+                self.lower_expr_stmt(&arm.body, &mut then_body);
+                let else_body = if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
+                    vec![next]
+                } else {
+                    vec![]
+                };
+                Some(MirStmt::IfStmt { cond, then_body, else_body })
+            }
+            ast::Pattern::StringLit { value, .. } => {
+                // String match — for now, treat as literal comparison
+                let cond = Operand::BinOp(
+                    BinOp::Eq,
+                    Box::new(scrut.clone()),
+                    Box::new(Operand::ConstString(value.clone())),
+                );
+                let mut then_body = Vec::new();
+                self.lower_expr_stmt(&arm.body, &mut then_body);
+                let else_body = if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
+                    vec![next]
+                } else {
+                    vec![]
+                };
+                Some(MirStmt::IfStmt { cond, then_body, else_body })
+            }
+            ast::Pattern::Ident { name, .. } => {
+                // Binding pattern — bind the scrutinee to the name
+                let local_id = self.declare_local(name);
+                let mut then_body = vec![
+                    MirStmt::Assign(Place::Local(local_id), Rvalue::Use(scrut.clone()))
+                ];
+                self.lower_expr_stmt(&arm.body, &mut then_body);
+                Some(MirStmt::IfStmt {
+                    cond: Operand::ConstBool(true),
+                    then_body,
+                    else_body: vec![],
+                })
+            }
+            _ => {
+                // Skip unsupported patterns, try next arm
+                self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+            }
+        }
+    }
+
+    /// Build a nested IfExpr from match arms for value-returning match.
+    fn build_match_if_expr(&mut self, scrut: &Operand, arms: &[ast::MatchArm], idx: usize) -> Operand {
+        if idx >= arms.len() {
+            return Operand::Unit;
+        }
+        let arm = &arms[idx];
+        match &arm.pattern {
+            ast::Pattern::Wildcard(_) | ast::Pattern::Ident { .. } => {
+                // Default/binding arm — just return the body value
+                self.lower_expr(&arm.body)
+            }
+            ast::Pattern::IntLit { value, .. } => {
+                let cond = Operand::BinOp(
+                    BinOp::Eq,
+                    Box::new(scrut.clone()),
+                    Box::new(Operand::ConstI32(*value as i32)),
+                );
+                let then_result = self.lower_expr(&arm.body);
+                let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                Operand::IfExpr {
+                    cond: Box::new(cond),
+                    then_body: vec![],
+                    then_result: Some(Box::new(then_result)),
+                    else_body: vec![],
+                    else_result: Some(Box::new(else_result)),
+                }
+            }
+            ast::Pattern::BoolLit { value, .. } => {
+                let cond = Operand::BinOp(
+                    BinOp::Eq,
+                    Box::new(scrut.clone()),
+                    Box::new(Operand::ConstBool(*value)),
+                );
+                let then_result = self.lower_expr(&arm.body);
+                let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                Operand::IfExpr {
+                    cond: Box::new(cond),
+                    then_body: vec![],
+                    then_result: Some(Box::new(then_result)),
+                    else_body: vec![],
+                    else_result: Some(Box::new(else_result)),
+                }
+            }
+            _ => {
+                // Skip unsupported patterns
+                self.build_match_if_expr(scrut, arms, idx + 1)
+            }
         }
     }
 
@@ -279,6 +447,10 @@ impl LowerCtx {
                     Operand::Unit
                 }
             }
+            ast::Expr::Match { scrutinee, arms, .. } => {
+                let scrut = self.lower_expr(scrutinee);
+                self.build_match_if_expr(&scrut, arms, 0)
+            }
             _ => Operand::Unit,
         }
     }
@@ -327,12 +499,19 @@ fn is_void_expr(expr: &ast::Expr) -> bool {
         }
         ast::Expr::Assign { .. } => true,
         ast::Expr::If { then_block, .. } => {
-            // If the then branch's tail is void, the whole if is void
             match &then_block.tail_expr {
                 None => true,
                 Some(tail) => is_void_expr(tail),
             }
         }
+        ast::Expr::Match { arms, .. } => {
+            // Match is void if its first arm body is void
+            arms.first().map_or(true, |arm| is_void_expr(&arm.body))
+        }
         _ => false,
     }
+}
+
+fn is_string_type(ty: &ast::TypeExpr) -> bool {
+    matches!(ty, ast::TypeExpr::Named { name, .. } if name == "String")
 }

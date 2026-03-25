@@ -5,6 +5,7 @@
 
 use ark_diagnostics::DiagnosticSink;
 use ark_mir::mir::*;
+use std::collections::HashSet;
 use wasm_encoder::{
     CodeSection, DataSection, ExportKind, ExportSection, Function,
     FunctionSection, ImportSection, Instruction, MemArg, MemorySection, MemoryType,
@@ -15,26 +16,35 @@ const IOV_BASE: u32 = 0;
 const NWRITTEN: u32 = 8;
 const SCRATCH: u32 = 16;  // temp for i32_to_string length
 const I32BUF: u32 = 48;   // buffer for i32_to_string output (20 bytes max)
+const BOOL_TRUE: u32 = 80; // "true" (4 bytes)
+const BOOL_FALSE: u32 = 84; // "false" (5 bytes)
+const NEWLINE: u32 = 89;   // "\n" (1 byte)
 const DATA_START: u32 = 256;
 
 // Function indices:
 // 0 = fd_write (import)
-// 1 = __i32_to_string (helper: i32 -> stores offset,len at SCRATCH/SCRATCH+4)
+// 1 = __i32_to_string (helper: i32 -> offset,len pair stored at SCRATCH/SCRATCH+4)
 // 2 = __print_i32_ln (helper: prints i32 as decimal + newline)
-// 3 = __print_bool_ln (helper: prints bool as "true\n" or "false\n")
-// 4+ = user functions
+// 3 = __print_bool_ln (helper: prints bool as "true"/"false" + newline)
+// 4 = __print_str_ln (helper: prints length-prefixed string + newline)
+// 5+ = user functions
 const FN_FD_WRITE: u32 = 0;
 const FN_I32_TO_STR: u32 = 1;
 const FN_PRINT_I32_LN: u32 = 2;
 const FN_PRINT_BOOL_LN: u32 = 3;
-const FN_USER_BASE: u32 = 4;
+const FN_PRINT_STR_LN: u32 = 4;
+const FN_USER_BASE: u32 = 5;
 
 pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
     let mut ctx = EmitCtx {
         string_literals: Vec::new(),
         data_offset: DATA_START,
         fn_names: mir.functions.iter().map(|f| f.name.clone()).collect(),
-        loop_depth: None,
+        loop_depths: Vec::new(),
+        string_locals: HashSet::new(),
+        fn_return_types: mir.functions.iter()
+            .map(|f| (f.name.clone(), f.return_ty.clone()))
+            .collect(),
     };
     ctx.emit_module(mir)
 }
@@ -43,9 +53,12 @@ struct EmitCtx {
     string_literals: Vec<(u32, Vec<u8>)>,
     data_offset: u32,
     fn_names: Vec<String>,
-    /// Nesting depth inside a loop body (for break/continue branch depths).
-    /// None means we're not inside a loop.
-    loop_depth: Option<u32>,
+    /// Stack of extra block depths for break/continue inside loops.
+    loop_depths: Vec<u32>,
+    /// Locals known to hold string values (for println dispatch).
+    string_locals: HashSet<u32>,
+    /// Function return types (for println dispatch on user function calls).
+    fn_return_types: std::collections::HashMap<String, ark_typecheck::types::Type>,
 }
 
 impl EmitCtx {
@@ -58,7 +71,21 @@ impl EmitCtx {
         (offset, len)
     }
 
-    fn resolve_fn(&mut self, name: &str) -> Option<u32> {
+    /// Allocate a length-prefixed string in memory.
+    /// Returns the pointer to the data (after the length prefix).
+    fn alloc_length_prefixed_string(&mut self, s: &str) -> u32 {
+        let bytes = s.as_bytes();
+        let len = bytes.len() as u32;
+        let offset = self.data_offset;
+        // Write length as 4 bytes (little-endian)
+        self.string_literals.push((offset, len.to_le_bytes().to_vec()));
+        // Write data
+        self.string_literals.push((offset + 4, bytes.to_vec()));
+        self.data_offset += 4 + len;
+        offset + 4 // pointer to data start
+    }
+
+    fn resolve_fn(&self, name: &str) -> Option<u32> {
         self.fn_names.iter().position(|n| n == name).map(|i| FN_USER_BASE + i as u32)
     }
 
@@ -89,12 +116,24 @@ impl EmitCtx {
 
         // Function section (declare types for helpers + user funcs)
         let mut functions = FunctionSection::new();
-        functions.function(3); // __i32_to_string: (i32)->()  [stores result in memory]
+        functions.function(3); // __i32_to_string: (i32)->()
         functions.function(3); // __print_i32_ln: (i32)->()
         functions.function(3); // __print_bool_ln: (i32)->()
+        functions.function(3); // __print_str_ln: (i32)->()
+        let mut needs_start_wrapper = false;
         for func in &mir.functions {
             functions.function(self.func_type_idx(func));
+            if func.name == "main" && !matches!(func.return_ty, ark_typecheck::types::Type::Unit) {
+                needs_start_wrapper = true;
+            }
         }
+        let start_wrapper_idx = if needs_start_wrapper {
+            let idx = FN_USER_BASE + mir.functions.len() as u32;
+            functions.function(1); // ()->()
+            Some(idx)
+        } else {
+            None
+        };
         module.section(&functions);
 
         // Memory section
@@ -107,9 +146,13 @@ impl EmitCtx {
         // Export section
         let mut exports = ExportSection::new();
         exports.export("memory", ExportKind::Memory, 0);
-        for (idx, func) in mir.functions.iter().enumerate() {
-            if func.name == "main" {
-                exports.export("_start", ExportKind::Func, FN_USER_BASE + idx as u32);
+        if let Some(wrapper_idx) = start_wrapper_idx {
+            exports.export("_start", ExportKind::Func, wrapper_idx);
+        } else {
+            for (idx, func) in mir.functions.iter().enumerate() {
+                if func.name == "main" {
+                    exports.export("_start", ExportKind::Func, FN_USER_BASE + idx as u32);
+                }
             }
         }
         module.section(&exports);
@@ -119,19 +162,34 @@ impl EmitCtx {
         code.function(&self.build_i32_to_string());
         code.function(&self.build_print_i32_ln());
         code.function(&self.build_print_bool_ln());
+        code.function(&self.build_print_str_ln());
         for func in &mir.functions {
             let f = self.build_user_fn(func);
             code.function(&f);
         }
+        if needs_start_wrapper {
+            // _start wrapper: call main, drop result
+            let main_idx = mir.functions.iter().position(|f| f.name == "main")
+                .map(|i| FN_USER_BASE + i as u32).unwrap();
+            let mut wrapper = Function::new(vec![]);
+            wrapper.instruction(&Instruction::Call(main_idx));
+            wrapper.instruction(&Instruction::Drop);
+            wrapper.instruction(&Instruction::End);
+            code.function(&wrapper);
+        }
         module.section(&code);
 
-        // Data section
+        // Data section — include static bool strings
         let mut data = DataSection::new();
-        // Pre-allocate a newline string
-        let (nl_off, _) = self.alloc_string("\n");
-        // Store newline offset for print_i32_ln (it'll be at a known position)
-        // Actually we need to know it at code-gen time. Let me just hardcode it.
-        let _ = nl_off; // We'll reference DATA_START-area for newline
+        // "true" at BOOL_TRUE (80)
+        data.active(0, &wasm_encoder::ConstExpr::i32_const(BOOL_TRUE as i32),
+            b"true".iter().copied());
+        // "false" at BOOL_FALSE (84)
+        data.active(0, &wasm_encoder::ConstExpr::i32_const(BOOL_FALSE as i32),
+            b"false".iter().copied());
+        // "\n" at NEWLINE (89)
+        data.active(0, &wasm_encoder::ConstExpr::i32_const(NEWLINE as i32),
+            b"\n".iter().copied());
 
         for (offset, bytes) in &self.string_literals {
             data.active(0, &wasm_encoder::ConstExpr::i32_const(*offset as i32),
@@ -273,7 +331,6 @@ impl EmitCtx {
         f.instruction(&Instruction::Call(FN_I32_TO_STR));
 
         // Set up iov for the number string
-        // iov[0].base = mem[SCRATCH], iov[0].len = mem[SCRATCH+4]
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(SCRATCH as i32));
         f.instruction(&Instruction::I32Load(ma2));
@@ -292,28 +349,8 @@ impl EmitCtx {
         f.instruction(&Instruction::Call(FN_FD_WRITE));
         f.instruction(&Instruction::Drop);
 
-        // Print newline — use a static "\n" in memory
-        // We know "\n" is at self.data_offset area, but we need to emit it.
-        // Simpler: just write byte 10 to a known location and print it.
-        // Write '\n' at SCRATCH+8
-        let nl_addr = SCRATCH + 8;
-        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
-        f.instruction(&Instruction::I32Const(nl_addr as i32));
-        f.instruction(&Instruction::I32Const(10)); // '\n'
-        f.instruction(&Instruction::I32Store8(ma0));
-
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(nl_addr as i32));
-        f.instruction(&Instruction::I32Store(ma2));
-        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Store(ma2));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
-        f.instruction(&Instruction::Drop);
+        // Print newline
+        self.emit_static_print(&mut f, NEWLINE, 1);
 
         f.instruction(&Instruction::End);
         f
@@ -321,38 +358,37 @@ impl EmitCtx {
 
     /// __print_bool_ln(value: i32) -> void
     /// Prints "true\n" or "false\n" to stdout
-    fn build_print_bool_ln(&mut self) -> Function {
+    fn build_print_bool_ln(&self) -> Function {
         let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
-        let mut f = Function::new(vec![]);
-
-        // Pre-allocate "true\n" and "false\n" in data section
-        let (true_off, true_len) = self.alloc_string("true\n");
-        let (false_off, false_len) = self.alloc_string("false\n");
+        // Locals: 0=value(param), 1=ptr, 2=len
+        let mut f = Function::new(vec![(2, ValType::I32)]);
 
         f.instruction(&Instruction::LocalGet(0));
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
         {
-            // print "true\n"
-            f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-            f.instruction(&Instruction::I32Const(true_off as i32));
-            f.instruction(&Instruction::I32Store(ma2));
-            f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
-            f.instruction(&Instruction::I32Const(true_len as i32));
-            f.instruction(&Instruction::I32Store(ma2));
+            // true
+            f.instruction(&Instruction::I32Const(BOOL_TRUE as i32));
+            f.instruction(&Instruction::LocalSet(1));
+            f.instruction(&Instruction::I32Const(4));
+            f.instruction(&Instruction::LocalSet(2));
         }
         f.instruction(&Instruction::Else);
         {
-            // print "false\n"
-            f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-            f.instruction(&Instruction::I32Const(false_off as i32));
-            f.instruction(&Instruction::I32Store(ma2));
-            f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
-            f.instruction(&Instruction::I32Const(false_len as i32));
-            f.instruction(&Instruction::I32Store(ma2));
+            // false
+            f.instruction(&Instruction::I32Const(BOOL_FALSE as i32));
+            f.instruction(&Instruction::LocalSet(1));
+            f.instruction(&Instruction::I32Const(5));
+            f.instruction(&Instruction::LocalSet(2));
         }
         f.instruction(&Instruction::End);
 
-        // fd_write
+        // Setup iov and write
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Store(ma2));
+        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Store(ma2));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
@@ -360,8 +396,63 @@ impl EmitCtx {
         f.instruction(&Instruction::Call(FN_FD_WRITE));
         f.instruction(&Instruction::Drop);
 
+        // Print newline
+        self.emit_static_print(&mut f, NEWLINE, 1);
+
         f.instruction(&Instruction::End);
         f
+    }
+
+    /// __print_str_ln(ptr: i32) -> void
+    /// ptr points to string data; length is at (ptr - 4) as i32.
+    /// Prints the string + newline to stdout.
+    fn build_print_str_ln(&self) -> Function {
+        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let mut f = Function::new(vec![]);
+
+        // iov.base = ptr
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Store(ma2));
+
+        // iov.len = i32.load(ptr - 4)
+        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma2));
+        f.instruction(&Instruction::I32Store(ma2));
+
+        // fd_write(1, iov, 1, nwritten)
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Drop);
+
+        // Print newline
+        self.emit_static_print(&mut f, NEWLINE, 1);
+
+        f.instruction(&Instruction::End);
+        f
+    }
+
+    /// Emit fd_write for a static data segment at known offset/length.
+    fn emit_static_print(&self, f: &mut Function, offset: u32, len: u32) {
+        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(offset as i32));
+        f.instruction(&Instruction::I32Store(ma2));
+        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+        f.instruction(&Instruction::I32Const(len as i32));
+        f.instruction(&Instruction::I32Store(ma2));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Drop);
     }
 
     fn build_user_fn(&mut self, func: &MirFunction) -> Function {
@@ -376,6 +467,17 @@ impl EmitCtx {
 
         let mut f = Function::new(locals);
 
+        // Identify string locals from MIR type info and operand scanning
+        self.string_locals.clear();
+        for local in &func.locals {
+            if matches!(local.ty, ark_typecheck::types::Type::String) {
+                self.string_locals.insert(local.id.0);
+            }
+        }
+        for block in &func.blocks {
+            self.scan_string_locals(&block.stmts);
+        }
+
         for block in &func.blocks {
             for stmt in &block.stmts {
                 self.emit_stmt(&mut f, stmt);
@@ -389,6 +491,54 @@ impl EmitCtx {
         f
     }
 
+    /// Recursively scan statements to identify string-typed locals.
+    fn scan_string_locals(&mut self, stmts: &[MirStmt]) {
+        for stmt in stmts {
+            match stmt {
+                MirStmt::Assign(Place::Local(id), Rvalue::Use(op)) => {
+                    if self.is_string_operand(op) {
+                        self.string_locals.insert(id.0);
+                    }
+                }
+                MirStmt::IfStmt { then_body, else_body, .. } => {
+                    self.scan_string_locals(then_body);
+                    self.scan_string_locals(else_body);
+                }
+                MirStmt::WhileStmt { body, .. } => {
+                    self.scan_string_locals(body);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    fn is_string_operand(&self, op: &Operand) -> bool {
+        match op {
+            Operand::ConstString(_) => true,
+            Operand::Call(name, args) => {
+                if matches!(name.as_str(), "String_from") {
+                    return true;
+                }
+                // Check if function returns String
+                if self.fn_return_types.get(name.as_str())
+                    .map_or(false, |t| matches!(t, ark_typecheck::types::Type::String)) {
+                    return true;
+                }
+                // Heuristic: if any arg is a string, generic function might return string
+                args.iter().any(|a| self.is_string_operand(a))
+            }
+            Operand::IfExpr { then_result, else_result, .. } => {
+                let t = then_result.as_ref().map_or(false, |r| self.is_string_operand(r));
+                let e = else_result.as_ref().map_or(false, |r| self.is_string_operand(r));
+                t || e
+            }
+            Operand::Place(Place::Local(id)) => {
+                self.string_locals.contains(&id.0)
+            }
+            _ => false,
+        }
+    }
+
     fn emit_stmt(&mut self, f: &mut Function, stmt: &MirStmt) {
         match stmt {
             MirStmt::Assign(Place::Local(id), Rvalue::Use(op)) => {
@@ -400,8 +550,25 @@ impl EmitCtx {
                     "println" => self.emit_println(f, args),
                     "print" => self.emit_print(f, args),
                     "eprintln" => {
-                        // TODO: stderr
-                        self.emit_println(f, args);
+                        self.emit_eprintln(f, args);
+                    }
+                    "print_i32_ln" => {
+                        if let Some(arg) = args.first() {
+                            self.emit_operand(f, arg);
+                            f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                        }
+                    }
+                    "print_bool_ln" => {
+                        if let Some(arg) = args.first() {
+                            self.emit_operand(f, arg);
+                            f.instruction(&Instruction::Call(FN_PRINT_BOOL_LN));
+                        }
+                    }
+                    "print_str_ln" => {
+                        if let Some(arg) = args.first() {
+                            self.emit_operand(f, arg);
+                            f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                        }
                     }
                     "i32_to_string" => {
                         // As statement, result is discarded
@@ -426,8 +593,8 @@ impl EmitCtx {
             MirStmt::IfStmt { cond, then_body, else_body } => {
                 self.emit_operand(f, cond);
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
-                // If inside a loop, increment depth for nested break/continue
-                if let Some(d) = &mut self.loop_depth { *d += 1; }
+                // Track block depth for break/continue
+                if let Some(d) = self.loop_depths.last_mut() { *d += 1; }
                 for s in then_body {
                     self.emit_stmt(f, s);
                 }
@@ -437,44 +604,38 @@ impl EmitCtx {
                         self.emit_stmt(f, s);
                     }
                 }
-                if let Some(d) = &mut self.loop_depth { *d -= 1; }
                 f.instruction(&Instruction::End);
+                if let Some(d) = self.loop_depths.last_mut() { *d -= 1; }
             }
             MirStmt::WhileStmt { cond, body } => {
-                let prev_loop_depth = self.loop_depth;
-                self.loop_depth = Some(0);
-
-                f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
-                f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
-                // Evaluate condition; branch out if false
+                f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));  // break target
+                f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));   // continue target
                 self.emit_operand(f, cond);
                 f.instruction(&Instruction::I32Eqz);
-                f.instruction(&Instruction::BrIf(1));
+                f.instruction(&Instruction::BrIf(1));  // exit if cond is false
+                self.loop_depths.push(0);
                 for s in body {
                     self.emit_stmt(f, s);
                 }
-                f.instruction(&Instruction::Br(0));
-                f.instruction(&Instruction::End); // loop
-                f.instruction(&Instruction::End); // block
-
-                self.loop_depth = prev_loop_depth;
+                self.loop_depths.pop();
+                f.instruction(&Instruction::Br(0));    // loop back
+                f.instruction(&Instruction::End);      // end loop
+                f.instruction(&Instruction::End);      // end block
             }
             MirStmt::Break => {
-                // br to the enclosing block (break target)
-                // Inside loop: block > loop > [depth] levels of if/else > here
-                // break target = loop_depth + 1 (skip to block end)
-                let depth = self.loop_depth.unwrap_or(0);
-                f.instruction(&Instruction::Br(depth + 1));
+                // break: jump to the outer block of the enclosing while
+                // br(extra_depth + 1): +1 because loop label is between us and block
+                let depth = self.loop_depths.last().copied().unwrap_or(0) + 1;
+                f.instruction(&Instruction::Br(depth));
             }
             MirStmt::Continue => {
-                // br to the enclosing loop (continue target)
-                // continue target = loop_depth (skip to loop start)
-                let depth = self.loop_depth.unwrap_or(0);
+                // continue: jump to the loop label
+                let depth = self.loop_depths.last().copied().unwrap_or(0);
                 f.instruction(&Instruction::Br(depth));
             }
             MirStmt::Return(op) => {
-                if let Some(operand) = op {
-                    self.emit_operand(f, operand);
+                if let Some(val) = op {
+                    self.emit_operand(f, val);
                 }
                 f.instruction(&Instruction::Return);
             }
@@ -490,22 +651,112 @@ impl EmitCtx {
                     let (offset, len) = self.alloc_string(&msg);
                     self.emit_fd_write(f, 1, offset, len);
                 }
-                Operand::Call(name, inner_args) if name == "i32_to_string" => {
-                    if let Some(inner) = inner_args.first() {
-                        self.emit_operand(f, inner);
+                Operand::Call(name, inner_args) => {
+                    match name.as_str() {
+                        "i32_to_string" => {
+                            if let Some(inner) = inner_args.first() {
+                                self.emit_operand(f, inner);
+                                f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                            }
+                        }
+                        "bool_to_string" => {
+                            if let Some(inner) = inner_args.first() {
+                                self.emit_operand(f, inner);
+                                f.instruction(&Instruction::Call(FN_PRINT_BOOL_LN));
+                            }
+                        }
+                        "char_to_string" => {
+                            // Write char byte to scratch, print it + newline
+                            if let Some(inner) = inner_args.first() {
+                                let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                                let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+                                let char_addr = SCRATCH + 12;
+                                f.instruction(&Instruction::I32Const(char_addr as i32));
+                                self.emit_operand(f, inner);
+                                f.instruction(&Instruction::I32Store8(ma0));
+                                // Print char
+                                f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                                f.instruction(&Instruction::I32Const(char_addr as i32));
+                                f.instruction(&Instruction::I32Store(ma2));
+                                f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+                                f.instruction(&Instruction::I32Const(1));
+                                f.instruction(&Instruction::I32Store(ma2));
+                                f.instruction(&Instruction::I32Const(1));
+                                f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                                f.instruction(&Instruction::I32Const(1));
+                                f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                                f.instruction(&Instruction::Call(FN_FD_WRITE));
+                                f.instruction(&Instruction::Drop);
+                                // Print newline
+                                self.emit_static_print(f, NEWLINE, 1);
+                            }
+                        }
+                        "String_from" => {
+                            // String_from("literal") — just print the literal
+                            if let Some(Operand::ConstString(s)) = inner_args.first() {
+                                let msg = format!("{}\n", s);
+                                let (offset, len) = self.alloc_string(&msg);
+                                self.emit_fd_write(f, 1, offset, len);
+                            } else if let Some(inner) = inner_args.first() {
+                                self.emit_operand(f, inner);
+                                f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                            }
+                        }
+                        other => {
+                            // User function call — emit call, then print result
+                            for a in inner_args {
+                                self.emit_operand(f, a);
+                            }
+                            if let Some(idx) = self.resolve_fn(other) {
+                                f.instruction(&Instruction::Call(idx));
+                                let is_str = self.fn_return_types.get(other)
+                                    .map_or(false, |t| matches!(t, ark_typecheck::types::Type::String));
+                                // Heuristic for generic functions: if args produce strings,
+                                // the return is likely also a string
+                                let args_suggest_str = inner_args.iter()
+                                    .any(|a| self.is_string_operand(a));
+                                if is_str || args_suggest_str {
+                                    f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                                } else {
+                                    f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                                }
+                            } else {
+                                // Unknown function, try as i32
+                                f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                            }
+                        }
+                    }
+                }
+                Operand::Place(Place::Local(id)) => {
+                    f.instruction(&Instruction::LocalGet(id.0));
+                    if self.string_locals.contains(&id.0) {
+                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                    } else {
                         f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
                     }
                 }
-                Operand::Call(name, inner_args) if name == "bool_to_string" => {
-                    if let Some(inner) = inner_args.first() {
-                        self.emit_operand(f, inner);
-                        f.instruction(&Instruction::Call(FN_PRINT_BOOL_LN));
-                    }
-                }
                 _ => {
-                    // Try printing as i32
+                    // Generic: try printing as i32
                     self.emit_operand(f, arg);
                     f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                }
+            }
+        }
+    }
+
+    fn emit_eprintln(&mut self, f: &mut Function, args: &[Operand]) {
+        // Write to stderr (fd=2)
+        if let Some(arg) = args.first() {
+            match arg {
+                Operand::ConstString(s) => {
+                    let msg = format!("{}\n", s);
+                    let (offset, len) = self.alloc_string(&msg);
+                    self.emit_fd_write(f, 2, offset, len);
+                }
+                _ => {
+                    // For now, print as string literal to stderr
+                    self.emit_operand(f, arg);
+                    f.instruction(&Instruction::Drop);
                 }
             }
         }
@@ -564,7 +815,12 @@ impl EmitCtx {
             Operand::ConstI32(v) => { f.instruction(&Instruction::I32Const(*v)); }
             Operand::ConstI64(v) => { f.instruction(&Instruction::I64Const(*v)); }
             Operand::ConstBool(v) => { f.instruction(&Instruction::I32Const(if *v { 1 } else { 0 })); }
-            Operand::ConstString(_) => { f.instruction(&Instruction::I32Const(0)); } // strings as values not yet supported
+            Operand::ConstChar(c) => { f.instruction(&Instruction::I32Const(*c as i32)); }
+            Operand::ConstString(s) => {
+                // Allocate as length-prefixed string, return pointer
+                let ptr = self.alloc_length_prefixed_string(s);
+                f.instruction(&Instruction::I32Const(ptr as i32));
+            }
             Operand::Place(Place::Local(id)) => { f.instruction(&Instruction::LocalGet(id.0)); }
             Operand::BinOp(op, left, right) => {
                 self.emit_operand(f, left);
@@ -575,19 +831,38 @@ impl EmitCtx {
                 self.emit_unaryop(f, op, inner);
             }
             Operand::Call(name, args) => {
-                for a in args {
-                    self.emit_operand(f, a);
-                }
                 match name.as_str() {
-                    "i32_to_string" | "bool_to_string" | "String_from" => {
-                        // These return strings — not useful as i32 value operands,
-                        // but the println handler recognizes them by pattern.
-                        if name == "i32_to_string" {
-                            f.instruction(&Instruction::Call(FN_I32_TO_STR));
+                    "i32_to_string" => {
+                        // Returns string — for now just call helper (puts in memory, not useful as value)
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::Call(FN_I32_TO_STR));
+                        f.instruction(&Instruction::I32Const(0)); // placeholder value
+                    }
+                    "bool_to_string" => {
+                        // Similar to i32_to_string — not directly usable as a value
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
                         }
                         f.instruction(&Instruction::I32Const(0)); // placeholder
                     }
+                    "String_from" => {
+                        // String_from("literal") → allocate length-prefixed string, return ptr
+                        if let Some(Operand::ConstString(s)) = args.first() {
+                            let ptr = self.alloc_length_prefixed_string(s);
+                            f.instruction(&Instruction::I32Const(ptr as i32));
+                        } else if let Some(a) = args.first() {
+                            // Pass through the inner operand
+                            self.emit_operand(f, a);
+                        } else {
+                            f.instruction(&Instruction::I32Const(0));
+                        }
+                    }
                     other => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
                         if let Some(idx) = self.resolve_fn(other) {
                             f.instruction(&Instruction::Call(idx));
                         } else {
@@ -599,7 +874,8 @@ impl EmitCtx {
             Operand::IfExpr { cond, then_body, then_result, else_body, else_result, .. } => {
                 self.emit_operand(f, cond);
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
-                if let Some(d) = &mut self.loop_depth { *d += 1; }
+                // Track depth for break/continue
+                if let Some(d) = self.loop_depths.last_mut() { *d += 1; }
                 for s in then_body {
                     self.emit_stmt(f, s);
                 }
@@ -617,8 +893,8 @@ impl EmitCtx {
                 } else {
                     f.instruction(&Instruction::I32Const(0));
                 }
-                if let Some(d) = &mut self.loop_depth { *d -= 1; }
                 f.instruction(&Instruction::End);
+                if let Some(d) = self.loop_depths.last_mut() { *d -= 1; }
             }
             Operand::Unit => { /* nothing to push */ }
             _ => { f.instruction(&Instruction::I32Const(0)); }
