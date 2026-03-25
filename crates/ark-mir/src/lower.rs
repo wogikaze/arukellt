@@ -1,6 +1,6 @@
 //! Lower typed AST to MIR.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use ark_diagnostics::DiagnosticSink;
 use ark_parser::ast;
@@ -17,12 +17,27 @@ pub fn lower_to_mir(
     let mut mir = MirModule::new();
     let mut next_fn_id = 0u32;
 
+    // Collect enum variant tags: "EnumName::Variant" -> tag index
+    let mut enum_tags: HashMap<String, i32> = HashMap::new();
+    for item in &module.items {
+        if let ast::Item::EnumDef(e) = item {
+            for (i, variant) in e.variants.iter().enumerate() {
+                let vname = match variant {
+                    ast::Variant::Unit { name, .. } => name,
+                    ast::Variant::Tuple { name, .. } => name,
+                    ast::Variant::Struct { name, .. } => name,
+                };
+                enum_tags.insert(format!("{}::{}", e.name, vname), i as i32);
+            }
+        }
+    }
+
     for item in &module.items {
         if let ast::Item::FnDef(f) = item {
             let fn_id = FnId(next_fn_id);
             next_fn_id += 1;
 
-            let mut ctx = LowerCtx::new();
+            let mut ctx = LowerCtx::new(enum_tags.clone());
 
             for param in &f.params {
                 let pid = ctx.declare_local(&param.name);
@@ -96,11 +111,12 @@ struct LowerCtx {
     locals: Vec<(String, LocalId)>,
     next_local: u32,
     string_locals: HashSet<u32>,
+    enum_tags: HashMap<String, i32>,
 }
 
 impl LowerCtx {
-    fn new() -> Self {
-        Self { locals: Vec::new(), next_local: 0, string_locals: HashSet::new() }
+    fn new(enum_tags: HashMap<String, i32>) -> Self {
+        Self { locals: Vec::new(), next_local: 0, string_locals: HashSet::new(), enum_tags }
     }
 
     fn declare_local(&mut self, name: &str) -> LocalId {
@@ -309,6 +325,26 @@ impl LowerCtx {
                     else_body: vec![],
                 })
             }
+            ast::Pattern::Enum { path, variant, .. } => {
+                let key = format!("{}::{}", path, variant);
+                if let Some(&tag) = self.enum_tags.get(&key) {
+                    let cond = Operand::BinOp(
+                        BinOp::Eq,
+                        Box::new(scrut.clone()),
+                        Box::new(Operand::ConstI32(tag)),
+                    );
+                    let mut then_body = Vec::new();
+                    self.lower_expr_stmt(&arm.body, &mut then_body);
+                    let else_body = if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
+                        vec![next]
+                    } else {
+                        vec![]
+                    };
+                    Some(MirStmt::IfStmt { cond, then_body, else_body })
+                } else {
+                    self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                }
+            }
             _ => {
                 // Skip unsupported patterns, try next arm
                 self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
@@ -357,6 +393,27 @@ impl LowerCtx {
                     then_result: Some(Box::new(then_result)),
                     else_body: vec![],
                     else_result: Some(Box::new(else_result)),
+                }
+            }
+            ast::Pattern::Enum { path, variant, .. } => {
+                let key = format!("{}::{}", path, variant);
+                if let Some(&tag) = self.enum_tags.get(&key) {
+                    let cond = Operand::BinOp(
+                        BinOp::Eq,
+                        Box::new(scrut.clone()),
+                        Box::new(Operand::ConstI32(tag)),
+                    );
+                    let then_result = self.lower_expr(&arm.body);
+                    let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                    Operand::IfExpr {
+                        cond: Box::new(cond),
+                        then_body: vec![],
+                        then_result: Some(Box::new(then_result)),
+                        else_body: vec![],
+                        else_result: Some(Box::new(else_result)),
+                    }
+                } else {
+                    self.build_match_if_expr(scrut, arms, idx + 1)
                 }
             }
             _ => {
@@ -450,6 +507,15 @@ impl LowerCtx {
             ast::Expr::Match { scrutinee, arms, .. } => {
                 let scrut = self.lower_expr(scrutinee);
                 self.build_match_if_expr(&scrut, arms, 0)
+            }
+            ast::Expr::QualifiedIdent { module, name, .. } => {
+                // Enum variant constructor: Direction::South -> tag integer
+                let key = format!("{}::{}", module, name);
+                if let Some(&tag) = self.enum_tags.get(&key) {
+                    Operand::ConstI32(tag)
+                } else {
+                    Operand::Unit
+                }
             }
             _ => Operand::Unit,
         }
