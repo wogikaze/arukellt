@@ -50,7 +50,7 @@ pub struct BasicBlock {
 }
 
 /// A MIR statement (within a basic block).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MirStmt {
     Assign(Place, Rvalue),
     Call {
@@ -63,6 +63,18 @@ pub enum MirStmt {
         name: String,
         args: Vec<Operand>,
     },
+    IfStmt {
+        cond: Operand,
+        then_body: Vec<MirStmt>,
+        else_body: Vec<MirStmt>,
+    },
+    WhileStmt {
+        cond: Operand,
+        body: Vec<MirStmt>,
+    },
+    Break,
+    Continue,
+    Return(Option<Operand>),
 }
 
 /// How a basic block ends.
@@ -92,7 +104,7 @@ pub enum Place {
 }
 
 /// An rvalue expression.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Rvalue {
     Use(Operand),
     BinaryOp(BinOp, Operand, Operand),
@@ -113,6 +125,16 @@ pub enum Operand {
     ConstChar(char),
     ConstString(String),
     Unit,
+    BinOp(BinOp, Box<Operand>, Box<Operand>),
+    UnaryOp(UnaryOp, Box<Operand>),
+    Call(String, Vec<Operand>),
+    IfExpr {
+        cond: Box<Operand>,
+        then_body: Vec<MirStmt>,
+        then_result: Option<Box<Operand>>,
+        else_body: Vec<MirStmt>,
+        else_result: Option<Box<Operand>>,
+    },
 }
 
 /// Binary operations.
@@ -131,7 +153,7 @@ pub enum UnaryOp {
 }
 
 /// Kind of aggregate being constructed.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AggregateKind {
     Tuple,
     Array,

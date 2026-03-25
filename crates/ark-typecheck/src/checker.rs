@@ -161,6 +161,44 @@ impl TypeChecker {
             params: vec![Type::String],
             ret: Type::Unit,
         });
+
+        // Conversion functions
+        self.fn_sigs.insert("i32_to_string".into(), FnSig {
+            name: "i32_to_string".into(),
+            type_params: vec![],
+            params: vec![Type::I32],
+            ret: Type::String,
+        });
+        self.fn_sigs.insert("i64_to_string".into(), FnSig {
+            name: "i64_to_string".into(),
+            type_params: vec![],
+            params: vec![Type::I64],
+            ret: Type::String,
+        });
+        self.fn_sigs.insert("bool_to_string".into(), FnSig {
+            name: "bool_to_string".into(),
+            type_params: vec![],
+            params: vec![Type::Bool],
+            ret: Type::String,
+        });
+        self.fn_sigs.insert("String_from".into(), FnSig {
+            name: "String_from".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::String,
+        });
+        self.fn_sigs.insert("char_to_string".into(), FnSig {
+            name: "char_to_string".into(),
+            type_params: vec![],
+            params: vec![Type::Char],
+            ret: Type::String,
+        });
+        self.fn_sigs.insert("f64_to_string".into(), FnSig {
+            name: "f64_to_string".into(),
+            type_params: vec![],
+            params: vec![Type::F64],
+            ret: Type::String,
+        });
     }
 
     /// Resolve a type expression to a Type.
@@ -478,6 +516,23 @@ impl TypeChecker {
                 Type::Never
             }
             ast::Expr::Continue { .. } => Type::Never,
+            ast::Expr::Assign { target, value, .. } => {
+                let val_ty = self.synthesize_expr(value, env, sink);
+                if let ast::Expr::Ident { name, span } = target.as_ref() {
+                    if let Some(target_ty) = env.lookup(name) {
+                        let target_ty = target_ty.clone();
+                        if !self.types_compatible(&val_ty, &target_ty) {
+                            sink.emit(
+                                Diagnostic::new(DiagnosticCode::E0200)
+                                    .with_label(*span, format!(
+                                        "expected `{}`, found `{}`", target_ty, val_ty
+                                    ))
+                            );
+                        }
+                    }
+                }
+                Type::Unit
+            }
             _ => {
                 // TODO: handle remaining expression types
                 Type::Error

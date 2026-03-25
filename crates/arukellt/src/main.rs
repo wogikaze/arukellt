@@ -124,8 +124,7 @@ fn compile_file(path: &PathBuf) -> Result<Vec<u8>, String> {
     let mir = ark_mir::lower::lower_to_mir(&resolved.module, &checker, &mut sink);
 
     // Emit Wasm
-    let mut emitter = ark_wasm::WasmEmitter::new();
-    let wasm = emitter.emit(&mir, &mut sink);
+    let wasm = ark_wasm::emit(&mir, &mut sink);
 
     if sink.has_errors() {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));
@@ -177,7 +176,7 @@ fn run_wasm(wasm_bytes: &[u8]) -> Result<(), String> {
 
     let engine = Engine::default();
     let module = wasmtime::Module::new(&engine, wasm_bytes)
-        .map_err(|e| format!("wasm compile error: {}", e))?;
+        .map_err(|e| format!("wasm compile error: {:?}", e))?;
 
     let mut linker = Linker::<WasiP1Ctx>::new(&engine);
     wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |cx| cx)

@@ -5,5 +5,7 @@ edition.workspace = true
 
 [dependencies]
 ark-mir = { workspace = true }
+ark-typecheck = { workspace = true }
 ark-diagnostics = { workspace = true }
+ark-parser = { workspace = true }
 wasm-encoder = { workspace = true }

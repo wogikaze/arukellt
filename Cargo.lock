@@ -186,6 +186,8 @@ version = "0.1.0"
 dependencies = [
  "ark-diagnostics",
  "ark-mir",
+ "ark-parser",
+ "ark-typecheck",
  "wasm-encoder 0.225.0",
 ]
 
