@@ -1,0 +1,5 @@
+[workspace]
+members = ["."]
+
+[lints]
+complexity-threshold = 30

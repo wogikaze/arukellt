@@ -1,0 +1,7 @@
+[package]
+name = "ark-stdlib"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ark-wasm = { workspace = true }

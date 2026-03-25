@@ -1,0 +1,34 @@
+[tools]
+rust = "1.85"
+
+[tasks.build]
+run = "cargo build"
+description = "Build all crates"
+
+[tasks.test]
+run = "cargo test --workspace"
+description = "Run all tests"
+
+[tasks.lint]
+run = "cargo clippy --workspace -- -D warnings"
+description = "Run clippy lints"
+
+[tasks.fmt]
+run = "cargo fmt --all"
+description = "Format all code"
+
+[tasks."fmt:check"]
+run = "cargo fmt --all --check"
+description = "Check formatting"
+
+[tasks.verify]
+run = "bash scripts/verify-harness.sh"
+description = "Run full verification harness"
+
+[tasks."verify:quick"]
+run = "bash scripts/verify-harness.sh --quick"
+description = "Run quick verification"
+
+[tasks.check]
+run = "cargo check --workspace"
+description = "Type-check all crates"

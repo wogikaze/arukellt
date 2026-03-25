@@ -1,0 +1,9 @@
+[package]
+name = "ark-wasm"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ark-mir = { workspace = true }
+ark-diagnostics = { workspace = true }
+wasm-encoder = { workspace = true }
