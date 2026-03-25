@@ -21,6 +21,8 @@ pub enum TokenKind {
     Match,
     While,
     Loop,
+    For,
+    In,
     Break,
     Continue,
     Return,
@@ -70,6 +72,7 @@ pub enum TokenKind {
     Comma,
     Semi,
     Dot,
+    DotDot,
     Arrow,
     FatArrow,
     Question,
@@ -102,6 +105,8 @@ impl TokenKind {
                 | TokenKind::Match
                 | TokenKind::While
                 | TokenKind::Loop
+                | TokenKind::For
+                | TokenKind::In
                 | TokenKind::Break
                 | TokenKind::Continue
                 | TokenKind::Return
@@ -312,7 +317,14 @@ impl<'src> Lexer<'src> {
             b']' => self.lex_single(start, TokenKind::RBracket),
             b',' => self.lex_single(start, TokenKind::Comma),
             b';' => self.lex_single(start, TokenKind::Semi),
-            b'.' => self.lex_single(start, TokenKind::Dot),
+            b'.' => {
+                if self.peek_at(1) == Some(b'.') {
+                    self.pos += 2;
+                    Token::new(TokenKind::DotDot, self.span(start))
+                } else {
+                    self.lex_single(start, TokenKind::Dot)
+                }
+            }
             b'?' => self.lex_single(start, TokenKind::Question),
 
             // Non-ASCII — possibly Unicode identifier
@@ -468,6 +480,8 @@ impl<'src> Lexer<'src> {
             "match" => TokenKind::Match,
             "while" => TokenKind::While,
             "loop" => TokenKind::Loop,
+            "for" => TokenKind::For,
+            "in" => TokenKind::In,
             "break" => TokenKind::Break,
             "continue" => TokenKind::Continue,
             "return" => TokenKind::Return,
@@ -476,8 +490,8 @@ impl<'src> Lexer<'src> {
             "as" => TokenKind::As,
             "true" => TokenKind::BoolLit(true),
             "false" => TokenKind::BoolLit(false),
-            "trait" | "impl" | "for" | "in" | "async" | "await" | "dyn" | "where" | "type"
-            | "const" | "unsafe" | "extern" | "use" | "mod" | "super" | "self" | "Self" => {
+            "trait" | "impl" | "async" | "await" | "dyn" | "where" | "type" | "const"
+            | "unsafe" | "extern" | "use" | "mod" | "super" | "self" | "Self" => {
                 TokenKind::Reserved(text.to_owned())
             }
             _ => TokenKind::Ident(text.to_owned()),
@@ -862,8 +876,7 @@ mod tests {
 
     #[test]
     fn v0_keywords() {
-        let src =
-            "fn struct enum let mut if else match while loop break continue return pub import as";
+        let src = "fn struct enum let mut if else match while loop for in break continue return pub import as";
         assert_eq!(
             kinds(src),
             vec![
@@ -877,6 +890,8 @@ mod tests {
                 TokenKind::Match,
                 TokenKind::While,
                 TokenKind::Loop,
+                TokenKind::For,
+                TokenKind::In,
                 TokenKind::Break,
                 TokenKind::Continue,
                 TokenKind::Return,
@@ -903,8 +918,8 @@ mod tests {
     #[test]
     fn reserved_keywords() {
         let reserved = [
-            "trait", "impl", "for", "in", "async", "await", "dyn", "where", "type", "const",
-            "unsafe", "extern", "use", "mod", "super", "self", "Self",
+            "trait", "impl", "async", "await", "dyn", "where", "type", "const", "unsafe", "extern",
+            "use", "mod", "super", "self", "Self",
         ];
         for kw in reserved {
             assert_eq!(

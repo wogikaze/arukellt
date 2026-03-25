@@ -405,6 +405,18 @@ pub enum Stmt {
         body: Block,
         span: Span,
     },
+    For {
+        target: String,
+        iter: ForIter,
+        body: Block,
+        span: Span,
+    },
+}
+
+#[derive(Debug, Clone)]
+pub enum ForIter {
+    Range { start: Expr, end: Expr },
+    Values(Expr),
 }
 
 #[derive(Debug, Clone)]

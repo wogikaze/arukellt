@@ -361,6 +361,10 @@ impl LowerCtx {
         id
     }
 
+    fn new_temp(&mut self) -> LocalId {
+        self.declare_local(&format!("__tmp_{}", self.next_local))
+    }
+
     fn lookup_local(&self, name: &str) -> Option<LocalId> {
         self.locals
             .iter()
@@ -742,6 +746,160 @@ impl LowerCtx {
                     cond: Operand::ConstBool(true),
                     body: self.lower_block_all(body),
                 });
+            }
+            ast::Stmt::For {
+                target, iter, body, ..
+            } => {
+                // Desugar for to while
+                match iter {
+                    ast::ForIter::Range { start, end } => {
+                        // for i in start..end { body }
+                        // → let mut __i = start; while __i < end { let i = __i; body; __i = __i + 1; }
+                        let start_op = self.lower_expr(start);
+                        let end_op = self.lower_expr(end);
+
+                        let idx_local = self.declare_local(target);
+
+                        // Assign start value
+                        out.push(MirStmt::Assign(
+                            Place::Local(idx_local),
+                            Rvalue::Use(start_op),
+                        ));
+
+                        // Build cond: idx < end
+                        let end_local = self.new_temp();
+                        out.push(MirStmt::Assign(
+                            Place::Local(end_local),
+                            Rvalue::Use(end_op),
+                        ));
+
+                        let cond_local = self.new_temp();
+
+                        // Build body: original body + increment
+                        let mut while_body = self.lower_block_all(body);
+
+                        // idx = idx + 1
+                        let inc_tmp = self.new_temp();
+                        while_body.push(MirStmt::Assign(
+                            Place::Local(inc_tmp),
+                            Rvalue::Use(Operand::BinOp(
+                                BinOp::Add,
+                                Box::new(Operand::Place(Place::Local(idx_local))),
+                                Box::new(Operand::ConstI32(1)),
+                            )),
+                        ));
+                        while_body.push(MirStmt::Assign(
+                            Place::Local(idx_local),
+                            Rvalue::Use(Operand::Place(Place::Local(inc_tmp))),
+                        ));
+
+                        // cond = idx < end
+                        let mut full_body = vec![MirStmt::Assign(
+                            Place::Local(cond_local),
+                            Rvalue::Use(Operand::BinOp(
+                                BinOp::Lt,
+                                Box::new(Operand::Place(Place::Local(idx_local))),
+                                Box::new(Operand::Place(Place::Local(end_local))),
+                            )),
+                        )];
+
+                        out.push(MirStmt::WhileStmt {
+                            cond: Operand::ConstBool(true),
+                            body: {
+                                full_body.push(MirStmt::IfStmt {
+                                    cond: Operand::Place(Place::Local(cond_local)),
+                                    then_body: while_body,
+                                    else_body: vec![MirStmt::Break],
+                                });
+                                full_body
+                            },
+                        });
+                    }
+                    ast::ForIter::Values(vec_expr) => {
+                        // for x in values(v) { body }
+                        // → let mut __i = 0; while __i < len(v) { let x = get(v, __i); body; __i = __i + 1; }
+                        let vec_op = self.lower_expr(vec_expr);
+
+                        let idx_local = self.new_temp();
+                        let vec_local = self.new_temp();
+                        let target_local = self.declare_local(target);
+
+                        // __i = 0
+                        out.push(MirStmt::Assign(
+                            Place::Local(idx_local),
+                            Rvalue::Use(Operand::ConstI32(0)),
+                        ));
+                        // __vec = vec_expr
+                        out.push(MirStmt::Assign(
+                            Place::Local(vec_local),
+                            Rvalue::Use(vec_op),
+                        ));
+
+                        // Build loop body
+                        let len_tmp = self.new_temp();
+                        let cond_tmp = self.new_temp();
+
+                        // cond: __i < len(__vec)
+                        let mut loop_body = vec![
+                            MirStmt::Assign(
+                                Place::Local(len_tmp),
+                                Rvalue::Use(Operand::Call(
+                                    "len".to_string(),
+                                    vec![Operand::Place(Place::Local(vec_local))],
+                                )),
+                            ),
+                            MirStmt::Assign(
+                                Place::Local(cond_tmp),
+                                Rvalue::Use(Operand::BinOp(
+                                    BinOp::Lt,
+                                    Box::new(Operand::Place(Place::Local(idx_local))),
+                                    Box::new(Operand::Place(Place::Local(len_tmp))),
+                                )),
+                            ),
+                        ];
+
+                        // x = get_unchecked(__vec, __i) — safe because __i < len(__vec) is checked
+                        let mut inner_body = vec![MirStmt::Assign(
+                            Place::Local(target_local),
+                            Rvalue::Use(Operand::Call(
+                                "get_unchecked".to_string(),
+                                vec![
+                                    Operand::Place(Place::Local(vec_local)),
+                                    Operand::Place(Place::Local(idx_local)),
+                                ],
+                            )),
+                        )];
+
+                        // original body
+                        inner_body.extend(self.lower_block_all(body));
+
+                        // __i = __i + 1
+                        let inc_tmp = self.new_temp();
+                        inner_body.push(MirStmt::Assign(
+                            Place::Local(inc_tmp),
+                            Rvalue::Use(Operand::BinOp(
+                                BinOp::Add,
+                                Box::new(Operand::Place(Place::Local(idx_local))),
+                                Box::new(Operand::ConstI32(1)),
+                            )),
+                        ));
+                        inner_body.push(MirStmt::Assign(
+                            Place::Local(idx_local),
+                            Rvalue::Use(Operand::Place(Place::Local(inc_tmp))),
+                        ));
+
+                        loop_body.push(MirStmt::IfStmt {
+                            cond: Operand::Place(Place::Local(cond_tmp)),
+                            then_body: inner_body,
+                            else_body: vec![MirStmt::Break],
+                        });
+
+                        out.push(MirStmt::WhileStmt {
+                            cond: Operand::ConstBool(true),
+                            body: loop_body,
+                        });
+                    }
+                }
             }
         }
     }

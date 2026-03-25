@@ -1,0 +1,10 @@
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 10)
+    push(v, 20)
+    push(v, 30)
+
+    for x in values(v) {
+        println(i32_to_string(x))
+    }
+}

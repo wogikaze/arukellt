@@ -132,17 +132,6 @@ mod tests {
     }
 
     #[test]
-    fn test_for_rejected() {
-        let (_, sink) = parse_src("for x in items { }");
-        assert!(sink.has_errors());
-        assert!(
-            sink.diagnostics()
-                .iter()
-                .any(|d| d.code == ark_diagnostics::DiagnosticCode::E0303)
-        );
-    }
-
-    #[test]
     fn test_trait_rejected() {
         let (_, sink) = parse_src("trait Foo { }");
         assert!(sink.has_errors());

@@ -548,6 +548,9 @@ impl<'a> Parser<'a> {
                 TokenKind::Loop => {
                     stmts.push(self.parse_loop_stmt());
                 }
+                TokenKind::For => {
+                    stmts.push(self.parse_for_stmt());
+                }
                 _ => {
                     let expr = self.parse_expr();
                     if self.eat(&TokenKind::Semi) {
@@ -621,6 +624,51 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::Loop);
         let body = self.parse_block();
         Stmt::Loop {
+            body,
+            span: start.merge(self.span()),
+        }
+    }
+
+    fn parse_for_stmt(&mut self) -> Stmt {
+        let start = self.span();
+        self.expect(&TokenKind::For);
+        let target = self.expect_ident();
+        self.expect(&TokenKind::In);
+
+        // Parse iterator: either `start..end` (range) or `values(expr)` (vec iteration)
+        let iter = if let TokenKind::Ident(name) = self.peek() {
+            if name == "values" {
+                // values(expr) form
+                self.advance(); // consume 'values'
+                self.expect(&TokenKind::LParen);
+                let expr = self.parse_expr();
+                self.expect(&TokenKind::RParen);
+                ForIter::Values(expr)
+            } else {
+                // Could be `expr..end` range
+                let range_start = self.parse_expr();
+                self.expect(&TokenKind::DotDot);
+                let range_end = self.parse_expr();
+                ForIter::Range {
+                    start: range_start,
+                    end: range_end,
+                }
+            }
+        } else {
+            // Numeric or expression range: `0..n`
+            let range_start = self.parse_expr();
+            self.expect(&TokenKind::DotDot);
+            let range_end = self.parse_expr();
+            ForIter::Range {
+                start: range_start,
+                end: range_end,
+            }
+        };
+
+        let body = self.parse_block();
+        Stmt::For {
+            target,
+            iter,
             body,
             span: start.merge(self.span()),
         }

@@ -877,6 +877,39 @@ impl TypeChecker {
             ast::Stmt::Loop { body, .. } => {
                 self.check_block(body, env, &Type::Unit, sink);
             }
+            ast::Stmt::For {
+                target, iter, body, ..
+            } => {
+                let elem_ty = match iter {
+                    ast::ForIter::Range { start, end, .. } => {
+                        let start_ty = self.synthesize_expr(start, env, sink);
+                        let end_ty = self.synthesize_expr(end, env, sink);
+                        if start_ty != Type::I32 && start_ty != Type::I64 && start_ty != Type::Error
+                        {
+                            sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(
+                                format!("range start must be integer, found `{}`", start_ty),
+                            ));
+                        }
+                        if end_ty != Type::I32 && end_ty != Type::I64 && end_ty != Type::Error {
+                            sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(
+                                format!("range end must be integer, found `{}`", end_ty),
+                            ));
+                        }
+                        start_ty
+                    }
+                    ast::ForIter::Values(expr) => {
+                        let vec_ty = self.synthesize_expr(expr, env, sink);
+                        // Element type from Vec<T> — currently always i32
+                        match &vec_ty {
+                            Type::Vec(inner) => *inner.clone(),
+                            _ => Type::I32,
+                        }
+                    }
+                };
+                let mut child_env = env.child();
+                child_env.bind_mut(target.clone(), elem_ty);
+                self.check_block(body, &mut child_env, &Type::Unit, sink);
+            }
         }
     }
 
