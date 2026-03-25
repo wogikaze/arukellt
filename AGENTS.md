@@ -47,6 +47,13 @@ Tasks are organized through:
 - All external tools should be version-pinned
 - Bootstrap must be self-service (no prior knowledge required)
 
+## Tool Preferences
+
+- **Code search**: Use `ig` (index-based grep) instead of `grep` / `rg`. Faster due to pre-built index.
+  ```
+  ig "async fn.*Result" src/ --stats
+  ```
+
 ## Documentation Governance
 
 - Behavioral changes require doc/example updates
