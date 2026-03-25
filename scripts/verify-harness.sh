@@ -163,9 +163,9 @@ fi
 # 10. Run fixture harness discovery test
 echo -e "\n${YELLOW}[10/10] Running fixture harness test...${NC}"
 if [ "$QUICK_MODE" = true ]; then
-    check_skip "cargo test --test harness -- --nocapture"
+    check_skip "cargo test -p arukellt --test harness -- --nocapture"
 else
-    run_check "cargo test --test harness -- --nocapture" "cargo test --test harness -- --nocapture"
+    run_check "cargo test --test harness -- --nocapture" "cargo test -p arukellt --test harness -- --nocapture"
 fi
 
 # Summary
