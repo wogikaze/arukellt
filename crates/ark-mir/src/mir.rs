@@ -21,6 +21,8 @@ pub struct MirModule {
     pub entry_fn: Option<FnId>,
     /// Struct layouts: struct name -> ordered (field name, field type name)
     pub struct_defs: std::collections::HashMap<String, Vec<(String, String)>>,
+    /// Enum variant types: enum_name -> vec of (variant_name, vec of payload type names)
+    pub enum_defs: std::collections::HashMap<String, Vec<(String, Vec<String>)>>,
 }
 
 /// A single function in MIR form.
@@ -146,6 +148,23 @@ pub enum Operand {
         struct_name: String,
         field: String,
     },
+    /// Construct an enum variant with optional payload values.
+    /// Layout in memory: [tag: i32] [payload0: i32] [payload1: i32] ...
+    EnumInit {
+        enum_name: String,
+        variant: String,
+        tag: i32,
+        payload: Vec<Operand>,
+    },
+    /// Extract the tag from an enum value (i32.load at offset 0).
+    EnumTag(Box<Operand>),
+    /// Extract payload field at `index` from an enum value.
+    EnumPayload {
+        object: Box<Operand>,
+        index: u32,
+        enum_name: String,
+        variant_name: String,
+    },
 }
 
 /// Binary operations.
@@ -174,7 +193,7 @@ pub enum AggregateKind {
 
 impl MirModule {
     pub fn new() -> Self {
-        Self { functions: Vec::new(), entry_fn: None, struct_defs: std::collections::HashMap::new() }
+        Self { functions: Vec::new(), entry_fn: None, struct_defs: std::collections::HashMap::new(), enum_defs: std::collections::HashMap::new() }
     }
 }
 

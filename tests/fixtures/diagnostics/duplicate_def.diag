@@ -1,1 +1,1 @@
-E0101: duplicate definition
+error[E0101]: duplicate definition

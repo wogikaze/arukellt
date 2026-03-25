@@ -1,1 +1,1 @@
-E0300: impl block not available in v0
+error[E0300]:

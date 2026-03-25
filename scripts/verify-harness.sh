@@ -17,6 +17,9 @@ if [[ "${1:-}" == "--quick" ]]; then
 fi
 
 echo -e "${YELLOW}Running harness verification...${NC}"
+if [ "$QUICK_MODE" = true ]; then
+    echo -e "${YELLOW}Quick mode: skipping slower cargo verification steps${NC}"
+fi
 
 # Counter for checks
 TOTAL_CHECKS=0
@@ -40,8 +43,19 @@ check_fail() {
     TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
 }
 
+run_check() {
+    local label="$1"
+    local command="$2"
+
+    if bash -lc "$command"; then
+        check_pass "$label"
+    else
+        check_fail "$label"
+    fi
+}
+
 # 1. Check documentation structure
-echo -e "\n${YELLOW}[1/5] Checking documentation structure...${NC}"
+echo -e "\n${YELLOW}[1/10] Checking documentation structure...${NC}"
 doc_ok=true
 for doc in "AGENTS.md" "docs/process/agent-harness.md"; do
     if [ ! -f "$doc" ]; then
@@ -60,7 +74,7 @@ if [ "$doc_ok" = true ]; then
 fi
 
 # 2. Check ADR decisions
-echo -e "\n${YELLOW}[2/5] Checking ADR decisions...${NC}"
+echo -e "\n${YELLOW}[2/10] Checking ADR decisions...${NC}"
 adr_ok=true
 for adr in "docs/adr/ADR-002-memory-model.md" "docs/adr/ADR-003-generics-strategy.md" "docs/adr/ADR-004-trait-strategy.md" "docs/adr/ADR-005-llvm-scope.md" "docs/adr/ADR-006-abi-policy.md"; do
     if [ ! -f "$adr" ]; then
@@ -76,7 +90,7 @@ if [ "$adr_ok" = true ]; then
 fi
 
 # 3. Check language spec documents
-echo -e "\n${YELLOW}[3/5] Checking language specification...${NC}"
+echo -e "\n${YELLOW}[3/10] Checking language specification...${NC}"
 spec_ok=true
 for spec in "docs/language/memory-model.md" "docs/language/type-system.md" "docs/language/syntax.md"; do
     if [ ! -f "$spec" ]; then
@@ -89,7 +103,7 @@ if [ "$spec_ok" = true ]; then
 fi
 
 # 4. Check platform documents
-echo -e "\n${YELLOW}[4/5] Checking platform specification...${NC}"
+echo -e "\n${YELLOW}[4/10] Checking platform specification...${NC}"
 platform_ok=true
 for pdoc in "docs/platform/wasm-features.md" "docs/platform/abi.md" "docs/platform/wasi-resource-model.md"; do
     if [ ! -f "$pdoc" ]; then
@@ -102,7 +116,7 @@ if [ "$platform_ok" = true ]; then
 fi
 
 # 5. Check stdlib documents
-echo -e "\n${YELLOW}[5/5] Checking stdlib specification...${NC}"
+echo -e "\n${YELLOW}[5/10] Checking stdlib specification...${NC}"
 stdlib_ok=true
 for sdoc in "docs/stdlib/README.md" "docs/stdlib/core.md" "docs/stdlib/io.md"; do
     if [ ! -f "$sdoc" ]; then
@@ -112,6 +126,46 @@ for sdoc in "docs/stdlib/README.md" "docs/stdlib/core.md" "docs/stdlib/io.md"; d
 done
 if [ "$stdlib_ok" = true ]; then
     check_pass "Stdlib specification OK"
+fi
+
+# 6. Check formatting
+echo -e "\n${YELLOW}[6/10] Checking formatting...${NC}"
+if [ "$QUICK_MODE" = true ]; then
+    check_skip "cargo fmt --all --check"
+else
+    run_check "cargo fmt --all --check" "cargo fmt --all --check"
+fi
+
+# 7. Check clippy
+echo -e "\n${YELLOW}[7/10] Running clippy...${NC}"
+if [ "$QUICK_MODE" = true ]; then
+    check_skip "cargo clippy --workspace -- -D warnings"
+else
+    run_check "cargo clippy --workspace -- -D warnings" "cargo clippy --workspace -- -D warnings"
+fi
+
+# 8. Check build
+echo -e "\n${YELLOW}[8/10] Building workspace...${NC}"
+if [ "$QUICK_MODE" = true ]; then
+    check_skip "cargo build --workspace"
+else
+    run_check "cargo build --workspace" "cargo build --workspace"
+fi
+
+# 9. Run tests
+echo -e "\n${YELLOW}[9/10] Running workspace tests...${NC}"
+if [ "$QUICK_MODE" = true ]; then
+    check_skip "cargo test --workspace"
+else
+    run_check "cargo test --workspace" "cargo test --workspace"
+fi
+
+# 10. Run fixture harness discovery test
+echo -e "\n${YELLOW}[10/10] Running fixture harness test...${NC}"
+if [ "$QUICK_MODE" = true ]; then
+    check_skip "cargo test --test harness -- --nocapture"
+else
+    run_check "cargo test --test harness -- --nocapture" "cargo test --test harness -- --nocapture"
 fi
 
 # Summary
@@ -130,3 +184,8 @@ else
     echo -e "\n${RED}✗ Some harness checks failed${NC}"
     exit 1
 fi
+
+# NOTE:
+# The current fixture harness test only verifies fixture discovery.
+# It does not yet execute compile/run assertions for every fixture.
+# See tests/harness.rs:52-55 and tests/harness.rs:61-65.

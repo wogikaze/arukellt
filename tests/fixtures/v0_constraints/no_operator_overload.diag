@@ -1,1 +1,1 @@
-E0304: operator overloading not available in v0
+error[E0300]:

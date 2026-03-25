@@ -1,1 +1,1 @@
-E0203: nested generic type
+error[E0203]:

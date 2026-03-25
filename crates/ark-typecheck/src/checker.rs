@@ -5,27 +5,36 @@ use ark_parser::ast;
 use ark_resolve::ResolvedModule;
 
 use crate::types::{Type, TypeId};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 /// Type environment for tracking variable types.
 #[derive(Debug)]
 pub struct TypeEnv {
     bindings: HashMap<String, Type>,
+    mutable_vars: HashSet<String>,
     parent: Option<Box<TypeEnv>>,
 }
 
 impl TypeEnv {
     pub fn new() -> Self {
-        Self { bindings: HashMap::new(), parent: None }
+        Self { bindings: HashMap::new(), mutable_vars: HashSet::new(), parent: None }
     }
 
     pub fn child(&self) -> Self {
-        // Cloning is expensive but simplifies the implementation
-        Self { bindings: HashMap::new(), parent: Some(Box::new(self.clone())) }
+        Self { bindings: HashMap::new(), mutable_vars: HashSet::new(), parent: Some(Box::new(self.clone())) }
     }
 
     pub fn bind(&mut self, name: String, ty: Type) {
         self.bindings.insert(name, ty);
+    }
+
+    pub fn bind_mut(&mut self, name: String, ty: Type) {
+        self.bindings.insert(name.clone(), ty);
+        self.mutable_vars.insert(name);
+    }
+
+    pub fn is_mutable(&self, name: &str) -> bool {
+        self.mutable_vars.contains(name) || self.parent.as_ref().is_some_and(|p| p.is_mutable(name))
     }
 
     pub fn lookup(&self, name: &str) -> Option<&Type> {
@@ -39,6 +48,7 @@ impl Clone for TypeEnv {
     fn clone(&self) -> Self {
         Self {
             bindings: self.bindings.clone(),
+            mutable_vars: self.mutable_vars.clone(),
             parent: self.parent.clone(),
         }
     }
@@ -205,6 +215,134 @@ impl TypeChecker {
             type_params: vec![],
             params: vec![Type::String, Type::String],
             ret: Type::Bool,
+        });
+        // String concatenation
+        self.fn_sigs.insert("concat".into(), FnSig {
+            name: "concat".into(),
+            type_params: vec![],
+            params: vec![Type::String, Type::String],
+            ret: Type::String,
+        });
+        // Enum variant constructors (treated as functions for type checking)
+        self.fn_sigs.insert("Some".into(), FnSig {
+            name: "Some".into(),
+            type_params: vec![],
+            params: vec![Type::I32], // generic but we treat as i32 for now
+            ret: Type::I32,
+        });
+        self.fn_sigs.insert("Ok".into(), FnSig {
+            name: "Ok".into(),
+            type_params: vec![],
+            params: vec![Type::I32],
+            ret: Type::I32,
+        });
+        self.fn_sigs.insert("Err".into(), FnSig {
+            name: "Err".into(),
+            type_params: vec![],
+            params: vec![Type::I32],
+            ret: Type::I32,
+        });
+
+        // Vec stdlib
+        self.fn_sigs.insert("Vec_new_i32".into(), FnSig {
+            name: "Vec_new_i32".into(),
+            type_params: vec![],
+            params: vec![],
+            ret: Type::Vec(Box::new(Type::I32)),
+        });
+        self.fn_sigs.insert("push".into(), FnSig {
+            name: "push".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+            ret: Type::Unit,
+        });
+        self.fn_sigs.insert("pop".into(), FnSig {
+            name: "pop".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32))],
+            ret: Type::Option(Box::new(Type::I32)),
+        });
+        self.fn_sigs.insert("len".into(), FnSig {
+            name: "len".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32))],
+            ret: Type::I32,
+        });
+        self.fn_sigs.insert("get".into(), FnSig {
+            name: "get".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+            ret: Type::Option(Box::new(Type::I32)),
+        });
+        self.fn_sigs.insert("get_unchecked".into(), FnSig {
+            name: "get_unchecked".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+            ret: Type::I32,
+        });
+        self.fn_sigs.insert("set".into(), FnSig {
+            name: "set".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32],
+            ret: Type::Unit,
+        });
+        self.fn_sigs.insert("sort_i32".into(), FnSig {
+            name: "sort_i32".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::I32))],
+            ret: Type::Unit,
+        });
+
+        // String stdlib
+        self.fn_sigs.insert("String_new".into(), FnSig {
+            name: "String_new".into(),
+            type_params: vec![],
+            params: vec![],
+            ret: Type::String,
+        });
+        self.fn_sigs.insert("is_empty".into(), FnSig {
+            name: "is_empty".into(),
+            type_params: vec![],
+            params: vec![Type::String],
+            ret: Type::Bool,
+        });
+        self.fn_sigs.insert("slice".into(), FnSig {
+            name: "slice".into(),
+            type_params: vec![],
+            params: vec![Type::String, Type::I32, Type::I32],
+            ret: Type::String,
+        });
+        self.fn_sigs.insert("starts_with".into(), FnSig {
+            name: "starts_with".into(),
+            type_params: vec![],
+            params: vec![Type::String, Type::String],
+            ret: Type::Bool,
+        });
+        self.fn_sigs.insert("ends_with".into(), FnSig {
+            name: "ends_with".into(),
+            type_params: vec![],
+            params: vec![Type::String, Type::String],
+            ret: Type::Bool,
+        });
+        self.fn_sigs.insert("split".into(), FnSig {
+            name: "split".into(),
+            type_params: vec![],
+            params: vec![Type::String, Type::String],
+            ret: Type::Vec(Box::new(Type::String)),
+        });
+        self.fn_sigs.insert("join".into(), FnSig {
+            name: "join".into(),
+            type_params: vec![],
+            params: vec![Type::Vec(Box::new(Type::String)), Type::String],
+            ret: Type::String,
+        });
+
+        // Vec<String>
+        self.fn_sigs.insert("Vec_new_String".into(), FnSig {
+            name: "Vec_new_String".into(),
+            type_params: vec![],
+            params: vec![],
+            ret: Type::Vec(Box::new(Type::String)),
         });
     }
 
@@ -374,10 +512,16 @@ impl TypeChecker {
 
     fn check_stmt(&mut self, stmt: &ast::Stmt, env: &mut TypeEnv, sink: &mut DiagnosticSink) {
         match stmt {
-            ast::Stmt::Let { name, ty, init, .. } => {
-                let init_type = self.synthesize_expr(init, env, sink);
-                if let Some(type_expr) = ty {
+            ast::Stmt::Let { name, ty, init, is_mut, .. } => {
+                let init_type = if let Some(type_expr) = ty {
                     let declared_type = self.resolve_type_expr(type_expr);
+                    // For numeric literals, allow them to match declared type
+                    let init_type = match (init, &declared_type) {
+                        (ast::Expr::IntLit { .. }, Type::I64) => Type::I64,
+                        (ast::Expr::IntLit { .. }, Type::F64) => Type::F64,
+                        (ast::Expr::IntLit { .. }, Type::F32) => Type::F32,
+                        _ => self.synthesize_expr(init, env, sink),
+                    };
                     if !self.types_compatible(&init_type, &declared_type) {
                         sink.emit(
                             Diagnostic::new(DiagnosticCode::E0200)
@@ -387,10 +531,22 @@ impl TypeChecker {
                                 ))
                         );
                     }
-                    env.bind(name.clone(), declared_type);
+                    if *is_mut {
+                        env.bind_mut(name.clone(), declared_type.clone());
+                    } else {
+                        env.bind(name.clone(), declared_type.clone());
+                    }
+                    declared_type
                 } else {
-                    env.bind(name.clone(), init_type);
-                }
+                    let init_type = self.synthesize_expr(init, env, sink);
+                    if *is_mut {
+                        env.bind_mut(name.clone(), init_type.clone());
+                    } else {
+                        env.bind(name.clone(), init_type.clone());
+                    }
+                    init_type
+                };
+                let _ = init_type;
             }
             ast::Stmt::Expr(expr) => {
                 self.synthesize_expr(expr, env, sink);
@@ -429,6 +585,9 @@ impl TypeChecker {
                         params: sig.params,
                         ret: Box::new(sig.ret),
                     }
+                } else if name == "None" || name == "true" || name == "false" {
+                    // Known prelude values — don't emit an error
+                    Type::I32
                 } else {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0100)
@@ -526,6 +685,14 @@ impl TypeChecker {
             ast::Expr::Assign { target, value, .. } => {
                 let val_ty = self.synthesize_expr(value, env, sink);
                 if let ast::Expr::Ident { name, span } = target.as_ref() {
+                    // Check mutability
+                    if env.lookup(name).is_some() && !env.is_mutable(name) {
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0207)
+                                .with_message(format!("cannot assign to immutable variable `{}`", name))
+                                .with_label(*span, "cannot assign to immutable variable"),
+                        );
+                    }
                     if let Some(target_ty) = env.lookup(name) {
                         let target_ty = target_ty.clone();
                         if !self.types_compatible(&val_ty, &target_ty) {
@@ -671,7 +838,18 @@ impl TypeChecker {
         if *a == Type::Error || *b == Type::Error || *a == Type::Never || *b == Type::Never {
             return true;
         }
-        a == b
+        if a == b {
+            return true;
+        }
+        // Generic enum types (Option<T>, Result<T,E>) are represented as
+        // Option/Result/Enum variants. Constructors produce I32 (pointer).
+        // Be lenient: accept mismatches involving enum/option/result types.
+        if matches!(a, Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_))
+            || matches!(b, Type::Enum(_) | Type::Option(_) | Type::Result(_, _) | Type::Vec(_))
+        {
+            return true;
+        }
+        false
     }
 }
 

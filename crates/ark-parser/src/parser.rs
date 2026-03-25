@@ -208,6 +208,20 @@ impl<'a> Parser<'a> {
         while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
             let start = self.span();
             let name = self.expect_ident();
+            if *self.peek() != TokenKind::Colon {
+                let sp = self.span();
+                self.sink.emit(
+                    Diagnostic::new(DiagnosticCode::E0201)
+                        .with_message("missing type annotation")
+                        .with_label(sp, format!("parameter `{}` requires a type annotation", name)),
+                );
+                // Skip to next comma or rparen
+                while *self.peek() != TokenKind::Comma && *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
+                    self.advance();
+                }
+                if self.eat(&TokenKind::Comma) { continue; }
+                break;
+            }
             self.expect(&TokenKind::Colon);
             let ty = self.parse_type_expr();
             let span = start.merge(self.span());
@@ -354,6 +368,17 @@ impl<'a> Parser<'a> {
                         args.push(self.parse_type_expr());
                         if !self.eat(&TokenKind::Comma) { break; }
                     }
+                    // Detect nested generics: Vec<Vec<i32>> produces Shr (`>>`) token
+                    if *self.peek() == TokenKind::Shr {
+                        let sp = self.span();
+                        self.sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0203)
+                                .with_message("nested generic types are not available in v0")
+                                .with_label(sp, "nested generic type"),
+                        );
+                        self.advance();
+                        return TypeExpr::Generic { name, args, span: start.merge(self.span()) };
+                    }
                     self.expect(&TokenKind::Gt);
                     return TypeExpr::Generic { name, args, span: start.merge(self.span()) };
                 }
@@ -381,6 +406,23 @@ impl<'a> Parser<'a> {
         let mut tail_expr = None;
 
         while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
+            // Check for v0 constraint violations inside blocks
+            if let TokenKind::Reserved(kw) = self.peek() {
+                let kw = kw.clone();
+                let sp = self.span();
+                let code = match kw.as_str() {
+                    "for" => DiagnosticCode::E0303,
+                    "trait" | "impl" => DiagnosticCode::E0300,
+                    _ => DiagnosticCode::E0003,
+                };
+                self.sink.emit(
+                    Diagnostic::new(code)
+                        .with_label(sp, format!("`{}` is not available in v0", kw)),
+                );
+                self.advance();
+                self.synchronize();
+                continue;
+            }
             // Try to parse as statement
             match self.peek() {
                 TokenKind::Let => {
@@ -831,10 +873,20 @@ impl<'a> Parser<'a> {
     }
 
     fn could_be_struct_init(&self, _name: &str) -> bool {
-        // Heuristic: Name { ident :
-        if self.pos + 2 < self.tokens.len() {
-            if let TokenKind::Ident(_) = &self.tokens[self.pos + 1].kind {
-                if self.tokens[self.pos + 2].kind == TokenKind::Colon {
+        // Heuristic: Name { ident :  (skip newlines after {)
+        let mut i = self.pos + 1; // skip past LBrace
+        // Skip newlines after {
+        while i < self.tokens.len() && self.tokens[i].kind == TokenKind::Newline {
+            i += 1;
+        }
+        if i + 1 < self.tokens.len() {
+            if let TokenKind::Ident(_) = &self.tokens[i].kind {
+                // Skip newlines between ident and potential colon
+                let mut j = i + 1;
+                while j < self.tokens.len() && self.tokens[j].kind == TokenKind::Newline {
+                    j += 1;
+                }
+                if j < self.tokens.len() && self.tokens[j].kind == TokenKind::Colon {
                     return true;
                 }
             }

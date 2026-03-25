@@ -1,1 +1,1 @@
-E0300: trait definition not available in v0
+error[E0300]: traits are not available in v0

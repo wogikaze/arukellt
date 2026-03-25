@@ -19,18 +19,65 @@ pub fn lower_to_mir(
 
     // Collect enum variant tags: "EnumName::Variant" -> tag index
     let mut enum_tags: HashMap<String, i32> = HashMap::new();
+    // Collect enum variant info: enum_name -> [(variant_name, field_count)]
+    let mut enum_variants: HashMap<String, Vec<(String, usize)>> = HashMap::new();
+    // Reverse lookup: "EnumName::Variant" -> enum_name
+    let mut variant_to_enum: HashMap<String, String> = HashMap::new();
+    // Bare variant names (for prelude types like Option/Result): name -> (enum, tag, field_count)
+    let mut bare_variant_tags: HashMap<String, (String, i32, usize)> = HashMap::new();
     // Collect struct definitions: "StructName" -> field names (ordered)
     let mut struct_defs: HashMap<String, Vec<(String, String)>> = HashMap::new();
+    // Collect enum definitions: "EnumName" -> [(variant_name, [payload_type_names])]
+    let mut enum_defs: HashMap<String, Vec<(String, Vec<String>)>> = HashMap::new();
+
+    // Inject builtin enum types: Option<T> and Result<T, E>
+    let builtin_enums: &[(&str, &[(&str, usize)])] = &[
+        ("Option", &[("Some", 1), ("None", 0)]),
+        ("Result", &[("Ok", 1), ("Err", 1)]),
+    ];
+    for &(enum_name, variants) in builtin_enums {
+        let mut variants_info = Vec::new();
+        let mut variants_defs = Vec::new();
+        for (i, &(vname, field_count)) in variants.iter().enumerate() {
+            let key = format!("{}::{}", enum_name, vname);
+            enum_tags.insert(key.clone(), i as i32);
+            variant_to_enum.insert(key, enum_name.to_string());
+            variants_info.push((vname.to_string(), field_count));
+            bare_variant_tags.insert(vname.to_string(), (enum_name.to_string(), i as i32, field_count));
+            // Payload types: assume i32 for each field (generic T → i32 at runtime)
+            let payload_types: Vec<String> = (0..field_count).map(|_| "i32".to_string()).collect();
+            variants_defs.push((vname.to_string(), payload_types));
+        }
+        enum_variants.insert(enum_name.to_string(), variants_info);
+        enum_defs.insert(enum_name.to_string(), variants_defs);
+    }
+
     for item in &module.items {
         if let ast::Item::EnumDef(e) = item {
+            let mut variants_info = Vec::new();
+            let mut variants_defs = Vec::new();
             for (i, variant) in e.variants.iter().enumerate() {
-                let vname = match variant {
-                    ast::Variant::Unit { name, .. } => name,
-                    ast::Variant::Tuple { name, .. } => name,
-                    ast::Variant::Struct { name, .. } => name,
+                let (vname, field_count, payload_types) = match variant {
+                    ast::Variant::Unit { name, .. } => (name.clone(), 0, vec![]),
+                    ast::Variant::Tuple { name, fields, .. } => {
+                        let types: Vec<String> = fields.iter().map(|f| type_expr_name(f)).collect();
+                        (name.clone(), fields.len(), types)
+                    }
+                    ast::Variant::Struct { name, fields, .. } => {
+                        let types: Vec<String> = fields.iter().map(|f| type_expr_name(&f.ty)).collect();
+                        (name.clone(), fields.len(), types)
+                    }
                 };
-                enum_tags.insert(format!("{}::{}", e.name, vname), i as i32);
+                let key = format!("{}::{}", e.name, vname);
+                enum_tags.insert(key.clone(), i as i32);
+                variant_to_enum.insert(key, e.name.clone());
+                variants_info.push((vname.clone(), field_count));
+                variants_defs.push((vname.clone(), payload_types));
+                // Register bare variant name for common prelude types
+                bare_variant_tags.insert(vname.clone(), (e.name.clone(), i as i32, field_count));
             }
+            enum_variants.insert(e.name.clone(), variants_info);
+            enum_defs.insert(e.name.clone(), variants_defs);
         }
         if let ast::Item::StructDef(s) = item {
             let fields: Vec<(String, String)> = s.fields.iter().map(|f| {
@@ -46,12 +93,39 @@ pub fn lower_to_mir(
             let fn_id = FnId(next_fn_id);
             next_fn_id += 1;
 
-            let mut ctx = LowerCtx::new(enum_tags.clone(), struct_defs.clone());
+            let mut ctx = LowerCtx::new(
+                enum_tags.clone(),
+                struct_defs.clone(),
+                enum_variants.clone(),
+                variant_to_enum.clone(),
+                bare_variant_tags.clone(),
+                enum_defs.clone(),
+            );
 
             for param in &f.params {
                 let pid = ctx.declare_local(&param.name);
                 if is_string_type(&param.ty) {
                     ctx.string_locals.insert(pid.0);
+                }
+                // Track f64-typed parameters
+                if let ast::TypeExpr::Named { name: tname, .. } = &param.ty {
+                    if tname == "f64" {
+                        ctx.f64_locals.insert(pid.0);
+                    }
+                }
+                // Track struct-typed parameters
+                if let ast::TypeExpr::Named { name: tname, .. } = &param.ty {
+                    if ctx.struct_defs.contains_key(tname.as_str()) {
+                        ctx.struct_typed_locals.insert(pid.0, tname.clone());
+                    }
+                    if ctx.enum_variants.contains_key(tname.as_str()) {
+                        ctx.enum_typed_locals.insert(pid.0, tname.clone());
+                    }
+                }
+                if let ast::TypeExpr::Generic { name: tname, .. } = &param.ty {
+                    if ctx.enum_variants.contains_key(tname.as_str()) {
+                        ctx.enum_typed_locals.insert(pid.0, tname.clone());
+                    }
                 }
             }
 
@@ -77,10 +151,21 @@ pub fn lower_to_mir(
                 params: f.params.iter().enumerate().map(|(i, p)| MirLocal {
                     id: LocalId(i as u32),
                     name: Some(p.name.clone()),
-                    ty: ark_typecheck::types::Type::I32,
+                    ty: match &p.ty {
+                        ty if is_string_type(ty) => ark_typecheck::types::Type::String,
+                        ast::TypeExpr::Named { name, .. } if name == "f64" => ark_typecheck::types::Type::F64,
+                        ast::TypeExpr::Named { name, .. } if name == "f32" => ark_typecheck::types::Type::F32,
+                        ast::TypeExpr::Named { name, .. } if name == "i64" => ark_typecheck::types::Type::I64,
+                        ast::TypeExpr::Named { name, .. } if name == "bool" => ark_typecheck::types::Type::Bool,
+                        _ => ark_typecheck::types::Type::I32,
+                    },
                 }).collect(),
                 return_ty: match &f.return_type {
                     Some(ty) if is_string_type(ty) => ark_typecheck::types::Type::String,
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "f64" => ark_typecheck::types::Type::F64,
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "f32" => ark_typecheck::types::Type::F32,
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "i64" => ark_typecheck::types::Type::I64,
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => ark_typecheck::types::Type::Bool,
                     Some(_) => ark_typecheck::types::Type::I32,
                     None => ark_typecheck::types::Type::Unit,
                 },
@@ -89,6 +174,10 @@ pub fn lower_to_mir(
                     name: Some(name.clone()),
                     ty: if ctx.string_locals.contains(&id.0) {
                         ark_typecheck::types::Type::String
+                    } else if ctx.f64_locals.contains(&id.0) {
+                        ark_typecheck::types::Type::F64
+                    } else if ctx.i64_locals.contains(&id.0) {
+                        ark_typecheck::types::Type::I64
                     } else {
                         ark_typecheck::types::Type::I32
                     },
@@ -114,6 +203,7 @@ pub fn lower_to_mir(
     }
 
     mir.struct_defs = struct_defs;
+    mir.enum_defs = enum_defs;
     mir
 }
 
@@ -121,22 +211,52 @@ struct LowerCtx {
     locals: Vec<(String, LocalId)>,
     next_local: u32,
     string_locals: HashSet<u32>,
+    f64_locals: HashSet<u32>,
+    i64_locals: HashSet<u32>,
     enum_tags: HashMap<String, i32>,
+    /// enum name -> variant info: (variant_name, field_count)
+    enum_variants: HashMap<String, Vec<(String, usize)>>,
+    /// "EnumName::Variant" -> enum name (for reverse lookup)
+    variant_to_enum: HashMap<String, String>,
+    /// Also support bare names like "Some", "None", "Ok", "Err"
+    bare_variant_tags: HashMap<String, (String, i32, usize)>, // name -> (enum, tag, field_count)
     /// struct name -> ordered (field name, field type name)
     struct_defs: HashMap<String, Vec<(String, String)>>,
     /// local id -> struct type name
     struct_typed_locals: HashMap<u32, String>,
+    /// local id -> enum type name
+    enum_typed_locals: HashMap<u32, String>,
+    /// local id -> variant-level payload type info: (variant_idx, field_idx) -> is_string
+    /// Maps local_id -> mapping from (variant_name, field_index) -> is_string
+    enum_local_payload_strings: HashMap<u32, HashSet<(String, u32)>>,
+    /// enum name -> [(variant_name, [payload_type_names])]
+    enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
 }
 
 impl LowerCtx {
-    fn new(enum_tags: HashMap<String, i32>, struct_defs: HashMap<String, Vec<(String, String)>>) -> Self {
+    fn new(
+        enum_tags: HashMap<String, i32>,
+        struct_defs: HashMap<String, Vec<(String, String)>>,
+        enum_variants: HashMap<String, Vec<(String, usize)>>,
+        variant_to_enum: HashMap<String, String>,
+        bare_variant_tags: HashMap<String, (String, i32, usize)>,
+        enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
+    ) -> Self {
         Self {
             locals: Vec::new(),
             next_local: 0,
             string_locals: HashSet::new(),
+            f64_locals: HashSet::new(),
+            i64_locals: HashSet::new(),
             enum_tags,
+            enum_variants,
+            variant_to_enum,
+            bare_variant_tags,
             struct_defs,
             struct_typed_locals: HashMap::new(),
+            enum_typed_locals: HashMap::new(),
+            enum_local_payload_strings: HashMap::new(),
+            enum_defs,
         }
     }
 
@@ -158,8 +278,27 @@ impl LowerCtx {
                 let local_id = self.lookup_local(name)?;
                 self.struct_typed_locals.get(&local_id.0).cloned()
             }
+            ast::Expr::FieldAccess { object, field, .. } => {
+                // Chained field access: get parent struct, look up field type
+                let parent_struct = self.infer_struct_type(object)?;
+                let fields = self.struct_defs.get(&parent_struct)?;
+                let field_type = fields.iter()
+                    .find(|(fname, _)| fname == field)
+                    .map(|(_, ftype)| ftype.clone())?;
+                // The field type is the struct name for the nested struct
+                if self.struct_defs.contains_key(&field_type) {
+                    Some(field_type)
+                } else {
+                    None
+                }
+            }
             _ => None,
         }
+    }
+
+    /// Check if an identifier is a known enum variant constructor.
+    fn is_enum_variant_call(&self, name: &str) -> bool {
+        self.bare_variant_tags.contains_key(name)
     }
 
     fn lower_block(&mut self, block: &ast::Block) -> Vec<MirStmt> {
@@ -192,14 +331,60 @@ impl LowerCtx {
                     if is_string_type(type_expr) {
                         self.string_locals.insert(local_id.0);
                     }
+                    // Track f64-typed locals
+                    if let ast::TypeExpr::Named { name: tname, .. } = type_expr {
+                        if tname == "f64" {
+                            self.f64_locals.insert(local_id.0);
+                        }
+                        if tname == "i64" {
+                            self.i64_locals.insert(local_id.0);
+                        }
+                    }
                     // Track struct-typed locals
                     if let ast::TypeExpr::Named { name: tname, .. } = type_expr {
                         if self.struct_defs.contains_key(tname.as_str()) {
                             self.struct_typed_locals.insert(local_id.0, tname.clone());
                         }
+                        if self.enum_variants.contains_key(tname.as_str()) {
+                            self.enum_typed_locals.insert(local_id.0, tname.clone());
+                        }
+                    }
+                    // Track generic enum types: Option<i32>, Result<i32, String>
+                    if let ast::TypeExpr::Generic { name: tname, args, .. } = type_expr {
+                        if self.enum_variants.contains_key(tname.as_str()) {
+                            self.enum_typed_locals.insert(local_id.0, tname.clone());
+                            // Map generic args to variant payload types
+                            // For Option<T>: Some has payload 0 = T
+                            // For Result<T, E>: Ok has payload 0 = T, Err has payload 0 = E
+                            let mut payload_strings = HashSet::new();
+                            if tname == "Option" {
+                                if args.first().map_or(false, is_string_type) {
+                                    payload_strings.insert(("Some".to_string(), 0u32));
+                                }
+                            } else if tname == "Result" {
+                                if args.first().map_or(false, is_string_type) {
+                                    payload_strings.insert(("Ok".to_string(), 0u32));
+                                }
+                                if args.get(1).map_or(false, is_string_type) {
+                                    payload_strings.insert(("Err".to_string(), 0u32));
+                                }
+                            }
+                            if !payload_strings.is_empty() {
+                                self.enum_local_payload_strings.insert(local_id.0, payload_strings);
+                            }
+                        }
                     }
                 }
                 let op = self.lower_expr(init);
+                // Promote integer literals to i64 when type annotation is i64
+                let op = if self.i64_locals.contains(&local_id.0) {
+                    match op {
+                        Operand::ConstI32(v) => Operand::ConstI64(v as i64),
+                        other => other,
+                    }
+                } else {
+                    op
+                };
                 out.push(MirStmt::Assign(Place::Local(local_id), Rvalue::Use(op)));
             }
             ast::Stmt::Expr(expr) => {
@@ -363,15 +548,54 @@ impl LowerCtx {
                     else_body: vec![],
                 })
             }
-            ast::Pattern::Enum { path, variant, .. } => {
+            ast::Pattern::Enum { path, variant, fields, .. } => {
                 let key = format!("{}::{}", path, variant);
                 if let Some(&tag) = self.enum_tags.get(&key) {
+                    // Compare tag: enum ptr -> i32.load at offset 0
                     let cond = Operand::BinOp(
                         BinOp::Eq,
-                        Box::new(scrut.clone()),
+                        Box::new(Operand::EnumTag(Box::new(scrut.clone()))),
                         Box::new(Operand::ConstI32(tag)),
                     );
                     let mut then_body = Vec::new();
+                    // Determine if scrutinee has known payload string types
+                    let payload_strings = if let Operand::Place(Place::Local(lid)) = scrut {
+                        self.enum_local_payload_strings.get(&lid.0).cloned()
+                    } else {
+                        None
+                    };
+                    // Bind payload fields to local variables
+                    for (i, field_pat) in fields.iter().enumerate() {
+                        if let ast::Pattern::Ident { name: binding, .. } = field_pat {
+                            let local_id = self.declare_local(binding);
+                            // Check if this payload field is a string
+                            if let Some(ref ps) = payload_strings {
+                                if ps.contains(&(variant.clone(), i as u32)) {
+                                    self.string_locals.insert(local_id.0);
+                                }
+                            }
+                            // Check if this payload field is f64
+                            if let Some(variants) = self.enum_defs.get(path.as_str()) {
+                                if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant) {
+                                    if let Some(t) = types.get(i) {
+                                        if t == "f64" {
+                                            self.f64_locals.insert(local_id.0);
+                                        }
+                                    }
+                                }
+                            }
+                            let payload = Operand::EnumPayload {
+                                object: Box::new(scrut.clone()),
+                                index: i as u32,
+                                enum_name: path.clone(),
+                                variant_name: variant.clone(),
+                            };
+                            then_body.push(MirStmt::Assign(
+                                Place::Local(local_id),
+                                Rvalue::Use(payload),
+                            ));
+                        }
+                    }
                     self.lower_expr_stmt(&arm.body, &mut then_body);
                     let else_body = if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
                         vec![next]
@@ -397,9 +621,24 @@ impl LowerCtx {
         }
         let arm = &arms[idx];
         match &arm.pattern {
-            ast::Pattern::Wildcard(_) | ast::Pattern::Ident { .. } => {
-                // Default/binding arm — just return the body value
+            ast::Pattern::Wildcard(_) => {
+                // Default arm — just return the body value
                 self.lower_expr(&arm.body)
+            }
+            ast::Pattern::Ident { name, .. } => {
+                // Binding pattern — bind scrutinee to name, return body
+                let local_id = self.declare_local(name);
+                // For value-returning match, we wrap in IfExpr with setup stmts
+                let body_val = self.lower_expr(&arm.body);
+                Operand::IfExpr {
+                    cond: Box::new(Operand::ConstBool(true)),
+                    then_body: vec![
+                        MirStmt::Assign(Place::Local(local_id), Rvalue::Use(scrut.clone()))
+                    ],
+                    then_result: Some(Box::new(body_val)),
+                    else_body: vec![],
+                    else_result: Some(Box::new(Operand::Unit)),
+                }
             }
             ast::Pattern::IntLit { value, .. } => {
                 let cond = Operand::BinOp(
@@ -433,19 +672,58 @@ impl LowerCtx {
                     else_result: Some(Box::new(else_result)),
                 }
             }
-            ast::Pattern::Enum { path, variant, .. } => {
+            ast::Pattern::Enum { path, variant, fields, .. } => {
                 let key = format!("{}::{}", path, variant);
                 if let Some(&tag) = self.enum_tags.get(&key) {
                     let cond = Operand::BinOp(
                         BinOp::Eq,
-                        Box::new(scrut.clone()),
+                        Box::new(Operand::EnumTag(Box::new(scrut.clone()))),
                         Box::new(Operand::ConstI32(tag)),
                     );
+                    // Determine if scrutinee has known payload string types
+                    let payload_strings = if let Operand::Place(Place::Local(lid)) = scrut {
+                        self.enum_local_payload_strings.get(&lid.0).cloned()
+                    } else {
+                        None
+                    };
+                    // Setup: bind payload fields
+                    let mut setup_stmts = Vec::new();
+                    for (i, field_pat) in fields.iter().enumerate() {
+                        if let ast::Pattern::Ident { name: binding, .. } = field_pat {
+                            let local_id = self.declare_local(binding);
+                            // Check if this payload field is a string
+                            if let Some(ref ps) = payload_strings {
+                                if ps.contains(&(variant.clone(), i as u32)) {
+                                    self.string_locals.insert(local_id.0);
+                                }
+                            }
+                            // Check if this payload field is f64
+                            if let Some(variants) = self.enum_defs.get(path.as_str()) {
+                                if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant) {
+                                    if let Some(t) = types.get(i) {
+                                        if t == "f64" {
+                                            self.f64_locals.insert(local_id.0);
+                                        }
+                                    }
+                                }
+                            }
+                            let payload = Operand::EnumPayload {
+                                object: Box::new(scrut.clone()),
+                                index: i as u32,
+                                enum_name: path.clone(),
+                                variant_name: variant.clone(),
+                            };
+                            setup_stmts.push(MirStmt::Assign(
+                                Place::Local(local_id),
+                                Rvalue::Use(payload),
+                            ));
+                        }
+                    }
                     let then_result = self.lower_expr(&arm.body);
                     let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
                     Operand::IfExpr {
                         cond: Box::new(cond),
-                        then_body: vec![],
+                        then_body: setup_stmts,
                         then_result: Some(Box::new(then_result)),
                         else_body: vec![],
                         else_result: Some(Box::new(else_result)),
@@ -464,11 +742,29 @@ impl LowerCtx {
     fn lower_expr(&mut self, expr: &ast::Expr) -> Operand {
         match expr {
             ast::Expr::StringLit { value, .. } => Operand::ConstString(value.clone()),
-            ast::Expr::IntLit { value, .. } => Operand::ConstI32(*value as i32),
+            ast::Expr::IntLit { value, .. } => {
+                // Keep full i64 precision; will be promoted in let binding if needed
+                if *value > i32::MAX as i64 || *value < i32::MIN as i64 {
+                    Operand::ConstI64(*value)
+                } else {
+                    Operand::ConstI32(*value as i32)
+                }
+            }
             ast::Expr::FloatLit { value, .. } => Operand::ConstF64(*value),
             ast::Expr::BoolLit { value, .. } => Operand::ConstBool(*value),
             ast::Expr::CharLit { value, .. } => Operand::ConstChar(*value),
             ast::Expr::Ident { name, .. } => {
+                // Check if this is a bare enum variant (e.g., None)
+                if let Some((enum_name, tag, field_count)) = self.bare_variant_tags.get(name) {
+                    if *field_count == 0 {
+                        return Operand::EnumInit {
+                            enum_name: enum_name.clone(),
+                            variant: name.clone(),
+                            tag: *tag,
+                            payload: vec![],
+                        };
+                    }
+                }
                 if let Some(local_id) = self.lookup_local(name) {
                     Operand::Place(Place::Local(local_id))
                 } else {
@@ -514,8 +810,87 @@ impl LowerCtx {
             }
             ast::Expr::Call { callee, args, .. } => {
                 if let ast::Expr::Ident { name, .. } = callee.as_ref() {
+                    // Check if this is a bare enum variant constructor (e.g., Some(42), Ok(100))
+                    if let Some((enum_name, tag, _field_count)) = self.bare_variant_tags.get(name).cloned() {
+                        let payload: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
+                        return Operand::EnumInit {
+                            enum_name,
+                            variant: name.clone(),
+                            tag,
+                            payload,
+                        };
+                    }
+                    // Builtin Option/Result operations
+                    match name.as_str() {
+                        "unwrap" => {
+                            let arg = self.lower_expr(&args[0]);
+                            // unwrap: extract payload[0] (tag 0 = Some/Ok)
+                            return Operand::EnumPayload {
+                                object: Box::new(arg),
+                                index: 0,
+                                enum_name: "Option".to_string(),
+                                variant_name: "Some".to_string(),
+                            };
+                        }
+                        "unwrap_or" => {
+                            let arg = self.lower_expr(&args[0]);
+                            let default = self.lower_expr(&args[1]);
+                            // if is_some(arg) then payload[0] else default
+                            let cond = Operand::BinOp(
+                                BinOp::Eq,
+                                Box::new(Operand::EnumTag(Box::new(arg.clone()))),
+                                Box::new(Operand::ConstI32(0)), // Some/Ok tag
+                            );
+                            return Operand::IfExpr {
+                                cond: Box::new(cond),
+                                then_body: vec![],
+                                then_result: Some(Box::new(Operand::EnumPayload {
+                                    object: Box::new(arg),
+                                    index: 0,
+                                    enum_name: "Option".to_string(),
+                                    variant_name: "Some".to_string(),
+                                })),
+                                else_body: vec![],
+                                else_result: Some(Box::new(default)),
+                            };
+                        }
+                        "is_some" | "is_ok" => {
+                            let arg = self.lower_expr(&args[0]);
+                            // Some/Ok tag = 0
+                            return Operand::BinOp(
+                                BinOp::Eq,
+                                Box::new(Operand::EnumTag(Box::new(arg))),
+                                Box::new(Operand::ConstI32(0)),
+                            );
+                        }
+                        "is_none" | "is_err" => {
+                            let arg = self.lower_expr(&args[0]);
+                            // None/Err tag != 0 (i.e., tag == 1)
+                            return Operand::BinOp(
+                                BinOp::Eq,
+                                Box::new(Operand::EnumTag(Box::new(arg))),
+                                Box::new(Operand::ConstI32(1)),
+                            );
+                        }
+                        _ => {}
+                    }
                     let mir_args: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
                     Operand::Call(name.clone(), mir_args)
+                } else if let ast::Expr::QualifiedIdent { module, name, .. } = callee.as_ref() {
+                    // Qualified enum variant constructor: Shape::Circle(5.0)
+                    let key = format!("{}::{}", module, name);
+                    if let Some(&tag) = self.enum_tags.get(&key) {
+                        let payload: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
+                        return Operand::EnumInit {
+                            enum_name: module.clone(),
+                            variant: name.clone(),
+                            tag,
+                            payload,
+                        };
+                    }
+                    // Fall through: not an enum variant
+                    let mir_args: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
+                    Operand::Call(format!("{}::{}", module, name), mir_args)
                 } else {
                     Operand::Unit
                 }
@@ -547,10 +922,25 @@ impl LowerCtx {
                 self.build_match_if_expr(&scrut, arms, 0)
             }
             ast::Expr::QualifiedIdent { module, name, .. } => {
-                // Enum variant constructor: Direction::South -> tag integer
+                // Enum variant reference: Direction::South -> EnumInit with no payload
                 let key = format!("{}::{}", module, name);
                 if let Some(&tag) = self.enum_tags.get(&key) {
-                    Operand::ConstI32(tag)
+                    // Check if this variant has fields
+                    let has_fields = self.enum_variants.get(module.as_str())
+                        .and_then(|vs| vs.iter().find(|(vn, _)| vn == name))
+                        .map_or(false, |(_, fc)| *fc > 0);
+                    if has_fields {
+                        // Variant with payload but called without args — shouldn't happen
+                        Operand::ConstI32(tag)
+                    } else {
+                        // Unit variant — allocate in memory like other enum variants for consistency
+                        Operand::EnumInit {
+                            enum_name: module.clone(),
+                            variant: name.clone(),
+                            tag,
+                            payload: vec![],
+                        }
+                    }
                 } else {
                     Operand::Unit
                 }

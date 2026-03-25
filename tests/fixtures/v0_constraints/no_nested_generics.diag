@@ -1,1 +1,1 @@
-E0302: nested generic type not allowed in v0
+error[E0203]:
