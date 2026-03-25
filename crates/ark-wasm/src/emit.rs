@@ -37,6 +37,18 @@ const FN_STR_EQ: u32 = 5;
 const FN_USER_BASE: u32 = 6;
 
 pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
+    // Build struct layouts and string field tracking
+    let mut struct_layouts = std::collections::HashMap::new();
+    let mut struct_string_fields = HashSet::new();
+    for (sname, fields) in &mir.struct_defs {
+        let field_names: Vec<String> = fields.iter().map(|(fname, _)| fname.clone()).collect();
+        for (fname, ftype) in fields {
+            if ftype == "String" {
+                struct_string_fields.insert((sname.clone(), fname.clone()));
+            }
+        }
+        struct_layouts.insert(sname.clone(), field_names);
+    }
     let mut ctx = EmitCtx {
         string_literals: Vec::new(),
         data_offset: DATA_START,
@@ -46,6 +58,8 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         fn_return_types: mir.functions.iter()
             .map(|f| (f.name.clone(), f.return_ty.clone()))
             .collect(),
+        struct_layouts,
+        struct_string_fields,
     };
     ctx.emit_module(mir)
 }
@@ -60,6 +74,10 @@ struct EmitCtx {
     string_locals: HashSet<u32>,
     /// Function return types (for println dispatch on user function calls).
     fn_return_types: std::collections::HashMap<String, ark_typecheck::types::Type>,
+    /// Struct layouts: struct name -> ordered field names
+    struct_layouts: std::collections::HashMap<String, Vec<String>>,
+    /// Set of (struct_name, field_name) pairs where field is a String
+    struct_string_fields: HashSet<(String, String)>,
 }
 
 impl EmitCtx {
@@ -144,6 +162,15 @@ impl EmitCtx {
             minimum: 1, maximum: None, memory64: false, shared: false, page_size_log2: None,
         });
         module.section(&memory);
+
+        // Global section: heap pointer for struct/runtime allocation
+        // Heap starts at 4096 (after static data region 256-4095)
+        let mut globals = wasm_encoder::GlobalSection::new();
+        globals.global(
+            wasm_encoder::GlobalType { val_type: ValType::I32, mutable: true, shared: false },
+            &wasm_encoder::ConstExpr::i32_const(4096),
+        );
+        module.section(&globals);
 
         // Export section
         let mut exports = ExportSection::new();
@@ -614,6 +641,9 @@ impl EmitCtx {
                 let e = else_result.as_ref().map_or(false, |r| self.is_string_operand(r));
                 t || e
             }
+            Operand::FieldAccess { struct_name, field, .. } => {
+                self.struct_string_fields.contains(&(struct_name.clone(), field.clone()))
+            }
             Operand::Place(Place::Local(id)) => {
                 self.string_locals.contains(&id.0)
             }
@@ -818,9 +848,13 @@ impl EmitCtx {
                     }
                 }
                 _ => {
-                    // Generic: try printing as i32
+                    // Generic: emit operand and dispatch based on type
                     self.emit_operand(f, arg);
-                    f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                    if self.is_string_operand(arg) {
+                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                    } else {
+                        f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                    }
                 }
             }
         }
@@ -896,6 +930,8 @@ impl EmitCtx {
         match op {
             Operand::ConstI32(v) => { f.instruction(&Instruction::I32Const(*v)); }
             Operand::ConstI64(v) => { f.instruction(&Instruction::I64Const(*v)); }
+            Operand::ConstF64(v) => { f.instruction(&Instruction::F64Const(*v)); }
+            Operand::ConstF32(v) => { f.instruction(&Instruction::F32Const(*v)); }
             Operand::ConstBool(v) => { f.instruction(&Instruction::I32Const(if *v { 1 } else { 0 })); }
             Operand::ConstChar(c) => { f.instruction(&Instruction::I32Const(*c as i32)); }
             Operand::ConstString(s) => {
@@ -978,12 +1014,53 @@ impl EmitCtx {
                     self.emit_stmt(f, s);
                 }
                 if let Some(r) = else_result {
-                    self.emit_operand(f, r);
+                    if matches!(r.as_ref(), Operand::Unit) {
+                        // Dead branch in exhaustive match — unreachable satisfies any type
+                        f.instruction(&Instruction::Unreachable);
+                    } else {
+                        self.emit_operand(f, r);
+                    }
                 } else {
                     f.instruction(&Instruction::I32Const(0));
                 }
                 f.instruction(&Instruction::End);
                 if let Some(d) = self.loop_depths.last_mut() { *d -= 1; }
+            }
+            Operand::StructInit { name: _, fields } => {
+                let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                let field_count = fields.len() as u32;
+                // Bump-allocate struct in linear memory using global 0 as heap pointer
+                // Store each field value at heap_ptr + field_index * 4
+                for (i, (_, fval)) in fields.iter().enumerate() {
+                    f.instruction(&Instruction::GlobalGet(0));
+                    if i > 0 {
+                        f.instruction(&Instruction::I32Const((i as i32) * 4));
+                        f.instruction(&Instruction::I32Add);
+                    }
+                    self.emit_operand(f, fval);
+                    f.instruction(&Instruction::I32Store(ma));
+                }
+                // Push base pointer as result (before bumping)
+                f.instruction(&Instruction::GlobalGet(0));
+                // Bump heap pointer
+                f.instruction(&Instruction::GlobalGet(0));
+                f.instruction(&Instruction::I32Const((field_count * 4) as i32));
+                f.instruction(&Instruction::I32Add);
+                f.instruction(&Instruction::GlobalSet(0));
+            }
+            Operand::FieldAccess { object, struct_name, field } => {
+                let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                // Compute field offset
+                let field_offset = self.struct_layouts.get(struct_name)
+                    .and_then(|fields| fields.iter().position(|f| f == field))
+                    .map(|i| (i as u32) * 4)
+                    .unwrap_or(0);
+                self.emit_operand(f, object);
+                if field_offset > 0 {
+                    f.instruction(&Instruction::I32Const(field_offset as i32));
+                    f.instruction(&Instruction::I32Add);
+                }
+                f.instruction(&Instruction::I32Load(ma));
             }
             Operand::Unit => { /* nothing to push */ }
             _ => { f.instruction(&Instruction::I32Const(0)); }

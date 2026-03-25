@@ -19,6 +19,8 @@ pub struct FnId(pub u32);
 pub struct MirModule {
     pub functions: Vec<MirFunction>,
     pub entry_fn: Option<FnId>,
+    /// Struct layouts: struct name -> ordered (field name, field type name)
+    pub struct_defs: std::collections::HashMap<String, Vec<(String, String)>>,
 }
 
 /// A single function in MIR form.
@@ -135,6 +137,15 @@ pub enum Operand {
         else_body: Vec<MirStmt>,
         else_result: Option<Box<Operand>>,
     },
+    StructInit {
+        name: String,
+        fields: Vec<(String, Operand)>,
+    },
+    FieldAccess {
+        object: Box<Operand>,
+        struct_name: String,
+        field: String,
+    },
 }
 
 /// Binary operations.
@@ -163,7 +174,7 @@ pub enum AggregateKind {
 
 impl MirModule {
     pub fn new() -> Self {
-        Self { functions: Vec::new(), entry_fn: None }
+        Self { functions: Vec::new(), entry_fn: None, struct_defs: std::collections::HashMap::new() }
     }
 }
 

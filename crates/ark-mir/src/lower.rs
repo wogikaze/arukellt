@@ -19,6 +19,8 @@ pub fn lower_to_mir(
 
     // Collect enum variant tags: "EnumName::Variant" -> tag index
     let mut enum_tags: HashMap<String, i32> = HashMap::new();
+    // Collect struct definitions: "StructName" -> field names (ordered)
+    let mut struct_defs: HashMap<String, Vec<(String, String)>> = HashMap::new();
     for item in &module.items {
         if let ast::Item::EnumDef(e) = item {
             for (i, variant) in e.variants.iter().enumerate() {
@@ -30,6 +32,13 @@ pub fn lower_to_mir(
                 enum_tags.insert(format!("{}::{}", e.name, vname), i as i32);
             }
         }
+        if let ast::Item::StructDef(s) = item {
+            let fields: Vec<(String, String)> = s.fields.iter().map(|f| {
+                let type_name = type_expr_name(&f.ty);
+                (f.name.clone(), type_name)
+            }).collect();
+            struct_defs.insert(s.name.clone(), fields);
+        }
     }
 
     for item in &module.items {
@@ -37,7 +46,7 @@ pub fn lower_to_mir(
             let fn_id = FnId(next_fn_id);
             next_fn_id += 1;
 
-            let mut ctx = LowerCtx::new(enum_tags.clone());
+            let mut ctx = LowerCtx::new(enum_tags.clone(), struct_defs.clone());
 
             for param in &f.params {
                 let pid = ctx.declare_local(&param.name);
@@ -104,6 +113,7 @@ pub fn lower_to_mir(
         }
     }
 
+    mir.struct_defs = struct_defs;
     mir
 }
 
@@ -112,11 +122,22 @@ struct LowerCtx {
     next_local: u32,
     string_locals: HashSet<u32>,
     enum_tags: HashMap<String, i32>,
+    /// struct name -> ordered (field name, field type name)
+    struct_defs: HashMap<String, Vec<(String, String)>>,
+    /// local id -> struct type name
+    struct_typed_locals: HashMap<u32, String>,
 }
 
 impl LowerCtx {
-    fn new(enum_tags: HashMap<String, i32>) -> Self {
-        Self { locals: Vec::new(), next_local: 0, string_locals: HashSet::new(), enum_tags }
+    fn new(enum_tags: HashMap<String, i32>, struct_defs: HashMap<String, Vec<(String, String)>>) -> Self {
+        Self {
+            locals: Vec::new(),
+            next_local: 0,
+            string_locals: HashSet::new(),
+            enum_tags,
+            struct_defs,
+            struct_typed_locals: HashMap::new(),
+        }
     }
 
     fn declare_local(&mut self, name: &str) -> LocalId {
@@ -128,6 +149,17 @@ impl LowerCtx {
 
     fn lookup_local(&self, name: &str) -> Option<LocalId> {
         self.locals.iter().rev().find(|(n, _)| n == name).map(|(_, id)| *id)
+    }
+
+    /// Infer the struct type name of an expression (for field access).
+    fn infer_struct_type(&self, expr: &ast::Expr) -> Option<String> {
+        match expr {
+            ast::Expr::Ident { name, .. } => {
+                let local_id = self.lookup_local(name)?;
+                self.struct_typed_locals.get(&local_id.0).cloned()
+            }
+            _ => None,
+        }
     }
 
     fn lower_block(&mut self, block: &ast::Block) -> Vec<MirStmt> {
@@ -159,6 +191,12 @@ impl LowerCtx {
                 if let Some(type_expr) = ty {
                     if is_string_type(type_expr) {
                         self.string_locals.insert(local_id.0);
+                    }
+                    // Track struct-typed locals
+                    if let ast::TypeExpr::Named { name: tname, .. } = type_expr {
+                        if self.struct_defs.contains_key(tname.as_str()) {
+                            self.struct_typed_locals.insert(local_id.0, tname.clone());
+                        }
                     }
                 }
                 let op = self.lower_expr(init);
@@ -517,6 +555,23 @@ impl LowerCtx {
                     Operand::Unit
                 }
             }
+            ast::Expr::StructInit { name, fields, .. } => {
+                let lowered_fields: Vec<(String, Operand)> = fields
+                    .iter()
+                    .map(|(fname, fexpr)| (fname.clone(), self.lower_expr(fexpr)))
+                    .collect();
+                Operand::StructInit { name: name.clone(), fields: lowered_fields }
+            }
+            ast::Expr::FieldAccess { object, field, .. } => {
+                // Try to determine the struct type from the object
+                let struct_name = self.infer_struct_type(object);
+                let obj = self.lower_expr(object);
+                Operand::FieldAccess {
+                    object: Box::new(obj),
+                    struct_name: struct_name.unwrap_or_default(),
+                    field: field.clone(),
+                }
+            }
             _ => Operand::Unit,
         }
     }
@@ -580,4 +635,13 @@ fn is_void_expr(expr: &ast::Expr) -> bool {
 
 fn is_string_type(ty: &ast::TypeExpr) -> bool {
     matches!(ty, ast::TypeExpr::Named { name, .. } if name == "String")
+}
+
+fn type_expr_name(ty: &ast::TypeExpr) -> String {
+    match ty {
+        ast::TypeExpr::Named { name, .. } => name.clone(),
+        ast::TypeExpr::Generic { name, .. } => name.clone(),
+        ast::TypeExpr::Unit(_) => "()".to_string(),
+        _ => "unknown".to_string(),
+    }
 }
