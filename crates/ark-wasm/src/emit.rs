@@ -33,7 +33,8 @@ const FN_I32_TO_STR: u32 = 1;
 const FN_PRINT_I32_LN: u32 = 2;
 const FN_PRINT_BOOL_LN: u32 = 3;
 const FN_PRINT_STR_LN: u32 = 4;
-const FN_USER_BASE: u32 = 5;
+const FN_STR_EQ: u32 = 5;
+const FN_USER_BASE: u32 = 6;
 
 pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
     let mut ctx = EmitCtx {
@@ -120,6 +121,7 @@ impl EmitCtx {
         functions.function(3); // __print_i32_ln: (i32)->()
         functions.function(3); // __print_bool_ln: (i32)->()
         functions.function(3); // __print_str_ln: (i32)->()
+        functions.function(4); // __str_eq: (i32,i32)->i32
         let mut needs_start_wrapper = false;
         for func in &mir.functions {
             functions.function(self.func_type_idx(func));
@@ -163,6 +165,7 @@ impl EmitCtx {
         code.function(&self.build_print_i32_ln());
         code.function(&self.build_print_bool_ln());
         code.function(&self.build_print_str_ln());
+        code.function(&self.build_str_eq());
         for func in &mir.functions {
             let f = self.build_user_fn(func);
             code.function(&f);
@@ -453,6 +456,85 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
         f.instruction(&Instruction::Call(FN_FD_WRITE));
         f.instruction(&Instruction::Drop);
+    }
+
+    /// __str_eq(ptr1: i32, ptr2: i32) -> i32 (0 or 1)
+    /// Compares two length-prefixed strings for equality.
+    /// Length is at ptr-4, data at ptr.
+    fn build_str_eq(&self) -> Function {
+        let ma2 = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        // params: 0=ptr1, 1=ptr2; locals: 2=len1, 3=len2, 4=i
+        let mut f = Function::new(vec![(3, ValType::I32)]);
+
+        // len1 = mem[ptr1 - 4]
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma2));
+        f.instruction(&Instruction::LocalSet(2));
+
+        // len2 = mem[ptr2 - 4]
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma2));
+        f.instruction(&Instruction::LocalSet(3));
+
+        // if len1 != len2, return 0
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::Return);
+        f.instruction(&Instruction::End);
+
+        // i = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(4));
+
+        // loop: compare bytes
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // if i >= len1, break (all equal)
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // if mem[ptr1+i] != mem[ptr2+i], return 0
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::Return);
+        f.instruction(&Instruction::End);
+
+        // i += 1
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(4));
+
+        f.instruction(&Instruction::Br(0)); // continue loop
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // All bytes match
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::End);
+        f
     }
 
     fn build_user_fn(&mut self, func: &MirFunction) -> Function {
@@ -858,6 +940,13 @@ impl EmitCtx {
                         } else {
                             f.instruction(&Instruction::I32Const(0));
                         }
+                    }
+                    "eq" => {
+                        // String equality: eq(a, b) -> bool (i32)
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::Call(FN_STR_EQ));
                     }
                     other => {
                         for a in args {

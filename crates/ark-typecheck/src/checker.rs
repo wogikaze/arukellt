@@ -199,6 +199,13 @@ impl TypeChecker {
             params: vec![Type::F64],
             ret: Type::String,
         });
+        // String equality
+        self.fn_sigs.insert("eq".into(), FnSig {
+            name: "eq".into(),
+            type_params: vec![],
+            params: vec![Type::String, Type::String],
+            ret: Type::Bool,
+        });
     }
 
     /// Resolve a type expression to a Type.
