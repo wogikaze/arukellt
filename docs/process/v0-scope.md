@@ -19,32 +19,39 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 | 機能 | 状態 | 備考 |
 |------|------|------|
 | プリミティブ型（i32, bool） | ✅ | 完全動作 |
-| プリミティブ型（i64, f32, f64, char） | ⚠️ | リテラル出力可。型固有の演算・変換ヘルパー未実装 |
-| String | ✅ | リテラル、String_from、eq、println 動作 |
-| struct | ✅ | 定義・初期化・フィールドアクセス動作 |
+| プリミティブ型（i64, f64） | ✅ | リテラル・演算・変換ヘルパー・print 動作 |
+| プリミティブ型（f32, char） | ⚠️ | パース済み。f32 は f64 経由で動作、char は i32 として扱う |
+| String | ✅ | リテラル、String_from、eq、concat、split、join、slice、println 動作 |
+| struct | ✅ | 定義・初期化・フィールドアクセス・ネスト動作 |
 | enum（unit バリアント） | ✅ | 整数タグとして動作、match 対応 |
-| enum（payload バリアント） | 🔲 | Some(T), Err(E) 等のペイロード未実装 |
-| パターンマッチ（match） | ⚠️ | int/bool/enum(unit)/wildcard 動作。payload binding 未実装 |
-| ジェネリック関数（制限付き） | 🔲 | パース・型検査のみ。monomorphization 未実装 |
-| Option\<T\>, Result\<T, E\> | 🔲 | 型登録済み。Some/None/Ok/Err はペイロード未対応 |
+| enum（payload バリアント） | ✅ | Some(T), Ok(T), Err(E) 等のペイロード動作。match でバインド可能 |
+| パターンマッチ（match） | ✅ | int/bool/enum(unit)/enum(payload)/wildcard/変数バインド動作 |
+| ジェネリック関数（制限付き） | ✅ | パース・型検査・monomorphization（runtime i32 統一）動作 |
+| Option\<T\>, Result\<T, E\> | ✅ | Some/None/Ok/Err ペイロード付き。unwrap/is_some/is_none 動作 |
 | if/else, while, loop | ✅ | 文・式両方、break/continue 対応 |
-| ? 演算子（エラー伝播） | 🔲 | パースのみ。型検査・lowering 未実装 |
-| モジュールシステム | 🔲 | import 構文パース済み。名前解決・モジュール読込未実装 |
-| クロージャ | 🔲 | パースのみ。型検査・lowering・コード生成未実装 |
-| 基本演算子（算術、比較、論理） | ✅ | i32 で完全動作。短絡評価対応 |
+| ? 演算子（エラー伝播） | ✅ | 型検査・lowering・コード生成動作 |
+| モジュールシステム | ⚠️ | import 構文パース・基本的なモジュール読込動作。循環検出あり |
+| クロージャ | ✅ | lambda lifting + capture injection で動作 |
+| 高階関数 | ✅ | map_i32_i32, filter_i32, fold_i32_i32 動作 |
+| 基本演算子（算術、比較、論理） | ✅ | i32/i64/f64 で動作。短絡評価・型昇格対応 |
+| タプル | ✅ | タプルリテラル・分配束縛動作 |
+| Box\<T\> | ✅ | Box_new / unbox でヒープ割当動作 |
 
 ### 標準ライブラリ
 
 | モジュール | 状態 | 備考 |
 |-----------|------|------|
-| println / print / eprintln | ✅ | WASI fd_write 経由 |
-| i32_to_string / bool_to_string | ✅ | Wasm ヘルパー関数として実装 |
+| println / print / eprintln | ✅ | WASI fd_write 経由。i32/i64/f64/bool/String 自動対応 |
+| i32_to_string / i64_to_string / f64_to_string / bool_to_string | ✅ | Wasm ヘルパー関数として実装 |
 | String_from / eq | ✅ | 文字列生成・比較 |
+| concat / slice / split / join | ✅ | 文字列操作。Wasm ヘルパーとして実装 |
+| core/option | ✅ | unwrap, unwrap_or, is_some, is_none 動作 |
+| core/result | ✅ | unwrap 動作。? 演算子で伝播可能 |
+| collections/vec | ✅ | Vec_new_i32, push, pop, get, set, len, sort_i32 動作 |
+| Vec 高階関数 | ✅ | map_i32_i32, filter_i32, fold_i32_i32 動作 |
+| 数学関数 | ✅ | sqrt, abs, min, max 動作 |
+| parse_i32 / parse_i64 / parse_f64 | ✅ | 文字列→数値変換 |
 | core/mem | 🔲 | 設計済み・未実装 |
-| core/option | 🔲 | 型登録済み。unwrap 等の関数未実装 |
-| core/result | 🔲 | 型登録済み。unwrap 等の関数未実装 |
-| collections/string | ⚠️ | concat, slice, split, join 等は名前解決のみ。実行不可 |
-| collections/vec | 🔲 | Vec_new_i32 等は名前解決のみ。Vec ランタイム未実装 |
 | io/fs | 🔲 | 設計済み・未実装 |
 | io/clock | 🔲 | 設計済み・未実装 |
 | io/random | 🔲 | 設計済み・未実装 |
@@ -58,7 +65,7 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 | arukellt check | ✅ | パース + 名前解決 + 型検査 |
 | 複数エラーの一括報告 | ✅ | DiagnosticSink + ariadne |
 | Wasm バイナリ出力 | ✅ | WASI Preview 1 互換 |
-| WASI p1 サポート | ✅ | fd_write のみ。wasm32 ターゲットは未分離 |
+| WASI p1 サポート | ✅ | fd_write のみ。linear memory ターゲット |
 | WASI p2 サポート（Component Model / WIT） | 🔲 | 設計済み・未実装 |
 
 ---
@@ -126,17 +133,19 @@ v0 完成の条件:
 
 1. `scripts/verify-harness.sh` が成功
 2. 以下のサンプルがコンパイル・実行可能:
-   - Hello World
-   - 数値計算（フィボナッチ、素数判定）
-   - 構造体・enum の基本操作
-   - エラー処理（Result の連鎖）— **ペイロード variant 実装後**
+   - Hello World ✅
+   - 数値計算（フィボナッチ、素数判定） ✅
+   - 構造体・enum の基本操作 ✅
+   - エラー処理（Result の連鎖） ✅
    - ファイル読み書き — **io/fs 実装後**
 3. Wasm バイナリサイズが許容範囲内
    - Hello World: 5KB 以下
-4. 複数エラーの一括報告が機能
+4. 複数エラーの一括報告が機能 ✅
 
-> **現在の到達度**: Hello World + 数値計算 + 構造体は動作。
-> ファイル I/O と Result 連鎖は未到達。詳細は `v0-status.md` 参照。
+> **現在の到達度**: 124/124 fixture テスト pass。
+> Hello World、数値計算、構造体、enum payload、Option/Result、クロージャ、
+> 高階関数、パターンマッチ、? 演算子がすべて end-to-end 動作。
+> 残り: ファイル I/O（io/fs 未実装）。
 
 ---
 

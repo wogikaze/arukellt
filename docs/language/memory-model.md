@@ -2,6 +2,12 @@
 
 ADR-002 により **Wasm GC 前提** で設計する。
 
+> **⚠️ 現行実装**: v0 コンパイラは **linear memory + bump allocator** を使用。
+> struct/enum/String/Vec/closure は全て linear memory 上の `i32` ポインタとして表現。
+> Wasm GC 型（`struct.new`, `array.new`, `ref` 等）は**未使用**。
+> 以下の GC 型定義は将来の wasm-gc ターゲット向けの設計仕様。
+> 現行メモリレイアウトは「wasm32 ターゲット: linear memory lowering モデル」節を参照。
+
 ---
 
 ## 概要

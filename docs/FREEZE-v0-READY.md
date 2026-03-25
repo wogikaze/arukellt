@@ -1,19 +1,20 @@
 # v0 Canonical Surface - Freeze Ready
 
 **Date**: 2026-03-25  
-**Status**: ⚠️ Not ready — 設計未完了・実装進行中
+**Status**: ⚠️ Not ready — io/fs 未実装、設計文書の最終整合待ち
 
 ## Summary
 
-arukellt v0 の canonical surface は構文整理フェーズを通過したが、**設計はまだ完了していない**。
+arukellt v0 の canonical surface は構文整理フェーズを通過し、**コンパイラ実装が大きく進展した**。
 
-未決定・未設計の要件が残っており、比較分析や段取り（設計手順）が確立されていない項目がある。
-「freeze」は全要件の設計が完了し、各要件について選択肢比較と根拠が揃った段階で宣言する。
+残る主要な未実装項目は capability-based I/O (io/fs, io/clock, io/random) と設計文書の最終整合。
+freeze は全要件の設計が完了し、各要件について選択肢比較と根拠が揃った段階で宣言する。
 
-> **実装状況**: コンパイラは部分実装段階。i32/bool/String/struct/enum(unit)/基本制御構文が
-> end-to-end 動作（82 単体テスト pass、~61/124 fixture pass）。
-> 詳細は [`docs/process/v0-status.md`](process/v0-status.md) 参照。
-> `docs/process/v0-scope.md` の各機能にも実装段階を記載済み。
+> **実装状況**: コンパイラは v0 機能の大部分を実装。
+> 124/124 fixture テスト pass。i32/i64/f64/bool/String/struct/enum(payload)/
+> Option/Result/?演算子/クロージャ/高階関数/match(payload binding)/タプル/Box が
+> end-to-end 動作。
+> 詳細は [`docs/process/v0-scope.md`](process/v0-scope.md) 参照。
 
 ## Design Principles (from search.md)
 
@@ -47,22 +48,23 @@ v0 は以下の原則に基づいて設計:
 - ✅ `?` は v0 では型一致時のみ（自動変換なし）
 
 ### 型システム
-- ✅ Wasm GC 前提
-- ✅ 参照型: struct/enum/String/Vec/[T] は GC heap 上の参照
-- ✅ 代入・引数渡し = 参照コピー（オブジェクト共有）
+- ✅ 現行実装は linear memory ベース（Wasm GC 型は将来対応）
+- ✅ 参照型: struct/enum/String/Vec は linear memory 上のポインタ
+- ✅ 代入・引数渡し = ポインタコピー（オブジェクト共有）
 - ✅ mutation: Vec のみ in-place 変更可能（struct は immutable）
-- ✅ generic: `<T>` 記法、ネスト禁止
+- ✅ generic: `<T>` 記法、ネスト禁止、runtime は i32 統一
 
 ### API
 - ✅ Prelude: Option/Result/String/Vec, Some/None/Ok/Err, len/clone/unwrap/panic
-- ✅ Vec 操作: vec_new/vec_push/vec_pop/vec_get（全て裸関数）
-- ✅ String: concat/string_append_char（不変、新値を返す）
-- ✅ I/O: io.Caps 経由のみ（capability-based）
+- ✅ Vec 操作: Vec_new_i32/push/pop/get/set/sort_i32/map_i32_i32/filter_i32/fold_i32_i32（全て裸関数）
+- ✅ String: concat/split/join/slice（不変、新値を返す）
+- ✅ Option: unwrap/unwrap_or/is_some/is_none
+- 🔲 I/O: io.Caps 経由のみ（capability-based）— 未実装
 
 ### Documentation
 - ✅ v1 機能を syntax-v1-preview.md に分離
-- ✅ 文書間の矛盾を解消
-- ✅ コードサンプルは全て型検査可能
+- ⚠️ 文書間の矛盾を解消中（Wasm GC vs linear memory の記述整合）
+- ⚠️ コードサンプルは大部分が型検査可能（io/fs 関連は未対応）
 
 ## Completed Canonicalization
 
@@ -106,32 +108,23 @@ v0 は以下の原則に基づいて設計:
 
 以下が完了して初めて freeze を宣言できる:
 
-1. **要件の洗い出し完了**
-   - 未設計の要件を列挙し、各要件に対して選択肢比較と根拠を揃える
-   - 例: wasm32 コンパイルターゲット（2026-03-25 追加）の設計詳細
+1. **io/fs 実装**
+   - capability-based I/O（fs_read_file, fs_write_file）
+   - WASI fd_read / path_open の統合
 
-2. **各要件の比較・段取り設計**
-   - 選択肢の列挙と比較（benchmark / 分析）
-   - 決定基準と根拠の文書化（ADR または設計ノート）
+2. **設計文書の最終整合**
+   - Wasm GC vs linear memory の記述統一
+   - v0-scope.md と本文書の status 一致
+   - quickstart.md のサンプル検証完了
 
-3. **診断設計**
-   - 構造化診断メッセージ
-   - expected/actual 表示
-   - fix-it hint
-
-4. **stdlib 完全性**
-   - v0 で必要な Vec 操作の全列挙
-   - String 操作の正規形確定
-
-5. **実装同期**
-   - コンパイラで v0 制限を強制
-   - 禁止構文に対する明確なエラーメッセージ
+3. **診断設計の最終化**
+   - fix-it hint の実装範囲確定
+   - LLM 向け診断パターンの検証
 
 ## Conclusion
 
-v0 は「Python 風」ではなく「LLM が安定生成・修正しやすい canonical surface を持つ
-Wasm GC 前提言語」として定義される。表面構文は少数の正規形に絞り、型は局所推論
-+ 境界明示、標準 API は核機能に集中。LLM との相性は構文単体ではなく、型制約・診断・
-整形・実行・自己修正ループまで含めて最適化する。
+v0 は「LLM が安定生成・修正しやすい canonical surface を持つ
+Wasm-first 言語」として定義される。表面構文は少数の正規形に絞り、型は局所推論
++ 境界明示、標準 API は核機能に集中。
 
-**Status**: 構文整理は進んでいるが、まだ freeze できる状態ではない。
+**Status**: コンパイラ実装は 124/124 fixture pass。io/fs と設計文書整合が残る。

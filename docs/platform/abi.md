@@ -2,6 +2,10 @@
 
 ADR-006 の内容を展開する。
 
+> **⚠️ 現行実装**: v0 コンパイラは **linear memory + WASI Preview 1** を使用。
+> 以下の Wasm GC / Component Model に関する記述は**設計方針**であり、未実装。
+> 現行バックエンドは wasm32 相当（linear memory ポインタベース）。
+
 ---
 
 ## 3層構造（確定）
@@ -42,7 +46,11 @@ v0 での基本（2つの公開面を併用）:
 
 ## 型の ABI 表現（wasm32, v0）
 
-ADR-002 により **Wasm GC 採用**。
+ADR-002 により **Wasm GC 採用**（設計方針）。
+
+> **⚠️ 現行実装**: v0 バックエンドは linear memory ベース。
+> struct/enum/String/Vec は全て `i32` ポインタとして表現される。
+> 以下の Wasm GC 表現は将来の wasm-gc ターゲット向けの設計。
 
 ### Layer 2（Wasm 公開 ABI）
 

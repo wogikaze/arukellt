@@ -2,10 +2,13 @@
 
 本文書は、arukellt 言語 v0 の完全仕様を一箇所に統合したものである。
 
-**Status**: Design specification — 実装は進行中（[v0-status.md](../process/v0-status.md) 参照）
+**Status**: Design specification — 実装は大部分完了（124/124 fixture pass）
 
-> **注意**: 本文書は v0 の *設計仕様* である。全機能が実装済みであることを意味しない。
-> 現在の実装到達度は `docs/process/v0-status.md` を参照のこと。
+> **実装状況**: v0 コンパイラは設計仕様の大部分を実装。
+> linear memory + WASI Preview 1 バックエンドで、
+> i32/i64/f64/bool/String/struct/enum(payload)/Option/Result/?演算子/
+> closure/高階関数/match(payload binding)/tuple/Box/Vec が end-to-end 動作。
+> Wasm GC 型・WASI p2・io/fs は未実装。
 
 ---
 
@@ -29,10 +32,11 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 - WASI p1 サポート（fd_write 経由の I/O）
 - 関数呼び出し構文のみ（メソッド構文なし）
 
-> **設計と実装の差異**: 上記は v0 設計仕様の完成形。現時点の実装は
-> WASI p1 + linear memory バックエンドで、i32/bool/String/struct/enum(unit) が
-> end-to-end 動作。Wasm GC / WASI p2 / closure / generics / payload enum は未実装。
-> 詳細は `docs/process/v0-status.md` 参照。
+> **設計と実装の差異**: 上記は v0 設計仕様の完成形。現行実装は
+> WASI p1 + linear memory バックエンドで、i32/i64/f64/bool/String/struct/
+> enum(payload)/Option/Result/?演算子/closure/高階関数/match/tuple/Box/Vec が
+> end-to-end 動作（124/124 fixture テスト pass）。
+> 未実装: Wasm GC 型、WASI p2、io/fs、io/clock、io/random。
 
 ### v0 で提供しないもの（Non-goals）
 

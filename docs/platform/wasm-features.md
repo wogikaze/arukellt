@@ -171,7 +171,12 @@ arukellt が使用する Wasm 機能を 3 層に分類する。
 
 ### v0 必須ランタイム
 
-Wasm GC をサポートするランタイム:
+現行実装は linear memory + WASI Preview 1 のため、以下のランタイムで動作:
+
+- wasmtime（CLI に組み込み済み）
+- 任意の WASI Preview 1 対応ランタイム
+
+将来の wasm-gc ターゲットでは GC 対応ランタイムが必要:
 
 - wasmtime 28.0+ (`--wasm gc` フラグ)
 - V8 (Chrome 119+)

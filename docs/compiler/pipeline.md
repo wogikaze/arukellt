@@ -1,6 +1,10 @@
 # コンパイルパイプライン
 
-ADR-002 により Wasm GC 前提、ADR-003 により制限付き monomorphization を採用。
+ADR-002 により Wasm GC 前提（設計）、ADR-003 により制限付き monomorphization を採用。
+
+> **現行実装**: 全 6 フェーズが動作。124/124 fixture テスト pass。
+> ただし Wasm GC 型ではなく linear memory + bump allocator で実装。
+> LLVM IR バックエンド [6b] は未実装。
 
 ## パイプライン全体像（v0）
 
@@ -501,3 +505,36 @@ fn main() { ... }
 ```
 
 `arukellt run hello.ark` での直接実行をサポートする。内部で wasmtime を呼ぶ。
+
+---
+
+## 機能サポートマトリクス（現行実装）
+
+「syntax accepted」と「end-to-end works」は別。以下は現行実装の到達度:
+
+| 機能 | Parsed | Typed | Lowered | Emitted | Runnable |
+|------|--------|-------|---------|---------|----------|
+| i32 / bool | ✅ | ✅ | ✅ | ✅ | ✅ |
+| i64 / f64 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| f32 / char | ✅ | ✅ | ⚠️ | ⚠️ | ⚠️ f32→f64, char→i32 |
+| String | ✅ | ✅ | ✅ | ✅ | ✅ |
+| struct | ✅ | ✅ | ✅ | ✅ | ✅ |
+| enum (unit) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| enum (payload) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| if/else | ✅ | ✅ | ✅ | ✅ | ✅ |
+| while / loop | ✅ | ✅ | ✅ | ✅ | ✅ |
+| break / continue | ✅ | ✅ | ✅ | ✅ | ✅ |
+| match (literals) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| match (payload bind) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| generic functions | ✅ | ✅ | ✅ (→i32) | ✅ | ✅ |
+| Option\<T\> / Result | ✅ | ✅ | ✅ | ✅ | ✅ |
+| ? operator | ✅ | ✅ | ✅ | ✅ | ✅ |
+| closures | ✅ | ✅ | ✅ | ✅ | ✅ |
+| higher-order fns | ✅ | ✅ | ✅ | ✅ | ✅ |
+| tuples | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Box\<T\> | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Vec\<i32\> | ✅ | ✅ | ✅ | ✅ | ✅ |
+| modules/import | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ basic only |
+| for loops | ❌ | — | — | — | v1 |
+| trait / impl | ❌ | — | — | — | v1 |
+| io/fs | ✅ | — | — | — | 🔲 |
