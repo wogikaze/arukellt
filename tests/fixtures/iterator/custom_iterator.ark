@@ -1,0 +1,24 @@
+struct Counter {
+    current: i32,
+    max: i32,
+}
+
+impl Counter {
+    fn next(self) -> Option<i32> {
+        if self.current < self.max {
+            let val = self.current
+            self.current = self.current + 1
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+fn main() -> i32 {
+    let c = Counter { current: 0, max: 5 }
+    for x in c {
+        println(x)
+    }
+    0
+}

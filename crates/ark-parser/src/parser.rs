@@ -826,7 +826,7 @@ impl<'a> Parser<'a> {
         let target = self.expect_ident();
         self.expect(&TokenKind::In);
 
-        // Parse iterator: either `start..end` (range) or `values(expr)` (vec iteration)
+        // Parse iterator: `values(expr)`, `start..end` (range), or generic `expr` (Iterator)
         let iter = if let TokenKind::Ident(name) = self.peek() {
             if name == "values" {
                 // values(expr) form
@@ -836,23 +836,32 @@ impl<'a> Parser<'a> {
                 self.expect(&TokenKind::RParen);
                 ForIter::Values(expr)
             } else {
-                // Could be `expr..end` range
-                let range_start = self.parse_expr();
-                self.expect(&TokenKind::DotDot);
-                let range_end = self.parse_expr();
-                ForIter::Range {
-                    start: range_start,
-                    end: range_end,
+                // Parse expression, then check for `..` (range) or treat as iterator
+                let expr = self.parse_expr();
+                if *self.peek() == TokenKind::DotDot {
+                    self.advance(); // consume '..'
+                    let range_end = self.parse_expr();
+                    ForIter::Range {
+                        start: expr,
+                        end: range_end,
+                    }
+                } else {
+                    // Generic iterator expression
+                    ForIter::Iter(expr)
                 }
             }
         } else {
-            // Numeric or expression range: `0..n`
-            let range_start = self.parse_expr();
-            self.expect(&TokenKind::DotDot);
-            let range_end = self.parse_expr();
-            ForIter::Range {
-                start: range_start,
-                end: range_end,
+            // Numeric or expression: parse, then check for `..`
+            let expr = self.parse_expr();
+            if *self.peek() == TokenKind::DotDot {
+                self.advance(); // consume '..'
+                let range_end = self.parse_expr();
+                ForIter::Range {
+                    start: expr,
+                    end: range_end,
+                }
+            } else {
+                ForIter::Iter(expr)
             }
         };
 

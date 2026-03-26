@@ -274,6 +274,7 @@ pub fn lower_to_mir(
                     },
                 }],
                 entry,
+                struct_typed_locals: ctx.struct_typed_locals.clone(),
             };
 
             if f.name == "main" {
@@ -424,6 +425,7 @@ pub fn lower_to_mir(
                         },
                     }],
                     entry,
+                    struct_typed_locals: ctx.struct_typed_locals.clone(),
                 };
 
                 mir.functions.push(mir_fn);
@@ -1220,6 +1222,91 @@ impl LowerCtx {
                             body: loop_body,
                         });
                     }
+                    ast::ForIter::Iter(iter_expr) => {
+                        // for x in iter_expr { body }
+                        // → let __iter = iter_expr
+                        //   loop {
+                        //     let __next = StructName__next(__iter)
+                        //     // __next is Option<T>: [tag(4)][payload(4)]
+                        //     // tag==0 → Some(x): let x = payload; body
+                        //     // tag==1 → None: break
+                        //   }
+                        let struct_name = self.infer_struct_type(iter_expr);
+                        let iter_op = self.lower_expr(iter_expr);
+
+                        let iter_local = self.new_temp();
+                        let next_local = self.new_temp();
+                        let tag_local = self.new_temp();
+                        let target_local = self.declare_local(target);
+
+                        // Track struct type for the iterator local
+                        if let Some(ref sname) = struct_name {
+                            self.struct_typed_locals.insert(iter_local.0, sname.clone());
+                        }
+
+                        // __iter = iter_expr
+                        out.push(MirStmt::Assign(
+                            Place::Local(iter_local),
+                            Rvalue::Use(iter_op),
+                        ));
+
+                        let method_name = if let Some(ref sname) = struct_name {
+                            format!("{}__next", sname)
+                        } else {
+                            "__next".to_string()
+                        };
+
+                        // Build loop body:
+                        // __next = StructName__next(__iter)
+                        let mut loop_body = vec![MirStmt::Assign(
+                            Place::Local(next_local),
+                            Rvalue::Use(Operand::Call(
+                                method_name,
+                                vec![Operand::Place(Place::Local(iter_local))],
+                            )),
+                        )];
+
+                        // tag = __next.tag (EnumTag)
+                        loop_body.push(MirStmt::Assign(
+                            Place::Local(tag_local),
+                            Rvalue::Use(Operand::EnumTag(Box::new(Operand::Place(Place::Local(
+                                next_local,
+                            ))))),
+                        ));
+
+                        // Build inner body: extract payload and run user body
+                        let mut some_body = vec![MirStmt::Assign(
+                            Place::Local(target_local),
+                            Rvalue::Use(Operand::EnumPayload {
+                                object: Box::new(Operand::Place(Place::Local(next_local))),
+                                index: 0,
+                                enum_name: "Option".to_string(),
+                                variant_name: "Some".to_string(),
+                            }),
+                        )];
+                        some_body.extend(self.lower_block_all(body));
+
+                        // if tag == 0 (Some) → some_body; else → break
+                        let cond_local = self.new_temp();
+                        loop_body.push(MirStmt::Assign(
+                            Place::Local(cond_local),
+                            Rvalue::Use(Operand::BinOp(
+                                BinOp::Eq,
+                                Box::new(Operand::Place(Place::Local(tag_local))),
+                                Box::new(Operand::ConstI32(0)),
+                            )),
+                        ));
+                        loop_body.push(MirStmt::IfStmt {
+                            cond: Operand::Place(Place::Local(cond_local)),
+                            then_body: some_body,
+                            else_body: vec![MirStmt::Break],
+                        });
+
+                        out.push(MirStmt::WhileStmt {
+                            cond: Operand::ConstBool(true),
+                            body: loop_body,
+                        });
+                    }
                 }
             }
         }
@@ -1227,7 +1314,9 @@ impl LowerCtx {
 
     fn lower_expr_stmt(&mut self, expr: &ast::Expr, out: &mut Vec<MirStmt>) {
         match expr {
-            ast::Expr::Call { callee, args, .. } => {
+            ast::Expr::Call {
+                callee, args, span, ..
+            } => {
                 if let ast::Expr::Ident { name, .. } = callee.as_ref() {
                     let mir_args: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
                     out.push(MirStmt::CallBuiltin {
@@ -1235,6 +1324,30 @@ impl LowerCtx {
                         name: name.clone(),
                         args: mir_args,
                     });
+                } else if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref() {
+                    // Method call as statement: x.method(args) → discard result
+                    if let Some((mangled, _)) = self.method_resolutions.get(&span.start).cloned() {
+                        let self_arg = self.lower_expr(object);
+                        let mut all_args = vec![self_arg];
+                        all_args.extend(args.iter().map(|a| self.lower_expr(a)));
+                        out.push(MirStmt::CallBuiltin {
+                            dest: None,
+                            name: mangled,
+                            args: all_args,
+                        });
+                    } else if let Some(struct_name) = self.infer_struct_type(object) {
+                        let mangled = format!("{}__{}", struct_name, field);
+                        if self.user_fn_names.contains(&mangled) {
+                            let self_arg = self.lower_expr(object);
+                            let mut all_args = vec![self_arg];
+                            all_args.extend(args.iter().map(|a| self.lower_expr(a)));
+                            out.push(MirStmt::CallBuiltin {
+                                dest: None,
+                                name: mangled,
+                                args: all_args,
+                            });
+                        }
+                    }
                 }
             }
             ast::Expr::Assign { target, value, .. } => {
@@ -1242,6 +1355,23 @@ impl LowerCtx {
                     if let Some(local_id) = self.lookup_local(name) {
                         let op = self.lower_expr(value);
                         out.push(MirStmt::Assign(Place::Local(local_id), Rvalue::Use(op)));
+                    }
+                } else if let ast::Expr::FieldAccess { object, field, .. } = target.as_ref() {
+                    // self.field = value → FieldStore
+                    if let ast::Expr::Ident { name, .. } = object.as_ref() {
+                        if let Some(local_id) = self.lookup_local(name) {
+                            let struct_name = self.struct_typed_locals.get(&local_id.0).cloned();
+                            let val_op = self.lower_expr(value);
+                            out.push(MirStmt::Assign(
+                                Place::Field(Box::new(Place::Local(local_id)), field.clone()),
+                                Rvalue::Use(val_op),
+                            ));
+                            // Track struct type for the field access
+                            if let Some(sname) = struct_name {
+                                // No-op: struct type already tracked
+                                let _ = sname;
+                            }
+                        }
                     }
                 }
             }
@@ -2569,10 +2699,16 @@ impl LowerCtx {
                     field: field.clone(),
                 }
             }
-            ast::Expr::Try { expr, .. } => {
+            ast::Expr::Try { expr, span } => {
                 let inner = self.lower_expr(expr);
+                // Check if the typechecker recorded a From conversion for this ?
+                let from_fn = self
+                    .method_resolutions
+                    .get(&span.start)
+                    .map(|(f, _)| f.clone());
                 Operand::TryExpr {
                     expr: Box::new(inner),
+                    from_fn,
                 }
             }
             ast::Expr::Closure { params, body, .. } => {
@@ -2712,6 +2848,7 @@ impl LowerCtx {
                         },
                     }],
                     entry,
+                    struct_typed_locals: sub_ctx.struct_typed_locals.clone(),
                 };
                 self.pending_closures.push(mir_fn);
                 self.user_fn_names.insert(synth_name.clone());

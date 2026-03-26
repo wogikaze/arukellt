@@ -1211,6 +1211,58 @@ impl TypeChecker {
                 ret: Type::String,
             },
         );
+
+        // --- HashMap<i32, i32> ---
+        self.fn_sigs.insert(
+            "HashMap_i32_i32_new".into(),
+            FnSig {
+                name: "HashMap_i32_i32_new".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_i32_i32_insert".into(),
+            FnSig {
+                name: "HashMap_i32_i32_insert".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32, Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_i32_i32_get".into(),
+            FnSig {
+                name: "HashMap_i32_i32_get".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::Option(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_i32_i32_contains_key".into(),
+            FnSig {
+                name: "HashMap_i32_i32_contains_key".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_i32_i32_len".into(),
+            FnSig {
+                name: "HashMap_i32_i32_len".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
     }
 
     /// Resolve a type expression to a Type.
@@ -1590,6 +1642,54 @@ impl TypeChecker {
                         match &vec_ty {
                             Type::Vec(inner) => *inner.clone(),
                             _ => Type::I32,
+                        }
+                    }
+                    ast::ForIter::Iter(expr) => {
+                        let iter_ty = self.synthesize_expr(expr, env, sink);
+                        // Check if the type has a `next` method returning Option<T>
+                        if let Type::Struct(type_id) = &iter_ty {
+                            let struct_name = self
+                                .struct_defs
+                                .values()
+                                .find(|s| s.type_id == *type_id)
+                                .map(|s| s.name.clone());
+                            if let Some(ref sname) = struct_name {
+                                let mangled = format!("{}__next", sname);
+                                if let Some(sig) = self.fn_sigs.get(&mangled).cloned() {
+                                    // Extract T from Option<T> return type
+                                    match &sig.ret {
+                                        Type::Option(inner) => *inner.clone(),
+                                        _ => {
+                                            sink.emit(
+                                                Diagnostic::new(DiagnosticCode::E0200)
+                                                    .with_message(format!(
+                                                    "`{}`::next() must return Option<T>, found `{}`",
+                                                    sname, sig.ret
+                                                )),
+                                            );
+                                            Type::Error
+                                        }
+                                    }
+                                } else {
+                                    sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(
+                                        format!(
+                                            "`{}` does not implement Iterator (no `next` method)",
+                                            sname
+                                        ),
+                                    ));
+                                    Type::Error
+                                }
+                            } else {
+                                sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(
+                                    "for..in requires a type that implements Iterator",
+                                ));
+                                Type::Error
+                            }
+                        } else {
+                            sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(
+                                format!("for..in requires an Iterator type, found `{}`", iter_ty),
+                            ));
+                            Type::Error
                         }
                     }
                 };
@@ -2186,20 +2286,37 @@ impl TypeChecker {
                             .with_note("add `-> Result[T, E]` to the function signature"),
                     );
                 }
-                // Check error type compatibility
+                // Check error type compatibility with From trait support
                 if let (Type::Result(_, src_err), Some(Type::Result(_, dst_err))) =
                     (&inner_ty, &self.current_fn_return_type)
                 {
-                    if !self.types_compatible(src_err, dst_err) {
-                        sink.emit(
-                            Diagnostic::new(DiagnosticCode::E0210)
-                                .with_message(format!(
-                                    "? operator: error type `{}` is not compatible with function return error type `{}`",
-                                    src_err, dst_err
-                                ))
-                                .with_label(*span, "error type mismatch".to_string())
-                                .with_note("implement `From` trait to convert between error types"),
-                        );
+                    // Use strict equality (not lenient types_compatible) for ? error checking
+                    if src_err != dst_err {
+                        // Resolve the actual type name for the destination error
+                        let dst_name = self.type_name(dst_err);
+                        let src_name = self.type_name(src_err);
+                        let from_fn = format!("{}__from", dst_name);
+                        let has_from = self
+                            .method_table
+                            .contains_key(&(dst_name.clone(), "from".to_string()));
+                        if has_from {
+                            // Record that this ? needs From conversion
+                            self.method_resolutions
+                                .insert(span.start, (from_fn, dst_name));
+                        } else {
+                            sink.emit(
+                                Diagnostic::new(DiagnosticCode::E0210)
+                                    .with_message(format!(
+                                        "? operator: error type `{}` is not compatible with function return error type `{}`",
+                                        src_name, dst_name
+                                    ))
+                                    .with_label(*span, "error type mismatch".to_string())
+                                    .with_note(format!(
+                                        "implement `From<{}>` for `{}` to enable automatic conversion",
+                                        src_name, dst_name
+                                    )),
+                            );
+                        }
                     }
                 }
                 // The type of ? on Result<T, E> is T
@@ -2454,6 +2571,25 @@ impl TypeChecker {
         }
     }
 
+    /// Get the user-visible name of a type (e.g., "AppError" instead of "enum#3").
+    fn type_name(&self, ty: &Type) -> String {
+        match ty {
+            Type::Struct(id) => self
+                .struct_defs
+                .iter()
+                .find(|(_, info)| info.type_id == *id)
+                .map(|(name, _)| name.clone())
+                .unwrap_or_else(|| format!("{}", ty)),
+            Type::Enum(id) => self
+                .enum_defs
+                .iter()
+                .find(|(_, info)| info.type_id == *id)
+                .map(|(name, _)| name.clone())
+                .unwrap_or_else(|| format!("{}", ty)),
+            _ => format!("{}", ty),
+        }
+    }
+
     fn types_compatible(&self, a: &Type, b: &Type) -> bool {
         if *a == Type::Error || *b == Type::Error || *a == Type::Never || *b == Type::Never {
             return true;
@@ -2490,8 +2626,8 @@ fn edit_distance(a: &str, b: &str) -> usize {
     let n = a.len();
     let m = b.len();
     let mut dp = vec![vec![0usize; m + 1]; n + 1];
-    for i in 0..=n {
-        dp[i][0] = i;
+    for (i, row) in dp.iter_mut().enumerate().take(n + 1) {
+        row[0] = i;
     }
     for j in 0..=m {
         dp[0][j] = j;

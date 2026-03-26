@@ -67,7 +67,12 @@ const FN_FOLD_I32: u32 = 16;
 const FN_MAP_OPT_I32: u32 = 17;
 const FN_ANY_I32: u32 = 18;
 const FN_FIND_I32: u32 = 19;
-const FN_USER_BASE: u32 = 20;
+const FN_HASHMAP_I32_NEW: u32 = 20;
+const FN_HASHMAP_I32_INSERT: u32 = 21;
+const FN_HASHMAP_I32_GET: u32 = 22;
+const FN_HASHMAP_I32_CONTAINS: u32 = 23;
+const FN_HASHMAP_I32_LEN: u32 = 24;
+const FN_USER_BASE: u32 = 25;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 fn normalize_intrinsic_name(name: &str) -> &str {
@@ -148,6 +153,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         enum_payload_types: mir.enum_defs.clone(),
         type_registry: std::collections::HashMap::new(),
         next_type_idx: 0,
+        local_struct_names: std::collections::HashMap::new(),
     };
     ctx.emit_module(mir)
 }
@@ -184,6 +190,8 @@ struct EmitCtx {
     type_registry: std::collections::HashMap<(Vec<ValType>, Vec<ValType>), u32>,
     /// Next available type index
     next_type_idx: u32,
+    /// Locals known to hold a specific struct type (for field assignment dispatch).
+    local_struct_names: std::collections::HashMap<u32, String>,
 }
 
 impl EmitCtx {
@@ -369,7 +377,7 @@ impl EmitCtx {
         // Pre-register known helper types
         let ty_fd_write = self.register_type(&mut types, vec![ValType::I32; 4], vec![ValType::I32]);
         let ty_void_void = self.register_type(&mut types, vec![], vec![]);
-        let _ty_void_i32 = self.register_type(&mut types, vec![], vec![ValType::I32]);
+        let ty_void_i32 = self.register_type(&mut types, vec![], vec![ValType::I32]);
         let ty_i32_void = self.register_type(&mut types, vec![ValType::I32], vec![]);
         let ty_i32_i32_i32 = self.register_type(
             &mut types,
@@ -384,6 +392,8 @@ impl EmitCtx {
         // Register HOF helper types
         let ty_i32x3_i32 =
             self.register_type(&mut types, vec![ValType::I32; 3], vec![ValType::I32]);
+        // Register HashMap helper types
+        let ty_i32x3_void = self.register_type(&mut types, vec![ValType::I32; 3], vec![]);
         // Register WASI path_open type: (i32,i32,i32,i32,i32,i64,i64,i32,i32) -> i32
         let ty_path_open = self.register_type(
             &mut types,
@@ -475,6 +485,11 @@ impl EmitCtx {
         functions.function(ty_i32_i32_i32); // __map_opt_i32: (opt,fn)->opt
         functions.function(ty_i32_i32_i32); // __any_i32: (vec,fn)->i32(bool)
         functions.function(ty_i32_i32_i32); // __find_i32: (vec,fn)->i32(option_ptr)
+        functions.function(ty_void_i32); // __hashmap_i32_new: ()->i32
+        functions.function(ty_i32x3_void); // __hashmap_i32_insert: (m,k,v)->()
+        functions.function(ty_i32_i32_i32); // __hashmap_i32_get: (m,k)->i32(option_ptr)
+        functions.function(ty_i32_i32_i32); // __hashmap_i32_contains: (m,k)->i32(bool)
+        functions.function(ty_i32_i32); // __hashmap_i32_len: (m)->i32
         let mut needs_start_wrapper = false;
         for (i, func) in mir.functions.iter().enumerate() {
             functions.function(user_func_type_indices[i]);
@@ -493,7 +508,7 @@ impl EmitCtx {
 
         // Table section — for indirect calls (higher-order functions)
         let total_funcs =
-            4 + 14 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
+            4 + 19 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
         let mut tables = wasm_encoder::TableSection::new();
         tables.table(wasm_encoder::TableType {
             element_type: wasm_encoder::RefType::FUNCREF,
@@ -568,6 +583,11 @@ impl EmitCtx {
         code.function(&self.build_map_option_i32());
         code.function(&self.build_any_i32());
         code.function(&self.build_find_i32());
+        code.function(&self.build_hashmap_i32_new());
+        code.function(&self.build_hashmap_i32_insert());
+        code.function(&self.build_hashmap_i32_get());
+        code.function(&self.build_hashmap_i32_contains());
+        code.function(&self.build_hashmap_i32_len());
         for func in &mir.functions {
             let f = self.build_user_fn(func);
             code.function(&f);
@@ -2116,9 +2136,596 @@ impl EmitCtx {
         f
     }
 
+    // ── HashMap<i32,i32> helpers ────────────────────────────────────────
+
+    /// `__hashmap_i32_new() -> i32` (returns ptr to 12-byte header)
+    /// Header layout: [cap:i32, len:i32, buckets_ptr:i32]
+    /// Bucket layout: [key:i32, value:i32] × cap  (empty sentinel: key = i32::MIN)
+    fn build_hashmap_i32_new(&self) -> Function {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        // locals: 0=header_ptr, 1=buckets_ptr, 2=i (loop counter)
+        let mut f = Function::new(vec![(3, ValType::I32)]);
+
+        // header_ptr = heap_ptr
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(0));
+        // bump heap past header (12 bytes)
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(12));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // header[0] = cap = 16
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32Store(ma));
+        // header[4] = len = 0
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // buckets_ptr = heap_ptr
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(1));
+        // bump heap past buckets: 16 * 8 = 128 bytes
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(128));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // header[8] = buckets_ptr
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // Fill all 16 bucket keys with i32::MIN (empty sentinel)
+        // i = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        // if i >= 16 break
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        // buckets_ptr + i*8 = i32::MIN
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(i32::MIN));
+        f.instruction(&Instruction::I32Store(ma));
+        // i += 1
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // return header_ptr
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::End);
+        f
+    }
+
+    /// `__hashmap_i32_insert(m: i32, k: i32, v: i32)`
+    /// Linear probing with Fibonacci hashing. Rehashes at 75% load.
+    fn build_hashmap_i32_insert(&self) -> Function {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        // params: 0=m, 1=k, 2=v
+        // locals: 3=cap, 4=buckets_ptr, 5=idx, 6=bucket_addr, 7=bucket_key
+        //         8=len, 9=new_cap, 10=new_buckets, 11=old_buckets, 12=i, 13=old_key
+        let mut f = Function::new(vec![(11, ValType::I32)]);
+
+        // Load cap = mem[m]
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(3));
+        // Load buckets_ptr = mem[m+8]
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(4));
+
+        // idx = (k * 2654435761) % cap  (Fibonacci hash)
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(0x9E3779B1_u32 as i32)); // 2654435761
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32RemU);
+        f.instruction(&Instruction::LocalSet(5));
+
+        // Linear probe loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // bucket_addr = buckets_ptr + idx * 8
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(6));
+
+        // bucket_key = mem[bucket_addr]
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(7));
+
+        // if bucket_key == k → update existing, branch out
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Eq);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // Update value: mem[bucket_addr+4] = v
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Store(ma));
+        // Return (no len change)
+        f.instruction(&Instruction::Return);
+        f.instruction(&Instruction::End); // end if (key match)
+
+        // if bucket_key == i32::MIN → empty slot, insert here
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Const(i32::MIN));
+        f.instruction(&Instruction::I32Eq);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // Store key
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Store(ma));
+        // Store value
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Store(ma));
+        // Increment len: mem[m+4] += 1
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        // Break out of probe loop
+        f.instruction(&Instruction::Br(2));
+        f.instruction(&Instruction::End); // end if (empty slot)
+
+        // Collision: idx = (idx + 1) % cap
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32RemU);
+        f.instruction(&Instruction::LocalSet(5));
+        f.instruction(&Instruction::Br(0)); // continue loop
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Check load factor: if len*4 > cap*3, rehash
+        // Load len
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(8));
+
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(3));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32GtU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+
+        // --- Rehash ---
+        // new_cap = cap * 2
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Shl);
+        f.instruction(&Instruction::LocalSet(9));
+        // Allocate new buckets: new_cap * 8
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(10)); // new_buckets
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // Fill new buckets with i32::MIN
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(12));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(10));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(i32::MIN));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(12));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Re-insert all entries from old buckets
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::LocalSet(11)); // old_buckets = buckets_ptr
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(12)); // i = 0
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::LocalGet(3)); // old cap
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // old_key = old_buckets[i].key
+        f.instruction(&Instruction::LocalGet(11));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(13));
+
+        // if old_key != i32::MIN → re-insert
+        f.instruction(&Instruction::LocalGet(13));
+        f.instruction(&Instruction::I32Const(i32::MIN));
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+
+        // idx = (old_key * FIBONACCI) % new_cap
+        f.instruction(&Instruction::LocalGet(13));
+        f.instruction(&Instruction::I32Const(0x9E3779B1_u32 as i32));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::I32RemU);
+        f.instruction(&Instruction::LocalSet(5));
+
+        // Probe loop for rehash
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        // bucket_addr = new_buckets + idx*8
+        f.instruction(&Instruction::LocalGet(10));
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(6));
+        // if new_buckets[idx].key == i32::MIN → place here
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(i32::MIN));
+        f.instruction(&Instruction::I32Eq);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // Store key
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::LocalGet(13));
+        f.instruction(&Instruction::I32Store(ma));
+        // Store value from old bucket
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(11));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Br(2)); // break rehash probe
+        f.instruction(&Instruction::End); // end if (empty slot)
+        // idx = (idx + 1) % new_cap
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::I32RemU);
+        f.instruction(&Instruction::LocalSet(5));
+        f.instruction(&Instruction::Br(0)); // continue probe
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        f.instruction(&Instruction::End); // end if (old_key != MIN)
+
+        // i += 1
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(12));
+        f.instruction(&Instruction::Br(0)); // continue outer loop
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Update header: cap = new_cap, buckets_ptr = new_buckets
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(10));
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::End); // end if (rehash needed)
+
+        f.instruction(&Instruction::End);
+        f
+    }
+
+    /// `__hashmap_i32_get(m: i32, k: i32) -> i32` (returns Option ptr)
+    fn build_hashmap_i32_get(&self) -> Function {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        // params: 0=m, 1=k
+        // locals: 2=cap, 3=buckets_ptr, 4=idx, 5=bucket_addr, 6=bucket_key, 7=result
+        let mut f = Function::new(vec![(6, ValType::I32)]);
+
+        // Load cap
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(2));
+        // Load buckets_ptr
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(3));
+
+        // idx = (k * FIBONACCI) % cap
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(0x9E3779B1_u32 as i32));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32RemU);
+        f.instruction(&Instruction::LocalSet(4));
+
+        // Probe loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // outer block for "not found"
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // inner block for "found"
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // bucket_addr = buckets_ptr + idx*8
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(5));
+
+        // bucket_key = mem[bucket_addr]
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(6));
+
+        // if bucket_key == i32::MIN → not found
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Const(i32::MIN));
+        f.instruction(&Instruction::I32Eq);
+        f.instruction(&Instruction::BrIf(2)); // branch to "not found" block
+
+        // if bucket_key == k → found
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Eq);
+        f.instruction(&Instruction::BrIf(1)); // branch to "found" block
+
+        // Collision: idx = (idx+1) % cap
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32RemU);
+        f.instruction(&Instruction::LocalSet(4));
+        f.instruction(&Instruction::Br(0)); // continue loop
+        f.instruction(&Instruction::End); // end loop
+
+        // "found" block exit: allocate Some(value)
+        f.instruction(&Instruction::End); // end inner block
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(7));
+        // tag = 0 (Some)
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        // payload = mem[bucket_addr+4]
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+        // bump heap
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+        // return result
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::Return);
+
+        // "not found" block exit: allocate None
+        f.instruction(&Instruction::End); // end outer block
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(7));
+        // tag = 1 (None)
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Store(ma));
+        // padding
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        // bump heap
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+        f.instruction(&Instruction::LocalGet(7));
+
+        f.instruction(&Instruction::End);
+        f
+    }
+
+    /// `__hashmap_i32_contains_key(m: i32, k: i32) -> i32` (0 or 1)
+    fn build_hashmap_i32_contains(&self) -> Function {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        // params: 0=m, 1=k
+        // locals: 2=cap, 3=buckets_ptr, 4=idx, 5=bucket_key
+        let mut f = Function::new(vec![(4, ValType::I32)]);
+
+        // Load cap
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(2));
+        // Load buckets_ptr
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(3));
+
+        // idx = (k * FIBONACCI) % cap
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(0x9E3779B1_u32 as i32));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32RemU);
+        f.instruction(&Instruction::LocalSet(4));
+
+        // Probe loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // not found
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // found
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // bucket_key = mem[buckets_ptr + idx*8]
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(5));
+
+        // if bucket_key == i32::MIN → not found
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(i32::MIN));
+        f.instruction(&Instruction::I32Eq);
+        f.instruction(&Instruction::BrIf(2));
+
+        // if bucket_key == k → found
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Eq);
+        f.instruction(&Instruction::BrIf(1));
+
+        // idx = (idx+1) % cap
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32RemU);
+        f.instruction(&Instruction::LocalSet(4));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+
+        // found
+        f.instruction(&Instruction::End); // end found block
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::Return);
+
+        // not found
+        f.instruction(&Instruction::End); // end not-found block
+        f.instruction(&Instruction::I32Const(0));
+
+        f.instruction(&Instruction::End);
+        f
+    }
+
+    /// `__hashmap_i32_len(m: i32) -> i32`
+    fn build_hashmap_i32_len(&self) -> Function {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        // params: 0=m
+        let mut f = Function::new(vec![]);
+        // return mem[m+4]
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::End);
+        f
+    }
+
+    /// Emit inline bump allocation of `size` bytes. Leaves the allocated pointer on the stack.
+    fn emit_bump_alloc(&self, f: &mut Function, size: i32) {
+        // ptr = heap_ptr
+        f.instruction(&Instruction::GlobalGet(0));
+        // heap_ptr += size
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(size));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+        // stack: [ptr]
+    }
+
     fn build_user_fn(&mut self, func: &MirFunction) -> Function {
         let num_params = func.params.len() as u32;
         let num_locals = func.locals.len() as u32;
+
+        // Populate struct-typed locals from MIR metadata
+        self.local_struct_names = func.struct_typed_locals.clone();
 
         // Build locals list with proper types for non-parameter locals
         let mut locals = Vec::new();
@@ -2275,6 +2882,11 @@ impl EmitCtx {
                         | "map_option_i32_i32"
                         | "any_i32"
                         | "find_i32"
+                        | "HashMap_i32_i32_new"
+                        | "HashMap_i32_i32_insert"
+                        | "HashMap_i32_i32_get"
+                        | "HashMap_i32_i32_contains_key"
+                        | "HashMap_i32_i32_len"
                         | "push_char"
                         | "panic"
                         | "assert"
@@ -2347,6 +2959,39 @@ impl EmitCtx {
                 self.emit_operand(f, op);
                 f.instruction(&Instruction::LocalSet(id.0));
             }
+            MirStmt::Assign(Place::Field(base, field_name), Rvalue::Use(op)) => {
+                // Field store: struct_ptr.field = value
+                if let Place::Local(base_id) = base.as_ref() {
+                    let struct_name = self.local_struct_names.get(&base_id.0).cloned();
+                    let (offset, is_f64) = if let Some(ref sname) = struct_name {
+                        self.struct_field_info(sname, field_name)
+                    } else {
+                        (0, false)
+                    };
+                    // Push object pointer (base address)
+                    f.instruction(&Instruction::LocalGet(base_id.0));
+                    if offset > 0 {
+                        f.instruction(&Instruction::I32Const(offset as i32));
+                        f.instruction(&Instruction::I32Add);
+                    }
+                    // Push value to store
+                    self.emit_operand(f, op);
+                    // Store at the field location
+                    if is_f64 {
+                        f.instruction(&Instruction::F64Store(MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        }));
+                    } else {
+                        f.instruction(&Instruction::I32Store(MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        }));
+                    }
+                }
+            }
             MirStmt::CallBuiltin { name, args, .. } => {
                 let name = normalize_intrinsic_name(name.as_str());
                 match name {
@@ -2380,7 +3025,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::Call(FN_I32_TO_STR));
                         }
                     }
-                    "push" | "set" | "sort_i32" | "sort_String" => {
+                    "push" | "set" | "sort_i32" | "sort_String" | "HashMap_i32_i32_insert" => {
                         // Void Vec operations — emit inline via Operand::Call path
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
@@ -2402,9 +3047,22 @@ impl EmitCtx {
                             f.instruction(&Instruction::Drop);
                         }
                     }
-                    "pop" | "get" | "Vec_new_i32" | "Vec_new_String" | "len" | "get_unchecked"
-                    | "fs_read_file" | "fs_write_file" | "any_i32" | "find_i32" | "clock_now"
-                    | "random_i32" => {
+                    "pop"
+                    | "get"
+                    | "Vec_new_i32"
+                    | "Vec_new_String"
+                    | "len"
+                    | "get_unchecked"
+                    | "fs_read_file"
+                    | "fs_write_file"
+                    | "any_i32"
+                    | "find_i32"
+                    | "clock_now"
+                    | "random_i32"
+                    | "HashMap_i32_i32_new"
+                    | "HashMap_i32_i32_get"
+                    | "HashMap_i32_i32_contains_key"
+                    | "HashMap_i32_i32_len" => {
                         // Value-returning Vec operations called as statement — emit and drop result
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
@@ -5403,6 +6061,33 @@ impl EmitCtx {
                         }
                         f.instruction(&Instruction::Call(FN_FIND_I32));
                     }
+                    "HashMap_i32_i32_new" => {
+                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_NEW));
+                    }
+                    "HashMap_i32_i32_insert" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_INSERT));
+                    }
+                    "HashMap_i32_i32_get" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_GET));
+                    }
+                    "HashMap_i32_i32_contains_key" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_CONTAINS));
+                    }
+                    "HashMap_i32_i32_len" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_LEN));
+                    }
                     "Box_new" => {
                         // Box_new(value): allocate sizeof(enum) on heap, copy value, return pointer
                         // For enum payloads, the value is already a pointer to tag+payloads
@@ -6620,11 +7305,11 @@ impl EmitCtx {
                 }
                 self.emit_operand(f, result);
             }
-            Operand::TryExpr { expr } => {
+            Operand::TryExpr { expr, from_fn } => {
                 // expr? on Result<T, E>:
                 // 1. Evaluate expr → Result ptr
                 // 2. Store to SCRATCH+24
-                // 3. Load tag: if Err (tag=1), return the same Result ptr
+                // 3. Load tag: if Err (tag=1), optionally convert via From, then return
                 // 4. If Ok (tag=0), load payload at offset 4
                 f.instruction(&Instruction::I32Const(SCRATCH as i32 + 24));
                 self.emit_operand(f, expr);
@@ -6649,14 +7334,73 @@ impl EmitCtx {
                 // Stack: [tag]
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                 {
-                    // tag != 0 (Err) — early return with the Result ptr
-                    f.instruction(&Instruction::I32Const(SCRATCH as i32 + 24));
-                    f.instruction(&Instruction::I32Load(MemArg {
-                        offset: 0,
-                        align: 2,
-                        memory_index: 0,
-                    }));
-                    f.instruction(&Instruction::Return);
+                    if let Some(from_fn_name) = from_fn {
+                        if let Some(from_idx) = self.resolve_fn(from_fn_name) {
+                            let ma = MemArg {
+                                offset: 0,
+                                align: 2,
+                                memory_index: 0,
+                            };
+                            let ma4 = MemArg {
+                                offset: 4,
+                                align: 2,
+                                memory_index: 0,
+                            };
+
+                            // Step 1: Allocate new Result (8 bytes: [tag][payload])
+                            // Push dest addr FIRST, then produce value, then store
+                            f.instruction(&Instruction::I32Const(SCRATCH as i32 + 32));
+                            self.emit_bump_alloc(f, 8);
+                            // stack: [SCRATCH+32, result_ptr]
+                            f.instruction(&Instruction::I32Store(ma));
+                            // result_ptr saved at SCRATCH+32. Stack: []
+
+                            // Step 2: Store tag=1 at result_ptr+0
+                            // Load result_ptr (address), push 1 (value), store
+                            f.instruction(&Instruction::I32Const(SCRATCH as i32 + 32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Const(1));
+                            f.instruction(&Instruction::I32Store(ma));
+                            // Stack: []
+
+                            // Step 3: Call From::from(err_payload) and store at result_ptr+4
+                            // Push result_ptr (address for final store)
+                            f.instruction(&Instruction::I32Const(SCRATCH as i32 + 32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            // Load err payload from original Result ptr + 4
+                            f.instruction(&Instruction::I32Const(SCRATCH as i32 + 24));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Load(ma4));
+                            // Call From::from(err) → converted_err
+                            f.instruction(&Instruction::Call(from_idx));
+                            // stack: [result_ptr, converted_err]
+                            f.instruction(&Instruction::I32Store(ma4));
+                            // stored converted_err at result_ptr+4. Stack: []
+
+                            // Step 4: Return new Result ptr
+                            f.instruction(&Instruction::I32Const(SCRATCH as i32 + 32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::Return);
+                        } else {
+                            // From fn not found at emission time — fall through to simple return
+                            f.instruction(&Instruction::I32Const(SCRATCH as i32 + 24));
+                            f.instruction(&Instruction::I32Load(MemArg {
+                                offset: 0,
+                                align: 2,
+                                memory_index: 0,
+                            }));
+                            f.instruction(&Instruction::Return);
+                        }
+                    } else {
+                        // No From conversion — return original Result ptr
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 24));
+                        f.instruction(&Instruction::I32Load(MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        }));
+                        f.instruction(&Instruction::Return);
+                    }
                 }
                 f.instruction(&Instruction::End);
                 // tag == 0 (Ok) — extract payload at offset 4

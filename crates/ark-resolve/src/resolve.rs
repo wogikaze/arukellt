@@ -124,6 +124,11 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "__intrinsic_map_option_i32_i32",
     "__intrinsic_any_i32",
     "__intrinsic_find_i32",
+    "HashMap_i32_i32_new",
+    "HashMap_i32_i32_insert",
+    "HashMap_i32_i32_get",
+    "HashMap_i32_i32_contains_key",
+    "HashMap_i32_i32_len",
 ];
 
 /// Inject prelude symbols into the global scope.

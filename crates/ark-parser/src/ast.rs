@@ -458,8 +458,13 @@ pub enum Stmt {
 
 #[derive(Debug, Clone)]
 pub enum ForIter {
-    Range { start: Expr, end: Expr },
+    Range {
+        start: Expr,
+        end: Expr,
+    },
     Values(Expr),
+    /// Generic iterator: `for x in expr { ... }` where expr implements Iterator<T>
+    Iter(Expr),
 }
 
 #[derive(Debug, Clone)]

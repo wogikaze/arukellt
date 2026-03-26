@@ -35,6 +35,8 @@ pub struct MirFunction {
     pub locals: Vec<MirLocal>,
     pub blocks: Vec<BasicBlock>,
     pub entry: BlockId,
+    /// Maps local id → struct type name (for field access/store)
+    pub struct_typed_locals: std::collections::HashMap<u32, String>,
 }
 
 /// A local variable (parameter or temporary).
@@ -174,6 +176,8 @@ pub enum Operand {
     /// Try expression (`expr?`): unwrap Ok or early-return Err.
     TryExpr {
         expr: Box<Operand>,
+        /// If set, call this function to convert the Err value (From trait).
+        from_fn: Option<String>,
     },
     /// Reference to a named function (for passing as value).
     FnRef(String),
