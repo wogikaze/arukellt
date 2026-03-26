@@ -712,7 +712,9 @@ impl LowerCtx {
                 self.collect_free_vars(object, bound, out);
                 self.collect_free_vars(index, bound, out);
             }
-            ast::Expr::Match { scrutinee, arms, .. } => {
+            ast::Expr::Match {
+                scrutinee, arms, ..
+            } => {
                 self.collect_free_vars(scrutinee, bound, out);
                 for arm in arms {
                     if let Some(guard) = &arm.guard {
@@ -1669,10 +1671,8 @@ impl LowerCtx {
                             };
                             let local_id = self.declare_local(&binding_name);
                             // Determine field index from definition order
-                            let field_idx = def_field_names
-                                .iter()
-                                .position(|n| n == fname)
-                                .unwrap_or(0);
+                            let field_idx =
+                                def_field_names.iter().position(|n| n == fname).unwrap_or(0);
                             // Track f64/String types
                             if let Some(variants) = self.enum_defs.get(enum_name) {
                                 if let Some((_, types)) =
@@ -2043,10 +2043,8 @@ impl LowerCtx {
                                 _ => fname.clone(),
                             };
                             let local_id = self.declare_local(&binding_name);
-                            let field_idx = def_field_names
-                                .iter()
-                                .position(|n| n == fname)
-                                .unwrap_or(0);
+                            let field_idx =
+                                def_field_names.iter().position(|n| n == fname).unwrap_or(0);
                             if let Some(variants) = self.enum_defs.get(enum_name) {
                                 if let Some((_, types)) =
                                     variants.iter().find(|(vn, _)| vn == variant_name)
@@ -2507,10 +2505,7 @@ impl LowerCtx {
                         let payload: Vec<Operand> = def_field_names
                             .iter()
                             .map(|fname| {
-                                lowered
-                                    .get(fname)
-                                    .cloned()
-                                    .unwrap_or(Operand::ConstI32(0))
+                                lowered.get(fname).cloned().unwrap_or(Operand::ConstI32(0))
                             })
                             .collect();
                         return Operand::EnumInit {
@@ -2655,7 +2650,8 @@ impl LowerCtx {
                             // Propagate struct type info for captured variables
                             if let Some(pname) = &p.name {
                                 if let Some(parent_lid) = self.lookup_local(pname) {
-                                    if let Some(sname) = self.struct_typed_locals.get(&parent_lid.0) {
+                                    if let Some(sname) = self.struct_typed_locals.get(&parent_lid.0)
+                                    {
                                         sub_ctx.struct_typed_locals.insert(lid.0, sname.clone());
                                     }
                                 }

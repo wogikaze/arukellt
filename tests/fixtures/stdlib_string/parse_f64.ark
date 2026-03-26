@@ -1,0 +1,13 @@
+fn main() {
+    let x: f64 = parse_f64(String_from("3.14"))
+    println(f64_to_string(x))
+
+    let y: f64 = parse_f64(String_from("-2.5"))
+    println(f64_to_string(y))
+
+    let z: f64 = parse_f64(String_from("42"))
+    println(f64_to_string(z))
+
+    let w: f64 = parse_f64(String_from("0.001"))
+    println(f64_to_string(w))
+}
