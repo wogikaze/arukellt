@@ -142,11 +142,11 @@ help: use a type-specific constructor
 
 | コード | 説明 | 例 |
 |--------|------|-----|
-| E0300 | trait not available | `impl Display for T` |
-| E0301 | method call not available | `v.push(x)` |
+| E0300 | ~~trait not available~~ | **廃止**: trait は v1 で実装済み（静的ディスパッチ） |
+| E0301 | ~~method call not available~~ | **廃止**: メソッド構文は v1 で実装済み（`obj.method(args)` → `Type__method(obj, args)`） |
 | E0302 | nested generic | `Vec[Vec[i32]]` |
 | E0303 | ~~for loop not available~~ | **廃止**: `for` ループは v0 で実装済み |
-| E0304 | operator overload / `impl` | `impl Add for T` — **✅ 実装済み** |
+| E0304 | ~~operator overload / `impl`~~ | **廃止**: `impl Type { }` と `impl Trait for Type { }` は v1 で実装済み。演算子オーバーロードも動作 |
 
 **fix-it 例**:
 ```
@@ -158,6 +158,14 @@ error[E0301]: method call syntax not available in v0
    |
 help: use function call syntax instead
    |
+
+> **注**: E0301 は v1 で廃止。メソッド構文 `obj.method(args)` は v1 で動作する。
+
+### 演算子オーバーロードの型検査（v1）
+
+v1 では `a + b` のような演算子式で、オペランドが同じ struct 型の場合、
+対応する `impl` メソッド（`add`, `sub`, `mul`, `div`, `eq`, `cmp`）の存在を検査する。
+メソッドが存在しない場合は E0200（type mismatch）として報告される。
 
 ### W0xxx: 警告
 
@@ -232,7 +240,10 @@ let v = Vec_new_i32()
 push(v, 42)
 ```
 
-### パターン2: メソッド構文の誤用
+### パターン2: メソッド構文の誤用（v0 のみ — v1 で解消済み）
+
+> **注**: v1 ではメソッド構文 `obj.method(args)` が動作する。
+> 以下は v0 で発生していたエラーの参考記録。
 
 **LLMが書きやすいコード**:
 ```

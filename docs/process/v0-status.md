@@ -86,13 +86,16 @@ This document is the **single source of truth** for what is actually implemented
 | Closures | **runnable** | `\|x\| expr` lambda syntax works; captures not supported |
 | Higher-order functions | **runnable** | Function references as arguments (e.g. `map_i32_i32(v, double)`) |
 | `?` operator | **runnable** | Early-return on `Err`/`None`; works in functions returning `Result` or `Option` |
+| Traits | **runnable** | `trait Name { fn method(self) -> T }` — static dispatch only (v1) |
+| Impl blocks | **runnable** | `impl Trait for Type` and inherent `impl Type` (v1) |
+| Method call syntax | **runnable** | `obj.method(args)` desugars to `Type__method(obj, args)` (v1) |
 
 ## Operators
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| Arithmetic (`+`, `-`, `*`, `/`, `%`) | **runnable** | i32 only |
-| Comparison (`==`, `!=`, `<`, `>`, `<=`, `>=`) | **runnable** | i32 only |
+| Arithmetic (`+`, `-`, `*`, `/`, `%`) | **runnable** | i32 and struct types via operator overloading (v1) |
+| Comparison (`==`, `!=`, `<`, `>`, `<=`, `>=`) | **runnable** | i32 and struct types via operator overloading (v1) |
 | Logical (`&&`, `\|\|`, `!`) | **runnable** | Short-circuit evaluation |
 | Bitwise (`&`, `\|`, `^`, `~`, `<<`, `>>`) | **runnable** | |
 | String equality (`eq(a, b)`) | **runnable** | Byte-by-byte comparison |
@@ -134,6 +137,8 @@ This document is the **single source of truth** for what is actually implemented
 | `len(v)` | **runnable** | Vec element count |
 | `values(v)` | **runnable** | Iterator over Vec for use in `for x in values(v)` |
 | `map_i32_i32(v, f)` | **runnable** | Maps function over Vec |
+| `any_i32(v, f)` | **runnable** | Returns true if any element satisfies predicate |
+| `find_i32(v, f)` | **runnable** | Returns `Option<i32>` for first element matching predicate |
 | `filter_i32(v, f)` | **runnable** | Filters Vec by predicate |
 | `fold_i32_i32(v, init, f)` | **runnable** | Folds Vec with accumulator |
 | `sort_i32(v)` | **runnable** | Sorts Vec<i32> in-place |
@@ -187,11 +192,11 @@ This document is the **single source of truth** for what is actually implemented
 | E0201-E0206 | Type errors | **partial** — some checked, some designed |
 | E0207 | Immutable assignment | **runnable** |
 | E0210 | `?` outside Result fn | **runnable** |
-| E0300 | `trait` rejected | **runnable** |
-| E0301 | Method syntax rejected | **runnable** |
+| E0300 | `trait` rejected | **removed** — traits are now implemented (v1) |
+| E0301 | Method syntax rejected | **removed** — method call syntax is now implemented (v1) |
 | E0302 | Nested generics rejected | **runnable** |
 | E0303 | `for` loop rejected | **removed** — `for` loops are now implemented |
-| E0304 | `impl`/operator overload rejected | **runnable** |
+| E0304 | `impl`/operator overload rejected | **removed** — impl blocks and operator overloading are now implemented (v1) |
 | W0001 | Mutable sharing warning | **runnable** |
 
 ## Known Limitations
@@ -204,3 +209,28 @@ This document is the **single source of truth** for what is actually implemented
 6. **Silent failures**: Some unsupported features silently emit `i32.const(0)` or `Operand::Unit` instead of producing an error.
 7. **Module system — flat merge**: All imported symbols go into a single global scope. Name collisions across modules are not detected.
 8. **`parse_i64` / `parse_f64`**: Typechecker signatures registered but no Wasm emission code — calling these will produce incorrect results.
+
+---
+
+## v1 Implementation Status
+
+> **Milestone**: v1 builds on v0 and adds trait/impl/method/operator overloading support.
+
+| Milestone | Description | Status |
+|-----------|-------------|--------|
+| **M3: Bridge HOFs** | `any_i32`, `find_i32` higher-order functions for `Vec<i32>` | ✅ Complete |
+| **M4: Trait/Impl/Method System** | `trait Name { fn method(self) -> T }`, `impl Trait for Type { ... }`, `impl Type { ... }`, `obj.method(args)` desugaring — all static dispatch via name mangling | ✅ Complete |
+| **M5: Inherent Methods** | `impl Type { fn method(self) -> T { ... } }` without a trait | ✅ Complete (part of M4) |
+| **M6: Operator Overloading** | `a + b` on struct types calls `Type__add(a, b)` via impl methods (add/sub/mul/div/eq/cmp) | ✅ Complete |
+
+### v1 Bug Fixes
+
+- Struct field access without type annotation now works (infers struct type from `StructInit`)
+- Closure type synthesis returns `Function` type instead of `I32`
+
+### v1 Dispatch Model
+
+All method calls and operator overloads use **static dispatch** via name mangling:
+- `obj.method(args)` → `Type__method(obj, args)`
+- `a + b` (struct) → `Type__add(a, b)`
+- No vtable or dynamic dispatch
