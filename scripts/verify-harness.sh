@@ -128,40 +128,44 @@ if [ "$stdlib_ok" = true ]; then
     check_pass "Stdlib specification OK"
 fi
 
-# 6. Check formatting
-echo -e "\n${YELLOW}[6/10] Checking formatting...${NC}"
+# 6. Check markdown lint
+echo -e "\n${YELLOW}[6/11] Checking markdown lint...${NC}"
+run_check "markdownlint-cli2 **/*.md" "npx markdownlint-cli2 '**/*.md'"
+
+# 7. Check formatting
+echo -e "\n${YELLOW}[7/11] Checking formatting...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo fmt --all --check"
 else
     run_check "cargo fmt --all --check" "cargo fmt --all --check"
 fi
 
-# 7. Check clippy
-echo -e "\n${YELLOW}[7/10] Running clippy...${NC}"
+# 8. Check clippy
+echo -e "\n${YELLOW}[8/11] Running clippy...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo clippy --workspace -- -D warnings"
 else
     run_check "cargo clippy --workspace -- -D warnings" "cargo clippy --workspace -- -D warnings"
 fi
 
-# 8. Check build
-echo -e "\n${YELLOW}[8/10] Building workspace...${NC}"
+# 9. Check build
+echo -e "\n${YELLOW}[9/11] Building workspace...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo build --workspace"
 else
     run_check "cargo build --workspace" "cargo build --workspace"
 fi
 
-# 9. Run tests
-echo -e "\n${YELLOW}[9/10] Running workspace tests...${NC}"
+# 10. Run tests
+echo -e "\n${YELLOW}[10/11] Running workspace tests...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo test --workspace"
 else
     run_check "cargo test --workspace" "cargo test --workspace"
 fi
 
-# 10. Run fixture harness discovery test
-echo -e "\n${YELLOW}[10/10] Running fixture harness test...${NC}"
+# 11. Run fixture harness discovery test
+echo -e "\n${YELLOW}[11/11] Running fixture harness test...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo test -p arukellt --test harness -- --nocapture"
 else
