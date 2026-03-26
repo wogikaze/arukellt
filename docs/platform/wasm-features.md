@@ -2,25 +2,27 @@
 
 ADR-002 により **言語セマンティクスは Wasm GC ベース** で設計する。
 
-> **⚠️ 現在の実装状況**: v0 実装は **wasm32 linear memory + WASI Preview 1** を使用。
-> Wasm GC 型（struct/array/ref）および Component Model/WIT は**未実装**。
+> **⚠️ 現在の実装状況**: v0/v1 実装は **T1 `wasm32-wasi-p1` (linear memory + WASI Preview 1)** を使用。
+> Wasm GC 型（struct/array/ref）および Component Model/WIT は**未実装（T3 で対応予定）**。
 > 以下の分類は設計方針であり、実装完了を意味しない。
 > 現在の実装状況は [`docs/process/v0-status.md`](../process/v0-status.md) を参照。
 
-コンパイルターゲットは `wasm-gc`（設計上のデフォルト）と `wasm32`（AtCoder 等の非GC 環境）の 2 種類。
+ADR-007 で定義された 5 つの正規ターゲット:
+
+| ターゲット | ティア | 説明 | 実装状況 |
+|-----------|--------|------|---------|
+| `wasm32-wasi-p1` | T1 | Linear memory + WASI Preview 1 (AtCoder) | **実装済み** |
+| `wasm32-freestanding` | T2 | Wasm GC, WASI なし (ブラウザ/組み込み) | 計画中 |
+| `wasm32-wasi-p2` | T3 | Wasm GC + WASI Preview 2 + Component Model | 計画中 |
+| `native` | T4 | LLVM による native バイナリ | 計画中 |
+| `wasm32-wasi-p3` | T5 | Wasm GC + WASI Preview 3 (async-first) | 将来 |
+
+> **注**: 旧ターゲット名 `wasm-gc`, `wasm-gc-wasi-p2`, `wasm32` は互換 alias として受理されるが、
+> 使用時に非推奨警告 (W0002) が出る。正規名を使用すること。
 
 ---
 
-## コンパイルターゲット概要
-
-| ターゲット | フラグ | 対応ランタイム | 実装状況 |
-|-----------|--------|--------------|---------|
-| `wasm-gc` | 設計上のデフォルト | wasmtime 28.0+ / V8 / SpiderMonkey | **未実装** — 現在は linear memory |
-| `wasm32` | `--target wasm32` | wabt 1.0.34 / iwasm 2.4.1 / 非GC 環境 | **現在のバックエンドはこちらに近い** |
-
----
-
-## `wasm-gc` ターゲット: 機能層
+## T3 `wasm32-wasi-p2` ターゲット: 機能層
 
 arukellt が使用する Wasm 機能を 3 層に分類する。
 
@@ -103,8 +105,8 @@ arukellt が使用する Wasm 機能を 3 層に分類する。
 
 ### Layer 2 public surface rule
 
-- Layer 2A: raw Wasm import/export（主に wasm32/AtCoder 互換）
-- Layer 2B: Component Model/WIT（主に wasm-gc 配布面）
+- Layer 2A: raw Wasm import/export（主に T1 `wasm32-wasi-p1` / AtCoder 互換）
+- Layer 2B: Component Model/WIT（主に T3 `wasm32-wasi-p2` 配布面）
 - 同一の言語セマンティクスを両面へ落とす
 
 ---
@@ -176,7 +178,7 @@ arukellt が使用する Wasm 機能を 3 層に分類する。
 - wasmtime（CLI に組み込み済み）
 - 任意の WASI Preview 1 対応ランタイム
 
-将来の wasm-gc ターゲットでは GC 対応ランタイムが必要:
+将来の T3 `wasm32-wasi-p2` ターゲットでは GC 対応ランタイムが必要:
 
 - wasmtime 28.0+ (`--wasm gc` フラグ)
 - V8 (Chrome 119+)
@@ -184,11 +186,11 @@ arukellt が使用する Wasm 機能を 3 層に分類する。
 
 ---
 
-## `wasm32` ターゲット: 使用機能層
+## T1 `wasm32-wasi-p1` ターゲット: 使用機能層
 
 AtCoder（wabt 1.0.34 + iwasm 2.4.1）向け。Wasm GC 命令と Component Model は使用しない。
 
-### Layer 1: wasm32 必須機能
+### Layer 1: T1 必須機能
 
 | 機能 | 用途 |
 |------|------|
@@ -198,7 +200,7 @@ AtCoder（wabt 1.0.34 + iwasm 2.4.1）向け。Wasm GC 命令と Component Model
 | WASI Preview 1（fd_write / fd_read / proc_exit） | I/O |
 | `funcref` | クロージャ関数ポインタ |
 
-### 使用しない機能（wasm32 では禁止）
+### 使用しない機能（T1 では禁止）
 
 | 機能 | 理由 |
 |------|------|
@@ -207,9 +209,9 @@ AtCoder（wabt 1.0.34 + iwasm 2.4.1）向け。Wasm GC 命令と Component Model
 | `ref.cast` / `ref.test` | iwasm 非対応 |
 | Component Model / WIT | iwasm / wabt 非対応 |
 
-### GC 型の lowering 方針（wasm32 時）
+### GC 型の lowering 方針（T1 時）
 
-| wasm-gc 型 | wasm32 での表現 |
+| T3 GC 型 | T1 での表現 |
 |-----------|----------------|
 | `(ref $struct_T)` | linear memory ポインタ（`i32` オフセット） |
 | `(ref $array_T)` | `(i32 ptr, i32 len)` のペア |

@@ -138,7 +138,7 @@ help: use a type-specific constructor
    |             ~~~~~~~~~~~~~
 ```
 
-### E03xx: v0制約違反
+### E03xx: v0制約違反 / ターゲット制約
 
 | コード | 説明 | 例 |
 |--------|------|-----|
@@ -147,6 +147,16 @@ help: use a type-specific constructor
 | E0302 | nested generic | `Vec[Vec[i32]]` |
 | E0303 | ~~for loop not available~~ | **廃止**: `for` ループは v0 で実装済み |
 | E0304 | ~~operator overload / `impl`~~ | **廃止**: `impl Type { }` と `impl Trait for Type { }` は v1 で実装済み。演算子オーバーロードも動作 |
+| E0305 | unsupported target | `--target wasm32-wasi-p3` (未実装ターゲット) |
+| E0306 | invalid emit kind for target | `--target wasm32-wasi-p1 --emit component` (T1はcomponent非対応) |
+| E0307 | feature not available for target | ターゲット固有の制約違反 |
+
+### W0xxx: 警告
+
+| コード | 説明 | 例 |
+|--------|------|-----|
+| W0001 | possible unintended sharing | 参照型の暗黙共有 |
+| W0002 | deprecated target alias | `--target wasm-gc` → `--target wasm32-wasi-p2` |
 
 **fix-it 例**:
 ```

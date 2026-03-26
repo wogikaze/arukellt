@@ -73,15 +73,19 @@ pub enum DiagnosticCode {
     E0209, // unreachable pattern
     E0210, // ? operator type mismatch
 
-    // E03xx: v0 constraints
+    // E03xx: v0 constraints / target constraints
     E0300, // trait not available
     E0301, // method syntax forbidden
     E0302, // nested generic forbidden
     E0303, // for loop forbidden
     E0304, // operator overload forbidden
+    E0305, // unsupported target
+    E0306, // invalid emit kind for target
+    E0307, // feature not available for target
 
     // W0xxx: Warnings
     W0001, // possible unintended sharing
+    W0002, // deprecated target alias
 }
 
 impl DiagnosticCode {
@@ -110,7 +114,11 @@ impl DiagnosticCode {
             Self::E0302 => "E0302",
             Self::E0303 => "E0303",
             Self::E0304 => "E0304",
+            Self::E0305 => "E0305",
+            Self::E0306 => "E0306",
+            Self::E0307 => "E0307",
             Self::W0001 => "W0001",
+            Self::W0002 => "W0002",
         }
     }
 
@@ -139,13 +147,17 @@ impl DiagnosticCode {
             Self::E0302 => "nested generics are not allowed in v0",
             Self::E0303 => "`for` loop is not available in v0",
             Self::E0304 => "operator overloading is not available in v0",
+            Self::E0305 => "unsupported target",
+            Self::E0306 => "invalid emit kind for target",
+            Self::E0307 => "feature not available for target",
             Self::W0001 => "possible unintended sharing of reference type",
+            Self::W0002 => "deprecated target alias",
         }
     }
 
     pub fn severity(self) -> Severity {
         match self {
-            Self::W0001 => Severity::Warning,
+            Self::W0001 | Self::W0002 => Severity::Warning,
             _ => Severity::Error,
         }
     }

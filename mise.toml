@@ -5,9 +5,21 @@ rust = "1.85"
 run = "cargo build"
 description = "Build all crates"
 
+[tasks."build:release"]
+run = "cargo build --release"
+description = "Build all crates in release mode"
+
 [tasks.test]
 run = "cargo test --workspace"
-description = "Run all tests"
+description = "Run all unit tests"
+
+[tasks."test:unit"]
+run = "cargo test --workspace --lib"
+description = "Run library unit tests only"
+
+[tasks."test:t1"]
+run = "cargo test --test harness -- --nocapture"
+description = "Run T1 fixture harness"
 
 [tasks.lint]
 run = "cargo clippy --workspace -- -D warnings"
@@ -23,7 +35,7 @@ description = "Check formatting"
 
 [tasks.verify]
 run = "bash scripts/verify-harness.sh"
-description = "Run full verification harness"
+description = "Run full verification harness (10 checks)"
 
 [tasks."verify:quick"]
 run = "bash scripts/verify-harness.sh --quick"
