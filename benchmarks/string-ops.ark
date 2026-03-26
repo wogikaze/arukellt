@@ -1,0 +1,7 @@
+fn main() {
+    let s: String = String_from("hello")
+    let t: String = String_from(" world")
+    let result: String = concat(s, t)
+    println(result)
+    println(i32_to_string(len(result)))
+}

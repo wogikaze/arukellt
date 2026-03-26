@@ -1,0 +1,21 @@
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < 100 {
+        push(v, i * 2)
+        i = i + 1
+    }
+    println(i32_to_string(len(v)))
+    match get(v, 0) {
+        Some(val) => println(i32_to_string(val)),
+        None => println("error"),
+    }
+    match get(v, 50) {
+        Some(val) => println(i32_to_string(val)),
+        None => println("error"),
+    }
+    match get(v, 99) {
+        Some(val) => println(i32_to_string(val)),
+        None => println("error"),
+    }
+}
