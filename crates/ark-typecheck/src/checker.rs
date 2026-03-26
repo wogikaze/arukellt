@@ -1043,6 +1043,58 @@ impl TypeChecker {
             },
         );
 
+        // --- assert functions ---
+        self.fn_sigs.insert(
+            "assert".into(),
+            FnSig {
+                name: "assert".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Bool],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "assert_eq".into(),
+            FnSig {
+                name: "assert_eq".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "assert_ne".into(),
+            FnSig {
+                name: "assert_ne".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "assert_eq_str".into(),
+            FnSig {
+                name: "assert_eq_str".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "assert_eq_i64".into(),
+            FnSig {
+                name: "assert_eq_i64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I64, Type::I64],
+                ret: Type::Unit,
+            },
+        );
+
         // --- Missing stdlib: clone ---
         self.fn_sigs.insert(
             "clone".into(),

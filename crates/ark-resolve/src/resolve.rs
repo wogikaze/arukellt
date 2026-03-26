@@ -78,6 +78,11 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "to_string",
     "fs_read_file",
     "fs_write_file",
+    "assert",
+    "assert_eq",
+    "assert_ne",
+    "assert_eq_str",
+    "assert_eq_i64",
     // Existing __intrinsic_* names (called from prelude.ark or user code)
     "__intrinsic_println",
     "__intrinsic_print",

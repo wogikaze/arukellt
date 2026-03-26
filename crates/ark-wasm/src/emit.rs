@@ -312,6 +312,44 @@ impl EmitCtx {
         offset + 4 // pointer to data start
     }
 
+    /// Emit inline panic with a static message: write message to stderr, then unreachable.
+    fn emit_static_panic(&mut self, f: &mut Function, msg: &str) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let msg_ptr = self.alloc_length_prefixed_string(msg);
+        let msg_len = msg.len() as i32;
+        // Write message to stderr
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(msg_ptr as i32));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32 + 4));
+        f.instruction(&Instruction::I32Const(msg_len));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(2)); // fd=stderr
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Drop);
+        // Write newline to stderr
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(NEWLINE as i32));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32 + 4));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(2)); // fd=stderr
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::Unreachable);
+    }
+
     fn resolve_fn(&self, name: &str) -> Option<u32> {
         self.fn_names
             .iter()
@@ -2213,6 +2251,11 @@ impl EmitCtx {
                         | "find_i32"
                         | "push_char"
                         | "panic"
+                        | "assert"
+                        | "assert_eq"
+                        | "assert_ne"
+                        | "assert_eq_str"
+                        | "assert_eq_i64"
                         | "sqrt"
                         | "abs"
                         | "min"
@@ -2314,8 +2357,9 @@ impl EmitCtx {
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
                     }
-                    "panic" => {
-                        // panic is void (unreachable) — emit inline
+                    "panic" | "assert" | "assert_eq" | "assert_ne" | "assert_eq_str"
+                    | "assert_eq_i64" => {
+                        // void builtins — emit inline via Operand::Call path
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
                     }
@@ -2418,7 +2462,12 @@ impl EmitCtx {
                 }
                 f.instruction(&Instruction::Return);
             }
-            _ => {}
+            other => {
+                eprintln!(
+                    "ICE: unhandled statement in emit_stmt: {:?}",
+                    std::mem::discriminant(other)
+                );
+            }
         }
     }
 
@@ -5124,6 +5173,51 @@ impl EmitCtx {
                         f.instruction(&Instruction::Drop);
                         f.instruction(&Instruction::Unreachable);
                     }
+                    "assert" => {
+                        // assert(cond: bool): if !cond, panic
+                        self.emit_operand(f, &args[0]);
+                        f.instruction(&Instruction::I32Eqz);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        self.emit_static_panic(f, "assertion failed");
+                        f.instruction(&Instruction::End);
+                    }
+                    "assert_eq" => {
+                        // assert_eq(a: i32, b: i32): if a != b, panic
+                        self.emit_operand(f, &args[0]);
+                        self.emit_operand(f, &args[1]);
+                        f.instruction(&Instruction::I32Ne);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        self.emit_static_panic(f, "assertion failed: assert_eq");
+                        f.instruction(&Instruction::End);
+                    }
+                    "assert_ne" => {
+                        // assert_ne(a: i32, b: i32): if a == b, panic
+                        self.emit_operand(f, &args[0]);
+                        self.emit_operand(f, &args[1]);
+                        f.instruction(&Instruction::I32Eq);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        self.emit_static_panic(f, "assertion failed: assert_ne");
+                        f.instruction(&Instruction::End);
+                    }
+                    "assert_eq_str" => {
+                        // assert_eq_str(a: String, b: String): if !str_eq(a, b), panic
+                        self.emit_operand(f, &args[0]);
+                        self.emit_operand(f, &args[1]);
+                        f.instruction(&Instruction::Call(FN_STR_EQ));
+                        f.instruction(&Instruction::I32Eqz);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        self.emit_static_panic(f, "assertion failed: assert_eq_str");
+                        f.instruction(&Instruction::End);
+                    }
+                    "assert_eq_i64" => {
+                        // assert_eq_i64(a: i64, b: i64): if a != b, panic
+                        self.emit_operand(f, &args[0]);
+                        self.emit_operand(f, &args[1]);
+                        f.instruction(&Instruction::I64Ne);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        self.emit_static_panic(f, "assertion failed: assert_eq_i64");
+                        f.instruction(&Instruction::End);
+                    }
                     "clone" => {
                         // clone(s: String) -> String: deep copy a length-prefixed string
                         let ma = MemArg {
@@ -6146,7 +6240,11 @@ impl EmitCtx {
                 f.instruction(&Instruction::I32Load(ma));
             }
             Operand::Unit => { /* nothing to push */ }
-            _ => {
+            other => {
+                eprintln!(
+                    "ICE: unhandled operand in emit_operand: {:?}",
+                    std::mem::discriminant(other)
+                );
                 f.instruction(&Instruction::I32Const(0));
             }
         }
