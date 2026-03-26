@@ -15,6 +15,7 @@ ark-typecheck = { workspace = true }
 ark-mir = { workspace = true }
 ark-wasm = { workspace = true }
 ark-diagnostics = { workspace = true }
+ark-target = { workspace = true }
 ark-stdlib = { workspace = true }
 clap = { workspace = true }
 wasmtime = { workspace = true }

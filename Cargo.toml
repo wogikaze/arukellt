@@ -9,6 +9,7 @@ members = [
     "crates/ark-wasm",
     "crates/ark-diagnostics",
     "crates/ark-stdlib",
+    "crates/ark-target",
     "crates/arukellt",
 ]
 
@@ -26,6 +27,7 @@ ark-typecheck = { path = "crates/ark-typecheck" }
 ark-mir = { path = "crates/ark-mir" }
 ark-wasm = { path = "crates/ark-wasm" }
 ark-diagnostics = { path = "crates/ark-diagnostics" }
+ark-target = { path = "crates/ark-target" }
 ark-stdlib = { path = "crates/ark-stdlib" }
 
 # Shared dependencies

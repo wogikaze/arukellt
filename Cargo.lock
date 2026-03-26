@@ -173,6 +173,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "ark-target"
+version = "0.1.0"
+
+[[package]]
 name = "ark-typecheck"
 version = "0.1.0"
 dependencies = [
@@ -188,6 +192,7 @@ dependencies = [
  "ark-diagnostics",
  "ark-mir",
  "ark-parser",
+ "ark-target",
  "ark-typecheck",
  "wasm-encoder 0.225.0",
 ]
@@ -202,6 +207,7 @@ dependencies = [
  "ark-parser",
  "ark-resolve",
  "ark-stdlib",
+ "ark-target",
  "ark-typecheck",
  "ark-wasm",
  "clap",

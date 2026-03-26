@@ -9,47 +9,13 @@ use std::process;
 use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
 use ark_lexer::Lexer;
 use ark_parser::parse;
+use ark_target::{TargetId, parse_target};
 
 #[derive(Parser)]
 #[command(name = "arukellt", version, about = "The Arukellt compiler")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
-}
-
-#[derive(Clone, Debug, Default)]
-enum CompileTarget {
-    #[default]
-    Wasm32WasiP1,
-    WasmGc,
-    WasmGcWasiP2,
-    Native,
-}
-
-impl std::str::FromStr for CompileTarget {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "wasm32-wasi-p1" | "wasm32-wasi" => Ok(CompileTarget::Wasm32WasiP1),
-            "wasm-gc" => Ok(CompileTarget::WasmGc),
-            "wasm-gc-wasi-p2" => Ok(CompileTarget::WasmGcWasiP2),
-            "native" => Ok(CompileTarget::Native),
-            _ => Err(format!(
-                "unknown target `{s}`. Available: wasm32-wasi-p1 (default), wasm-gc, wasm-gc-wasi-p2, native"
-            )),
-        }
-    }
-}
-
-impl std::fmt::Display for CompileTarget {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CompileTarget::Wasm32WasiP1 => write!(f, "wasm32-wasi-p1"),
-            CompileTarget::WasmGc => write!(f, "wasm-gc"),
-            CompileTarget::WasmGcWasiP2 => write!(f, "wasm-gc-wasi-p2"),
-            CompileTarget::Native => write!(f, "native"),
-        }
-    }
 }
 
 #[derive(Subcommand)]
@@ -63,7 +29,7 @@ enum Commands {
         output: Option<PathBuf>,
         /// Compile target
         #[arg(long, default_value = "wasm32-wasi-p1")]
-        target: CompileTarget,
+        target: TargetId,
     },
     /// Compile and run an .ark file
     Run {
@@ -71,17 +37,26 @@ enum Commands {
         file: PathBuf,
         /// Compile target
         #[arg(long, default_value = "wasm32-wasi-p1")]
-        target: CompileTarget,
+        target: TargetId,
     },
     /// Type-check an .ark file without compiling
     Check {
         /// Input .ark file
         file: PathBuf,
+        /// Compile target
+        #[arg(long, default_value = "wasm32-wasi-p1")]
+        target: TargetId,
     },
+    /// List available compile targets
+    Targets,
 }
 
 fn main() {
     let cli = Cli::parse();
+
+    // Check for alias warnings in raw args (clap already parsed TargetId,
+    // but we want to warn on deprecated aliases)
+    check_target_alias_warning();
 
     match cli.command {
         Commands::Compile {
@@ -89,22 +64,29 @@ fn main() {
             output,
             target,
         } => {
-            if !matches!(target, CompileTarget::Wasm32WasiP1) {
-                eprintln!("error: target `{}` is not yet implemented", target);
+            let profile = target.profile();
+            if !profile.implemented {
+                eprintln!(
+                    "error: target `{}` ({}) is not yet implemented [{}]",
+                    target,
+                    target.tier(),
+                    profile.status_label()
+                );
                 process::exit(1);
             }
             let output = output.unwrap_or_else(|| file.with_extension("wasm"));
-            match compile_file(&file) {
+            match compile_file(&file, target) {
                 Ok(wasm) => {
                     std::fs::write(&output, &wasm).unwrap_or_else(|e| {
                         eprintln!("error: failed to write {}: {}", output.display(), e);
                         process::exit(1);
                     });
                     eprintln!(
-                        "Compiled {} -> {} ({} bytes)",
+                        "Compiled {} -> {} ({} bytes, target: {})",
                         file.display(),
                         output.display(),
-                        wasm.len()
+                        wasm.len(),
+                        target,
                     );
                 }
                 Err(errors) => {
@@ -114,11 +96,24 @@ fn main() {
             }
         }
         Commands::Run { file, target } => {
-            if !matches!(target, CompileTarget::Wasm32WasiP1) {
-                eprintln!("error: target `{}` is not yet implemented", target);
+            let profile = target.profile();
+            if !profile.run_supported {
+                if !profile.implemented {
+                    eprintln!(
+                        "error: target `{}` ({}) is not yet implemented",
+                        target,
+                        target.tier()
+                    );
+                } else {
+                    eprintln!(
+                        "error: target `{}` ({}) does not support `run` (compile only)",
+                        target,
+                        target.tier()
+                    );
+                }
                 process::exit(1);
             }
-            match compile_file(&file) {
+            match compile_file(&file, target) {
                 Ok(wasm) => {
                     if let Err(e) = run_wasm(&wasm) {
                         eprintln!("error: runtime: {}", e);
@@ -131,19 +126,57 @@ fn main() {
                 }
             }
         }
-        Commands::Check { file } => match check_file(&file) {
-            Ok(()) => {
-                eprintln!("OK: {}", file.display());
-            }
-            Err(errors) => {
-                eprint!("{}", errors);
+        Commands::Check { file, target } => {
+            let profile = target.profile();
+            if !profile.implemented {
+                eprintln!(
+                    "error: target `{}` ({}) is not yet implemented",
+                    target,
+                    target.tier()
+                );
                 process::exit(1);
             }
-        },
+            match check_file(&file) {
+                Ok(()) => {
+                    eprintln!("OK: {}", file.display());
+                }
+                Err(errors) => {
+                    eprint!("{}", errors);
+                    process::exit(1);
+                }
+            }
+        }
+        Commands::Targets => {
+            print!("{}", ark_target::targets_help());
+        }
     }
 }
 
-fn compile_file(path: &PathBuf) -> Result<Vec<u8>, String> {
+/// Check raw CLI args for deprecated target aliases and emit warnings.
+fn check_target_alias_warning() {
+    let args: Vec<String> = std::env::args().collect();
+    if let Some(pos) = args.iter().position(|a| a == "--target") {
+        if let Some(value) = args.get(pos + 1) {
+            if let Ok(result) = parse_target(value) {
+                if let Some(warning) = result.alias_warning() {
+                    eprintln!("{}", warning);
+                }
+            }
+        }
+    }
+    // Also check --target=value form
+    for arg in &args {
+        if let Some(value) = arg.strip_prefix("--target=") {
+            if let Ok(result) = parse_target(value) {
+                if let Some(warning) = result.alias_warning() {
+                    eprintln!("{}", warning);
+                }
+            }
+        }
+    }
+}
+
+fn compile_file(path: &PathBuf, _target: TargetId) -> Result<Vec<u8>, String> {
     let source =
         std::fs::read_to_string(path).map_err(|e| format!("error: {}: {}", path.display(), e))?;
 
@@ -182,7 +215,7 @@ fn compile_file(path: &PathBuf) -> Result<Vec<u8>, String> {
     let mir = ark_mir::lower::lower_to_mir(&resolved.module, &checker, &mut sink);
 
     // Emit Wasm
-    let wasm = ark_wasm::emit(&mir, &mut sink);
+    let wasm = ark_wasm::emit(&mir, &mut sink, _target);
 
     if sink.has_errors() {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));

@@ -1,7 +1,7 @@
-//! Wasm module emission using wasm-encoder.
+//! T1 `wasm32-wasi-p1` backend.
 //!
 //! Generates a WASI Preview 1 compatible Wasm module from MIR.
-//! Uses linear memory. Direct recursive emission (no planning phase).
+//! Uses linear memory with arena-only allocation.
 
 use ark_diagnostics::DiagnosticSink;
 use ark_mir::mir::*;
