@@ -208,35 +208,271 @@ impl TypeChecker {
                 ret: Type::Unit,
             },
         );
+
+        // New __intrinsic_* sigs for functions now defined in prelude.ark
         self.fn_sigs.insert(
-            "println".into(),
+            "__intrinsic_string_new".into(),
             FnSig {
-                name: "println".into(),
+                name: "__intrinsic_string_new".into(),
+                type_params: vec![],
+                params: vec![],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_concat".into(),
+            FnSig {
+                name: "__intrinsic_concat".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_string_clone".into(),
+            FnSig {
+                name: "__intrinsic_string_clone".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_starts_with".into(),
+            FnSig {
+                name: "__intrinsic_starts_with".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_ends_with".into(),
+            FnSig {
+                name: "__intrinsic_ends_with".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_to_lower".into(),
+            FnSig {
+                name: "__intrinsic_to_lower".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_to_upper".into(),
+            FnSig {
+                name: "__intrinsic_to_upper".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_string_slice".into(),
+            FnSig {
+                name: "__intrinsic_string_slice".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::I32, Type::I32],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_i32_to_string".into(),
+            FnSig {
+                name: "__intrinsic_i32_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_i64_to_string".into(),
+            FnSig {
+                name: "__intrinsic_i64_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::I64],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_f64_to_string".into(),
+            FnSig {
+                name: "__intrinsic_f64_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::F64],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_bool_to_string".into(),
+            FnSig {
+                name: "__intrinsic_bool_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::Bool],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_char_to_string".into(),
+            FnSig {
+                name: "__intrinsic_char_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::Char],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_parse_i32".into(),
+            FnSig {
+                name: "__intrinsic_parse_i32".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_sqrt".into(),
+            FnSig {
+                name: "__intrinsic_sqrt".into(),
+                type_params: vec![],
+                params: vec![Type::F64],
+                ret: Type::F64,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_abs".into(),
+            FnSig {
+                name: "__intrinsic_abs".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_min".into(),
+            FnSig {
+                name: "__intrinsic_min".into(),
+                type_params: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_max".into(),
+            FnSig {
+                name: "__intrinsic_max".into(),
+                type_params: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_panic".into(),
+            FnSig {
+                name: "__intrinsic_panic".into(),
                 type_params: vec![],
                 params: vec![Type::String],
                 ret: Type::Unit,
             },
         );
         self.fn_sigs.insert(
-            "print".into(),
+            "__intrinsic_Vec_new_i32".into(),
             FnSig {
-                name: "print".into(),
+                name: "__intrinsic_Vec_new_i32".into(),
                 type_params: vec![],
-                params: vec![Type::String],
+                params: vec![],
+                ret: Type::Vec(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_Vec_new_i64".into(),
+            FnSig {
+                name: "__intrinsic_Vec_new_i64".into(),
+                type_params: vec![],
+                params: vec![],
+                ret: Type::Vec(Box::new(Type::I64)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_Vec_new_f64".into(),
+            FnSig {
+                name: "__intrinsic_Vec_new_f64".into(),
+                type_params: vec![],
+                params: vec![],
+                ret: Type::Vec(Box::new(Type::F64)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_Vec_new_String".into(),
+            FnSig {
+                name: "__intrinsic_Vec_new_String".into(),
+                type_params: vec![],
+                params: vec![],
+                ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_sort_i32".into(),
+            FnSig {
+                name: "__intrinsic_sort_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32))],
                 ret: Type::Unit,
             },
         );
         self.fn_sigs.insert(
-            "eprintln".into(),
+            "__intrinsic_sort_String".into(),
             FnSig {
-                name: "eprintln".into(),
+                name: "__intrinsic_sort_String".into(),
                 type_params: vec![],
-                params: vec![Type::String],
+                params: vec![Type::Vec(Box::new(Type::String))],
                 ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_map_i32_i32".into(),
+            FnSig {
+                name: "__intrinsic_map_i32_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+                ret: Type::Vec(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_filter_i32".into(),
+            FnSig {
+                name: "__intrinsic_filter_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+                ret: Type::Vec(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_fold_i32_i32".into(),
+            FnSig {
+                name: "__intrinsic_fold_i32_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_map_option_i32_i32".into(),
+            FnSig {
+                name: "__intrinsic_map_option_i32_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Option(Box::new(Type::I32)), Type::I32],
+                ret: Type::Option(Box::new(Type::I32)),
             },
         );
 
-        // Conversion functions
+        // Conversion functions (user-facing; still needed as fallback until AST sigs take over)
         self.fn_sigs.insert(
             "i32_to_string".into(),
             FnSig {

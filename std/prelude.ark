@@ -1,19 +1,146 @@
+// I/O
 pub fn println(s: String) {
-    __intrinsic_println(s)
+    __intrinsic_println(s);
 }
 
 pub fn print(s: String) {
-    __intrinsic_print(s)
+    __intrinsic_print(s);
 }
 
 pub fn eprintln(s: String) {
-    __intrinsic_eprintln(s)
+    __intrinsic_eprintln(s);
 }
 
+// String construction
 pub fn String_from(s: String) -> String {
     __intrinsic_string_from(s)
 }
 
+pub fn String_new() -> String {
+    __intrinsic_string_new()
+}
+
+// String comparison
 pub fn eq(a: String, b: String) -> bool {
     __intrinsic_string_eq(a, b)
+}
+
+// String operations
+pub fn concat(a: String, b: String) -> String {
+    __intrinsic_concat(a, b)
+}
+
+pub fn clone(s: String) -> String {
+    __intrinsic_string_clone(s)
+}
+
+pub fn starts_with(s: String, prefix: String) -> bool {
+    __intrinsic_starts_with(s, prefix)
+}
+
+pub fn ends_with(s: String, suffix: String) -> bool {
+    __intrinsic_ends_with(s, suffix)
+}
+
+pub fn to_lower(s: String) -> String {
+    __intrinsic_to_lower(s)
+}
+
+pub fn to_upper(s: String) -> String {
+    __intrinsic_to_upper(s)
+}
+
+pub fn slice(s: String, start: i32, end: i32) -> String {
+    __intrinsic_string_slice(s, start, end)
+}
+
+// Conversion: to string
+pub fn i32_to_string(n: i32) -> String {
+    __intrinsic_i32_to_string(n)
+}
+
+pub fn i64_to_string(n: i64) -> String {
+    __intrinsic_i64_to_string(n)
+}
+
+pub fn f64_to_string(n: f64) -> String {
+    __intrinsic_f64_to_string(n)
+}
+
+pub fn bool_to_string(b: bool) -> String {
+    __intrinsic_bool_to_string(b)
+}
+
+pub fn char_to_string(c: char) -> String {
+    __intrinsic_char_to_string(c)
+}
+
+// Conversion: from string
+pub fn parse_i32(s: String) -> i32 {
+    __intrinsic_parse_i32(s)
+}
+
+// Math
+pub fn sqrt(x: f64) -> f64 {
+    __intrinsic_sqrt(x)
+}
+
+pub fn abs(x: i32) -> i32 {
+    __intrinsic_abs(x)
+}
+
+pub fn min(a: i32, b: i32) -> i32 {
+    __intrinsic_min(a, b)
+}
+
+pub fn max(a: i32, b: i32) -> i32 {
+    __intrinsic_max(a, b)
+}
+
+// Control
+pub fn panic(s: String) {
+    __intrinsic_panic(s);
+}
+
+// Vec constructors
+pub fn Vec_new_i32() -> Vec<i32> {
+    __intrinsic_Vec_new_i32()
+}
+
+pub fn Vec_new_i64() -> Vec<i64> {
+    __intrinsic_Vec_new_i64()
+}
+
+pub fn Vec_new_f64() -> Vec<f64> {
+    __intrinsic_Vec_new_f64()
+}
+
+pub fn Vec_new_String() -> Vec<String> {
+    __intrinsic_Vec_new_String()
+}
+
+// Vec sorting
+pub fn sort_i32(v: Vec<i32>) {
+    __intrinsic_sort_i32(v);
+}
+
+pub fn sort_String(v: Vec<String>) {
+    __intrinsic_sort_String(v);
+}
+
+// Vec higher-order
+pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
+    __intrinsic_map_i32_i32(v, f)
+}
+
+pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
+    __intrinsic_filter_i32(v, f)
+}
+
+pub fn fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
+    __intrinsic_fold_i32_i32(v, init, f)
+}
+
+pub fn map_option_i32_i32(o: Option<i32>, f: fn(i32) -> i32) -> Option<i32> {
+    __intrinsic_map_option_i32_i32(o, f)
 }

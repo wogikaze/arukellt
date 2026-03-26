@@ -47,6 +47,48 @@ const FN_FOLD_I32: u32 = 11;
 const FN_MAP_OPT_I32: u32 = 12;
 const FN_USER_BASE: u32 = 13;
 
+/// Normalize `__intrinsic_*` names to their canonical emit names.
+fn normalize_intrinsic_name(name: &str) -> &str {
+    match name {
+        "__intrinsic_println" => "println",
+        "__intrinsic_print" => "print",
+        "__intrinsic_eprintln" => "eprintln",
+        "__intrinsic_string_from" => "String_from",
+        "__intrinsic_string_new" => "String_new",
+        "__intrinsic_string_eq" => "eq",
+        "__intrinsic_concat" => "concat",
+        "__intrinsic_string_clone" => "clone",
+        "__intrinsic_starts_with" => "starts_with",
+        "__intrinsic_ends_with" => "ends_with",
+        "__intrinsic_to_lower" => "to_lower",
+        "__intrinsic_to_upper" => "to_upper",
+        "__intrinsic_string_slice" => "slice",
+        "__intrinsic_string_is_empty" => "is_empty",
+        "__intrinsic_i32_to_string" => "i32_to_string",
+        "__intrinsic_i64_to_string" => "i64_to_string",
+        "__intrinsic_f64_to_string" => "f64_to_string",
+        "__intrinsic_bool_to_string" => "bool_to_string",
+        "__intrinsic_char_to_string" => "char_to_string",
+        "__intrinsic_parse_i32" => "parse_i32",
+        "__intrinsic_sqrt" => "sqrt",
+        "__intrinsic_abs" => "abs",
+        "__intrinsic_min" => "min",
+        "__intrinsic_max" => "max",
+        "__intrinsic_panic" => "panic",
+        "__intrinsic_Vec_new_i32" => "Vec_new_i32",
+        "__intrinsic_Vec_new_i64" => "Vec_new_i64",
+        "__intrinsic_Vec_new_f64" => "Vec_new_f64",
+        "__intrinsic_Vec_new_String" => "Vec_new_String",
+        "__intrinsic_sort_i32" => "sort_i32",
+        "__intrinsic_sort_String" => "sort_String",
+        "__intrinsic_map_i32_i32" => "map_i32_i32",
+        "__intrinsic_filter_i32" => "filter_i32",
+        "__intrinsic_fold_i32_i32" => "fold_i32_i32",
+        "__intrinsic_map_option_i32_i32" => "map_option_i32_i32",
+        other => other,
+    }
+}
+
 pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
     // Build struct layouts and string field tracking
     let mut struct_layouts: std::collections::HashMap<String, Vec<(String, String)>> =
@@ -1862,10 +1904,10 @@ impl EmitCtx {
         match op {
             Operand::ConstString(_) => true,
             Operand::Call(name, args) => {
+                let name = normalize_intrinsic_name(name.as_str());
                 if matches!(
-                    name.as_str(),
+                    name,
                     "String_from"
-                        | "__intrinsic_string_from"
                         | "concat"
                         | "to_string"
                         | "i32_to_string"
@@ -1879,11 +1921,12 @@ impl EmitCtx {
                         | "to_lower"
                         | "to_upper"
                         | "clone"
+                        | "String_new"
                 ) {
                     return true;
                 }
                 // get/get_unchecked on Vec<String> returns String
-                if matches!(name.as_str(), "get" | "get_unchecked") {
+                if matches!(name, "get" | "get_unchecked") {
                     if let Some(Operand::Place(Place::Local(id))) = args.first() {
                         if self.vec_string_locals.contains(&id.0) {
                             return true;
@@ -1893,7 +1936,7 @@ impl EmitCtx {
                 // Check if function returns String
                 if self
                     .fn_return_types
-                    .get(name.as_str())
+                    .get(name)
                     .is_some_and(|t| matches!(t, ark_typecheck::types::Type::String))
                 {
                     return true;
@@ -1901,7 +1944,7 @@ impl EmitCtx {
                 // Heuristic: if any arg is a string, generic function might return string
                 // Exclude functions known to NOT return String
                 if matches!(
-                    name.as_str(),
+                    name,
                     "split"
                         | "push"
                         | "set"
@@ -1988,10 +2031,11 @@ impl EmitCtx {
                 f.instruction(&Instruction::LocalSet(id.0));
             }
             MirStmt::CallBuiltin { name, args, .. } => {
-                match name.as_str() {
-                    "println" | "__intrinsic_println" => self.emit_println(f, args),
-                    "print" | "__intrinsic_print" => self.emit_print(f, args),
-                    "eprintln" | "__intrinsic_eprintln" => {
+                let name = normalize_intrinsic_name(name.as_str());
+                match name {
+                    "println" => self.emit_println(f, args),
+                    "print" => self.emit_print(f, args),
+                    "eprintln" => {
                         self.emit_eprintln(f, args);
                     }
                     "print_i32_ln" => {
@@ -2021,17 +2065,17 @@ impl EmitCtx {
                     }
                     "push" | "set" | "sort_i32" | "sort_String" => {
                         // Void Vec operations — emit inline via Operand::Call path
-                        let call_op = Operand::Call(name.clone(), args.clone());
+                        let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
                     }
                     "panic" => {
                         // panic is void (unreachable) — emit inline
-                        let call_op = Operand::Call(name.clone(), args.clone());
+                        let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
                     }
                     "push_char" => {
                         // push_char is mutating — emit call and update the local
-                        let call_op = Operand::Call(name.clone(), args.clone());
+                        let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
                         // push_char returns new str ptr; update the variable
                         if let Some(Operand::Place(Place::Local(lid))) = args.first() {
@@ -2042,13 +2086,13 @@ impl EmitCtx {
                     }
                     "pop" | "get" | "Vec_new_i32" | "Vec_new_String" | "len" | "get_unchecked" => {
                         // Value-returning Vec operations called as statement — emit and drop result
-                        let call_op = Operand::Call(name.clone(), args.clone());
+                        let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
                         f.instruction(&Instruction::Drop);
                     }
                     other if other.starts_with("Vec_new_") => {
                         // Dynamic Vec_new_<Type> — same as Vec_new_i32
-                        let call_op = Operand::Call(name.clone(), args.clone());
+                        let call_op = Operand::Call(other.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
                         f.instruction(&Instruction::Drop);
                     }
@@ -2140,7 +2184,7 @@ impl EmitCtx {
                     self.emit_fd_write(f, 1, offset, len);
                 }
                 Operand::Call(name, inner_args) => {
-                    match name.as_str() {
+                    match normalize_intrinsic_name(name.as_str()) {
                         "i32_to_string" => {
                             if let Some(inner) = inner_args.first() {
                                 self.emit_operand(f, inner);
@@ -2399,7 +2443,8 @@ impl EmitCtx {
                 self.emit_unaryop(f, op, inner);
             }
             Operand::Call(name, args) => {
-                match name.as_str() {
+                let name = normalize_intrinsic_name(name.as_str());
+                match name {
                     "to_string" => {
                         // Polymorphic to_string: dispatch based on argument type
                         if let Some(arg) = args.first() {
@@ -2520,7 +2565,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(false_ptr as i32));
                         f.instruction(&Instruction::End);
                     }
-                    "String_from" | "__intrinsic_string_from" => {
+                    "String_from" => {
                         // String_from("literal") → allocate length-prefixed string, return ptr
                         if let Some(Operand::ConstString(s)) = args.first() {
                             let ptr = self.alloc_length_prefixed_string(s);
@@ -2532,7 +2577,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(0));
                         }
                     }
-                    "eq" | "__intrinsic_string_eq" => {
+                    "eq" => {
                         // String equality: eq(a, b) -> bool (i32)
                         for a in args {
                             self.emit_operand(f, a);
@@ -5692,7 +5737,7 @@ impl EmitCtx {
             Operand::Place(Place::Local(id)) => self.f64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_f64_operand(l) || self.is_f64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_f64_operand(inner),
-            Operand::Call(name, _) => matches!(name.as_str(), "sqrt"),
+            Operand::Call(name, _) => matches!(normalize_intrinsic_name(name.as_str()), "sqrt"),
             _ => false,
         }
     }

@@ -39,16 +39,11 @@ const PRELUDE_TYPES: &[&str] = &["Option", "Result", "String", "Vec"];
 const PRELUDE_VALUES: &[&str] = &["Some", "None", "Ok", "Err", "true", "false"];
 
 const PRELUDE_FUNCTIONS: &[&str] = &[
+    // Builtins NOT wrapped in prelude.ark (remain as direct builtins)
     "len",
-    "clone",
     "unwrap",
     "unwrap_or",
     "unwrap_or_else",
-    "panic",
-    "sqrt",
-    "abs",
-    "min",
-    "max",
     "push",
     "pop",
     "get",
@@ -56,58 +51,68 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "set",
     "is_empty",
     "clear",
-    "concat",
-    "slice",
     "split",
     "join",
     "is_some",
     "is_none",
     "is_ok",
     "is_err",
-    "i32_to_string",
-    "i64_to_string",
-    "f64_to_string",
-    "bool_to_string",
-    "char_to_string",
-    "parse_i32",
     "parse_i64",
     "parse_f64",
-    "Vec_new_i32",
-    "Vec_new_i64",
-    "Vec_new_f64",
-    "Vec_new_String",
     "Vec_with_capacity_i32",
     "Vec_with_capacity_String",
-    "map_i32_i32",
     "map_String_String",
-    "filter_i32",
     "filter_String",
-    "fold_i32_i32",
-    "sort_i32",
     "sort_i64",
     "sort_f64",
-    "sort_String",
     "as_slice",
-    "String_new",
     "push_char",
-    "to_lower",
-    "to_upper",
-    "starts_with",
-    "ends_with",
     "ok_or",
     "ok",
     "err",
     "expect",
-    "map_option_i32_i32",
     "map_option_String_String",
     "map_result_i32_i32",
     "Box_new",
     "unbox",
+    "to_string",
+    // Existing __intrinsic_* names (called from prelude.ark or user code)
     "__intrinsic_println",
     "__intrinsic_print",
     "__intrinsic_eprintln",
     "__intrinsic_string_from",
     "__intrinsic_string_eq",
+    // New __intrinsic_* names for functions now defined in prelude.ark
+    "__intrinsic_string_new",
+    "__intrinsic_concat",
+    "__intrinsic_string_clone",
+    "__intrinsic_starts_with",
+    "__intrinsic_ends_with",
+    "__intrinsic_to_lower",
+    "__intrinsic_to_upper",
+    "__intrinsic_string_slice",
+    "__intrinsic_string_is_empty",
+    "__intrinsic_i32_to_string",
+    "__intrinsic_i64_to_string",
+    "__intrinsic_f64_to_string",
+    "__intrinsic_bool_to_string",
+    "__intrinsic_char_to_string",
+    "__intrinsic_parse_i32",
+    "__intrinsic_sqrt",
+    "__intrinsic_abs",
+    "__intrinsic_min",
+    "__intrinsic_max",
+    "__intrinsic_panic",
+    "__intrinsic_Vec_new_i32",
+    "__intrinsic_Vec_new_i64",
+    "__intrinsic_Vec_new_f64",
+    "__intrinsic_Vec_new_String",
+    "__intrinsic_sort_i32",
+    "__intrinsic_sort_String",
+    "__intrinsic_map_i32_i32",
+    "__intrinsic_filter_i32",
+    "__intrinsic_fold_i32_i32",
+    "__intrinsic_map_option_i32_i32",
 ];
 
 /// Inject prelude symbols into the global scope.
@@ -520,12 +525,19 @@ pub fn intrinsic_prelude_module() -> ast::Module {
     }
 }
 
+fn parse_prelude_module(sink: &mut DiagnosticSink) -> ast::Module {
+    const PRELUDE_SRC: &str = include_str!("../../../std/prelude.ark");
+    let lexer = Lexer::new(0, PRELUDE_SRC);
+    let tokens: Vec<_> = lexer.collect();
+    parse(&tokens, sink)
+}
+
 pub fn merge_prelude(program: &mut ResolvedProgram, sink: &mut DiagnosticSink) {
-    let prelude = intrinsic_prelude_module();
+    let prelude = parse_prelude_module(sink);
     collect_module_items(&prelude, &mut program.symbols, program.global_scope, sink);
     program.modules.push(LoadedModule {
         name: "std::prelude".into(),
-        path: PathBuf::from("<intrinsic-prelude>"),
+        path: PathBuf::from("<prelude>"),
         ast: prelude,
     });
 }
