@@ -18,6 +18,7 @@ let p2 = p1  // p1 と p2 は同じオブジェクトを指す（値コピーで
 ```
 
 **共有の挙動例（Vec で示す）:**
+
 ```
 let mut v1 = Vec_new_i32()
 push(v1, 10)
@@ -28,6 +29,7 @@ push(v2, 20)
 ```
 
 深いコピーが必要な場合は `clone` を使う:
+
 ```
 let p2 = clone(p1)  // 別オブジェクト（deep copy）
 ```
@@ -122,15 +124,18 @@ fn main(caps: io.Capabilities) { ... }
 ```
 
 **v0 モジュールシステム**:
+
 - 標準ライブラリ: `import mem`, `import io`
 - ユーザーモジュール: `import mymod`（同ディレクトリ、`mymod.ark`）
 
 **Import 解決規則**:
+
 1. 標準ライブラリを優先（`mem`, `io`, `prelude` 等）
 2. 見つからない場合、カレントディレクトリの `<name>.ark` を探す
 3. それでも見つからない場合はエラー
 
 **制約**:
+
 - パス区切り不可（`import foo/bar` 禁止）
 - 再帰 import 禁止
 - 循環 import はコンパイルエラー
@@ -308,6 +313,7 @@ a & b    a | b    a ^ b    ~a    a << n    a >> n
 注: 論理否定は `!a`（bool）、ビット否定は `~a`（整数）で区別する。
 
 **演算子優先順位**（高い順）:
+
 1. 単項演算子: `!`, `~`, `-`（負号）
 2. 乗除算: `*`, `/`, `%`
 3. 加減算: `+`, `-`
@@ -353,6 +359,7 @@ let result = if x > 0 {
 ### match 式
 
 v0 の match は以下のパターンのみサポート:
+
 - リテラルパターン
 - enum variant パターン
 - ワイルドカード `_`
@@ -490,6 +497,7 @@ match option {
 **v0 の match 網羅性規則**:
 
 1. **enum の網羅性**: すべてのvariantをカバーする必要あり
+
    ```
    match opt {
        Some(x) => x,
@@ -498,6 +506,7 @@ match option {
    ```
 
 2. **wildcard パターン**: `_` はすべてをマッチ
+
    ```
    match color {
        Color::Red => 1,
@@ -505,7 +514,7 @@ match option {
    }
    ```
 
-3. **コンパイラチェック**: 
+3. **コンパイラチェック**:
    - すべての variant が明示的または wildcard でカバーされているか確認
    - 未カバーの場合は `E0250: non-exhaustive match` エラー
 

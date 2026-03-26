@@ -25,11 +25,13 @@ fs.read_file(path: String) -> Result[String, IOError]
 ```
 
 利点:
+
 - 実装が単純
 - ユーザーが慣れている
 - LLM が書きやすい
 
 欠点:
+
 - capability の意味がない
 - 移植性の保証がない
 - テスト・サンドボックスが難しい
@@ -41,17 +43,20 @@ fs.read_file(dir: DirCap, path: RelPath) -> Result[FileHandle, IOError]
 ```
 
 必要な型:
+
 - `DirCap` — アクセス可能なディレクトリを表す capability 値
 - `RelPath` — DirCap に対する相対パス（String ではない）
 - `FileHandle` — 開いたファイルの抽象ハンドル
 - `IOError` — I/O 失敗の型
 
 利点:
+
 - WASI p2 の設計と整合する
 - サンドボックス・テストが型レベルで表現できる
 - 移植性が高い
 
 欠点:
+
 - API が複雑
 - LLM が最初に書くコードが冗長になる
 - DirCap の「入手方法」を言語レベルで設計する必要がある（コマンドライン引数? 環境変数? main の引数?）
@@ -100,6 +105,7 @@ WASI p2 では `monotonic-clock` と `wall-clock` は別リソース。これに
 選択肢 B を採る場合、`DirCap` をどこから取るかを決める必要がある。
 
 候補:
+
 1. `main` の引数として渡す（`fn main(caps: Capabilities) -> Result[(), Error]`）
 2. 環境変数から初期化する
 3. WASI p2 の `wasi:filesystem` リソースをそのまま wrap する
@@ -132,6 +138,7 @@ fn main(caps: Capabilities) -> Result[(), AppError] {
 ```
 
 `Capabilities` 型:
+
 ```
 struct Capabilities {
     fn cwd(self) -> DirCap           // カレントディレクトリ（読み書き可）

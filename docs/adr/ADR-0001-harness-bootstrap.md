@@ -7,6 +7,7 @@
 ## Context
 
 This project requires a structured harness to support:
+
 - Agent-driven development workflows
 - Clear completion criteria
 - Reproducible local and CI environments
@@ -43,6 +44,7 @@ The minimum viable harness includes:
 - `scripts/verify-harness.sh` - Root completion gate
 
 Subsequent ADRs will address:
+
 - Task runner selection (`mise` vs `just`)
 - Formatter and lint stack
 - CI pipeline structure

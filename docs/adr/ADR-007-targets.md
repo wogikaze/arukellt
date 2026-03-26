@@ -53,7 +53,7 @@ wasmtime での T2 実行はデバッグ目的に限る。
 | WASI | Preview 2 |
 | Component Model | あり（canonical ABI） |
 | ランタイム | wasmtime |
-| テスト | https://wa.dev/mizchi:tmgrammar |
+| テスト | <https://wa.dev/mizchi:tmgrammar> |
 | 主な用途 | サーバーサイド、クラウド、CLI ツール |
 
 ADR-002（GC 採用）・ADR-006（Layer 2B ABI）の**正規ターゲット**。
@@ -80,7 +80,7 @@ native 専用の言語機能・最適化は追加しない。
 | WASI | Preview 3 |
 | Component Model | あり |
 | ランタイム | wasmtime（対応後） |
-| テスト | https://wa.dev/mizchi:tmgrammar |
+| テスト | <https://wa.dev/mizchi:tmgrammar> |
 | 状態 | 仕様策定中。着手は WASI p3 安定化後 |
 
 T3 の後継。WASI p3 は async-first 設計で、長期的なメインターゲット候補。

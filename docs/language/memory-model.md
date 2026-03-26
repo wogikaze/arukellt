@@ -61,6 +61,7 @@ GC ヒープ上に配置される型。参照として渡される。
 ```
 
 arukellt 構文:
+
 ```
 struct Point {
     x: f64,
@@ -78,6 +79,7 @@ struct Point {
 ```
 
 より効率的な表現として、Wasm GC の `rec` 型を検討:
+
 ```wasm
 (rec
   (type $Option_i32 (sub (struct (field $tag i32))))
@@ -151,6 +153,7 @@ struct Point {
 ### Option[T] where T is reference
 
 null 許容参照を使用:
+
 ```wasm
 (type $option_string (ref null $string))
 ;; None = ref.null, Some(s) = s
@@ -159,6 +162,7 @@ null 許容参照を使用:
 ### Option[T] where T is value type
 
 tagged union:
+
 ```wasm
 (type $option_i32 (struct
   (field $is_some i32)
@@ -168,6 +172,7 @@ tagged union:
 ### Result[T, E]
 
 常に tagged union:
+
 ```wasm
 (type $result_i32_err (struct
   (field $tag i32)      ;; 0 = Ok, 1 = Err

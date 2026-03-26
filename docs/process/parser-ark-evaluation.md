@@ -58,11 +58,13 @@ match tag {
 **問題の本質**: 記法の問題ではなく、**「標準的な走査の意図」がコードから消える**こと。LLM は手展開された while ループで off-by-one / 境界バグを起こしやすい。
 
 Rust:
+
 ```rust
 if para.iter().all(|l| l.trim().is_empty()) { ... }
 ```
 
 Arukellt v0:
+
 ```
 let mut all_empty = true
 let mut k = 0
@@ -84,11 +86,13 @@ Rust のインライン closure（`pop_section`, `close_sections_until`, `parse_
 文字列構築が `concat(a, concat(b, concat(c, d)))` のネスト地獄になる。可読性が著しく低下。
 
 Rust:
+
 ```rust
 format!("Unknown embed type '{}': only 'card' is supported.", type_name)
 ```
 
 Arukellt v0:
+
 ```
 concat("Unknown embed type '", concat(type_name, "': only 'card' is supported."))
 ```

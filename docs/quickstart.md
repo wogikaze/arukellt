@@ -19,6 +19,7 @@ fn main() {
 ```
 
 実行:
+
 ```bash
 arukellt run hello.ark
 ```

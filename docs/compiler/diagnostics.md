@@ -3,6 +3,7 @@
 LLMが壊れたコードを修正できる診断出力の仕様。
 
 > **⚠️ 本文書は設計仕様**。現行実装の診断は以下の範囲で動作:
+>
 > - ✅ エラーコード付き報告（E0001〜E0304）
 > - ✅ ソース位置（ファイル:行:列）表示
 > - ✅ スニペット表示（ariadne 使用）
@@ -66,6 +67,7 @@ help: change the type annotation
 | E0003 | invalid construct | `for x in vec` (v0禁止) |
 
 **fix-it 例**:
+
 ```
 error[E0001]: unexpected token
   --> src/main.ark:3:10
@@ -88,6 +90,7 @@ help: add a value
 | E0102 | private access | `other_module.private_fn()` |
 
 **fix-it 例**:
+
 ```
 error[E0100]: unresolved name
   --> src/main.ark:8:5
@@ -111,6 +114,7 @@ help: did you mean `known_func`?
 | E0203 | invalid generic argument | `Vec[Vec[i32]]` (ネスト禁止) |
 
 **fix-it 例**:
+
 ```
 error[E0200]: type mismatch
   --> src/main.ark:10:14
@@ -159,6 +163,7 @@ help: use a type-specific constructor
 | W0002 | deprecated target alias | `--target wasm-gc` → `--target wasm32-wasi-p2` |
 
 **fix-it 例**:
+
 ```
 error[E0301]: method call syntax not available in v0
   --> src/main.ark:15:7
@@ -185,6 +190,7 @@ v1 では `a + b` のような演算子式で、オペランドが同じ struct 
 
 **fix-it 例**:
 ```
+
 warning[W0001]: possible unintended sharing of mutable reference
   --> src/main.ark:3:9
    |
@@ -198,6 +204,7 @@ help: if independent copy is needed, use clone
    |
  3 |     let b = clone(a)
    |             ~~~~~~~~
+
 ```
 15 |     vec_push(v, 42)
    |     ~~~~~~~~ ~  ~~
@@ -226,12 +233,14 @@ help: use `while` loop with index
 ### パターン1: 型推論失敗
 
 **LLMが書きやすいコード**:
+
 ```
 let v = Vec_new_T()  // T が推論不能
 push(v, 42)
 ```
 
 **診断**:
+
 ```
 error[E0201]: missing type annotation
   --> src/main.ark:1:9
@@ -245,6 +254,7 @@ help: use concrete type constructor
 ```
 
 **修正後**:
+
 ```
 let v = Vec_new_i32()
 push(v, 42)
@@ -256,12 +266,14 @@ push(v, 42)
 > 以下は v0 で発生していたエラーの参考記録。
 
 **LLMが書きやすいコード**:
+
 ```
 let s = String::from("hello")
 s.push('!')
 ```
 
 **診断**:
+
 ```
 error[E0301]: method call not available
   --> src/main.ark:2:3
@@ -275,6 +287,7 @@ help: rewrite as function call
 ```
 
 **修正後**:
+
 ```
 let s = String::from("hello")
 string_push(s, '!')
@@ -286,6 +299,7 @@ string_push(s, '!')
 > `for i in 0..n` と `for item in values(v)` が使用可能。
 
 **v0 で使えるコード**:
+
 ```
 for item in values(items) {
     println(item)
@@ -299,12 +313,14 @@ for i in 0..10 {
 ### パターン4: Result unwrap 忘れ
 
 **LLMが書きやすいコード**:
+
 ```
 let content = fs_read_file(dir, path)
 print(content)
 ```
 
 **診断**:
+
 ```
 error[E0200]: type mismatch
   --> src/main.ark:2:7
@@ -322,6 +338,7 @@ help: handle the Result with `?` or `unwrap`
 ```
 
 **修正後**:
+
 ```
 let content = fs_read_file(dir, path)?
 print(content)
@@ -330,11 +347,13 @@ print(content)
 ### パターン5: ネストしたジェネリクス
 
 **LLMが書きやすいコード**:
+
 ```
 let matrix: Vec<Vec<i32>> = Vec_new_Vec()  // ネスト禁止
 ```
 
 **診断**:
+
 ```
 error[E0302]: nested generic not allowed
   --> src/main.ark:1:17
@@ -351,6 +370,7 @@ help: flatten to single Vec with manual indexing
 ```
 
 **修正後**:
+
 ```
 let matrix: Vec<i32> = Vec_new_i32()
 let rows = 10
@@ -429,6 +449,7 @@ fn check_expr(&mut self, expr: &Expr, expected: Option<Type>) -> Type {
 ## テストケース
 
 各エラーコードに対して:
+
 - 最小再現コード
 - 期待される診断出力
 - 修正後コード

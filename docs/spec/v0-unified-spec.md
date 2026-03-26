@@ -58,6 +58,7 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 **v1 優先度の根拠**: parser.rs → parser.ark 翻訳での実測。詳細は `docs/process/parser-ark-evaluation.md`。
 
 **v1 段階的導入戦略**:
+
 1. ~~P1（限定 for）と P2（文字列補間）は trait なしで導入可能~~ → ✅ v0 で実装済み。
 2. P3（trait）導入前に、組み込みの反復プロトコルと Vec 専用高階関数（`any`, `find`, `map`, `filter`）で現実的な走査パターンを先にカバー。
 3. P3 で trait を導入後、P4（メソッド構文）と P5（演算子オーバーロード）を追加。
@@ -81,6 +82,7 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 ### 2.2 複合型
 
 **Struct**
+
 ```
 struct Point {
     x: f64,
@@ -89,6 +91,7 @@ struct Point {
 ```
 
 **Enum**
+
 ```
 enum Shape {
     Circle(f64),
@@ -97,6 +100,7 @@ enum Shape {
 ```
 
 **Tuple**
+
 ```
 let pair: (i32, String) = (42, "hello")
 ```
@@ -112,6 +116,7 @@ let pair: (i32, String) = (42, "hello")
 | `Result<T, E>` | エラー処理 | T, E はネスト不可 |
 
 **許可される例**:
+
 ```
 Vec<i32>
 Vec<String>
@@ -120,6 +125,7 @@ Result<i32, String>
 ```
 
 **禁止される例**:
+
 ```
 Vec<Vec<i32>>       // ネスト禁止
 Vec<Option<i32>>    // ネスト禁止
@@ -234,6 +240,7 @@ enum Result<T, E> {
 ### 4.5 パターンマッチ
 
 v0 でサポートするパターン:
+
 - リテラル
 - enum variant
 - ワイルドカード `_`
@@ -330,6 +337,7 @@ fn clone<T>(v: Vec<T>) -> Vec<T>
 ```
 
 高階関数（型特化）:
+
 ```
 fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32>
 fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32>
@@ -389,6 +397,7 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
 > 現実装は linear memory + WASI Preview 1。v1 で Wasm GC バックエンドを実装予定。
 
 **Layer 1（必須機能 — 設計仕様）**:
+
 - Wasm GC: struct, array, i31ref（未実装・v1 予定）
 - Multi-value returns
 - Reference types
@@ -396,11 +405,13 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
 - Component Model / WIT（WASI p2）（未実装）
 
 **Layer 2（公開面ルール）**:
+
 - Layer 2A: raw Wasm ABI
 - Layer 2B: Component Model/WIT ABI
 - 両面で同じ言語意味論を維持
 
 **参考: Optional（v0 使用可能）**:
+
 - Tail call
 - Exception handling
 
@@ -486,6 +497,7 @@ Source (.ark)
 ### 8.2 trait なし
 
 抽象化は型ごとの関数で代替:
+
 - `vec_i32_map`, `vec_string_map` など
 - v1 で trait 導入後に移行
 

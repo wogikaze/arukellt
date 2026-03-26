@@ -20,6 +20,7 @@ ADR-006 の内容を展開する。
 ### Layer 2: WASM 公開 ABI
 
 v0 での基本（2つの公開面を併用）:
+
 - **Layer 2A: raw Wasm ABI**
   - import: `(import "module" "name" (func ...))`
   - export: `(export "name" (func ...))`
@@ -31,6 +32,7 @@ v0 での基本（2つの公開面を併用）:
   - jco 等の component toolchain で配布可能な surface を提供する
 
 運用ルール:
+
 - ADR-006 に従い、2A/2B はどちらも Layer 2 の拡張として扱う
 - 独立した第4層は作らない
 - 言語の意味論は 2A/2B で一致させる

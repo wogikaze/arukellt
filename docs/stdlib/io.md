@@ -165,12 +165,14 @@ fn stdin_read_bytes(stdin: Stdin, buf: Vec[i32]) -> Result[i32, IOError]
 ```
 
 **`stdin_read_line` 契約**:
+
 - **成功時**: 改行文字（`\n` または `\r\n`）を**含む**文字列を返す
 - **EOF到達時**: `Err(IOError::EndOfFile)` を返す
 - **ブロッキング**: 入力がない場合、入力があるまで待機
 - **エンコーディング**: UTF-8。不正なバイト列は `Err(IOError::InvalidData)`
 
 **使用例**:
+
 ```
 let stdin_h = stdin(caps)
 let line = stdin_read_line(stdin_h)?  // ブロックして待機

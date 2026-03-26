@@ -5,6 +5,7 @@ This document defines the repository boundary, verification contract, and agent 
 ## Repository Boundary
 
 This project is a language toolchain implementing [PROJECT_NAME]. It combines:
+
 - Core compiler/interpreter implementation
 - Standard library and documentation
 - CLI tools and integration
@@ -22,6 +23,7 @@ This project is a language toolchain implementing [PROJECT_NAME]. It combines:
 ## Completion Criteria
 
 Work is complete when:
+
 1. `scripts/verify-harness.sh` exits with status 0
 2. All newly generated artifacts are committed
 3. Relevant ADR or verification docs are updated
@@ -30,6 +32,7 @@ Work is complete when:
 ## Agent Extension Points
 
 When stable:
+
 - `.claude/hooks/` - session initialization (e.g., environment setup)
 - `.claude/skills/` - domain-specific workflow extensions
 - `.claude/settings.json` - semantic tool configuration
@@ -43,6 +46,7 @@ When stable:
 ## Task Surface
 
 Tasks are organized through:
+
 - `mise.toml` (if polyglot tools needed) or `justfile`
 - All external tools should be version-pinned
 - Bootstrap must be self-service (no prior knowledge required)
@@ -50,6 +54,7 @@ Tasks are organized through:
 ## Tool Preferences
 
 - **Code search**: Use `ig` (index-based grep) instead of `grep` / `rg`. Faster due to pre-built index.
+
   ```
   ig "async fn.*Result" src/ --stats
   ```

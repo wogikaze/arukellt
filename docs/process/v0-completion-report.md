@@ -23,6 +23,7 @@
 | ADR-006 | 3層 ABI | `docs/adr/ADR-006-abi-policy.md` |
 
 **成果物**:
+
 - 型システム設計: `docs/language/type-system.md`
 - 構文設計: `docs/language/syntax.md`
 - メモリモデル: `docs/language/memory-model.md`
@@ -42,6 +43,7 @@ LLMが壊しても直せる設計の完成：
 | stdlib 更新 | `docs/stdlib/core.md`, `io.md` | canonical style 統一 |
 
 **設計原則**:
+
 - 1エラー1原因（連鎖エラー抑制）
 - expected/actual 必須
 - fix-it 提供
@@ -65,27 +67,32 @@ LLMが壊しても直せる設計の完成：
 ### 設計詳細ドキュメント
 
 **ADR（意思決定記録）**:
+
 - 6 ADR 完了
 - すべての主要決定が記録済み
 
 **言語仕様** (`docs/language/`):
+
 - memory-model.md - Wasm GC メモリモデル
 - type-system.md - 型システム詳細
 - syntax.md - 構文仕様
 - error-handling.md - エラー処理
 
 **プラットフォーム** (`docs/platform/`):
+
 - wasm-features.md - Wasm 機能3層分類
 - abi.md - ABI 方針
 - wasi-resource-model.md - WASI 資源モデル
 
 **標準ライブラリ** (`docs/stdlib/`):
+
 - README.md - 追加順序
 - cookbook.md - 使用パターン集
 - core.md - core API 完全仕様
 - io.md - I/O API 完全仕様
 
 **設計トレードオフ** (`docs/design/`):
+
 - gc-mono-tradeoff.md - GC+mono の緊張解決
 - value-semantics.md - 値セマンティクス定義
 - gc-c-abi-bridge.md - GC⇔C ABI 境界
@@ -93,6 +100,7 @@ LLMが壊しても直せる設計の完成：
 - reference-control.md - 参照過多への制御
 
 **プロセス** (`docs/process/`):
+
 - agent-harness.md - エージェントガイド
 - decision-guide.md - 意思決定ガイド
 - llm-readiness-plan.md - LLM 対応計画
@@ -121,6 +129,7 @@ LLMが壊しても直せる設計の完成：
 ### トレードオフの明確化
 
 すべての重要なトレードオフを文書化：
+
 - GC vs 手動管理 → GC（LLM フレンドリ優先）
 - mono vs uniform → 制限付き mono（サイズと性能のバランス）
 - trait vs 型特化 → 型特化（v0 の単純さ優先）
@@ -128,6 +137,7 @@ LLMが壊しても直せる設計の完成：
 ### 意図的な制約
 
 v0 で意図的に除外した機能：
+
 - trait / interface
 - メソッド構文
 - for ループ
@@ -177,17 +187,20 @@ v0 で意図的に除外した機能：
 横断レビューで発見された8件の不整合を修正：
 
 **高優先度（実装阻害レベル）:**
+
 - [x] Generics 記法を `<T>` に統一（ADR-003, syntax, type-system, spec）
 - [x] clone セマンティクスを deep copy に統一（value-semantics, memory-model）
 - [x] I/O 境界名を Capabilities/IOError/print に統一（syntax.md）
 - [x] Vec API 命名を型特化形式に統一（spec, syntax）
 
 **中優先度（仕様明確化）:**
+
 - [x] v0 禁止構文を AST から削除（pipeline.md を v0 仕様に合わせた）
 - [x] wasi-resource-model.md のステータスを DECIDED に修正
 - [x] quickstart.md の `RelPath_from` に `?` 演算子を追加
 
 **低優先度（メタ文書）:**
+
 - [x] completion-report.md を最新状態に更新
 
 ---

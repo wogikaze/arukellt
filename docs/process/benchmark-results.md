@@ -11,6 +11,7 @@ PATH="$HOME/.wasmtime/bin:$HOME/.cargo/bin:$PATH" ./harness/proto/run_bench.sh
 ```
 
 **実行環境**:
+
 - Wasmtime: `43.0.0 (be23469ec 2026-03-20)`
 - WAT compiler: `wasm-tools`（`wat2wasm` 代替）
 
@@ -68,6 +69,7 @@ PATH="$HOME/.wasmtime/bin:$HOME/.cargo/bin:$PATH" ./harness/proto/run_bench.sh
 **Wasm GC を採用する**（2026-03-25 実測に基づく確定）
 
 根拠:
+
 - `benchmark-plan.md` の判定基準「それ以外 → LLMフレンドリを優先して GC を採用」に該当。
 - string_concat では GC が Linear より 20% 高速（GC 側の immutable copy が有利なパターン）。
 - binary_tree を除き実行時間差は 1.5x 以内。

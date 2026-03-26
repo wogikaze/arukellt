@@ -39,6 +39,7 @@ v0 は以下の原則に基づいて設計:
 ## v0 Core Features
 
 ### 構文
+
 - ✅ brace 構文（`{ }` ベース）
 - ✅ trait なし
 - ✅ for あり（限定版: `0..n`, `values(v)`）
@@ -48,6 +49,7 @@ v0 は以下の原則に基づいて設計:
 - ✅ `?` は v0 では型一致時のみ（自動変換なし）
 
 ### 型システム
+
 - ✅ 現行実装は linear memory ベース（Wasm GC 型は将来対応）
 - ✅ 参照型: struct/enum/String/Vec は linear memory 上のポインタ
 - ✅ 代入・引数渡し = ポインタコピー（オブジェクト共有）
@@ -55,6 +57,7 @@ v0 は以下の原則に基づいて設計:
 - ✅ generic: `<T>` 記法、ネスト禁止、runtime は i32 統一
 
 ### API
+
 - ✅ Prelude: Option/Result/String/Vec, Some/None/Ok/Err, len/clone/unwrap/panic
 - ✅ Vec 操作: Vec_new_i32/push/pop/get/set/sort_i32/map_i32_i32/filter_i32/fold_i32_i32（全て裸関数）
 - ✅ String: concat/split/join/slice（不変、新値を返す）
@@ -62,6 +65,7 @@ v0 は以下の原則に基づいて設計:
 - 🔲 I/O: io.Caps 経由のみ（capability-based）— 未実装
 
 ### Documentation
+
 - ✅ v1 機能を syntax-v1-preview.md に分離
 - ⚠️ 文書間の矛盾を解消中（Wasm GC vs linear memory の記述整合）
 - ✅ コードサンプルは型検査可能（io/fs 含む）
@@ -69,12 +73,14 @@ v0 は以下の原則に基づいて設計:
 ## Completed Canonicalization
 
 ### Phase 1: 構文レベルの矛盾解消
+
 - impl/メソッド構文を v0 から削除
 - generics 記法を `<T>` に統一
 - 文字列リテラル型を String に統一
 - v1 機能を別ファイルに分離
 
 ### Phase 2: API/セマンティクス境界の固定化
+
 - clone を v0 正式採用（deep clone — 全参照型を再帰的に複製）
 - [] を固定長配列専用に固定
 - unwrap を Prelude に追加
@@ -83,6 +89,7 @@ v0 は以下の原則に基づいて設計:
 - generic ネスト禁止を強調
 
 ### Phase 3: 最終磨き（freeze 前）
+
 - clone 説明を 1 文に統一
 - [] 露出を削減（vec_new() 推奨）
 - typo 修正
@@ -160,6 +167,6 @@ v0 は以下の原則に基づいて設計:
 
 v0 は「LLM が安定生成・修正しやすい canonical surface を持つ
 Wasm-first 言語」として定義される。表面構文は少数の正規形に絞り、型は局所推論
-+ 境界明示、標準 API は核機能に集中。
+- 境界明示、標準 API は核機能に集中。
 
 **Status**: コンパイラ実装は 142/147 fixture pass（5 skip はモジュールヘルパーファイル）。v0 freeze ready。

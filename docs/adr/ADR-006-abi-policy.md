@@ -71,6 +71,7 @@
 ## 型の ABI 表現（WASM 公開 ABI）
 
 Layer 2A / 2B で共有する型意味論:
+
 - Layer 2A（raw Wasm）は GC 参照や value type を直接使う
 - Layer 2B（WIT）は canonical ABI の lower/lift で同値な値表現に落とす
 

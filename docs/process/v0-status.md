@@ -233,6 +233,7 @@ This document is the **single source of truth** for what is actually implemented
 ### v1 Dispatch Model
 
 All method calls and operator overloads use **static dispatch** via name mangling:
+
 - `obj.method(args)` → `Type__method(obj, args)`
 - `a + b` (struct) → `Type__add(a, b)`
 - No vtable or dynamic dispatch

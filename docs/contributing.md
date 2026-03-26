@@ -69,6 +69,7 @@ crates/
 ## Verification Contract
 
 All PRs must pass `scripts/verify-harness.sh` with exit code 0. This includes:
+
 - Code formatting (`cargo fmt`)
 - Linting (`cargo clippy`)
 - All unit tests (`cargo test`)

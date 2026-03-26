@@ -19,6 +19,7 @@
 **目的**: LLMが壊れたコードを修正できる診断出力
 
 **タスク**:
+
 - [ ] エラーフォーマット固定
   - expected / actual を必ず出す
   - 型エラーは局所で切る（1エラー1原因）
@@ -33,6 +34,7 @@
   - 壊れやすいコード → 正しい診断 → 修正後コード
 
 **成果物**:
+
 - `docs/compiler/diagnostics.md` - 診断システム仕様
 - `docs/process/llm-error-patterns.md` - LLM向けエラーパターン集
 
@@ -45,6 +47,7 @@
 **対象**: Vec, String, Option/Result, slice `[T]`
 
 **タスク**:
+
 - [ ] 正解パターンの固定
   - 取得: `vec_get(v, i)` / `get(v, i)`
   - 追加: `vec_push(v, x)` / `push(v, x)`
@@ -58,6 +61,7 @@
   - error handling パターン
 
 **成果物**:
+
 - `docs/stdlib/core.md` 更新
 - `docs/stdlib/cookbook.md` 新規作成
 
@@ -68,17 +72,20 @@
 **目的**: 「これだけ読めば書ける」導線
 
 **内容**:
+
 - hello world
 - Vec を使う
 - Result を使う
 - file read（capability付き）
 
 **要件**:
+
 - すべて v0 canonical style
 - 一切の例外を含めない
 - import / prelude / capability を明確に
 
 **成果物**:
+
 - `docs/quickstart.md`
 
 ---
@@ -88,6 +95,7 @@
 **目的**: freeze前の最終確認
 
 **タスク**:
+
 - [ ] syntax / type / memory / error の統合確認
 - [ ] 用語の統一
 - [ ] v0 / v1 境界の明記
@@ -98,6 +106,7 @@
   - operator overload なし
 
 **成果物**:
+
 - `docs/spec/v0-unified-spec.md` 更新
 
 ---

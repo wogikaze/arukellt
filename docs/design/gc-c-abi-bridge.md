@@ -7,11 +7,13 @@ Wasm GC 参照と C ポインタの変換規則を定義する。
 ## 問題
 
 ADR-006 は 3 層 ABI を定義:
+
 - Layer 1: 内部 ABI
 - Layer 2: Wasm 公開 ABI（GC 参照）
 - Layer 3: native 公開 ABI（C ポインタ）
 
 Layer 2 と Layer 3 の接続点が未定義:
+
 - GC 参照を C に渡す方法
 - C ポインタを GC に取り込む方法
 - 寿命管理
@@ -24,6 +26,7 @@ Layer 2 と Layer 3 の接続点が未定義:
 **v0 では GC ⇔ C の直接変換を提供しない。**
 
 理由:
+
 - 安全な変換規則の設計が困難
 - pinning の実装が複雑
 - v0 の優先度は Wasm 動作
@@ -52,6 +55,7 @@ fn call_c_function(s: String) -> i32 {
 ```
 
 std 内部での実装（参考）：
+
 ```
 // std/internal/ffi.ark（非公開モジュール）
 fn __ffi_string_to_linear(s: String) -> (i32, i32) {
@@ -66,12 +70,14 @@ fn __ffi_linear_cleanup(ptr: i32) {
 ```
 
 **設計根拠**: `mem.alloc` / `mem.free` をユーザーに露出すると：
+
 - free 忘れ → リーク
 - 二重 free → UB
 - サイズミス → UB
 
 これは LLM フレンドリ設計に真っ向から反する。
 v0 では WASI の FFI 変換はすべて std が内部で行う。
+
 ```
 
 ```c
@@ -194,6 +200,7 @@ fn __wasi_print(s: String) {
 ```
 
 **ユーザーが呼ぶ API**:
+
 ```
 // ユーザーコード
 fn main(caps: Capabilities) -> Result<(), IOError> {
@@ -212,6 +219,7 @@ WASI p2（Component Model / WIT）経由の公開面では canonical ABI の low
 ## Pinning（将来）
 
 v1 以降で検討:
+
 - GC に「このオブジェクトを移動しない」と指示
 - pinning 中は C 側から直接アクセス可能
 - pin scope を抜けたら移動可能に戻る
