@@ -81,6 +81,7 @@ pub fn emit_object(mir: &MirModule, _sink: &mut DiagnosticSink) -> Result<Vec<u8
     Ok(buf.as_slice().to_vec())
 }
 
+#[allow(dead_code)]
 struct LlvmEmitter<'ctx> {
     context: &'ctx Context,
     module: Module<'ctx>,
@@ -88,7 +89,19 @@ struct LlvmEmitter<'ctx> {
     mir: &'ctx MirModule,
     fn_values: HashMap<String, FunctionValue<'ctx>>,
     locals: HashMap<u32, PointerValue<'ctx>>,
+    local_types: HashMap<u32, Type>,
     printf_fn: Option<FunctionValue<'ctx>>,
+    malloc_fn: Option<FunctionValue<'ctx>>,
+    sprintf_fn: Option<FunctionValue<'ctx>>,
+    strlen_fn: Option<FunctionValue<'ctx>>,
+    memcpy_fn: Option<FunctionValue<'ctx>>,
+    struct_layouts: HashMap<String, Vec<(String, String)>>,
+    enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
+    // Loop tracking: stack of (loop_header, loop_exit) blocks
+    loop_stack: Vec<(
+        inkwell::basic_block::BasicBlock<'ctx>,
+        inkwell::basic_block::BasicBlock<'ctx>,
+    )>,
 }
 
 impl<'ctx> LlvmEmitter<'ctx> {
@@ -102,7 +115,15 @@ impl<'ctx> LlvmEmitter<'ctx> {
             mir,
             fn_values: HashMap::new(),
             locals: HashMap::new(),
+            local_types: HashMap::new(),
             printf_fn: None,
+            malloc_fn: None,
+            sprintf_fn: None,
+            strlen_fn: None,
+            memcpy_fn: None,
+            struct_layouts: mir.struct_defs.clone(),
+            enum_defs: mir.enum_defs.clone(),
+            loop_stack: Vec::new(),
         }
     }
 
@@ -114,7 +135,13 @@ impl<'ctx> LlvmEmitter<'ctx> {
             Type::F64 => self.context.f64_type().into(),
             Type::Bool => self.context.bool_type().into(),
             Type::Char => self.context.i32_type().into(),
-            // Heap types use i32 pointer placeholder for now
+            // Heap types use i8* (pointer) — length-prefixed data in malloc'd memory
+            Type::String
+            | Type::Vec(_)
+            | Type::Struct(_)
+            | Type::Enum(_)
+            | Type::Option(_)
+            | Type::Result(_, _) => self.context.ptr_type(AddressSpace::default()).into(),
             _ => self.context.i32_type().into(),
         }
     }
@@ -140,8 +167,57 @@ impl<'ctx> LlvmEmitter<'ctx> {
         self.module.add_function("exit", exit_type, None)
     }
 
+    fn declare_malloc(&mut self) {
+        if self.malloc_fn.is_some() {
+            return;
+        }
+        let ptr_type = self.context.ptr_type(AddressSpace::default());
+        let i64_type = self.context.i64_type();
+        let malloc_type = ptr_type.fn_type(&[i64_type.into()], false);
+        let malloc = self.module.add_function("malloc", malloc_type, None);
+        self.malloc_fn = Some(malloc);
+    }
+
+    fn declare_sprintf(&mut self) {
+        if self.sprintf_fn.is_some() {
+            return;
+        }
+        let i32_type = self.context.i32_type();
+        let ptr_type = self.context.ptr_type(AddressSpace::default());
+        let sprintf_type = i32_type.fn_type(&[ptr_type.into(), ptr_type.into()], true);
+        let sprintf = self.module.add_function("sprintf", sprintf_type, None);
+        self.sprintf_fn = Some(sprintf);
+    }
+
+    fn declare_strlen(&mut self) {
+        if self.strlen_fn.is_some() {
+            return;
+        }
+        let i64_type = self.context.i64_type();
+        let ptr_type = self.context.ptr_type(AddressSpace::default());
+        let strlen_type = i64_type.fn_type(&[ptr_type.into()], false);
+        let strlen = self.module.add_function("strlen", strlen_type, None);
+        self.strlen_fn = Some(strlen);
+    }
+
+    fn declare_memcpy(&mut self) {
+        if self.memcpy_fn.is_some() {
+            return;
+        }
+        let ptr_type = self.context.ptr_type(AddressSpace::default());
+        let i64_type = self.context.i64_type();
+        let memcpy_type =
+            ptr_type.fn_type(&[ptr_type.into(), ptr_type.into(), i64_type.into()], false);
+        let memcpy = self.module.add_function("memcpy", memcpy_type, None);
+        self.memcpy_fn = Some(memcpy);
+    }
+
     fn emit_module(&mut self) {
         self.declare_printf();
+        self.declare_malloc();
+        self.declare_sprintf();
+        self.declare_strlen();
+        self.declare_memcpy();
 
         // Forward-declare all functions
         for func in &self.mir.functions {
@@ -258,6 +334,8 @@ impl<'ctx> LlvmEmitter<'ctx> {
         let entry_block = self.context.append_basic_block(fn_val, "entry");
         self.builder.position_at_end(entry_block);
         self.locals.clear();
+        self.local_types.clear();
+        self.loop_stack.clear();
 
         // Allocate locals for parameters
         for (i, param) in func.params.iter().enumerate() {
@@ -266,6 +344,7 @@ impl<'ctx> LlvmEmitter<'ctx> {
             let param_val = fn_val.get_nth_param(i as u32).unwrap();
             self.builder.build_store(alloca, param_val).unwrap();
             self.locals.insert(param.id.0, alloca);
+            self.local_types.insert(param.id.0, param.ty.clone());
         }
 
         // Allocate locals for temporaries
@@ -278,6 +357,7 @@ impl<'ctx> LlvmEmitter<'ctx> {
                 .unwrap_or_else(|| format!("t{}", local.id.0));
             let alloca = self.builder.build_alloca(ty, &name).unwrap();
             self.locals.insert(local.id.0, alloca);
+            self.local_types.insert(local.id.0, local.ty.clone());
         }
 
         // Emit statements from entry block
@@ -481,9 +561,11 @@ impl<'ctx> LlvmEmitter<'ctx> {
 
                 // Body
                 self.builder.position_at_end(body_bb);
+                self.loop_stack.push((cond_bb, exit_bb));
                 for s in body {
                     self.emit_stmt(fn_val, s, return_ty);
                 }
+                self.loop_stack.pop();
                 if self
                     .builder
                     .get_insert_block()
@@ -506,8 +588,15 @@ impl<'ctx> LlvmEmitter<'ctx> {
             MirStmt::Return(None) => {
                 self.builder.build_return(None).unwrap();
             }
-            MirStmt::Break | MirStmt::Continue => {
-                // Break/continue need loop block tracking — skip for now
+            MirStmt::Break => {
+                if let Some(&(_, exit_bb)) = self.loop_stack.last() {
+                    self.builder.build_unconditional_branch(exit_bb).unwrap();
+                }
+            }
+            MirStmt::Continue => {
+                if let Some(&(cond_bb, _)) = self.loop_stack.last() {
+                    self.builder.build_unconditional_branch(cond_bb).unwrap();
+                }
             }
         }
     }
@@ -751,22 +840,29 @@ impl<'ctx> LlvmEmitter<'ctx> {
             Operand::ConstChar(c) => {
                 Some(self.context.i32_type().const_int(*c as u64, false).into())
             }
-            Operand::ConstString(_) => {
-                // String literals return i32(0) placeholder
-                Some(self.context.i32_type().const_int(0, false).into())
+            Operand::ConstString(s) => {
+                // Create a global string constant and return a pointer to it
+                let str_val = self.builder.build_global_string_ptr(s, "str").unwrap();
+                Some(str_val.as_pointer_value().into())
             }
             Operand::Unit => None,
             Operand::Place(Place::Local(id)) => {
                 if let Some(alloca) = self.locals.get(&id.0).copied() {
-                    let val = self.builder.build_load(
-                        self.context.i32_type(),
-                        alloca,
-                        &format!("l{}", id.0),
-                    );
+                    let load_ty = self
+                        .local_types
+                        .get(&id.0)
+                        .map(|t| self.type_to_llvm(t))
+                        .unwrap_or_else(|| self.context.i32_type().into());
+                    let val = self
+                        .builder
+                        .build_load(load_ty, alloca, &format!("l{}", id.0));
                     val.ok()
                 } else {
                     Some(self.context.i32_type().const_int(0, false).into())
                 }
+            }
+            Operand::Place(Place::Field(_, _)) | Operand::Place(Place::Index(_, _)) => {
+                Some(self.context.i32_type().const_int(0, false).into())
             }
             Operand::BinOp(op, lhs, rhs) => {
                 let l = self.emit_operand(lhs)?;
@@ -797,19 +893,112 @@ impl<'ctx> LlvmEmitter<'ctx> {
                 else_body: _,
                 else_result: _,
             } => {
-                // Simplified: evaluate cond, pick result
                 let _cond_val = self.emit_operand(cond)?;
-                let i32_type = self.context.i32_type();
-                let zero = i32_type.const_int(0, false);
-                let _is_true = self
-                    .builder
-                    .build_int_compare(IntPredicate::NE, _cond_val.into_int_value(), zero, "ifcond")
-                    .unwrap();
-
-                // For now return a default value
-                Some(i32_type.const_int(0, false).into())
+                Some(self.context.i32_type().const_int(0, false).into())
             }
-            _ => Some(self.context.i32_type().const_int(0, false).into()),
+            Operand::StructInit { name: _, fields } => {
+                // Allocate struct as a flat i32 array (simplified layout)
+                let n_fields = fields.len().max(1);
+                let malloc = self.malloc_fn?;
+                let size = self
+                    .context
+                    .i64_type()
+                    .const_int((n_fields * 8) as u64, false);
+                let ptr = self
+                    .builder
+                    .build_call(malloc, &[size.into()], "struct_alloc")
+                    .unwrap();
+                Some(ptr.try_as_basic_value().basic().unwrap_or_else(|| {
+                    self.context
+                        .ptr_type(AddressSpace::default())
+                        .const_null()
+                        .into()
+                }))
+            }
+            Operand::FieldAccess {
+                object,
+                struct_name: _,
+                field: _,
+            } => {
+                // Load the struct pointer, return it as a placeholder
+                self.emit_operand(object)
+            }
+            Operand::EnumInit { tag, payload, .. } => {
+                // Allocate enum as [tag:i32, payload0, payload1, ...]
+                let n_slots = (payload.len() + 1).max(2);
+                let malloc = self.malloc_fn?;
+                let size = self
+                    .context
+                    .i64_type()
+                    .const_int((n_slots * 4) as u64, false);
+                let ptr = self
+                    .builder
+                    .build_call(malloc, &[size.into()], "enum_alloc")
+                    .unwrap();
+                let _ptr_val = ptr.try_as_basic_value().basic()?;
+                // Store tag at offset 0
+                let tag_ptr = self
+                    .builder
+                    .build_pointer_cast(
+                        _ptr_val.into_pointer_value(),
+                        self.context.ptr_type(AddressSpace::default()),
+                        "tag_ptr",
+                    )
+                    .unwrap();
+                self.builder
+                    .build_store(
+                        tag_ptr,
+                        self.context.i32_type().const_int(*tag as u64, false),
+                    )
+                    .unwrap();
+                Some(_ptr_val)
+            }
+            Operand::EnumTag(inner) => {
+                // Load tag (i32 at offset 0) from enum pointer
+                let ptr = self.emit_operand(inner)?;
+                let tag = self
+                    .builder
+                    .build_load(self.context.i32_type(), ptr.into_pointer_value(), "tag")
+                    .ok()?;
+                Some(tag)
+            }
+            Operand::EnumPayload { object, .. } => self.emit_operand(object),
+            Operand::ArrayInit { elements } => {
+                // Allocate array: [len:i32, elem0, elem1, ...]
+                let n = elements.len();
+                let malloc = self.malloc_fn?;
+                let size = self
+                    .context
+                    .i64_type()
+                    .const_int(((n + 1) * 4) as u64, false);
+                let ptr = self
+                    .builder
+                    .build_call(malloc, &[size.into()], "arr_alloc")
+                    .unwrap();
+                let _ptr_val = ptr.try_as_basic_value().basic()?;
+                // Store length at offset 0
+                let base = _ptr_val.into_pointer_value();
+                self.builder
+                    .build_store(base, self.context.i32_type().const_int(n as u64, false))
+                    .unwrap();
+                Some(_ptr_val)
+            }
+            Operand::IndexAccess { object, index } => {
+                let _obj = self.emit_operand(object)?;
+                let _idx = self.emit_operand(index)?;
+                Some(self.context.i32_type().const_int(0, false).into())
+            }
+            Operand::FnRef(_) => Some(self.context.i32_type().const_int(0, false).into()),
+            Operand::CallIndirect { .. } => {
+                Some(self.context.i32_type().const_int(0, false).into())
+            }
+            Operand::LoopExpr { body, result, .. } => {
+                for _s in body {
+                    // Skip loop body emission for now
+                }
+                self.emit_operand(result)
+            }
+            Operand::TryExpr { expr, .. } => self.emit_operand(expr),
         }
     }
 
@@ -867,16 +1056,22 @@ impl<'ctx> LlvmEmitter<'ctx> {
             }
             Operand::Place(Place::Local(id)) => {
                 if let Some(alloca) = self.locals.get(&id.0).copied() {
-                    let val = self
-                        .builder
-                        .build_load(self.context.i32_type(), alloca, "pv")
-                        .unwrap();
+                    let local_ty = self.local_types.get(&id.0).cloned().unwrap_or(Type::I32);
+                    let load_ty = self.type_to_llvm(&local_ty);
+                    let val = self.builder.build_load(load_ty, alloca, "pv").unwrap();
+                    let (fmt_str, fmt_val): (&str, BasicMetadataValueEnum) = match &local_ty {
+                        Type::String => ("%s\n", val.into()),
+                        Type::F64 => ("%g\n", val.into()),
+                        Type::I64 => ("%lld\n", val.into()),
+                        Type::Bool => ("%d\n", val.into()),
+                        _ => ("%d\n", val.into()),
+                    };
                     let fmt = self
                         .builder
-                        .build_global_string_ptr("%d\n", "ifmt")
+                        .build_global_string_ptr(fmt_str, "lfmt")
                         .unwrap();
                     self.builder
-                        .build_call(printf, &[fmt.as_pointer_value().into(), val.into()], "")
+                        .build_call(printf, &[fmt.as_pointer_value().into(), fmt_val], "")
                         .unwrap();
                 }
             }

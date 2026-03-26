@@ -33,6 +33,9 @@ enum Commands {
         /// Emit kind (core-wasm, component, wit, all)
         #[arg(long)]
         emit: Option<EmitKind>,
+        /// Show memory profiling info (escape analysis, allocation hints)
+        #[arg(long)]
+        profile_mem: bool,
     },
     /// Compile and run an .ark file
     Run {
@@ -53,6 +56,9 @@ enum Commands {
         /// Deny random number access
         #[arg(long)]
         deny_random: bool,
+        /// Show memory profiling info (escape analysis, allocation hints)
+        #[arg(long)]
+        profile_mem: bool,
     },
     /// Type-check an .ark file without compiling
     Check {
@@ -81,6 +87,7 @@ fn main() {
             output,
             target,
             emit: emit_kind,
+            profile_mem,
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
@@ -163,6 +170,10 @@ fn main() {
                             }
                         }
                     }
+
+                    if profile_mem {
+                        profile_memory(&file);
+                    }
                 }
                 Err(errors) => {
                     eprint!("{}", errors);
@@ -177,6 +188,7 @@ fn main() {
             deny_fs,
             deny_clock,
             deny_random,
+            profile_mem,
         } => {
             // Native target: handled separately
             if target == TargetId::Native {
@@ -203,6 +215,9 @@ fn main() {
             }
             match compile_file(&file, target) {
                 Ok(wasm) => {
+                    if profile_mem {
+                        profile_memory(&file);
+                    }
                     let caps = RuntimeCaps::from_cli(&dirs, deny_fs, deny_clock, deny_random);
                     let result = match target {
                         TargetId::Wasm32WasiP2 => run_wasm_gc(&wasm, &caps),
@@ -324,6 +339,46 @@ fn compile_file(path: &PathBuf, _target: TargetId) -> Result<Vec<u8>, String> {
     }
 
     Ok(wasm)
+}
+
+/// Run escape analysis on a file and print results.
+fn profile_memory(path: &PathBuf) {
+    let source = match std::fs::read_to_string(path) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("error: {}: {}", path.display(), e);
+            return;
+        }
+    };
+
+    let mut source_map = SourceMap::new();
+    let _file_id = source_map.add_file(path.display().to_string(), source.clone());
+    let mut sink = DiagnosticSink::new();
+
+    let lexer = Lexer::new(_file_id, &source);
+    let tokens: Vec<_> = lexer.collect();
+    let module = parse(&tokens, &mut sink);
+    if sink.has_errors() {
+        return;
+    }
+
+    let resolved = ark_resolve::resolve_program_entry(path.as_path(), &mut sink)
+        .unwrap_or_else(|_| ark_resolve::resolve_module(module, &mut sink));
+    if sink.has_errors() {
+        return;
+    }
+
+    let mut checker = ark_typecheck::TypeChecker::new();
+    checker.register_builtins();
+    checker.check_module(&resolved, &mut sink);
+    if sink.has_errors() {
+        return;
+    }
+
+    let mir = ark_mir::lower::lower_to_mir(&resolved.module, &checker, &mut sink);
+
+    let escape_info = ark_mir::escape::analyze_module(&mir);
+    eprintln!("{}", ark_mir::escape::format_escape_info(&escape_info));
 }
 
 /// Compile a file and generate WIT text (for --emit wit / --emit all).

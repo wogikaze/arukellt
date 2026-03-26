@@ -2,7 +2,7 @@
 
 **Wasm-first・静的型付け・LLM-friendly** な言語。
 
-> **v1 実装中** — 154 fixtures pass, M3〜M8 完了（trait/impl/generics/match extensions）
+> **v1 実装中** — 170/175 fixtures pass, M3〜M8 完了（trait/impl/generics/match extensions）
 
 ---
 

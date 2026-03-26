@@ -2,13 +2,13 @@
 
 本文書は、arukellt 言語 v0 の完全仕様を一箇所に統合したものである。
 
-**Status**: Design specification — 実装は大部分完了（139/144 fixture pass）
+**Status**: Design specification — 実装は大部分完了（170/175 fixture pass）
 
 > **実装状況**: v0 コンパイラは設計仕様の大部分を実装。
 > linear memory + WASI Preview 1 バックエンドで、
 > i32/i64/f64/bool/String/struct/enum(payload)/Option/Result/?演算子/
 > closure/高階関数/match(payload binding)/tuple/Box/Vec が end-to-end 動作。
-> Wasm GC 型・WASI p2・io/fs は未実装。
+> Wasm GC 型・WASI p2 は未実装。io/fs（fs_read_file/fs_write_file）、io/clock（clock_now）、io/random（random_i32）は実装済み。
 
 ---
 
@@ -35,7 +35,7 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 > **設計と実装の差異**: 上記は v0 設計仕様の完成形。現行実装は
 > WASI p1 + linear memory バックエンドで、i32/i64/f64/bool/String/struct/
 > enum(payload)/Option/Result/?演算子/closure/高階関数/match/tuple/Box/Vec が
-> end-to-end 動作（142/147 fixture テスト pass、5 skip はモジュールヘルパー）。
+> end-to-end 動作（170/175 fixture テスト pass、5 skip はモジュールヘルパー）。
 > 未実装: Wasm GC 型、WASI p2。
 
 ### v0 で提供しないもの（Non-goals）

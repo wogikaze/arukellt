@@ -126,7 +126,7 @@ This document is the **single source of truth** for what is actually implemented
 | `to_lower(s)` / `to_upper(s)` | **runnable** | ASCII case conversion |
 | `clone(s)` | **runnable** | Deep copy for String |
 | `parse_i32(s)` | **runnable** | Returns `Result<i32, String>`; use `?` or `match` |
-| `parse_i64` / `parse_f64` | **runnable** | Returns i64/f64 directly (not Result); error → 0/0.0 |
+| `parse_i64` / `parse_f64` | **runnable** | Returns `Result<i64, String>` / `Result<f64, String>`; use `match` or `?` |
 | `Vec_new_i32()` | **runnable** | Creates empty `Vec<i32>` |
 | `Vec_new_String()` | **runnable** | Creates empty `Vec<String>` |
 | `push(v, x)` | **runnable** | Appends element |
@@ -208,7 +208,6 @@ This document is the **single source of truth** for what is actually implemented
 4. **No tail-call optimization**: Deep recursion will overflow the Wasm stack.
 5. **Silent failures**: Some unsupported features silently emit `i32.const(0)` or `Operand::Unit` instead of producing an error.
 6. **Module system — flat merge**: All imported symbols go into a single global scope. Name collisions across modules are not detected.
-7. **`parse_i64` / `parse_f64`**: Returns i64/f64 directly (not Result). Error → 0/0.0. parse_i32 との非対称性あり。
 
 ---
 

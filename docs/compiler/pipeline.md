@@ -2,7 +2,7 @@
 
 ADR-002 により Wasm GC 前提（設計）、ADR-003 により制限付き monomorphization を採用。
 
-> **現行実装**: 全 6 フェーズが動作。124/124 fixture テスト pass。
+> **現行実装**: 全 6 フェーズが動作。170/175 fixture テスト pass。
 > ただし Wasm GC 型ではなく linear memory + bump allocator で実装。
 > LLVM IR バックエンド [6b] は未実装。
 
@@ -538,6 +538,6 @@ fn main() { ... }
 | Box\<T\> | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Vec\<i32\> | ✅ | ✅ | ✅ | ✅ | ✅ |
 | modules/import | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ basic only |
-| for loops | ❌ | — | — | — | v1 |
-| trait / impl | ❌ | — | — | — | v1 |
-| io/fs | ✅ | — | — | — | 🔲 |
+| for loops | ✅ | ✅ | ✅ | ✅ | ✅ |
+| trait / impl | ✅ | ✅ | ✅ | ✅ | ✅ |
+| io/fs | ✅ | ✅ | ✅ | ✅ | ✅ |

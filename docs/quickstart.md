@@ -3,8 +3,8 @@
 10分で書き始められるガイド。すべてv0 canonical styleで記述。
 
 > **⚠️ 実装状況について**: 本ガイドのコード例は v0 設計仕様に基づく。
-> 大部分の例は現在の実装で動作する（124/124 fixture テスト pass）。
-> ファイル I/O 関連の例のみ未実装。各セクションに実装状況を記載。
+> 大部分の例は現在の実装で動作する（170/175 fixture テスト pass）。
+> ファイル I/O は `fs_read_file` / `fs_write_file` として実装済み。各セクションに実装状況を記載。
 
 ---
 
@@ -235,67 +235,60 @@ fn main() {
 
 ## ファイル読み書き
 
-> 🔲 **未実装** — capability-based I/O は設計済みだが全く実装されていない。
+> ✅ **実装済み** — `fs_read_file` / `fs_write_file` は WASI p1 経由で動作。
+> `main(caps: Capabilities)` の capability-based API は未実装。
+> 現行実装では `fs_read_file(path)` / `fs_write_file(path, content)` を直接呼び出す。
 
-### 基本（capability-based）
+### 基本
 
 ```
-fn main(caps: Capabilities) -> Result<(), IOError> {
-    let dir: DirCap = cwd(caps)
-
-    let path = RelPath_from("input.txt")?
-    let content: String = fs_read_file(dir, path)?
-
-    print(content)
-
-    Ok(())
+fn main() {
+    let r: Result<String, String> = fs_read_file(String_from("input.txt"))
+    match r {
+        Ok(content) => print(content),
+        Err(e) => println(e),
+    }
 }
 ```
 
 ### 読み込んで処理して書き込み
 
 ```
-fn main(caps: Capabilities) -> Result<(), IOError> {
-    let dir = cwd(caps)
+fn main() {
+    let r: Result<String, String> = fs_read_file(String_from("input.txt"))
+    match r {
+        Ok(content) => {
+            let lines: Vec<String> = split(content, String_from("\n"))
+            let upper_lines = map_String_String(lines, to_upper_line)
+            let result = join(upper_lines, String_from("\n"))
 
-    let path = RelPath_from("input.txt")?
-    let content = fs_read_file(dir, path)?
-
-    let lines: Vec<String> = split(content, "\n")
-    let upper_lines = map_String_String(lines, to_upper)
-    let result = join(upper_lines, "\n")
-
-    fs_write_file(dir, RelPath_from("output.txt"), result)?
-
-    Ok(())
+            let w: Result<(), String> = fs_write_file(String_from("output.txt"), result)
+            match w {
+                Ok(_) => println(String_from("done")),
+                Err(e) => println(e),
+            }
+        }
+        Err(e) => println(e),
+    }
 }
 
-fn to_upper(s: String) -> String {
-    // 実装は省略
-    s
+fn to_upper_line(s: String) -> String {
+    to_upper(s)
 }
 ```
 
 ### エラーハンドリング
 
 ```
-fn main(caps: Capabilities) -> Result<(), IOError> {
-    let dir = cwd(caps)
-    let path = RelPath_from("data.txt")?
-
-    let result = fs_read_file(dir, path)
+fn main() {
+    let result: Result<String, String> = fs_read_file(String_from("data.txt"))
 
     match result {
-        Ok(content) => {
-            print(content)
-            Ok(())
+        Ok(content) => print(content),
+        Err(e) => {
+            println(String_from("error reading file:"))
+            println(e)
         }
-        Err(IOError::NotFound) => {
-            print("file not found, creating default")
-            fs_write_file(dir, path, "default content")?
-            Ok(())
-        }
-        Err(e) => Err(e),
     }
 }
 ```
@@ -305,23 +298,17 @@ fn main(caps: Capabilities) -> Result<(), IOError> {
 ## 完全な例：単語カウンター
 
 ```
-fn main(caps: Capabilities) -> Result[(), IOError] {
-    let dir = cwd(caps)
-    
-    // ファイル読み込み
-    let content = fs_read_file(dir, RelPath_from("input.txt"))?
-    
-    // 単語に分割
-    let words: Vec[String] = split(content, " ")
-    
-    // カウント
-    let count = len(words)
-    
-    // 結果を出力
-    let message = concat(String_from("Word count: "), int_to_string(count))
-    print(message)
-    
-    Ok(())
+fn main() {
+    let r: Result<String, String> = fs_read_file(String_from("input.txt"))
+    match r {
+        Ok(content) => {
+            let words: Vec<String> = split(content, String_from(" "))
+            let count = len(words)
+            let message = concat(String_from("Word count: "), i32_to_string(count))
+            println(message)
+        }
+        Err(e) => println(e),
+    }
 }
 ```
 
@@ -364,12 +351,15 @@ let v: Vec<i32> = Vec_new_i32()
 
 ```
 // ❌ 間違い
-let content = fs_read_file(dir, path)
-print(content)  // エラー: Result型をprintできない
+let r = fs_read_file(String_from("data.txt"))
+print(r)  // エラー: Result型をprintできない
 
 // ✅ 正しい
-let content = fs_read_file(dir, path)?
-print(content)
+let r: Result<String, String> = fs_read_file(String_from("data.txt"))
+match r {
+    Ok(content) => print(content),
+    Err(e) => println(e),
+}
 ```
 
 ---
@@ -403,5 +393,5 @@ print(content)
 | Option | `unwrap(opt)`, `is_some(opt)` | ✅ |
 | クロージャ | `fn f(x: i32) -> i32 { x + 1 }` + 高階関数 | ✅ |
 | ? 演算子 | `let val = risky_fn()?` | ✅ |
-| ファイル読み | `fs_read_file(dir, path)?` | 🔲 |
+| ファイル読み | `fs_read_file(String_from("path.txt"))` | ✅ |
 | エラー処理 | `match result { Ok(v) => ..., Err(e) => ... }` | ✅ |

@@ -9,15 +9,20 @@
 //!
 //! - `textDocument/didOpen`, `textDocument/didChange` — triggers
 //!   diagnostics refresh via `publishDiagnostics`
-//! - `textDocument/hover` — shows type information for identifiers
+//! - `textDocument/hover` — shows type-aware information for
+//!   identifiers (function signatures, struct fields, enum variants)
 //! - `textDocument/completion` — suggests local variables, functions,
 //!   and built-in names
+//! - `textDocument/definition` — go-to-definition for functions,
+//!   structs, enums, traits, and let bindings
+//! - `textDocument/references` — find all uses of an identifier
+//! - `textDocument/documentSymbol` — outline view of top-level items
+//! - `textDocument/semanticTokens/full` — semantic token
+//!   classification for richer syntax highlighting
 //!
 //! ## Not yet supported
 //!
-//! - Go-to-definition / references
 //! - Rename / code actions
-//! - Semantic tokens
 //! - Workspace symbols
 //! - Incremental parsing / caching
 

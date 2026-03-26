@@ -157,7 +157,6 @@ dependencies = [
  "ark-lexer",
  "ark-parser",
  "ark-resolve",
- "ark-stdlib",
  "ark-typecheck",
  "serde_json",
  "tokio",
