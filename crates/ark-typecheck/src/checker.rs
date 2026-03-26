@@ -620,6 +620,137 @@ impl TypeChecker {
                 ret: Type::Bool,
             },
         );
+
+        // --- Missing stdlib: math builtins ---
+        self.fn_sigs.insert(
+            "sqrt".into(),
+            FnSig {
+                name: "sqrt".into(),
+                type_params: vec![],
+                params: vec![Type::F64],
+                ret: Type::F64,
+            },
+        );
+        self.fn_sigs.insert(
+            "abs".into(),
+            FnSig {
+                name: "abs".into(),
+                type_params: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "min".into(),
+            FnSig {
+                name: "min".into(),
+                type_params: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "max".into(),
+            FnSig {
+                name: "max".into(),
+                type_params: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::I32,
+            },
+        );
+
+        // --- Missing stdlib: panic ---
+        self.fn_sigs.insert(
+            "panic".into(),
+            FnSig {
+                name: "panic".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::Unit,
+            },
+        );
+
+        // --- Missing stdlib: clone ---
+        self.fn_sigs.insert(
+            "clone".into(),
+            FnSig {
+                name: "clone".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::String,
+            },
+        );
+
+        // --- Missing stdlib: string functions ---
+        self.fn_sigs.insert(
+            "push_char".into(),
+            FnSig {
+                name: "push_char".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::Char],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "to_lower".into(),
+            FnSig {
+                name: "to_lower".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "to_upper".into(),
+            FnSig {
+                name: "to_upper".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::String,
+            },
+        );
+
+        // --- Missing stdlib: parse functions ---
+        self.fn_sigs.insert(
+            "parse_i64".into(),
+            FnSig {
+                name: "parse_i64".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::I64,
+            },
+        );
+        self.fn_sigs.insert(
+            "parse_f64".into(),
+            FnSig {
+                name: "parse_f64".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::F64,
+            },
+        );
+
+        // --- Missing stdlib: sort_String ---
+        self.fn_sigs.insert(
+            "sort_String".into(),
+            FnSig {
+                name: "sort_String".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::String))],
+                ret: Type::Unit,
+            },
+        );
+
+        // --- Missing stdlib: f32_to_string ---
+        self.fn_sigs.insert(
+            "f32_to_string".into(),
+            FnSig {
+                name: "f32_to_string".into(),
+                type_params: vec![],
+                params: vec![Type::F32],
+                ret: Type::String,
+            },
+        );
     }
 
     /// Resolve a type expression to a Type.
@@ -870,6 +1001,26 @@ impl TypeChecker {
                     init_type
                 };
                 let _ = init_type;
+                // W0001: warn on aliasing mutable reference types
+                if let ast::Expr::Ident {
+                    name: src_name,
+                    span: src_span,
+                    ..
+                } = init
+                {
+                    if env.is_mutable(src_name) {
+                        let src_ty = env.lookup(src_name).cloned().unwrap_or(Type::Error);
+                        if matches!(src_ty, Type::Vec(_)) {
+                            sink.emit(
+                                Diagnostic::new(DiagnosticCode::W0001)
+                                    .with_label(*src_span, format!(
+                                        "mutable `{}` is shared by reference; mutations affect both variables",
+                                        src_name
+                                    )),
+                            );
+                        }
+                    }
+                }
             }
             ast::Stmt::Expr(expr) => {
                 self.synthesize_expr(expr, env, sink);
@@ -1278,6 +1429,22 @@ impl TypeChecker {
                 match inner_ty {
                     Type::Result(ok, _) => *ok,
                     _ => Type::Error,
+                }
+            }
+            ast::Expr::Index { object, index, .. } => {
+                let obj_ty = self.synthesize_expr(object, env, sink);
+                let _idx_ty = self.synthesize_expr(index, env, sink);
+                match obj_ty {
+                    Type::Array(elem, _) => *elem,
+                    _ => Type::I32,
+                }
+            }
+            ast::Expr::ArrayRepeat { value, count, .. } => {
+                let elem_ty = self.synthesize_expr(value, env, sink);
+                if let ast::Expr::IntLit { value: n, .. } = count.as_ref() {
+                    Type::Array(Box::new(elem_ty), *n as u64)
+                } else {
+                    Type::Error
                 }
             }
             _ => {

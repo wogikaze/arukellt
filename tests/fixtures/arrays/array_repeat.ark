@@ -1,0 +1,8 @@
+fn main() {
+    let arr = [0; 5]
+    println(arr[0])
+    println(arr[4])
+    let nums = [1, 2, 3, 4, 5]
+    let sum = nums[0] + nums[1] + nums[2] + nums[3] + nums[4]
+    println(sum)
+}

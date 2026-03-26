@@ -550,10 +550,12 @@ impl LowerCtx {
                             | "i32_to_string"
                             | "i64_to_string"
                             | "f64_to_string"
+                            | "f32_to_string"
                             | "bool_to_string"
                             | "char_to_string"
                             | "to_lower"
                             | "to_upper"
+                            | "clone"
                     )
                 } else {
                     false
@@ -585,13 +587,26 @@ impl LowerCtx {
                         | "i32_to_string"
                         | "i64_to_string"
                         | "f64_to_string"
+                        | "f32_to_string"
                         | "bool_to_string"
                         | "char_to_string"
                         | "to_lower"
                         | "to_upper"
+                        | "clone"
                 )
             }
             Operand::Place(Place::Local(lid)) => self.string_locals.contains(&lid.0),
+            _ => false,
+        }
+    }
+
+    /// Check if a MIR operand produces an f64 value.
+    fn is_f64_operand_mir(&self, op: &Operand) -> bool {
+        match op {
+            Operand::ConstF64(_) => true,
+            Operand::Call(name, _) => matches!(name.as_str(), "sqrt"),
+            Operand::BinOp(_, l, r) => self.is_f64_operand_mir(l) || self.is_f64_operand_mir(r),
+            Operand::Place(Place::Local(lid)) => self.f64_locals.contains(&lid.0),
             _ => false,
         }
     }
@@ -719,6 +734,14 @@ impl LowerCtx {
                             }
                         }
                     }
+                }
+                // Infer f64 from initializer when there's no explicit type annotation
+                if !self.f64_locals.contains(&local_id.0) && self.is_f64_operand_mir(&op) {
+                    self.f64_locals.insert(local_id.0);
+                }
+                // Infer String from initializer when there's no explicit type annotation
+                if !self.string_locals.contains(&local_id.0) && self.is_string_operand_mir(&op) {
+                    self.string_locals.insert(local_id.0);
                 }
                 // Track closure locals: if the init expression was a closure, record captures
                 if let Operand::FnRef(ref fn_name) = op {
@@ -1833,6 +1856,28 @@ impl LowerCtx {
                 }
 
                 Operand::FnRef(synth_name)
+            }
+            ast::Expr::Array { elements, .. } => {
+                let lowered: Vec<Operand> = elements.iter().map(|e| self.lower_expr(e)).collect();
+                Operand::ArrayInit { elements: lowered }
+            }
+            ast::Expr::ArrayRepeat { value, count, .. } => {
+                let val = self.lower_expr(value);
+                if let ast::Expr::IntLit { value: n, .. } = count.as_ref() {
+                    let n = *n as usize;
+                    let elements: Vec<Operand> = (0..n).map(|_| val.clone()).collect();
+                    Operand::ArrayInit { elements }
+                } else {
+                    Operand::Unit
+                }
+            }
+            ast::Expr::Index { object, index, .. } => {
+                let obj = self.lower_expr(object);
+                let idx = self.lower_expr(index);
+                Operand::IndexAccess {
+                    object: Box::new(obj),
+                    index: Box::new(idx),
+                }
             }
             _ => Operand::Unit,
         }

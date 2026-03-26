@@ -2,7 +2,7 @@
 
 > **Last updated**: 2026-03-25
 > **Branch**: `feature/arukellt-v1`
-> **Test results**: 81 unit tests pass, 127/135 fixture tests pass (8 skipped — modules not yet wired)
+> **Test results**: 82 unit tests pass, 139/144 fixture tests pass (5 skipped — module helper files)
 
 This document is the **single source of truth** for what is actually implemented vs. what is designed/planned in v0. Other docs in this repository describe the *design intent*; this document describes the *current reality*.
 
@@ -27,8 +27,8 @@ This document is the **single source of truth** for what is actually implemented
 | **Runtime** | wasmtime / V8 / SpiderMonkey | **wasmtime 29 (embedded via Rust crate)** |
 | **String repr** | GC array (UTF-8) | **Length-prefixed bytes in linear memory** `[len:4][data:N]` |
 | **Struct repr** | GC struct types | **Flat i32 fields in linear memory** (4 bytes per field) |
-| **Enum repr** | Tagged union (GC) | **Integer tag only** (unit variants); payload variants not implemented |
-| **Vec repr** | GC array with capacity | **Not implemented** |
+| **Enum repr** | Tagged union (GC) | **Tag + payload in linear memory** (unit and tuple variants) |
+| **Vec repr** | GC array with capacity | **`[len:4][cap:4][data_ptr:4]` header + dynamic data region** |
 
 ## Language Features
 
@@ -36,13 +36,13 @@ This document is the **single source of truth** for what is actually implemented
 |---------|-------|-------|
 | `i32` type | **runnable** | Full arithmetic, comparison, printing |
 | `i64` type | **runnable** | Literals, arithmetic, `i64_to_string` |
-| `f32` type | **emitted** | Literals emit `f32.const`; no f32 arithmetic helpers |
-| `f64` type | **runnable** | Literals, arithmetic, `f64_to_string` |
+| `f32` type | **emitted** | Literals emit `f32.const`; `f32_to_string` works; no f32 arithmetic helpers |
+| `f64` type | **runnable** | Literals, arithmetic, `f64_to_string`, `sqrt` |
 | `bool` type | **runnable** | `true`/`false`, `bool_to_string`, `print_bool_ln` |
 | `char` type | **runnable** | Stored as i32; `char_to_string` prints single byte |
-| `String` type | **runnable** | Literals, `String_from`, `eq`, `concat`, `len`, `split`, `join`, `slice`, `starts_with`, `ends_with`, `println` |
+| `String` type | **runnable** | Literals, `String_from`, `eq`, `concat`, `len`, `split`, `join`, `slice`, `starts_with`, `ends_with`, `to_lower`, `to_upper`, `push_char`, `clone`, `println` |
 | Tuples | **runnable** | Tuple literals `(a, b)`, destructuring `let (x, y) = ...`, return types |
-| Arrays | **parsed** | Parser + typechecker handle; Wasm emission crashes at runtime |
+| Arrays | **runnable** | Array literals `[1,2,3]`, repeat `[0; 5]`, indexing `arr[i]` |
 
 ## Compound Types
 
@@ -68,7 +68,7 @@ This document is the **single source of truth** for what is actually implemented
 | `for` loops | **runnable** | `for i in a..b` (range) and `for x in values(v)` (Vec iteration) |
 | `match` (int literals) | **runnable** | Lowered to nested if-else chains |
 | `match` (bool literals) | **runnable** | |
-| `match` (enum variants) | **runnable** | Unit variants only; payload binding not lowered |
+| `match` (enum variants) | **runnable** | Unit and tuple variants; payload binding works |
 | `match` (wildcard `_`) | **runnable** | |
 | `match` (binding `name`) | **runnable** | |
 | `match` (tuple patterns) | **runnable** | Tuple destructuring in match arms works |
@@ -105,6 +105,7 @@ This document is the **single source of truth** for what is actually implemented
 | `i32_to_string` | **runnable** | Wasm helper function |
 | `i64_to_string` | **runnable** | Wasm helper function |
 | `f64_to_string` | **runnable** | Wasm helper function |
+| `f32_to_string` | **runnable** | Wasm helper function |
 | `bool_to_string` | **runnable** | Wasm helper function |
 | `char_to_string` | **runnable** | Single byte write |
 | `String_from("lit")` | **runnable** | Allocates length-prefixed string |
@@ -118,13 +119,16 @@ This document is the **single source of truth** for what is actually implemented
 | `join(v, sep)` | **runnable** | Joins `Vec<String>` with separator |
 | `starts_with(s, prefix)` | **runnable** | Prefix check |
 | `ends_with(s, suffix)` | **runnable** | Suffix check |
-| `push_char(s, c)` | **designed** | Not yet in prelude |
-| `to_lower(s)` / `to_upper(s)` | **designed** | Not yet in prelude |
+| `push_char(s, c)` | **runnable** | Appends char to string in-place |
+| `to_lower(s)` / `to_upper(s)` | **runnable** | ASCII case conversion |
+| `clone(s)` | **runnable** | Deep copy for String |
 | `parse_i32(s)` | **runnable** | Returns `Result<i32, String>`; use `?` or `match` |
-| `parse_i64` / `parse_f64` | **designed** | Registered; no implementation |
+| `parse_i64` / `parse_f64` | **typed** | Typechecker sigs registered; no Wasm emission |
 | `Vec_new_i32()` | **runnable** | Creates empty `Vec<i32>` |
+| `Vec_new_String()` | **runnable** | Creates empty `Vec<String>` |
 | `push(v, x)` | **runnable** | Appends element |
 | `pop(v)` | **runnable** | Removes and returns last element as `Option<T>` |
+| `get(v, i)` | **runnable** | Returns `Option<T>` with bounds checking |
 | `get_unchecked(v, i)` | **runnable** | Index without bounds check |
 | `set(v, i, x)` | **runnable** | Sets element at index |
 | `len(v)` | **runnable** | Vec element count |
@@ -132,15 +136,16 @@ This document is the **single source of truth** for what is actually implemented
 | `map_i32_i32(v, f)` | **runnable** | Maps function over Vec |
 | `filter_i32(v, f)` | **runnable** | Filters Vec by predicate |
 | `fold_i32_i32(v, init, f)` | **runnable** | Folds Vec with accumulator |
-| `sort_i32(v)` | **runnable** | Sorts Vec in-place |
-| `sort_String(v)` | **designed** | Not yet implemented |
+| `sort_i32(v)` | **runnable** | Sorts Vec<i32> in-place |
+| `sort_String(v)` | **runnable** | Sorts Vec<String> in-place (lexicographic) |
 | `is_some(opt)` / `is_none(opt)` | **runnable** | Option predicates |
-| `unwrap(opt)` | **runnable** | Extracts `Some` value (panics on `None` at runtime) |
+| `unwrap(opt)` | **runnable** | Extracts `Some` value (traps on `None`) |
 | `unwrap_or(opt, default)` | **runnable** | Extracts value or returns default |
 | `option_map(opt, f)` | **runnable** | Maps function over `Option` |
-| `sqrt` / `abs` / `min` / `max` | **designed** | Not yet in prelude |
-| `clone` | **designed** | Not yet in prelude |
-| `panic` | **designed** | Not yet in prelude |
+| `sqrt(x)` | **runnable** | `f64 → f64`; Wasm `f64.sqrt` |
+| `abs(x)` | **runnable** | `i32 → i32`; computed via select |
+| `min(a, b)` / `max(a, b)` | **runnable** | `i32 → i32`; computed via comparison |
+| `panic(msg)` | **runnable** | Prints `panic: {msg}` to stderr and traps |
 | String interpolation `f"..."` | **runnable** | `f"text {expr}"` — expressions interpolated at runtime |
 | Capability-based I/O (`fs_read_file`, `fs_write_file`) | **designed** | Not in prelude; not implemented |
 | `io/clock` / `io/random` | **designed** | Not implemented |
@@ -149,11 +154,12 @@ This document is the **single source of truth** for what is actually implemented
 
 | Feature | Stage | Notes |
 |---------|-------|-------|
-| `import` syntax | **parsed** | Parser produces `Import` AST nodes |
-| Import resolution | **designed** | `resolve.rs` has TODO on line 140 |
-| Stdlib auto-import | **partial** | Prelude names injected; no actual module loading |
-| User module imports | **not implemented** | |
-| Circular import detection | **not implemented** | |
+| `import` syntax | **runnable** | `import math` loads `./math.ark` |
+| Import with alias | **runnable** | `import utils as u` — flat merge, alias ignored |
+| Qualified access | **runnable** | `math::add(1, 2)` — module prefix stripped, flat merge resolves |
+| `pub` visibility | **runnable** | Only `pub fn` / `pub struct` exported from modules |
+| Circular import detection | **runnable** | `visiting` HashSet prevents infinite loops |
+| Stdlib auto-import | **runnable** | Prelude names injected into every scope |
 
 ## Toolchain
 
@@ -163,6 +169,7 @@ This document is the **single source of truth** for what is actually implemented
 | `arukellt run` | **runnable** | Compiles + executes via embedded wasmtime |
 | `arukellt check` | **runnable** | Runs parser + resolver + typechecker |
 | Multiple error reporting | **runnable** | DiagnosticSink collects errors; ariadne renders |
+| Warning rendering | **runnable** | Warnings displayed even on successful compilation |
 | Wasm binary output | **runnable** | WASI p1 compatible modules |
 | wasm-gc target | **designed** | Not implemented; linear memory used |
 | wasm32-wasi target | **designed** | Documented but not a separate mode |
@@ -175,22 +182,25 @@ This document is the **single source of truth** for what is actually implemented
 | E0001 | Unexpected token | **runnable** |
 | E0002 | Missing token | **runnable** |
 | E0100 | Unresolved name | **runnable** |
-| E0101 | Duplicate definition | **designed** |
+| E0101 | Duplicate definition | **runnable** |
 | E0200 | Type mismatch | **runnable** |
 | E0201-E0206 | Type errors | **partial** — some checked, some designed |
+| E0207 | Immutable assignment | **runnable** |
+| E0210 | `?` outside Result fn | **runnable** |
+| E0300 | `trait` rejected | **runnable** |
 | E0301 | Method syntax rejected | **runnable** |
 | E0302 | Nested generics rejected | **runnable** |
 | E0303 | `for` loop rejected | **removed** — `for` loops are now implemented |
-| E0304 | Operator overload rejected | **designed** |
-| W0001 | Mutable sharing warning | **designed** |
+| E0304 | `impl`/operator overload rejected | **runnable** |
+| W0001 | Mutable sharing warning | **runnable** |
 
 ## Known Limitations
 
-1. **Arrays**: Array literals and indexing parse and type-check but produce a Wasm compile error at runtime — not yet emitted.
+1. **Enum struct variants**: `Variant { field: val }` construction and `Variant { field }` destructuring in `match` are parsed but not emitted.
 2. **Closures — no captures**: Lambda syntax `|x| expr` works for single-expression bodies, but closures cannot capture variables from the enclosing scope.
-3. **Enum struct variants**: `Variant { field: val }` construction and `Variant { field }` destructuring in `match` are parsed but not emitted.
-4. **No heap deallocation**: Bump allocator never frees memory.
-5. **String data region**: Static strings occupy 256–4095; heap starts at 4096. Programs with >3840 bytes of string literals will overflow.
-6. **No tail-call optimization**: Deep recursion will overflow the Wasm stack.
-7. **Silent failures**: Some unsupported features silently emit `i32.const(0)` or `Operand::Unit` instead of producing an error.
-8. **`f32` not fully integrated**: `f32` literals emit `f32.const`, but no `f32_to_string` or arithmetic helpers exist.
+3. **No heap deallocation**: Bump allocator never frees memory.
+4. **String data region**: Static strings occupy 256–4095; heap starts at 4096. Programs with >3840 bytes of string literals will overflow.
+5. **No tail-call optimization**: Deep recursion will overflow the Wasm stack.
+6. **Silent failures**: Some unsupported features silently emit `i32.const(0)` or `Operand::Unit` instead of producing an error.
+7. **Module system — flat merge**: All imported symbols go into a single global scope. Name collisions across modules are not detected.
+8. **`parse_i64` / `parse_f64`**: Typechecker signatures registered but no Wasm emission code — calling these will produce incorrect results.

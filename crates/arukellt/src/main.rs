@@ -133,6 +133,11 @@ fn compile_file(path: &PathBuf) -> Result<Vec<u8>, String> {
         return Err(render_diagnostics(sink.diagnostics(), &source_map));
     }
 
+    // Render warnings even on successful compilation
+    if sink.has_warnings() {
+        eprint!("{}", render_diagnostics(sink.diagnostics(), &source_map));
+    }
+
     Ok(wasm)
 }
 

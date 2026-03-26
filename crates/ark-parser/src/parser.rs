@@ -106,7 +106,7 @@ impl<'a> Parser<'a> {
                 let sp = self.span();
                 let code = match kw.as_str() {
                     "trait" => DiagnosticCode::E0300,
-                    "impl" => DiagnosticCode::E0300,
+                    "impl" => DiagnosticCode::E0304,
                     "for" => DiagnosticCode::E0303,
                     _ => DiagnosticCode::E0003,
                 };
@@ -526,7 +526,8 @@ impl<'a> Parser<'a> {
                 let sp = self.span();
                 let code = match kw.as_str() {
                     "for" => DiagnosticCode::E0303,
-                    "trait" | "impl" => DiagnosticCode::E0300,
+                    "trait" => DiagnosticCode::E0300,
+                    "impl" => DiagnosticCode::E0304,
                     _ => DiagnosticCode::E0003,
                 };
                 self.sink.emit(

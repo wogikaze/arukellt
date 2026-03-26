@@ -1,0 +1,6 @@
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    let alias = v
+    push(v, 2)
+}

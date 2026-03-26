@@ -129,9 +129,31 @@ fn collect_module_items(
     global_scope: ScopeId,
     sink: &mut DiagnosticSink,
 ) {
+    collect_module_items_impl(module, symbols, global_scope, sink, false);
+}
+
+fn collect_module_items_pub_only(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+) {
+    collect_module_items_impl(module, symbols, global_scope, sink, true);
+}
+
+fn collect_module_items_impl(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+    pub_only: bool,
+) {
     for item in &module.items {
         match item {
             ast::Item::FnDef(f) => {
+                if pub_only && !f.is_pub {
+                    continue;
+                }
                 if symbols.lookup_local(global_scope, &f.name).is_some() {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0101)
@@ -147,6 +169,9 @@ fn collect_module_items(
                 }
             }
             ast::Item::StructDef(s) => {
+                if pub_only && !s.is_pub {
+                    continue;
+                }
                 if symbols.lookup_local(global_scope, &s.name).is_some() {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0101)
@@ -164,6 +189,9 @@ fn collect_module_items(
                 }
             }
             ast::Item::EnumDef(e) => {
+                if pub_only && !e.is_pub {
+                    continue;
+                }
                 if symbols.lookup_local(global_scope, &e.name).is_some() {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0101)
@@ -309,7 +337,7 @@ pub fn resolve_program(
     inject_prelude(&mut symbols, global_scope);
     collect_module_items(&entry_module, &mut symbols, global_scope, sink);
     for loaded_module in loaded.values() {
-        collect_module_items(&loaded_module.ast, &mut symbols, global_scope, sink);
+        collect_module_items_pub_only(&loaded_module.ast, &mut symbols, global_scope, sink);
     }
 
     Ok(ResolvedProgram {
@@ -336,7 +364,17 @@ pub fn resolve_module(module: ast::Module, sink: &mut DiagnosticSink) -> Resolve
 pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
     let mut module = program.entry_module.clone();
     for loaded in &program.modules {
-        module.items.extend(loaded.ast.items.clone());
+        // Only include pub items from imported modules
+        for item in &loaded.ast.items {
+            let is_pub = match item {
+                ast::Item::FnDef(f) => f.is_pub,
+                ast::Item::StructDef(s) => s.is_pub,
+                ast::Item::EnumDef(e) => e.is_pub,
+            };
+            if is_pub {
+                module.items.push(item.clone());
+            }
+        }
     }
     module
 }

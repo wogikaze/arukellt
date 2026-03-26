@@ -1,0 +1,5 @@
+fn main() {
+    let mut s = String_from("hello")
+    push_char(s, '!')
+    println(s)
+}

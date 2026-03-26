@@ -1,0 +1,5 @@
+fn main() {
+    let s = String_from("Hello World")
+    println(to_lower(s))
+    println(to_upper(s))
+}

@@ -1,0 +1,6 @@
+fn main() {
+    println(abs(-5))
+    println(abs(3))
+    println(min(3, 7))
+    println(max(3, 7))
+}

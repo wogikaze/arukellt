@@ -255,6 +255,12 @@ impl DiagnosticSink {
         self.diagnostics.iter().any(|d| d.is_error())
     }
 
+    pub fn has_warnings(&self) -> bool {
+        self.diagnostics
+            .iter()
+            .any(|d| d.severity() == Severity::Warning)
+    }
+
     pub fn error_count(&self) -> usize {
         self.diagnostics.iter().filter(|d| d.is_error()).count()
     }

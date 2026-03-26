@@ -182,6 +182,15 @@ pub enum Operand {
         callee: Box<Operand>,
         args: Vec<Operand>,
     },
+    /// Construct a fixed-size array from elements.
+    ArrayInit {
+        elements: Vec<Operand>,
+    },
+    /// Index into an array: array[index].
+    IndexAccess {
+        object: Box<Operand>,
+        index: Box<Operand>,
+    },
 }
 
 /// Binary operations.

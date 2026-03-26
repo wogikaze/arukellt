@@ -277,7 +277,7 @@ mod tests {
         assert!(
             sink.diagnostics()
                 .iter()
-                .any(|d| d.code == ark_diagnostics::DiagnosticCode::E0300)
+                .any(|d| d.code == ark_diagnostics::DiagnosticCode::E0304)
         );
     }
 
