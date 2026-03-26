@@ -1275,6 +1275,13 @@ impl<'a> Parser<'a> {
                             span,
                         };
                     }
+                    // Enum struct variant constructor: Enum::Variant { field: value }
+                    if *self.peek() == TokenKind::LBrace {
+                        let qualified = format!("{}::{}", name, variant);
+                        if self.could_be_struct_init(&qualified) {
+                            return self.parse_struct_init(qualified, start);
+                        }
+                    }
                     return Expr::QualifiedIdent {
                         module: name,
                         name: variant,
@@ -1561,11 +1568,11 @@ impl<'a> Parser<'a> {
             }
             TokenKind::Ident(name) => {
                 self.advance();
-                // Check for Enum::Variant(...)
+                // Check for Enum::Variant(...) or Enum::Variant { ... }
                 if *self.peek() == TokenKind::ColonColon {
                     self.advance();
                     let variant = self.expect_ident();
-                    let fields = if *self.peek() == TokenKind::LParen {
+                    if *self.peek() == TokenKind::LParen {
                         self.advance();
                         let mut pats = Vec::new();
                         while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
@@ -1575,14 +1582,42 @@ impl<'a> Parser<'a> {
                             }
                         }
                         self.expect(&TokenKind::RParen);
-                        pats
-                    } else {
-                        Vec::new()
-                    };
+                        return Pattern::Enum {
+                            path: name,
+                            variant,
+                            fields: pats,
+                            span: start.merge(self.span()),
+                        };
+                    }
+                    // Enum struct variant pattern: Enum::Variant { field, ... }
+                    if *self.peek() == TokenKind::LBrace {
+                        self.advance();
+                        let mut fields = Vec::new();
+                        while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
+                            let fname = self.expect_ident();
+                            let fpat = if self.eat(&TokenKind::Colon) {
+                                Some(self.parse_pattern())
+                            } else {
+                                None
+                            };
+                            fields.push((fname, fpat));
+                            if !self.eat(&TokenKind::Comma) {
+                                break;
+                            }
+                        }
+                        self.expect(&TokenKind::RBrace);
+                        let qualified = format!("{}::{}", name, variant);
+                        return Pattern::Struct {
+                            name: qualified,
+                            fields,
+                            span: start.merge(self.span()),
+                        };
+                    }
+                    // Unit enum variant pattern
                     return Pattern::Enum {
                         path: name,
                         variant,
-                        fields,
+                        fields: Vec::new(),
                         span: start.merge(self.span()),
                     };
                 }

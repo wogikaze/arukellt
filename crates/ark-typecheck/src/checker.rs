@@ -91,6 +91,7 @@ pub struct EnumInfo {
 pub struct VariantInfo {
     pub name: String,
     pub fields: Vec<Type>,
+    pub field_names: Vec<String>,
 }
 
 /// Information about a function signature.
@@ -162,10 +163,12 @@ impl TypeChecker {
                     VariantInfo {
                         name: "None".into(),
                         fields: vec![],
+                        field_names: vec![],
                     },
                     VariantInfo {
                         name: "Some".into(),
                         fields: vec![Type::TypeVar(0)],
+                        field_names: vec![],
                     },
                 ],
                 type_params: vec!["T".into()],
@@ -183,10 +186,12 @@ impl TypeChecker {
                     VariantInfo {
                         name: "Ok".into(),
                         fields: vec![Type::TypeVar(0)],
+                        field_names: vec![],
                     },
                     VariantInfo {
                         name: "Err".into(),
                         fields: vec![Type::TypeVar(1)],
+                        field_names: vec![],
                     },
                 ],
                 type_params: vec!["T".into(), "E".into()],
@@ -1277,10 +1282,12 @@ impl TypeChecker {
                             ast::Variant::Unit { name, .. } => VariantInfo {
                                 name: name.clone(),
                                 fields: vec![],
+                                field_names: vec![],
                             },
                             ast::Variant::Tuple { name, fields, .. } => VariantInfo {
                                 name: name.clone(),
                                 fields: fields.iter().map(|t| self.resolve_type_expr(t)).collect(),
+                                field_names: vec![],
                             },
                             ast::Variant::Struct { name, fields, .. } => VariantInfo {
                                 name: name.clone(),
@@ -1288,6 +1295,7 @@ impl TypeChecker {
                                     .iter()
                                     .map(|f| self.resolve_type_expr(&f.ty))
                                     .collect(),
+                                field_names: fields.iter().map(|f| f.name.clone()).collect(),
                             },
                         })
                         .collect();
@@ -1724,8 +1732,38 @@ impl TypeChecker {
                                     }
                                 }
                                 "to_string" => {
-                                    // Polymorphic: accepts any primitive, returns String
-                                    Type::String
+                                    // Polymorphic: accepts any displayable type, returns String
+                                    // For struct types, check Display trait impl
+                                    if let Some(arg_ty) = arg_types.first() {
+                                        match arg_ty {
+                                            Type::I32 | Type::I64 | Type::F64 | Type::Bool
+                                            | Type::Char | Type::String => Type::String,
+                                            Type::Struct(tid) => {
+                                                // Look up struct name from type_id
+                                                let sname = self.struct_defs.iter()
+                                                    .find(|(_, info)| info.type_id == *tid)
+                                                    .map(|(name, _)| name.clone());
+                                                if let Some(ref name) = sname {
+                                                    let has_display = self.trait_impls
+                                                        .get(name)
+                                                        .is_some_and(|traits| traits.contains(&"Display".to_string()));
+                                                    if !has_display {
+                                                        sink.emit(
+                                                            Diagnostic::new(DiagnosticCode::E0200)
+                                                                .with_message(format!(
+                                                                    "type `{}` does not implement `Display` trait; add `impl Display for {} {{ fn to_string(self) -> String {{ ... }} }}`",
+                                                                    name, name
+                                                                )),
+                                                        );
+                                                    }
+                                                }
+                                                Type::String
+                                            }
+                                            _ => Type::String,
+                                        }
+                                    } else {
+                                        Type::String
+                                    }
                                 }
                                 _ => *ret,
                             }
@@ -1930,21 +1968,45 @@ impl TypeChecker {
                             fields: sfields,
                             ..
                         } => {
-                            has_wildcard = true;
-                            if let Some(sinfo) = self.struct_defs.get(sname.as_str()).cloned() {
-                                for (fname, fpat) in sfields {
-                                    let binding_name = match fpat {
-                                        Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
-                                        None => fname.clone(),
-                                        _ => fname.clone(),
-                                    };
-                                    let field_ty = sinfo
-                                        .fields
-                                        .iter()
-                                        .find(|(n, _)| n == fname)
-                                        .map(|(_, t)| t.clone())
-                                        .unwrap_or(Type::Error);
-                                    arm_env.bind(binding_name, field_ty);
+                            // Check if this is an enum struct variant pattern: "EnumName::VariantName"
+                            if let Some((enum_name, variant_name)) = sname.split_once("::") {
+                                covered_variants.push(sname.clone());
+                                if let Some(einfo) = self.enum_defs.get(enum_name) {
+                                    if let Some(vinfo) = einfo.variants.iter().find(|v| v.name == variant_name) {
+                                        for (fname, fpat) in sfields {
+                                            let binding_name = match fpat {
+                                                Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
+                                                None => fname.clone(),
+                                                _ => fname.clone(),
+                                            };
+                                            let field_ty = vinfo
+                                                .field_names
+                                                .iter()
+                                                .position(|n| n == fname)
+                                                .and_then(|idx| vinfo.fields.get(idx))
+                                                .cloned()
+                                                .unwrap_or(Type::Error);
+                                            arm_env.bind(binding_name, field_ty);
+                                        }
+                                    }
+                                }
+                            } else {
+                                has_wildcard = true;
+                                if let Some(sinfo) = self.struct_defs.get(sname.as_str()).cloned() {
+                                    for (fname, fpat) in sfields {
+                                        let binding_name = match fpat {
+                                            Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
+                                            None => fname.clone(),
+                                            _ => fname.clone(),
+                                        };
+                                        let field_ty = sinfo
+                                            .fields
+                                            .iter()
+                                            .find(|(n, _)| n == fname)
+                                            .map(|(_, t)| t.clone())
+                                            .unwrap_or(Type::Error);
+                                        arm_env.bind(binding_name, field_ty);
+                                    }
                                 }
                             }
                         }
@@ -2101,6 +2163,16 @@ impl TypeChecker {
                 Type::I32
             }
             ast::Expr::StructInit { name, fields, .. } => {
+                // Check if this is an enum struct variant: "EnumName::VariantName"
+                if let Some((enum_name, _variant_name)) = name.split_once("::") {
+                    let enum_tid = self.enum_defs.get(enum_name).map(|e| e.type_id);
+                    if let Some(tid) = enum_tid {
+                        for (_fname, fexpr) in fields {
+                            self.synthesize_expr(fexpr, env, sink);
+                        }
+                        return Type::Enum(tid);
+                    }
+                }
                 let type_id = self.struct_defs.get(name).map(|info| info.type_id);
                 for (_fname, fexpr) in fields {
                     self.synthesize_expr(fexpr, env, sink);

@@ -29,6 +29,8 @@ pub fn lower_to_mir(
     let mut struct_defs: HashMap<String, Vec<(String, String)>> = HashMap::new();
     // Collect enum definitions: "EnumName" -> [(variant_name, [payload_type_names])]
     let mut enum_defs: HashMap<String, Vec<(String, Vec<String>)>> = HashMap::new();
+    // Collect enum struct variant field names: "EnumName::VariantName" -> [field_names]
+    let mut enum_variant_field_names: HashMap<String, Vec<String>> = HashMap::new();
 
     // Inject builtin enum types: Option<T> and Result<T, E>
     let builtin_enums: &[(&str, &[(&str, usize)])] = &[
@@ -69,6 +71,9 @@ pub fn lower_to_mir(
                     ast::Variant::Struct { name, fields, .. } => {
                         let types: Vec<String> =
                             fields.iter().map(|f| type_expr_name(&f.ty)).collect();
+                        let fnames: Vec<String> = fields.iter().map(|f| f.name.clone()).collect();
+                        let key = format!("{}::{}", e.name, name);
+                        enum_variant_field_names.insert(key, fnames);
                         (name.clone(), fields.len(), types)
                     }
                 };
@@ -142,6 +147,7 @@ pub fn lower_to_mir(
                 variant_to_enum.clone(),
                 bare_variant_tags.clone(),
                 enum_defs.clone(),
+                enum_variant_field_names.clone(),
                 fn_return_types.clone(),
                 user_fn_names.clone(),
                 method_resolutions.clone(),
@@ -297,6 +303,7 @@ pub fn lower_to_mir(
                     variant_to_enum.clone(),
                     bare_variant_tags.clone(),
                     enum_defs.clone(),
+                    enum_variant_field_names.clone(),
                     fn_return_types.clone(),
                     user_fn_names.clone(),
                     method_resolutions.clone(),
@@ -460,6 +467,8 @@ struct LowerCtx {
     enum_local_payload_strings: HashMap<u32, HashSet<(String, u32)>>,
     /// enum name -> [(variant_name, [payload_type_names])]
     enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
+    /// "EnumName::VariantName" -> ordered field names (for struct variants)
+    enum_variant_field_names: HashMap<String, Vec<String>>,
     /// Locals known to hold Vec<String> values.
     vec_string_locals: HashSet<u32>,
     /// Local to assign break values to (for loop-as-expression).
@@ -489,6 +498,7 @@ impl LowerCtx {
         variant_to_enum: HashMap<String, String>,
         bare_variant_tags: HashMap<String, (String, i32, usize)>,
         enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
+        enum_variant_field_names: HashMap<String, Vec<String>>,
         fn_return_types: HashMap<String, ast::TypeExpr>,
         user_fn_names: HashSet<String>,
         method_resolutions: HashMap<u32, (String, String)>,
@@ -509,6 +519,7 @@ impl LowerCtx {
             enum_typed_locals: HashMap::new(),
             enum_local_payload_strings: HashMap::new(),
             enum_defs,
+            enum_variant_field_names,
             vec_string_locals: HashSet::new(),
             loop_result_local: None,
             fn_return_types,
@@ -694,6 +705,30 @@ impl LowerCtx {
                     self.collect_free_vars(t, bound, out);
                 }
             }
+            ast::Expr::FieldAccess { object, .. } => {
+                self.collect_free_vars(object, bound, out);
+            }
+            ast::Expr::Index { object, index, .. } => {
+                self.collect_free_vars(object, bound, out);
+                self.collect_free_vars(index, bound, out);
+            }
+            ast::Expr::Match { scrutinee, arms, .. } => {
+                self.collect_free_vars(scrutinee, bound, out);
+                for arm in arms {
+                    if let Some(guard) = &arm.guard {
+                        self.collect_free_vars(guard, bound, out);
+                    }
+                    self.collect_free_vars(&arm.body, bound, out);
+                }
+            }
+            ast::Expr::Try { expr, .. } => {
+                self.collect_free_vars(expr, bound, out);
+            }
+            ast::Expr::StructInit { fields, .. } => {
+                for (_, fexpr) in fields {
+                    self.collect_free_vars(fexpr, bound, out);
+                }
+            }
             _ => {}
         }
     }
@@ -787,6 +822,7 @@ impl LowerCtx {
                             | "to_lower"
                             | "to_upper"
                             | "clone"
+                            | "to_string"
                     )
                 } else {
                     false
@@ -824,7 +860,8 @@ impl LowerCtx {
                         | "to_lower"
                         | "to_upper"
                         | "clone"
-                )
+                        | "to_string"
+                ) || name.ends_with("__to_string")
             }
             Operand::Place(Place::Local(lid)) => self.string_locals.contains(&lid.0),
             _ => false,
@@ -835,7 +872,7 @@ impl LowerCtx {
     fn is_f64_operand_mir(&self, op: &Operand) -> bool {
         match op {
             Operand::ConstF64(_) => true,
-            Operand::Call(name, _) => matches!(name.as_str(), "sqrt"),
+            Operand::Call(name, _) => matches!(name.as_str(), "sqrt" | "parse_f64"),
             Operand::BinOp(_, l, r) => self.is_f64_operand_mir(l) || self.is_f64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.f64_locals.contains(&lid.0),
             _ => false,
@@ -1609,7 +1646,75 @@ impl LowerCtx {
                 })
             }
             ast::Pattern::Struct { name, fields, .. } => {
-                // Struct pattern: bind fields from struct
+                // Check if this is an enum struct variant pattern: "EnumName::VariantName"
+                if let Some((enum_name, variant_name)) = name.split_once("::") {
+                    let key = format!("{}::{}", enum_name, variant_name);
+                    if let Some(&tag) = self.enum_tags.get(&key) {
+                        let cond = Operand::BinOp(
+                            BinOp::Eq,
+                            Box::new(Operand::EnumTag(Box::new(scrut.clone()))),
+                            Box::new(Operand::ConstI32(tag)),
+                        );
+                        let mut then_body = Vec::new();
+                        let def_field_names = self
+                            .enum_variant_field_names
+                            .get(&key)
+                            .cloned()
+                            .unwrap_or_default();
+                        for (fname, fpat) in fields {
+                            let binding_name = match fpat {
+                                Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
+                                None => fname.clone(),
+                                _ => fname.clone(),
+                            };
+                            let local_id = self.declare_local(&binding_name);
+                            // Determine field index from definition order
+                            let field_idx = def_field_names
+                                .iter()
+                                .position(|n| n == fname)
+                                .unwrap_or(0);
+                            // Track f64/String types
+                            if let Some(variants) = self.enum_defs.get(enum_name) {
+                                if let Some((_, types)) =
+                                    variants.iter().find(|(vn, _)| vn == variant_name)
+                                {
+                                    if let Some(t) = types.get(field_idx) {
+                                        if t == "f64" {
+                                            self.f64_locals.insert(local_id.0);
+                                        }
+                                        if t == "String" {
+                                            self.string_locals.insert(local_id.0);
+                                        }
+                                    }
+                                }
+                            }
+                            let payload = Operand::EnumPayload {
+                                object: Box::new(scrut.clone()),
+                                index: field_idx as u32,
+                                enum_name: enum_name.to_string(),
+                                variant_name: variant_name.to_string(),
+                            };
+                            then_body.push(MirStmt::Assign(
+                                Place::Local(local_id),
+                                Rvalue::Use(payload),
+                            ));
+                        }
+                        self.lower_expr_stmt(&arm.body, &mut then_body);
+                        let else_body = if let Some(next) =
+                            self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                        {
+                            vec![next]
+                        } else {
+                            vec![]
+                        };
+                        return Some(MirStmt::IfStmt {
+                            cond,
+                            then_body,
+                            else_body,
+                        });
+                    }
+                }
+                // Regular struct pattern: bind fields from struct
                 let mut then_body = Vec::new();
                 for (fname, fpat) in fields {
                     let binding_name = match fpat {
@@ -1916,6 +2021,69 @@ impl LowerCtx {
                 }
             }
             ast::Pattern::Struct { name, fields, .. } => {
+                // Check if this is an enum struct variant pattern: "EnumName::VariantName"
+                if let Some((enum_name, variant_name)) = name.split_once("::") {
+                    let key = format!("{}::{}", enum_name, variant_name);
+                    if let Some(&tag) = self.enum_tags.get(&key) {
+                        let cond = Operand::BinOp(
+                            BinOp::Eq,
+                            Box::new(Operand::EnumTag(Box::new(scrut.clone()))),
+                            Box::new(Operand::ConstI32(tag)),
+                        );
+                        let mut setup_stmts = Vec::new();
+                        let def_field_names = self
+                            .enum_variant_field_names
+                            .get(&key)
+                            .cloned()
+                            .unwrap_or_default();
+                        for (fname, fpat) in fields {
+                            let binding_name = match fpat {
+                                Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
+                                None => fname.clone(),
+                                _ => fname.clone(),
+                            };
+                            let local_id = self.declare_local(&binding_name);
+                            let field_idx = def_field_names
+                                .iter()
+                                .position(|n| n == fname)
+                                .unwrap_or(0);
+                            if let Some(variants) = self.enum_defs.get(enum_name) {
+                                if let Some((_, types)) =
+                                    variants.iter().find(|(vn, _)| vn == variant_name)
+                                {
+                                    if let Some(t) = types.get(field_idx) {
+                                        if t == "f64" {
+                                            self.f64_locals.insert(local_id.0);
+                                        }
+                                        if t == "String" {
+                                            self.string_locals.insert(local_id.0);
+                                        }
+                                    }
+                                }
+                            }
+                            let payload = Operand::EnumPayload {
+                                object: Box::new(scrut.clone()),
+                                index: field_idx as u32,
+                                enum_name: enum_name.to_string(),
+                                variant_name: variant_name.to_string(),
+                            };
+                            setup_stmts.push(MirStmt::Assign(
+                                Place::Local(local_id),
+                                Rvalue::Use(payload),
+                            ));
+                        }
+                        let then_result = self.lower_expr(&arm.body);
+                        let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                        return Operand::IfExpr {
+                            cond: Box::new(cond),
+                            then_body: setup_stmts,
+                            then_result: Some(Box::new(then_result)),
+                            else_body: vec![],
+                            else_result: Some(Box::new(else_result)),
+                        };
+                    }
+                }
+                // Regular struct pattern
                 let mut setup_stmts = Vec::new();
                 for (fname, fpat) in fields {
                     let binding_name = match fpat {
@@ -2132,6 +2300,17 @@ impl LowerCtx {
                                 Box::new(Operand::ConstI32(1)),
                             );
                         }
+                        "to_string" if args.len() == 1 => {
+                            // Display trait dispatch: if arg is a struct with Display impl,
+                            // rewrite to StructName__to_string(arg)
+                            if let Some(struct_name) = self.infer_struct_type(&args[0]) {
+                                let mangled = format!("{}__{}", struct_name, "to_string");
+                                if self.user_fn_names.contains(&mangled) {
+                                    let lowered_arg = self.lower_expr(&args[0]);
+                                    return Operand::Call(mangled, vec![lowered_arg]);
+                                }
+                            }
+                        }
                         _ => {}
                     }
                     let mir_args: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
@@ -2311,6 +2490,37 @@ impl LowerCtx {
             ast::Expr::StructInit {
                 name, fields, base, ..
             } => {
+                // Check if this is an enum struct variant: "EnumName::VariantName"
+                if let Some((enum_name, variant_name)) = name.split_once("::") {
+                    let key = format!("{}::{}", enum_name, variant_name);
+                    if let Some(&tag) = self.enum_tags.get(&key) {
+                        let lowered: HashMap<String, Operand> = fields
+                            .iter()
+                            .map(|(fname, fexpr)| (fname.clone(), self.lower_expr(fexpr)))
+                            .collect();
+                        // Order payload fields by definition order
+                        let def_field_names = self
+                            .enum_variant_field_names
+                            .get(&key)
+                            .cloned()
+                            .unwrap_or_default();
+                        let payload: Vec<Operand> = def_field_names
+                            .iter()
+                            .map(|fname| {
+                                lowered
+                                    .get(fname)
+                                    .cloned()
+                                    .unwrap_or(Operand::ConstI32(0))
+                            })
+                            .collect();
+                        return Operand::EnumInit {
+                            enum_name: enum_name.to_string(),
+                            variant: variant_name.to_string(),
+                            tag,
+                            payload,
+                        };
+                    }
+                }
                 let mut lowered_fields: Vec<(String, Operand)> = fields
                     .iter()
                     .map(|(fname, fexpr)| (fname.clone(), self.lower_expr(fexpr)))
@@ -2421,6 +2631,7 @@ impl LowerCtx {
                     self.variant_to_enum.clone(),
                     self.bare_variant_tags.clone(),
                     self.enum_defs.clone(),
+                    self.enum_variant_field_names.clone(),
                     self.fn_return_types.clone(),
                     self.user_fn_names.clone(),
                     self.method_resolutions.clone(),
@@ -2440,7 +2651,16 @@ impl LowerCtx {
                         ark_typecheck::types::Type::Bool => {
                             sub_ctx.bool_locals.insert(lid.0);
                         }
-                        _ => {}
+                        _ => {
+                            // Propagate struct type info for captured variables
+                            if let Some(pname) = &p.name {
+                                if let Some(parent_lid) = self.lookup_local(pname) {
+                                    if let Some(sname) = self.struct_typed_locals.get(&parent_lid.0) {
+                                        sub_ctx.struct_typed_locals.insert(lid.0, sname.clone());
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -2516,7 +2736,13 @@ impl LowerCtx {
                     index: Box::new(idx),
                 }
             }
-            _ => Operand::Unit,
+            other => {
+                eprintln!(
+                    "ICE: unhandled expression in lower_expr: {:?}",
+                    std::mem::discriminant(other)
+                );
+                Operand::Unit
+            }
         }
     }
 }
