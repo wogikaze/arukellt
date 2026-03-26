@@ -5,6 +5,7 @@
 //! T3 (`wasm32-wasi-p2`): Wasm GC + WASI Preview 2 (planned).
 
 pub mod backend_ir;
+pub mod component;
 pub mod emit;
 
 pub use emit::emit;
