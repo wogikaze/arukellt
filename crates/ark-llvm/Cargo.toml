@@ -1,0 +1,13 @@
+[package]
+name = "ark-llvm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "LLVM IR backend for the Arukellt compiler (T4 native target)"
+
+[dependencies]
+ark-mir = { path = "../ark-mir" }
+ark-diagnostics = { path = "../ark-diagnostics" }
+ark-typecheck = { path = "../ark-typecheck" }
+inkwell = { version = "0.8", features = ["llvm18-1"] }

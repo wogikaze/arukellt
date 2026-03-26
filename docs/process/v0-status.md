@@ -83,7 +83,7 @@ This document is the **single source of truth** for what is actually implemented
 | 3+ param functions | **runnable** | Correct type indices generated for all arities |
 | Recursive functions | **runnable** | Fibonacci etc. work |
 | Generic functions | **runnable** | Monomorphized; `fn id<T>(x: T) -> T`, multi-param generics (`<A, B>`) work |
-| Closures | **runnable** | `\|x\| expr` lambda syntax works; captures not supported |
+| Closures | **runnable** | `\|x\| expr` lambda syntax works; captures supported (value copy semantics) |
 | Higher-order functions | **runnable** | Function references as arguments (e.g. `map_i32_i32(v, double)`) |
 | `?` operator | **runnable** | Early-return on `Err`/`None`; works in functions returning `Result` or `Option` |
 | Traits | **runnable** | `trait Name { fn method(self) -> T }` — static dispatch only (v1) |
@@ -126,7 +126,7 @@ This document is the **single source of truth** for what is actually implemented
 | `to_lower(s)` / `to_upper(s)` | **runnable** | ASCII case conversion |
 | `clone(s)` | **runnable** | Deep copy for String |
 | `parse_i32(s)` | **runnable** | Returns `Result<i32, String>`; use `?` or `match` |
-| `parse_i64` / `parse_f64` | **typed** | Typechecker sigs registered; no Wasm emission |
+| `parse_i64` / `parse_f64` | **runnable** | Returns i64/f64 directly (not Result); error → 0/0.0 |
 | `Vec_new_i32()` | **runnable** | Creates empty `Vec<i32>` |
 | `Vec_new_String()` | **runnable** | Creates empty `Vec<String>` |
 | `push(v, x)` | **runnable** | Appends element |
@@ -153,7 +153,8 @@ This document is the **single source of truth** for what is actually implemented
 | `panic(msg)` | **runnable** | Prints `panic: {msg}` to stderr and traps |
 | String interpolation `f"..."` | **runnable** | `f"text {expr}"` — expressions interpolated at runtime |
 | Capability-based I/O (`fs_read_file`, `fs_write_file`) | **working** | WASI p1 (preopened dir fd 3); Result<String,String> / Result<(),String> |
-| `io/clock` / `io/random` | **designed** | Not implemented |
+| `clock_now` | **runnable** | WASI clock_time_get 経由で動作。ナノ秒タイムスタンプを返す |
+| `random_i32` | **runnable** | WASI random_get 経由で動作。ランダムな i32 を返す |
 
 ## Module System
 
@@ -202,13 +203,12 @@ This document is the **single source of truth** for what is actually implemented
 ## Known Limitations
 
 1. **Enum struct variants**: `Variant { field: val }` construction and `Variant { field }` destructuring in `match` are parsed but not emitted.
-2. **Closures — no captures**: Lambda syntax `|x| expr` works for single-expression bodies, but closures cannot capture variables from the enclosing scope.
-3. **No heap deallocation**: Bump allocator never frees memory.
-4. **String data region**: Static strings occupy 256–4095; heap starts at 4096. Programs with >3840 bytes of string literals will overflow.
-5. **No tail-call optimization**: Deep recursion will overflow the Wasm stack.
-6. **Silent failures**: Some unsupported features silently emit `i32.const(0)` or `Operand::Unit` instead of producing an error.
-7. **Module system — flat merge**: All imported symbols go into a single global scope. Name collisions across modules are not detected.
-8. **`parse_i64` / `parse_f64`**: Typechecker signatures registered but no Wasm emission code — calling these will produce incorrect results.
+2. **No heap deallocation**: Bump allocator never frees memory.
+3. **String data region**: Static strings occupy 256–4095; heap starts at 4096. Programs with >3840 bytes of string literals will overflow.
+4. **No tail-call optimization**: Deep recursion will overflow the Wasm stack.
+5. **Silent failures**: Some unsupported features silently emit `i32.const(0)` or `Operand::Unit` instead of producing an error.
+6. **Module system — flat merge**: All imported symbols go into a single global scope. Name collisions across modules are not detected.
+7. **`parse_i64` / `parse_f64`**: Returns i64/f64 directly (not Result). Error → 0/0.0. parse_i32 との非対称性あり。
 
 ---
 

@@ -154,6 +154,8 @@ impl Add for Point {
 
 ## 優先度未定: パターン拡張
 
+> **✅ v1（M7）で実装済み**: 以下のパターン拡張はすべて実装済み。ただし enum struct variant の Wasm emission には制限あり（パース・MIR lowering は動作）。
+
 ### 構造体パターン
 
 ```
@@ -163,6 +165,8 @@ match point {
 ```
 
 ### ガード
+
+> **✅ 実装済み**（v1 M7）
 
 ```
 match x {
@@ -174,6 +178,8 @@ match x {
 
 ### or-pattern
 
+> **✅ 実装済み**（v1 M7）
+
 ```
 match x {
     1 | 2 | 3 => "small",
@@ -182,6 +188,8 @@ match x {
 ```
 
 ### match でのタプルパターン
+
+> **✅ 実装済み**（v1 M7）
 
 ```
 match pair {

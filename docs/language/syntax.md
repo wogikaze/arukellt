@@ -1,6 +1,8 @@
 # 構文仕様
 
-ADR-004 により trait なし、for 構文なし、メソッド構文なしの v0 仕様。
+> **現在のバージョン**: v0 凍結済み、v1 実装中。
+> v1 では trait/impl/メソッド構文/演算子オーバーロード/パターン拡張/ネストジェネリクスが実装済み。
+> 以下の説明で「v0」は基本仕様、「v1」は追加実装済み機能を示す。
 
 ---
 
@@ -101,11 +103,16 @@ break    continue return   pub      import
 as       true     false
 ```
 
-### v1 以降の予約
+### v1 実装済みキーワード
 
 ```
-trait    impl     for      in       async
-await    dyn      where    type     const
+trait    impl     for      in
+```
+
+### 将来の予約
+
+```
+async    await    dyn      where    type     const
 unsafe   extern   use      mod      super
 self     Self
 ```
@@ -201,10 +208,11 @@ fn point_distance(p: Point, other: Point) -> f64 {
     sqrt(dx * dx + dy * dy)
 }
 
-// v0 ではフィールド更新なし（v1 で追加予定）
-// 更新が必要な場合は新しい struct を作成
+// v0: フィールド更新構文なし（新しい struct を作成）
+// v1: ..base 構文で未指定フィールドをベースから引き継ぎ可能
 fn point_move(p: Point, dx: f64, dy: f64) -> Point {
-    Point { x: p.x + dx, y: p.y + dy }
+    Point { x: p.x + dx, y: p.y + dy }  // v0: 全フィールド明示
+    // v1: Point { x: p.x + dx, ..p }    // v1: フィールド更新構文
 }
 ```
 
@@ -223,11 +231,11 @@ enum Message {
 }
 ```
 
-**注意**: struct-like variant（`Move { x, y }`）は定義可能だが、**v0 の match では分解不可**（v1 で対応）。生成例：
+**注意**: struct-like variant（`Move { x, y }`）は v1 で match 分解可能。ただし enum struct variant の Wasm emission は現在制限あり（パース済み）。生成例：
 
 ```
 let m = Message::Move { x: 10, y: 20 }  // OK
-// match での分解は v1
+// v1 match での分解（制限あり）
 ```
 
 ---
@@ -290,7 +298,7 @@ let p2 = p1  // p1 と p2 は同じオブジェクトを参照
 
 ### 演算子
 
-v0 では演算子オーバーロードなし。以下は組み込み演算子で、適用可能型が固定されている。
+v0 では組み込み演算子のみ（型が固定）。v1 では `impl` メソッド経由で struct 型に演算子オーバーロード可能。
 
 ```
 // 算術（i32, i64, f32, f64）
@@ -358,12 +366,16 @@ let result = if x > 0 {
 
 ### match 式
 
-v0 の match は以下のパターンのみサポート:
+v0 の match は以下のパターンをサポート。v1（M7）ではさらにガード・or-pattern・struct pattern・tuple pattern が追加:
 
 - リテラルパターン
-- enum variant パターン
+- enum variant パターン（ペイロードバインド含む）
 - ワイルドカード `_`
 - 変数束縛
+- タプルパターン（v1 M7）
+- ガード `if cond`（v1 M7）
+- or-pattern `a | b`（v1 M7）
+- struct パターン（v1 M7）
 
 ```
 match value {
@@ -379,7 +391,7 @@ match option {
 }
 ```
 
-タプルパターンは `let` での分解のみ可。`match` でのタプルパターンは v1。
+タプルパターンは `let` での分解のみ（v0）。`match` でのタプルパターンは v1（M7）で実装済み。
 
 ### while ループ
 
@@ -483,7 +495,7 @@ match x {
 let (a, b) = (1, 2)
 ```
 
-注: `match` でのタプルパターンは v1。
+注: `match` でのタプルパターンは v1（M7）で実装済み。
 
 ### enum パターン
 
@@ -518,23 +530,23 @@ match option {
    - すべての variant が明示的または wildcard でカバーされているか確認
    - 未カバーの場合は `E0250: non-exhaustive match` エラー
 
-**v1 で追加予定**: guard (`if` 条件), or-pattern (`|`)
+**v1（M7）で実装済み**: guard (`if` 条件), or-pattern (`|`), struct pattern, match でのタプルパターン
 
 ---
 
-## v1 以降の機能（優先度順）
+## v1 以降の機能
 
 v1 で追加予定の機能は `docs/language/syntax-v1-preview.md` を参照。
 
 実測（parser.rs → parser.ark 翻訳）に基づく優先度順:
 
-1. **P1**: `for` ループ（限定版: 範囲 `0..n` + Vec 走査 `values(v)`、trait 不要）
-2. **P2**: 文字列補間 `f"...{expr}..."`
-3. **P3**: trait / iterator（`any`, `find`, `map`, `filter` 等）
-4. **P4**: メソッド構文（`impl`）
-5. **P5**: 演算子オーバーロード
+1. **P1**: `for` ループ — ✅ **v0 で実装済み**（範囲 `0..n` + Vec 走査 `values(v)`）
+2. **P2**: 文字列補間 `f"...{expr}..."` — ✅ **v0 で実装済み**
+3. **P3**: trait / static dispatch — ✅ **v1（M4）で実装済み**
+4. **P4**: メソッド構文（`impl`） — ✅ **v1（M4/M5）で実装済み**（`obj.method(args)` → `Type__method(obj, args)`）
+5. **P5**: 演算子オーバーロード — ✅ **v1（M6）で実装済み**（`impl` メソッド経由）
 
-その他（優先度未定）: 構造体パターン、ガード、or-pattern、match でのタプルパターン
+その他（v1 M7 で実装済み）: 構造体パターン、ガード、or-pattern、match でのタプルパターン、struct field update
 
 **注**: `break` / `continue` は v0 に含まれている（上記「break / continue」節参照）。
 

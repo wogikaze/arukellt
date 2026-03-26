@@ -53,11 +53,11 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 | Vec 高階関数 | ✅ | map_i32_i32, filter_i32, fold_i32_i32 動作 |
 | 数学関数 | ✅ | sqrt, abs, min, max 動作 |
 | parse_i32 | ✅ | 文字列→数値変換 |
-| parse_i64 / parse_f64 | ⚠️ | 型検査登録済み・Wasm 未実装 |
+| parse_i64 / parse_f64 | ✅ | 文字列→数値変換（直接返し、エラー時 0/0.0） |
 | core/mem | 🔲 | 設計済み・未実装 |
 | io/fs | ✅ | fs_read_file, fs_write_file 動作（WASI p1） |
-| io/clock | 🔲 | 設計済み・未実装 |
-| io/random | 🔲 | 設計済み・未実装 |
+| io/clock | ✅ | clock_now() — WASI clock_time_get 経由で動作 |
+| io/random | ✅ | random_i32() — WASI random_get 経由で動作 |
 
 ### ツールチェイン
 
@@ -116,7 +116,7 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 ### ジェネリクスの制限
 
 - 型パラメータは 2 個まで
-- ネスト禁止: `Vec[Vec[T]]` は使用不可
+- ネスト禁止: ~~`Vec[Vec[T]]` は使用不可~~ v1 M8 で対応済み
 - generic struct はライブラリ提供のみ
 
 ### クロージャの制限
@@ -149,7 +149,7 @@ v0 完成の条件:
 > **現在の到達度**: 142/147 fixture テスト pass（5 skip はモジュールヘルパーファイル）。
 > Hello World、数値計算、構造体、enum payload、Option/Result、クロージャ、
 > 高階関数、パターンマッチ、? 演算子、for ループ、文字列補間がすべて end-to-end 動作。
-> 残り: io/clock, io/random は未実装。
+> clock_now, random_i32, parse_i64, parse_f64 も動作確認済み。
 
 ---
 

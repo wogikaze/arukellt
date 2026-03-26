@@ -1,10 +1,11 @@
-//! Test harness: auto-discover and run `.ark` fixture tests.
+//! Integration test harness: auto-discover and run `.ark` fixture tests.
 //!
 //! For each `.ark` file in `tests/fixtures/`:
 //! - If a `.expected` sibling exists → compile + run, compare stdout
-//! - If a `.diag` sibling exists → compile-fail, check error codes
+//! - If a `.diag` sibling exists → compile-fail, check first line of stderr
 
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 fn discover_fixtures(dir: &Path) -> Vec<PathBuf> {
     let mut fixtures = Vec::new();
@@ -23,44 +24,125 @@ fn discover_fixtures(dir: &Path) -> Vec<PathBuf> {
     fixtures
 }
 
-fn has_expected(ark_path: &Path) -> bool {
-    ark_path.with_extension("expected").exists()
-}
-
-fn has_diag(ark_path: &Path) -> bool {
-    ark_path.with_extension("diag").exists()
+fn arukellt_binary() -> PathBuf {
+    let mut path = std::env::current_exe().unwrap();
+    // Go up from the test binary to the target dir
+    path.pop(); // remove test binary name
+    path.pop(); // remove deps/
+    path.push("arukellt");
+    if !path.exists() {
+        // Try release
+        let mut release = path.clone();
+        release.pop();
+        release.pop();
+        release.push("release");
+        release.push("arukellt");
+        if release.exists() {
+            return release;
+        }
+    }
+    path
 }
 
 #[test]
-fn discover_test_fixtures() {
-    let fixture_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("fixtures");
+fn fixture_harness() {
+    let workspace_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let fixture_dir = workspace_root.join("tests").join("fixtures");
 
     if !fixture_dir.exists() {
-        eprintln!("No fixtures directory found at {:?}, skipping", fixture_dir);
+        eprintln!("No fixtures directory at {:?}, skipping", fixture_dir);
         return;
     }
+
+    let bin = arukellt_binary();
+    eprintln!("Using binary: {:?}", bin);
 
     let fixtures = discover_fixtures(&fixture_dir);
     eprintln!("Discovered {} fixture(s)", fixtures.len());
 
+    let mut passed = 0;
+    let mut failed = 0;
+    let mut skipped = 0;
+    let mut failures = Vec::new();
+
     for fixture in &fixtures {
-        let name = fixture.strip_prefix(&fixture_dir).unwrap().display();
-        if has_expected(fixture) {
-            eprintln!("  [run]  {}", name);
-            // TODO: compile and run, compare stdout
-        } else if has_diag(fixture) {
-            eprintln!("  [diag] {}", name);
-            // TODO: compile, expect failure, check diagnostic codes
+        let name = fixture
+            .strip_prefix(&fixture_dir)
+            .unwrap_or(fixture.as_path())
+            .display()
+            .to_string();
+
+        // Skip helper module files: if main.ark exists in the same dir, only main.ark is an entry point
+        let dir = fixture.parent().unwrap();
+        let is_main = fixture.file_name() == Some(std::ffi::OsStr::new("main.ark"));
+        if !is_main && dir.join("main.ark").exists() {
+            continue;
+        }
+
+        let expected_path = fixture.with_extension("expected");
+        let diag_path = fixture.with_extension("diag");
+
+        if expected_path.exists() {
+            let expected = std::fs::read_to_string(&expected_path).unwrap();
+            let output = Command::new(&bin)
+                .arg("run")
+                .arg(fixture)
+                .output()
+                .expect("failed to run arukellt");
+
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if stdout.as_ref() == expected {
+                passed += 1;
+            } else {
+                failed += 1;
+                failures.push(format!(
+                    "FAIL [run] {}\n  expected: {:?}\n  got:      {:?}",
+                    name,
+                    expected.lines().next().unwrap_or(""),
+                    stdout.lines().next().unwrap_or("")
+                ));
+            }
+        } else if diag_path.exists() {
+            let diag_text = std::fs::read_to_string(&diag_path).unwrap();
+            let first_line = diag_text.lines().next().unwrap_or("").trim();
+
+            let output = Command::new(&bin)
+                .arg("run")
+                .arg(fixture)
+                .output()
+                .expect("failed to run arukellt");
+
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+
+            if stderr.contains(first_line) || stdout.contains(first_line) {
+                passed += 1;
+            } else {
+                failed += 1;
+                failures.push(format!(
+                    "FAIL [diag] {}\n  expected to contain: {:?}\n  stderr: {:?}",
+                    name,
+                    first_line,
+                    stderr.lines().next().unwrap_or("")
+                ));
+            }
         } else {
+            skipped += 1;
             eprintln!("  [skip] {} (no .expected or .diag)", name);
         }
     }
 
-    // For now, just verify discovery works
-    assert!(
-        fixtures.len() > 0 || !fixture_dir.exists(),
-        "Expected at least one fixture"
-    );
+    eprintln!("\n--- Fixture Results ---");
+    eprintln!("PASS: {} FAIL: {} SKIP: {}", passed, failed, skipped);
+
+    if !failures.is_empty() {
+        for f in &failures {
+            eprintln!("{}", f);
+        }
+        panic!("{} fixture(s) failed", failures.len());
+    }
 }

@@ -329,34 +329,28 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
 
 ## よくあるエラーと修正
 
-### エラー1: メソッド構文
+### 注意: メソッド構文と for ループ
+
+v1（M4/M5）以降ではメソッド構文が使用可能。v0 では関数呼び出し構文が必要:
 
 ```
-// ❌ 間違い
-v.push(42)
-
-// ✅ 正しい
+// v0: 関数呼び出し構文（常に有効）
 push(v, 42)
+
+// v1: メソッド構文（v1 M4/M5 以降）
+v.push(42)
 ```
 
-### エラー2: for ループ
+for ループは v0 から使用可能:
 
 ```
-// ❌ 間違い
-for x in items {
-    print(x)
-}
-
-// ✅ 正しい
-let mut i = 0
-while i < len(items) {
-    let x = get_unchecked(items, i)
-    print(x)
-    i = i + 1
+// ✅ for ループ（v0 実装済み）
+for x in values(items) {
+    println(x)
 }
 ```
 
-### エラー3: 型推論失敗
+### エラー: 型推論失敗
 
 ```
 // ❌ 間違い

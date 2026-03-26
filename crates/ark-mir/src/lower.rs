@@ -8,6 +8,41 @@ use ark_typecheck::TypeChecker;
 
 use crate::mir::*;
 
+use ark_typecheck::types::Type as CheckerType;
+
+/// Convert a type-checker `Type` to an AST `TypeExpr` for Result/Option propagation.
+/// Returns `None` for types that don't need propagation (primitives, etc.).
+fn type_to_type_expr(ty: &CheckerType) -> Option<ast::TypeExpr> {
+    let dummy = ast::Span { start: 0, end: 0 };
+    match ty {
+        CheckerType::I32 => Some(ast::TypeExpr::Named { name: "i32".into(), span: dummy }),
+        CheckerType::I64 => Some(ast::TypeExpr::Named { name: "i64".into(), span: dummy }),
+        CheckerType::F32 => Some(ast::TypeExpr::Named { name: "f32".into(), span: dummy }),
+        CheckerType::F64 => Some(ast::TypeExpr::Named { name: "f64".into(), span: dummy }),
+        CheckerType::Bool => Some(ast::TypeExpr::Named { name: "bool".into(), span: dummy }),
+        CheckerType::String => Some(ast::TypeExpr::Named { name: "String".into(), span: dummy }),
+        CheckerType::Unit => Some(ast::TypeExpr::Unit(dummy)),
+        CheckerType::Result(ok, err) => {
+            let ok_te = type_to_type_expr(ok)?;
+            let err_te = type_to_type_expr(err)?;
+            Some(ast::TypeExpr::Generic {
+                name: "Result".into(),
+                args: vec![ok_te, err_te],
+                span: dummy,
+            })
+        }
+        CheckerType::Option(inner) => {
+            let inner_te = type_to_type_expr(inner)?;
+            Some(ast::TypeExpr::Generic {
+                name: "Option".into(),
+                args: vec![inner_te],
+                span: dummy,
+            })
+        }
+        _ => None,
+    }
+}
+
 /// Lower a type-checked module to MIR.
 pub fn lower_to_mir(
     module: &ast::Module,
@@ -129,6 +164,18 @@ pub fn lower_to_mir(
                     fn_return_types.insert(mangled, ret_ty.clone());
                 }
             }
+        }
+    }
+
+    // Populate fn_return_types from checker's builtin FnSigs so that
+    // Result-returning builtins (fs_read_file, parse_i32, …) work without
+    // explicit type annotations on let bindings.
+    for (name, sig) in &checker.fn_sigs {
+        if fn_return_types.contains_key(name) {
+            continue; // user-defined function takes precedence
+        }
+        if let Some(te) = type_to_type_expr(&sig.ret) {
+            fn_return_types.insert(name.clone(), te);
         }
     }
 

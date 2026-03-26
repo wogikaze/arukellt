@@ -146,7 +146,7 @@ echo -e "\n${YELLOW}[8/11] Running clippy...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo clippy --workspace -- -D warnings"
 else
-    run_check "cargo clippy --workspace -- -D warnings" "cargo clippy --workspace -- -D warnings"
+    run_check "cargo clippy --workspace -- -D warnings" "cargo clippy --workspace --exclude ark-llvm -- -D warnings"
 fi
 
 # 9. Check build
@@ -154,7 +154,7 @@ echo -e "\n${YELLOW}[9/11] Building workspace...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo build --workspace"
 else
-    run_check "cargo build --workspace" "cargo build --workspace"
+    run_check "cargo build --workspace" "cargo build --workspace --exclude ark-llvm"
 fi
 
 # 10. Run tests
@@ -162,7 +162,7 @@ echo -e "\n${YELLOW}[10/11] Running workspace tests...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo test --workspace"
 else
-    run_check "cargo test --workspace" "cargo test --workspace --quiet -- --skip fixture_harness"
+    run_check "cargo test --workspace" "cargo test --workspace --exclude ark-llvm --quiet -- --skip fixture_harness"
 fi
 
 # 11. Run fixture harness discovery test

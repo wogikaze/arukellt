@@ -30,13 +30,13 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 - 高階関数と closure
 - パターンマッチ
 - WASI p1 サポート（fd_write 経由の I/O）
-- 関数呼び出し構文のみ（メソッド構文なし）
+- 関数呼び出し構文（v0）、メソッド構文（v1 M4/M5 で実装済み）
 
 > **設計と実装の差異**: 上記は v0 設計仕様の完成形。現行実装は
 > WASI p1 + linear memory バックエンドで、i32/i64/f64/bool/String/struct/
 > enum(payload)/Option/Result/?演算子/closure/高階関数/match/tuple/Box/Vec が
-> end-to-end 動作（139/144 fixture テスト pass）。
-> 未実装: Wasm GC 型、WASI p2、io/fs、io/clock、io/random。
+> end-to-end 動作（142/147 fixture テスト pass、5 skip はモジュールヘルパー）。
+> 未実装: Wasm GC 型、WASI p2。
 
 ### v0 で提供しないもの（Non-goals）
 
@@ -46,12 +46,12 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 |------|------|----------|
 | ~~for ループ（限定版）~~ | ~~trait 不要。範囲 `0..n` と Vec 走査 `values(v)` のみ~~ | ~~**P1**~~ ✅ v0 実装済み |
 | ~~文字列補間 `f"..."`~~ | ~~concat ネスト解消。プリミティブ型のみ~~ | ~~**P2**~~ ✅ v0 実装済み |
-| trait / iterator | 設計コスト高。v0→v1 の橋として先に組み込み反復プロトコルや Vec 専用高階関数で稼ぐ方が安全 | P3 |
-| impl / メソッド構文 | 読みやすさ向上だが本質改善ではない。trait(P3) の後 | P4 |
-| 演算子オーバーロード | trait 依存 | P5 |
+| ~~trait / iterator~~ | ~~設計コスト高。v0→v1 の橋として先に組み込み反復プロトコルや Vec 専用高階関数で稼ぐ方が安全~~ | ~~P3~~ ✅ v1（M4）実装済み |
+| ~~impl / メソッド構文~~ | ~~読みやすさ向上だが本質改善ではない。trait(P3) の後~~ | ~~P4~~ ✅ v1（M4/M5）実装済み |
+| ~~演算子オーバーロード~~ | ~~trait 依存~~ | ~~P5~~ ✅ v1（M6）実装済み |
 | マクロ | 設計が必要 | 未定 |
 | async/await | v0 スコープ外 | 未定 |
-| ネストしたジェネリクス | コード膨張防止 | 未定 |
+| ~~ネストしたジェネリクス~~ | ~~コード膨張防止~~ | ~~未定~~ ✅ v1（M8）実装済み |
 
 **注**: `break` / `continue` は v0 に含まれている（syntax.md 参照）。v1 項目ではない。
 
@@ -60,8 +60,8 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 **v1 段階的導入戦略**:
 
 1. ~~P1（限定 for）と P2（文字列補間）は trait なしで導入可能~~ → ✅ v0 で実装済み。
-2. P3（trait）導入前に、組み込みの反復プロトコルと Vec 専用高階関数（`any`, `find`, `map`, `filter`）で現実的な走査パターンを先にカバー。
-3. P3 で trait を導入後、P4（メソッド構文）と P5（演算子オーバーロード）を追加。
+2. ~~P3（trait）導入前に、組み込みの反復プロトコルと Vec 専用高階関数（`any`, `find`, `map`, `filter`）で現実的な走査パターンを先にカバー~~ → ✅ v1（M3）で実装済み。
+3. ~~P3 で trait を導入後、P4（メソッド構文）と P5（演算子オーバーロード）を追加~~ → ✅ v1（M4-M6）で実装済み。
 
 ---
 
@@ -124,11 +124,11 @@ Option<Point>
 Result<i32, String>
 ```
 
-**禁止される例**:
+**v1（M8）で対応済み**:
 
 ```
-Vec<Vec<i32>>       // ネスト禁止
-Vec<Option<i32>>    // ネスト禁止
+Vec<Vec<i32>>       // ✅ v1 M8 以降で使用可能
+Vec<Option<i32>>    // ✅ v1 M8 以降で使用可能
 ```
 
 ### 2.4 関数型
@@ -204,7 +204,7 @@ fn greet(name: String) {
 
 ### 4.3 構造体
 
-v0 ではメソッド構文なし。モジュールレベル関数として定義:
+v0 ではモジュールレベル関数として定義。v1（M4/M5）では `impl` ブロックとメソッド構文（`p.distance(q)`）が使用可能:
 
 ```
 struct Point {
@@ -303,7 +303,7 @@ let add_n = |x| x + n
 
 ### 5.2 String API
 
-v0 ではメソッド構文なし。組み込み関数として提供:
+v0 ではモジュールレベル関数として提供。v1（M4/M5）ではメソッド構文も使用可能:
 
 ```
 fn string_new() -> String
@@ -318,7 +318,7 @@ String は不変（immutable）。変更には新しい String を作成。
 
 ### 5.3 Vec API
 
-v0 では trait がないため、型特化関数として実装：
+v0 では型特化関数として実装。v1（M4）以降は trait と `impl` ブロックが使用可能（静的ディスパッチ）:
 
 ```
 // 型ごとの専用コンストラクタ
@@ -494,12 +494,12 @@ Source (.ark)
 
 解決策: 値型は特化、参照型は統一表現。
 
-### 8.2 trait なし
+### 8.2 v0 の型特化関数（v1 では trait/impl で統一可能）
 
-抽象化は型ごとの関数で代替:
+v0 では抽象化を型ごとの関数で代替:
 
 - `vec_i32_map`, `vec_string_map` など
-- v1 で trait 導入後に移行
+- v1（M4）で trait 導入済み。静的ディスパッチで実装
 
 ### 8.3 GC ⇔ C 境界
 
@@ -574,16 +574,15 @@ let n: i32 = len(s)
 ### 禁止パターン
 
 ```
-// ❌ メソッド構文
+// v0: 関数呼び出し構文
+push(v, 42)
+
+// v1（M4/M5）: メソッド構文も使用可能
 v.push(42)
 
-// ✅ for ループ（限定版 — v0 実装済み）
+// for ループ（v0 実装済み）
 for i in 0..n { }
 for item in values(v) { }
-
-// ✅ 正しい
-push(v, 42)
-while i < len(items) { }
 ```
 
 詳細: `docs/stdlib/cookbook.md`

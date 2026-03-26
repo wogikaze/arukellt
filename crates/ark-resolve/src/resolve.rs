@@ -278,16 +278,32 @@ fn parse_module_file(path: &Path, sink: &mut DiagnosticSink) -> Result<ast::Modu
     Ok(parse(&tokens, sink))
 }
 
-fn resolve_import_path(current_path: &Path, module_name: &str, std_root: &Path) -> PathBuf {
+fn resolve_import_path(
+    current_path: &Path,
+    module_name: &str,
+    std_root: &Path,
+    sink: &mut DiagnosticSink,
+) -> PathBuf {
     if module_name.starts_with("std") {
         let rel = module_name.replace("::", "/");
         std_root.join(format!("{}.ark", rel))
     } else {
         let rel = module_name.replace("::", "/");
-        current_path
+        let local_path = current_path
             .parent()
             .unwrap_or_else(|| Path::new("."))
-            .join(format!("{}.ark", rel))
+            .join(format!("{}.ark", rel));
+        // Warn if both local and std modules exist with the same name
+        let std_path = std_root.join(format!("{}.ark", rel));
+        if local_path.exists() && std_path.exists() {
+            sink.emit(Diagnostic::new(DiagnosticCode::W0003).with_message(format!(
+                "ambiguous import `{}`: both local `{}` and std `{}` exist; using local",
+                module_name,
+                local_path.display(),
+                std_path.display()
+            )));
+        }
+        local_path
     }
 }
 
@@ -313,7 +329,7 @@ fn load_module_recursive(
                     .to_string()
             })
             .collect();
-        sink.emit(Diagnostic::new(DiagnosticCode::E0100).with_message(format!(
+        sink.emit(Diagnostic::new(DiagnosticCode::E0103).with_message(format!(
             "circular import detected: {} → {}",
             cycle.join(" → "),
             path.file_name().unwrap_or_default().to_string_lossy()
@@ -331,7 +347,7 @@ fn load_module_recursive(
     };
 
     for import in &module.imports {
-        let import_path = resolve_import_path(&path, &import.module_name, std_root);
+        let import_path = resolve_import_path(&path, &import.module_name, std_root, sink);
         load_module_recursive(
             import
                 .alias
@@ -372,7 +388,7 @@ pub fn resolve_program(
     let mut loaded = HashMap::new();
 
     for import in &entry_module.imports {
-        let import_path = resolve_import_path(entry_path, &import.module_name, &std_root);
+        let import_path = resolve_import_path(entry_path, &import.module_name, &std_root, sink);
         load_module_recursive(
             import
                 .alias
@@ -582,7 +598,25 @@ pub fn intrinsic_prelude_module() -> ast::Module {
 }
 
 fn parse_prelude_module(sink: &mut DiagnosticSink) -> ast::Module {
-    const PRELUDE_SRC: &str = include_str!("../../../std/prelude.ark");
+    // If ARK_PRELUDE_FS=1, load from filesystem for faster iteration during development
+    if std::env::var("ARK_PRELUDE_FS").as_deref() == Ok("1") {
+        let path = env!("ARK_PRELUDE_PATH");
+        match std::fs::read_to_string(path) {
+            Ok(src) => {
+                let lexer = Lexer::new(0, &src);
+                let tokens: Vec<_> = lexer.collect();
+                return parse(&tokens, sink);
+            }
+            Err(e) => {
+                sink.emit(
+                    Diagnostic::new(DiagnosticCode::E0100)
+                        .with_message(format!("failed to read prelude from filesystem: {}", e)),
+                );
+                // Fall through to embedded prelude
+            }
+        }
+    }
+    const PRELUDE_SRC: &str = include_str!(env!("ARK_PRELUDE_PATH"));
     let lexer = Lexer::new(0, PRELUDE_SRC);
     let tokens: Vec<_> = lexer.collect();
     parse(&tokens, sink)

@@ -64,6 +64,8 @@ enum Commands {
     },
     /// List available compile targets
     Targets,
+    /// Start the LSP server (stdio transport)
+    Lsp,
 }
 
 fn main() {
@@ -144,7 +146,11 @@ fn main() {
             match compile_file(&file, target) {
                 Ok(wasm) => {
                     let caps = RuntimeCaps::from_cli(&dirs, deny_fs, deny_clock, deny_random);
-                    if let Err(e) = run_wasm(&wasm, &caps) {
+                    let result = match target {
+                        TargetId::Wasm32WasiP2 => run_wasm_gc(&wasm, &caps),
+                        _ => run_wasm_p1(&wasm, &caps),
+                    };
+                    if let Err(e) = result {
                         eprintln!("error: runtime: {}", e);
                         process::exit(1);
                     }
@@ -177,6 +183,10 @@ fn main() {
         }
         Commands::Targets => {
             print!("{}", ark_target::targets_help());
+        }
+        Commands::Lsp => {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(ark_lsp::run_lsp());
         }
     }
 }
@@ -345,7 +355,7 @@ impl DirGrant {
     }
 }
 
-fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
+fn run_wasm_p1(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     use wasmtime::*;
     use wasmtime_wasi::preview1::WasiP1Ctx;
     use wasmtime_wasi::{DirPerms, FilePerms, WasiCtxBuilder};
@@ -394,6 +404,67 @@ fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     let instance = linker
         .instantiate(&mut store, &module)
         .map_err(|e| format!("wasm instantiation error: {}", e))?;
+
+    let start = instance
+        .get_typed_func::<(), ()>(&mut store, "_start")
+        .map_err(|e| format!("missing _start: {}", e))?;
+
+    start
+        .call(&mut store, ())
+        .map_err(|e| format!("runtime error: {}", e))?;
+
+    Ok(())
+}
+
+/// Run a Wasm GC module (T3 target) with wasmtime GC support enabled.
+fn run_wasm_gc(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
+    use wasmtime::*;
+    use wasmtime_wasi::preview1::WasiP1Ctx;
+    use wasmtime_wasi::{DirPerms, FilePerms, WasiCtxBuilder};
+
+    let mut config = Config::new();
+    config.wasm_gc(true);
+
+    let engine =
+        Engine::new(&config).map_err(|e| format!("engine creation error (GC): {:?}", e))?;
+    let module = wasmtime::Module::new(&engine, wasm_bytes)
+        .map_err(|e| format!("wasm compile error (GC): {:?}", e))?;
+
+    let mut linker = Linker::<WasiP1Ctx>::new(&engine);
+    wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |cx| cx)
+        .map_err(|e| format!("wasi link error: {}", e))?;
+
+    let mut builder = WasiCtxBuilder::new();
+    builder.inherit_stdio();
+
+    let _ = caps.deny_clock;
+    let _ = caps.deny_random;
+
+    if !caps.deny_fs {
+        if caps.dirs.is_empty() {
+            builder
+                .preopened_dir(".", ".", DirPerms::all(), FilePerms::all())
+                .map_err(|e| format!("preopened dir error: {}", e))?;
+        } else {
+            for grant in &caps.dirs {
+                let (dp, fp) = if grant.read_only {
+                    (DirPerms::READ, FilePerms::READ)
+                } else {
+                    (DirPerms::all(), FilePerms::all())
+                };
+                builder
+                    .preopened_dir(&grant.host_path, &grant.guest_path, dp, fp)
+                    .map_err(|e| format!("preopened dir error for '{}': {}", grant.host_path, e))?;
+            }
+        }
+    }
+    let wasi_ctx = builder.build_p1();
+
+    let mut store = Store::new(&engine, wasi_ctx);
+
+    let instance = linker
+        .instantiate(&mut store, &module)
+        .map_err(|e| format!("wasm instantiation error (GC): {}", e))?;
 
     let start = instance
         .get_typed_func::<(), ()>(&mut store, "_start")

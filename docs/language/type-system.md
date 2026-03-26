@@ -1,6 +1,7 @@
 # 型システム
 
-ADR-002 により Wasm GC 前提、ADR-003 により制限付き monomorphization を採用。
+ADR-002 では Wasm GC 前提だが、現行実装は **linear memory + WASI Preview 1** バックエンド。
+ADR-003 により制限付き monomorphization を採用（v1 M8 でネストジェネリクスに対応済み）。
 
 ---
 
@@ -155,17 +156,15 @@ let a = identity(42)         // T = i32（推論）
 let b = identity<String>(s)  // 明示指定
 ```
 
-### 制限（v0）
+### 制限（v0）→ v1（M8）で緩和
 
-**重要**: ネストした型引数は禁止。以下は全て ❌：
+v0 では以下の制限があったが、**v1（M8）でネストジェネリクスおよびジェネリック struct に対応**:
 
-- `Vec<Vec<i32>>`
-- `Vec<Option<T>>`
-- `Result<Vec<String>, E>`
-- `Option<Result<T, E>>`
+- v0: 型パラメータは 2 個まで
+- v0: ネスト禁止（`Vec<Vec<i32>>` 等）
+- v0: ユーザー定義 generic struct は stdlib 提供分のみ
 
-- 型パラメータは 2 個まで
-- ユーザー定義 generic struct は後回し（stdlib の `Option<T>`, `Result<T, E>`, `Vec<T>` のみ）
+**v1 以降**: `Vec<Vec<i32>>`, `Vec<Option<T>>`, ジェネリック struct 定義が可能。
 
 ---
 

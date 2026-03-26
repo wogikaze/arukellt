@@ -74,11 +74,14 @@ pub enum DiagnosticCode {
     E0210, // ? operator type mismatch
 
     // E03xx: v0 constraints / target constraints
-    E0300, // trait not available
-    E0301, // method syntax forbidden
-    E0302, // nested generic forbidden
-    E0303, // for loop forbidden
-    E0304, // operator overload forbidden
+    // NOTE: E0300-E0304 are historical v0 constraint codes, now dead.
+    // v1 implements traits, methods, nested generics, for loops, and operator overloading.
+    // Retained for code-number stability; never emitted in current codebase.
+    E0300, // [deprecated] trait not available (v1: traits implemented)
+    E0301, // [deprecated] method syntax forbidden (v1: method calls implemented)
+    E0302, // [deprecated] nested generic forbidden (v1 M8: nested generics supported)
+    E0303, // [deprecated] for loop forbidden (v0: for loops implemented)
+    E0304, // [deprecated] operator overload forbidden (v1: operator overloading implemented)
     E0305, // unsupported target
     E0306, // invalid emit kind for target
     E0307, // feature not available for target
@@ -86,6 +89,7 @@ pub enum DiagnosticCode {
     // W0xxx: Warnings
     W0001, // possible unintended sharing
     W0002, // deprecated target alias
+    W0003, // ambiguous import (local and std share same name)
 }
 
 impl DiagnosticCode {
@@ -119,6 +123,7 @@ impl DiagnosticCode {
             Self::E0307 => "E0307",
             Self::W0001 => "W0001",
             Self::W0002 => "W0002",
+            Self::W0003 => "W0003",
         }
     }
 
@@ -152,12 +157,13 @@ impl DiagnosticCode {
             Self::E0307 => "feature not available for target",
             Self::W0001 => "possible unintended sharing of reference type",
             Self::W0002 => "deprecated target alias",
+            Self::W0003 => "ambiguous import: local and std modules share the same name",
         }
     }
 
     pub fn severity(self) -> Severity {
         match self {
-            Self::W0001 | Self::W0002 => Severity::Warning,
+            Self::W0001 | Self::W0002 | Self::W0003 => Severity::Warning,
             _ => Severity::Error,
         }
     }

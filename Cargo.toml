@@ -7,6 +7,22 @@ members = [
     "crates/ark-typecheck",
     "crates/ark-mir",
     "crates/ark-wasm",
+    "crates/ark-llvm",
+    "crates/ark-lsp",
+    "crates/ark-diagnostics",
+    "crates/ark-stdlib",
+    "crates/ark-target",
+    "crates/arukellt",
+]
+# ark-llvm requires LLVM 18 native libraries; exclude from default build
+default-members = [
+    "crates/ark-lexer",
+    "crates/ark-parser",
+    "crates/ark-resolve",
+    "crates/ark-typecheck",
+    "crates/ark-mir",
+    "crates/ark-wasm",
+    "crates/ark-lsp",
     "crates/ark-diagnostics",
     "crates/ark-stdlib",
     "crates/ark-target",
@@ -28,6 +44,7 @@ ark-mir = { path = "crates/ark-mir" }
 ark-wasm = { path = "crates/ark-wasm" }
 ark-diagnostics = { path = "crates/ark-diagnostics" }
 ark-target = { path = "crates/ark-target" }
+ark-llvm = { path = "crates/ark-llvm" }
 ark-stdlib = { path = "crates/ark-stdlib" }
 
 # Shared dependencies
@@ -36,3 +53,6 @@ wasmtime = "29"
 ariadne = "0.5"
 clap = { version = "4", features = ["derive"] }
 thiserror = "2"
+inkwell = { version = "0.8", features = ["llvm18-1"] }
+tower-lsp = "0.20"
+tokio = { version = "1", features = ["full"] }

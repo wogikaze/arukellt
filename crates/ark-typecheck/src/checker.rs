@@ -369,7 +369,7 @@ impl TypeChecker {
                 type_params: vec![],
                 type_param_bounds: vec![],
                 params: vec![Type::String],
-                ret: Type::I32,
+                ret: Type::Result(Box::new(Type::I32), Box::new(Type::String)),
             },
         );
         self.fn_sigs.insert(
@@ -667,11 +667,10 @@ impl TypeChecker {
                 type_params: vec![],
                 type_param_bounds: vec![],
                 params: vec![Type::String],
-                ret: Type::I32,
+                ret: Type::Result(Box::new(Type::I32), Box::new(Type::String)),
             },
         );
         // io/fs: fs_read_file(path: String) -> Result<String, String>
-        // At Wasm level returns i32 (heap pointer to Result enum)
         self.fn_sigs.insert(
             "fs_read_file".into(),
             FnSig {
@@ -679,10 +678,10 @@ impl TypeChecker {
                 type_params: vec![],
                 type_param_bounds: vec![],
                 params: vec![Type::String],
-                ret: Type::I32,
+                ret: Type::Result(Box::new(Type::String), Box::new(Type::String)),
             },
         );
-        // io/fs: fs_write_file(path: String, content: String) -> Result<(), String>
+        // io/fs: fs_write_file(path: String, content: String) -> Result<(), String)
         self.fn_sigs.insert(
             "fs_write_file".into(),
             FnSig {
@@ -690,7 +689,7 @@ impl TypeChecker {
                 type_params: vec![],
                 type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
-                ret: Type::I32,
+                ret: Type::Result(Box::new(Type::Unit), Box::new(Type::String)),
             },
         );
         // Enum variant constructors (treated as functions for type checking)
