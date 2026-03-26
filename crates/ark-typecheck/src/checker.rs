@@ -585,6 +585,27 @@ impl TypeChecker {
                 ret: Type::I32,
             },
         );
+        // io/fs: fs_read_file(path: String) -> Result<String, String>
+        // At Wasm level returns i32 (heap pointer to Result enum)
+        self.fn_sigs.insert(
+            "fs_read_file".into(),
+            FnSig {
+                name: "fs_read_file".into(),
+                type_params: vec![],
+                params: vec![Type::String],
+                ret: Type::I32,
+            },
+        );
+        // io/fs: fs_write_file(path: String, content: String) -> Result<(), String>
+        self.fn_sigs.insert(
+            "fs_write_file".into(),
+            FnSig {
+                name: "fs_write_file".into(),
+                type_params: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::I32,
+            },
+        );
         // Enum variant constructors (treated as functions for type checking)
         self.fn_sigs.insert(
             "Some".into(),

@@ -1,0 +1,13 @@
+fn main() {
+    let w: Result<(), String> = fs_write_file(String_from("test_output.txt"), String_from("hello from arukellt"))
+    match w {
+        Ok(_) => println(String_from("write ok")),
+        Err(e) => println(e),
+    }
+
+    let r: Result<String, String> = fs_read_file(String_from("test_output.txt"))
+    match r {
+        Ok(content) => println(content),
+        Err(e) => println(e),
+    }
+}

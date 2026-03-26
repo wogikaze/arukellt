@@ -36,6 +36,8 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 | 基本演算子（算術、比較、論理） | ✅ | i32/i64/f64 で動作。短絡評価・型昇格対応 |
 | タプル | ✅ | タプルリテラル・分配束縛動作 |
 | Box\<T\> | ✅ | Box_new / unbox でヒープ割当動作 |
+| for ループ（限定版） | ✅ | 範囲 `0..n` と Vec 走査 `values(v)` |
+| 文字列補間 `f"..."` | ✅ | プリミティブ型のみ。struct/enum は P3 (Display) 待ち |
 
 ### 標準ライブラリ
 
@@ -50,9 +52,10 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 | collections/vec | ✅ | Vec_new_i32, push, pop, get, set, len, sort_i32 動作 |
 | Vec 高階関数 | ✅ | map_i32_i32, filter_i32, fold_i32_i32 動作 |
 | 数学関数 | ✅ | sqrt, abs, min, max 動作 |
-| parse_i32 / parse_i64 / parse_f64 | ✅ | 文字列→数値変換 |
+| parse_i32 | ✅ | 文字列→数値変換 |
+| parse_i64 / parse_f64 | ⚠️ | 型検査登録済み・Wasm 未実装 |
 | core/mem | 🔲 | 設計済み・未実装 |
-| io/fs | 🔲 | 設計済み・未実装 |
+| io/fs | ✅ | fs_read_file, fs_write_file 動作（WASI p1） |
 | io/clock | 🔲 | 設計済み・未実装 |
 | io/random | 🔲 | 設計済み・未実装 |
 
@@ -75,11 +78,12 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 ### 言語機能
 
 **注**: `break` / `continue` は v0 に含まれている。
+**注**: for ループと文字列補間は当初 v1 予定だったが、v0 で実装済み。
 
 | 機能 | 理由 | 予定 | v1 優先度 |
 |------|------|------|----------|
-| for 構文（限定版） | trait 不要。範囲 `0..n` + Vec 走査 `values(v)` | v1 | **P1** |
-| 文字列補間 `f"..."` | concat ネスト解消。**プリミティブ型のみ**（`i32`, `i64`, `f32`, `f64`, `bool`, `char`, `String`）。カスタム型は P3（Display）が必要 | v1 | **P2** |
+| ~~for 構文（限定版）~~ | ~~trait 不要。範囲 `0..n` + Vec 走査 `values(v)`~~ | ~~v1~~ | ~~**P1**~~ ✅ v0 実装済み |
+| ~~文字列補間 `f"..."`~~ | ~~concat ネスト解消。プリミティブ型のみ~~ | ~~v1~~ | ~~**P2**~~ ✅ v0 実装済み |
 | trait / interface | LLM が壊しやすい解決規則。組み込み反復で先に橋渡し | v1 | P3 |
 | impl / メソッド構文 | trait 後に導入 | v1 | P4 |
 | 演算子オーバーロード | trait が必要 | v1 | P5 |
@@ -137,15 +141,15 @@ v0 完成の条件:
    - 数値計算（フィボナッチ、素数判定） ✅
    - 構造体・enum の基本操作 ✅
    - エラー処理（Result の連鎖） ✅
-   - ファイル読み書き — **io/fs 実装後**
+   - ファイル読み書き — **io/fs 実装済み**（fs_read_file, fs_write_file）
 3. Wasm バイナリサイズが許容範囲内
    - Hello World: 5KB 以下
 4. 複数エラーの一括報告が機能 ✅
 
-> **現在の到達度**: 124/124 fixture テスト pass。
+> **現在の到達度**: 142/147 fixture テスト pass（5 skip はモジュールヘルパーファイル）。
 > Hello World、数値計算、構造体、enum payload、Option/Result、クロージャ、
-> 高階関数、パターンマッチ、? 演算子がすべて end-to-end 動作。
-> 残り: ファイル I/O（io/fs 未実装）。
+> 高階関数、パターンマッチ、? 演算子、for ループ、文字列補間がすべて end-to-end 動作。
+> 残り: io/clock, io/random は未実装。
 
 ---
 

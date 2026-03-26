@@ -76,6 +76,8 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "Box_new",
     "unbox",
     "to_string",
+    "fs_read_file",
+    "fs_write_file",
     // Existing __intrinsic_* names (called from prelude.ark or user code)
     "__intrinsic_println",
     "__intrinsic_print",

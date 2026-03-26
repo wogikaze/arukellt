@@ -181,8 +181,8 @@ fn check_file(path: &PathBuf) -> Result<(), String> {
 
 fn run_wasm(wasm_bytes: &[u8]) -> Result<(), String> {
     use wasmtime::*;
-    use wasmtime_wasi::WasiCtxBuilder;
     use wasmtime_wasi::preview1::WasiP1Ctx;
+    use wasmtime_wasi::{DirPerms, FilePerms, WasiCtxBuilder};
 
     let engine = Engine::default();
     let module = wasmtime::Module::new(&engine, wasm_bytes)
@@ -192,7 +192,13 @@ fn run_wasm(wasm_bytes: &[u8]) -> Result<(), String> {
     wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |cx| cx)
         .map_err(|e| format!("wasi link error: {}", e))?;
 
-    let wasi_ctx = WasiCtxBuilder::new().inherit_stdio().build_p1();
+    let mut builder = WasiCtxBuilder::new();
+    builder.inherit_stdio();
+    // Preopen current directory for io/fs operations (fd 3)
+    builder
+        .preopened_dir(".", ".", DirPerms::all(), FilePerms::all())
+        .map_err(|e| format!("preopened dir error: {}", e))?;
+    let wasi_ctx = builder.build_p1();
 
     let mut store = Store::new(&engine, wasi_ctx);
 

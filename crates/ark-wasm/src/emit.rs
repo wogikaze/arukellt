@@ -17,6 +17,9 @@ const SCRATCH: u32 = 16; // temp for i32_to_string length
 const I32BUF: u32 = 48; // buffer for i32_to_string output (20 bytes max)
 const STRUCT_BASE: u32 = 96; // scratch area for struct init base pointers (8 slots × 4 bytes = 96..128)
 const ENUM_BASE: u32 = 128; // scratch area for enum init base pointers (8 slots × 4 bytes = 128..160)
+const FS_SCRATCH: u32 = 160; // scratch for fs operations (opened_fd: 4 bytes)
+const FS_NREAD: u32 = 164; // nread result from fd_read (4 bytes)
+const FS_BUF_SIZE: u32 = 4096; // read buffer chunk size
 const BOOL_TRUE: u32 = 80; // "true" (4 bytes)
 const BOOL_FALSE: u32 = 84; // "false" (5 bytes)
 const NEWLINE: u32 = 89; // "\n" (1 byte)
@@ -24,28 +27,39 @@ const DATA_START: u32 = 256;
 
 // Function indices:
 // 0 = fd_write (import)
-// 1 = __i32_to_string (helper: i32 -> offset,len pair stored at SCRATCH/SCRATCH+4)
-// 2 = __print_i32_ln (helper: prints i32 as decimal + newline)
-// 3 = __print_bool_ln (helper: prints bool as "true"/"false" + newline)
-// 4 = __print_str_ln (helper: prints length-prefixed string + newline)
-// 5 = __str_eq (helper: compare two length-prefixed strings)
-// 6 = __concat (helper: concatenate two length-prefixed strings)
-// 7 = __f64_to_str (helper: f64 -> length-prefixed string ptr)
-// 8+ = user functions
+// 1 = path_open (import)
+// 2 = fd_read (import)
+// 3 = fd_close (import)
+// 4 = __i32_to_string
+// 5 = __print_i32_ln
+// 6 = __print_bool_ln
+// 7 = __print_str_ln
+// 8 = __str_eq
+// 9 = __concat
+// 10 = __f64_to_str
+// 11 = __i64_to_str
+// 12 = __map_i32
+// 13 = __filter_i32
+// 14 = __fold_i32
+// 15 = __map_opt_i32
+// 16+ = user functions
 const FN_FD_WRITE: u32 = 0;
-const FN_I32_TO_STR: u32 = 1;
-const FN_PRINT_I32_LN: u32 = 2;
-const FN_PRINT_BOOL_LN: u32 = 3;
-const FN_PRINT_STR_LN: u32 = 4;
-const FN_STR_EQ: u32 = 5;
-const FN_CONCAT: u32 = 6;
-const FN_F64_TO_STR: u32 = 7;
-const FN_I64_TO_STR: u32 = 8;
-const FN_MAP_I32: u32 = 9;
-const FN_FILTER_I32: u32 = 10;
-const FN_FOLD_I32: u32 = 11;
-const FN_MAP_OPT_I32: u32 = 12;
-const FN_USER_BASE: u32 = 13;
+const FN_PATH_OPEN: u32 = 1;
+const FN_FD_READ: u32 = 2;
+const FN_FD_CLOSE: u32 = 3;
+const FN_I32_TO_STR: u32 = 4;
+const FN_PRINT_I32_LN: u32 = 5;
+const FN_PRINT_BOOL_LN: u32 = 6;
+const FN_PRINT_STR_LN: u32 = 7;
+const FN_STR_EQ: u32 = 8;
+const FN_CONCAT: u32 = 9;
+const FN_F64_TO_STR: u32 = 10;
+const FN_I64_TO_STR: u32 = 11;
+const FN_MAP_I32: u32 = 12;
+const FN_FILTER_I32: u32 = 13;
+const FN_FOLD_I32: u32 = 14;
+const FN_MAP_OPT_I32: u32 = 15;
+const FN_USER_BASE: u32 = 16;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 fn normalize_intrinsic_name(name: &str) -> &str {
@@ -314,7 +328,7 @@ impl EmitCtx {
             vec![ValType::I32, ValType::I32],
             vec![ValType::I32],
         );
-        let _ty_i32_i32 = self.register_type(&mut types, vec![ValType::I32], vec![ValType::I32]);
+        let ty_i32_i32 = self.register_type(&mut types, vec![ValType::I32], vec![ValType::I32]);
         // Register f64-related types
         let ty_f64_i32 = self.register_type(&mut types, vec![ValType::F64], vec![ValType::I32]);
         // Register i64-related types
@@ -322,6 +336,22 @@ impl EmitCtx {
         // Register HOF helper types
         let ty_i32x3_i32 =
             self.register_type(&mut types, vec![ValType::I32; 3], vec![ValType::I32]);
+        // Register WASI path_open type: (i32,i32,i32,i32,i32,i64,i64,i32,i32) -> i32
+        let ty_path_open = self.register_type(
+            &mut types,
+            vec![
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I64,
+                ValType::I64,
+                ValType::I32,
+                ValType::I32,
+            ],
+            vec![ValType::I32],
+        );
         // Pre-register user function types
         let mut user_func_type_indices = Vec::new();
         for func in &mir.functions {
@@ -347,6 +377,21 @@ impl EmitCtx {
             "wasi_snapshot_preview1",
             "fd_write",
             wasm_encoder::EntityType::Function(ty_fd_write),
+        );
+        imports.import(
+            "wasi_snapshot_preview1",
+            "path_open",
+            wasm_encoder::EntityType::Function(ty_path_open),
+        );
+        imports.import(
+            "wasi_snapshot_preview1",
+            "fd_read",
+            wasm_encoder::EntityType::Function(ty_fd_write), // same signature: (i32,i32,i32,i32)->i32
+        );
+        imports.import(
+            "wasi_snapshot_preview1",
+            "fd_close",
+            wasm_encoder::EntityType::Function(ty_i32_i32), // (i32)->i32
         );
         module.section(&imports);
 
@@ -382,7 +427,7 @@ impl EmitCtx {
 
         // Table section — for indirect calls (higher-order functions)
         let total_funcs =
-            1 + 12 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
+            4 + 12 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
         let mut tables = wasm_encoder::TableSection::new();
         tables.table(wasm_encoder::TableType {
             element_type: wasm_encoder::RefType::FUNCREF,
@@ -1961,6 +2006,8 @@ impl EmitCtx {
                         | "sort_i32"
                         | "sort_String"
                         | "parse_i32"
+                        | "fs_read_file"
+                        | "fs_write_file"
                         | "map_i32_i32"
                         | "filter_i32"
                         | "fold_i32_i32"
@@ -2084,7 +2131,8 @@ impl EmitCtx {
                             f.instruction(&Instruction::Drop);
                         }
                     }
-                    "pop" | "get" | "Vec_new_i32" | "Vec_new_String" | "len" | "get_unchecked" => {
+                    "pop" | "get" | "Vec_new_i32" | "Vec_new_String" | "len" | "get_unchecked"
+                    | "fs_read_file" | "fs_write_file" => {
                         // Value-returning Vec operations called as statement — emit and drop result
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
@@ -4248,6 +4296,325 @@ impl EmitCtx {
                             // enum_base on stack
                         }
                         f.instruction(&Instruction::End); // end if/else
+                    }
+                    "fs_read_file" => {
+                        // fs_read_file(path: String) -> Result<String, String>
+                        // path is a length-prefixed string pointer
+                        // Uses WASI path_open + fd_read + fd_close
+                        // Returns heap-allocated enum: tag=0(Ok)+str_ptr or tag=1(Err)+err_str_ptr
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+
+                        // Save path_ptr to FS_SCRATCH+8
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        self.emit_operand(f, &args[0]);
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // Get path_len from length prefix (ptr - 4)
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // path_ptr
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma)); // path_len
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // Call path_open(dirfd=3, dirflags=0, path, path_len, oflags=0,
+                        //   fs_rights_base=FD_READ(2), fs_rights_inheriting=0, fdflags=0, &opened_fd)
+                        f.instruction(&Instruction::I32Const(3)); // dirfd = 3 (first preopened dir)
+                        f.instruction(&Instruction::I32Const(0)); // dirflags
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // path_ptr
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // path_len
+                        f.instruction(&Instruction::I32Const(0)); // oflags = 0
+                        f.instruction(&Instruction::I64Const(2)); // fs_rights_base = FD_READ
+                        f.instruction(&Instruction::I64Const(0)); // fs_rights_inheriting
+                        f.instruction(&Instruction::I32Const(0)); // fdflags
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32)); // &opened_fd
+                        f.instruction(&Instruction::Call(FN_PATH_OPEN));
+
+                        // Check errno: 0 = success
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Ne);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                            ValType::I32,
+                        )));
+                        {
+                            // path_open failed → return Err("file open error")
+                            let err_msg = b"file open error";
+                            let err_len = err_msg.len() as i32;
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(err_len));
+                            f.instruction(&Instruction::I32Store(ma));
+                            for (i, &byte) in err_msg.iter().enumerate() {
+                                f.instruction(&Instruction::GlobalGet(0));
+                                f.instruction(&Instruction::I32Const(4 + i as i32));
+                                f.instruction(&Instruction::I32Add);
+                                f.instruction(&Instruction::I32Const(byte as i32));
+                                f.instruction(&Instruction::I32Store8(MemArg {
+                                    offset: 0,
+                                    align: 0,
+                                    memory_index: 0,
+                                }));
+                            }
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4 + err_len));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
+                            // Build Err enum: [tag=1][payload=str_ptr]
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(1));
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(8));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
+                        }
+                        f.instruction(&Instruction::Else);
+                        {
+                            // path_open succeeded — read file contents
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Store(ma)); // save buf_start
+                            // Skip 4 bytes for length prefix
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
+
+                            // Read loop
+                            f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+                            f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+                            {
+                                // Set up iovec: [ptr=global(0), len=FS_BUF_SIZE]
+                                f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                                f.instruction(&Instruction::GlobalGet(0));
+                                f.instruction(&Instruction::I32Store(ma));
+                                f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+                                f.instruction(&Instruction::I32Const(FS_BUF_SIZE as i32));
+                                f.instruction(&Instruction::I32Store(ma));
+
+                                // fd_read(fd, &iov, 1, &nread)
+                                f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                                f.instruction(&Instruction::I32Load(ma));
+                                f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                                f.instruction(&Instruction::I32Const(1));
+                                f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                                f.instruction(&Instruction::Call(FN_FD_READ));
+                                f.instruction(&Instruction::Drop);
+
+                                // if nread == 0, break
+                                f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                                f.instruction(&Instruction::I32Load(ma));
+                                f.instruction(&Instruction::I32Eqz);
+                                f.instruction(&Instruction::BrIf(1)); // break outer block
+
+                                // Bump heap by nread
+                                f.instruction(&Instruction::GlobalGet(0));
+                                f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                                f.instruction(&Instruction::I32Load(ma));
+                                f.instruction(&Instruction::I32Add);
+                                f.instruction(&Instruction::GlobalSet(0));
+
+                                f.instruction(&Instruction::Br(0)); // continue loop
+                            }
+                            f.instruction(&Instruction::End); // end loop
+                            f.instruction(&Instruction::End); // end block
+
+                            // Store total_len at buf_start
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                            f.instruction(&Instruction::I32Load(ma)); // buf_start
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Sub); // total_len = end - (start+4)
+                            f.instruction(&Instruction::I32Store(ma));
+
+                            // fd_close(fd)
+                            f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::Call(FN_FD_CLOSE));
+                            f.instruction(&Instruction::Drop);
+
+                            // str_ptr = buf_start + 4
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 24) as i32));
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Store(ma));
+
+                            // Build Ok enum: [tag=0][payload=str_ptr]
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(0));
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 24) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(8));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
+                        }
+                        f.instruction(&Instruction::End); // end if/else
+                    }
+                    "fs_write_file" => {
+                        // fs_write_file(path: String, content: String) -> Result<(), String>
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+
+                        // Save path_ptr to FS_SCRATCH+8
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        self.emit_operand(f, &args[0]);
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // Save content_ptr to FS_SCRATCH+28
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 28) as i32));
+                        self.emit_operand(f, &args[1]);
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // Get path_len
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // Call path_open(dirfd=3, dirflags=0, path, path_len,
+                        //   oflags=O_CREAT|O_TRUNC=9, rights=FD_WRITE(64), inheriting=0, fdflags=0, &opened_fd)
+                        f.instruction(&Instruction::I32Const(3));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(9)); // O_CREAT(1) | O_TRUNC(8)
+                        f.instruction(&Instruction::I64Const(64)); // FD_WRITE
+                        f.instruction(&Instruction::I64Const(0));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::Call(FN_PATH_OPEN));
+
+                        // Check errno
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Ne);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                            ValType::I32,
+                        )));
+                        {
+                            // Error → Err("file write error")
+                            let err_msg = b"file write error";
+                            let err_len = err_msg.len() as i32;
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(err_len));
+                            f.instruction(&Instruction::I32Store(ma));
+                            for (i, &byte) in err_msg.iter().enumerate() {
+                                f.instruction(&Instruction::GlobalGet(0));
+                                f.instruction(&Instruction::I32Const(4 + i as i32));
+                                f.instruction(&Instruction::I32Add);
+                                f.instruction(&Instruction::I32Const(byte as i32));
+                                f.instruction(&Instruction::I32Store8(MemArg {
+                                    offset: 0,
+                                    align: 0,
+                                    memory_index: 0,
+                                }));
+                            }
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4 + err_len));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
+                            // Err enum
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(1));
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(8));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
+                        }
+                        f.instruction(&Instruction::Else);
+                        {
+                            // Write content using fd_write
+                            f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 28) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+                            // content_len = mem[content_ptr - 4]
+                            f.instruction(&Instruction::I32Const((FS_SCRATCH + 28) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Sub);
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Store(ma));
+                            // fd_write(fd, &iov, 1, &nwritten)
+                            f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                            f.instruction(&Instruction::I32Const(1));
+                            f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                            f.instruction(&Instruction::Call(FN_FD_WRITE));
+                            f.instruction(&Instruction::Drop);
+                            // fd_close
+                            f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::Call(FN_FD_CLOSE));
+                            f.instruction(&Instruction::Drop);
+                            // Build Ok(()) enum: [tag=0][payload=0]
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(0));
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const(0));
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(8));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
+                        }
+                        f.instruction(&Instruction::End);
                     }
                     "map_i32_i32" => {
                         // map_i32_i32(vec, fn) -> call __map_i32 helper

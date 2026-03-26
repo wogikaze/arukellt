@@ -1,0 +1,7 @@
+fn main() {
+    let r: Result<String, String> = fs_read_file(String_from("nonexistent_file.txt"))
+    match r {
+        Ok(content) => println(content),
+        Err(e) => println(e),
+    }
+}

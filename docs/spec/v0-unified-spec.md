@@ -2,7 +2,7 @@
 
 本文書は、arukellt 言語 v0 の完全仕様を一箇所に統合したものである。
 
-**Status**: Design specification — 実装は大部分完了（124/124 fixture pass）
+**Status**: Design specification — 実装は大部分完了（139/144 fixture pass）
 
 > **実装状況**: v0 コンパイラは設計仕様の大部分を実装。
 > linear memory + WASI Preview 1 バックエンドで、
@@ -35,17 +35,17 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 > **設計と実装の差異**: 上記は v0 設計仕様の完成形。現行実装は
 > WASI p1 + linear memory バックエンドで、i32/i64/f64/bool/String/struct/
 > enum(payload)/Option/Result/?演算子/closure/高階関数/match/tuple/Box/Vec が
-> end-to-end 動作（124/124 fixture テスト pass）。
+> end-to-end 動作（139/144 fixture テスト pass）。
 > 未実装: Wasm GC 型、WASI p2、io/fs、io/clock、io/random。
 
 ### v0 で提供しないもの（Non-goals）
 
-以下は**明示的に v0 から除外**。v1 以降で検討:
+以下は**明示的に v0 から除外**（ただし P1・P2 は v0 で実装済み）。v1 以降で検討:
 
 | 機能 | 理由 | v1 優先度 |
 |------|------|----------|
-| for ループ（限定版） | trait 不要。範囲 `0..n` と Vec 走査 `values(v)` のみ。解決規則を増やさず LLM フレンドリを壊さない | **P1** |
-| 文字列補間 `f"..."` | concat ネスト解消。diagnostics/std 実装品質に直結。**プリミティブ型のみ**（`i32`, `i64`, `f32`, `f64`, `bool`, `char`, `String`）。カスタム型は P3（Display）が必要 | **P2** |
+| ~~for ループ（限定版）~~ | ~~trait 不要。範囲 `0..n` と Vec 走査 `values(v)` のみ~~ | ~~**P1**~~ ✅ v0 実装済み |
+| ~~文字列補間 `f"..."`~~ | ~~concat ネスト解消。プリミティブ型のみ~~ | ~~**P2**~~ ✅ v0 実装済み |
 | trait / iterator | 設計コスト高。v0→v1 の橋として先に組み込み反復プロトコルや Vec 専用高階関数で稼ぐ方が安全 | P3 |
 | impl / メソッド構文 | 読みやすさ向上だが本質改善ではない。trait(P3) の後 | P4 |
 | 演算子オーバーロード | trait 依存 | P5 |
@@ -58,8 +58,7 @@ Arukellt は Wasm-first、LLM-friendly を目指す静的型付け言語。
 **v1 優先度の根拠**: parser.rs → parser.ark 翻訳での実測。詳細は `docs/process/parser-ark-evaluation.md`。
 
 **v1 段階的導入戦略**:
-1. P1（限定 for）と P2（文字列補間）は trait なしで導入可能。解決規則を増やさない。
-   - P2 の「trait 不要」はプリミティブ型（`i32`, `i64`, `f32`, `f64`, `bool`, `char`, `String`）をコンパイラが組み込み変換するため。カスタム型（struct / enum）は P3 の `Display` trait まで `f"..."` 内で使用不可。`fmt` モジュール自体も P3 以降。
+1. ~~P1（限定 for）と P2（文字列補間）は trait なしで導入可能~~ → ✅ v0 で実装済み。
 2. P3（trait）導入前に、組み込みの反復プロトコルと Vec 専用高階関数（`any`, `find`, `map`, `filter`）で現実的な走査パターンを先にカバー。
 3. P3 で trait を導入後、P4（メソッド構文）と P5（演算子オーバーロード）を追加。
 
@@ -140,7 +139,11 @@ fn() -> ()               // 引数なし、戻り値なし
 
 ### 3.1 GC 採用
 
-Wasm GC 提案を使用。手動メモリ管理不要。
+設計意図は Wasm GC（ADR-002 決定済み）。現実装は linear memory + WASI p1。
+
+> **⚠️ 現行実装**: v0 コンパイラは linear memory + bump allocator を使用。
+> 以下の GC 型定義は将来の Wasm GC バックエンド向けの設計仕様。
+> v1 で Wasm GC バックエンドを実装予定。
 
 ### 3.2 値セマンティクス
 
@@ -382,12 +385,15 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
 
 ### 6.1 使用する Wasm 機能
 
-**Layer 1（必須機能）**:
-- Wasm GC: struct, array, i31ref
+> **設計と実装の差異**: 設計意図は Wasm GC（ADR-002 決定済み）。
+> 現実装は linear memory + WASI Preview 1。v1 で Wasm GC バックエンドを実装予定。
+
+**Layer 1（必須機能 — 設計仕様）**:
+- Wasm GC: struct, array, i31ref（未実装・v1 予定）
 - Multi-value returns
 - Reference types
-- WASI p1
-- Component Model / WIT（WASI p2）
+- WASI p1（✅ 実装済み）
+- Component Model / WIT（WASI p2）（未実装）
 
 **Layer 2（公開面ルール）**:
 - Layer 2A: raw Wasm ABI
@@ -398,7 +404,7 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
 - Tail call
 - Exception handling
 
-### 6.2 型マッピング
+### 6.2 型マッピング（Wasm GC 設計仕様 — 現実装は linear memory）
 
 | arukellt | Wasm GC |
 |----------|---------|
@@ -498,7 +504,7 @@ Source (.ark)
 | 構文エラー | E00xx | unexpected token, missing token |
 | 名前解決 | E01xx | unresolved name, duplicate definition |
 | 型エラー | E02xx | type mismatch, missing type annotation |
-| v0制約違反 | E03xx | method call, for loop, nested generic |
+| v0制約違反 | E03xx | method call, ~~for loop~~（廃止）, nested generic |
 
 ### 9.2 エラーフォーマット
 
@@ -559,8 +565,9 @@ let n: i32 = len(s)
 // ❌ メソッド構文
 v.push(42)
 
-// ❌ for ループ
-for x in items { }
+// ✅ for ループ（限定版 — v0 実装済み）
+for i in 0..n { }
+for item in values(v) { }
 
 // ✅ 正しい
 push(v, 42)

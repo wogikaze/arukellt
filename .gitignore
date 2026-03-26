@@ -1,2 +1,9 @@
 .worktrees/
 target/
+
+# instant-grep index
+.ig/
+
+# io/fs test artifacts
+_test_io.txt
+test_output.txt

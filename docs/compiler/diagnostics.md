@@ -8,8 +8,9 @@ LLMが壊れたコードを修正できる診断出力の仕様。
 > - ✅ スニペット表示（ariadne 使用）
 > - ✅ 複数エラーの一括報告
 > - ✅ expected/actual 表示（型エラー時）
-> - 🔲 fix-it hint（設計済み・未実装）
-> - 🔲 LLM 向け定型文パターン（設計済み・未実装）
+> - ✅ 警告の表示（コンパイル成功時も出力）
+> - 🔲 fix-it hint（設計済み・v1 で実装予定）
+> - 🔲 LLM 向け定型文パターン（設計済み・v1 で実装予定）
 
 ---
 
@@ -144,8 +145,8 @@ help: use a type-specific constructor
 | E0300 | trait not available | `impl Display for T` |
 | E0301 | method call not available | `v.push(x)` |
 | E0302 | nested generic | `Vec[Vec[i32]]` |
-| E0303 | for loop not available | `for x in vec` |
-| E0304 | operator overload | `impl Add for T` |
+| E0303 | ~~for loop not available~~ | **廃止**: `for` ループは v0 で実装済み |
+| E0304 | operator overload / `impl` | `impl Add for T` — **✅ 実装済み** |
 
 **fix-it 例**:
 ```
@@ -162,7 +163,7 @@ help: use function call syntax instead
 
 | コード | 説明 | 例 |
 |--------|------|-----|
-| W0001 | unintended sharing | 可変参照型を代入後に両方から変更 |
+| W0001 | unintended sharing | 可変参照型を代入後に両方から変更 — **✅ 実装済み** |
 
 **fix-it 例**:
 ```
@@ -258,39 +259,19 @@ let s = String::from("hello")
 string_push(s, '!')
 ```
 
-### パターン3: for ループの誤用
+### パターン3: for ループの旧制約（v0 で解消済み）
 
-**LLMが書きやすいコード**:
+> **注**: `for` ループは v0 で実装済み。以下は参考として残す。
+> `for i in 0..n` と `for item in values(v)` が使用可能。
+
+**v0 で使えるコード**:
 ```
-for item in items {
-    print(item)
+for item in values(items) {
+    println(item)
 }
-```
 
-**診断**:
-```
-error[E0303]: for loop not available
-  --> src/main.ark:1:1
-   |
- 1 |     for item in items {
-   |     ^^^ v0 requires `while` loop
-help: rewrite with while
-   |
-   |     let mut i = 0
-   |     while i < len(items) {
-   |         let item = get(items, i)
-   |         print(item)
-   |         i = i + 1
-   |     }
-```
-
-**修正後**:
-```
-let mut i = 0
-while i < len(items) {
-    let item = get(items, i)
-    print(item)
-    i = i + 1
+for i in 0..10 {
+    println(i)
 }
 ```
 

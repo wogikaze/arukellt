@@ -2,7 +2,7 @@
 
 > **Last updated**: 2026-03-25
 > **Branch**: `feature/arukellt-v1`
-> **Test results**: 82 unit tests pass, 139/144 fixture tests pass (5 skipped — module helper files)
+> **Test results**: 82 unit tests pass, 142/147 fixture tests pass (5 skipped — module helper files)
 
 This document is the **single source of truth** for what is actually implemented vs. what is designed/planned in v0. Other docs in this repository describe the *design intent*; this document describes the *current reality*.
 
@@ -147,7 +147,7 @@ This document is the **single source of truth** for what is actually implemented
 | `min(a, b)` / `max(a, b)` | **runnable** | `i32 → i32`; computed via comparison |
 | `panic(msg)` | **runnable** | Prints `panic: {msg}` to stderr and traps |
 | String interpolation `f"..."` | **runnable** | `f"text {expr}"` — expressions interpolated at runtime |
-| Capability-based I/O (`fs_read_file`, `fs_write_file`) | **designed** | Not in prelude; not implemented |
+| Capability-based I/O (`fs_read_file`, `fs_write_file`) | **working** | WASI p1 (preopened dir fd 3); Result<String,String> / Result<(),String> |
 | `io/clock` / `io/random` | **designed** | Not implemented |
 
 ## Module System
