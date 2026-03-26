@@ -83,6 +83,8 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "assert_ne",
     "assert_eq_str",
     "assert_eq_i64",
+    "clock_now",
+    "random_i32",
     // Existing __intrinsic_* names (called from prelude.ark or user code)
     "__intrinsic_println",
     "__intrinsic_print",
@@ -297,10 +299,20 @@ fn load_module_recursive(
     }
 
     if !visiting.insert(path.clone()) {
-        sink.emit(
-            Diagnostic::new(DiagnosticCode::E0100)
-                .with_message(format!("circular import detected at `{}`", path.display())),
-        );
+        let cycle: Vec<String> = visiting
+            .iter()
+            .map(|p| {
+                p.file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string()
+            })
+            .collect();
+        sink.emit(Diagnostic::new(DiagnosticCode::E0100).with_message(format!(
+            "circular import detected: {} → {}",
+            cycle.join(" → "),
+            path.file_name().unwrap_or_default().to_string_lossy()
+        )));
         return;
     }
 

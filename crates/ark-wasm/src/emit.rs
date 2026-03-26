@@ -30,40 +30,44 @@ const DATA_START: u32 = 256;
 // 1 = path_open (import)
 // 2 = fd_read (import)
 // 3 = fd_close (import)
-// 4 = __i32_to_string
-// 5 = __print_i32_ln
-// 6 = __print_bool_ln
-// 7 = __print_str_ln
-// 8 = __str_eq
-// 9 = __concat
-// 10 = __f64_to_str
-// 11 = __i64_to_str
-// 12 = __map_i32
-// 13 = __filter_i32
-// 14 = __fold_i32
-// 15 = __map_opt_i32
-// 16 = __any_i32
-// 17 = __find_i32
-// 18+ = user functions
+// 4 = clock_time_get (import)
+// 5 = random_get (import)
+// 6 = __i32_to_string
+// 7 = __print_i32_ln
+// 8 = __print_bool_ln
+// 9 = __print_str_ln
+// 10 = __str_eq
+// 11 = __concat
+// 12 = __f64_to_str
+// 13 = __i64_to_str
+// 14 = __map_i32
+// 15 = __filter_i32
+// 16 = __fold_i32
+// 17 = __map_opt_i32
+// 18 = __any_i32
+// 19 = __find_i32
+// 20+ = user functions
 const FN_FD_WRITE: u32 = 0;
 const FN_PATH_OPEN: u32 = 1;
 const FN_FD_READ: u32 = 2;
 const FN_FD_CLOSE: u32 = 3;
-const FN_I32_TO_STR: u32 = 4;
-const FN_PRINT_I32_LN: u32 = 5;
-const FN_PRINT_BOOL_LN: u32 = 6;
-const FN_PRINT_STR_LN: u32 = 7;
-const FN_STR_EQ: u32 = 8;
-const FN_CONCAT: u32 = 9;
-const FN_F64_TO_STR: u32 = 10;
-const FN_I64_TO_STR: u32 = 11;
-const FN_MAP_I32: u32 = 12;
-const FN_FILTER_I32: u32 = 13;
-const FN_FOLD_I32: u32 = 14;
-const FN_MAP_OPT_I32: u32 = 15;
-const FN_ANY_I32: u32 = 16;
-const FN_FIND_I32: u32 = 17;
-const FN_USER_BASE: u32 = 18;
+const FN_CLOCK_TIME_GET: u32 = 4;
+const FN_RANDOM_GET: u32 = 5;
+const FN_I32_TO_STR: u32 = 6;
+const FN_PRINT_I32_LN: u32 = 7;
+const FN_PRINT_BOOL_LN: u32 = 8;
+const FN_PRINT_STR_LN: u32 = 9;
+const FN_STR_EQ: u32 = 10;
+const FN_CONCAT: u32 = 11;
+const FN_F64_TO_STR: u32 = 12;
+const FN_I64_TO_STR: u32 = 13;
+const FN_MAP_I32: u32 = 14;
+const FN_FILTER_I32: u32 = 15;
+const FN_FOLD_I32: u32 = 16;
+const FN_MAP_OPT_I32: u32 = 17;
+const FN_ANY_I32: u32 = 18;
+const FN_FIND_I32: u32 = 19;
+const FN_USER_BASE: u32 = 20;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 fn normalize_intrinsic_name(name: &str) -> &str {
@@ -396,6 +400,12 @@ impl EmitCtx {
             ],
             vec![ValType::I32],
         );
+        // Register WASI clock_time_get type: (i32, i64, i32) -> i32
+        let ty_clock_time_get = self.register_type(
+            &mut types,
+            vec![ValType::I32, ValType::I64, ValType::I32],
+            vec![ValType::I32],
+        );
         // Pre-register user function types
         let mut user_func_type_indices = Vec::new();
         for func in &mir.functions {
@@ -436,6 +446,16 @@ impl EmitCtx {
             "wasi_snapshot_preview1",
             "fd_close",
             wasm_encoder::EntityType::Function(ty_i32_i32), // (i32)->i32
+        );
+        imports.import(
+            "wasi_snapshot_preview1",
+            "clock_time_get",
+            wasm_encoder::EntityType::Function(ty_clock_time_get), // (i32,i64,i32)->i32
+        );
+        imports.import(
+            "wasi_snapshot_preview1",
+            "random_get",
+            wasm_encoder::EntityType::Function(ty_i32_i32_i32), // (i32,i32)->i32
         );
         module.section(&imports);
 
@@ -2262,6 +2282,8 @@ impl EmitCtx {
                         | "assert_ne"
                         | "assert_eq_str"
                         | "assert_eq_i64"
+                        | "clock_now"
+                        | "random_i32"
                         | "sqrt"
                         | "abs"
                         | "min"
@@ -2381,7 +2403,8 @@ impl EmitCtx {
                         }
                     }
                     "pop" | "get" | "Vec_new_i32" | "Vec_new_String" | "len" | "get_unchecked"
-                    | "fs_read_file" | "fs_write_file" | "any_i32" | "find_i32" => {
+                    | "fs_read_file" | "fs_write_file" | "any_i32" | "find_i32" | "clock_now"
+                    | "random_i32" => {
                         // Value-returning Vec operations called as statement — emit and drop result
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
@@ -4728,6 +4751,35 @@ impl EmitCtx {
                         }
                         f.instruction(&Instruction::End); // end if/else
                     }
+                    "clock_now" => {
+                        // clock_time_get(clock_id=0 (realtime), precision=0, result_ptr=SCRATCH)
+                        f.instruction(&Instruction::I32Const(0)); // clock_id = REALTIME
+                        f.instruction(&Instruction::I64Const(0)); // precision
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32)); // result buffer
+                        f.instruction(&Instruction::Call(FN_CLOCK_TIME_GET));
+                        f.instruction(&Instruction::Drop); // drop errno
+                        // Load i64 result from SCRATCH
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I64Load(MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        }));
+                    }
+                    "random_i32" => {
+                        // random_get(buf_ptr=SCRATCH, buf_len=4)
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::Call(FN_RANDOM_GET));
+                        f.instruction(&Instruction::Drop); // drop errno
+                        // Load i32 result from SCRATCH
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        }));
+                    }
                     "parse_f64" => {
                         // parse_f64(s: String) -> f64
                         // Returns parsed f64, or 0.0 on error
@@ -6877,7 +6929,12 @@ impl EmitCtx {
             Operand::Place(Place::Local(id)) => self.i64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_i64_operand(l) || self.is_i64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_i64_operand(inner),
-            Operand::Call(name, _) => normalize_intrinsic_name(name.as_str()) == "parse_i64",
+            Operand::Call(name, _) => {
+                matches!(
+                    normalize_intrinsic_name(name.as_str()),
+                    "parse_i64" | "clock_now"
+                )
+            }
             _ => false,
         }
     }

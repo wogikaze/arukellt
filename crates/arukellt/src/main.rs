@@ -17,6 +17,41 @@ struct Cli {
     command: Commands,
 }
 
+#[derive(Clone, Debug, Default)]
+enum CompileTarget {
+    #[default]
+    Wasm32WasiP1,
+    WasmGc,
+    WasmGcWasiP2,
+    Native,
+}
+
+impl std::str::FromStr for CompileTarget {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "wasm32-wasi-p1" | "wasm32-wasi" => Ok(CompileTarget::Wasm32WasiP1),
+            "wasm-gc" => Ok(CompileTarget::WasmGc),
+            "wasm-gc-wasi-p2" => Ok(CompileTarget::WasmGcWasiP2),
+            "native" => Ok(CompileTarget::Native),
+            _ => Err(format!(
+                "unknown target `{s}`. Available: wasm32-wasi-p1 (default), wasm-gc, wasm-gc-wasi-p2, native"
+            )),
+        }
+    }
+}
+
+impl std::fmt::Display for CompileTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CompileTarget::Wasm32WasiP1 => write!(f, "wasm32-wasi-p1"),
+            CompileTarget::WasmGc => write!(f, "wasm-gc"),
+            CompileTarget::WasmGcWasiP2 => write!(f, "wasm-gc-wasi-p2"),
+            CompileTarget::Native => write!(f, "native"),
+        }
+    }
+}
+
 #[derive(Subcommand)]
 enum Commands {
     /// Compile an .ark file to Wasm
@@ -26,11 +61,17 @@ enum Commands {
         /// Output .wasm file (default: <input>.wasm)
         #[arg(short, long)]
         output: Option<PathBuf>,
+        /// Compile target
+        #[arg(long, default_value = "wasm32-wasi-p1")]
+        target: CompileTarget,
     },
     /// Compile and run an .ark file
     Run {
         /// Input .ark file
         file: PathBuf,
+        /// Compile target
+        #[arg(long, default_value = "wasm32-wasi-p1")]
+        target: CompileTarget,
     },
     /// Type-check an .ark file without compiling
     Check {
@@ -43,7 +84,15 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Compile { file, output } => {
+        Commands::Compile {
+            file,
+            output,
+            target,
+        } => {
+            if !matches!(target, CompileTarget::Wasm32WasiP1) {
+                eprintln!("error: target `{}` is not yet implemented", target);
+                process::exit(1);
+            }
             let output = output.unwrap_or_else(|| file.with_extension("wasm"));
             match compile_file(&file) {
                 Ok(wasm) => {
@@ -64,18 +113,24 @@ fn main() {
                 }
             }
         }
-        Commands::Run { file } => match compile_file(&file) {
-            Ok(wasm) => {
-                if let Err(e) = run_wasm(&wasm) {
-                    eprintln!("error: runtime: {}", e);
+        Commands::Run { file, target } => {
+            if !matches!(target, CompileTarget::Wasm32WasiP1) {
+                eprintln!("error: target `{}` is not yet implemented", target);
+                process::exit(1);
+            }
+            match compile_file(&file) {
+                Ok(wasm) => {
+                    if let Err(e) = run_wasm(&wasm) {
+                        eprintln!("error: runtime: {}", e);
+                        process::exit(1);
+                    }
+                }
+                Err(errors) => {
+                    eprint!("{}", errors);
                     process::exit(1);
                 }
             }
-            Err(errors) => {
-                eprint!("{}", errors);
-                process::exit(1);
-            }
-        },
+        }
         Commands::Check { file } => match check_file(&file) {
             Ok(()) => {
                 eprintln!("OK: {}", file.display());

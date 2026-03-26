@@ -1,0 +1,9 @@
+fn main() {
+    let t = clock_now()
+    let t_str = i64_to_string(t)
+    let not_zero = t_str != String_from("0")
+    println(bool_to_string(not_zero))
+    let r = random_i32()
+    let has_value = r != 0 || r == 0
+    println(bool_to_string(has_value))
+}

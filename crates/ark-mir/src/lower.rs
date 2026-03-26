@@ -881,6 +881,16 @@ impl LowerCtx {
         }
     }
 
+    fn is_i64_operand_mir(&self, op: &Operand) -> bool {
+        match op {
+            Operand::ConstI64(_) => true,
+            Operand::Call(name, _) => matches!(name.as_str(), "parse_i64" | "clock_now"),
+            Operand::BinOp(_, l, r) => self.is_i64_operand_mir(l) || self.is_i64_operand_mir(r),
+            Operand::Place(Place::Local(lid)) => self.i64_locals.contains(&lid.0),
+            _ => false,
+        }
+    }
+
     fn lower_block(&mut self, block: &ast::Block) -> Vec<MirStmt> {
         let mut stmts = Vec::new();
         for stmt in &block.stmts {
@@ -1008,6 +1018,10 @@ impl LowerCtx {
                 // Infer f64 from initializer when there's no explicit type annotation
                 if !self.f64_locals.contains(&local_id.0) && self.is_f64_operand_mir(&op) {
                     self.f64_locals.insert(local_id.0);
+                }
+                // Infer i64 from initializer when there's no explicit type annotation
+                if !self.i64_locals.contains(&local_id.0) && self.is_i64_operand_mir(&op) {
+                    self.i64_locals.insert(local_id.0);
                 }
                 // Infer String from initializer when there's no explicit type annotation
                 if !self.string_locals.contains(&local_id.0) && self.is_string_operand_mir(&op) {

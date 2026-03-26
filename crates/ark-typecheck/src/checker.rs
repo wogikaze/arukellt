@@ -1100,6 +1100,28 @@ impl TypeChecker {
             },
         );
 
+        // --- io/clock and io/random ---
+        self.fn_sigs.insert(
+            "clock_now".into(),
+            FnSig {
+                name: "clock_now".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I64,
+            },
+        );
+        self.fn_sigs.insert(
+            "random_i32".into(),
+            FnSig {
+                name: "random_i32".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I32,
+            },
+        );
+
         // --- Missing stdlib: clone ---
         self.fn_sigs.insert(
             "clone".into(),
@@ -1611,9 +1633,33 @@ impl TypeChecker {
                         ret: Box::new(Type::I32),
                     }
                 } else {
+                    // "Did you mean?" suggestion
+                    let mut suggestion = String::new();
+                    let candidates: Vec<&str> = self
+                        .fn_sigs
+                        .keys()
+                        .map(|s| s.as_str())
+                        .chain(env.bindings.keys().map(|s| s.as_str()))
+                        .chain(self.struct_defs.keys().map(|s| s.as_str()))
+                        .collect();
+                    let mut best_dist = usize::MAX;
+                    let mut best_name = "";
+                    for c in &candidates {
+                        if c.starts_with("__") {
+                            continue;
+                        }
+                        let d = edit_distance(name, c);
+                        if d < best_dist && d <= 2 {
+                            best_dist = d;
+                            best_name = c;
+                        }
+                    }
+                    if !best_name.is_empty() {
+                        suggestion = format!("; did you mean `{}`?", best_name);
+                    }
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0100)
-                            .with_label(*span, format!("unresolved name `{}`", name)),
+                            .with_label(*span, format!("unresolved name `{}`{}", name, suggestion)),
                     );
                     Type::Error
                 }
@@ -1736,17 +1782,26 @@ impl TypeChecker {
                                     // For struct types, check Display trait impl
                                     if let Some(arg_ty) = arg_types.first() {
                                         match arg_ty {
-                                            Type::I32 | Type::I64 | Type::F64 | Type::Bool
-                                            | Type::Char | Type::String => Type::String,
+                                            Type::I32
+                                            | Type::I64
+                                            | Type::F64
+                                            | Type::Bool
+                                            | Type::Char
+                                            | Type::String => Type::String,
                                             Type::Struct(tid) => {
                                                 // Look up struct name from type_id
-                                                let sname = self.struct_defs.iter()
+                                                let sname = self
+                                                    .struct_defs
+                                                    .iter()
                                                     .find(|(_, info)| info.type_id == *tid)
                                                     .map(|(name, _)| name.clone());
                                                 if let Some(ref name) = sname {
-                                                    let has_display = self.trait_impls
+                                                    let has_display = self
+                                                        .trait_impls
                                                         .get(name)
-                                                        .is_some_and(|traits| traits.contains(&"Display".to_string()));
+                                                        .is_some_and(|traits| {
+                                                            traits.contains(&"Display".to_string())
+                                                        });
                                                     if !has_display {
                                                         sink.emit(
                                                             Diagnostic::new(DiagnosticCode::E0200)
@@ -1972,10 +2027,14 @@ impl TypeChecker {
                             if let Some((enum_name, variant_name)) = sname.split_once("::") {
                                 covered_variants.push(sname.clone());
                                 if let Some(einfo) = self.enum_defs.get(enum_name) {
-                                    if let Some(vinfo) = einfo.variants.iter().find(|v| v.name == variant_name) {
+                                    if let Some(vinfo) =
+                                        einfo.variants.iter().find(|v| v.name == variant_name)
+                                    {
                                         for (fname, fpat) in sfields {
                                             let binding_name = match fpat {
-                                                Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
+                                                Some(ast::Pattern::Ident { name: n, .. }) => {
+                                                    n.clone()
+                                                }
                                                 None => fname.clone(),
                                                 _ => fname.clone(),
                                             };
@@ -2123,8 +2182,25 @@ impl TypeChecker {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0210)
                             .with_message("? operator requires function to return Result")
-                            .with_label(*span, "used here".to_string()),
+                            .with_label(*span, "used here".to_string())
+                            .with_note("add `-> Result[T, E]` to the function signature"),
                     );
+                }
+                // Check error type compatibility
+                if let (Type::Result(_, src_err), Some(Type::Result(_, dst_err))) =
+                    (&inner_ty, &self.current_fn_return_type)
+                {
+                    if !self.types_compatible(src_err, dst_err) {
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0210)
+                                .with_message(format!(
+                                    "? operator: error type `{}` is not compatible with function return error type `{}`",
+                                    src_err, dst_err
+                                ))
+                                .with_label(*span, "error type mismatch".to_string())
+                                .with_note("implement `From` trait to convert between error types"),
+                        );
+                    }
                 }
                 // The type of ? on Result<T, E> is T
                 match inner_ty {
@@ -2405,4 +2481,28 @@ impl Default for TypeChecker {
     fn default() -> Self {
         Self::new()
     }
+}
+
+/// Levenshtein edit distance between two strings.
+fn edit_distance(a: &str, b: &str) -> usize {
+    let a: Vec<char> = a.chars().collect();
+    let b: Vec<char> = b.chars().collect();
+    let n = a.len();
+    let m = b.len();
+    let mut dp = vec![vec![0usize; m + 1]; n + 1];
+    for i in 0..=n {
+        dp[i][0] = i;
+    }
+    for j in 0..=m {
+        dp[0][j] = j;
+    }
+    for i in 1..=n {
+        for j in 1..=m {
+            let cost = if a[i - 1] == b[j - 1] { 0 } else { 1 };
+            dp[i][j] = (dp[i - 1][j] + 1)
+                .min(dp[i][j - 1] + 1)
+                .min(dp[i - 1][j - 1] + cost);
+        }
+    }
+    dp[n][m]
 }

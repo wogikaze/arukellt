@@ -1,0 +1,21 @@
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+trait Display {
+    fn to_string(self) -> String
+}
+
+impl Display for Point {
+    fn to_string(self) -> String {
+        f"({self.x}, {self.y})"
+    }
+}
+
+fn main() {
+    let p = Point { x: 3, y: 4 }
+    println(to_string(p))
+    let msg = f"Point is {p}"
+    println(msg)
+}
