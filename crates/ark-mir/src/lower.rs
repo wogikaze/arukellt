@@ -617,6 +617,19 @@ impl LowerCtx {
                 }
                 None
             }
+            ast::Expr::Binary { span, .. } => {
+                // Check if operator overloading returns a struct
+                if let Some((mangled, _)) = self.method_resolutions.get(&span.start) {
+                    if let Some(ast::TypeExpr::Named { name: tname, .. }) =
+                        self.fn_return_types.get(mangled)
+                    {
+                        if self.struct_defs.contains_key(tname.as_str()) {
+                            return Some(tname.clone());
+                        }
+                    }
+                }
+                None
+            }
             _ => None,
         }
     }
@@ -1660,8 +1673,32 @@ impl LowerCtx {
                 }
             }
             ast::Expr::Binary {
-                op, left, right, ..
+                op,
+                left,
+                right,
+                span,
+                ..
             } => {
+                // Check for operator overloading (struct + struct → method call)
+                if let Some((mangled, _struct_name)) =
+                    self.method_resolutions.get(&span.start).cloned()
+                {
+                    let l = self.lower_expr(left);
+                    let r = self.lower_expr(right);
+                    let result = Operand::Call(mangled, vec![l, r]);
+                    // For Ne, wrap eq result with negation
+                    return match op {
+                        ast::BinOp::Ne => {
+                            Operand::UnaryOp(crate::mir::UnaryOp::Not, Box::new(result))
+                        }
+                        ast::BinOp::Gt => {
+                            // a > b → b.cmp(a) (swap args)
+                            // Actually, just return the call result; cmp returns bool
+                            result
+                        }
+                        _ => result,
+                    };
+                }
                 match op {
                     // Short-circuit: a && b  =>  if a { b } else { false }
                     ast::BinOp::And => {

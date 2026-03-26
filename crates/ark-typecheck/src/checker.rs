@@ -1,6 +1,6 @@
 //! Type checker implementation with bidirectional inference.
 
-use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink};
+use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
 use ark_parser::ast;
 use ark_resolve::ResolvedModule;
 
@@ -1454,11 +1454,15 @@ impl TypeChecker {
                 }
             }
             ast::Expr::Binary {
-                left, op, right, ..
+                left,
+                op,
+                right,
+                span,
+                ..
             } => {
                 let left_ty = self.synthesize_expr(left, env, sink);
                 let right_ty = self.synthesize_expr(right, env, sink);
-                self.check_binary_op(op, &left_ty, &right_ty, sink)
+                self.check_binary_op(op, &left_ty, &right_ty, *span, sink)
             }
             ast::Expr::Unary { op, operand, .. } => {
                 let operand_ty = self.synthesize_expr(operand, env, sink);
@@ -1899,15 +1903,50 @@ impl TypeChecker {
     }
 
     fn check_binary_op(
-        &self,
+        &mut self,
         op: &ast::BinOp,
         left: &Type,
         right: &Type,
+        span: Span,
         sink: &mut DiagnosticSink,
     ) -> Type {
         use ast::BinOp::*;
         if *left == Type::Error || *right == Type::Error {
             return Type::Error;
+        }
+        // Check for operator overloading on struct types
+        if let (Type::Struct(left_id), Type::Struct(right_id)) = (left, right) {
+            if left_id == right_id {
+                let struct_name = self
+                    .struct_defs
+                    .values()
+                    .find(|s| s.type_id == *left_id)
+                    .map(|s| s.name.clone());
+                if let Some(sname) = struct_name {
+                    let op_method = match op {
+                        Add => "add",
+                        Sub => "sub",
+                        Mul => "mul",
+                        Div => "div",
+                        Mod => "rem",
+                        Eq | Ne => "eq",
+                        Lt | Le | Gt | Ge => "cmp",
+                        _ => "",
+                    };
+                    if !op_method.is_empty() {
+                        let mangled = format!("{}__{}", sname, op_method);
+                        if let Some(sig) = self.fn_sigs.get(&mangled).cloned() {
+                            // Record method resolution for MIR lowering
+                            self.method_resolutions.insert(span.start, (mangled, sname));
+                            // For comparison ops, return Bool
+                            return match op {
+                                Eq | Ne | Lt | Le | Gt | Ge => Type::Bool,
+                                _ => sig.ret,
+                            };
+                        }
+                    }
+                }
+            }
         }
         // Promote i32 to wider numeric types for mixed operations
         let (left, right) = match (left, right) {
