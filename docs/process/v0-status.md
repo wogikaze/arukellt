@@ -1,8 +1,8 @@
 # v0 Implementation Status
 
-> **Last updated**: 2026-03-25
+> **Last updated**: 2026-06-03
 > **Branch**: `feature/arukellt-v1`
-> **Test results**: 82 unit tests pass, 142/147 fixture tests pass (5 skipped — module helper files)
+> **Test results**: 95 unit tests pass, 170/175 fixture tests pass (5 module helpers, not standalone)
 
 This document is the **single source of truth** for what is actually implemented vs. what is designed/planned in v0. Other docs in this repository describe the *design intent*; this document describes the *current reality*.
 

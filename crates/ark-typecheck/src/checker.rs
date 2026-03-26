@@ -153,6 +153,12 @@ impl TypeChecker {
 
     /// Register builtin types (Option, Result, Vec, String).
     pub fn register_builtins(&mut self) {
+        // Architecture note: FnSig entries exist for BOTH public names (e.g., "println")
+        // and their __intrinsic_* counterparts (e.g., "__intrinsic_println").
+        // Public names serve as a defensive fallback when prelude.ark's AST definitions
+        // are unavailable. The emitter normalizes __intrinsic_* → public via
+        // normalize_intrinsic_name() before dispatch. This dual registration is intentional.
+
         // Option<T> is an enum with None and Some(T)
         let opt_id = self.fresh_type_id();
         self.enum_defs.insert(
