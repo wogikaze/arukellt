@@ -446,6 +446,7 @@ pub fn intrinsic_prelude_module() -> ast::Module {
         Item::FnDef(FnDef {
             name: "println".into(),
             type_params: vec![],
+            type_param_bounds: vec![],
             params: vec![mk_param("s", named("String"))],
             return_type: None,
             body: Block {
@@ -465,6 +466,7 @@ pub fn intrinsic_prelude_module() -> ast::Module {
         Item::FnDef(FnDef {
             name: "print".into(),
             type_params: vec![],
+            type_param_bounds: vec![],
             params: vec![mk_param("s", named("String"))],
             return_type: None,
             body: Block {
@@ -484,6 +486,7 @@ pub fn intrinsic_prelude_module() -> ast::Module {
         Item::FnDef(FnDef {
             name: "eprintln".into(),
             type_params: vec![],
+            type_param_bounds: vec![],
             params: vec![mk_param("s", named("String"))],
             return_type: None,
             body: Block {
@@ -503,6 +506,7 @@ pub fn intrinsic_prelude_module() -> ast::Module {
         Item::FnDef(FnDef {
             name: "String_from".into(),
             type_params: vec![],
+            type_param_bounds: vec![],
             params: vec![mk_param("s", named("String"))],
             return_type: Some(named("String")),
             body: Block {
@@ -522,6 +526,7 @@ pub fn intrinsic_prelude_module() -> ast::Module {
         Item::FnDef(FnDef {
             name: "eq".into(),
             type_params: vec![],
+            type_param_bounds: vec![],
             params: vec![
                 mk_param("a", named("String")),
                 mk_param("b", named("String")),

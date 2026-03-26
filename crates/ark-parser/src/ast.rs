@@ -29,6 +29,7 @@ pub enum Item {
 pub struct FnDef {
     pub name: String,
     pub type_params: Vec<String>,
+    pub type_param_bounds: Vec<(String, Vec<String>)>,
     pub params: Vec<Param>,
     pub return_type: Option<TypeExpr>,
     pub body: Block,
@@ -46,6 +47,7 @@ pub struct Param {
 #[derive(Debug, Clone)]
 pub struct StructDef {
     pub name: String,
+    pub type_params: Vec<String>,
     pub fields: Vec<Field>,
     pub is_pub: bool,
     pub span: Span,
@@ -248,6 +250,7 @@ pub enum Expr {
     StructInit {
         name: String,
         fields: Vec<(String, Expr)>,
+        base: Option<Box<Expr>>,
         span: Span,
     },
     Closure {
@@ -354,6 +357,7 @@ pub enum UnaryOp {
 #[derive(Debug, Clone)]
 pub struct MatchArm {
     pub pattern: Pattern,
+    pub guard: Option<Box<Expr>>,
     pub body: Expr,
     pub span: Span,
 }
@@ -395,6 +399,15 @@ pub enum Pattern {
         fields: Vec<Pattern>,
         span: Span,
     },
+    Or {
+        patterns: Vec<Pattern>,
+        span: Span,
+    },
+    Struct {
+        name: String,
+        fields: Vec<(String, Option<Pattern>)>,
+        span: Span,
+    },
 }
 
 impl Pattern {
@@ -408,7 +421,9 @@ impl Pattern {
             | Pattern::CharLit { span, .. }
             | Pattern::BoolLit { span, .. }
             | Pattern::Tuple { span, .. }
-            | Pattern::Enum { span, .. } => *span,
+            | Pattern::Enum { span, .. }
+            | Pattern::Or { span, .. }
+            | Pattern::Struct { span, .. } => *span,
         }
     }
 }

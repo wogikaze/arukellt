@@ -1326,26 +1326,47 @@ impl LowerCtx {
         let arm = &arms[idx];
         match &arm.pattern {
             ast::Pattern::Wildcard(_) => {
-                // Default arm — just emit the body
-                let mut body = Vec::new();
-                self.lower_expr_stmt(&arm.body, &mut body);
-                if body.len() == 1 {
-                    Some(body.remove(0))
-                } else {
-                    // Wrap in an always-true if
+                // Default arm — check guard if any, otherwise just emit
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    let mut then_body = Vec::new();
+                    self.lower_expr_stmt(&arm.body, &mut then_body);
+                    let else_body = if let Some(next) =
+                        self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                    {
+                        vec![next]
+                    } else {
+                        vec![]
+                    };
                     Some(MirStmt::IfStmt {
-                        cond: Operand::ConstBool(true),
-                        then_body: body,
-                        else_body: vec![],
+                        cond: guard_cond,
+                        then_body,
+                        else_body,
                     })
+                } else {
+                    let mut body = Vec::new();
+                    self.lower_expr_stmt(&arm.body, &mut body);
+                    if body.len() == 1 {
+                        Some(body.remove(0))
+                    } else {
+                        Some(MirStmt::IfStmt {
+                            cond: Operand::ConstBool(true),
+                            then_body: body,
+                            else_body: vec![],
+                        })
+                    }
                 }
             }
             ast::Pattern::IntLit { value, .. } => {
-                let cond = Operand::BinOp(
+                let mut cond = Operand::BinOp(
                     BinOp::Eq,
                     Box::new(scrut.clone()),
                     Box::new(Operand::ConstI32(*value as i32)),
                 );
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    cond = Operand::BinOp(BinOp::And, Box::new(cond), Box::new(guard_cond));
+                }
                 let mut then_body = Vec::new();
                 self.lower_expr_stmt(&arm.body, &mut then_body);
                 let else_body =
@@ -1361,11 +1382,15 @@ impl LowerCtx {
                 })
             }
             ast::Pattern::BoolLit { value, .. } => {
-                let cond = Operand::BinOp(
+                let mut cond = Operand::BinOp(
                     BinOp::Eq,
                     Box::new(scrut.clone()),
                     Box::new(Operand::ConstBool(*value)),
                 );
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    cond = Operand::BinOp(BinOp::And, Box::new(cond), Box::new(guard_cond));
+                }
                 let mut then_body = Vec::new();
                 self.lower_expr_stmt(&arm.body, &mut then_body);
                 let else_body =
@@ -1381,12 +1406,15 @@ impl LowerCtx {
                 })
             }
             ast::Pattern::StringLit { value, .. } => {
-                // String match — for now, treat as literal comparison
-                let cond = Operand::BinOp(
+                let mut cond = Operand::BinOp(
                     BinOp::Eq,
                     Box::new(scrut.clone()),
                     Box::new(Operand::ConstString(value.clone())),
                 );
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    cond = Operand::BinOp(BinOp::And, Box::new(cond), Box::new(guard_cond));
+                }
                 let mut then_body = Vec::new();
                 self.lower_expr_stmt(&arm.body, &mut then_body);
                 let else_body =
@@ -1404,16 +1432,51 @@ impl LowerCtx {
             ast::Pattern::Ident { name, .. } => {
                 // Binding pattern — bind the scrutinee to the name
                 let local_id = self.declare_local(name);
-                let mut then_body = vec![MirStmt::Assign(
-                    Place::Local(local_id),
-                    Rvalue::Use(scrut.clone()),
-                )];
-                self.lower_expr_stmt(&arm.body, &mut then_body);
-                Some(MirStmt::IfStmt {
-                    cond: Operand::ConstBool(true),
-                    then_body,
-                    else_body: vec![],
-                })
+                if let Some(guard) = &arm.guard {
+                    // Bind first, then check guard
+                    let mut outer_body = vec![MirStmt::Assign(
+                        Place::Local(local_id),
+                        Rvalue::Use(scrut.clone()),
+                    )];
+                    let guard_cond = self.lower_expr(guard);
+                    let mut then_body = Vec::new();
+                    self.lower_expr_stmt(&arm.body, &mut then_body);
+                    let else_body = if let Some(next) =
+                        self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                    {
+                        vec![next]
+                    } else {
+                        vec![]
+                    };
+                    outer_body.push(MirStmt::IfStmt {
+                        cond: guard_cond,
+                        then_body,
+                        else_body,
+                    });
+                    Some(MirStmt::IfStmt {
+                        cond: Operand::ConstBool(true),
+                        then_body: outer_body,
+                        else_body: vec![],
+                    })
+                } else {
+                    let mut then_body = vec![MirStmt::Assign(
+                        Place::Local(local_id),
+                        Rvalue::Use(scrut.clone()),
+                    )];
+                    self.lower_expr_stmt(&arm.body, &mut then_body);
+                    let else_body = if let Some(next) =
+                        self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                    {
+                        vec![next]
+                    } else {
+                        vec![]
+                    };
+                    Some(MirStmt::IfStmt {
+                        cond: Operand::ConstBool(true),
+                        then_body,
+                        else_body,
+                    })
+                }
             }
             ast::Pattern::Enum {
                 path,
@@ -1473,27 +1536,166 @@ impl LowerCtx {
                             ));
                         }
                     }
-                    self.lower_expr_stmt(&arm.body, &mut then_body);
-                    let else_body = if let Some(next) =
-                        self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
-                    {
+                    if let Some(guard) = &arm.guard {
+                        // Guard references pattern bindings, which are in then_body.
+                        // Wrap: if(tag_match) { bind; if(guard) { body } else { next } }
+                        let guard_cond = self.lower_expr(guard);
+                        let mut inner_then = Vec::new();
+                        self.lower_expr_stmt(&arm.body, &mut inner_then);
+                        let else_body = if let Some(next) =
+                            self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                        {
+                            vec![next]
+                        } else {
+                            vec![]
+                        };
+                        then_body.push(MirStmt::IfStmt {
+                            cond: guard_cond,
+                            then_body: inner_then,
+                            else_body: else_body.clone(),
+                        });
+                        Some(MirStmt::IfStmt {
+                            cond,
+                            then_body,
+                            else_body,
+                        })
+                    } else {
+                        self.lower_expr_stmt(&arm.body, &mut then_body);
+                        let else_body = if let Some(next) =
+                            self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                        {
+                            vec![next]
+                        } else {
+                            vec![]
+                        };
+                        Some(MirStmt::IfStmt {
+                            cond,
+                            then_body,
+                            else_body,
+                        })
+                    }
+                } else {
+                    self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                }
+            }
+            ast::Pattern::Or { patterns, .. } => {
+                // Or-pattern: try each sub-pattern, share the body
+                // Build: if pat1_cond || pat2_cond || ... { body } else { next }
+                let mut combined_cond: Option<Operand> = None;
+                for pat in patterns {
+                    let sub_cond = self.pattern_to_condition(scrut, pat);
+                    combined_cond = Some(match combined_cond {
+                        Some(prev) => Operand::BinOp(BinOp::Or, Box::new(prev), Box::new(sub_cond)),
+                        None => sub_cond,
+                    });
+                }
+                let mut cond = combined_cond.unwrap_or(Operand::ConstBool(false));
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    cond = Operand::BinOp(BinOp::And, Box::new(cond), Box::new(guard_cond));
+                }
+                let mut then_body = Vec::new();
+                self.lower_expr_stmt(&arm.body, &mut then_body);
+                let else_body =
+                    if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
                         vec![next]
                     } else {
                         vec![]
                     };
-                    Some(MirStmt::IfStmt {
-                        cond,
-                        then_body,
-                        else_body,
-                    })
-                } else {
-                    self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
+                Some(MirStmt::IfStmt {
+                    cond,
+                    then_body,
+                    else_body,
+                })
+            }
+            ast::Pattern::Struct { name, fields, .. } => {
+                // Struct pattern: bind fields from struct
+                let mut then_body = Vec::new();
+                for (fname, fpat) in fields {
+                    let binding_name = match fpat {
+                        Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
+                        None => fname.clone(),
+                        _ => fname.clone(),
+                    };
+                    let local_id = self.declare_local(&binding_name);
+                    // Detect f64/String fields from struct_defs
+                    if let Some(sdef) = self.struct_defs.get(name.as_str()) {
+                        if let Some((_, ftype)) = sdef.iter().find(|(n, _)| n == fname) {
+                            if ftype == "f64" {
+                                self.f64_locals.insert(local_id.0);
+                            }
+                            if ftype == "String" {
+                                self.string_locals.insert(local_id.0);
+                            }
+                        }
+                    }
+                    let field_access = Operand::FieldAccess {
+                        object: Box::new(scrut.clone()),
+                        struct_name: name.clone(),
+                        field: fname.clone(),
+                    };
+                    then_body.push(MirStmt::Assign(
+                        Place::Local(local_id),
+                        Rvalue::Use(field_access),
+                    ));
                 }
+                let cond = if let Some(guard) = &arm.guard {
+                    self.lower_expr(guard)
+                } else {
+                    Operand::ConstBool(true)
+                };
+                self.lower_expr_stmt(&arm.body, &mut then_body);
+                let else_body =
+                    if let Some(next) = self.build_match_if_chain(scrut, arms, idx + 1, as_stmt) {
+                        vec![next]
+                    } else {
+                        vec![]
+                    };
+                Some(MirStmt::IfStmt {
+                    cond,
+                    then_body,
+                    else_body,
+                })
             }
             _ => {
                 // Skip unsupported patterns, try next arm
                 self.build_match_if_chain(scrut, arms, idx + 1, as_stmt)
             }
+        }
+    }
+
+    /// Convert a single pattern to a condition operand (for or-patterns).
+    fn pattern_to_condition(&self, scrut: &Operand, pattern: &ast::Pattern) -> Operand {
+        match pattern {
+            ast::Pattern::Wildcard(_) | ast::Pattern::Ident { .. } => Operand::ConstBool(true),
+            ast::Pattern::IntLit { value, .. } => Operand::BinOp(
+                BinOp::Eq,
+                Box::new(scrut.clone()),
+                Box::new(Operand::ConstI32(*value as i32)),
+            ),
+            ast::Pattern::BoolLit { value, .. } => Operand::BinOp(
+                BinOp::Eq,
+                Box::new(scrut.clone()),
+                Box::new(Operand::ConstBool(*value)),
+            ),
+            ast::Pattern::StringLit { value, .. } => Operand::BinOp(
+                BinOp::Eq,
+                Box::new(scrut.clone()),
+                Box::new(Operand::ConstString(value.clone())),
+            ),
+            ast::Pattern::Enum { path, variant, .. } => {
+                let key = format!("{}::{}", path, variant);
+                if let Some(&tag) = self.enum_tags.get(&key) {
+                    Operand::BinOp(
+                        BinOp::Eq,
+                        Box::new(Operand::EnumTag(Box::new(scrut.clone()))),
+                        Box::new(Operand::ConstI32(tag)),
+                    )
+                } else {
+                    Operand::ConstBool(false)
+                }
+            }
+            _ => Operand::ConstBool(true),
         }
     }
 
@@ -1510,31 +1712,65 @@ impl LowerCtx {
         let arm = &arms[idx];
         match &arm.pattern {
             ast::Pattern::Wildcard(_) => {
-                // Default arm — just return the body value
-                self.lower_expr(&arm.body)
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    let then_result = self.lower_expr(&arm.body);
+                    let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                    Operand::IfExpr {
+                        cond: Box::new(guard_cond),
+                        then_body: vec![],
+                        then_result: Some(Box::new(then_result)),
+                        else_body: vec![],
+                        else_result: Some(Box::new(else_result)),
+                    }
+                } else {
+                    self.lower_expr(&arm.body)
+                }
             }
             ast::Pattern::Ident { name, .. } => {
-                // Binding pattern — bind scrutinee to name, return body
                 let local_id = self.declare_local(name);
-                // For value-returning match, we wrap in IfExpr with setup stmts
-                let body_val = self.lower_expr(&arm.body);
-                Operand::IfExpr {
-                    cond: Box::new(Operand::ConstBool(true)),
-                    then_body: vec![MirStmt::Assign(
-                        Place::Local(local_id),
-                        Rvalue::Use(scrut.clone()),
-                    )],
-                    then_result: Some(Box::new(body_val)),
-                    else_body: vec![],
-                    else_result: Some(Box::new(Operand::Unit)),
+                let assign_stmt =
+                    MirStmt::Assign(Place::Local(local_id), Rvalue::Use(scrut.clone()));
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    let body_val = self.lower_expr(&arm.body);
+                    let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                    // Outer: assign binding, then inner guard check
+                    Operand::IfExpr {
+                        cond: Box::new(Operand::ConstBool(true)),
+                        then_body: vec![assign_stmt],
+                        then_result: Some(Box::new(Operand::IfExpr {
+                            cond: Box::new(guard_cond),
+                            then_body: vec![],
+                            then_result: Some(Box::new(body_val)),
+                            else_body: vec![],
+                            else_result: Some(Box::new(else_result)),
+                        })),
+                        else_body: vec![],
+                        else_result: Some(Box::new(Operand::Unit)),
+                    }
+                } else {
+                    let body_val = self.lower_expr(&arm.body);
+                    let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                    Operand::IfExpr {
+                        cond: Box::new(Operand::ConstBool(true)),
+                        then_body: vec![assign_stmt],
+                        then_result: Some(Box::new(body_val)),
+                        else_body: vec![],
+                        else_result: Some(Box::new(else_result)),
+                    }
                 }
             }
             ast::Pattern::IntLit { value, .. } => {
-                let cond = Operand::BinOp(
+                let mut cond = Operand::BinOp(
                     BinOp::Eq,
                     Box::new(scrut.clone()),
                     Box::new(Operand::ConstI32(*value as i32)),
                 );
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    cond = Operand::BinOp(BinOp::And, Box::new(cond), Box::new(guard_cond));
+                }
                 let then_result = self.lower_expr(&arm.body);
                 let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
                 Operand::IfExpr {
@@ -1546,11 +1782,15 @@ impl LowerCtx {
                 }
             }
             ast::Pattern::BoolLit { value, .. } => {
-                let cond = Operand::BinOp(
+                let mut cond = Operand::BinOp(
                     BinOp::Eq,
                     Box::new(scrut.clone()),
                     Box::new(Operand::ConstBool(*value)),
                 );
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    cond = Operand::BinOp(BinOp::And, Box::new(cond), Box::new(guard_cond));
+                }
                 let then_result = self.lower_expr(&arm.body);
                 let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
                 Operand::IfExpr {
@@ -1574,24 +1814,20 @@ impl LowerCtx {
                         Box::new(Operand::EnumTag(Box::new(scrut.clone()))),
                         Box::new(Operand::ConstI32(tag)),
                     );
-                    // Determine if scrutinee has known payload string types
                     let payload_strings = if let Operand::Place(Place::Local(lid)) = scrut {
                         self.enum_local_payload_strings.get(&lid.0).cloned()
                     } else {
                         None
                     };
-                    // Setup: bind payload fields
                     let mut setup_stmts = Vec::new();
                     for (i, field_pat) in fields.iter().enumerate() {
                         if let ast::Pattern::Ident { name: binding, .. } = field_pat {
                             let local_id = self.declare_local(binding);
-                            // Check if this payload field is a string
                             if let Some(ref ps) = payload_strings {
                                 if ps.contains(&(variant.clone(), i as u32)) {
                                     self.string_locals.insert(local_id.0);
                                 }
                             }
-                            // Check if this payload field is f64 or String
                             if let Some(variants) = self.enum_defs.get(path.as_str()) {
                                 if let Some((_, types)) =
                                     variants.iter().find(|(vn, _)| vn == variant)
@@ -1618,17 +1854,109 @@ impl LowerCtx {
                             ));
                         }
                     }
-                    let then_result = self.lower_expr(&arm.body);
-                    let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
-                    Operand::IfExpr {
-                        cond: Box::new(cond),
-                        then_body: setup_stmts,
-                        then_result: Some(Box::new(then_result)),
-                        else_body: vec![],
-                        else_result: Some(Box::new(else_result)),
+                    if let Some(guard) = &arm.guard {
+                        let guard_cond = self.lower_expr(guard);
+                        let then_result = self.lower_expr(&arm.body);
+                        let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                        // Outer: tag check → bind fields → inner guard check
+                        Operand::IfExpr {
+                            cond: Box::new(cond),
+                            then_body: setup_stmts,
+                            then_result: Some(Box::new(Operand::IfExpr {
+                                cond: Box::new(guard_cond),
+                                then_body: vec![],
+                                then_result: Some(Box::new(then_result)),
+                                else_body: vec![],
+                                else_result: Some(Box::new(else_result)),
+                            })),
+                            else_body: vec![],
+                            else_result: Some(Box::new(self.build_match_if_expr(
+                                scrut,
+                                arms,
+                                idx + 1,
+                            ))),
+                        }
+                    } else {
+                        let then_result = self.lower_expr(&arm.body);
+                        let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                        Operand::IfExpr {
+                            cond: Box::new(cond),
+                            then_body: setup_stmts,
+                            then_result: Some(Box::new(then_result)),
+                            else_body: vec![],
+                            else_result: Some(Box::new(else_result)),
+                        }
                     }
                 } else {
                     self.build_match_if_expr(scrut, arms, idx + 1)
+                }
+            }
+            ast::Pattern::Or { patterns, .. } => {
+                let mut combined_cond: Option<Operand> = None;
+                for pat in patterns {
+                    let sub_cond = self.pattern_to_condition(scrut, pat);
+                    combined_cond = Some(match combined_cond {
+                        Some(prev) => Operand::BinOp(BinOp::Or, Box::new(prev), Box::new(sub_cond)),
+                        None => sub_cond,
+                    });
+                }
+                let mut cond = combined_cond.unwrap_or(Operand::ConstBool(false));
+                if let Some(guard) = &arm.guard {
+                    let guard_cond = self.lower_expr(guard);
+                    cond = Operand::BinOp(BinOp::And, Box::new(cond), Box::new(guard_cond));
+                }
+                let then_result = self.lower_expr(&arm.body);
+                let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                Operand::IfExpr {
+                    cond: Box::new(cond),
+                    then_body: vec![],
+                    then_result: Some(Box::new(then_result)),
+                    else_body: vec![],
+                    else_result: Some(Box::new(else_result)),
+                }
+            }
+            ast::Pattern::Struct { name, fields, .. } => {
+                let mut setup_stmts = Vec::new();
+                for (fname, fpat) in fields {
+                    let binding_name = match fpat {
+                        Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
+                        None => fname.clone(),
+                        _ => fname.clone(),
+                    };
+                    let local_id = self.declare_local(&binding_name);
+                    if let Some(sdef) = self.struct_defs.get(name.as_str()) {
+                        if let Some((_, ftype)) = sdef.iter().find(|(n, _)| n == fname) {
+                            if ftype == "f64" {
+                                self.f64_locals.insert(local_id.0);
+                            }
+                            if ftype == "String" {
+                                self.string_locals.insert(local_id.0);
+                            }
+                        }
+                    }
+                    let field_access = Operand::FieldAccess {
+                        object: Box::new(scrut.clone()),
+                        struct_name: name.clone(),
+                        field: fname.clone(),
+                    };
+                    setup_stmts.push(MirStmt::Assign(
+                        Place::Local(local_id),
+                        Rvalue::Use(field_access),
+                    ));
+                }
+                let cond = if let Some(guard) = &arm.guard {
+                    self.lower_expr(guard)
+                } else {
+                    Operand::ConstBool(true)
+                };
+                let then_result = self.lower_expr(&arm.body);
+                let else_result = self.build_match_if_expr(scrut, arms, idx + 1);
+                Operand::IfExpr {
+                    cond: Box::new(cond),
+                    then_body: setup_stmts,
+                    then_result: Some(Box::new(then_result)),
+                    else_body: vec![],
+                    else_result: Some(Box::new(else_result)),
                 }
             }
             _ => {
@@ -1980,11 +2308,33 @@ impl LowerCtx {
                     fields: lowered_fields,
                 }
             }
-            ast::Expr::StructInit { name, fields, .. } => {
-                let lowered_fields: Vec<(String, Operand)> = fields
+            ast::Expr::StructInit {
+                name, fields, base, ..
+            } => {
+                let mut lowered_fields: Vec<(String, Operand)> = fields
                     .iter()
                     .map(|(fname, fexpr)| (fname.clone(), self.lower_expr(fexpr)))
                     .collect();
+                // Handle struct field update: fill missing fields from base
+                if let Some(base_expr) = base {
+                    let base_op = self.lower_expr(base_expr);
+                    if let Some(sdef) = self.struct_defs.get(name.as_str()).cloned() {
+                        let explicit: std::collections::HashSet<String> =
+                            lowered_fields.iter().map(|(n, _)| n.clone()).collect();
+                        for (fname, _) in &sdef {
+                            if !explicit.contains(fname) {
+                                lowered_fields.push((
+                                    fname.clone(),
+                                    Operand::FieldAccess {
+                                        object: Box::new(base_op.clone()),
+                                        struct_name: name.clone(),
+                                        field: fname.clone(),
+                                    },
+                                ));
+                            }
+                        }
+                    }
+                }
                 Operand::StructInit {
                     name: name.clone(),
                     fields: lowered_fields,

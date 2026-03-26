@@ -194,7 +194,7 @@ This document is the **single source of truth** for what is actually implemented
 | E0210 | `?` outside Result fn | **runnable** |
 | E0300 | `trait` rejected | **removed** — traits are now implemented (v1) |
 | E0301 | Method syntax rejected | **removed** — method call syntax is now implemented (v1) |
-| E0302 | Nested generics rejected | **runnable** |
+| E0302 | Nested generics rejected | **removed** — nested generics are now supported (v1 M8) |
 | E0303 | `for` loop rejected | **removed** — `for` loops are now implemented |
 | E0304 | `impl`/operator overload rejected | **removed** — impl blocks and operator overloading are now implemented (v1) |
 | W0001 | Mutable sharing warning | **runnable** |
@@ -222,6 +222,8 @@ This document is the **single source of truth** for what is actually implemented
 | **M4: Trait/Impl/Method System** | `trait Name { fn method(self) -> T }`, `impl Trait for Type { ... }`, `impl Type { ... }`, `obj.method(args)` desugaring — all static dispatch via name mangling | ✅ Complete |
 | **M5: Inherent Methods** | `impl Type { fn method(self) -> T { ... } }` without a trait | ✅ Complete (part of M4) |
 | **M6: Operator Overloading** | `a + b` on struct types calls `Type__add(a, b)` via impl methods (add/sub/mul/div/eq/cmp) | ✅ Complete |
+| **M7: Syntax Extensions** | Match guards, or-patterns, struct patterns, struct field update (`..base`) | ✅ Complete |
+| **M8: Generics Expansion** | Generic structs, nested generics (`Vec<Vec<i32>>`), trait bounds (`T: Display`) | ✅ Complete |
 
 ### v1 Bug Fixes
 
@@ -234,3 +236,12 @@ All method calls and operator overloads use **static dispatch** via name manglin
 - `obj.method(args)` → `Type__method(obj, args)`
 - `a + b` (struct) → `Type__add(a, b)`
 - No vtable or dynamic dispatch
+
+## v1 Features (Implemented)
+
+- **M3**: Bridge APIs (`any_i32`, `find_i32`) ✅
+- **M4**: Trait system (`trait`/`impl`/static dispatch) ✅
+- **M5**: Method syntax (inherent + trait methods) ✅
+- **M6**: Operator overloading (via `impl` methods) ✅
+- **M7**: Syntax extensions (match guard, or-pattern, struct pattern, struct field update) ✅
+- **M8**: Generics expansion (generic structs, nested generics, trait bounds) ✅

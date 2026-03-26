@@ -9,6 +9,7 @@ pub struct Parser<'a> {
     tokens: &'a [Token],
     pos: usize,
     sink: &'a mut DiagnosticSink,
+    pending_gt: bool,
 }
 
 impl<'a> Parser<'a> {
@@ -17,6 +18,7 @@ impl<'a> Parser<'a> {
             tokens,
             pos: 0,
             sink,
+            pending_gt: false,
         };
         p.skip_newlines();
         p
@@ -205,11 +207,11 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::Fn);
         let name = self.expect_ident();
 
-        // Generic params
-        let type_params = if *self.peek() == TokenKind::Lt {
-            self.parse_type_params()
+        // Generic params with optional bounds
+        let (type_params, type_param_bounds) = if *self.peek() == TokenKind::Lt {
+            self.parse_type_params_with_bounds()
         } else {
-            Vec::new()
+            (Vec::new(), Vec::new())
         };
 
         // Params
@@ -229,6 +231,7 @@ impl<'a> Parser<'a> {
         FnDef {
             name,
             type_params,
+            type_param_bounds,
             params,
             return_type,
             body,
@@ -238,19 +241,35 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_type_params(&mut self) -> Vec<String> {
+        let (names, _) = self.parse_type_params_with_bounds();
+        names
+    }
+
+    /// Parse type params with optional bounds: `<T: Display, U>` → (["T","U"], [("T",["Display"])])
+    fn parse_type_params_with_bounds(&mut self) -> (Vec<String>, Vec<(String, Vec<String>)>) {
         self.expect(&TokenKind::Lt);
-        let mut params = Vec::new();
+        let mut names = Vec::new();
+        let mut bounds = Vec::new();
         loop {
             if *self.peek() == TokenKind::Gt {
                 break;
             }
-            params.push(self.expect_ident());
+            let name = self.expect_ident();
+            if self.eat(&TokenKind::Colon) {
+                let mut trait_bounds = Vec::new();
+                trait_bounds.push(self.expect_ident());
+                while self.eat(&TokenKind::Plus) {
+                    trait_bounds.push(self.expect_ident());
+                }
+                bounds.push((name.clone(), trait_bounds));
+            }
+            names.push(name);
             if !self.eat(&TokenKind::Comma) {
                 break;
             }
         }
         self.expect(&TokenKind::Gt);
-        params
+        (names, bounds)
     }
 
     fn parse_params(&mut self) -> Vec<Param> {
@@ -295,11 +314,17 @@ impl<'a> Parser<'a> {
         let start = self.span();
         self.expect(&TokenKind::Struct);
         let name = self.expect_ident();
+        let type_params = if *self.peek() == TokenKind::Lt {
+            self.parse_type_params()
+        } else {
+            Vec::new()
+        };
         self.expect(&TokenKind::LBrace);
         let fields = self.parse_fields();
         let end = self.expect(&TokenKind::RBrace);
         StructDef {
             name,
+            type_params,
             fields,
             is_pub,
             span: start.merge(end),
@@ -465,6 +490,7 @@ impl<'a> Parser<'a> {
                 methods.push(FnDef {
                     name: m_name,
                     type_params: vec![],
+                    type_param_bounds: vec![],
                     params,
                     return_type,
                     body,
@@ -637,22 +663,22 @@ impl<'a> Parser<'a> {
                             break;
                         }
                     }
-                    // Detect nested generics: Vec<Vec<i32>> produces Shr (`>>`) token
+                    // Handle nested generics: Vec<Vec<i32>> produces Shr (`>>`) token.
+                    // Split Shr into two `>` by consuming it and leaving a pending `>`.
                     if *self.peek() == TokenKind::Shr {
-                        let sp = self.span();
-                        self.sink.emit(
-                            Diagnostic::new(DiagnosticCode::E0203)
-                                .with_message("nested generic types are not available in v0")
-                                .with_label(sp, "nested generic type"),
-                        );
                         self.advance();
+                        self.pending_gt = true;
                         return TypeExpr::Generic {
                             name,
                             args,
                             span: start.merge(self.span()),
                         };
                     }
-                    self.expect(&TokenKind::Gt);
+                    if self.pending_gt {
+                        self.pending_gt = false;
+                    } else {
+                        self.expect(&TokenKind::Gt);
+                    }
                     return TypeExpr::Generic {
                         name,
                         args,
@@ -1418,7 +1444,15 @@ impl<'a> Parser<'a> {
     fn parse_struct_init(&mut self, name: String, start: Span) -> Expr {
         self.expect(&TokenKind::LBrace);
         let mut fields = Vec::new();
+        let mut base = None;
         while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
+            // Check for `..expr` (struct field update / base expression)
+            if *self.peek() == TokenKind::DotDot {
+                self.advance();
+                base = Some(Box::new(self.parse_expr()));
+                self.eat(&TokenKind::Comma);
+                break;
+            }
             let fname = self.expect_ident();
             self.expect(&TokenKind::Colon);
             let fval = self.parse_expr();
@@ -1431,6 +1465,7 @@ impl<'a> Parser<'a> {
         Expr::StructInit {
             name,
             fields,
+            base,
             span: start.merge(end),
         }
     }
@@ -1473,12 +1508,20 @@ impl<'a> Parser<'a> {
         let mut arms = Vec::new();
         while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
             let arm_start = self.span();
-            let pattern = self.parse_pattern();
+            let pattern = self.parse_pattern_with_or();
+            // Parse optional match guard: `if condition`
+            let guard = if *self.peek() == TokenKind::If {
+                self.advance();
+                Some(Box::new(self.parse_expr()))
+            } else {
+                None
+            };
             self.expect(&TokenKind::FatArrow);
             let body = self.parse_expr();
             let arm_span = arm_start.merge(body.span());
             arms.push(MatchArm {
                 pattern,
+                guard,
                 body,
                 span: arm_span,
             });
@@ -1489,6 +1532,23 @@ impl<'a> Parser<'a> {
             scrutinee: Box::new(scrutinee),
             arms,
             span: start.merge(end),
+        }
+    }
+
+    /// Parse a pattern with optional or-alternatives: `A | B | C`
+    fn parse_pattern_with_or(&mut self) -> Pattern {
+        let start = self.span();
+        let first = self.parse_pattern();
+        if *self.peek() != TokenKind::Pipe {
+            return first;
+        }
+        let mut patterns = vec![first];
+        while self.eat(&TokenKind::Pipe) {
+            patterns.push(self.parse_pattern());
+        }
+        Pattern::Or {
+            span: start.merge(self.span()),
+            patterns,
         }
     }
 
@@ -1548,6 +1608,32 @@ impl<'a> Parser<'a> {
                     return Pattern::Enum {
                         path: enum_name.to_string(),
                         variant: name,
+                        fields,
+                        span: start.merge(self.span()),
+                    };
+                }
+                // Check for struct pattern: Point { x, y } or Point { x: pat, y: pat }
+                if *self.peek() == TokenKind::LBrace
+                    && name.starts_with(|c: char| c.is_uppercase())
+                    && !matches!(name.as_str(), "Some" | "None" | "Ok" | "Err")
+                {
+                    self.advance(); // consume `{`
+                    let mut fields = Vec::new();
+                    while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
+                        let fname = self.expect_ident();
+                        let fpat = if self.eat(&TokenKind::Colon) {
+                            Some(self.parse_pattern())
+                        } else {
+                            None // shorthand: `x` means bind x
+                        };
+                        fields.push((fname, fpat));
+                        if !self.eat(&TokenKind::Comma) {
+                            break;
+                        }
+                    }
+                    self.expect(&TokenKind::RBrace);
+                    return Pattern::Struct {
+                        name,
                         fields,
                         span: start.merge(self.span()),
                     };

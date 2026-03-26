@@ -1,0 +1,23 @@
+trait Printable {
+    fn show(self) -> String
+}
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+impl Printable for Point {
+    fn show(self) -> String {
+        concat("Point(", concat(i32_to_string(self.x), concat(", ", concat(i32_to_string(self.y), ")"))))
+    }
+}
+
+fn print_it<T: Printable>(item: T) {
+    println("printing...")
+}
+
+fn main() {
+    let p = Point { x: 1, y: 2 }
+    print_it(p)
+}

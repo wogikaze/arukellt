@@ -1,0 +1,10 @@
+struct Pair<T> {
+    first: T,
+    second: T,
+}
+
+fn main() {
+    let p: Pair<i32> = Pair { first: 10, second: 20 }
+    println(i32_to_string(p.first))
+    println(i32_to_string(p.second))
+}

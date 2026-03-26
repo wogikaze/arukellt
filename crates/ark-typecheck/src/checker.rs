@@ -72,6 +72,7 @@ impl Default for TypeEnv {
 #[derive(Debug, Clone)]
 pub struct StructInfo {
     pub name: String,
+    pub type_params: Vec<String>,
     pub fields: Vec<(String, Type)>,
     pub type_id: TypeId,
 }
@@ -97,6 +98,7 @@ pub struct VariantInfo {
 pub struct FnSig {
     pub name: String,
     pub type_params: Vec<String>,
+    pub type_param_bounds: Vec<(String, Vec<String>)>,
     pub params: Vec<Type>,
     pub ret: Type,
 }
@@ -113,6 +115,8 @@ pub struct TypeChecker {
     pub trait_defs: HashMap<String, Vec<(String, Vec<Type>, Type)>>,
     /// Maps call expression span start to (mangled_fn_name, self_type_name)
     pub method_resolutions: HashMap<u32, (String, String)>,
+    /// Maps type_name -> set of implemented trait names
+    pub trait_impls: HashMap<String, Vec<String>>,
     next_type_id: u32,
     next_type_var: u32,
     current_fn_return_type: Option<Type>,
@@ -127,6 +131,7 @@ impl TypeChecker {
             method_table: HashMap::new(),
             trait_defs: HashMap::new(),
             method_resolutions: HashMap::new(),
+            trait_impls: HashMap::new(),
             next_type_id: 0,
             next_type_var: 0,
             current_fn_return_type: None,
@@ -195,6 +200,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_println".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::Unit,
             },
@@ -204,6 +210,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_print".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::Unit,
             },
@@ -213,6 +220,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_eprintln".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::Unit,
             },
@@ -224,6 +232,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_string_new".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::String,
             },
@@ -233,6 +242,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_concat".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::String,
             },
@@ -242,6 +252,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_string_clone".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::String,
             },
@@ -251,6 +262,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_starts_with".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::Bool,
             },
@@ -260,6 +272,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_ends_with".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::Bool,
             },
@@ -269,6 +282,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_to_lower".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::String,
             },
@@ -278,6 +292,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_to_upper".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::String,
             },
@@ -287,6 +302,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_string_slice".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::I32, Type::I32],
                 ret: Type::String,
             },
@@ -296,6 +312,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_i32_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::String,
             },
@@ -305,6 +322,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_i64_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I64],
                 ret: Type::String,
             },
@@ -314,6 +332,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_f64_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::F64],
                 ret: Type::String,
             },
@@ -323,6 +342,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_bool_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Bool],
                 ret: Type::String,
             },
@@ -332,6 +352,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_char_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Char],
                 ret: Type::String,
             },
@@ -341,6 +362,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_parse_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::I32,
             },
@@ -350,6 +372,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_sqrt".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::F64],
                 ret: Type::F64,
             },
@@ -359,6 +382,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_abs".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::I32,
             },
@@ -368,6 +392,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_min".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32, Type::I32],
                 ret: Type::I32,
             },
@@ -377,6 +402,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_max".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32, Type::I32],
                 ret: Type::I32,
             },
@@ -386,6 +412,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_panic".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::Unit,
             },
@@ -395,6 +422,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_Vec_new_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::Vec(Box::new(Type::I32)),
             },
@@ -404,6 +432,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_Vec_new_i64".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::Vec(Box::new(Type::I64)),
             },
@@ -413,6 +442,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_Vec_new_f64".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::Vec(Box::new(Type::F64)),
             },
@@ -422,6 +452,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_Vec_new_String".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::Vec(Box::new(Type::String)),
             },
@@ -431,6 +462,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_sort_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32))],
                 ret: Type::Unit,
             },
@@ -440,6 +472,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_sort_String".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::String))],
                 ret: Type::Unit,
             },
@@ -449,6 +482,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_map_i32_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
                 ret: Type::Vec(Box::new(Type::I32)),
             },
@@ -458,6 +492,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_filter_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
                 ret: Type::Vec(Box::new(Type::I32)),
             },
@@ -467,6 +502,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_fold_i32_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32],
                 ret: Type::I32,
             },
@@ -476,6 +512,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_map_option_i32_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Option(Box::new(Type::I32)), Type::I32],
                 ret: Type::Option(Box::new(Type::I32)),
             },
@@ -486,6 +523,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_any_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
                 ret: Type::Bool,
             },
@@ -496,6 +534,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_find_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
                 ret: Type::I32,
             },
@@ -507,6 +546,7 @@ impl TypeChecker {
             FnSig {
                 name: "i32_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::String,
             },
@@ -516,6 +556,7 @@ impl TypeChecker {
             FnSig {
                 name: "i64_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I64],
                 ret: Type::String,
             },
@@ -525,6 +566,7 @@ impl TypeChecker {
             FnSig {
                 name: "bool_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Bool],
                 ret: Type::String,
             },
@@ -534,6 +576,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_string_from".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::String,
             },
@@ -543,6 +586,7 @@ impl TypeChecker {
             FnSig {
                 name: "String_from".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::String,
             },
@@ -552,6 +596,7 @@ impl TypeChecker {
             FnSig {
                 name: "char_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Char],
                 ret: Type::String,
             },
@@ -561,6 +606,7 @@ impl TypeChecker {
             FnSig {
                 name: "f64_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::F64],
                 ret: Type::String,
             },
@@ -571,6 +617,7 @@ impl TypeChecker {
             FnSig {
                 name: "to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32], // placeholder; overridden in call handling
                 ret: Type::String,
             },
@@ -581,6 +628,7 @@ impl TypeChecker {
             FnSig {
                 name: "__intrinsic_string_eq".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::Bool,
             },
@@ -590,6 +638,7 @@ impl TypeChecker {
             FnSig {
                 name: "eq".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::Bool,
             },
@@ -600,6 +649,7 @@ impl TypeChecker {
             FnSig {
                 name: "concat".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::String,
             },
@@ -610,6 +660,7 @@ impl TypeChecker {
             FnSig {
                 name: "parse_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::I32,
             },
@@ -621,6 +672,7 @@ impl TypeChecker {
             FnSig {
                 name: "fs_read_file".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::I32,
             },
@@ -631,6 +683,7 @@ impl TypeChecker {
             FnSig {
                 name: "fs_write_file".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::I32,
             },
@@ -641,6 +694,7 @@ impl TypeChecker {
             FnSig {
                 name: "Some".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32], // generic but we treat as i32 for now
                 ret: Type::I32,
             },
@@ -650,6 +704,7 @@ impl TypeChecker {
             FnSig {
                 name: "Ok".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::I32,
             },
@@ -659,6 +714,7 @@ impl TypeChecker {
             FnSig {
                 name: "Err".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::I32,
             },
@@ -670,6 +726,7 @@ impl TypeChecker {
             FnSig {
                 name: "Vec_new_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::Vec(Box::new(Type::I32)),
             },
@@ -679,6 +736,7 @@ impl TypeChecker {
             FnSig {
                 name: "push".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
                 ret: Type::Unit,
             },
@@ -688,6 +746,7 @@ impl TypeChecker {
             FnSig {
                 name: "pop".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32))],
                 ret: Type::Option(Box::new(Type::I32)),
             },
@@ -697,6 +756,7 @@ impl TypeChecker {
             FnSig {
                 name: "len".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32))],
                 ret: Type::I32,
             },
@@ -706,6 +766,7 @@ impl TypeChecker {
             FnSig {
                 name: "get".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
                 ret: Type::Option(Box::new(Type::I32)),
             },
@@ -715,6 +776,7 @@ impl TypeChecker {
             FnSig {
                 name: "get_unchecked".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
                 ret: Type::I32,
             },
@@ -724,6 +786,7 @@ impl TypeChecker {
             FnSig {
                 name: "set".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32],
                 ret: Type::Unit,
             },
@@ -733,6 +796,7 @@ impl TypeChecker {
             FnSig {
                 name: "sort_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32))],
                 ret: Type::Unit,
             },
@@ -744,6 +808,7 @@ impl TypeChecker {
             FnSig {
                 name: "String_new".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::String,
             },
@@ -753,6 +818,7 @@ impl TypeChecker {
             FnSig {
                 name: "is_empty".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::Bool,
             },
@@ -762,6 +828,7 @@ impl TypeChecker {
             FnSig {
                 name: "slice".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::I32, Type::I32],
                 ret: Type::String,
             },
@@ -771,6 +838,7 @@ impl TypeChecker {
             FnSig {
                 name: "starts_with".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::Bool,
             },
@@ -780,6 +848,7 @@ impl TypeChecker {
             FnSig {
                 name: "ends_with".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::Bool,
             },
@@ -789,6 +858,7 @@ impl TypeChecker {
             FnSig {
                 name: "split".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::Vec(Box::new(Type::String)),
             },
@@ -798,6 +868,7 @@ impl TypeChecker {
             FnSig {
                 name: "join".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::String)), Type::String],
                 ret: Type::String,
             },
@@ -809,6 +880,7 @@ impl TypeChecker {
             FnSig {
                 name: "Vec_new_String".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::Vec(Box::new(Type::String)),
             },
@@ -819,6 +891,7 @@ impl TypeChecker {
             FnSig {
                 name: "map_i32_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
                 ret: Type::Vec(Box::new(Type::I32)),
             },
@@ -828,6 +901,7 @@ impl TypeChecker {
             FnSig {
                 name: "filter_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
                 ret: Type::Vec(Box::new(Type::I32)),
             },
@@ -837,6 +911,7 @@ impl TypeChecker {
             FnSig {
                 name: "fold_i32_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32], // vec, init, fn ptr
                 ret: Type::I32,
             },
@@ -846,6 +921,7 @@ impl TypeChecker {
             FnSig {
                 name: "map_option_i32_i32".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Option(Box::new(Type::I32)), Type::I32], // option, fn ptr
                 ret: Type::Option(Box::new(Type::I32)),
             },
@@ -857,6 +933,7 @@ impl TypeChecker {
             FnSig {
                 name: "Box_new".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::I32,
             },
@@ -866,6 +943,7 @@ impl TypeChecker {
             FnSig {
                 name: "unbox".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::I32,
             },
@@ -875,6 +953,7 @@ impl TypeChecker {
             FnSig {
                 name: "unwrap".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::I32,
             },
@@ -884,6 +963,7 @@ impl TypeChecker {
             FnSig {
                 name: "unwrap_or".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32, Type::I32],
                 ret: Type::I32,
             },
@@ -893,6 +973,7 @@ impl TypeChecker {
             FnSig {
                 name: "is_some".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::Bool,
             },
@@ -902,6 +983,7 @@ impl TypeChecker {
             FnSig {
                 name: "is_none".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::Bool,
             },
@@ -913,6 +995,7 @@ impl TypeChecker {
             FnSig {
                 name: "sqrt".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::F64],
                 ret: Type::F64,
             },
@@ -922,6 +1005,7 @@ impl TypeChecker {
             FnSig {
                 name: "abs".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::I32,
             },
@@ -931,6 +1015,7 @@ impl TypeChecker {
             FnSig {
                 name: "min".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32, Type::I32],
                 ret: Type::I32,
             },
@@ -940,6 +1025,7 @@ impl TypeChecker {
             FnSig {
                 name: "max".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::I32, Type::I32],
                 ret: Type::I32,
             },
@@ -951,6 +1037,7 @@ impl TypeChecker {
             FnSig {
                 name: "panic".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::Unit,
             },
@@ -962,6 +1049,7 @@ impl TypeChecker {
             FnSig {
                 name: "clone".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::String,
             },
@@ -973,6 +1061,7 @@ impl TypeChecker {
             FnSig {
                 name: "push_char".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String, Type::Char],
                 ret: Type::Unit,
             },
@@ -982,6 +1071,7 @@ impl TypeChecker {
             FnSig {
                 name: "to_lower".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::String,
             },
@@ -991,6 +1081,7 @@ impl TypeChecker {
             FnSig {
                 name: "to_upper".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::String,
             },
@@ -1002,6 +1093,7 @@ impl TypeChecker {
             FnSig {
                 name: "parse_i64".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::I64,
             },
@@ -1011,6 +1103,7 @@ impl TypeChecker {
             FnSig {
                 name: "parse_f64".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::String],
                 ret: Type::F64,
             },
@@ -1022,6 +1115,7 @@ impl TypeChecker {
             FnSig {
                 name: "sort_String".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::Vec(Box::new(Type::String))],
                 ret: Type::Unit,
             },
@@ -1033,6 +1127,7 @@ impl TypeChecker {
             FnSig {
                 name: "f32_to_string".into(),
                 type_params: vec![],
+                type_param_bounds: vec![],
                 params: vec![Type::F32],
                 ret: Type::String,
             },
@@ -1115,6 +1210,7 @@ impl TypeChecker {
                         s.name.clone(),
                         StructInfo {
                             name: s.name.clone(),
+                            type_params: s.type_params.clone(),
                             fields,
                             type_id,
                         },
@@ -1169,6 +1265,7 @@ impl TypeChecker {
                         FnSig {
                             name: f.name.clone(),
                             type_params: f.type_params.clone(),
+                            type_param_bounds: f.type_param_bounds.clone(),
                             params,
                             ret,
                         },
@@ -1192,6 +1289,13 @@ impl TypeChecker {
                     self.trait_defs.insert(t.name.clone(), methods);
                 }
                 ast::Item::ImplBlock(ib) => {
+                    // Track trait implementations
+                    if let Some(ref trait_name) = ib.trait_name {
+                        self.trait_impls
+                            .entry(ib.target_type.clone())
+                            .or_default()
+                            .push(trait_name.clone());
+                    }
                     // Register each method with mangled name
                     for method in &ib.methods {
                         let mangled = format!("{}__{}", ib.target_type, method.name);
@@ -1210,6 +1314,7 @@ impl TypeChecker {
                             FnSig {
                                 name: mangled.clone(),
                                 type_params: vec![],
+                                type_param_bounds: vec![],
                                 params,
                                 ret,
                             },
@@ -1708,39 +1813,131 @@ impl TypeChecker {
                                 format!("{}::{}", path, variant)
                             });
                             // Bind fields from enum variant payload
-                            let enum_name = if path.is_empty() {
-                                // Try to infer from scrutinee type
-                                if let Type::Enum(ref tid) = scrutinee_ty {
-                                    self.enum_defs
-                                        .iter()
-                                        .find(|(_, info)| &info.type_id == tid)
-                                        .map(|(n, _)| n.clone())
-                                } else {
-                                    None
+                            // Handle Option<T> and Result<T,E> specially since they use
+                            // Type::Option / Type::Result, not Type::Enum
+                            let mut bound_from_builtin = false;
+                            if variant == "Some" {
+                                if let Type::Option(ref inner) = scrutinee_ty {
+                                    if let Some(ast::Pattern::Ident { name, .. }) = fields.first() {
+                                        arm_env.bind(name.clone(), *inner.clone());
+                                        bound_from_builtin = true;
+                                    }
                                 }
-                            } else {
-                                Some(path.clone())
-                            };
-                            if let Some(ref ename) = enum_name {
-                                if let Some(info) = self.enum_defs.get(ename) {
-                                    if let Some(vinfo) =
-                                        info.variants.iter().find(|v| v.name == *variant)
-                                    {
-                                        for (i, field_pat) in fields.iter().enumerate() {
-                                            if let ast::Pattern::Ident { name, .. } = field_pat {
-                                                let field_ty = vinfo
-                                                    .fields
-                                                    .get(i)
-                                                    .cloned()
-                                                    .unwrap_or(Type::Error);
-                                                arm_env.bind(name.clone(), field_ty);
+                            } else if variant == "Ok" {
+                                if let Type::Result(ref ok_ty, _) = scrutinee_ty {
+                                    if let Some(ast::Pattern::Ident { name, .. }) = fields.first() {
+                                        arm_env.bind(name.clone(), *ok_ty.clone());
+                                        bound_from_builtin = true;
+                                    }
+                                }
+                            } else if variant == "Err" {
+                                if let Type::Result(_, ref err_ty) = scrutinee_ty {
+                                    if let Some(ast::Pattern::Ident { name, .. }) = fields.first() {
+                                        arm_env.bind(name.clone(), *err_ty.clone());
+                                        bound_from_builtin = true;
+                                    }
+                                }
+                            }
+                            if !bound_from_builtin {
+                                let enum_name = if path.is_empty() {
+                                    // Try to infer from scrutinee type
+                                    if let Type::Enum(ref tid) = scrutinee_ty {
+                                        self.enum_defs
+                                            .iter()
+                                            .find(|(_, info)| &info.type_id == tid)
+                                            .map(|(n, _)| n.clone())
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    Some(path.clone())
+                                };
+                                if let Some(ref ename) = enum_name {
+                                    if let Some(info) = self.enum_defs.get(ename) {
+                                        if let Some(vinfo) =
+                                            info.variants.iter().find(|v| v.name == *variant)
+                                        {
+                                            for (i, field_pat) in fields.iter().enumerate() {
+                                                if let ast::Pattern::Ident { name, .. } = field_pat
+                                                {
+                                                    let field_ty = vinfo
+                                                        .fields
+                                                        .get(i)
+                                                        .cloned()
+                                                        .unwrap_or(Type::Error);
+                                                    arm_env.bind(name.clone(), field_ty);
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                        _ => {}
+                        ast::Pattern::Struct {
+                            name: sname,
+                            fields: sfields,
+                            ..
+                        } => {
+                            has_wildcard = true;
+                            if let Some(sinfo) = self.struct_defs.get(sname.as_str()).cloned() {
+                                for (fname, fpat) in sfields {
+                                    let binding_name = match fpat {
+                                        Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
+                                        None => fname.clone(),
+                                        _ => fname.clone(),
+                                    };
+                                    let field_ty = sinfo
+                                        .fields
+                                        .iter()
+                                        .find(|(n, _)| n == fname)
+                                        .map(|(_, t)| t.clone())
+                                        .unwrap_or(Type::Error);
+                                    arm_env.bind(binding_name, field_ty);
+                                }
+                            }
+                        }
+                        ast::Pattern::Or { patterns, .. } => {
+                            // Bind variables from the first sub-pattern
+                            for pat in patterns.iter().take(1) {
+                                match pat {
+                                    ast::Pattern::Ident { name, .. } => {
+                                        has_wildcard = true;
+                                        arm_env.bind(name.clone(), scrutinee_ty.clone());
+                                    }
+                                    ast::Pattern::Wildcard(_) => {
+                                        has_wildcard = true;
+                                    }
+                                    ast::Pattern::Enum { path, variant, .. } => {
+                                        covered_variants.push(if path.is_empty() {
+                                            variant.clone()
+                                        } else {
+                                            format!("{}::{}", path, variant)
+                                        });
+                                    }
+                                    _ => {}
+                                }
+                            }
+                            // Track coverage for remaining or-patterns
+                            for pat in patterns.iter().skip(1) {
+                                if let ast::Pattern::Enum { path, variant, .. } = pat {
+                                    covered_variants.push(if path.is_empty() {
+                                        variant.clone()
+                                    } else {
+                                        format!("{}::{}", path, variant)
+                                    });
+                                }
+                            }
+                        }
+                        ast::Pattern::IntLit { .. }
+                        | ast::Pattern::StringLit { .. }
+                        | ast::Pattern::BoolLit { .. }
+                        | ast::Pattern::CharLit { .. }
+                        | ast::Pattern::FloatLit { .. }
+                        | ast::Pattern::Tuple { .. } => {}
+                    }
+                    // Check guard expression if present
+                    if let Some(ref guard) = arm.guard {
+                        self.synthesize_expr(guard, &mut arm_env, sink);
                     }
                     // Synthesize arm body type with the arm's env
                     let arm_ty = self.synthesize_expr(&arm.body, &mut arm_env, sink);

@@ -1,0 +1,4 @@
+fn main() {
+    let v: Vec<Vec<i32>> = Vec_new_i32()
+    println(i32_to_string(len(v)))
+}
