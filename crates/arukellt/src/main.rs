@@ -41,6 +41,18 @@ enum Commands {
         /// Compile target
         #[arg(long, default_value = "wasm32-wasi-p1")]
         target: TargetId,
+        /// Grant directory access (format: path or path:ro or path:rw)
+        #[arg(long = "dir", value_name = "PATH[:PERMS]")]
+        dirs: Vec<String>,
+        /// Deny filesystem access (overrides --dir)
+        #[arg(long)]
+        deny_fs: bool,
+        /// Deny clock/time access
+        #[arg(long)]
+        deny_clock: bool,
+        /// Deny random number access
+        #[arg(long)]
+        deny_random: bool,
     },
     /// Type-check an .ark file without compiling
     Check {
@@ -104,7 +116,14 @@ fn main() {
                 }
             }
         }
-        Commands::Run { file, target } => {
+        Commands::Run {
+            file,
+            target,
+            dirs,
+            deny_fs,
+            deny_clock,
+            deny_random,
+        } => {
             let profile = target.profile();
             if !profile.run_supported {
                 if !profile.implemented {
@@ -124,7 +143,8 @@ fn main() {
             }
             match compile_file(&file, target) {
                 Ok(wasm) => {
-                    if let Err(e) = run_wasm(&wasm) {
+                    let caps = RuntimeCaps::from_cli(&dirs, deny_fs, deny_clock, deny_random);
+                    if let Err(e) = run_wasm(&wasm, &caps) {
                         eprintln!("error: runtime: {}", e);
                         process::exit(1);
                     }
@@ -276,7 +296,56 @@ fn check_file(path: &PathBuf) -> Result<(), String> {
     Ok(())
 }
 
-fn run_wasm(wasm_bytes: &[u8]) -> Result<(), String> {
+struct DirGrant {
+    host_path: String,
+    guest_path: String,
+    read_only: bool,
+}
+
+struct RuntimeCaps {
+    dirs: Vec<DirGrant>,
+    deny_fs: bool,
+    deny_clock: bool,
+    deny_random: bool,
+}
+
+impl RuntimeCaps {
+    fn from_cli(dirs: &[String], deny_fs: bool, deny_clock: bool, deny_random: bool) -> Self {
+        let dir_grants = dirs.iter().map(|s| DirGrant::parse(s)).collect();
+        RuntimeCaps {
+            dirs: dir_grants,
+            deny_fs,
+            deny_clock,
+            deny_random,
+        }
+    }
+}
+
+impl DirGrant {
+    fn parse(s: &str) -> Self {
+        if let Some(path) = s.strip_suffix(":ro") {
+            DirGrant {
+                host_path: path.to_string(),
+                guest_path: path.to_string(),
+                read_only: true,
+            }
+        } else if let Some(path) = s.strip_suffix(":rw") {
+            DirGrant {
+                host_path: path.to_string(),
+                guest_path: path.to_string(),
+                read_only: false,
+            }
+        } else {
+            DirGrant {
+                host_path: s.to_string(),
+                guest_path: s.to_string(),
+                read_only: false,
+            }
+        }
+    }
+}
+
+fn run_wasm(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     use wasmtime::*;
     use wasmtime_wasi::preview1::WasiP1Ctx;
     use wasmtime_wasi::{DirPerms, FilePerms, WasiCtxBuilder};
@@ -291,10 +360,33 @@ fn run_wasm(wasm_bytes: &[u8]) -> Result<(), String> {
 
     let mut builder = WasiCtxBuilder::new();
     builder.inherit_stdio();
-    // Preopen current directory for io/fs operations (fd 3)
-    builder
-        .preopened_dir(".", ".", DirPerms::all(), FilePerms::all())
-        .map_err(|e| format!("preopened dir error: {}", e))?;
+
+    // deny_clock and deny_random are accepted but not yet enforced:
+    // wasmtime-wasi 29.x always provides default clock/random and has no
+    // API to disable them. These flags are reserved for a future runtime
+    // version that supports fine-grained capability removal.
+    let _ = caps.deny_clock;
+    let _ = caps.deny_random;
+
+    if !caps.deny_fs {
+        if caps.dirs.is_empty() {
+            // Backward compat: preopen current directory
+            builder
+                .preopened_dir(".", ".", DirPerms::all(), FilePerms::all())
+                .map_err(|e| format!("preopened dir error: {}", e))?;
+        } else {
+            for grant in &caps.dirs {
+                let (dp, fp) = if grant.read_only {
+                    (DirPerms::READ, FilePerms::READ)
+                } else {
+                    (DirPerms::all(), FilePerms::all())
+                };
+                builder
+                    .preopened_dir(&grant.host_path, &grant.guest_path, dp, fp)
+                    .map_err(|e| format!("preopened dir error for '{}': {}", grant.host_path, e))?;
+            }
+        }
+    }
     let wasi_ctx = builder.build_p1();
 
     let mut store = Store::new(&engine, wasi_ctx);
