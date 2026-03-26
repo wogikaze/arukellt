@@ -2765,20 +2765,18 @@ impl EmitCtx {
                 ark_typecheck::types::Type::Bool => {
                     self.bool_locals.insert(local.id.0);
                 }
-                ark_typecheck::types::Type::Vec(inner) => {
-                    match inner.as_ref() {
-                        ark_typecheck::types::Type::String => {
-                            self.vec_string_locals.insert(local.id.0);
-                        }
-                        ark_typecheck::types::Type::I64 => {
-                            self.vec_i64_locals.insert(local.id.0);
-                        }
-                        ark_typecheck::types::Type::F64 => {
-                            self.vec_f64_locals.insert(local.id.0);
-                        }
-                        _ => {}
+                ark_typecheck::types::Type::Vec(inner) => match inner.as_ref() {
+                    ark_typecheck::types::Type::String => {
+                        self.vec_string_locals.insert(local.id.0);
                     }
-                }
+                    ark_typecheck::types::Type::I64 => {
+                        self.vec_i64_locals.insert(local.id.0);
+                    }
+                    ark_typecheck::types::Type::F64 => {
+                        self.vec_f64_locals.insert(local.id.0);
+                    }
+                    _ => {}
+                },
                 _ => {}
             }
         }
@@ -3046,9 +3044,13 @@ impl EmitCtx {
                             f.instruction(&Instruction::Call(FN_I32_TO_STR));
                         }
                     }
-                    "push" | "set" | "sort_i32" | "sort_String" | "sort_i64" | "sort_f64"
-                    | "HashMap_i32_i32_insert" =>
-                    {
+                    "push"
+                    | "set"
+                    | "sort_i32"
+                    | "sort_String"
+                    | "sort_i64"
+                    | "sort_f64"
+                    | "HashMap_i32_i32_insert" => {
                         // Void Vec operations — emit inline via Operand::Call path
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
@@ -3622,12 +3624,11 @@ impl EmitCtx {
                             memory_index: 0,
                         };
                         // Element size: 8 for i64/f64, 4 otherwise
-                        let elem_size: i32 =
-                            if name == "Vec_new_i64" || name == "Vec_new_f64" {
-                                8
-                            } else {
-                                4
-                            };
+                        let elem_size: i32 = if name == "Vec_new_i64" || name == "Vec_new_f64" {
+                            8
+                        } else {
+                            4
+                        };
                         let data_bytes: i32 = 8 * elem_size; // cap=8 * elem_size
                         let total_alloc: i32 = 12 + data_bytes;
                         // len = 0
@@ -3681,10 +3682,8 @@ impl EmitCtx {
                             .first()
                             .map(|v| self.vec_elem_size(v) as i32)
                             .unwrap_or(4);
-                        let is_i64_elem =
-                            args.first().map(|v| self.is_vec_i64(v)).unwrap_or(false);
-                        let is_f64_elem =
-                            args.first().map(|v| self.is_vec_f64(v)).unwrap_or(false);
+                        let is_i64_elem = args.first().map(|v| self.is_vec_i64(v)).unwrap_or(false);
+                        let is_f64_elem = args.first().map(|v| self.is_vec_f64(v)).unwrap_or(false);
 
                         // Check if len >= cap, if so grow
                         if let Some(v) = args.first() {
@@ -3854,10 +3853,8 @@ impl EmitCtx {
                             align: 2,
                             memory_index: 0,
                         };
-                        let is_i64_elem =
-                            args.first().map(|v| self.is_vec_i64(v)).unwrap_or(false);
-                        let is_f64_elem =
-                            args.first().map(|v| self.is_vec_f64(v)).unwrap_or(false);
+                        let is_i64_elem = args.first().map(|v| self.is_vec_i64(v)).unwrap_or(false);
+                        let is_f64_elem = args.first().map(|v| self.is_vec_f64(v)).unwrap_or(false);
                         let elem_size: i32 = if is_i64_elem || is_f64_elem { 8 } else { 4 };
                         // Load data_ptr
                         if let Some(v) = args.first() {

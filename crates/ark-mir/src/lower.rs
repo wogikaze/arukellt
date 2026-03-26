@@ -1017,9 +1017,7 @@ impl LowerCtx {
                             self.vec_string_locals.insert(local_id.0);
                         }
                         if tname == "Vec" {
-                            if let Some(ast::TypeExpr::Named { name: inner, .. }) =
-                                args.first()
-                            {
+                            if let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first() {
                                 if inner == "i64" {
                                     self.vec_i64_locals.insert(local_id.0);
                                 } else if inner == "f64" {
