@@ -1,0 +1,6 @@
+fn main() {
+    let name = String_from("world")
+    let x = 42
+    println(f"hello {name}")
+    println(f"x = {x}")
+}

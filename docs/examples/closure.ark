@@ -1,0 +1,9 @@
+fn apply(f: fn(i32) -> i32, x: i32) -> i32 {
+    f(x)
+}
+
+fn main() {
+    let double = |x: i32| -> i32 { x * 2 }
+    let result = apply(double, 21)
+    println(i32_to_string(result))
+}

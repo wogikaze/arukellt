@@ -1,0 +1,22 @@
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+fn main() {
+    let p = Point { x: 10, y: 20 }
+    println(i32_to_string(p.x))
+    println(i32_to_string(p.y))
+    let c = Color::Red
+    match c {
+        Color::Red => println("red"),
+        Color::Green => println("green"),
+        Color::Blue => println("blue"),
+    }
+}

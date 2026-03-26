@@ -1,0 +1,18 @@
+fn divide(a: i32, b: i32) -> Result<i32, String> {
+    if b == 0 {
+        Err(String_from("division by zero"))
+    } else {
+        Ok(a / b)
+    }
+}
+
+fn main() {
+    match divide(10, 2) {
+        Ok(v) => println(i32_to_string(v)),
+        Err(e) => println(e),
+    }
+    match divide(10, 0) {
+        Ok(v) => println(i32_to_string(v)),
+        Err(e) => println(e),
+    }
+}
