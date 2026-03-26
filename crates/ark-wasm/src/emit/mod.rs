@@ -1,9 +1,11 @@
 //! Per-target Wasm emitter dispatch.
 //!
 //! Routes MIR emission through the appropriate backend based on `TargetId`.
-//! Currently only T1 (`wasm32-wasi-p1`) is implemented.
+//! T1: linear memory + WASI p1 (fully implemented).
+//! T3: Wasm GC + WASI p2 (in progress — currently delegates to T1).
 
 pub mod t1_wasm32_p1;
+pub mod t3_wasm_gc;
 
 use ark_diagnostics::DiagnosticSink;
 use ark_mir::mir::MirModule;
@@ -16,6 +18,7 @@ use ark_target::{EmitKind, TargetId};
 pub fn emit(mir: &MirModule, sink: &mut DiagnosticSink, target: TargetId) -> Vec<u8> {
     match target {
         TargetId::Wasm32WasiP1 => t1_wasm32_p1::emit(mir, sink),
+        TargetId::Wasm32WasiP2 => t3_wasm_gc::emit(mir, sink),
         other => {
             panic!(
                 "emitter for target `{}` ({}) is not yet implemented",

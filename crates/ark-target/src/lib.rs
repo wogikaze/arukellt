@@ -83,9 +83,9 @@ impl TargetId {
                 wasi_profile: WasiProfile::P2,
                 component_model: true,
                 abi_surface: AbiSurface::ComponentWit,
-                implemented: false,
-                run_supported: false,
-                default_emit_kind: EmitKind::Component,
+                implemented: true,
+                run_supported: true,
+                default_emit_kind: EmitKind::CoreWasm,
             },
             TargetId::Native => TargetProfile {
                 id: self,
@@ -362,7 +362,7 @@ mod tests {
         assert_eq!(t1.default_emit_kind, EmitKind::CoreWasm);
 
         let t3 = TargetId::Wasm32WasiP2.profile();
-        assert!(!t3.implemented);
+        assert!(t3.implemented);
         assert!(t3.component_model);
         assert_eq!(t3.memory_model, MemoryModel::WasmGc);
     }
