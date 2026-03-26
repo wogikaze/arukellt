@@ -9,7 +9,7 @@ use std::process;
 use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
 use ark_lexer::Lexer;
 use ark_parser::parse;
-use ark_target::{TargetId, parse_target};
+use ark_target::{EmitKind, TargetId, parse_target};
 
 #[derive(Parser)]
 #[command(name = "arukellt", version, about = "The Arukellt compiler")]
@@ -24,12 +24,15 @@ enum Commands {
     Compile {
         /// Input .ark file
         file: PathBuf,
-        /// Output .wasm file (default: <input>.wasm)
+        /// Output file (default: <input>.wasm for T1, <input>.component.wasm for T3)
         #[arg(short, long)]
         output: Option<PathBuf>,
         /// Compile target
         #[arg(long, default_value = "wasm32-wasi-p1")]
         target: TargetId,
+        /// Emit kind (core-wasm, component, wit, all)
+        #[arg(long)]
+        emit: Option<EmitKind>,
     },
     /// Compile and run an .ark file
     Run {
@@ -63,8 +66,10 @@ fn main() {
             file,
             output,
             target,
+            emit: emit_kind,
         } => {
             let profile = target.profile();
+            let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
             if !profile.implemented {
                 eprintln!(
                     "error: target `{}` ({}) is not yet implemented [{}]",
@@ -72,6 +77,10 @@ fn main() {
                     target.tier(),
                     profile.status_label()
                 );
+                process::exit(1);
+            }
+            if let Err(e) = ark_wasm::emit::validate_emit_kind(target, emit_kind) {
+                eprintln!("error: {}", e);
                 process::exit(1);
             }
             let output = output.unwrap_or_else(|| file.with_extension("wasm"));

@@ -263,6 +263,23 @@ impl fmt::Display for EmitKind {
     }
 }
 
+impl FromStr for EmitKind {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "core-wasm" => Ok(EmitKind::CoreWasm),
+            "component" => Ok(EmitKind::Component),
+            "wit" => Ok(EmitKind::Wit),
+            "native-binary" => Ok(EmitKind::NativeBinary),
+            "all" => Ok(EmitKind::All),
+            _ => Err(format!(
+                "unknown emit kind `{}`. Available: core-wasm, component, wit, all",
+                s
+            )),
+        }
+    }
+}
+
 /// Format a help table of all targets and their status.
 pub fn targets_help() -> String {
     let mut out = String::from("Available targets:\n");
