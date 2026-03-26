@@ -75,6 +75,14 @@ fn fixture_harness() {
             .unwrap_or(fixture.as_path())
             .display()
             .to_string();
+
+        // Skip helper module files: if main.ark exists in the same dir, only main.ark is an entry point
+        let dir = fixture.parent().unwrap();
+        let is_main = fixture.file_name() == Some(std::ffi::OsStr::new("main.ark"));
+        if !is_main && dir.join("main.ark").exists() {
+            continue;
+        }
+
         let expected_path = fixture.with_extension("expected");
         let diag_path = fixture.with_extension("diag");
 

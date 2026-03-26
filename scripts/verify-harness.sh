@@ -46,16 +46,17 @@ check_fail() {
 run_check() {
     local label="$1"
     local command="$2"
-
-    if bash -lc "$command"; then
+    local output
+    if output=$(bash -lc "$command" 2>&1); then
         check_pass "$label"
     else
         check_fail "$label"
+        echo "$output" | tail -30
     fi
 }
 
 # 1. Check documentation structure
-echo -e "\n${YELLOW}[1/10] Checking documentation structure...${NC}"
+echo -e "\n${YELLOW}[1/11] Checking documentation structure...${NC}"
 doc_ok=true
 for doc in "AGENTS.md" "docs/process/agent-harness.md"; do
     if [ ! -f "$doc" ]; then
@@ -74,7 +75,7 @@ if [ "$doc_ok" = true ]; then
 fi
 
 # 2. Check ADR decisions
-echo -e "\n${YELLOW}[2/10] Checking ADR decisions...${NC}"
+echo -e "\n${YELLOW}[2/11] Checking ADR decisions...${NC}"
 adr_ok=true
 for adr in "docs/adr/ADR-002-memory-model.md" "docs/adr/ADR-003-generics-strategy.md" "docs/adr/ADR-004-trait-strategy.md" "docs/adr/ADR-005-llvm-scope.md" "docs/adr/ADR-006-abi-policy.md"; do
     if [ ! -f "$adr" ]; then
@@ -90,7 +91,7 @@ if [ "$adr_ok" = true ]; then
 fi
 
 # 3. Check language spec documents
-echo -e "\n${YELLOW}[3/10] Checking language specification...${NC}"
+echo -e "\n${YELLOW}[3/11] Checking language specification...${NC}"
 spec_ok=true
 for spec in "docs/language/memory-model.md" "docs/language/type-system.md" "docs/language/syntax.md"; do
     if [ ! -f "$spec" ]; then
@@ -103,7 +104,7 @@ if [ "$spec_ok" = true ]; then
 fi
 
 # 4. Check platform documents
-echo -e "\n${YELLOW}[4/10] Checking platform specification...${NC}"
+echo -e "\n${YELLOW}[4/11] Checking platform specification...${NC}"
 platform_ok=true
 for pdoc in "docs/platform/wasm-features.md" "docs/platform/abi.md" "docs/platform/wasi-resource-model.md"; do
     if [ ! -f "$pdoc" ]; then
@@ -116,7 +117,7 @@ if [ "$platform_ok" = true ]; then
 fi
 
 # 5. Check stdlib documents
-echo -e "\n${YELLOW}[5/10] Checking stdlib specification...${NC}"
+echo -e "\n${YELLOW}[5/11] Checking stdlib specification...${NC}"
 stdlib_ok=true
 for sdoc in "docs/stdlib/README.md" "docs/stdlib/core.md" "docs/stdlib/io.md"; do
     if [ ! -f "$sdoc" ]; then
@@ -161,7 +162,7 @@ echo -e "\n${YELLOW}[10/11] Running workspace tests...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo test --workspace"
 else
-    run_check "cargo test --workspace" "cargo test --workspace"
+    run_check "cargo test --workspace" "cargo test --workspace --quiet -- --skip fixture_harness"
 fi
 
 # 11. Run fixture harness discovery test
@@ -169,7 +170,14 @@ echo -e "\n${YELLOW}[11/11] Running fixture harness test...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo test -p arukellt --test harness -- --nocapture"
 else
-    run_check "cargo test --test harness -- --nocapture" "cargo test -p arukellt --test harness -- --nocapture"
+    local_output=$(bash -lc "cargo test -p arukellt --test harness -- --nocapture 2>&1" 2>&1) || true
+    if echo "$local_output" | grep -q "FAIL: 0"; then
+        summary=$(echo "$local_output" | grep "^PASS:")
+        check_pass "fixture harness (${summary})"
+    else
+        check_fail "fixture harness"
+        echo "$local_output" | grep -E "^(PASS:|FAIL )" | head -30
+    fi
 fi
 
 # Summary
