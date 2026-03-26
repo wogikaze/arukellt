@@ -130,7 +130,7 @@ fi
 
 # 6. Check markdown lint
 echo -e "\n${YELLOW}[6/11] Checking markdown lint...${NC}"
-run_check "markdownlint-cli2 **/*.md" "npx markdownlint-cli2 '**/*.md'"
+run_check "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json"
 
 # 7. Check formatting
 echo -e "\n${YELLOW}[7/11] Checking formatting...${NC}"

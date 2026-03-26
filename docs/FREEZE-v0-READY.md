@@ -167,6 +167,7 @@ v0 は以下の原則に基づいて設計:
 
 v0 は「LLM が安定生成・修正しやすい canonical surface を持つ
 Wasm-first 言語」として定義される。表面構文は少数の正規形に絞り、型は局所推論
+
 - 境界明示、標準 API は核機能に集中。
 
 **Status**: コンパイラ実装は 142/147 fixture pass（5 skip はモジュールヘルパーファイル）。v0 freeze ready。
