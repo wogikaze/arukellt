@@ -42,7 +42,9 @@ const DATA_START: u32 = 256;
 // 13 = __filter_i32
 // 14 = __fold_i32
 // 15 = __map_opt_i32
-// 16+ = user functions
+// 16 = __any_i32
+// 17 = __find_i32
+// 18+ = user functions
 const FN_FD_WRITE: u32 = 0;
 const FN_PATH_OPEN: u32 = 1;
 const FN_FD_READ: u32 = 2;
@@ -59,7 +61,9 @@ const FN_MAP_I32: u32 = 12;
 const FN_FILTER_I32: u32 = 13;
 const FN_FOLD_I32: u32 = 14;
 const FN_MAP_OPT_I32: u32 = 15;
-const FN_USER_BASE: u32 = 16;
+const FN_ANY_I32: u32 = 16;
+const FN_FIND_I32: u32 = 17;
+const FN_USER_BASE: u32 = 18;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 fn normalize_intrinsic_name(name: &str) -> &str {
@@ -99,6 +103,8 @@ fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_filter_i32" => "filter_i32",
         "__intrinsic_fold_i32_i32" => "fold_i32_i32",
         "__intrinsic_map_option_i32_i32" => "map_option_i32_i32",
+        "__intrinsic_any_i32" => "any_i32",
+        "__intrinsic_find_i32" => "find_i32",
         other => other,
     }
 }
@@ -409,6 +415,8 @@ impl EmitCtx {
         functions.function(ty_i32_i32_i32); // __filter_i32: (vec,fn)->vec
         functions.function(ty_i32x3_i32); // __fold_i32: (vec,init,fn)->i32
         functions.function(ty_i32_i32_i32); // __map_opt_i32: (opt,fn)->opt
+        functions.function(ty_i32_i32_i32); // __any_i32: (vec,fn)->i32(bool)
+        functions.function(ty_i32_i32_i32); // __find_i32: (vec,fn)->i32(option_ptr)
         let mut needs_start_wrapper = false;
         for (i, func) in mir.functions.iter().enumerate() {
             functions.function(user_func_type_indices[i]);
@@ -427,7 +435,7 @@ impl EmitCtx {
 
         // Table section — for indirect calls (higher-order functions)
         let total_funcs =
-            4 + 12 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
+            4 + 14 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
         let mut tables = wasm_encoder::TableSection::new();
         tables.table(wasm_encoder::TableType {
             element_type: wasm_encoder::RefType::FUNCREF,
@@ -500,6 +508,8 @@ impl EmitCtx {
         code.function(&self.build_filter_i32());
         code.function(&self.build_fold_i32());
         code.function(&self.build_map_option_i32());
+        code.function(&self.build_any_i32());
+        code.function(&self.build_find_i32());
         for func in &mir.functions {
             let f = self.build_user_fn(func);
             code.function(&f);
@@ -1861,6 +1871,193 @@ impl EmitCtx {
         f
     }
 
+    fn build_any_i32(&self) -> Function {
+        // any_i32(vec_ptr: i32, fn_idx: i32) -> i32 (0 or 1)
+        // params: 0=vec_ptr, 1=fn_idx
+        // locals: 2=i, 3=n, 4=src_data
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let mut f = Function::new(vec![(3, ValType::I32)]);
+
+        // n = mem[vec_ptr] (vec length)
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(3));
+
+        // src_data = mem[vec_ptr + 8] (data pointer)
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(4));
+
+        // i = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(2));
+
+        // loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // if i >= n, break (return false)
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // elem = src_data[i*4]
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+
+        // call_indirect pred(elem) -> bool
+        f.instruction(&Instruction::LocalGet(1)); // fn_idx
+        let ty_i32_i32 =
+            self.lookup_or_register_indirect_type(vec![ValType::I32], vec![ValType::I32]);
+        f.instruction(&Instruction::CallIndirect {
+            type_index: ty_i32_i32,
+            table_index: 0,
+        });
+
+        // if result != 0, return 1
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::Return);
+        f.instruction(&Instruction::End);
+
+        // i++
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(2));
+
+        f.instruction(&Instruction::Br(0)); // continue loop
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // return 0 (false)
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::End);
+        f
+    }
+
+    fn build_find_i32(&self) -> Function {
+        // find_i32(vec_ptr: i32, fn_idx: i32) -> i32 (Option ptr)
+        // Returns heap-allocated Option: [tag=0(Some), payload=value] or [tag=1(None)]
+        // params: 0=vec_ptr, 1=fn_idx
+        // locals: 2=i, 3=n, 4=src_data
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let mut f = Function::new(vec![(3, ValType::I32)]);
+
+        // n = mem[vec_ptr]
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(3));
+
+        // src_data = mem[vec_ptr + 8]
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(4));
+
+        // i = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(2));
+
+        // loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // if i >= n, break
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // call_indirect pred(elem) where elem = src_data[i*4]
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalGet(1)); // fn_idx
+        let ty_i32_i32 =
+            self.lookup_or_register_indirect_type(vec![ValType::I32], vec![ValType::I32]);
+        f.instruction(&Instruction::CallIndirect {
+            type_index: ty_i32_i32,
+            table_index: 0,
+        });
+
+        // if pred returned true, build Some(elem) and return
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        {
+            // Allocate Some(elem) on heap: [tag=0][payload=elem]
+            f.instruction(&Instruction::GlobalGet(0)); // base ptr (will be result)
+            f.instruction(&Instruction::GlobalGet(0));
+            f.instruction(&Instruction::I32Const(0)); // tag = Some
+            f.instruction(&Instruction::I32Store(ma));
+            // payload = elem (reload)
+            f.instruction(&Instruction::GlobalGet(0));
+            f.instruction(&Instruction::I32Const(4));
+            f.instruction(&Instruction::I32Add);
+            f.instruction(&Instruction::LocalGet(4));
+            f.instruction(&Instruction::LocalGet(2));
+            f.instruction(&Instruction::I32Const(4));
+            f.instruction(&Instruction::I32Mul);
+            f.instruction(&Instruction::I32Add);
+            f.instruction(&Instruction::I32Load(ma));
+            f.instruction(&Instruction::I32Store(ma));
+            // bump heap
+            f.instruction(&Instruction::GlobalGet(0));
+            f.instruction(&Instruction::I32Const(8));
+            f.instruction(&Instruction::I32Add);
+            f.instruction(&Instruction::GlobalSet(0));
+            // return base ptr
+            f.instruction(&Instruction::Return);
+        }
+        f.instruction(&Instruction::End);
+
+        // i++
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(2));
+
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Not found: allocate None: [tag=1]
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(1)); // tag = None
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(0)); // padding
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+        // base ptr on stack
+        f.instruction(&Instruction::End);
+        f
+    }
+
     fn build_user_fn(&mut self, func: &MirFunction) -> Function {
         let num_params = func.params.len() as u32;
         let num_locals = func.locals.len() as u32;
@@ -2012,6 +2209,8 @@ impl EmitCtx {
                         | "filter_i32"
                         | "fold_i32_i32"
                         | "map_option_i32_i32"
+                        | "any_i32"
+                        | "find_i32"
                         | "push_char"
                         | "panic"
                         | "sqrt"
@@ -2132,7 +2331,7 @@ impl EmitCtx {
                         }
                     }
                     "pop" | "get" | "Vec_new_i32" | "Vec_new_String" | "len" | "get_unchecked"
-                    | "fs_read_file" | "fs_write_file" => {
+                    | "fs_read_file" | "fs_write_file" | "any_i32" | "find_i32" => {
                         // Value-returning Vec operations called as statement — emit and drop result
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
@@ -4640,6 +4839,18 @@ impl EmitCtx {
                             self.emit_operand(f, a);
                         }
                         f.instruction(&Instruction::Call(FN_MAP_OPT_I32));
+                    }
+                    "any_i32" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::Call(FN_ANY_I32));
+                    }
+                    "find_i32" => {
+                        for a in args {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::Call(FN_FIND_I32));
                     }
                     "Box_new" => {
                         // Box_new(value): allocate sizeof(enum) on heap, copy value, return pointer

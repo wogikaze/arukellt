@@ -100,19 +100,14 @@ impl<'a> Parser<'a> {
         let mut items = Vec::new();
 
         while *self.peek() != TokenKind::Eof {
-            // Check for v0 constraint violations
+            // Check for reserved keyword violations
             if let TokenKind::Reserved(kw) = self.peek() {
                 let kw = kw.clone();
                 let sp = self.span();
-                let code = match kw.as_str() {
-                    "trait" => DiagnosticCode::E0300,
-                    "impl" => DiagnosticCode::E0304,
-                    "for" => DiagnosticCode::E0303,
-                    _ => DiagnosticCode::E0003,
-                };
+                let code = DiagnosticCode::E0003;
                 self.sink.emit(
                     Diagnostic::new(code)
-                        .with_label(sp, format!("`{}` is not available in v0", kw)),
+                        .with_label(sp, format!("`{}` is not available in this version", kw)),
                 );
                 self.advance();
                 self.synchronize();
@@ -141,6 +136,8 @@ impl<'a> Parser<'a> {
                 TokenKind::Fn
                 | TokenKind::Struct
                 | TokenKind::Enum
+                | TokenKind::Trait
+                | TokenKind::Impl
                 | TokenKind::Import
                 | TokenKind::Pub => return,
                 TokenKind::RBrace => {
@@ -176,12 +173,24 @@ impl<'a> Parser<'a> {
             TokenKind::Fn => Some(Item::FnDef(self.parse_fn_def(is_pub))),
             TokenKind::Struct => Some(Item::StructDef(self.parse_struct_def(is_pub))),
             TokenKind::Enum => Some(Item::EnumDef(self.parse_enum_def(is_pub))),
+            TokenKind::Trait => Some(Item::TraitDef(self.parse_trait_def(is_pub))),
+            TokenKind::Impl => {
+                if is_pub {
+                    let sp = self.span();
+                    self.sink.emit(
+                        Diagnostic::new(DiagnosticCode::E0001)
+                            .with_message("`pub` is not allowed on impl blocks")
+                            .with_label(sp, "here"),
+                    );
+                }
+                Some(Item::ImplBlock(self.parse_impl_block()))
+            }
             _ => {
                 let sp = self.span();
                 self.sink.emit(
                     Diagnostic::new(DiagnosticCode::E0001)
                         .with_message(format!(
-                            "expected item (fn, struct, enum), found `{:?}`",
+                            "expected item (fn, struct, enum, trait, impl), found `{:?}`",
                             self.peek()
                         ))
                         .with_label(sp, "here"),
@@ -372,6 +381,166 @@ impl<'a> Parser<'a> {
         }
     }
 
+    // === Trait / Impl parsing ===
+
+    fn parse_trait_def(&mut self, is_pub: bool) -> TraitDef {
+        let start = self.span();
+        self.expect(&TokenKind::Trait);
+        let name = self.expect_ident();
+
+        let type_params = if *self.peek() == TokenKind::Lt {
+            self.parse_type_params()
+        } else {
+            Vec::new()
+        };
+
+        self.expect(&TokenKind::LBrace);
+        let mut methods = Vec::new();
+        while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
+            if *self.peek() == TokenKind::Fn {
+                let m_start = self.span();
+                self.expect(&TokenKind::Fn);
+                let m_name = self.expect_ident();
+                self.expect(&TokenKind::LParen);
+                let params = self.parse_method_params(&name);
+                self.expect(&TokenKind::RParen);
+                let return_type = if self.eat(&TokenKind::Arrow) {
+                    Some(self.parse_type_expr())
+                } else {
+                    None
+                };
+                let span = m_start.merge(self.span());
+                methods.push(TraitMethodSig {
+                    name: m_name,
+                    params,
+                    return_type,
+                    span,
+                });
+            } else {
+                // Skip unexpected tokens inside trait
+                self.advance();
+            }
+        }
+        let end = self.expect(&TokenKind::RBrace);
+        TraitDef {
+            name,
+            type_params,
+            methods,
+            is_pub,
+            span: start.merge(end),
+        }
+    }
+
+    fn parse_impl_block(&mut self) -> ImplBlock {
+        let start = self.span();
+        self.expect(&TokenKind::Impl);
+        let first_name = self.expect_ident();
+
+        // Distinguish `impl Trait for Type` vs `impl Type`
+        let (trait_name, target_type) = if *self.peek() == TokenKind::For {
+            self.advance(); // eat `for`
+            let target = self.expect_ident();
+            (Some(first_name), target)
+        } else {
+            (None, first_name)
+        };
+
+        self.expect(&TokenKind::LBrace);
+        let mut methods = Vec::new();
+        while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
+            if *self.peek() == TokenKind::Fn {
+                let m_start = self.span();
+                self.expect(&TokenKind::Fn);
+                let m_name = self.expect_ident();
+                self.expect(&TokenKind::LParen);
+                let params = self.parse_method_params(&target_type);
+                self.expect(&TokenKind::RParen);
+                let return_type = if self.eat(&TokenKind::Arrow) {
+                    Some(self.parse_type_expr())
+                } else {
+                    None
+                };
+                let body = self.parse_block();
+                let span = m_start.merge(body.span);
+                methods.push(FnDef {
+                    name: m_name,
+                    type_params: vec![],
+                    params,
+                    return_type,
+                    body,
+                    is_pub: false,
+                    span,
+                });
+            } else {
+                self.advance();
+            }
+        }
+        let end = self.expect(&TokenKind::RBrace);
+        ImplBlock {
+            trait_name,
+            target_type,
+            methods,
+            span: start.merge(end),
+        }
+    }
+
+    /// Parse method parameters with support for bare `self`.
+    fn parse_method_params(&mut self, self_type_name: &str) -> Vec<Param> {
+        let mut params = Vec::new();
+        while *self.peek() != TokenKind::RParen && *self.peek() != TokenKind::Eof {
+            let start = self.span();
+            let name = self.expect_ident();
+
+            if name == "self" && *self.peek() != TokenKind::Colon {
+                // Bare `self` — type is inferred from impl target
+                let span = start.merge(self.span());
+                params.push(Param {
+                    name,
+                    ty: TypeExpr::Named {
+                        name: self_type_name.to_string(),
+                        span,
+                    },
+                    span,
+                });
+                if !self.eat(&TokenKind::Comma) {
+                    break;
+                }
+                continue;
+            }
+
+            // Regular parameter with type annotation
+            if *self.peek() != TokenKind::Colon {
+                let sp = self.span();
+                self.sink.emit(
+                    Diagnostic::new(DiagnosticCode::E0201)
+                        .with_message("missing type annotation")
+                        .with_label(
+                            sp,
+                            format!("parameter `{}` requires a type annotation", name),
+                        ),
+                );
+                while *self.peek() != TokenKind::Comma
+                    && *self.peek() != TokenKind::RParen
+                    && *self.peek() != TokenKind::Eof
+                {
+                    self.advance();
+                }
+                if self.eat(&TokenKind::Comma) {
+                    continue;
+                }
+                break;
+            }
+            self.expect(&TokenKind::Colon);
+            let ty = self.parse_type_expr();
+            let span = start.merge(self.span());
+            params.push(Param { name, ty, span });
+            if !self.eat(&TokenKind::Comma) {
+                break;
+            }
+        }
+        params
+    }
+
     // === Type expressions ===
 
     fn parse_type_expr(&mut self) -> TypeExpr {
@@ -520,19 +689,14 @@ impl<'a> Parser<'a> {
         let mut tail_expr = None;
 
         while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
-            // Check for v0 constraint violations inside blocks
+            // Check for reserved keyword violations inside blocks
             if let TokenKind::Reserved(kw) = self.peek() {
                 let kw = kw.clone();
                 let sp = self.span();
-                let code = match kw.as_str() {
-                    "for" => DiagnosticCode::E0303,
-                    "trait" => DiagnosticCode::E0300,
-                    "impl" => DiagnosticCode::E0304,
-                    _ => DiagnosticCode::E0003,
-                };
+                let code = DiagnosticCode::E0003;
                 self.sink.emit(
                     Diagnostic::new(code)
-                        .with_label(sp, format!("`{}` is not available in v0", kw)),
+                        .with_label(sp, format!("`{}` is not available in this version", kw)),
                 );
                 self.advance();
                 self.synchronize();
@@ -964,26 +1128,34 @@ impl<'a> Parser<'a> {
                 }
                 TokenKind::Dot => {
                     self.advance();
-                    // Check for method call (v0 forbidden)
                     let field = self.expect_ident();
                     if *self.peek() == TokenKind::LParen {
-                        let sp = expr.span().merge(self.span());
-                        self.sink.emit(
-                            Diagnostic::new(DiagnosticCode::E0301)
-                                .with_message("method call syntax is not available in v0; use function call syntax")
-                                .with_label(sp, "method call here"),
-                        );
-                        // Parse the call anyway for error recovery
-                        self.advance();
-                        let _args = self.parse_call_args();
+                        // Method call: expr.field(args) → Call { callee: FieldAccess, args }
+                        let field_span = expr.span().merge(self.span());
+                        let callee = Expr::FieldAccess {
+                            object: Box::new(expr),
+                            field,
+                            span: field_span,
+                        };
+                        self.advance(); // consume '('
+                        let args = self.parse_call_args();
+                        let end = self.span();
                         self.expect(&TokenKind::RParen);
+                        let span = callee.span().merge(end);
+                        expr = Expr::Call {
+                            callee: Box::new(callee),
+                            args,
+                            type_args: Vec::new(),
+                            span,
+                        };
+                    } else {
+                        let span = expr.span().merge(self.span());
+                        expr = Expr::FieldAccess {
+                            object: Box::new(expr),
+                            field,
+                            span,
+                        };
                     }
-                    let span = expr.span().merge(self.span());
-                    expr = Expr::FieldAccess {
-                        object: Box::new(expr),
-                        field,
-                        span,
-                    };
                 }
                 TokenKind::Question => {
                     let start = expr.span();

@@ -1,0 +1,18 @@
+trait Greet {
+    fn greet(self) -> String
+}
+
+struct Dog {
+    name: String,
+}
+
+impl Greet for Dog {
+    fn greet(self) -> String {
+        concat(String_from("Woof! I'm "), self.name)
+    }
+}
+
+fn main() {
+    let d: Dog = Dog { name: String_from("Rex") }
+    println(d.greet())
+}

@@ -11,7 +11,7 @@ use crate::mir::*;
 /// Lower a type-checked module to MIR.
 pub fn lower_to_mir(
     module: &ast::Module,
-    _checker: &TypeChecker,
+    checker: &TypeChecker,
     _sink: &mut DiagnosticSink,
 ) -> MirModule {
     let mut mir = MirModule::new();
@@ -115,7 +115,20 @@ pub fn lower_to_mir(
                 fn_return_types.insert(f.name.clone(), ret_ty.clone());
             }
         }
+        // Register impl method names with mangled format
+        if let ast::Item::ImplBlock(ib) = item {
+            for method in &ib.methods {
+                let mangled = format!("{}__{}", ib.target_type, method.name);
+                user_fn_names.insert(mangled.clone());
+                if let Some(ret_ty) = &method.return_type {
+                    fn_return_types.insert(mangled, ret_ty.clone());
+                }
+            }
+        }
     }
+
+    // Get method resolutions from the type checker
+    let method_resolutions = checker.method_resolutions.clone();
 
     for item in &module.items {
         if let ast::Item::FnDef(f) = item {
@@ -131,6 +144,7 @@ pub fn lower_to_mir(
                 enum_defs.clone(),
                 fn_return_types.clone(),
                 user_fn_names.clone(),
+                method_resolutions.clone(),
             );
 
             for param in &f.params {
@@ -269,6 +283,151 @@ pub fn lower_to_mir(
                 mir.functions.push(closure_fn);
             }
         }
+        // Lower impl method bodies as regular functions with mangled names
+        if let ast::Item::ImplBlock(ib) = item {
+            for method in &ib.methods {
+                let fn_id = FnId(next_fn_id);
+                next_fn_id += 1;
+                let mangled = format!("{}__{}", ib.target_type, method.name);
+
+                let mut ctx = LowerCtx::new(
+                    enum_tags.clone(),
+                    struct_defs.clone(),
+                    enum_variants.clone(),
+                    variant_to_enum.clone(),
+                    bare_variant_tags.clone(),
+                    enum_defs.clone(),
+                    fn_return_types.clone(),
+                    user_fn_names.clone(),
+                    method_resolutions.clone(),
+                );
+
+                for param in &method.params {
+                    let pid = ctx.declare_local(&param.name);
+                    if is_string_type(&param.ty) {
+                        ctx.string_locals.insert(pid.0);
+                    }
+                    if let ast::TypeExpr::Named { name: tname, .. } = &param.ty {
+                        if tname == "f64" {
+                            ctx.f64_locals.insert(pid.0);
+                        }
+                        if ctx.struct_defs.contains_key(tname.as_str()) {
+                            ctx.struct_typed_locals.insert(pid.0, tname.clone());
+                        }
+                        if ctx.enum_variants.contains_key(tname.as_str()) {
+                            ctx.enum_typed_locals.insert(pid.0, tname.clone());
+                        }
+                    }
+                    if let ast::TypeExpr::Generic { name: tname, .. } = &param.ty {
+                        if ctx.enum_variants.contains_key(tname.as_str()) {
+                            ctx.enum_typed_locals.insert(pid.0, tname.clone());
+                        }
+                    }
+                }
+
+                let entry = BlockId(0);
+                let mut stmts = ctx.lower_block(&method.body);
+
+                let tail_op = if let Some(tail) = &method.body.tail_expr {
+                    if is_void_expr(tail) {
+                        ctx.lower_expr_stmt(tail, &mut stmts);
+                        None
+                    } else {
+                        Some(ctx.lower_expr(tail))
+                    }
+                } else {
+                    None
+                };
+
+                let mir_fn = MirFunction {
+                    id: fn_id,
+                    name: mangled,
+                    params: method
+                        .params
+                        .iter()
+                        .enumerate()
+                        .map(|(i, p)| MirLocal {
+                            id: LocalId(i as u32),
+                            name: Some(p.name.clone()),
+                            ty: match &p.ty {
+                                ty if is_string_type(ty) => ark_typecheck::types::Type::String,
+                                ast::TypeExpr::Named { name, .. } if name == "f64" => {
+                                    ark_typecheck::types::Type::F64
+                                }
+                                ast::TypeExpr::Named { name, .. } if name == "f32" => {
+                                    ark_typecheck::types::Type::F32
+                                }
+                                ast::TypeExpr::Named { name, .. } if name == "i64" => {
+                                    ark_typecheck::types::Type::I64
+                                }
+                                ast::TypeExpr::Named { name, .. } if name == "bool" => {
+                                    ark_typecheck::types::Type::Bool
+                                }
+                                _ => ark_typecheck::types::Type::I32,
+                            },
+                        })
+                        .collect(),
+                    return_ty: match &method.return_type {
+                        Some(ty) if is_string_type(ty) => ark_typecheck::types::Type::String,
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "f64" => {
+                            ark_typecheck::types::Type::F64
+                        }
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "f32" => {
+                            ark_typecheck::types::Type::F32
+                        }
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "i64" => {
+                            ark_typecheck::types::Type::I64
+                        }
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => {
+                            ark_typecheck::types::Type::Bool
+                        }
+                        Some(_) => ark_typecheck::types::Type::I32,
+                        None => ark_typecheck::types::Type::Unit,
+                    },
+                    locals: ctx
+                        .locals
+                        .iter()
+                        .map(|(name, id)| MirLocal {
+                            id: *id,
+                            name: Some(name.clone()),
+                            ty: if ctx.string_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::String
+                            } else if ctx.f64_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::F64
+                            } else if ctx.i64_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::I64
+                            } else if ctx.bool_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::Bool
+                            } else if ctx.vec_string_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::Vec(Box::new(
+                                    ark_typecheck::types::Type::String,
+                                ))
+                            } else {
+                                ark_typecheck::types::Type::I32
+                            },
+                        })
+                        .collect(),
+                    blocks: vec![BasicBlock {
+                        id: entry,
+                        stmts,
+                        terminator: if let Some(op) = tail_op {
+                            Terminator::Return(Some(op))
+                        } else {
+                            Terminator::Return(None)
+                        },
+                    }],
+                    entry,
+                };
+
+                mir.functions.push(mir_fn);
+
+                for mut closure_fn in ctx.pending_closures.drain(..) {
+                    let closure_id = FnId(mir.functions.len() as u32);
+                    closure_fn.id = closure_id;
+                    mir.functions.push(closure_fn);
+                }
+            }
+        }
     }
 
     mir.struct_defs = struct_defs;
@@ -317,6 +476,8 @@ struct LowerCtx {
     closure_counter: u32,
     /// Synthetic closure function name -> captured variable names (for call-site injection).
     closure_fn_captures: HashMap<String, Vec<String>>,
+    /// Method call resolutions from type checker: span_start -> (mangled_name, struct_name)
+    method_resolutions: HashMap<u32, (String, String)>,
 }
 
 impl LowerCtx {
@@ -330,6 +491,7 @@ impl LowerCtx {
         enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
         fn_return_types: HashMap<String, ast::TypeExpr>,
         user_fn_names: HashSet<String>,
+        method_resolutions: HashMap<u32, (String, String)>,
     ) -> Self {
         Self {
             locals: Vec::new(),
@@ -355,6 +517,7 @@ impl LowerCtx {
             pending_closures: Vec::new(),
             closure_counter: 0,
             closure_fn_captures: HashMap::new(),
+            method_resolutions,
         }
     }
 
@@ -398,6 +561,61 @@ impl LowerCtx {
                 } else {
                     None
                 }
+            }
+            ast::Expr::Call { callee, .. } => {
+                // For method calls returning struct, check return type
+                if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref() {
+                    let struct_name = self.infer_struct_type(object)?;
+                    let mangled = format!("{}__{}", struct_name, field);
+                    if let Some(ast::TypeExpr::Named { name, .. }) =
+                        self.fn_return_types.get(&mangled)
+                    {
+                        if self.struct_defs.contains_key(name.as_str()) {
+                            return Some(name.clone());
+                        }
+                    }
+                }
+                None
+            }
+            _ => None,
+        }
+    }
+
+    /// Infer struct name from an init expression (e.g., StructInit or function call returning struct)
+    fn infer_struct_from_init(&self, expr: &ast::Expr) -> Option<String> {
+        match expr {
+            ast::Expr::StructInit { name, .. } => {
+                if self.struct_defs.contains_key(name.as_str()) {
+                    Some(name.clone())
+                } else {
+                    None
+                }
+            }
+            ast::Expr::Call { callee, .. } => {
+                // Check if function returns a struct type
+                if let ast::Expr::Ident { name, .. } = callee.as_ref() {
+                    if let Some(ast::TypeExpr::Named { name: tname, .. }) =
+                        self.fn_return_types.get(name)
+                    {
+                        if self.struct_defs.contains_key(tname.as_str()) {
+                            return Some(tname.clone());
+                        }
+                    }
+                }
+                // Check method call returning struct
+                if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref() {
+                    if let Some(struct_name) = self.infer_struct_type(object) {
+                        let mangled = format!("{}__{}", struct_name, field);
+                        if let Some(ast::TypeExpr::Named { name: tname, .. }) =
+                            self.fn_return_types.get(&mangled)
+                        {
+                            if self.struct_defs.contains_key(tname.as_str()) {
+                                return Some(tname.clone());
+                            }
+                        }
+                    }
+                }
+                None
             }
             _ => None,
         }
@@ -742,6 +960,13 @@ impl LowerCtx {
                 // Infer String from initializer when there's no explicit type annotation
                 if !self.string_locals.contains(&local_id.0) && self.is_string_operand_mir(&op) {
                     self.string_locals.insert(local_id.0);
+                }
+                // Infer struct type from StructInit initializer when there's no type annotation
+                #[allow(clippy::map_entry)]
+                if !self.struct_typed_locals.contains_key(&local_id.0) {
+                    if let Some(sname) = self.infer_struct_from_init(init) {
+                        self.struct_typed_locals.insert(local_id.0, sname);
+                    }
                 }
                 // Track closure locals: if the init expression was a closure, record captures
                 if let Operand::FnRef(ref fn_name) = op {
@@ -1473,7 +1698,9 @@ impl LowerCtx {
                 let inner = self.lower_expr(operand);
                 Operand::UnaryOp(lower_unaryop(op), Box::new(inner))
             }
-            ast::Expr::Call { callee, args, .. } => {
+            ast::Expr::Call {
+                callee, args, span, ..
+            } => {
                 if let ast::Expr::Ident { name, .. } = callee.as_ref() {
                     // Check if this is a bare enum variant constructor (e.g., Some(42), Ok(100))
                     if let Some((enum_name, tag, _field_count)) =
@@ -1585,6 +1812,28 @@ impl LowerCtx {
                     // Loaded modules are flattened into the merged module, so codegen resolves by item name.
                     let mir_args: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
                     Operand::Call(name.clone(), mir_args)
+                } else if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref() {
+                    // Method call: x.method(args) → TypeName__method(x, args)
+                    if let Some((mangled, _struct_name)) =
+                        self.method_resolutions.get(&span.start).cloned()
+                    {
+                        let self_arg = self.lower_expr(object);
+                        let mut all_args = vec![self_arg];
+                        all_args.extend(args.iter().map(|a| self.lower_expr(a)));
+                        Operand::Call(mangled, all_args)
+                    } else {
+                        // Fallback: try to infer struct type and look up method
+                        if let Some(struct_name) = self.infer_struct_type(object) {
+                            let mangled = format!("{}__{}", struct_name, field);
+                            if self.user_fn_names.contains(&mangled) {
+                                let self_arg = self.lower_expr(object);
+                                let mut all_args = vec![self_arg];
+                                all_args.extend(args.iter().map(|a| self.lower_expr(a)));
+                                return Operand::Call(mangled, all_args);
+                            }
+                        }
+                        Operand::Unit
+                    }
                 } else {
                     Operand::Unit
                 }
@@ -1787,6 +2036,7 @@ impl LowerCtx {
                     self.enum_defs.clone(),
                     self.fn_return_types.clone(),
                     self.user_fn_names.clone(),
+                    self.method_resolutions.clone(),
                 );
                 for p in &mir_params {
                     let lid = sub_ctx.declare_local(p.name.as_deref().unwrap_or("_"));

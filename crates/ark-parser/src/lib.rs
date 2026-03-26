@@ -132,13 +132,14 @@ mod tests {
     }
 
     #[test]
-    fn test_trait_rejected() {
-        let (_, sink) = parse_src("trait Foo { }");
-        assert!(sink.has_errors());
+    fn test_trait_parsing() {
+        let (module, sink) = parse_src("trait Foo { fn bar(self) -> i32 }");
+        assert!(!sink.has_errors());
         assert!(
-            sink.diagnostics()
+            module
+                .items
                 .iter()
-                .any(|d| d.code == ark_diagnostics::DiagnosticCode::E0300)
+                .any(|i| matches!(i, ast::Item::TraitDef(_)))
         );
     }
 
@@ -271,13 +272,15 @@ mod tests {
     }
 
     #[test]
-    fn test_impl_rejected() {
-        let (_, sink) = parse_src("impl Foo { }");
-        assert!(sink.has_errors());
+    fn test_impl_parsing() {
+        let (module, sink) =
+            parse_src("struct Foo { x: i32 }\nimpl Foo { fn get_x(self) -> i32 { self.x } }");
+        assert!(!sink.has_errors());
         assert!(
-            sink.diagnostics()
+            module
+                .items
                 .iter()
-                .any(|d| d.code == ark_diagnostics::DiagnosticCode::E0304)
+                .any(|i| matches!(i, ast::Item::ImplBlock(_)))
         );
     }
 

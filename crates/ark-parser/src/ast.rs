@@ -21,6 +21,8 @@ pub enum Item {
     FnDef(FnDef),
     StructDef(StructDef),
     EnumDef(EnumDef),
+    TraitDef(TraitDef),
+    ImplBlock(ImplBlock),
 }
 
 #[derive(Debug, Clone)]
@@ -81,6 +83,32 @@ pub enum Variant {
         fields: Vec<Field>,
         span: Span,
     },
+}
+
+/// A method signature in a trait definition (no body).
+#[derive(Debug, Clone)]
+pub struct TraitMethodSig {
+    pub name: String,
+    pub params: Vec<Param>,
+    pub return_type: Option<TypeExpr>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct TraitDef {
+    pub name: String,
+    pub type_params: Vec<String>,
+    pub methods: Vec<TraitMethodSig>,
+    pub is_pub: bool,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImplBlock {
+    pub trait_name: Option<String>,
+    pub target_type: String,
+    pub methods: Vec<FnDef>,
+    pub span: Span,
 }
 
 /// Type expression in source.

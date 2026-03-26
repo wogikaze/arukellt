@@ -39,7 +39,11 @@ pub enum TokenKind {
     Import,
     As,
 
-    // Reserved keywords (v1)
+    // Keywords (v1)
+    Trait,
+    Impl,
+
+    // Reserved keywords (future)
     Reserved(String),
 
     // Literals
@@ -123,6 +127,8 @@ impl TokenKind {
                 | TokenKind::Pub
                 | TokenKind::Import
                 | TokenKind::As
+                | TokenKind::Trait
+                | TokenKind::Impl
                 | TokenKind::BoolLit(_)
                 | TokenKind::Reserved(_)
         )
@@ -498,12 +504,12 @@ impl<'src> Lexer<'src> {
             "pub" => TokenKind::Pub,
             "import" => TokenKind::Import,
             "as" => TokenKind::As,
+            "trait" => TokenKind::Trait,
+            "impl" => TokenKind::Impl,
             "true" => TokenKind::BoolLit(true),
             "false" => TokenKind::BoolLit(false),
-            "trait" | "impl" | "async" | "await" | "dyn" | "where" | "type" | "const"
-            | "unsafe" | "extern" | "use" | "mod" | "super" | "self" | "Self" => {
-                TokenKind::Reserved(text.to_owned())
-            }
+            "async" | "await" | "dyn" | "where" | "type" | "const" | "unsafe" | "extern"
+            | "use" | "mod" | "super" | "Self" => TokenKind::Reserved(text.to_owned()),
             _ => {
                 // f"..." string interpolation
                 if text == "f" && self.peek() == Some(b'"') {
@@ -1026,8 +1032,8 @@ mod tests {
     #[test]
     fn reserved_keywords() {
         let reserved = [
-            "trait", "impl", "async", "await", "dyn", "where", "type", "const", "unsafe", "extern",
-            "use", "mod", "super", "self", "Self",
+            "async", "await", "dyn", "where", "type", "const", "unsafe", "extern", "use", "mod",
+            "super", "Self",
         ];
         for kw in reserved {
             assert_eq!(
@@ -1036,6 +1042,14 @@ mod tests {
                 "failed for reserved keyword: {kw}"
             );
         }
+        // trait and impl are first-class keywords, not reserved
+        assert_eq!(kinds("trait"), vec![TokenKind::Trait, TokenKind::Eof]);
+        assert_eq!(kinds("impl"), vec![TokenKind::Impl, TokenKind::Eof]);
+        // self is a regular identifier
+        assert_eq!(
+            kinds("self"),
+            vec![TokenKind::Ident("self".to_string()), TokenKind::Eof]
+        );
     }
 
     // ── Identifiers ──────────────────────────────────────────────────────
@@ -1471,7 +1485,7 @@ mod tests {
     fn is_keyword_check() {
         assert!(TokenKind::Fn.is_keyword());
         assert!(TokenKind::BoolLit(true).is_keyword());
-        assert!(TokenKind::Reserved("trait".into()).is_keyword());
+        assert!(TokenKind::Trait.is_keyword());
         assert!(!TokenKind::Ident("foo".into()).is_keyword());
         assert!(!TokenKind::Plus.is_keyword());
     }

@@ -107,6 +107,12 @@ pub struct TypeChecker {
     pub struct_defs: HashMap<String, StructInfo>,
     pub enum_defs: HashMap<String, EnumInfo>,
     pub fn_sigs: HashMap<String, FnSig>,
+    /// Maps (struct_name, method_name) to the mangled function name
+    pub method_table: HashMap<(String, String), String>,
+    /// Trait definitions: trait_name -> list of (method_name, params_types, return_type)
+    pub trait_defs: HashMap<String, Vec<(String, Vec<Type>, Type)>>,
+    /// Maps call expression span start to (mangled_fn_name, self_type_name)
+    pub method_resolutions: HashMap<u32, (String, String)>,
     next_type_id: u32,
     next_type_var: u32,
     current_fn_return_type: Option<Type>,
@@ -118,6 +124,9 @@ impl TypeChecker {
             struct_defs: HashMap::new(),
             enum_defs: HashMap::new(),
             fn_sigs: HashMap::new(),
+            method_table: HashMap::new(),
+            trait_defs: HashMap::new(),
+            method_resolutions: HashMap::new(),
             next_type_id: 0,
             next_type_var: 0,
             current_fn_return_type: None,
@@ -469,6 +478,26 @@ impl TypeChecker {
                 type_params: vec![],
                 params: vec![Type::Option(Box::new(Type::I32)), Type::I32],
                 ret: Type::Option(Box::new(Type::I32)),
+            },
+        );
+        // any_i32(Vec<i32>, fn_idx) -> bool
+        self.fn_sigs.insert(
+            "__intrinsic_any_i32".into(),
+            FnSig {
+                name: "__intrinsic_any_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+                ret: Type::Bool,
+            },
+        );
+        // find_i32(Vec<i32>, fn_idx) -> Option<i32>
+        self.fn_sigs.insert(
+            "__intrinsic_find_i32".into(),
+            FnSig {
+                name: "__intrinsic_find_i32".into(),
+                type_params: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+                ret: Type::I32,
             },
         );
 
@@ -1145,6 +1174,50 @@ impl TypeChecker {
                         },
                     );
                 }
+                ast::Item::TraitDef(t) => {
+                    let mut methods = Vec::new();
+                    for m in &t.methods {
+                        let params: Vec<Type> = m
+                            .params
+                            .iter()
+                            .map(|p| self.resolve_type_expr(&p.ty))
+                            .collect();
+                        let ret = m
+                            .return_type
+                            .as_ref()
+                            .map(|r| self.resolve_type_expr(r))
+                            .unwrap_or(Type::Unit);
+                        methods.push((m.name.clone(), params, ret));
+                    }
+                    self.trait_defs.insert(t.name.clone(), methods);
+                }
+                ast::Item::ImplBlock(ib) => {
+                    // Register each method with mangled name
+                    for method in &ib.methods {
+                        let mangled = format!("{}__{}", ib.target_type, method.name);
+                        let params: Vec<Type> = method
+                            .params
+                            .iter()
+                            .map(|p| self.resolve_type_expr(&p.ty))
+                            .collect();
+                        let ret = method
+                            .return_type
+                            .as_ref()
+                            .map(|t| self.resolve_type_expr(t))
+                            .unwrap_or(Type::Unit);
+                        self.fn_sigs.insert(
+                            mangled.clone(),
+                            FnSig {
+                                name: mangled.clone(),
+                                type_params: vec![],
+                                params,
+                                ret,
+                            },
+                        );
+                        self.method_table
+                            .insert((ib.target_type.clone(), method.name.clone()), mangled);
+                    }
+                }
             }
         }
 
@@ -1152,6 +1225,15 @@ impl TypeChecker {
         for item in &resolved.module.items {
             if let ast::Item::FnDef(f) = item {
                 self.check_function(f, sink);
+            }
+        }
+
+        // Type check impl method bodies
+        for item in &resolved.module.items {
+            if let ast::Item::ImplBlock(ib) = item {
+                for method in &ib.methods {
+                    self.check_function(method, sink);
+                }
             }
         }
     }
@@ -1382,7 +1464,54 @@ impl TypeChecker {
                 let operand_ty = self.synthesize_expr(operand, env, sink);
                 self.check_unary_op(op, &operand_ty, sink)
             }
-            ast::Expr::Call { callee, args, .. } => {
+            ast::Expr::Call {
+                callee, args, span, ..
+            } => {
+                // Check for method call: x.method(args)
+                if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref() {
+                    let obj_ty = self.synthesize_expr(object, env, sink);
+                    if let Type::Struct(type_id) = &obj_ty {
+                        // Find struct name from type_id
+                        let struct_name = self
+                            .struct_defs
+                            .values()
+                            .find(|s| s.type_id == *type_id)
+                            .map(|s| s.name.clone());
+                        if let Some(sname) = struct_name {
+                            let mangled = format!("{}__{}", sname, field);
+                            if let Some(sig) = self.fn_sigs.get(&mangled).cloned() {
+                                // Method found — type check args (skip self param)
+                                let expected_params = if sig.params.len() > 1 {
+                                    &sig.params[1..]
+                                } else {
+                                    &[]
+                                };
+                                if args.len() != expected_params.len() {
+                                    sink.emit(Diagnostic::new(DiagnosticCode::E0202).with_message(
+                                        format!(
+                                            "method `{}` expected {} argument(s), found {}",
+                                            field,
+                                            expected_params.len(),
+                                            args.len()
+                                        ),
+                                    ));
+                                }
+                                for a in args {
+                                    self.synthesize_expr(a, env, sink);
+                                }
+                                // Record method resolution for MIR lowering
+                                self.method_resolutions.insert(span.start, (mangled, sname));
+                                return sig.ret;
+                            }
+                        }
+                    }
+                    // Not a method call — synthesize args but return I32 (struct field or error)
+                    for a in args {
+                        self.synthesize_expr(a, env, sink);
+                    }
+                    return Type::I32;
+                }
+
                 let callee_ty = self.synthesize_expr(callee, env, sink);
                 match callee_ty {
                     Type::Function { params, ret } => {
@@ -1704,9 +1833,67 @@ impl TypeChecker {
                     Type::Error
                 }
             }
-            _ => {
-                // TODO: handle remaining expression types
-                Type::Error
+            ast::Expr::FieldAccess { object, field, .. } => {
+                let obj_ty = self.synthesize_expr(object, env, sink);
+                if let Type::Struct(type_id) = &obj_ty {
+                    if let Some(info) = self.struct_defs.values().find(|s| s.type_id == *type_id) {
+                        if let Some((_, field_ty)) =
+                            info.fields.iter().find(|(name, _)| name == field)
+                        {
+                            return field_ty.clone();
+                        }
+                    }
+                }
+                // Struct field access at Wasm level is always i32 (pointer)
+                Type::I32
+            }
+            ast::Expr::StructInit { name, fields, .. } => {
+                let type_id = self.struct_defs.get(name).map(|info| info.type_id);
+                for (_fname, fexpr) in fields {
+                    self.synthesize_expr(fexpr, env, sink);
+                }
+                if let Some(tid) = type_id {
+                    Type::Struct(tid)
+                } else {
+                    Type::I32
+                }
+            }
+            ast::Expr::Closure { params, body, .. } => {
+                let mut param_types = Vec::new();
+                let mut child_env = env.child();
+                for p in params {
+                    let ty = if let Some(ty_expr) = &p.ty {
+                        self.resolve_type_expr(ty_expr)
+                    } else {
+                        Type::I32
+                    };
+                    child_env.bind(p.name.clone(), ty.clone());
+                    param_types.push(ty);
+                }
+                let ret_ty = self.synthesize_expr(body, &mut child_env, sink);
+                Type::Function {
+                    params: param_types,
+                    ret: Box::new(ret_ty),
+                }
+            }
+            ast::Expr::QualifiedIdent { module, name, .. } => {
+                // Qualified enum variant or module function reference
+                let qualified = format!("{}::{}", module, name);
+                if let Some(sig) = self.fn_sigs.get(&qualified).cloned() {
+                    Type::Function {
+                        params: sig.params,
+                        ret: Box::new(sig.ret),
+                    }
+                } else if let Some(sig) = self.fn_sigs.get(name).cloned() {
+                    Type::Function {
+                        params: sig.params,
+                        ret: Box::new(sig.ret),
+                    }
+                } else {
+                    // Enum variant constructors and other qualified names
+                    // are not fully typed yet — return Error to avoid false positives
+                    Type::Error
+                }
             }
         }
     }

@@ -144,3 +144,11 @@ pub fn fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
 pub fn map_option_i32_i32(o: Option<i32>, f: fn(i32) -> i32) -> Option<i32> {
     __intrinsic_map_option_i32_i32(o, f)
 }
+
+pub fn any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
+    __intrinsic_any_i32(v, f)
+}
+
+pub fn find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32> {
+    __intrinsic_find_i32(v, f)
+}

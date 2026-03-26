@@ -1,1 +1,1 @@
-error[E0304]:
+error: runtime: wasm compile error: WebAssembly translation error

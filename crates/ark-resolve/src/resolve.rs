@@ -115,6 +115,8 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "__intrinsic_filter_i32",
     "__intrinsic_fold_i32_i32",
     "__intrinsic_map_option_i32_i32",
+    "__intrinsic_any_i32",
+    "__intrinsic_find_i32",
 ];
 
 /// Inject prelude symbols into the global scope.
@@ -227,6 +229,29 @@ fn collect_module_items_impl(
                             e.span,
                         );
                     }
+                }
+            }
+            ast::Item::TraitDef(t) => {
+                if pub_only && !t.is_pub {
+                    continue;
+                }
+                symbols.define(
+                    global_scope,
+                    t.name.clone(),
+                    SymbolKind::Struct { is_pub: t.is_pub },
+                    t.span,
+                );
+            }
+            ast::Item::ImplBlock(ib) => {
+                // Register each method as a mangled function: TypeName__method_name
+                for method in &ib.methods {
+                    let mangled = format!("{}__{}", ib.target_type, method.name);
+                    symbols.define(
+                        global_scope,
+                        mangled,
+                        SymbolKind::Function { is_pub: false },
+                        method.span,
+                    );
                 }
             }
         }
@@ -377,6 +402,8 @@ pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
                 ast::Item::FnDef(f) => f.is_pub,
                 ast::Item::StructDef(s) => s.is_pub,
                 ast::Item::EnumDef(e) => e.is_pub,
+                ast::Item::TraitDef(t) => t.is_pub,
+                ast::Item::ImplBlock(_) => false,
             };
             if is_pub {
                 module.items.push(item.clone());
