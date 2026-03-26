@@ -212,11 +212,12 @@ impl EmitCtx {
         }
     }
 
-    /// Returns byte size and whether a field type is f64 (needs F64Store/F64Load)
-    fn field_type_info(type_str: &str) -> (u32, bool) {
+    /// Returns (byte_size, is_f64, is_i64) for a field type string.
+    fn field_type_info(type_str: &str) -> (u32, bool, bool) {
         match type_str {
-            "f64" => (8, true),
-            _ => (4, false), // i32, bool, char, String ptr, struct ptr, enum ptr
+            "f64" => (8, true, false),
+            "i64" => (8, false, true),
+            _ => (4, false, false), // i32, bool, char, String ptr, struct ptr, enum ptr
         }
     }
 

@@ -1173,7 +1173,7 @@ impl TypeChecker {
                 type_params: vec![],
                 type_param_bounds: vec![],
                 params: vec![Type::String],
-                ret: Type::I64,
+                ret: Type::Result(Box::new(Type::I64), Box::new(Type::String)),
             },
         );
         self.fn_sigs.insert(
@@ -1183,7 +1183,7 @@ impl TypeChecker {
                 type_params: vec![],
                 type_param_bounds: vec![],
                 params: vec![Type::String],
-                ret: Type::F64,
+                ret: Type::Result(Box::new(Type::F64), Box::new(Type::String)),
             },
         );
 

@@ -13,14 +13,32 @@ use ark_typecheck::types::Type as CheckerType;
 /// Convert a type-checker `Type` to an AST `TypeExpr` for Result/Option propagation.
 /// Returns `None` for types that don't need propagation (primitives, etc.).
 fn type_to_type_expr(ty: &CheckerType) -> Option<ast::TypeExpr> {
-    let dummy = ast::Span { start: 0, end: 0 };
+    let dummy = ark_diagnostics::Span::new(0, 0, 0);
     match ty {
-        CheckerType::I32 => Some(ast::TypeExpr::Named { name: "i32".into(), span: dummy }),
-        CheckerType::I64 => Some(ast::TypeExpr::Named { name: "i64".into(), span: dummy }),
-        CheckerType::F32 => Some(ast::TypeExpr::Named { name: "f32".into(), span: dummy }),
-        CheckerType::F64 => Some(ast::TypeExpr::Named { name: "f64".into(), span: dummy }),
-        CheckerType::Bool => Some(ast::TypeExpr::Named { name: "bool".into(), span: dummy }),
-        CheckerType::String => Some(ast::TypeExpr::Named { name: "String".into(), span: dummy }),
+        CheckerType::I32 => Some(ast::TypeExpr::Named {
+            name: "i32".into(),
+            span: dummy,
+        }),
+        CheckerType::I64 => Some(ast::TypeExpr::Named {
+            name: "i64".into(),
+            span: dummy,
+        }),
+        CheckerType::F32 => Some(ast::TypeExpr::Named {
+            name: "f32".into(),
+            span: dummy,
+        }),
+        CheckerType::F64 => Some(ast::TypeExpr::Named {
+            name: "f64".into(),
+            span: dummy,
+        }),
+        CheckerType::Bool => Some(ast::TypeExpr::Named {
+            name: "bool".into(),
+            span: dummy,
+        }),
+        CheckerType::String => Some(ast::TypeExpr::Named {
+            name: "String".into(),
+            span: dummy,
+        }),
         CheckerType::Unit => Some(ast::TypeExpr::Unit(dummy)),
         CheckerType::Result(ok, err) => {
             let ok_te = type_to_type_expr(ok)?;
