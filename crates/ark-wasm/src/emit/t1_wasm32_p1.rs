@@ -222,18 +222,18 @@ impl EmitCtx {
     }
 
     /// Compute field offset and type info for a struct
-    fn struct_field_info(&self, struct_name: &str, field_name: &str) -> (u32, bool) {
+    fn struct_field_info(&self, struct_name: &str, field_name: &str) -> (u32, bool, bool) {
         if let Some(fields) = self.struct_layouts.get(struct_name) {
             let mut offset = 0u32;
             for (fname, ftype) in fields {
-                let (size, is_f64) = Self::field_type_info(ftype);
+                let (size, is_f64, is_i64) = Self::field_type_info(ftype);
                 if fname == field_name {
-                    return (offset, is_f64);
+                    return (offset, is_f64, is_i64);
                 }
                 offset += size;
             }
         }
-        (0, false)
+        (0, false, false)
     }
 
     /// Total size of a struct in bytes
@@ -249,27 +249,27 @@ impl EmitCtx {
     }
 
     /// Get payload offset and type info for an enum variant field
-    /// Returns (offset_from_tag, is_f64) for a given field index
+    /// Returns (offset_from_tag, is_f64, is_i64) for a given field index
     fn enum_payload_info(
         &self,
         enum_name: &str,
         variant_name: &str,
         field_index: usize,
-    ) -> (u32, bool) {
+    ) -> (u32, bool, bool) {
         if let Some(variants) = self.enum_payload_types.get(enum_name) {
             if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant_name) {
                 let mut offset = 4u32; // skip tag
                 for (i, ftype) in types.iter().enumerate() {
-                    let (size, is_f64) = Self::field_type_info(ftype);
+                    let (size, is_f64, is_i64) = Self::field_type_info(ftype);
                     if i == field_index {
-                        return (offset, is_f64);
+                        return (offset, is_f64, is_i64);
                     }
                     offset += size;
                 }
             }
         }
         // Fallback: assume all i32
-        (4 + field_index as u32 * 4, false)
+        (4 + field_index as u32 * 4, false, false)
     }
 
     /// Total size of an enum variant (tag + all payloads)
@@ -2983,10 +2983,10 @@ impl EmitCtx {
                 // Field store: struct_ptr.field = value
                 if let Place::Local(base_id) = base.as_ref() {
                     let struct_name = self.local_struct_names.get(&base_id.0).cloned();
-                    let (offset, is_f64) = if let Some(ref sname) = struct_name {
+                    let (offset, is_f64, is_i64) = if let Some(ref sname) = struct_name {
                         self.struct_field_info(sname, field_name)
                     } else {
-                        (0, false)
+                        (0, false, false)
                     };
                     // Push object pointer (base address)
                     f.instruction(&Instruction::LocalGet(base_id.0));
@@ -2999,6 +2999,12 @@ impl EmitCtx {
                     // Store at the field location
                     if is_f64 {
                         f.instruction(&Instruction::F64Store(MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        }));
+                    } else if is_i64 {
+                        f.instruction(&Instruction::I64Store(MemArg {
                             offset: 0,
                             align: 3,
                             memory_index: 0,
@@ -5600,8 +5606,8 @@ impl EmitCtx {
                         f.instruction(&Instruction::End); // end if/else
                     }
                     "parse_i64" => {
-                        // parse_i64(s: String) -> i64
-                        // Returns parsed i64, or 0 on error
+                        // parse_i64(s: String) -> Result<i64, String>
+                        // Returns enum ptr: tag=0 (Ok) + i64 payload, or tag=1 (Err) + string payload
                         let ma = MemArg {
                             offset: 0,
                             align: 2,
@@ -5614,7 +5620,7 @@ impl EmitCtx {
                         };
                         let ma8 = MemArg {
                             offset: 0,
-                            align: 2,
+                            align: 3,
                             memory_index: 0,
                         };
                         // Save string ptr to SCRATCH+8
@@ -5748,14 +5754,55 @@ impl EmitCtx {
                         f.instruction(&Instruction::End); // end loop
                         f.instruction(&Instruction::End); // end block
 
-                        // Produce result: if is_err → 0i64, else → value (negated if needed)
+                        // Build Result enum on heap
+                        // Layout: [tag:4][payload:8] = 12 bytes
                         f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
-                            ValType::I64,
+                            ValType::I32,
                         )));
                         {
-                            f.instruction(&Instruction::I64Const(0));
+                            // Build Err Result: tag=1, payload=error string ptr
+                            let err_msg = b"parse error: invalid integer";
+                            let err_len = err_msg.len() as i32;
+                            // Allocate string on heap: [len:4][data:N]
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(err_len));
+                            f.instruction(&Instruction::I32Store(ma)); // store len at heap_ptr
+                            for (j, &b) in err_msg.iter().enumerate() {
+                                f.instruction(&Instruction::GlobalGet(0));
+                                f.instruction(&Instruction::I32Const(4 + j as i32));
+                                f.instruction(&Instruction::I32Add);
+                                f.instruction(&Instruction::I32Const(b as i32));
+                                f.instruction(&Instruction::I32Store8(ma0));
+                            }
+                            // str_ptr = heap_ptr + 4
+                            f.instruction(&Instruction::I32Const((SCRATCH + 32) as i32));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Store(ma));
+                            // Bump heap past string
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4 + err_len));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
+                            // Build enum: [tag=1][str_ptr:i32 at offset 4]
+                            f.instruction(&Instruction::GlobalGet(0)); // enum_base (result on stack)
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(1)); // tag = Err
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const((SCRATCH + 32) as i32));
+                            f.instruction(&Instruction::I32Load(ma)); // str_ptr
+                            f.instruction(&Instruction::I32Store(ma));
+                            // Bump heap past enum (12 bytes for i64 payload alignment)
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(12));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
                         }
                         f.instruction(&Instruction::Else);
                         {
@@ -5770,9 +5817,22 @@ impl EmitCtx {
                             f.instruction(&Instruction::I64Sub);
                             f.instruction(&Instruction::I64Store(ma8)); // result = -result
                             f.instruction(&Instruction::End);
-                            // Push result
+                            // Build Result::Ok(value) enum on heap: [tag=0][i64 payload at offset 4]
+                            f.instruction(&Instruction::GlobalGet(0)); // save base (result on stack)
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(0)); // tag = Ok
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                            f.instruction(&Instruction::I64Load(ma8));
+                            f.instruction(&Instruction::I64Load(ma8)); // i64 result
+                            f.instruction(&Instruction::I64Store(ma8));
+                            // Bump heap past enum (12 bytes)
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(12));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
                         }
                         f.instruction(&Instruction::End); // end if/else
                     }
@@ -5806,8 +5866,8 @@ impl EmitCtx {
                         }));
                     }
                     "parse_f64" => {
-                        // parse_f64(s: String) -> f64
-                        // Returns parsed f64, or 0.0 on error
+                        // parse_f64(s: String) -> Result<f64, String>
+                        // Returns enum ptr: tag=0 (Ok) + f64 payload, or tag=1 (Err) + string payload
                         let ma = MemArg {
                             offset: 0,
                             align: 2,
@@ -5820,7 +5880,7 @@ impl EmitCtx {
                         };
                         let ma_f64 = MemArg {
                             offset: 0,
-                            align: 2,
+                            align: 3,
                             memory_index: 0,
                         };
                         // Save string ptr to SCRATCH+8
@@ -6001,23 +6061,62 @@ impl EmitCtx {
                         f.instruction(&Instruction::End); // end loop
                         f.instruction(&Instruction::End); // end block
 
-                        // Produce result
+                        // Build Result enum on heap
+                        // Layout: [tag:4][payload:8] = 12 bytes
                         f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
-                            ValType::F64,
+                            ValType::I32,
                         )));
                         {
-                            f.instruction(&Instruction::F64Const(0.0));
+                            // Build Err Result: tag=1, payload=error string ptr
+                            let err_msg = b"parse error: invalid float";
+                            let err_len = err_msg.len() as i32;
+                            // Allocate string on heap: [len:4][data:N]
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(err_len));
+                            f.instruction(&Instruction::I32Store(ma)); // store len at heap_ptr
+                            for (j, &b) in err_msg.iter().enumerate() {
+                                f.instruction(&Instruction::GlobalGet(0));
+                                f.instruction(&Instruction::I32Const(4 + j as i32));
+                                f.instruction(&Instruction::I32Add);
+                                f.instruction(&Instruction::I32Const(b as i32));
+                                f.instruction(&Instruction::I32Store8(ma0));
+                            }
+                            // str_ptr = heap_ptr + 4
+                            f.instruction(&Instruction::I32Const((SCRATCH + 32) as i32));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Store(ma));
+                            // Bump heap past string
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4 + err_len));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
+                            // Build enum: [tag=1][str_ptr:i32 at offset 4]
+                            f.instruction(&Instruction::GlobalGet(0)); // enum_base (result on stack)
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(1)); // tag = Err
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const((SCRATCH + 32) as i32));
+                            f.instruction(&Instruction::I32Load(ma)); // str_ptr
+                            f.instruction(&Instruction::I32Store(ma));
+                            // Bump heap past enum (12 bytes)
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(12));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
                         }
                         f.instruction(&Instruction::Else);
                         {
                             // Compute divisor = 10^decimal_count via loop
-                            // Store divisor at SCRATCH+44 (f64, 8 bytes)
                             f.instruction(&Instruction::I32Const((SCRATCH + 44) as i32));
                             f.instruction(&Instruction::F64Const(1.0));
                             f.instruction(&Instruction::F64Store(ma_f64)); // divisor = 1.0
-                            // Loop: while decimal_count > 0, divisor *= 10.0
                             f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
                             f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
                             f.instruction(&Instruction::I32Const((SCRATCH + 40) as i32));
@@ -6066,9 +6165,22 @@ impl EmitCtx {
                             f.instruction(&Instruction::F64Store(ma_f64));
                             f.instruction(&Instruction::End);
 
-                            // Push result
+                            // Build Result::Ok(value) enum on heap: [tag=0][f64 payload at offset 4]
+                            f.instruction(&Instruction::GlobalGet(0)); // save base (result on stack)
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(0)); // tag = Ok
+                            f.instruction(&Instruction::I32Store(ma));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(4));
+                            f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                            f.instruction(&Instruction::F64Load(ma_f64));
+                            f.instruction(&Instruction::F64Load(ma_f64)); // f64 result
+                            f.instruction(&Instruction::F64Store(ma_f64));
+                            // Bump heap past enum (12 bytes)
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(12));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::GlobalSet(0));
                         }
                         f.instruction(&Instruction::End); // end if/else
                     }
@@ -7520,10 +7632,10 @@ impl EmitCtx {
                 // Store each field at saved_base + field_offset
                 let mut offset = 0u32;
                 for (i, (_fname, fval)) in fields.iter().enumerate() {
-                    let (fsize, is_f64) = layout_fields
+                    let (fsize, is_f64, is_i64) = layout_fields
                         .get(i)
                         .map(|(_, ftype)| Self::field_type_info(ftype))
-                        .unwrap_or((4, false));
+                        .unwrap_or((4, false, false));
                     // Load saved base
                     f.instruction(&Instruction::I32Const(save_addr as i32));
                     f.instruction(&Instruction::I32Load(ma_i32));
@@ -7534,6 +7646,12 @@ impl EmitCtx {
                     self.emit_operand(f, fval);
                     if is_f64 {
                         f.instruction(&Instruction::F64Store(ma_f64));
+                    } else if is_i64 {
+                        f.instruction(&Instruction::I64Store(MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        }));
                     } else {
                         f.instruction(&Instruction::I32Store(ma_i32));
                     }
@@ -7559,7 +7677,7 @@ impl EmitCtx {
                     align: 3,
                     memory_index: 0,
                 };
-                let (field_offset, is_f64) = self.struct_field_info(struct_name, field);
+                let (field_offset, is_f64, is_i64) = self.struct_field_info(struct_name, field);
                 self.emit_operand(f, object);
                 if field_offset > 0 {
                     f.instruction(&Instruction::I32Const(field_offset as i32));
@@ -7567,6 +7685,12 @@ impl EmitCtx {
                 }
                 if is_f64 {
                     f.instruction(&Instruction::F64Load(ma_f64));
+                } else if is_i64 {
+                    f.instruction(&Instruction::I64Load(MemArg {
+                        offset: 0,
+                        align: 3,
+                        memory_index: 0,
+                    }));
                 } else {
                     f.instruction(&Instruction::I32Load(ma_i32));
                 }
@@ -7607,7 +7731,7 @@ impl EmitCtx {
                 f.instruction(&Instruction::I32Store(ma_i32));
                 // Store each payload value with proper type
                 for (i, pval) in payload.iter().enumerate() {
-                    let (offset, is_f64) = self.enum_payload_info(enum_name, variant, i);
+                    let (offset, is_f64, is_i64) = self.enum_payload_info(enum_name, variant, i);
                     // Load saved base pointer
                     f.instruction(&Instruction::I32Const((ENUM_BASE + depth * 4) as i32));
                     f.instruction(&Instruction::I32Load(ma_i32));
@@ -7616,6 +7740,12 @@ impl EmitCtx {
                     self.emit_operand(f, pval);
                     if is_f64 {
                         f.instruction(&Instruction::F64Store(ma_f64));
+                    } else if is_i64 {
+                        f.instruction(&Instruction::I64Store(MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        }));
                     } else {
                         f.instruction(&Instruction::I32Store(ma_i32));
                     }
@@ -7641,25 +7771,29 @@ impl EmitCtx {
                 enum_name,
                 variant_name,
             } => {
-                let (offset, is_f64) =
+                let (offset, is_f64, is_i64) =
                     self.enum_payload_info(enum_name, variant_name, *index as usize);
                 self.emit_operand(f, object);
                 f.instruction(&Instruction::I32Const(offset as i32));
                 f.instruction(&Instruction::I32Add);
                 if is_f64 {
-                    let ma = MemArg {
+                    f.instruction(&Instruction::F64Load(MemArg {
                         offset: 0,
                         align: 3,
                         memory_index: 0,
-                    };
-                    f.instruction(&Instruction::F64Load(ma));
+                    }));
+                } else if is_i64 {
+                    f.instruction(&Instruction::I64Load(MemArg {
+                        offset: 0,
+                        align: 3,
+                        memory_index: 0,
+                    }));
                 } else {
-                    let ma = MemArg {
+                    f.instruction(&Instruction::I32Load(MemArg {
                         offset: 0,
                         align: 2,
                         memory_index: 0,
-                    };
-                    f.instruction(&Instruction::I32Load(ma));
+                    }));
                 }
             }
             Operand::LoopExpr {
@@ -8026,10 +8160,7 @@ impl EmitCtx {
             Operand::Place(Place::Local(id)) => self.f64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_f64_operand(l) || self.is_f64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_f64_operand(inner),
-            Operand::Call(name, _) => matches!(
-                normalize_intrinsic_name(name.as_str()),
-                "sqrt" | "parse_f64"
-            ),
+            Operand::Call(name, _) => matches!(normalize_intrinsic_name(name.as_str()), "sqrt"),
             _ => false,
         }
     }
@@ -8041,10 +8172,7 @@ impl EmitCtx {
             Operand::BinOp(_, l, r) => self.is_i64_operand(l) || self.is_i64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_i64_operand(inner),
             Operand::Call(name, _) => {
-                matches!(
-                    normalize_intrinsic_name(name.as_str()),
-                    "parse_i64" | "clock_now"
-                )
+                matches!(normalize_intrinsic_name(name.as_str()), "clock_now")
             }
             _ => false,
         }

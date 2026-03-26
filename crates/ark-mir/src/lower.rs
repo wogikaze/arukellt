@@ -110,6 +110,22 @@ pub fn lower_to_mir(
         enum_defs.insert(enum_name.to_string(), variants_defs);
     }
 
+    // Specialized Result enums for i64/f64 payloads
+    enum_defs.insert(
+        "Result_i64_String".to_string(),
+        vec![
+            ("Ok".to_string(), vec!["i64".to_string()]),
+            ("Err".to_string(), vec!["i32".to_string()]),
+        ],
+    );
+    enum_defs.insert(
+        "Result_f64_String".to_string(),
+        vec![
+            ("Ok".to_string(), vec!["f64".to_string()]),
+            ("Err".to_string(), vec!["i32".to_string()]),
+        ],
+    );
+
     for item in &module.items {
         if let ast::Item::EnumDef(e) = item {
             let mut variants_info = Vec::new();
@@ -548,6 +564,8 @@ struct LowerCtx {
     /// local id -> variant-level payload type info: (variant_idx, field_idx) -> is_string
     /// Maps local_id -> mapping from (variant_name, field_index) -> is_string
     enum_local_payload_strings: HashMap<u32, HashSet<(String, u32)>>,
+    /// local id -> specialized enum name for concrete generic types (e.g., "Result_i64_String")
+    enum_local_specialized: HashMap<u32, String>,
     /// enum name -> [(variant_name, [payload_type_names])]
     enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
     /// "EnumName::VariantName" -> ordered field names (for struct variants)
@@ -605,6 +623,7 @@ impl LowerCtx {
             struct_typed_locals: HashMap::new(),
             enum_typed_locals: HashMap::new(),
             enum_local_payload_strings: HashMap::new(),
+            enum_local_specialized: HashMap::new(),
             enum_defs,
             enum_variant_field_names,
             vec_string_locals: HashSet::new(),
@@ -726,6 +745,25 @@ impl LowerCtx {
                         if self.struct_defs.contains_key(tname.as_str()) {
                             return Some(tname.clone());
                         }
+                    }
+                }
+                None
+            }
+            _ => None,
+        }
+    }
+
+    /// Infer the return TypeExpr for a call expression by looking up fn_return_types.
+    fn infer_return_type_expr(&self, expr: &ast::Expr) -> Option<ast::TypeExpr> {
+        match expr {
+            ast::Expr::Call { callee, .. } => {
+                if let ast::Expr::Ident { name, .. } = callee.as_ref() {
+                    return self.fn_return_types.get(name).cloned();
+                }
+                if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref() {
+                    if let Some(struct_name) = self.infer_struct_type(object) {
+                        let mangled = format!("{}__{}", struct_name, field);
+                        return self.fn_return_types.get(&mangled).cloned();
                     }
                 }
                 None
@@ -963,7 +1001,7 @@ impl LowerCtx {
     fn is_f64_operand_mir(&self, op: &Operand) -> bool {
         match op {
             Operand::ConstF64(_) => true,
-            Operand::Call(name, _) => matches!(name.as_str(), "sqrt" | "parse_f64"),
+            Operand::Call(name, _) => matches!(name.as_str(), "sqrt"),
             Operand::BinOp(_, l, r) => self.is_f64_operand_mir(l) || self.is_f64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.f64_locals.contains(&lid.0),
             _ => false,
@@ -973,7 +1011,7 @@ impl LowerCtx {
     fn is_i64_operand_mir(&self, op: &Operand) -> bool {
         match op {
             Operand::ConstI64(_) => true,
-            Operand::Call(name, _) => matches!(name.as_str(), "parse_i64" | "clock_now"),
+            Operand::Call(name, _) => matches!(name.as_str(), "clock_now"),
             Operand::BinOp(_, l, r) => self.is_i64_operand_mir(l) || self.is_i64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.i64_locals.contains(&lid.0),
             _ => false,
@@ -1110,6 +1148,10 @@ impl LowerCtx {
                                 self.enum_local_payload_strings
                                     .insert(local_id.0, payload_strings);
                             }
+                            // Track specialized enum types for i64/f64 payloads
+                            if let Some(spec) = detect_specialized_result(type_expr) {
+                                self.enum_local_specialized.insert(local_id.0, spec);
+                            }
                         }
                     }
                 }
@@ -1130,6 +1172,42 @@ impl LowerCtx {
                 if !self.struct_typed_locals.contains_key(&local_id.0) {
                     if let Some(sname) = self.infer_struct_from_init(init) {
                         self.struct_typed_locals.insert(local_id.0, sname);
+                    }
+                }
+                // Infer enum type from call return type when there's no explicit annotation
+                #[allow(clippy::map_entry)]
+                if !self.enum_typed_locals.contains_key(&local_id.0) {
+                    if let Some(ret_te) = self.infer_return_type_expr(init) {
+                        let is_result = matches!(&ret_te, ast::TypeExpr::Generic { name, .. } if name == "Result");
+                        let is_option = matches!(&ret_te, ast::TypeExpr::Generic { name, .. } if name == "Option");
+                        if is_result || is_option {
+                            let enum_name = if is_result { "Result" } else { "Option" };
+                            self.enum_typed_locals
+                                .insert(local_id.0, enum_name.to_string());
+                            // Compute payload strings for the inferred type
+                            let mut payload_strings = HashSet::new();
+                            if let ast::TypeExpr::Generic { args, .. } = &ret_te {
+                                if enum_name == "Option" {
+                                    if args.first().is_some_and(is_string_type) {
+                                        payload_strings.insert(("Some".to_string(), 0u32));
+                                    }
+                                } else if enum_name == "Result" {
+                                    if args.first().is_some_and(is_string_type) {
+                                        payload_strings.insert(("Ok".to_string(), 0u32));
+                                    }
+                                    if args.get(1).is_some_and(is_string_type) {
+                                        payload_strings.insert(("Err".to_string(), 0u32));
+                                    }
+                                }
+                            }
+                            if !payload_strings.is_empty() {
+                                self.enum_local_payload_strings
+                                    .insert(local_id.0, payload_strings);
+                            }
+                            if let Some(spec) = detect_specialized_result(&ret_te) {
+                                self.enum_local_specialized.insert(local_id.0, spec);
+                            }
+                        }
                     }
                 }
                 // Track closure locals: if the init expression was a closure, record captures
@@ -1778,6 +1856,15 @@ impl LowerCtx {
                     } else {
                         None
                     };
+                    // Determine specialized enum name for i64/f64 payloads
+                    let effective_enum_name = if let Operand::Place(Place::Local(lid)) = scrut {
+                        self.enum_local_specialized
+                            .get(&lid.0)
+                            .cloned()
+                            .unwrap_or_else(|| path.clone())
+                    } else {
+                        path.clone()
+                    };
                     // Bind payload fields to local variables
                     for (i, field_pat) in fields.iter().enumerate() {
                         if let ast::Pattern::Ident { name: binding, .. } = field_pat {
@@ -1788,14 +1875,18 @@ impl LowerCtx {
                                     self.string_locals.insert(local_id.0);
                                 }
                             }
-                            // Check if this payload field is f64 or String
-                            if let Some(variants) = self.enum_defs.get(path.as_str()) {
+                            // Check if this payload field is f64, i64, or String
+                            if let Some(variants) = self.enum_defs.get(effective_enum_name.as_str())
+                            {
                                 if let Some((_, types)) =
                                     variants.iter().find(|(vn, _)| vn == variant)
                                 {
                                     if let Some(t) = types.get(i) {
                                         if t == "f64" {
                                             self.f64_locals.insert(local_id.0);
+                                        }
+                                        if t == "i64" {
+                                            self.i64_locals.insert(local_id.0);
                                         }
                                         if t == "String" {
                                             self.string_locals.insert(local_id.0);
@@ -1806,7 +1897,7 @@ impl LowerCtx {
                             let payload = Operand::EnumPayload {
                                 object: Box::new(scrut.clone()),
                                 index: i as u32,
-                                enum_name: path.clone(),
+                                enum_name: effective_enum_name.clone(),
                                 variant_name: variant.clone(),
                             };
                             then_body.push(MirStmt::Assign(
@@ -1913,7 +2004,7 @@ impl LowerCtx {
                             // Determine field index from definition order
                             let field_idx =
                                 def_field_names.iter().position(|n| n == fname).unwrap_or(0);
-                            // Track f64/String types
+                            // Track f64/i64/String types
                             if let Some(variants) = self.enum_defs.get(enum_name) {
                                 if let Some((_, types)) =
                                     variants.iter().find(|(vn, _)| vn == variant_name)
@@ -1921,6 +2012,9 @@ impl LowerCtx {
                                     if let Some(t) = types.get(field_idx) {
                                         if t == "f64" {
                                             self.f64_locals.insert(local_id.0);
+                                        }
+                                        if t == "i64" {
+                                            self.i64_locals.insert(local_id.0);
                                         }
                                         if t == "String" {
                                             self.string_locals.insert(local_id.0);
@@ -3059,4 +3153,22 @@ fn type_expr_name(ty: &ast::TypeExpr) -> String {
         ast::TypeExpr::Unit(_) => "()".to_string(),
         _ => "unknown".to_string(),
     }
+}
+
+/// Detect specialized Result enum name for concrete i64/f64 payloads.
+/// Returns Some("Result_i64_String") for Result<i64, String>, etc.
+fn detect_specialized_result(type_expr: &ast::TypeExpr) -> Option<String> {
+    if let ast::TypeExpr::Generic { name, args, .. } = type_expr {
+        if name == "Result" {
+            if let Some(ast::TypeExpr::Named { name: ok_name, .. }) = args.first() {
+                if ok_name == "i64" {
+                    return Some("Result_i64_String".to_string());
+                }
+                if ok_name == "f64" {
+                    return Some("Result_f64_String".to_string());
+                }
+            }
+        }
+    }
+    None
 }

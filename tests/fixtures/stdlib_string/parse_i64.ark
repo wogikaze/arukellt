@@ -1,13 +1,31 @@
 fn main() {
-    let x: i64 = parse_i64(String_from("42"))
-    println(i64_to_string(x))
+    let r1: Result<i64, String> = parse_i64(String_from("42"))
+    match r1 {
+        Ok(v) => println(i64_to_string(v)),
+        Err(e) => println(e),
+    }
 
-    let y: i64 = parse_i64(String_from("-100"))
-    println(i64_to_string(y))
+    let r2: Result<i64, String> = parse_i64(String_from("-100"))
+    match r2 {
+        Ok(v) => println(i64_to_string(v)),
+        Err(e) => println(e),
+    }
 
-    let z: i64 = parse_i64(String_from("0"))
-    println(i64_to_string(z))
+    let r3: Result<i64, String> = parse_i64(String_from("0"))
+    match r3 {
+        Ok(v) => println(i64_to_string(v)),
+        Err(e) => println(e),
+    }
 
-    let big: i64 = parse_i64(String_from("9999999999"))
-    println(i64_to_string(big))
+    let r4: Result<i64, String> = parse_i64(String_from("9999999999"))
+    match r4 {
+        Ok(v) => println(i64_to_string(v)),
+        Err(e) => println(e),
+    }
+
+    let r5: Result<i64, String> = parse_i64(String_from("abc"))
+    match r5 {
+        Ok(v) => println(i64_to_string(v)),
+        Err(e) => println(e),
+    }
 }
