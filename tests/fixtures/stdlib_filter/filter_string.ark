@@ -1,0 +1,18 @@
+fn is_long(s: String) -> bool {
+    len(s) > 3
+}
+
+fn main() {
+    let mut v: Vec<String> = Vec_new_String()
+    push(v, String_from("hi"))
+    push(v, String_from("hello"))
+    push(v, String_from("ok"))
+    push(v, String_from("world"))
+    push(v, String_from("no"))
+    let result: Vec<String> = filter_String(v, is_long)
+    let mut i: i32 = 0
+    while i < len(result) {
+        println(get_unchecked(result, i))
+        i = i + 1
+    }
+}

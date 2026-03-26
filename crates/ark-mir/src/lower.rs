@@ -259,6 +259,14 @@ pub fn lower_to_mir(
                             ark_typecheck::types::Type::Vec(Box::new(
                                 ark_typecheck::types::Type::String,
                             ))
+                        } else if ctx.vec_i64_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::Vec(Box::new(
+                                ark_typecheck::types::Type::I64,
+                            ))
+                        } else if ctx.vec_f64_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::Vec(Box::new(
+                                ark_typecheck::types::Type::F64,
+                            ))
                         } else {
                             ark_typecheck::types::Type::I32
                         },
@@ -410,6 +418,14 @@ pub fn lower_to_mir(
                                 ark_typecheck::types::Type::Vec(Box::new(
                                     ark_typecheck::types::Type::String,
                                 ))
+                            } else if ctx.vec_i64_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::Vec(Box::new(
+                                    ark_typecheck::types::Type::I64,
+                                ))
+                            } else if ctx.vec_f64_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::Vec(Box::new(
+                                    ark_typecheck::types::Type::F64,
+                                ))
                             } else {
                                 ark_typecheck::types::Type::I32
                             },
@@ -473,6 +489,10 @@ struct LowerCtx {
     enum_variant_field_names: HashMap<String, Vec<String>>,
     /// Locals known to hold Vec<String> values.
     vec_string_locals: HashSet<u32>,
+    /// Locals known to hold Vec<i64> values.
+    vec_i64_locals: HashSet<u32>,
+    /// Locals known to hold Vec<f64> values.
+    vec_f64_locals: HashSet<u32>,
     /// Local to assign break values to (for loop-as-expression).
     loop_result_local: Option<LocalId>,
     /// Function name -> return type expression (for resolving generic enum payloads in match).
@@ -523,6 +543,8 @@ impl LowerCtx {
             enum_defs,
             enum_variant_field_names,
             vec_string_locals: HashSet::new(),
+            vec_i64_locals: HashSet::new(),
+            vec_f64_locals: HashSet::new(),
             loop_result_local: None,
             fn_return_types,
             user_fn_names,
@@ -993,6 +1015,17 @@ impl LowerCtx {
                     {
                         if tname == "Vec" && args.first().is_some_and(is_string_type) {
                             self.vec_string_locals.insert(local_id.0);
+                        }
+                        if tname == "Vec" {
+                            if let Some(ast::TypeExpr::Named { name: inner, .. }) =
+                                args.first()
+                            {
+                                if inner == "i64" {
+                                    self.vec_i64_locals.insert(local_id.0);
+                                } else if inner == "f64" {
+                                    self.vec_f64_locals.insert(local_id.0);
+                                }
+                            }
                         }
                         if self.enum_variants.contains_key(tname.as_str()) {
                             self.enum_typed_locals.insert(local_id.0, tname.clone());

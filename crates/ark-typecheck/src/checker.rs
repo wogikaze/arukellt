@@ -1200,6 +1200,49 @@ impl TypeChecker {
             },
         );
 
+        // sort_i64, sort_f64
+        self.fn_sigs.insert(
+            "sort_i64".into(),
+            FnSig {
+                name: "sort_i64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::I64))],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "sort_f64".into(),
+            FnSig {
+                name: "sort_f64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::F64))],
+                ret: Type::Unit,
+            },
+        );
+        // map_String_String, filter_String
+        self.fn_sigs.insert(
+            "map_String_String".into(),
+            FnSig {
+                name: "map_String_String".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::String)), Type::I32],
+                ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "filter_String".into(),
+            FnSig {
+                name: "filter_String".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::String)), Type::I32],
+                ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
+
         // --- Missing stdlib: f32_to_string ---
         self.fn_sigs.insert(
             "f32_to_string".into(),
