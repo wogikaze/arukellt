@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-27",
+  "generated_at": "2026-03-28",
   "compile_time_thresholds": {
     "check_vs_baseline_max_regression_percent": 10,
     "compile_vs_baseline_max_regression_percent": 20
@@ -9,7 +9,7 @@
       "file": "docs/examples/hello.ark",
       "check": {
         "status": 0,
-        "median_ms": 5.037,
+        "median_ms": 4.706,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark"
         ],
@@ -17,7 +17,7 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 9.634,
+        "median_ms": 11.624,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t1.wasm (12229 bytes, target: wasm32-wasi-p1)"
         ],
@@ -25,20 +25,20 @@
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 8.545,
+        "median_ms": 11.081,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t3.wasm (954 bytes, target: wasm32-wasi-p2)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t3.wasm (2565 bytes, target: wasm32-wasi-p2)"
         ],
         "stdout_head": []
       },
       "binary_size_t1": 12229,
-      "binary_size_t3": 954
+      "binary_size_t3": 2565
     },
     {
       "file": "docs/examples/vec.ark",
       "check": {
         "status": 0,
-        "median_ms": 4.867,
+        "median_ms": 4.831,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark"
         ],
@@ -46,7 +46,7 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 9.945,
+        "median_ms": 12.154,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t1.wasm (13261 bytes, target: wasm32-wasi-p1)"
         ],
@@ -54,20 +54,20 @@
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 9.054,
+        "median_ms": 11.614,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t3.wasm (1866 bytes, target: wasm32-wasi-p2)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t3.wasm (3035 bytes, target: wasm32-wasi-p2)"
         ],
         "stdout_head": []
       },
       "binary_size_t1": 13261,
-      "binary_size_t3": 1866
+      "binary_size_t3": 3035
     },
     {
       "file": "docs/examples/closure.ark",
       "check": {
         "status": 0,
-        "median_ms": 4.264,
+        "median_ms": 4.393,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark"
         ],
@@ -75,7 +75,7 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 10.778,
+        "median_ms": 12.872,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t1.wasm (12222 bytes, target: wasm32-wasi-p1)"
         ],
@@ -83,14 +83,14 @@
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 10.126,
+        "median_ms": 12.785,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t3.wasm (995 bytes, target: wasm32-wasi-p2)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t3.wasm (2660 bytes, target: wasm32-wasi-p2)"
         ],
         "stdout_head": []
       },
       "binary_size_t1": 12222,
-      "binary_size_t3": 995
+      "binary_size_t3": 2660
     },
     {
       "file": "docs/sample/parser.ark",
@@ -146,7 +146,7 @@
         "stdout_head": []
       },
       "binary_size_t1": 12222,
-      "binary_size_t3": 995
+      "binary_size_t3": 2660
     }
   ]
 }

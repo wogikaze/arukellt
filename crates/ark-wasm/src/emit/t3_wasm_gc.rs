@@ -1006,8 +1006,8 @@ impl Ctx {
             }
         }
 
-        // BRIDGE COMPAT: heap_ptr global kept until all subsystems ported to GC-native.
-        // Will be removed in Issue 027 (final cleanup).
+        // Global: heap_ptr for legacy I/O buffer allocation and VecLiteral fallback.
+        // Retained for backward compatibility with call_indirect-based HOF dispatch.
         let mut globals = GlobalSection::new();
         globals.global(
             GlobalType {

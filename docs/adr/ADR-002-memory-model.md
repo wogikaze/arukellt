@@ -224,3 +224,24 @@ pure arena と pure RC の二者択一より、これが最も実用的。
 - [x] `docs/process/benchmark-results.md` — 実測値と判定根拠を記録
 - [x] `docs/platform/wasm-features.md` — wasm32 ターゲット層を追記
 - [x] `docs/language/memory-model.md` — wasm32 lowering モデルを追記
+
+## Implementation Status (2026-03-27)
+
+GC-native codegen is **complete** in the T3 emitter (`t3_wasm_gc.rs`).
+All 346 fixture tests pass. `verify-harness.sh` exits 0 (16/16 checks).
+
+### Key design decisions implemented
+
+| Feature | GC-native approach |
+|---------|-------------------|
+| Strings | `(array (mut i8))` — bare GC byte array, `array.len` for length |
+| User structs | `(struct (field ...))` — direct GC struct with typed fields |
+| Enums | Subtype hierarchy + `br_on_cast` for pattern matching |
+| Option/Result | Enum subtypes: base (empty) + Some/Ok/Err variants |
+| Vec\<T\> | `(struct (ref $arr_T) i32)` — GC struct + GC array backing |
+| HashMap\<K,V\> | `(struct (ref $arr_K) (ref $arr_V) i32)` — array-backed linear scan |
+| Generics | `anyref` polymorphism with `ref.i31` boxing/unboxing |
+| Tuples | `__tupleN_any` structs with anyref fields for generic contexts |
+| Linear memory | 1 page (64KB), used **only** for WASI I/O marshaling |
+| Closures | Parameter-passing (captures as extra args), `call_ref` for HOF |
+| Global section | No `heap_ptr` — all allocation via `struct.new`/`array.new` |
