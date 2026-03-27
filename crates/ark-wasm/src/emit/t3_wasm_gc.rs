@@ -1,14 +1,16 @@
-//! T3 `wasm32-wasi-p2` backend — Wasm GC bridge-mode emitter.
+//! T3 `wasm32-wasi-p2` backend — Wasm GC emitter (transitioning to GC-native).
 //!
-//! Declares GC types in the Wasm type section for forward compatibility,
-//! but all runtime values use **linear memory with i32 pointers** (bridge mode).
-//! WASI Preview 1 fd_write is used for I/O via a small linear memory iov buffer.
+//! GC types are declared in the type section with proper WasmGC structure:
+//!   - String:  bare `(array (mut i8))` — no wrapper struct
+//!   - Vec<T>:  `(struct (field (mut (ref $arr_T))) (field (mut i32)))` — cap = array.len
+//!   - Struct:  `(struct (field (mut T))...)` — typed fields
+//!   - Enum:    subtype hierarchy — non-final base + final variant subtypes
 //!
-//! Runtime layout (linear memory):
-//!   String  → [len:4 LE][data bytes], pointer to data start
-//!   Vec<T>  → [cap:4][len:4][elem0 elem1 …], pointer to cap field
-//!   Struct  → [field0 field1 …], pointer to first field
-//!   Enum    → [tag:4][payload fields…], field sizes type-aware (4 or 8 bytes)
+//! Currently in bridge-mode: runtime values still use linear memory with i32
+//! pointers. GC-native emission is being implemented phase by phase.
+//!
+//! Linear memory is reserved for WASI I/O only (1 page, not growable).
+//! No bump allocator — heap_ptr global has been removed.
 
 #![allow(dead_code)]
 
@@ -168,6 +170,47 @@ impl TypeAlloc {
         self.next_idx += 1;
         idx
     }
+
+    /// Add a non-final base struct type for enum subtype hierarchies.
+    fn add_sub_struct_base(&mut self, name: &str) -> u32 {
+        let idx = self.next_idx;
+        self.names.insert(name.to_string(), idx);
+        self.section.ty().subtype(&SubType {
+            is_final: false,
+            supertype_idx: None,
+            composite_type: CompositeType {
+                inner: CompositeInnerType::Struct(StructType {
+                    fields: Box::new([]),
+                }),
+                shared: false,
+            },
+        });
+        self.next_idx += 1;
+        idx
+    }
+
+    /// Add a final variant struct subtype with the given supertype.
+    fn add_sub_struct_variant(
+        &mut self,
+        name: &str,
+        super_idx: u32,
+        fields: &[FieldType],
+    ) -> u32 {
+        let idx = self.next_idx;
+        self.names.insert(name.to_string(), idx);
+        self.section.ty().subtype(&SubType {
+            is_final: true,
+            supertype_idx: Some(super_idx),
+            composite_type: CompositeType {
+                inner: CompositeInnerType::Struct(StructType {
+                    fields: fields.to_vec().into_boxed_slice(),
+                }),
+                shared: false,
+            },
+        });
+        self.next_idx += 1;
+        idx
+    }
 }
 
 // ── Emit context ─────────────────────────────────────────────────
@@ -180,7 +223,6 @@ struct Ctx {
     fn_names: Vec<String>,
     next_fn: u32,
     // Well-known GC type indices
-    bytes_arr_ty: u32,
     string_ty: u32,
     arr_i32_ty: u32,
     vec_i32_ty: u32,
@@ -188,12 +230,16 @@ struct Ctx {
     vec_i64_ty: u32,
     arr_f64_ty: u32,
     vec_f64_ty: u32,
+    arr_string_ty: u32,
+    vec_string_ty: u32,
     // Well-known function type indices
     fd_write_ty: u32,
-    // User struct/enum GC type indices
+    // User struct GC type indices
     struct_gc_types: HashMap<String, u32>,
     struct_layouts: HashMap<String, Vec<(String, String)>>,
-    enum_gc_types: HashMap<String, u32>,
+    // Enum GC type indices: subtype hierarchy
+    enum_base_types: HashMap<String, u32>,
+    enum_variant_types: HashMap<String, HashMap<String, u32>>,
     enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
     fn_ret_types: HashMap<String, Type>,
     fn_param_types: HashMap<String, Vec<Type>>,
@@ -281,7 +327,6 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         fn_map: HashMap::new(),
         fn_names: mir.functions.iter().map(|f| f.name.clone()).collect(),
         next_fn: 0,
-        bytes_arr_ty: 0,
         string_ty: 0,
         arr_i32_ty: 0,
         vec_i32_ty: 0,
@@ -289,10 +334,13 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         vec_i64_ty: 0,
         arr_f64_ty: 0,
         vec_f64_ty: 0,
+        arr_string_ty: 0,
+        vec_string_ty: 0,
         fd_write_ty: 0,
         struct_gc_types: HashMap::new(),
         struct_layouts,
-        enum_gc_types: HashMap::new(),
+        enum_base_types: HashMap::new(),
+        enum_variant_types: HashMap::new(),
         enum_defs: mir.type_table.enum_defs.clone(),
         fn_ret_types,
         fn_param_types,
@@ -426,11 +474,10 @@ impl Ctx {
             functions.function(ty_idx);
         }
 
-        // Memory section (small, for IO bridge only)
+        // Memory section — BRIDGE COMPAT: keep 4-10 pages until fully GC-native.
+        // Target: 1 page fixed (WASI I/O only) once all allocations use GC heap.
         let mut memories = MemorySection::new();
         memories.memory(MemoryType {
-            // T3 still uses a linear-memory bump allocator for strings/Vec headers,
-            // so reserve enough pages up front for the 10k Vec benchmarks.
             minimum: 4,
             maximum: Some(10),
             memory64: false,
@@ -473,8 +520,8 @@ impl Ctx {
             self.emit_function(&mut codes, func);
         }
 
-        // Global: heap_ptr starts after all static data segments so dynamic
-        // strings do not overwrite embedded literals.
+        // BRIDGE COMPAT: heap_ptr global kept until all subsystems ported to GC-native.
+        // Will be removed in Issue 027 (final cleanup).
         let mut globals = GlobalSection::new();
         globals.global(
             GlobalType {
@@ -824,56 +871,63 @@ impl Ctx {
     }
 
     fn register_gc_types(&mut self, mir: &MirModule) {
-        // $bytes_array = (array (mut i8))
-        self.bytes_arr_ty = self
+        // ── String: bare packed i8 array (no wrapper struct) ──
+        // (type $string (array (mut i8)))
+        self.string_ty = self
             .types
-            .add_array("$bytes_array", mutable_field(StorageType::I8));
-        // $string = (struct (field $bytes (ref $bytes_array)))
-        self.string_ty = self.types.add_struct(
-            "$string",
-            &[mutable_field(StorageType::Val(ref_nullable(
-                self.bytes_arr_ty,
-            )))],
-        );
-        // $array_i32 = (array (mut i32))
+            .add_array("$string", mutable_field(StorageType::I8));
+
+        // ── Vec backing arrays ──
+        // (type $arr_i32 (array (mut i32)))
         self.arr_i32_ty = self
             .types
-            .add_array("$array_i32", mutable_field(StorageType::Val(ValType::I32)));
-        // $vec_i32 = (struct (field $data (ref $array_i32)) (field $len i32) (field $cap i32))
+            .add_array("$arr_i32", mutable_field(StorageType::Val(ValType::I32)));
+        // (type $arr_i64 (array (mut i64)))
+        self.arr_i64_ty = self
+            .types
+            .add_array("$arr_i64", mutable_field(StorageType::Val(ValType::I64)));
+        // (type $arr_f64 (array (mut f64)))
+        self.arr_f64_ty = self
+            .types
+            .add_array("$arr_f64", mutable_field(StorageType::Val(ValType::F64)));
+        // (type $arr_string (array (mut (ref null $string))))
+        self.arr_string_ty = self.types.add_array(
+            "$arr_string",
+            mutable_field(StorageType::Val(ref_nullable(self.string_ty))),
+        );
+
+        // ── Vec structs: data ref + len (capacity = array.len) ──
+        // (type $vec_i32 (struct (field (mut (ref $arr_i32))) (field (mut i32))))
         self.vec_i32_ty = self.types.add_struct(
             "$vec_i32",
             &[
                 mutable_field(StorageType::Val(ref_nullable(self.arr_i32_ty))),
                 mutable_field(StorageType::Val(ValType::I32)),
-                mutable_field(StorageType::Val(ValType::I32)),
             ],
         );
-        // $array_i64 = (array (mut i64))
-        self.arr_i64_ty = self
-            .types
-            .add_array("$array_i64", mutable_field(StorageType::Val(ValType::I64)));
         self.vec_i64_ty = self.types.add_struct(
             "$vec_i64",
             &[
                 mutable_field(StorageType::Val(ref_nullable(self.arr_i64_ty))),
                 mutable_field(StorageType::Val(ValType::I32)),
-                mutable_field(StorageType::Val(ValType::I32)),
             ],
         );
-        // $array_f64 = (array (mut f64))
-        self.arr_f64_ty = self
-            .types
-            .add_array("$array_f64", mutable_field(StorageType::Val(ValType::F64)));
         self.vec_f64_ty = self.types.add_struct(
             "$vec_f64",
             &[
                 mutable_field(StorageType::Val(ref_nullable(self.arr_f64_ty))),
                 mutable_field(StorageType::Val(ValType::I32)),
+            ],
+        );
+        self.vec_string_ty = self.types.add_struct(
+            "$vec_string",
+            &[
+                mutable_field(StorageType::Val(ref_nullable(self.arr_string_ty))),
                 mutable_field(StorageType::Val(ValType::I32)),
             ],
         );
 
-        // User-defined structs
+        // ── User-defined structs ──
         for (sname, fields) in &mir.type_table.struct_defs {
             let gc_fields: Vec<FieldType> = fields
                 .iter()
@@ -883,15 +937,25 @@ impl Ctx {
             self.struct_gc_types.insert(sname.clone(), idx);
         }
 
-        // User-defined enums: tag + max-payload i32 slots
+        // ── User-defined enums: subtype hierarchy ──
+        // Each enum gets a non-final base type and final variant subtypes.
         for (ename, variants) in &mir.type_table.enum_defs {
-            let max_fields = variants.iter().map(|(_, f)| f.len()).max().unwrap_or(0);
-            let mut gc_fields = vec![mutable_field(StorageType::Val(ValType::I32))]; // tag
-            for _ in 0..max_fields.max(1) {
-                gc_fields.push(mutable_field(StorageType::Val(ValType::I32)));
+            let base_idx = self.types.add_sub_struct_base(ename);
+            self.enum_base_types.insert(ename.clone(), base_idx);
+
+            let mut variant_map = HashMap::new();
+            for (vname, field_types) in variants {
+                let gc_fields: Vec<FieldType> = field_types
+                    .iter()
+                    .map(|ty| mutable_field(StorageType::Val(self.field_valtype(ty))))
+                    .collect();
+                let full_name = format!("{}.{}", ename, vname);
+                let v_idx =
+                    self.types
+                        .add_sub_struct_variant(&full_name, base_idx, &gc_fields);
+                variant_map.insert(vname.clone(), v_idx);
             }
-            let idx = self.types.add_struct(ename, &gc_fields);
-            self.enum_gc_types.insert(ename.clone(), idx);
+            self.enum_variant_types.insert(ename.clone(), variant_map);
         }
     }
 
@@ -1161,8 +1225,8 @@ impl Ctx {
     }
 
     fn emit_i32_to_str_helper(&mut self, codes: &mut CodeSection) {
-        // Converts i32 to a length-prefixed string in linear memory.
-        // Returns the data pointer (after length prefix) as i32.
+        // BRIDGE COMPAT: Converts i32 to a length-prefixed string in linear memory.
+        // Will be replaced with GC array allocation in Issue 026.
         let ma = MemArg {
             offset: 0,
             align: 2,
@@ -1180,13 +1244,11 @@ impl Ctx {
             (1, ValType::I32), // local 4: buf_ptr (= heap_ptr + 4)
             (1, ValType::I32), // local 5: result_ptr
         ]);
-        // Allocate buffer on heap: [len:4][digits:12]
-        f.instruction(&Instruction::GlobalGet(0)); // heap_ptr
+        f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::I32Const(4));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::LocalSet(4)); // buf_ptr = heap_ptr + 4
+        f.instruction(&Instruction::LocalSet(4));
 
-        // Check negative
         f.instruction(&Instruction::LocalGet(0));
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::I32LtS);
@@ -1202,19 +1264,17 @@ impl Ctx {
         f.instruction(&Instruction::LocalSet(2));
         f.instruction(&Instruction::End);
 
-        // Handle zero
         f.instruction(&Instruction::LocalGet(2));
         f.instruction(&Instruction::I32Eqz);
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
-        f.instruction(&Instruction::GlobalGet(0)); // store len=1
+        f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::LocalGet(4)); // store '0'
+        f.instruction(&Instruction::LocalGet(4));
         f.instruction(&Instruction::I32Const(48));
         f.instruction(&Instruction::I32Store8(ma0));
         f.instruction(&Instruction::LocalGet(4));
-        f.instruction(&Instruction::LocalSet(5)); // result = buf_ptr
-        // Bump heap
+        f.instruction(&Instruction::LocalSet(5));
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::I32Const(8));
         f.instruction(&Instruction::I32Add);
@@ -1223,9 +1283,8 @@ impl Ctx {
         f.instruction(&Instruction::Return);
         f.instruction(&Instruction::End);
 
-        // Extract digits (right-to-left into buf_ptr+11 downward)
         f.instruction(&Instruction::I32Const(0));
-        f.instruction(&Instruction::LocalSet(3)); // digit_count = 0
+        f.instruction(&Instruction::LocalSet(3));
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::LocalGet(2));
@@ -1254,7 +1313,6 @@ impl Ctx {
         f.instruction(&Instruction::End);
         f.instruction(&Instruction::End);
 
-        // Prepend '-' if negative
         f.instruction(&Instruction::LocalGet(1));
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::LocalGet(3));
@@ -1266,35 +1324,24 @@ impl Ctx {
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Sub);
-        f.instruction(&Instruction::I32Const(45)); // '-'
+        f.instruction(&Instruction::I32Const(45));
         f.instruction(&Instruction::I32Store8(ma0));
         f.instruction(&Instruction::End);
 
-        // Copy digits to start of buffer (memmove in place)
-        // Result pointer = buf_ptr + 12 - digit_count
-        // But we need length-prefixed: store len at heap_ptr, data at heap_ptr+4
-        // The digits are already in buf (heap_ptr+4) area, just at the end
-        // We need: [len:4][data:digit_count] starting at heap_ptr
-        // Digits are at buf_ptr + 12 - digit_count
-        // Store length first
         f.instruction(&Instruction::GlobalGet(0));
-        f.instruction(&Instruction::LocalGet(3)); // digit_count
+        f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Store(ma));
-        // result_ptr = data start = buf_ptr + 12 - digit_count
         f.instruction(&Instruction::LocalGet(4));
         f.instruction(&Instruction::I32Const(12));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Sub);
         f.instruction(&Instruction::LocalSet(5));
-        // But we need the len prefix right before result_ptr
-        // So: store len at result_ptr - 4
         f.instruction(&Instruction::LocalGet(5));
         f.instruction(&Instruction::I32Const(4));
         f.instruction(&Instruction::I32Sub);
         f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Store(ma));
-        // Bump heap past the allocation
         f.instruction(&Instruction::LocalGet(4));
         f.instruction(&Instruction::I32Const(16));
         f.instruction(&Instruction::I32Add);
