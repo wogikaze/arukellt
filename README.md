@@ -2,7 +2,9 @@
 
 Wasm-first、LLM-friendly を目指す静的型付け言語。
 
-**Status**: v0 設計完了 → 実装フェーズへ（2026-03-24）
+**Status**: v0 実装完了・v1 機能拡張中（2026-03-27）
+
+> 詳細な実装状況は [docs/current-state.md](docs/current-state.md) を参照。
 
 ---
 
@@ -208,19 +210,19 @@ fn main(caps: Capabilities) -> Result[(), IOError] {
 
 ## 次のステップ
 
-### Phase 3: 実装（次）
+### Phase 3: 実装（完了）
 
-1. **コンパイラ実装**
+1. **コンパイラ実装** ✅
    - Lexer → Parser → Name Resolution → Type Checker → MIR → Wasm Emitter
    - エラー診断システム実装
 
-2. **標準ライブラリ実装**
+2. **標準ライブラリ実装** ✅
    - Phase 1: mem, option, result
    - Phase 2: string, vec
    - Phase 3: fs, clock, random
 
-3. **検証**
-   - テストスイート作成
+3. **検証** ✅
+   - テストスイート作成（95 unit tests, 182 fixture tests）
    - ベンチマーク実行（wasmtime）
    - LLM 互換性テスト
 

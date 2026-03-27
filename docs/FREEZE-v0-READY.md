@@ -1,5 +1,7 @@
 # v0 Canonical Surface - Freeze Ready
 
+> **Note**: This document may contain aspirational content. See [docs/current-state.md](current-state.md) for verified status.
+
 **Date**: 2026-03-25  
 **Status**: ✅ Ready — v0 全機能実装完了（io/fs 含む）。設計文書の整合済み。
 

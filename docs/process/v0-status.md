@@ -1,5 +1,7 @@
 # v0 Implementation Status
 
+> **Note**: This document may contain aspirational content. See [docs/current-state.md](../current-state.md) for verified status.
+
 > **Last updated**: 2026-06-03
 > **Branch**: `feature/arukellt-v1`
 > **Test results**: 95 unit tests pass, 170/175 fixture tests pass (5 module helpers, not standalone)
