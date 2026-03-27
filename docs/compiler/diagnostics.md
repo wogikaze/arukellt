@@ -119,6 +119,20 @@ internal bug reporting 用に `ICE-*` 系 ID を registry に予約する。
 
 といった前提が混じる。現行 guidance には使わない。
 
+### T3 backend validation details
+
+T3 (`wasm32-wasi-p2`) output passes through the same `wasmparser::Validator::validate_all()`
+gate as T1. WasmGC-specific validation covers:
+
+- Heap type indices and subtyping
+- GC struct/array field declarations
+- Linear memory operations with correct types (i32/i64/f64)
+- Function type signatures matching call sites
+- `call_indirect` type index correctness
+
+Any `W0004` failure stops the build. The emitter must produce valid WasmGC modules;
+there is no fallback or warning-only mode.
+
 ## 関連
 
 - [../current-state.md](../current-state.md)
