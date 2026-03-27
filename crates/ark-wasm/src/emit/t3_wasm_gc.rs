@@ -16,7 +16,7 @@
 use ark_diagnostics::DiagnosticSink;
 use ark_mir::mir::*;
 use ark_typecheck::types::Type;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet, VecDeque};
 use wasm_encoder::{
     ArrayType, CodeSection, CompositeInnerType, CompositeType, DataSection, DataSegment,
     ExportKind, ExportSection, FieldType, Function, FunctionSection, GlobalSection, GlobalType,
@@ -31,6 +31,13 @@ const NWRITTEN: u32 = 8;
 const SCRATCH: u32 = 16;
 const I32BUF: u32 = 48;
 const DATA_START: u32 = 256;
+const SCR_A_PTR: u32 = SCRATCH;
+const SCR_B_PTR: u32 = SCRATCH + 4;
+const SCR_A_LEN: u32 = SCRATCH + 8;
+const SCR_B_LEN: u32 = SCRATCH + 12;
+const SCR_DST_PTR: u32 = SCRATCH + 16;
+const SCR_I: u32 = SCRATCH + 20;
+const SCR_J: u32 = SCRATCH + 24;
 
 // GC struct field indices
 const STR_FIELD_BYTES: u32 = 0;
@@ -84,6 +91,7 @@ fn normalize_intrinsic(name: &str) -> &str {
             "len" => "len",
             "push" => "push",
             "get" => "get",
+            "get_unchecked" => "get_unchecked",
             "set" => "set",
             "pop" => "pop",
             "panic" => "panic",
@@ -288,6 +296,8 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
 
 impl Ctx {
     fn emit_module(&mut self, mir: &MirModule) -> Vec<u8> {
+        let reachable_user_indices = self.reachable_function_indices(mir);
+
         // Phase 1: Register GC types
         self.register_gc_types(mir);
 
@@ -326,7 +336,8 @@ impl Ctx {
 
         // Register function types for user functions
         let mut user_fn_type_indices = Vec::new();
-        for func in &mir.functions {
+        for &idx in &reachable_user_indices {
+            let func = &mir.functions[idx];
             let params: Vec<ValType> = func
                 .params
                 .iter()
@@ -353,7 +364,8 @@ impl Ctx {
         self.helper_print_newline = Some(helper_base + 4);
 
         let user_base = helper_base + helper_fns.len() as u32;
-        for (i, func) in mir.functions.iter().enumerate() {
+        for (i, &idx) in reachable_user_indices.iter().enumerate() {
+            let func = &mir.functions[idx];
             self.fn_map.insert(func.name.clone(), user_base + i as u32);
         }
 
@@ -379,23 +391,14 @@ impl Ctx {
         // Memory section (small, for IO bridge only)
         let mut memories = MemorySection::new();
         memories.memory(MemoryType {
-            minimum: 1,
+            // T3 still uses a linear-memory bump allocator for strings/Vec headers,
+            // so reserve enough pages up front for the 10k Vec benchmarks.
+            minimum: 4,
             maximum: Some(10),
             memory64: false,
             shared: false,
             page_size_log2: None,
         });
-
-        // Global: heap_ptr for scratch data allocation
-        let mut globals = GlobalSection::new();
-        globals.global(
-            GlobalType {
-                val_type: ValType::I32,
-                mutable: true,
-                shared: false,
-            },
-            &wasm_encoder::ConstExpr::i32_const(DATA_START as i32),
-        );
 
         // Export section
         let mut exports = ExportSection::new();
@@ -427,9 +430,22 @@ impl Ctx {
         self.emit_print_newline_helper(&mut codes, newline_offset);
 
         // User functions
-        for func in &mir.functions {
+        for &idx in &reachable_user_indices {
+            let func = &mir.functions[idx];
             self.emit_function(&mut codes, func);
         }
+
+        // Global: heap_ptr starts after all static data segments so dynamic
+        // strings do not overwrite embedded literals.
+        let mut globals = GlobalSection::new();
+        globals.global(
+            GlobalType {
+                val_type: ValType::I32,
+                mutable: true,
+                shared: false,
+            },
+            &wasm_encoder::ConstExpr::i32_const(self.data_offset as i32),
+        );
 
         // Data section
         let mut data = DataSection::new();
@@ -454,6 +470,296 @@ impl Ctx {
         module.section(&codes);
         module.section(&data);
         module.finish()
+    }
+
+    fn reachable_function_indices(&self, mir: &MirModule) -> Vec<usize> {
+        let mut name_to_idx = HashMap::new();
+        for (idx, func) in mir.functions.iter().enumerate() {
+            name_to_idx.insert(func.name.as_str(), idx);
+        }
+
+        let mut reachable = HashSet::new();
+        let mut queue = VecDeque::new();
+
+        let push_root =
+            |idx: usize, reachable: &mut HashSet<usize>, queue: &mut VecDeque<usize>| {
+                if reachable.insert(idx) {
+                    queue.push_back(idx);
+                }
+            };
+
+        if let Some(entry) = mir.entry_fn {
+            push_root(entry.0 as usize, &mut reachable, &mut queue);
+        }
+        if queue.is_empty() {
+            for root_name in ["_start", "main"] {
+                if let Some(&idx) = name_to_idx.get(root_name) {
+                    push_root(idx, &mut reachable, &mut queue);
+                }
+            }
+        }
+
+        while let Some(func_idx) = queue.pop_front() {
+            let func = &mir.functions[func_idx];
+            self.collect_reachable_from_function(func, &name_to_idx, &mut reachable, &mut queue);
+        }
+
+        let mut ordered: Vec<_> = reachable.into_iter().collect();
+        ordered.sort_unstable();
+        ordered
+    }
+
+    fn collect_reachable_from_function(
+        &self,
+        func: &MirFunction,
+        name_to_idx: &HashMap<&str, usize>,
+        reachable: &mut HashSet<usize>,
+        queue: &mut VecDeque<usize>,
+    ) {
+        for block in &func.blocks {
+            for stmt in &block.stmts {
+                self.collect_reachable_from_stmt(stmt, name_to_idx, reachable, queue);
+            }
+            self.collect_reachable_from_terminator(
+                &block.terminator,
+                name_to_idx,
+                reachable,
+                queue,
+            );
+        }
+    }
+
+    fn collect_reachable_from_stmt(
+        &self,
+        stmt: &MirStmt,
+        name_to_idx: &HashMap<&str, usize>,
+        reachable: &mut HashSet<usize>,
+        queue: &mut VecDeque<usize>,
+    ) {
+        match stmt {
+            MirStmt::Assign(place, rvalue) => {
+                self.collect_reachable_from_place(place, name_to_idx, reachable, queue);
+                self.collect_reachable_from_rvalue(rvalue, name_to_idx, reachable, queue);
+            }
+            MirStmt::Call { func, args, .. } => {
+                self.push_reachable_fn(func.0 as usize, reachable, queue);
+                for arg in args {
+                    self.collect_reachable_from_operand(arg, name_to_idx, reachable, queue);
+                }
+            }
+            MirStmt::CallBuiltin { name, args, .. } => {
+                let canonical = normalize_intrinsic(name);
+                if let Some(&idx) = name_to_idx.get(canonical) {
+                    self.push_reachable_fn(idx, reachable, queue);
+                }
+                for arg in args {
+                    self.collect_reachable_from_operand(arg, name_to_idx, reachable, queue);
+                }
+            }
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
+                self.collect_reachable_from_operand(cond, name_to_idx, reachable, queue);
+                for stmt in then_body {
+                    self.collect_reachable_from_stmt(stmt, name_to_idx, reachable, queue);
+                }
+                for stmt in else_body {
+                    self.collect_reachable_from_stmt(stmt, name_to_idx, reachable, queue);
+                }
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                self.collect_reachable_from_operand(cond, name_to_idx, reachable, queue);
+                for stmt in body {
+                    self.collect_reachable_from_stmt(stmt, name_to_idx, reachable, queue);
+                }
+            }
+            MirStmt::Return(Some(op)) => {
+                self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
+            }
+            MirStmt::Break | MirStmt::Continue | MirStmt::Return(None) => {}
+        }
+    }
+
+    fn collect_reachable_from_terminator(
+        &self,
+        terminator: &Terminator,
+        name_to_idx: &HashMap<&str, usize>,
+        reachable: &mut HashSet<usize>,
+        queue: &mut VecDeque<usize>,
+    ) {
+        match terminator {
+            Terminator::If { cond, .. } => {
+                self.collect_reachable_from_operand(cond, name_to_idx, reachable, queue);
+            }
+            Terminator::Switch { scrutinee, .. } => {
+                self.collect_reachable_from_operand(scrutinee, name_to_idx, reachable, queue);
+            }
+            Terminator::Return(Some(op)) => {
+                self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
+            }
+            Terminator::Goto(_) | Terminator::Return(None) | Terminator::Unreachable => {}
+        }
+    }
+
+    fn collect_reachable_from_rvalue(
+        &self,
+        rvalue: &Rvalue,
+        name_to_idx: &HashMap<&str, usize>,
+        reachable: &mut HashSet<usize>,
+        queue: &mut VecDeque<usize>,
+    ) {
+        match rvalue {
+            Rvalue::Use(op) | Rvalue::UnaryOp(_, op) => {
+                self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
+            }
+            Rvalue::BinaryOp(_, lhs, rhs) => {
+                self.collect_reachable_from_operand(lhs, name_to_idx, reachable, queue);
+                self.collect_reachable_from_operand(rhs, name_to_idx, reachable, queue);
+            }
+            Rvalue::Aggregate(_, ops) => {
+                for op in ops {
+                    self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
+                }
+            }
+            Rvalue::Ref(place) => {
+                self.collect_reachable_from_place(place, name_to_idx, reachable, queue);
+            }
+        }
+    }
+
+    fn collect_reachable_from_place(
+        &self,
+        place: &Place,
+        name_to_idx: &HashMap<&str, usize>,
+        reachable: &mut HashSet<usize>,
+        queue: &mut VecDeque<usize>,
+    ) {
+        match place {
+            Place::Local(_) => {}
+            Place::Field(inner, _) => {
+                self.collect_reachable_from_place(inner, name_to_idx, reachable, queue);
+            }
+            Place::Index(inner, index) => {
+                self.collect_reachable_from_place(inner, name_to_idx, reachable, queue);
+                self.collect_reachable_from_operand(index, name_to_idx, reachable, queue);
+            }
+        }
+    }
+
+    fn collect_reachable_from_operand(
+        &self,
+        operand: &Operand,
+        name_to_idx: &HashMap<&str, usize>,
+        reachable: &mut HashSet<usize>,
+        queue: &mut VecDeque<usize>,
+    ) {
+        match operand {
+            Operand::Place(place) => {
+                self.collect_reachable_from_place(place, name_to_idx, reachable, queue);
+            }
+            Operand::BinOp(_, lhs, rhs) => {
+                self.collect_reachable_from_operand(lhs, name_to_idx, reachable, queue);
+                self.collect_reachable_from_operand(rhs, name_to_idx, reachable, queue);
+            }
+            Operand::UnaryOp(_, inner)
+            | Operand::EnumTag(inner)
+            | Operand::TryExpr { expr: inner, .. } => {
+                self.collect_reachable_from_operand(inner, name_to_idx, reachable, queue);
+            }
+            Operand::Call(name, args) => {
+                if let Some(&idx) = name_to_idx.get(name.as_str()) {
+                    self.push_reachable_fn(idx, reachable, queue);
+                }
+                for arg in args {
+                    self.collect_reachable_from_operand(arg, name_to_idx, reachable, queue);
+                }
+            }
+            Operand::IfExpr {
+                cond,
+                then_body,
+                then_result,
+                else_body,
+                else_result,
+            } => {
+                self.collect_reachable_from_operand(cond, name_to_idx, reachable, queue);
+                for stmt in then_body {
+                    self.collect_reachable_from_stmt(stmt, name_to_idx, reachable, queue);
+                }
+                if let Some(op) = then_result {
+                    self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
+                }
+                for stmt in else_body {
+                    self.collect_reachable_from_stmt(stmt, name_to_idx, reachable, queue);
+                }
+                if let Some(op) = else_result {
+                    self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
+                }
+            }
+            Operand::StructInit { fields, .. } => {
+                for (_, op) in fields {
+                    self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
+                }
+            }
+            Operand::FieldAccess { object, .. } => {
+                self.collect_reachable_from_operand(object, name_to_idx, reachable, queue);
+            }
+            Operand::EnumInit { payload, .. } => {
+                for op in payload {
+                    self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
+                }
+            }
+            Operand::EnumPayload { object, .. } => {
+                self.collect_reachable_from_operand(object, name_to_idx, reachable, queue);
+            }
+            Operand::LoopExpr { init, body, result } => {
+                self.collect_reachable_from_operand(init, name_to_idx, reachable, queue);
+                for stmt in body {
+                    self.collect_reachable_from_stmt(stmt, name_to_idx, reachable, queue);
+                }
+                self.collect_reachable_from_operand(result, name_to_idx, reachable, queue);
+            }
+            Operand::FnRef(name) => {
+                if let Some(&idx) = name_to_idx.get(name.as_str()) {
+                    self.push_reachable_fn(idx, reachable, queue);
+                }
+            }
+            Operand::CallIndirect { callee, args } => {
+                self.collect_reachable_from_operand(callee, name_to_idx, reachable, queue);
+                for arg in args {
+                    self.collect_reachable_from_operand(arg, name_to_idx, reachable, queue);
+                }
+            }
+            Operand::ArrayInit { elements } => {
+                for op in elements {
+                    self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
+                }
+            }
+            Operand::IndexAccess { object, index } => {
+                self.collect_reachable_from_operand(object, name_to_idx, reachable, queue);
+                self.collect_reachable_from_operand(index, name_to_idx, reachable, queue);
+            }
+            Operand::ConstI32(_)
+            | Operand::ConstI64(_)
+            | Operand::ConstF32(_)
+            | Operand::ConstF64(_)
+            | Operand::ConstBool(_)
+            | Operand::ConstChar(_)
+            | Operand::ConstString(_)
+            | Operand::Unit => {}
+        }
+    }
+
+    fn push_reachable_fn(
+        &self,
+        idx: usize,
+        reachable: &mut HashSet<usize>,
+        queue: &mut VecDeque<usize>,
+    ) {
+        if reachable.insert(idx) {
+            queue.push_back(idx);
+        }
     }
 
     fn register_gc_types(&mut self, mir: &MirModule) {
@@ -1456,8 +1762,10 @@ impl Ctx {
                 | "len"
                 | "push"
                 | "get"
+                | "get_unchecked"
                 | "set"
                 | "pop"
+                | "join"
                 | "panic"
                 | "assert"
                 | "assert_eq"
@@ -1533,6 +1841,56 @@ impl Ctx {
             "concat" => {
                 self.emit_concat(f, args, dest);
             }
+            "join" => {
+                self.emit_join(f, args, dest);
+            }
+            "Vec_new_i32" => {
+                self.emit_vec_new(f, 4, dest);
+            }
+            "Vec_new_i64" | "Vec_new_f64" => {
+                self.emit_vec_new(f, 8, dest);
+            }
+            "Vec_new_String" => {
+                self.emit_vec_new(f, 4, dest);
+            }
+            "push" => {
+                self.emit_push(f, args);
+            }
+            "set" => {
+                self.emit_set(f, args);
+            }
+            "len" => {
+                self.emit_len_inline(f, args.first());
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "get" => {
+                self.emit_get_inline(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "get_unchecked" => {
+                self.emit_get_unchecked_inline(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "pop" => {
+                self.emit_pop_inline(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
             "String_from" => {
                 if let Some(arg) = args.first() {
                     self.emit_operand(f, arg);
@@ -1544,8 +1902,23 @@ impl Ctx {
                 }
             }
             _ => {
-                // Unimplemented builtins — store default value for dest
-                if let Some(Place::Local(id)) = dest {
+                for arg in args {
+                    self.emit_operand(f, arg);
+                }
+                if let Some(&fn_idx) = self.fn_map.get(canonical) {
+                    f.instruction(&Instruction::Call(fn_idx));
+                    let returns_value = self
+                        .fn_ret_types
+                        .get(canonical)
+                        .is_some_and(|ty| !matches!(ty, Type::Unit | Type::Never));
+                    if let Some(Place::Local(id)) = dest {
+                        if returns_value {
+                            f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                        }
+                    } else if returns_value {
+                        f.instruction(&Instruction::Drop);
+                    }
+                } else if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::I32Const(0));
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 }
@@ -1570,28 +1943,31 @@ impl Ctx {
                 }
             }
             "concat" => {
-                // Bridge concat: for now return first arg or 0
-                if let Some(arg) = args.first() {
-                    self.emit_operand(f, arg);
-                } else {
-                    f.instruction(&Instruction::I32Const(0));
-                }
+                self.emit_concat_inline(f, args);
+            }
+            "join" => {
+                self.emit_join_inline(f, args);
+            }
+            "Vec_new_i32" => {
+                self.emit_vec_new_inline(f, 4);
+            }
+            "Vec_new_i64" | "Vec_new_f64" => {
+                self.emit_vec_new_inline(f, 8);
+            }
+            "Vec_new_String" => {
+                self.emit_vec_new_inline(f, 4);
             }
             "len" => {
-                // Bridge: load length from Vec header (4 bytes at offset 4)
-                if let Some(arg) = args.first() {
-                    self.emit_operand(f, arg);
-                    // Vec layout: [data_ptr:4][len:4][cap:4]
-                    f.instruction(&Instruction::I32Const(4));
-                    f.instruction(&Instruction::I32Add);
-                    f.instruction(&Instruction::I32Load(MemArg {
-                        offset: 0,
-                        align: 2,
-                        memory_index: 0,
-                    }));
-                } else {
-                    f.instruction(&Instruction::I32Const(0));
-                }
+                self.emit_len_inline(f, args.first());
+            }
+            "get" => {
+                self.emit_get_inline(f, args);
+            }
+            "get_unchecked" => {
+                self.emit_get_unchecked_inline(f, args);
+            }
+            "pop" => {
+                self.emit_pop_inline(f, args);
             }
             _ => {
                 // Unimplemented builtin as operand — push zero
@@ -1601,56 +1977,779 @@ impl Ctx {
     }
 
     fn emit_println(&mut self, f: &mut Function, arg: &Operand) {
-        // Determine type and dispatch to appropriate print helper
-        match arg {
-            Operand::ConstString(_) | Operand::ConstChar(_) => {
-                self.emit_operand(f, arg);
-                if let Some(idx) = self.helper_print_str_ln {
-                    f.instruction(&Instruction::Call(idx));
-                }
+        self.emit_operand(f, arg);
+        if self.is_string_like_operand(arg) {
+            if let Some(idx) = self.helper_print_str_ln {
+                f.instruction(&Instruction::Call(idx));
             }
-            Operand::ConstBool(_) => {
-                self.emit_operand(f, arg);
-                if let Some(idx) = self.helper_print_bool_ln {
-                    f.instruction(&Instruction::Call(idx));
-                }
+        } else if self.is_bool_like_operand(arg) {
+            if let Some(idx) = self.helper_print_bool_ln {
+                f.instruction(&Instruction::Call(idx));
             }
-            Operand::ConstI32(_) => {
-                self.emit_operand(f, arg);
-                if let Some(idx) = self.helper_print_i32_ln {
-                    f.instruction(&Instruction::Call(idx));
-                }
+        } else if let Some(idx) = self.helper_print_i32_ln {
+            f.instruction(&Instruction::Call(idx));
+        }
+    }
+
+    fn is_string_like_operand(&self, operand: &Operand) -> bool {
+        match operand {
+            Operand::ConstString(_) | Operand::ConstChar(_) => true,
+            Operand::Place(Place::Local(id)) => self.string_locals.contains(&id.0),
+            Operand::Call(name, _) => {
+                let canonical = normalize_intrinsic(name);
+                matches!(
+                    canonical,
+                    "String_from"
+                        | "concat"
+                        | "clone"
+                        | "slice"
+                        | "to_lower"
+                        | "to_upper"
+                        | "join"
+                        | "i32_to_string"
+                        | "i64_to_string"
+                        | "f64_to_string"
+                        | "bool_to_string"
+                        | "char_to_string"
+                ) || self.fn_ret_types.get(name) == Some(&Type::String)
             }
-            Operand::Place(Place::Local(id)) => {
-                self.emit_operand(f, arg);
-                if self.string_locals.contains(&id.0) {
-                    if let Some(idx) = self.helper_print_str_ln {
-                        f.instruction(&Instruction::Call(idx));
-                    }
-                } else if self.bool_locals.contains(&id.0) {
-                    if let Some(idx) = self.helper_print_bool_ln {
-                        f.instruction(&Instruction::Call(idx));
-                    }
-                } else if let Some(idx) = self.helper_print_i32_ln {
-                    f.instruction(&Instruction::Call(idx));
-                }
+            _ => false,
+        }
+    }
+
+    fn is_bool_like_operand(&self, operand: &Operand) -> bool {
+        match operand {
+            Operand::ConstBool(_) => true,
+            Operand::Place(Place::Local(id)) => self.bool_locals.contains(&id.0),
+            Operand::Call(name, _) => {
+                let canonical = normalize_intrinsic(name);
+                matches!(
+                    canonical,
+                    "eq" | "starts_with" | "ends_with" | "contains" | "assert" | "assert_eq"
+                ) || self.fn_ret_types.get(name) == Some(&Type::Bool)
             }
-            _ => {
-                self.emit_operand(f, arg);
-                if let Some(idx) = self.helper_print_i32_ln {
-                    f.instruction(&Instruction::Call(idx));
-                }
-            }
+            _ => false,
         }
     }
 
     fn emit_concat(&mut self, f: &mut Function, _args: &[Operand], dest: Option<&Place>) {
-        // Simple concat: allocate new string in linear memory
-        // For bridge, just call i32_to_str helper or store zero for now
+        self.emit_concat_inline(f, _args);
         if let Some(Place::Local(id)) = dest {
-            f.instruction(&Instruction::I32Const(0));
             f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+        } else {
+            f.instruction(&Instruction::Drop);
         }
+    }
+
+    fn emit_concat_inline(&mut self, f: &mut Function, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+
+        if args.len() < 2 {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
+
+        // Scratch: store lhs/rhs pointers.
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        // Scratch: store lhs/rhs lengths.
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_B_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // result data ptr = heap_ptr + 4
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+
+        // store total length at heap_ptr
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_B_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+
+        // Copy lhs bytes.
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Store8(ma0));
+
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Copy rhs bytes after lhs.
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_B_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Store8(ma0));
+
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Bump heap past header + payload.
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_B_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+    }
+
+    fn emit_join(&mut self, f: &mut Function, args: &[Operand], dest: Option<&Place>) {
+        self.emit_join_inline(f, args);
+        if let Some(Place::Local(id)) = dest {
+            f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+        } else {
+            f.instruction(&Instruction::Drop);
+        }
+    }
+
+    fn emit_join_inline(&mut self, f: &mut Function, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+
+        if args.len() < 2 {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
+
+        // Scratch: parts pointer, separator pointer, i, n, out_start, out_pos.
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_B_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_B_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // If i > 0, append separator.
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32GtU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Store8(ma0));
+
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::End);
+
+        // Append current string.
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Store8(ma0));
+
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Write length and return out_start + 4.
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::GlobalSet(0));
+    }
+
+    fn emit_vec_new(&mut self, f: &mut Function, element_size: i32, dest: Option<&Place>) {
+        self.emit_vec_new_inline(f, element_size);
+        if let Some(Place::Local(id)) = dest {
+            f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+        } else {
+            f.instruction(&Instruction::Drop);
+        }
+    }
+
+    fn emit_vec_new_inline(&mut self, f: &mut Function, element_size: i32) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        // Large fixed capacity keeps T3 usable for the 10k push/pop benchmark
+        // until true reallocation lands.
+        let cap = 16384i32;
+
+        // Cache base pointer in scratch so this helper can both initialize the
+        // header and leave the pointer on the stack as the expression result.
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // data_ptr = base + 12
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(12));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+
+        // len = 0
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // cap = 8
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(cap));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // heap_ptr += header + capacity * element_size
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(12 + cap * element_size));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // Result = base pointer
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+    }
+
+    fn emit_push(&mut self, f: &mut Function, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        if args.len() < 2 {
+            return;
+        }
+
+        // Scratch vec ptr and value
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        // len scratch
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // cap scratch
+        f.instruction(&Instruction::I32Const(SCR_B_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // if len >= cap: skip
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_B_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Else);
+
+        // data_ptr + len*4
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // len += 1
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::End);
+    }
+
+    fn emit_len_inline(&mut self, f: &mut Function, arg: Option<&Operand>) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        if let Some(arg) = arg {
+            self.emit_operand(f, arg);
+            if self.is_string_like_operand(arg) {
+                f.instruction(&Instruction::I32Const(4));
+                f.instruction(&Instruction::I32Sub);
+                f.instruction(&Instruction::I32Load(ma));
+            } else {
+                f.instruction(&Instruction::I32Const(4));
+                f.instruction(&Instruction::I32Add);
+                f.instruction(&Instruction::I32Load(ma));
+            }
+        } else {
+            f.instruction(&Instruction::I32Const(0));
+        }
+    }
+
+    fn emit_get_unchecked_inline(&mut self, f: &mut Function, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        if args.len() < 2 {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
+
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Load(ma));
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+    }
+
+    fn emit_get_inline(&mut self, f: &mut Function, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        if args.len() < 2 {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
+
+        self.emit_operand(f, &args[1]);
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32LtU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            ValType::I32,
+        )));
+
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        self.emit_get_unchecked_inline(f, args);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        f.instruction(&Instruction::Else);
+
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        f.instruction(&Instruction::End);
+    }
+
+    fn emit_set(&mut self, f: &mut Function, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        if args.len() < 3 {
+            return;
+        }
+
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Load(ma));
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        self.emit_operand(f, &args[2]);
+        f.instruction(&Instruction::I32Store(ma));
+    }
+
+    fn emit_pop_inline(&mut self, f: &mut Function, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        if args.is_empty() {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
+
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32GtU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            ValType::I32,
+        )));
+
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        f.instruction(&Instruction::Else);
+
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        f.instruction(&Instruction::End);
     }
 
     fn emit_binop(&self, f: &mut Function, op: BinOp, _local_id: u32) {
