@@ -56,7 +56,7 @@ run_check() {
 }
 
 # 1. Check documentation structure
-echo -e "\n${YELLOW}[1/12] Checking documentation structure...${NC}"
+echo -e "\n${YELLOW}[1/13] Checking documentation structure...${NC}"
 doc_ok=true
 for doc in "AGENTS.md" "docs/process/agent-harness.md"; do
     if [ ! -f "$doc" ]; then
@@ -75,7 +75,7 @@ if [ "$doc_ok" = true ]; then
 fi
 
 # 2. Check ADR decisions
-echo -e "\n${YELLOW}[2/12] Checking ADR decisions...${NC}"
+echo -e "\n${YELLOW}[2/13] Checking ADR decisions...${NC}"
 adr_ok=true
 for adr in "docs/adr/ADR-002-memory-model.md" "docs/adr/ADR-003-generics-strategy.md" "docs/adr/ADR-004-trait-strategy.md" "docs/adr/ADR-005-llvm-scope.md" "docs/adr/ADR-006-abi-policy.md"; do
     if [ ! -f "$adr" ]; then
@@ -91,7 +91,7 @@ if [ "$adr_ok" = true ]; then
 fi
 
 # 3. Check language spec documents
-echo -e "\n${YELLOW}[3/12] Checking language specification...${NC}"
+echo -e "\n${YELLOW}[3/13] Checking language specification...${NC}"
 spec_ok=true
 for spec in "docs/language/memory-model.md" "docs/language/type-system.md" "docs/language/syntax.md"; do
     if [ ! -f "$spec" ]; then
@@ -104,7 +104,7 @@ if [ "$spec_ok" = true ]; then
 fi
 
 # 4. Check platform documents
-echo -e "\n${YELLOW}[4/12] Checking platform specification...${NC}"
+echo -e "\n${YELLOW}[4/13] Checking platform specification...${NC}"
 platform_ok=true
 for pdoc in "docs/platform/wasm-features.md" "docs/platform/abi.md" "docs/platform/wasi-resource-model.md"; do
     if [ ! -f "$pdoc" ]; then
@@ -117,7 +117,7 @@ if [ "$platform_ok" = true ]; then
 fi
 
 # 5. Check stdlib documents
-echo -e "\n${YELLOW}[5/12] Checking stdlib specification...${NC}"
+echo -e "\n${YELLOW}[5/13] Checking stdlib specification...${NC}"
 stdlib_ok=true
 for sdoc in "docs/stdlib/README.md" "docs/stdlib/core.md" "docs/stdlib/io.md"; do
     if [ ! -f "$sdoc" ]; then
@@ -130,11 +130,11 @@ if [ "$stdlib_ok" = true ]; then
 fi
 
 # 6. Check markdown lint
-echo -e "\n${YELLOW}[6/12] Checking markdown lint...${NC}"
+echo -e "\n${YELLOW}[6/13] Checking markdown lint...${NC}"
 run_check "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json"
 
 # 7. Check formatting
-echo -e "\n${YELLOW}[7/12] Checking formatting...${NC}"
+echo -e "\n${YELLOW}[7/13] Checking formatting...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo fmt --all --check"
 else
@@ -142,7 +142,7 @@ else
 fi
 
 # 8. Check clippy
-echo -e "\n${YELLOW}[8/12] Running clippy...${NC}"
+echo -e "\n${YELLOW}[8/13] Running clippy...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo clippy --workspace -- -D warnings"
 else
@@ -150,7 +150,7 @@ else
 fi
 
 # 9. Check build
-echo -e "\n${YELLOW}[9/12] Building workspace...${NC}"
+echo -e "\n${YELLOW}[9/13] Building workspace...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo build --workspace"
 else
@@ -158,7 +158,7 @@ else
 fi
 
 # 10. Run tests
-echo -e "\n${YELLOW}[10/12] Running workspace tests...${NC}"
+echo -e "\n${YELLOW}[10/13] Running workspace tests...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo test --workspace"
 else
@@ -166,7 +166,7 @@ else
 fi
 
 # 11. Fixture manifest completeness
-echo -e "\n${YELLOW}[11/12] Checking fixture manifest completeness...${NC}"
+echo -e "\n${YELLOW}[11/13] Checking fixture manifest completeness...${NC}"
 manifest_ok=true
 manifest_file="tests/fixtures/manifest.txt"
 if [ ! -f "$manifest_file" ]; then
@@ -201,7 +201,7 @@ if [ "$manifest_ok" = true ]; then
 fi
 
 # 12. Run fixture harness test
-echo -e "\n${YELLOW}[12/12] Running fixture harness test...${NC}"
+echo -e "\n${YELLOW}[12/13] Running fixture harness test...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo test -p arukellt --test harness -- --nocapture"
 else
@@ -214,6 +214,10 @@ else
         echo "$local_output" | grep -E "^(PASS:|FAIL )" | head -30
     fi
 fi
+
+# 13. Stdlib manifest consistency
+echo -e "\n${YELLOW}[13/13] Checking stdlib manifest consistency...${NC}"
+run_check "stdlib manifest check" "bash scripts/check-stdlib-manifest.sh"
 
 # Summary
 echo -e "\n${YELLOW}========================================${NC}"

@@ -1,0 +1,987 @@
+# Arukellt Standard Library Manifest
+# Single source of truth for all builtins, intrinsics, and prelude functions.
+#
+# Sources cross-referenced:
+#   - crates/ark-resolve/src/resolve.rs   (PRELUDE_FUNCTIONS, PRELUDE_TYPES, PRELUDE_VALUES)
+#   - crates/ark-typecheck/src/checker.rs (register_builtins — FnSig registrations)
+#   - std/prelude.ark                     (wrapper functions)
+#   - crates/ark-wasm/src/emit/t1_wasm32_p1.rs (FN_* constants, emitter dispatch)
+#
+# Discrepancies found during initial audit (documented, not fixed):
+#   - f32_to_string: registered in checker.rs but NOT in PRELUDE_FUNCTIONS (resolve.rs)
+#   - __intrinsic_string_is_empty: listed in PRELUDE_FUNCTIONS but has no FnSig in checker.rs
+#   - Several builtins in PRELUDE_FUNCTIONS lack FnSig in checker.rs:
+#       unwrap_or_else, clear, is_ok, is_err, Vec_with_capacity_i32,
+#       Vec_with_capacity_String, as_slice, ok_or, ok, err, expect,
+#       map_option_String_String, map_result_i32_i32
+#     These are resolved dynamically or via special-case handling in the type checker.
+
+[metadata]
+version = "0.1.0"
+
+# ─────────────────────────────────────────────
+# Prelude types (auto-imported)
+# ─────────────────────────────────────────────
+
+[[types]]
+name = "Option"
+prelude = true
+generic_params = ["T"]
+
+[[types]]
+name = "Result"
+prelude = true
+generic_params = ["T", "E"]
+
+[[types]]
+name = "String"
+prelude = true
+
+[[types]]
+name = "Vec"
+prelude = true
+generic_params = ["T"]
+
+# ─────────────────────────────────────────────
+# Prelude values (auto-imported)
+# ─────────────────────────────────────────────
+
+[[values]]
+name = "Some"
+prelude = true
+
+[[values]]
+name = "None"
+prelude = true
+
+[[values]]
+name = "Ok"
+prelude = true
+
+[[values]]
+name = "Err"
+prelude = true
+
+[[values]]
+name = "true"
+prelude = true
+
+[[values]]
+name = "false"
+prelude = true
+
+# ─────────────────────────────────────────────
+# Functions
+# ─────────────────────────────────────────────
+#
+# kind:
+#   "builtin"          — direct builtin, no prelude.ark wrapper
+#   "intrinsic"        — __intrinsic_* name only (no public wrapper)
+#   "prelude_wrapper"  — public fn in prelude.ark that calls an __intrinsic_*
+#
+# For prelude_wrapper entries, `intrinsic` names the backing __intrinsic_*.
+# params/returns use Arukellt type syntax.
+
+# ── I/O ──────────────────────────────────────
+
+[[functions]]
+name = "println"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_println"
+params = ["String"]
+returns = "()"
+prelude = true
+doc_category = "io"
+
+[[functions]]
+name = "print"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_print"
+params = ["String"]
+returns = "()"
+prelude = true
+doc_category = "io"
+
+[[functions]]
+name = "eprintln"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_eprintln"
+params = ["String"]
+returns = "()"
+prelude = true
+doc_category = "io"
+
+[[functions]]
+name = "fs_read_file"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_fs_read_file"
+params = ["String"]
+returns = "Result<String, String>"
+prelude = true
+doc_category = "io"
+
+[[functions]]
+name = "fs_write_file"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_fs_write_file"
+params = ["String", "String"]
+returns = "Result<(), String>"
+prelude = true
+doc_category = "io"
+
+[[functions]]
+name = "clock_now"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_clock_now"
+params = []
+returns = "i64"
+prelude = true
+doc_category = "io"
+
+[[functions]]
+name = "random_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_random_i32"
+params = []
+returns = "i32"
+prelude = true
+doc_category = "io"
+
+# ── String construction ──────────────────────
+
+[[functions]]
+name = "String_from"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_from"
+params = ["String"]
+returns = "String"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "String_new"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_new"
+params = []
+returns = "String"
+prelude = true
+doc_category = "string"
+
+# ── String comparison ────────────────────────
+
+[[functions]]
+name = "eq"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_eq"
+params = ["String", "String"]
+returns = "bool"
+prelude = true
+doc_category = "string"
+
+# ── String operations ────────────────────────
+
+[[functions]]
+name = "concat"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_concat"
+params = ["String", "String"]
+returns = "String"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "clone"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_clone"
+params = ["String"]
+returns = "String"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "starts_with"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_starts_with"
+params = ["String", "String"]
+returns = "bool"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "ends_with"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_ends_with"
+params = ["String", "String"]
+returns = "bool"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "to_lower"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_to_lower"
+params = ["String"]
+returns = "String"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "to_upper"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_to_upper"
+params = ["String"]
+returns = "String"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "slice"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_string_slice"
+params = ["String", "i32", "i32"]
+returns = "String"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "split"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_split"
+params = ["String", "String"]
+returns = "Vec<String>"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "join"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_join"
+params = ["Vec<String>", "String"]
+returns = "String"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "push_char"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_push_char"
+params = ["String", "char"]
+returns = "()"
+prelude = true
+doc_category = "string"
+
+[[functions]]
+name = "is_empty"
+kind = "builtin"
+params = ["String"]
+returns = "bool"
+prelude = true
+doc_category = "string"
+
+# ── Conversion: to string ────────────────────
+
+[[functions]]
+name = "i32_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_string"
+params = ["i32"]
+returns = "String"
+prelude = true
+doc_category = "conversion"
+
+[[functions]]
+name = "i64_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i64_to_string"
+params = ["i64"]
+returns = "String"
+prelude = true
+doc_category = "conversion"
+
+[[functions]]
+name = "f64_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f64_to_string"
+params = ["f64"]
+returns = "String"
+prelude = true
+doc_category = "conversion"
+
+[[functions]]
+name = "bool_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_bool_to_string"
+params = ["bool"]
+returns = "String"
+prelude = true
+doc_category = "conversion"
+
+[[functions]]
+name = "char_to_string"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_char_to_string"
+params = ["char"]
+returns = "String"
+prelude = true
+doc_category = "conversion"
+
+# Polymorphic to_string — dispatched by emitter based on argument type
+[[functions]]
+name = "to_string"
+kind = "builtin"
+params = ["any"]
+returns = "String"
+prelude = true
+doc_category = "conversion"
+
+# NOTE: f32_to_string has a FnSig in checker.rs but is NOT in PRELUDE_FUNCTIONS (resolve.rs).
+[[functions]]
+name = "f32_to_string"
+kind = "builtin"
+params = ["f32"]
+returns = "String"
+prelude = false
+doc_category = "conversion"
+
+# ── Conversion: from string (parsing) ────────
+
+[[functions]]
+name = "parse_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_parse_i32"
+params = ["String"]
+returns = "Result<i32, String>"
+prelude = true
+doc_category = "conversion"
+
+[[functions]]
+name = "parse_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_parse_i64"
+params = ["String"]
+returns = "Result<i64, String>"
+prelude = true
+doc_category = "conversion"
+
+[[functions]]
+name = "parse_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_parse_f64"
+params = ["String"]
+returns = "Result<f64, String>"
+prelude = true
+doc_category = "conversion"
+
+# ── Math ─────────────────────────────────────
+
+[[functions]]
+name = "sqrt"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sqrt"
+params = ["f64"]
+returns = "f64"
+prelude = true
+doc_category = "math"
+
+[[functions]]
+name = "abs"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_abs"
+params = ["i32"]
+returns = "i32"
+prelude = true
+doc_category = "math"
+
+[[functions]]
+name = "min"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_min"
+params = ["i32", "i32"]
+returns = "i32"
+prelude = true
+doc_category = "math"
+
+[[functions]]
+name = "max"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_max"
+params = ["i32", "i32"]
+returns = "i32"
+prelude = true
+doc_category = "math"
+
+# ── Control ──────────────────────────────────
+
+[[functions]]
+name = "panic"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_panic"
+params = ["String"]
+returns = "()"
+prelude = true
+doc_category = "control"
+
+# ── Vec constructors ─────────────────────────
+
+[[functions]]
+name = "Vec_new_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_i32"
+params = []
+returns = "Vec<i32>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_i64"
+params = []
+returns = "Vec<i64>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_f64"
+params = []
+returns = "Vec<f64>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_String"
+params = []
+returns = "Vec<String>"
+prelude = true
+doc_category = "collections"
+
+# NOTE: Vec_with_capacity_* are in PRELUDE_FUNCTIONS but lack FnSig in checker.rs.
+[[functions]]
+name = "Vec_with_capacity_i32"
+kind = "builtin"
+params = ["i32"]
+returns = "Vec<i32>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_with_capacity_String"
+kind = "builtin"
+params = ["i32"]
+returns = "Vec<String>"
+prelude = true
+doc_category = "collections"
+
+# ── Vec operations (direct builtins) ─────────
+
+[[functions]]
+name = "push"
+kind = "builtin"
+params = ["Vec<T>", "T"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "pop"
+kind = "builtin"
+params = ["Vec<T>"]
+returns = "Option<T>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "len"
+kind = "builtin"
+params = ["Vec<T>"]
+returns = "i32"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "get"
+kind = "builtin"
+params = ["Vec<T>", "i32"]
+returns = "Option<T>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "get_unchecked"
+kind = "builtin"
+params = ["Vec<T>", "i32"]
+returns = "T"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "set"
+kind = "builtin"
+params = ["Vec<T>", "i32", "T"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+# NOTE: clear is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "clear"
+kind = "builtin"
+params = ["Vec<T>"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+# NOTE: as_slice is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "as_slice"
+kind = "builtin"
+params = ["Vec<T>"]
+returns = "Vec<T>"
+prelude = true
+doc_category = "collections"
+
+# ── Vec sorting ──────────────────────────────
+
+[[functions]]
+name = "sort_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sort_i32"
+params = ["Vec<i32>"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "sort_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sort_i64"
+params = ["Vec<i64>"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "sort_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sort_f64"
+params = ["Vec<f64>"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "sort_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_sort_String"
+params = ["Vec<String>"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+# ── Vec higher-order (i32) ───────────────────
+
+[[functions]]
+name = "map_i32_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_i32_i32"
+params = ["Vec<i32>", "fn(i32) -> i32"]
+returns = "Vec<i32>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "filter_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_filter_i32"
+params = ["Vec<i32>", "fn(i32) -> bool"]
+returns = "Vec<i32>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "fold_i32_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_fold_i32_i32"
+params = ["Vec<i32>", "i32", "fn(i32, i32) -> i32"]
+returns = "i32"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "any_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_any_i32"
+params = ["Vec<i32>", "fn(i32) -> bool"]
+returns = "bool"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "find_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_find_i32"
+params = ["Vec<i32>", "fn(i32) -> bool"]
+returns = "Option<i32>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "contains_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_contains_i32"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "reverse_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_reverse_i32"
+params = ["Vec<i32>"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "remove_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_remove_i32"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+# ── Vec higher-order (i64) ───────────────────
+
+[[functions]]
+name = "map_i64_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_i64_i64"
+params = ["Vec<i64>", "fn(i64) -> i64"]
+returns = "Vec<i64>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "filter_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_filter_i64"
+params = ["Vec<i64>", "fn(i64) -> bool"]
+returns = "Vec<i64>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "fold_i64_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_fold_i64_i64"
+params = ["Vec<i64>", "i64", "fn(i64, i64) -> i64"]
+returns = "i64"
+prelude = true
+doc_category = "collections"
+
+# ── Vec higher-order (f64) ───────────────────
+
+[[functions]]
+name = "map_f64_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_f64_f64"
+params = ["Vec<f64>", "fn(f64) -> f64"]
+returns = "Vec<f64>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "filter_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_filter_f64"
+params = ["Vec<f64>", "fn(f64) -> bool"]
+returns = "Vec<f64>"
+prelude = true
+doc_category = "collections"
+
+# ── Vec higher-order (String) ────────────────
+
+[[functions]]
+name = "map_String_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_String_String"
+params = ["Vec<String>", "fn(String) -> String"]
+returns = "Vec<String>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "filter_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_filter_String"
+params = ["Vec<String>", "fn(String) -> bool"]
+returns = "Vec<String>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "contains_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_contains_String"
+params = ["Vec<String>", "String"]
+returns = "bool"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "reverse_String"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_reverse_String"
+params = ["Vec<String>"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+# ── Option/Result operations (direct builtins) ─
+
+[[functions]]
+name = "unwrap"
+kind = "builtin"
+params = ["Option<T>"]
+returns = "T"
+prelude = true
+doc_category = "option_result"
+
+[[functions]]
+name = "unwrap_or"
+kind = "builtin"
+params = ["Option<T>", "T"]
+returns = "T"
+prelude = true
+doc_category = "option_result"
+
+# NOTE: unwrap_or_else is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "unwrap_or_else"
+kind = "builtin"
+params = ["Option<T>", "fn() -> T"]
+returns = "T"
+prelude = true
+doc_category = "option_result"
+
+[[functions]]
+name = "is_some"
+kind = "builtin"
+params = ["Option<T>"]
+returns = "bool"
+prelude = true
+doc_category = "option_result"
+
+[[functions]]
+name = "is_none"
+kind = "builtin"
+params = ["Option<T>"]
+returns = "bool"
+prelude = true
+doc_category = "option_result"
+
+# NOTE: is_ok is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "is_ok"
+kind = "builtin"
+params = ["Result<T, E>"]
+returns = "bool"
+prelude = true
+doc_category = "option_result"
+
+# NOTE: is_err is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "is_err"
+kind = "builtin"
+params = ["Result<T, E>"]
+returns = "bool"
+prelude = true
+doc_category = "option_result"
+
+# NOTE: ok_or is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "ok_or"
+kind = "builtin"
+params = ["Option<T>", "E"]
+returns = "Result<T, E>"
+prelude = true
+doc_category = "option_result"
+
+# NOTE: ok is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "ok"
+kind = "builtin"
+params = ["Result<T, E>"]
+returns = "Option<T>"
+prelude = true
+doc_category = "option_result"
+
+# NOTE: err is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "err"
+kind = "builtin"
+params = ["Result<T, E>"]
+returns = "Option<E>"
+prelude = true
+doc_category = "option_result"
+
+# NOTE: expect is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "expect"
+kind = "builtin"
+params = ["Option<T>", "String"]
+returns = "T"
+prelude = true
+doc_category = "option_result"
+
+[[functions]]
+name = "map_option_i32_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_map_option_i32_i32"
+params = ["Option<i32>", "fn(i32) -> i32"]
+returns = "Option<i32>"
+prelude = true
+doc_category = "option_result"
+
+# NOTE: map_option_String_String is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "map_option_String_String"
+kind = "builtin"
+params = ["Option<String>", "fn(String) -> String"]
+returns = "Option<String>"
+prelude = true
+doc_category = "option_result"
+
+# NOTE: map_result_i32_i32 is in PRELUDE_FUNCTIONS but lacks FnSig in checker.rs.
+[[functions]]
+name = "map_result_i32_i32"
+kind = "builtin"
+params = ["Result<i32, E>", "fn(i32) -> i32"]
+returns = "Result<i32, E>"
+prelude = true
+doc_category = "option_result"
+
+# ── Box ──────────────────────────────────────
+
+[[functions]]
+name = "Box_new"
+kind = "builtin"
+params = ["T"]
+returns = "Box<T>"
+prelude = true
+doc_category = "box"
+
+[[functions]]
+name = "unbox"
+kind = "builtin"
+params = ["Box<T>"]
+returns = "T"
+prelude = true
+doc_category = "box"
+
+# ── Assertions ───────────────────────────────
+
+[[functions]]
+name = "assert"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert"
+params = ["bool"]
+returns = "()"
+prelude = true
+doc_category = "assert"
+
+[[functions]]
+name = "assert_eq"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert_eq"
+params = ["i32", "i32"]
+returns = "()"
+prelude = true
+doc_category = "assert"
+
+[[functions]]
+name = "assert_ne"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert_ne"
+params = ["i32", "i32"]
+returns = "()"
+prelude = true
+doc_category = "assert"
+
+[[functions]]
+name = "assert_eq_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert_eq_i64"
+params = ["i64", "i64"]
+returns = "()"
+prelude = true
+doc_category = "assert"
+
+[[functions]]
+name = "assert_eq_str"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_assert_eq_str"
+params = ["String", "String"]
+returns = "()"
+prelude = true
+doc_category = "assert"
+
+# ── HashMap<i32, i32> ───────────────────────
+
+[[functions]]
+name = "HashMap_i32_i32_new"
+kind = "builtin"
+params = []
+returns = "HashMap<i32, i32>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_i32_insert"
+kind = "builtin"
+params = ["HashMap<i32, i32>", "i32", "i32"]
+returns = "()"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_i32_get"
+kind = "builtin"
+params = ["HashMap<i32, i32>", "i32"]
+returns = "Option<i32>"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_i32_contains_key"
+kind = "builtin"
+params = ["HashMap<i32, i32>", "i32"]
+returns = "bool"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_i32_len"
+kind = "builtin"
+params = ["HashMap<i32, i32>"]
+returns = "i32"
+prelude = true
+doc_category = "collections"
+
+# ── Intrinsics (no public wrapper) ───────────
+# __intrinsic_string_is_empty is in PRELUDE_FUNCTIONS but has no
+# prelude.ark wrapper or FnSig in checker.rs. Listed for completeness.
+
+[[functions]]
+name = "__intrinsic_string_is_empty"
+kind = "intrinsic"
+params = ["String"]
+returns = "bool"
+prelude = true
+doc_category = "string"
