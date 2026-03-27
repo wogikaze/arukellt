@@ -984,6 +984,7 @@ impl<'a> CoreHirBuilder<'a> {
             Type::TypeVar(id) => Ty::TypeParam(format!("T{}", id)),
             Type::Never => Ty::Never,
             Type::Error => Ty::Error,
+            Type::Any => Ty::Error, // erased generic — no concrete HIR type
         }
     }
 

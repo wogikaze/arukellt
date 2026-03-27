@@ -226,6 +226,8 @@ pub struct MirFunction {
     pub struct_typed_locals: std::collections::HashMap<u32, String>,
     /// Maps local id → enum type name (for GC-native enum refs)
     pub enum_typed_locals: std::collections::HashMap<u32, String>,
+    /// Type parameter names (empty for non-generic functions)
+    pub type_params: Vec<String>,
     pub source: SourceInfo,
 }
 

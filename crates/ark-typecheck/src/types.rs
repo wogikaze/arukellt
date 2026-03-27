@@ -40,6 +40,9 @@ pub enum Type {
     // Special
     Never, // diverging (return, panic, break)
     Error, // error recovery sentinel
+
+    // Polymorphic (generic type param erased to anyref at Wasm level)
+    Any,
 }
 
 impl Type {
@@ -131,6 +134,7 @@ impl fmt::Display for Type {
             Type::TypeVar(id) => write!(f, "?T{}", id),
             Type::Never => write!(f, "!"),
             Type::Error => write!(f, "<error>"),
+            Type::Any => write!(f, "any"),
         }
     }
 }

@@ -28,8 +28,14 @@ fn type_to_sig_name(
             .get(&id.0)
             .cloned()
             .unwrap_or_else(|| format!("{}", ty)),
-        Type::Vec(elem) => format!("Vec<{}>", type_to_sig_name(elem, struct_id_to_name, enum_id_to_name)),
-        Type::Option(inner) => format!("Option<{}>", type_to_sig_name(inner, struct_id_to_name, enum_id_to_name)),
+        Type::Vec(elem) => format!(
+            "Vec<{}>",
+            type_to_sig_name(elem, struct_id_to_name, enum_id_to_name)
+        ),
+        Type::Option(inner) => format!(
+            "Option<{}>",
+            type_to_sig_name(inner, struct_id_to_name, enum_id_to_name)
+        ),
         Type::Result(ok, err) => format!(
             "Result<{}, {}>",
             type_to_sig_name(ok, struct_id_to_name, enum_id_to_name),
@@ -138,6 +144,7 @@ fn fallback_function(
     entry: BlockId,
     struct_typed_locals: std::collections::HashMap<u32, String>,
     enum_typed_locals: std::collections::HashMap<u32, String>,
+    type_params: Vec<String>,
 ) -> MirFunction {
     MirFunction {
         id,
@@ -150,6 +157,7 @@ fn fallback_function(
         entry,
         struct_typed_locals,
         enum_typed_locals,
+        type_params,
         source: default_function_source(),
     }
 }
@@ -897,6 +905,7 @@ pub fn lower_to_mir(
     let mut enum_variant_field_names: HashMap<String, Vec<String>> = HashMap::new();
 
     // Inject builtin enum types: Option<T> and Result<T, E>
+    #[allow(clippy::type_complexity)]
     let builtin_enums: &[(&str, &[(&str, &[&str])])] = &[
         ("Option", &[("Some", &["i32"]), ("None", &[])]),
         ("Result", &[("Ok", &["i32"]), ("Err", &["String"])]),
@@ -995,6 +1004,14 @@ pub fn lower_to_mir(
             .collect();
         struct_defs.insert(name, fields);
     }
+    // Register anyref-field tuple structs for generic function tuple returns
+    for arity in 2..=4u32 {
+        let name = format!("__tuple{}_any", arity);
+        let fields: Vec<(String, String)> = (0..arity)
+            .map(|i| (i.to_string(), "anyref".to_string()))
+            .collect();
+        struct_defs.insert(name, fields);
+    }
 
     // Build fn_return_types map for resolving generic enum payloads in match
     let mut fn_return_types: HashMap<String, ast::TypeExpr> = HashMap::new();
@@ -1033,6 +1050,24 @@ pub fn lower_to_mir(
     // Get method resolutions from the type checker
     let method_resolutions = checker.method_resolutions_snapshot();
 
+    // Build set of generic function names
+    let mut generic_fn_names: HashSet<String> = HashSet::new();
+    for item in &module.items {
+        if let ast::Item::FnDef(f) = item {
+            if !f.type_params.is_empty() {
+                generic_fn_names.insert(f.name.clone());
+            }
+        }
+        if let ast::Item::ImplBlock(ib) = item {
+            for method in &ib.methods {
+                if !method.type_params.is_empty() {
+                    let mangled = format!("{}__{}", ib.target_type, method.name);
+                    generic_fn_names.insert(mangled);
+                }
+            }
+        }
+    }
+
     for item in &module.items {
         if let ast::Item::FnDef(f) = item {
             let fn_id = FnId(next_fn_id);
@@ -1049,6 +1084,8 @@ pub fn lower_to_mir(
                 fn_return_types.clone(),
                 user_fn_names.clone(),
                 method_resolutions.clone(),
+                f.type_params.clone(),
+                generic_fn_names.clone(),
             );
 
             for param in &f.params {
@@ -1120,6 +1157,9 @@ pub fn lower_to_mir(
                             ast::TypeExpr::Named { name, .. } if name == "bool" => {
                                 ark_typecheck::types::Type::Bool
                             }
+                            ast::TypeExpr::Named { name, .. } if f.type_params.contains(name) => {
+                                ark_typecheck::types::Type::Any
+                            }
                             _ => ark_typecheck::types::Type::I32,
                         },
                     })
@@ -1137,6 +1177,9 @@ pub fn lower_to_mir(
                     }
                     Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => {
                         ark_typecheck::types::Type::Bool
+                    }
+                    Some(ast::TypeExpr::Named { name, .. }) if f.type_params.contains(name) => {
+                        ark_typecheck::types::Type::Any
                     }
                     Some(_) => ark_typecheck::types::Type::I32,
                     None => ark_typecheck::types::Type::Unit,
@@ -1187,6 +1230,7 @@ pub fn lower_to_mir(
                 entry,
                 ctx.struct_typed_locals.clone(),
                 ctx.enum_typed_locals.clone(),
+                f.type_params.clone(),
             );
 
             if f.name == "main" {
@@ -1222,6 +1266,8 @@ pub fn lower_to_mir(
                     fn_return_types.clone(),
                     user_fn_names.clone(),
                     method_resolutions.clone(),
+                    method.type_params.clone(),
+                    generic_fn_names.clone(),
                 );
 
                 for param in &method.params {
@@ -1352,6 +1398,7 @@ pub fn lower_to_mir(
                     entry,
                     ctx.struct_typed_locals.clone(),
                     ctx.enum_typed_locals.clone(),
+                    method.type_params.clone(),
                 );
 
                 push_function(&mut mir, mir_fn);
@@ -1387,17 +1434,22 @@ pub fn lower_to_mir(
             name.clone(),
             MirFnSig {
                 name: name.clone(),
-                params: sig.params.iter().map(|t| type_to_sig_name(t, &struct_id_to_name, &enum_id_to_name)).collect(),
+                params: sig
+                    .params
+                    .iter()
+                    .map(|t| type_to_sig_name(t, &struct_id_to_name, &enum_id_to_name))
+                    .collect(),
                 ret: type_to_sig_name(&sig.ret, &struct_id_to_name, &enum_id_to_name),
             },
         );
     }
     // Fill in remaining from MIR functions (synthetic functions not in checker).
     for func in &mir.functions {
-        fn_sigs_table
-            .entry(func.name.clone())
-            .or_insert_with(|| {
-                let params: Vec<String> = func.params.iter().map(|p| {
+        fn_sigs_table.entry(func.name.clone()).or_insert_with(|| {
+            let params: Vec<String> = func
+                .params
+                .iter()
+                .map(|p| {
                     // Use struct/enum typed_locals for accurate param types
                     if let Some(sname) = func.struct_typed_locals.get(&p.id.0) {
                         sname.clone()
@@ -1406,18 +1458,19 @@ pub fn lower_to_mir(
                     } else {
                         format!("{}", p.ty)
                     }
-                }).collect();
-                let ret = if let Some(sname) = func.struct_typed_locals.get(&u32::MAX) {
-                    sname.clone()
-                } else {
-                    format!("{}", func.return_ty)
-                };
-                MirFnSig {
-                    name: func.name.clone(),
-                    params,
-                    ret,
-                }
-            });
+                })
+                .collect();
+            let ret = if let Some(sname) = func.struct_typed_locals.get(&u32::MAX) {
+                sname.clone()
+            } else {
+                format!("{}", func.return_ty)
+            };
+            MirFnSig {
+                name: func.name.clone(),
+                params,
+                ret,
+            }
+        });
     }
     mir.type_table = TypeTable {
         struct_defs: struct_defs.clone(),
@@ -1474,6 +1527,10 @@ struct LowerCtx {
     fn_return_types: HashMap<String, ast::TypeExpr>,
     /// Set of user-defined function names (for function references).
     user_fn_names: HashSet<String>,
+    /// Type parameters of the function being lowered (for generic tuple support).
+    type_params: Vec<String>,
+    /// Set of generic function names (functions with type_params).
+    generic_fn_names: HashSet<String>,
     /// Closure info: local_id -> (synthetic function name, captured variable names)
     closure_locals: HashMap<u32, (String, Vec<String>)>,
     /// Pending synthetic closure functions to add to the module.
@@ -1499,6 +1556,8 @@ impl LowerCtx {
         fn_return_types: HashMap<String, ast::TypeExpr>,
         user_fn_names: HashSet<String>,
         method_resolutions: HashMap<u32, (String, String)>,
+        type_params: Vec<String>,
+        generic_fn_names: HashSet<String>,
     ) -> Self {
         Self {
             locals: Vec::new(),
@@ -1525,6 +1584,8 @@ impl LowerCtx {
             loop_result_local: None,
             fn_return_types,
             user_fn_names,
+            type_params,
+            generic_fn_names,
             closure_locals: HashMap::new(),
             pending_closures: Vec::new(),
             closure_counter: 0,
@@ -1538,6 +1599,19 @@ impl LowerCtx {
         self.next_local += 1;
         self.locals.push((name.to_string(), id));
         id
+    }
+
+    /// Check if an expression is a call to a generic function.
+    fn is_generic_call(&self, expr: &ast::Expr) -> bool {
+        match expr {
+            ast::Expr::Call { callee, .. } => {
+                if let ast::Expr::Ident { name, .. } = callee.as_ref() {
+                    return self.generic_fn_names.contains(name);
+                }
+                false
+            }
+            _ => false,
+        }
     }
 
     fn new_temp(&mut self) -> LocalId {
@@ -1886,9 +1960,17 @@ impl LowerCtx {
                 ) || name.ends_with("__to_string")
             }
             Operand::Place(Place::Local(lid)) => self.string_locals.contains(&lid.0),
-            Operand::IfExpr { then_result, else_result, .. } => {
-                then_result.as_ref().is_some_and(|r| self.is_string_operand_mir(r))
-                    || else_result.as_ref().is_some_and(|r| self.is_string_operand_mir(r))
+            Operand::IfExpr {
+                then_result,
+                else_result,
+                ..
+            } => {
+                then_result
+                    .as_ref()
+                    .is_some_and(|r| self.is_string_operand_mir(r))
+                    || else_result
+                        .as_ref()
+                        .is_some_and(|r| self.is_string_operand_mir(r))
             }
             _ => false,
         }
@@ -1901,9 +1983,17 @@ impl LowerCtx {
             Operand::Call(name, _) => matches!(name.as_str(), "sqrt"),
             Operand::BinOp(_, l, r) => self.is_f64_operand_mir(l) || self.is_f64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.f64_locals.contains(&lid.0),
-            Operand::IfExpr { then_result, else_result, .. } => {
-                then_result.as_ref().is_some_and(|r| self.is_f64_operand_mir(r))
-                    || else_result.as_ref().is_some_and(|r| self.is_f64_operand_mir(r))
+            Operand::IfExpr {
+                then_result,
+                else_result,
+                ..
+            } => {
+                then_result
+                    .as_ref()
+                    .is_some_and(|r| self.is_f64_operand_mir(r))
+                    || else_result
+                        .as_ref()
+                        .is_some_and(|r| self.is_f64_operand_mir(r))
             }
             _ => false,
         }
@@ -1915,9 +2005,17 @@ impl LowerCtx {
             Operand::Call(name, _) => matches!(name.as_str(), "clock_now"),
             Operand::BinOp(_, l, r) => self.is_i64_operand_mir(l) || self.is_i64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.i64_locals.contains(&lid.0),
-            Operand::IfExpr { then_result, else_result, .. } => {
-                then_result.as_ref().is_some_and(|r| self.is_i64_operand_mir(r))
-                    || else_result.as_ref().is_some_and(|r| self.is_i64_operand_mir(r))
+            Operand::IfExpr {
+                then_result,
+                else_result,
+                ..
+            } => {
+                then_result
+                    .as_ref()
+                    .is_some_and(|r| self.is_i64_operand_mir(r))
+                    || else_result
+                        .as_ref()
+                        .is_some_and(|r| self.is_i64_operand_mir(r))
             }
             _ => false,
         }
@@ -1951,8 +2049,16 @@ impl LowerCtx {
             } => {
                 // Handle tuple destructuring: let (a, b) = expr
                 if let Some(ast::Pattern::Tuple { elements, .. }) = pattern {
-                    let tuple_name = format!("__tuple{}", elements.len());
+                    // Determine if the init is a call to a generic function
+                    let callee_is_generic = self.is_generic_call(init);
+                    let tuple_name = if callee_is_generic {
+                        format!("__tuple{}_any", elements.len())
+                    } else {
+                        format!("__tuple{}", elements.len())
+                    };
                     let local_id = self.declare_local(name);
+                    self.struct_typed_locals
+                        .insert(local_id.0, tuple_name.clone());
                     let op = self.lower_expr(init);
                     out.push(MirStmt::Assign(
                         Place::Local(local_id),
@@ -2325,7 +2431,8 @@ impl LowerCtx {
                             self.struct_typed_locals.insert(iter_local.0, sname.clone());
                         }
                         // next_local holds Option<T> enum ref from __next() call
-                        self.enum_typed_locals.insert(next_local.0, "Option".to_string());
+                        self.enum_typed_locals
+                            .insert(next_local.0, "Option".to_string());
 
                         // __iter = iter_expr
                         out.push(MirStmt::Assign(
@@ -3716,8 +3823,13 @@ impl LowerCtx {
                 }
             }
             ast::Expr::Tuple { elements, .. } => {
-                // Lower tuple as a struct with numbered fields
-                let tuple_name = format!("__tuple{}", elements.len());
+                // Lower tuple as a struct with numbered fields.
+                // In generic functions, use __tupleN_any (anyref fields) to hold polymorphic values.
+                let tuple_name = if !self.type_params.is_empty() {
+                    format!("__tuple{}_any", elements.len())
+                } else {
+                    format!("__tuple{}", elements.len())
+                };
                 let lowered_fields: Vec<(String, Operand)> = elements
                     .iter()
                     .enumerate()
@@ -3810,7 +3922,12 @@ impl LowerCtx {
                     from_fn,
                 }
             }
-            ast::Expr::Closure { params, body, return_type, .. } => {
+            ast::Expr::Closure {
+                params,
+                body,
+                return_type,
+                ..
+            } => {
                 // Lambda-lift: create a synthetic function
                 let synth_name = format!("__closure_{}", self.closure_counter);
                 self.closure_counter += 1;
@@ -3879,6 +3996,8 @@ impl LowerCtx {
                     self.fn_return_types.clone(),
                     self.user_fn_names.clone(),
                     self.method_resolutions.clone(),
+                    vec![], // closures don't have type params
+                    self.generic_fn_names.clone(),
                 );
                 for p in &mir_params {
                     let lid = sub_ctx.declare_local(p.name.as_deref().unwrap_or("_"));
@@ -3927,9 +4046,15 @@ impl LowerCtx {
                         ark_typecheck::types::Type::String
                     } else {
                         match rt {
-                            ast::TypeExpr::Named { name, .. } if name == "i64" => ark_typecheck::types::Type::I64,
-                            ast::TypeExpr::Named { name, .. } if name == "f64" => ark_typecheck::types::Type::F64,
-                            ast::TypeExpr::Named { name, .. } if name == "bool" => ark_typecheck::types::Type::Bool,
+                            ast::TypeExpr::Named { name, .. } if name == "i64" => {
+                                ark_typecheck::types::Type::I64
+                            }
+                            ast::TypeExpr::Named { name, .. } if name == "f64" => {
+                                ark_typecheck::types::Type::F64
+                            }
+                            ast::TypeExpr::Named { name, .. } if name == "bool" => {
+                                ark_typecheck::types::Type::Bool
+                            }
                             _ => ark_typecheck::types::Type::I32,
                         }
                     }
@@ -3984,6 +4109,7 @@ impl LowerCtx {
                     entry,
                     sub_ctx.struct_typed_locals.clone(),
                     sub_ctx.enum_typed_locals.clone(),
+                    vec![], // closures are not generic
                 );
 
                 let mir_fn = MirFunction {

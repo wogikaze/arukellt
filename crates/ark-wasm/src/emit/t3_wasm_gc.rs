@@ -197,12 +197,7 @@ impl TypeAlloc {
     }
 
     /// Add a final variant struct subtype with the given supertype.
-    fn add_sub_struct_variant(
-        &mut self,
-        name: &str,
-        super_idx: u32,
-        fields: &[FieldType],
-    ) -> u32 {
+    fn add_sub_struct_variant(&mut self, name: &str, super_idx: u32, fields: &[FieldType]) -> u32 {
         let idx = self.next_idx;
         self.names.insert(name.to_string(), idx);
         self.section.ty().subtype(&SubType {
@@ -299,6 +294,8 @@ struct Ctx {
     vec_f64_ty: u32,
     arr_string_ty: u32,
     vec_string_ty: u32,
+    // HashMap GC type index
+    hashmap_i32_i32_ty: u32,
     // Well-known function type indices
     fd_write_ty: u32,
     // User struct GC type indices
@@ -318,6 +315,7 @@ struct Ctx {
     f64_locals: std::collections::HashSet<u32>,
     i64_locals: std::collections::HashSet<u32>,
     bool_locals: std::collections::HashSet<u32>,
+    any_locals: std::collections::HashSet<u32>,
     f64_vec_locals: std::collections::HashSet<u32>,
     i64_vec_locals: std::collections::HashSet<u32>,
     i32_vec_locals: std::collections::HashSet<u32>,
@@ -349,6 +347,10 @@ struct Ctx {
     is_start_fn: bool,
     // Extra nesting depth for break/continue inside if/else within loops
     loop_break_extra_depth: u32,
+    // Generic function context: type_params of the function being emitted
+    current_fn_type_params: Vec<String>,
+    // Return type of the function being emitted
+    current_fn_return_ty: Type,
 }
 
 impl Ctx {
@@ -358,6 +360,10 @@ impl Ctx {
             Type::F64 => ValType::F64,
             Type::F32 => ValType::F32,
             Type::String => ref_nullable(self.string_ty),
+            Type::Any => ValType::Ref(WasmRefType {
+                nullable: true,
+                heap_type: HeapType::ANY,
+            }),
             Type::Vec(elem) => match elem.as_ref() {
                 Type::I64 => ref_nullable(self.vec_i64_ty),
                 Type::F64 => ref_nullable(self.vec_f64_ty),
@@ -385,7 +391,7 @@ impl Ctx {
                 }
                 // Vec types: Vec<i32>, Vec<String>, etc.
                 if name.starts_with("Vec<") {
-                    let inner = &name[4..name.len()-1];
+                    let inner = &name[4..name.len() - 1];
                     match inner {
                         "i32" => return ref_nullable(self.vec_i32_ty),
                         "i64" => return ref_nullable(self.vec_i64_ty),
@@ -395,6 +401,8 @@ impl Ctx {
                             if let Some(&(_, vec_ty)) = self.custom_vec_types.get(inner) {
                                 return ref_nullable(vec_ty);
                             }
+                            // For generic Vec<T> (unknown inner type), default to Vec<i32>
+                            return ref_nullable(self.vec_i32_ty);
                         }
                     }
                 }
@@ -417,6 +425,7 @@ impl Ctx {
 
     /// Resolve the Wasm ValType for a MIR local, using struct/enum typed-local
     /// side-channel maps to return GC ref types instead of i32.
+    #[allow(clippy::type_complexity)]
     fn local_val_type(
         &self,
         local: &MirLocal,
@@ -445,10 +454,18 @@ impl Ctx {
         // Check propagated vec types
         if let Some((vi32, vi64, vf64, vstr)) = vec_sets {
             let lid = local.id.0;
-            if vi64.contains(&lid) { return ref_nullable(self.vec_i64_ty); }
-            if vf64.contains(&lid) { return ref_nullable(self.vec_f64_ty); }
-            if vstr.contains(&lid) { return ref_nullable(self.vec_string_ty); }
-            if vi32.contains(&lid) { return ref_nullable(self.vec_i32_ty); }
+            if vi64.contains(&lid) {
+                return ref_nullable(self.vec_i64_ty);
+            }
+            if vf64.contains(&lid) {
+                return ref_nullable(self.vec_f64_ty);
+            }
+            if vstr.contains(&lid) {
+                return ref_nullable(self.vec_string_ty);
+            }
+            if vi32.contains(&lid) {
+                return ref_nullable(self.vec_i32_ty);
+            }
         }
         self.type_to_val(&local.ty)
     }
@@ -478,6 +495,10 @@ impl Ctx {
             "f64" => ValType::F64,
             "f32" => ValType::F32,
             "String" => ref_nullable(self.string_ty),
+            "anyref" => ValType::Ref(WasmRefType {
+                nullable: true,
+                heap_type: HeapType::ANY,
+            }),
             _ => {
                 if let Some(&ty_idx) = self.struct_gc_types.get(ty_name) {
                     return ref_nullable(ty_idx);
@@ -498,10 +519,8 @@ impl Ctx {
         out: &mut HashSet<String>,
     ) {
         match stmt {
-            MirStmt::Assign(_, rvalue) => {
-                if let Rvalue::Use(op) = rvalue {
-                    self.scan_op_for_vec_struct(op, struct_defs, out);
-                }
+            MirStmt::Assign(_, Rvalue::Use(op)) => {
+                self.scan_op_for_vec_struct(op, struct_defs, out);
             }
             MirStmt::CallBuiltin { name, args, .. } => {
                 if let Some(sname) = name.strip_prefix("Vec_new_") {
@@ -590,6 +609,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         vec_f64_ty: 0,
         arr_string_ty: 0,
         vec_string_ty: 0,
+        hashmap_i32_i32_ty: 0,
         fd_write_ty: 0,
         struct_gc_types: HashMap::new(),
         struct_layouts,
@@ -605,6 +625,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         f64_locals: Default::default(),
         i64_locals: Default::default(),
         bool_locals: Default::default(),
+        any_locals: Default::default(),
         f64_vec_locals: Default::default(),
         i64_vec_locals: Default::default(),
         i32_vec_locals: Default::default(),
@@ -629,6 +650,8 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         scratch_base: 0,
         is_start_fn: false,
         loop_break_extra_depth: 0,
+        current_fn_type_params: vec![],
+        current_fn_return_ty: Type::Unit,
     };
     ctx.emit_module(mir)
 }
@@ -658,8 +681,17 @@ impl Ctx {
         self.fd_write_ty = fd_write_ty;
         // path_open: (i32,i32,i32,i32,i32,i64,i64,i32,i32) -> i32
         let path_open_ty = self.types.add_func(
-            &[ValType::I32, ValType::I32, ValType::I32, ValType::I32, ValType::I32,
-              ValType::I64, ValType::I64, ValType::I32, ValType::I32],
+            &[
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I64,
+                ValType::I64,
+                ValType::I32,
+                ValType::I32,
+            ],
             &[ValType::I32],
         );
         // fd_read: same as fd_write (i32,i32,i32,i32) -> i32
@@ -679,25 +711,13 @@ impl Ctx {
             // __print_bool_ln: (i32) -> ()
             ("__print_bool_ln".into(), vec![ValType::I32], vec![]),
             // __i32_to_str: (i32) -> (ref $string)
-            (
-                "__i32_to_str".into(),
-                vec![ValType::I32],
-                vec![str_ref],
-            ),
+            ("__i32_to_str".into(), vec![ValType::I32], vec![str_ref]),
             // __print_newline: () -> ()
             ("__print_newline".into(), vec![], vec![]),
             // __i64_to_str: (i64) -> (ref $string)
-            (
-                "__i64_to_str".into(),
-                vec![ValType::I64],
-                vec![str_ref],
-            ),
+            ("__i64_to_str".into(), vec![ValType::I64], vec![str_ref]),
             // __f64_to_str: (f64) -> (ref $string)
-            (
-                "__f64_to_str".into(),
-                vec![ValType::F64],
-                vec![str_ref],
-            ),
+            ("__f64_to_str".into(), vec![ValType::F64], vec![str_ref]),
         ];
 
         // Conditionally add parse helpers if the relevant Result enum types exist
@@ -706,19 +726,25 @@ impl Ctx {
             let idx = helper_fns.len();
             helper_fns.push(("__parse_i32".into(), vec![str_ref], vec![result_ref]));
             Some(idx)
-        } else { None };
+        } else {
+            None
+        };
         let parse_i64_helper_idx = if self.enum_base_types.contains_key("Result_i64_String") {
             let result_ref = ref_nullable(*self.enum_base_types.get("Result_i64_String").unwrap());
             let idx = helper_fns.len();
             helper_fns.push(("__parse_i64".into(), vec![str_ref], vec![result_ref]));
             Some(idx)
-        } else { None };
+        } else {
+            None
+        };
         let parse_f64_helper_idx = if self.enum_base_types.contains_key("Result_f64_String") {
             let result_ref = ref_nullable(*self.enum_base_types.get("Result_f64_String").unwrap());
             let idx = helper_fns.len();
             helper_fns.push(("__parse_f64".into(), vec![str_ref], vec![result_ref]));
             Some(idx)
-        } else { None };
+        } else {
+            None
+        };
 
         // Register function types for helpers
         let mut helper_type_indices = Vec::new();
@@ -731,51 +757,102 @@ impl Ctx {
         let mut user_fn_type_indices = Vec::new();
         for &idx in &reachable_user_indices {
             let func = &mir.functions[idx];
-            let params: Vec<ValType> = if let Some(param_names) = self.fn_param_type_names.get(&func.name) {
-                param_names.iter().map(|p| self.type_name_to_val(p)).collect()
-            } else {
-                func.params
-                    .iter()
-                    .map(|p| self.local_val_type(p, &func.struct_typed_locals, &func.enum_typed_locals, None))
-                    .collect()
-            };
+            let params: Vec<ValType> =
+                if let Some(param_names) = self.fn_param_type_names.get(&func.name) {
+                    param_names
+                        .iter()
+                        .enumerate()
+                        .map(|(i, p)| {
+                            // If MIR says the param is Any (generic), use anyref regardless of AST type name
+                            if func.params.get(i).is_some_and(|mp| mp.ty == Type::Any) {
+                                ValType::Ref(WasmRefType {
+                                    nullable: true,
+                                    heap_type: HeapType::ANY,
+                                })
+                            } else {
+                                self.type_name_to_val(p)
+                            }
+                        })
+                        .collect()
+                } else {
+                    func.params
+                        .iter()
+                        .map(|p| {
+                            self.local_val_type(
+                                p,
+                                &func.struct_typed_locals,
+                                &func.enum_typed_locals,
+                                None,
+                            )
+                        })
+                        .collect()
+                };
             let results: Vec<ValType> = if func.name == "main" || func.name == "_start" {
                 // WASI _start must be () -> ()
                 vec![]
-            } else { match &func.return_ty {
-                Type::Unit | Type::Never => vec![],
-                ty => {
-                    // Vec_new_* functions return GC vec refs
-                    let result_ty = if func.name.starts_with("Vec_new_") {
-                        let sname = &func.name[8..];
-                        match sname {
-                            "i32" => ref_nullable(self.vec_i32_ty),
-                            "i64" => ref_nullable(self.vec_i64_ty),
-                            "f64" => ref_nullable(self.vec_f64_ty),
-                            "String" => ref_nullable(self.vec_string_ty),
-                            _ => {
-                                if let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname) {
-                                    ref_nullable(vec_ty)
-                                } else {
-                                    self.type_to_val(ty)
+            } else {
+                match &func.return_ty {
+                    Type::Unit | Type::Never => vec![],
+                    ty => {
+                        // Vec_new_* functions return GC vec refs
+                        let result_ty = if func.name.starts_with("Vec_new_") {
+                            let sname = &func.name[8..];
+                            match sname {
+                                "i32" => ref_nullable(self.vec_i32_ty),
+                                "i64" => ref_nullable(self.vec_i64_ty),
+                                "f64" => ref_nullable(self.vec_f64_ty),
+                                "String" => ref_nullable(self.vec_string_ty),
+                                _ => {
+                                    if let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname) {
+                                        ref_nullable(vec_ty)
+                                    } else {
+                                        self.type_to_val(ty)
+                                    }
                                 }
                             }
-                        }
-                    } else {
-                        // For struct/enum returns, use fn_ret_type_names for accurate type
-                        if matches!(ty, Type::I32) {
-                            if let Some(ret_name) = self.fn_ret_type_names.get(&func.name) {
-                                self.type_name_to_val(ret_name)
-                            } else {
-                                ValType::I32
-                            }
                         } else {
-                            self.type_to_val(ty)
-                        }
-                    };
-                    vec![result_ty]
+                            // For struct/enum returns, use fn_ret_type_names for accurate type
+                            if matches!(ty, Type::I32) {
+                                // Check for generic tuple return: scan terminators for StructInit("__tupleN_any")
+                                let tuple_any_ret = if !func.type_params.is_empty() {
+                                    func.blocks.iter().find_map(|blk| {
+                                        if let Terminator::Return(Some(Operand::StructInit {
+                                            name,
+                                            ..
+                                        })) = &blk.terminator
+                                        {
+                                            if name.starts_with("__tuple") && name.ends_with("_any")
+                                            {
+                                                self.struct_gc_types
+                                                    .get(name)
+                                                    .map(|&idx| ref_nullable(idx))
+                                            } else {
+                                                None
+                                            }
+                                        } else {
+                                            None
+                                        }
+                                    })
+                                } else {
+                                    None
+                                };
+                                if let Some(tuple_ty) = tuple_any_ret {
+                                    tuple_ty
+                                } else if let Some(ret_name) =
+                                    self.fn_ret_type_names.get(&func.name)
+                                {
+                                    self.type_name_to_val(ret_name)
+                                } else {
+                                    ValType::I32
+                                }
+                            } else {
+                                self.type_to_val(ty)
+                            }
+                        };
+                        vec![result_ty]
+                    }
                 }
-            } };
+            };
             let ty_idx = self.types.add_func(&params, &results);
             user_fn_type_indices.push(ty_idx);
         }
@@ -993,7 +1070,9 @@ impl Ctx {
         module.section(&elements);
         // DataCount section required for passive data segments (array.new_data)
         let total_data_segs = self.data_segs.len() as u32 + self.string_data_segs.len() as u32;
-        module.section(&wasm_encoder::DataCountSection { count: total_data_segs });
+        module.section(&wasm_encoder::DataCountSection {
+            count: total_data_segs,
+        });
         module.section(&codes);
         module.section(&data);
         module.finish()
@@ -1346,6 +1425,18 @@ impl Ctx {
             ],
         );
 
+        // HashMap<i32, i32>: struct { keys: ref $arr_i32, values: ref $arr_i32, count: i32 }
+        self.hashmap_i32_i32_ty = self.types.add_struct(
+            "$hashmap_i32_i32",
+            &[
+                mutable_field(StorageType::Val(ref_nullable(self.arr_i32_ty))),
+                mutable_field(StorageType::Val(ref_nullable(self.arr_i32_ty))),
+                mutable_field(StorageType::Val(ValType::I32)),
+            ],
+        );
+        self.struct_gc_types
+            .insert("__hashmap_i32_i32".to_string(), self.hashmap_i32_i32_ty);
+
         // ── User-defined structs ──
         // Topologically sort structs so field-type dependencies are registered first
         let struct_defs = &mir.type_table.struct_defs;
@@ -1389,7 +1480,7 @@ impl Ctx {
             for func in &mir.functions {
                 for block in &func.blocks {
                     for stmt in &block.stmts {
-                        self.scan_operands_for_vec_struct(stmt, &struct_defs, &mut vec_struct_names);
+                        self.scan_operands_for_vec_struct(stmt, struct_defs, &mut vec_struct_names);
                     }
                 }
             }
@@ -1406,7 +1497,8 @@ impl Ctx {
                             mutable_field(StorageType::Val(ValType::I32)),
                         ],
                     );
-                    self.custom_vec_types.insert(sname.clone(), (arr_ty, vec_ty));
+                    self.custom_vec_types
+                        .insert(sname.clone(), (arr_ty, vec_ty));
                 }
             }
         }
@@ -1424,7 +1516,9 @@ impl Ctx {
             visited: &mut HashSet<String>,
             order: &mut Vec<String>,
         ) {
-            if visited.contains(name) { return; }
+            if visited.contains(name) {
+                return;
+            }
             visited.insert(name.to_string());
             if let Some(variants) = enum_defs.get(name) {
                 for (_, field_types) in variants {
@@ -1438,7 +1532,12 @@ impl Ctx {
             order.push(name.to_string());
         }
         for ename in &enum_names {
-            enum_topo_visit(ename, &mir.type_table.enum_defs, &mut enum_visited, &mut enum_order);
+            enum_topo_visit(
+                ename,
+                &mir.type_table.enum_defs,
+                &mut enum_visited,
+                &mut enum_order,
+            );
         }
         for ename in &enum_order {
             let variants = mir.type_table.enum_defs.get(ename).unwrap();
@@ -1453,8 +1552,7 @@ impl Ctx {
                 })
                 .collect();
 
-            let (base_idx, variant_indices) =
-                self.types.add_enum_rec_group(ename, &variant_fields);
+            let (base_idx, variant_indices) = self.types.add_enum_rec_group(ename, &variant_fields);
             self.enum_base_types.insert(ename.clone(), base_idx);
 
             let mut variant_map = HashMap::new();
@@ -1465,10 +1563,8 @@ impl Ctx {
 
             // Store field type names for enum payload type resolution
             for (vname, field_types) in variants {
-                self.enum_variant_field_types.insert(
-                    (ename.clone(), vname.clone()),
-                    field_types.clone(),
-                );
+                self.enum_variant_field_types
+                    .insert((ename.clone(), vname.clone()), field_types.clone());
             }
         }
     }
@@ -1486,7 +1582,7 @@ impl Ctx {
             align: 0,
             memory_index: 0,
         };
-        let str_ref = ref_nullable(self.string_ty);
+        let _str_ref = ref_nullable(self.string_ty);
         // Param 0 = (ref null $string). Locals: len (i32), i (i32).
         // Note: param 0 uses slot 0 but is ref type (not declared in local_types).
         let mut f = Function::new([(1, ValType::I32), (1, ValType::I32)]);
@@ -1777,11 +1873,11 @@ impl Ctx {
         };
         let str_ref = ref_nullable(self.string_ty);
         let mut f = Function::new([
-            (1, ValType::I32),  // local 1: is_neg
-            (1, ValType::I32),  // local 2: abs_val
-            (1, ValType::I32),  // local 3: digit_count (total string length)
-            (1, ValType::I32),  // local 4: temp/loop counter
-            (1, str_ref),       // local 5: result GC string
+            (1, ValType::I32), // local 1: is_neg
+            (1, ValType::I32), // local 2: abs_val
+            (1, ValType::I32), // local 3: digit_count (total string length)
+            (1, ValType::I32), // local 4: temp/loop counter
+            (1, str_ref),      // local 5: result GC string
         ]);
 
         // Determine sign and absolute value
@@ -1806,13 +1902,13 @@ impl Ctx {
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(str_ref)));
         // Create "0" as a 1-byte GC array: array.new $string fill=48('0') len=1
         f.instruction(&Instruction::I32Const(48)); // fill value = '0'
-        f.instruction(&Instruction::I32Const(1));  // length = 1
+        f.instruction(&Instruction::I32Const(1)); // length = 1
         f.instruction(&Instruction::ArrayNew(self.string_ty));
         f.instruction(&Instruction::Return);
         f.instruction(&Instruction::Else);
         // dummy ref for type consistency (never used)
-        f.instruction(&Instruction::I32Const(0));  // fill value
-        f.instruction(&Instruction::I32Const(0));  // length
+        f.instruction(&Instruction::I32Const(0)); // fill value
+        f.instruction(&Instruction::I32Const(0)); // length
         f.instruction(&Instruction::ArrayNew(self.string_ty));
         f.instruction(&Instruction::End);
         f.instruction(&Instruction::Drop); // drop the else-branch dummy
@@ -1932,18 +2028,22 @@ impl Ctx {
     /// Emit __i64_to_str(val: i64) -> ref $string
     /// Converts an i64 to decimal string representation as GC byte array.
     fn emit_i64_to_str_helper(&mut self, codes: &mut CodeSection) {
-        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
         let str_ref = ref_nullable(self.string_ty);
         // Use scratch area at SCRATCH offset. Max i64 string = 20 chars ("-9223372036854775808")
         // We'll use scratch[SCRATCH..SCRATCH+24] as digit buffer
         let buf_end = SCRATCH as i32 + 23; // rightmost digit position
 
         let mut f = Function::new([
-            (1, ValType::I32),   // local 1: is_neg
-            (1, ValType::I64),   // local 2: abs_val (i64)
-            (1, ValType::I32),   // local 3: digit_count
-            (1, ValType::I32),   // local 4: loop counter i
-            (1, str_ref),        // local 5: result GC string
+            (1, ValType::I32), // local 1: is_neg
+            (1, ValType::I64), // local 2: abs_val (i64)
+            (1, ValType::I32), // local 3: digit_count
+            (1, ValType::I32), // local 4: loop counter i
+            (1, str_ref),      // local 5: result GC string
         ]);
 
         // Determine sign and absolute value
@@ -2064,27 +2164,31 @@ impl Ctx {
     /// Converts an f64 to decimal string with up to 15 significant digits.
     /// Uses integer + fractional parts separately.
     fn emit_f64_to_str_helper(&mut self, codes: &mut CodeSection) {
-        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
         let str_ref = ref_nullable(self.string_ty);
         // Strategy: write characters to scratch memory, then copy to GC array.
         // Max f64 printed length: sign + 20 int digits + '.' + 15 frac digits ≈ 40
         // Use scratch area at offset 64..128
         let buf_base = 64_i32;
-        let buf_size = 64_i32;
+        let _buf_size = 64_i32;
 
         let mut f = Function::new([
-            (1, ValType::I32),   // local 1: is_neg
-            (1, ValType::F64),   // local 2: abs_val
-            (1, ValType::I32),   // local 3: write_pos (cursor into scratch)
-            (1, ValType::I64),   // local 4: int_part (as i64)
-            (1, ValType::F64),   // local 5: frac_part
-            (1, ValType::I32),   // local 6: temp / digit_count for int part
-            (1, ValType::I32),   // local 7: int_start position in scratch
-            (1, ValType::I32),   // local 8: loop counter
-            (1, str_ref),        // local 9: result GC string
-            (1, ValType::I32),   // local 10: total_len
-            (1, ValType::I64),   // local 11: temp i64 for int digit extraction
-            (1, ValType::I32),   // local 12: frac_digits count
+            (1, ValType::I32), // local 1: is_neg
+            (1, ValType::F64), // local 2: abs_val
+            (1, ValType::I32), // local 3: write_pos (cursor into scratch)
+            (1, ValType::I64), // local 4: int_part (as i64)
+            (1, ValType::F64), // local 5: frac_part
+            (1, ValType::I32), // local 6: temp / digit_count for int part
+            (1, ValType::I32), // local 7: int_start position in scratch
+            (1, ValType::I32), // local 8: loop counter
+            (1, str_ref),      // local 9: result GC string
+            (1, ValType::I32), // local 10: total_len
+            (1, ValType::I64), // local 11: temp i64 for int digit extraction
+            (1, ValType::I32), // local 12: frac_digits count
         ]);
 
         // Determine sign
@@ -2360,9 +2464,19 @@ impl Ctx {
     /// Parses a decimal integer from a GC string, returns Ok(i32) or Err(String)
     fn emit_parse_i32_helper(&self, codes: &mut CodeSection) {
         let result_base = *self.enum_base_types.get("Result").unwrap();
-        let result_ok = *self.enum_variant_types.get("Result").unwrap().get("Ok").unwrap();
-        let result_err = *self.enum_variant_types.get("Result").unwrap().get("Err").unwrap();
-        let result_ref = ref_nullable(result_base);
+        let result_ok = *self
+            .enum_variant_types
+            .get("Result")
+            .unwrap()
+            .get("Ok")
+            .unwrap();
+        let result_err = *self
+            .enum_variant_types
+            .get("Result")
+            .unwrap()
+            .get("Err")
+            .unwrap();
+        let _result_ref = ref_nullable(result_base);
 
         // locals: s(param0), len(1), i(2), neg(3), result(4), ch(5)
         let mut f = Function::new(vec![
@@ -2386,7 +2500,10 @@ impl Ctx {
             let seg = self.find_or_make_err_string();
             f.instruction(&Instruction::I32Const(0));
             f.instruction(&Instruction::I32Const(28));
-            f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: seg });
+            f.instruction(&Instruction::ArrayNewData {
+                array_type_index: self.string_ty,
+                array_data_index: seg,
+            });
             f.instruction(&Instruction::StructNew(result_err));
             f.instruction(&Instruction::Return);
         }
@@ -2413,7 +2530,10 @@ impl Ctx {
                 let seg = self.find_or_make_err_string();
                 f.instruction(&Instruction::I32Const(0));
                 f.instruction(&Instruction::I32Const(28));
-                f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: seg });
+                f.instruction(&Instruction::ArrayNewData {
+                    array_type_index: self.string_ty,
+                    array_data_index: seg,
+                });
                 f.instruction(&Instruction::StructNew(result_err));
                 f.instruction(&Instruction::Return);
             }
@@ -2450,7 +2570,10 @@ impl Ctx {
                 let seg = self.find_or_make_err_string();
                 f.instruction(&Instruction::I32Const(0));
                 f.instruction(&Instruction::I32Const(28));
-                f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: seg });
+                f.instruction(&Instruction::ArrayNewData {
+                    array_type_index: self.string_ty,
+                    array_data_index: seg,
+                });
                 f.instruction(&Instruction::StructNew(result_err));
                 f.instruction(&Instruction::Return);
             }
@@ -2498,9 +2621,19 @@ impl Ctx {
 
     /// Emit __parse_i64(s: ref $string) -> ref $Result_i64_String
     fn emit_parse_i64_helper(&self, codes: &mut CodeSection) {
-        let result_base = *self.enum_base_types.get("Result_i64_String").unwrap();
-        let result_ok = *self.enum_variant_types.get("Result_i64_String").unwrap().get("Ok").unwrap();
-        let result_err = *self.enum_variant_types.get("Result_i64_String").unwrap().get("Err").unwrap();
+        let _result_base = *self.enum_base_types.get("Result_i64_String").unwrap();
+        let result_ok = *self
+            .enum_variant_types
+            .get("Result_i64_String")
+            .unwrap()
+            .get("Ok")
+            .unwrap();
+        let result_err = *self
+            .enum_variant_types
+            .get("Result_i64_String")
+            .unwrap()
+            .get("Err")
+            .unwrap();
 
         // locals: s(param0), len(1), i(2), neg(3), result_lo(4):i32, result_hi(5):i64, ch(6)
         let mut f = Function::new(vec![
@@ -2524,7 +2657,10 @@ impl Ctx {
             let seg = self.find_or_make_err_string();
             f.instruction(&Instruction::I32Const(0));
             f.instruction(&Instruction::I32Const(28));
-            f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: seg });
+            f.instruction(&Instruction::ArrayNewData {
+                array_type_index: self.string_ty,
+                array_data_index: seg,
+            });
             f.instruction(&Instruction::StructNew(result_err));
             f.instruction(&Instruction::Return);
         }
@@ -2550,7 +2686,10 @@ impl Ctx {
                 let seg = self.find_or_make_err_string();
                 f.instruction(&Instruction::I32Const(0));
                 f.instruction(&Instruction::I32Const(28));
-                f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: seg });
+                f.instruction(&Instruction::ArrayNewData {
+                    array_type_index: self.string_ty,
+                    array_data_index: seg,
+                });
                 f.instruction(&Instruction::StructNew(result_err));
                 f.instruction(&Instruction::Return);
             }
@@ -2584,7 +2723,10 @@ impl Ctx {
                 let seg = self.find_or_make_err_string();
                 f.instruction(&Instruction::I32Const(0));
                 f.instruction(&Instruction::I32Const(28));
-                f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: seg });
+                f.instruction(&Instruction::ArrayNewData {
+                    array_type_index: self.string_ty,
+                    array_data_index: seg,
+                });
                 f.instruction(&Instruction::StructNew(result_err));
                 f.instruction(&Instruction::Return);
             }
@@ -2633,9 +2775,19 @@ impl Ctx {
     /// Emit __parse_f64(s: ref $string) -> ref $Result_f64_String
     /// Simplified: parse integer part + optional decimal part
     fn emit_parse_f64_helper(&self, codes: &mut CodeSection) {
-        let result_base = *self.enum_base_types.get("Result_f64_String").unwrap();
-        let result_ok = *self.enum_variant_types.get("Result_f64_String").unwrap().get("Ok").unwrap();
-        let result_err = *self.enum_variant_types.get("Result_f64_String").unwrap().get("Err").unwrap();
+        let _result_base = *self.enum_base_types.get("Result_f64_String").unwrap();
+        let result_ok = *self
+            .enum_variant_types
+            .get("Result_f64_String")
+            .unwrap()
+            .get("Ok")
+            .unwrap();
+        let result_err = *self
+            .enum_variant_types
+            .get("Result_f64_String")
+            .unwrap()
+            .get("Err")
+            .unwrap();
 
         // locals: s(0), len(1), i(2), neg(3), int_part(4):f64, frac_part(5):f64, divisor(6):f64, ch(7), has_dot(8)
         let mut f = Function::new(vec![
@@ -2662,7 +2814,10 @@ impl Ctx {
             let seg = self.find_or_make_err_float_string();
             f.instruction(&Instruction::I32Const(0));
             f.instruction(&Instruction::I32Const(26));
-            f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: seg });
+            f.instruction(&Instruction::ArrayNewData {
+                array_type_index: self.string_ty,
+                array_data_index: seg,
+            });
             f.instruction(&Instruction::StructNew(result_err));
             f.instruction(&Instruction::Return);
         }
@@ -2692,7 +2847,10 @@ impl Ctx {
                 let seg = self.find_or_make_err_float_string();
                 f.instruction(&Instruction::I32Const(0));
                 f.instruction(&Instruction::I32Const(26));
-                f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: seg });
+                f.instruction(&Instruction::ArrayNewData {
+                    array_type_index: self.string_ty,
+                    array_data_index: seg,
+                });
                 f.instruction(&Instruction::StructNew(result_err));
                 f.instruction(&Instruction::Return);
             }
@@ -2743,7 +2901,10 @@ impl Ctx {
                 let seg = self.find_or_make_err_float_string();
                 f.instruction(&Instruction::I32Const(0));
                 f.instruction(&Instruction::I32Const(26));
-                f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: seg });
+                f.instruction(&Instruction::ArrayNewData {
+                    array_type_index: self.string_ty,
+                    array_data_index: seg,
+                });
                 f.instruction(&Instruction::StructNew(result_err));
                 f.instruction(&Instruction::Return);
             }
@@ -2812,7 +2973,8 @@ impl Ctx {
         f.instruction(&Instruction::End);
 
         // return Ok(result)
-        f.instruction(&Instruction::LocalGet(4));        f.instruction(&Instruction::StructNew(result_ok));
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::StructNew(result_ok));
 
         f.instruction(&Instruction::End);
         codes.function(&f);
@@ -2831,7 +2993,7 @@ impl Ctx {
 
     /// Emit a stub body for a builtin function (inlined at call sites).
     /// The body is `unreachable` — it should never be called at runtime.
-    fn emit_builtin_stub(&self, codes: &mut CodeSection, func: &MirFunction) {
+    fn emit_builtin_stub(&self, codes: &mut CodeSection, _func: &MirFunction) {
         let f_locals: Vec<(u32, ValType)> = vec![];
         let mut f = Function::new(f_locals);
         f.instruction(&Instruction::Unreachable);
@@ -2847,6 +3009,7 @@ impl Ctx {
         self.f64_locals.clear();
         self.i64_locals.clear();
         self.bool_locals.clear();
+        self.any_locals.clear();
         self.f64_vec_locals.clear();
         self.i64_vec_locals.clear();
         self.i32_vec_locals.clear();
@@ -2854,6 +3017,8 @@ impl Ctx {
         self.struct_vec_locals.clear();
         self.local_struct.clear();
         self.local_enum.clear();
+        self.current_fn_type_params = func.type_params.clone();
+        self.current_fn_return_ty = func.return_ty.clone();
 
         // ── Type propagation: scan ALL assignments (including nested) to infer ref types ──
         let mut extra_enum: HashMap<u32, String> = HashMap::new();
@@ -2868,7 +3033,11 @@ impl Ctx {
             for stmt in stmts {
                 out.push(stmt);
                 match stmt {
-                    MirStmt::IfStmt { then_body, else_body, .. } => {
+                    MirStmt::IfStmt {
+                        then_body,
+                        else_body,
+                        ..
+                    } => {
                         collect_stmts_recursive(then_body, out);
                         collect_stmts_recursive(else_body, out);
                     }
@@ -2882,12 +3051,22 @@ impl Ctx {
         // Also collect stmts embedded in Operand trees (e.g. IfExpr.then_body inside Return)
         fn collect_stmts_from_operand<'a>(op: &'a Operand, out: &mut Vec<&'a MirStmt>) {
             match op {
-                Operand::IfExpr { cond, then_body, then_result, else_body, else_result } => {
+                Operand::IfExpr {
+                    cond,
+                    then_body,
+                    then_result,
+                    else_body,
+                    else_result,
+                } => {
                     collect_stmts_from_operand(cond, out);
                     collect_stmts_recursive(then_body, out);
                     collect_stmts_recursive(else_body, out);
-                    if let Some(tr) = then_result { collect_stmts_from_operand(tr, out); }
-                    if let Some(er) = else_result { collect_stmts_from_operand(er, out); }
+                    if let Some(tr) = then_result {
+                        collect_stmts_from_operand(tr, out);
+                    }
+                    if let Some(er) = else_result {
+                        collect_stmts_from_operand(er, out);
+                    }
                 }
                 Operand::LoopExpr { body, result, .. } => {
                     collect_stmts_recursive(body, out);
@@ -2897,8 +3076,12 @@ impl Ctx {
                     collect_stmts_from_operand(a, out);
                     collect_stmts_from_operand(b, out);
                 }
-                Operand::UnaryOp(_, a) => { collect_stmts_from_operand(a, out); }
-                Operand::TryExpr { expr, .. } => { collect_stmts_from_operand(expr, out); }
+                Operand::UnaryOp(_, a) => {
+                    collect_stmts_from_operand(a, out);
+                }
+                Operand::TryExpr { expr, .. } => {
+                    collect_stmts_from_operand(expr, out);
+                }
                 _ => {}
             }
         }
@@ -2908,8 +3091,10 @@ impl Ctx {
             // Also scan operands inside the terminator (especially Return)
             match &block.terminator {
                 Terminator::Return(Some(op)) => collect_stmts_from_operand(op, &mut all_stmts),
-                Terminator::If { cond, .. } => collect_stmts_from_operand(&cond, &mut all_stmts),
-                Terminator::Switch { scrutinee, .. } => collect_stmts_from_operand(scrutinee, &mut all_stmts),
+                Terminator::If { cond, .. } => collect_stmts_from_operand(cond, &mut all_stmts),
+                Terminator::Switch { scrutinee, .. } => {
+                    collect_stmts_from_operand(scrutinee, &mut all_stmts)
+                }
                 _ => {}
             }
         }
@@ -2921,22 +3106,34 @@ impl Ctx {
                     MirStmt::Assign(Place::Local(dst), Rvalue::Use(op)) => {
                         match op {
                             Operand::Place(Place::Local(src)) => {
-                                let ename_opt = func.enum_typed_locals.get(&src.0)
+                                let ename_opt = func
+                                    .enum_typed_locals
+                                    .get(&src.0)
                                     .or_else(|| extra_enum.get(&src.0))
                                     .cloned();
                                 if let Some(ename) = ename_opt {
                                     extra_enum.entry(dst.0).or_insert(ename);
                                 }
-                                let sname_opt = func.struct_typed_locals.get(&src.0)
+                                let sname_opt = func
+                                    .struct_typed_locals
+                                    .get(&src.0)
                                     .or_else(|| extra_struct.get(&src.0))
                                     .cloned();
                                 if let Some(sname) = sname_opt {
                                     extra_struct.entry(dst.0).or_insert(sname);
                                 }
-                                if extra_vec_i32.contains(&src.0) { extra_vec_i32.insert(dst.0); }
-                                if extra_vec_i64.contains(&src.0) { extra_vec_i64.insert(dst.0); }
-                                if extra_vec_f64.contains(&src.0) { extra_vec_f64.insert(dst.0); }
-                                if extra_vec_string.contains(&src.0) { extra_vec_string.insert(dst.0); }
+                                if extra_vec_i32.contains(&src.0) {
+                                    extra_vec_i32.insert(dst.0);
+                                }
+                                if extra_vec_i64.contains(&src.0) {
+                                    extra_vec_i64.insert(dst.0);
+                                }
+                                if extra_vec_f64.contains(&src.0) {
+                                    extra_vec_f64.insert(dst.0);
+                                }
+                                if extra_vec_string.contains(&src.0) {
+                                    extra_vec_string.insert(dst.0);
+                                }
                                 // Propagate struct-vec
                                 if let Some(svn) = self.struct_vec_locals.get(&src.0).cloned() {
                                     self.struct_vec_locals.entry(dst.0).or_insert(svn);
@@ -2945,7 +3142,12 @@ impl Ctx {
                             Operand::EnumInit { enum_name, .. } => {
                                 extra_enum.entry(dst.0).or_insert_with(|| enum_name.clone());
                             }
-                            Operand::EnumPayload { enum_name, variant_name, index, .. } => {
+                            Operand::EnumPayload {
+                                enum_name,
+                                variant_name,
+                                index,
+                                ..
+                            } => {
                                 // The payload type comes from enum_variant_field_types
                                 let key = (enum_name.clone(), variant_name.clone());
                                 if let Some(field_types) = self.enum_variant_field_types.get(&key) {
@@ -2966,33 +3168,93 @@ impl Ctx {
                                 let canonical = normalize_intrinsic(name);
                                 if let Some(sname) = canonical.strip_prefix("Vec_new_") {
                                     match sname {
-                                        "i32" => { extra_vec_i32.insert(dst.0); }
-                                        "i64" => { extra_vec_i64.insert(dst.0); }
-                                        "f64" => { extra_vec_f64.insert(dst.0); }
-                                        "String" => { extra_vec_string.insert(dst.0); }
+                                        "i32" => {
+                                            extra_vec_i32.insert(dst.0);
+                                        }
+                                        "i64" => {
+                                            extra_vec_i64.insert(dst.0);
+                                        }
+                                        "f64" => {
+                                            extra_vec_f64.insert(dst.0);
+                                        }
+                                        "String" => {
+                                            extra_vec_string.insert(dst.0);
+                                        }
                                         _ => {
                                             if self.custom_vec_types.contains_key(sname) {
-                                                self.struct_vec_locals.insert(dst.0, sname.to_string());
+                                                self.struct_vec_locals
+                                                    .insert(dst.0, sname.to_string());
                                             }
                                         }
                                     }
                                 }
                                 // Propagate vec type from filter/map calls
                                 match canonical {
-                                    "filter_i32" => { extra_vec_i32.insert(dst.0); }
-                                    "filter_i64" => { extra_vec_i64.insert(dst.0); }
-                                    "filter_f64" => { extra_vec_f64.insert(dst.0); }
-                                    "filter_String" => { extra_vec_string.insert(dst.0); }
-                                    "map_i32_i32" => { extra_vec_i32.insert(dst.0); }
-                                    "map_i64_i64" => { extra_vec_i64.insert(dst.0); }
-                                    "map_f64_f64" => { extra_vec_f64.insert(dst.0); }
-                                    "map_i32_String" | "map_i64_String" | "map_f64_String" | "map_String_String" => { extra_vec_string.insert(dst.0); }
-                                    "parse_i32" => { extra_enum.entry(dst.0).or_insert_with(|| "Result".to_string()); }
-                                    "parse_i64" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_i64_String".to_string()); }
-                                    "parse_f64" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_f64_String".to_string()); }
-                                    "fs_read_file" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_String_String".to_string()); }
-                                    "fs_write_file" => { extra_enum.entry(dst.0).or_insert_with(|| "Result".to_string()); }
-                                    "find_i32" | "find_String" => { extra_enum.entry(dst.0).or_insert_with(|| "Option".to_string()); }
+                                    "filter_i32" => {
+                                        extra_vec_i32.insert(dst.0);
+                                    }
+                                    "filter_i64" => {
+                                        extra_vec_i64.insert(dst.0);
+                                    }
+                                    "filter_f64" => {
+                                        extra_vec_f64.insert(dst.0);
+                                    }
+                                    "filter_String" => {
+                                        extra_vec_string.insert(dst.0);
+                                    }
+                                    "map_i32_i32" => {
+                                        extra_vec_i32.insert(dst.0);
+                                    }
+                                    "map_i64_i64" => {
+                                        extra_vec_i64.insert(dst.0);
+                                    }
+                                    "map_f64_f64" => {
+                                        extra_vec_f64.insert(dst.0);
+                                    }
+                                    "map_i32_String" | "map_i64_String" | "map_f64_String"
+                                    | "map_String_String" => {
+                                        extra_vec_string.insert(dst.0);
+                                    }
+                                    "parse_i32" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Result".to_string());
+                                    }
+                                    "parse_i64" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Result_i64_String".to_string());
+                                    }
+                                    "parse_f64" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Result_f64_String".to_string());
+                                    }
+                                    "fs_read_file" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Result_String_String".to_string());
+                                    }
+                                    "fs_write_file" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Result".to_string());
+                                    }
+                                    "find_i32" | "find_String" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Option".to_string());
+                                    }
+                                    "HashMap_i32_i32_new" => {
+                                        extra_struct
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "__hashmap_i32_i32".to_string());
+                                    }
+                                    "HashMap_i32_i32_get" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Option".to_string());
+                                    }
                                     _ => {}
                                 }
                                 // Also check fn_ret_type_names for enum return types
@@ -3005,14 +3267,26 @@ impl Ctx {
                             _ => {}
                         }
                     }
-                    MirStmt::CallBuiltin { dest: Some(Place::Local(dst)), name, .. } => {
+                    MirStmt::CallBuiltin {
+                        dest: Some(Place::Local(dst)),
+                        name,
+                        ..
+                    } => {
                         let canonical = normalize_intrinsic(name);
                         if let Some(sname) = canonical.strip_prefix("Vec_new_") {
                             match sname {
-                                "i32" => { extra_vec_i32.insert(dst.0); }
-                                "i64" => { extra_vec_i64.insert(dst.0); }
-                                "f64" => { extra_vec_f64.insert(dst.0); }
-                                "String" => { extra_vec_string.insert(dst.0); }
+                                "i32" => {
+                                    extra_vec_i32.insert(dst.0);
+                                }
+                                "i64" => {
+                                    extra_vec_i64.insert(dst.0);
+                                }
+                                "f64" => {
+                                    extra_vec_f64.insert(dst.0);
+                                }
+                                "String" => {
+                                    extra_vec_string.insert(dst.0);
+                                }
                                 _ => {
                                     if self.custom_vec_types.contains_key(sname) {
                                         self.struct_vec_locals.insert(dst.0, sname.to_string());
@@ -3021,20 +3295,71 @@ impl Ctx {
                             }
                         }
                         match canonical {
-                            "filter_i32" => { extra_vec_i32.insert(dst.0); }
-                            "filter_i64" => { extra_vec_i64.insert(dst.0); }
-                            "filter_f64" => { extra_vec_f64.insert(dst.0); }
-                            "filter_String" => { extra_vec_string.insert(dst.0); }
-                            "map_i32_i32" => { extra_vec_i32.insert(dst.0); }
-                            "map_i64_i64" => { extra_vec_i64.insert(dst.0); }
-                            "map_f64_f64" => { extra_vec_f64.insert(dst.0); }
-                            "map_i32_String" | "map_i64_String" | "map_f64_String" | "map_String_String" => { extra_vec_string.insert(dst.0); }
-                            "parse_i32" => { extra_enum.entry(dst.0).or_insert_with(|| "Result".to_string()); }
-                            "parse_i64" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_i64_String".to_string()); }
-                            "parse_f64" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_f64_String".to_string()); }
-                            "fs_read_file" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_String_String".to_string()); }
-                            "fs_write_file" => { extra_enum.entry(dst.0).or_insert_with(|| "Result".to_string()); }
-                            "find_i32" | "find_String" => { extra_enum.entry(dst.0).or_insert_with(|| "Option".to_string()); }
+                            "filter_i32" => {
+                                extra_vec_i32.insert(dst.0);
+                            }
+                            "filter_i64" => {
+                                extra_vec_i64.insert(dst.0);
+                            }
+                            "filter_f64" => {
+                                extra_vec_f64.insert(dst.0);
+                            }
+                            "filter_String" => {
+                                extra_vec_string.insert(dst.0);
+                            }
+                            "map_i32_i32" => {
+                                extra_vec_i32.insert(dst.0);
+                            }
+                            "map_i64_i64" => {
+                                extra_vec_i64.insert(dst.0);
+                            }
+                            "map_f64_f64" => {
+                                extra_vec_f64.insert(dst.0);
+                            }
+                            "map_i32_String" | "map_i64_String" | "map_f64_String"
+                            | "map_String_String" => {
+                                extra_vec_string.insert(dst.0);
+                            }
+                            "parse_i32" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Result".to_string());
+                            }
+                            "parse_i64" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Result_i64_String".to_string());
+                            }
+                            "parse_f64" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Result_f64_String".to_string());
+                            }
+                            "fs_read_file" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Result_String_String".to_string());
+                            }
+                            "fs_write_file" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Result".to_string());
+                            }
+                            "find_i32" | "find_String" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Option".to_string());
+                            }
+                            "HashMap_i32_i32_new" => {
+                                extra_struct
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "__hashmap_i32_i32".to_string());
+                            }
+                            "HashMap_i32_i32_get" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Option".to_string());
+                            }
                             _ => {}
                         }
                     }
@@ -3045,11 +3370,21 @@ impl Ctx {
             for local in func.params.iter().chain(func.locals.iter()) {
                 if let Type::Vec(elem) = &local.ty {
                     match elem.as_ref() {
-                        Type::I32 | Type::Bool => { extra_vec_i32.insert(local.id.0); }
-                        Type::I64 => { extra_vec_i64.insert(local.id.0); }
-                        Type::F64 => { extra_vec_f64.insert(local.id.0); }
-                        Type::String => { extra_vec_string.insert(local.id.0); }
-                        _ => { extra_vec_i32.insert(local.id.0); }
+                        Type::I32 | Type::Bool => {
+                            extra_vec_i32.insert(local.id.0);
+                        }
+                        Type::I64 => {
+                            extra_vec_i64.insert(local.id.0);
+                        }
+                        Type::F64 => {
+                            extra_vec_f64.insert(local.id.0);
+                        }
+                        Type::String => {
+                            extra_vec_string.insert(local.id.0);
+                        }
+                        _ => {
+                            extra_vec_i32.insert(local.id.0);
+                        }
                     }
                 }
             }
@@ -3072,7 +3407,12 @@ impl Ctx {
         }
 
         // Merge vec sets: propagated from assignment scan + type scan
-        let vec_sets = Some((&extra_vec_i32, &extra_vec_i64, &extra_vec_f64, &extra_vec_string));
+        let vec_sets = Some((
+            &extra_vec_i32,
+            &extra_vec_i64,
+            &extra_vec_f64,
+            &extra_vec_string,
+        ));
 
         // Collect local types (skip params — they are already in the func signature)
         let num_params = func.params.len();
@@ -3110,21 +3450,75 @@ impl Ctx {
                         self.i32_vec_locals.insert(local.id.0);
                     }
                 },
+                Type::Any => {
+                    self.any_locals.insert(local.id.0);
+                }
                 _ => {}
             }
         }
         // Populate struct/enum local maps from side-channel + propagated types
         for (lid, sname) in &merged_struct {
-            self.local_struct.entry(*lid).or_insert_with(|| sname.clone());
+            self.local_struct
+                .entry(*lid)
+                .or_insert_with(|| sname.clone());
         }
         for (lid, ename) in &merged_enum {
             self.local_enum.entry(*lid).or_insert_with(|| ename.clone());
         }
         // Merge propagated vec types into runtime sets
-        for lid in &extra_vec_i32 { self.i32_vec_locals.insert(*lid); }
-        for lid in &extra_vec_i64 { self.i64_vec_locals.insert(*lid); }
-        for lid in &extra_vec_f64 { self.f64_vec_locals.insert(*lid); }
-        for lid in &extra_vec_string { self.string_vec_locals.insert(*lid); }
+        for lid in &extra_vec_i32 {
+            self.i32_vec_locals.insert(*lid);
+        }
+        for lid in &extra_vec_i64 {
+            self.i64_vec_locals.insert(*lid);
+        }
+        for lid in &extra_vec_f64 {
+            self.f64_vec_locals.insert(*lid);
+        }
+        for lid in &extra_vec_string {
+            self.string_vec_locals.insert(*lid);
+        }
+        // Track generic function params as enum/vec locals based on fn_param_type_names
+        if !func.type_params.is_empty() {
+            if let Some(param_names) = self.fn_param_type_names.get(&func.name).cloned() {
+                for (i, pname) in param_names.iter().enumerate() {
+                    if let Some(p) = func.params.get(i) {
+                        if pname.starts_with("Option") {
+                            self.local_enum.insert(p.id.0, "Option".to_string());
+                        } else if pname.starts_with("Result") {
+                            let rname = if pname.contains("i64") {
+                                "Result_i64_String"
+                            } else if pname.contains("f64") {
+                                "Result_f64_String"
+                            } else if pname.contains("String, String")
+                                || pname.contains("String,String")
+                            {
+                                "Result_String_String"
+                            } else {
+                                "Result"
+                            };
+                            self.local_enum.insert(p.id.0, rname.to_string());
+                        } else if pname.starts_with("Vec<") {
+                            let inner = &pname[4..pname.len().saturating_sub(1)];
+                            match inner {
+                                "i64" => {
+                                    self.i64_vec_locals.insert(p.id.0);
+                                }
+                                "f64" => {
+                                    self.f64_vec_locals.insert(p.id.0);
+                                }
+                                "String" => {
+                                    self.string_vec_locals.insert(p.id.0);
+                                }
+                                _ => {
+                                    self.i32_vec_locals.insert(p.id.0);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         // Add scratch locals for GC string operations:
         // +0: i32 (counter/index), +1: i32, +2: i32, +3: i32,
         // +4: ref $string, +5: ref $string
@@ -3139,14 +3533,17 @@ impl Ctx {
         local_types.push((1, ValType::I32));
         local_types.push((1, str_ref));
         local_types.push((1, str_ref));
-        local_types.push((1, ValType::I64));   // si(6): i64 scratch
-        local_types.push((1, ValType::F64));   // si(7): f64 scratch
-        local_types.push((1, str_ref));        // si(8): extra ref scratch
-        local_types.push((1, ValType::I32));   // si(9): extra i32 scratch
+        local_types.push((1, ValType::I64)); // si(6): i64 scratch
+        local_types.push((1, ValType::F64)); // si(7): f64 scratch
+        local_types.push((1, str_ref)); // si(8): extra ref scratch
+        local_types.push((1, ValType::I32)); // si(9): extra i32 scratch
         // si(10): anyref scratch for TryExpr (? operator)
         let anyref_ty = ValType::Ref(WasmRefType {
             nullable: true,
-            heap_type: HeapType::Abstract { shared: false, ty: wasm_encoder::AbstractHeapType::Any },
+            heap_type: HeapType::Abstract {
+                shared: false,
+                ty: wasm_encoder::AbstractHeapType::Any,
+            },
         });
         local_types.push((1, anyref_ty));
         // si(11): anyref scratch #2 for HOF operations
@@ -3172,6 +3569,13 @@ impl Ctx {
                         }
                     } else {
                         self.emit_operand(&mut f, op);
+                        // Box value types when returning from generic function with anyref return
+                        if self.current_fn_return_ty == Type::Any {
+                            let op_vt = self.infer_operand_type(op);
+                            if op_vt == ValType::I32 {
+                                f.instruction(&Instruction::RefI31);
+                            }
+                        }
                     }
                     f.instruction(&Instruction::Return);
                 }
@@ -3189,6 +3593,23 @@ impl Ctx {
         match stmt {
             MirStmt::Assign(Place::Local(id), Rvalue::Use(op)) => {
                 self.emit_operand(f, op);
+                // Unbox anyref from __tupleN_any FieldAccess to the destination local's concrete type
+                if let Operand::FieldAccess { struct_name, .. } = op {
+                    if struct_name.starts_with("__tuple") && struct_name.ends_with("_any") {
+                        if self.string_locals.contains(&id.0) {
+                            f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+                                self.string_ty,
+                            )));
+                        } else {
+                            // Default: i32 — unbox from i31ref
+                            f.instruction(&Instruction::RefCastNullable(HeapType::Abstract {
+                                shared: false,
+                                ty: wasm_encoder::AbstractHeapType::I31,
+                            }));
+                            f.instruction(&Instruction::I31GetS);
+                        }
+                    }
+                }
                 let local_idx = self.local_wasm_idx(id.0);
                 f.instruction(&Instruction::LocalSet(local_idx));
             }
@@ -3198,13 +3619,18 @@ impl Ctx {
                     let struct_name = self.local_struct.get(&id.0).cloned();
                     if let Some(ref sname) = struct_name {
                         if let Some(&ty_idx) = self.struct_gc_types.get(sname) {
-                            let field_idx = self.struct_layouts.get(sname)
+                            let field_idx = self
+                                .struct_layouts
+                                .get(sname)
                                 .and_then(|fields| fields.iter().position(|(n, _)| n == field_name))
                                 .unwrap_or(0) as u32;
                             let local_idx = self.local_wasm_idx(id.0);
                             f.instruction(&Instruction::LocalGet(local_idx));
                             self.emit_operand(f, op);
-                            f.instruction(&Instruction::StructSet { struct_type_index: ty_idx, field_index: field_idx });
+                            f.instruction(&Instruction::StructSet {
+                                struct_type_index: ty_idx,
+                                field_index: field_idx,
+                            });
                             return;
                         }
                     }
@@ -3299,10 +3725,29 @@ impl Ctx {
                                 .as_ref()
                                 .and_then(|pt| pt.get(i))
                                 .is_some_and(|t| matches!(t, Type::F64));
+                            let need_any = param_types
+                                .as_ref()
+                                .and_then(|pt| pt.get(i))
+                                .is_some_and(|t| matches!(t, Type::Any));
                             self.emit_operand_coerced(f, arg, need_i64, need_f64);
+                            // Box i32/bool → ref.i31 for anyref params
+                            if need_any {
+                                let arg_vt = self.infer_operand_type(arg);
+                                if arg_vt == ValType::I32 {
+                                    f.instruction(&Instruction::RefI31);
+                                }
+                            }
                         }
                         if let Some(&fn_idx) = self.fn_map.get(&fn_name) {
                             f.instruction(&Instruction::Call(fn_idx));
+                        }
+                        // Unbox anyref return if needed
+                        let ret_ty = self.fn_ret_types.get(&fn_name).cloned();
+                        if let Some(ref rt) = ret_ty {
+                            if *rt == Type::Any && dest.is_some() {
+                                let concrete = self.infer_generic_return_type(&fn_name, args);
+                                self.emit_anyref_unbox(f, &concrete);
+                            }
                         }
                         if let Some(Place::Local(id)) = dest.as_ref() {
                             f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
@@ -3363,6 +3808,13 @@ impl Ctx {
                     }
                 } else {
                     self.emit_operand(f, op);
+                    // Box value types when returning from generic function with anyref return
+                    if self.current_fn_return_ty == Type::Any {
+                        let op_vt = self.infer_operand_type(op);
+                        if op_vt == ValType::I32 {
+                            f.instruction(&Instruction::RefI31);
+                        }
+                    }
                 }
                 f.instruction(&Instruction::Return);
             }
@@ -3468,14 +3920,34 @@ impl Ctx {
                 if self.is_builtin_name(&canonical) {
                     self.emit_call_builtin_operand(f, &canonical, args);
                 } else {
-                    for arg in args {
+                    // Check if callee has Any-typed (generic) params needing boxing
+                    let param_types = self.fn_param_types.get(canonical.as_str()).cloned();
+                    for (i, arg) in args.iter().enumerate() {
                         self.emit_operand(f, arg);
+                        // Box i32/bool/char → ref.i31 when callee expects anyref
+                        if let Some(ref pts) = param_types {
+                            if i < pts.len() && pts[i] == Type::Any {
+                                let arg_vt = self.infer_operand_type(arg);
+                                if arg_vt == ValType::I32 {
+                                    f.instruction(&Instruction::RefI31);
+                                }
+                                // ref types (String, struct, enum) are anyref-compatible
+                            }
+                        }
                     }
                     if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
                         f.instruction(&Instruction::Call(fn_idx));
                     } else {
                         // Unknown function: push zero
                         f.instruction(&Instruction::I32Const(0));
+                    }
+                    // Unbox anyref return → concrete type based on arg-inferred substitution
+                    if let Some(ret_ty) = self.fn_ret_types.get(canonical.as_str()).cloned() {
+                        if ret_ty == Type::Any {
+                            // Infer concrete type from first Any-typed arg
+                            let concrete = self.infer_generic_return_type(&canonical, args);
+                            self.emit_anyref_unbox(f, &concrete);
+                        }
                     }
                 }
             }
@@ -3487,11 +3959,20 @@ impl Ctx {
                 else_result,
             } => {
                 // Determine the result type from non-Unit branches
-                let result_vt = self.infer_if_result_type(then_result.as_deref(), else_result.as_deref());
-                self.emit_operand(f, cond);
-                f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                let result_vt =
+                    self.infer_if_result_type(then_result.as_deref(), else_result.as_deref());
+                let result_is_anyref = matches!(
                     result_vt,
-                )));
+                    ValType::Ref(WasmRefType {
+                        heap_type: HeapType::Abstract {
+                            ty: wasm_encoder::AbstractHeapType::Any,
+                            ..
+                        },
+                        ..
+                    })
+                );
+                self.emit_operand(f, cond);
+                f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(result_vt)));
                 for s in then_body {
                     self.emit_stmt(f, s);
                 }
@@ -3501,6 +3982,13 @@ impl Ctx {
                     }
                     Some(r) => {
                         self.emit_operand(f, r);
+                        // Box value types to anyref when block expects anyref
+                        if result_is_anyref {
+                            let r_vt = self.infer_operand_type(r);
+                            if r_vt == ValType::I32 {
+                                f.instruction(&Instruction::RefI31);
+                            }
+                        }
                     }
                 }
                 f.instruction(&Instruction::Else);
@@ -3513,6 +4001,13 @@ impl Ctx {
                     }
                     Some(r) => {
                         self.emit_operand(f, r);
+                        // Box value types to anyref when block expects anyref
+                        if result_is_anyref {
+                            let r_vt = self.infer_operand_type(r);
+                            if r_vt == ValType::I32 {
+                                f.instruction(&Instruction::RefI31);
+                            }
+                        }
                     }
                 }
                 f.instruction(&Instruction::End);
@@ -3594,9 +4089,9 @@ impl Ctx {
                                 f.instruction(&Instruction::I32Const(i as i32));
                             } else {
                                 self.emit_operand(f, inner);
-                                f.instruction(&Instruction::RefTestNonNull(
-                                    HeapType::Concrete(vty),
-                                ));
+                                f.instruction(&Instruction::RefTestNonNull(HeapType::Concrete(
+                                    vty,
+                                )));
                                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
                                     ValType::I32,
                                 )));
@@ -3626,12 +4121,10 @@ impl Ctx {
                     .copied()
                     .unwrap_or(0);
                 self.emit_operand(f, object);
-                f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
-                    variant_ty,
-                )));
+                f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(variant_ty)));
                 f.instruction(&Instruction::StructGet {
                     struct_type_index: variant_ty,
-                    field_index: *index as u32,
+                    field_index: *index,
                 });
             }
             Operand::LoopExpr { body, result, .. } => {
@@ -3778,6 +4271,11 @@ impl Ctx {
                 | "HashMap_new_i32_String"
                 | "HashMap_new_String_i32"
                 | "HashMap_new_String_String"
+                | "HashMap_i32_i32_new"
+                | "HashMap_i32_i32_insert"
+                | "HashMap_i32_i32_get"
+                | "HashMap_i32_i32_contains_key"
+                | "HashMap_i32_i32_len"
                 | "insert"
                 | "get_or_default"
                 | "contains_key"
@@ -3931,9 +4429,9 @@ impl Ctx {
                     f.instruction(&Instruction::Drop);
                 }
             }
-            "string_len" | "char_at" | "substring" | "string_slice" | "clone" | "to_uppercase" | "to_lowercase"
-            | "to_upper" | "to_lower"
-            | "trim" | "contains" | "starts_with" | "ends_with" | "replace" | "split" => {
+            "string_len" | "char_at" | "substring" | "string_slice" | "clone" | "to_uppercase"
+            | "to_lowercase" | "to_upper" | "to_lower" | "trim" | "contains" | "starts_with"
+            | "ends_with" | "replace" | "split" => {
                 // Delegate to operand version then store/drop
                 self.emit_call_builtin_operand(f, canonical, args);
                 if let Some(Place::Local(id)) = dest {
@@ -4097,6 +4595,60 @@ impl Ctx {
                     }
                 }
             }
+            "HashMap_i32_i32_new" => {
+                // Create keys and values arrays (initial capacity 16), then struct
+                let hm_ty = self.hashmap_i32_i32_ty;
+                let arr_ty = self.arr_i32_ty;
+                f.instruction(&Instruction::I32Const(0)); // fill value
+                f.instruction(&Instruction::I32Const(16)); // initial capacity
+                f.instruction(&Instruction::ArrayNew(arr_ty));
+                f.instruction(&Instruction::I32Const(0));
+                f.instruction(&Instruction::I32Const(16));
+                f.instruction(&Instruction::ArrayNew(arr_ty));
+                f.instruction(&Instruction::I32Const(0)); // count = 0
+                f.instruction(&Instruction::StructNew(hm_ty));
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_i32_i32_insert" => {
+                self.emit_hashmap_i32_i32_insert(f, args);
+            }
+            "HashMap_i32_i32_get" => {
+                self.emit_hashmap_i32_i32_get(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_i32_i32_len" => {
+                // struct.get $hashmap_i32_i32 2 (count field)
+                if let Some(arg) = args.first() {
+                    self.emit_operand(f, arg);
+                    f.instruction(&Instruction::StructGet {
+                        struct_type_index: self.hashmap_i32_i32_ty,
+                        field_index: 2,
+                    });
+                } else {
+                    f.instruction(&Instruction::I32Const(0));
+                }
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "HashMap_i32_i32_contains_key" => {
+                self.emit_hashmap_i32_i32_contains_key(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
             _ => {
                 for arg in args {
                     self.emit_operand(f, arg);
@@ -4204,12 +4756,10 @@ impl Ctx {
                         let converted = Operand::Call("i64_to_string".to_string(), args.to_vec());
                         self.emit_operand(f, &converted);
                     } else if self.is_bool_like_operand(arg) {
-                        let converted =
-                            Operand::Call("bool_to_string".to_string(), args.to_vec());
+                        let converted = Operand::Call("bool_to_string".to_string(), args.to_vec());
                         self.emit_operand(f, &converted);
                     } else {
-                        let converted =
-                            Operand::Call("i32_to_string".to_string(), args.to_vec());
+                        let converted = Operand::Call("i32_to_string".to_string(), args.to_vec());
                         self.emit_operand(f, &converted);
                     }
                 }
@@ -4285,7 +4835,11 @@ impl Ctx {
             }
             "to_uppercase" | "to_lowercase" | "to_upper" | "to_lower" => {
                 if let Some(arg) = args.first() {
-                    self.emit_case_transform_gc(f, arg, canonical == "to_uppercase" || canonical == "to_upper");
+                    self.emit_case_transform_gc(
+                        f,
+                        arg,
+                        canonical == "to_uppercase" || canonical == "to_upper",
+                    );
                 } else {
                     f.instruction(&Instruction::I32Const(0));
                     f.instruction(&Instruction::I32Const(0));
@@ -4382,12 +4936,6 @@ impl Ctx {
                     f.instruction(&Instruction::I32Const(1));
                 }
             }
-            "String_new" | "string_new" => {
-                // String::new() → empty GC string
-                f.instruction(&Instruction::I32Const(0));
-                f.instruction(&Instruction::I32Const(0));
-                f.instruction(&Instruction::ArrayNew(self.string_ty));
-            }
             _ if canonical.starts_with("Vec_new_") => {
                 let sname = &canonical[8..];
                 if let Some(&(arr_ty, vec_ty)) = self.custom_vec_types.get(sname) {
@@ -4425,6 +4973,35 @@ impl Ctx {
             }
             "fs_write_file" => {
                 self.emit_fs_write_file_gc(f, args);
+            }
+            "HashMap_i32_i32_new" => {
+                let hm_ty = self.hashmap_i32_i32_ty;
+                let arr_ty = self.arr_i32_ty;
+                f.instruction(&Instruction::I32Const(0));
+                f.instruction(&Instruction::I32Const(16));
+                f.instruction(&Instruction::ArrayNew(arr_ty));
+                f.instruction(&Instruction::I32Const(0));
+                f.instruction(&Instruction::I32Const(16));
+                f.instruction(&Instruction::ArrayNew(arr_ty));
+                f.instruction(&Instruction::I32Const(0));
+                f.instruction(&Instruction::StructNew(hm_ty));
+            }
+            "HashMap_i32_i32_get" => {
+                self.emit_hashmap_i32_i32_get(f, args);
+            }
+            "HashMap_i32_i32_len" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand(f, arg);
+                    f.instruction(&Instruction::StructGet {
+                        struct_type_index: self.hashmap_i32_i32_ty,
+                        field_index: 2,
+                    });
+                } else {
+                    f.instruction(&Instruction::I32Const(0));
+                }
+            }
+            "HashMap_i32_i32_contains_key" => {
+                self.emit_hashmap_i32_i32_contains_key(f, args);
             }
             _ => {
                 // Unimplemented builtin as operand — push null ref for string types
@@ -4486,7 +5063,9 @@ impl Ctx {
             // Determine Ok payload type from enum_defs
             let ok_payload_ty = self.get_ok_payload_type(&_ename);
 
-            f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ok_payload_ty)));
+            f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                ok_payload_ty,
+            )));
             {
                 // Ok path: cast and extract payload
                 f.instruction(&Instruction::LocalGet(anyref_scratch));
@@ -4501,7 +5080,9 @@ impl Ctx {
                 // Err path: cast to Err variant, re-wrap in function return type, and return
                 // In the common case (same Result type), just return the original ref
                 f.instruction(&Instruction::LocalGet(anyref_scratch));
-                f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(err_variant)));
+                f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                    err_variant,
+                )));
                 // Extract Err payload (ref $string)
                 f.instruction(&Instruction::StructGet {
                     struct_type_index: err_variant,
@@ -4648,7 +5229,10 @@ impl Ctx {
         } else if self.is_string_vec_operand(operand) {
             self.vec_string_ty
         } else if let Some(sname) = self.get_struct_vec_name(operand) {
-            self.custom_vec_types.get(&sname).map(|&(_, v)| v).unwrap_or(self.vec_i32_ty)
+            self.custom_vec_types
+                .get(&sname)
+                .map(|&(_, v)| v)
+                .unwrap_or(self.vec_i32_ty)
         } else {
             self.vec_i32_ty
         }
@@ -4663,7 +5247,10 @@ impl Ctx {
         } else if self.is_string_vec_operand(operand) {
             self.arr_string_ty
         } else if let Some(sname) = self.get_struct_vec_name(operand) {
-            self.custom_vec_types.get(&sname).map(|&(a, _)| a).unwrap_or(self.arr_i32_ty)
+            self.custom_vec_types
+                .get(&sname)
+                .map(|&(a, _)| a)
+                .unwrap_or(self.arr_i32_ty)
         } else {
             self.arr_i32_ty
         }
@@ -4709,25 +5296,37 @@ impl Ctx {
         then_result: Option<&Operand>,
         else_result: Option<&Operand>,
     ) -> ValType {
-        // Try to infer from non-Unit branch
+        let mut types = vec![];
         for result in [then_result, else_result] {
             match result {
                 Some(Operand::Unit) | None => continue,
-                Some(op) => return self.infer_operand_type(op),
+                Some(op) => types.push(self.infer_operand_type(op)),
             }
         }
-        ValType::I32
+        let anyref_vt = ValType::Ref(WasmRefType {
+            nullable: true,
+            heap_type: HeapType::Abstract {
+                shared: false,
+                ty: wasm_encoder::AbstractHeapType::Any,
+            },
+        });
+        // If any branch produces anyref, the result type must be anyref
+        // (value types in the other branch will be boxed via ref.i31)
+        if types.iter().any(|t| *t == anyref_vt) {
+            return anyref_vt;
+        }
+        // If both branches produce enum refs and one is non-null, prefer nullable
+        types.first().cloned().unwrap_or(ValType::I32)
     }
 
     /// Check whether an operand produces a value on the Wasm stack.
     fn operand_produces_value(&self, op: &Operand) -> bool {
         match op {
             Operand::Unit => false,
-            Operand::Call(name, _) => {
-                self.fn_ret_types
-                    .get(name.as_str())
-                    .is_some_and(|ty| !matches!(ty, Type::Unit | Type::Never))
-            }
+            Operand::Call(name, _) => self
+                .fn_ret_types
+                .get(name.as_str())
+                .is_some_and(|ty| !matches!(ty, Type::Unit | Type::Never)),
             _ => true,
         }
     }
@@ -4748,6 +5347,12 @@ impl Ctx {
                 }
                 if self.i64_locals.contains(&id.0) {
                     return ValType::I64;
+                }
+                if self.any_locals.contains(&id.0) {
+                    return ValType::Ref(WasmRefType {
+                        nullable: true,
+                        heap_type: HeapType::ANY,
+                    });
                 }
                 if let Some(sname) = self.local_struct.get(&id.0) {
                     if let Some(&ty_idx) = self.struct_gc_types.get(sname) {
@@ -4819,10 +5424,11 @@ impl Ctx {
                             return ValType::I32;
                         }
                     }
-                    "concat" | "clone" | "to_uppercase" | "to_lowercase" | "to_upper" | "to_lower" | "trim"
-                    | "replace" | "substring" | "string_slice" | "String_from" | "String_new" | "string_new"
-                    | "char_to_string" | "i32_to_string" | "i64_to_string" | "f64_to_string"
-                    | "bool_to_string" | "to_string" => {
+                    "concat" | "clone" | "to_uppercase" | "to_lowercase" | "to_upper"
+                    | "to_lower" | "trim" | "replace" | "substring" | "string_slice"
+                    | "String_from" | "String_new" | "string_new" | "char_to_string"
+                    | "i32_to_string" | "i64_to_string" | "f64_to_string" | "bool_to_string"
+                    | "to_string" => {
                         return ref_nullable(self.string_ty);
                     }
                     "contains_i32" | "contains_String" | "len" | "string_len" | "char_at"
@@ -4849,22 +5455,36 @@ impl Ctx {
                     _ => {}
                 }
                 // Check Vec_new_* for struct names
-                if canonical.starts_with("Vec_new_") {
-                    let sname = &canonical[8..];
+                if let Some(sname) = canonical.strip_prefix("Vec_new_") {
                     if let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname) {
                         return ref_nullable(vec_ty);
                     }
                 }
                 if let Some(ret_name) = self.fn_ret_type_names.get(name) {
+                    // Check if the function returns Any (generic) — infer concrete type
+                    if let Some(ret_ty) = self.fn_ret_types.get(name) {
+                        if *ret_ty == Type::Any {
+                            return self.infer_generic_return_type(name, args);
+                        }
+                    }
                     self.type_name_to_val(ret_name)
                 } else if let Some(ret_ty) = self.fn_ret_types.get(name) {
+                    if *ret_ty == Type::Any {
+                        return self.infer_generic_return_type(name, args);
+                    }
                     self.type_to_val(ret_ty)
                 } else {
                     ValType::I32
                 }
             }
-            Operand::FieldAccess { struct_name, field, .. } => {
-                let layout = self.struct_layouts.get(struct_name).cloned().unwrap_or_default();
+            Operand::FieldAccess {
+                struct_name, field, ..
+            } => {
+                let layout = self
+                    .struct_layouts
+                    .get(struct_name)
+                    .cloned()
+                    .unwrap_or_default();
                 if let Some((_, fty)) = layout.iter().find(|(n, _)| n == field) {
                     self.type_name_to_val(fty)
                 } else {
@@ -4872,10 +5492,51 @@ impl Ctx {
                 }
             }
             Operand::BinOp { .. } | Operand::UnaryOp { .. } | Operand::EnumTag(_) => ValType::I32,
-            Operand::IfExpr { then_result, else_result, .. } => {
-                self.infer_if_result_type(then_result.as_deref(), else_result.as_deref())
-            }
+            Operand::IfExpr {
+                then_result,
+                else_result,
+                ..
+            } => self.infer_if_result_type(then_result.as_deref(), else_result.as_deref()),
             _ => ValType::I32,
+        }
+    }
+
+    /// Infer the concrete return type of a generic function call from the argument types.
+    /// For `identity<T>(x: T) -> T`, if called with a String arg, returns String.
+    fn infer_generic_return_type(&self, fn_name: &str, args: &[Operand]) -> ValType {
+        let param_types = self.fn_param_types.get(fn_name);
+        if let Some(pts) = param_types {
+            // Find the first Any-typed param and use its corresponding arg's type
+            for (i, pt) in pts.iter().enumerate() {
+                if *pt == Type::Any {
+                    if let Some(arg) = args.get(i) {
+                        return self.infer_operand_type(arg);
+                    }
+                }
+            }
+        }
+        // Fallback: return i32
+        ValType::I32
+    }
+
+    /// Emit unboxing instructions to convert an anyref on the stack to a concrete type.
+    fn emit_anyref_unbox(&self, f: &mut Function, target_vt: &ValType) {
+        match target_vt {
+            ValType::I32 => {
+                // anyref → ref.cast (ref i31) → i31.get_s
+                f.instruction(&Instruction::RefCastNullable(HeapType::Abstract {
+                    shared: false,
+                    ty: wasm_encoder::AbstractHeapType::I31,
+                }));
+                f.instruction(&Instruction::I31GetS);
+            }
+            ValType::Ref(rt) => {
+                // anyref → ref.cast (ref $concrete_type)
+                f.instruction(&Instruction::RefCastNullable(rt.heap_type));
+            }
+            _ => {
+                // For i64/f64 we'd need struct boxing — not yet implemented
+            }
         }
     }
 
@@ -4886,9 +5547,7 @@ impl Ctx {
             ValType::I64 => f.instruction(&Instruction::I64Const(0)),
             ValType::F32 => f.instruction(&Instruction::F32Const(0.0)),
             ValType::F64 => f.instruction(&Instruction::F64Const(0.0)),
-            ValType::Ref(rt) => {
-                f.instruction(&Instruction::RefNull(rt.heap_type))
-            }
+            ValType::Ref(rt) => f.instruction(&Instruction::RefNull(rt.heap_type)),
             _ => f.instruction(&Instruction::I32Const(0)),
         };
     }
@@ -4988,13 +5647,7 @@ impl Ctx {
     }
 
     /// substring(s, start, end) → new GC string
-    fn emit_substring_gc(
-        &mut self,
-        f: &mut Function,
-        s: &Operand,
-        start: &Operand,
-        end: &Operand,
-    ) {
+    fn emit_substring_gc(&mut self, f: &mut Function, s: &Operand, start: &Operand, end: &Operand) {
         let s0 = self.si(4);
         let result = self.si(5);
         let start_idx = self.si(0);
@@ -5029,12 +5682,7 @@ impl Ctx {
     }
 
     /// to_uppercase/to_lowercase: clone + byte-by-byte transform
-    fn emit_case_transform_gc(
-        &mut self,
-        f: &mut Function,
-        arg: &Operand,
-        to_upper: bool,
-    ) {
+    fn emit_case_transform_gc(&mut self, f: &mut Function, arg: &Operand, to_upper: bool) {
         let s0 = self.si(4);
         let result = self.si(5);
         let len = self.si(0);
@@ -5257,7 +5905,9 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(s_len));
         f.instruction(&Instruction::LocalGet(p_len));
         f.instruction(&Instruction::I32LtU);
-        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            ValType::I32,
+        )));
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::Else);
 
@@ -5321,7 +5971,9 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(s_len));
         f.instruction(&Instruction::LocalGet(sf_len));
         f.instruction(&Instruction::I32LtU);
-        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            ValType::I32,
+        )));
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::Else);
 
@@ -5390,7 +6042,9 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(s1));
         f.instruction(&Instruction::ArrayLen);
         f.instruction(&Instruction::I32Ne);
-        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            ValType::I32,
+        )));
         f.instruction(&Instruction::I32Const(0)); // different lengths → not equal
         f.instruction(&Instruction::Else);
 
@@ -5461,7 +6115,9 @@ impl Ctx {
         // Empty substring always matches
         f.instruction(&Instruction::LocalGet(sub_len));
         f.instruction(&Instruction::I32Eqz);
-        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(ValType::I32)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            ValType::I32,
+        )));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::Else);
 
@@ -5533,7 +6189,7 @@ impl Ctx {
     }
 
     /// join(parts_vec, separator) → String
-    fn emit_join_gc(&mut self, f: &mut Function, args: &[Operand]) {
+    fn emit_join_gc(&mut self, f: &mut Function, _args: &[Operand]) {
         // Stub: return empty string for now (join requires Vec<String> access)
         let sty = self.string_ty;
         f.instruction(&Instruction::I32Const(0));
@@ -5968,7 +6624,7 @@ impl Ctx {
     fn extract_fn_idx(&self, op: &Operand) -> Option<u32> {
         match op {
             Operand::FnRef(name) => self.fn_map.get(name.as_str()).copied(),
-            Operand::Place(Place::Local(id)) => {
+            Operand::Place(Place::Local(_id)) => {
                 // Closure: check if the local was bound to a closure → resolve to synthetic fn
                 None // For now, only handle FnRef
             }
@@ -6004,7 +6660,9 @@ impl Ctx {
     /// GC-native filter HOF: filter(vec, predicate) -> new_vec
     /// Uses GC struct/array ops instead of linear memory.
     fn emit_filter_hof_gc(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
-        if args.len() < 2 { return; }
+        if args.len() < 2 {
+            return;
+        }
 
         let (arr_ty, vec_ty) = self.hof_gc_types(canonical);
         let pred_fn_idx = self.extract_fn_idx(&args[1]);
@@ -6014,11 +6672,17 @@ impl Ctx {
 
         // Get source array and length
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalSet(self.si(10))); // src_arr → anyref
 
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(self.si(0))); // len
 
         // Create result array with same capacity
@@ -6065,10 +6729,15 @@ impl Ctx {
         } else {
             // Fallback: emit operand (FnRef) and call_indirect
             self.emit_operand(f, &args[1]);
-            let pred_type = self.indirect_types
+            let pred_type = self
+                .indirect_types
                 .get(&(vec![ValType::I32], vec![ValType::I32]))
-                .copied().unwrap_or(0);
-            f.instruction(&Instruction::CallIndirect { type_index: pred_type, table_index: 0 });
+                .copied()
+                .unwrap_or(0);
+            f.instruction(&Instruction::CallIndirect {
+                type_index: pred_type,
+                table_index: 0,
+            });
         }
 
         // if predicate true
@@ -6103,7 +6772,9 @@ impl Ctx {
 
     /// GC-native map HOF: map(vec, mapper) -> new_vec
     fn emit_map_hof_gc(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
-        if args.len() < 2 { return; }
+        if args.len() < 2 {
+            return;
+        }
 
         let (in_arr_ty, in_vec_ty) = self.hof_gc_types(canonical);
         let (out_arr_ty, out_vec_ty) = self.hof_map_output_types(canonical);
@@ -6114,11 +6785,17 @@ impl Ctx {
 
         // Get source array and length
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: in_vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: in_vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalSet(self.si(10)));
 
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: in_vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: in_vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(self.si(0)));
 
         // Create result array with same length
@@ -6179,7 +6856,9 @@ impl Ctx {
 
     /// GC-native fold HOF: fold(vec, init, folder) -> acc
     fn emit_fold_hof_gc(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
-        if args.len() < 3 { return; }
+        if args.len() < 3 {
+            return;
+        }
 
         let (arr_ty, vec_ty) = self.hof_gc_types(canonical);
         let fold_fn_idx = self.extract_fn_idx(&args[2]);
@@ -6189,11 +6868,17 @@ impl Ctx {
 
         // Get source array and length
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalSet(self.si(10)));
 
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(self.si(0)));
 
         // acc = init
@@ -6242,7 +6927,10 @@ impl Ctx {
 
     /// GC-native any HOF: any(vec, pred) -> bool
     fn emit_any_hof_gc(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
-        if args.len() < 2 { f.instruction(&Instruction::I32Const(0)); return; }
+        if args.len() < 2 {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
 
         let (arr_ty, vec_ty) = self.hof_gc_types(canonical);
         let pred_fn_idx = self.extract_fn_idx(&args[1]);
@@ -6251,11 +6939,17 @@ impl Ctx {
         // si(10) = src_arr (anyref)
 
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalSet(self.si(10)));
 
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(self.si(0)));
 
         f.instruction(&Instruction::I32Const(0));
@@ -6317,18 +7011,32 @@ impl Ctx {
         let pred_fn_idx = self.extract_fn_idx(&args[1]);
 
         // Get Option variant types
-        let option_some_ty = self.enum_base_types.get("Option").map(|b| b + 1).unwrap_or(0);
-        let option_none_ty = self.enum_base_types.get("Option").map(|b| b + 2).unwrap_or(0);
+        let option_some_ty = self
+            .enum_base_types
+            .get("Option")
+            .map(|b| b + 1)
+            .unwrap_or(0);
+        let option_none_ty = self
+            .enum_base_types
+            .get("Option")
+            .map(|b| b + 2)
+            .unwrap_or(0);
 
         // si(0) = len, si(1) = i, si(3) = found_elem, si(9) = found flag
         // si(10) = src_arr (anyref)
 
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalSet(self.si(10)));
 
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(self.si(0)));
 
         f.instruction(&Instruction::I32Const(0));
@@ -6376,7 +7084,8 @@ impl Ctx {
         // Return Option: if found, Some(elem), else None
         f.instruction(&Instruction::LocalGet(self.si(9)));
         f.instruction(&Instruction::If(wasm_encoder::BlockType::FunctionType(
-            self.types.add_func(&[], &[ref_nullable(option_some_ty - 1)]),
+            self.types
+                .add_func(&[], &[ref_nullable(option_some_ty - 1)]),
         )));
         f.instruction(&Instruction::LocalGet(self.si(3)));
         f.instruction(&Instruction::StructNew(option_some_ty));
@@ -6388,12 +7097,18 @@ impl Ctx {
     /// GC-native fs_read_file(path) -> Result<String, String>
     /// Copy GC path to linear memory, call path_open + fd_read, build GC string result
     fn emit_fs_read_file_gc(&mut self, f: &mut Function, args: &[Operand]) {
-        if args.is_empty() { return; }
+        if args.is_empty() {
+            return;
+        }
 
         let result_base = *self.enum_base_types.get("Result_String_String").unwrap();
         let ok_variant = result_base + 1;
         let err_variant = result_base + 2;
-        let ma = wasm_encoder::MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma = wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
 
         // Pre-allocate error strings as data segments (absolute index = active segs + relative)
         let data_seg_base = self.data_segs.len() as u32;
@@ -6407,7 +7122,9 @@ impl Ctx {
 
         // Get path length
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArrayLen);
         f.instruction(&Instruction::LocalSet(self.si(0))); // path_len
 
@@ -6425,10 +7142,16 @@ impl Ctx {
         f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::ArrayGetU(self.string_ty));
-        f.instruction(&Instruction::I32Store8(wasm_encoder::MemArg { offset: 0, align: 0, memory_index: 0 }));
+        f.instruction(&Instruction::I32Store8(wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        }));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
@@ -6458,7 +7181,10 @@ impl Ctx {
         // Return Err("file open error")
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::I32Const(15)); // "file open error" len
-        f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: err_open_seg });
+        f.instruction(&Instruction::ArrayNewData {
+            array_type_index: self.string_ty,
+            array_data_index: err_open_seg,
+        });
         f.instruction(&Instruction::StructNew(err_variant));
         f.instruction(&Instruction::LocalSet(self.si(10))); // store result
         f.instruction(&Instruction::Else);
@@ -6542,7 +7268,11 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::I32Load8U(wasm_encoder::MemArg { offset: 0, align: 0, memory_index: 0 }));
+        f.instruction(&Instruction::I32Load8U(wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        }));
         f.instruction(&Instruction::ArraySet(self.string_ty));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::I32Const(1));
@@ -6561,26 +7291,37 @@ impl Ctx {
 
         // Push result
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(result_base)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            result_base,
+        )));
     }
 
     /// GC-native fs_write_file(path, content) -> Result<(), String>
     fn emit_fs_write_file_gc(&mut self, f: &mut Function, args: &[Operand]) {
-        if args.len() < 2 { return; }
+        if args.len() < 2 {
+            return;
+        }
 
         let result_base = *self.enum_base_types.get("Result").unwrap();
         let ok_variant = result_base + 1;
         let err_variant = result_base + 2;
-        let ma = wasm_encoder::MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma = wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
 
-        let err_write_seg = self.data_segs.len() as u32 + self.alloc_string_data(b"file write error");
+        let err_write_seg =
+            self.data_segs.len() as u32 + self.alloc_string_data(b"file write error");
 
         // Step 1: Copy path to linear memory at FS_SCRATCH+32
         self.emit_operand(f, &args[0]);
         f.instruction(&Instruction::LocalSet(self.si(10))); // path ref
 
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArrayLen);
         f.instruction(&Instruction::LocalSet(self.si(0))); // path_len
 
@@ -6597,10 +7338,16 @@ impl Ctx {
         f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::ArrayGetU(self.string_ty));
-        f.instruction(&Instruction::I32Store8(wasm_encoder::MemArg { offset: 0, align: 0, memory_index: 0 }));
+        f.instruction(&Instruction::I32Store8(wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        }));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
@@ -6630,7 +7377,10 @@ impl Ctx {
         // Err("file write error")
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::I32Const(16)); // len
-        f.instruction(&Instruction::ArrayNewData { array_type_index: self.string_ty, array_data_index: err_write_seg });
+        f.instruction(&Instruction::ArrayNewData {
+            array_type_index: self.string_ty,
+            array_data_index: err_write_seg,
+        });
         f.instruction(&Instruction::StructNew(err_variant));
         f.instruction(&Instruction::LocalSet(self.si(10)));
         f.instruction(&Instruction::Else);
@@ -6640,7 +7390,9 @@ impl Ctx {
         f.instruction(&Instruction::LocalSet(self.si(11))); // content ref
 
         f.instruction(&Instruction::LocalGet(self.si(11)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArrayLen);
         f.instruction(&Instruction::LocalSet(self.si(2))); // content_len
 
@@ -6657,10 +7409,16 @@ impl Ctx {
         f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalGet(self.si(11)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::ArrayGetU(self.string_ty));
-        f.instruction(&Instruction::I32Store8(wasm_encoder::MemArg { offset: 0, align: 0, memory_index: 0 }));
+        f.instruction(&Instruction::I32Store8(wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        }));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
@@ -6705,7 +7463,9 @@ impl Ctx {
 
         // Push result
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(result_base)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            result_base,
+        )));
     }
 
     fn emit_vec_new(&mut self, f: &mut Function, element_size: i32, dest: Option<&Place>) {
@@ -6754,6 +7514,311 @@ impl Ctx {
         f.instruction(&Instruction::StructNew(vec_ty));
     }
 
+    /// HashMap_i32_i32_insert(map, key, value)
+    /// Linear scan keys[0..count], update if found, else append.
+    /// Uses scratch: si(0)=count, si(1)=i, si(2)=key, si(3)=value, si(9)=found
+    fn emit_hashmap_i32_i32_insert(&mut self, f: &mut Function, args: &[Operand]) {
+        if args.len() < 3 {
+            return;
+        }
+        let hm_ty = self.hashmap_i32_i32_ty;
+        let arr_ty = self.arr_i32_ty;
+
+        // Push map ref, get count
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(self.si(10))); // map → anyref scratch
+
+        // key → si(2), value → si(3)
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+        self.emit_operand(f, &args[2]);
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+
+        // count = map.count
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 2,
+        });
+        f.instruction(&Instruction::LocalSet(self.si(0)));
+
+        // i = 0, found = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+
+        // Search loop: for i in 0..count { if keys[i] == key { values[i] = value; found = 1; break } }
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // if i >= count: break
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // if keys[i] == key
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 0,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(arr_ty));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Eq);
+
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // values[i] = value
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 1,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::ArraySet(arr_ty));
+        // found = 1
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+        f.instruction(&Instruction::Br(2)); // break outer block
+        f.instruction(&Instruction::End);
+
+        // i++
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0)); // continue loop
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // If not found, append: keys[count] = key, values[count] = value, count++
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+
+        // keys[count] = key
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 0,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::ArraySet(arr_ty));
+
+        // values[count] = value
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 1,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::ArraySet(arr_ty));
+
+        // map.count = count + 1
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::StructSet {
+            struct_type_index: hm_ty,
+            field_index: 2,
+        });
+
+        f.instruction(&Instruction::End); // end if
+    }
+
+    /// HashMap_i32_i32_get(map, key) -> Option<i32>
+    /// Linear scan, returns Some(value) or None as GC enum variants.
+    fn emit_hashmap_i32_i32_get(&mut self, f: &mut Function, args: &[Operand]) {
+        if args.len() < 2 {
+            // Return None
+            if let Some(&base_ty) = self.enum_base_types.get("Option") {
+                f.instruction(&Instruction::StructNew(base_ty + 2));
+            } else {
+                f.instruction(&Instruction::I32Const(0));
+            }
+            return;
+        }
+        let hm_ty = self.hashmap_i32_i32_ty;
+        let arr_ty = self.arr_i32_ty;
+        let option_base = *self.enum_base_types.get("Option").unwrap_or(&0);
+        let option_some_ty = option_base + 1;
+        let option_none_ty = option_base + 2;
+
+        // map → si(10)
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        // key → si(2)
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+
+        // count = map.count → si(0)
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 2,
+        });
+        f.instruction(&Instruction::LocalSet(self.si(0)));
+
+        // i = 0, found = 0, result_val = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(9))); // found flag
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(3))); // result value
+
+        // Search loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // if keys[i] == key
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 0,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(arr_ty));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Eq);
+
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // result_val = values[i]
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 1,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(arr_ty));
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+        // found = 1
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+        f.instruction(&Instruction::Br(2)); // break outer block
+        f.instruction(&Instruction::End);
+
+        // i++
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Return Option: if found then Some(result_val) else None
+        let option_ref = ref_nullable(option_base);
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            option_ref,
+        )));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::StructNew(option_some_ty));
+        f.instruction(&Instruction::Else);
+        f.instruction(&Instruction::StructNew(option_none_ty));
+        f.instruction(&Instruction::End);
+    }
+
+    /// HashMap_i32_i32_contains_key(map, key) -> bool (i32)
+    fn emit_hashmap_i32_i32_contains_key(&mut self, f: &mut Function, args: &[Operand]) {
+        if args.len() < 2 {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
+        let hm_ty = self.hashmap_i32_i32_ty;
+        let arr_ty = self.arr_i32_ty;
+
+        // map → si(10)
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        // key → si(2)
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+
+        // count → si(0)
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 2,
+        });
+        f.instruction(&Instruction::LocalSet(self.si(0)));
+
+        // i = 0, found = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+
+        // Search loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // if keys[i] == key
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 0,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(arr_ty));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Eq);
+
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+        f.instruction(&Instruction::Br(2)); // break outer block
+        f.instruction(&Instruction::End);
+
+        // i++
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+    }
+
     fn emit_push(&mut self, f: &mut Function, args: &[Operand]) {
         if args.len() < 2 {
             return;
@@ -6768,12 +7833,18 @@ impl Ctx {
 
         // len = struct.get $vec 1
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(scr_len));
 
         // array.set backing[len] = val
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(scr_len));
         self.emit_operand_coerced(f, &args[1], is_i64, is_f64);
         f.instruction(&Instruction::ArraySet(arr_ty));
@@ -6783,7 +7854,10 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(scr_len));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::StructSet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructSet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
     }
 
     fn emit_len_inline(&mut self, f: &mut Function, arg: Option<&Operand>) {
@@ -6803,7 +7877,11 @@ impl Ctx {
                     });
                 }
             } else {
-                let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                let ma = MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                };
                 // Bridge fallback (non-GC operand)
                 f.instruction(&Instruction::I32Const(4));
                 f.instruction(&Instruction::I32Add);
@@ -6825,7 +7903,10 @@ impl Ctx {
 
         // array.get backing[index]
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         self.emit_operand(f, &args[1]);
         f.instruction(&Instruction::ArrayGet(arr_ty));
     }
@@ -6853,14 +7934,22 @@ impl Ctx {
             f.instruction(&Instruction::LocalSet(scr_idx));
             f.instruction(&Instruction::LocalGet(scr_idx));
             self.emit_operand(f, &args[0]);
-            f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+            f.instruction(&Instruction::StructGet {
+                struct_type_index: vec_ty,
+                field_index: 1,
+            });
             f.instruction(&Instruction::I32LtU);
 
-            f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(option_ref)));
+            f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                option_ref,
+            )));
 
             // Some branch: get element, wrap in Option::Some
             self.emit_operand(f, &args[0]);
-            f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+            f.instruction(&Instruction::StructGet {
+                struct_type_index: vec_ty,
+                field_index: 0,
+            });
             f.instruction(&Instruction::LocalGet(scr_idx));
             f.instruction(&Instruction::ArrayGet(arr_ty));
             f.instruction(&Instruction::StructNew(some_ty));
@@ -6889,7 +7978,10 @@ impl Ctx {
 
         // array.set backing[index] = val
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         self.emit_operand(f, &args[1]);
         self.emit_operand_coerced(f, &args[2], is_i64, is_f64);
         f.instruction(&Instruction::ArraySet(arr_ty));
@@ -6915,14 +8007,19 @@ impl Ctx {
 
             // len = struct.get $vec 1
             self.emit_operand(f, &args[0]);
-            f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+            f.instruction(&Instruction::StructGet {
+                struct_type_index: vec_ty,
+                field_index: 1,
+            });
             f.instruction(&Instruction::LocalSet(scr_len));
 
             // if len > 0
             f.instruction(&Instruction::LocalGet(scr_len));
             f.instruction(&Instruction::I32Const(0));
             f.instruction(&Instruction::I32GtU);
-            f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(option_ref)));
+            f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+                option_ref,
+            )));
 
             // new_len = len - 1
             f.instruction(&Instruction::LocalGet(scr_len));
@@ -6932,14 +8029,20 @@ impl Ctx {
 
             // Get element at new_len
             self.emit_operand(f, &args[0]);
-            f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+            f.instruction(&Instruction::StructGet {
+                struct_type_index: vec_ty,
+                field_index: 0,
+            });
             f.instruction(&Instruction::LocalGet(scr_len));
             f.instruction(&Instruction::ArrayGet(arr_ty));
 
             // Update vec.len = new_len
             self.emit_operand(f, &args[0]);
             f.instruction(&Instruction::LocalGet(scr_len));
-            f.instruction(&Instruction::StructSet { struct_type_index: vec_ty, field_index: 1 });
+            f.instruction(&Instruction::StructSet {
+                struct_type_index: vec_ty,
+                field_index: 1,
+            });
 
             // Wrap in Option::Some
             f.instruction(&Instruction::StructNew(some_ty));
@@ -6954,7 +8057,10 @@ impl Ctx {
             // Fallback: return unchecked last element
             let scr_len = self.si(0);
             self.emit_operand(f, &args[0]);
-            f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+            f.instruction(&Instruction::StructGet {
+                struct_type_index: vec_ty,
+                field_index: 1,
+            });
             f.instruction(&Instruction::I32Const(1));
             f.instruction(&Instruction::I32Sub);
             f.instruction(&Instruction::LocalSet(scr_len));
@@ -6962,23 +8068,24 @@ impl Ctx {
             // Decrement len
             self.emit_operand(f, &args[0]);
             f.instruction(&Instruction::LocalGet(scr_len));
-            f.instruction(&Instruction::StructSet { struct_type_index: vec_ty, field_index: 1 });
+            f.instruction(&Instruction::StructSet {
+                struct_type_index: vec_ty,
+                field_index: 1,
+            });
 
             // Get element at new len
             self.emit_operand(f, &args[0]);
-            f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+            f.instruction(&Instruction::StructGet {
+                struct_type_index: vec_ty,
+                field_index: 0,
+            });
             f.instruction(&Instruction::LocalGet(scr_len));
             f.instruction(&Instruction::ArrayGet(arr_ty));
         }
     }
 
     /// contains_i32(v, x) / contains_String(v, s) → bool
-    fn emit_contains_inline(
-        &mut self,
-        f: &mut Function,
-        canonical: &str,
-        args: &[Operand],
-    ) {
+    fn emit_contains_inline(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
         if args.len() < 2 {
             f.instruction(&Instruction::I32Const(0));
             return;
@@ -6998,7 +8105,10 @@ impl Ctx {
 
         // len = vec.len
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(scr_len));
 
         // i = 0
@@ -7006,7 +8116,9 @@ impl Ctx {
         f.instruction(&Instruction::LocalSet(scr_i));
 
         // block $done (result i32)
-        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Result(ValType::I32)));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Result(
+            ValType::I32,
+        )));
         // block $not_found
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
         // loop $search
@@ -7020,7 +8132,10 @@ impl Ctx {
 
         // elem = backing[i]
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(scr_i));
         f.instruction(&Instruction::ArrayGet(arr_ty));
 
@@ -7053,12 +8168,7 @@ impl Ctx {
     }
 
     /// reverse_i32(v) / reverse_String(v) — in-place reversal
-    fn emit_reverse_inline(
-        &mut self,
-        f: &mut Function,
-        canonical: &str,
-        args: &[Operand],
-    ) {
+    fn emit_reverse_inline(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
         if args.is_empty() {
             return;
         }
@@ -7066,7 +8176,10 @@ impl Ctx {
         let (vec_ty, arr_ty) = if is_string {
             (self.vec_string_ty, self.arr_string_ty)
         } else {
-            (self.infer_vec_type_idx(&args[0]), self.infer_arr_type_idx(&args[0]))
+            (
+                self.infer_vec_type_idx(&args[0]),
+                self.infer_arr_type_idx(&args[0]),
+            )
         };
         let elem_vt = if is_string {
             ref_nullable(self.string_ty)
@@ -7084,7 +8197,10 @@ impl Ctx {
 
         // hi = vec.len - 1
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Sub);
         f.instruction(&Instruction::LocalSet(scr_hi));
@@ -7100,24 +8216,36 @@ impl Ctx {
 
         // tmp = backing[lo]
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(scr_lo));
         f.instruction(&Instruction::ArrayGet(arr_ty));
         f.instruction(&Instruction::LocalSet(scr_tmp_idx));
 
         // backing[lo] = backing[hi]
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(scr_lo));
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(scr_hi));
         f.instruction(&Instruction::ArrayGet(arr_ty));
         f.instruction(&Instruction::ArraySet(arr_ty));
 
         // backing[hi] = tmp
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(scr_hi));
         f.instruction(&Instruction::LocalGet(scr_tmp_idx));
         f.instruction(&Instruction::ArraySet(arr_ty));
@@ -7151,7 +8279,10 @@ impl Ctx {
 
         // len = vec.len
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(scr_len));
 
         // i = idx
@@ -7172,10 +8303,16 @@ impl Ctx {
 
         // backing[i] = backing[i+1]
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(scr_i));
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(scr_i));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
@@ -7197,16 +8334,14 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(scr_len));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Sub);
-        f.instruction(&Instruction::StructSet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructSet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
     }
 
     /// sum_i32/i64/f64 / product_i32/i64/f64 — fold over vec
-    fn emit_sum_product_inline(
-        &mut self,
-        f: &mut Function,
-        canonical: &str,
-        args: &[Operand],
-    ) {
+    fn emit_sum_product_inline(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
         if args.is_empty() {
             f.instruction(&Instruction::I32Const(0));
             return;
@@ -7220,7 +8355,10 @@ impl Ctx {
         } else if is_i64 {
             (self.vec_i64_ty, self.arr_i64_ty)
         } else {
-            (self.infer_vec_type_idx(&args[0]), self.infer_arr_type_idx(&args[0]))
+            (
+                self.infer_vec_type_idx(&args[0]),
+                self.infer_arr_type_idx(&args[0]),
+            )
         };
 
         let scr_i = self.si(0);
@@ -7235,7 +8373,10 @@ impl Ctx {
 
         // len = vec.len
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(scr_len));
 
         // acc = identity (0 for sum, 1 for product)
@@ -7264,7 +8405,10 @@ impl Ctx {
         // acc = acc op backing[i]
         f.instruction(&Instruction::LocalGet(scr_acc));
         self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vec_ty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(scr_i));
         f.instruction(&Instruction::ArrayGet(arr_ty));
 
@@ -7276,14 +8420,12 @@ impl Ctx {
             } else {
                 f.instruction(&Instruction::I32Mul);
             }
+        } else if is_f64 {
+            f.instruction(&Instruction::F64Add);
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Add);
         } else {
-            if is_f64 {
-                f.instruction(&Instruction::F64Add);
-            } else if is_i64 {
-                f.instruction(&Instruction::I64Add);
-            } else {
-                f.instruction(&Instruction::I32Add);
-            }
+            f.instruction(&Instruction::I32Add);
         }
         f.instruction(&Instruction::LocalSet(scr_acc));
 

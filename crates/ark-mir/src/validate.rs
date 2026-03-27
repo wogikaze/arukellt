@@ -576,6 +576,7 @@ mod tests {
             entry: BlockId(0),
             struct_typed_locals: HashMap::new(),
             enum_typed_locals: HashMap::new(),
+            type_params: vec![],
             source: default_function_source(),
         }
     }
