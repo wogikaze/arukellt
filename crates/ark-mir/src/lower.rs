@@ -204,7 +204,7 @@ pub fn lower_to_mir(
     // Populate fn_return_types from checker's builtin FnSigs so that
     // Result-returning builtins (fs_read_file, parse_i32, …) work without
     // explicit type annotations on let bindings.
-    for (name, sig) in &checker.fn_sigs {
+    for (name, sig) in checker.fn_sigs_iter() {
         if fn_return_types.contains_key(name) {
             continue; // user-defined function takes precedence
         }
@@ -214,7 +214,7 @@ pub fn lower_to_mir(
     }
 
     // Get method resolutions from the type checker
-    let method_resolutions = checker.method_resolutions.clone();
+    let method_resolutions = checker.method_resolutions_snapshot();
 
     for item in &module.items {
         if let ast::Item::FnDef(f) = item {

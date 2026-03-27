@@ -5,5 +5,5 @@
 pub mod checker;
 pub mod types;
 
-pub use checker::TypeChecker;
+pub use checker::{TypeChecker, SemanticModel};
 pub use types::Type;

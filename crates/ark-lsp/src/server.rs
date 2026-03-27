@@ -403,7 +403,7 @@ impl ArukellBackend {
         checker.check_module(&resolved, &mut sink);
 
         // Check function signatures
-        if let Some(sig) = checker.fn_sigs.get(name) {
+        if let Some(sig) = checker.fn_sig(name) {
             let params: Vec<String> = if let Some(ref names) = ast_param_names {
                 names
                     .iter()
@@ -422,7 +422,7 @@ impl ArukellBackend {
         }
 
         // Check struct definitions
-        if let Some(info) = checker.struct_defs.get(name) {
+        if let Some(info) = checker.struct_info(name) {
             let fields: Vec<String> = info
                 .fields
                 .iter()
@@ -432,7 +432,7 @@ impl ArukellBackend {
         }
 
         // Check enum definitions
-        if let Some(info) = checker.enum_defs.get(name) {
+        if let Some(info) = checker.enum_info(name) {
             let variants: Vec<String> = info.variants.iter().map(|v| v.name.clone()).collect();
             return Some(format!("enum {} {{ {} }}", info.name, variants.join(", ")));
         }

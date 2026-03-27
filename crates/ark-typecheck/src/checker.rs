@@ -107,23 +107,109 @@ pub struct FnSig {
 /// The main type checker.
 #[derive(Debug)]
 pub struct TypeChecker {
-    pub struct_defs: HashMap<String, StructInfo>,
-    pub enum_defs: HashMap<String, EnumInfo>,
-    pub fn_sigs: HashMap<String, FnSig>,
+    pub(crate) struct_defs: HashMap<String, StructInfo>,
+    pub(crate) enum_defs: HashMap<String, EnumInfo>,
+    pub(crate) fn_sigs: HashMap<String, FnSig>,
     /// Maps (struct_name, method_name) to the mangled function name
-    pub method_table: HashMap<(String, String), String>,
+    pub(crate) method_table: HashMap<(String, String), String>,
     /// Trait definitions: trait_name -> list of (method_name, params_types, return_type)
-    pub trait_defs: HashMap<String, Vec<(String, Vec<Type>, Type)>>,
+    pub(crate) trait_defs: HashMap<String, Vec<(String, Vec<Type>, Type)>>,
     /// Maps call expression span start to (mangled_fn_name, self_type_name)
-    pub method_resolutions: HashMap<u32, (String, String)>,
+    pub(crate) method_resolutions: HashMap<u32, (String, String)>,
     /// Maps type_name -> set of implemented trait names
-    pub trait_impls: HashMap<String, Vec<String>>,
+    pub(crate) trait_impls: HashMap<String, Vec<String>>,
     next_type_id: u32,
     next_type_var: u32,
     current_fn_return_type: Option<Type>,
 }
 
+/// Immutable semantic model produced by type checking.
+/// Downstream consumers should prefer this over accessing TypeChecker directly.
+#[derive(Debug)]
+pub struct SemanticModel {
+    pub struct_defs: HashMap<String, StructInfo>,
+    pub enum_defs: HashMap<String, EnumInfo>,
+    pub fn_sigs: HashMap<String, FnSig>,
+    pub method_table: HashMap<(String, String), String>,
+    pub trait_defs: HashMap<String, Vec<(String, Vec<Type>, Type)>>,
+    pub method_resolutions: HashMap<u32, (String, String)>,
+    pub trait_impls: HashMap<String, Vec<String>>,
+}
+
+impl SemanticModel {
+    pub fn struct_info(&self, name: &str) -> Option<&StructInfo> {
+        self.struct_defs.get(name)
+    }
+
+    pub fn enum_info(&self, name: &str) -> Option<&EnumInfo> {
+        self.enum_defs.get(name)
+    }
+
+    pub fn fn_sig(&self, name: &str) -> Option<&FnSig> {
+        self.fn_sigs.get(name)
+    }
+
+    pub fn fn_sigs_iter(&self) -> impl Iterator<Item = (&String, &FnSig)> {
+        self.fn_sigs.iter()
+    }
+
+    pub fn method_resolution(&self, span_start: u32) -> Option<&(String, String)> {
+        self.method_resolutions.get(&span_start)
+    }
+
+    pub fn method_resolutions_snapshot(&self) -> HashMap<u32, (String, String)> {
+        self.method_resolutions.clone()
+    }
+
+    pub fn method_fn_name(&self, struct_name: &str, method_name: &str) -> Option<&String> {
+        self.method_table.get(&(struct_name.to_string(), method_name.to_string()))
+    }
+}
+
 impl TypeChecker {
+    // -- Immutable accessors for downstream consumers --
+
+    pub fn struct_info(&self, name: &str) -> Option<&StructInfo> {
+        self.struct_defs.get(name)
+    }
+
+    pub fn enum_info(&self, name: &str) -> Option<&EnumInfo> {
+        self.enum_defs.get(name)
+    }
+
+    pub fn fn_sig(&self, name: &str) -> Option<&FnSig> {
+        self.fn_sigs.get(name)
+    }
+
+    pub fn fn_sigs_iter(&self) -> impl Iterator<Item = (&String, &FnSig)> {
+        self.fn_sigs.iter()
+    }
+
+    pub fn method_resolution(&self, span_start: u32) -> Option<&(String, String)> {
+        self.method_resolutions.get(&span_start)
+    }
+
+    pub fn method_resolutions_snapshot(&self) -> HashMap<u32, (String, String)> {
+        self.method_resolutions.clone()
+    }
+
+    pub fn method_fn_name(&self, struct_name: &str, method_name: &str) -> Option<&String> {
+        self.method_table.get(&(struct_name.to_string(), method_name.to_string()))
+    }
+
+    /// Consume the checker and produce an immutable semantic model.
+    pub fn into_semantic_model(self) -> SemanticModel {
+        SemanticModel {
+            struct_defs: self.struct_defs,
+            enum_defs: self.enum_defs,
+            fn_sigs: self.fn_sigs,
+            method_table: self.method_table,
+            trait_defs: self.trait_defs,
+            method_resolutions: self.method_resolutions,
+            trait_impls: self.trait_impls,
+        }
+    }
+
     pub fn new() -> Self {
         Self {
             struct_defs: HashMap::new(),
