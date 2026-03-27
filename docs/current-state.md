@@ -59,6 +59,33 @@
 - Docs consistency checker for fixture count, target status, component emit, and W0004 severity
 - Verify harness updated to current manifest-driven fixture execution
 
+## V1 Exit Criteria
+
+V1 is complete when all of the following are satisfied:
+
+1. **T3 compile/run correctness**: `--target wasm32-wasi-p2` compiles and runs all fixture categories (scalars, strings, vecs, structs, enums, match, closures, modules, traits, generics, `?`) using WasmGC-native data representations — not the T1 linear-memory fallback.
+2. **WasmGC-native data model**: String, Vec, struct, enum, and closure environments are represented as Wasm GC types (struct.new, array.new) rather than linear-memory pointers.
+3. **T1 retained as compatibility path only**: `wasm32-wasi-p1` continues to work for environments that lack GC support (e.g., AtCoder/iwasm) but is no longer the default or internal fallback for T3.
+4. **Fallback removal**: `RuntimeModel::T3FallbackToT1` is replaced by a non-fallback runtime model that truthfully represents WasmGC + WASI P2 execution.
+
+### What is NOT required for v1 exit
+
+- `--emit component` (Component Model output) — remains out of scope and a hard error.
+- WIT generation as a deployment artifact — design/migration context only.
+- T4 (native/LLVM) completion — optional scaffold, not a gate.
+- WASI Preview 3 / async-first runtime — future work (T5).
+
+### Current vs target state
+
+| Aspect | Current (shipped) | V1 target |
+|--------|-------------------|-----------|
+| T3 runtime model | `T3FallbackToT1` (linear memory) | `T3WasmGcP2` (WasmGC native) |
+| String representation | Linear memory `[len:4][bytes:N]` | Wasm GC struct wrapping byte array |
+| Vec representation | Linear memory `[ptr:4][len:4][cap:4]` | Wasm GC struct with GC array |
+| Struct/enum layout | Linear memory aggregate | Wasm GC struct types |
+| Closure environment | Not captured via GC | Wasm GC environment struct |
+| Default target | `wasm32-wasi-p1` | `wasm32-wasi-p2` |
+
 ## Known Limitations
 
 - `--emit component` is not implemented (hard error)

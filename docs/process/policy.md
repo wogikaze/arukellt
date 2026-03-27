@@ -77,6 +77,18 @@ These are development aids, not stable public CLI surface.
 - `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 - `ARUKELLT_DUMP_DIAGNOSTICS=1`
 
+## V1 Completion Gate
+
+V1 exit is defined by T3 (`wasm32-wasi-p2`) core-wasm compile/run correctness with WasmGC-native data representations. The canonical criteria are documented in `docs/current-state.md` § V1 Exit Criteria.
+
+Operational requirements for the gate:
+
+- All T3 compile fixtures pass without fallback to T1 linear-memory runtime.
+- `RuntimeModel::T3FallbackToT1` is replaced by a non-fallback model.
+- `verify-harness.sh` passes with T3 compile verification enabled.
+- `--emit component` is **not** part of the v1 gate and remains a hard error.
+- T4 (native/LLVM) is **not** part of the v1 gate.
+
 ## Compatibility / Migration Policy
 
 - current source of truth is `docs/current-state.md` + executable baselines

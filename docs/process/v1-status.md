@@ -4,7 +4,12 @@
 
 ## Current source of truth
 
-- [../current-state.md](../current-state.md)
+- [../current-state.md](../current-state.md) — current state including V1 exit criteria
+- [policy.md](policy.md) — operational policy including V1 completion gate
+
+## V1 Exit Criteria (cross-reference)
+
+V1 completion is defined as T3 core-wasm compile/run correctness with WasmGC-native data model completion and T1 fallback removal. See `docs/current-state.md` § V1 Exit Criteria for the canonical definition. `--emit component` is **not** part of v1 exit.
 
 ## なぜ archive 化したか
 

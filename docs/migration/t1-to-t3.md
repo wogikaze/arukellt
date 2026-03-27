@@ -58,6 +58,17 @@ Current runtime surface is stricter than some older docs imply.
 - `--deny-clock` is a hard error (not enforced capability filtering yet)
 - `--deny-random` is a hard error (not enforced capability filtering yet)
 
+## V1 Core Exit
+
+The v1 core exit gate is **T3 core-wasm compile/run completion** — not Component Model completion. Specifically:
+
+- T3 must compile and run all fixture categories using WasmGC-native data representations.
+- `RuntimeModel::T3FallbackToT1` must be replaced by a truthful non-fallback runtime model.
+- `--emit component` remains out of scope for v1 and continues to be a hard error.
+- T1 (`wasm32-wasi-p1`) is retained as a compatibility path for non-GC environments only.
+
+See `docs/current-state.md` § V1 Exit Criteria for the canonical definition.
+
 ## Code Compatibility
 
 Language-level source compatibility remains the goal. The current difference is runtime/backend path, not frontend syntax.
