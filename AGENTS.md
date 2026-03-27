@@ -14,11 +14,19 @@ This project is a language toolchain implementing [PROJECT_NAME]. It combines:
 ## Primary Source of Truth
 
 - **Active queue**: `issues/open/`
+- **Open issue index**: `issues/open/index.md` (generated via `scripts/generate-issue-index.sh`)
+- **Open dependency graph**: `issues/open/dependency-graph.md` (generated via `scripts/generate-issue-index.sh`)
 - **Completed work**: `issues/done/`
 - **Design decisions**: `docs/adr/`
 - **Verification contract**: `scripts/verify-harness.sh`
 - **Executable examples**: docs with embedded testable examples
 - **Generated reference**: toolchain-specific output (e.g., syntax files, stdlib docs)
+
+When queue structure changes, regenerate the derived queue views with:
+
+```bash
+bash scripts/generate-issue-index.sh
+```
 
 ## Completion Criteria
 

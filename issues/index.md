@@ -9,7 +9,7 @@ This directory tracks work queue and completion status.
 
 ## Issue Format
 
-Each issue is a markdown file with:
+Each issue is a markdown file with machine-readable header fields plus human-readable sections:
 
 ```markdown
 # [TITLE]
@@ -17,6 +17,10 @@ Each issue is a markdown file with:
 **Status**: open | done
 **Created**: YYYY-MM-DD
 **Updated**: YYYY-MM-DD
+**ID**: 001
+**Depends on**: none | 001, 002
+**Track**: main | parallel
+**Blocks v1 exit**: yes | no
 
 ## Summary
 Brief description of what needs to be done.
@@ -29,6 +33,13 @@ Brief description of what needs to be done.
 ## Notes
 Any context, blockers, or implementation notes.
 ```
+
+The generator reads these exact header fields. `Depends on` must contain comma-separated numeric IDs or `none`.
+
+Generated artifacts:
+- `issues/open/index.md` — dependency-aware issue index
+- `issues/open/dependency-graph.md` — Mermaid graph + adjacency lists
+- `scripts/generate-issue-index.sh` — shell entrypoint for regeneration
 
 ## Workflow
 
