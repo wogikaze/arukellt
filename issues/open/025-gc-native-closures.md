@@ -32,11 +32,13 @@ at the Wasm instruction level.
 ```
 
 **FnRef mapping:**
+
 ```
 Operand::FnRef("foo") → ref.func $foo  ;; produces (ref $func_type_of_foo)
 ```
 
 **CallIndirect mapping:**
+
 ```
 Operand::CallIndirect { callee, args, .. }
 → emit args, emit callee (ref.func), call_ref $sig

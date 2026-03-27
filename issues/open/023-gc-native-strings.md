@@ -24,6 +24,7 @@ for WASI fd_write.
 ```
 
 **String literal:**
+
 ```
 ;; "hello" stored in data segment $d0 at bytes [0..5]
 (array.new_data $string $d0 (i32.const 0) (i32.const 5))
@@ -31,6 +32,7 @@ for WASI fd_write.
 ```
 
 **Operations:**
+
 ```wat
 ;; string_len(s)
 (array.len (local.get $s))                     ;; → i32

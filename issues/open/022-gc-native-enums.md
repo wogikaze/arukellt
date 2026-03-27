@@ -37,6 +37,7 @@ pattern as regular enums.
 ```
 
 **EnumInit mapping:**
+
 ```
 Operand::EnumInit { enum_name: "Shape", variant: "Circle", tag: 0, payload: [3.14] }
 → f64.const 3.14, struct.new $Shape.Circle
@@ -44,6 +45,7 @@ Operand::EnumInit { enum_name: "Shape", variant: "Circle", tag: 0, payload: [3.1
 ```
 
 **Pattern matching with br_on_cast:**
+
 ```
 Operand::EnumTag + br_table  →  replaced by:
   (block $v0 (result (ref $Shape.Circle))
@@ -63,6 +65,7 @@ Operand::EnumTag + br_table  →  replaced by:
 ```
 
 **EnumPayload mapping:**
+
 ```
 Operand::EnumPayload { object, index: 0, enum_name: "Shape", variant_name: "Circle" }
 → ref.cast (ref $Shape.Circle) (emit object)
@@ -71,6 +74,7 @@ Operand::EnumPayload { object, index: 0, enum_name: "Shape", variant_name: "Circ
 
 **EnumTag compatibility:**
 If MIR still emits `EnumTag` + `br_table`, support via `ref.test` chain:
+
 ```
 (ref.test (ref $Shape.Circle) (local.get $shape))  ;; → 1 if Circle
 (if (i32) (then (i32.const 0)) (else
@@ -78,6 +82,7 @@ If MIR still emits `EnumTag` + `br_table`, support via `ref.test` chain:
   (if (i32) (then (i32.const 1)) (else (i32.const 2)))
 ))
 ```
+
 But prefer rewriting match emission to use br_on_cast directly.
 
 ## Acceptance Criteria

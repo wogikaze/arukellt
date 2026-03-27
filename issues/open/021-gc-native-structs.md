@@ -27,19 +27,23 @@ become real WasmGC struct types with typed fields. `StructInit` emits
 ```
 
 **StructInit mapping:**
+
 ```
 Operand::StructInit { name: "Point", fields: [("x", val_x), ("y", val_y), ("z", val_z)] }
 → emit val_x, emit val_y, emit val_z, struct.new $Point
 ```
+
 Fields must be emitted in declaration order (matching struct_defs layout).
 
 **FieldAccess mapping:**
+
 ```
 Operand::FieldAccess { object, struct_name: "Point", field: "y" }
 → emit object (produces (ref $Point)), struct.get $Point 1
 ```
 
 **Field mutation (MirStmt::FieldAssign or similar):**
+
 ```
 → emit object, emit value, struct.set $Point $field_idx
 ```
