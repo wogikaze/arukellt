@@ -41,3 +41,35 @@
 - [../current-state.md](../current-state.md)
 - [wasm-features.md](wasm-features.md)
 - [../language/memory-model.md](../language/memory-model.md)
+
+## T3 aggregate layout (bridge mode)
+
+T3 uses linear memory for struct and enum values with the following layouts:
+
+### Struct layout
+
+Fields are stored sequentially. Element sizes: 4 bytes (i32, bool, String ptr, Vec ptr),
+8 bytes (i64, f64).
+
+```text
+[field_0][field_1]...[field_N]
+```
+
+A struct pointer (i32) points to the start of the field area.
+Field access computes byte offset from field index and type sizes.
+
+### Enum layout
+
+```text
+[tag: 4 bytes][payload_field_0][payload_field_1]...
+```
+
+- Tag is an i32 discriminant (0, 1, 2, … per variant order).
+- Payload area is sized for the variant's fields (type-aware: 8 bytes for i64/f64).
+- `Option<T>` and `Result<T, E>` follow the same tag+payload model.
+
+### Match lowering
+
+Match expressions are lowered to MIR `Switch` terminators that branch on the enum tag.
+Each arm extracts payload fields via `EnumPayload` with byte-offset computation.
+Struct patterns use `FieldAccess` for each matched field.
