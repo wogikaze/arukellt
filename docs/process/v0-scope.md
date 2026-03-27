@@ -49,8 +49,8 @@ arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 | concat / slice / split / join | ✅ | 文字列操作。Wasm ヘルパーとして実装 |
 | core/option | ✅ | unwrap, unwrap_or, is_some, is_none 動作 |
 | core/result | ✅ | unwrap 動作。? 演算子で伝播可能 |
-| collections/vec | ✅ | Vec_new_i32, push, pop, get, set, len, sort_i32 動作 |
-| Vec 高階関数 | ✅ | map_i32_i32, filter_i32, fold_i32_i32 動作 |
+| collections/vec | ✅ | Vec_new_i32, push, pop, get, set, len, sort_i32, contains_i32, reverse_i32, remove_i32 動作 |
+| Vec 高階関数 | ✅ | map/filter/fold: i32, i64, f64, String 全型対応 |
 | 数学関数 | ✅ | sqrt, abs, min, max 動作 |
 | parse_i32 | ✅ | 文字列→数値変換 |
 | parse_i64 / parse_f64 | ✅ | 文字列→数値変換（直接返し、エラー時 0/0.0） |
@@ -146,10 +146,10 @@ v0 完成の条件:
    - Hello World: 5KB 以下
 4. 複数エラーの一括報告が機能 ✅
 
-> **現在の到達度**: 142/147 fixture テスト pass（5 skip はモジュールヘルパーファイル）。
+> **現在の到達度**: 182 fixture テスト pass。
 > Hello World、数値計算、構造体、enum payload、Option/Result、クロージャ、
-> 高階関数、パターンマッチ、? 演算子、for ループ、文字列補間がすべて end-to-end 動作。
-> clock_now, random_i32, parse_i64, parse_f64 も動作確認済み。
+> 高階関数（i32/i64/f64/String）、パターンマッチ、? 演算子、for ループ、文字列補間がすべて end-to-end 動作。
+> clock_now, random_i32, parse_i64, parse_f64, contains_i32, reverse_i32, remove_i32 も動作確認済み。
 
 ---
 

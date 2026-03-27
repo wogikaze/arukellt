@@ -136,12 +136,22 @@ fn as_slice[T](v: Vec[T]) -> [T]
 fn clone[T](v: Vec[T]) -> Vec[T]        // deep copy
 fn clear[T](v: Vec[T])
 
+// 検索・操作（型特化）
+fn contains_i32(v: Vec[i32], x: i32) -> bool
+fn contains_String(v: Vec[String], x: String) -> bool
+fn reverse_i32(v: Vec[i32])
+fn reverse_String(v: Vec[String])
+fn remove_i32(v: Vec[i32], index: i32)
+
 // 高階関数（型特化）
 fn map_i32_i32(v: Vec[i32], f: fn(i32) -> i32) -> Vec[i32]
-fn map_i32_i64(v: Vec[i32], f: fn(i32) -> i64) -> Vec[i64]
+fn map_i64_i64(v: Vec[i64], f: fn(i64) -> i64) -> Vec[i64]
+fn map_f64_f64(v: Vec[f64], f: fn(f64) -> f64) -> Vec[f64]
 fn map_String_String(v: Vec[String], f: fn(String) -> String) -> Vec[String]
 
 fn filter_i32(v: Vec[i32], f: fn(i32) -> bool) -> Vec[i32]
+fn filter_i64(v: Vec[i64], f: fn(i64) -> bool) -> Vec[i64]
+fn filter_f64(v: Vec[f64], f: fn(f64) -> bool) -> Vec[f64]
 fn filter_String(v: Vec[String], f: fn(String) -> bool) -> Vec[String]
 
 fn fold_i32_i32(v: Vec[i32], init: i32, f: fn(i32, i32) -> i32) -> i32
