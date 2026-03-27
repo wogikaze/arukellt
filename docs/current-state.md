@@ -92,7 +92,7 @@ V1 is complete when all of the following are satisfied:
 - `--deny-clock` and `--deny-random` are not enforced (hard error)
 - No `--dir` flag = no filesystem access (deny-by-default)
 - T3 target still uses the T1/WASI Preview 1 runtime path internally
-- T3 `Vec` remains linear-memory-backed in practice
+- T3 Vec/String use linear-memory bridge mode (GC types declared but data lives in linear memory)
 - `ark-llvm` is excluded from default builds (requires LLVM 18)
 
 ## API Baseline Notes

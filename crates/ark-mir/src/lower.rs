@@ -1020,8 +1020,11 @@ pub fn lower_to_mir(
                 if is_string_type(&param.ty) {
                     ctx.string_locals.insert(pid.0);
                 }
-                // Track f64-typed parameters
+                // Track i64/f64-typed parameters
                 if let ast::TypeExpr::Named { name: tname, .. } = &param.ty {
+                    if tname == "i64" {
+                        ctx.i64_locals.insert(pid.0);
+                    }
                     if tname == "f64" {
                         ctx.f64_locals.insert(pid.0);
                     }

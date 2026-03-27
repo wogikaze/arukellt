@@ -113,3 +113,41 @@ Bridge mode keeps the T3 emitter operational without requiring full WasmGC runti
 - [abi.md](abi.md)
 - [../process/policy.md](../process/policy.md)
 - [../migration/t1-to-t3.md](../migration/t1-to-t3.md)
+
+## T3 Vec representation (bridge mode)
+
+T3 uses **linear-memory** for Vec values, matching the T1 layout:
+
+- **Layout**: `[data_ptr:4][len:4][cap:4]` — 12-byte header; data area is contiguous
+- **Element sizes**: 4 bytes (i32, String ptr), 8 bytes (i64, f64)
+- **GC type section**: Array/struct GC types are declared but not used at runtime
+- **Allocation**: Bump allocator (global 0); grow doubles capacity via `memory.copy`
+
+### Implemented operations
+
+| Operation | Status | Notes |
+|-----------|--------|-------|
+| `Vec_new_i32/i64/f64/String` | ✓ | Allocates 12-byte header + initial capacity |
+| `push` | ✓ | Type-aware (i32/i64/f64); auto-grow when `len >= cap` |
+| `get` | ✓ | Bounds-checked; returns element or 0 |
+| `get_unchecked` | ✓ | Direct load by element size |
+| `set` | ✓ | Direct store by element size |
+| `pop` | ✓ | Decrements len, returns last element |
+| `len` | ✓ | Reads `[header+4]` |
+
+### Higher-order function operations
+
+HOF operations are emitted **inline** at call sites using scratch memory for loop state.
+
+| Operation | Status | Notes |
+|-----------|--------|-------|
+| `filter_i32/i64/f64/String` | ✓ | Predicate via `call_indirect`; allocates new vec |
+| `map_i32_i32/i64_i64/f64_f64` | ✓ | Mapper via `call_indirect`; allocates new vec |
+| `fold_i64_i64` | ✓ | Accumulator via `call_indirect` |
+
+### Type coercion for i64/f64
+
+The MIR lowerer now tracks i64-typed parameters alongside f64, ensuring correct
+wasm local declarations. The emitter provides `emit_operand_coerced()` which promotes
+`ConstI32` literals to `I64Const`/`F64Const` when the target context requires it.
+Call sites use `fn_param_types` to coerce arguments to the callee's expected types.

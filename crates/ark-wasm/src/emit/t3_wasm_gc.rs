@@ -29,6 +29,7 @@ const IOV_LEN: u32 = 4;
 const NWRITTEN: u32 = 8;
 const SCRATCH: u32 = 16;
 const I32BUF: u32 = 48;
+const SCR_VAL64: u32 = 56; // 8-byte scratch for i64/f64 values
 const DATA_START: u32 = 256;
 const SCR_A_PTR: u32 = SCRATCH;
 const SCR_B_PTR: u32 = SCRATCH + 4;
@@ -195,11 +196,14 @@ struct Ctx {
     enum_gc_types: HashMap<String, u32>,
     enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
     fn_ret_types: HashMap<String, Type>,
+    fn_param_types: HashMap<String, Vec<Type>>,
     // Local type tracking (per-function)
     string_locals: std::collections::HashSet<u32>,
     f64_locals: std::collections::HashSet<u32>,
     i64_locals: std::collections::HashSet<u32>,
     bool_locals: std::collections::HashSet<u32>,
+    f64_vec_locals: std::collections::HashSet<u32>,
+    i64_vec_locals: std::collections::HashSet<u32>,
     local_struct: HashMap<u32, String>,
     // Helper function indices (emitted once)
     helper_i32_to_str: Option<u32>,
@@ -207,6 +211,8 @@ struct Ctx {
     helper_print_bool_ln: Option<u32>,
     helper_print_str_ln: Option<u32>,
     helper_print_newline: Option<u32>,
+    // Pre-registered indirect call type indices
+    indirect_types: HashMap<(Vec<ValType>, Vec<ValType>), u32>,
 }
 
 impl Ctx {
@@ -257,6 +263,16 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         .iter()
         .map(|f| (f.name.clone(), f.return_ty.clone()))
         .collect();
+    let fn_param_types: HashMap<String, Vec<Type>> = mir
+        .functions
+        .iter()
+        .map(|f| {
+            (
+                f.name.clone(),
+                f.params.iter().map(|p| p.ty.clone()).collect(),
+            )
+        })
+        .collect();
 
     let mut ctx = Ctx {
         types: TypeAlloc::new(),
@@ -279,16 +295,20 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         enum_gc_types: HashMap::new(),
         enum_defs: mir.type_table.enum_defs.clone(),
         fn_ret_types,
+        fn_param_types,
         string_locals: Default::default(),
         f64_locals: Default::default(),
         i64_locals: Default::default(),
         bool_locals: Default::default(),
+        f64_vec_locals: Default::default(),
+        i64_vec_locals: Default::default(),
         local_struct: HashMap::new(),
         helper_i32_to_str: None,
         helper_print_i32_ln: None,
         helper_print_bool_ln: None,
         helper_print_str_ln: None,
         helper_print_newline: None,
+        indirect_types: HashMap::new(),
     };
     ctx.emit_module(mir)
 }
@@ -368,6 +388,23 @@ impl Ctx {
         for (i, &idx) in reachable_user_indices.iter().enumerate() {
             let func = &mir.functions[idx];
             self.fn_map.insert(func.name.clone(), user_base + i as u32);
+        }
+
+        // Pre-register indirect call type signatures for HOF operations
+        {
+            let sigs: Vec<(Vec<ValType>, Vec<ValType>)> = vec![
+                (vec![ValType::I32], vec![ValType::I32]), // (i32) -> i32
+                (vec![ValType::I64], vec![ValType::I32]), // (i64) -> i32 (predicate)
+                (vec![ValType::F64], vec![ValType::I32]), // (f64) -> i32 (predicate)
+                (vec![ValType::I32], vec![ValType::I64]), // (i32) -> i64 (map)
+                (vec![ValType::I64], vec![ValType::I64]), // (i64) -> i64 (map)
+                (vec![ValType::F64], vec![ValType::F64]), // (f64) -> f64 (map)
+                (vec![ValType::I64, ValType::I64], vec![ValType::I64]), // (i64,i64) -> i64 (fold)
+            ];
+            for (params, results) in sigs {
+                let ty_idx = self.types.add_func(&params, &results);
+                self.indirect_types.insert((params, results), ty_idx);
+            }
         }
 
         // ── Build sections ───────────────────────────────────────
@@ -460,14 +497,37 @@ impl Ctx {
             });
         }
 
+        // Table section — for indirect calls (higher-order functions)
+        let total_funcs =
+            num_imports + helper_fns.len() as u32 + reachable_user_indices.len() as u32;
+        let mut tables = wasm_encoder::TableSection::new();
+        tables.table(wasm_encoder::TableType {
+            element_type: wasm_encoder::RefType::FUNCREF,
+            minimum: total_funcs as u64,
+            maximum: Some(total_funcs as u64),
+            table64: false,
+            shared: false,
+        });
+
+        // Element section — populate table with all function refs
+        let mut elements = wasm_encoder::ElementSection::new();
+        let func_indices: Vec<u32> = (0..total_funcs).collect();
+        elements.active(
+            Some(0),
+            &wasm_encoder::ConstExpr::i32_const(0),
+            wasm_encoder::Elements::Functions(std::borrow::Cow::Borrowed(&func_indices)),
+        );
+
         // Assemble module
         let mut module = wasm_encoder::Module::new();
         module.section(&self.types.section);
         module.section(&imports);
         module.section(&functions);
+        module.section(&tables);
         module.section(&memories);
         module.section(&globals);
         module.section(&exports);
+        module.section(&elements);
         module.section(&codes);
         module.section(&data);
         module.finish()
@@ -1276,6 +1336,8 @@ impl Ctx {
         self.f64_locals.clear();
         self.i64_locals.clear();
         self.bool_locals.clear();
+        self.f64_vec_locals.clear();
+        self.i64_vec_locals.clear();
         self.local_struct.clear();
 
         // Collect local types (skip params — they are already in the func signature)
@@ -1286,7 +1348,7 @@ impl Ctx {
             local_types.push((1, vt));
         }
         // Track type metadata for all locals (including params)
-        for local in &func.locals {
+        for local in func.params.iter().chain(func.locals.iter()) {
             match &local.ty {
                 Type::String => {
                     self.string_locals.insert(local.id.0);
@@ -1300,6 +1362,15 @@ impl Ctx {
                 Type::Bool => {
                     self.bool_locals.insert(local.id.0);
                 }
+                Type::Vec(elem) => match elem.as_ref() {
+                    Type::F64 => {
+                        self.f64_vec_locals.insert(local.id.0);
+                    }
+                    Type::I64 => {
+                        self.i64_vec_locals.insert(local.id.0);
+                    }
+                    _ => {}
+                },
                 _ => {}
             }
         }
@@ -1340,9 +1411,15 @@ impl Ctx {
                 f.instruction(&Instruction::Drop);
             }
             MirStmt::Assign(Place::Local(id), Rvalue::BinaryOp(op, lhs, rhs)) => {
-                self.emit_operand(f, lhs);
-                self.emit_operand(f, rhs);
-                self.emit_binop(f, *op, id.0);
+                let lhs_i64 = self.is_i64_like_operand(lhs);
+                let lhs_f64 = self.is_f64_like_operand(lhs);
+                let rhs_i64 = self.is_i64_like_operand(rhs);
+                let rhs_f64 = self.is_f64_like_operand(rhs);
+                let need_i64 = lhs_i64 || rhs_i64;
+                let need_f64 = lhs_f64 || rhs_f64;
+                self.emit_operand_coerced(f, lhs, need_i64, need_f64);
+                self.emit_operand_coerced(f, rhs, need_i64, need_f64);
+                self.emit_binop(f, *op, Some(lhs));
                 let local_idx = self.local_wasm_idx(id.0);
                 f.instruction(&Instruction::LocalSet(local_idx));
             }
@@ -1372,8 +1449,17 @@ impl Ctx {
                     if self.is_builtin_name(canonical) {
                         self.emit_call_builtin(f, canonical, args, dest.as_ref());
                     } else {
-                        for arg in args {
-                            self.emit_operand(f, arg);
+                        let param_types = self.fn_param_types.get(&fn_name).cloned();
+                        for (i, arg) in args.iter().enumerate() {
+                            let need_i64 = param_types
+                                .as_ref()
+                                .and_then(|pt| pt.get(i))
+                                .is_some_and(|t| matches!(t, Type::I64));
+                            let need_f64 = param_types
+                                .as_ref()
+                                .and_then(|pt| pt.get(i))
+                                .is_some_and(|t| matches!(t, Type::F64));
+                            self.emit_operand_coerced(f, arg, need_i64, need_f64);
                         }
                         if let Some(&fn_idx) = self.fn_map.get(&fn_name) {
                             f.instruction(&Instruction::Call(fn_idx));
@@ -1477,9 +1563,15 @@ impl Ctx {
                 f.instruction(&Instruction::I32Const(0));
             }
             Operand::BinOp(op, lhs, rhs) => {
-                self.emit_operand(f, lhs);
-                self.emit_operand(f, rhs);
-                self.emit_binop(f, *op, 0);
+                let lhs_i64 = self.is_i64_like_operand(lhs);
+                let lhs_f64 = self.is_f64_like_operand(lhs);
+                let rhs_i64 = self.is_i64_like_operand(rhs);
+                let rhs_f64 = self.is_f64_like_operand(rhs);
+                let need_i64 = lhs_i64 || rhs_i64;
+                let need_f64 = lhs_f64 || rhs_f64;
+                self.emit_operand_coerced(f, lhs, need_i64, need_f64);
+                self.emit_operand_coerced(f, rhs, need_i64, need_f64);
+                self.emit_binop(f, *op, Some(lhs));
             }
             Operand::UnaryOp(op, inner) => {
                 self.emit_operand(f, inner);
@@ -1785,7 +1877,29 @@ impl Ctx {
                     self.emit_operand(f, arg);
                 }
                 self.emit_operand(f, callee);
-                f.instruction(&Instruction::I32Const(0)); // placeholder table call
+                // Determine signature from arg types
+                let params: Vec<ValType> = args
+                    .iter()
+                    .map(|a| {
+                        if self.is_f64_like_operand(a) {
+                            ValType::F64
+                        } else if self.is_i64_like_operand(a) {
+                            ValType::I64
+                        } else {
+                            ValType::I32
+                        }
+                    })
+                    .collect();
+                let results = vec![ValType::I32];
+                let type_index = self
+                    .indirect_types
+                    .get(&(params, results))
+                    .copied()
+                    .unwrap_or(0);
+                f.instruction(&Instruction::CallIndirect {
+                    type_index,
+                    table_index: 0,
+                });
             }
             Operand::ArrayInit { elements } => {
                 // Allocate array in linear memory: [len:4][elem0:4][elem1:4]...
@@ -1893,6 +2007,11 @@ impl Ctx {
                 | "map_i32_String"
                 | "filter_i32"
                 | "filter_String"
+                | "filter_i64"
+                | "filter_f64"
+                | "map_i64_i64"
+                | "map_f64_f64"
+                | "fold_i64_i64"
         )
     }
 
@@ -2017,6 +2136,30 @@ impl Ctx {
                     } else {
                         f.instruction(&Instruction::Drop);
                     }
+                }
+            }
+            "filter_i64" | "filter_f64" | "filter_i32" | "filter_String" => {
+                self.emit_filter_hof_inline(f, canonical, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "map_i64_i64" | "map_f64_f64" | "map_i32_i32" | "map_i32_String" => {
+                self.emit_map_hof_inline(f, canonical, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "fold_i64_i64" => {
+                self.emit_fold_hof_inline(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
                 }
             }
             _ => {
@@ -2199,6 +2342,15 @@ impl Ctx {
                 // split(s, delim) -> Vec<String> — stub returning empty vec
                 self.emit_vec_new_inline(f, 4);
             }
+            "filter_i64" | "filter_f64" | "filter_i32" | "filter_String" => {
+                self.emit_filter_hof_inline(f, canonical, args);
+            }
+            "map_i64_i64" | "map_f64_f64" | "map_i32_i32" | "map_i32_String" => {
+                self.emit_map_hof_inline(f, canonical, args);
+            }
+            "fold_i64_i64" => {
+                self.emit_fold_hof_inline(f, args);
+            }
             _ => {
                 // Unimplemented builtin as operand — push zero
                 f.instruction(&Instruction::I32Const(0));
@@ -2302,6 +2454,30 @@ impl Ctx {
             }
             _ => false,
         }
+    }
+
+    /// Determine Vec element size from the vec operand (checks f64_vec_locals/i64_vec_locals).
+    fn vec_elem_size(&self, vec_operand: &Operand) -> i32 {
+        match vec_operand {
+            Operand::Place(Place::Local(id)) => {
+                if self.f64_vec_locals.contains(&id.0) || self.i64_vec_locals.contains(&id.0) {
+                    8
+                } else {
+                    4
+                }
+            }
+            _ => 4,
+        }
+    }
+
+    /// Check if a Vec operand holds f64 elements.
+    fn is_f64_vec_operand(&self, operand: &Operand) -> bool {
+        matches!(operand, Operand::Place(Place::Local(id)) if self.f64_vec_locals.contains(&id.0))
+    }
+
+    /// Check if a Vec operand holds i64 elements.
+    fn is_i64_vec_operand(&self, operand: &Operand) -> bool {
+        matches!(operand, Operand::Place(Place::Local(id)) if self.i64_vec_locals.contains(&id.0))
     }
 
     fn emit_concat(&mut self, f: &mut Function, _args: &[Operand], dest: Option<&Place>) {
@@ -3476,6 +3652,429 @@ impl Ctx {
         f.instruction(&Instruction::GlobalSet(0));
     }
 
+    /// Emit inline filter HOF: filter(vec, predicate_fn) -> new_vec
+    /// Uses scratch memory for loop state.
+    fn emit_filter_hof_inline(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        if args.len() < 2 {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
+
+        let (elem_size, is_f64, is_i64) = match canonical {
+            "filter_f64" => (8i32, true, false),
+            "filter_i64" => (8, false, true),
+            _ => (4, false, false),
+        };
+
+        let pred_type = if is_f64 {
+            self.indirect_types
+                .get(&(vec![ValType::F64], vec![ValType::I32]))
+                .copied()
+                .unwrap_or(0)
+        } else if is_i64 {
+            self.indirect_types
+                .get(&(vec![ValType::I64], vec![ValType::I32]))
+                .copied()
+                .unwrap_or(0)
+        } else {
+            self.indirect_types
+                .get(&(vec![ValType::I32], vec![ValType::I32]))
+                .copied()
+                .unwrap_or(0)
+        };
+
+        // SCR_A_PTR = vec_ptr, SCR_B_PTR = fn_idx
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        // SCR_A_LEN = len(vec)
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // Create new_vec (same capacity as original)
+        self.emit_vec_new_inline(f, elem_size);
+        // SCR_DST_PTR = new_vec
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        // Swap: the vec ptr is on stack
+        f.instruction(&Instruction::I32Store(ma));
+
+        // SCR_I = 0 (loop counter), SCR_J = 0 (new_len)
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // block { loop {
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        // if i >= n: break
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // Store element to SCR_VAL64
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma)); // data_ptr
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(elem_size));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        if is_f64 {
+            f.instruction(&Instruction::F64Load(ma));
+            f.instruction(&Instruction::F64Store(ma));
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Load(ma));
+            f.instruction(&Instruction::I64Store(ma));
+        } else {
+            f.instruction(&Instruction::I32Load(ma));
+            f.instruction(&Instruction::I32Store(ma));
+        }
+
+        // Call predicate: pred(value) -> i32
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        if is_f64 {
+            f.instruction(&Instruction::F64Load(ma));
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Load(ma));
+        } else {
+            f.instruction(&Instruction::I32Load(ma));
+        }
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma)); // fn_idx
+        f.instruction(&Instruction::CallIndirect {
+            type_index: pred_type,
+            table_index: 0,
+        });
+
+        // if predicate returned true: push value to new_vec
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // new_data + new_len * elem_size = value
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma)); // new_data_ptr
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(elem_size));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        if is_f64 {
+            f.instruction(&Instruction::F64Load(ma));
+            f.instruction(&Instruction::F64Store(ma));
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Load(ma));
+            f.instruction(&Instruction::I64Store(ma));
+        } else {
+            f.instruction(&Instruction::I32Load(ma));
+            f.instruction(&Instruction::I32Store(ma));
+        }
+        // new_len++
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::End); // end if
+
+        // i++
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Set new_vec len = new_len
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_J as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // Result: new_vec ptr
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+    }
+
+    /// Emit inline map HOF: map(vec, mapper_fn) -> new_vec
+    fn emit_map_hof_inline(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        if args.len() < 2 {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
+
+        let (in_size, out_size, in_f64, in_i64, out_f64, out_i64) = match canonical {
+            "map_f64_f64" => (8i32, 8i32, true, false, true, false),
+            "map_i64_i64" => (8, 8, false, true, false, true),
+            _ => (4, 4, false, false, false, false), // i32->i32 or i32->String
+        };
+
+        let map_type = if in_f64 {
+            self.indirect_types
+                .get(&(vec![ValType::F64], vec![ValType::F64]))
+                .copied()
+                .unwrap_or(0)
+        } else if in_i64 {
+            self.indirect_types
+                .get(&(vec![ValType::I64], vec![ValType::I64]))
+                .copied()
+                .unwrap_or(0)
+        } else {
+            self.indirect_types
+                .get(&(vec![ValType::I32], vec![ValType::I32]))
+                .copied()
+                .unwrap_or(0)
+        };
+
+        // SCR_A_PTR = vec_ptr, SCR_B_PTR = fn_idx
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        // SCR_A_LEN = len(vec)
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // Create new_vec
+        self.emit_vec_new_inline(f, out_size);
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // SCR_I = 0
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // block { loop {
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // Load element
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(in_size));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        if in_f64 {
+            f.instruction(&Instruction::F64Load(ma));
+        } else if in_i64 {
+            f.instruction(&Instruction::I64Load(ma));
+        } else {
+            f.instruction(&Instruction::I32Load(ma));
+        }
+
+        // Call mapper: fn(val) -> mapped_val
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::CallIndirect {
+            type_index: map_type,
+            table_index: 0,
+        });
+
+        // Store result to new_data[i]
+        // First save mapped value to SCR_VAL64
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        if out_f64 {
+            f.instruction(&Instruction::F64Store(ma));
+        } else if out_i64 {
+            f.instruction(&Instruction::I64Store(ma));
+        } else {
+            f.instruction(&Instruction::I32Store(ma));
+        }
+
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma)); // new_data_ptr
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(out_size));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        if out_f64 {
+            f.instruction(&Instruction::F64Load(ma));
+            f.instruction(&Instruction::F64Store(ma));
+        } else if out_i64 {
+            f.instruction(&Instruction::I64Load(ma));
+            f.instruction(&Instruction::I64Store(ma));
+        } else {
+            f.instruction(&Instruction::I32Load(ma));
+            f.instruction(&Instruction::I32Store(ma));
+        }
+
+        // i++
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Set new_vec len = original len
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // Result: new_vec ptr
+        f.instruction(&Instruction::I32Const(SCR_DST_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+    }
+
+    /// Emit inline fold HOF: fold(vec, init, folder_fn) -> accumulated
+    fn emit_fold_hof_inline(&mut self, f: &mut Function, args: &[Operand]) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        if args.len() < 3 {
+            f.instruction(&Instruction::I64Const(0));
+            return;
+        }
+
+        let fold_type = self
+            .indirect_types
+            .get(&(vec![ValType::I64, ValType::I64], vec![ValType::I64]))
+            .copied()
+            .unwrap_or(0);
+
+        // SCR_A_PTR = vec_ptr
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        // SCR_VAL64 = init (i64, stored as 8 bytes)
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        // Coerce init to i64 if it's a ConstI32
+        self.emit_operand_coerced(f, &args[1], true, false);
+        f.instruction(&Instruction::I64Store(ma));
+
+        // SCR_B_PTR = fn_idx
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        self.emit_operand(f, &args[2]);
+        f.instruction(&Instruction::I32Store(ma));
+
+        // SCR_A_LEN = len
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // SCR_I = 0
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // block { loop {
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // acc = folder(acc, element[i])
+        // Push store destination address first (for I64Store after call)
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        // Push call args: acc, element
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        f.instruction(&Instruction::I64Load(ma)); // acc
+        f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma)); // data_ptr
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I64Load(ma)); // element
+        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
+        f.instruction(&Instruction::I32Load(ma)); // fn_idx
+        f.instruction(&Instruction::CallIndirect {
+            type_index: fold_type,
+            table_index: 0,
+        });
+        // Store result: stack is [addr, i64_result]
+        f.instruction(&Instruction::I64Store(ma));
+
+        // i++
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Const(SCR_I as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Result: acc
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        f.instruction(&Instruction::I64Load(ma));
+    }
+
     fn emit_vec_new(&mut self, f: &mut Function, element_size: i32, dest: Option<&Place>) {
         self.emit_vec_new_inline(f, element_size);
         if let Some(Place::Local(id)) = dest {
@@ -3547,14 +4146,27 @@ impl Ctx {
             return;
         }
 
-        // Scratch vec ptr and value
+        let is_f64_vec = self.is_f64_vec_operand(&args[0]);
+        let is_i64_vec = self.is_i64_vec_operand(&args[0]);
+        let is_f64 = is_f64_vec || self.is_f64_like_operand(&args[1]);
+        let is_i64 = is_i64_vec || self.is_i64_like_operand(&args[1]);
+        let elem_size: i32 = if is_f64 || is_i64 { 8 } else { 4 };
+
+        // Scratch vec ptr
         f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
         self.emit_operand(f, &args[0]);
         f.instruction(&Instruction::I32Store(ma));
 
-        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
-        self.emit_operand(f, &args[1]);
-        f.instruction(&Instruction::I32Store(ma));
+        // Store value to scratch (type-aware, coerce if needed)
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        self.emit_operand_coerced(f, &args[1], is_i64, is_f64);
+        if is_f64 {
+            f.instruction(&Instruction::F64Store(ma));
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Store(ma));
+        } else {
+            f.instruction(&Instruction::I32Store(ma));
+        }
 
         // len scratch
         f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
@@ -3583,18 +4195,27 @@ impl Ctx {
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::Else);
 
-        // data_ptr + len*4
+        // data_ptr + len * elem_size
         f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
         f.instruction(&Instruction::I32Load(ma));
         f.instruction(&Instruction::I32Load(ma));
         f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
         f.instruction(&Instruction::I32Load(ma));
-        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Const(elem_size));
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::I32Const(SCR_B_PTR as i32));
-        f.instruction(&Instruction::I32Load(ma));
-        f.instruction(&Instruction::I32Store(ma));
+        // Load value from scratch and store with correct type
+        f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
+        if is_f64 {
+            f.instruction(&Instruction::F64Load(ma));
+            f.instruction(&Instruction::F64Store(ma));
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Load(ma));
+            f.instruction(&Instruction::I64Store(ma));
+        } else {
+            f.instruction(&Instruction::I32Load(ma));
+            f.instruction(&Instruction::I32Store(ma));
+        }
 
         // len += 1
         f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
@@ -3642,13 +4263,25 @@ impl Ctx {
             return;
         }
 
+        let elem_size = self.vec_elem_size(&args[0]);
+        let is_f64 = self.is_f64_vec_operand(&args[0]);
+        let is_i64 = self.is_i64_vec_operand(&args[0]);
+
+        // data_ptr = *(vec_ptr)
         self.emit_operand(f, &args[0]);
         f.instruction(&Instruction::I32Load(ma));
+        // + index * elem_size
         self.emit_operand(f, &args[1]);
-        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Const(elem_size));
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::I32Load(ma));
+        if is_f64 {
+            f.instruction(&Instruction::F64Load(ma));
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Load(ma));
+        } else {
+            f.instruction(&Instruction::I32Load(ma));
+        }
     }
 
     fn emit_get_inline(&mut self, f: &mut Function, args: &[Operand]) {
@@ -3662,6 +4295,12 @@ impl Ctx {
             return;
         }
 
+        let is_f64 = self.is_f64_vec_operand(&args[0]);
+        let is_i64 = self.is_i64_vec_operand(&args[0]);
+        let elem_size = self.vec_elem_size(&args[0]);
+        let envelope_size = 4 + elem_size;
+
+        // Bounds check: index < len
         self.emit_operand(f, &args[1]);
         self.emit_operand(f, &args[0]);
         f.instruction(&Instruction::I32Const(4));
@@ -3672,6 +4311,7 @@ impl Ctx {
             ValType::I32,
         )));
 
+        // Ok branch: [tag=0][element]
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::I32Store(ma));
@@ -3679,15 +4319,22 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(4));
         f.instruction(&Instruction::I32Add);
         self.emit_get_unchecked_inline(f, args);
-        f.instruction(&Instruction::I32Store(ma));
+        if is_f64 {
+            f.instruction(&Instruction::F64Store(ma));
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Store(ma));
+        } else {
+            f.instruction(&Instruction::I32Store(ma));
+        }
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::GlobalGet(0));
-        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Const(envelope_size));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
 
         f.instruction(&Instruction::Else);
 
+        // Err branch: [tag=1][zero]
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Store(ma));
@@ -3698,7 +4345,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Store(ma));
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::GlobalGet(0));
-        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Const(envelope_size));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
 
@@ -3715,14 +4362,25 @@ impl Ctx {
             return;
         }
 
+        let elem_size = self.vec_elem_size(&args[0]);
+        let is_f64 = self.is_f64_like_operand(&args[2]);
+        let is_i64 = self.is_i64_like_operand(&args[2]);
+
+        // data_ptr + index * elem_size
         self.emit_operand(f, &args[0]);
         f.instruction(&Instruction::I32Load(ma));
         self.emit_operand(f, &args[1]);
-        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Const(elem_size));
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         self.emit_operand(f, &args[2]);
-        f.instruction(&Instruction::I32Store(ma));
+        if is_f64 {
+            f.instruction(&Instruction::F64Store(ma));
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Store(ma));
+        } else {
+            f.instruction(&Instruction::I32Store(ma));
+        }
     }
 
     fn emit_pop_inline(&mut self, f: &mut Function, args: &[Operand]) {
@@ -3736,10 +4394,16 @@ impl Ctx {
             return;
         }
 
+        let elem_size = self.vec_elem_size(&args[0]);
+        let is_f64 = self.is_f64_vec_operand(&args[0]);
+        let is_i64 = self.is_i64_vec_operand(&args[0]);
+        let envelope_size = 4 + elem_size; // tag + payload
+
         f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
         self.emit_operand(f, &args[0]);
         f.instruction(&Instruction::I32Store(ma));
 
+        // len → SCR_A_LEN
         f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
         f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
         f.instruction(&Instruction::I32Load(ma));
@@ -3756,6 +4420,7 @@ impl Ctx {
             ValType::I32,
         )));
 
+        // Decrement len
         f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
         f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
         f.instruction(&Instruction::I32Load(ma));
@@ -3763,6 +4428,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Sub);
         f.instruction(&Instruction::I32Store(ma));
 
+        // Write new len back to vec
         f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
         f.instruction(&Instruction::I32Load(ma));
         f.instruction(&Instruction::I32Const(4));
@@ -3771,30 +4437,41 @@ impl Ctx {
         f.instruction(&Instruction::I32Load(ma));
         f.instruction(&Instruction::I32Store(ma));
 
-        f.instruction(&Instruction::GlobalGet(0));
-        f.instruction(&Instruction::I32Const(0));
+        // Build Result::Ok envelope: [tag=0][element_value]
+        f.instruction(&Instruction::GlobalGet(0)); // envelope ptr
+        f.instruction(&Instruction::I32Const(0)); // tag = Ok
         f.instruction(&Instruction::I32Store(ma));
+        // Load element at data_ptr + new_len * elem_size
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::I32Const(4));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Const(SCR_A_PTR as i32));
         f.instruction(&Instruction::I32Load(ma));
-        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Load(ma)); // data_ptr
         f.instruction(&Instruction::I32Const(SCR_A_LEN as i32));
         f.instruction(&Instruction::I32Load(ma));
-        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Const(elem_size));
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::I32Load(ma));
-        f.instruction(&Instruction::I32Store(ma));
+        if is_f64 {
+            f.instruction(&Instruction::F64Load(ma));
+            f.instruction(&Instruction::F64Store(ma));
+        } else if is_i64 {
+            f.instruction(&Instruction::I64Load(ma));
+            f.instruction(&Instruction::I64Store(ma));
+        } else {
+            f.instruction(&Instruction::I32Load(ma));
+            f.instruction(&Instruction::I32Store(ma));
+        }
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::GlobalGet(0));
-        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Const(envelope_size));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
 
         f.instruction(&Instruction::Else);
 
+        // Result::Err envelope: [tag=1][zero]
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Store(ma));
@@ -3805,57 +4482,75 @@ impl Ctx {
         f.instruction(&Instruction::I32Store(ma));
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::GlobalGet(0));
-        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Const(envelope_size));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
 
         f.instruction(&Instruction::End);
     }
 
-    fn emit_binop(&self, f: &mut Function, op: BinOp, _local_id: u32) {
-        // Check if operands are f64 based on context
-        let is_f64 = self.f64_locals.contains(&_local_id);
-        let is_i64 = self.i64_locals.contains(&_local_id);
+    /// Emit an operand, promoting i32 constants to i64/f64 when the other
+    /// operand in a binary expression is i64/f64.
+    fn emit_operand_coerced(
+        &mut self,
+        f: &mut Function,
+        op: &Operand,
+        need_i64: bool,
+        need_f64: bool,
+    ) {
+        match op {
+            Operand::ConstI32(v) if need_i64 => {
+                f.instruction(&Instruction::I64Const(*v as i64));
+            }
+            Operand::ConstI32(v) if need_f64 => {
+                f.instruction(&Instruction::F64Const(*v as f64));
+            }
+            _ => {
+                self.emit_operand(f, op);
+            }
+        }
+    }
+
+    fn emit_binop(&self, f: &mut Function, op: BinOp, lhs_operand: Option<&Operand>) {
+        // Determine operand type from LHS (not destination — comparisons return bool/i32)
+        let is_f64 = lhs_operand.is_some_and(|o| self.is_f64_like_operand(o));
+        let is_i64 = lhs_operand.is_some_and(|o| self.is_i64_like_operand(o));
 
         if is_f64 {
             match op {
-                BinOp::Add => {
-                    f.instruction(&Instruction::F64Add);
-                }
-                BinOp::Sub => {
-                    f.instruction(&Instruction::F64Sub);
-                }
-                BinOp::Mul => {
-                    f.instruction(&Instruction::F64Mul);
-                }
-                BinOp::Div => {
-                    f.instruction(&Instruction::F64Div);
-                }
-                _ => {
-                    f.instruction(&Instruction::F64Add);
-                } // fallback
-            }
+                BinOp::Add => f.instruction(&Instruction::F64Add),
+                BinOp::Sub => f.instruction(&Instruction::F64Sub),
+                BinOp::Mul => f.instruction(&Instruction::F64Mul),
+                BinOp::Div => f.instruction(&Instruction::F64Div),
+                BinOp::Eq => f.instruction(&Instruction::F64Eq),
+                BinOp::Ne => f.instruction(&Instruction::F64Ne),
+                BinOp::Lt => f.instruction(&Instruction::F64Lt),
+                BinOp::Le => f.instruction(&Instruction::F64Le),
+                BinOp::Gt => f.instruction(&Instruction::F64Gt),
+                BinOp::Ge => f.instruction(&Instruction::F64Ge),
+                _ => f.instruction(&Instruction::F64Add),
+            };
         } else if is_i64 {
             match op {
-                BinOp::Add => {
-                    f.instruction(&Instruction::I64Add);
-                }
-                BinOp::Sub => {
-                    f.instruction(&Instruction::I64Sub);
-                }
-                BinOp::Mul => {
-                    f.instruction(&Instruction::I64Mul);
-                }
-                BinOp::Div => {
-                    f.instruction(&Instruction::I64DivS);
-                }
-                BinOp::Mod => {
-                    f.instruction(&Instruction::I64RemS);
-                }
-                _ => {
-                    f.instruction(&Instruction::I64Add);
-                }
-            }
+                BinOp::Add => f.instruction(&Instruction::I64Add),
+                BinOp::Sub => f.instruction(&Instruction::I64Sub),
+                BinOp::Mul => f.instruction(&Instruction::I64Mul),
+                BinOp::Div => f.instruction(&Instruction::I64DivS),
+                BinOp::Mod => f.instruction(&Instruction::I64RemS),
+                BinOp::Eq => f.instruction(&Instruction::I64Eq),
+                BinOp::Ne => f.instruction(&Instruction::I64Ne),
+                BinOp::Lt => f.instruction(&Instruction::I64LtS),
+                BinOp::Le => f.instruction(&Instruction::I64LeS),
+                BinOp::Gt => f.instruction(&Instruction::I64GtS),
+                BinOp::Ge => f.instruction(&Instruction::I64GeS),
+                BinOp::And => f.instruction(&Instruction::I64And),
+                BinOp::Or => f.instruction(&Instruction::I64Or),
+                BinOp::BitAnd => f.instruction(&Instruction::I64And),
+                BinOp::BitOr => f.instruction(&Instruction::I64Or),
+                BinOp::BitXor => f.instruction(&Instruction::I64Xor),
+                BinOp::Shl => f.instruction(&Instruction::I64Shl),
+                BinOp::Shr => f.instruction(&Instruction::I64ShrS),
+            };
         } else {
             match op {
                 BinOp::Add => {
