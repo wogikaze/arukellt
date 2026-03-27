@@ -73,13 +73,30 @@ See `docs/current-state.md` § V1 Exit Criteria for the canonical definition.
 
 Language-level source compatibility remains the goal. The current difference is runtime/backend path, not frontend syntax.
 
-## What changed in this refactor track
+## What changed in the T3 promotion
 
-The intentional behavior change owned by this migration/update work is:
+- T3 (`wasm32-wasi-p2`) is now the canonical v1 path, replacing T1 as primary
+- `RuntimeModel::T3FallbackToT1` has been removed; `T3WasmGcP2` is the sole T3 model
+- T3 compiles all 346 fixture categories (variables, operators, control flow, functions, structs, enums, closures, Vec, String, HOFs)
+- Binary sizes are significantly smaller on T3 (WasmGC modules vs T1 linear-memory + runtime)
+- `W0004` (generated Wasm failed validation) is treated as a build failure
+- `experimental: true` → `experimental: false` for the `wasm32-wasi-p2` target
 
-- `W0004` (generated Wasm failed validation) is now treated as a build failure
+## What did not change
 
-This is a quality-gate change, not a source-language change.
+- CLI default target remains `wasm32-wasi-p1` (T1) for compatibility
+- Source-language syntax is identical for both targets
+- `--emit core-wasm` is the only supported emit kind for both targets
+- WASI I/O uses Preview 1 (`fd_write`) for both T1 and T3
+- Frontend pipeline (lex→parse→resolve→typecheck→MIR) is shared
+
+## Out of scope for v1
+
+- `--emit component` — remains a hard error
+- WASI Preview 2 native imports — T3 uses P1 I/O bridge
+- T2 (`wasm32-freestanding`) — planned, not implemented
+- T4 (`native`/LLVM) — scaffold only, not a v1 gate
+- T5 (`wasm32-wasi-p3`) — future
 
 ## Troubleshooting
 
