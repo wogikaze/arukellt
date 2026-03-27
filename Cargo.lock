@@ -137,6 +137,7 @@ name = "ark-driver"
 version = "0.1.0"
 dependencies = [
  "ark-diagnostics",
+ "ark-hir",
  "ark-lexer",
  "ark-mir",
  "ark-parser",
@@ -144,6 +145,13 @@ dependencies = [
  "ark-target",
  "ark-typecheck",
  "ark-wasm",
+]
+
+[[package]]
+name = "ark-hir"
+version = "0.1.0"
+dependencies = [
+ "ark-diagnostics",
 ]
 
 [[package]]
@@ -159,6 +167,7 @@ version = "0.1.0"
 dependencies = [
  "ark-diagnostics",
  "ark-mir",
+ "ark-target",
  "ark-typecheck",
  "inkwell",
 ]
@@ -183,6 +192,7 @@ name = "ark-mir"
 version = "0.1.0"
 dependencies = [
  "ark-diagnostics",
+ "ark-hir",
  "ark-parser",
  "ark-typecheck",
 ]
@@ -220,6 +230,7 @@ name = "ark-typecheck"
 version = "0.1.0"
 dependencies = [
  "ark-diagnostics",
+ "ark-hir",
  "ark-parser",
  "ark-resolve",
 ]

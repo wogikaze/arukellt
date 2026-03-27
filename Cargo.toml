@@ -5,6 +5,7 @@ members = [
     "crates/ark-parser",
     "crates/ark-resolve",
     "crates/ark-typecheck",
+    "crates/ark-hir",
     "crates/ark-mir",
     "crates/ark-wasm",
     "crates/ark-llvm",
@@ -21,6 +22,7 @@ default-members = [
     "crates/ark-parser",
     "crates/ark-resolve",
     "crates/ark-typecheck",
+    "crates/ark-hir",
     "crates/ark-mir",
     "crates/ark-wasm",
     "crates/ark-lsp",
@@ -42,6 +44,7 @@ ark-lexer = { path = "crates/ark-lexer" }
 ark-parser = { path = "crates/ark-parser" }
 ark-resolve = { path = "crates/ark-resolve" }
 ark-typecheck = { path = "crates/ark-typecheck" }
+ark-hir = { path = "crates/ark-hir" }
 ark-mir = { path = "crates/ark-mir" }
 ark-wasm = { path = "crates/ark-wasm" }
 ark-diagnostics = { path = "crates/ark-diagnostics" }

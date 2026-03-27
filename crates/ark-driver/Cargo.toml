@@ -8,6 +8,7 @@ ark-lexer = { workspace = true }
 ark-parser = { workspace = true }
 ark-resolve = { workspace = true }
 ark-typecheck = { workspace = true }
+ark-hir = { workspace = true }
 ark-mir = { workspace = true }
 ark-wasm = { workspace = true }
 ark-diagnostics = { workspace = true }

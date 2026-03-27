@@ -4,6 +4,9 @@ use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
 use ark_parser::ast;
 use ark_resolve::ResolvedModule;
 
+use ark_hir::validate_program;
+
+use crate::build_corehir::{CoreHirBundle, build_core_hir_program};
 use crate::typed_ast::{NodeIdAllocator, TypedAstMap, TypedExprInfo};
 use crate::types::{Type, TypeId};
 use std::collections::{HashMap, HashSet};
@@ -11,9 +14,9 @@ use std::collections::{HashMap, HashSet};
 /// Type environment for tracking variable types.
 #[derive(Debug)]
 pub struct TypeEnv {
-    bindings: HashMap<String, Type>,
-    mutable_vars: HashSet<String>,
-    parent: Option<Box<TypeEnv>>,
+    pub(crate) bindings: HashMap<String, Type>,
+    pub(crate) mutable_vars: HashSet<String>,
+    pub(crate) parent: Option<Box<TypeEnv>>,
 }
 
 impl TypeEnv {
@@ -105,6 +108,21 @@ pub struct FnSig {
     pub ret: Type,
 }
 
+#[derive(Debug, Clone)]
+pub struct CheckOutput {
+    pub core_hir: CoreHirBundle,
+}
+
+impl CheckOutput {
+    pub fn program(&self) -> &ark_hir::Program {
+        &self.core_hir.program
+    }
+
+    fn new(core_hir: CoreHirBundle) -> Self {
+        Self { core_hir }
+    }
+}
+
 /// The main type checker.
 #[derive(Debug)]
 pub struct TypeChecker {
@@ -121,9 +139,10 @@ pub struct TypeChecker {
     pub(crate) trait_impls: HashMap<String, Vec<String>>,
     pub(crate) node_ids: NodeIdAllocator,
     pub(crate) typed_ast_map: TypedAstMap,
+    pub(crate) latest_core_hir: Option<CoreHirBundle>,
     next_type_id: u32,
     next_type_var: u32,
-    current_fn_return_type: Option<Type>,
+    pub(crate) current_fn_return_type: Option<Type>,
 }
 
 /// Immutable semantic model produced by type checking.
@@ -138,6 +157,38 @@ pub struct SemanticModel {
     pub method_resolutions: HashMap<u32, (String, String)>,
     pub trait_impls: HashMap<String, Vec<String>>,
     typed_ast: TypedAstMap,
+    core_hir: Option<CoreHirBundle>,
+}
+
+impl SemanticModel {
+    pub fn core_hir(&self) -> Option<&CoreHirBundle> {
+        self.core_hir.as_ref()
+    }
+}
+
+impl TypeChecker {
+    pub fn latest_core_hir(&self) -> Option<&CoreHirBundle> {
+        self.latest_core_hir.as_ref()
+    }
+
+    pub fn check_core_hir_module(
+        &mut self,
+        resolved: &ResolvedModule,
+        sink: &mut DiagnosticSink,
+    ) -> CheckOutput {
+        self.check_module(resolved, sink);
+        let bundle = build_core_hir_program(self, "main", &resolved.module.imports, &resolved.module.items);
+        if let Err(errors) = validate_program(&bundle.program) {
+            for error in errors {
+                sink.emit(
+                    Diagnostic::new(DiagnosticCode::E0200)
+                        .with_message(format!("invalid CoreHIR: {}", error.message)),
+                );
+            }
+        }
+        self.latest_core_hir = Some(bundle.clone());
+        CheckOutput::new(bundle)
+    }
 }
 
 impl SemanticModel {
@@ -166,7 +217,8 @@ impl SemanticModel {
     }
 
     pub fn method_fn_name(&self, struct_name: &str, method_name: &str) -> Option<&String> {
-        self.method_table.get(&(struct_name.to_string(), method_name.to_string()))
+        self.method_table
+            .get(&(struct_name.to_string(), method_name.to_string()))
     }
 
     pub fn typed_ast(&self) -> &TypedAstMap {
@@ -202,7 +254,8 @@ impl TypeChecker {
     }
 
     pub fn method_fn_name(&self, struct_name: &str, method_name: &str) -> Option<&String> {
-        self.method_table.get(&(struct_name.to_string(), method_name.to_string()))
+        self.method_table
+            .get(&(struct_name.to_string(), method_name.to_string()))
     }
 
     /// Consume the checker and produce an immutable semantic model.
@@ -216,6 +269,7 @@ impl TypeChecker {
             method_resolutions: self.method_resolutions,
             trait_impls: self.trait_impls,
             typed_ast: self.typed_ast_map,
+            core_hir: self.latest_core_hir,
         }
     }
 
@@ -230,6 +284,7 @@ impl TypeChecker {
             trait_impls: HashMap::new(),
             node_ids: NodeIdAllocator::new(),
             typed_ast_map: TypedAstMap::new(),
+            latest_core_hir: None,
             next_type_id: 0,
             next_type_var: 0,
             current_fn_return_type: None,
@@ -242,7 +297,7 @@ impl TypeChecker {
         id
     }
 
-    fn fresh_type_var(&mut self) -> Type {
+    pub(crate) fn fresh_type_var(&mut self) -> Type {
         let id = self.next_type_var;
         self.next_type_var += 1;
         Type::TypeVar(id)
@@ -1305,23 +1360,21 @@ impl TypeChecker {
                     // `collect_module_items_pub_only` already filters private items
                     // during resolution, so they never enter the symbol table.
                     if program.symbols.lookup(program.global_scope, name).is_some() {
-                        sink.emit(
-                            Diagnostic::new(DiagnosticCode::E0102).with_label(
-                                span,
-                                format!(
-                                    "cannot access private {} `{}` from module `{}`",
-                                    match item {
-                                        ast::Item::FnDef(_) => "function",
-                                        ast::Item::StructDef(_) => "struct",
-                                        ast::Item::EnumDef(_) => "enum",
-                                        ast::Item::TraitDef(_) => "trait",
-                                        ast::Item::ImplBlock(_) => unreachable!(),
-                                    },
-                                    name,
-                                    loaded.name,
-                                ),
+                        sink.emit(Diagnostic::new(DiagnosticCode::E0102).with_label(
+                            span,
+                            format!(
+                                "cannot access private {} `{}` from module `{}`",
+                                match item {
+                                    ast::Item::FnDef(_) => "function",
+                                    ast::Item::StructDef(_) => "struct",
+                                    ast::Item::EnumDef(_) => "enum",
+                                    ast::Item::TraitDef(_) => "trait",
+                                    ast::Item::ImplBlock(_) => unreachable!(),
+                                },
+                                name,
+                                loaded.name,
                             ),
-                        );
+                        ));
                     }
                 }
             }
@@ -1704,7 +1757,7 @@ impl TypeChecker {
     }
 
     /// Synthesize the type of an expression.
-    fn synthesize_expr(
+    pub(crate) fn synthesize_expr(
         &mut self,
         expr: &ast::Expr,
         env: &mut TypeEnv,
@@ -1816,13 +1869,17 @@ impl TypeChecker {
                                     self.synthesize_expr(a, env, sink);
                                 }
                                 // Record method resolution for MIR lowering
-                                self.method_resolutions.insert(span.start, (mangled.clone(), sname.clone()));
+                                self.method_resolutions
+                                    .insert(span.start, (mangled.clone(), sname.clone()));
                                 let expr_id = self.node_ids.fresh_expr();
                                 self.typed_ast_map.register_span(span.start, expr_id);
-                                self.typed_ast_map.insert_expr(expr_id, TypedExprInfo {
-                                    ty: sig.ret.clone(),
-                                    method_resolution: Some((mangled, sname)),
-                                });
+                                self.typed_ast_map.insert_expr(
+                                    expr_id,
+                                    TypedExprInfo {
+                                        ty: sig.ret.clone(),
+                                        method_resolution: Some((mangled, sname)),
+                                    },
+                                );
                                 return sig.ret;
                             }
                         }
@@ -2312,10 +2369,13 @@ impl TypeChecker {
                                 .insert(span.start, (from_fn.clone(), dst_name.clone()));
                             let expr_id = self.node_ids.fresh_expr();
                             self.typed_ast_map.register_span(span.start, expr_id);
-                            self.typed_ast_map.insert_expr(expr_id, TypedExprInfo {
-                                ty: inner_ty.clone(),
-                                method_resolution: Some((from_fn, dst_name)),
-                            });
+                            self.typed_ast_map.insert_expr(
+                                expr_id,
+                                TypedExprInfo {
+                                    ty: inner_ty.clone(),
+                                    method_resolution: Some((from_fn, dst_name)),
+                                },
+                            );
                         } else {
                             sink.emit(
                                 Diagnostic::new(DiagnosticCode::E0210)
@@ -2464,17 +2524,21 @@ impl TypeChecker {
                         let mangled = format!("{}__{}", sname, op_method);
                         if let Some(sig) = self.fn_sigs.get(&mangled).cloned() {
                             // Record method resolution for MIR lowering
-                            self.method_resolutions.insert(span.start, (mangled.clone(), sname.clone()));
+                            self.method_resolutions
+                                .insert(span.start, (mangled.clone(), sname.clone()));
                             let ret_ty = match op {
                                 Eq | Ne | Lt | Le | Gt | Ge => Type::Bool,
                                 _ => sig.ret,
                             };
                             let expr_id = self.node_ids.fresh_expr();
                             self.typed_ast_map.register_span(span.start, expr_id);
-                            self.typed_ast_map.insert_expr(expr_id, TypedExprInfo {
-                                ty: ret_ty.clone(),
-                                method_resolution: Some((mangled, sname)),
-                            });
+                            self.typed_ast_map.insert_expr(
+                                expr_id,
+                                TypedExprInfo {
+                                    ty: ret_ty.clone(),
+                                    method_resolution: Some((mangled, sname)),
+                                },
+                            );
                             // For comparison ops, return Bool
                             return ret_ty;
                         }

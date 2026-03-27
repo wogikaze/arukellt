@@ -1,3 +1,5 @@
+mod pipeline;
 mod session;
 
-pub use session::Session;
+pub use pipeline::{ArtifactStore, Phase, PhaseKey, PipelineConfig};
+pub use session::{AnalysisResult, Session};
