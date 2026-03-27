@@ -862,6 +862,7 @@ mod tests {
             }],
             entry: BlockId(0),
             struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
             source: default_function_source(),
         });
         sync_module_metadata(&mut module);

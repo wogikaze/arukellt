@@ -304,6 +304,7 @@ impl<'ctx> LlvmEmitter<'ctx> {
                     .collect(),
                 entry: f.entry,
                 struct_typed_locals: f.struct_typed_locals.clone(),
+                enum_typed_locals: f.enum_typed_locals.clone(),
                 source: f.source,
             })
             .collect();
@@ -1253,6 +1254,7 @@ mod tests {
             }],
             entry: BlockId(0),
             struct_typed_locals: HashMap::new(),
+            enum_typed_locals: HashMap::new(),
         };
         module.functions.push(main_fn);
         module.entry_fn = Some(FnId(0));
@@ -1310,6 +1312,7 @@ mod tests {
             }],
             entry: BlockId(0),
             struct_typed_locals: HashMap::new(),
+            enum_typed_locals: HashMap::new(),
         };
         module.functions.push(func);
 

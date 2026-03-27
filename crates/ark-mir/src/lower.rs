@@ -11,6 +11,34 @@ use ark_typecheck::{CheckOutput, TypeChecker};
 use crate::mir::*;
 use crate::validate::validate_module;
 
+/// Format a checker Type to a string using struct/enum name maps rather than
+/// the default Display which produces "struct#N"/"enum#N".
+fn type_to_sig_name(
+    ty: &CheckerType,
+    struct_id_to_name: &HashMap<u32, String>,
+    enum_id_to_name: &HashMap<u32, String>,
+) -> String {
+    use ark_typecheck::types::Type;
+    match ty {
+        Type::Struct(id) => struct_id_to_name
+            .get(&id.0)
+            .cloned()
+            .unwrap_or_else(|| format!("{}", ty)),
+        Type::Enum(id) => enum_id_to_name
+            .get(&id.0)
+            .cloned()
+            .unwrap_or_else(|| format!("{}", ty)),
+        Type::Vec(elem) => format!("Vec<{}>", type_to_sig_name(elem, struct_id_to_name, enum_id_to_name)),
+        Type::Option(inner) => format!("Option<{}>", type_to_sig_name(inner, struct_id_to_name, enum_id_to_name)),
+        Type::Result(ok, err) => format!(
+            "Result<{}, {}>",
+            type_to_sig_name(ok, struct_id_to_name, enum_id_to_name),
+            type_to_sig_name(err, struct_id_to_name, enum_id_to_name),
+        ),
+        _ => format!("{}", ty),
+    }
+}
+
 fn finalize_module_metadata(mir: &mut MirModule) {
     sync_module_metadata(mir);
     let _ = validate_module(mir);
@@ -109,6 +137,7 @@ fn fallback_function(
     blocks: Vec<BasicBlock>,
     entry: BlockId,
     struct_typed_locals: std::collections::HashMap<u32, String>,
+    enum_typed_locals: std::collections::HashMap<u32, String>,
 ) -> MirFunction {
     MirFunction {
         id,
@@ -120,6 +149,7 @@ fn fallback_function(
         blocks,
         entry,
         struct_typed_locals,
+        enum_typed_locals,
         source: default_function_source(),
     }
 }
@@ -867,24 +897,23 @@ pub fn lower_to_mir(
     let mut enum_variant_field_names: HashMap<String, Vec<String>> = HashMap::new();
 
     // Inject builtin enum types: Option<T> and Result<T, E>
-    let builtin_enums: &[(&str, &[(&str, usize)])] = &[
-        ("Option", &[("Some", 1), ("None", 0)]),
-        ("Result", &[("Ok", 1), ("Err", 1)]),
+    let builtin_enums: &[(&str, &[(&str, &[&str])])] = &[
+        ("Option", &[("Some", &["i32"]), ("None", &[])]),
+        ("Result", &[("Ok", &["i32"]), ("Err", &["String"])]),
     ];
     for &(enum_name, variants) in builtin_enums {
         let mut variants_info = Vec::new();
         let mut variants_defs = Vec::new();
-        for (i, &(vname, field_count)) in variants.iter().enumerate() {
+        for (i, &(vname, field_types)) in variants.iter().enumerate() {
             let key = format!("{}::{}", enum_name, vname);
             enum_tags.insert(key.clone(), i as i32);
             variant_to_enum.insert(key, enum_name.to_string());
-            variants_info.push((vname.to_string(), field_count));
+            variants_info.push((vname.to_string(), field_types.len()));
             bare_variant_tags.insert(
                 vname.to_string(),
-                (enum_name.to_string(), i as i32, field_count),
+                (enum_name.to_string(), i as i32, field_types.len()),
             );
-            // Payload types: assume i32 for each field (generic T → i32 at runtime)
-            let payload_types: Vec<String> = (0..field_count).map(|_| "i32".to_string()).collect();
+            let payload_types: Vec<String> = field_types.iter().map(|t| t.to_string()).collect();
             variants_defs.push((vname.to_string(), payload_types));
         }
         enum_variants.insert(enum_name.to_string(), variants_info);
@@ -896,14 +925,14 @@ pub fn lower_to_mir(
         "Result_i64_String".to_string(),
         vec![
             ("Ok".to_string(), vec!["i64".to_string()]),
-            ("Err".to_string(), vec!["i32".to_string()]),
+            ("Err".to_string(), vec!["String".to_string()]),
         ],
     );
     enum_defs.insert(
         "Result_f64_String".to_string(),
         vec![
             ("Ok".to_string(), vec!["f64".to_string()]),
-            ("Err".to_string(), vec!["i32".to_string()]),
+            ("Err".to_string(), vec!["String".to_string()]),
         ],
     );
 
@@ -1130,6 +1159,10 @@ pub fn lower_to_mir(
                             ark_typecheck::types::Type::Vec(Box::new(
                                 ark_typecheck::types::Type::F64,
                             ))
+                        } else if ctx.vec_i32_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::Vec(Box::new(
+                                ark_typecheck::types::Type::I32,
+                            ))
                         } else {
                             ark_typecheck::types::Type::I32
                         },
@@ -1146,6 +1179,7 @@ pub fn lower_to_mir(
                 )],
                 entry,
                 ctx.struct_typed_locals.clone(),
+                ctx.enum_typed_locals.clone(),
             );
 
             if f.name == "main" {
@@ -1290,6 +1324,10 @@ pub fn lower_to_mir(
                                 ark_typecheck::types::Type::Vec(Box::new(
                                     ark_typecheck::types::Type::F64,
                                 ))
+                            } else if ctx.vec_i32_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::Vec(Box::new(
+                                    ark_typecheck::types::Type::I32,
+                                ))
                             } else {
                                 ark_typecheck::types::Type::I32
                             },
@@ -1306,6 +1344,7 @@ pub fn lower_to_mir(
                     )],
                     entry,
                     ctx.struct_typed_locals.clone(),
+                    ctx.enum_typed_locals.clone(),
                 );
 
                 push_function(&mut mir, mir_fn);
@@ -1323,26 +1362,54 @@ pub fn lower_to_mir(
         }
     }
 
+    // Build reverse maps from TypeId → name for struct/enum types
+    let struct_id_to_name: HashMap<u32, String> = checker
+        .struct_defs_iter()
+        .map(|(name, info)| (info.type_id.0, name.clone()))
+        .collect();
+    let enum_id_to_name: HashMap<u32, String> = checker
+        .enum_defs_iter()
+        .map(|(name, info)| (info.type_id.0, name.clone()))
+        .collect();
+
     // Build the nominal type table for backend consumers.
     let mut fn_sigs_table = HashMap::new();
-    for func in &mir.functions {
+    // Include checker fn_sigs FIRST — they have accurate return types for user functions.
+    for (name, sig) in checker.fn_sigs_iter() {
         fn_sigs_table.insert(
-            func.name.clone(),
+            name.clone(),
             MirFnSig {
-                name: func.name.clone(),
-                params: func.params.iter().map(|p| format!("{}", p.ty)).collect(),
-                ret: format!("{}", func.return_ty),
+                name: name.clone(),
+                params: sig.params.iter().map(|t| type_to_sig_name(t, &struct_id_to_name, &enum_id_to_name)).collect(),
+                ret: type_to_sig_name(&sig.ret, &struct_id_to_name, &enum_id_to_name),
             },
         );
     }
-    // Include checker fn_sigs for builtins not lowered into MIR functions.
-    for (name, sig) in checker.fn_sigs_iter() {
+    // Fill in remaining from MIR functions (synthetic functions not in checker).
+    for func in &mir.functions {
         fn_sigs_table
-            .entry(name.clone())
-            .or_insert_with(|| MirFnSig {
-                name: name.clone(),
-                params: sig.params.iter().map(|t| format!("{}", t)).collect(),
-                ret: format!("{}", sig.ret),
+            .entry(func.name.clone())
+            .or_insert_with(|| {
+                let params: Vec<String> = func.params.iter().map(|p| {
+                    // Use struct/enum typed_locals for accurate param types
+                    if let Some(sname) = func.struct_typed_locals.get(&p.id.0) {
+                        sname.clone()
+                    } else if let Some(ename) = func.enum_typed_locals.get(&p.id.0) {
+                        ename.clone()
+                    } else {
+                        format!("{}", p.ty)
+                    }
+                }).collect();
+                let ret = if let Some(sname) = func.struct_typed_locals.get(&u32::MAX) {
+                    sname.clone()
+                } else {
+                    format!("{}", func.return_ty)
+                };
+                MirFnSig {
+                    name: func.name.clone(),
+                    params,
+                    ret,
+                }
             });
     }
     mir.type_table = TypeTable {
@@ -1392,6 +1459,8 @@ struct LowerCtx {
     vec_i64_locals: HashSet<u32>,
     /// Locals known to hold Vec<f64> values.
     vec_f64_locals: HashSet<u32>,
+    /// Locals known to hold Vec<i32> values.
+    vec_i32_locals: HashSet<u32>,
     /// Local to assign break values to (for loop-as-expression).
     loop_result_local: Option<LocalId>,
     /// Function name -> return type expression (for resolving generic enum payloads in match).
@@ -1445,6 +1514,7 @@ impl LowerCtx {
             vec_string_locals: HashSet::new(),
             vec_i64_locals: HashSet::new(),
             vec_f64_locals: HashSet::new(),
+            vec_i32_locals: HashSet::new(),
             loop_result_local: None,
             fn_return_types,
             user_fn_names,
@@ -1809,6 +1879,10 @@ impl LowerCtx {
                 ) || name.ends_with("__to_string")
             }
             Operand::Place(Place::Local(lid)) => self.string_locals.contains(&lid.0),
+            Operand::IfExpr { then_result, else_result, .. } => {
+                then_result.as_ref().is_some_and(|r| self.is_string_operand_mir(r))
+                    || else_result.as_ref().is_some_and(|r| self.is_string_operand_mir(r))
+            }
             _ => false,
         }
     }
@@ -1820,6 +1894,10 @@ impl LowerCtx {
             Operand::Call(name, _) => matches!(name.as_str(), "sqrt"),
             Operand::BinOp(_, l, r) => self.is_f64_operand_mir(l) || self.is_f64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.f64_locals.contains(&lid.0),
+            Operand::IfExpr { then_result, else_result, .. } => {
+                then_result.as_ref().is_some_and(|r| self.is_f64_operand_mir(r))
+                    || else_result.as_ref().is_some_and(|r| self.is_f64_operand_mir(r))
+            }
             _ => false,
         }
     }
@@ -1830,6 +1908,10 @@ impl LowerCtx {
             Operand::Call(name, _) => matches!(name.as_str(), "clock_now"),
             Operand::BinOp(_, l, r) => self.is_i64_operand_mir(l) || self.is_i64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.i64_locals.contains(&lid.0),
+            Operand::IfExpr { then_result, else_result, .. } => {
+                then_result.as_ref().is_some_and(|r| self.is_i64_operand_mir(r))
+                    || else_result.as_ref().is_some_and(|r| self.is_i64_operand_mir(r))
+            }
             _ => false,
         }
     }
@@ -1941,6 +2023,8 @@ impl LowerCtx {
                                     self.vec_i64_locals.insert(local_id.0);
                                 } else if inner == "f64" {
                                     self.vec_f64_locals.insert(local_id.0);
+                                } else if inner == "i32" {
+                                    self.vec_i32_locals.insert(local_id.0);
                                 }
                             }
                         }
@@ -2233,6 +2317,8 @@ impl LowerCtx {
                         if let Some(ref sname) = struct_name {
                             self.struct_typed_locals.insert(iter_local.0, sname.clone());
                         }
+                        // next_local holds Option<T> enum ref from __next() call
+                        self.enum_typed_locals.insert(next_local.0, "Option".to_string());
 
                         // __iter = iter_expr
                         out.push(MirStmt::Assign(
@@ -3717,7 +3803,7 @@ impl LowerCtx {
                     from_fn,
                 }
             }
-            ast::Expr::Closure { params, body, .. } => {
+            ast::Expr::Closure { params, body, return_type, .. } => {
                 // Lambda-lift: create a synthetic function
                 let synth_name = format!("__closure_{}", self.closure_counter);
                 self.closure_counter += 1;
@@ -3829,21 +3915,56 @@ impl LowerCtx {
                     }
                 };
 
-                let return_ty = ark_typecheck::types::Type::I32;
+                let return_ty = if let Some(rt) = return_type {
+                    if is_string_type(rt) {
+                        ark_typecheck::types::Type::String
+                    } else {
+                        match rt {
+                            ast::TypeExpr::Named { name, .. } if name == "i64" => ark_typecheck::types::Type::I64,
+                            ast::TypeExpr::Named { name, .. } if name == "f64" => ark_typecheck::types::Type::F64,
+                            ast::TypeExpr::Named { name, .. } if name == "bool" => ark_typecheck::types::Type::Bool,
+                            _ => ark_typecheck::types::Type::I32,
+                        }
+                    }
+                } else if let Some(ref op) = tail_op {
+                    if sub_ctx.is_string_operand_mir(op) {
+                        ark_typecheck::types::Type::String
+                    } else if sub_ctx.is_f64_operand_mir(op) {
+                        ark_typecheck::types::Type::F64
+                    } else if sub_ctx.is_i64_operand_mir(op) {
+                        ark_typecheck::types::Type::I64
+                    } else {
+                        ark_typecheck::types::Type::I32
+                    }
+                } else {
+                    ark_typecheck::types::Type::I32
+                };
                 let num_locals = sub_ctx.next_local;
                 let entry = BlockId(0);
+                let locals: Vec<MirLocal> = (0..num_locals)
+                    .map(|i| {
+                        let ty = if sub_ctx.string_locals.contains(&i) {
+                            ark_typecheck::types::Type::String
+                        } else if sub_ctx.f64_locals.contains(&i) {
+                            ark_typecheck::types::Type::F64
+                        } else if sub_ctx.i64_locals.contains(&i) {
+                            ark_typecheck::types::Type::I64
+                        } else {
+                            ark_typecheck::types::Type::I32
+                        };
+                        MirLocal {
+                            id: LocalId(i),
+                            name: Some(format!("_l{}", i)),
+                            ty,
+                        }
+                    })
+                    .collect();
                 let mir_fn = fallback_function(
                     FnId(0), // will be reassigned in lower_module
                     synth_name.clone(),
                     mir_params,
                     return_ty,
-                    (0..num_locals)
-                        .map(|i| MirLocal {
-                            id: LocalId(i),
-                            name: Some(format!("_l{}", i)),
-                            ty: ark_typecheck::types::Type::I32,
-                        })
-                        .collect(),
+                    locals,
                     vec![fallback_block(
                         entry,
                         body_stmts,
@@ -3855,6 +3976,7 @@ impl LowerCtx {
                     )],
                     entry,
                     sub_ctx.struct_typed_locals.clone(),
+                    sub_ctx.enum_typed_locals.clone(),
                 );
 
                 let mir_fn = MirFunction {

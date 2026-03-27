@@ -250,6 +250,14 @@ impl TypeChecker {
         self.fn_sigs.iter()
     }
 
+    pub fn struct_defs_iter(&self) -> impl Iterator<Item = (&String, &StructInfo)> {
+        self.struct_defs.iter()
+    }
+
+    pub fn enum_defs_iter(&self) -> impl Iterator<Item = (&String, &EnumInfo)> {
+        self.enum_defs.iter()
+    }
+
     pub fn method_resolution(&self, span_start: u32) -> Option<&(String, String)> {
         self.method_resolutions.get(&span_start)
     }

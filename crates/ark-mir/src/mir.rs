@@ -224,6 +224,8 @@ pub struct MirFunction {
     pub entry: BlockId,
     /// Maps local id → struct type name (for field access/store)
     pub struct_typed_locals: std::collections::HashMap<u32, String>,
+    /// Maps local id → enum type name (for GC-native enum refs)
+    pub enum_typed_locals: std::collections::HashMap<u32, String>,
     pub source: SourceInfo,
 }
 
