@@ -66,6 +66,7 @@ impl TargetId {
                 implemented: true,
                 run_supported: true,
                 default_emit_kind: EmitKind::CoreWasm,
+                experimental: false,
             },
             TargetId::Wasm32Freestanding => TargetProfile {
                 id: self,
@@ -76,6 +77,7 @@ impl TargetId {
                 implemented: false,
                 run_supported: false,
                 default_emit_kind: EmitKind::CoreWasm,
+                experimental: false,
             },
             TargetId::Wasm32WasiP2 => TargetProfile {
                 id: self,
@@ -86,6 +88,7 @@ impl TargetId {
                 implemented: true,
                 run_supported: true,
                 default_emit_kind: EmitKind::CoreWasm,
+                experimental: true,
             },
             TargetId::Native => TargetProfile {
                 id: self,
@@ -96,6 +99,7 @@ impl TargetId {
                 implemented: false,
                 run_supported: false,
                 default_emit_kind: EmitKind::NativeBinary,
+                experimental: false,
             },
             TargetId::Wasm32WasiP3 => TargetProfile {
                 id: self,
@@ -106,6 +110,7 @@ impl TargetId {
                 implemented: false,
                 run_supported: false,
                 default_emit_kind: EmitKind::Component,
+                experimental: false,
             },
         }
     }
@@ -205,12 +210,17 @@ pub struct TargetProfile {
     pub implemented: bool,
     pub run_supported: bool,
     pub default_emit_kind: EmitKind,
+    pub experimental: bool,
 }
 
 impl TargetProfile {
     /// Human-readable status string for CLI help.
     pub fn status_label(&self) -> &'static str {
-        if self.run_supported {
+        if self.experimental && self.run_supported {
+            "experimental, run supported"
+        } else if self.experimental && self.implemented {
+            "experimental, compile only"
+        } else if self.run_supported {
             "implemented, run supported"
         } else if self.implemented {
             "implemented, compile only"
@@ -285,8 +295,13 @@ pub fn targets_help() -> String {
     let mut out = String::from("Available targets:\n");
     for id in TargetId::ALL {
         let profile = id.profile();
+        let experimental_tag = if profile.experimental {
+            " [experimental]"
+        } else {
+            ""
+        };
         out.push_str(&format!(
-            "  {} ({}) - {} [{}]\n",
+            "  {} ({}) - {}{} [{}]\n",
             id.canonical_name(),
             id.tier(),
             match id {
@@ -296,6 +311,7 @@ pub fn targets_help() -> String {
                 TargetId::Native => "Native via LLVM",
                 TargetId::Wasm32WasiP3 => "Wasm GC + WASI Preview 3 (future)",
             },
+            experimental_tag,
             profile.status_label()
         ));
     }
@@ -363,6 +379,7 @@ mod tests {
 
         let t3 = TargetId::Wasm32WasiP2.profile();
         assert!(t3.implemented);
+        assert!(t3.experimental);
         assert!(t3.component_model);
         assert_eq!(t3.memory_model, MemoryModel::WasmGc);
     }

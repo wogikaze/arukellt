@@ -6,10 +6,15 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use std::process;
 
-use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
-use ark_lexer::Lexer;
-use ark_parser::parse;
+use ark_driver::Session;
 use ark_target::{EmitKind, TargetId, parse_target};
+
+#[cfg(feature = "llvm")]
+use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
+#[cfg(feature = "llvm")]
+use ark_lexer::Lexer;
+#[cfg(feature = "llvm")]
+use ark_parser::parse;
 
 #[derive(Parser)]
 #[command(name = "arukellt", version, about = "The Arukellt compiler")]
@@ -114,7 +119,8 @@ fn main() {
 
             // WIT-only emit
             if emit_kind == EmitKind::Wit {
-                match compile_wit(&file) {
+                let mut session = Session::new();
+                match session.compile_wit(&file) {
                     Ok(wit_text) => {
                         let wit_output = output.unwrap_or_else(|| file.with_extension("wit"));
                         std::fs::write(&wit_output, &wit_text).unwrap_or_else(|e| {
@@ -137,7 +143,8 @@ fn main() {
             }
 
             let output = output.unwrap_or_else(|| file.with_extension("wasm"));
-            match compile_file(&file, target) {
+            let mut session = Session::new();
+            match session.compile(&file, target) {
                 Ok(wasm) => {
                     std::fs::write(&output, &wasm).unwrap_or_else(|e| {
                         eprintln!("error: failed to write {}: {}", output.display(), e);
@@ -153,7 +160,7 @@ fn main() {
 
                     // For --emit all, also generate WIT
                     if emit_kind == EmitKind::All {
-                        if let Ok(wit_text) = compile_wit(&file) {
+                        if let Ok(wit_text) = session.compile_wit(&file) {
                             let wit_output = file.with_extension("wit");
                             if let Err(e) = std::fs::write(&wit_output, &wit_text) {
                                 eprintln!(
@@ -172,7 +179,9 @@ fn main() {
                     }
 
                     if profile_mem {
-                        profile_memory(&file);
+                        if let Ok(info) = session.profile_memory(&file) {
+                            eprintln!("{}", info);
+                        }
                     }
                 }
                 Err(errors) => {
@@ -213,10 +222,37 @@ fn main() {
                 }
                 process::exit(1);
             }
-            match compile_file(&file, target) {
+
+            // deny_clock and deny_random are not yet enforced
+            if deny_clock {
+                eprintln!(
+                    "error: --deny-clock is not yet implemented. The Wasm runtime always \
+                     provides clock access. This flag will be supported in a future version."
+                );
+                process::exit(1);
+            }
+            if deny_random {
+                eprintln!(
+                    "error: --deny-random is not yet implemented. The Wasm runtime always \
+                     provides random access. This flag will be supported in a future version."
+                );
+                process::exit(1);
+            }
+
+            if profile.experimental {
+                eprintln!(
+                    "warning: target {} is experimental and uses WASI Preview 1 runtime internally",
+                    target.canonical_name()
+                );
+            }
+
+            let mut session = Session::new();
+            match session.compile(&file, target) {
                 Ok(wasm) => {
                     if profile_mem {
-                        profile_memory(&file);
+                        if let Ok(info) = session.profile_memory(&file) {
+                            eprintln!("{}", info);
+                        }
                     }
                     let caps = RuntimeCaps::from_cli(&dirs, deny_fs, deny_clock, deny_random);
                     let result = match target {
@@ -244,7 +280,8 @@ fn main() {
                 );
                 process::exit(1);
             }
-            match check_file(&file) {
+            let mut session = Session::new();
+            match session.check(&file) {
                 Ok(()) => {
                     eprintln!("OK: {}", file.display());
                 }
@@ -715,30 +752,21 @@ fn run_wasm_p1(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     let mut builder = WasiCtxBuilder::new();
     builder.inherit_stdio();
 
-    // deny_clock and deny_random are accepted but not yet enforced:
-    // wasmtime-wasi 29.x always provides default clock/random and has no
-    // API to disable them. These flags are reserved for a future runtime
-    // version that supports fine-grained capability removal.
+    // deny_clock and deny_random are accepted but not yet enforced;
+    // callers reject these flags before reaching this function.
     let _ = caps.deny_clock;
     let _ = caps.deny_random;
 
     if !caps.deny_fs {
-        if caps.dirs.is_empty() {
-            // Backward compat: preopen current directory
+        for grant in &caps.dirs {
+            let (dp, fp) = if grant.read_only {
+                (DirPerms::READ, FilePerms::READ)
+            } else {
+                (DirPerms::all(), FilePerms::all())
+            };
             builder
-                .preopened_dir(".", ".", DirPerms::all(), FilePerms::all())
-                .map_err(|e| format!("preopened dir error: {}", e))?;
-        } else {
-            for grant in &caps.dirs {
-                let (dp, fp) = if grant.read_only {
-                    (DirPerms::READ, FilePerms::READ)
-                } else {
-                    (DirPerms::all(), FilePerms::all())
-                };
-                builder
-                    .preopened_dir(&grant.host_path, &grant.guest_path, dp, fp)
-                    .map_err(|e| format!("preopened dir error for '{}': {}", grant.host_path, e))?;
-            }
+                .preopened_dir(&grant.host_path, &grant.guest_path, dp, fp)
+                .map_err(|e| format!("preopened dir error for '{}': {}", grant.host_path, e))?;
         }
     }
     let wasi_ctx = builder.build_p1();
@@ -785,21 +813,15 @@ fn run_wasm_gc(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), String> {
     let _ = caps.deny_random;
 
     if !caps.deny_fs {
-        if caps.dirs.is_empty() {
+        for grant in &caps.dirs {
+            let (dp, fp) = if grant.read_only {
+                (DirPerms::READ, FilePerms::READ)
+            } else {
+                (DirPerms::all(), FilePerms::all())
+            };
             builder
-                .preopened_dir(".", ".", DirPerms::all(), FilePerms::all())
-                .map_err(|e| format!("preopened dir error: {}", e))?;
-        } else {
-            for grant in &caps.dirs {
-                let (dp, fp) = if grant.read_only {
-                    (DirPerms::READ, FilePerms::READ)
-                } else {
-                    (DirPerms::all(), FilePerms::all())
-                };
-                builder
-                    .preopened_dir(&grant.host_path, &grant.guest_path, dp, fp)
-                    .map_err(|e| format!("preopened dir error for '{}': {}", grant.host_path, e))?;
-            }
+                .preopened_dir(&grant.host_path, &grant.guest_path, dp, fp)
+                .map_err(|e| format!("preopened dir error for '{}': {}", grant.host_path, e))?;
         }
     }
     let wasi_ctx = builder.build_p1();
