@@ -59,7 +59,7 @@ crates/
   - `module-run`
   - `module-diag`
 - Baselines live under `tests/baselines/`
-  - `perf-baseline.json`
+  - `perf-baseline.json` — T1/T3 compile-time and binary-size telemetry
   - `fixture-baseline.json`
   - `api-baseline.json`
 

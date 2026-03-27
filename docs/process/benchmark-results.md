@@ -74,3 +74,37 @@ PATH="$HOME/.wasmtime/bin:$HOME/.cargo/bin:$PATH" ./harness/proto/run_bench.sh
 - string_concat では GC が Linear より 20% 高速（GC 側の immutable copy が有利なパターン）。
 - binary_tree を除き実行時間差は 1.5x 以内。
 - LLM フレンドリ性（ライフタイム管理不要）の価値は変わらない。
+
+## T3 テレメトリ
+
+### 収集方法
+
+```bash
+python3 scripts/collect-baseline.py
+```
+
+`tests/baselines/perf-baseline.json` に T1/T3 両方のコンパイル時間・バイナリサイズを記録。
+
+### スキーマ
+
+```json
+{
+  "file": "docs/examples/hello.ark",
+  "check": { "status": 0, "median_ms": 5.9 },
+  "compile_t1": { "status": 0, "median_ms": 14.9 },
+  "compile_t3": { "status": 0, "median_ms": 15.0 },
+  "binary_size_t1": 12229,
+  "binary_size_t3": 954
+}
+```
+
+### T3 vs T1 バイナリサイズ比較
+
+T3 (WasmGC) は T1 (linear memory + runtime) に比べてバイナリサイズが大幅に小さい。
+これは T3 がランタイムバンドル不要のためである。
+
+### ゲートポリシー
+
+- `check` の中央値リグレッション上限: 10%
+- `compile` の中央値リグレッション上限: 20%
+- 重いランタイム比較は correctness CI とは別ジョブで実行する

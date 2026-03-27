@@ -63,12 +63,18 @@ def collect_perf_baseline() -> dict:
     rows = []
     for case in PERF_CASES:
         check_result = benchmark_command([str(BIN), "check", str(case)])
-        compile_result = benchmark_command([str(BIN), "compile", str(case), "--output", "/tmp/arukellt-baseline.wasm"])
+        compile_t1 = benchmark_command([str(BIN), "compile", str(case), "--target", "wasm32-wasi-p1", "--output", "/tmp/arukellt-baseline-t1.wasm"])
+        compile_t3 = benchmark_command([str(BIN), "compile", str(case), "--target", "wasm32-wasi-p2", "--output", "/tmp/arukellt-baseline-t3.wasm"])
+        t1_size = Path("/tmp/arukellt-baseline-t1.wasm").stat().st_size if Path("/tmp/arukellt-baseline-t1.wasm").exists() else None
+        t3_size = Path("/tmp/arukellt-baseline-t3.wasm").stat().st_size if Path("/tmp/arukellt-baseline-t3.wasm").exists() else None
         rows.append(
             {
                 "file": str(case.relative_to(ROOT)),
                 "check": check_result,
-                "compile": compile_result,
+                "compile_t1": compile_t1,
+                "compile_t3": compile_t3,
+                "binary_size_t1": t1_size,
+                "binary_size_t3": t3_size,
             }
         )
     return {
