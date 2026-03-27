@@ -536,6 +536,32 @@ pub fn lower_to_mir(
         }
     }
 
+    // Build the nominal type table for backend consumers.
+    let mut fn_sigs_table = HashMap::new();
+    for func in &mir.functions {
+        fn_sigs_table.insert(
+            func.name.clone(),
+            MirFnSig {
+                name: func.name.clone(),
+                params: func.params.iter().map(|p| format!("{}", p.ty)).collect(),
+                ret: format!("{}", func.return_ty),
+            },
+        );
+    }
+    // Include checker fn_sigs for builtins not lowered into MIR functions.
+    for (name, sig) in checker.fn_sigs_iter() {
+        fn_sigs_table.entry(name.clone()).or_insert_with(|| MirFnSig {
+            name: name.clone(),
+            params: sig.params.iter().map(|t| format!("{}", t)).collect(),
+            ret: format!("{}", sig.ret),
+        });
+    }
+    mir.type_table = TypeTable {
+        struct_defs: struct_defs.clone(),
+        enum_defs: enum_defs.clone(),
+        fn_sigs: fn_sigs_table,
+    };
+
     mir.struct_defs = struct_defs;
     mir.enum_defs = enum_defs;
     mir

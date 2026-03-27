@@ -119,11 +119,11 @@ fn normalize_intrinsic_name(name: &str) -> &str {
 }
 
 pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
-    // Build struct layouts and string field tracking
+    // Build struct layouts and string field tracking from the type table.
     let mut struct_layouts: std::collections::HashMap<String, Vec<(String, String)>> =
         std::collections::HashMap::new();
     let mut struct_string_fields = HashSet::new();
-    for (sname, fields) in &mir.struct_defs {
+    for (sname, fields) in &mir.type_table.struct_defs {
         for (fname, ftype) in fields {
             if ftype == "String" {
                 struct_string_fields.insert((sname.clone(), fname.clone()));
@@ -131,6 +131,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         }
         struct_layouts.insert(sname.clone(), fields.clone());
     }
+    // TODO(MIR-01): remove checker fallback — enum_payload_types should come from type_table only
     let mut ctx = EmitCtx {
         string_literals: Vec::new(),
         data_offset: DATA_START,
@@ -152,7 +153,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
             .collect(),
         struct_layouts,
         struct_string_fields,
-        enum_payload_types: mir.enum_defs.clone(),
+        enum_payload_types: mir.type_table.enum_defs.clone(),
         type_registry: std::collections::HashMap::new(),
         next_type_idx: 0,
         local_struct_names: std::collections::HashMap::new(),

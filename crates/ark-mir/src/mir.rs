@@ -1,5 +1,7 @@
 //! MIR type definitions.
 
+use std::collections::HashMap;
+
 use ark_typecheck::types::Type;
 
 /// Unique block identifier.
@@ -14,15 +16,40 @@ pub struct LocalId(pub u32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FnId(pub u32);
 
+/// Function signature as seen by the backend (string-based types).
+#[derive(Debug, Clone)]
+pub struct MirFnSig {
+    pub name: String,
+    pub params: Vec<String>,
+    pub ret: String,
+}
+
+/// Nominal type table — all type information the backend needs.
+///
+/// The backend (Wasm emitter, LLVM, WIT generator) should read types
+/// exclusively from this table rather than reaching back into the
+/// frontend `TypeChecker`.
+#[derive(Debug, Clone, Default)]
+pub struct TypeTable {
+    /// Struct layouts: struct name → ordered (field name, field type name).
+    pub struct_defs: HashMap<String, Vec<(String, String)>>,
+    /// Enum variant types: enum name → vec of (variant name, payload type names).
+    pub enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
+    /// Function signatures: fn name → simplified signature.
+    pub fn_sigs: HashMap<String, MirFnSig>,
+}
+
 /// A MIR module (after monomorphization).
 #[derive(Debug)]
 pub struct MirModule {
     pub functions: Vec<MirFunction>,
     pub entry_fn: Option<FnId>,
+    /// Nominal type table for backend consumers.
+    pub type_table: TypeTable,
     /// Struct layouts: struct name -> ordered (field name, field type name)
-    pub struct_defs: std::collections::HashMap<String, Vec<(String, String)>>,
+    pub struct_defs: HashMap<String, Vec<(String, String)>>,
     /// Enum variant types: enum_name -> vec of (variant_name, vec of payload type names)
-    pub enum_defs: std::collections::HashMap<String, Vec<(String, Vec<String>)>>,
+    pub enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
 }
 
 /// A single function in MIR form.
@@ -242,8 +269,9 @@ impl MirModule {
         Self {
             functions: Vec::new(),
             entry_fn: None,
-            struct_defs: std::collections::HashMap::new(),
-            enum_defs: std::collections::HashMap::new(),
+            type_table: TypeTable::default(),
+            struct_defs: HashMap::new(),
+            enum_defs: HashMap::new(),
         }
     }
 }

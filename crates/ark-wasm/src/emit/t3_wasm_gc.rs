@@ -241,7 +241,8 @@ impl Ctx {
 /// GC struct/array types. I/O bridges through a small linear memory
 /// region for WASI fd_write.
 pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
-    let struct_layouts: HashMap<String, Vec<(String, String)>> = mir.struct_defs.clone();
+    // TODO(MIR-01): remove checker fallback — read layouts from type_table only
+    let struct_layouts: HashMap<String, Vec<(String, String)>> = mir.type_table.struct_defs.clone();
     let fn_ret_types: HashMap<String, Type> = mir
         .functions
         .iter()
@@ -267,7 +268,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         struct_gc_types: HashMap::new(),
         struct_layouts,
         enum_gc_types: HashMap::new(),
-        enum_defs: mir.enum_defs.clone(),
+        enum_defs: mir.type_table.enum_defs.clone(),
         fn_ret_types,
         string_locals: Default::default(),
         f64_locals: Default::default(),
@@ -506,7 +507,7 @@ impl Ctx {
         );
 
         // User-defined structs
-        for (sname, fields) in &mir.struct_defs {
+        for (sname, fields) in &mir.type_table.struct_defs {
             let gc_fields: Vec<FieldType> = fields
                 .iter()
                 .map(|(_, ty)| mutable_field(StorageType::Val(self.field_valtype(ty))))
@@ -516,7 +517,7 @@ impl Ctx {
         }
 
         // User-defined enums: tag + max-payload i32 slots
-        for (ename, variants) in &mir.enum_defs {
+        for (ename, variants) in &mir.type_table.enum_defs {
             let max_fields = variants.iter().map(|(_, f)| f.len()).max().unwrap_or(0);
             let mut gc_fields = vec![mutable_field(StorageType::Val(ValType::I32))]; // tag
             for _ in 0..max_fields.max(1) {

@@ -25,8 +25,8 @@ pub fn mir_to_wit_world(mir: &MirModule, world_name: &str) -> Result<WitWorld, W
         variants: Vec::new(),
     };
 
-    // Convert struct definitions to WIT records
-    for (name, fields) in &mir.struct_defs {
+    // Convert struct definitions to WIT records (from type table)
+    for (name, fields) in &mir.type_table.struct_defs {
         if name.starts_with("__") {
             continue; // skip internal structs
         }
@@ -42,8 +42,8 @@ pub fn mir_to_wit_world(mir: &MirModule, world_name: &str) -> Result<WitWorld, W
         }
     }
 
-    // Convert enum definitions to WIT variants
-    for (name, variants) in &mir.enum_defs {
+    // Convert enum definitions to WIT variants (from type table)
+    for (name, variants) in &mir.type_table.enum_defs {
         if name.starts_with("__") {
             continue;
         }

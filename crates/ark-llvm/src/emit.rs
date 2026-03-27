@@ -121,8 +121,8 @@ impl<'ctx> LlvmEmitter<'ctx> {
             sprintf_fn: None,
             strlen_fn: None,
             memcpy_fn: None,
-            struct_layouts: mir.struct_defs.clone(),
-            enum_defs: mir.enum_defs.clone(),
+            struct_layouts: mir.type_table.struct_defs.clone(),
+            enum_defs: mir.type_table.enum_defs.clone(),
             loop_stack: Vec::new(),
         }
     }
