@@ -14,22 +14,23 @@
 |--------|------|--------|-----|-------|
 | wasm32-wasi-p1 | T1 | ✅ Implemented | ✅ | Default target |
 | wasm32-freestanding | T2 | ❌ Not implemented | ❌ | |
-| wasm32-wasi-p2 | T3 | ⚠️ Experimental | ✅ | Uses P1 runtime internally |
+| wasm32-wasi-p2 | T3 | ⚠️ Experimental | ✅ | Uses P1 runtime internally; Vec/sort run path verified |
 | native | T4 | ❌ Not implemented | ❌ | Requires LLVM 18 |
 | wasm32-wasi-p3 | T5 | ❌ Not implemented | ❌ | Future |
 
 ## Test Health
 
 - Unit tests: 95 passed
-- Fixture harness: 182 passed, 0 failed
-- Fixture manifest: 182 entries
+- Fixture harness: 184 passed, 0 failed
+- Fixture manifest: 184 entries
 
 ## Recent Changes (Phase 1)
 
 - DRIVER-01: ark-driver crate with Session API
 - WASM-01: Mandatory wasmparser validation after emit
-- VERIFY-01: Manifest-driven fixture harness (182 fixtures)
+- VERIFY-01: Manifest-driven fixture harness (184 fixtures)
 - SURFACE-01: Contract shrinkage (component/deny-*/dir defaults)
+- T3-01: `wasm32-wasi-p2` Vec/get/pop/sort run path restored
 
 ## Known Limitations
 
@@ -38,4 +39,5 @@
 - No `--dir` flag = no filesystem access (deny-by-default)
 - Wasm validation is warning-only (W0004), to be promoted to error
 - T3 target uses WASI P1 runtime internally
+- T3 `Vec` is still backed by linear memory with a large fixed preallocation
 - ark-llvm excluded from default builds (requires LLVM 18)

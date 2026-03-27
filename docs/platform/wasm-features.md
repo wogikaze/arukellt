@@ -2,10 +2,11 @@
 
 ADR-002 により **言語セマンティクスは Wasm GC ベース** で設計する。
 
-> **⚠️ 現在の実装状況**: v0/v1 実装は **T1 `wasm32-wasi-p1` (linear memory + WASI Preview 1)** を使用。
-> Wasm GC 型（struct/array/ref）および Component Model/WIT は**未実装（T3 で対応予定）**。
+> **⚠️ 現在の実装状況**: 既定ターゲットは **T1 `wasm32-wasi-p1` (linear memory + WASI Preview 1)**。
+> T3 `wasm32-wasi-p2` は **実験実装** があり、基本実行経路と Vec/sort 系は動作するが、
+> 実体は P1 runtime + 線形メモリ bridge であり、真の Preview 2 / Component Model 実装ではない。
 > 以下の分類は設計方針であり、実装完了を意味しない。
-> 現在の実装状況は [`docs/process/v0-status.md`](../process/v0-status.md) を参照。
+> 現在の実装状況は [`docs/current-state.md`](../current-state.md) を参照。
 
 ADR-007 で定義された 5 つの正規ターゲット:
 
@@ -13,7 +14,7 @@ ADR-007 で定義された 5 つの正規ターゲット:
 |-----------|--------|------|---------|
 | `wasm32-wasi-p1` | T1 | Linear memory + WASI Preview 1 (AtCoder) | **実装済み** |
 | `wasm32-freestanding` | T2 | Wasm GC, WASI なし (ブラウザ/組み込み) | 計画中 |
-| `wasm32-wasi-p2` | T3 | Wasm GC + WASI Preview 2 + Component Model | 計画中 |
+| `wasm32-wasi-p2` | T3 | Wasm GC + WASI Preview 2 + Component Model | 実験実装（P1 runtime bridge） |
 | `native` | T4 | LLVM による native バイナリ | 計画中 |
 | `wasm32-wasi-p3` | T5 | Wasm GC + WASI Preview 3 (async-first) | 将来 |
 
