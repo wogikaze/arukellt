@@ -92,7 +92,7 @@ Lex
 
 ## Test / Verification Hook
 
-- fixture harness は manifest-driven で 187 entries
+- fixture harness は manifest-driven で 267 entries
 - baseline collector は `tests/baselines/` を更新する
 - `scripts/check-docs-consistency.py` が docs の drift を最低限検出する
 - `scripts/verify-harness.sh` が correctness gate を担い、heavy perf は別 job に分ける

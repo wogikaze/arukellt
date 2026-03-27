@@ -1,6 +1,6 @@
 # Fixture manifest — single source of truth for test fixtures.
 # Format: kind:path (relative to tests/fixtures/)
-# Kinds: run, diag, module-run, module-diag
+# Kinds: run, diag, module-run, module-diag, t3-compile
 #
 # The harness reads this file instead of globbing.
 # Every .ark entry point must be listed here.
@@ -192,3 +192,88 @@ run:variables/i64_lit.ark
 run:variables/mut_var.ark
 run:variables/string_lit.ark
 run:variables/tuple.ark
+
+# --- T3 compile-only fixtures (wasm32-wasi-p2 compile correctness) ---
+# These verify that the T3 WasmGC emitter compiles without errors.
+# Categories: scalars, strings, vecs, structs, closures, modules, traits,
+# generics, control flow, operators, match, for loops, ? operator.
+t3-compile:hello/hello.ark
+t3-compile:hello/print_int.ark
+t3-compile:hello/multi_print.ark
+t3-compile:hello/empty_main.ark
+t3-compile:variables/i32_lit.ark
+t3-compile:variables/i64_lit.ark
+t3-compile:variables/f64_lit.ark
+t3-compile:variables/bool_lit.ark
+t3-compile:variables/string_lit.ark
+t3-compile:variables/mut_var.ark
+t3-compile:operators/arithmetic.ark
+t3-compile:operators/comparison.ark
+t3-compile:operators/logical.ark
+t3-compile:operators/unary.ark
+t3-compile:control/if_basic.ark
+t3-compile:control/if_else.ark
+t3-compile:control/if_expr.ark
+t3-compile:control/while_basic.ark
+t3-compile:control/while_counter.ark
+t3-compile:control/loop_basic.ark
+t3-compile:control/loop_break_value.ark
+t3-compile:control/nested_loops.ark
+t3-compile:control/break_continue.ark
+t3-compile:control/match_int.ark
+t3-compile:control/match_enum.ark
+t3-compile:control/match_wildcard.ark
+t3-compile:functions/basic_fn.ark
+t3-compile:functions/multiple_params.ark
+t3-compile:functions/return_value.ark
+t3-compile:functions/recursive.ark
+t3-compile:functions/early_return.ark
+t3-compile:functions/pub_fn.ark
+t3-compile:functions/closure_basic.ark
+t3-compile:functions/closure_capture.ark
+t3-compile:functions/higher_order.ark
+t3-compile:functions/generic_fn.ark
+t3-compile:structs/basic_struct.ark
+t3-compile:structs/field_access.ark
+t3-compile:structs/nested_struct.ark
+t3-compile:structs/constructor_fn.ark
+t3-compile:structs/struct_clone.ark
+t3-compile:structs/struct_eq.ark
+t3-compile:structs/struct_update.ark
+t3-compile:structs/struct_in_vec.ark
+t3-compile:trait/basic_impl.ark
+t3-compile:trait/trait_impl.ark
+t3-compile:trait/method_chain.ark
+t3-compile:trait/operator_overload.ark
+t3-compile:generics/identity_i32.ark
+t3-compile:generics/identity_string.ark
+t3-compile:generics/vec_generic.ark
+t3-compile:generics_v1/generic_struct.ark
+t3-compile:generics_v1/nested_generics.ark
+t3-compile:stdlib_string/string_concat.ark
+t3-compile:stdlib_string/string_len.ark
+t3-compile:stdlib_string/string_new.ark
+t3-compile:stdlib_vec/vec_push.ark
+t3-compile:stdlib_vec/vec_len.ark
+t3-compile:stdlib_vec/vec_pop.ark
+t3-compile:stdlib_vec/vec_get.ark
+t3-compile:stdlib_vec/vec_set.ark
+t3-compile:for_loops/for_range.ark
+t3-compile:for_loops/for_values.ark
+t3-compile:for_loops/for_sum.ark
+t3-compile:stdlib_option_result/question_mark.ark
+t3-compile:stdlib_option_result/result_ok_unwrap.ark
+t3-compile:closure_capture/capture_struct.ark
+t3-compile:stdlib_math/sqrt.ark
+t3-compile:stdlib_math/abs_min_max.ark
+t3-compile:string_interp/fstring_expr.ark
+t3-compile:enums/option_some.ark
+t3-compile:enums/option_none.ark
+t3-compile:enums/result_ok.ark
+t3-compile:enums/result_err.ark
+t3-compile:integration/fibonacci.ark
+t3-compile:integration/sort_vec.ark
+t3-compile:modules/import_basic/main.ark
+t3-compile:modules/multi_import/main.ark
+t3-compile:t3/hello.ark
+t3-compile:t3/arithmetic.ark

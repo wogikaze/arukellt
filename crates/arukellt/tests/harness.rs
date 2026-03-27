@@ -2,10 +2,11 @@
 //!
 //! Reads `tests/fixtures/manifest.txt` for the fixture list.
 //! For each entry:
-//! - `run:path`        → compile + run, compare stdout against `.expected`
-//! - `diag:path`       → compile-fail, check first line of `.diag` in output
-//! - `module-run:path` → same as run, for multi-file modules
-//! - `module-diag:path`→ same as diag, for multi-file modules
+//! - `run:path`         → compile + run, compare stdout against `.expected`
+//! - `diag:path`        → compile-fail, check first line of `.diag` in output
+//! - `module-run:path`  → same as run, for multi-file modules
+//! - `module-diag:path` → same as diag, for multi-file modules
+//! - `t3-compile:path`  → T3 compile-only, verify exit code 0
 //!
 //! Self-check: verifies every `.ark` entry point on disk is listed in the manifest.
 
@@ -260,6 +261,29 @@ fn fixture_harness() {
                         entry.kind,
                         name,
                         first_line,
+                        stderr.lines().next().unwrap_or("")
+                    ));
+                }
+            }
+            "t3-compile" => {
+                let output = Command::new(&bin)
+                    .arg("compile")
+                    .arg("--target")
+                    .arg("wasm32-wasi-p2")
+                    .arg(&fixture)
+                    .arg("-o")
+                    .arg("/dev/null")
+                    .output()
+                    .expect("failed to run arukellt");
+
+                if output.status.success() {
+                    passed += 1;
+                } else {
+                    failed += 1;
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    failures.push(format!(
+                        "FAIL [t3-compile] {}\n  stderr: {:?}",
+                        name,
                         stderr.lines().next().unwrap_or("")
                     ));
                 }

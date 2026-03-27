@@ -197,12 +197,12 @@ PY
     manifest_entries=$(python3 - <<'PY'
 from pathlib import Path
 manifest = Path('tests/fixtures/manifest.txt')
-rows = []
+rows = set()
 for line in manifest.read_text().splitlines():
     line = line.strip()
     if not line or line.startswith('#'):
         continue
-    rows.append(line.split(':', 1)[1])
+    rows.add(line.split(':', 1)[1])
 print('\n'.join(sorted(rows)))
 PY
 )
