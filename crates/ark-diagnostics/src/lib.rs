@@ -90,6 +90,7 @@ pub enum DiagnosticCode {
     W0001, // possible unintended sharing
     W0002, // deprecated target alias
     W0003, // ambiguous import (local and std share same name)
+    W0004, // generated Wasm failed validation
 }
 
 impl DiagnosticCode {
@@ -124,6 +125,7 @@ impl DiagnosticCode {
             Self::W0001 => "W0001",
             Self::W0002 => "W0002",
             Self::W0003 => "W0003",
+            Self::W0004 => "W0004",
         }
     }
 
@@ -158,12 +160,13 @@ impl DiagnosticCode {
             Self::W0001 => "possible unintended sharing of reference type",
             Self::W0002 => "deprecated target alias",
             Self::W0003 => "ambiguous import: local and std modules share the same name",
+            Self::W0004 => "generated Wasm module failed validation",
         }
     }
 
     pub fn severity(self) -> Severity {
         match self {
-            Self::W0001 | Self::W0002 | Self::W0003 => Severity::Warning,
+            Self::W0001 | Self::W0002 | Self::W0003 | Self::W0004 => Severity::Warning,
             _ => Severity::Error,
         }
     }
@@ -198,6 +201,7 @@ pub struct Diagnostic {
     pub labels: Vec<Label>,
     pub fix_its: Vec<FixIt>,
     pub notes: Vec<String>,
+    pub suggestion: Option<String>,
 }
 
 impl Diagnostic {
@@ -208,6 +212,7 @@ impl Diagnostic {
             labels: Vec::new(),
             fix_its: Vec::new(),
             notes: Vec::new(),
+            suggestion: None,
         }
     }
 
@@ -240,6 +245,11 @@ impl Diagnostic {
 
     pub fn with_note(mut self, note: impl Into<String>) -> Self {
         self.notes.push(note.into());
+        self
+    }
+
+    pub fn with_suggestion(mut self, suggestion: impl Into<String>) -> Self {
+        self.suggestion = Some(suggestion.into());
         self
     }
 
@@ -398,6 +408,9 @@ pub fn render_diagnostics(diagnostics: &[Diagnostic], source_map: &SourceMap) ->
 
         for note in &diag.notes {
             out.push_str(&format!("   = note: {}\n", note));
+        }
+        if let Some(suggestion) = &diag.suggestion {
+            out.push_str(&format!("   = help: {}\n", suggestion));
         }
         out.push('\n');
     }

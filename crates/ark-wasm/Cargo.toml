@@ -10,3 +10,4 @@ ark-diagnostics = { workspace = true }
 ark-parser = { workspace = true }
 ark-target = { workspace = true }
 wasm-encoder = { workspace = true }
+wasmparser = { workspace = true }
