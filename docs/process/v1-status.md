@@ -17,7 +17,7 @@ V1 completion is defined as T3 core-wasm compile/run correctness with WasmGC-nat
 現在は:
 
 - `current-state.md` が targets / tests / limitations をまとめている
-- 一部 milestone 表記が現行コードの scaffold / experimental 状態とずれる
+- 一部 milestone 表記が scaffold 段階のままずれていた
 - 利用者が「今何が動くか」を判断するには情報粒度が粗い
 
 ため、履歴資料としてのみ残します。

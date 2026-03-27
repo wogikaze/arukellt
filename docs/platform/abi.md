@@ -4,8 +4,8 @@
 
 ## 現行 reality
 
-- production path は **linear memory + WASI Preview 1**
-- T3 は current branch では experimental fallback であり、ABI reality としては T1 側の制約を引きずる
+- T3 (`wasm32-wasi-p2`) は canonical v1 path で WasmGC types + linear-memory bridge を使用
+- T1 (`wasm32-wasi-p1`) は non-GC 環境向けの compatibility path
 - Component Model は current deployment ABI ではない
 - backend validation (`W0004`) に通らない Wasm は build failure
 
