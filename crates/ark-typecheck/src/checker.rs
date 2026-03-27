@@ -4,6 +4,7 @@ use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
 use ark_parser::ast;
 use ark_resolve::ResolvedModule;
 
+use crate::typed_ast::{NodeIdAllocator, TypedAstMap, TypedExprInfo};
 use crate::types::{Type, TypeId};
 use std::collections::{HashMap, HashSet};
 
@@ -118,6 +119,8 @@ pub struct TypeChecker {
     pub(crate) method_resolutions: HashMap<u32, (String, String)>,
     /// Maps type_name -> set of implemented trait names
     pub(crate) trait_impls: HashMap<String, Vec<String>>,
+    pub(crate) node_ids: NodeIdAllocator,
+    pub(crate) typed_ast_map: TypedAstMap,
     next_type_id: u32,
     next_type_var: u32,
     current_fn_return_type: Option<Type>,
@@ -134,6 +137,7 @@ pub struct SemanticModel {
     pub trait_defs: HashMap<String, Vec<(String, Vec<Type>, Type)>>,
     pub method_resolutions: HashMap<u32, (String, String)>,
     pub trait_impls: HashMap<String, Vec<String>>,
+    typed_ast: TypedAstMap,
 }
 
 impl SemanticModel {
@@ -163,6 +167,10 @@ impl SemanticModel {
 
     pub fn method_fn_name(&self, struct_name: &str, method_name: &str) -> Option<&String> {
         self.method_table.get(&(struct_name.to_string(), method_name.to_string()))
+    }
+
+    pub fn typed_ast(&self) -> &TypedAstMap {
+        &self.typed_ast
     }
 }
 
@@ -207,6 +215,7 @@ impl TypeChecker {
             trait_defs: self.trait_defs,
             method_resolutions: self.method_resolutions,
             trait_impls: self.trait_impls,
+            typed_ast: self.typed_ast_map,
         }
     }
 
@@ -219,6 +228,8 @@ impl TypeChecker {
             trait_defs: HashMap::new(),
             method_resolutions: HashMap::new(),
             trait_impls: HashMap::new(),
+            node_ids: NodeIdAllocator::new(),
+            typed_ast_map: TypedAstMap::new(),
             next_type_id: 0,
             next_type_var: 0,
             current_fn_return_type: None,
@@ -1753,7 +1764,13 @@ impl TypeChecker {
                                     self.synthesize_expr(a, env, sink);
                                 }
                                 // Record method resolution for MIR lowering
-                                self.method_resolutions.insert(span.start, (mangled, sname));
+                                self.method_resolutions.insert(span.start, (mangled.clone(), sname.clone()));
+                                let expr_id = self.node_ids.fresh_expr();
+                                self.typed_ast_map.register_span(span.start, expr_id);
+                                self.typed_ast_map.insert_expr(expr_id, TypedExprInfo {
+                                    ty: sig.ret.clone(),
+                                    method_resolution: Some((mangled, sname)),
+                                });
                                 return sig.ret;
                             }
                         }
@@ -2240,7 +2257,13 @@ impl TypeChecker {
                         if has_from {
                             // Record that this ? needs From conversion
                             self.method_resolutions
-                                .insert(span.start, (from_fn, dst_name));
+                                .insert(span.start, (from_fn.clone(), dst_name.clone()));
+                            let expr_id = self.node_ids.fresh_expr();
+                            self.typed_ast_map.register_span(span.start, expr_id);
+                            self.typed_ast_map.insert_expr(expr_id, TypedExprInfo {
+                                ty: inner_ty.clone(),
+                                method_resolution: Some((from_fn, dst_name)),
+                            });
                         } else {
                             sink.emit(
                                 Diagnostic::new(DiagnosticCode::E0210)
@@ -2389,12 +2412,19 @@ impl TypeChecker {
                         let mangled = format!("{}__{}", sname, op_method);
                         if let Some(sig) = self.fn_sigs.get(&mangled).cloned() {
                             // Record method resolution for MIR lowering
-                            self.method_resolutions.insert(span.start, (mangled, sname));
-                            // For comparison ops, return Bool
-                            return match op {
+                            self.method_resolutions.insert(span.start, (mangled.clone(), sname.clone()));
+                            let ret_ty = match op {
                                 Eq | Ne | Lt | Le | Gt | Ge => Type::Bool,
                                 _ => sig.ret,
                             };
+                            let expr_id = self.node_ids.fresh_expr();
+                            self.typed_ast_map.register_span(span.start, expr_id);
+                            self.typed_ast_map.insert_expr(expr_id, TypedExprInfo {
+                                ty: ret_ty.clone(),
+                                method_resolution: Some((mangled, sname)),
+                            });
+                            // For comparison ops, return Bool
+                            return ret_ty;
                         }
                     }
                 }
