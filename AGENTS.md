@@ -28,6 +28,13 @@ Work is complete when:
 2. All newly generated artifacts are committed
 3. Relevant ADR or verification docs are updated
 4. Queue item is moved from `issues/open/` to `issues/done/`
+5. The agent creates a focused commit containing only the files it modified for the completed task
+
+## Commit Policy
+
+- When work is complete, stage and commit only the files the agent changed for that task
+- Do not include unrelated user changes in the completion commit
+- Prefer one focused commit per completed task unless the queue item explicitly requires a different history shape
 
 ## Agent Extension Points
 
