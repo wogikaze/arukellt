@@ -11,7 +11,6 @@ graph TD
   I014["014 T3 diagnostics and phase reporting"]
   I015["015 T3 docs current-first sync"]
   I016["016 T3 CI and verify policy"]
-  I018["018 LLVM scaffold follow-up after T3 completion"]
   Idependency["dependency Issue Dependency Graph"]
   Iindex.md["index.md Open Issues Index"]
   I017["017 T3 migration and compatibility notes"]
@@ -25,7 +24,6 @@ graph TD
 - **014** depends on: 004, 005, 006, 007, 008, 009, 010; blocks: none
 - **015** depends on: 003, 009, 010, 011; blocks: 017
 - **016** depends on: 002, 009, 010, 011; blocks: none
-- **018** depends on: none; blocks: none
 - **dependency** depends on: none; blocks: none
 - **index.md** depends on: none; blocks: none
 - **017** depends on: 011, 015; blocks: none

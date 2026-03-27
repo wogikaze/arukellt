@@ -266,6 +266,7 @@ impl<'ctx> LlvmEmitter<'ctx> {
             .map(|f| MirFunction {
                 id: f.id,
                 name: f.name.clone(),
+                instance: f.instance.clone(),
                 params: f.params.clone(),
                 return_ty: f.return_ty.clone(),
                 locals: f.locals.clone(),
@@ -298,10 +299,12 @@ impl<'ctx> LlvmEmitter<'ctx> {
                                 default: *default,
                             },
                         },
+                        source: b.source,
                     })
                     .collect(),
                 entry: f.entry,
                 struct_typed_locals: f.struct_typed_locals.clone(),
+                source: f.source,
             })
             .collect();
 
