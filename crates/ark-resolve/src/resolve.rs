@@ -10,6 +10,38 @@ use ark_parser::parse;
 
 use crate::scope::{ScopeId, SymbolKind, SymbolTable};
 
+/// Visibility of a declaration within its module.
+// TODO(MODULE-02): parse pub/priv keywords and populate
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Visibility {
+    Public,
+    Private,
+}
+
+/// Resolved function with visibility metadata.
+// TODO(MODULE-02): parse pub/priv keywords and populate
+#[derive(Debug, Clone)]
+pub struct ResolvedFunction {
+    pub name: String,
+    pub visibility: Visibility,
+}
+
+/// Resolved struct with visibility metadata.
+// TODO(MODULE-02): parse pub/priv keywords and populate
+#[derive(Debug, Clone)]
+pub struct ResolvedStruct {
+    pub name: String,
+    pub visibility: Visibility,
+}
+
+/// Resolved enum with visibility metadata.
+// TODO(MODULE-02): parse pub/priv keywords and populate
+#[derive(Debug, Clone)]
+pub struct ResolvedEnum {
+    pub name: String,
+    pub visibility: Visibility,
+}
+
 /// Result of name resolution: resolved module + symbol table.
 #[derive(Debug)]
 pub struct ResolvedModule {
@@ -32,6 +64,11 @@ pub struct ResolvedProgram {
     pub symbols: SymbolTable,
     pub global_scope: ScopeId,
 }
+
+// TODO(MODULE-02): implement import aliases (the AST supports `import Foo as Bar`
+// via `ast::Import { alias: Option<String>, .. }` but the resolver currently only
+// uses the alias as the loaded module name; full qualified re-export and re-aliasing
+// within scopes is not yet implemented).
 
 /// Prelude names automatically available in every module.
 const PRELUDE_TYPES: &[&str] = &["Option", "Result", "String", "Vec"];

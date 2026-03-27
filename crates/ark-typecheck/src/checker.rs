@@ -1266,6 +1266,11 @@ impl TypeChecker {
         program: &ark_resolve::ResolvedProgram,
         sink: &mut DiagnosticSink,
     ) {
+        // Visibility diagnostic: detect references to private symbols across
+        // module boundaries.  Everything is currently Public (scaffolding),
+        // so this loop is a no-op until the resolver populates Visibility.
+        self.check_cross_module_visibility(program, sink);
+
         #[allow(deprecated)]
         let flat = ark_resolve::resolved_program_to_module(program);
         let resolved = ark_resolve::ResolvedModule {
@@ -1274,6 +1279,53 @@ impl TypeChecker {
             global_scope: program.global_scope,
         };
         self.check_module(&resolved, sink);
+    }
+
+    /// Emit E0102 for any use of a private symbol from another module.
+    ///
+    /// Currently a no-op because all declarations default to `Visibility::Public`.
+    // TODO(MODULE-02): wire into per-item visibility once pub/priv keywords are parsed
+    fn check_cross_module_visibility(
+        &self,
+        program: &ark_resolve::ResolvedProgram,
+        sink: &mut DiagnosticSink,
+    ) {
+        for loaded in &program.modules {
+            for item in &loaded.ast.items {
+                let (name, is_pub, span) = match item {
+                    ast::Item::FnDef(f) => (&f.name, f.is_pub, f.span),
+                    ast::Item::StructDef(s) => (&s.name, s.is_pub, s.span),
+                    ast::Item::EnumDef(e) => (&e.name, e.is_pub, e.span),
+                    ast::Item::TraitDef(t) => (&t.name, t.is_pub, t.span),
+                    ast::Item::ImplBlock(_) => continue,
+                };
+                if !is_pub {
+                    // The symbol was imported but is private — emit a diagnostic.
+                    // In practice this does not fire yet because
+                    // `collect_module_items_pub_only` already filters private items
+                    // during resolution, so they never enter the symbol table.
+                    if program.symbols.lookup(program.global_scope, name).is_some() {
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0102).with_label(
+                                span,
+                                format!(
+                                    "cannot access private {} `{}` from module `{}`",
+                                    match item {
+                                        ast::Item::FnDef(_) => "function",
+                                        ast::Item::StructDef(_) => "struct",
+                                        ast::Item::EnumDef(_) => "enum",
+                                        ast::Item::TraitDef(_) => "trait",
+                                        ast::Item::ImplBlock(_) => unreachable!(),
+                                    },
+                                    name,
+                                    loaded.name,
+                                ),
+                            ),
+                        );
+                    }
+                }
+            }
+        }
     }
 
     /// Type check a module.

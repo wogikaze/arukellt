@@ -40,6 +40,9 @@ pub struct Scope {
     pub id: ScopeId,
     pub parent: Option<ScopeId>,
     pub symbols: HashMap<String, SymbolId>,
+    /// Module path segments for qualified name construction.
+    /// Empty for the flat (single-module) namespace.
+    pub module_path: Vec<String>,
 }
 
 /// The symbol table managing all scopes and symbols.
@@ -68,6 +71,7 @@ impl SymbolTable {
             id,
             parent,
             symbols: HashMap::new(),
+            module_path: Vec::new(),
         });
         id
     }
@@ -112,6 +116,23 @@ impl SymbolTable {
 
     pub fn get_scope(&self, id: ScopeId) -> &Scope {
         &self.scopes[id.0 as usize]
+    }
+
+    pub fn get_scope_mut(&mut self, id: ScopeId) -> &mut Scope {
+        &mut self.scopes[id.0 as usize]
+    }
+
+    /// Return the qualified name for `local_name` within the given scope.
+    ///
+    /// When `module_path` is non-empty the result is `"mod1::mod2::local_name"`;
+    /// otherwise it returns the local name unchanged (flat namespace).
+    pub fn qualified_name(&self, scope: ScopeId, local_name: &str) -> String {
+        let s = &self.scopes[scope.0 as usize];
+        if s.module_path.is_empty() {
+            local_name.to_string()
+        } else {
+            format!("{}::{}", s.module_path.join("::"), local_name)
+        }
     }
 }
 
@@ -175,5 +196,20 @@ mod tests {
         assert_ne!(id1, id2);
         assert_eq!(table.lookup(inner, "x"), Some(id2)); // shadows
         assert_eq!(table.lookup(global, "x"), Some(id1));
+    }
+
+    #[test]
+    fn test_qualified_name_flat() {
+        let mut table = SymbolTable::new();
+        let scope = table.create_scope(None);
+        assert_eq!(table.qualified_name(scope, "foo"), "foo");
+    }
+
+    #[test]
+    fn test_qualified_name_with_module() {
+        let mut table = SymbolTable::new();
+        let scope = table.create_scope(None);
+        table.get_scope_mut(scope).module_path = vec!["std".into(), "io".into()];
+        assert_eq!(table.qualified_name(scope, "println"), "std::io::println");
     }
 }
