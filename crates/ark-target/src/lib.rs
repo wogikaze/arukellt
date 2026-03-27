@@ -321,7 +321,8 @@ pub fn targets_help() -> String {
             match id {
                 TargetId::Wasm32WasiP1 => "Linear memory + WASI Preview 1",
                 TargetId::Wasm32Freestanding => "Wasm GC, no WASI (browser/embedded)",
-                TargetId::Wasm32WasiP2 => "Wasm GC + WASI Preview 2 (component model not yet implemented)",
+                TargetId::Wasm32WasiP2 =>
+                    "Wasm GC + WASI Preview 2 (component model not yet implemented)",
                 TargetId::Native => "Native via LLVM",
                 TargetId::Wasm32WasiP3 => "Wasm GC + WASI Preview 3 (future)",
             },

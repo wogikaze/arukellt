@@ -24,8 +24,8 @@
 ## Test Health
 
 - Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
-- Fixture harness: 267 passed, 0 failed (manifest-driven)
-- Fixture manifest: 267 entries
+- Fixture harness: 346 passed, 0 failed (manifest-driven)
+- Fixture manifest: 346 entries
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `bash scripts/verify-harness.sh`
 

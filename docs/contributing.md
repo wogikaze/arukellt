@@ -52,7 +52,7 @@ crates/
 ## Fixture / Baseline Contract
 
 - `tests/fixtures/manifest.txt` is the single source of truth for fixture entry points
-- Current manifest size: **267** entries
+- Current manifest size: **346** entries
 - Harness kinds:
   - `run`
   - `diag`
@@ -75,7 +75,7 @@ It includes:
 - lint (`cargo clippy`)
 - workspace build/tests
 - fixture harness execution
-- All fixture tests (267 pass, 0 fail)
+- All fixture tests (346 pass, 0 fail)
 - stdlib manifest check
 - baseline collection smoke
 

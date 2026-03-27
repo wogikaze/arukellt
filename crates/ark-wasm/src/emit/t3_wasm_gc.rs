@@ -1515,19 +1515,25 @@ impl Ctx {
                 for s in then_body {
                     self.emit_stmt(f, s);
                 }
-                if let Some(r) = then_result {
-                    self.emit_operand(f, r);
-                } else {
-                    f.instruction(&Instruction::I32Const(0));
+                match then_result.as_deref() {
+                    Some(Operand::Unit) | None => {
+                        f.instruction(&Instruction::I32Const(0));
+                    }
+                    Some(r) => {
+                        self.emit_operand(f, r);
+                    }
                 }
                 f.instruction(&Instruction::Else);
                 for s in else_body {
                     self.emit_stmt(f, s);
                 }
-                if let Some(r) = else_result {
-                    self.emit_operand(f, r);
-                } else {
-                    f.instruction(&Instruction::I32Const(0));
+                match else_result.as_deref() {
+                    Some(Operand::Unit) | None => {
+                        f.instruction(&Instruction::I32Const(0));
+                    }
+                    Some(r) => {
+                        self.emit_operand(f, r);
+                    }
                 }
                 f.instruction(&Instruction::End);
             }
@@ -1632,7 +1638,7 @@ impl Ctx {
             }
             Operand::EnumInit {
                 enum_name,
-                variant: _,
+                variant,
                 tag,
                 payload,
             } => {
@@ -1642,20 +1648,48 @@ impl Ctx {
                     align: 2,
                     memory_index: 0,
                 };
+                let ma8 = MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                };
+                // Look up field types for this variant
+                let field_types: Vec<String> = self
+                    .enum_defs
+                    .get(enum_name.as_str())
+                    .and_then(|vs| {
+                        vs.iter()
+                            .find(|(vn, _)| vn == variant)
+                            .map(|(_, types)| types.clone())
+                    })
+                    .unwrap_or_default();
                 f.instruction(&Instruction::GlobalGet(0)); // base ptr (result)
                 // Store tag
                 f.instruction(&Instruction::GlobalGet(0));
                 f.instruction(&Instruction::I32Const(*tag));
                 f.instruction(&Instruction::I32Store(ma));
-                // Store payload fields
+                // Store payload fields with type-aware sizes
                 let mut off = 4u32;
-                for p in payload {
+                for (i, p) in payload.iter().enumerate() {
+                    let fty = field_types.get(i).map(|s| s.as_str()).unwrap_or("i32");
                     f.instruction(&Instruction::GlobalGet(0));
                     f.instruction(&Instruction::I32Const(off as i32));
                     f.instruction(&Instruction::I32Add);
                     self.emit_operand(f, p);
-                    f.instruction(&Instruction::I32Store(ma));
-                    off += 4;
+                    match fty {
+                        "f64" => {
+                            f.instruction(&Instruction::F64Store(ma8));
+                            off += 8;
+                        }
+                        "i64" => {
+                            f.instruction(&Instruction::I64Store(ma8));
+                            off += 8;
+                        }
+                        _ => {
+                            f.instruction(&Instruction::I32Store(ma));
+                            off += 4;
+                        }
+                    }
                 }
                 // Bump heap
                 f.instruction(&Instruction::GlobalGet(0));
@@ -1671,15 +1705,63 @@ impl Ctx {
                     memory_index: 0,
                 }));
             }
-            Operand::EnumPayload { object, index, .. } => {
+            Operand::EnumPayload {
+                object,
+                index,
+                enum_name,
+                variant_name,
+            } => {
+                // Compute byte offset from field types
+                let field_types: Vec<String> = self
+                    .enum_defs
+                    .get(enum_name.as_str())
+                    .and_then(|vs| {
+                        vs.iter()
+                            .find(|(vn, _)| vn == variant_name)
+                            .map(|(_, types)| types.clone())
+                    })
+                    .unwrap_or_default();
+                let mut byte_offset = 4u32; // skip tag
+                for i in 0..*index {
+                    let fty = field_types
+                        .get(i as usize)
+                        .map(|s| s.as_str())
+                        .unwrap_or("i32");
+                    byte_offset += match fty {
+                        "f64" | "i64" => 8,
+                        _ => 4,
+                    };
+                }
+                let field_ty = field_types
+                    .get(*index as usize)
+                    .map(|s| s.as_str())
+                    .unwrap_or("i32");
                 self.emit_operand(f, object);
-                f.instruction(&Instruction::I32Const(4 + (*index * 4) as i32));
+                f.instruction(&Instruction::I32Const(byte_offset as i32));
                 f.instruction(&Instruction::I32Add);
-                f.instruction(&Instruction::I32Load(MemArg {
-                    offset: 0,
-                    align: 2,
-                    memory_index: 0,
-                }));
+                match field_ty {
+                    "f64" => {
+                        f.instruction(&Instruction::F64Load(MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        }));
+                    }
+                    "i64" => {
+                        f.instruction(&Instruction::I64Load(MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        }));
+                    }
+                    _ => {
+                        f.instruction(&Instruction::I32Load(MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        }));
+                    }
+                }
             }
             Operand::LoopExpr { body, result, .. } => {
                 for s in body {
@@ -1757,6 +1839,7 @@ impl Ctx {
                 | "i64_to_string"
                 | "f64_to_string"
                 | "bool_to_string"
+                | "to_string"
                 | "concat"
                 | "String_from"
                 | "len"
@@ -1901,6 +1984,30 @@ impl Ctx {
                     }
                 }
             }
+            "to_string" => {
+                if let Some(arg) = args.first() {
+                    if self.is_string_like_operand(arg) {
+                        self.emit_operand(f, arg);
+                    } else if self.is_f64_like_operand(arg) {
+                        let converted = Operand::Call("f64_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    } else if self.is_i64_like_operand(arg) {
+                        let converted = Operand::Call("i64_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    } else if self.is_bool_like_operand(arg) {
+                        let converted = Operand::Call("bool_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    } else {
+                        let converted = Operand::Call("i32_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    }
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
             _ => {
                 for arg in args {
                     self.emit_operand(f, arg);
@@ -1940,6 +2047,25 @@ impl Ctx {
             "String_from" => {
                 if let Some(arg) = args.first() {
                     self.emit_operand(f, arg);
+                }
+            }
+            "to_string" => {
+                if let Some(arg) = args.first() {
+                    if self.is_string_like_operand(arg) {
+                        self.emit_operand(f, arg);
+                    } else if self.is_f64_like_operand(arg) {
+                        let converted = Operand::Call("f64_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    } else if self.is_i64_like_operand(arg) {
+                        let converted = Operand::Call("i64_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    } else if self.is_bool_like_operand(arg) {
+                        let converted = Operand::Call("bool_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    } else {
+                        let converted = Operand::Call("i32_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    }
                 }
             }
             "concat" => {
@@ -2006,6 +2132,7 @@ impl Ctx {
                         | "to_lower"
                         | "to_upper"
                         | "join"
+                        | "to_string"
                         | "i32_to_string"
                         | "i64_to_string"
                         | "f64_to_string"
@@ -2027,6 +2154,47 @@ impl Ctx {
                     canonical,
                     "eq" | "starts_with" | "ends_with" | "contains" | "assert" | "assert_eq"
                 ) || self.fn_ret_types.get(name) == Some(&Type::Bool)
+            }
+            Operand::BinOp(op, _, _) => matches!(
+                op,
+                BinOp::Eq
+                    | BinOp::Ne
+                    | BinOp::Lt
+                    | BinOp::Le
+                    | BinOp::Gt
+                    | BinOp::Ge
+                    | BinOp::And
+                    | BinOp::Or
+            ),
+            Operand::UnaryOp(op, _) => matches!(op, UnaryOp::Not),
+            _ => false,
+        }
+    }
+
+    fn is_f64_like_operand(&self, operand: &Operand) -> bool {
+        match operand {
+            Operand::ConstF64(_) => true,
+            Operand::Place(Place::Local(id)) => self.f64_locals.contains(&id.0),
+            Operand::BinOp(_, l, r) => self.is_f64_like_operand(l) || self.is_f64_like_operand(r),
+            Operand::UnaryOp(_, inner) => self.is_f64_like_operand(inner),
+            Operand::Call(name, _) => {
+                let canonical = normalize_intrinsic(name);
+                matches!(canonical, "sqrt" | "random_f64")
+                    || self.fn_ret_types.get(name) == Some(&Type::F64)
+            }
+            _ => false,
+        }
+    }
+
+    fn is_i64_like_operand(&self, operand: &Operand) -> bool {
+        match operand {
+            Operand::ConstI64(_) => true,
+            Operand::Place(Place::Local(id)) => self.i64_locals.contains(&id.0),
+            Operand::BinOp(_, l, r) => self.is_i64_like_operand(l) || self.is_i64_like_operand(r),
+            Operand::UnaryOp(_, inner) => self.is_i64_like_operand(inner),
+            Operand::Call(name, _) => {
+                let canonical = normalize_intrinsic(name);
+                matches!(canonical, "clock_now") || self.fn_ret_types.get(name) == Some(&Type::I64)
             }
             _ => false,
         }
@@ -2893,7 +3061,15 @@ impl Ctx {
         };
         let max_payload: u32 = variants
             .iter()
-            .map(|(_, fields)| fields.len() as u32 * 4)
+            .map(|(_, fields)| {
+                fields
+                    .iter()
+                    .map(|t| match t.as_str() {
+                        "f64" | "i64" => 8u32,
+                        _ => 4u32,
+                    })
+                    .sum::<u32>()
+            })
             .max()
             .unwrap_or(4);
         4 + max_payload.max(4)

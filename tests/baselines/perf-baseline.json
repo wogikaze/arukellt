@@ -9,7 +9,7 @@
       "file": "docs/examples/hello.ark",
       "check": {
         "status": 0,
-        "median_ms": 4.664,
+        "median_ms": 6.492,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark"
         ],
@@ -17,7 +17,7 @@
       },
       "compile": {
         "status": 0,
-        "median_ms": 9.011,
+        "median_ms": 14.96,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline.wasm (12229 bytes, target: wasm32-wasi-p1)"
         ],
@@ -28,7 +28,7 @@
       "file": "docs/examples/vec.ark",
       "check": {
         "status": 0,
-        "median_ms": 4.014,
+        "median_ms": 6.821,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark"
         ],
@@ -36,7 +36,7 @@
       },
       "compile": {
         "status": 0,
-        "median_ms": 8.574,
+        "median_ms": 15.771,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline.wasm (13261 bytes, target: wasm32-wasi-p1)"
         ],
@@ -47,7 +47,7 @@
       "file": "docs/examples/closure.ark",
       "check": {
         "status": 0,
-        "median_ms": 3.203,
+        "median_ms": 5.568,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark"
         ],
@@ -55,7 +55,7 @@
       },
       "compile": {
         "status": 0,
-        "median_ms": 7.318,
+        "median_ms": 16.804,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline.wasm (12222 bytes, target: wasm32-wasi-p1)"
         ],
@@ -68,13 +68,13 @@
         "status": 1,
         "median_ms": null,
         "stderr_head": [
-          "error[E0001]: expected item (fn, struct, enum, trait, impl), found `Let`",
+          "error[E0001|parse]: expected item (fn, struct, enum, trait, impl), found `Let`",
           "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:17:1",
           "   |",
           " 17 | let RUBY_KATAKANA_HIRAGANA:  String = \"ruby-katakana-hiragana\"",
           "   | ^^^ here",
           "",
-          "error[E0002]: expected identifier, found `IntLit(0)`",
+          "error[E0002|parse]: expected identifier, found `IntLit(0)`",
           "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:183:20",
           "   |",
           "183 |     let line = pos.0"
@@ -85,13 +85,13 @@
         "status": 1,
         "median_ms": null,
         "stderr_head": [
-          "error[E0001]: expected item (fn, struct, enum, trait, impl), found `Let`",
+          "error[E0001|parse]: expected item (fn, struct, enum, trait, impl), found `Let`",
           "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:17:1",
           "   |",
           " 17 | let RUBY_KATAKANA_HIRAGANA:  String = \"ruby-katakana-hiragana\"",
           "   | ^^^ here",
           "",
-          "error[E0002]: expected identifier, found `IntLit(0)`",
+          "error[E0002|parse]: expected identifier, found `IntLit(0)`",
           "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:183:20",
           "   |",
           "183 |     let line = pos.0"
