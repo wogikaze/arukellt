@@ -1,7 +1,7 @@
 //! Parser for the Arukellt language.
 
 pub mod ast;
-pub mod parser;
+mod parser;
 
 use ark_diagnostics::DiagnosticSink;
 use ark_lexer::Token;

@@ -3,8 +3,8 @@
 //! Resolves identifiers to their definitions, handles imports,
 //! detects circular dependencies, and injects the prelude.
 
-pub mod resolve;
-pub mod scope;
+mod resolve;
+mod scope;
 
 #[allow(deprecated)]
 pub use resolve::{

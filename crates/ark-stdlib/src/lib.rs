@@ -2,6 +2,10 @@
 //!
 //! Provides built-in function signatures and Wasm implementations
 //! for the prelude, Vec, String, Option, Result, and I/O modules.
+//!
+//! Currently a manifest of stdlib function descriptors.
+//! No other workspace crate depends on this crate yet — it serves as
+//! the future home of the stdlib surface described in STDLIB-01.
 
 /// Standard library function descriptor.
 #[derive(Debug, Clone)]
