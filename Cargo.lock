@@ -168,6 +168,7 @@ name = "ark-lsp"
 version = "0.1.0"
 dependencies = [
  "ark-diagnostics",
+ "ark-driver",
  "ark-lexer",
  "ark-parser",
  "ark-resolve",

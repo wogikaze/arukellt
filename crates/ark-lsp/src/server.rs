@@ -23,9 +23,20 @@ const SEMANTIC_TOKEN_TYPES: &[SemanticTokenType] = &[
     SemanticTokenType::COMMENT,
 ];
 
+/// Cached results of a full analysis pass (lex → parse → resolve → typecheck)
+/// for a single document.
+struct CachedAnalysis {
+    tokens: Vec<ark_lexer::Token>,
+    module: ast::Module,
+    resolved: Option<ark_resolve::ResolvedModule>,
+    checker: Option<ark_typecheck::TypeChecker>,
+    diagnostics: Vec<Diagnostic>,
+}
+
 struct ArukellBackend {
     client: Client,
     documents: Mutex<HashMap<Url, String>>,
+    analysis_cache: Mutex<HashMap<Url, CachedAnalysis>>,
 }
 
 impl ArukellBackend {
@@ -33,11 +44,17 @@ impl ArukellBackend {
         Self {
             client,
             documents: Mutex::new(HashMap::new()),
+            analysis_cache: Mutex::new(HashMap::new()),
         }
     }
 
     async fn refresh_diagnostics(&self, uri: Url, text: &str) {
-        let diagnostics = self.check_source(text);
+        let analysis = Self::analyze_source(text);
+        let diagnostics = analysis.diagnostics.clone();
+        {
+            let mut cache = self.analysis_cache.lock().unwrap();
+            cache.insert(uri.clone(), analysis);
+        }
         self.client
             .publish_diagnostics(uri, diagnostics, None)
             .await;
@@ -91,20 +108,48 @@ impl ArukellBackend {
         }
     }
 
-    fn check_source(&self, source: &str) -> Vec<Diagnostic> {
-        let mut lsp_diags = Vec::new();
+    /// Run the full analysis pipeline (lex → parse → resolve → typecheck) on
+    /// in-memory source text and return cached results for reuse by all LSP
+    /// features.
+    fn analyze_source(source: &str) -> CachedAnalysis {
         let mut sink = DiagnosticSink::new();
 
-        // Lex
         let lexer = Lexer::new(0, source);
         let tokens: Vec<_> = lexer.collect();
-
-        // Parse
         let module = parse(&tokens, &mut sink);
 
-        // Collect diagnostics from parsing
         if sink.has_errors() {
-            for diag in sink.diagnostics() {
+            let diagnostics = Self::collect_lsp_diagnostics(source, &sink);
+            return CachedAnalysis {
+                tokens,
+                module,
+                resolved: None,
+                checker: None,
+                diagnostics,
+            };
+        }
+
+        let cached_module = module.clone();
+        let resolved = ark_resolve::resolve_module(module, &mut sink);
+        let mut checker = ark_typecheck::TypeChecker::new();
+        checker.register_builtins();
+        checker.check_module(&resolved, &mut sink);
+
+        let diagnostics = Self::collect_lsp_diagnostics(source, &sink);
+
+        CachedAnalysis {
+            tokens,
+            module: cached_module,
+            resolved: Some(resolved),
+            checker: Some(checker),
+            diagnostics,
+        }
+    }
+
+    fn collect_lsp_diagnostics(source: &str, sink: &DiagnosticSink) -> Vec<Diagnostic> {
+        sink.diagnostics()
+            .iter()
+            .map(|diag| {
                 let range = if let Some(label) = diag.labels.first() {
                     Range {
                         start: Self::offset_to_position(source, label.span.start),
@@ -118,55 +163,19 @@ impl ArukellBackend {
                     Severity::Warning => DiagnosticSeverity::WARNING,
                     Severity::Help => DiagnosticSeverity::INFORMATION,
                 };
-                lsp_diags.push(Diagnostic {
+                Diagnostic {
                     range,
                     severity: Some(severity),
                     code: Some(NumberOrString::String(diag.code.as_str().to_string())),
                     source: Some("arukellt".to_string()),
                     message: diag.message.clone(),
                     ..Default::default()
-                });
-            }
-            return lsp_diags;
-        }
-
-        // Name resolution
-        let resolved = ark_resolve::resolve_module(module, &mut sink);
-
-        // Type check
-        let mut checker = ark_typecheck::TypeChecker::new();
-        checker.register_builtins();
-        checker.check_module(&resolved, &mut sink);
-
-        // Collect all diagnostics
-        for diag in sink.diagnostics() {
-            let range = if let Some(label) = diag.labels.first() {
-                Range {
-                    start: Self::offset_to_position(source, label.span.start),
-                    end: Self::offset_to_position(source, label.span.end),
                 }
-            } else {
-                Range::default()
-            };
-            let severity = match diag.severity() {
-                Severity::Error => DiagnosticSeverity::ERROR,
-                Severity::Warning => DiagnosticSeverity::WARNING,
-                Severity::Help => DiagnosticSeverity::INFORMATION,
-            };
-            lsp_diags.push(Diagnostic {
-                range,
-                severity: Some(severity),
-                code: Some(NumberOrString::String(diag.code.as_str().to_string())),
-                source: Some("arukellt".to_string()),
-                message: diag.message.clone(),
-                ..Default::default()
-            });
-        }
-
-        lsp_diags
+            })
+            .collect()
     }
 
-    fn get_completions(&self, source: &str) -> Vec<CompletionItem> {
+    fn get_completions(source: &str, tokens: &[ark_lexer::Token]) -> Vec<CompletionItem> {
         let mut items = Vec::new();
 
         // Built-in functions
@@ -225,11 +234,9 @@ impl ArukellBackend {
             });
         }
 
-        // Extract identifiers from source
-        let lexer = Lexer::new(0, source);
-        let tokens: Vec<_> = lexer.collect();
+        // Extract identifiers from cached tokens
         let mut seen = std::collections::HashSet::new();
-        for tok in &tokens {
+        for tok in tokens {
             if let ark_lexer::TokenKind::Ident(_) = &tok.kind {
                 let start = tok.span.start as usize;
                 let end = tok.span.end as usize;
@@ -270,12 +277,7 @@ impl ArukellBackend {
 
     /// Walk AST items to find the definition site of a name. Returns the span
     /// of the defining identifier (function name, struct name, etc.).
-    fn find_definition_span(source: &str, name: &str) -> Option<ark_diagnostics::Span> {
-        let mut sink = DiagnosticSink::new();
-        let lexer = Lexer::new(0, source);
-        let tokens: Vec<_> = lexer.collect();
-        let module = parse(&tokens, &mut sink);
-
+    fn find_definition_span(module: &ast::Module, name: &str) -> Option<ark_diagnostics::Span> {
         // Search top-level items
         for item in &module.items {
             match item {
@@ -376,16 +378,16 @@ impl ArukellBackend {
         }
     }
 
-    /// Build type-aware hover information for an identifier.
-    fn type_hover_info(source: &str, name: &str) -> Option<String> {
-        let mut sink = DiagnosticSink::new();
-        let lexer = Lexer::new(0, source);
-        let tokens: Vec<_> = lexer.collect();
-        let module = parse(&tokens, &mut sink);
-
-        if sink.has_errors() {
-            return None;
-        }
+    /// Build type-aware hover information for an identifier using cached
+    /// analysis results.
+    fn type_hover_info(
+        name: &str,
+        module: &ast::Module,
+        resolved: Option<&ark_resolve::ResolvedModule>,
+        checker: Option<&ark_typecheck::TypeChecker>,
+    ) -> Option<String> {
+        let resolved = resolved?;
+        let checker = checker?;
 
         // Collect AST param names so we can pair them with inferred types.
         let ast_param_names: Option<Vec<String>> = module.items.iter().find_map(|item| {
@@ -396,11 +398,6 @@ impl ArukellBackend {
             }
             None
         });
-
-        let resolved = ark_resolve::resolve_module(module, &mut sink);
-        let mut checker = ark_typecheck::TypeChecker::new();
-        checker.register_builtins();
-        checker.check_module(&resolved, &mut sink);
 
         // Check function signatures
         if let Some(sig) = checker.fn_sig(name) {
@@ -458,7 +455,7 @@ impl ArukellBackend {
 
             // Try to find the type annotation from the AST let binding.
             if matches!(sym.kind, ark_resolve::SymbolKind::Variable { .. }) {
-                let ty_ann = Self::find_let_type_annotation(&resolved.module, name);
+                let ty_ann = Self::find_let_type_annotation(module, name);
                 if let Some(ty_str) = ty_ann {
                     return Some(format!("{kind_str} {name}: {ty_str}"));
                 }
@@ -566,14 +563,12 @@ impl ArukellBackend {
         }
     }
 
-    /// Produce semantic tokens for the whole document.
-    fn compute_semantic_tokens(source: &str) -> Vec<SemanticToken> {
-        let lexer = Lexer::new(0, source);
-        let tokens: Vec<_> = lexer.collect();
-
-        // Parse to identify function names and type names for richer classification.
-        let mut sink = DiagnosticSink::new();
-        let module = parse(&tokens, &mut sink);
+    /// Produce semantic tokens for the whole document using cached analysis.
+    fn compute_semantic_tokens(
+        source: &str,
+        tokens: &[ark_lexer::Token],
+        module: &ast::Module,
+    ) -> Vec<SemanticToken> {
         let mut fn_names = std::collections::HashSet::new();
         let mut type_names = std::collections::HashSet::new();
         for item in &module.items {
@@ -602,7 +597,7 @@ impl ArukellBackend {
         let mut prev_line = 0u32;
         let mut prev_start = 0u32;
 
-        for tok in &tokens {
+        for tok in tokens {
             let start = tok.span.start;
             let end = tok.span.end;
             let length = end.saturating_sub(start);
@@ -659,14 +654,9 @@ impl ArukellBackend {
         result
     }
 
-    /// Extract document symbols (top-level items) from the AST.
+    /// Extract document symbols (top-level items) from a cached AST.
     #[allow(deprecated)] // SymbolInformation::location etc.
-    fn document_symbols(uri: &Url, source: &str) -> Vec<SymbolInformation> {
-        let mut sink = DiagnosticSink::new();
-        let lexer = Lexer::new(0, source);
-        let tokens: Vec<_> = lexer.collect();
-        let module = parse(&tokens, &mut sink);
-
+    fn document_symbols(uri: &Url, source: &str, module: &ast::Module) -> Vec<SymbolInformation> {
         let mut symbols = Vec::new();
 
         for item in &module.items {
@@ -792,27 +782,34 @@ impl LanguageServer for ArukellBackend {
         let uri = params.text_document_position_params.text_document.uri;
         let pos = params.text_document_position_params.position;
 
-        let docs = self.documents.lock().unwrap();
-        let source = match docs.get(&uri) {
-            Some(s) => s.clone(),
-            None => return Ok(None),
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
         };
-        drop(docs);
 
-        // Find the token at the cursor position
-        let lexer = Lexer::new(0, &source);
-        let tokens: Vec<_> = lexer.collect();
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri)
+            .or_insert_with(|| Self::analyze_source(&source));
+
         let target_offset = Self::position_to_offset(&source, pos);
 
-        for tok in &tokens {
+        for tok in &analysis.tokens {
             let start = tok.span.start as usize;
             let end = tok.span.end as usize;
             if start <= target_offset && target_offset <= end && end <= source.len() {
                 let text = &source[start..end];
                 let info = match &tok.kind {
                     TokenKind::Ident(_) => {
-                        // Try type-aware hover first.
-                        if let Some(type_info) = Self::type_hover_info(&source, text) {
+                        if let Some(type_info) = Self::type_hover_info(
+                            text,
+                            &analysis.module,
+                            analysis.resolved.as_ref(),
+                            analysis.checker.as_ref(),
+                        ) {
                             type_info
                         } else {
                             format!("identifier `{}`", text)
@@ -839,14 +836,21 @@ impl LanguageServer for ArukellBackend {
 
     async fn completion(&self, params: CompletionParams) -> Result<Option<CompletionResponse>> {
         let uri = params.text_document_position.text_document.uri;
-        let docs = self.documents.lock().unwrap();
-        let source = match docs.get(&uri) {
-            Some(s) => s.clone(),
-            None => return Ok(None),
-        };
-        drop(docs);
 
-        let items = self.get_completions(&source);
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri)
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let items = Self::get_completions(&source, &analysis.tokens);
         Ok(Some(CompletionResponse::Array(items)))
     }
 
@@ -857,23 +861,27 @@ impl LanguageServer for ArukellBackend {
         let uri = params.text_document_position_params.text_document.uri;
         let pos = params.text_document_position_params.position;
 
-        let docs = self.documents.lock().unwrap();
-        let source = match docs.get(&uri) {
-            Some(s) => s.clone(),
-            None => return Ok(None),
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
         };
-        drop(docs);
 
-        let lexer = Lexer::new(0, &source);
-        let tokens: Vec<_> = lexer.collect();
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
         let target_offset = Self::position_to_offset(&source, pos);
 
-        let name = match Self::find_ident_at_offset(&source, &tokens, target_offset) {
+        let name = match Self::find_ident_at_offset(&source, &analysis.tokens, target_offset) {
             Some(n) => n.to_string(),
             None => return Ok(None),
         };
 
-        let span = match Self::find_definition_span(&source, &name) {
+        let span = match Self::find_definition_span(&analysis.module, &name) {
             Some(s) => s,
             None => return Ok(None),
         };
@@ -889,24 +897,28 @@ impl LanguageServer for ArukellBackend {
         let uri = params.text_document_position.text_document.uri;
         let pos = params.text_document_position.position;
 
-        let docs = self.documents.lock().unwrap();
-        let source = match docs.get(&uri) {
-            Some(s) => s.clone(),
-            None => return Ok(None),
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
         };
-        drop(docs);
 
-        let lexer = Lexer::new(0, &source);
-        let tokens: Vec<_> = lexer.collect();
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
         let target_offset = Self::position_to_offset(&source, pos);
 
-        let name = match Self::find_ident_at_offset(&source, &tokens, target_offset) {
+        let name = match Self::find_ident_at_offset(&source, &analysis.tokens, target_offset) {
             Some(n) => n.to_string(),
             None => return Ok(None),
         };
 
         let mut locations = Vec::new();
-        for tok in &tokens {
+        for tok in &analysis.tokens {
             if let TokenKind::Ident(_) = &tok.kind {
                 let start = tok.span.start as usize;
                 let end = tok.span.end as usize;
@@ -932,14 +944,20 @@ impl LanguageServer for ArukellBackend {
     ) -> Result<Option<DocumentSymbolResponse>> {
         let uri = params.text_document.uri;
 
-        let docs = self.documents.lock().unwrap();
-        let source = match docs.get(&uri) {
-            Some(s) => s.clone(),
-            None => return Ok(None),
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
         };
-        drop(docs);
 
-        let symbols = Self::document_symbols(&uri, &source);
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let symbols = Self::document_symbols(&uri, &source, &analysis.module);
         Ok(Some(DocumentSymbolResponse::Flat(symbols)))
     }
 
@@ -949,14 +967,20 @@ impl LanguageServer for ArukellBackend {
     ) -> Result<Option<SemanticTokensResult>> {
         let uri = params.text_document.uri;
 
-        let docs = self.documents.lock().unwrap();
-        let source = match docs.get(&uri) {
-            Some(s) => s.clone(),
-            None => return Ok(None),
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
         };
-        drop(docs);
 
-        let data = Self::compute_semantic_tokens(&source);
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri)
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let data = Self::compute_semantic_tokens(&source, &analysis.tokens, &analysis.module);
         Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
             result_id: None,
             data,

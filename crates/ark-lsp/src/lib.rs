@@ -24,7 +24,14 @@
 //!
 //! - Rename / code actions
 //! - Workspace symbols
-//! - Incremental parsing / caching
+//! - Incremental parsing
+//!
+//! ## Architecture
+//!
+//! Document analysis (lex → parse → resolve → typecheck) is performed
+//! once on `didOpen`/`didChange` and cached per-URI.  All features
+//! (hover, completion, definition, etc.) read from the shared cache,
+//! avoiding redundant compiler passes.
 
 mod server;
 

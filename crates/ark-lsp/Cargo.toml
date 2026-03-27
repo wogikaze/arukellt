@@ -12,6 +12,7 @@ ark-parser = { path = "../ark-parser" }
 ark-resolve = { path = "../ark-resolve" }
 ark-typecheck = { path = "../ark-typecheck" }
 ark-diagnostics = { path = "../ark-diagnostics" }
+ark-driver = { workspace = true }
 tower-lsp = "0.20"
 tokio = { version = "1", features = ["full"] }
 serde_json = "1"
