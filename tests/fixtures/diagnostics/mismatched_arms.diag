@@ -1,1 +1,1 @@
-error[E0205]: mismatched match arm types
+error[E0205|typecheck]: mismatched match arm types

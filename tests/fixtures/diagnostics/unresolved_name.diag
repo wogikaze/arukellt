@@ -1,1 +1,1 @@
-error[E0100]: unresolved name
+error[E0100|resolve]: unresolved name

@@ -53,6 +53,11 @@ mod tests {
         };
         let mut sink = DiagnosticSink::new();
         let resolved = analyze_module(module, &mut sink);
-        assert!(resolved.symbols.lookup(resolved.global_scope, "Point").is_some());
+        assert!(
+            resolved
+                .symbols
+                .lookup(resolved.global_scope, "Point")
+                .is_some()
+        );
     }
 }

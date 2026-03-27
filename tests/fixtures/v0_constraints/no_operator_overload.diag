@@ -1,1 +1,1 @@
-error: runtime: wasm compile error: WebAssembly translation error
+error[W0004|backend-validate]:

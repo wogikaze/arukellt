@@ -105,11 +105,17 @@ pub fn default_pass_order() -> &'static [OptimizationPass] {
 }
 
 pub fn find_pass(name: &str) -> Option<OptimizationPass> {
-    DEFAULT_PASS_ORDER.iter().copied().find(|pass| pass.as_str() == name)
+    DEFAULT_PASS_ORDER
+        .iter()
+        .copied()
+        .find(|pass| pass.as_str() == name)
 }
 
 pub fn optimization_pass_catalog() -> Vec<&'static str> {
-    DEFAULT_PASS_ORDER.iter().map(|pass| pass.as_str()).collect()
+    DEFAULT_PASS_ORDER
+        .iter()
+        .map(|pass| pass.as_str())
+        .collect()
 }
 
 pub fn optimization_trace_snapshot(module: &MirModule) -> String {
@@ -117,17 +123,26 @@ pub fn optimization_trace_snapshot(module: &MirModule) -> String {
 }
 
 pub fn pass_pipeline_snapshot() -> String {
-    format!("rounds={} passes={}", MAX_OPT_ROUNDS, optimization_pass_catalog().join(","))
+    format!(
+        "rounds={} passes={}",
+        MAX_OPT_ROUNDS,
+        optimization_pass_catalog().join(",")
+    )
 }
 
-pub fn run_single_pass(module: &mut MirModule, pass: OptimizationPass) -> Result<OptimizationSummary, String> {
-    validate_module(module).map_err(|errors| format!("MIR validation failed before {}: {errors:?}", pass.as_str()))?;
+pub fn run_single_pass(
+    module: &mut MirModule,
+    pass: OptimizationPass,
+) -> Result<OptimizationSummary, String> {
+    validate_module(module)
+        .map_err(|errors| format!("MIR validation failed before {}: {errors:?}", pass.as_str()))?;
     let mut summary = OptimizationSummary::default();
     for function in &mut module.functions {
         summary.absorb(run_pass(function, pass));
     }
     push_optimization_trace(module, pass.as_str());
-    validate_module(module).map_err(|errors| format!("MIR validation failed after {}: {errors:?}", pass.as_str()))?;
+    validate_module(module)
+        .map_err(|errors| format!("MIR validation failed after {}: {errors:?}", pass.as_str()))?;
     Ok(summary)
 }
 
@@ -135,7 +150,10 @@ pub fn optimize_module(module: &mut MirModule) -> Result<OptimizationSummary, St
     optimize_module_with_passes(module, DEFAULT_PASS_ORDER, MAX_OPT_ROUNDS)
 }
 
-pub fn optimize_module_named(module: &mut MirModule, names: &[&str]) -> Result<OptimizationSummary, String> {
+pub fn optimize_module_named(
+    module: &mut MirModule,
+    names: &[&str],
+) -> Result<OptimizationSummary, String> {
     let passes = names
         .iter()
         .map(|name| find_pass(name).ok_or_else(|| format!("unknown optimization pass {}", name)))
@@ -143,7 +161,10 @@ pub fn optimize_module_named(module: &mut MirModule, names: &[&str]) -> Result<O
     optimize_module_with_passes(module, &passes, 1)
 }
 
-pub fn optimize_module_named_until(module: &mut MirModule, name: &str) -> Result<OptimizationSummary, String> {
+pub fn optimize_module_named_until(
+    module: &mut MirModule,
+    name: &str,
+) -> Result<OptimizationSummary, String> {
     let pass = find_pass(name).ok_or_else(|| format!("unknown optimization pass {}", name))?;
     let index = DEFAULT_PASS_ORDER
         .iter()
@@ -152,12 +173,18 @@ pub fn optimize_module_named_until(module: &mut MirModule, name: &str) -> Result
     optimize_module_with_passes(module, &DEFAULT_PASS_ORDER[..=index], MAX_OPT_ROUNDS)
 }
 
-pub fn optimize_module_named_only(module: &mut MirModule, name: &str) -> Result<OptimizationSummary, String> {
+pub fn optimize_module_named_only(
+    module: &mut MirModule,
+    name: &str,
+) -> Result<OptimizationSummary, String> {
     let pass = find_pass(name).ok_or_else(|| format!("unknown optimization pass {}", name))?;
     optimize_module_with_passes(module, &[pass], 1)
 }
 
-pub fn optimize_module_named_without(module: &mut MirModule, name: &str) -> Result<OptimizationSummary, String> {
+pub fn optimize_module_named_without(
+    module: &mut MirModule,
+    name: &str,
+) -> Result<OptimizationSummary, String> {
     let excluded = find_pass(name).ok_or_else(|| format!("unknown optimization pass {}", name))?;
     let passes = DEFAULT_PASS_ORDER
         .iter()
@@ -168,7 +195,8 @@ pub fn optimize_module_named_without(module: &mut MirModule, name: &str) -> Resu
 }
 
 pub fn optimize_module_none(module: &mut MirModule) -> Result<OptimizationSummary, String> {
-    validate_module(module).map_err(|errors| format!("MIR validation failed without optimization: {errors:?}"))?;
+    validate_module(module)
+        .map_err(|errors| format!("MIR validation failed without optimization: {errors:?}"))?;
     Ok(OptimizationSummary::default())
 }
 
@@ -177,7 +205,8 @@ fn optimize_module_with_passes(
     passes: &[OptimizationPass],
     max_rounds: usize,
 ) -> Result<OptimizationSummary, String> {
-    validate_module(module).map_err(|errors| format!("MIR validation failed before optimization: {errors:?}"))?;
+    validate_module(module)
+        .map_err(|errors| format!("MIR validation failed before optimization: {errors:?}"))?;
 
     let mut total = OptimizationSummary::default();
     module.stats.optimization_trace.clear();
@@ -197,7 +226,8 @@ fn optimize_module_with_passes(
     }
 
     module.stats.optimization_rounds = total.rounds;
-    validate_module(module).map_err(|errors| format!("MIR validation failed after optimization: {errors:?}"))?;
+    validate_module(module)
+        .map_err(|errors| format!("MIR validation failed after optimization: {errors:?}"))?;
     Ok(total)
 }
 
@@ -237,15 +267,13 @@ fn branch_fold(function: &mut MirFunction) -> OptimizationSummary {
     let mut summary = OptimizationSummary::default();
     for block in &mut function.blocks {
         if let Terminator::If {
-            cond,
+            cond: Operand::ConstBool(value),
             then_block,
             else_block,
         } = &block.terminator
         {
-            if let Operand::ConstBool(value) = cond {
-                block.terminator = Terminator::Goto(if *value { *then_block } else { *else_block });
-                summary.branch_folded += 1;
-            }
+            block.terminator = Terminator::Goto(if *value { *then_block } else { *else_block });
+            summary.branch_folded += 1;
         }
     }
     summary
@@ -266,7 +294,11 @@ fn copy_prop(function: &mut MirFunction) -> OptimizationSummary {
     for block in &mut function.blocks {
         let mut replacements = std::collections::HashMap::new();
         for stmt in &mut block.stmts {
-            if let MirStmt::Assign(Place::Local(dest), Rvalue::Use(Operand::Place(Place::Local(src)))) = stmt {
+            if let MirStmt::Assign(
+                Place::Local(dest),
+                Rvalue::Use(Operand::Place(Place::Local(src))),
+            ) = stmt
+            {
                 replacements.insert(dest.0, Operand::Place(Place::Local(*src)));
                 summary.copy_propagated += 1;
                 continue;
@@ -284,7 +316,10 @@ fn const_prop(function: &mut MirFunction) -> OptimizationSummary {
         let mut constants = std::collections::HashMap::new();
         for stmt in &mut block.stmts {
             if let MirStmt::Assign(Place::Local(dest), Rvalue::Use(value)) = stmt {
-                if matches!(value, Operand::ConstI32(_) | Operand::ConstI64(_) | Operand::ConstBool(_)) {
+                if matches!(
+                    value,
+                    Operand::ConstI32(_) | Operand::ConstI64(_) | Operand::ConstBool(_)
+                ) {
                     constants.insert(dest.0, value.clone());
                 }
             }
@@ -319,7 +354,9 @@ fn dead_local_elim(function: &mut MirFunction) -> OptimizationSummary {
 fn dead_block_elim(function: &mut MirFunction) -> OptimizationSummary {
     let reachable = reachable_blocks(function);
     let before = function.blocks.len();
-    function.blocks.retain(|block| reachable.contains(&block.id));
+    function
+        .blocks
+        .retain(|block| reachable.contains(&block.id));
     OptimizationSummary {
         dead_blocks_removed: before.saturating_sub(function.blocks.len()),
         ..OptimizationSummary::default()
@@ -329,7 +366,11 @@ fn dead_block_elim(function: &mut MirFunction) -> OptimizationSummary {
 fn unreachable_cleanup(function: &mut MirFunction) -> OptimizationSummary {
     let mut summary = OptimizationSummary::default();
     for block in &mut function.blocks {
-        if let Some(index) = block.stmts.iter().position(|stmt| matches!(stmt, MirStmt::Return(_))) {
+        if let Some(index) = block
+            .stmts
+            .iter()
+            .position(|stmt| matches!(stmt, MirStmt::Return(_)))
+        {
             if index + 1 < block.stmts.len() {
                 block.stmts.truncate(index + 1);
                 summary.unreachable_cleaned += 1;
@@ -341,14 +382,23 @@ fn unreachable_cleanup(function: &mut MirFunction) -> OptimizationSummary {
 
 fn inline_small_leaf(function: &mut MirFunction) -> OptimizationSummary {
     let mut summary = OptimizationSummary::default();
-    if function.blocks.iter().map(|block| block.stmts.len()).sum::<usize>() > INLINE_SMALL_LEAF_BUDGET {
+    if function
+        .blocks
+        .iter()
+        .map(|block| block.stmts.len())
+        .sum::<usize>()
+        > INLINE_SMALL_LEAF_BUDGET
+    {
         return summary;
     }
     for block in &mut function.blocks {
         for stmt in &mut block.stmts {
             if let MirStmt::CallBuiltin { name, args, .. } = stmt {
                 if name == "identity" && args.len() == 1 {
-                    *stmt = MirStmt::Assign(Place::Local(crate::mir::LocalId(0)), Rvalue::Use(args[0].clone()));
+                    *stmt = MirStmt::Assign(
+                        Place::Local(crate::mir::LocalId(0)),
+                        Rvalue::Use(args[0].clone()),
+                    );
                     summary.inline_small_leaf += 1;
                 }
             }
@@ -394,7 +444,9 @@ fn fold_binary(op: BinOp, lhs: &Operand, rhs: &Operand) -> Option<Operand> {
         (BinOp::Sub, Operand::ConstI32(a), Operand::ConstI32(b)) => Some(Operand::ConstI32(a - b)),
         (BinOp::Mul, Operand::ConstI32(a), Operand::ConstI32(b)) => Some(Operand::ConstI32(a * b)),
         (BinOp::Eq, Operand::ConstI32(a), Operand::ConstI32(b)) => Some(Operand::ConstBool(a == b)),
-        (BinOp::Eq, Operand::ConstBool(a), Operand::ConstBool(b)) => Some(Operand::ConstBool(a == b)),
+        (BinOp::Eq, Operand::ConstBool(a), Operand::ConstBool(b)) => {
+            Some(Operand::ConstBool(a == b))
+        }
         _ => None,
     }
 }
@@ -418,7 +470,11 @@ fn rewrite_stmt_with_replacements(
                 changed |= rewrite_operand(arg, replacements);
             }
         }
-        MirStmt::IfStmt { cond, then_body, else_body } => {
+        MirStmt::IfStmt {
+            cond,
+            then_body,
+            else_body,
+        } => {
             changed |= rewrite_operand(cond, replacements);
             for stmt in then_body {
                 changed |= rewrite_stmt_with_replacements(stmt, replacements);
@@ -450,7 +506,9 @@ fn rewrite_terminator_with_replacements(
     match terminator {
         Terminator::If { cond, .. } => rewrite_operand(cond, replacements),
         Terminator::Switch { scrutinee, .. } => rewrite_operand(scrutinee, replacements),
-        Terminator::Return(value) => value.as_mut().is_some_and(|value| rewrite_operand(value, replacements)),
+        Terminator::Return(value) => value
+            .as_mut()
+            .is_some_and(|value| rewrite_operand(value, replacements)),
         Terminator::Goto(_) | Terminator::Unreachable => false,
     }
 }
@@ -461,11 +519,13 @@ fn rewrite_rvalue(
 ) -> bool {
     match rvalue {
         Rvalue::Use(operand) => rewrite_operand(operand, replacements),
-        Rvalue::BinaryOp(_, lhs, rhs) => rewrite_operand(lhs, replacements) | rewrite_operand(rhs, replacements),
+        Rvalue::BinaryOp(_, lhs, rhs) => {
+            rewrite_operand(lhs, replacements) | rewrite_operand(rhs, replacements)
+        }
         Rvalue::UnaryOp(_, operand) => rewrite_operand(operand, replacements),
-        Rvalue::Aggregate(_, operands) => operands
-            .iter_mut()
-            .fold(false, |changed, operand| rewrite_operand(operand, replacements) || changed),
+        Rvalue::Aggregate(_, operands) => operands.iter_mut().fold(false, |changed, operand| {
+            rewrite_operand(operand, replacements) || changed
+        }),
         Rvalue::Ref(place) => rewrite_place(place, replacements),
     }
 }
@@ -477,7 +537,9 @@ fn rewrite_place(
     match place {
         Place::Local(_) => false,
         Place::Field(place, _) => rewrite_place(place, replacements),
-        Place::Index(place, index) => rewrite_place(place, replacements) | rewrite_operand(index, replacements),
+        Place::Index(place, index) => {
+            rewrite_place(place, replacements) | rewrite_operand(index, replacements)
+        }
     }
 }
 
@@ -493,13 +555,19 @@ fn rewrite_operand(
             }
             false
         }
-        Operand::BinOp(_, lhs, rhs) => rewrite_operand(lhs, replacements) | rewrite_operand(rhs, replacements),
+        Operand::BinOp(_, lhs, rhs) => {
+            rewrite_operand(lhs, replacements) | rewrite_operand(rhs, replacements)
+        }
         Operand::UnaryOp(_, operand)
         | Operand::EnumTag(operand)
-        | Operand::FieldAccess { object: operand, .. } => rewrite_operand(operand, replacements),
-        Operand::Call(_, args) | Operand::ArrayInit { elements: args } => args
-            .iter_mut()
-            .fold(false, |changed, operand| rewrite_operand(operand, replacements) || changed),
+        | Operand::FieldAccess {
+            object: operand, ..
+        } => rewrite_operand(operand, replacements),
+        Operand::Call(_, args) | Operand::ArrayInit { elements: args } => {
+            args.iter_mut().fold(false, |changed, operand| {
+                rewrite_operand(operand, replacements) || changed
+            })
+        }
         Operand::IfExpr {
             cond,
             then_body,
@@ -522,12 +590,14 @@ fn rewrite_operand(
             }
             changed
         }
-        Operand::StructInit { fields, .. } => fields
-            .iter_mut()
-            .fold(false, |changed, (_, operand)| rewrite_operand(operand, replacements) || changed),
-        Operand::EnumInit { payload, .. } => payload
-            .iter_mut()
-            .fold(false, |changed, operand| rewrite_operand(operand, replacements) || changed),
+        Operand::StructInit { fields, .. } => {
+            fields.iter_mut().fold(false, |changed, (_, operand)| {
+                rewrite_operand(operand, replacements) || changed
+            })
+        }
+        Operand::EnumInit { payload, .. } => payload.iter_mut().fold(false, |changed, operand| {
+            rewrite_operand(operand, replacements) || changed
+        }),
         Operand::EnumPayload { object, .. } => rewrite_operand(object, replacements),
         Operand::LoopExpr { init, body, result } => {
             let mut changed = rewrite_operand(init, replacements);
@@ -545,9 +615,13 @@ fn rewrite_operand(
             }
             changed
         }
-        Operand::IndexAccess { object, index } => rewrite_operand(object, replacements) | rewrite_operand(index, replacements),
+        Operand::IndexAccess { object, index } => {
+            rewrite_operand(object, replacements) | rewrite_operand(index, replacements)
+        }
         Operand::Place(Place::Field(place, _)) => rewrite_place(place, replacements),
-        Operand::Place(Place::Index(place, index)) => rewrite_place(place, replacements) | rewrite_operand(index, replacements),
+        Operand::Place(Place::Index(place, index)) => {
+            rewrite_place(place, replacements) | rewrite_operand(index, replacements)
+        }
         Operand::ConstI32(_)
         | Operand::ConstI64(_)
         | Operand::ConstF32(_)
@@ -571,7 +645,11 @@ fn collect_stmt_locals(stmt: &MirStmt, used: &mut std::collections::HashSet<u32>
                 collect_operand_locals(arg, used);
             }
         }
-        MirStmt::IfStmt { cond, then_body, else_body } => {
+        MirStmt::IfStmt {
+            cond,
+            then_body,
+            else_body,
+        } => {
             collect_operand_locals(cond, used);
             for stmt in then_body {
                 collect_stmt_locals(stmt, used);
@@ -647,7 +725,9 @@ fn collect_operand_locals(operand: &Operand, used: &mut std::collections::HashSe
         }
         Operand::UnaryOp(_, operand)
         | Operand::EnumTag(operand)
-        | Operand::FieldAccess { object: operand, .. } => collect_operand_locals(operand, used),
+        | Operand::FieldAccess {
+            object: operand, ..
+        } => collect_operand_locals(operand, used),
         Operand::Call(_, args) | Operand::ArrayInit { elements: args } => {
             for arg in args {
                 collect_operand_locals(arg, used);
@@ -727,7 +807,11 @@ fn reachable_blocks(function: &MirFunction) -> std::collections::HashSet<BlockId
         };
         match &block.terminator {
             Terminator::Goto(target) => worklist.push(*target),
-            Terminator::If { then_block, else_block, .. } => {
+            Terminator::If {
+                then_block,
+                else_block,
+                ..
+            } => {
                 worklist.push(*then_block);
                 worklist.push(*else_block);
             }
@@ -747,9 +831,9 @@ fn reachable_blocks(function: &MirFunction) -> std::collections::HashSet<BlockId
 mod tests {
     use super::*;
     use crate::mir::{
-        default_block_source, default_function_source, sync_module_metadata, BasicBlock, FnId,
-        InstanceKey, LocalId, MirFunction, MirLocal, MirModule, MirStmt, Operand, Place, Rvalue,
-        Terminator,
+        BasicBlock, FnId, InstanceKey, LocalId, MirFunction, MirLocal, MirModule, MirStmt, Operand,
+        Place, Rvalue, Terminator, default_block_source, default_function_source,
+        sync_module_metadata,
     };
     use ark_typecheck::types::Type;
 

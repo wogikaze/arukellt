@@ -1,1 +1,1 @@
-error[E0204]: non-exhaustive match
+error[E0204|typecheck]: non-exhaustive match

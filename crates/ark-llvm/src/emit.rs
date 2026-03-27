@@ -51,7 +51,11 @@ pub fn validate_plan(plan: &BackendPlan) -> Result<(), String> {
     Ok(())
 }
 
-pub fn emit_with_plan(mir: &MirModule, plan: &BackendPlan, sink: &mut DiagnosticSink) -> Result<String, String> {
+pub fn emit_with_plan(
+    mir: &MirModule,
+    plan: &BackendPlan,
+    sink: &mut DiagnosticSink,
+) -> Result<String, String> {
     validate_plan(plan)?;
     Ok(emit_llvm_ir(mir, sink))
 }

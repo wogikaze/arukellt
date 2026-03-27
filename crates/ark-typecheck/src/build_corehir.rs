@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ark_diagnostics::Span;
 use ark_hir::{
     Body, BodyId, BuiltinBinaryOp, BuiltinUnaryOp, CallArg, CallTarget, CaptureInfo, ConstValue,
-    EffectFlags, Expr, ExprId as HirExprId, ExprKind, FieldDef, FunctionItem, ImportRef, ImplItem,
+    EffectFlags, Expr, ExprId as HirExprId, ExprKind, FieldDef, FunctionItem, ImplItem, ImportRef,
     Item, ItemId, ItemKind, LetStmt, Local, LocalId, MatchArm, Module, ModuleId, Param, Pattern,
     PatternId, PatternKind, Program, ProgramId, SourceMap, Stmt, StructItem, TraitItem,
     TraitMethodSig, Ty, ValueMode, VariantDef,
@@ -72,7 +72,8 @@ impl<'a> CoreHirBuilder<'a> {
         imports: &[ast::Import],
         items: &[ast::Item],
     ) -> Program {
-        self.source_map.insert_program(self.program_id, Span::dummy());
+        self.source_map
+            .insert_program(self.program_id, Span::dummy());
         let module_id = self.fresh_module_id();
         self.source_map.insert_module(module_id, Span::dummy());
         let module = Module {
@@ -153,7 +154,10 @@ impl<'a> CoreHirBuilder<'a> {
                 ty: ty.clone(),
                 value_mode,
             };
-            env.bind(param.name.clone(), self.checker.resolve_type_expr(&param.ty));
+            env.bind(
+                param.name.clone(),
+                self.checker.resolve_type_expr(&param.ty),
+            );
             param_locals.push(local.clone());
             params.push(Param {
                 local_id: local.id,
@@ -179,7 +183,8 @@ impl<'a> CoreHirBuilder<'a> {
         );
         let prev_effects = self.current_fn_effects;
         self.current_fn_effects = EffectFlags::default();
-        let (body_id, body) = self.build_body(&f.body, &mut env, Some((impl_id, method_item_id, item_id)));
+        let (body_id, body) =
+            self.build_body(&f.body, &mut env, Some((impl_id, method_item_id, item_id)));
         self.bodies.push(body);
         let effects = self.current_fn_effects;
         self.current_fn_effects = prev_effects;
@@ -201,7 +206,11 @@ impl<'a> CoreHirBuilder<'a> {
     fn build_struct_item(&mut self, s: &ast::StructDef) -> Item {
         let item_id = self.fresh_item_id();
         self.source_map.insert_item(item_id, s.span);
-        let type_id = self.checker.struct_defs.get(&s.name).map(|info| ark_hir::TypeId(info.type_id.0));
+        let type_id = self
+            .checker
+            .struct_defs
+            .get(&s.name)
+            .map(|info| ark_hir::TypeId(info.type_id.0));
         Item {
             id: item_id,
             name: s.name.clone(),
@@ -223,7 +232,11 @@ impl<'a> CoreHirBuilder<'a> {
     fn build_enum_item(&mut self, e: &ast::EnumDef) -> Item {
         let item_id = self.fresh_item_id();
         self.source_map.insert_item(item_id, e.span);
-        let type_id = self.checker.enum_defs.get(&e.name).map(|info| ark_hir::TypeId(info.type_id.0));
+        let type_id = self
+            .checker
+            .enum_defs
+            .get(&e.name)
+            .map(|info| ark_hir::TypeId(info.type_id.0));
         Item {
             id: item_id,
             name: e.name.clone(),
@@ -352,11 +365,12 @@ impl<'a> CoreHirBuilder<'a> {
                     .as_ref()
                     .map(|ty| self.to_hir_ty(&self.checker.resolve_type_expr(ty)))
                     .unwrap_or_else(|| init_expr.ty.clone());
-                let binding_mode = if matches!(init, ast::Expr::Ident { .. }) && init_ty.is_reference() {
-                    ValueMode::SharedRef
-                } else {
-                    ValueMode::ValueCopy
-                };
+                let binding_mode =
+                    if matches!(init, ast::Expr::Ident { .. }) && init_ty.is_reference() {
+                        ValueMode::SharedRef
+                    } else {
+                        ValueMode::ValueCopy
+                    };
                 let local = Local {
                     id: self.fresh_local_id(),
                     name: name.clone(),
@@ -364,7 +378,7 @@ impl<'a> CoreHirBuilder<'a> {
                     value_mode: binding_mode,
                 };
                 locals.push(local.clone());
-                env.bind(name.clone(), self.from_hir_ty(&init_ty));
+                env.bind(name.clone(), self.hir_ty_to_type(&init_ty));
                 Some(Stmt::Let(LetStmt {
                     local,
                     init: init_expr,
@@ -374,13 +388,18 @@ impl<'a> CoreHirBuilder<'a> {
                     binding_mode,
                 }))
             }
-            ast::Stmt::Expr(expr) => Some(Stmt::Expr(self.build_expr(expr, env, selection_context))),
+            ast::Stmt::Expr(expr) => {
+                Some(Stmt::Expr(self.build_expr(expr, env, selection_context)))
+            }
             ast::Stmt::While { cond, body, .. } => {
                 let cond = self.build_expr(cond, env, selection_context);
                 let mut child_env = env.child();
                 let (body_id, body) = self.build_body(body, &mut child_env, selection_context);
                 self.bodies.push(body);
-                Some(Stmt::While { cond, body: body_id })
+                Some(Stmt::While {
+                    cond,
+                    body: body_id,
+                })
             }
             ast::Stmt::Loop { body, .. } => {
                 let mut child_env = env.child();
@@ -388,7 +407,9 @@ impl<'a> CoreHirBuilder<'a> {
                 self.bodies.push(body);
                 Some(Stmt::Loop { body: body_id })
             }
-            ast::Stmt::For { target, iter, body, .. } => match iter {
+            ast::Stmt::For {
+                target, iter, body, ..
+            } => match iter {
                 ast::ForIter::Range { start, end } => {
                     let start_expr = self.build_expr(start, env, selection_context);
                     let end_expr = self.build_expr(end, env, selection_context);
@@ -399,7 +420,7 @@ impl<'a> CoreHirBuilder<'a> {
                         value_mode: ValueMode::ValueCopy,
                     };
                     let mut child_env = env.child();
-                    child_env.bind(target.clone(), self.from_hir_ty(&local.ty));
+                    child_env.bind(target.clone(), self.hir_ty_to_type(&local.ty));
                     let (body_id, body) = self.build_body(body, &mut child_env, selection_context);
                     self.bodies.push(body);
                     Some(Stmt::ForRange {
@@ -427,7 +448,7 @@ impl<'a> CoreHirBuilder<'a> {
                         value_mode,
                     };
                     let mut child_env = env.child();
-                    child_env.bind(target.clone(), self.from_hir_ty(&element_ty));
+                    child_env.bind(target.clone(), self.hir_ty_to_type(&element_ty));
                     let (body_id, body) = self.build_body(body, &mut child_env, selection_context);
                     self.bodies.push(body);
                     Some(Stmt::ForValues {
@@ -455,7 +476,9 @@ impl<'a> CoreHirBuilder<'a> {
         let (kind, selection) = match expr {
             ast::Expr::IntLit { value, .. } => (ExprKind::Const(ConstValue::Int(*value)), None),
             ast::Expr::FloatLit { value, .. } => (ExprKind::Const(ConstValue::Float(*value)), None),
-            ast::Expr::StringLit { value, .. } => (ExprKind::Const(ConstValue::String(value.clone())), None),
+            ast::Expr::StringLit { value, .. } => {
+                (ExprKind::Const(ConstValue::String(value.clone())), None)
+            }
             ast::Expr::CharLit { value, .. } => (ExprKind::Const(ConstValue::Char(*value)), None),
             ast::Expr::BoolLit { value, .. } => (ExprKind::Const(ConstValue::Bool(*value)), None),
             ast::Expr::Ident { name, .. } => {
@@ -474,10 +497,18 @@ impl<'a> CoreHirBuilder<'a> {
                 },
                 None,
             ),
-            ast::Expr::Binary { left, op, right, span, .. } => {
+            ast::Expr::Binary {
+                left,
+                op,
+                right,
+                span,
+                ..
+            } => {
                 let left_expr = self.build_expr(left, env, selection_context);
                 let right_expr = self.build_expr(right, env, selection_context);
-                if let Some((function, self_type)) = self.checker.method_resolutions.get(&span.start).cloned() {
+                if let Some((function, self_type)) =
+                    self.checker.method_resolutions.get(&span.start).cloned()
+                {
                     let selection = make_selection(
                         function.clone(),
                         Some(Ty::Struct {
@@ -526,7 +557,9 @@ impl<'a> CoreHirBuilder<'a> {
                 },
                 None,
             ),
-            ast::Expr::Call { callee, args, span, .. } => {
+            ast::Expr::Call {
+                callee, args, span, ..
+            } => {
                 let arg_exprs: Vec<CallArg> = args
                     .iter()
                     .map(|arg| {
@@ -539,7 +572,9 @@ impl<'a> CoreHirBuilder<'a> {
                         CallArg { expr, value_mode }
                     })
                     .collect();
-                if let Some((function, self_type)) = self.checker.method_resolutions.get(&span.start).cloned() {
+                if let Some((function, self_type)) =
+                    self.checker.method_resolutions.get(&span.start).cloned()
+                {
                     let selection = make_selection(
                         function.clone(),
                         Some(Ty::Struct {
@@ -562,9 +597,15 @@ impl<'a> CoreHirBuilder<'a> {
                         Some(selection),
                     )
                 } else if let ast::Expr::Ident { name, .. } = callee.as_ref() {
-                    if name == "concat" && arg_exprs.iter().all(|arg| matches!(arg.expr.ty, Ty::String)) {
+                    if name == "concat"
+                        && arg_exprs
+                            .iter()
+                            .all(|arg| matches!(arg.expr.ty, Ty::String))
+                    {
                         (
-                            ExprKind::StringConcatMany(arg_exprs.into_iter().map(|arg| arg.expr).collect()),
+                            ExprKind::StringConcatMany(
+                                arg_exprs.into_iter().map(|arg| arg.expr).collect(),
+                            ),
                             None,
                         )
                     } else {
@@ -581,7 +622,11 @@ impl<'a> CoreHirBuilder<'a> {
                 } else {
                     (
                         ExprKind::Call {
-                            target: CallTarget::Indirect(Box::new(self.build_expr(callee, env, selection_context))),
+                            target: CallTarget::Indirect(Box::new(self.build_expr(
+                                callee,
+                                env,
+                                selection_context,
+                            ))),
                             args: arg_exprs,
                         },
                         None,
@@ -602,14 +647,21 @@ impl<'a> CoreHirBuilder<'a> {
                 },
                 None,
             ),
-            ast::Expr::If { cond, then_block, else_block, .. } => {
+            ast::Expr::If {
+                cond,
+                then_block,
+                else_block,
+                ..
+            } => {
                 let cond = self.build_expr(cond, env, selection_context);
                 let mut then_env = env.child();
-                let (then_body, then_body_data) = self.build_body(then_block, &mut then_env, selection_context);
+                let (then_body, then_body_data) =
+                    self.build_body(then_block, &mut then_env, selection_context);
                 self.bodies.push(then_body_data);
                 let else_body = else_block.as_ref().map(|else_block| {
                     let mut else_env = env.child();
-                    let (body_id, body) = self.build_body(else_block, &mut else_env, selection_context);
+                    let (body_id, body) =
+                        self.build_body(else_block, &mut else_env, selection_context);
                     self.bodies.push(body);
                     body_id
                 });
@@ -622,7 +674,9 @@ impl<'a> CoreHirBuilder<'a> {
                     None,
                 )
             }
-            ast::Expr::Match { scrutinee, arms, .. } => (
+            ast::Expr::Match {
+                scrutinee, arms, ..
+            } => (
                 ExprKind::Match {
                     scrutinee: Box::new(self.build_expr(scrutinee, env, selection_context)),
                     arms: arms
@@ -675,7 +729,9 @@ impl<'a> CoreHirBuilder<'a> {
                     name: name.clone(),
                     fields: fields
                         .iter()
-                        .map(|(name, expr)| (name.clone(), self.build_expr(expr, env, selection_context)))
+                        .map(|(name, expr)| {
+                            (name.clone(), self.build_expr(expr, env, selection_context))
+                        })
                         .collect(),
                 },
                 None,
@@ -690,7 +746,7 @@ impl<'a> CoreHirBuilder<'a> {
                             .as_ref()
                             .map(|ty| self.to_hir_ty(&self.checker.resolve_type_expr(ty)))
                             .unwrap_or(Ty::I32);
-                        child_env.bind(param.name.clone(), self.from_hir_ty(&ty));
+                        child_env.bind(param.name.clone(), self.hir_ty_to_type(&ty));
                         Param {
                             local_id: self.fresh_local_id(),
                             name: param.name.clone(),
@@ -737,7 +793,9 @@ impl<'a> CoreHirBuilder<'a> {
             ast::Expr::Continue { .. } => (ExprKind::Continue, None),
             ast::Expr::Try { expr, span } => {
                 let inner = self.build_expr(expr, env, selection_context);
-                if let Some((function, self_type)) = self.checker.method_resolutions.get(&span.start).cloned() {
+                if let Some((function, self_type)) =
+                    self.checker.method_resolutions.get(&span.start).cloned()
+                {
                     let selection = make_selection(
                         function.clone(),
                         Some(Ty::Enum {
@@ -802,13 +860,23 @@ impl<'a> CoreHirBuilder<'a> {
             }
             ast::Pattern::IntLit { value, .. } => PatternKind::Const(ConstValue::Int(*value)),
             ast::Pattern::FloatLit { value, .. } => PatternKind::Const(ConstValue::Float(*value)),
-            ast::Pattern::StringLit { value, .. } => PatternKind::Const(ConstValue::String(value.clone())),
+            ast::Pattern::StringLit { value, .. } => {
+                PatternKind::Const(ConstValue::String(value.clone()))
+            }
             ast::Pattern::CharLit { value, .. } => PatternKind::Const(ConstValue::Char(*value)),
             ast::Pattern::BoolLit { value, .. } => PatternKind::Const(ConstValue::Bool(*value)),
-            ast::Pattern::Tuple { elements, .. } => {
-                PatternKind::Tuple(elements.iter().map(|pattern| self.build_pattern(pattern, env)).collect())
-            }
-            ast::Pattern::Enum { path, variant, fields, .. } => PatternKind::Enum {
+            ast::Pattern::Tuple { elements, .. } => PatternKind::Tuple(
+                elements
+                    .iter()
+                    .map(|pattern| self.build_pattern(pattern, env))
+                    .collect(),
+            ),
+            ast::Pattern::Enum {
+                path,
+                variant,
+                fields,
+                ..
+            } => PatternKind::Enum {
                 path: path.clone(),
                 variant: variant.clone(),
                 fields: fields
@@ -816,9 +884,12 @@ impl<'a> CoreHirBuilder<'a> {
                     .map(|pattern| self.build_pattern(pattern, env))
                     .collect(),
             },
-            ast::Pattern::Or { patterns, .. } => {
-                PatternKind::Or(patterns.iter().map(|pattern| self.build_pattern(pattern, env)).collect())
-            }
+            ast::Pattern::Or { patterns, .. } => PatternKind::Or(
+                patterns
+                    .iter()
+                    .map(|pattern| self.build_pattern(pattern, env))
+                    .collect(),
+            ),
             ast::Pattern::Struct { name, fields, .. } => PatternKind::Struct {
                 name: name.clone(),
                 fields: fields
@@ -826,7 +897,9 @@ impl<'a> CoreHirBuilder<'a> {
                     .map(|(field, pattern)| {
                         (
                             field.clone(),
-                            pattern.as_ref().map(|pattern| self.build_pattern(pattern, env)),
+                            pattern
+                                .as_ref()
+                                .map(|pattern| self.build_pattern(pattern, env)),
                         )
                     })
                     .collect(),
@@ -901,10 +974,9 @@ impl<'a> CoreHirBuilder<'a> {
             Type::Slice(elem) => Ty::Slice(Box::new(self.to_hir_ty(elem))),
             Type::Vec(elem) => Ty::Vec(Box::new(self.to_hir_ty(elem))),
             Type::Option(inner) => Ty::Option(Box::new(self.to_hir_ty(inner))),
-            Type::Result(ok, err) => Ty::Result(
-                Box::new(self.to_hir_ty(ok)),
-                Box::new(self.to_hir_ty(err)),
-            ),
+            Type::Result(ok, err) => {
+                Ty::Result(Box::new(self.to_hir_ty(ok)), Box::new(self.to_hir_ty(err)))
+            }
             Type::Function { params, ret } => Ty::Function {
                 params: params.iter().map(|ty| self.to_hir_ty(ty)).collect(),
                 ret: Box::new(self.to_hir_ty(ret)),
@@ -915,7 +987,7 @@ impl<'a> CoreHirBuilder<'a> {
         }
     }
 
-    fn from_hir_ty(&self, ty: &Ty) -> Type {
+    fn hir_ty_to_type(&self, ty: &Ty) -> Type {
         match ty {
             Ty::I32 => Type::I32,
             Ty::I64 => Type::I64,
@@ -927,24 +999,36 @@ impl<'a> CoreHirBuilder<'a> {
             Ty::String => Type::String,
             Ty::Struct { type_id, name, .. } => type_id
                 .map(|id| Type::Struct(crate::types::TypeId(id.0)))
-                .or_else(|| self.checker.struct_defs.get(name).map(|info| Type::Struct(info.type_id)))
+                .or_else(|| {
+                    self.checker
+                        .struct_defs
+                        .get(name)
+                        .map(|info| Type::Struct(info.type_id))
+                })
                 .unwrap_or(Type::Error),
             Ty::Enum { type_id, name, .. } => type_id
                 .map(|id| Type::Enum(crate::types::TypeId(id.0)))
-                .or_else(|| self.checker.enum_defs.get(name).map(|info| Type::Enum(info.type_id)))
+                .or_else(|| {
+                    self.checker
+                        .enum_defs
+                        .get(name)
+                        .map(|info| Type::Enum(info.type_id))
+                })
                 .unwrap_or(Type::Error),
-            Ty::Tuple(types) => Type::Tuple(types.iter().map(|ty| self.from_hir_ty(ty)).collect()),
-            Ty::Array(elem, size) => Type::Array(Box::new(self.from_hir_ty(elem)), *size),
-            Ty::Slice(elem) => Type::Slice(Box::new(self.from_hir_ty(elem))),
-            Ty::Vec(elem) => Type::Vec(Box::new(self.from_hir_ty(elem))),
-            Ty::Option(inner) => Type::Option(Box::new(self.from_hir_ty(inner))),
+            Ty::Tuple(types) => {
+                Type::Tuple(types.iter().map(|ty| self.hir_ty_to_type(ty)).collect())
+            }
+            Ty::Array(elem, size) => Type::Array(Box::new(self.hir_ty_to_type(elem)), *size),
+            Ty::Slice(elem) => Type::Slice(Box::new(self.hir_ty_to_type(elem))),
+            Ty::Vec(elem) => Type::Vec(Box::new(self.hir_ty_to_type(elem))),
+            Ty::Option(inner) => Type::Option(Box::new(self.hir_ty_to_type(inner))),
             Ty::Result(ok, err) => Type::Result(
-                Box::new(self.from_hir_ty(ok)),
-                Box::new(self.from_hir_ty(err)),
+                Box::new(self.hir_ty_to_type(ok)),
+                Box::new(self.hir_ty_to_type(err)),
             ),
             Ty::Function { params, ret } => Type::Function {
-                params: params.iter().map(|ty| self.from_hir_ty(ty)).collect(),
-                ret: Box::new(self.from_hir_ty(ret)),
+                params: params.iter().map(|ty| self.hir_ty_to_type(ty)).collect(),
+                ret: Box::new(self.hir_ty_to_type(ret)),
             },
             Ty::TypeParam(_) => Type::Error,
             Ty::Never => Type::Never,

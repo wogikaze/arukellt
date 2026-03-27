@@ -9,7 +9,9 @@ pub mod t3_wasm_gc;
 
 use ark_diagnostics::{DiagnosticSink, wasm_validation_diagnostic};
 use ark_mir::mir::MirModule;
-use ark_target::{BackendPlan, EmitKind, EmitCapability, RuntimeModel, TargetId, build_backend_plan};
+use ark_target::{
+    BackendPlan, EmitCapability, EmitKind, RuntimeModel, TargetId, build_backend_plan,
+};
 
 /// Validate generated Wasm module bytes using `wasmparser`.
 ///

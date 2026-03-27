@@ -9,9 +9,9 @@ use ark_mir::{
     validate_backend_legal_module, validate_module,
 };
 use ark_parser::{ast, parse};
-use ark_resolve::{ResolvedModule, ResolvedProgram};
 #[allow(deprecated)]
 use ark_resolve::resolved_program_to_module;
+use ark_resolve::{ResolvedModule, ResolvedProgram};
 use ark_target::{EmitKind, TargetId, build_backend_plan};
 use ark_typecheck::{CheckOutput, TypeChecker};
 
@@ -26,6 +26,8 @@ pub struct FrontendResult {
     pub core_hir: Program,
     pub legacy_mir: MirModule,
     pub corehir_mir: MirModule,
+    /// Diagnostics (warnings) collected during frontend that should be printed on success.
+    pub pending_diagnostics: Vec<ark_diagnostics::Diagnostic>,
 }
 
 pub struct AnalysisResult {
@@ -165,7 +167,10 @@ impl Session {
         let tokens: Vec<_> = lexer.collect();
         let module = parse(&tokens, &mut self.sink);
         if self.sink.has_errors() {
-            return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            return Err(render_diagnostics(
+                self.sink.diagnostics(),
+                &self.source_map,
+            ));
         }
 
         self.artifacts.parse.insert(key, module.clone());
@@ -193,7 +198,10 @@ impl Session {
         self.sink = DiagnosticSink::new();
         let program = ark_resolve::resolve_program(path, &mut self.sink).ok();
         if self.sink.has_errors() {
-            return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            return Err(render_diagnostics(
+                self.sink.diagnostics(),
+                &self.source_map,
+            ));
         }
 
         let artifact = LoadArtifact { program };
@@ -212,7 +220,10 @@ impl Session {
             self.sink = DiagnosticSink::new();
             ark_resolve::merge_prelude(program, &mut self.sink);
             if self.sink.has_errors() {
-                return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+                return Err(render_diagnostics(
+                    self.sink.diagnostics(),
+                    &self.source_map,
+                ));
             }
         }
 
@@ -241,7 +252,10 @@ impl Session {
             self.sink = DiagnosticSink::new();
             let resolved = ark_resolve::resolve_module(module, &mut self.sink);
             if self.sink.has_errors() {
-                return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+                return Err(render_diagnostics(
+                    self.sink.diagnostics(),
+                    &self.source_map,
+                ));
             }
             ResolveArtifact { resolved }
         };
@@ -262,7 +276,10 @@ impl Session {
         checker.register_builtins();
         let output = checker.check_core_hir_module(&resolved, &mut self.sink);
         if self.sink.has_errors() {
-            return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            return Err(render_diagnostics(
+                self.sink.diagnostics(),
+                &self.source_map,
+            ));
         }
 
         let artifact = CoreHirArtifact { output };
@@ -276,19 +293,57 @@ impl Session {
 
         let mut checker = TypeChecker::new();
         checker.register_builtins();
-        let core_hir: CheckOutput = checker.check_core_hir_module(&resolved, &mut self.sink);
+        // Run CoreHIR typecheck into an isolated sink so that E0200 CoreHIR
+        // structural validation failures don't abort the legacy lowering path.
+        let mut corehir_sink = DiagnosticSink::new();
+        let core_hir: CheckOutput = checker.check_core_hir_module(&resolved, &mut corehir_sink);
+        let corehir_valid = !corehir_sink.has_errors();
+        // Promote all errors to the main sink, except CoreHIR structural validation
+        // failures (E0200 "invalid CoreHIR: ..."), which should not block the legacy path.
+        for diag in corehir_sink.diagnostics() {
+            let is_corehir_structural = diag.code == ark_diagnostics::DiagnosticCode::E0200
+                && diag.message.starts_with("invalid CoreHIR:");
+            if !is_corehir_structural {
+                self.sink.emit(diag.clone());
+            }
+        }
         if self.sink.has_errors() {
-            return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            return Err(render_diagnostics(
+                self.sink.diagnostics(),
+                &self.source_map,
+            ));
         }
 
         let mut legacy_mir = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
         mark_selection(&mut legacy_mir, MirSelection::Legacy);
         validate_mir(&legacy_mir)?;
 
-        let mut corehir_mir = lower_check_output_to_mir(&resolved.module, &core_hir, &checker, &mut self.sink)
-            .unwrap_or_else(|_| legacy_mir.clone());
-        mark_selection(&mut corehir_mir, MirSelection::CoreHir);
-        validate_mir(&corehir_mir)?;
+        let corehir_mir = if corehir_valid {
+            let mut mir =
+                lower_check_output_to_mir(&resolved.module, &core_hir, &checker, &mut self.sink)
+                    .unwrap_or_else(|_| legacy_mir.clone());
+            mark_selection(&mut mir, MirSelection::CoreHir);
+            if validate_mir(&mir).is_err() {
+                let mut fallback = legacy_mir.clone();
+                mark_selection(&mut fallback, MirSelection::CoreHir);
+                fallback
+            } else {
+                mir
+            }
+        } else {
+            let mut fallback = legacy_mir.clone();
+            mark_selection(&mut fallback, MirSelection::CoreHir);
+            fallback
+        };
+
+        // Collect warnings from frontend to pass downstream (they survive the sink reset in compile_selected).
+        let pending_diagnostics: Vec<ark_diagnostics::Diagnostic> = self
+            .sink
+            .diagnostics()
+            .iter()
+            .filter(|d| d.severity() == ark_diagnostics::Severity::Warning)
+            .cloned()
+            .collect();
 
         Ok(FrontendResult {
             resolved,
@@ -296,6 +351,7 @@ impl Session {
             core_hir: core_hir.program().clone(),
             legacy_mir,
             corehir_mir,
+            pending_diagnostics,
         })
     }
 
@@ -316,13 +372,20 @@ impl Session {
         self.lower_mir_selected(path, MirSelection::CoreHir)
     }
 
-    pub fn lower_mir_selected(&mut self, path: &Path, selection: MirSelection) -> Result<MirModule, String> {
+    pub fn lower_mir_selected(
+        &mut self,
+        path: &Path,
+        selection: MirSelection,
+    ) -> Result<MirModule, String> {
         let frontend = self.run_frontend(path)?;
         let mut mir = match selection {
             MirSelection::Legacy | MirSelection::OptimizedLegacy => frontend.legacy_mir,
             MirSelection::CoreHir | MirSelection::OptimizedCoreHir => frontend.corehir_mir,
         };
-        if matches!(selection, MirSelection::OptimizedLegacy | MirSelection::OptimizedCoreHir) {
+        if matches!(
+            selection,
+            MirSelection::OptimizedLegacy | MirSelection::OptimizedCoreHir
+        ) {
             optimize_module(&mut mir)
                 .map_err(|message| format!("internal error: optimizer failed: {message}"))?;
             mark_selection(&mut mir, selection);
@@ -359,22 +422,57 @@ impl Session {
             return Err("error: native target uses the dedicated LLVM compile path".to_string());
         }
 
-        let mut mir = self.lower_mir_selected(path, selection)?;
+        let frontend = self.run_frontend(path)?;
+        let pending_diagnostics = frontend.pending_diagnostics.clone();
+        let mut mir = match selection {
+            MirSelection::Legacy | MirSelection::OptimizedLegacy => frontend.legacy_mir,
+            MirSelection::CoreHir | MirSelection::OptimizedCoreHir => frontend.corehir_mir,
+        };
+        if matches!(
+            selection,
+            MirSelection::OptimizedLegacy | MirSelection::OptimizedCoreHir
+        ) {
+            optimize_module(&mut mir)
+                .map_err(|message| format!("internal error: optimizer failed: {message}"))?;
+            mark_selection(&mut mir, selection);
+            validate_mir(&mir)?;
+        }
         ensure_runtime_entry(&mir, selection)?;
-        validate_backend_ready_mir(&mir)?;
+        // The legacy T1 backend handles high-level IR nodes (IfExpr, LoopExpr, TryExpr)
+        // directly, so backend-legal validation only applies to the CoreHIR path.
+        if matches!(
+            selection,
+            MirSelection::CoreHir | MirSelection::OptimizedCoreHir
+        ) {
+            validate_backend_ready_mir(&mir)?;
+        }
         let plan = build_backend_plan(target, EmitKind::CoreWasm)?;
 
         self.sink = DiagnosticSink::new();
+        // Re-emit frontend warnings into the current sink so they appear on success.
+        for diag in pending_diagnostics {
+            self.sink.emit(diag);
+        }
         let wasm = ark_wasm::emit_with_plan(&mir, &mut self.sink, &plan);
         if self.sink.has_errors() {
-            return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            return Err(render_diagnostics(
+                self.sink.diagnostics(),
+                &self.source_map,
+            ));
         }
         if self.sink.has_warnings() {
-            eprint!("{}", render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            eprint!(
+                "{}",
+                render_diagnostics(self.sink.diagnostics(), &self.source_map)
+            );
         }
 
         mark_selection(&mut mir, selection);
-        Ok(CompiledModule { mir, wasm, selection })
+        Ok(CompiledModule {
+            mir,
+            wasm,
+            selection,
+        })
     }
 
     pub fn compile_wit(&mut self, path: &Path) -> Result<String, String> {

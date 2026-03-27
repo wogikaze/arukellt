@@ -177,7 +177,12 @@ impl TypeChecker {
         sink: &mut DiagnosticSink,
     ) -> CheckOutput {
         self.check_module(resolved, sink);
-        let bundle = build_core_hir_program(self, "main", &resolved.module.imports, &resolved.module.items);
+        let bundle = build_core_hir_program(
+            self,
+            "main",
+            &resolved.module.imports,
+            &resolved.module.items,
+        );
         if let Err(errors) = validate_program(&bundle.program) {
             for error in errors {
                 sink.emit(
@@ -2480,9 +2485,24 @@ impl TypeChecker {
                         params: sig.params,
                         ret: Box::new(sig.ret),
                     }
+                } else if let Some(info) = self.enum_defs.get(module.as_str()) {
+                    let variant = info.variants.iter().find(|v| v.name == *name);
+                    match variant {
+                        Some(v) if v.fields.is_empty() => {
+                            // Unit variant: Direction::South → Type::Enum(Direction)
+                            Type::Enum(info.type_id)
+                        }
+                        Some(v) => {
+                            // Tuple variant constructor: Color::Rgb → fn(fields...) -> Enum
+                            Type::Function {
+                                params: v.fields.clone(),
+                                ret: Box::new(Type::Enum(info.type_id)),
+                            }
+                        }
+                        None => Type::Enum(info.type_id),
+                    }
                 } else {
-                    // Enum variant constructors and other qualified names
-                    // are not fully typed yet — return Error to avoid false positives
+                    // Qualified names not yet resolvable
                     Type::Error
                 }
             }

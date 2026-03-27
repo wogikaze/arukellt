@@ -6,9 +6,9 @@ use std::process;
 use ark_target::EmitKind;
 
 #[cfg(feature = "llvm")]
-use ark_driver::Session;
-#[cfg(feature = "llvm")]
 use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
+#[cfg(feature = "llvm")]
+use ark_driver::Session;
 #[cfg(feature = "llvm")]
 use ark_lexer::Lexer;
 #[cfg(feature = "llvm")]

@@ -167,7 +167,10 @@ pub enum ExprKind {
     Const(ConstValue),
     Local(LocalId),
     Global(String),
-    QualifiedGlobal { module: String, name: String },
+    QualifiedGlobal {
+        module: String,
+        name: String,
+    },
     Call {
         target: CallTarget,
         args: Vec<CallArg>,
@@ -280,8 +283,13 @@ pub enum ConstValue {
 
 #[derive(Debug, Clone)]
 pub enum CallTarget {
-    Direct { function: String },
-    Selected { function: String, selection: Selection },
+    Direct {
+        function: String,
+    },
+    Selected {
+        function: String,
+        selection: Selection,
+    },
     Indirect(Box<Expr>),
 }
 

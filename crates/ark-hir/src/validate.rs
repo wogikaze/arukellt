@@ -24,11 +24,17 @@ pub fn validate_program(program: &Program) -> Result<(), Vec<ValidationError>> {
 
     for module in &program.modules {
         if !program.source_map.module_spans.contains_key(&module.id) {
-            errors.push(ValidationError::new(format!("module `{}` source span missing", module.name)));
+            errors.push(ValidationError::new(format!(
+                "module `{}` source span missing",
+                module.name
+            )));
         }
         for item in &module.items {
             if !program.source_map.item_spans.contains_key(&item.id) {
-                errors.push(ValidationError::new(format!("item `{}` source span missing", item.name)));
+                errors.push(ValidationError::new(format!(
+                    "item `{}` source span missing",
+                    item.name
+                )));
             }
             validate_item(program, item, &mut errors);
         }
@@ -65,14 +71,21 @@ fn validate_item(program: &Program, item: &Item, errors: &mut Vec<ValidationErro
     }
 }
 
-fn validate_body_ref(program: &Program, body_id: crate::ids::BodyId, errors: &mut Vec<ValidationError>) {
+fn validate_body_ref(
+    program: &Program,
+    body_id: crate::ids::BodyId,
+    errors: &mut Vec<ValidationError>,
+) {
     let Some(body) = program.bodies.iter().find(|body| body.id == body_id) else {
         errors.push(ValidationError::new(format!("body {:?} missing", body_id)));
         return;
     };
 
     if !program.source_map.body_spans.contains_key(&body.id) {
-        errors.push(ValidationError::new(format!("body {:?} source span missing", body.id)));
+        errors.push(ValidationError::new(format!(
+            "body {:?} source span missing",
+            body.id
+        )));
     }
 
     for stmt in &body.stmts {
@@ -97,7 +110,9 @@ fn validate_stmt(program: &Program, stmt: &Stmt, errors: &mut Vec<ValidationErro
             validate_body_ref(program, *body, errors);
         }
         Stmt::Loop { body } => validate_body_ref(program, *body, errors),
-        Stmt::ForRange { start, end, body, .. } => {
+        Stmt::ForRange {
+            start, end, body, ..
+        } => {
             validate_expr(program, start, errors);
             validate_expr(program, end, errors);
             validate_body_ref(program, *body, errors);
@@ -111,14 +126,24 @@ fn validate_stmt(program: &Program, stmt: &Stmt, errors: &mut Vec<ValidationErro
 
 fn validate_expr(program: &Program, expr: &Expr, errors: &mut Vec<ValidationError>) {
     if !program.source_map.expr_spans.contains_key(&expr.id) {
-        errors.push(ValidationError::new(format!("expr {:?} source span missing", expr.id)));
+        errors.push(ValidationError::new(format!(
+            "expr {:?} source span missing",
+            expr.id
+        )));
     }
     if matches!(expr.ty, Ty::Error) {
-        errors.push(ValidationError::new(format!("expr {:?} has error type", expr.id)));
+        errors.push(ValidationError::new(format!(
+            "expr {:?} has error type",
+            expr.id
+        )));
     }
 
     match &expr.kind {
-        ExprKind::Const(_) | ExprKind::Local(_) | ExprKind::Global(_) | ExprKind::QualifiedGlobal { .. } | ExprKind::Continue => {}
+        ExprKind::Const(_)
+        | ExprKind::Local(_)
+        | ExprKind::Global(_)
+        | ExprKind::QualifiedGlobal { .. }
+        | ExprKind::Continue => {}
         ExprKind::Call { target, args } => {
             validate_call_target(program, target, errors);
             for arg in args {
@@ -130,7 +155,11 @@ fn validate_expr(program: &Program, expr: &Expr, errors: &mut Vec<ValidationErro
             validate_expr(program, right, errors);
         }
         ExprKind::BuiltinUnary { operand, .. } => validate_expr(program, operand, errors),
-        ExprKind::If { cond, then_body, else_body } => {
+        ExprKind::If {
+            cond,
+            then_body,
+            else_body,
+        } => {
             validate_expr(program, cond, errors);
             validate_body_ref(program, *then_body, errors);
             if let Some(else_body) = else_body {
@@ -195,9 +224,14 @@ fn validate_call_target(program: &Program, target: &CallTarget, errors: &mut Vec
                 errors.push(ValidationError::new("direct call target must not be empty"));
             }
         }
-        CallTarget::Selected { function, selection } => {
+        CallTarget::Selected {
+            function,
+            selection,
+        } => {
             if function.is_empty() || selection.resolved_function.is_empty() {
-                errors.push(ValidationError::new("selected call target must be resolved"));
+                errors.push(ValidationError::new(
+                    "selected call target must be resolved",
+                ));
             }
         }
         CallTarget::Indirect(expr) => validate_expr(program, expr, errors),
@@ -206,10 +240,16 @@ fn validate_call_target(program: &Program, target: &CallTarget, errors: &mut Vec
 
 fn validate_pattern(program: &Program, pattern: &Pattern, errors: &mut Vec<ValidationError>) {
     if !program.source_map.pattern_spans.contains_key(&pattern.id) {
-        errors.push(ValidationError::new(format!("pattern {:?} source span missing", pattern.id)));
+        errors.push(ValidationError::new(format!(
+            "pattern {:?} source span missing",
+            pattern.id
+        )));
     }
     if matches!(pattern.ty, Ty::Error) {
-        errors.push(ValidationError::new(format!("pattern {:?} has error type", pattern.id)));
+        errors.push(ValidationError::new(format!(
+            "pattern {:?} has error type",
+            pattern.id
+        )));
     }
 
     let mut names = BTreeSet::new();
@@ -225,7 +265,10 @@ fn collect_pattern_names(
         PatternKind::Wildcard | PatternKind::Const(_) => {}
         PatternKind::Binding { name, .. } => {
             if !names.insert(name.clone()) {
-                errors.push(ValidationError::new(format!("duplicate pattern binding `{}`", name)));
+                errors.push(ValidationError::new(format!(
+                    "duplicate pattern binding `{}`",
+                    name
+                )));
             }
         }
         PatternKind::Tuple(patterns) | PatternKind::Or(patterns) => {
@@ -356,11 +399,21 @@ mod tests {
             binding_mode: ValueMode::ValueCopy,
         })];
         program.source_map.insert_expr(ExprId(1), Span::dummy());
-        program.source_map.insert_pattern(PatternId(0), Span::dummy());
-        program.source_map.insert_pattern(PatternId(1), Span::dummy());
-        program.source_map.insert_pattern(PatternId(2), Span::dummy());
+        program
+            .source_map
+            .insert_pattern(PatternId(0), Span::dummy());
+        program
+            .source_map
+            .insert_pattern(PatternId(1), Span::dummy());
+        program
+            .source_map
+            .insert_pattern(PatternId(2), Span::dummy());
 
         let errors = validate_program(&program).unwrap_err();
-        assert!(errors.iter().any(|err| err.message.contains("duplicate pattern binding")));
+        assert!(
+            errors
+                .iter()
+                .any(|err| err.message.contains("duplicate pattern binding"))
+        );
     }
 }

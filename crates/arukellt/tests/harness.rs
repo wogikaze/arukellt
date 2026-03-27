@@ -199,7 +199,10 @@ fn fixture_harness() {
                     let debug = Command::new(&bin)
                         .arg("check")
                         .arg(&fixture)
-                        .env("ARUKELLT_DUMP_PHASES", "parse,resolve,mir,optimized-mir,backend-plan")
+                        .env(
+                            "ARUKELLT_DUMP_PHASES",
+                            "parse,resolve,mir,optimized-mir,backend-plan",
+                        )
                         .env("ARUKELLT_DUMP_DIAGNOSTICS", "1")
                         .output()
                         .expect("failed to run arukellt debug check");

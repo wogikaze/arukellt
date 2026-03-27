@@ -97,10 +97,7 @@ impl MirStats {
     pub fn register_function(&mut self, func: &MirFunction) {
         self.instance_keys.push(func.instance.clone());
 
-        let callees = self
-            .direct_call_graph
-            .entry(func.name.clone())
-            .or_default();
+        let callees = self.direct_call_graph.entry(func.name.clone()).or_default();
         for block in &func.blocks {
             for stmt in &block.stmts {
                 if let MirStmt::Call { func, .. } = stmt {
@@ -146,12 +143,18 @@ pub fn runtime_entry_name(module: &MirModule) -> Option<String> {
     if function_by_name(module, "_start").is_some() {
         Some("_start".to_string())
     } else {
-        module.entry_fn.map(|id| function_name_or_fallback(module, id))
+        module
+            .entry_fn
+            .map(|id| function_name_or_fallback(module, id))
     }
 }
 
 pub fn compare_module_shapes(lhs: &MirModule, rhs: &MirModule) -> String {
-    format!("lhs: {}\nrhs: {}", module_snapshot(lhs), module_snapshot(rhs))
+    format!(
+        "lhs: {}\nrhs: {}",
+        module_snapshot(lhs),
+        module_snapshot(rhs)
+    )
 }
 
 fn fn_id_name(func: FnId) -> String {
@@ -336,11 +339,7 @@ impl Operand {
 }
 
 fn combine_effects(lhs: EffectKind, rhs: EffectKind) -> EffectKind {
-    if lhs.is_effectful() {
-        lhs
-    } else {
-        rhs
-    }
+    if lhs.is_effectful() { lhs } else { rhs }
 }
 
 pub fn is_backend_legal_operand(operand: &Operand) -> bool {
@@ -356,10 +355,7 @@ pub fn is_backend_legal_module(module: &MirModule) -> bool {
         .iter()
         .flat_map(|func| func.blocks.iter())
         .all(|block| {
-            block
-                .stmts
-                .iter()
-                .all(is_backend_legal_stmt)
+            block.stmts.iter().all(is_backend_legal_stmt)
                 && terminator_backend_legal(&block.terminator)
         })
 }
@@ -433,7 +429,10 @@ pub fn register_function_metadata(module: &mut MirModule, func: &MirFunction) {
     }
     for block in &func.blocks {
         if let Some(span) = block.source.span {
-            module.source_map.block_spans.insert((func.id, block.id), span);
+            module
+                .source_map
+                .block_spans
+                .insert((func.id, block.id), span);
         }
     }
 }
@@ -514,8 +513,17 @@ pub fn default_block_source() -> SourceInfo {
     SourceInfo::unknown()
 }
 
-pub fn statement_span(module: &MirModule, func: FnId, block: BlockId, stmt_index: usize) -> Option<Span> {
-    module.source_map.stmt_spans.get(&(func, block, stmt_index)).copied()
+pub fn statement_span(
+    module: &MirModule,
+    func: FnId,
+    block: BlockId,
+    stmt_index: usize,
+) -> Option<Span> {
+    module
+        .source_map
+        .stmt_spans
+        .get(&(func, block, stmt_index))
+        .copied()
 }
 
 pub fn record_statement_span(
@@ -537,7 +545,10 @@ pub fn remove_statement_span(
     block: BlockId,
     stmt_index: usize,
 ) {
-    module.source_map.stmt_spans.remove(&(func, block, stmt_index));
+    module
+        .source_map
+        .stmt_spans
+        .remove(&(func, block, stmt_index));
 }
 
 pub fn clear_statement_spans_for_block(module: &mut MirModule, func: FnId, block: BlockId) {
@@ -562,7 +573,10 @@ pub fn renumber_statement_spans(module: &mut MirModule, func: FnId, block: Block
     }
 }
 
-pub fn function_by_name_mut<'a>(module: &'a mut MirModule, name: &str) -> Option<&'a mut MirFunction> {
+pub fn function_by_name_mut<'a>(
+    module: &'a mut MirModule,
+    name: &str,
+) -> Option<&'a mut MirFunction> {
     module.functions.iter_mut().find(|func| func.name == name)
 }
 

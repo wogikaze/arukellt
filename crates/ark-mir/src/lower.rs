@@ -5,8 +5,8 @@ use std::collections::{HashMap, HashSet};
 use ark_diagnostics::DiagnosticSink;
 use ark_hir::{BodyId, ExprKind, ItemKind, Program, Stmt};
 use ark_parser::ast;
-use ark_typecheck::{CheckOutput, TypeChecker};
 use ark_typecheck::types::Type as CheckerType;
+use ark_typecheck::{CheckOutput, TypeChecker};
 
 use crate::mir::*;
 use crate::validate::validate_module;
@@ -14,6 +14,27 @@ use crate::validate::validate_module;
 fn finalize_module_metadata(mir: &mut MirModule) {
     sync_module_metadata(mir);
     let _ = validate_module(mir);
+}
+
+#[allow(dead_code)]
+fn clone_with_provenance(module: &MirModule, provenance: MirProvenance) -> MirModule {
+    let mut cloned = module.clone();
+    set_mir_provenance(&mut cloned, provenance);
+    cloned
+}
+
+#[allow(dead_code)]
+fn function_names(module: &MirModule) -> Vec<String> {
+    module
+        .functions
+        .iter()
+        .map(|func| func.name.clone())
+        .collect()
+}
+
+#[allow(dead_code)]
+fn validation_runs(module: &MirModule) -> u32 {
+    module.stats.validation_runs
 }
 
 fn default_function_instance(name: &str) -> InstanceKey {
@@ -62,7 +83,11 @@ fn push_function(mir: &mut MirModule, mut function: MirFunction) {
 
 fn infer_fn_id(name: &str, next_fn_id: u32) -> FnId {
     let inferred = legacy_fn_id(name);
-    if inferred.0 == 0 { FnId(next_fn_id) } else { inferred }
+    if inferred.0 == 0 {
+        FnId(next_fn_id)
+    } else {
+        inferred
+    }
 }
 
 fn fallback_block(id: BlockId, stmts: Vec<MirStmt>, terminator: Terminator) -> BasicBlock {
@@ -74,6 +99,7 @@ fn fallback_block(id: BlockId, stmts: Vec<MirStmt>, terminator: Terminator) -> B
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn fallback_function(
     id: FnId,
     name: String,
@@ -102,7 +128,11 @@ fn finalize_lowered_module(mir: &mut MirModule) {
     finalize_module_metadata(mir);
 }
 
-fn lower_hir_fallback(module: &ast::Module, checker: &TypeChecker, sink: &mut DiagnosticSink) -> MirModule {
+fn lower_hir_fallback(
+    module: &ast::Module,
+    checker: &TypeChecker,
+    sink: &mut DiagnosticSink,
+) -> MirModule {
     let mut mir = lower_to_mir(module, checker, sink);
     set_mir_provenance(&mut mir, MirProvenance::CoreHirFallback);
     mir
@@ -146,18 +176,45 @@ pub fn lower_hir_to_mir(
         .bodies
         .iter()
         .flat_map(|body| body.stmts.iter())
-        .filter(|stmt| matches!(stmt, Stmt::While { .. } | Stmt::Loop { .. } | Stmt::ForRange { .. } | Stmt::ForValues { .. }))
+        .filter(|stmt| {
+            matches!(
+                stmt,
+                Stmt::While { .. }
+                    | Stmt::Loop { .. }
+                    | Stmt::ForRange { .. }
+                    | Stmt::ForValues { .. }
+            )
+        })
         .count();
     let expr_complexity = core_hir
         .bodies
         .iter()
-        .flat_map(|body| body.tail.iter().chain(body.stmts.iter().filter_map(|stmt| match stmt { Stmt::Expr(expr) => Some(expr), _ => None })))
-        .filter(|expr| matches!(expr.kind, ExprKind::Match { .. } | ExprKind::Try(_) | ExprKind::Closure { .. }))
+        .flat_map(|body| {
+            body.tail
+                .iter()
+                .chain(body.stmts.iter().filter_map(|stmt| match stmt {
+                    Stmt::Expr(expr) => Some(expr),
+                    _ => None,
+                }))
+        })
+        .filter(|expr| {
+            matches!(
+                expr.kind,
+                ExprKind::Match { .. } | ExprKind::Try(_) | ExprKind::Closure { .. }
+            )
+        })
         .count();
 
     let mirrored = checker
         .latest_core_hir()
-        .map(|bundle| bundle.program.modules.first().map(|resolved_module| resolved_module.items.len()).unwrap_or(0))
+        .map(|bundle| {
+            bundle
+                .program
+                .modules
+                .first()
+                .map(|resolved_module| resolved_module.items.len())
+                .unwrap_or(0)
+        })
         .unwrap_or(item_count);
 
     let mut mir = MirModule::new();
@@ -189,7 +246,9 @@ pub fn lower_corehir_via_legacy(
     lower_hir_fallback(module, checker, sink)
 }
 
-pub fn validate_lowered_mir(module: &MirModule) -> Result<(), Vec<crate::validate::MirValidationError>> {
+pub fn validate_lowered_mir(
+    module: &MirModule,
+) -> Result<(), Vec<crate::validate::MirValidationError>> {
     validate_module(module)
 }
 
@@ -276,7 +335,11 @@ pub fn program_shape_snapshot(core_hir: &Program) -> String {
         .filter(|item| matches!(item.kind, ItemKind::Function(_)))
         .count();
     let body_count = core_hir.bodies.len();
-    let first_body = core_hir.bodies.first().map(|body| body.id.0).unwrap_or_default();
+    let first_body = core_hir
+        .bodies
+        .first()
+        .map(|body| body.id.0)
+        .unwrap_or_default();
     format!(
         "modules={} functions={} bodies={} first_body={}",
         core_hir.modules.len(),
@@ -325,7 +388,11 @@ pub fn ensure_runtime_candidate(module: &MirModule) -> bool {
 }
 
 pub fn lowering_debug_manifest(module: &MirModule) -> String {
-    format!("{}\nentry={:?}", module_snapshot(module), runtime_entry_name(module))
+    format!(
+        "{}\nentry={:?}",
+        module_snapshot(module),
+        runtime_entry_name(module)
+    )
 }
 
 pub fn lowering_diff_manifest(legacy: &MirModule, corehir: &MirModule) -> String {
@@ -380,7 +447,11 @@ pub fn lower_legacy_only_summary(module: &MirModule) -> String {
 }
 
 pub fn compare_program_and_mir(program: &Program, module: &MirModule) -> String {
-    format!("program={}\nmir={}", corehir_lowering_summary(program), module_snapshot(module))
+    format!(
+        "program={}\nmir={}",
+        corehir_lowering_summary(program),
+        module_snapshot(module)
+    )
 }
 
 pub fn mark_lowered(module: &mut MirModule, provenance: MirProvenance) {
@@ -393,7 +464,10 @@ pub fn compare_mir_counts(legacy: &MirModule, corehir: &MirModule) -> (usize, us
 
 pub fn describe_mir_counts(legacy: &MirModule, corehir: &MirModule) -> String {
     let (legacy_count, corehir_count) = compare_mir_counts(legacy, corehir);
-    format!("legacy_functions={} corehir_functions={}", legacy_count, corehir_count)
+    format!(
+        "legacy_functions={} corehir_functions={}",
+        legacy_count, corehir_count
+    )
 }
 
 pub fn lowering_probe(
@@ -476,7 +550,11 @@ pub fn lowering_entry(module: &MirModule) -> Option<String> {
 }
 
 pub fn lowering_functions(module: &MirModule) -> Vec<String> {
-    module.functions.iter().map(|func| func.name.clone()).collect()
+    module
+        .functions
+        .iter()
+        .map(|func| func.name.clone())
+        .collect()
 }
 
 pub fn lowering_is_empty(module: &MirModule) -> bool {
@@ -488,7 +566,11 @@ pub fn lowering_can_run(module: &MirModule) -> bool {
 }
 
 pub fn lowering_validation_summary(module: &MirModule) -> String {
-    format!("validation_runs={} snapshot={}", module.stats.validation_runs, module_snapshot(module))
+    format!(
+        "validation_runs={} snapshot={}",
+        module.stats.validation_runs,
+        module_snapshot(module)
+    )
 }
 
 pub fn lowering_path_name(module: &MirModule) -> &str {
@@ -504,7 +586,11 @@ pub fn lowering_shape_matches(lhs: &MirModule, rhs: &MirModule) -> bool {
 }
 
 pub fn lowering_path_compare(lhs: &MirModule, rhs: &MirModule) -> String {
-    format!("matches={}\n{}", lowering_shape_matches(lhs, rhs), compare_module_shapes(lhs, rhs))
+    format!(
+        "matches={}\n{}",
+        lowering_shape_matches(lhs, rhs),
+        compare_module_shapes(lhs, rhs)
+    )
 }
 
 pub fn lowering_path_probe(
@@ -518,11 +604,19 @@ pub fn lowering_path_probe(
 }
 
 pub fn lowering_path_export_summary(module: &MirModule) -> String {
-    format!("entry={:?} functions={}", runtime_entry_name(module), module.functions.len())
+    format!(
+        "entry={:?} functions={}",
+        runtime_entry_name(module),
+        module.functions.len()
+    )
 }
 
 pub fn lowering_runtime_parity_hint(module: &MirModule) -> String {
-    format!("runtime_candidate={} {}", ensure_runtime_candidate(module), lowering_path_export_summary(module))
+    format!(
+        "runtime_candidate={} {}",
+        ensure_runtime_candidate(module),
+        lowering_path_export_summary(module)
+    )
 }
 
 pub fn lowering_runtime_parity_pair(lhs: &MirModule, rhs: &MirModule) -> String {
@@ -547,7 +641,11 @@ pub fn lowering_probe_full(
     ))
 }
 
-pub fn lower_legacy_only(module: &ast::Module, checker: &TypeChecker, sink: &mut DiagnosticSink) -> MirModule {
+pub fn lower_legacy_only(
+    module: &ast::Module,
+    checker: &TypeChecker,
+    sink: &mut DiagnosticSink,
+) -> MirModule {
     let mut mir = lower_to_mir(module, checker, sink);
     set_mir_provenance(&mut mir, MirProvenance::LegacyAst);
     mir
@@ -571,7 +669,11 @@ pub fn lower_prefer_corehir(
     lower_corehir_only(module, output, checker, sink)
 }
 
-pub fn lower_prefer_legacy(module: &ast::Module, checker: &TypeChecker, sink: &mut DiagnosticSink) -> MirModule {
+pub fn lower_prefer_legacy(
+    module: &ast::Module,
+    checker: &TypeChecker,
+    sink: &mut DiagnosticSink,
+) -> MirModule {
     lower_legacy_only(module, checker, sink)
 }
 
@@ -591,10 +693,17 @@ pub fn lower_dual_paths_summary(
     sink: &mut DiagnosticSink,
 ) -> Result<String, String> {
     let (legacy, corehir) = lower_dual_paths(module, output, checker, sink)?;
-    Ok(format!("{}\n{}", lowering_path_compare(&legacy, &corehir), lowering_runtime_parity_pair(&legacy, &corehir)))
+    Ok(format!(
+        "{}\n{}",
+        lowering_path_compare(&legacy, &corehir),
+        lowering_runtime_parity_pair(&legacy, &corehir)
+    ))
 }
 
-pub fn validate_lowering_pair(legacy: &MirModule, corehir: &MirModule) -> Result<(), Vec<crate::validate::MirValidationError>> {
+pub fn validate_lowering_pair(
+    legacy: &MirModule,
+    corehir: &MirModule,
+) -> Result<(), Vec<crate::validate::MirValidationError>> {
     validate_module(legacy)?;
     validate_module(corehir)
 }
@@ -618,11 +727,22 @@ pub fn lowering_pair_status(legacy: &MirModule, corehir: &MirModule) -> String {
 }
 
 pub fn lowering_pair_full_status(legacy: &MirModule, corehir: &MirModule) -> String {
-    format!("{}\n{}", lowering_pair_status(legacy, corehir), compare_module_shapes(legacy, corehir))
+    format!(
+        "{}\n{}",
+        lowering_pair_status(legacy, corehir),
+        compare_module_shapes(legacy, corehir)
+    )
 }
 
 pub fn mirror_corehir_counts(program: &Program, module: &mut MirModule) {
-    note_lowering_origin(module, &format!("corehir-bodies={} corehir-modules={}", program.bodies.len(), program.modules.len()));
+    note_lowering_origin(
+        module,
+        &format!(
+            "corehir-bodies={} corehir-modules={}",
+            program.bodies.len(),
+            program.modules.len()
+        ),
+    );
 }
 
 pub fn mirror_check_output(output: &CheckOutput, module: &mut MirModule) {
@@ -634,21 +754,39 @@ pub fn lowering_has_functions(module: &MirModule) -> bool {
 }
 
 pub fn lowering_empty_reason(module: &MirModule) -> String {
-    if module.functions.is_empty() { "no-functions".to_string() } else { "has-functions".to_string() }
+    if module.functions.is_empty() {
+        "no-functions".to_string()
+    } else {
+        "has-functions".to_string()
+    }
 }
 
 pub fn lowering_status_line(module: &MirModule) -> String {
-    format!("path={} entry={:?} reason={}", lowering_path_name(module), runtime_entry_name(module), lowering_empty_reason(module))
+    format!(
+        "path={} entry={:?} reason={}",
+        lowering_path_name(module),
+        runtime_entry_name(module),
+        lowering_empty_reason(module)
+    )
 }
 
 pub fn compare_status_lines(legacy: &MirModule, corehir: &MirModule) -> String {
-    format!("legacy={}\ncorehir={}", lowering_status_line(legacy), lowering_status_line(corehir))
+    format!(
+        "legacy={}\ncorehir={}",
+        lowering_status_line(legacy),
+        lowering_status_line(corehir)
+    )
 }
 
 pub fn lowering_pair_report(legacy: &MirModule, corehir: &MirModule) -> String {
-    format!("{}\n{}", compare_status_lines(legacy, corehir), compare_module_shapes(legacy, corehir))
+    format!(
+        "{}\n{}",
+        compare_status_lines(legacy, corehir),
+        compare_module_shapes(legacy, corehir)
+    )
 }
 
+#[allow(dead_code)]
 fn fn_id_name(func: FnId) -> String {
     format!("fn#{}", func.0)
 }
@@ -1019,6 +1157,8 @@ pub fn lower_to_mir(
                 closure_fn.id = closure_id;
                 push_function(&mut mir, closure_fn);
             }
+            // Keep next_fn_id ahead of all pushed functions (including closures).
+            next_fn_id = next_fn_id.max(mir.functions.len() as u32);
         }
         // Lower impl method bodies as regular functions with mangled names
         if let ast::Item::ImplBlock(ib) = item {
@@ -1173,7 +1313,7 @@ pub fn lower_to_mir(
                     push_function(&mut mir, closure_fn);
                 }
 
-                next_fn_id = next_fn_id.max(fn_id.0.saturating_add(1));
+                next_fn_id = next_fn_id.max(mir.functions.len() as u32);
 
                 continue;
             }
@@ -3735,7 +3875,7 @@ impl LowerCtx {
                         .insert(synth_name.clone(), captures);
                 }
 
-                return Operand::FnRef(synth_name);
+                Operand::FnRef(synth_name)
             }
             ast::Expr::Array { elements, .. } => {
                 let lowered: Vec<Operand> = elements.iter().map(|e| self.lower_expr(e)).collect();

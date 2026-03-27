@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
+use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink};
 use ark_lexer::Lexer;
 use ark_parser::ast;
 use ark_parser::parse;
@@ -60,7 +60,10 @@ pub struct ResolvedProgram {
     pub global_scope: ScopeId,
 }
 
-pub fn bind_program(entry_path: &Path, sink: &mut DiagnosticSink) -> Result<ResolvedProgram, String> {
+pub fn bind_program(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+) -> Result<ResolvedProgram, String> {
     resolve_program(entry_path, sink)
 }
 
@@ -207,6 +210,7 @@ pub fn resolve_module_stdlib(module: ast::Module, sink: &mut DiagnosticSink) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ark_diagnostics::Span;
 
     #[test]
     fn resolve_module_preserves_symbols() {
@@ -222,6 +226,11 @@ mod tests {
         };
         let mut sink = DiagnosticSink::new();
         let resolved = resolve_module(module, &mut sink);
-        assert!(resolved.symbols.lookup(resolved.global_scope, "Point").is_some());
+        assert!(
+            resolved
+                .symbols
+                .lookup(resolved.global_scope, "Point")
+                .is_some()
+        );
     }
 }

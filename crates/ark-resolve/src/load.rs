@@ -8,8 +8,12 @@ use ark_parser::{ast, parse};
 use crate::module_graph::ModuleGraph;
 use crate::resolve::LoadedModule;
 
-pub(crate) fn parse_module_file(path: &Path, sink: &mut DiagnosticSink) -> Result<ast::Module, String> {
-    let source = std::fs::read_to_string(path).map_err(|e| format!("error: {}: {}", path.display(), e))?;
+pub(crate) fn parse_module_file(
+    path: &Path,
+    sink: &mut DiagnosticSink,
+) -> Result<ast::Module, String> {
+    let source =
+        std::fs::read_to_string(path).map_err(|e| format!("error: {}: {}", path.display(), e))?;
     let lexer = Lexer::new(0, &source);
     let tokens: Vec<_> = lexer.collect();
     Ok(parse(&tokens, sink))
@@ -58,7 +62,12 @@ fn load_module_recursive(
     if !visiting.insert(path.clone()) {
         let cycle: Vec<String> = visiting
             .iter()
-            .map(|p| p.file_name().unwrap_or_default().to_string_lossy().to_string())
+            .map(|p| {
+                p.file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string()
+            })
             .collect();
         sink.emit(Diagnostic::new(DiagnosticCode::E0103).with_message(format!(
             "circular import detected: {} → {}",
@@ -80,7 +89,10 @@ fn load_module_recursive(
     for import in &module.imports {
         let import_path = resolve_import_path(&path, &import.module_name, std_root, sink);
         load_module_recursive(
-            import.alias.clone().unwrap_or_else(|| import.module_name.clone()),
+            import
+                .alias
+                .clone()
+                .unwrap_or_else(|| import.module_name.clone()),
             import_path,
             std_root,
             sink,
@@ -100,7 +112,10 @@ fn load_module_recursive(
     );
 }
 
-pub(crate) fn load_program(entry_path: &Path, sink: &mut DiagnosticSink) -> Result<ModuleGraph, String> {
+pub(crate) fn load_program(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+) -> Result<ModuleGraph, String> {
     let std_root = entry_path
         .ancestors()
         .find(|p| p.join("std").is_dir())
@@ -114,7 +129,10 @@ pub(crate) fn load_program(entry_path: &Path, sink: &mut DiagnosticSink) -> Resu
     for import in &entry_module.imports {
         let import_path = resolve_import_path(entry_path, &import.module_name, &std_root, sink);
         load_module_recursive(
-            import.alias.clone().unwrap_or_else(|| import.module_name.clone()),
+            import
+                .alias
+                .clone()
+                .unwrap_or_else(|| import.module_name.clone()),
             import_path,
             &std_root,
             sink,
@@ -137,7 +155,12 @@ mod tests {
     #[test]
     fn resolve_import_prefers_local_path() {
         let mut sink = DiagnosticSink::new();
-        let path = resolve_import_path(Path::new("/tmp/main.ark"), "foo::bar", Path::new("/std"), &mut sink);
+        let path = resolve_import_path(
+            Path::new("/tmp/main.ark"),
+            "foo::bar",
+            Path::new("/std"),
+            &mut sink,
+        );
         assert!(path.ends_with("foo/bar.ark"));
     }
 }

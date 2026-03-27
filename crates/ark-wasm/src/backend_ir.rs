@@ -3,6 +3,7 @@
 //! These types describe language-level constructs in a target-neutral way.
 //! Per-target emitters consult these descriptors to decide concrete layouts.
 
+#![allow(dead_code)]
 /// How a type is represented in the backend.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum BackendType {

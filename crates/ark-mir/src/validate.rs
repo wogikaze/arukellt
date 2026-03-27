@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::mir::{
-    function_name_or_fallback, is_backend_legal_module, BinOp, BlockId, FnId, MirFunction,
-    MirModule, MirStmt, Operand, Place, Rvalue, Terminator, UnaryOp,
+    BinOp, BlockId, FnId, MirFunction, MirModule, MirStmt, Operand, Place, Rvalue, Terminator,
+    UnaryOp, function_name_or_fallback, is_backend_legal_module,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -62,11 +62,17 @@ fn structural_errors(module: &MirModule) -> Vec<MirValidationError> {
         validate_function(module, func, &mut errors);
     }
 
-    if module.entry_fn.is_some_and(|entry| !seen_fn_ids.contains(&entry)) {
+    if module
+        .entry_fn
+        .is_some_and(|entry| !seen_fn_ids.contains(&entry))
+    {
         errors.push(MirValidationError::new(
             "<module>".to_string(),
             None,
-            format!("entry function {} does not exist", module.entry_fn.unwrap().0),
+            format!(
+                "entry function {} does not exist",
+                module.entry_fn.unwrap().0
+            ),
         ));
     }
 
@@ -161,7 +167,15 @@ fn validate_block(
     errors: &mut Vec<MirValidationError>,
 ) {
     for stmt in &block.stmts {
-        validate_stmt(module, func_id, function_name, block.id, stmt, declared, errors);
+        validate_stmt(
+            module,
+            func_id,
+            function_name,
+            block.id,
+            stmt,
+            declared,
+            errors,
+        );
     }
     validate_terminator(
         module,
@@ -189,7 +203,11 @@ fn validate_stmt(
             validate_rvalue(function_name, block_id, rvalue, declared, errors);
         }
         MirStmt::Call { dest, func, args } => {
-            if module.functions.iter().all(|candidate| candidate.id != *func) {
+            if module
+                .functions
+                .iter()
+                .all(|candidate| candidate.id != *func)
+            {
                 errors.push(MirValidationError::new(
                     function_name.to_string(),
                     Some(block_id),
@@ -221,16 +239,40 @@ fn validate_stmt(
         } => {
             validate_operand(function_name, block_id, cond, declared, errors);
             for nested in then_body {
-                validate_stmt(module, FnId(0), function_name, block_id, nested, declared, errors);
+                validate_stmt(
+                    module,
+                    FnId(0),
+                    function_name,
+                    block_id,
+                    nested,
+                    declared,
+                    errors,
+                );
             }
             for nested in else_body {
-                validate_stmt(module, FnId(0), function_name, block_id, nested, declared, errors);
+                validate_stmt(
+                    module,
+                    FnId(0),
+                    function_name,
+                    block_id,
+                    nested,
+                    declared,
+                    errors,
+                );
             }
         }
         MirStmt::WhileStmt { cond, body } => {
             validate_operand(function_name, block_id, cond, declared, errors);
             for nested in body {
-                validate_stmt(module, FnId(0), function_name, block_id, nested, declared, errors);
+                validate_stmt(
+                    module,
+                    FnId(0),
+                    function_name,
+                    block_id,
+                    nested,
+                    declared,
+                    errors,
+                );
             }
         }
         MirStmt::Break | MirStmt::Continue => {}
@@ -267,7 +309,9 @@ fn validate_terminator(
     }
 
     if matches!(terminator, Terminator::Unreachable)
-        && module.entry_fn.is_some_and(|entry| entry == FnId(block_id.0))
+        && module
+            .entry_fn
+            .is_some_and(|entry| entry == FnId(block_id.0))
     {
         errors.push(MirValidationError::new(
             function_name.to_string(),
@@ -285,7 +329,9 @@ fn validate_rvalue(
     errors: &mut Vec<MirValidationError>,
 ) {
     match rvalue {
-        Rvalue::Use(operand) => validate_operand(function_name, block_id, operand, declared, errors),
+        Rvalue::Use(operand) => {
+            validate_operand(function_name, block_id, operand, declared, errors)
+        }
         Rvalue::BinaryOp(op, lhs, rhs) => {
             validate_binary_op(function_name, block_id, *op, lhs, rhs, declared, errors)
         }
@@ -399,13 +445,29 @@ fn validate_operand(
         } => {
             validate_operand(function_name, block_id, cond, declared, errors);
             for stmt in then_body {
-                validate_stmt(&MirModule::default(), FnId(0), function_name, block_id, stmt, declared, errors);
+                validate_stmt(
+                    &MirModule::default(),
+                    FnId(0),
+                    function_name,
+                    block_id,
+                    stmt,
+                    declared,
+                    errors,
+                );
             }
             if let Some(result) = then_result {
                 validate_operand(function_name, block_id, result, declared, errors);
             }
             for stmt in else_body {
-                validate_stmt(&MirModule::default(), FnId(0), function_name, block_id, stmt, declared, errors);
+                validate_stmt(
+                    &MirModule::default(),
+                    FnId(0),
+                    function_name,
+                    block_id,
+                    stmt,
+                    declared,
+                    errors,
+                );
             }
             if let Some(result) = else_result {
                 validate_operand(function_name, block_id, result, declared, errors);
@@ -430,11 +492,21 @@ fn validate_operand(
         Operand::LoopExpr { init, body, result } => {
             validate_operand(function_name, block_id, init, declared, errors);
             for stmt in body {
-                validate_stmt(&MirModule::default(), FnId(0), function_name, block_id, stmt, declared, errors);
+                validate_stmt(
+                    &MirModule::default(),
+                    FnId(0),
+                    function_name,
+                    block_id,
+                    stmt,
+                    declared,
+                    errors,
+                );
             }
             validate_operand(function_name, block_id, result, declared, errors);
         }
-        Operand::TryExpr { expr, .. } => validate_operand(function_name, block_id, expr, declared, errors),
+        Operand::TryExpr { expr, .. } => {
+            validate_operand(function_name, block_id, expr, declared, errors)
+        }
         Operand::CallIndirect { callee, args } => {
             validate_operand(function_name, block_id, callee, declared, errors);
             for arg in args {
@@ -474,9 +546,9 @@ fn terminator_successors(terminator: &Terminator) -> Vec<BlockId> {
 mod tests {
     use super::*;
     use crate::mir::{
-        default_block_source, default_function_source, sync_module_metadata, BasicBlock, BinOp,
-        FnId, InstanceKey, LocalId, MirFunction, MirLocal, MirModule, MirStmt, Operand, Place,
-        Rvalue, Terminator,
+        BasicBlock, BinOp, FnId, InstanceKey, LocalId, MirFunction, MirLocal, MirModule, MirStmt,
+        Operand, Place, Rvalue, Terminator, default_block_source, default_function_source,
+        sync_module_metadata,
     };
     use ark_typecheck::types::Type;
 
@@ -528,6 +600,10 @@ mod tests {
         module.functions.push(function);
         sync_module_metadata(&mut module);
         let errors = validate_module(&module).unwrap_err();
-        assert!(errors.iter().any(|error| error.message.contains("undeclared local")));
+        assert!(
+            errors
+                .iter()
+                .any(|error| error.message.contains("undeclared local"))
+        );
     }
 }

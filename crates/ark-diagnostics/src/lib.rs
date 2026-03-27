@@ -173,37 +173,217 @@ pub const PHASE_DUMP_ORDER: &[&str] = &[
 impl DiagnosticCode {
     pub fn spec(self) -> DiagnosticSpec {
         match self {
-            Self::E0001 => DiagnosticSpec { code: self, id: "E0001", message: "unexpected token", severity: Severity::Error, phase: DiagnosticPhase::Parse },
-            Self::E0002 => DiagnosticSpec { code: self, id: "E0002", message: "missing token", severity: Severity::Error, phase: DiagnosticPhase::Parse },
-            Self::E0003 => DiagnosticSpec { code: self, id: "E0003", message: "invalid construct", severity: Severity::Error, phase: DiagnosticPhase::Parse },
-            Self::E0100 => DiagnosticSpec { code: self, id: "E0100", message: "unresolved name", severity: Severity::Error, phase: DiagnosticPhase::Resolve },
-            Self::E0101 => DiagnosticSpec { code: self, id: "E0101", message: "duplicate definition", severity: Severity::Error, phase: DiagnosticPhase::Resolve },
-            Self::E0102 => DiagnosticSpec { code: self, id: "E0102", message: "access to private symbol", severity: Severity::Error, phase: DiagnosticPhase::Resolve },
-            Self::E0103 => DiagnosticSpec { code: self, id: "E0103", message: "circular import", severity: Severity::Error, phase: DiagnosticPhase::Resolve },
-            Self::E0200 => DiagnosticSpec { code: self, id: "E0200", message: "type mismatch", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0201 => DiagnosticSpec { code: self, id: "E0201", message: "missing type annotation", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0202 => DiagnosticSpec { code: self, id: "E0202", message: "wrong number of arguments", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0203 => DiagnosticSpec { code: self, id: "E0203", message: "invalid generic usage", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0204 => DiagnosticSpec { code: self, id: "E0204", message: "non-exhaustive match", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0205 => DiagnosticSpec { code: self, id: "E0205", message: "mismatched match arm types", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0206 => DiagnosticSpec { code: self, id: "E0206", message: "invalid pattern", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0207 => DiagnosticSpec { code: self, id: "E0207", message: "cannot mutate immutable variable", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0208 => DiagnosticSpec { code: self, id: "E0208", message: "missing return value", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0209 => DiagnosticSpec { code: self, id: "E0209", message: "unreachable pattern", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0210 => DiagnosticSpec { code: self, id: "E0210", message: "incompatible error type for `?` operator", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0300 => DiagnosticSpec { code: self, id: "E0300", message: "traits are not available in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0301 => DiagnosticSpec { code: self, id: "E0301", message: "method call syntax is not available in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0302 => DiagnosticSpec { code: self, id: "E0302", message: "nested generics are not allowed in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0303 => DiagnosticSpec { code: self, id: "E0303", message: "`for` loop is not available in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0304 => DiagnosticSpec { code: self, id: "E0304", message: "operator overloading is not available in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
-            Self::E0305 => DiagnosticSpec { code: self, id: "E0305", message: "unsupported target", severity: Severity::Error, phase: DiagnosticPhase::Target },
-            Self::E0306 => DiagnosticSpec { code: self, id: "E0306", message: "invalid emit kind for target", severity: Severity::Error, phase: DiagnosticPhase::Target },
-            Self::E0307 => DiagnosticSpec { code: self, id: "E0307", message: "feature not available for target", severity: Severity::Error, phase: DiagnosticPhase::Target },
-            Self::W0001 => DiagnosticSpec { code: self, id: "W0001", message: "possible unintended sharing of reference type", severity: Severity::Warning, phase: DiagnosticPhase::TypeCheck },
-            Self::W0002 => DiagnosticSpec { code: self, id: "W0002", message: "deprecated target alias", severity: Severity::Warning, phase: DiagnosticPhase::Target },
-            Self::W0003 => DiagnosticSpec { code: self, id: "W0003", message: "ambiguous import: local and std modules share the same name", severity: Severity::Warning, phase: DiagnosticPhase::Resolve },
+            Self::E0001 => DiagnosticSpec {
+                code: self,
+                id: "E0001",
+                message: "unexpected token",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Parse,
+            },
+            Self::E0002 => DiagnosticSpec {
+                code: self,
+                id: "E0002",
+                message: "missing token",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Parse,
+            },
+            Self::E0003 => DiagnosticSpec {
+                code: self,
+                id: "E0003",
+                message: "invalid construct",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Parse,
+            },
+            Self::E0100 => DiagnosticSpec {
+                code: self,
+                id: "E0100",
+                message: "unresolved name",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0101 => DiagnosticSpec {
+                code: self,
+                id: "E0101",
+                message: "duplicate definition",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0102 => DiagnosticSpec {
+                code: self,
+                id: "E0102",
+                message: "access to private symbol",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0103 => DiagnosticSpec {
+                code: self,
+                id: "E0103",
+                message: "circular import",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0200 => DiagnosticSpec {
+                code: self,
+                id: "E0200",
+                message: "type mismatch",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0201 => DiagnosticSpec {
+                code: self,
+                id: "E0201",
+                message: "missing type annotation",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0202 => DiagnosticSpec {
+                code: self,
+                id: "E0202",
+                message: "wrong number of arguments",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0203 => DiagnosticSpec {
+                code: self,
+                id: "E0203",
+                message: "invalid generic usage",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0204 => DiagnosticSpec {
+                code: self,
+                id: "E0204",
+                message: "non-exhaustive match",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0205 => DiagnosticSpec {
+                code: self,
+                id: "E0205",
+                message: "mismatched match arm types",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0206 => DiagnosticSpec {
+                code: self,
+                id: "E0206",
+                message: "invalid pattern",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0207 => DiagnosticSpec {
+                code: self,
+                id: "E0207",
+                message: "cannot mutate immutable variable",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0208 => DiagnosticSpec {
+                code: self,
+                id: "E0208",
+                message: "missing return value",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0209 => DiagnosticSpec {
+                code: self,
+                id: "E0209",
+                message: "unreachable pattern",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0210 => DiagnosticSpec {
+                code: self,
+                id: "E0210",
+                message: "incompatible error type for `?` operator",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0300 => DiagnosticSpec {
+                code: self,
+                id: "E0300",
+                message: "traits are not available in v0",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0301 => DiagnosticSpec {
+                code: self,
+                id: "E0301",
+                message: "method call syntax is not available in v0",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0302 => DiagnosticSpec {
+                code: self,
+                id: "E0302",
+                message: "nested generics are not allowed in v0",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0303 => DiagnosticSpec {
+                code: self,
+                id: "E0303",
+                message: "`for` loop is not available in v0",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0304 => DiagnosticSpec {
+                code: self,
+                id: "E0304",
+                message: "operator overloading is not available in v0",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0305 => DiagnosticSpec {
+                code: self,
+                id: "E0305",
+                message: "unsupported target",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Target,
+            },
+            Self::E0306 => DiagnosticSpec {
+                code: self,
+                id: "E0306",
+                message: "invalid emit kind for target",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Target,
+            },
+            Self::E0307 => DiagnosticSpec {
+                code: self,
+                id: "E0307",
+                message: "feature not available for target",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Target,
+            },
+            Self::W0001 => DiagnosticSpec {
+                code: self,
+                id: "W0001",
+                message: "possible unintended sharing of reference type",
+                severity: Severity::Warning,
+                phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::W0002 => DiagnosticSpec {
+                code: self,
+                id: "W0002",
+                message: "deprecated target alias",
+                severity: Severity::Warning,
+                phase: DiagnosticPhase::Target,
+            },
+            Self::W0003 => DiagnosticSpec {
+                code: self,
+                id: "W0003",
+                message: "ambiguous import: local and std modules share the same name",
+                severity: Severity::Warning,
+                phase: DiagnosticPhase::Resolve,
+            },
             // Current-first refactor policy: W0004 is now a hard error at backend validation.
-            Self::W0004 => DiagnosticSpec { code: self, id: "W0004", message: "generated Wasm module failed validation", severity: Severity::Error, phase: DiagnosticPhase::BackendValidate },
+            Self::W0004 => DiagnosticSpec {
+                code: self,
+                id: "W0004",
+                message: "generated Wasm module failed validation",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::BackendValidate,
+            },
         }
     }
 
@@ -225,7 +405,11 @@ impl DiagnosticCode {
 }
 
 pub fn diagnostic_registry() -> Vec<DiagnosticSpec> {
-    DIAGNOSTIC_CODES.iter().copied().map(DiagnosticCode::spec).collect()
+    DIAGNOSTIC_CODES
+        .iter()
+        .copied()
+        .map(DiagnosticCode::spec)
+        .collect()
 }
 
 pub fn internal_diagnostic_ids() -> &'static [&'static str] {
@@ -248,7 +432,10 @@ pub fn render_diagnostic_registry() -> String {
         ));
     }
     for id in INTERNAL_DIAGNOSTIC_IDS {
-        out.push_str(&format!("{}\terror\tinternal\tinternal compiler error\n", id));
+        out.push_str(&format!(
+            "{}\terror\tinternal\tinternal compiler error\n",
+            id
+        ));
     }
     out
 }
@@ -707,7 +894,11 @@ pub fn requested_dump_phases(var_name: &str) -> Option<Vec<String>> {
 
 pub fn should_dump_phase(var_name: &str, phase: &str) -> bool {
     requested_dump_phases(var_name)
-        .map(|phases| phases.iter().any(|candidate| candidate == phase || candidate == "all"))
+        .map(|phases| {
+            phases
+                .iter()
+                .any(|candidate| candidate == phase || candidate == "all")
+        })
         .unwrap_or(false)
 }
 

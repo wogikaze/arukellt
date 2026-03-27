@@ -20,6 +20,7 @@ pub struct StmtId(pub u32);
 #[derive(Debug)]
 pub struct NodeIdAllocator {
     next_expr: u32,
+    #[allow(dead_code)]
     next_stmt: u32,
 }
 
@@ -37,6 +38,7 @@ impl NodeIdAllocator {
         id
     }
 
+    #[allow(dead_code)]
     pub fn fresh_stmt(&mut self) -> StmtId {
         let id = StmtId(self.next_stmt);
         self.next_stmt += 1;
