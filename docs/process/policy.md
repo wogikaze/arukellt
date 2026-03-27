@@ -83,8 +83,8 @@ V1 exit is defined by T3 (`wasm32-wasi-p2`) core-wasm compile/run correctness wi
 
 Operational requirements for the gate:
 
-- All T3 compile fixtures pass without fallback to T1 linear-memory runtime.
-- `RuntimeModel::T3FallbackToT1` is replaced by a non-fallback model.
+- All T3 compile fixtures pass with the `T3WasmGcP2` runtime model.
+- `RuntimeModel::T3WasmGcP2` is the active T3 runtime model.
 - `verify-harness.sh` passes with T3 compile verification enabled.
 - `--emit component` is **not** part of the v1 gate and remains a hard error.
 - T4 (native/LLVM) is **not** part of the v1 gate.

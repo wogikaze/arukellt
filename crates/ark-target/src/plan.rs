@@ -3,22 +3,15 @@ use crate::{AbiSurface, EmitKind, MemoryModel, TargetId, TargetProfile, WasiProf
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RuntimeModel {
     T1LinearP1,
-    /// Transitional: T3 target exists but still uses T1-style linear memory internally.
-    T3FallbackToT1,
-    /// Completed T3: WasmGC-native data model with WASI P2 runtime.
+    /// Completed T3: WasmGC types + linear-memory bridge I/O via P1 fd_write.
     T3WasmGcP2,
     T4LlvmScaffold,
 }
 
 impl RuntimeModel {
-    /// Whether this model represents fully completed T3 (non-fallback).
+    /// Whether this model represents completed T3.
     pub fn is_t3_complete(&self) -> bool {
         matches!(self, RuntimeModel::T3WasmGcP2)
-    }
-
-    /// Whether this model uses a T1-based fallback internally.
-    pub fn is_fallback(&self) -> bool {
-        matches!(self, RuntimeModel::T3FallbackToT1)
     }
 }
 
@@ -94,7 +87,7 @@ pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<Backe
             LayoutClass::Dynamic,
         ),
         TargetId::Wasm32WasiP2 => (
-            RuntimeModel::T3FallbackToT1,
+            RuntimeModel::T3WasmGcP2,
             match emit_kind {
                 EmitKind::Wit => EmitCapability::Wit,
                 _ => EmitCapability::CoreWasm,
@@ -141,13 +134,7 @@ pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<Backe
     }];
 
     match runtime_model {
-        RuntimeModel::T1LinearP1 | RuntimeModel::T3FallbackToT1 => {
-            imports.push(ImportPlan {
-                module: "wasi_snapshot_preview1".to_string(),
-                name: "fd_write".to_string(),
-            });
-        }
-        RuntimeModel::T3WasmGcP2 => {
+        RuntimeModel::T1LinearP1 | RuntimeModel::T3WasmGcP2 => {
             imports.push(ImportPlan {
                 module: "wasi_snapshot_preview1".to_string(),
                 name: "fd_write".to_string(),
@@ -182,14 +169,6 @@ pub fn plan_matches_target_profile(plan: &BackendPlan) -> bool {
                 && plan.profile.wasi_profile == WasiProfile::P1
                 && plan.profile.abi_surface == AbiSurface::RawWasm
         }
-        RuntimeModel::T3FallbackToT1 => {
-            // Fallback: profile says WasmGC but runtime is still T1-like.
-            // Match returns true because the plan is a truthful representation
-            // of the transitional state.
-            plan.profile.memory_model == MemoryModel::WasmGc
-                && plan.profile.wasi_profile == WasiProfile::P2
-                && plan.profile.abi_surface == AbiSurface::ComponentWit
-        }
         RuntimeModel::T3WasmGcP2 => {
             plan.profile.memory_model == MemoryModel::WasmGc
                 && plan.profile.wasi_profile == WasiProfile::P2
@@ -215,9 +194,9 @@ mod tests {
     }
 
     #[test]
-    fn t3_core_wasm_plan_uses_explicit_fallback_runtime() {
+    fn t3_core_wasm_plan_uses_completed_runtime() {
         let plan = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::CoreWasm).unwrap();
-        assert_eq!(plan.runtime_model, RuntimeModel::T3FallbackToT1);
+        assert_eq!(plan.runtime_model, RuntimeModel::T3WasmGcP2);
         assert!(plan_matches_target_profile(&plan));
     }
 

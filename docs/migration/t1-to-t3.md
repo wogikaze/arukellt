@@ -62,8 +62,8 @@ Current runtime surface is stricter than some older docs imply.
 
 The v1 core exit gate is **T3 core-wasm compile/run completion** — not Component Model completion. Specifically:
 
-- T3 must compile and run all fixture categories using WasmGC-native data representations.
-- `RuntimeModel::T3FallbackToT1` must be replaced by a truthful non-fallback runtime model.
+- T3 must compile and run all fixture categories using the WasmGC-enabled backend.
+- `RuntimeModel::T3WasmGcP2` is the completed T3 runtime model.
 - `--emit component` remains out of scope for v1 and continues to be a hard error.
 - T1 (`wasm32-wasi-p1`) is retained as a compatibility path for non-GC environments only.
 

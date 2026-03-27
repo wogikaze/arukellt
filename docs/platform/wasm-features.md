@@ -70,8 +70,7 @@ The `BackendPlan` uses `RuntimeModel` to distinguish executable reality from tar
 | RuntimeModel | Meaning | Current state |
 |-------------|---------|---------------|
 | `T1LinearP1` | Linear memory + WASI P1 | Active, production |
-| `T3FallbackToT1` | T3 target, but still using T1 linear memory internally | Transitional (current T3) |
-| `T3WasmGcP2` | True WasmGC-native data model + WASI P2 | Target for v1 exit |
+| `T3WasmGcP2` | WasmGC types + P1 I/O bridge | Active, T3 production path |
 | `T4LlvmScaffold` | LLVM native scaffold | Optional, not v1 gate |
 
 ## T3 String representation (bridge mode)

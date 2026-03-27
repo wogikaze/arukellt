@@ -41,7 +41,6 @@ pub fn emit(mir: &MirModule, sink: &mut DiagnosticSink, target: TargetId) -> Vec
 pub fn emit_with_plan(mir: &MirModule, sink: &mut DiagnosticSink, plan: &BackendPlan) -> Vec<u8> {
     let bytes = match plan.runtime_model {
         RuntimeModel::T1LinearP1 => t1_wasm32_p1::emit(mir, sink),
-        RuntimeModel::T3FallbackToT1 => t3_wasm_gc::emit(mir, sink),
         RuntimeModel::T3WasmGcP2 => t3_wasm_gc::emit(mir, sink),
         RuntimeModel::T4LlvmScaffold => {
             sink.emit(wasm_validation_diagnostic(
