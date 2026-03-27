@@ -51,22 +51,13 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "set",
     "is_empty",
     "clear",
-    "split",
-    "join",
     "is_some",
     "is_none",
     "is_ok",
     "is_err",
-    "parse_i64",
-    "parse_f64",
     "Vec_with_capacity_i32",
     "Vec_with_capacity_String",
-    "map_String_String",
-    "filter_String",
-    "sort_i64",
-    "sort_f64",
     "as_slice",
-    "push_char",
     "ok_or",
     "ok",
     "err",
@@ -76,22 +67,12 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "Box_new",
     "unbox",
     "to_string",
-    "fs_read_file",
-    "fs_write_file",
-    "assert",
-    "assert_eq",
-    "assert_ne",
-    "assert_eq_str",
-    "assert_eq_i64",
-    "clock_now",
-    "random_i32",
-    // Existing __intrinsic_* names (called from prelude.ark or user code)
+    // __intrinsic_* names (called from prelude.ark)
     "__intrinsic_println",
     "__intrinsic_print",
     "__intrinsic_eprintln",
     "__intrinsic_string_from",
     "__intrinsic_string_eq",
-    // New __intrinsic_* names for functions now defined in prelude.ark
     "__intrinsic_string_new",
     "__intrinsic_concat",
     "__intrinsic_string_clone",
@@ -107,6 +88,8 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "__intrinsic_bool_to_string",
     "__intrinsic_char_to_string",
     "__intrinsic_parse_i32",
+    "__intrinsic_parse_i64",
+    "__intrinsic_parse_f64",
     "__intrinsic_sqrt",
     "__intrinsic_abs",
     "__intrinsic_min",
@@ -118,12 +101,38 @@ const PRELUDE_FUNCTIONS: &[&str] = &[
     "__intrinsic_Vec_new_String",
     "__intrinsic_sort_i32",
     "__intrinsic_sort_String",
+    "__intrinsic_sort_i64",
+    "__intrinsic_sort_f64",
     "__intrinsic_map_i32_i32",
     "__intrinsic_filter_i32",
     "__intrinsic_fold_i32_i32",
     "__intrinsic_map_option_i32_i32",
     "__intrinsic_any_i32",
     "__intrinsic_find_i32",
+    "__intrinsic_split",
+    "__intrinsic_join",
+    "__intrinsic_push_char",
+    "__intrinsic_fs_read_file",
+    "__intrinsic_fs_write_file",
+    "__intrinsic_clock_now",
+    "__intrinsic_random_i32",
+    "__intrinsic_map_String_String",
+    "__intrinsic_filter_String",
+    "__intrinsic_assert",
+    "__intrinsic_assert_eq",
+    "__intrinsic_assert_ne",
+    "__intrinsic_assert_eq_i64",
+    "__intrinsic_assert_eq_str",
+    "__intrinsic_map_i64_i64",
+    "__intrinsic_filter_i64",
+    "__intrinsic_fold_i64_i64",
+    "__intrinsic_map_f64_f64",
+    "__intrinsic_filter_f64",
+    "__intrinsic_contains_i32",
+    "__intrinsic_contains_String",
+    "__intrinsic_reverse_i32",
+    "__intrinsic_reverse_String",
+    "__intrinsic_remove_i32",
     "HashMap_i32_i32_new",
     "HashMap_i32_i32_insert",
     "HashMap_i32_i32_get",
@@ -431,6 +440,7 @@ pub fn resolve_module(module: ast::Module, sink: &mut DiagnosticSink) -> Resolve
     }
 }
 
+#[deprecated(note = "use ResolvedProgram directly; flatten merge loses module identity")]
 pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
     let mut module = program.entry_module.clone();
     for loaded in &program.modules {
@@ -451,6 +461,7 @@ pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
     module
 }
 
+#[allow(deprecated)]
 pub fn resolved_program_entry(program: ResolvedProgram) -> ResolvedModule {
     ResolvedModule {
         module: resolved_program_to_module(&program),

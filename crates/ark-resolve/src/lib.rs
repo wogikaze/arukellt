@@ -6,5 +6,9 @@
 pub mod resolve;
 pub mod scope;
 
-pub use resolve::{ResolvedModule, resolve_module, resolve_program_entry};
+#[allow(deprecated)]
+pub use resolve::{
+    ResolvedModule, ResolvedProgram, merge_prelude, resolve_module, resolve_program,
+    resolve_program_entry, resolved_program_to_module,
+};
 pub use scope::{Scope, ScopeId, Symbol, SymbolKind, SymbolTable};

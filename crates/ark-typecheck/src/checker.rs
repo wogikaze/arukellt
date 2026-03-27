@@ -379,6 +379,292 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
+            "__intrinsic_parse_i64".into(),
+            FnSig {
+                name: "__intrinsic_parse_i64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String],
+                ret: Type::Result(Box::new(Type::I64), Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_parse_f64".into(),
+            FnSig {
+                name: "__intrinsic_parse_f64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String],
+                ret: Type::Result(Box::new(Type::F64), Box::new(Type::String)),
+            },
+        );
+        // I/O intrinsics
+        self.fn_sigs.insert(
+            "__intrinsic_fs_read_file".into(),
+            FnSig {
+                name: "__intrinsic_fs_read_file".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String],
+                ret: Type::Result(Box::new(Type::String), Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_fs_write_file".into(),
+            FnSig {
+                name: "__intrinsic_fs_write_file".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Result(Box::new(Type::Unit), Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_clock_now".into(),
+            FnSig {
+                name: "__intrinsic_clock_now".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I64,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_random_i32".into(),
+            FnSig {
+                name: "__intrinsic_random_i32".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I32,
+            },
+        );
+        // String intrinsics
+        self.fn_sigs.insert(
+            "__intrinsic_split".into(),
+            FnSig {
+                name: "__intrinsic_split".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_join".into(),
+            FnSig {
+                name: "__intrinsic_join".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::String)), Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_push_char".into(),
+            FnSig {
+                name: "__intrinsic_push_char".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::Char],
+                ret: Type::Unit,
+            },
+        );
+        // Sort intrinsics
+        self.fn_sigs.insert(
+            "__intrinsic_sort_i64".into(),
+            FnSig {
+                name: "__intrinsic_sort_i64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::I64))],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_sort_f64".into(),
+            FnSig {
+                name: "__intrinsic_sort_f64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::F64))],
+                ret: Type::Unit,
+            },
+        );
+        // HOF intrinsics (String variants)
+        self.fn_sigs.insert(
+            "__intrinsic_map_String_String".into(),
+            FnSig {
+                name: "__intrinsic_map_String_String".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::String)), Type::I32],
+                ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_filter_String".into(),
+            FnSig {
+                name: "__intrinsic_filter_String".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::String)), Type::I32],
+                ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
+        // Assert intrinsics
+        self.fn_sigs.insert(
+            "__intrinsic_assert".into(),
+            FnSig {
+                name: "__intrinsic_assert".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Bool],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_assert_eq".into(),
+            FnSig {
+                name: "__intrinsic_assert_eq".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_assert_ne".into(),
+            FnSig {
+                name: "__intrinsic_assert_ne".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_assert_eq_i64".into(),
+            FnSig {
+                name: "__intrinsic_assert_eq_i64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I64, Type::I64],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_assert_eq_str".into(),
+            FnSig {
+                name: "__intrinsic_assert_eq_str".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Unit,
+            },
+        );
+        // HOF i64/f64 intrinsics
+        self.fn_sigs.insert(
+            "__intrinsic_map_i64_i64".into(),
+            FnSig {
+                name: "__intrinsic_map_i64_i64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::I64)), Type::I32],
+                ret: Type::Vec(Box::new(Type::I64)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_filter_i64".into(),
+            FnSig {
+                name: "__intrinsic_filter_i64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::I64)), Type::I32],
+                ret: Type::Vec(Box::new(Type::I64)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_fold_i64_i64".into(),
+            FnSig {
+                name: "__intrinsic_fold_i64_i64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::I64)), Type::I32, Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_map_f64_f64".into(),
+            FnSig {
+                name: "__intrinsic_map_f64_f64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::F64)), Type::I32],
+                ret: Type::Vec(Box::new(Type::F64)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_filter_f64".into(),
+            FnSig {
+                name: "__intrinsic_filter_f64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::F64)), Type::I32],
+                ret: Type::Vec(Box::new(Type::F64)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_contains_i32".into(),
+            FnSig {
+                name: "__intrinsic_contains_i32".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_contains_String".into(),
+            FnSig {
+                name: "__intrinsic_contains_String".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::String)), Type::String],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_reverse_i32".into(),
+            FnSig {
+                name: "__intrinsic_reverse_i32".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32))],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_reverse_String".into(),
+            FnSig {
+                name: "__intrinsic_reverse_String".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::String))],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_remove_i32".into(),
+            FnSig {
+                name: "__intrinsic_remove_i32".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
             "__intrinsic_sqrt".into(),
             FnSig {
                 name: "__intrinsic_sqrt".into(),
@@ -551,37 +837,6 @@ impl TypeChecker {
             },
         );
 
-        // Conversion functions (user-facing; still needed as fallback until AST sigs take over)
-        self.fn_sigs.insert(
-            "i32_to_string".into(),
-            FnSig {
-                name: "i32_to_string".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::I32],
-                ret: Type::String,
-            },
-        );
-        self.fn_sigs.insert(
-            "i64_to_string".into(),
-            FnSig {
-                name: "i64_to_string".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::I64],
-                ret: Type::String,
-            },
-        );
-        self.fn_sigs.insert(
-            "bool_to_string".into(),
-            FnSig {
-                name: "bool_to_string".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Bool],
-                ret: Type::String,
-            },
-        );
         self.fn_sigs.insert(
             "__intrinsic_string_from".into(),
             FnSig {
@@ -589,36 +844,6 @@ impl TypeChecker {
                 type_params: vec![],
                 type_param_bounds: vec![],
                 params: vec![Type::String],
-                ret: Type::String,
-            },
-        );
-        self.fn_sigs.insert(
-            "String_from".into(),
-            FnSig {
-                name: "String_from".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String],
-                ret: Type::String,
-            },
-        );
-        self.fn_sigs.insert(
-            "char_to_string".into(),
-            FnSig {
-                name: "char_to_string".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Char],
-                ret: Type::String,
-            },
-        );
-        self.fn_sigs.insert(
-            "f64_to_string".into(),
-            FnSig {
-                name: "f64_to_string".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::F64],
                 ret: Type::String,
             },
         );
@@ -642,60 +867,6 @@ impl TypeChecker {
                 type_param_bounds: vec![],
                 params: vec![Type::String, Type::String],
                 ret: Type::Bool,
-            },
-        );
-        self.fn_sigs.insert(
-            "eq".into(),
-            FnSig {
-                name: "eq".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String, Type::String],
-                ret: Type::Bool,
-            },
-        );
-        // String concatenation
-        self.fn_sigs.insert(
-            "concat".into(),
-            FnSig {
-                name: "concat".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String, Type::String],
-                ret: Type::String,
-            },
-        );
-        // parse_i32: String -> Result<i32, String>
-        self.fn_sigs.insert(
-            "parse_i32".into(),
-            FnSig {
-                name: "parse_i32".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String],
-                ret: Type::Result(Box::new(Type::I32), Box::new(Type::String)),
-            },
-        );
-        // io/fs: fs_read_file(path: String) -> Result<String, String>
-        self.fn_sigs.insert(
-            "fs_read_file".into(),
-            FnSig {
-                name: "fs_read_file".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String],
-                ret: Type::Result(Box::new(Type::String), Box::new(Type::String)),
-            },
-        );
-        // io/fs: fs_write_file(path: String, content: String) -> Result<(), String)
-        self.fn_sigs.insert(
-            "fs_write_file".into(),
-            FnSig {
-                name: "fs_write_file".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String, Type::String],
-                ret: Type::Result(Box::new(Type::Unit), Box::new(Type::String)),
             },
         );
         // Enum variant constructors (treated as functions for type checking)
@@ -730,17 +901,6 @@ impl TypeChecker {
             },
         );
 
-        // Vec stdlib
-        self.fn_sigs.insert(
-            "Vec_new_i32".into(),
-            FnSig {
-                name: "Vec_new_i32".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![],
-                ret: Type::Vec(Box::new(Type::I32)),
-            },
-        );
         self.fn_sigs.insert(
             "push".into(),
             FnSig {
@@ -802,28 +962,6 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
-            "sort_i32".into(),
-            FnSig {
-                name: "sort_i32".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::I32))],
-                ret: Type::Unit,
-            },
-        );
-
-        // String stdlib
-        self.fn_sigs.insert(
-            "String_new".into(),
-            FnSig {
-                name: "String_new".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![],
-                ret: Type::String,
-            },
-        );
-        self.fn_sigs.insert(
             "is_empty".into(),
             FnSig {
                 name: "is_empty".into(),
@@ -833,110 +971,6 @@ impl TypeChecker {
                 ret: Type::Bool,
             },
         );
-        self.fn_sigs.insert(
-            "slice".into(),
-            FnSig {
-                name: "slice".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String, Type::I32, Type::I32],
-                ret: Type::String,
-            },
-        );
-        self.fn_sigs.insert(
-            "starts_with".into(),
-            FnSig {
-                name: "starts_with".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String, Type::String],
-                ret: Type::Bool,
-            },
-        );
-        self.fn_sigs.insert(
-            "ends_with".into(),
-            FnSig {
-                name: "ends_with".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String, Type::String],
-                ret: Type::Bool,
-            },
-        );
-        self.fn_sigs.insert(
-            "split".into(),
-            FnSig {
-                name: "split".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String, Type::String],
-                ret: Type::Vec(Box::new(Type::String)),
-            },
-        );
-        self.fn_sigs.insert(
-            "join".into(),
-            FnSig {
-                name: "join".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::String)), Type::String],
-                ret: Type::String,
-            },
-        );
-
-        // Vec<String>
-        self.fn_sigs.insert(
-            "Vec_new_String".into(),
-            FnSig {
-                name: "Vec_new_String".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![],
-                ret: Type::Vec(Box::new(Type::String)),
-            },
-        );
-        // Higher-order Vec functions
-        self.fn_sigs.insert(
-            "map_i32_i32".into(),
-            FnSig {
-                name: "map_i32_i32".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
-                ret: Type::Vec(Box::new(Type::I32)),
-            },
-        );
-        self.fn_sigs.insert(
-            "filter_i32".into(),
-            FnSig {
-                name: "filter_i32".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32], // vec, fn ptr
-                ret: Type::Vec(Box::new(Type::I32)),
-            },
-        );
-        self.fn_sigs.insert(
-            "fold_i32_i32".into(),
-            FnSig {
-                name: "fold_i32_i32".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::I32)), Type::I32, Type::I32], // vec, init, fn ptr
-                ret: Type::I32,
-            },
-        );
-        self.fn_sigs.insert(
-            "map_option_i32_i32".into(),
-            FnSig {
-                name: "map_option_i32_i32".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Option(Box::new(Type::I32)), Type::I32], // option, fn ptr
-                ret: Type::Option(Box::new(Type::I32)),
-            },
-        );
-
         // Box builtins (Box<T> is represented as an i32 pointer)
         self.fn_sigs.insert(
             "Box_new".into(),
@@ -996,255 +1030,6 @@ impl TypeChecker {
                 type_param_bounds: vec![],
                 params: vec![Type::I32],
                 ret: Type::Bool,
-            },
-        );
-
-        // --- Missing stdlib: math builtins ---
-        self.fn_sigs.insert(
-            "sqrt".into(),
-            FnSig {
-                name: "sqrt".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::F64],
-                ret: Type::F64,
-            },
-        );
-        self.fn_sigs.insert(
-            "abs".into(),
-            FnSig {
-                name: "abs".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::I32],
-                ret: Type::I32,
-            },
-        );
-        self.fn_sigs.insert(
-            "min".into(),
-            FnSig {
-                name: "min".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::I32, Type::I32],
-                ret: Type::I32,
-            },
-        );
-        self.fn_sigs.insert(
-            "max".into(),
-            FnSig {
-                name: "max".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::I32, Type::I32],
-                ret: Type::I32,
-            },
-        );
-
-        // --- Missing stdlib: panic ---
-        self.fn_sigs.insert(
-            "panic".into(),
-            FnSig {
-                name: "panic".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String],
-                ret: Type::Unit,
-            },
-        );
-
-        // --- assert functions ---
-        self.fn_sigs.insert(
-            "assert".into(),
-            FnSig {
-                name: "assert".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Bool],
-                ret: Type::Unit,
-            },
-        );
-        self.fn_sigs.insert(
-            "assert_eq".into(),
-            FnSig {
-                name: "assert_eq".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::I32, Type::I32],
-                ret: Type::Unit,
-            },
-        );
-        self.fn_sigs.insert(
-            "assert_ne".into(),
-            FnSig {
-                name: "assert_ne".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::I32, Type::I32],
-                ret: Type::Unit,
-            },
-        );
-        self.fn_sigs.insert(
-            "assert_eq_str".into(),
-            FnSig {
-                name: "assert_eq_str".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String, Type::String],
-                ret: Type::Unit,
-            },
-        );
-        self.fn_sigs.insert(
-            "assert_eq_i64".into(),
-            FnSig {
-                name: "assert_eq_i64".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::I64, Type::I64],
-                ret: Type::Unit,
-            },
-        );
-
-        // --- io/clock and io/random ---
-        self.fn_sigs.insert(
-            "clock_now".into(),
-            FnSig {
-                name: "clock_now".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![],
-                ret: Type::I64,
-            },
-        );
-        self.fn_sigs.insert(
-            "random_i32".into(),
-            FnSig {
-                name: "random_i32".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![],
-                ret: Type::I32,
-            },
-        );
-
-        // --- Missing stdlib: clone ---
-        self.fn_sigs.insert(
-            "clone".into(),
-            FnSig {
-                name: "clone".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String],
-                ret: Type::String,
-            },
-        );
-
-        // --- Missing stdlib: string functions ---
-        self.fn_sigs.insert(
-            "push_char".into(),
-            FnSig {
-                name: "push_char".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String, Type::Char],
-                ret: Type::Unit,
-            },
-        );
-        self.fn_sigs.insert(
-            "to_lower".into(),
-            FnSig {
-                name: "to_lower".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String],
-                ret: Type::String,
-            },
-        );
-        self.fn_sigs.insert(
-            "to_upper".into(),
-            FnSig {
-                name: "to_upper".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String],
-                ret: Type::String,
-            },
-        );
-
-        // --- Missing stdlib: parse functions ---
-        self.fn_sigs.insert(
-            "parse_i64".into(),
-            FnSig {
-                name: "parse_i64".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String],
-                ret: Type::Result(Box::new(Type::I64), Box::new(Type::String)),
-            },
-        );
-        self.fn_sigs.insert(
-            "parse_f64".into(),
-            FnSig {
-                name: "parse_f64".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::String],
-                ret: Type::Result(Box::new(Type::F64), Box::new(Type::String)),
-            },
-        );
-
-        // --- Missing stdlib: sort_String ---
-        self.fn_sigs.insert(
-            "sort_String".into(),
-            FnSig {
-                name: "sort_String".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::String))],
-                ret: Type::Unit,
-            },
-        );
-
-        // sort_i64, sort_f64
-        self.fn_sigs.insert(
-            "sort_i64".into(),
-            FnSig {
-                name: "sort_i64".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::I64))],
-                ret: Type::Unit,
-            },
-        );
-        self.fn_sigs.insert(
-            "sort_f64".into(),
-            FnSig {
-                name: "sort_f64".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::F64))],
-                ret: Type::Unit,
-            },
-        );
-        // map_String_String, filter_String
-        self.fn_sigs.insert(
-            "map_String_String".into(),
-            FnSig {
-                name: "map_String_String".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::String)), Type::I32],
-                ret: Type::Vec(Box::new(Type::String)),
-            },
-        );
-        self.fn_sigs.insert(
-            "filter_String".into(),
-            FnSig {
-                name: "filter_String".into(),
-                type_params: vec![],
-                type_param_bounds: vec![],
-                params: vec![Type::Vec(Box::new(Type::String)), Type::I32],
-                ret: Type::Vec(Box::new(Type::String)),
             },
         );
 
@@ -1371,6 +1156,27 @@ impl TypeChecker {
                 Type::Error
             }
         }
+    }
+
+    /// Type check a multi-module program.
+    ///
+    /// Accepts a `ResolvedProgram` preserving module boundaries. The current
+    /// implementation still flattens internally via `resolved_program_to_module`,
+    /// but the public API contract is program-aware so downstream callers migrate
+    /// away from the flattened `ResolvedModule` representation.
+    pub fn check_program(
+        &mut self,
+        program: &ark_resolve::ResolvedProgram,
+        sink: &mut DiagnosticSink,
+    ) {
+        #[allow(deprecated)]
+        let flat = ark_resolve::resolved_program_to_module(program);
+        let resolved = ark_resolve::ResolvedModule {
+            module: flat,
+            symbols: program.symbols.clone(),
+            global_scope: program.global_scope,
+        };
+        self.check_module(&resolved, sink);
     }
 
     /// Type check a module.
@@ -1782,7 +1588,6 @@ impl TypeChecker {
                     }
                 } else {
                     // "Did you mean?" suggestion
-                    let mut suggestion = String::new();
                     let candidates: Vec<&str> = self
                         .fn_sigs
                         .keys()
@@ -1802,13 +1607,12 @@ impl TypeChecker {
                             best_name = c;
                         }
                     }
+                    let mut diag = Diagnostic::new(DiagnosticCode::E0100)
+                        .with_label(*span, format!("unresolved name `{}`", name));
                     if !best_name.is_empty() {
-                        suggestion = format!("; did you mean `{}`?", best_name);
+                        diag = diag.with_suggestion(format!("did you mean `{}`?", best_name));
                     }
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0100)
-                            .with_label(*span, format!("unresolved name `{}`{}", name, suggestion)),
-                    );
+                    sink.emit(diag);
                     Type::Error
                 }
             }

@@ -5,6 +5,8 @@ use ark_lexer::Lexer;
 use ark_mir::MirModule;
 use ark_parser::parse;
 use ark_resolve::ResolvedModule;
+#[allow(deprecated)]
+use ark_resolve::resolved_program_to_module;
 use ark_target::TargetId;
 use ark_typecheck::TypeChecker;
 
@@ -67,22 +69,62 @@ impl Session {
         }
 
         // Name resolution + module loading
-        let resolved = ark_resolve::resolve_program_entry(path, &mut self.sink)
-            .unwrap_or_else(|_| ark_resolve::resolve_module(module, &mut self.sink));
-        if self.sink.has_errors() {
-            return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
-        }
+        let (resolved, checker, mir) =
+            if let Ok(mut program) = ark_resolve::resolve_program(path, &mut self.sink) {
+                ark_resolve::merge_prelude(&mut program, &mut self.sink);
+                if self.sink.has_errors() {
+                    return Err(render_diagnostics(
+                        self.sink.diagnostics(),
+                        &self.source_map,
+                    ));
+                }
 
-        // Type check
-        let mut checker = TypeChecker::new();
-        checker.register_builtins();
-        checker.check_module(&resolved, &mut self.sink);
-        if self.sink.has_errors() {
-            return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
-        }
+                // Type check via program-aware API
+                let mut checker = TypeChecker::new();
+                checker.register_builtins();
+                checker.check_program(&program, &mut self.sink);
+                if self.sink.has_errors() {
+                    return Err(render_diagnostics(
+                        self.sink.diagnostics(),
+                        &self.source_map,
+                    ));
+                }
 
-        // Lower to MIR
-        let mir = ark_mir::lower::lower_to_mir(&resolved.module, &checker, &mut self.sink);
+                // Flatten for MIR (MIR refactoring is a later task)
+                #[allow(deprecated)]
+                let flat_module = resolved_program_to_module(&program);
+                let mir =
+                    ark_mir::lower::lower_to_mir(&flat_module, &checker, &mut self.sink);
+                let resolved = ResolvedModule {
+                    module: flat_module,
+                    symbols: program.symbols,
+                    global_scope: program.global_scope,
+                };
+                (resolved, checker, mir)
+            } else {
+                // Fallback for single-file inputs
+                let resolved = ark_resolve::resolve_module(module, &mut self.sink);
+                if self.sink.has_errors() {
+                    return Err(render_diagnostics(
+                        self.sink.diagnostics(),
+                        &self.source_map,
+                    ));
+                }
+
+                let mut checker = TypeChecker::new();
+                checker.register_builtins();
+                checker.check_module(&resolved, &mut self.sink);
+                if self.sink.has_errors() {
+                    return Err(render_diagnostics(
+                        self.sink.diagnostics(),
+                        &self.source_map,
+                    ));
+                }
+
+                let mir =
+                    ark_mir::lower::lower_to_mir(&resolved.module, &checker, &mut self.sink);
+                (resolved, checker, mir)
+            };
 
         Ok(FrontendResult {
             resolved,
@@ -107,17 +149,31 @@ impl Session {
             return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
         }
 
-        let resolved = ark_resolve::resolve_program_entry(path, &mut self.sink)
-            .unwrap_or_else(|_| ark_resolve::resolve_module(module, &mut self.sink));
-        if self.sink.has_errors() {
-            return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
-        }
+        if let Ok(mut program) = ark_resolve::resolve_program(path, &mut self.sink) {
+            ark_resolve::merge_prelude(&mut program, &mut self.sink);
+            if self.sink.has_errors() {
+                return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            }
 
-        let mut checker = TypeChecker::new();
-        checker.register_builtins();
-        checker.check_module(&resolved, &mut self.sink);
-        if self.sink.has_errors() {
-            return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            let mut checker = TypeChecker::new();
+            checker.register_builtins();
+            checker.check_program(&program, &mut self.sink);
+            if self.sink.has_errors() {
+                return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            }
+        } else {
+            // Fallback for single-file inputs
+            let resolved = ark_resolve::resolve_module(module, &mut self.sink);
+            if self.sink.has_errors() {
+                return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            }
+
+            let mut checker = TypeChecker::new();
+            checker.register_builtins();
+            checker.check_module(&resolved, &mut self.sink);
+            if self.sink.has_errors() {
+                return Err(render_diagnostics(self.sink.diagnostics(), &self.source_map));
+            }
         }
 
         Ok(())
