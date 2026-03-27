@@ -11,7 +11,7 @@
 # Clone and build
 git clone <repo-url>
 cd arukellt
-cargo build --release
+cargo build --release -p arukellt
 
 # Run verification
 bash scripts/verify-harness.sh
@@ -20,58 +20,97 @@ bash scripts/verify-harness.sh
 target/release/arukellt run tests/fixtures/hello/hello.ark
 ```
 
-## Task Runner (mise)
-
-If you have [mise](https://mise.jdx.dev/) installed:
-
-```bash
-mise run build:release    # Build release binary
-mise run test:unit        # Run unit tests
-mise run test:t1          # Run T1 fixture suite
-mise run verify           # Full verification harness
-```
-
 ## Raw Commands
 
 ```bash
-cargo fmt --all --check       # Check formatting
-cargo clippy --workspace -- -D warnings  # Lint
-cargo build --workspace       # Build
-cargo test --workspace        # Unit tests
-bash scripts/verify-harness.sh  # Full verification (includes above)
+cargo fmt --all --check
+cargo clippy --workspace --exclude ark-llvm -- -D warnings
+cargo build --workspace --exclude ark-llvm
+cargo test --workspace --exclude ark-llvm
+bash scripts/verify-harness.sh
+python3 scripts/collect-baseline.py
+python3 scripts/check-docs-consistency.py
 ```
 
 ## Project Structure
 
-```
+```text
 crates/
-  ark-lexer/       # Tokenizer
-  ark-parser/      # Recursive descent parser
-  ark-resolve/     # Name resolution + module loading
-  ark-typecheck/   # Type checking + trait resolution
-  ark-mir/         # MIR lowering
-  ark-wasm/        # Wasm code generation
-    src/emit/      # Per-target emitters (T1, T3)
-    src/component/ # WIT generation
-  ark-target/      # Target registry
-  ark-diagnostics/ # Error codes + rendering
-  ark-stdlib/      # Standard library definitions
-  arukellt/        # CLI entry point
+  ark-lexer/        # Tokenizer
+  ark-parser/       # Parser / AST
+  ark-resolve/      # Bind/Load/Analyze/Resolve refactor target area
+  ark-typecheck/    # Type checking (+ planned CoreHIR build)
+  ark-hir/          # Planned shared CoreHIR crate for this refactor
+  ark-mir/          # MIR lowering / validation / optimization boundary
+  ark-wasm/         # Wasm backend emit + backend validation
+  ark-target/       # Target registry + backend planning boundary
+  ark-diagnostics/  # Canonical diagnostic registry + rendering
+  ark-driver/       # Session / orchestration
+  arukellt/         # CLI entry point
 ```
 
-## Adding a Test Fixture
+## Fixture / Baseline Contract
 
-1. Create `tests/fixtures/<category>/<name>.ark`
-2. Create `tests/fixtures/<category>/<name>.expected` with expected stdout
-3. For diagnostic tests, create `tests/fixtures/<category>/<name>.diag`
-4. Run `bash scripts/verify-harness.sh` to verify
+- `tests/fixtures/manifest.txt` is the single source of truth for fixture entry points
+- Current manifest size: **187** entries
+- Harness kinds:
+  - `run`
+  - `diag`
+  - `module-run`
+  - `module-diag`
+- Baselines live under `tests/baselines/`
+  - `perf-baseline.json`
+  - `fixture-baseline.json`
+  - `api-baseline.json`
 
 ## Verification Contract
 
-All PRs must pass `scripts/verify-harness.sh` with exit code 0. This includes:
+All PRs must pass `scripts/verify-harness.sh` with exit code 0.
 
-- Code formatting (`cargo fmt`)
-- Linting (`cargo clippy`)
-- All unit tests (`cargo test`)
-- All fixture tests (169+ pass, 0 fail)
-- Documentation structure checks
+It includes:
+
+- docs structure checks
+- docs consistency drift checks
+- formatting (`cargo fmt`)
+- lint (`cargo clippy`)
+- workspace build/tests
+- fixture harness execution
+- All fixture tests (187 pass, 0 fail)
+- stdlib manifest check
+- baseline collection smoke
+
+## Perf Gate Policy
+
+Baseline compile-time cases:
+
+- `docs/examples/hello.ark`
+- `docs/examples/vec.ark`
+- `docs/examples/closure.ark`
+- `docs/sample/parser.ark`
+
+Thresholds:
+
+- `arukellt check`: median compile time regression must stay within 10%
+- `arukellt compile`: median compile time regression must stay within 20%
+
+Heavy perf comparison belongs in a separate CI job, not the default correctness gate.
+
+## Diagnostics / Snapshot Tooling
+
+Hidden developer support only:
+
+- `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
+- `ARUKELLT_DUMP_DIAGNOSTICS=1`
+
+These are for snapshot/debug work and are not stable public CLI options.
+
+## Compatibility Notes
+
+Internal migration docs should keep the following distinction explicit:
+
+- old Session API / direct pipeline calls
+- new artifact/query-oriented pipeline surface
+
+Intentional behavior change in this refactor track:
+
+- `W0004` is now a hard error instead of warning-only

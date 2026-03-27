@@ -2,17 +2,17 @@ name: CI
 
 on:
   push:
-    branches: [main, "feature/**"]
+    branches: [master, "feature/**"]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -D warnings
 
 jobs:
-  integrity:
-    name: Integrity
+  correctness:
+    name: Correctness
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,21 +33,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Check formatting
-        run: cargo fmt --all --check
+      - name: Verify harness
+        run: bash scripts/verify-harness.sh
 
-      - name: Clippy
-        run: cargo clippy --workspace -- -D warnings
-
-      - name: Build
-        run: cargo build --workspace
-
-      - name: Unit tests
-        run: cargo test --workspace
-
-  behavior:
-    name: Behavior (${{ matrix.target }})
-    needs: integrity
+  target-behavior:
+    name: Target behavior (${{ matrix.target }})
+    needs: correctness
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -69,40 +60,49 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Build release
-        run: cargo build --release
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
 
-      - name: Run fixture suite (target=${{ matrix.target }})
-        run: |
-          PASS=0 FAIL=0 SKIP=0
-          for f in tests/fixtures/*/*.ark; do
-            dir=$(dirname "$f")
-            base=$(basename "$f" .ark)
-            expected="$dir/$base.expected"
-            if [ ! -f "$expected" ]; then
-              SKIP=$((SKIP + 1))
-              continue
-            fi
-            actual=$(target/release/arukellt run --target ${{ matrix.target }} "$f" 2>/dev/null) || true
-            expected_content=$(cat "$expected")
-            if [ "$actual" = "$expected_content" ]; then
-              PASS=$((PASS + 1))
-            else
-              echo "FAIL: $f (target=${{ matrix.target }})"
-              echo "  expected: $(head -1 "$expected")"
-              echo "  actual:   $(echo "$actual" | head -1)"
-              FAIL=$((FAIL + 1))
-            fi
-          done
-          echo "Target ${{ matrix.target }}: PASS=$PASS FAIL=$FAIL SKIP=$SKIP"
-          if [ "$FAIL" -gt 0 ]; then exit 1; fi
+      - name: Run manifest-driven fixture suite (target=${{ matrix.target }})
+        run: cargo test -p arukellt --test harness -- --nocapture
 
-      - name: Verify harness
-        run: bash scripts/verify-harness.sh
+  perf-baseline:
+    name: Perf baseline snapshot
+    needs: correctness
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: Collect perf and fixture baselines
+        run: python3 scripts/collect-baseline.py
+
+      - name: Upload baseline artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: baselines
+          path: tests/baselines/*.json
 
   verify:
     name: Final Gate
-    needs: [integrity, behavior]
+    needs: [correctness, target-behavior]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All checks passed"
+      - run: echo "All required correctness checks passed"

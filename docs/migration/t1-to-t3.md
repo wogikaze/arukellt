@@ -1,85 +1,80 @@
 # Migration Guide: T1 → T3
 
-This guide helps users migrate from `wasm32-wasi-p1` (T1) to `wasm32-wasi-p2` (T3).
+> **Current-first**: this page explains migration expectations against the current implementation, not an aspirational full T3 rollout.
 
 ## Overview
 
 | Aspect | T1 (wasm32-wasi-p1) | T3 (wasm32-wasi-p2) |
 |--------|---------------------|---------------------|
-| Memory model | Linear memory (bump allocator) | Wasm GC (struct/array) |
-| WASI version | Preview 1 | Preview 2 |
-| Component Model | Not supported | Supported |
-| WIT generation | Not supported | Auto-generated |
-| Default emit | `core-wasm` | `core-wasm` (will become `component`) |
-| Status | Stable, maintained | Implemented (T1 fallback) |
+| Memory model in current implementation | Linear memory (bump-oriented runtime path) | Experimental fallback to the same runtime path |
+| WASI version in shipped run path | Preview 1 | Preview 1 internally today |
+| Component Model | Hard error | Hard error |
+| WIT generation | Limited/partial tooling only | Design/migration context, not current deployment contract |
+| Default emit | `core-wasm` | `core-wasm` |
+| Status | Stable default | Experimental fallback |
 
-## CLI Changes
-
-### Explicit target selection
+## CLI Selection
 
 ```bash
 # T1 (current default)
 arukellt run file.ark
 arukellt run --target wasm32-wasi-p1 file.ark
 
-# T3
+# T3 experimental fallback
 arukellt run --target wasm32-wasi-p2 file.ark
 ```
 
-### Deprecated aliases
+## Deprecated aliases
 
-The following target names are deprecated and will emit warnings:
+The following names are accepted but emit `W0002`:
 
-| Old name | New canonical name |
-|----------|-------------------|
+| Old name | Canonical name |
+|----------|----------------|
 | `wasm32-wasi` | `wasm32-wasi-p1` |
 | `wasm-gc` | `wasm32-wasi-p2` |
 | `wasm-gc-wasi-p2` | `wasm32-wasi-p2` |
 | `wasm32` | `wasm32-freestanding` |
 
-### Emit kinds
+## Emit kinds
 
 ```bash
-# T1: only core-wasm supported
+# Current supported path
 arukellt compile --target wasm32-wasi-p1 --emit core-wasm file.ark
-
-# T3: core-wasm, component, wit, all
-arukellt compile --target wasm32-wasi-p2 --emit component file.ark
-arukellt compile --target wasm32-wasi-p2 --emit wit file.ark
+arukellt compile --target wasm32-wasi-p2 --emit core-wasm file.ark
 ```
 
-## Capability Flags
+Current behavior:
 
-T3 introduces capability-based runtime access:
+- `--emit component` → hard error
+- `--emit all` → hard error
+- T3 does not currently provide a production component-model deployment surface
 
-```bash
-# Default: inherits stdio + preopens current directory (backward compatible)
-arukellt run file.ark
+## Runtime / Capability Notes
 
-# Explicit directory grants
-arukellt run --dir /data:ro --dir /output:rw file.ark
+Current runtime surface is stricter than some older docs imply.
 
-# Deny filesystem access entirely
-arukellt run --deny-fs file.ark
-
-# Deny clock/random
-arukellt run --deny-clock --deny-random file.ark
-```
+- No `--dir` flag = no filesystem access
+- `--deny-fs` is supported
+- `--deny-clock` is a hard error (not enforced capability filtering yet)
+- `--deny-random` is a hard error (not enforced capability filtering yet)
 
 ## Code Compatibility
 
-All v0 and v1 Arukellt source code is compatible with both T1 and T3. The difference is in code generation and runtime behavior, not language features.
+Language-level source compatibility remains the goal. The current difference is runtime/backend path, not frontend syntax.
 
-## Future Changes
+## What changed in this refactor track
 
-- Default target will eventually switch from T1 to T3
-- T3 will emit `component` by default (currently `core-wasm`)
-- T1 will remain supported as a maintained backend for environments requiring linear memory (e.g., AtCoder)
+The intentional behavior change owned by this migration/update work is:
+
+- `W0004` (generated Wasm failed validation) is now treated as a build failure
+
+This is a quality-gate change, not a source-language change.
 
 ## Troubleshooting
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `unsupported emit kind 'component' for target wasm32-wasi-p1` | T1 doesn't support component model | Use `--target wasm32-wasi-p2` or `--emit core-wasm` |
-| `target 'wasm-gc' is deprecated` | Using old target alias | Switch to `--target wasm32-wasi-p2` |
-| `target 'wasm32-freestanding' is not yet implemented` | T2 is planned, not implemented | Use T1 or T3 |
+| `invalid emit kind` / component hard error | Component output is not implemented | Use `--emit core-wasm` |
+| `target alias ... is deprecated` | Old alias accepted with `W0002` | Switch to canonical target name |
+| `target ... is not yet implemented` | T2/T4/T5 are not current run paths | Use T1 or experimental T3 |
+| `generated Wasm module failed validation` | Backend validation failed (`W0004`) | Treat as compiler/backend failure, not a warning to ignore |

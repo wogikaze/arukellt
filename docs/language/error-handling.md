@@ -1,83 +1,79 @@
 # エラー処理
 
-## 方針（確定）
+> **Current-first**: 実装の現在地は [../current-state.md](../current-state.md) を参照してください。
 
-- 例外なし
-- `Result<T, E>` ベース
-- panic は「回復不能なバグ」専用。通常のエラーフローには使わない
-- null なし（`Option<T>` で代替）
+Arukellt の現行エラー処理は、基本的に `Result<T, E>` と `Option<T>` ベースです。
+古い docs にある capability I/O 専用エラー階層は、現行 API の基準ではありません。
 
----
+## 基本方針
 
-## Result の基本形
+- 例外ベースではない
+- 通常の失敗は `Result<T, E>`
+- 値がない正常ケースは `Option<T>`
+- `panic` は回復不能な場面向け
 
-```
-fn divide(a: f64, b: f64) -> Result<f64, DivideError> {
-    if b == 0.0 {
-        Err(DivideError::DivByZero)
-    } else {
-        Ok(a / b)
+## Result
+
+```ark
+fn parse_positive(s: String) -> Result<i32, String> {
+    let n = parse_i32(s)?
+    if n < 0 {
+        return Err(String_from("negative"))
     }
+    Ok(n)
 }
 ```
 
-エラー型 E はユーザー定義の enum を使う。標準エラー型の階層は持たない（v0）。
+```ark
+match parse_positive(String_from("42")) {
+    Ok(n) => println(i32_to_string(n)),
+    Err(e) => println(e),
+}
+```
 
----
+## Option
+
+```ark
+let x = get(v, 0)
+match x {
+    Some(value) => println(i32_to_string(value)),
+    None => println(String_from("empty")),
+}
+```
+
+## `?` 演算子
+
+```ark
+fn parse_twice(s: String) -> Result<i32, String> {
+    let n = parse_i32(s)?
+    Ok(n * 2)
+}
+```
+
+このブランチでは v1 系の拡張も入っていますが、まずは `Result<_, String>` を基準に考えるのが分かりやすいです。
 
 ## panic
 
-回復不能なバグのみ。通常フローに使うのは禁止。
-
-```
-fn safe_get(v: Vec<i32>, i: i32) -> i32 {
-    if i < 0 {
-        panic("negative index")
-    }
-    if i >= len(v) {
-        panic("index out of bounds")
-    }
-    // 境界チェック済みなので unwrap は安全
-    match vec_get(v, i) {
-        Some(val) => val,
-        None => panic("unreachable"),
-    }
-}
+```ark
+panic(String_from("unreachable"))
 ```
 
----
+- 現行実装では panic は stderr 出力 + trap です
+- 通常フローに多用する前提ではありません
 
-## エラー型の設計指針
+## 現在よく見るエラー型
 
-各モジュールが自分で enum を定義する。標準エラー型の継承階層は持たない。
+現行 stdlib wrapper では、たとえば以下のような形が多いです。
 
-```
-import io
-
-enum AppError {
-    Io(io.IOError),
-    Parse,
-    NotFound,
-}
+```ark
+Result<String, String>
+Result<(), String>
 ```
 
-手動ラップ。v0 では `?` の自動変換なし。
+設計文書上の `IOError` などは将来設計として読むべきで、現行 API の前提にはしないでください。
 
----
+## 関連
 
-## Option と Result の使い分け
-
-| 型 | 使う場面 |
-|----|---------|
-| `Option<T>` | 値がない、が正常状態。「見つからなかった」等 |
-| `Result<T, E>` | 失敗が例外的状態。I/O・パース等 |
-
----
-
-## v0 で決定済みの事項
-
-| 事項 | 決定内容 | 理由 |
-|------|---------|------|
-| `?` のエラー型自動変換 | **なし**（型が完全一致のみ） | ADR-004: trait なし |
-| panic のキャッチ機構 | **abort**（unwind なし） | ADR-002: 単純さ優先 |
-| `assert!` の構文 | v1 で検討 | マクロ未サポート |
+- [../compiler/diagnostics.md](../compiler/diagnostics.md)
+- [../stdlib/io.md](../stdlib/io.md)
+- [../current-state.md](../current-state.md)

@@ -1,249 +1,90 @@
 # Arukellt Quickstart
 
-10分で書き始められるガイド。すべてv0 canonical styleで記述。
-
-> **⚠️ 実装状況について**: 本ガイドのコード例は v0 設計仕様に基づく。
-> 大部分の例は現在の実装で動作する（170/175 fixture テスト pass）。
-> ファイル I/O は `fs_read_file` / `fs_write_file` として実装済み。各セクションに実装状況を記載。
-
----
+現在の実装でまず動く書き方だけに絞ったガイドです。
+詳細な実装状況は [current-state.md](current-state.md) を参照してください。
 
 ## Hello World
 
-> ✅ **動作確認済み**
-
-```
+```ark
 fn main() {
     print("Hello, world!")
 }
 ```
 
-実行:
-
 ```bash
 arukellt run hello.ark
 ```
 
----
+## 基本型
 
-## 基本構文
-
-### 変数
-
-> ✅ **動作確認済み** — let, let mut, 再代入
-
-```
-let x = 42              // 不変（再束縛不可）
-let mut y = 0           // 可変（再束縛可能）
-
-y = y + 1               // OK
-x = x + 1               // コンパイルエラー
-```
-
-### 関数
-
-> ✅ **動作確認済み** — 多引数・再帰・ジェネリック・高階関数動作。
-
-```
-fn add(a: i32, b: i32) -> i32 {
-    a + b
-}
-
-let result = add(10, 20)
-```
-
-### 型
-
-> ✅ **動作確認済み** — i32, i64, f64, bool, String, Vec<i32> 動作。
-
-```
-// プリミティブ
+```ark
 let n: i32 = 42
+let big: i64 = 1000000
 let f: f64 = 3.14
 let b: bool = true
-let big: i64 = 1000000
-
-// 複合型
 let s: String = String_from("hello")
-let v: Vec<i32> = Vec_new_i32()
 ```
 
----
+## Vec
 
-## Vec を使う
-
-> ✅ **動作確認済み** — Vec_new_i32, push, pop, get, len, sort_i32, map/filter/fold 動作。
-
-### 作成と操作
-
-```
+```ark
 fn main() {
     let v: Vec<i32> = Vec_new_i32()
-
     push(v, 10)
     push(v, 20)
-    push(v, 30)
 
-    println(i32_to_string(len(v)))  // 3
-
-    let x: i32 = get(v, 0)
-    println(i32_to_string(x))      // 10
-}
-```
-
-### イテレーション
-
-```
-fn print_all(v: Vec<i32>) {
-    let mut i = 0
-    while i < len(v) {
-        let item = get(v, i)
-        println(i32_to_string(item))
-        i = i + 1
+    let first: Option<i32> = get(v, 0)
+    match first {
+        Some(x) => println(i32_to_string(x)),
+        None => println(String_from("empty")),
     }
+
+    println(i32_to_string(len(v)))
 }
 ```
 
-### map/filter
+`get(v, i)` は `Option<T>` を返します。要素が必ずあると分かっている場面だけ `get_unchecked(v, i)` を使ってください。
 
-```
+## String
+
+```ark
 fn main() {
-    let v: Vec<i32> = Vec_new_i32()
-    push(v, 1)
-    push(v, 2)
-    push(v, 3)
-    push(v, 4)
-    push(v, 5)
+    let s1 = String_from("hello")
+    let s2 = String_from(" world")
+    let s3 = concat(s1, s2)
+    println(s3)
 
-    fn is_even(x: i32) -> bool { x % 2 == 0 }
-    let v2 = filter_i32(v, is_even)
-
-    fn double(x: i32) -> i32 { x * 2 }
-    let v3 = map_i32_i32(v2, double)
-
-    print_all(v3)  // 4, 8
+    let sub = slice(s3, 0, 5)
+    println(sub)
 }
 ```
 
----
+## Option / Result
 
-## String を使う
-
-> ✅ **動作確認済み** — String_from, eq, concat, split, join, slice, println 動作。
-
-### 作成と操作
-
-```
-fn main() {
-    let s1: String = String_from("hello")
-    let s2: String = String_from(" world")
-
-    let s3: String = concat(s1, s2)
-    println(s3)                              // hello world
-
-    let sub: String = slice(s3, 0, 5)
-    println(sub)                             // hello
-}
-```
-
-### 分割と結合
-
-> ✅ **動作確認済み**
-
-```
-fn main() {
-    let s: String = String_from("a,b,c")
-
-    let parts: Vec<String> = split(s, ",")
-    let joined: String = join(parts, "-")
-    println(joined)                          // a-b-c
-}
-```
-
----
-
-## Option を使う
-
-> ✅ **動作確認済み** — Some/None ペイロード、match binding、unwrap/is_some/is_none 動作。
-
-### 基本
-
-```
-fn find_first_even(v: Vec<i32>) -> Option<i32> {
-    let mut i = 0
-    while i < len(v) {
-        let item = get(v, i)
-        if item % 2 == 0 {
-            return Some(item)
-        }
-        i = i + 1
-    }
-    None
-}
-
-fn main() {
-    let v: Vec<i32> = Vec_new_i32()
-    push(v, 1)
-    push(v, 3)
-    push(v, 4)
-    push(v, 5)
-    let result = find_first_even(v)
-
-    match result {
-        Some(val) => println(i32_to_string(val)),
-        None => println("not found"),
-    }
-}
-```
-
----
-
-## Result を使う
-
-> ✅ **動作確認済み** — Ok/Err ペイロード、? 演算子、match binding 動作。
-
-### エラー処理
-
-```
-enum ParseError {
-    InvalidFormat,
-    OutOfRange,
-}
-
-fn parse_positive(s: String) -> Result<i32, ParseError> {
-    let n = parse_i32(s)
-
+```ark
+fn parse_positive(s: String) -> Result<i32, String> {
+    let n = parse_i32(s)?
     if n < 0 {
-        return Err(OutOfRange)
+        return Err(String_from("negative value"))
     }
-
     Ok(n)
 }
 
 fn main() {
-    let result = parse_positive(String_from("42"))
-
-    match result {
-        Ok(val) => println(i32_to_string(val)),
-        Err(InvalidFormat) => println("invalid format"),
-        Err(OutOfRange) => println("out of range"),
+    match parse_positive(String_from("42")) {
+        Ok(n) => println(i32_to_string(n)),
+        Err(e) => println(e),
     }
 }
 ```
 
----
+## Filesystem I/O
 
-## ファイル読み書き
+現行実装では capability 引数ではなく、直接 wrapper を呼びます。
 
-> ✅ **実装済み** — `fs_read_file` / `fs_write_file` は WASI p1 経由で動作。
-> `main(caps: Capabilities)` の capability-based API は未実装。
-> 現行実装では `fs_read_file(path)` / `fs_write_file(path, content)` を直接呼び出す。
-
-### 基本
-
-```
+```ark
 fn main() {
-    let r: Result<String, String> = fs_read_file(String_from("input.txt"))
+    let r = fs_read_file(String_from("input.txt"))
     match r {
         Ok(content) => print(content),
         Err(e) => println(e),
@@ -251,147 +92,23 @@ fn main() {
 }
 ```
 
-### 読み込んで処理して書き込み
+- `fs_read_file(path: String) -> Result<String, String>`
+- `fs_write_file(path: String, content: String) -> Result<(), String>`
 
-```
+## Clock / Random
+
+```ark
 fn main() {
-    let r: Result<String, String> = fs_read_file(String_from("input.txt"))
-    match r {
-        Ok(content) => {
-            let lines: Vec<String> = split(content, String_from("\n"))
-            let upper_lines = map_String_String(lines, to_upper_line)
-            let result = join(upper_lines, String_from("\n"))
-
-            let w: Result<(), String> = fs_write_file(String_from("output.txt"), result)
-            match w {
-                Ok(_) => println(String_from("done")),
-                Err(e) => println(e),
-            }
-        }
-        Err(e) => println(e),
-    }
-}
-
-fn to_upper_line(s: String) -> String {
-    to_upper(s)
+    println(i64_to_string(clock_now()))
+    println(i32_to_string(random_i32()))
 }
 ```
 
-### エラーハンドリング
+## v1 features
 
-```
-fn main() {
-    let result: Result<String, String> = fs_read_file(String_from("data.txt"))
+このブランチでは v1 系の一部機能も使えますが、まずは上の関数呼び出しスタイルを基準にするのが安全です。
+必要なら以下を参照してください。
 
-    match result {
-        Ok(content) => print(content),
-        Err(e) => {
-            println(String_from("error reading file:"))
-            println(e)
-        }
-    }
-}
-```
-
----
-
-## 完全な例：単語カウンター
-
-```
-fn main() {
-    let r: Result<String, String> = fs_read_file(String_from("input.txt"))
-    match r {
-        Ok(content) => {
-            let words: Vec<String> = split(content, String_from(" "))
-            let count = len(words)
-            let message = concat(String_from("Word count: "), i32_to_string(count))
-            println(message)
-        }
-        Err(e) => println(e),
-    }
-}
-```
-
----
-
-## よくあるエラーと修正
-
-### 注意: メソッド構文と for ループ
-
-v1（M4/M5）以降ではメソッド構文が使用可能。v0 では関数呼び出し構文が必要:
-
-```
-// v0: 関数呼び出し構文（常に有効）
-push(v, 42)
-
-// v1: メソッド構文（v1 M4/M5 以降）
-v.push(42)
-```
-
-for ループは v0 から使用可能:
-
-```
-// ✅ for ループ（v0 実装済み）
-for x in values(items) {
-    println(x)
-}
-```
-
-### エラー: 型推論失敗
-
-```
-// ❌ 間違い
-let v = Vec::new()
-
-// ✅ 正しい
-let v: Vec<i32> = Vec_new_i32()
-```
-
-### エラー4: Result unwrap忘れ
-
-```
-// ❌ 間違い
-let r = fs_read_file(String_from("data.txt"))
-print(r)  // エラー: Result型をprintできない
-
-// ✅ 正しい
-let r: Result<String, String> = fs_read_file(String_from("data.txt"))
-match r {
-    Ok(content) => print(content),
-    Err(e) => println(e),
-}
-```
-
----
-
-## 次のステップ
-
-- **詳細な構文**: `docs/language/syntax.md`
-- **型システム**: `docs/language/type-system.md`
-- **標準ライブラリ**: `docs/stdlib/`
-- **Cookbook**: `docs/stdlib/cookbook.md`
-- **統合仕様**: `docs/spec/v0-unified-spec.md`
-
----
-
-## チートシート
-
-| やりたいこと | 書き方 | 実装状況 |
-|-------------|--------|---------|
-| Hello World | `println("Hello, world!")` | ✅ |
-| 変数束縛 | `let x: i32 = 42` | ✅ |
-| 関数定義 | `fn add(a: i32, b: i32) -> i32 { a + b }` | ✅ |
-| 構造体 | `struct Point { x: i32, y: i32 }` | ✅ |
-| enum | `enum Color { Red, Green, Blue }` | ✅ |
-| enum payload | `Some(val)`, `Ok(val)`, `Err(e)` | ✅ |
-| match | `match x { 0 => ..., _ => ... }` | ✅ |
-| Vec作成 | `let v: Vec<i32> = Vec_new_i32()` | ✅ |
-| Vec追加 | `push(v, 42)` | ✅ |
-| String作成 | `String_from("hello")` | ✅ |
-| String連結 | `concat(s1, s2)` | ✅ |
-| String分割 | `split(s, ",")` | ✅ |
-| Option | `unwrap(opt)`, `is_some(opt)` | ✅ |
-| クロージャ | `fn f(x: i32) -> i32 { x + 1 }` + 高階関数 | ✅ |
-| ? 演算子 | `let val = risky_fn()?` | ✅ |
-| ファイル読み | `fs_read_file(String_from("path.txt"))` | ✅ |
-| エラー処理 | `match result { Ok(v) => ..., Err(e) => ... }` | ✅ |
+- [language/syntax.md](language/syntax.md)
+- [language/syntax-v1-preview.md](language/syntax-v1-preview.md)
+- [current-state.md](current-state.md)

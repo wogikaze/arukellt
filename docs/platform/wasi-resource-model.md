@@ -1,166 +1,40 @@
-# WASI 標準 API の資源モデル
+# Archived WASI resource model
 
-ステータス: ✅ DECIDED
+この文書は、過去に検討していた capability-first な WASI API 設計メモです。
+現在の実装の source of truth ではありません。
 
-最終更新: 2026-03-24
+## Current source of truth
 
-## 問題
+- [../current-state.md](../current-state.md)
+- [../stdlib/io.md](../stdlib/io.md)
 
-`fs.read_file(path: String)` を出した瞬間に capability 設計の半分が死ぬ。
+## なぜ archive 化したか
 
-- String ベースの path は「どのディレクトリにアクセスできるか」を型で保証できない
-- safety も portability も消える
-- WASI の本質（ability-based security）が形骸化する
+以前の `wasi-resource-model.md` は:
 
-「WASI 名を隠す標準 API」は何も偉くない。名前を変えただけの薄い rename ラッパーにしかならない。**決めるべきは名前ではなく資源モデルだ。**
+- `DirCap` / `RelPath` / `Capabilities` ベースの I/O 設計
+- `main(caps: ...)` 前提の API
+- WASI p2 / capability model を中心にした将来像
 
----
+を扱っていました。
 
-## 2つの選択肢
+しかし現行実装では、利用者向け I/O は主に次の薄い wrapper です。
 
-### 選択肢 A: String path ベース
-
-```
-fs.read_file(path: String) -> Result[String, IOError]
-```
-
-利点:
-
-- 実装が単純
-- ユーザーが慣れている
-- LLM が書きやすい
-
-欠点:
-
-- capability の意味がない
-- 移植性の保証がない
-- テスト・サンドボックスが難しい
-
-### 選択肢 B: capability/value/resource type ベース
-
-```
-fs.read_file(dir: DirCap, path: RelPath) -> Result[FileHandle, IOError]
+```ark
+fs_read_file(path: String) -> Result<String, String>
+fs_write_file(path: String, content: String) -> Result<(), String>
+clock_now() -> i64
+random_i32() -> i32
 ```
 
-必要な型:
+そのため、この文書を active guidance として残すと誤読されやすくなっていました。
 
-- `DirCap` — アクセス可能なディレクトリを表す capability 値
-- `RelPath` — DirCap に対する相対パス（String ではない）
-- `FileHandle` — 開いたファイルの抽象ハンドル
-- `IOError` — I/O 失敗の型
+## 位置づけ
 
-利点:
+今後は「将来の capability 設計を振り返るための履歴資料」としてのみ扱ってください。
 
-- WASI p2 の設計と整合する
-- サンドボックス・テストが型レベルで表現できる
-- 移植性が高い
+## いま見るべき文書
 
-欠点:
-
-- API が複雑
-- LLM が最初に書くコードが冗長になる
-- DirCap の「入手方法」を言語レベルで設計する必要がある（コマンドライン引数? 環境変数? main の引数?）
-
----
-
-## 各 API の決定項目
-
-以下を一つずつ決める。選択肢 A / B の二択ではなく、API ごとに決める。
-
-### fs
-
-| 問い | 選択肢 |
-|------|--------|
-| path は String か DirCap+RelPath か | 未決定 |
-| read と write を分けるか（read-only cap） | 未決定 |
-| open の返り値は FileHandle か全内容 String か | 未決定 |
-
-### clock
-
-| 問い | 選択肢 |
-|------|--------|
-| wall clock と monotonic clock を分けるか | 分ける（推奨）/ まとめる |
-| 返り値は何か（nanoseconds, Duration 型, etc.） | 未決定 |
-
-WASI p2 では `monotonic-clock` と `wall-clock` は別リソース。これに合わせるのが自然。
-
-### random
-
-| 問い | 選択肢 |
-|------|--------|
-| 暗号学的乱数と通常乱数を分けるか | 分ける（推奨）/ まとめる |
-| API は `fill(buf: &mut [u8])` か `next_u64()` か | 未決定 |
-
-### net
-
-| 問い | 選択肢 |
-|------|--------|
-| 同期 API か非同期専用か | 非同期専用（async なし v0 ではホスト依存に閉じ込める） |
-| v0 スコープに入れるか | **入れない可能性が高い**（async 設計前） |
-
----
-
-## capability の「入手方法」設計
-
-選択肢 B を採る場合、`DirCap` をどこから取るかを決める必要がある。
-
-候補:
-
-1. `main` の引数として渡す（`fn main(caps: Capabilities) -> Result[(), Error]`）
-2. 環境変数から初期化する
-3. WASI p2 の `wasi:filesystem` リソースをそのまま wrap する
-
-いずれにせよ、DirCap は「作る」ものではなく「もらう」ものとして設計する。ユーザーコードの中で `DirCap::new("/")` のように作れてしまったら capability の意味がない。
-
-## 決定
-
-**選択肢 B: capability/value/resource type ベースを採用する**
-
-決定日: 2026-03-24
-
-### 決定内容
-
-- fs: DirCap + RelPath 方式を採用
-- clock: wall/monotonic を分離
-- random: 暗号学的/通常を分離
-- net: v0 スコープ外
-
-### capability の入手方法
-
-`main` 関数の引数として受け取る:
-
-```
-fn main(caps: Capabilities) -> Result[(), AppError] {
-    let dir = caps.cwd()        // カレントディレクトリへの capability
-    let content = fs.read_file(dir, RelPath::from("data.txt"))?
-    Ok(())
-}
-```
-
-`Capabilities` 型:
-
-```
-struct Capabilities {
-    fn cwd(self) -> DirCap           // カレントディレクトリ（読み書き可）
-    fn args(self) -> [String]        // コマンドライン引数
-    fn env(self) -> Env              // 環境変数アクセス
-    fn stdin(self) -> FileHandle     // 標準入力
-    fn stdout(self) -> FileHandle    // 標準出力
-    fn stderr(self) -> FileHandle    // 標準エラー
-}
-```
-
-### 根拠
-
-1. WASI p2 の設計と整合する
-2. サンドボックス・テストが型レベルで表現できる
-3. 移植性が高い
-4. capability を「もらう」ものとして設計することで、安全性を担保
-
----
-
-## 関連
-
-- `ADR-002`: メモリモデルが決まると FileHandle の表現が変わる
-- `WASI-capability分析.txt`: この設計の根拠となる分析
-- WASI p2 仕様: `wasi:filesystem`, `wasi:clocks`, `wasi:random` を参照
+- 実装の現在地: [../current-state.md](../current-state.md)
+- 現行 I/O API: [../stdlib/io.md](../stdlib/io.md)
+- T1/T3 の位置づけ: [wasm-features.md](wasm-features.md)

@@ -5,7 +5,7 @@
 arukellt v0 は「LLM フレンドリな言語」の最小限の実装。
 コア機能に集中し、高度な機能は v1 以降に持ち越す。
 
-> **実装状況の詳細は [`docs/process/v0-status.md`](v0-status.md) を参照。**
+> **現在の実装確認は [`docs/current-state.md`](../current-state.md) を参照。**
 > 本文書はスコープ定義（何を含めるか）であり、実装完了の宣言ではない。
 
 凡例: ✅ = end-to-end 動作確認済み, ⚠️ = 部分実装, 🔲 = 設計済み・未実装
