@@ -12,6 +12,7 @@ members = [
     "crates/ark-diagnostics",
     "crates/ark-stdlib",
     "crates/ark-target",
+    "crates/ark-driver",
     "crates/arukellt",
 ]
 # ark-llvm requires LLVM 18 native libraries; exclude from default build
@@ -26,6 +27,7 @@ default-members = [
     "crates/ark-diagnostics",
     "crates/ark-stdlib",
     "crates/ark-target",
+    "crates/ark-driver",
     "crates/arukellt",
 ]
 
@@ -46,9 +48,11 @@ ark-diagnostics = { path = "crates/ark-diagnostics" }
 ark-target = { path = "crates/ark-target" }
 ark-llvm = { path = "crates/ark-llvm" }
 ark-stdlib = { path = "crates/ark-stdlib" }
+ark-driver = { path = "crates/ark-driver" }
 
 # Shared dependencies
 wasm-encoder = "0.225"
+wasmparser = "0.225"
 wasmtime = "29"
 ariadne = "0.5"
 clap = { version = "4", features = ["derive"] }

@@ -133,6 +133,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ark-driver"
+version = "0.1.0"
+dependencies = [
+ "ark-diagnostics",
+ "ark-lexer",
+ "ark-mir",
+ "ark-parser",
+ "ark-resolve",
+ "ark-target",
+ "ark-typecheck",
+ "ark-wasm",
+]
+
+[[package]]
 name = "ark-lexer"
 version = "0.1.0"
 dependencies = [
@@ -219,6 +233,7 @@ dependencies = [
  "ark-target",
  "ark-typecheck",
  "wasm-encoder 0.225.0",
+ "wasmparser 0.225.0",
 ]
 
 [[package]]
@@ -226,6 +241,7 @@ name = "arukellt"
 version = "0.1.0"
 dependencies = [
  "ark-diagnostics",
+ "ark-driver",
  "ark-lexer",
  "ark-llvm",
  "ark-lsp",
@@ -2330,8 +2346,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "36e5456165f81e64cb9908a0fe9b9d852c2c74582aa3fe2be3c2da57f937d3ae"
 dependencies = [
  "bitflags 2.11.0",
+ "hashbrown 0.15.5",
  "indexmap",
  "semver",
+ "serde",
 ]
 
 [[package]]

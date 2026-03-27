@@ -8,6 +8,7 @@ name = "arukellt"
 path = "src/main.rs"
 
 [dependencies]
+ark-driver = { workspace = true }
 ark-lexer = { workspace = true }
 ark-parser = { workspace = true }
 ark-resolve = { workspace = true }
