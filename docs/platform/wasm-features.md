@@ -63,6 +63,17 @@ canonical 名を使うこと。
 - backend validation が warning-only のままである
 - T1 details が消えている
 
+## Runtime model terminology
+
+The `BackendPlan` uses `RuntimeModel` to distinguish executable reality from target intent:
+
+| RuntimeModel | Meaning | Current state |
+|-------------|---------|---------------|
+| `T1LinearP1` | Linear memory + WASI P1 | Active, production |
+| `T3FallbackToT1` | T3 target, but still using T1 linear memory internally | Transitional (current T3) |
+| `T3WasmGcP2` | True WasmGC-native data model + WASI P2 | Target for v1 exit |
+| `T4LlvmScaffold` | LLVM native scaffold | Optional, not v1 gate |
+
 ## 関連
 
 - [../current-state.md](../current-state.md)

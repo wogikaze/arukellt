@@ -3,8 +3,23 @@ use crate::{AbiSurface, EmitKind, MemoryModel, TargetId, TargetProfile, WasiProf
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RuntimeModel {
     T1LinearP1,
+    /// Transitional: T3 target exists but still uses T1-style linear memory internally.
     T3FallbackToT1,
+    /// Completed T3: WasmGC-native data model with WASI P2 runtime.
+    T3WasmGcP2,
     T4LlvmScaffold,
+}
+
+impl RuntimeModel {
+    /// Whether this model represents fully completed T3 (non-fallback).
+    pub fn is_t3_complete(&self) -> bool {
+        matches!(self, RuntimeModel::T3WasmGcP2)
+    }
+
+    /// Whether this model uses a T1-based fallback internally.
+    pub fn is_fallback(&self) -> bool {
+        matches!(self, RuntimeModel::T3FallbackToT1)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -132,6 +147,12 @@ pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<Backe
                 name: "fd_write".to_string(),
             });
         }
+        RuntimeModel::T3WasmGcP2 => {
+            imports.push(ImportPlan {
+                module: "wasi_snapshot_preview1".to_string(),
+                name: "fd_write".to_string(),
+            });
+        }
         RuntimeModel::T4LlvmScaffold => {
             exports.clear();
             exports.push(ExportPlan {
@@ -162,9 +183,16 @@ pub fn plan_matches_target_profile(plan: &BackendPlan) -> bool {
                 && plan.profile.abi_surface == AbiSurface::RawWasm
         }
         RuntimeModel::T3FallbackToT1 => {
+            // Fallback: profile says WasmGC but runtime is still T1-like.
+            // Match returns true because the plan is a truthful representation
+            // of the transitional state.
             plan.profile.memory_model == MemoryModel::WasmGc
                 && plan.profile.wasi_profile == WasiProfile::P2
                 && plan.profile.abi_surface == AbiSurface::ComponentWit
+        }
+        RuntimeModel::T3WasmGcP2 => {
+            plan.profile.memory_model == MemoryModel::WasmGc
+                && plan.profile.wasi_profile == WasiProfile::P2
         }
         RuntimeModel::T4LlvmScaffold => {
             plan.profile.memory_model == MemoryModel::Native
