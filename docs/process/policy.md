@@ -57,11 +57,18 @@ Normal correctness verification lives in `scripts/verify-harness.sh` and should 
 It includes:
 
 - docs structure checks
-- docs consistency drift checks
+- docs consistency drift checks (T3 target status, fixture count, validation policy)
 - fmt / clippy / build / tests
-- manifest-driven fixture harness
+- manifest-driven fixture harness (including 160 T3 compile fixtures)
 - stdlib manifest check
 - baseline collection smoke
+
+### CI Workflow Structure
+
+- **Correctness** (required): `verify-harness.sh` — all 16 checks must pass
+- **Target behavior** (required): T1 and T3 fixture matrix on both targets
+- **Perf baseline** (push-only): collects T1/T3 compile-time and binary-size telemetry
+- **Final Gate**: passes only when correctness + target-behavior both succeed
 
 ## Perf Policy
 
