@@ -133,6 +133,22 @@ gate as T1. WasmGC-specific validation covers:
 Any `W0004` failure stops the build. The emitter must produce valid WasmGC modules;
 there is no fallback or warning-only mode.
 
+### T3 runtime phase errors
+
+T3 runtime errors carry context prefixes for phase-aware triage:
+
+| Phase | Error prefix | Example |
+|-------|-------------|---------|
+| Engine creation | `engine creation error (GC)` | LLVM config or GC feature unavailable |
+| Module compilation | `wasm compile error (GC)` | wasmtime cannot compile the GC module |
+| WASI link | `wasi link error` | WASI P1 adapter linking failure |
+| Instantiation | `wasm instantiation error (GC)` | Missing imports or memory constraints |
+| Execution | `runtime error` | Trap during `_start` execution |
+| Entry point | `missing _start` | Module lacks `_start` export |
+
+These prefixes allow distinguishing T3 backend/runtime failures from frontend
+(parse/resolve/typecheck) or target-selection (E0305–E0307) errors.
+
 ## 関連
 
 - [../current-state.md](../current-state.md)
