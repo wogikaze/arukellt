@@ -91,7 +91,7 @@ V1 is complete when all of the following are satisfied:
 - `--emit component` is not implemented (hard error)
 - `--deny-clock` and `--deny-random` are not enforced (hard error)
 - No `--dir` flag = no filesystem access (deny-by-default)
-- T3 target still uses the T1/WASI Preview 1 runtime path internally
+- T3 target uses WasmGC-enabled runtime with P1 I/O bridge (not a T1 fallback)
 - T3 Vec/String use linear-memory bridge mode (GC types declared but data lives in linear memory)
 - `ark-llvm` is excluded from default builds (requires LLVM 18)
 
