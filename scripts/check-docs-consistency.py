@@ -54,14 +54,14 @@ def main() -> int:
     errors += must_contain(current_state, "Wasm validation is a hard error (W0004)")
     errors += must_contain(diagnostics, "W0004")
     errors += must_contain(diagnostics, "backend-validate")
-    errors += must_contain(policy, "Experimental fallback")
+    errors += must_contain(policy, "Canonical v1 path")
     errors += must_contain(policy, "warning")
     errors += must_contain(policy, "W0001")
     errors += must_contain(policy, "W0002")
     errors += must_contain(policy, "W0004")
 
     errors += must_contain(wasm_features, "`--emit component` is a hard error")
-    errors += must_contain(wasm_features, "T3 `wasm32-wasi-p2` は experimental")
+    errors += must_contain(wasm_features, "T3 `wasm32-wasi-p2` は canonical")
     errors += must_contain(migration, "Component Model | Hard error")
     errors += must_contain(migration, "No `--dir` flag = no filesystem access")
 

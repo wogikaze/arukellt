@@ -1,26 +1,26 @@
 # Migration Guide: T1 → T3
 
-> **Current-first**: this page explains migration expectations against the current implementation, not an aspirational full T3 rollout.
+> **Current-first**: this page explains migration from the T1 compatibility path to the canonical T3 path.
 
 ## Overview
 
 | Aspect | T1 (wasm32-wasi-p1) | T3 (wasm32-wasi-p2) |
 |--------|---------------------|---------------------|
-| Memory model in current implementation | Linear memory (bump-oriented runtime path) | Experimental fallback to the same runtime path |
-| WASI version in shipped run path | Preview 1 | Preview 1 internally today |
+| Memory model | Linear memory (bump allocator) | WasmGC types + linear-memory bridge |
+| WASI I/O | Preview 1 (fd_write) | Preview 1 (fd_write) via bridge |
 | Component Model | Hard error | Hard error |
-| WIT generation | Limited/partial tooling only | Design/migration context, not current deployment contract |
+| WIT generation | Limited/partial tooling only | Design context only |
 | Default emit | `core-wasm` | `core-wasm` |
-| Status | Stable default | Experimental fallback |
+| Status | Compatibility path | Canonical v1 path |
 
 ## CLI Selection
 
 ```bash
-# T1 (current default)
+# T1 (current CLI default for compatibility)
 arukellt run file.ark
 arukellt run --target wasm32-wasi-p1 file.ark
 
-# T3 experimental fallback
+# T3 (canonical v1 path)
 arukellt run --target wasm32-wasi-p2 file.ark
 ```
 
@@ -87,5 +87,5 @@ This is a quality-gate change, not a source-language change.
 |-------|-------|-----|
 | `invalid emit kind` / component hard error | Component output is not implemented | Use `--emit core-wasm` |
 | `target alias ... is deprecated` | Old alias accepted with `W0002` | Switch to canonical target name |
-| `target ... is not yet implemented` | T2/T4/T5 are not current run paths | Use T1 or experimental T3 |
+| `target ... is not yet implemented` | T2/T4/T5 are not current run paths | Use T1 or T3 |
 | `generated Wasm module failed validation` | Backend validation failed (`W0004`) | Treat as compiler/backend failure, not a warning to ignore |

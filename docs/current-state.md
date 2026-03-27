@@ -17,7 +17,7 @@
 |--------|------|--------|-----|-------|
 | wasm32-wasi-p1 | T1 | ✅ Implemented | ✅ | Default target, production path |
 | wasm32-freestanding | T2 | ❌ Not implemented | ❌ | Registry only |
-| wasm32-wasi-p2 | T3 | ⚠️ Experimental | ✅ | Experimental fallback to T1 runtime internally |
+| wasm32-wasi-p2 | T3 | ✅ Implemented | ✅ | Canonical v1 path, WasmGC-enabled |
 | native | T4 | ❌ Not implemented | ❌ | Requires LLVM 18 |
 | wasm32-wasi-p3 | T5 | ❌ Not implemented | ❌ | Future |
 

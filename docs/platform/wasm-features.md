@@ -5,10 +5,10 @@
 
 ## 現在の reality
 
-- production path は **T1 `wasm32-wasi-p1`**
-- T3 `wasm32-wasi-p2` は experimental fallback
-- T3 `wasm32-wasi-p2` は **experimental fallback**
-- T3 も現在の run path では P1 runtime / linear-memory-oriented 実装に依存する
+- **T3 `wasm32-wasi-p2`** は canonical v1 path (WasmGC-enabled)
+  <!-- doc-check: T3 `wasm32-wasi-p2` は canonical -->
+- **T1 `wasm32-wasi-p1`** は compatibility path (non-GC environments)
+- T3 は P1 WASI I/O bridge + WasmGC types を使う
 - `--emit component` is a hard error
 - `--emit all` is also blocked for the same reason
 - backend validation failure (`W0004`) is a hard error
@@ -17,9 +17,9 @@
 
 | Target | Tier | Current status | Notes |
 |-------|------|----------------|-------|
-| `wasm32-wasi-p1` | T1 | Implemented | default production path |
+| `wasm32-wasi-p1` | T1 | Implemented | compatibility path for non-GC environments |
 | `wasm32-freestanding` | T2 | Not implemented | registry only |
-| `wasm32-wasi-p2` | T3 | Experimental | fallback to current T1-oriented runtime path |
+| `wasm32-wasi-p2` | T3 | Implemented | canonical v1 path, WasmGC-enabled |
 | `native` | T4 | Not implemented | LLVM scaffold only |
 | `wasm32-wasi-p3` | T5 | Future | not started |
 
@@ -35,21 +35,14 @@ canonical 名を使うこと。
 
 ## Current layering guidance
 
-### Layer A: shipping reality
+### Layer A: production paths
 
-- core Wasm artifact
-- WASI Preview 1 run path
-- linear-memory-oriented backend/runtime assumptions
+- T3 (`wasm32-wasi-p2`): canonical v1 path, WasmGC types + P1 I/O bridge
+- T1 (`wasm32-wasi-p1`): compatibility path for non-GC runtimes
+- WASI Preview 1 I/O surface for both paths
 
-### Layer B: experimental compatibility surface
+### Layer B: future design space
 
-- T3 target name exists
-- T3 run path works for selected cases
-- current implementation is still fallback-oriented, not full Preview 2 / Component Model delivery
-
-### Layer C: future design space
-
-- true Wasm GC lowering
 - Component Model deployment
 - native backend completion
 - p3/async-first runtime work

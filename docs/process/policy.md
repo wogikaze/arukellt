@@ -23,9 +23,9 @@
 
 | Target | Status | Support level |
 |--------|--------|---------------|
-| `wasm32-wasi-p1` (T1) | Implemented | Full correctness gate, default path |
+| `wasm32-wasi-p1` (T1) | Implemented | Compatibility path for non-GC environments |
 | `wasm32-freestanding` (T2) | Planned | Registry only |
-| `wasm32-wasi-p2` (T3) | Experimental fallback | Uses T1 runtime path internally |
+| `wasm32-wasi-p2` (T3) | Implemented | Canonical v1 path, WasmGC-enabled |
 | `native` (T4) | Planned | Optional/scaffold only |
 | `wasm32-wasi-p3` (T5) | Future | Registry only |
 
