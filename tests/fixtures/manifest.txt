@@ -171,6 +171,8 @@ run:structs/struct_eq.ark
 run:structs/struct_in_vec.ark
 run:structs/struct_update.ark
 run:test_assert/assert_pass.ark
+run:t3/arithmetic.ark
+run:t3/hello.ark
 run:trait/basic_impl.ark
 run:trait/method_chain.ark
 run:trait/operator_overload.ark
