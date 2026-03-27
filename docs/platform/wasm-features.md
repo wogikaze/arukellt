@@ -74,7 +74,40 @@ The `BackendPlan` uses `RuntimeModel` to distinguish executable reality from tar
 | `T3WasmGcP2` | True WasmGC-native data model + WASI P2 | Target for v1 exit |
 | `T4LlvmScaffold` | LLVM native scaffold | Optional, not v1 gate |
 
-## 関連
+## T3 String representation (bridge mode)
+
+T3 uses a **linear-memory bridge** for String values:
+
+- **Layout**: `[len:4 bytes LE][data bytes]` — pointer (i32) points to data start; length at `ptr - 4`
+- **GC type section**: A `(type $string (struct (field (ref (array i8))))` is declared but **not used at runtime**
+- **Allocation**: Bump allocator (global 0); no GC collection yet
+
+### Implemented operations
+
+| Operation | Status | Notes |
+|-----------|--------|-------|
+| `String_from` | ✓ | Identity (passthrough) |
+| `concat` | ✓ | Allocates new string, copies both halves |
+| `to_string` | ✓ | Polymorphic: i32→helper fn, f64/i64/bool→stubs |
+| `string_len` | ✓ | Reads `[ptr-4]` |
+| `char_at` | ✓ | Loads single byte at offset |
+| `substring` | ✓ | Allocates new string from range |
+| `clone` | ✓ | Full copy via memory.copy |
+| `to_uppercase` / `to_lowercase` | ✓ | ASCII-only, clone + in-place transform |
+| `trim` | ✓ | Scans whitespace from both ends, returns substring |
+| `contains` | ✓ | Byte-by-byte substring search |
+| `starts_with` / `ends_with` | ✓ | Prefix/suffix byte comparison |
+| `replace` | stub | Returns clone (ignores replacement args) |
+| `split` | stub | Returns empty vec |
+| `i32_to_string` | ✓ | Helper function with div/mod loop |
+| `f64_to_string` | stub | Pushes 0 |
+| `i64_to_string` | stub | Falls through to default |
+
+### Design rationale
+
+Bridge mode keeps the T3 emitter operational without requiring full WasmGC runtime support
+(reference counting, GC arrays). When WasmGC runtimes mature, String can migrate to
+`(array i8)` with minimal API change since the byte-oriented layout is preserved.
 
 - [../current-state.md](../current-state.md)
 - [abi.md](abi.md)

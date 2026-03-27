@@ -893,9 +893,9 @@
       "path": "modules/circular/main.ark",
       "status": 1,
       "stdout": "",
-      "stderr": "error[E0103|resolve]: circular import detected: b.ark \u2192 a.ark \u2192 a.ark\n\n",
+      "stderr": "error[E0103|resolve]: circular import detected: a.ark \u2192 b.ark \u2192 a.ark\n\n",
       "primary_text": [
-        "error[E0103|resolve]: circular import detected: b.ark \u2192 a.ark \u2192 a.ark"
+        "error[E0103|resolve]: circular import detected: a.ark \u2192 b.ark \u2192 a.ark"
       ]
     },
     {
