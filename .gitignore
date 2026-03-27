@@ -7,3 +7,6 @@ target/
 # io/fs test artifacts
 _test_io.txt
 test_output.txt
+
+# compiled wasm artifacts in fixture directories
+tests/fixtures/**/*.wasm
