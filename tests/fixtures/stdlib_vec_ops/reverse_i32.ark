@@ -1,0 +1,13 @@
+fn main() {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+    push(v, 3)
+    push(v, 4)
+    reverse_i32(v)
+    let mut i: i32 = 0
+    while i < len(v) {
+        println(get_unchecked(v, i))
+        i = i + 1
+    }
+}

@@ -1,6 +1,7 @@
 //! Diagnostic system for the Arukellt compiler.
 //!
-//! All diagnostic codes (E00xx–E03xx, W0xxx) and structured error reporting.
+//! Canonical diagnostic codes (E00xx–E03xx, W0xxx), simple text rendering,
+//! and structured snapshots for tests/docs.
 
 use std::fmt;
 
@@ -46,130 +47,210 @@ pub enum Severity {
     Help,
 }
 
+/// Phase that originated a diagnostic.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DiagnosticPhase {
+    Parse,
+    Resolve,
+    TypeCheck,
+    Target,
+    BackendValidate,
+    Internal,
+}
+
+impl DiagnosticPhase {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Parse => "parse",
+            Self::Resolve => "resolve",
+            Self::TypeCheck => "typecheck",
+            Self::Target => "target",
+            Self::BackendValidate => "backend-validate",
+            Self::Internal => "internal",
+        }
+    }
+}
+
+/// Canonical registry entry for one diagnostic code.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DiagnosticSpec {
+    pub code: DiagnosticCode,
+    pub id: &'static str,
+    pub message: &'static str,
+    pub severity: Severity,
+    pub phase: DiagnosticPhase,
+}
+
 /// Diagnostic error code.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DiagnosticCode {
     // E00xx: Syntax errors
-    E0001, // unexpected token
-    E0002, // missing token
-    E0003, // invalid construct
+    E0001,
+    E0002,
+    E0003,
 
     // E01xx: Name resolution
-    E0100, // unresolved name
-    E0101, // duplicate definition
-    E0102, // private access
-    E0103, // circular import
+    E0100,
+    E0101,
+    E0102,
+    E0103,
 
     // E02xx: Type errors
-    E0200, // type mismatch
-    E0201, // missing annotation
-    E0202, // wrong argument count
-    E0203, // invalid generic
-    E0204, // non-exhaustive match
-    E0205, // mismatched arms
-    E0206, // invalid pattern
-    E0207, // immutable mutation
-    E0208, // missing return
-    E0209, // unreachable pattern
-    E0210, // ? operator type mismatch
+    E0200,
+    E0201,
+    E0202,
+    E0203,
+    E0204,
+    E0205,
+    E0206,
+    E0207,
+    E0208,
+    E0209,
+    E0210,
 
-    // E03xx: v0 constraints / target constraints
-    // NOTE: E0300-E0304 are historical v0 constraint codes, now dead.
-    // v1 implements traits, methods, nested generics, for loops, and operator overloading.
-    // Retained for code-number stability; never emitted in current codebase.
-    E0300, // [deprecated] trait not available (v1: traits implemented)
-    E0301, // [deprecated] method syntax forbidden (v1: method calls implemented)
-    E0302, // [deprecated] nested generic forbidden (v1 M8: nested generics supported)
-    E0303, // [deprecated] for loop forbidden (v0: for loops implemented)
-    E0304, // [deprecated] operator overload forbidden (v1: operator overloading implemented)
-    E0305, // unsupported target
-    E0306, // invalid emit kind for target
-    E0307, // feature not available for target
+    // E03xx: Historical v0 constraints + target constraints
+    E0300,
+    E0301,
+    E0302,
+    E0303,
+    E0304,
+    E0305,
+    E0306,
+    E0307,
 
-    // W0xxx: Warnings
-    W0001, // possible unintended sharing
-    W0002, // deprecated target alias
-    W0003, // ambiguous import (local and std share same name)
-    W0004, // generated Wasm failed validation
+    // W0xxx: Warnings / validation gate
+    W0001,
+    W0002,
+    W0003,
+    W0004,
 }
 
+pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
+    DiagnosticCode::E0001,
+    DiagnosticCode::E0002,
+    DiagnosticCode::E0003,
+    DiagnosticCode::E0100,
+    DiagnosticCode::E0101,
+    DiagnosticCode::E0102,
+    DiagnosticCode::E0103,
+    DiagnosticCode::E0200,
+    DiagnosticCode::E0201,
+    DiagnosticCode::E0202,
+    DiagnosticCode::E0203,
+    DiagnosticCode::E0204,
+    DiagnosticCode::E0205,
+    DiagnosticCode::E0206,
+    DiagnosticCode::E0207,
+    DiagnosticCode::E0208,
+    DiagnosticCode::E0209,
+    DiagnosticCode::E0210,
+    DiagnosticCode::E0300,
+    DiagnosticCode::E0301,
+    DiagnosticCode::E0302,
+    DiagnosticCode::E0303,
+    DiagnosticCode::E0304,
+    DiagnosticCode::E0305,
+    DiagnosticCode::E0306,
+    DiagnosticCode::E0307,
+    DiagnosticCode::W0001,
+    DiagnosticCode::W0002,
+    DiagnosticCode::W0003,
+    DiagnosticCode::W0004,
+];
+
+pub const INTERNAL_DIAGNOSTIC_IDS: &[&str] = &["ICE-PIPELINE", "ICE-MIR", "ICE-BACKEND"];
+pub const PHASE_DUMP_ENV: &str = "ARUKELLT_DUMP_PHASES";
+pub const DIAGNOSTIC_DUMP_ENV: &str = "ARUKELLT_DUMP_DIAGNOSTICS";
+pub const PHASE_DUMP_ORDER: &[&str] = &[
+    "parse",
+    "resolve",
+    "corehir",
+    "mir",
+    "optimized-mir",
+    "backend-plan",
+];
+
 impl DiagnosticCode {
-    pub fn as_str(self) -> &'static str {
+    pub fn spec(self) -> DiagnosticSpec {
         match self {
-            Self::E0001 => "E0001",
-            Self::E0002 => "E0002",
-            Self::E0003 => "E0003",
-            Self::E0100 => "E0100",
-            Self::E0101 => "E0101",
-            Self::E0102 => "E0102",
-            Self::E0103 => "E0103",
-            Self::E0200 => "E0200",
-            Self::E0201 => "E0201",
-            Self::E0202 => "E0202",
-            Self::E0203 => "E0203",
-            Self::E0204 => "E0204",
-            Self::E0205 => "E0205",
-            Self::E0206 => "E0206",
-            Self::E0207 => "E0207",
-            Self::E0208 => "E0208",
-            Self::E0209 => "E0209",
-            Self::E0210 => "E0210",
-            Self::E0300 => "E0300",
-            Self::E0301 => "E0301",
-            Self::E0302 => "E0302",
-            Self::E0303 => "E0303",
-            Self::E0304 => "E0304",
-            Self::E0305 => "E0305",
-            Self::E0306 => "E0306",
-            Self::E0307 => "E0307",
-            Self::W0001 => "W0001",
-            Self::W0002 => "W0002",
-            Self::W0003 => "W0003",
-            Self::W0004 => "W0004",
+            Self::E0001 => DiagnosticSpec { code: self, id: "E0001", message: "unexpected token", severity: Severity::Error, phase: DiagnosticPhase::Parse },
+            Self::E0002 => DiagnosticSpec { code: self, id: "E0002", message: "missing token", severity: Severity::Error, phase: DiagnosticPhase::Parse },
+            Self::E0003 => DiagnosticSpec { code: self, id: "E0003", message: "invalid construct", severity: Severity::Error, phase: DiagnosticPhase::Parse },
+            Self::E0100 => DiagnosticSpec { code: self, id: "E0100", message: "unresolved name", severity: Severity::Error, phase: DiagnosticPhase::Resolve },
+            Self::E0101 => DiagnosticSpec { code: self, id: "E0101", message: "duplicate definition", severity: Severity::Error, phase: DiagnosticPhase::Resolve },
+            Self::E0102 => DiagnosticSpec { code: self, id: "E0102", message: "access to private symbol", severity: Severity::Error, phase: DiagnosticPhase::Resolve },
+            Self::E0103 => DiagnosticSpec { code: self, id: "E0103", message: "circular import", severity: Severity::Error, phase: DiagnosticPhase::Resolve },
+            Self::E0200 => DiagnosticSpec { code: self, id: "E0200", message: "type mismatch", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0201 => DiagnosticSpec { code: self, id: "E0201", message: "missing type annotation", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0202 => DiagnosticSpec { code: self, id: "E0202", message: "wrong number of arguments", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0203 => DiagnosticSpec { code: self, id: "E0203", message: "invalid generic usage", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0204 => DiagnosticSpec { code: self, id: "E0204", message: "non-exhaustive match", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0205 => DiagnosticSpec { code: self, id: "E0205", message: "mismatched match arm types", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0206 => DiagnosticSpec { code: self, id: "E0206", message: "invalid pattern", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0207 => DiagnosticSpec { code: self, id: "E0207", message: "cannot mutate immutable variable", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0208 => DiagnosticSpec { code: self, id: "E0208", message: "missing return value", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0209 => DiagnosticSpec { code: self, id: "E0209", message: "unreachable pattern", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0210 => DiagnosticSpec { code: self, id: "E0210", message: "incompatible error type for `?` operator", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0300 => DiagnosticSpec { code: self, id: "E0300", message: "traits are not available in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0301 => DiagnosticSpec { code: self, id: "E0301", message: "method call syntax is not available in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0302 => DiagnosticSpec { code: self, id: "E0302", message: "nested generics are not allowed in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0303 => DiagnosticSpec { code: self, id: "E0303", message: "`for` loop is not available in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0304 => DiagnosticSpec { code: self, id: "E0304", message: "operator overloading is not available in v0", severity: Severity::Error, phase: DiagnosticPhase::TypeCheck },
+            Self::E0305 => DiagnosticSpec { code: self, id: "E0305", message: "unsupported target", severity: Severity::Error, phase: DiagnosticPhase::Target },
+            Self::E0306 => DiagnosticSpec { code: self, id: "E0306", message: "invalid emit kind for target", severity: Severity::Error, phase: DiagnosticPhase::Target },
+            Self::E0307 => DiagnosticSpec { code: self, id: "E0307", message: "feature not available for target", severity: Severity::Error, phase: DiagnosticPhase::Target },
+            Self::W0001 => DiagnosticSpec { code: self, id: "W0001", message: "possible unintended sharing of reference type", severity: Severity::Warning, phase: DiagnosticPhase::TypeCheck },
+            Self::W0002 => DiagnosticSpec { code: self, id: "W0002", message: "deprecated target alias", severity: Severity::Warning, phase: DiagnosticPhase::Target },
+            Self::W0003 => DiagnosticSpec { code: self, id: "W0003", message: "ambiguous import: local and std modules share the same name", severity: Severity::Warning, phase: DiagnosticPhase::Resolve },
+            // Current-first refactor policy: W0004 is now a hard error at backend validation.
+            Self::W0004 => DiagnosticSpec { code: self, id: "W0004", message: "generated Wasm module failed validation", severity: Severity::Error, phase: DiagnosticPhase::BackendValidate },
         }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        self.spec().id
     }
 
     pub fn message(self) -> &'static str {
-        match self {
-            Self::E0001 => "unexpected token",
-            Self::E0002 => "missing token",
-            Self::E0003 => "invalid construct",
-            Self::E0100 => "unresolved name",
-            Self::E0101 => "duplicate definition",
-            Self::E0102 => "access to private symbol",
-            Self::E0103 => "circular import",
-            Self::E0200 => "type mismatch",
-            Self::E0201 => "missing type annotation",
-            Self::E0202 => "wrong number of arguments",
-            Self::E0203 => "invalid generic usage",
-            Self::E0204 => "non-exhaustive match",
-            Self::E0205 => "mismatched match arm types",
-            Self::E0206 => "invalid pattern",
-            Self::E0207 => "cannot mutate immutable variable",
-            Self::E0208 => "missing return value",
-            Self::E0209 => "unreachable pattern",
-            Self::E0210 => "incompatible error type for `?` operator",
-            Self::E0300 => "traits are not available in v0",
-            Self::E0301 => "method call syntax is not available in v0",
-            Self::E0302 => "nested generics are not allowed in v0",
-            Self::E0303 => "`for` loop is not available in v0",
-            Self::E0304 => "operator overloading is not available in v0",
-            Self::E0305 => "unsupported target",
-            Self::E0306 => "invalid emit kind for target",
-            Self::E0307 => "feature not available for target",
-            Self::W0001 => "possible unintended sharing of reference type",
-            Self::W0002 => "deprecated target alias",
-            Self::W0003 => "ambiguous import: local and std modules share the same name",
-            Self::W0004 => "generated Wasm module failed validation",
-        }
+        self.spec().message
     }
 
     pub fn severity(self) -> Severity {
-        match self {
-            Self::W0001 | Self::W0002 | Self::W0003 | Self::W0004 => Severity::Warning,
-            _ => Severity::Error,
-        }
+        self.spec().severity
     }
+
+    pub fn phase(self) -> DiagnosticPhase {
+        self.spec().phase
+    }
+}
+
+pub fn diagnostic_registry() -> Vec<DiagnosticSpec> {
+    DIAGNOSTIC_CODES.iter().copied().map(DiagnosticCode::spec).collect()
+}
+
+pub fn internal_diagnostic_ids() -> &'static [&'static str] {
+    INTERNAL_DIAGNOSTIC_IDS
+}
+
+pub fn render_diagnostic_registry() -> String {
+    let mut out = String::new();
+    for spec in diagnostic_registry() {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\n",
+            spec.id,
+            match spec.severity {
+                Severity::Error => "error",
+                Severity::Warning => "warning",
+                Severity::Help => "help",
+            },
+            spec.phase.as_str(),
+            spec.message
+        ));
+    }
+    for id in INTERNAL_DIAGNOSTIC_IDS {
+        out.push_str(&format!("{}\terror\tinternal\tinternal compiler error\n", id));
+    }
+    out
 }
 
 impl fmt::Display for DiagnosticCode {
@@ -198,6 +279,7 @@ pub struct FixIt {
 pub struct Diagnostic {
     pub code: DiagnosticCode,
     pub message: String,
+    pub phase_override: Option<DiagnosticPhase>,
     pub labels: Vec<Label>,
     pub fix_its: Vec<FixIt>,
     pub notes: Vec<String>,
@@ -207,13 +289,19 @@ pub struct Diagnostic {
 impl Diagnostic {
     pub fn new(code: DiagnosticCode) -> Self {
         Self {
-            message: code.message().to_string(),
             code,
+            message: code.message().to_string(),
+            phase_override: None,
             labels: Vec::new(),
             fix_its: Vec::new(),
             notes: Vec::new(),
             suggestion: None,
         }
+    }
+
+    pub fn with_phase(mut self, phase: DiagnosticPhase) -> Self {
+        self.phase_override = Some(phase);
+        self
     }
 
     pub fn with_message(mut self, msg: impl Into<String>) -> Self {
@@ -255,6 +343,10 @@ impl Diagnostic {
 
     pub fn severity(&self) -> Severity {
         self.code.severity()
+    }
+
+    pub fn phase(&self) -> DiagnosticPhase {
+        self.phase_override.unwrap_or(self.code.phase())
     }
 
     pub fn is_error(&self) -> bool {
@@ -370,7 +462,40 @@ impl SourceMap {
     }
 }
 
-/// Render diagnostics to a string (simple text renderer).
+pub fn render_expected_actual(message: &str) -> Option<(String, String)> {
+    let expected_marker = "expected `";
+    let found_marker = "found `";
+    let expected_start = message.find(expected_marker)? + expected_marker.len();
+    let expected_end = message[expected_start..].find('`')? + expected_start;
+    let found_start = message.find(found_marker)? + found_marker.len();
+    let found_end = message[found_start..].find('`')? + found_start;
+    Some((
+        message[expected_start..expected_end].to_string(),
+        message[found_start..found_end].to_string(),
+    ))
+}
+
+pub fn render_expected_actual_for_diagnostic(diagnostic: &Diagnostic) -> Option<(String, String)> {
+    render_expected_actual(&diagnostic.message).or_else(|| {
+        diagnostic
+            .labels
+            .iter()
+            .find_map(|label| render_expected_actual(&label.message))
+    })
+}
+
+pub fn render_fix_hints(diagnostic: &Diagnostic) -> Vec<String> {
+    let mut hints = Vec::new();
+    if let Some(suggestion) = &diagnostic.suggestion {
+        hints.push(suggestion.clone());
+    }
+    for fix_it in &diagnostic.fix_its {
+        hints.push(fix_it.message.clone());
+    }
+    hints
+}
+
+/// Render diagnostics to a string.
 pub fn render_diagnostics(diagnostics: &[Diagnostic], source_map: &SourceMap) -> String {
     let mut out = String::new();
     for diag in diagnostics {
@@ -379,7 +504,18 @@ pub fn render_diagnostics(diagnostics: &[Diagnostic], source_map: &SourceMap) ->
             Severity::Warning => "warning",
             Severity::Help => "help",
         };
-        out.push_str(&format!("{}[{}]: {}\n", severity, diag.code, diag.message));
+        out.push_str(&format!(
+            "{}[{}|{}]: {}\n",
+            severity,
+            diag.code,
+            diag.phase().as_str(),
+            diag.message
+        ));
+
+        if let Some((expected, actual)) = render_expected_actual_for_diagnostic(diag) {
+            out.push_str(&format!("   = expected: {}\n", expected));
+            out.push_str(&format!("   = actual: {}\n", actual));
+        }
 
         for label in &diag.labels {
             let file = source_map.get_file(label.span.file_id);
@@ -415,6 +551,176 @@ pub fn render_diagnostics(diagnostics: &[Diagnostic], source_map: &SourceMap) ->
         out.push('\n');
     }
     out
+}
+
+pub fn render_structured_snapshot(diagnostic: &Diagnostic, source_map: &SourceMap) -> String {
+    let mut out = String::new();
+    out.push_str(&format!(
+        "code={} severity={} phase={} message={}\n",
+        diagnostic.code.as_str(),
+        match diagnostic.severity() {
+            Severity::Error => "error",
+            Severity::Warning => "warning",
+            Severity::Help => "help",
+        },
+        diagnostic.phase().as_str(),
+        diagnostic.message
+    ));
+    if let Some((expected, actual)) = render_expected_actual_for_diagnostic(diagnostic) {
+        out.push_str(&format!("expected={} actual={}\n", expected, actual));
+    }
+    for label in &diagnostic.labels {
+        let file = source_map.get_file(label.span.file_id);
+        let (line, col) = file.offset_to_line_col(label.span.start);
+        out.push_str(&format!(
+            "label={}::{}:{}:{} {}\n",
+            file.name,
+            line,
+            col,
+            label.span.end.saturating_sub(label.span.start).max(1),
+            label.message
+        ));
+    }
+    for hint in render_fix_hints(diagnostic) {
+        out.push_str(&format!("fix_hint={}\n", hint));
+    }
+    for note in &diagnostic.notes {
+        out.push_str(&format!("note={}\n", note));
+    }
+    out
+}
+
+pub fn render_structured_snapshots(diagnostics: &[Diagnostic], source_map: &SourceMap) -> String {
+    diagnostics
+        .iter()
+        .map(|diag| render_structured_snapshot(diag, source_map))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+pub fn render_minimal_diag_manifest(diagnostics: &[Diagnostic], source_map: &SourceMap) -> String {
+    diagnostics
+        .iter()
+        .map(|diag| {
+            let primary = diag
+                .labels
+                .first()
+                .map(|label| {
+                    let file = source_map.get_file(label.span.file_id);
+                    let (line, col) = file.offset_to_line_col(label.span.start);
+                    format!("{}:{}:{}", file.name, line, col)
+                })
+                .unwrap_or_else(|| "<none>".to_string());
+            format!(
+                "{}\t{}\t{}\t{}\t{}",
+                diag.code.as_str(),
+                match diag.severity() {
+                    Severity::Error => "error",
+                    Severity::Warning => "warning",
+                    Severity::Help => "help",
+                },
+                diag.phase().as_str(),
+                primary,
+                diag.labels
+                    .first()
+                    .map(|label| label.message.clone())
+                    .unwrap_or_else(|| diag.message.clone())
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+pub fn baseline_records_json(diagnostics: &[Diagnostic], source_map: &SourceMap) -> String {
+    let rows = diagnostics
+        .iter()
+        .map(|diag| {
+            let primary_span = diag
+                .labels
+                .first()
+                .map(|label| {
+                    let file = source_map.get_file(label.span.file_id);
+                    let (line, col) = file.offset_to_line_col(label.span.start);
+                    format!("{}:{}:{}", file.name, line, col)
+                })
+                .unwrap_or_default();
+            let primary_message = diag
+                .labels
+                .first()
+                .map(|label| label.message.clone())
+                .unwrap_or_else(|| diag.message.clone())
+                .replace('"', "\\\"");
+            format!(
+                "{{\"code\":\"{}\",\"severity\":\"{}\",\"phase\":\"{}\",\"primary_span\":\"{}\",\"primary_message\":\"{}\"}}",
+                diag.code.as_str(),
+                match diag.severity() {
+                    Severity::Error => "error",
+                    Severity::Warning => "warning",
+                    Severity::Help => "help",
+                },
+                diag.phase().as_str(),
+                primary_span.replace('"', "\\\""),
+                primary_message
+            )
+        })
+        .collect::<Vec<_>>();
+    format!("[{}]", rows.join(","))
+}
+
+pub fn alias_warning_diagnostic(used_alias: &str, canonical_name: &str) -> Diagnostic {
+    Diagnostic::new(DiagnosticCode::W0002)
+        .with_phase(DiagnosticPhase::Target)
+        .with_note(format!(
+            "target alias `{}` is deprecated; use `{}` instead",
+            used_alias, canonical_name
+        ))
+}
+
+pub fn wasm_validation_diagnostic(message: impl Into<String>) -> Diagnostic {
+    Diagnostic::new(DiagnosticCode::W0004)
+        .with_phase(DiagnosticPhase::BackendValidate)
+        .with_note(message.into())
+}
+
+pub fn stable_debug_dump<T: fmt::Debug>(value: &T) -> String {
+    format!("{:#?}", value)
+}
+
+pub fn dump_named_phase<T: fmt::Debug>(phase: &str, value: &T) -> String {
+    format!("== {} ==\n{}", phase, stable_debug_dump(value))
+}
+
+pub fn requested_dump_phases(var_name: &str) -> Option<Vec<String>> {
+    let raw = std::env::var(var_name).ok()?;
+    let phases = raw
+        .split(',')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(ToOwned::to_owned)
+        .collect::<Vec<_>>();
+    if phases.is_empty() {
+        None
+    } else {
+        Some(phases)
+    }
+}
+
+pub fn should_dump_phase(var_name: &str, phase: &str) -> bool {
+    requested_dump_phases(var_name)
+        .map(|phases| phases.iter().any(|candidate| candidate == phase || candidate == "all"))
+        .unwrap_or(false)
+}
+
+pub fn emit_phase_dump_if_requested<T: fmt::Debug>(phase: &str, value: &T) {
+    if should_dump_phase(PHASE_DUMP_ENV, phase) {
+        eprintln!("{}", dump_named_phase(phase, value));
+    }
+}
+
+pub fn emit_diagnostics_dump_if_requested(diagnostics: &[Diagnostic], source_map: &SourceMap) {
+    if std::env::var_os(DIAGNOSTIC_DUMP_ENV).is_some() {
+        eprintln!("{}", render_structured_snapshots(diagnostics, source_map));
+    }
 }
 
 #[cfg(test)]
@@ -465,7 +771,50 @@ mod tests {
         let diag = Diagnostic::new(DiagnosticCode::E0200)
             .with_label(Span::new(0, 13, 20), "expected `i32`, found `String`");
         let rendered = render_diagnostics(&[diag], &sm);
-        assert!(rendered.contains("error[E0200]"));
+        assert!(rendered.contains("error[E0200|typecheck]"));
         assert!(rendered.contains("test.ark:1:14"));
+        assert!(rendered.contains("expected: i32"));
+        assert!(rendered.contains("actual: String"));
+    }
+
+    #[test]
+    fn test_registry_marks_w0004_as_backend_error() {
+        let spec = DiagnosticCode::W0004.spec();
+        assert_eq!(spec.severity, Severity::Error);
+        assert_eq!(spec.phase, DiagnosticPhase::BackendValidate);
+    }
+
+    #[test]
+    fn test_registry_output_contains_warnings_and_ice_ids() {
+        let rendered = render_diagnostic_registry();
+        assert!(rendered.contains("W0001\twarning\ttypecheck"));
+        assert!(rendered.contains("W0002\twarning\ttarget"));
+        assert!(rendered.contains("W0004\terror\tbackend-validate"));
+        assert!(rendered.contains("ICE-MIR\terror\tinternal"));
+    }
+
+    #[test]
+    fn test_structured_snapshot() {
+        let mut sm = SourceMap::new();
+        sm.add_file("test.ark".into(), "let x: i32 = \"hello\"\n".into());
+        let diag = Diagnostic::new(DiagnosticCode::E0200)
+            .with_label(Span::new(0, 13, 20), "expected `i32`, found `String`")
+            .with_fix_it(Span::new(0, 4, 7), "String", "change the type annotation");
+        let rendered = render_structured_snapshot(&diag, &sm);
+        assert!(rendered.contains("code=E0200"));
+        assert!(rendered.contains("phase=typecheck"));
+        assert!(rendered.contains("fix_hint=change the type annotation"));
+    }
+
+    #[test]
+    fn test_requested_dump_phases() {
+        unsafe {
+            std::env::set_var(PHASE_DUMP_ENV, "parse,mir");
+        }
+        let phases = requested_dump_phases(PHASE_DUMP_ENV).unwrap();
+        assert_eq!(phases, vec!["parse".to_string(), "mir".to_string()]);
+        unsafe {
+            std::env::remove_var(PHASE_DUMP_ENV);
+        }
     }
 }

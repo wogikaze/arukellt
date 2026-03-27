@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-03-27",
+  "parse_i64": {
+    "return_shape": "Result<i64, String>",
+    "observed_output": [
+      "42",
+      "-100",
+      "0",
+      "9999999999",
+      "parse error: invalid integer"
+    ]
+  },
+  "parse_f64": {
+    "return_shape": "Result<f64, String>",
+    "observed_output": [
+      "3.14",
+      "-2.5",
+      "42.0",
+      "0.001",
+      "parse error: invalid float"
+    ]
+  }
+}

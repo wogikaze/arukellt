@@ -285,7 +285,8 @@ impl<'a> Parser<'a> {
                         .with_label(
                             sp,
                             format!("parameter `{}` requires a type annotation", name),
-                        ),
+                        )
+                        .with_suggestion(format!("add a type: `{}: Type`", name)),
                 );
                 // Skip to next comma or rparen
                 while *self.peek() != TokenKind::Comma
@@ -543,7 +544,8 @@ impl<'a> Parser<'a> {
                         .with_label(
                             sp,
                             format!("parameter `{}` requires a type annotation", name),
-                        ),
+                        )
+                        .with_suggestion(format!("add a type: `{}: Type`", name)),
                 );
                 while *self.peek() != TokenKind::Comma
                     && *self.peek() != TokenKind::RParen

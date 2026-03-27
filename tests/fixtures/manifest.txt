@@ -119,6 +119,7 @@ run:stdlib_io/print_hello.ark
 run:stdlib_io/println_multi.ark
 run:stdlib_map/map_string.ark
 run:stdlib_math/abs_min_max.ark
+run:stdlib_math/clamp_i32.ark
 run:stdlib_math/sqrt.ark
 run:stdlib_option_result/is_some_none.ark
 run:stdlib_option_result/none_unwrap_or.ark
@@ -158,7 +159,9 @@ run:stdlib_vec_ops/contains_i32.ark
 run:stdlib_vec_ops/contains_string.ark
 run:stdlib_vec_ops/remove_i32.ark
 run:stdlib_vec_ops/reverse_i32.ark
+run:stdlib_vec_ops/product_i32.ark
 run:stdlib_vec_ops/reverse_string.ark
+run:stdlib_vec_ops/sum_i32.ark
 run:string_interp/fstring_basic.ark
 run:string_interp/fstring_expr.ark
 run:struct_mutation/field_assign.ark

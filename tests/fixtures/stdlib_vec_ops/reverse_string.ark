@@ -1,0 +1,12 @@
+fn main() {
+    let mut v: Vec<String> = Vec_new_String()
+    push(v, String_from("a"))
+    push(v, String_from("b"))
+    push(v, String_from("c"))
+    reverse_String(v)
+    let mut i: i32 = 0
+    while i < len(v) {
+        println(get_unchecked(v, i))
+        i = i + 1
+    }
+}

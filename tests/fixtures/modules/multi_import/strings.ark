@@ -1,0 +1,9 @@
+pub fn repeat(s: String, n: i32) -> String {
+    let mut result: String = String_from("")
+    let mut i: i32 = 0
+    while i < n {
+        result = concat(result, s)
+        i = i + 1
+    }
+    result
+}

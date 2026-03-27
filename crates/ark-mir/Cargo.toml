@@ -7,3 +7,4 @@ edition.workspace = true
 ark-parser = { workspace = true }
 ark-typecheck = { workspace = true }
 ark-diagnostics = { workspace = true }
+ark-hir = { path = "../ark-hir" }

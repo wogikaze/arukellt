@@ -1,0 +1,49 @@
+// std/collections/string — String manipulation functions
+//
+// Currently these delegate to compiler intrinsics. When the module system
+// supports `import collections::string`, users will be able to import
+// individual functions instead of relying on prelude auto-import.
+
+pub fn concat(a: String, b: String) -> String {
+    __intrinsic_concat(a, b)
+}
+
+pub fn eq(a: String, b: String) -> bool {
+    __intrinsic_eq(a, b)
+}
+
+pub fn clone(s: String) -> String {
+    __intrinsic_clone(s)
+}
+
+pub fn slice(s: String, start: i32, end: i32) -> String {
+    __intrinsic_slice(s, start, end)
+}
+
+pub fn starts_with(s: String, prefix: String) -> bool {
+    __intrinsic_starts_with(s, prefix)
+}
+
+pub fn ends_with(s: String, suffix: String) -> bool {
+    __intrinsic_ends_with(s, suffix)
+}
+
+pub fn to_lower(s: String) -> String {
+    __intrinsic_to_lower(s)
+}
+
+pub fn to_upper(s: String) -> String {
+    __intrinsic_to_upper(s)
+}
+
+pub fn split(s: String, delim: String) -> Vec<String> {
+    __intrinsic_split(s, delim)
+}
+
+pub fn join(parts: Vec<String>, sep: String) -> String {
+    __intrinsic_join(parts, sep)
+}
+
+pub fn push_char(s: String, c: char) {
+    __intrinsic_push_char(s, c)
+}

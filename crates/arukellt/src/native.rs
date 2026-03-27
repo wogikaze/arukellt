@@ -6,6 +6,8 @@ use std::process;
 use ark_target::EmitKind;
 
 #[cfg(feature = "llvm")]
+use ark_driver::Session;
+#[cfg(feature = "llvm")]
 use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
 #[cfg(feature = "llvm")]
 use ark_lexer::Lexer;
@@ -20,7 +22,8 @@ pub(crate) fn compile_native_target(
 ) {
     #[cfg(feature = "llvm")]
     {
-        match compile_file_native(file) {
+        let mut session = Session::new();
+        match session.compile_native_ir(file) {
             Ok(llvm_ir) => {
                 let output = output.cloned().unwrap_or_else(|| file.with_extension("ll"));
                 std::fs::write(&output, &llvm_ir).unwrap_or_else(|e| {
@@ -102,7 +105,8 @@ fn compile_file_native(path: &PathBuf) -> Result<String, String> {
 pub(crate) fn run_native_target(file: &PathBuf) {
     #[cfg(feature = "llvm")]
     {
-        match compile_file_native(file) {
+        let mut session = Session::new();
+        match session.compile_native_ir(file) {
             Ok(llvm_ir) => {
                 if let Err(e) = run_native_ir(&llvm_ir, file) {
                     eprintln!("error: {}", e);

@@ -3,8 +3,15 @@
 //! Defines the 5 canonical targets from ADR-007, their profiles,
 //! and alias resolution for backward compatibility.
 
+mod plan;
+
 use std::fmt;
 use std::str::FromStr;
+
+pub use plan::{
+    AbiClass, BackendPlan, EmitCapability, ExportPlan, ImportPlan, LayoutClass, RuntimeModel,
+    build_backend_plan, plan_matches_target_profile,
+};
 
 /// Canonical target identifiers (ADR-007).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -156,12 +163,19 @@ impl TargetParseResult {
 
     /// If this was an alias, return the alias string and canonical name.
     pub fn alias_warning(&self) -> Option<String> {
-        match self {
-            TargetParseResult::Alias { target, used_alias } => Some(format!(
+        self.alias_parts().map(|(used_alias, canonical_name)| {
+            format!(
                 "warning: target alias `{}` is deprecated, use `{}` instead",
-                used_alias,
-                target.canonical_name()
-            )),
+                used_alias, canonical_name
+            )
+        })
+    }
+
+    pub fn alias_parts(&self) -> Option<(&str, &str)> {
+        match self {
+            TargetParseResult::Alias { target, used_alias } => {
+                Some((used_alias.as_str(), target.canonical_name()))
+            }
             TargetParseResult::Canonical(_) => None,
         }
     }

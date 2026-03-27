@@ -25,3 +25,5 @@ mod emit;
 
 pub use emit::emit_llvm_ir;
 pub use emit::emit_object;
+pub use emit::emit_with_plan;
+pub use emit::validate_plan;

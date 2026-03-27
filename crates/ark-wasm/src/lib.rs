@@ -8,4 +8,4 @@ mod backend_ir;
 pub mod component;
 pub mod emit;
 
-pub use emit::emit;
+pub use emit::{backend_validate, emit, emit_with_plan, validate_emit_kind};

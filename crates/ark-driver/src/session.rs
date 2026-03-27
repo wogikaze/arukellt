@@ -5,7 +5,8 @@ use ark_hir::Program;
 use ark_lexer::Lexer;
 use ark_mir::{
     MirModule, MirProvenance, compare_lowering_paths, lower_check_output_to_mir, lower_legacy_only,
-    module_snapshot, optimize_module, runtime_entry_name, set_mir_provenance, validate_module,
+    module_snapshot, optimize_module, runtime_entry_name, set_mir_provenance,
+    validate_backend_legal_module, validate_module,
 };
 use ark_parser::{ast, parse};
 use ark_resolve::{ResolvedModule, ResolvedProgram};
@@ -100,6 +101,10 @@ fn render_mir_validation_errors(errors: Vec<ark_mir::MirValidationError>) -> Str
 
 fn validate_mir(module: &MirModule) -> Result<(), String> {
     validate_module(module).map_err(render_mir_validation_errors)
+}
+
+fn validate_backend_ready_mir(module: &MirModule) -> Result<(), String> {
+    validate_backend_legal_module(module).map_err(render_mir_validation_errors)
 }
 
 fn mark_selection(module: &mut MirModule, selection: MirSelection) {
@@ -340,7 +345,7 @@ impl Session {
     }
 
     pub fn compile(&mut self, path: &Path, target: TargetId) -> Result<Vec<u8>, String> {
-        self.compile_selected(path, target, MirSelection::OptimizedCoreHir)
+        self.compile_selected(path, target, MirSelection::Legacy)
             .map(|compiled| compiled.wasm)
     }
 
@@ -356,6 +361,7 @@ impl Session {
 
         let mut mir = self.lower_mir_selected(path, selection)?;
         ensure_runtime_entry(&mir, selection)?;
+        validate_backend_ready_mir(&mir)?;
         let plan = build_backend_plan(target, EmitKind::CoreWasm)?;
 
         self.sink = DiagnosticSink::new();

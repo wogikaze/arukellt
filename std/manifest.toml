@@ -410,6 +410,14 @@ returns = "i32"
 prelude = true
 doc_category = "math"
 
+[[functions]]
+name = "clamp_i32"
+kind = "prelude_wrapper"
+params = ["i32", "i32", "i32"]
+returns = "i32"
+prelude = true
+doc_category = "math"
+
 # ── Control ──────────────────────────────────
 
 [[functions]]
@@ -653,6 +661,22 @@ kind = "prelude_wrapper"
 intrinsic = "__intrinsic_remove_i32"
 params = ["Vec<i32>", "i32"]
 returns = "()"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "sum_i32"
+kind = "prelude_wrapper"
+params = ["Vec<i32>"]
+returns = "i32"
+prelude = true
+doc_category = "collections"
+
+[[functions]]
+name = "product_i32"
+kind = "prelude_wrapper"
+params = ["Vec<i32>"]
+returns = "i32"
 prelude = true
 doc_category = "collections"
 

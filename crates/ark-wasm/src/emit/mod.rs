@@ -7,9 +7,9 @@
 pub mod t1_wasm32_p1;
 pub mod t3_wasm_gc;
 
-use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink};
+use ark_diagnostics::{DiagnosticSink, wasm_validation_diagnostic};
 use ark_mir::mir::MirModule;
-use ark_target::{EmitKind, TargetId};
+use ark_target::{BackendPlan, EmitKind, EmitCapability, RuntimeModel, TargetId, build_backend_plan};
 
 /// Validate generated Wasm module bytes using `wasmparser`.
 ///
@@ -25,77 +25,81 @@ fn validate_wasm(bytes: &[u8]) -> Result<(), String> {
 
 /// Emit a Wasm module from MIR for the given target.
 ///
-/// Currently only `Wasm32WasiP1` is implemented. Other targets will
-/// return an error via the diagnostic sink once their emitters are added.
-///
-/// After target-specific emission, the output is validated with `wasmparser`.
-/// Validation failures are currently reported as warnings (W0004) because
-/// the emitters are still maturing.
-// TODO: promote W0004 to an error once all emitters produce valid Wasm.
+/// Builds a backend plan first, then routes emission through the plan consumer.
 pub fn emit(mir: &MirModule, sink: &mut DiagnosticSink, target: TargetId) -> Vec<u8> {
-    let bytes = match target {
-        TargetId::Wasm32WasiP1 => t1_wasm32_p1::emit(mir, sink),
-        TargetId::Wasm32WasiP2 => t3_wasm_gc::emit(mir, sink),
-        other => {
-            panic!(
-                "emitter for target `{}` ({}) is not yet implemented",
-                other,
-                other.tier()
-            );
+    match build_backend_plan(target, target.profile().default_emit_kind) {
+        Ok(plan) => emit_with_plan(mir, sink, &plan),
+        Err(message) => {
+            sink.emit(wasm_validation_diagnostic(message));
+            Vec::new()
+        }
+    }
+}
+
+pub fn emit_with_plan(mir: &MirModule, sink: &mut DiagnosticSink, plan: &BackendPlan) -> Vec<u8> {
+    let bytes = match plan.runtime_model {
+        RuntimeModel::T1LinearP1 => t1_wasm32_p1::emit(mir, sink),
+        RuntimeModel::T3FallbackToT1 => t3_wasm_gc::emit(mir, sink),
+        RuntimeModel::T4LlvmScaffold => {
+            sink.emit(wasm_validation_diagnostic(
+                "native backend plan cannot be emitted via ark-wasm".to_string(),
+            ));
+            Vec::new()
         }
     };
 
-    // Don't bother validating if emission already produced errors.
-    if sink.has_errors() || bytes.is_empty() {
-        return bytes;
-    }
-
-    if let Err(msg) = validate_wasm(&bytes) {
-        eprintln!("warning: {msg}");
-        sink.emit(
-            Diagnostic::new(DiagnosticCode::W0004)
-                .with_note(msg),
-        );
+    if plan.requires_backend_validation {
+        backend_validate(&bytes, sink);
     }
 
     bytes
 }
 
+pub fn backend_validate(bytes: &[u8], sink: &mut DiagnosticSink) {
+    if sink.has_errors() || bytes.is_empty() {
+        return;
+    }
+
+    if let Err(msg) = validate_wasm(bytes) {
+        sink.emit(wasm_validation_diagnostic(msg));
+    }
+}
+
 /// Validate that the requested emit kind is compatible with the target.
 /// Returns an error message if incompatible.
 pub fn validate_emit_kind(target: TargetId, emit_kind: EmitKind) -> Result<(), String> {
-    let profile = target.profile();
-
-    // Component model output is not yet implemented for any target.
-    if emit_kind == EmitKind::Component {
-        return Err(
-            "--emit component is not yet implemented. Only core Wasm modules are \
-             currently supported. Use --emit core-wasm instead."
-                .to_string(),
-        );
+    let plan = build_backend_plan(target, emit_kind)?;
+    match plan.capability {
+        EmitCapability::CoreWasm | EmitCapability::Wit => Ok(()),
+        EmitCapability::NativeBinary => Err(
+            "native emission must go through the LLVM backend, not the Wasm backend".to_string(),
+        ),
     }
-    if emit_kind == EmitKind::All {
-        return Err(
-            "--emit all is not yet supported because component model output is not \
-             implemented. Use --emit core-wasm instead."
-                .to_string(),
-        );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ark_mir::{MirModule, runtime_entry_name};
+
+    #[test]
+    fn component_emit_is_rejected() {
+        let err = validate_emit_kind(TargetId::Wasm32WasiP2, EmitKind::Component).unwrap_err();
+        assert!(err.contains("--emit component"));
     }
 
-    match (target, emit_kind) {
-        (TargetId::Wasm32WasiP1, EmitKind::Wit) => Err(format!(
-            "target `{}` ({}) does not support WIT generation. \
-             Use `--target wasm32-wasi-p2` for WIT support.",
-            target,
-            target.tier()
-        )),
-        // Only implemented targets
-        _ if !profile.implemented => Err(format!(
-            "target `{}` ({}) is not yet implemented [{}]",
-            target,
-            target.tier(),
-            profile.status_label()
-        )),
-        _ => Ok(()),
+    #[test]
+    fn backend_plan_exports_runtime_entry_for_t1_and_t3() {
+        let t1 = build_backend_plan(TargetId::Wasm32WasiP1, EmitKind::CoreWasm).unwrap();
+        let t3 = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::CoreWasm).unwrap();
+        assert!(t1.exports.iter().any(|export| export.name == "_start"));
+        assert!(t3.exports.iter().any(|export| export.name == "_start"));
+    }
+
+    #[test]
+    fn runtime_entry_helper_matches_backend_plan_convention() {
+        let mut module = MirModule::new();
+        module.entry_fn = None;
+        assert!(runtime_entry_name(&module).is_none());
     }
 }

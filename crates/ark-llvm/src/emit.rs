@@ -5,6 +5,7 @@
 
 use ark_diagnostics::DiagnosticSink;
 use ark_mir::mir::*;
+use ark_target::{BackendPlan, RuntimeModel};
 use ark_typecheck::types::Type;
 use inkwell::AddressSpace;
 use inkwell::IntPredicate;
@@ -41,6 +42,18 @@ fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_get" => "get",
         other => other,
     }
+}
+
+pub fn validate_plan(plan: &BackendPlan) -> Result<(), String> {
+    if !matches!(plan.runtime_model, RuntimeModel::T4LlvmScaffold) {
+        return Err("LLVM backend only supports T4LlvmScaffold plans".to_string());
+    }
+    Ok(())
+}
+
+pub fn emit_with_plan(mir: &MirModule, plan: &BackendPlan, sink: &mut DiagnosticSink) -> Result<String, String> {
+    validate_plan(plan)?;
+    Ok(emit_llvm_ir(mir, sink))
 }
 
 /// Emit LLVM IR text from MIR.

@@ -9,6 +9,7 @@ mod runtime;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
+use ark_diagnostics::{DiagnosticSink, SourceMap, alias_warning_diagnostic, render_diagnostics};
 use ark_target::{EmitKind, TargetId, parse_target};
 
 #[derive(Parser)]
@@ -102,7 +103,15 @@ fn main() {
             deny_random,
             profile_mem,
         } => {
-            commands::cmd_run(file, target, dirs, deny_fs, deny_clock, deny_random, profile_mem);
+            commands::cmd_run(
+                file,
+                target,
+                dirs,
+                deny_fs,
+                deny_clock,
+                deny_random,
+                profile_mem,
+            );
         }
         Commands::Check { file, target } => {
             commands::cmd_check(file, target);
@@ -122,8 +131,8 @@ fn check_target_alias_warning() {
     if let Some(pos) = args.iter().position(|a| a == "--target") {
         if let Some(value) = args.get(pos + 1) {
             if let Ok(result) = parse_target(value) {
-                if let Some(warning) = result.alias_warning() {
-                    eprintln!("{}", warning);
+                if let Some((used_alias, canonical_name)) = result.alias_parts() {
+                    emit_target_alias_warning(used_alias, canonical_name);
                 }
             }
         }
@@ -132,10 +141,17 @@ fn check_target_alias_warning() {
     for arg in &args {
         if let Some(value) = arg.strip_prefix("--target=") {
             if let Ok(result) = parse_target(value) {
-                if let Some(warning) = result.alias_warning() {
-                    eprintln!("{}", warning);
+                if let Some((used_alias, canonical_name)) = result.alias_parts() {
+                    emit_target_alias_warning(used_alias, canonical_name);
                 }
             }
         }
     }
+}
+
+fn emit_target_alias_warning(used_alias: &str, canonical_name: &str) {
+    let mut sink = DiagnosticSink::new();
+    let source_map = SourceMap::new();
+    sink.emit(alias_warning_diagnostic(used_alias, canonical_name));
+    eprint!("{}", render_diagnostics(sink.diagnostics(), &source_map));
 }

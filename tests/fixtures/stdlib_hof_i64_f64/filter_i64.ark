@@ -1,0 +1,17 @@
+fn is_positive(x: i64) -> bool {
+    x > 0
+}
+
+fn main() {
+    let mut v: Vec<i64> = Vec_new_i64()
+    push(v, -5)
+    push(v, 10)
+    push(v, -3)
+    push(v, 20)
+    let pos: Vec<i64> = filter_i64(v, is_positive)
+    let mut i: i32 = 0
+    while i < len(pos) {
+        println(i64_to_string(get_unchecked(pos, i)))
+        i = i + 1
+    }
+}

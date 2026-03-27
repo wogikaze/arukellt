@@ -1,0 +1,11 @@
+pub fn greet(name: String) -> String {
+    concat(String_from("hello "), name)
+}
+
+pub fn make_vec() -> Vec<i32> {
+    let mut v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+    push(v, 3)
+    v
+}

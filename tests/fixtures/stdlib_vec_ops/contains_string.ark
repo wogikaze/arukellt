@@ -1,0 +1,9 @@
+fn main() {
+    let mut v: Vec<String> = Vec_new_String()
+    push(v, String_from("hello"))
+    push(v, String_from("world"))
+    let a: bool = contains_String(v, String_from("world"))
+    println(a)
+    let b: bool = contains_String(v, String_from("foo"))
+    println(b)
+}

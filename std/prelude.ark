@@ -76,8 +76,16 @@ pub fn char_to_string(c: char) -> String {
 }
 
 // Conversion: from string
-pub fn parse_i32(s: String) -> i32 {
+pub fn parse_i32(s: String) -> Result<i32, String> {
     __intrinsic_parse_i32(s)
+}
+
+pub fn parse_i64(s: String) -> Result<i64, String> {
+    __intrinsic_parse_i64(s)
+}
+
+pub fn parse_f64(s: String) -> Result<f64, String> {
+    __intrinsic_parse_f64(s)
 }
 
 // Math
@@ -86,15 +94,20 @@ pub fn sqrt(x: f64) -> f64 {
 }
 
 pub fn abs(x: i32) -> i32 {
-    __intrinsic_abs(x)
+    if x < 0 { 0 - x } else { x }
 }
 
 pub fn min(a: i32, b: i32) -> i32 {
-    __intrinsic_min(a, b)
+    if a < b { a } else { b }
 }
 
 pub fn max(a: i32, b: i32) -> i32 {
-    __intrinsic_max(a, b)
+    if a > b { a } else { b }
+}
+
+// Math: clamp (i32)
+pub fn clamp_i32(x: i32, lo: i32, hi: i32) -> i32 {
+    if x < lo { lo } else if x > hi { hi } else { x }
 }
 
 // Control
@@ -119,9 +132,22 @@ pub fn Vec_new_String() -> Vec<String> {
     __intrinsic_Vec_new_String()
 }
 
-// Vec sorting
+// Vec sorting (Ark-native bubble sort)
 pub fn sort_i32(v: Vec<i32>) {
-    __intrinsic_sort_i32(v);
+    let n: i32 = len(v)
+    let mut i: i32 = 0
+    while i < n - 1 {
+        let mut j: i32 = 0
+        while j < n - i - 1 {
+            if get_unchecked(v, j) > get_unchecked(v, j + 1) {
+                let tmp: i32 = get_unchecked(v, j)
+                set(v, j, get_unchecked(v, j + 1))
+                set(v, j + 1, tmp)
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
 }
 
 pub fn sort_String(v: Vec<String>) {
@@ -151,4 +177,171 @@ pub fn any_i32(v: Vec<i32>, f: fn(i32) -> bool) -> bool {
 
 pub fn find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32> {
     __intrinsic_find_i32(v, f)
+}
+
+// String: split/join/push_char
+pub fn split(s: String, delim: String) -> Vec<String> {
+    __intrinsic_split(s, delim)
+}
+
+pub fn join(v: Vec<String>, sep: String) -> String {
+    __intrinsic_join(v, sep)
+}
+
+pub fn push_char(s: String, c: char) {
+    __intrinsic_push_char(s, c);
+}
+
+// I/O: filesystem
+pub fn fs_read_file(path: String) -> Result<String, String> {
+    __intrinsic_fs_read_file(path)
+}
+
+pub fn fs_write_file(path: String, content: String) -> Result<String, String> {
+    __intrinsic_fs_write_file(path, content)
+}
+
+// I/O: clock and random
+pub fn clock_now() -> i64 {
+    __intrinsic_clock_now()
+}
+
+pub fn random_i32() -> i32 {
+    __intrinsic_random_i32()
+}
+
+// Vec: additional sorting
+pub fn sort_i64(v: Vec<i64>) {
+    __intrinsic_sort_i64(v);
+}
+
+pub fn sort_f64(v: Vec<f64>) {
+    __intrinsic_sort_f64(v);
+}
+
+// Vec: higher-order (String variants)
+pub fn map_String_String(v: Vec<String>, f: fn(String) -> String) -> Vec<String> {
+    __intrinsic_map_String_String(v, f)
+}
+
+pub fn filter_String(v: Vec<String>, f: fn(String) -> bool) -> Vec<String> {
+    __intrinsic_filter_String(v, f)
+}
+
+// Assertions
+pub fn assert(cond: bool) {
+    if !cond { panic(String_from("assertion failed")); }
+}
+
+pub fn assert_eq(a: i32, b: i32) {
+    if a != b { panic(String_from("assertion failed")); }
+}
+
+pub fn assert_ne(a: i32, b: i32) {
+    if a == b { panic(String_from("assertion failed")); }
+}
+
+pub fn assert_eq_i64(a: i64, b: i64) {
+    if a != b { panic(String_from("assertion failed")); }
+}
+
+pub fn assert_eq_str(a: String, b: String) {
+    if !eq(a, b) { panic(String_from("assertion failed")); }
+}
+
+// --- HOF i64 ---
+pub fn map_i64_i64(v: Vec<i64>, f: fn(i64) -> i64) -> Vec<i64> {
+    __intrinsic_map_i64_i64(v, f)
+}
+
+pub fn filter_i64(v: Vec<i64>, f: fn(i64) -> bool) -> Vec<i64> {
+    __intrinsic_filter_i64(v, f)
+}
+
+pub fn fold_i64_i64(v: Vec<i64>, init: i64, f: fn(i64, i64) -> i64) -> i64 {
+    __intrinsic_fold_i64_i64(v, init, f)
+}
+
+// --- HOF f64 ---
+pub fn map_f64_f64(v: Vec<f64>, f: fn(f64) -> f64) -> Vec<f64> {
+    __intrinsic_map_f64_f64(v, f)
+}
+
+pub fn filter_f64(v: Vec<f64>, f: fn(f64) -> bool) -> Vec<f64> {
+    __intrinsic_filter_f64(v, f)
+}
+
+pub fn contains_i32(v: Vec<i32>, x: i32) -> bool {
+    let mut i: i32 = 0
+    while i < len(v) {
+        if get_unchecked(v, i) == x { return true }
+        i = i + 1
+    }
+    false
+}
+
+pub fn contains_String(v: Vec<String>, x: String) -> bool {
+    let mut i: i32 = 0
+    while i < len(v) {
+        if eq(get_unchecked(v, i), x) { return true }
+        i = i + 1
+    }
+    false
+}
+
+pub fn reverse_i32(v: Vec<i32>) {
+    let n: i32 = len(v)
+    let mut lo: i32 = 0
+    let mut hi: i32 = n - 1
+    while lo < hi {
+        let tmp: i32 = get_unchecked(v, lo)
+        set(v, lo, get_unchecked(v, hi))
+        set(v, hi, tmp)
+        lo = lo + 1
+        hi = hi - 1
+    }
+}
+
+pub fn reverse_String(v: Vec<String>) {
+    let n: i32 = len(v)
+    let mut lo: i32 = 0
+    let mut hi: i32 = n - 1
+    while lo < hi {
+        let tmp: String = get_unchecked(v, lo)
+        set(v, lo, get_unchecked(v, hi))
+        set(v, hi, tmp)
+        lo = lo + 1
+        hi = hi - 1
+    }
+}
+
+pub fn remove_i32(v: Vec<i32>, index: i32) {
+    let n: i32 = len(v)
+    let mut i: i32 = index
+    while i < n - 1 {
+        set(v, i, get_unchecked(v, i + 1))
+        i = i + 1
+    }
+    let _last: Option<i32> = pop(v)
+}
+
+// Vec aggregation (Ark-native)
+pub fn sum_i32(v: Vec<i32>) -> i32 {
+    let mut total: i32 = 0
+    let mut i: i32 = 0
+    while i < len(v) {
+        total = total + get_unchecked(v, i)
+        i = i + 1
+    }
+    total
+}
+
+pub fn product_i32(v: Vec<i32>) -> i32 {
+    let mut total: i32 = 1
+    let mut i: i32 = 0
+    while i < len(v) {
+        total = total * get_unchecked(v, i)
+        i = i + 1
+    }
+    total
 }

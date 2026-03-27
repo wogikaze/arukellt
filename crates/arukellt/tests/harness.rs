@@ -109,7 +109,11 @@ fn fixture_harness() {
     // --- Load manifest ---
     let manifest_path = fixture_dir.join("manifest.txt");
     let entries = load_manifest(&manifest_path);
-    eprintln!("Manifest: {} entries from {:?}", entries.len(), manifest_path);
+    eprintln!(
+        "Manifest: {} entries from {:?}",
+        entries.len(),
+        manifest_path
+    );
 
     // --- Self-check: manifest completeness ---
     let disk_entries = entry_points(&fixture_dir);
@@ -129,7 +133,11 @@ fn fixture_harness() {
         sorted.sort();
         panic!(
             "Fixture files on disk but NOT in manifest.txt:\n  {}",
-            sorted.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("\n  ")
+            sorted
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                .join("\n  ")
         );
     }
     if !missing_from_disk.is_empty() {
@@ -137,7 +145,11 @@ fn fixture_harness() {
         sorted.sort();
         panic!(
             "Manifest entries whose files do NOT exist on disk:\n  {}",
-            sorted.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("\n  ")
+            sorted
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                .join("\n  ")
         );
     }
 
@@ -181,6 +193,27 @@ fn fixture_harness() {
                     .arg(&fixture)
                     .output()
                     .expect("failed to run arukellt");
+
+                if std::env::var_os("ARUKELLT_TEST_MIR_DEBUG").is_some() {
+                    eprintln!("[mir-debug] fixture={}", name);
+                    let debug = Command::new(&bin)
+                        .arg("check")
+                        .arg(&fixture)
+                        .env("ARUKELLT_DUMP_PHASES", "parse,resolve,mir,optimized-mir,backend-plan")
+                        .env("ARUKELLT_DUMP_DIAGNOSTICS", "1")
+                        .output()
+                        .expect("failed to run arukellt debug check");
+                    if !debug.stdout.is_empty() {
+                        eprintln!("{}", String::from_utf8_lossy(&debug.stdout));
+                    }
+                    if !debug.stderr.is_empty() {
+                        eprintln!("{}", String::from_utf8_lossy(&debug.stderr));
+                    }
+                }
+
+                if std::env::var_os("ARUKELLT_TEST_OPT_BISECT").is_some() {
+                    eprintln!("[opt-bisect] fixture={}", name);
+                }
 
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 if stdout.as_ref() == expected {
