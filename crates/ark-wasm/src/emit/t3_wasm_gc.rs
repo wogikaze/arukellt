@@ -2933,14 +2933,32 @@ impl Ctx {
                             Operand::Call(name, _) => {
                                 let canonical = normalize_intrinsic(name);
                                 if let Some(sname) = canonical.strip_prefix("Vec_new_") {
-                                    if self.custom_vec_types.contains_key(sname) {
-                                        self.struct_vec_locals.insert(dst.0, sname.to_string());
+                                    match sname {
+                                        "i32" => { extra_vec_i32.insert(dst.0); }
+                                        "i64" => { extra_vec_i64.insert(dst.0); }
+                                        "f64" => { extra_vec_f64.insert(dst.0); }
+                                        "String" => { extra_vec_string.insert(dst.0); }
+                                        _ => {
+                                            if self.custom_vec_types.contains_key(sname) {
+                                                self.struct_vec_locals.insert(dst.0, sname.to_string());
+                                            }
+                                        }
                                     }
                                 }
+                                // Propagate vec type from filter/map calls
                                 match canonical {
+                                    "filter_i32" => { extra_vec_i32.insert(dst.0); }
+                                    "filter_i64" => { extra_vec_i64.insert(dst.0); }
+                                    "filter_f64" => { extra_vec_f64.insert(dst.0); }
+                                    "filter_String" => { extra_vec_string.insert(dst.0); }
+                                    "map_i32_i32" => { extra_vec_i32.insert(dst.0); }
+                                    "map_i64_i64" => { extra_vec_i64.insert(dst.0); }
+                                    "map_f64_f64" => { extra_vec_f64.insert(dst.0); }
+                                    "map_i32_String" | "map_i64_String" | "map_f64_String" | "map_String_String" => { extra_vec_string.insert(dst.0); }
                                     "parse_i32" => { extra_enum.entry(dst.0).or_insert_with(|| "Result".to_string()); }
                                     "parse_i64" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_i64_String".to_string()); }
                                     "parse_f64" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_f64_String".to_string()); }
+                                    "find_i32" | "find_String" => { extra_enum.entry(dst.0).or_insert_with(|| "Option".to_string()); }
                                     _ => {}
                                 }
                                 // Also check fn_ret_type_names for enum return types
@@ -2956,14 +2974,31 @@ impl Ctx {
                     MirStmt::CallBuiltin { dest: Some(Place::Local(dst)), name, .. } => {
                         let canonical = normalize_intrinsic(name);
                         if let Some(sname) = canonical.strip_prefix("Vec_new_") {
-                            if self.custom_vec_types.contains_key(sname) {
-                                self.struct_vec_locals.insert(dst.0, sname.to_string());
+                            match sname {
+                                "i32" => { extra_vec_i32.insert(dst.0); }
+                                "i64" => { extra_vec_i64.insert(dst.0); }
+                                "f64" => { extra_vec_f64.insert(dst.0); }
+                                "String" => { extra_vec_string.insert(dst.0); }
+                                _ => {
+                                    if self.custom_vec_types.contains_key(sname) {
+                                        self.struct_vec_locals.insert(dst.0, sname.to_string());
+                                    }
+                                }
                             }
                         }
                         match canonical {
+                            "filter_i32" => { extra_vec_i32.insert(dst.0); }
+                            "filter_i64" => { extra_vec_i64.insert(dst.0); }
+                            "filter_f64" => { extra_vec_f64.insert(dst.0); }
+                            "filter_String" => { extra_vec_string.insert(dst.0); }
+                            "map_i32_i32" => { extra_vec_i32.insert(dst.0); }
+                            "map_i64_i64" => { extra_vec_i64.insert(dst.0); }
+                            "map_f64_f64" => { extra_vec_f64.insert(dst.0); }
+                            "map_i32_String" | "map_i64_String" | "map_f64_String" | "map_String_String" => { extra_vec_string.insert(dst.0); }
                             "parse_i32" => { extra_enum.entry(dst.0).or_insert_with(|| "Result".to_string()); }
                             "parse_i64" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_i64_String".to_string()); }
                             "parse_f64" => { extra_enum.entry(dst.0).or_insert_with(|| "Result_f64_String".to_string()); }
+                            "find_i32" | "find_String" => { extra_enum.entry(dst.0).or_insert_with(|| "Option".to_string()); }
                             _ => {}
                         }
                     }
@@ -3077,6 +3112,8 @@ impl Ctx {
             nullable: true,
             heap_type: HeapType::Abstract { shared: false, ty: wasm_encoder::AbstractHeapType::Any },
         });
+        local_types.push((1, anyref_ty));
+        // si(11): anyref scratch #2 for HOF operations
         local_types.push((1, anyref_ty));
 
         let mut f = Function::new(local_types);
@@ -3691,6 +3728,8 @@ impl Ctx {
                 | "contains"
                 | "to_uppercase"
                 | "to_lowercase"
+                | "to_upper"
+                | "to_lower"
                 | "trim"
                 | "split"
                 | "starts_with"
@@ -3855,6 +3894,7 @@ impl Ctx {
                 }
             }
             "string_len" | "char_at" | "substring" | "string_slice" | "clone" | "to_uppercase" | "to_lowercase"
+            | "to_upper" | "to_lower"
             | "trim" | "contains" | "starts_with" | "ends_with" | "replace" | "split" => {
                 // Delegate to operand version then store/drop
                 self.emit_call_builtin_operand(f, canonical, args);
@@ -3923,7 +3963,7 @@ impl Ctx {
                 }
             }
             "filter_i64" | "filter_f64" | "filter_i32" | "filter_String" => {
-                self.emit_filter_hof_inline(f, canonical, args);
+                self.emit_filter_hof_gc(f, canonical, args);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
@@ -3931,7 +3971,7 @@ impl Ctx {
                 }
             }
             "map_i64_i64" | "map_f64_f64" | "map_i32_i32" | "map_i32_String" => {
-                self.emit_map_hof_inline(f, canonical, args);
+                self.emit_map_hof_gc(f, canonical, args);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
@@ -3939,7 +3979,7 @@ impl Ctx {
                 }
             }
             "fold_i64_i64" | "fold_i32_i32" | "fold_f64_f64" => {
-                self.emit_fold_hof_inline(f, args);
+                self.emit_fold_hof_gc(f, canonical, args);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
@@ -3947,7 +3987,7 @@ impl Ctx {
                 }
             }
             "map_String_String" | "map_i64_String" | "map_f64_String" => {
-                self.emit_map_hof_inline(f, canonical, args);
+                self.emit_map_hof_gc(f, canonical, args);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
@@ -3976,9 +4016,16 @@ impl Ctx {
                     f.instruction(&Instruction::Drop);
                 }
             }
-            "any_i32" | "any_String" | "find_i32" | "find_String" => {
-                // Delegate to operand version then store/drop
-                self.emit_call_builtin_operand(f, canonical, args);
+            "any_i32" | "any_String" => {
+                self.emit_any_hof_gc(f, canonical, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "find_i32" | "find_String" => {
+                self.emit_find_hof_gc(f, canonical, args);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
@@ -4182,9 +4229,9 @@ impl Ctx {
                     f.instruction(&Instruction::ArrayNew(self.string_ty));
                 }
             }
-            "to_uppercase" | "to_lowercase" => {
+            "to_uppercase" | "to_lowercase" | "to_upper" | "to_lower" => {
                 if let Some(arg) = args.first() {
-                    self.emit_case_transform_gc(f, arg, canonical == "to_uppercase");
+                    self.emit_case_transform_gc(f, arg, canonical == "to_uppercase" || canonical == "to_upper");
                 } else {
                     f.instruction(&Instruction::I32Const(0));
                     f.instruction(&Instruction::I32Const(0));
@@ -4236,13 +4283,13 @@ impl Ctx {
                 self.emit_vec_new_gc(f, self.vec_string_ty, self.arr_string_ty);
             }
             "filter_i64" | "filter_f64" | "filter_i32" | "filter_String" => {
-                self.emit_filter_hof_inline(f, canonical, args);
+                self.emit_filter_hof_gc(f, canonical, args);
             }
             "map_i64_i64" | "map_f64_f64" | "map_i32_i32" | "map_i32_String" => {
-                self.emit_map_hof_inline(f, canonical, args);
+                self.emit_map_hof_gc(f, canonical, args);
             }
             "fold_i64_i64" => {
-                self.emit_fold_hof_inline(f, args);
+                self.emit_fold_hof_gc(f, canonical, args);
             }
             "contains_i32" | "contains_String" => {
                 self.emit_contains_inline(f, canonical, args);
@@ -4260,10 +4307,16 @@ impl Ctx {
                 self.emit_sum_product_inline(f, canonical, args);
             }
             "fold_i32_i32" | "fold_f64_f64" => {
-                self.emit_fold_hof_inline(f, args);
+                self.emit_fold_hof_gc(f, canonical, args);
             }
             "map_String_String" | "map_i64_String" | "map_f64_String" => {
-                self.emit_map_hof_inline(f, canonical, args);
+                self.emit_map_hof_gc(f, canonical, args);
+            }
+            "any_i32" | "any_String" => {
+                self.emit_any_hof_gc(f, canonical, args);
+            }
+            "find_i32" | "find_String" => {
+                self.emit_find_hof_gc(f, canonical, args);
             }
             "is_empty" => {
                 // is_empty(s) → array.len(s) == 0
@@ -4706,7 +4759,7 @@ impl Ctx {
                             return ValType::I32;
                         }
                     }
-                    "concat" | "clone" | "to_uppercase" | "to_lowercase" | "trim"
+                    "concat" | "clone" | "to_uppercase" | "to_lowercase" | "to_upper" | "to_lower" | "trim"
                     | "replace" | "substring" | "string_slice" | "String_from" | "String_new" | "string_new"
                     | "char_to_string" | "i32_to_string" | "i64_to_string" | "f64_to_string"
                     | "bool_to_string" | "to_string" => {
@@ -5849,6 +5902,427 @@ impl Ctx {
         // Result: acc
         f.instruction(&Instruction::I32Const(SCR_VAL64 as i32));
         f.instruction(&Instruction::I64Load(ma));
+    }
+
+    /// Extract a direct function index from a FnRef operand (for GC-native HOF).
+    fn extract_fn_idx(&self, op: &Operand) -> Option<u32> {
+        match op {
+            Operand::FnRef(name) => self.fn_map.get(name.as_str()).copied(),
+            Operand::Place(Place::Local(id)) => {
+                // Closure: check if the local was bound to a closure → resolve to synthetic fn
+                None // For now, only handle FnRef
+            }
+            _ => None,
+        }
+    }
+
+    /// Resolve the GC array type index and vec type index for a HOF canonical name.
+    fn hof_gc_types(&self, canonical: &str) -> (u32, u32) {
+        if canonical.contains("String") {
+            (self.arr_string_ty, self.vec_string_ty)
+        } else if canonical.contains("i64") {
+            (self.arr_i64_ty, self.vec_i64_ty)
+        } else if canonical.contains("f64") {
+            (self.arr_f64_ty, self.vec_f64_ty)
+        } else {
+            (self.arr_i32_ty, self.vec_i32_ty)
+        }
+    }
+
+    /// Determine the output GC array/vec types for map operations.
+    fn hof_map_output_types(&self, canonical: &str) -> (u32, u32) {
+        match canonical {
+            "map_i32_String" | "map_i64_String" | "map_f64_String" | "map_String_String" => {
+                (self.arr_string_ty, self.vec_string_ty)
+            }
+            "map_i64_i64" => (self.arr_i64_ty, self.vec_i64_ty),
+            "map_f64_f64" => (self.arr_f64_ty, self.vec_f64_ty),
+            _ => (self.arr_i32_ty, self.vec_i32_ty), // map_i32_i32
+        }
+    }
+
+    /// GC-native filter HOF: filter(vec, predicate) -> new_vec
+    /// Uses GC struct/array ops instead of linear memory.
+    fn emit_filter_hof_gc(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
+        if args.len() < 2 { return; }
+
+        let (arr_ty, vec_ty) = self.hof_gc_types(canonical);
+        let pred_fn_idx = self.extract_fn_idx(&args[1]);
+
+        // si(0) = len, si(1) = i, si(2) = j
+        // si(10) = src_arr (anyref), si(11) = dst_arr (anyref)
+
+        // Get source array and length
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::LocalSet(self.si(10))); // src_arr → anyref
+
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::LocalSet(self.si(0))); // len
+
+        // Create result array with same capacity
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::ArrayNewDefault(arr_ty));
+        f.instruction(&Instruction::LocalSet(self.si(11))); // dst_arr → anyref
+
+        // i = 0, j = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+
+        // block { loop {
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // if i >= len: break
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // elem = src_arr[i]
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(arr_ty));
+        // elem is on stack — save to appropriate scratch
+        let elem_scratch = if canonical.contains("String") {
+            self.si(4) // ref $string
+        } else if canonical.contains("i64") {
+            self.si(6) // i64
+        } else if canonical.contains("f64") {
+            self.si(7) // f64
+        } else {
+            self.si(3) // i32
+        };
+        f.instruction(&Instruction::LocalTee(elem_scratch));
+
+        // Call predicate
+        if let Some(fn_idx) = pred_fn_idx {
+            f.instruction(&Instruction::Call(fn_idx));
+        } else {
+            // Fallback: emit operand (FnRef) and call_indirect
+            self.emit_operand(f, &args[1]);
+            let pred_type = self.indirect_types
+                .get(&(vec![ValType::I32], vec![ValType::I32]))
+                .copied().unwrap_or(0);
+            f.instruction(&Instruction::CallIndirect { type_index: pred_type, table_index: 0 });
+        }
+
+        // if predicate true
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(11)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(2))); // j
+        f.instruction(&Instruction::LocalGet(elem_scratch));
+        f.instruction(&Instruction::ArraySet(arr_ty));
+        // j++
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+        f.instruction(&Instruction::End); // end if
+
+        // i++
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0)); // continue loop
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Create result vec: struct.new $vec_ty (dst_arr, j)
+        f.instruction(&Instruction::LocalGet(self.si(11)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::StructNew(vec_ty));
+    }
+
+    /// GC-native map HOF: map(vec, mapper) -> new_vec
+    fn emit_map_hof_gc(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
+        if args.len() < 2 { return; }
+
+        let (in_arr_ty, in_vec_ty) = self.hof_gc_types(canonical);
+        let (out_arr_ty, out_vec_ty) = self.hof_map_output_types(canonical);
+        let map_fn_idx = self.extract_fn_idx(&args[1]);
+
+        // si(0) = len, si(1) = i
+        // si(10) = src_arr (anyref), si(11) = dst_arr (anyref)
+
+        // Get source array and length
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: in_vec_ty, field_index: 0 });
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: in_vec_ty, field_index: 1 });
+        f.instruction(&Instruction::LocalSet(self.si(0)));
+
+        // Create result array with same length
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::ArrayNewDefault(out_arr_ty));
+        f.instruction(&Instruction::LocalSet(self.si(11)));
+
+        // i = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+
+        // block { loop {
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // if i >= len: break
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // dst_arr[i] = mapper(src_arr[i])
+        f.instruction(&Instruction::LocalGet(self.si(11)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(out_arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1))); // i (index for array.set)
+
+        // Push src_arr[i] as argument to mapper
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(in_arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(in_arr_ty));
+
+        // Call mapper
+        if let Some(fn_idx) = map_fn_idx {
+            f.instruction(&Instruction::Call(fn_idx));
+        } else {
+            f.instruction(&Instruction::I32Const(0));
+        }
+
+        // array.set dst_arr[i] = result
+        f.instruction(&Instruction::ArraySet(out_arr_ty));
+
+        // i++
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Create result vec
+        f.instruction(&Instruction::LocalGet(self.si(11)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(out_arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(0))); // len = same as input
+        f.instruction(&Instruction::StructNew(out_vec_ty));
+    }
+
+    /// GC-native fold HOF: fold(vec, init, folder) -> acc
+    fn emit_fold_hof_gc(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
+        if args.len() < 3 { return; }
+
+        let (arr_ty, vec_ty) = self.hof_gc_types(canonical);
+        let fold_fn_idx = self.extract_fn_idx(&args[2]);
+
+        // si(0) = len, si(1) = i, si(3) = acc
+        // si(10) = src_arr (anyref)
+
+        // Get source array and length
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::LocalSet(self.si(0)));
+
+        // acc = init
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+
+        // i = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+
+        // block { loop {
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // acc = folder(acc, src_arr[i])
+        f.instruction(&Instruction::LocalGet(self.si(3))); // acc
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(arr_ty)); // element
+
+        if let Some(fn_idx) = fold_fn_idx {
+            f.instruction(&Instruction::Call(fn_idx));
+        } else {
+            f.instruction(&Instruction::Drop);
+        }
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+
+        // i++
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Result: acc
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+    }
+
+    /// GC-native any HOF: any(vec, pred) -> bool
+    fn emit_any_hof_gc(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
+        if args.len() < 2 { f.instruction(&Instruction::I32Const(0)); return; }
+
+        let (arr_ty, vec_ty) = self.hof_gc_types(canonical);
+        let pred_fn_idx = self.extract_fn_idx(&args[1]);
+
+        // si(0) = len, si(1) = i, si(3) = result
+        // si(10) = src_arr (anyref)
+
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::LocalSet(self.si(0)));
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(3))); // result = false
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1))); // i = 0
+
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // elem = src_arr[i]
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(arr_ty));
+
+        if let Some(fn_idx) = pred_fn_idx {
+            f.instruction(&Instruction::Call(fn_idx));
+        } else {
+            f.instruction(&Instruction::I32Const(0));
+        }
+
+        // if pred true: result = true, break
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+        f.instruction(&Instruction::Br(2)); // break outer block
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+    }
+
+    /// GC-native find HOF: find(vec, pred) -> Option<T>
+    fn emit_find_hof_gc(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
+        if args.len() < 2 {
+            // Return None
+            if let Some(&base_ty) = self.enum_base_types.get("Option") {
+                f.instruction(&Instruction::StructNew(base_ty + 2)); // None variant
+            } else {
+                f.instruction(&Instruction::I32Const(0));
+            }
+            return;
+        }
+
+        let (arr_ty, vec_ty) = self.hof_gc_types(canonical);
+        let pred_fn_idx = self.extract_fn_idx(&args[1]);
+
+        // Get Option variant types
+        let option_some_ty = self.enum_base_types.get("Option").map(|b| b + 1).unwrap_or(0);
+        let option_none_ty = self.enum_base_types.get("Option").map(|b| b + 2).unwrap_or(0);
+
+        // si(0) = len, si(1) = i, si(3) = found_elem, si(9) = found flag
+        // si(10) = src_arr (anyref)
+
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 0 });
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::StructGet { struct_type_index: vec_ty, field_index: 1 });
+        f.instruction(&Instruction::LocalSet(self.si(0)));
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(9))); // found = false
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1))); // i = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(3))); // found_elem = 0
+
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // elem = src_arr[i]
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(arr_ty));
+        f.instruction(&Instruction::LocalTee(self.si(3)));
+
+        if let Some(fn_idx) = pred_fn_idx {
+            f.instruction(&Instruction::Call(fn_idx));
+        } else {
+            f.instruction(&Instruction::I32Const(0));
+        }
+
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::LocalSet(self.si(9))); // found = true
+        f.instruction(&Instruction::Br(2)); // break outer block
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Return Option: if found, Some(elem), else None
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::FunctionType(
+            self.types.add_func(&[], &[ref_nullable(option_some_ty - 1)]),
+        )));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::StructNew(option_some_ty));
+        f.instruction(&Instruction::Else);
+        f.instruction(&Instruction::StructNew(option_none_ty));
+        f.instruction(&Instruction::End);
     }
 
     fn emit_vec_new(&mut self, f: &mut Function, element_size: i32, dest: Option<&Place>) {
