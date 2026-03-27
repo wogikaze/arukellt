@@ -935,6 +935,13 @@ pub fn lower_to_mir(
             ("Err".to_string(), vec!["String".to_string()]),
         ],
     );
+    enum_defs.insert(
+        "Result_String_String".to_string(),
+        vec![
+            ("Ok".to_string(), vec!["String".to_string()]),
+            ("Err".to_string(), vec!["String".to_string()]),
+        ],
+    );
 
     for item in &module.items {
         if let ast::Item::EnumDef(e) = item {
@@ -4117,6 +4124,9 @@ fn detect_specialized_result(type_expr: &ast::TypeExpr) -> Option<String> {
                 }
                 if ok_name == "f64" {
                     return Some("Result_f64_String".to_string());
+                }
+                if ok_name == "String" {
+                    return Some("Result_String_String".to_string());
                 }
             }
         }
