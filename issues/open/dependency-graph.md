@@ -15,6 +15,7 @@ graph TD
   I032["032 WIT resource type support (own/borrow)"]
   I033["033 Component Model test fixtures & interop validation"]
   I034["034 CLI --wit flag, --emit component workflow, docs"]
+  I036["036 jco JavaScript interop smoke test"]
   I035["035 V2 exit verification & cleanup"]
   I028 --> I029
   I029 --> I030
@@ -24,6 +25,7 @@ graph TD
   I031 --> I033
   I030 --> I034
   I031 --> I034
+  I033 --> I036
   I032 --> I035
   I033 --> I035
   I034 --> I035
@@ -38,6 +40,7 @@ graph TD
 - **030** depends on: 029; blocks: 032, 033, 034
 - **031** depends on: 029; blocks: 033, 034
 - **032** depends on: 030; blocks: 035
-- **033** depends on: 030, 031; blocks: 035
+- **033** depends on: 030, 031; blocks: 035, 036
 - **034** depends on: 030, 031; blocks: 035
+- **036** depends on: 033; blocks: none
 - **035** depends on: 032, 033, 034; blocks: none

@@ -33,6 +33,9 @@ the import pipeline that all subsequent component work depends on.
 - [ ] WIT primitive types (`u8`, `u16`, `u32`, `u64`, `s8`, `s16`, `s32`, `s64`, `f32`, `f64`,
       `bool`, `char`, `string`) are parsed and mapped to `WitType` variants.
 - [ ] WIT container types (`list<T>`, `option<T>`, `result<T, E>`, `tuple<...>`) are parsed.
+- [ ] WIT `flags` type is parsed. At codegen time, any function whose signature includes a
+      `flags` type emits a `E0090` diagnostic ("WIT flags type is not supported in v2; use
+      individual bool parameters instead") and the compilation fails gracefully — no panic.
 - [ ] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
       `--wit <path>` is supplied, the resolver injects WIT-imported function signatures into
       the symbol table as externally-provided functions.
