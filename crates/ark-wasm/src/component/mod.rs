@@ -20,7 +20,17 @@ use ark_typecheck::types::Type;
 ///
 /// Extracts all non-internal, non-main functions as exports.
 /// Converts struct_defs and enum_defs to WIT records/variants.
+/// Returns (WitWorld, warnings) where warnings describe non-exportable functions.
 pub fn mir_to_wit_world(mir: &MirModule, world_name: &str) -> Result<WitWorld, WitError> {
+    mir_to_wit_world_with_warnings(mir, world_name).map(|(world, _)| world)
+}
+
+/// Like `mir_to_wit_world` but also returns diagnostic warnings for non-exportable functions.
+pub fn mir_to_wit_world_with_warnings(
+    mir: &MirModule,
+    world_name: &str,
+) -> Result<(WitWorld, Vec<String>), WitError> {
+    let mut warnings = Vec::new();
     let mut world = WitWorld {
         name: world_name.to_string(),
         functions: Vec::new(),
@@ -129,8 +139,19 @@ pub fn mir_to_wit_world(mir: &MirModule, world_name: &str) -> Result<WitWorld, W
             })
             .collect();
 
-        // Skip functions with non-exportable parameter types
+        // Warn about functions with non-exportable parameter types
         if params.len() != func.params.len() {
+            let non_exportable: Vec<_> = func
+                .params
+                .iter()
+                .filter(|p| type_to_wit(&p.ty).is_none())
+                .map(|p| format!("{:?}", p.ty))
+                .collect();
+            warnings.push(format!(
+                "function `{}` has non-exportable parameter type(s): {}",
+                name,
+                non_exportable.join(", ")
+            ));
             continue;
         }
 
@@ -138,7 +159,16 @@ pub fn mir_to_wit_world(mir: &MirModule, world_name: &str) -> Result<WitWorld, W
         // Unit return → no WIT result
         let result = match &func.return_ty {
             Type::Unit => None,
-            _ => result,
+            _ => {
+                if result.is_none() && func.return_ty != Type::Unit {
+                    warnings.push(format!(
+                        "function `{}` has non-exportable return type: {:?}",
+                        name, func.return_ty
+                    ));
+                    continue;
+                }
+                result
+            }
         };
 
         world.functions.push(WitFunction {
@@ -148,7 +178,7 @@ pub fn mir_to_wit_world(mir: &MirModule, world_name: &str) -> Result<WitWorld, W
         });
     }
 
-    Ok(world)
+    Ok((world, warnings))
 }
 
 /// Convert a compiler Type to a WitType.
@@ -240,5 +270,155 @@ fn wit_type_name_to_wit(name: &str) -> Option<WitType> {
                 Some(WitType::Record(other.to_string()))
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ark_mir::mir::{
+        BasicBlock, BlockId, FnId, InstanceKey, LocalId, MirFunction, MirLocal, MirModule,
+        SourceInfo,
+    };
+    use ark_typecheck::types::Type;
+
+    fn make_instance_key() -> InstanceKey {
+        InstanceKey {
+            item: String::new(),
+            substitution: Vec::new(),
+            target_shape: String::new(),
+        }
+    }
+
+    fn make_func(name: &str, params: Vec<(Option<String>, Type)>, ret: Type) -> MirFunction {
+        let mir_params: Vec<MirLocal> = params
+            .into_iter()
+            .enumerate()
+            .map(|(i, (n, ty))| MirLocal {
+                id: LocalId(i as u32),
+                name: n,
+                ty,
+            })
+            .collect();
+        MirFunction {
+            id: FnId(0),
+            name: name.to_string(),
+            instance: make_instance_key(),
+            params: mir_params,
+            return_ty: ret,
+            locals: Vec::new(),
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: Vec::new(),
+                terminator: ark_mir::mir::Terminator::Return(None),
+                source: SourceInfo::unknown(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: Vec::new(),
+            source: SourceInfo::unknown(),
+        }
+    }
+
+    #[test]
+    fn scalar_export_passes_through() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func(
+            "add",
+            vec![
+                (Some("a".into()), Type::I32),
+                (Some("b".into()), Type::I32),
+            ],
+            Type::I32,
+        ));
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        assert_eq!(world.functions.len(), 1);
+        assert_eq!(world.functions[0].name, "add");
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn string_export_passes_through() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func(
+            "greet",
+            vec![(Some("name".into()), Type::String)],
+            Type::String,
+        ));
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        assert_eq!(world.functions.len(), 1);
+        assert_eq!(world.functions[0].result, Some(WitType::StringType));
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn closure_param_excluded_with_warning() {
+        let mut mir = MirModule::new();
+        let closure_ty = Type::Function { params: vec![Type::I32], ret: Box::new(Type::I32) };
+        mir.functions.push(make_func(
+            "apply",
+            vec![(Some("f".into()), closure_ty)],
+            Type::I32,
+        ));
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        assert_eq!(world.functions.len(), 0);
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].contains("apply"));
+        assert!(warnings[0].contains("non-exportable"));
+    }
+
+    #[test]
+    fn non_exportable_return_type_warns() {
+        let mut mir = MirModule::new();
+        let closure_ret = Type::Function { params: vec![], ret: Box::new(Type::I32) };
+        mir.functions
+            .push(make_func("get_fn", vec![], closure_ret));
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        assert_eq!(world.functions.len(), 0);
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].contains("get_fn"));
+    }
+
+    #[test]
+    fn main_and_internal_excluded_silently() {
+        let mut mir = MirModule::new();
+        mir.functions
+            .push(make_func("main", vec![], Type::Unit));
+        mir.functions
+            .push(make_func("__helper", vec![], Type::I32));
+        mir.functions
+            .push(make_func("_start", vec![], Type::Unit));
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        assert_eq!(world.functions.len(), 0);
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn mixed_exportable_and_not() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func(
+            "add",
+            vec![(Some("x".into()), Type::I32)],
+            Type::I32,
+        ));
+        mir.functions.push(make_func(
+            "apply",
+            vec![(
+                Some("f".into()),
+                Type::Function { params: vec![Type::I32], ret: Box::new(Type::I32) },
+            )],
+            Type::I32,
+        ));
+        mir.functions.push(make_func(
+            "len",
+            vec![(Some("s".into()), Type::String)],
+            Type::I32,
+        ));
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        assert_eq!(world.functions.len(), 2);
+        assert_eq!(world.functions[0].name, "add");
+        assert_eq!(world.functions[1].name, "len");
+        assert_eq!(warnings.len(), 1);
     }
 }

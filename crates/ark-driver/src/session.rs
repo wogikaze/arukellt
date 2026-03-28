@@ -506,10 +506,19 @@ impl Session {
         // Step 1: Compile to core Wasm
         let compiled = self.compile_selected(path, target, MirSelection::Legacy)?;
 
-        // Step 2: Generate WIT
+        // Step 2: Generate WIT (with warnings for non-exportable functions)
         let world_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("app");
-        let world = ark_wasm::component::mir_to_wit_world(&compiled.mir, world_name)
-            .map_err(|e| format!("WIT generation error: {}", e))?;
+        let (world, export_warnings) =
+            ark_wasm::component::mir_to_wit_world_with_warnings(&compiled.mir, world_name)
+                .map_err(|e| format!("WIT generation error: {}", e))?;
+
+        // Emit W0005 warnings for non-exportable functions
+        for warning in &export_warnings {
+            self.pending_diagnostics.push(
+                ark_diagnostics::non_exportable_function_diagnostic("", warning),
+            );
+        }
+
         let wit_text = ark_wasm::component::generate_wit(&world)
             .map_err(|e| format!("WIT generation error: {}", e))?;
 

@@ -123,6 +123,8 @@ pub enum DiagnosticCode {
     W0002,
     W0003,
     W0004,
+    /// Non-exportable function skipped from component exports
+    W0005,
 }
 
 pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
@@ -156,6 +158,7 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::W0002,
     DiagnosticCode::W0003,
     DiagnosticCode::W0004,
+    DiagnosticCode::W0005,
 ];
 
 pub const INTERNAL_DIAGNOSTIC_IDS: &[&str] = &["ICE-PIPELINE", "ICE-MIR", "ICE-BACKEND"];
@@ -382,6 +385,13 @@ impl DiagnosticCode {
                 id: "W0004",
                 message: "generated Wasm module failed validation",
                 severity: Severity::Error,
+                phase: DiagnosticPhase::BackendValidate,
+            },
+            Self::W0005 => DiagnosticSpec {
+                code: self,
+                id: "W0005",
+                message: "function has non-exportable parameter type, skipped from component exports",
+                severity: Severity::Warning,
                 phase: DiagnosticPhase::BackendValidate,
             },
         }
@@ -867,6 +877,15 @@ pub fn wasm_validation_diagnostic(message: impl Into<String>) -> Diagnostic {
     Diagnostic::new(DiagnosticCode::W0004)
         .with_phase(DiagnosticPhase::BackendValidate)
         .with_note(message.into())
+}
+
+pub fn non_exportable_function_diagnostic(func_name: &str, reason: &str) -> Diagnostic {
+    Diagnostic::new(DiagnosticCode::W0005)
+        .with_phase(DiagnosticPhase::BackendValidate)
+        .with_note(format!(
+            "function `{}` {}, skipped from component exports",
+            func_name, reason
+        ))
 }
 
 pub fn stable_debug_dump<T: fmt::Debug>(value: &T) -> String {
