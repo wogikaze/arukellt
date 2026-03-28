@@ -9,8 +9,6 @@ graph TD
   I061["061 Wasm native 例外処理: try_table / throw / exnref 実装"]
   I062["062 Wasm Memory64: i64 アドレス空間対応"]
   I063["063 Wasm Multi-Memory: 複数メモリモジュール対応"]
-  I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
-  I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
   I068["068 Wasm Reference Types: table.get / table.set / externref フル対応"]
   I069["069 Wasm Typed Function References: ref.func / call_ref フル活用"]
   I071["071 Wasm GC Abstract Heap Types: any/eq/none/func/nofunc の完全活用"]
@@ -18,9 +16,9 @@ graph TD
   I097["097 コンパイル速度: MIR lowering のアリーナ割り当て"]
   I098["098 コンパイル速度: 並列型チェック (rayon)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
+  I107["107 実行時性能: ループのベクトル化可能性アノテーション"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I107["107 実行時性能: ループのベクトル化可能性アノテーション"]
   I075["075 WASI P2 ネイティブ: wasi:clocks / wasi:random / wasi:io バインディング"]
   I076["076 WASI P2 ネイティブ: wasi:filesystem ネイティブバインディング"]
   I077["077 WASI P2: wasi:http IncomingHandler / OutgoingHandler 対応"]
@@ -28,7 +26,6 @@ graph TD
   I079["079 WASI 0.3-rc: async func / stream<T> / future<T> コンパイルサポート"]
   I121["121 WASI P2: Canonical ABI ハンドリングの堅牢化"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
-  I064 --> I107
   I074 --> I075
   I074 --> I076
   I074 --> I077
@@ -42,8 +39,6 @@ graph TD
 - **061** depends on: —; blocks: none
 - **062** depends on: —; blocks: none
 - **063** depends on: —; blocks: none
-- **064** depends on: —; blocks: 107
-- **066** depends on: —; blocks: none
 - **068** depends on: —; blocks: none
 - **069** depends on: —; blocks: none
 - **071** depends on: —; blocks: none
@@ -51,9 +46,9 @@ graph TD
 - **097** depends on: —; blocks: none
 - **098** depends on: —; blocks: none
 - **099** depends on: —; blocks: none
+- **107** depends on: 064; blocks: none
 - **124** depends on: 074 (wasi-p2-native-component); blocks: none
 - **125** depends on: —; blocks: none
-- **107** depends on: 064; blocks: none
 - **075** depends on: 074; blocks: none
 - **076** depends on: 074; blocks: none
 - **077** depends on: 074; blocks: none
