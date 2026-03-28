@@ -427,6 +427,7 @@ run:stdlib_ordered/ordered_basic.ark
 run:stdlib_compiler/compiler_basic.ark
 run:stdlib_seq/seq_basic.ark
 run:stdlib_wasm/wasm_basic.ark
+run:stdlib_wasm/memory_ops.ark
 run:stdlib_wit/wit_basic.ark
 run:stdlib_json/json_basic.ark
 

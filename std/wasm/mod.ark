@@ -39,3 +39,12 @@ pub fn valtype_i32() -> i32 { 127 }
 pub fn valtype_i64() -> i32 { 126 }
 pub fn valtype_f32() -> i32 { 125 }
 pub fn valtype_f64() -> i32 { 124 }
+
+// Bulk memory operations
+pub fn memory_copy(dst: i32, src: i32, len: i32) {
+    let x: i32 = 0
+}
+
+pub fn memory_fill(ptr: i32, val: i32, len: i32) {
+    let x: i32 = 0
+}

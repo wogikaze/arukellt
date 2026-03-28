@@ -2164,6 +2164,24 @@ stability = "experimental"
 params = []
 returns = "i32"
 
+[[functions]]
+name = "memory_copy"
+module = "std::wasm"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_memory_copy"
+stability = "experimental"
+params = ["i32", "i32", "i32"]
+returns = "()"
+
+[[functions]]
+name = "memory_fill"
+module = "std::wasm"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_memory_fill"
+stability = "experimental"
+params = ["i32", "i32", "i32"]
+returns = "()"
+
 # === std::wit ===
 
 [[functions]]

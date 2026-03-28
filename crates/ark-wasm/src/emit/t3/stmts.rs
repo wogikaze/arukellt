@@ -448,6 +448,8 @@ impl Ctx {
                 | "map_f64_String"
                 | "fs_read_file"
                 | "fs_write_file"
+                | "memory_copy"
+                | "memory_fill"
         ) || (name.starts_with("Vec_new_") && self.custom_vec_types.contains_key(&name[8..]))
     }
 
@@ -711,6 +713,27 @@ impl Ctx {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
                     f.instruction(&Instruction::Drop);
+                }
+            }
+            "memory_copy" => {
+                // memory.copy: (dst, src, len) → copies len bytes from src to dst
+                if args.len() >= 3 {
+                    self.emit_operand(f, &args[0]); // dst
+                    self.emit_operand(f, &args[1]); // src
+                    self.emit_operand(f, &args[2]); // len
+                    f.instruction(&Instruction::MemoryCopy {
+                        src_mem: 0,
+                        dst_mem: 0,
+                    });
+                }
+            }
+            "memory_fill" => {
+                // memory.fill: (ptr, val, len) → fills len bytes at ptr with val
+                if args.len() >= 3 {
+                    self.emit_operand(f, &args[0]); // ptr
+                    self.emit_operand(f, &args[1]); // val
+                    self.emit_operand(f, &args[2]); // len
+                    f.instruction(&Instruction::MemoryFill(0));
                 }
             }
             "clock_now" => {
@@ -1200,6 +1223,29 @@ impl Ctx {
             }
             "fs_write_file" => {
                 self.emit_fs_write_file_gc(f, args);
+            }
+            "memory_copy" => {
+                // memory.copy returns Unit; emit instruction, push dummy i32 for stack
+                if args.len() >= 3 {
+                    self.emit_operand(f, &args[0]);
+                    self.emit_operand(f, &args[1]);
+                    self.emit_operand(f, &args[2]);
+                    f.instruction(&Instruction::MemoryCopy {
+                        src_mem: 0,
+                        dst_mem: 0,
+                    });
+                }
+                f.instruction(&Instruction::I32Const(0));
+            }
+            "memory_fill" => {
+                // memory.fill returns Unit; emit instruction, push dummy i32 for stack
+                if args.len() >= 3 {
+                    self.emit_operand(f, &args[0]);
+                    self.emit_operand(f, &args[1]);
+                    self.emit_operand(f, &args[2]);
+                    f.instruction(&Instruction::MemoryFill(0));
+                }
+                f.instruction(&Instruction::I32Const(0));
             }
             "HashMap_i32_i32_new" => {
                 let hm_ty = self.hashmap_i32_i32_ty;

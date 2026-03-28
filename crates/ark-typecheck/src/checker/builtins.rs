@@ -334,6 +334,26 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
+            "__intrinsic_memory_copy".into(),
+            FnSig {
+                name: "__intrinsic_memory_copy".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32, Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_memory_fill".into(),
+            FnSig {
+                name: "__intrinsic_memory_fill".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32, Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
             "__intrinsic_clock_now".into(),
             FnSig {
                 name: "__intrinsic_clock_now".into(),

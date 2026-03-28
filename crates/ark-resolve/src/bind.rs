@@ -221,6 +221,8 @@ pub(crate) fn inject_prelude_symbols(symbols: &mut SymbolTable, scope: ScopeId) 
         "__intrinsic_push_char",
         "__intrinsic_fs_read_file",
         "__intrinsic_fs_write_file",
+        "__intrinsic_memory_copy",
+        "__intrinsic_memory_fill",
         "__intrinsic_clock_now",
         "__intrinsic_random_i32",
         "__intrinsic_map_String_String",
