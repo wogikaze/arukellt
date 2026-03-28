@@ -17,6 +17,7 @@ Full canonical ABI lift/lower helpers are planned for v4.
 Returns the canonical ABI version number (currently `1`).
 
 **Example:**
+
 ```ark
 use std::component
 
@@ -29,6 +30,7 @@ println(i32_to_string(v)) // "1"
 Returns the Component Model specification version string.
 
 **Example:**
+
 ```ark
 use std::component
 

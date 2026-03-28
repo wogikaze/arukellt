@@ -17,6 +17,7 @@ Full object/array support is deferred to v4 (requires recursive data types).
 Converts an integer to its JSON string representation.
 
 **Example:**
+
 ```ark
 use std::json
 
@@ -29,6 +30,7 @@ println(s) // "42"
 Converts a boolean to `"true"` or `"false"`.
 
 **Example:**
+
 ```ark
 use std::json
 
@@ -41,6 +43,7 @@ println(s) // "true"
 Wraps a string value in double quotes. Does not escape special characters.
 
 **Example:**
+
 ```ark
 use std::json
 
@@ -53,6 +56,7 @@ println(s) // "\"hello\""
 Returns the JSON `"null"` literal.
 
 **Example:**
+
 ```ark
 use std::json
 
@@ -65,6 +69,7 @@ println(s) // "null"
 Parses a JSON integer string into `i32`. Supports negative numbers. Does not validate input beyond digit parsing.
 
 **Example:**
+
 ```ark
 use std::json
 
@@ -77,6 +82,7 @@ println(i32_to_string(n)) // "-42"
 Returns `true` if the input string equals `"true"`, `false` otherwise.
 
 **Example:**
+
 ```ark
 use std::json
 

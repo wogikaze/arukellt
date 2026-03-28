@@ -77,6 +77,20 @@ if not manifest_intrinsics:
 else:
     print(f"{GREEN}  ✓ Manifest contains intrinsic mappings ({len(manifest_intrinsics)}){NC}")
 
+print(f"{YELLOW}[4/4] Checking stability labels in manifest...{NC}")
+# Check that all module-based functions have stability
+module_fns = [entry for entry in functions if 'module' in entry]
+missing_stability = [entry['name'] for entry in module_fns if 'stability' not in entry]
+if missing_stability:
+    print(f"{RED}  Module functions missing stability label:{NC}")
+    for name in missing_stability:
+        print(f"    {name}")
+    errors += 1
+else:
+    stable_count = sum(1 for entry in functions if entry.get('stability') == 'stable')
+    exp_count = sum(1 for entry in functions if entry.get('stability') == 'experimental')
+    print(f"{GREEN}  ✓ All module functions have stability labels (stable={stable_count}, experimental={exp_count}){NC}")
+
 print()
 if errors:
     print(f"{RED}✗ Stdlib manifest check failed ({errors} error(s)){NC}")

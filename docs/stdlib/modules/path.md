@@ -15,6 +15,7 @@ Paths are represented as `String`; no dedicated `Path` type.
 Joins two path segments with `/`. Handles trailing slashes on `base` and empty inputs.
 
 **Example:**
+
 ```ark
 use std::path
 
@@ -27,6 +28,7 @@ println(p) // "/usr/local"
 Returns the parent directory of the path. Returns `""` if there is no parent.
 
 **Example:**
+
 ```ark
 use std::path
 
@@ -39,6 +41,7 @@ println(dir) // "/usr/local"
 Returns the final component of the path (after the last `/`).
 
 **Example:**
+
 ```ark
 use std::path
 
@@ -51,6 +54,7 @@ println(name) // "readme.md"
 Returns the file extension (after the last `.` in the file name). Returns `""` if none.
 
 **Example:**
+
 ```ark
 use std::path
 
@@ -63,6 +67,7 @@ println(ext) // "gz"
 Replaces the file extension. If the path has no extension, appends one. Pass `""` to remove the extension.
 
 **Example:**
+
 ```ark
 use std::path
 
@@ -75,6 +80,7 @@ println(p) // "main.wasm"
 Returns `true` if the path starts with `/`.
 
 **Example:**
+
 ```ark
 use std::path
 

@@ -15,6 +15,7 @@ Values must not be compared across processes.
 Returns the current monotonic clock value in nanoseconds. Backed by WASI `clock_time_get`.
 
 **Example:**
+
 ```ark
 use std::time
 
@@ -29,6 +30,7 @@ println(i64_to_string(end - start))
 Returns milliseconds elapsed since `start` (obtained from `monotonic_now`).
 
 **Example:**
+
 ```ark
 use std::time
 
@@ -43,6 +45,7 @@ println(concat("elapsed: ", concat(i64_to_string(ms), "ms")))
 Returns the duration between two monotonic timestamps in milliseconds. Returns `0` if `end < start`.
 
 **Example:**
+
 ```ark
 use std::time
 
@@ -58,6 +61,7 @@ println(concat("took ", concat(i64_to_string(ms), "ms")))
 Returns the duration between two monotonic timestamps in microseconds. Returns `0` if `end < start`.
 
 **Example:**
+
 ```ark
 use std::time
 
@@ -72,6 +76,7 @@ println(concat("took ", concat(i64_to_string(time::duration_us(t0, t1)), "µs"))
 Returns the raw nanosecond difference. Returns `0` if `end < start`.
 
 **Example:**
+
 ```ark
 use std::time
 

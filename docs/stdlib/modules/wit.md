@@ -29,6 +29,7 @@ Each WIT primitive type is mapped to an integer constant. Full WIT parser and ty
 | `wit_type_string()` | 13 | `string` |
 
 **Example:**
+
 ```ark
 use std::wit
 
@@ -43,6 +44,7 @@ println(i32_to_string(ty)) // "4"
 Returns the WIT type name for a given type constant. Returns `"unknown"` for unrecognized values.
 
 **Example:**
+
 ```ark
 use std::wit
 

@@ -15,6 +15,7 @@ Additional operations (exists, mkdir, etc.) require new WASI imports planned for
 Reads the entire contents of a file as a UTF-8 string. Returns `Err` if the file does not exist or cannot be read.
 
 **Example:**
+
 ```ark
 use std::fs
 
@@ -30,6 +31,7 @@ match result {
 Writes a string to a file, creating or overwriting it. Returns `Err` on failure.
 
 **Example:**
+
 ```ark
 use std::fs
 
@@ -43,7 +45,7 @@ match result {
 ## Target Constraints
 
 | API | T1 | WASI P1 | WASI P2 |
-|-----|----|---------|---------| 
+|-----|----|---------|---------|
 | `read_to_string` | ❌ | ✅ | ✅ |
 | `write_string` | ❌ | ✅ | ✅ |
 

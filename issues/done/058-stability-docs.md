@@ -1,6 +1,6 @@
 # API 安定性ラベルとドキュメント体系
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-03-28
 **ID**: 058

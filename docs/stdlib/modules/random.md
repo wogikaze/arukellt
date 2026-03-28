@@ -15,6 +15,7 @@ xorshift32 PRNG (`seeded_random`). **Not cryptographically secure** — do not u
 Returns a random 32-bit integer from the WASI random source.
 
 **Example:**
+
 ```ark
 use std::random
 
@@ -27,6 +28,7 @@ println(i32_to_string(n))
 Returns a random integer in the range `[lo, hi)`. Uses WASI random source.
 
 **Example:**
+
 ```ark
 use std::random
 
@@ -39,6 +41,7 @@ println(i32_to_string(dice)) // 1..6
 Returns a random boolean value.
 
 **Example:**
+
 ```ark
 use std::random
 
@@ -52,6 +55,7 @@ Deterministic xorshift32 PRNG. Given the same seed, always produces the same res
 Seed of `0` is replaced with `42` internally.
 
 **Example:**
+
 ```ark
 use std::random
 
@@ -64,6 +68,7 @@ println(i32_to_string(r))
 Deterministic random integer in `[lo, hi)` using xorshift32.
 
 **Example:**
+
 ```ark
 use std::random
 
@@ -76,6 +81,7 @@ println(i32_to_string(val))
 Returns a new `Vec<i32>` with elements randomly shuffled using Fisher-Yates algorithm.
 
 **Example:**
+
 ```ark
 use std::random
 

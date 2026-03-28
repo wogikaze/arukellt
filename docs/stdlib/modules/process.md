@@ -16,6 +16,7 @@ Terminates the process with the given exit code. Code `0` is a clean exit (no-op
 Non-zero codes trigger a panic with a descriptive message.
 
 **Example:**
+
 ```ark
 use std::process
 
@@ -27,6 +28,7 @@ process::exit(0) // clean exit
 Immediately aborts the process with a panic message.
 
 **Example:**
+
 ```ark
 use std::process
 

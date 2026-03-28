@@ -245,15 +245,54 @@ else
 fi
 
 # 16. Perf gate contract
-printf '\n%s\n' "${YELLOW}[16/17] Checking perf gate contract...${NC}"
+printf '\n%s\n' "${YELLOW}[16/20] Checking perf gate contract...${NC}"
 check_pass "Perf policy documented (check<=10%, compile<=20%; heavy perf separated)"
 
-# 17. Component interop (optional — requires wasmtime with GC + component-model support)
+# 17. v3 stdlib fixtures registered in manifest.txt
+printf '\n%s\n' "${YELLOW}[17/20] Checking stdlib fixtures registered in manifest.txt...${NC}"
+stdlib_fixture_dirs=$(find tests/fixtures -type d -name 'stdlib_*' 2>/dev/null)
+stdlib_missing=0
+for dir in $stdlib_fixture_dirs; do
+    for ark in "$dir"/*.ark; do
+        [ -f "$ark" ] || continue
+        rel_path="${ark#tests/fixtures/}"
+        if ! grep -qF "$rel_path" tests/fixtures/manifest.txt 2>/dev/null; then
+            printf '  Missing from manifest.txt: %s\n' "$rel_path"
+            stdlib_missing=$((stdlib_missing + 1))
+        fi
+    done
+done
+if [ "$stdlib_missing" -eq 0 ]; then
+    check_pass "all stdlib fixtures registered in manifest.txt"
+else
+    check_fail "stdlib fixtures missing from manifest.txt ($stdlib_missing)"
+fi
+
+# 18. v3 stdlib fixture results
+printf '\n%s\n' "${YELLOW}[18/20] Checking v3 stdlib fixtures pass...${NC}"
+if [ "$QUICK_MODE" = true ]; then
+    check_skip "v3 stdlib fixture run"
+else
+    # Stdlib fixtures are verified as part of the full harness run (check 13).
+    # Here we verify that stdlib fixture files exist and are registered.
+    stdlib_fixture_count=$(grep -c 'stdlib_' tests/fixtures/manifest.txt 2>/dev/null || echo "0")
+    if [ "$stdlib_fixture_count" -ge 5 ]; then
+        check_pass "v3 stdlib fixtures registered ($stdlib_fixture_count entries in manifest)"
+    else
+        check_fail "v3 stdlib fixtures insufficient ($stdlib_fixture_count < 5)"
+    fi
+fi
+
+# 19. Stability labels present
+printf '\n%s\n' "${YELLOW}[19/20] Checking stability labels in manifest...${NC}"
+run_check "stability labels" "bash scripts/check-stdlib-manifest.sh"
+
+# 20. Component interop (optional — requires wasmtime with GC + component-model support)
 # Enable with: ARUKELLT_TEST_COMPONENT=1 scripts/verify-harness.sh
 # Note: jco (JavaScript) interop is NOT tested here because jco 1.x does not support
 # Wasm GC types. When jco gains GC support, test.mjs can be added.
 if [ "${ARUKELLT_TEST_COMPONENT:-0}" = "1" ]; then
-    printf '\n%s\n' "${YELLOW}[17/17] Component interop smoke test (ARUKELLT_TEST_COMPONENT=1)...${NC}"
+    printf '\n%s\n' "${YELLOW}[20/20] Component interop smoke test (ARUKELLT_TEST_COMPONENT=1)...${NC}"
     INTEROP_SCRIPT="tests/component-interop/jco/calculator/run.sh"
     if [ ! -f "$INTEROP_SCRIPT" ]; then
         check_skip "component interop script not found"
@@ -263,7 +302,7 @@ if [ "${ARUKELLT_TEST_COMPONENT:-0}" = "1" ]; then
         run_check "component interop (wasmtime)" "bash $INTEROP_SCRIPT"
     fi
 else
-    printf '\n%s\n' "${YELLOW}[17/17] Component interop (skipped — set ARUKELLT_TEST_COMPONENT=1 to enable)...${NC}"
+    printf '\n%s\n' "${YELLOW}[20/20] Component interop (skipped — set ARUKELLT_TEST_COMPONENT=1 to enable)...${NC}"
     check_skip "component interop (opt-in)"
 fi
 

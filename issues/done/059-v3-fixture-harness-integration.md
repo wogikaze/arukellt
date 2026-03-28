@@ -1,6 +1,6 @@
 # v3 fixture 統合 + verify-harness.sh v3 ゲート
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-03-28
 **ID**: 059

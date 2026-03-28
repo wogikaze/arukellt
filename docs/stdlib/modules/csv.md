@@ -18,6 +18,7 @@ Splits a CSV line by commas and returns a `Vec<String>` of fields.
 Does not handle quoted fields or escaped commas.
 
 **Example:**
+
 ```ark
 use std::csv
 

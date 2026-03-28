@@ -19,6 +19,7 @@ Parses a single TOML line. Returns the line as-is for key=value content.
 Returns `""` for blank lines and comment lines (starting with `#`).
 
 **Example:**
+
 ```ark
 use std::toml
 
