@@ -24,6 +24,7 @@ pub enum OptimizationPass {
     AlgebraicSimplify,
     StrengthReduction,
     Cse,
+    LoopUnroll,
 }
 
 impl OptimizationPass {
@@ -43,6 +44,7 @@ impl OptimizationPass {
             Self::AlgebraicSimplify => "algebraic_simplify",
             Self::StrengthReduction => "strength_reduction",
             Self::Cse => "cse",
+            Self::LoopUnroll => "loop_unroll",
         }
     }
 }
@@ -51,6 +53,7 @@ pub const DEFAULT_PASS_ORDER: &[OptimizationPass] = &[
     OptimizationPass::ConstFold,
     OptimizationPass::BranchFold,
     OptimizationPass::CfgSimplify,
+    OptimizationPass::LoopUnroll,
     OptimizationPass::CopyProp,
     OptimizationPass::ConstProp,
     OptimizationPass::DeadLocalElim,
@@ -81,6 +84,7 @@ pub struct OptimizationSummary {
     pub algebraic_simplified: usize,
     pub strength_reduced: usize,
     pub cse_eliminated: usize,
+    pub loops_unrolled: usize,
 }
 
 impl OptimizationSummary {
@@ -99,6 +103,7 @@ impl OptimizationSummary {
             || self.algebraic_simplified > 0
             || self.strength_reduced > 0
             || self.cse_eliminated > 0
+            || self.loops_unrolled > 0
     }
 
     fn absorb(&mut self, other: OptimizationSummary) {
@@ -116,6 +121,7 @@ impl OptimizationSummary {
         self.algebraic_simplified += other.algebraic_simplified;
         self.strength_reduced += other.strength_reduced;
         self.cse_eliminated += other.cse_eliminated;
+        self.loops_unrolled += other.loops_unrolled;
     }
 }
 
@@ -292,6 +298,7 @@ fn run_pass(function: &mut MirFunction, pass: OptimizationPass) -> OptimizationS
         OptimizationPass::AlgebraicSimplify => algebraic_simplify(function),
         OptimizationPass::StrengthReduction => strength_reduction(function),
         OptimizationPass::Cse => cse(function),
+        OptimizationPass::LoopUnroll => super::loop_unroll::loop_unroll(function),
     }
 }
 

@@ -1,3 +1,4 @@
+pub mod loop_unroll;
 pub mod pipeline;
 
 pub use pipeline::{
