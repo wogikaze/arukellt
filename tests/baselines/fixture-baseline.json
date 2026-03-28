@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-03-28",
-  "fixture_count": 374,
+  "fixture_count": 415,
   "entries": [
     {
       "kind": "run",
@@ -955,6 +955,66 @@
       ]
     },
     {
+      "kind": "module-run",
+      "path": "modules/use_std_basic/main.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/use_std_alias/main.ark",
+      "status": 0,
+      "stdout": "10\n",
+      "stderr": "",
+      "primary_text": [
+        "10"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/use_qualified_call/main.ark",
+      "status": 0,
+      "stdout": "5\n",
+      "stderr": "",
+      "primary_text": [
+        "5"
+      ]
+    },
+    {
+      "kind": "module-diag",
+      "path": "modules/use_not_found/main.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0104|resolve]: module `nonexistent` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/std/nonexistent.ark: No such file or directory (os error 2)\n\n",
+      "primary_text": [
+        "error[E0104|resolve]: module `nonexistent` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/std/nonexistent.ark: No such file or directory (os error 2)"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/use_local_module/main.ark",
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "modules/use_and_import/main.ark",
+      "status": 0,
+      "stdout": "30\n",
+      "stderr": "",
+      "primary_text": [
+        "30"
+      ]
+    },
+    {
       "kind": "run",
       "path": "operators/arithmetic.ark",
       "status": 0,
@@ -1305,6 +1365,92 @@
       "primary_text": [
         "3.0",
         "4.0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/range.ark",
+      "status": 0,
+      "stdout": "true\nfalse\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "5"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/ordering.ark",
+      "status": 0,
+      "stdout": "less\ngreater\n",
+      "stderr": "",
+      "primary_text": [
+        "less",
+        "greater"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/math.ark",
+      "status": 0,
+      "stdout": "42\n3\n10\n10\n0\n1024\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "3",
+        "10",
+        "10",
+        "0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/convert.ark",
+      "status": 0,
+      "stdout": "42\n3.14\ntrue\n123\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "3.14",
+        "true",
+        "123"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/hash.ark",
+      "status": 0,
+      "stdout": "true\ntrue\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/error_basic.ark",
+      "status": 0,
+      "stdout": "InvalidArgument: bad input\nTimeout\nsomething went wrong\n",
+      "stderr": "",
+      "primary_text": [
+        "InvalidArgument: bad input",
+        "Timeout",
+        "something went wrong"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_core/error_match.ark",
+      "status": 0,
+      "stdout": "bad\nfile.txt\nother error\n",
+      "stderr": "",
+      "primary_text": [
+        "bad",
+        "file.txt",
+        "other error"
       ]
     },
     {
@@ -4002,66 +4148,99 @@
     {
       "kind": "run",
       "path": "scalar/suffix_literals.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/suffix_literals.ark:2:15\n   |\n  2 |     let a = 42i32\n   |               ^^^ unresolved name `i32`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/suffix_literals.ark:3:16\n   |\n  3 |     let b = 100i64\n   |                ^^^ unresolved name `i64`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/suffix_literals.ark:4:17\n   |\n  4 |     let c = 3.14f64\n   |                 ^^^ unresolved name `f64`\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n100\n3.14\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "100",
+        "3.14"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/u8_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_basic.ark:2:16\n   |\n  2 |     let a = 255u8\n   |                ^^ unresolved name `u8`\n   = help: did you mean `eq`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_basic.ark:3:16\n   |\n  3 |     let b = 100u8\n   |                ^^ unresolved name `u8`\n   = help: did you mean `eq`?\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "255\n100\n155\n",
+      "stderr": "",
+      "primary_text": [
+        "255",
+        "100",
+        "155"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/u32_arithmetic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u32_arithmetic.ark:2:20\n   |\n  2 |     let a = 1000000u32\n   |                    ^^^ unresolved name `u32`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u32_arithmetic.ark:3:19\n   |\n  3 |     let b = 999999u32\n   |                   ^^^ unresolved name `u32`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u32_arithmetic.ark:8:18\n   |\n  8 |     let d = a * 2u32\n   |                  ^^^ unresolved name `u32`\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1000000\n999999\n1\n2000000\n",
+      "stderr": "",
+      "primary_text": [
+        "1000000",
+        "999999",
+        "1",
+        "2000000"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/u64_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u64_basic.ark:2:24\n   |\n  2 |     let a = 10000000000u64\n   |                        ^^^ unresolved name `u64`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u64_basic.ark:3:23\n   |\n  3 |     let b = 9999999999u64\n   |                       ^^^ unresolved name `u64`\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10000000000\n9999999999\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "10000000000",
+        "9999999999",
+        "1"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/i8_sign.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/i8_sign.ark:2:15\n   |\n  2 |     let a = 42i8\n   |               ^^ unresolved name `i8`\n   = help: did you mean `min`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/i8_sign.ark:3:16\n   |\n  3 |     let b = 100i8\n   |                ^^ unresolved name `i8`\n   = help: did you mean `min`?\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n100\n58\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "100",
+        "58"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/f32_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/f32_basic.ark:2:17\n   |\n  2 |     let a = 3.14f64\n   |                 ^^^ unresolved name `f64`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/f32_basic.ark:3:16\n   |\n  3 |     let b = 2.0f64\n   |                ^^^ unresolved name `f64`\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "6.28\n",
+      "stderr": "",
+      "primary_text": [
+        "6.28"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/hex_literal.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/hex_literal.ark:2:17\n   |\n  2 |     let a = 0xFFu8\n   |                 ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/hex_literal.ark:3:17\n   |\n  3 |     let b = 0x1Au16\n   |                 ^^^ unresolved name `u16`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/hex_literal.ark:4:23\n   |\n  4 |     let c = 0xDEADBEEFu32\n   |                       ^^^ unresolved name `u32`\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "255\n26\n-559038737\n",
+      "stderr": "",
+      "primary_text": [
+        "255",
+        "26",
+        "-559038737"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/comparison.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/comparison.ark:2:15\n   |\n  2 |     let a = 10u32\n   |               ^^^ unresolved name `u32`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/comparison.ark:3:15\n   |\n  3 |     let b = 20u32\n   |               ^^^ unresolved name `u32`\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\nfalse\ntrue\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "false",
+        "true",
+        "true"
+      ]
     },
     {
       "kind": "run",
@@ -4079,26 +4258,355 @@
     {
       "kind": "run",
       "path": "scalar/u16_arithmetic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0002|parse]: expected `RParen`, found `Ident(\"u16\")`\n   = expected: RParen\n   = actual: Ident(\"u16\")\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u16_arithmetic.ark:6:18\n   |\n  6 |     println(a * 2u16)\n   |                  ^^^ here\n\nerror[E0001|parse]: expected expression, found `RParen`\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u16_arithmetic.ark:6:21\n   |\n  6 |     println(a * 2u16)\n   |                     ^ here\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1500\n500\n2000\n",
+      "stderr": "",
+      "primary_text": [
+        "1500",
+        "500",
+        "2000"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/i16_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[E0002|parse]: expected `RParen`, found `Ident(\"i16\")`\n   = expected: RParen\n   = actual: Ident(\"i16\")\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/i16_basic.ark:6:18\n   |\n  6 |     println(a * 2i16)\n   |                  ^^^ here\n\nerror[E0001|parse]: expected expression, found `RParen`\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/i16_basic.ark:6:21\n   |\n  6 |     println(a * 2i16)\n   |                     ^ here\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "500\n100\n600\n",
+      "stderr": "",
+      "primary_text": [
+        "500",
+        "100",
+        "600"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/u8_overflow.ark",
+      "status": 0,
+      "stdout": "260\n300\n",
+      "stderr": "",
+      "primary_text": [
+        "260",
+        "300"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_time/monotonic.ark",
       "status": 1,
       "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_overflow.ark:2:16\n   |\n  2 |     let a = 250u8\n   |                ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_overflow.ark:3:15\n   |\n  3 |     let b = 10u8\n   |               ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_overflow.ark:6:16\n   |\n  6 |     let c = 100u8\n   |                ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_overflow.ark:7:18\n   |\n  7 |     let d = c * 3u8\n   |                  ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\n",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found i64 (at offset 0xf29)\n\n",
       "primary_text": []
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_time/duration.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found i64 (at offset 0xf30)\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_random/random_seed.ark",
+      "status": 0,
+      "stdout": "random_seed ok\n",
+      "stderr": "",
+      "primary_text": [
+        "random_seed ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_random/random_range.ark",
+      "status": 0,
+      "stdout": "random_range ok\n",
+      "stderr": "",
+      "primary_text": [
+        "random_range ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_random/shuffle.ark",
+      "status": 0,
+      "stdout": "shuffle ok\n",
+      "stderr": "",
+      "primary_text": [
+        "shuffle ok"
+      ]
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_test/assert_eq.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: values remaining on stack at end of block (at offset 0xfbb)\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_test/assert_ne.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: values remaining on stack at end of block (at offset 0xfbb)\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_test/expect_result.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: values remaining on stack at end of block (at offset 0x10ae)\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "module-run",
+      "path": "stdlib_test/expect_option.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: values remaining on stack at end of block (at offset 0x1059)\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/string_trim.ark",
+      "status": 0,
+      "stdout": "hello world\nhello world  \n  hello world\n\n\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "hello world  ",
+        "  hello world"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/string_replace.ark",
+      "status": 0,
+      "stdout": "hello arukellt\nbbbbbb\nno match\n",
+      "stderr": "",
+      "primary_text": [
+        "hello arukellt",
+        "bbbbbb",
+        "no match"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/string_repeat.ark",
+      "status": 0,
+      "stdout": "ababab\nxxxxx\n0\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "ababab",
+        "xxxxx",
+        "0",
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/string_lines.ark",
+      "status": 0,
+      "stdout": "3\nline1\nline2\nline3\ntrue\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "line1",
+        "line2",
+        "line3",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_text/fmt_pad.ark",
+      "status": 0,
+      "stdout": "000042\nhi....\ntoolong\n42\ntrue\n6\n-1\n",
+      "stderr": "",
+      "primary_text": [
+        "000042",
+        "hi....",
+        "toolong",
+        "42",
+        "true"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_process/exit_zero.ark",
+      "status": 0,
+      "stdout": "before exit\nafter exit\n",
+      "stderr": "",
+      "primary_text": [
+        "before exit",
+        "after exit"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_env/env_basic.ark",
+      "status": 0,
+      "stdout": "0\n0\nnot found\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "not found"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_cli/cli_basic.ark",
+      "status": 0,
+      "stdout": "0\nfalse\nno arg\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "false",
+        "no arg"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_path/path_basic.ark",
+      "status": 0,
+      "stdout": "/usr/bin\n/usr/bin\nfile.txt\n/usr/bin\n\nls\nark\n\nmain.ark\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "/usr/bin",
+        "/usr/bin",
+        "file.txt",
+        "/usr/bin",
+        ""
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_io2/io_basic.ark",
+      "status": 0,
+      "stdout": "done\n",
+      "stderr": "",
+      "primary_text": [
+        "done"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_bytes/bytes_basic.ark",
+      "status": 0,
+      "stdout": "0\n0\n\n3\n72\n3\n229\n142\n38\n120\n86\n305419896\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "",
+        "3",
+        "72"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_hash/hash_basic.ark",
+      "status": 0,
+      "stdout": "0\n0\n0\nfalse\nfalse\n0\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "0",
+        "false",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_linear/linear_basic.ark",
+      "status": 0,
+      "stdout": "0\n0\n0\n-2\n0\n0\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "0",
+        "-2",
+        "0"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_ordered/ordered_basic.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0x1215)\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_compiler/compiler_basic.ark",
+      "status": 0,
+      "stdout": "2\n42\n99\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "42",
+        "99"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_seq/seq_basic.ark",
+      "status": 0,
+      "stdout": "14\n1\n5\ntrue\nfalse\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "14",
+        "1",
+        "5",
+        "true",
+        "false"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_wasm/wasm_basic.ark",
+      "status": 0,
+      "stdout": "0\n97\n1\n127\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "97",
+        "1",
+        "127"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_wit/wit_basic.ark",
+      "status": 0,
+      "stdout": "13\nbool\nf64\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "bool",
+        "f64"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "stdlib_json/json_basic.ark",
+      "status": 0,
+      "stdout": "42\ntrue\n\"hello\"\nnull\n123\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "true",
+        "\"hello\"",
+        "null",
+        "123"
+      ]
     }
   ]
 }

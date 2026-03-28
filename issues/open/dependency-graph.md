@@ -50,6 +50,7 @@ graph TD
   I115["115 Wasm Name Section: デバッグ用関数名・ローカル名セクション生成"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
+  I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I090["090 T3: 末尾位置の call → return_call 自動変換"]
   I107["107 実行時性能: ループのベクトル化可能性アノテーション"]
   I075["075 WASI P2 ネイティブ: wasi:clocks / wasi:random / wasi:io バインディング"]
@@ -140,6 +141,7 @@ graph TD
 - **115** depends on: —; blocks: none
 - **117** depends on: —; blocks: 118
 - **120** depends on: —; blocks: none
+- **123** depends on: none; blocks: none
 - **090** depends on: 060; blocks: none
 - **107** depends on: 064; blocks: none
 - **075** depends on: 074; blocks: none

@@ -9,7 +9,7 @@
       "file": "docs/examples/hello.ark",
       "check": {
         "status": 0,
-        "median_ms": 21.893,
+        "median_ms": 5.962,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark"
         ],
@@ -17,7 +17,7 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 138.993,
+        "median_ms": 17.584,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t1.wasm (12229 bytes, target: wasm32-wasi-p1)"
         ],
@@ -25,7 +25,7 @@
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 90.109,
+        "median_ms": 18.047,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t3.wasm (2565 bytes, target: wasm32-wasi-p2)"
         ],
@@ -38,7 +38,7 @@
       "file": "docs/examples/vec.ark",
       "check": {
         "status": 0,
-        "median_ms": 54.979,
+        "median_ms": 8.941,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark"
         ],
@@ -46,7 +46,7 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 96.698,
+        "median_ms": 13.268,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t1.wasm (13261 bytes, target: wasm32-wasi-p1)"
         ],
@@ -54,7 +54,7 @@
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 49.523,
+        "median_ms": 13.497,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t3.wasm (3035 bytes, target: wasm32-wasi-p2)"
         ],
@@ -67,7 +67,7 @@
       "file": "docs/examples/closure.ark",
       "check": {
         "status": 0,
-        "median_ms": 28.879,
+        "median_ms": 5.634,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark"
         ],
@@ -75,7 +75,7 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 50.359,
+        "median_ms": 13.154,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t1.wasm (12222 bytes, target: wasm32-wasi-p1)"
         ],
@@ -83,7 +83,7 @@
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 64.137,
+        "median_ms": 12.074,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t3.wasm (2660 bytes, target: wasm32-wasi-p2)"
         ],
