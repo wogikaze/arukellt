@@ -1,0 +1,1169 @@
+//! T3 `wasm32-wasi-p2` backend — Wasm GC emitter (transitioning to GC-native).
+//!
+//! GC types are declared in the type section with proper WasmGC structure:
+//!   - String:  bare `(array (mut i8))` — no wrapper struct
+//!   - Vec<T>:  `(struct (field (mut (ref $arr_T))) (field (mut i32)))` — cap = array.len
+//!   - Struct:  `(struct (field (mut T))...)` — typed fields
+//!   - Enum:    subtype hierarchy — non-final base + final variant subtypes
+//!
+//! Currently in bridge-mode: runtime values still use linear memory with i32
+//! pointers. GC-native emission is being implemented phase by phase.
+//!
+//! Linear memory is reserved for WASI I/O only (1 page, not growable).
+//! No bump allocator — heap_ptr global has been removed.
+
+#![allow(dead_code)]
+
+mod helpers;
+mod operands;
+mod reachability;
+mod stmts;
+mod stdlib;
+mod types;
+
+use ark_diagnostics::DiagnosticSink;
+use ark_mir::mir::*;
+use ark_typecheck::types::Type;
+use std::collections::{HashMap, HashSet, VecDeque};
+use wasm_encoder::{
+    ArrayType, CodeSection, CompositeInnerType, CompositeType, DataSection, DataSegment,
+    ExportKind, ExportSection, FieldType, Function, FunctionSection, GlobalSection, GlobalType,
+    HeapType, ImportSection, Instruction, MemArg, MemorySection, MemoryType,
+    RefType as WasmRefType, StorageType, StructType, SubType, TypeSection, ValType,
+};
+
+// ── Linear memory layout (IO bridge only) ────────────────────────
+const IOV_BASE: u32 = 0;
+const IOV_LEN: u32 = 4;
+const NWRITTEN: u32 = 8;
+const SCRATCH: u32 = 16;
+const I32BUF: u32 = 48;
+const SCR_VAL64: u32 = 56; // 8-byte scratch for i64/f64 values
+const DATA_START: u32 = 256;
+const SCR_A_PTR: u32 = SCRATCH;
+const SCR_B_PTR: u32 = SCRATCH + 4;
+const SCR_A_LEN: u32 = SCRATCH + 8;
+const SCR_B_LEN: u32 = SCRATCH + 12;
+const SCR_DST_PTR: u32 = SCRATCH + 16;
+const SCR_I: u32 = SCRATCH + 20;
+const SCR_J: u32 = SCRATCH + 24;
+const SCR_MATCH: u32 = SCRATCH + 28;
+const SCR_RESULT: u32 = SCRATCH + 32;
+
+// GC struct field indices
+const STR_FIELD_BYTES: u32 = 0;
+const VEC_FIELD_DATA: u32 = 0;
+const VEC_FIELD_LEN: u32 = 1;
+const VEC_FIELD_CAP: u32 = 2;
+
+// Well-known import function indices (set dynamically based on usage)
+// const FN_FD_WRITE: u32 = 0;  -- now self.wasi_fd_write
+// const FN_PATH_OPEN: u32 = 1; -- now self.wasi_path_open  
+// const FN_FD_READ: u32 = 2;   -- now self.wasi_fd_read
+// const FN_FD_CLOSE: u32 = 3;  -- now self.wasi_fd_close
+
+// I/O scratch memory layout
+const FS_SCRATCH: u32 = 160;
+const FS_BUF_SIZE: u32 = 4096;
+
+fn mutable_field(st: StorageType) -> FieldType {
+    FieldType {
+        element_type: st,
+        mutable: true,
+    }
+}
+
+fn immutable_field(st: StorageType) -> FieldType {
+    FieldType {
+        element_type: st,
+        mutable: false,
+    }
+}
+
+fn ref_nullable(idx: u32) -> ValType {
+    ValType::Ref(WasmRefType {
+        nullable: true,
+        heap_type: wasm_encoder::HeapType::Concrete(idx),
+    })
+}
+
+fn ref_non_null(idx: u32) -> ValType {
+    ValType::Ref(WasmRefType {
+        nullable: false,
+        heap_type: wasm_encoder::HeapType::Concrete(idx),
+    })
+}
+
+/// Normalize `__intrinsic_*` names to canonical emit names.
+fn normalize_intrinsic(name: &str) -> &str {
+    if let Some(stripped) = name.strip_prefix("__intrinsic_") {
+        match stripped {
+            "println" => "println",
+            "print" => "print",
+            "string_from" => "String_from",
+            "i32_to_string" => "i32_to_string",
+            "i64_to_string" => "i64_to_string",
+            "f64_to_string" => "f64_to_string",
+            "bool_to_string" => "bool_to_string",
+            "concat" => "concat",
+            "len" => "len",
+            "push" => "push",
+            "get" => "get",
+            "get_unchecked" => "get_unchecked",
+            "set" => "set",
+            "pop" => "pop",
+            "panic" => "panic",
+            "assert" => "assert",
+            "assert_eq" => "assert_eq",
+            "Vec_new_i32" => "Vec_new_i32",
+            "Vec_new_i64" => "Vec_new_i64",
+            "Vec_new_f64" => "Vec_new_f64",
+            "Vec_new_String" => "Vec_new_String",
+            "sort_i32" => "sort_i32",
+            other => other,
+        }
+    } else {
+        name
+    }
+}
+
+
+struct TypeAlloc {
+    next_idx: u32,
+    names: HashMap<String, u32>,
+    func_cache: HashMap<(Vec<ValType>, Vec<ValType>), u32>,
+    section: TypeSection,
+}
+
+impl TypeAlloc {
+    pub(super) fn new() -> Self {
+        Self {
+            next_idx: 0,
+            names: HashMap::new(),
+            func_cache: HashMap::new(),
+            section: TypeSection::new(),
+        }
+    }
+
+    pub(super) fn add_func(&mut self, params: &[ValType], results: &[ValType]) -> u32 {
+        let key = (params.to_vec(), results.to_vec());
+        if let Some(&idx) = self.func_cache.get(&key) {
+            return idx;
+        }
+        let idx = self.next_idx;
+        self.section
+            .ty()
+            .function(params.iter().copied(), results.iter().copied());
+        self.func_cache.insert(key, idx);
+        self.next_idx += 1;
+        idx
+    }
+
+    pub(super) fn add_struct(&mut self, name: &str, fields: &[FieldType]) -> u32 {
+        let idx = self.next_idx;
+        self.names.insert(name.to_string(), idx);
+        self.section.ty().subtype(&SubType {
+            is_final: true,
+            supertype_idx: None,
+            composite_type: CompositeType {
+                inner: CompositeInnerType::Struct(StructType {
+                    fields: fields.to_vec().into_boxed_slice(),
+                }),
+                shared: false,
+            },
+        });
+        self.next_idx += 1;
+        idx
+    }
+
+    pub(super) fn add_array(&mut self, name: &str, element: FieldType) -> u32 {
+        let idx = self.next_idx;
+        self.names.insert(name.to_string(), idx);
+        self.section.ty().subtype(&SubType {
+            is_final: true,
+            supertype_idx: None,
+            composite_type: CompositeType {
+                inner: CompositeInnerType::Array(ArrayType(element)),
+                shared: false,
+            },
+        });
+        self.next_idx += 1;
+        idx
+    }
+
+    /// Add a non-final base struct type for enum subtype hierarchies.
+    pub(super) fn add_sub_struct_base(&mut self, name: &str) -> u32 {
+        let idx = self.next_idx;
+        self.names.insert(name.to_string(), idx);
+        self.section.ty().subtype(&SubType {
+            is_final: false,
+            supertype_idx: None,
+            composite_type: CompositeType {
+                inner: CompositeInnerType::Struct(StructType {
+                    fields: Box::new([]),
+                }),
+                shared: false,
+            },
+        });
+        self.next_idx += 1;
+        idx
+    }
+
+    /// Add a final variant struct subtype with the given supertype.
+    pub(super) fn add_sub_struct_variant(&mut self, name: &str, super_idx: u32, fields: &[FieldType]) -> u32 {
+        let idx = self.next_idx;
+        self.names.insert(name.to_string(), idx);
+        self.section.ty().subtype(&SubType {
+            is_final: true,
+            supertype_idx: Some(super_idx),
+            composite_type: CompositeType {
+                inner: CompositeInnerType::Struct(StructType {
+                    fields: fields.to_vec().into_boxed_slice(),
+                }),
+                shared: false,
+            },
+        });
+        self.next_idx += 1;
+        idx
+    }
+
+    /// Add an entire enum hierarchy as a single `rec` group so that
+    /// structurally identical variants get distinct types (isorecursive
+    /// type equivalence is per-position within a rec group).
+    /// Returns (base_idx, vec of (variant_name, variant_idx)).
+    pub(super) fn add_enum_rec_group(
+        &mut self,
+        base_name: &str,
+        variants: &[(String, Vec<FieldType>)],
+    ) -> (u32, Vec<(String, u32)>) {
+        let base_idx = self.next_idx;
+        self.names.insert(base_name.to_string(), base_idx);
+
+        // Build the rec group: base type at position 0, then each variant
+        let mut subtypes = Vec::with_capacity(1 + variants.len());
+
+        // Base: non-final empty struct
+        subtypes.push(SubType {
+            is_final: false,
+            supertype_idx: None,
+            composite_type: CompositeType {
+                inner: CompositeInnerType::Struct(StructType {
+                    fields: Box::new([]),
+                }),
+                shared: false,
+            },
+        });
+
+        // Each variant: final subtype of base (index 0 within this rec group = base_idx)
+        for (_, fields) in variants {
+            subtypes.push(SubType {
+                is_final: true,
+                supertype_idx: Some(base_idx),
+                composite_type: CompositeType {
+                    inner: CompositeInnerType::Struct(StructType {
+                        fields: fields.clone().into_boxed_slice(),
+                    }),
+                    shared: false,
+                },
+            });
+        }
+
+        // Emit the rec group
+        self.section.ty().rec(subtypes);
+
+        // Register names and compute indices
+        let mut result = Vec::with_capacity(variants.len());
+        for (i, (vname, _)) in variants.iter().enumerate() {
+            let v_idx = base_idx + 1 + i as u32;
+            let full_name = format!("{}.{}", base_name, vname);
+            self.names.insert(full_name, v_idx);
+            result.push((vname.clone(), v_idx));
+        }
+
+        self.next_idx = base_idx + 1 + variants.len() as u32;
+        (base_idx, result)
+    }
+}
+
+// ── Emit context ─────────────────────────────────────────────────
+
+struct Ctx {
+    types: TypeAlloc,
+    /// Active data segments (loaded into linear memory) for I/O scratch only.
+    data_segs: Vec<(u32, Vec<u8>)>,
+    data_offset: u32,
+    /// Passive data segments for string literals (consumed by array.new_data).
+    string_data_segs: Vec<Vec<u8>>,
+    /// Deduplication cache: maps string bytes → segment index.
+    string_seg_cache: HashMap<Vec<u8>, u32>,
+    fn_map: HashMap<String, u32>,
+    fn_names: Vec<String>,
+    next_fn: u32,
+    // Well-known GC type indices
+    string_ty: u32,
+    arr_i32_ty: u32,
+    vec_i32_ty: u32,
+    arr_i64_ty: u32,
+    vec_i64_ty: u32,
+    arr_f64_ty: u32,
+    vec_f64_ty: u32,
+    arr_string_ty: u32,
+    vec_string_ty: u32,
+    // HashMap GC type index
+    hashmap_i32_i32_ty: u32,
+    // Well-known function type indices
+    fd_write_ty: u32,
+    // User struct GC type indices
+    struct_gc_types: HashMap<String, u32>,
+    struct_layouts: HashMap<String, Vec<(String, String)>>,
+    // Enum GC type indices: subtype hierarchy
+    enum_base_types: HashMap<String, u32>,
+    enum_variant_types: HashMap<String, HashMap<String, u32>>,
+    enum_variant_field_types: HashMap<(String, String), Vec<String>>,
+    enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
+    fn_ret_types: HashMap<String, Type>,
+    fn_param_types: HashMap<String, Vec<Type>>,
+    fn_ret_type_names: HashMap<String, String>,
+    fn_param_type_names: HashMap<String, Vec<String>>,
+    // Local type tracking (per-function)
+    string_locals: std::collections::HashSet<u32>,
+    f64_locals: std::collections::HashSet<u32>,
+    i64_locals: std::collections::HashSet<u32>,
+    bool_locals: std::collections::HashSet<u32>,
+    any_locals: std::collections::HashSet<u32>,
+    f64_vec_locals: std::collections::HashSet<u32>,
+    i64_vec_locals: std::collections::HashSet<u32>,
+    i32_vec_locals: std::collections::HashSet<u32>,
+    string_vec_locals: std::collections::HashSet<u32>,
+    // Vec<Struct> support: struct_name → (arr_type_idx, vec_type_idx)
+    custom_vec_types: HashMap<String, (u32, u32)>,
+    // Per-function tracking of which locals are Vec<StructName>
+    struct_vec_locals: HashMap<u32, String>,
+    local_struct: HashMap<u32, String>,
+    local_enum: HashMap<u32, String>,
+    // Helper function indices (emitted once)
+    helper_i32_to_str: Option<u32>,
+    helper_i64_to_str: Option<u32>,
+    helper_f64_to_str: Option<u32>,
+    helper_print_i32_ln: Option<u32>,
+    helper_print_bool_ln: Option<u32>,
+    helper_print_str_ln: Option<u32>,
+    helper_print_newline: Option<u32>,
+    helper_parse_i32: Option<u32>,
+    helper_parse_i64: Option<u32>,
+    helper_parse_f64: Option<u32>,
+    err_string_seg: Option<u32>,
+    err_float_string_seg: Option<u32>,
+    // Pre-registered indirect call type indices
+    indirect_types: HashMap<(Vec<ValType>, Vec<ValType>), u32>,
+    // Scratch local base index (set per-function, for GC string ops)
+    scratch_base: u32,
+    // Whether the current function being emitted is _start/main (drops return value)
+    is_start_fn: bool,
+    // Extra nesting depth for break/continue inside if/else within loops
+    loop_break_extra_depth: u32,
+    // Generic function context: type_params of the function being emitted
+    current_fn_type_params: Vec<String>,
+    // Return type of the function being emitted
+    current_fn_return_ty: Type,
+    // WASI import indices (dynamically assigned based on usage)
+    wasi_fd_write: u32,
+    wasi_path_open: u32,
+    wasi_fd_read: u32,
+    wasi_fd_close: u32,
+    wasi_needs_fs: bool,
+    /// Optimization level (0 = O0, 1 = O1, 2 = O2).
+    /// Tail-call emission (`return_call`) is enabled at opt_level >= 1.
+    opt_level: u8,
+}
+
+impl Ctx {
+    pub(super) fn type_to_val(&self, ty: &Type) -> ValType {
+        match ty {
+            Type::I64 | Type::U64 => ValType::I64,
+            Type::F64 => ValType::F64,
+            Type::F32 => ValType::F32,
+            Type::U8 | Type::U16 | Type::U32 | Type::I8 | Type::I16 => ValType::I32,
+            Type::String => ref_nullable(self.string_ty),
+            Type::Any => ValType::Ref(WasmRefType {
+                nullable: true,
+                heap_type: HeapType::ANY,
+            }),
+            Type::Vec(elem) => match elem.as_ref() {
+                Type::I64 => ref_nullable(self.vec_i64_ty),
+                Type::F64 => ref_nullable(self.vec_f64_ty),
+                Type::String => ref_nullable(self.vec_string_ty),
+                _ => ref_nullable(self.vec_i32_ty),
+            },
+            _ => ValType::I32,
+        }
+    }
+
+    /// Resolve a type name (from fn_sigs or struct/enum defs) to a ValType.
+    pub(super) fn type_name_to_val(&self, name: &str) -> ValType {
+        match name {
+            "i32" | "bool" | "char" | "()" | "u8" | "u16" | "u32" | "i8" | "i16" => ValType::I32,
+            "i64" | "u64" => ValType::I64,
+            "f64" => ValType::F64,
+            "f32" => ValType::F32,
+            "String" => ref_nullable(self.string_ty),
+            _ => {
+                if let Some(&ty_idx) = self.struct_gc_types.get(name) {
+                    return ref_nullable(ty_idx);
+                }
+                if let Some(&base_idx) = self.enum_base_types.get(name) {
+                    return ref_nullable(base_idx);
+                }
+                // Vec types: Vec<i32>, Vec<String>, etc.
+                if name.starts_with("Vec<") {
+                    let inner = &name[4..name.len() - 1];
+                    match inner {
+                        "i32" => return ref_nullable(self.vec_i32_ty),
+                        "i64" => return ref_nullable(self.vec_i64_ty),
+                        "f64" => return ref_nullable(self.vec_f64_ty),
+                        "String" => return ref_nullable(self.vec_string_ty),
+                        _ => {
+                            if let Some(&(_, vec_ty)) = self.custom_vec_types.get(inner) {
+                                return ref_nullable(vec_ty);
+                            }
+                            // For generic Vec<T> (unknown inner type), default to Vec<i32>
+                            return ref_nullable(self.vec_i32_ty);
+                        }
+                    }
+                }
+                // Option<T> → use "Option" base enum type
+                if name.starts_with("Option<") || name == "Option" {
+                    if let Some(&base_idx) = self.enum_base_types.get("Option") {
+                        return ref_nullable(base_idx);
+                    }
+                }
+                // Result<T, E> → use "Result" base enum type
+                if name.starts_with("Result<") || name == "Result" {
+                    if let Some(&base_idx) = self.enum_base_types.get("Result") {
+                        return ref_nullable(base_idx);
+                    }
+                }
+                ValType::I32
+            }
+        }
+    }
+
+    /// Resolve the Wasm ValType for a MIR local, using struct/enum typed-local
+    /// side-channel maps to return GC ref types instead of i32.
+    #[allow(clippy::type_complexity)]
+    pub(super) fn local_val_type(
+        &self,
+        local: &MirLocal,
+        struct_typed_locals: &HashMap<u32, String>,
+        enum_typed_locals: &HashMap<u32, String>,
+        vec_sets: Option<(&HashSet<u32>, &HashSet<u32>, &HashSet<u32>, &HashSet<u32>)>,
+    ) -> ValType {
+        // Check struct side-channel first
+        if let Some(sname) = struct_typed_locals.get(&local.id.0) {
+            if let Some(&ty_idx) = self.struct_gc_types.get(sname) {
+                return ref_nullable(ty_idx);
+            }
+        }
+        // Check enum side-channel
+        if let Some(ename) = enum_typed_locals.get(&local.id.0) {
+            if let Some(&base_idx) = self.enum_base_types.get(ename) {
+                return ref_nullable(base_idx);
+            }
+        }
+        // Check Vec<Struct> side-channel
+        if let Some(sname) = self.struct_vec_locals.get(&local.id.0) {
+            if let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname.as_str()) {
+                return ref_nullable(vec_ty);
+            }
+        }
+        // Check propagated vec types
+        if let Some((vi32, vi64, vf64, vstr)) = vec_sets {
+            let lid = local.id.0;
+            if vi64.contains(&lid) {
+                return ref_nullable(self.vec_i64_ty);
+            }
+            if vf64.contains(&lid) {
+                return ref_nullable(self.vec_f64_ty);
+            }
+            if vstr.contains(&lid) {
+                return ref_nullable(self.vec_string_ty);
+            }
+            if vi32.contains(&lid) {
+                return ref_nullable(self.vec_i32_ty);
+            }
+        }
+        self.type_to_val(&local.ty)
+    }
+
+    pub(super) fn alloc_data(&mut self, data: &[u8]) -> u32 {
+        let offset = self.data_offset;
+        self.data_segs.push((offset, data.to_vec()));
+        self.data_offset += data.len() as u32;
+        // Align to 4 bytes
+        while self.data_offset % 4 != 0 {
+            self.data_offset += 1;
+        }
+        offset
+    }
+
+    /// Allocate a passive data segment for a string literal.
+    /// Returns the segment index (used by array.new_data).
+    /// Deduplicates identical byte sequences.
+    pub(super) fn alloc_string_data(&mut self, data: &[u8]) -> u32 {
+        if let Some(&idx) = self.string_seg_cache.get(data) {
+            return idx;
+        }
+        let idx = self.string_data_segs.len() as u32;
+        self.string_data_segs.push(data.to_vec());
+        self.string_seg_cache.insert(data.to_vec(), idx);
+        idx
+    }
+
+    pub(super) fn field_valtype(&self, ty_name: &str) -> ValType {
+        match ty_name {
+            "i64" => ValType::I64,
+            "f64" => ValType::F64,
+            "f32" => ValType::F32,
+            "String" => ref_nullable(self.string_ty),
+            "anyref" => ValType::Ref(WasmRefType {
+                nullable: true,
+                heap_type: HeapType::ANY,
+            }),
+            _ => {
+                if let Some(&ty_idx) = self.struct_gc_types.get(ty_name) {
+                    return ref_nullable(ty_idx);
+                }
+                if let Some(&base_idx) = self.enum_base_types.get(ty_name) {
+                    return ref_nullable(base_idx);
+                }
+                ValType::I32
+            }
+        }
+    }
+
+    /// Scan a statement for Vec_new_* calls referencing struct names
+    pub(super) fn scan_operands_for_vec_struct(
+        &self,
+        stmt: &MirStmt,
+        struct_defs: &HashMap<String, Vec<(String, String)>>,
+        out: &mut HashSet<String>,
+    ) {
+        match stmt {
+            MirStmt::Assign(_, Rvalue::Use(op)) => {
+                self.scan_op_for_vec_struct(op, struct_defs, out);
+            }
+            MirStmt::CallBuiltin { name, args, .. } => {
+                if let Some(sname) = name.strip_prefix("Vec_new_") {
+                    if struct_defs.contains_key(sname) {
+                        out.insert(sname.to_string());
+                    }
+                }
+                for a in args {
+                    self.scan_op_for_vec_struct(a, struct_defs, out);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    pub(super) fn scan_op_for_vec_struct(
+        &self,
+        op: &Operand,
+        struct_defs: &HashMap<String, Vec<(String, String)>>,
+        out: &mut HashSet<String>,
+    ) {
+        if let Operand::Call(name, _) = op {
+            if let Some(sname) = name.strip_prefix("Vec_new_") {
+                if struct_defs.contains_key(sname) {
+                    out.insert(sname.to_string());
+                }
+            }
+        }
+    }
+}
+
+// ── Public entry point ───────────────────────────────────────────
+
+/// Emit a Wasm module from MIR using real Wasm GC types.
+///
+/// Scalars live in Wasm locals. Strings, Vecs, structs, and enums use
+/// GC struct/array types. I/O bridges through a small linear memory
+/// region for WASI fd_write.
+pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u8> {
+    // TODO(MIR-01): remove checker fallback — read layouts from type_table only
+    let struct_layouts: HashMap<String, Vec<(String, String)>> = mir.type_table.struct_defs.clone();
+    let fn_ret_types: HashMap<String, Type> = mir
+        .functions
+        .iter()
+        .map(|f| (f.name.clone(), f.return_ty.clone()))
+        .collect();
+    let fn_param_types: HashMap<String, Vec<Type>> = mir
+        .functions
+        .iter()
+        .map(|f| {
+            (
+                f.name.clone(),
+                f.params.iter().map(|p| p.ty.clone()).collect(),
+            )
+        })
+        .collect();
+    // Build fn return type NAME map from fn_sigs for struct/enum return resolution
+    let fn_ret_type_names: HashMap<String, String> = mir
+        .type_table
+        .fn_sigs
+        .iter()
+        .map(|(name, sig)| (name.clone(), sig.ret.clone()))
+        .collect();
+    // Build fn param type NAME map from fn_sigs for struct/enum/vec param resolution
+    let fn_param_type_names: HashMap<String, Vec<String>> = mir
+        .type_table
+        .fn_sigs
+        .iter()
+        .map(|(name, sig)| (name.clone(), sig.params.clone()))
+        .collect();
+
+    let mut ctx = Ctx {
+        types: TypeAlloc::new(),
+        data_segs: Vec::new(),
+        data_offset: DATA_START,
+        string_data_segs: Vec::new(),
+        string_seg_cache: HashMap::new(),
+        fn_map: HashMap::new(),
+        fn_names: mir.functions.iter().map(|f| f.name.clone()).collect(),
+        next_fn: 0,
+        string_ty: 0,
+        arr_i32_ty: 0,
+        vec_i32_ty: 0,
+        arr_i64_ty: 0,
+        vec_i64_ty: 0,
+        arr_f64_ty: 0,
+        vec_f64_ty: 0,
+        arr_string_ty: 0,
+        vec_string_ty: 0,
+        hashmap_i32_i32_ty: 0,
+        fd_write_ty: 0,
+        struct_gc_types: HashMap::new(),
+        struct_layouts,
+        enum_base_types: HashMap::new(),
+        enum_variant_types: HashMap::new(),
+        enum_variant_field_types: HashMap::new(),
+        enum_defs: mir.type_table.enum_defs.clone(),
+        fn_ret_types,
+        fn_param_types,
+        fn_ret_type_names,
+        fn_param_type_names,
+        string_locals: Default::default(),
+        f64_locals: Default::default(),
+        i64_locals: Default::default(),
+        bool_locals: Default::default(),
+        any_locals: Default::default(),
+        f64_vec_locals: Default::default(),
+        i64_vec_locals: Default::default(),
+        i32_vec_locals: Default::default(),
+        string_vec_locals: Default::default(),
+        custom_vec_types: HashMap::new(),
+        struct_vec_locals: HashMap::new(),
+        local_struct: HashMap::new(),
+        local_enum: HashMap::new(),
+        helper_i32_to_str: None,
+        helper_i64_to_str: None,
+        helper_f64_to_str: None,
+        helper_print_i32_ln: None,
+        helper_print_bool_ln: None,
+        helper_print_str_ln: None,
+        helper_print_newline: None,
+        helper_parse_i32: None,
+        helper_parse_i64: None,
+        helper_parse_f64: None,
+        err_string_seg: None,
+        err_float_string_seg: None,
+        indirect_types: HashMap::new(),
+        scratch_base: 0,
+        is_start_fn: false,
+        loop_break_extra_depth: 0,
+        current_fn_type_params: vec![],
+        current_fn_return_ty: Type::Unit,
+        wasi_fd_write: 0,
+        wasi_path_open: 0,
+        wasi_fd_read: 0,
+        wasi_fd_close: 0,
+        wasi_needs_fs: false,
+        opt_level,
+    };
+    ctx.emit_module(mir)
+}
+
+// ── Module emission ──────────────────────────────────────────────
+
+impl Ctx {
+    pub(super) fn emit_module(&mut self, mir: &MirModule) -> Vec<u8> {
+        let reachable_user_indices = self.reachable_function_indices(mir);
+
+        // Scan MIR to determine which WASI imports are needed
+        let needs_fs = Self::mir_uses_fs(mir, &reachable_user_indices);
+        self.wasi_needs_fs = needs_fs;
+
+        // Phase 1: Register GC types
+        self.register_gc_types(mir);
+
+        // Pre-allocate "invalid number" error string for parse helpers
+        if self.enum_base_types.contains_key("Result")
+            || self.enum_base_types.contains_key("Result_i64_String")
+            || self.enum_base_types.contains_key("Result_f64_String")
+        {
+            let seg = self.alloc_string_data(b"parse error: invalid integer");
+            self.err_string_seg = Some(seg);
+            let seg_f = self.alloc_string_data(b"parse error: invalid float");
+            self.err_float_string_seg = Some(seg_f);
+        }
+
+        // Phase 2: Register function type signatures
+        let fd_write_ty = self.types.add_func(&[ValType::I32; 4], &[ValType::I32]);
+        self.fd_write_ty = fd_write_ty;
+        // path_open: (i32,i32,i32,i32,i32,i64,i64,i32,i32) -> i32
+        let path_open_ty = self.types.add_func(
+            &[
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I64,
+                ValType::I64,
+                ValType::I32,
+                ValType::I32,
+            ],
+            &[ValType::I32],
+        );
+        // fd_read: same as fd_write (i32,i32,i32,i32) -> i32
+        let fd_read_ty = fd_write_ty;
+        // fd_close: (i32) -> i32
+        let fd_close_ty = self.types.add_func(&[ValType::I32], &[ValType::I32]);
+
+        // Count helper functions we'll need
+        // Dynamic WASI import count: fd_write is always needed; FS imports only if used
+        let num_imports = if needs_fs { 4u32 } else { 1u32 };
+        self.wasi_fd_write = 0; // fd_write is always index 0
+        if needs_fs {
+            self.wasi_path_open = 1;
+            self.wasi_fd_read = 2;
+            self.wasi_fd_close = 3;
+        }
+        // GC-native helper function signatures
+        let str_ref = ref_nullable(self.string_ty);
+        let mut helper_fns: Vec<(String, Vec<ValType>, Vec<ValType>)> = vec![
+            // __print_str_ln: (ref $string) -> ()
+            ("__print_str_ln".into(), vec![str_ref], vec![]),
+            // __print_i32_ln: (i32) -> ()
+            ("__print_i32_ln".into(), vec![ValType::I32], vec![]),
+            // __print_bool_ln: (i32) -> ()
+            ("__print_bool_ln".into(), vec![ValType::I32], vec![]),
+            // __i32_to_str: (i32) -> (ref $string)
+            ("__i32_to_str".into(), vec![ValType::I32], vec![str_ref]),
+            // __print_newline: () -> ()
+            ("__print_newline".into(), vec![], vec![]),
+            // __i64_to_str: (i64) -> (ref $string)
+            ("__i64_to_str".into(), vec![ValType::I64], vec![str_ref]),
+            // __f64_to_str: (f64) -> (ref $string)
+            ("__f64_to_str".into(), vec![ValType::F64], vec![str_ref]),
+        ];
+
+        // Conditionally add parse helpers if the relevant Result enum types exist
+        let parse_i32_helper_idx = if self.enum_base_types.contains_key("Result") {
+            let result_ref = ref_nullable(*self.enum_base_types.get("Result").unwrap());
+            let idx = helper_fns.len();
+            helper_fns.push(("__parse_i32".into(), vec![str_ref], vec![result_ref]));
+            Some(idx)
+        } else {
+            None
+        };
+        let parse_i64_helper_idx = if self.enum_base_types.contains_key("Result_i64_String") {
+            let result_ref = ref_nullable(*self.enum_base_types.get("Result_i64_String").unwrap());
+            let idx = helper_fns.len();
+            helper_fns.push(("__parse_i64".into(), vec![str_ref], vec![result_ref]));
+            Some(idx)
+        } else {
+            None
+        };
+        let parse_f64_helper_idx = if self.enum_base_types.contains_key("Result_f64_String") {
+            let result_ref = ref_nullable(*self.enum_base_types.get("Result_f64_String").unwrap());
+            let idx = helper_fns.len();
+            helper_fns.push(("__parse_f64".into(), vec![str_ref], vec![result_ref]));
+            Some(idx)
+        } else {
+            None
+        };
+
+        // Register function types for helpers
+        let mut helper_type_indices = Vec::new();
+        for (_, params, results) in &helper_fns {
+            let ty_idx = self.types.add_func(params, results);
+            helper_type_indices.push(ty_idx);
+        }
+
+        // Register function types for user functions
+        let mut user_fn_type_indices = Vec::new();
+        for &idx in &reachable_user_indices {
+            let func = &mir.functions[idx];
+            let params: Vec<ValType> =
+                if let Some(param_names) = self.fn_param_type_names.get(&func.name) {
+                    param_names
+                        .iter()
+                        .enumerate()
+                        .map(|(i, p)| {
+                            // If MIR says the param is Any (generic), use anyref regardless of AST type name
+                            if func.params.get(i).is_some_and(|mp| mp.ty == Type::Any) {
+                                ValType::Ref(WasmRefType {
+                                    nullable: true,
+                                    heap_type: HeapType::ANY,
+                                })
+                            } else {
+                                self.type_name_to_val(p)
+                            }
+                        })
+                        .collect()
+                } else {
+                    func.params
+                        .iter()
+                        .map(|p| {
+                            self.local_val_type(
+                                p,
+                                &func.struct_typed_locals,
+                                &func.enum_typed_locals,
+                                None,
+                            )
+                        })
+                        .collect()
+                };
+            let results: Vec<ValType> = if func.name == "main" || func.name == "_start" {
+                // WASI _start must be () -> ()
+                vec![]
+            } else {
+                match &func.return_ty {
+                    Type::Unit | Type::Never => vec![],
+                    ty => {
+                        // Vec_new_* functions return GC vec refs
+                        let result_ty = if func.name.starts_with("Vec_new_") {
+                            let sname = &func.name[8..];
+                            match sname {
+                                "i32" => ref_nullable(self.vec_i32_ty),
+                                "i64" => ref_nullable(self.vec_i64_ty),
+                                "f64" => ref_nullable(self.vec_f64_ty),
+                                "String" => ref_nullable(self.vec_string_ty),
+                                _ => {
+                                    if let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname) {
+                                        ref_nullable(vec_ty)
+                                    } else {
+                                        self.type_to_val(ty)
+                                    }
+                                }
+                            }
+                        } else {
+                            // For struct/enum returns, use fn_ret_type_names for accurate type
+                            if matches!(ty, Type::I32) {
+                                // Check for generic tuple return: scan terminators for StructInit("__tupleN_any")
+                                let tuple_any_ret = if !func.type_params.is_empty() {
+                                    func.blocks.iter().find_map(|blk| {
+                                        if let Terminator::Return(Some(Operand::StructInit {
+                                            name,
+                                            ..
+                                        })) = &blk.terminator
+                                        {
+                                            if name.starts_with("__tuple") && name.ends_with("_any")
+                                            {
+                                                self.struct_gc_types
+                                                    .get(name)
+                                                    .map(|&idx| ref_nullable(idx))
+                                            } else {
+                                                None
+                                            }
+                                        } else {
+                                            None
+                                        }
+                                    })
+                                } else {
+                                    None
+                                };
+                                if let Some(tuple_ty) = tuple_any_ret {
+                                    tuple_ty
+                                } else if let Some(ret_name) =
+                                    self.fn_ret_type_names.get(&func.name)
+                                {
+                                    self.type_name_to_val(ret_name)
+                                } else {
+                                    ValType::I32
+                                }
+                            } else {
+                                self.type_to_val(ty)
+                            }
+                        };
+                        vec![result_ty]
+                    }
+                }
+            };
+            let ty_idx = self.types.add_func(&params, &results);
+            user_fn_type_indices.push(ty_idx);
+        }
+
+        // Assign function indices: imports first, then helpers, then user fns
+        let helper_base = num_imports;
+        for (i, (name, _, _)) in helper_fns.iter().enumerate() {
+            let fn_idx = helper_base + i as u32;
+            self.fn_map.insert(name.clone(), fn_idx);
+        }
+        self.helper_print_str_ln = Some(helper_base);
+        self.helper_print_i32_ln = Some(helper_base + 1);
+        self.helper_print_bool_ln = Some(helper_base + 2);
+        self.helper_i32_to_str = Some(helper_base + 3);
+        self.helper_print_newline = Some(helper_base + 4);
+        self.helper_i64_to_str = Some(helper_base + 5);
+        self.helper_f64_to_str = Some(helper_base + 6);
+        if let Some(idx) = parse_i32_helper_idx {
+            self.helper_parse_i32 = Some(helper_base + idx as u32);
+        }
+        if let Some(idx) = parse_i64_helper_idx {
+            self.helper_parse_i64 = Some(helper_base + idx as u32);
+        }
+        if let Some(idx) = parse_f64_helper_idx {
+            self.helper_parse_f64 = Some(helper_base + idx as u32);
+        }
+
+        let user_base = helper_base + helper_fns.len() as u32;
+        for (i, &idx) in reachable_user_indices.iter().enumerate() {
+            let func = &mir.functions[idx];
+            self.fn_map.insert(func.name.clone(), user_base + i as u32);
+        }
+
+        // Pre-register indirect call type signatures for HOF operations
+        {
+            let sigs: Vec<(Vec<ValType>, Vec<ValType>)> = vec![
+                (vec![ValType::I32], vec![ValType::I32]), // (i32) -> i32
+                (vec![ValType::I64], vec![ValType::I32]), // (i64) -> i32 (predicate)
+                (vec![ValType::F64], vec![ValType::I32]), // (f64) -> i32 (predicate)
+                (vec![ValType::I32], vec![ValType::I64]), // (i32) -> i64 (map)
+                (vec![ValType::I64], vec![ValType::I64]), // (i64) -> i64 (map)
+                (vec![ValType::F64], vec![ValType::F64]), // (f64) -> f64 (map)
+                (vec![ValType::I64, ValType::I64], vec![ValType::I64]), // (i64,i64) -> i64 (fold)
+            ];
+            for (params, results) in sigs {
+                let ty_idx = self.types.add_func(&params, &results);
+                self.indirect_types.insert((params, results), ty_idx);
+            }
+        }
+
+        // ── Build sections ───────────────────────────────────────
+
+        // Import section: WASI functions (only those actually used)
+        let mut imports = ImportSection::new();
+        imports.import(
+            "wasi_snapshot_preview1",
+            "fd_write",
+            wasm_encoder::EntityType::Function(fd_write_ty),
+        );
+        if needs_fs {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "path_open",
+                wasm_encoder::EntityType::Function(path_open_ty),
+            );
+            imports.import(
+                "wasi_snapshot_preview1",
+                "fd_read",
+                wasm_encoder::EntityType::Function(fd_read_ty),
+            );
+            imports.import(
+                "wasi_snapshot_preview1",
+                "fd_close",
+                wasm_encoder::EntityType::Function(fd_close_ty),
+            );
+        }
+
+        // Function section
+        let mut functions = FunctionSection::new();
+        for &ty_idx in &helper_type_indices {
+            functions.function(ty_idx);
+        }
+        for &ty_idx in &user_fn_type_indices {
+            functions.function(ty_idx);
+        }
+
+        // Memory section — BRIDGE COMPAT: keep 4-10 pages until fully GC-native.
+        // Target: 1 page fixed (WASI I/O only) once all allocations use GC heap.
+        let mut memories = MemorySection::new();
+        memories.memory(MemoryType {
+            minimum: 4,
+            maximum: Some(10),
+            memory64: false,
+            shared: false,
+            page_size_log2: None,
+        });
+
+        // Export section
+        let mut exports = ExportSection::new();
+        exports.export("memory", ExportKind::Memory, 0);
+        if let Some(&start_idx) = self.fn_map.get("_start") {
+            exports.export("_start", ExportKind::Func, start_idx);
+        } else if let Some(&main_idx) = self.fn_map.get("main") {
+            exports.export("_start", ExportKind::Func, main_idx);
+        }
+
+        // Export user pub functions for Component Model (kebab-case names for WIT)
+        for func in &mir.functions {
+            if func.is_exported && func.name != "main" && !func.name.starts_with("__") {
+                if let Some(&idx) = self.fn_map.get(func.name.as_str()) {
+                    let export_name = func.name.replace('_', "-");
+                    exports.export(&export_name, ExportKind::Func, idx);
+                }
+            }
+        }
+
+        // Data section: static string literals and constants
+        // Pre-allocate "true", "false", "\n" for print helpers
+        let true_offset = self.alloc_data(b"true");
+        let false_offset = self.alloc_data(b"false");
+        let newline_offset = self.alloc_data(b"\n");
+
+        // Code section: emit helper + user functions
+        let mut codes = CodeSection::new();
+
+        // Helper: __print_str_ln(str_ref)
+        self.emit_print_str_ln_helper(&mut codes, newline_offset);
+        // Helper: __print_i32_ln(val)
+        self.emit_print_i32_ln_helper(&mut codes, newline_offset);
+        // Helper: __print_bool_ln(val)
+        self.emit_print_bool_ln_helper(&mut codes, true_offset, false_offset, newline_offset);
+        // Helper: __i32_to_str(val) -> ref $string
+        self.emit_i32_to_str_helper(&mut codes);
+        // Helper: __print_newline()
+        self.emit_print_newline_helper(&mut codes, newline_offset);
+        // Helper: __i64_to_str(i64) -> ref $string
+        self.emit_i64_to_str_helper(&mut codes);
+        // Helper: __f64_to_str(f64) -> ref $string
+        self.emit_f64_to_str_helper(&mut codes);
+        // Helper: __parse_i32(ref $string) -> ref $Result
+        if self.helper_parse_i32.is_some() {
+            self.emit_parse_i32_helper(&mut codes);
+        }
+        // Helper: __parse_i64(ref $string) -> ref $Result_i64_String
+        if self.helper_parse_i64.is_some() {
+            self.emit_parse_i64_helper(&mut codes);
+        }
+        // Helper: __parse_f64(ref $string) -> ref $Result_f64_String
+        if self.helper_parse_f64.is_some() {
+            self.emit_parse_f64_helper(&mut codes);
+        }
+
+        // User functions
+        for &idx in &reachable_user_indices {
+            let func = &mir.functions[idx];
+            let canonical = normalize_intrinsic(&func.name);
+            if self.is_builtin_name(canonical) {
+                // Builtin functions are inlined at call sites — emit a stub body
+                // that just returns a default value to satisfy validation.
+                self.emit_builtin_stub(&mut codes, func);
+            } else {
+                self.emit_function(&mut codes, func);
+            }
+        }
+
+        // Global: heap_ptr for legacy I/O buffer allocation and VecLiteral fallback.
+        // Retained for backward compatibility with call_indirect-based HOF dispatch.
+        let mut globals = GlobalSection::new();
+        globals.global(
+            GlobalType {
+                val_type: ValType::I32,
+                mutable: true,
+                shared: false,
+            },
+            &wasm_encoder::ConstExpr::i32_const(self.data_offset as i32),
+        );
+
+        // Data section: active segments first, then passive (string literals)
+        let mut data = DataSection::new();
+        for (offset, bytes) in &self.data_segs {
+            data.segment(DataSegment {
+                mode: wasm_encoder::DataSegmentMode::Active {
+                    memory_index: 0,
+                    offset: &wasm_encoder::ConstExpr::i32_const(*offset as i32),
+                },
+                data: bytes.iter().copied(),
+            });
+        }
+        // Passive segments for string literals (consumed by array.new_data)
+        for bytes in &self.string_data_segs {
+            data.segment(DataSegment {
+                mode: wasm_encoder::DataSegmentMode::Passive,
+                data: bytes.iter().copied(),
+            });
+        }
+
+        // Table section — for indirect calls (higher-order functions)
+        let total_funcs =
+            num_imports + helper_fns.len() as u32 + reachable_user_indices.len() as u32;
+        let mut tables = wasm_encoder::TableSection::new();
+        tables.table(wasm_encoder::TableType {
+            element_type: wasm_encoder::RefType::FUNCREF,
+            minimum: total_funcs as u64,
+            maximum: Some(total_funcs as u64),
+            table64: false,
+            shared: false,
+        });
+
+        // Element section — populate table with all function refs
+        let mut elements = wasm_encoder::ElementSection::new();
+        let func_indices: Vec<u32> = (0..total_funcs).collect();
+        elements.active(
+            Some(0),
+            &wasm_encoder::ConstExpr::i32_const(0),
+            wasm_encoder::Elements::Functions(std::borrow::Cow::Borrowed(&func_indices)),
+        );
+
+        // Assemble module
+        let mut module = wasm_encoder::Module::new();
+        module.section(&self.types.section);
+        module.section(&imports);
+        module.section(&functions);
+        module.section(&tables);
+        module.section(&memories);
+        module.section(&globals);
+        module.section(&exports);
+        module.section(&elements);
+        // DataCount section required for passive data segments (array.new_data)
+        let total_data_segs = self.data_segs.len() as u32 + self.string_data_segs.len() as u32;
+        module.section(&wasm_encoder::DataCountSection {
+            count: total_data_segs,
+        });
+        module.section(&codes);
+        module.section(&data);
+
+        // Name section: emit function names for debug/profiling
+        let mut name_section = wasm_encoder::NameSection::new();
+        name_section.module("arukellt");
+        let mut func_names = wasm_encoder::NameMap::new();
+        // Import names (dynamically assigned)
+        func_names.append(0, "wasi:fd_write");
+        if needs_fs {
+            func_names.append(1, "wasi:path_open");
+            func_names.append(2, "wasi:fd_read");
+            func_names.append(3, "wasi:fd_close");
+        }
+        // Helper function names (sorted by index for NameMap)
+        let mut helpers: Vec<(u32, &str)> = self.fn_map.iter()
+            .filter(|(_, idx)| **idx >= num_imports && **idx < user_base)
+            .map(|(name, idx)| (*idx, name.as_str()))
+            .collect();
+        helpers.sort_by_key(|(idx, _)| *idx);
+        for (idx, name) in helpers {
+            func_names.append(idx, name);
+        }
+        // User function names
+        for (i, &mir_idx) in reachable_user_indices.iter().enumerate() {
+            let wasm_idx = user_base + i as u32;
+            func_names.append(wasm_idx, &mir.functions[mir_idx].name);
+        }
+        name_section.functions(&func_names);
+        module.section(&name_section);
+
+        module.finish()
+    }
+}
