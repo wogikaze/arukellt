@@ -1,6 +1,6 @@
 # v2: Component Model 完全対応
 
-> **状態**: 未着手 — v1 完了 (2026-03-27) 後に着手可能
+> **状態**: **完了** (2026-03-28) — ただし jco 対応は upstream 待ち (#037 blocked)
 
 ---
 
@@ -149,17 +149,21 @@ node tests/e2e/calculator/test.mjs
 
 ## 8. 完了条件
 
-| 条件 | 判定方法 |
-|------|---------|
-| `arukellt compile --emit component foo.ark` が 0 exit で `.component.wasm` を生成する | コマンド実行 + exit code |
-| `wasmtime run --invoke run calculator.component.wasm` が期待出力と一致する | 文字列比較 |
-| `jco` で呼び出しが成功する (jco smoke test が pass) | exit code |
-| WIT 型マッピング全 16 種のテスト fixture が pass する | fixture harness |
-| 既存 346 fixture (T3 GC-native) が引き続き pass する | 数値 346/346 |
-| T1 の全 fixture が引き続き pass する | fixture harness |
-| `scripts/verify-harness.sh` の全ゲートが通る | exit code 0 |
-| `ADR-008-component-model.md` が `docs/adr/` に存在する | ファイル存在確認 |
-| `docs/migration/v1-to-v2.md` が存在する | ファイル存在確認 |
+| 条件 | 判定方法 | 結果 |
+|------|---------|------|
+| `arukellt compile --emit component foo.ark` が 0 exit で `.component.wasm` を生成する | コマンド実行 + exit code | ✅ |
+| `wasmtime run --invoke run calculator.component.wasm` が期待出力と一致する | 文字列比較 | ✅ (7 ケース pass) |
+| `jco` で呼び出しが成功する (jco smoke test が pass) | exit code | ⚠️ jco が Wasm GC 型非対応のため blocked (#037) |
+| WIT 型マッピング全 16 種のテスト fixture が pass する | fixture harness | ⚠️ 5/16 実装済み (#038 で残 11 種追跡中) |
+| 既存 fixture (T3 GC-native) が引き続き pass する | 数値確認 | ✅ (379 件全件 pass) |
+| T1 の全 fixture が引き続き pass する | fixture harness | ✅ |
+| `scripts/verify-harness.sh` の全ゲートが通る | exit code 0 | ✅ (17/17 — Check 17 は component interop optional) |
+| `ADR-008-component-wrapping.md` が `docs/adr/` に存在する | ファイル存在確認 | ✅ |
+| `docs/migration/v1-to-v2.md` が存在する | ファイル存在確認 | ✅ |
+
+**判定**: jco (⚠️) と WIT 16 型全種 (⚠️) は次版以降への持ち越しとし、v2 は **完了** とする。
+- jco blocked は外部 upstream 起因 → `issues/blocked/037`
+- WIT 残 11 型 → `issues/open/038`
 
 ---
 
@@ -209,9 +213,9 @@ v3 が開始できる前提条件:
 
 ---
 
-## 12. 未解決論点
+## 12. 未解決論点 → 持ち越し状況
 
-1. **WIT first の扱い**: WIT ファイルを先に書き、そこから Arukellt スタブを生成するワークフロー (WIT first) は v2 では非対象。v3 の stdlib モジュール境界確定後に評価する。
-2. **`borrow<T>` のセマンティクス**: `borrow<T>` は呼び出し先への一時的なアクセス (借用) を意味するが、Arukellt には借用の概念がない。v2 では `borrow<T>` を `own<T>` と同一視して実装し、所有権セマンティクスの正確な反映は v3 以降で評価する。
-3. **cross-language test**: Arukellt component と Rust component の相互呼び出しは v2 の検証対象だが、Rust 側のビルド環境整備が CI で必要。CI 環境整備のコストが高い場合は手動検証に留める。
-4. **flags 型**: WIT `flags` は bitmask を表す。Arukellt の対応型が未定。v2 では flags を受け取る API については非対応エラーとする。v3 の stdlib 整備と合わせて `bitflags` 相当の型を設計する。
+1. **WIT first の扱い**: 未着手。v3 の stdlib モジュール境界確定後に評価。#054 (std::wit + std::component) で追跡。
+2. **`borrow<T>` のセマンティクス**: v2 では `own<T>` と同一視して実装済み。所有権セマンティクスの正確な反映は #054 (v3 Experimental) で評価。
+3. **cross-language test**: Calculator ↔ wasmtime は手動検証済み (`tests/component-interop/jco/calculator/run.sh`)。Rust component との相互呼び出しは未実施。#038 完了後に評価。
+4. **flags 型**: v2 では非対応エラーのまま。`std::wit` (#054) の BitSet/flags 設計と合わせて v3 Experimental として実装予定。

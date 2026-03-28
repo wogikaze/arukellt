@@ -1,6 +1,7 @@
 # v3: 標準ライブラリ整備
 
-> **状態**: 未着手 — v2 完了後に着手可能
+> **状態**: **進行中** — issues #039–#059 (21 件 open) で追跡中  
+> 設計書: `docs/stdlib/std.md` / モジュール仕様: `docs/stdlib/modules/`
 
 ---
 
@@ -12,41 +13,58 @@ v2 までに確立した言語基盤の上で、モノモーフ関数群 (`Vec_n
 
 ## 2. 到達目標
 
-1. `std::string`, `std::collections`, `std::result`, `std::option`, `std::io`, `std::fmt`, `std::convert`, `std::test` モジュールが使用可能になる
+1. `use std::*` によるモジュール import が動作する (`std::core`, `std::text`, `std::bytes`, `std::collections`, `std::seq`, `std::io`, `std::time`, `std::random`, `std::process`, `std::wasm`, `std::wit`, `std::test`)
 2. 現行のモノモーフ名 (`Vec_new_i32`, `map_i32_i32` 等) から新 API への移行パスが `docs/migration/v2-to-v3.md` に記載されている
-3. v5 セルフホストに必要な stdlib 関数 (文字列操作、Vec/HashMap、Result/Option、ファイル I/O、CLI 引数、プロセス終了制御) が全て実装・テスト済みである
-4. Stable / Unstable / Deprecated の 3 段階 API 安定性マトリクスが確立している
-5. 全 fixture tests (v2 時点の全件 + 新規追加分) が pass する
+3. v5 セルフホストに必要な stdlib 関数 (文字列操作・Vec/HashMap/HashSet/Deque・Result/Option・ファイル I/O・CLI 引数・プロセス終了制御) が全て実装・テスト済みである
+4. Stable / Experimental / Deprecated の 3 段階 API 安定性ラベルが全 public 関数に付与されている
+5. 全 fixture tests (v2 時点の全件 + v3 新規 40 件以上) が pass する
+6. Scalar 型完全化 (`u8`, `u16`, `u32`, `u64`, `i8`, `i16`, `f32`) が言語基盤に追加されている
+7. `Seq<T>` 遅延シーケンスによる `map/filter/fold/zip/collect` が動作する
+8. `docs/stdlib/std.md` の「付録 B 最小 Stable セット」が全て Stable として実装済みである
 
 ---
 
 ## 3. 対象範囲
 
-| 対象 | 変更内容 |
-|------|---------|
-| `std/prelude.ark` | モジュール構造化、新 API 追加 |
-| `std/manifest.toml` | 新 stdlib 関数の全件登録 |
-| `crates/ark-stdlib/src/` | stdlib クレートの再構成 |
-| `crates/ark-resolve/src/` | モジュール名前解決の実装 (`use std::string`) |
-| `crates/ark-typecheck/src/` | ジェネリック API のモノモーフ化支援 |
-| `crates/ark-wasm/src/emit/t3_wasm_gc.rs` | 新 stdlib ビルトインの emit サポート |
-| `tests/fixtures/` | stdlib API を使う fixture の追加 (最低 30 件) |
-| `docs/stdlib/reference.md` (新規または拡充) | 全 stdlib 関数のリファレンス |
-| `docs/migration/v2-to-v3.md` (新規) | 旧 API → 新 API 移行ガイド |
+| 対象 | 変更内容 | issue |
+|------|---------|-------|
+| モジュールシステム (`use std::*`) | `ark-resolve` にモジュール名前解決追加 | #039 |
+| Scalar 型完全化 | `u8/u16/u32/u64/i8/i16/f32` を言語・stdlib に追加 | #040 |
+| `std::core` | Error 型、Ordering、Range、cmp、math、convert、hash | #041 |
+| `std::text` | String API 拡張、StringBuilder、fmt、Rope | #042 / #047 |
+| `std::bytes` | Bytes、ByteBuf、ByteView、ByteCursor、endian、hex、base64、leb128 | #043 |
+| `std::collections::hash` | HashMap\<K,V\> 汎用化と HashSet\<T\> | #044 |
+| `std::collections` (linear) | Deque、PriorityQueue | #045 |
+| `std::collections` (ordered) | BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet | #046 |
+| `std::collections` (compiler) | Arena、SlotMap、Interner (Experimental) | #047 |
+| `std::seq` | Seq\<T\> 遅延シーケンス + sort/search/group | #048 |
+| `std::path` + `std::fs` | パス操作、ファイル I/O (WASI P2) | #049 |
+| `std::io` | Reader、Writer、stdin/stdout/stderr、buffered I/O | #050 |
+| `std::time` + `std::random` | Instant、Duration、seeded RNG | #051 |
+| `std::process` + `std::env` + `std::cli` | args、exit、env vars | #052 |
+| `std::wasm` | Wasm バイナリ型・opcode・module builder (Experimental) | #053 |
+| `std::wit` + `std::component` | WIT 型、resource handle、canonical ABI (Experimental) | #054 |
+| `std::json` + `std::toml` + `std::csv` | データ形式パーサ (Experimental) | #055 |
+| `std::test` | assert_ok/err/some/none + snapshot + bench-lite | #056 |
+| Prelude 再構成 | Prelude 縮小 + 旧 API deprecated 化 | #057 |
+| API 安定性ラベル + ドキュメント | stability labels + `docs/stdlib/reference.md` 完成 | #058 |
+| v3 fixture 統合 | 40 件以上 fixture + verify-harness.sh Check 18–20 | #059 |
 
 ---
 
 ## 4. 非対象範囲
 
-- ネットワーク I/O: v3 では設計のみ、実装は v4 以降
+- ネットワーク I/O: v4 以降
 - 正規表現: v3 では非対象。`contains`, `replace`, `split` で十分
-- JSON/TOML パーサー: v3 では非対象 (stdlib 関数で実装可能になったら v4 で評価)
 - 並行処理 (async/spawn): v5 (T5 WASI P3) スコープ
 - GUI / グラフィクス: 非目標
 - トレイト (`trait` キーワード): ADR-004 P3 としての評価は v3 完了後に判断。v3 では実装しない
 - メソッド構文 (`.method()`): ADR-004 P4 として v4 以降
-- `BTreeMap<K, V>`: v3 は HashMap のみ。BTreeMap は v4 で評価
-- ネストジェネリクス (`Vec<Vec<T>>`): v3 の締めくくりで必要性を再評価し、解禁する場合は ADR-009 を記録
+- ネストジェネリクス (`Vec<Vec<T>>`): v3 完了時点で必要性を再評価し、解禁する場合は ADR-009 を記録
+- WIT first (WIT ファイル → Arukellt スタブ生成): #054 は Arukellt first のみ。WIT first は v4 で評価
+- async Component (WASI P3): T5 スコープ。v3 では `future<T>`, `stream<T>` を非対応エラーとする
+- `BTreeMap` 以外の自己平衡木 (AVL, Red-Black): IndexMap/BTreeMap で十分な範囲に限定
+- JSON/TOML/CSV の streaming decode: #055 は Experimental として基本 parse/stringify のみ
 
 ---
 
@@ -55,95 +73,89 @@ v2 までに確立した言語基盤の上で、モノモーフ関数群 (`Vec_n
 ### 5.1 命名規約の移行
 
 現行: `Vec_new_i32(n)`, `map_i32_i32(v, f)`, `filter_String(v, f)`  
-目標: モジュール関数形式 (`std::collections::vec_new(n)`) または自由関数 (`vec_new(n)`)
+目標: モジュール関数形式 `vec::new<i32>(n)`, `seq::map(v, f)` (std.md §13.3 命名規約)
 
-**判断**: v3 では ADR-004 P3 (traits) と P4 (methods) が未確定のため、メソッド構文 (`v.map(f)`) への移行は v4 以降とする。v3 では自由関数 + 型推論によるモノモーフ化 (`vec_new(n)` → `Vec_new_i32` に展開) を採用する。旧名 (`Vec_new_i32`) は v3 で `#[deprecated]` にし、1 マイナー版後に除去する。
+**判断**: v3 では自由関数 + 明示的モジュール prefix (`vec::new`, `string::split`) を採用。メソッド構文 (`v.map(f)`) は ADR-004 P4 として v4 以降。旧名 (`Vec_new_i32`) は v3 で `#[deprecated]` にし、#057 (Prelude 再構成) で移行を完了させる。移行表は `docs/stdlib/std.md §14.1`。
 
-### 5.2 HashMap の実装
+### 5.2 std::text と String/Bytes の分離
 
-v3 で実装する HashMap はセルフホスト (v5) で多用される。実装要件:
+std.md §4 原則 2: **text と binary を分離する**。`String` は UTF-8 保証、`Bytes` は UTF-8 保証なしの raw binary。
 
-```wat
-(type $hashmap_i32_i32 (struct
-  (field $keys   (mut (ref $arr_i32)))
-  (field $values (mut (ref $arr_i32)))
-  (field $count  (mut i32))
-  (field $cap    (mut i32))
-))
-```
+- `String` → `(ref null (array (mut i8)))` に UTF-8 constraint (バリデーション via #042)
+- `Bytes` → `(ref null (array (mut i8)))` と同じ GC 表現だが型が別 (コンパイラ区別)
+- `ByteView` → zero-copy read-only slice (Experimental、#043)
+- `Rope` → `std::text::rope` namespace (#047) — `std::collections` ではない
 
-- 初期容量 16、負荷係数 0.75 で rehash (2× grow)
-- オープンアドレッシング (linear probing) を採用 — linked list の GC alloc を避けるため
-- `HashMap<String, i32>`, `HashMap<i32, i32>`, `HashMap<String, String>` のモノモーフ版を実装
+### 5.3 コレクション設計の全体像
 
-### 5.3 ファイル I/O
+std.md §7 に基づく採用判断 (v3 スコープ):
 
-WASI P2 の `wasi:filesystem/types` を使う。T3 での実装:
-- `fs_read_file(path: String) -> Result<String, String>`
-- `fs_write_file(path: String, content: String) -> Result<(), String>`
-- `fs_exists(path: String) -> bool`
-
-これは WASI P2 のみ対応 (T1 では非対応)。
+| 構造 | issue | 安定性 |
+|------|-------|-------|
+| Vec\<T\> | 既存 + #039 で汎用化 | Stable |
+| HashMap\<K,V\> | #044 | Stable |
+| HashSet\<T\> | #044 | Stable |
+| Deque\<T\> | #045 | Stable |
+| PriorityQueue\<T\> | #045 | Experimental |
+| BTreeMap\<K,V\> | #046 | Experimental |
+| BTreeSet\<T\> | #046 | Experimental |
+| IndexMap\<K,V\> | #046 | Experimental |
+| BitSet | #046 | Experimental |
+| Arena\<T\> | #047 | Experimental |
+| SlotMap\<V\> | #047 | Experimental |
+| Interner\<T\> | #047 | Experimental |
 
 ### 5.4 モジュール名前解決
 
-`use std::string` 宣言の解析は `ark-resolve` に追加する。モジュールパスの解決は `crates/ark-stdlib/src/modules.rs` で管理する。v3 では `std::*` の組み込みモジュールのみサポート。ユーザー定義モジュール (別ファイル分割) は v4 以降で評価。
+`use std::text::string` の解析は `ark-resolve` に追加する (#039)。v3 では `std::*` 組み込みモジュールのみサポート。ユーザー定義モジュール (別ファイル分割) は v4 以降。
 
-### 5.5 API 安定性マトリクス
+**正準 import 例** (std.md §5.1):
+```ark
+use std::text::string
+use std::bytes
+use std::collections::{vec, hash_map}
+use std::seq
+```
+
+### 5.5 API 安定性ラベル (3 段階)
+
+std.md §12.1 に準拠:
 
 | 段階 | 定義 | 変更ルール |
 |------|------|-----------|
 | Stable | 公開 API で後方互換を保証 | 破壊的変更は Deprecated 経由のみ |
-| Unstable | 実験的 API | 予告なし変更あり |
+| Experimental | 実験的 API | 予告なし変更あり |
 | Deprecated | 廃止予定 | 次マイナー版で除去 |
 
-v3 で Stable にする最小セット: `string_concat`, `string_len`, `vec_new`, `vec_push`, `vec_len`, `vec_get`, `hashmap_new`, `hashmap_insert`, `hashmap_get`, `hashmap_contains_key`, `fs_read_file`, `fs_write_file`, `print`, `println`, `parse_i32`, `parse_i64`, `parse_f64`
+v3 で Stable にする最小セット: `docs/stdlib/std.md` 付録 B を参照。
 
 ---
 
-## 6. 実装タスク
+## 6. 実装タスク (issues #039–#059)
 
-1. **`std/prelude.ark` のモジュール構造化** (`std/prelude.ark`, `std/manifest.toml`)  
-   - 既存関数を `std::string`, `std::collections`, `std::result`, `std::option`, `std::io`, `std::fmt`, `std::convert`, `std::test` に分類。
-   - `std/manifest.toml` にモジュール帰属を追記。
-   - `scripts/check-stdlib-manifest.sh` でモジュール帰属の整合を検証。
+依存順の大まかな実行順序 (詳細は `issues/open/dependency-graph.md`):
 
-2. **`ark-resolve` へのモジュール名前解決追加** (`crates/ark-resolve/src/`)  
-   - `use std::string;` の構文解析と名前空間への展開。
-   - `use std::collections::{vec_new, hashmap_new};` の destructure import。
-   - モジュール解決テストを `crates/ark-resolve/tests/` に追加。
-
-3. **HashMap の完全実装** (`std/prelude.ark`, `crates/ark-wasm/src/emit/t3_wasm_gc.rs`)  
-   - `HashMap<i32, i32>`, `HashMap<String, i32>`, `HashMap<String, String>` のモノモーフ版。
-   - `new`, `insert`, `get`, `contains_key`, `remove`, `len`, `keys`, `values` の実装。
-   - GC struct 型定義 + open addressing rehash ロジック。
-   - fixture: `tests/fixtures/collections/hashmap_rehash.ark` (30 件中必須)
-
-4. **ファイル I/O の完全実装** (`std/prelude.ark`, `crates/ark-wasm/src/emit/t3_wasm_gc.rs`)  
-   - `fs_read_file`, `fs_write_file`, `fs_exists`, `fs_mkdir`, `args` (コマンドライン引数取得), `exit` (終了コード制御)。
-   - T3 (WASI P2) のみ対応。T1 では "not supported on T1" エラーを返す。
-
-5. **`std::test` モジュールの実装**  
-   - `assert`, `assert_eq`, `assert_ne`, `assert_true`, `assert_false` を `std::test` に移動。
-   - パニック時のメッセージフォーマット改善 (`assert_eq: left=3, right=4`)。
-
-6. **旧 API の Deprecated 化と移行ガイド**  
-   - `Vec_new_i32` 等のモノモーフ名を `#[deprecated]` としてマーク (`std/manifest.toml`)。
-   - `docs/migration/v2-to-v3.md` に旧名 → 新名の対応表を記載。
-   - `verify-harness.sh` に deprecated API 使用の警告チェックを追加。
-
-7. **stdlib API 安定性マトリクスの策定**  
-   - `docs/stdlib/reference.md` に Stable/Unstable/Deprecated 表を作成。
-   - 各関数に安定性ラベルを付与。
-   - `std/manifest.toml` に `stability` フィールドを追加。
-
-8. **ネストジェネリクス要否の評価**  
-   - v3 完了時点で `Vec<Vec<T>>` が必要なユースケースを fixture ベースで調査。
-   - 必要と判断した場合は ADR-009 を作成し v4 で実装。不要なら v5 まで禁止を維持。
-
-9. **新規 fixture 追加** (最低 30 件)  
-   - `tests/fixtures/stdlib/` に stdlib API ごとの fixture を追加。
-   - HashMap rehash, ファイル I/O (T3 のみ), モジュール import, 安定性確認テストを含める。
+1. **#039** — モジュールシステム基盤 (`use std::*` import インフラ) ← 全 v3 issues の先行依存
+2. **#040** — Scalar 型完全化 (`u8/u16/u32/u64/i8/i16/f32`)
+3. **#041** — `std::core` (Error 型、Ordering、Range、cmp、math、convert、hash)
+4. **#043** — `std::bytes` (Bytes、ByteBuf、ByteView、ByteCursor、endian、hex、base64、leb128)
+5. **#051** — `std::time` + `std::random`
+6. **#042** — `std::text` (String API 拡張、StringBuilder、fmt)
+7. **#044** — `std::collections::hash` (HashMap\<K,V\>、HashSet\<T\>)
+8. **#045** — `std::collections` linear (Deque、PriorityQueue)
+9. **#046** — `std::collections` ordered (BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet)
+10. **#047** — `std::collections` compiler (Arena、SlotMap、Interner / `std::text::rope`)
+11. **#048** — `std::seq` (Seq\<T\> 遅延シーケンス + アルゴリズム)
+12. **#056** — `std::test` (assert_ok/err/some/none + snapshot + bench-lite)
+13. **#050** — `std::io` (Reader、Writer、stdin/stdout/stderr、buffered I/O)
+14. **#049** — `std::path` + `std::fs` (パス操作、ファイル I/O)
+15. **#053** — `std::wasm` (Wasm バイナリ型・opcode・module builder) [Experimental]
+16. **#052** — `std::process` + `std::env` + `std::cli`
+17. **#055** — `std::json` + `std::toml` + `std::csv` [Experimental]
+18. **#054** — `std::wit` + `std::component` [Experimental]
+19. **#057** — Prelude 再構成 + 旧 API deprecated 化 + 移行ガイド
+20. **#058** — API 安定性ラベル確定 + `docs/stdlib/reference.md` 完成
+21. **#059** — v3 fixture 統合 + verify-harness.sh Check 18–20
 
 ---
 
@@ -170,14 +182,21 @@ wasmtime run --dir=. fs_read_write.wasm
 
 | 条件 | 判定方法 |
 |------|---------|
-| `std::string`, `std::collections`, `std::result`, `std::option`, `std::io`, `std::fmt`, `std::convert`, `std::test` が使用可能 | fixture で `use std::string` が通る |
-| HashMap (3 モノモーフ版) が全 CRUD 操作で正しく動作する | fixture pass |
-| `fs_read_file`, `fs_write_file`, `args`, `exit` が T3 で動作する | fixture pass (T3) |
-| 旧モノモーフ名 (`Vec_new_i32` 等) が `#[deprecated]` になっている | manifest.toml 確認 |
-| `docs/migration/v2-to-v3.md` が存在し対応表が完備している | ファイル存在確認 |
-| `docs/stdlib/reference.md` に Stable/Unstable/Deprecated 表が存在する | ファイル確認 |
-| `scripts/verify-harness.sh` の全ゲートが通る (新規 gate 含む) | exit code 0 |
-| v5 セルフホストに必要な stdlib 関数チェックリストが全件 Stable である | `std/manifest.toml` 確認 |
+| `use std::text::string` 等のモジュール import が全 v3 モジュールで動作する | fixture で `use std::*` が通る (#039) |
+| Scalar 型 `u8/u16/u32/u64/i8/i16/f32` が言語・stdlib で使用可能 | fixture pass (#040) |
+| `std::core` の Error 型・Ordering・Range・math が動作する | fixture pass (#041) |
+| `std::bytes` の Bytes/ByteBuf/ByteView/endian/hex/base64/leb128 が動作する | fixture 8 件以上 pass (#043) |
+| HashMap\<K,V\>・HashSet\<T\> が汎用型で動作する | fixture pass (#044) |
+| Deque・PriorityQueue が動作する | fixture pass (#045) |
+| `Seq<T>` の map/filter/fold/zip/collect が動作する | fixture pass (#048) |
+| `std::path` + `std::fs` の read/write/exists が T3 で動作する | fixture pass, T3 のみ (#049) |
+| `std::process::args()` と `exit()` が動作する | fixture pass (#052) |
+| 旧モノモーフ名 (`Vec_new_i32` 等) が Deprecated になっている | manifest.toml + verify-harness.sh Check 19 (#057) |
+| `docs/migration/v2-to-v3.md` が存在し対応表が完備している | ファイル確認 (#057) |
+| `docs/stdlib/reference.md` に全 public 関数の安定性ラベルが付与されている | ファイル確認 (#058) |
+| `docs/stdlib/std.md` 付録 B の最小 Stable セットが全件 Stable として実装済み | reference.md 確認 (#058) |
+| `scripts/verify-harness.sh` の全ゲートが通る (Check 18–20 含む) | exit code 0 (#059) |
+| v3 fixture 40 件以上が pass する | cargo test harness (#059) |
 
 ---
 
@@ -228,7 +247,8 @@ v4 が開始できる前提条件:
 
 ## 12. 未解決論点
 
-1. **`From`/`Into` 相当のトレイト**: `std::convert` を体系化するには型変換トレイトが必要。v3 では traits なし (ADR-004) のため、個別変換関数 (`i32_to_string`, `string_to_i32` 等) で代替する。トレイト導入 (P3) は ADR-004 に従い v4 以降で評価。
-2. **Set<T> の実装**: セルフホストには Set が必要か調査中。HashMap のキー集合で代替できる場合は v4 以降に送る。
-3. **`Duration` 型**: `std::time` の `Duration` 型は struct で表現可能だが、演算子オーバーロード (ADR-004 P5) がないと使いにくい。v3 では `Duration { secs: i64, nanos: i32 }` を struct として定義し、演算は自由関数で提供する。
-4. **v5 セルフホスト必要 stdlib の確定**: v3 完了時に「v5 セルフホストに必要な stdlib 関数チェックリスト」を作成し、欠落があれば v4 で補完する (仕様: `docs/process/selfhosting-stdlib-checklist.md` として作成)。
+1. **`From`/`Into` 相当のトレイト**: v3 では traits なし (ADR-004)。個別変換関数 (`i32_to_string` → `string::from_i32`) で代替。トレイト導入は v4 以降。
+2. **ネストジェネリクス (`Vec<Vec<T>>`)**: v3 完了時点でユースケースを fixture ベースで調査。必要ならば ADR-009 を作成し v4 で実装、不要ならば v5 まで禁止を維持。
+3. **`Duration` 型の演算**: 演算子オーバーロード (ADR-004 P5) がないため、v3 では `duration_add`, `duration_sub` 等の自由関数で提供。
+4. **v5 セルフホスト必要 stdlib の確定**: v3 完了時に「v5 セルフホストに必要な stdlib 関数チェックリスト」を `docs/process/selfhosting-stdlib-checklist.md` として作成。欠落があれば v4 で補完。
+5. **`std::json` の Stable 昇格タイミング**: #055 は Experimental。セルフホスト (v5) でパーサが JSON を出力するユースケースが判明した時点で Stable 候補として再評価する。
