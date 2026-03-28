@@ -280,6 +280,158 @@ fn collect_wit_type_refs(wt: &WitType, out: &mut std::collections::HashSet<Strin
     }
 }
 
+/// Validate that all exported functions use only scalar (pass-through) types
+/// in the canonical ABI. Returns a list of (function_name, diagnostic) pairs
+/// for any function that uses compound types requiring canonical ABI adapters.
+pub fn validate_component_export_types(
+    world: &WitWorld,
+) -> Vec<(String, ark_diagnostics::Diagnostic)> {
+    use canonical_abi::{CanonicalAbiClass, classify_wit_type};
+    let mut errors = Vec::new();
+
+    for func in &world.functions {
+        let all_types: Vec<&WitType> = func
+            .params
+            .iter()
+            .map(|(_, t)| t)
+            .chain(func.result.iter())
+            .collect();
+
+        for ty in all_types {
+            let class = classify_wit_type(ty);
+            match &class {
+                CanonicalAbiClass::Scalar(_) => {} // pass-through, OK
+                CanonicalAbiClass::Handle => {
+                    errors.push((
+                        func.name.clone(),
+                        ark_diagnostics::component_resource_diagnostic(&func.name),
+                    ));
+                    break;
+                }
+                _ => {
+                    let type_desc = ty.to_wit();
+                    errors.push((
+                        func.name.clone(),
+                        ark_diagnostics::component_compound_type_diagnostic(&func.name, &type_desc),
+                    ));
+                    break;
+                }
+            }
+        }
+    }
+
+    errors
+}
+
+/// Validate core Wasm binary: detect exported functions that use GC reference
+/// types (which cannot cross the canonical ABI boundary without adapters).
+///
+/// This catches cases where MIR types are lossy (e.g., struct/enum params
+/// reported as I32 in MIR but actually GC refs in Wasm output).
+pub fn validate_core_wasm_exports(wasm: &[u8]) -> Vec<(String, ark_diagnostics::Diagnostic)> {
+    use wasmparser::{Parser, Payload, ValType};
+
+    let mut errors = Vec::new();
+    let mut types: Vec<wasmparser::FuncType> = Vec::new();
+    let mut func_types: Vec<u32> = Vec::new();
+    let mut num_imports: u32 = 0;
+
+    for payload in Parser::new(0).parse_all(wasm) {
+        let payload = match payload {
+            Ok(p) => p,
+            Err(_) => continue,
+        };
+        match payload {
+            Payload::TypeSection(reader) => {
+                for rec_group in reader {
+                    let rec_group = match rec_group {
+                        Ok(rg) => rg,
+                        Err(_) => continue,
+                    };
+                    for sub_type in rec_group.into_types() {
+                        if let wasmparser::CompositeInnerType::Func(func_type) =
+                            sub_type.composite_type.inner
+                        {
+                            types.push(func_type);
+                        } else {
+                            // Struct/Array GC types — push placeholder
+                            types.push(wasmparser::FuncType::new([], []));
+                        }
+                    }
+                }
+            }
+            Payload::ImportSection(reader) => {
+                for import in reader.into_iter().flatten() {
+                    if matches!(import.ty, wasmparser::TypeRef::Func(_)) {
+                        num_imports += 1;
+                    }
+                }
+            }
+            Payload::FunctionSection(reader) => {
+                for idx in reader.into_iter().flatten() {
+                    func_types.push(idx);
+                }
+            }
+            Payload::ExportSection(reader) => {
+                for export in reader {
+                    let export = match export {
+                        Ok(e) => e,
+                        Err(_) => continue,
+                    };
+                    if export.kind != wasmparser::ExternalKind::Func {
+                        continue;
+                    }
+                    let name = export.name;
+                    if name == "_start" || name.starts_with("__") || name == "memory" {
+                        continue;
+                    }
+
+                    let func_idx = export.index;
+                    // Function index = imports + local functions
+                    if func_idx < num_imports {
+                        continue; // re-exported import, skip
+                    }
+                    let local_idx = func_idx - num_imports;
+                    let type_idx = match func_types.get(local_idx as usize) {
+                        Some(&idx) => idx as usize,
+                        None => continue,
+                    };
+                    let func_type = match types.get(type_idx) {
+                        Some(ft) => ft,
+                        None => continue,
+                    };
+
+                    let has_ref_param = func_type
+                        .params()
+                        .iter()
+                        .any(|t| matches!(t, ValType::Ref(_)));
+                    let has_ref_result = func_type
+                        .results()
+                        .iter()
+                        .any(|t| matches!(t, ValType::Ref(_)));
+
+                    if has_ref_param || has_ref_result {
+                        let desc = if has_ref_param && has_ref_result {
+                            "parameter and return type use GC references"
+                        } else if has_ref_param {
+                            "parameter type uses GC references"
+                        } else {
+                            "return type uses GC references"
+                        };
+                        errors.push((
+                            name.to_string(),
+                            ark_diagnostics::component_compound_type_diagnostic(name, desc),
+                        ));
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    errors
+}
+
 /// Convert a WIT type name string (e.g., "s32", "string") to a WitType.
 fn wit_type_name_to_wit(name: &str) -> Option<WitType> {
     match name {

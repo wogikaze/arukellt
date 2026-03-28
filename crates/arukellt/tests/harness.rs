@@ -8,6 +8,7 @@
 //! - `module-diag:path`       → same as diag, for multi-file modules
 //! - `t3-compile:path`        → T3 compile-only, verify exit code 0
 //! - `component-compile:path` → T3 component compile, verify exit code 0
+//! - `compile-error:path`     → compile with flags from `.flags`, expect failure + check `.diag`
 //!
 //! Self-check: verifies every `.ark` entry point on disk is listed in the manifest.
 
@@ -325,6 +326,60 @@ fn fixture_harness() {
                             stderr.lines().next().unwrap_or("")
                         ));
                     }
+                }
+            }
+            "compile-error" => {
+                // Compile with flags from .flags file, expect failure.
+                // Check that stderr/stdout contains the first line of .diag file.
+                let diag_path = fixture.with_extension("diag");
+                if !diag_path.exists() {
+                    skipped += 1;
+                    eprintln!("  [skip] {} (no .diag file)", name);
+                    continue;
+                }
+                let diag_text = std::fs::read_to_string(&diag_path).unwrap();
+                let first_line = diag_text.lines().next().unwrap_or("").trim();
+
+                let flags_path = fixture.with_extension("flags");
+                let extra_args: Vec<String> = if flags_path.exists() {
+                    std::fs::read_to_string(&flags_path)
+                        .unwrap()
+                        .split_whitespace()
+                        .map(String::from)
+                        .collect()
+                } else {
+                    vec!["compile".into(), "--target".into(), "wasm32-wasi-p2".into()]
+                };
+
+                let output = Command::new(&bin)
+                    .args(&extra_args)
+                    .arg(&fixture)
+                    .arg("-o")
+                    .arg("/dev/null")
+                    .output()
+                    .expect("failed to run arukellt");
+
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                let stdout = String::from_utf8_lossy(&output.stdout);
+
+                if !output.status.success()
+                    && (stderr.contains(first_line) || stdout.contains(first_line))
+                {
+                    passed += 1;
+                } else if output.status.success() {
+                    failed += 1;
+                    failures.push(format!(
+                        "FAIL [compile-error] {} — expected compile failure but succeeded",
+                        name
+                    ));
+                } else {
+                    failed += 1;
+                    failures.push(format!(
+                        "FAIL [compile-error] {}\n  expected to contain: {:?}\n  stderr: {:?}",
+                        name,
+                        first_line,
+                        stderr.lines().next().unwrap_or("")
+                    ));
                 }
             }
             other => {

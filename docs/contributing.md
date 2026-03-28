@@ -75,7 +75,7 @@ It includes:
 - lint (`cargo clippy`)
 - workspace build/tests
 - fixture harness execution
-- All fixture tests (351 pass, 0 fail)
+- All fixture tests (362 pass, 0 fail)
 - stdlib manifest check
 - baseline collection smoke
 

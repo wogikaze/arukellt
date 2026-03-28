@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-03-28",
-  "fixture_count": 351,
+  "fixture_count": 362,
   "entries": [
     {
       "kind": "run",
@@ -3906,6 +3906,94 @@
     {
       "kind": "component-compile",
       "path": "component/export_i64.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_char.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_tuple.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_enum_wit.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_option.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_result.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_record.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_variant.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found f64 (at offset 0xf42)\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_string.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_list.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_flags.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "compile-error",
+      "path": "component/export_resource.ark",
       "status": 0,
       "stdout": "",
       "stderr": "",

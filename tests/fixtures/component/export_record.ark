@@ -1,0 +1,12 @@
+// Export with struct (record) — maps to WIT record
+// Requires canonical ABI struct flattening (not yet implemented)
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+pub fn distance_sq(p: Point) -> i32 {
+    p.x * p.x + p.y * p.y
+}
+
+fn main() {}

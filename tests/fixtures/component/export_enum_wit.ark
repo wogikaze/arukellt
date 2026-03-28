@@ -1,0 +1,17 @@
+// Export with unit enum — maps to WIT enum (i32 discriminant)
+// Requires canonical ABI adaptation (not yet implemented)
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+pub fn color_code(c: Color) -> i32 {
+    match c {
+        Color::Red => 1,
+        Color::Green => 2,
+        Color::Blue => 3,
+    }
+}
+
+fn main() {}

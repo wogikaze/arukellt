@@ -118,6 +118,14 @@ pub enum DiagnosticCode {
     E0306,
     E0307,
 
+    // E04xx: Component Model / canonical ABI errors
+    /// WIT flags type not supported in current version
+    E0400,
+    /// Canonical ABI not implemented for compound type (string, list, tuple, record, etc.)
+    E0401,
+    /// WIT resource type not implemented in current version
+    E0402,
+
     // W0xxx: Warnings / validation gate
     W0001,
     W0002,
@@ -154,6 +162,9 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::E0305,
     DiagnosticCode::E0306,
     DiagnosticCode::E0307,
+    DiagnosticCode::E0400,
+    DiagnosticCode::E0401,
+    DiagnosticCode::E0402,
     DiagnosticCode::W0001,
     DiagnosticCode::W0002,
     DiagnosticCode::W0003,
@@ -357,6 +368,27 @@ impl DiagnosticCode {
                 message: "feature not available for target",
                 severity: Severity::Error,
                 phase: DiagnosticPhase::Target,
+            },
+            Self::E0400 => DiagnosticSpec {
+                code: self,
+                id: "E0400",
+                message: "WIT flags type not supported in current version",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::BackendValidate,
+            },
+            Self::E0401 => DiagnosticSpec {
+                code: self,
+                id: "E0401",
+                message: "canonical ABI not implemented for compound type in component export",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::BackendValidate,
+            },
+            Self::E0402 => DiagnosticSpec {
+                code: self,
+                id: "E0402",
+                message: "WIT resource type not implemented in current version",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::BackendValidate,
             },
             Self::W0001 => DiagnosticSpec {
                 code: self,
@@ -885,6 +917,33 @@ pub fn non_exportable_function_diagnostic(func_name: &str, reason: &str) -> Diag
         .with_note(format!(
             "function `{}` {}, skipped from component exports",
             func_name, reason
+        ))
+}
+
+pub fn component_unsupported_flags_diagnostic(func_name: &str) -> Diagnostic {
+    Diagnostic::new(DiagnosticCode::E0400)
+        .with_phase(DiagnosticPhase::BackendValidate)
+        .with_note(format!(
+            "function `{}` uses a type that maps to WIT flags, which is not supported in the current version",
+            func_name
+        ))
+}
+
+pub fn component_compound_type_diagnostic(func_name: &str, type_desc: &str) -> Diagnostic {
+    Diagnostic::new(DiagnosticCode::E0401)
+        .with_phase(DiagnosticPhase::BackendValidate)
+        .with_note(format!(
+            "function `{}` exports compound type `{}` which requires canonical ABI lift/lower not yet implemented",
+            func_name, type_desc
+        ))
+}
+
+pub fn component_resource_diagnostic(func_name: &str) -> Diagnostic {
+    Diagnostic::new(DiagnosticCode::E0402)
+        .with_phase(DiagnosticPhase::BackendValidate)
+        .with_note(format!(
+            "function `{}` uses a WIT resource type, which is not implemented in the current version",
+            func_name
         ))
 }
 

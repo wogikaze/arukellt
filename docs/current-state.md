@@ -25,8 +25,8 @@
 ## Test Health
 
 - Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
-- Fixture harness: 351 passed, 0 failed (manifest-driven, includes 5 component-compile fixtures)
-- Fixture manifest: 351 entries
+- Fixture harness: 362 passed, 0 failed (manifest-driven, includes 6 component-compile + 10 compile-error fixtures)
+- Fixture manifest: 362 entries
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `bash scripts/verify-harness.sh` — **16/16 checks pass**
 
@@ -83,7 +83,7 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 
 ## Recent Changes (GC-native track, 2026-03-27)
 
-- **GC-native T3 emitter complete** — all 346 fixtures pass with pure GC output
+- **GC-native T3 emitter complete** — all 352 fixtures pass with pure GC output (346 original + 6 component)
 - Generics via `anyref` polymorphism — `Option<T>`, `Result<T,E>`, `Vec<T>`, generic fns
 - `__tupleN_any` structs for generic tuple returns with `ref.i31` boxing/unboxing
 - `HashMap<i32,i32>` GC struct with array-backed linear scan
@@ -133,7 +133,7 @@ v2 (Component Model) implementation is complete as of 2026-03-28.
 5. ✅ **Resource types**: `own<T>`, `borrow<T>`, `resource` WIT parsing and handle table
    planning implemented.
 6. ✅ **CLI integration**: `--wit <path>` flag, `--emit component`, `--emit all` all work.
-7. ✅ **No v1 regressions**: All existing 351+ fixture tests continue to pass.
+7. ✅ **No v1 regressions**: All existing 362 fixture tests continue to pass.
 8. ✅ **Documentation**: ADR-008 (component wrapping), migration guide (v1→v2), ABI docs.
 
 ### V2 issues (028–035)

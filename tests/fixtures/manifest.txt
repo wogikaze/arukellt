@@ -1,6 +1,6 @@
 # Fixture manifest — single source of truth for test fixtures.
 # Format: kind:path (relative to tests/fixtures/)
-# Kinds: run, diag, module-run, module-diag, t3-compile
+# Kinds: run, diag, module-run, module-diag, t3-compile, component-compile, compile-error
 #
 # The harness reads this file instead of globbing.
 # Every .ark entry point must be listed here.
@@ -363,3 +363,16 @@ component-compile:component/multi_export.ark
 component-compile:component/export_bool.ark
 component-compile:component/export_f64.ark
 component-compile:component/export_i64.ark
+component-compile:component/export_char.ark
+
+# Component Model type-error tests (canonical ABI not yet implemented)
+compile-error:component/export_tuple.ark
+compile-error:component/export_enum_wit.ark
+compile-error:component/export_option.ark
+compile-error:component/export_result.ark
+compile-error:component/export_record.ark
+compile-error:component/export_variant.ark
+compile-error:component/export_string.ark
+compile-error:component/export_list.ark
+compile-error:component/export_flags.ark
+compile-error:component/export_resource.ark

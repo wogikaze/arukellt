@@ -1,0 +1,11 @@
+// Export with Vec<i32> — maps to WIT list<s32>
+// Requires canonical ABI list lift/lower (not yet implemented)
+pub fn first_or_zero(v: Vec<i32>) -> i32 {
+    if len(v) > 0 {
+        unwrap(get(v, 0))
+    } else {
+        0
+    }
+}
+
+fn main() {}

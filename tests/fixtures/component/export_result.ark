@@ -1,0 +1,11 @@
+// Export with Result<i32, i32> — maps to WIT result<s32, s32>
+// Requires canonical ABI flattening (not yet implemented)
+pub fn safe_div(a: i32, b: i32) -> Result<i32, i32> {
+    if b == 0 {
+        Err(0 - 1)
+    } else {
+        Ok(a / b)
+    }
+}
+
+fn main() {}

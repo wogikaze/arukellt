@@ -519,6 +519,32 @@ impl Session {
         let wit_text = ark_wasm::component::generate_wit(&world)
             .map_err(|e| format!("WIT generation error: {}", e))?;
 
+        // Validate exported function types for canonical ABI compatibility
+        // Check 1: WIT-level validation (catches string, list, option, result, etc.)
+        let type_errors = ark_wasm::component::validate_component_export_types(&world);
+        if !type_errors.is_empty() {
+            for (_, diag) in &type_errors {
+                self.sink.emit(diag.clone());
+            }
+            return Err(render_diagnostics(
+                self.sink.diagnostics(),
+                &self.source_map,
+            ));
+        }
+
+        // Check 2: Core Wasm binary validation (catches GC ref types in exports
+        // that MIR types don't reflect due to monomorphization)
+        let wasm_errors = ark_wasm::component::validate_core_wasm_exports(&compiled.wasm);
+        if !wasm_errors.is_empty() {
+            for (_, diag) in &wasm_errors {
+                self.sink.emit(diag.clone());
+            }
+            return Err(render_diagnostics(
+                self.sink.diagnostics(),
+                &self.source_map,
+            ));
+        }
+
         // Step 3: Wrap into component via wasm-tools
         let component_bytes =
             ark_wasm::component::wrap::wrap_core_to_component(&compiled.wasm, &wit_text)

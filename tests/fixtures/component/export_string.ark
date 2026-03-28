@@ -1,0 +1,7 @@
+// Export with String type — maps to WIT string
+// Requires canonical ABI string lift/lower (not yet implemented)
+pub fn greet(name: String) -> String {
+    name
+}
+
+fn main() {}
