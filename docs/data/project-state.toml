@@ -1,0 +1,115 @@
+[project]
+name = "Arukellt"
+tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
+updated = "2026-03-28"
+verification_command = "bash scripts/verify-harness.sh"
+current_state_doc = "docs/current-state.md"
+
+[pipeline]
+current = ["Lexer", "Parser", "Resolver", "TypeChecker", "MIR", "Wasm"]
+refactor_target = [
+  "Lex",
+  "Parse",
+  "Bind",
+  "Load",
+  "Analyze",
+  "Resolve",
+  "Check+BuildCoreHIR",
+  "LowerToMIR",
+  "MIRValidate",
+  "MIROptimize",
+  "BackendPlan",
+  "WasmEmit / LLVMEmit",
+  "BackendValidate",
+]
+session_entry = "ark-driver::Session"
+dump_phases = ["parse", "resolve", "corehir", "mir", "optimized-mir", "backend-plan"]
+
+[targets]
+cli_default = "wasm32-wasi-p1"
+canonical = "wasm32-wasi-p2"
+component_target = "wasm32-wasi-p2"
+default_emit = "core-wasm"
+component_emit = true
+wit_emit = true
+component_note = "requires external `wasm-tools` binary and WASI adapter module"
+
+[[target_profiles]]
+id = "wasm32-wasi-p1"
+tier = "T1"
+implemented = true
+run_supported = true
+role = "CLI default compatibility path for non-GC environments"
+
+[[target_profiles]]
+id = "wasm32-freestanding"
+tier = "T2"
+implemented = false
+run_supported = false
+role = "Registry only"
+
+[[target_profiles]]
+id = "wasm32-wasi-p2"
+tier = "T3"
+implemented = true
+run_supported = true
+role = "Canonical GC-native path"
+
+[[target_profiles]]
+id = "native"
+tier = "T4"
+implemented = false
+run_supported = false
+role = "LLVM scaffold only"
+
+[[target_profiles]]
+id = "wasm32-wasi-p3"
+tier = "T5"
+implemented = false
+run_supported = false
+role = "Future"
+
+[verification]
+fixture_failures = 0
+checks_passed = 16
+checks_total = 16
+unit_tests_note = "current count is verified by `cargo test --workspace --exclude ark-llvm`"
+
+[perf]
+check_budget_pct = 10
+compile_budget_pct = 20
+baseline_cases = [
+  "docs/examples/hello.ark",
+  "docs/examples/vec.ark",
+  "docs/examples/closure.ark",
+  "docs/sample/parser.ark",
+]
+heavy_note = "Heavy perf comparisons are intentionally separated from the normal correctness gate"
+
+[[diagnostics]]
+code = "W0001"
+severity = "warning"
+phase = "typecheck"
+summary = "same-body heuristic warning for shared mutable aliasing"
+
+[[diagnostics]]
+code = "W0002"
+severity = "warning"
+phase = "target"
+summary = "deprecated target alias warning"
+
+[[diagnostics]]
+code = "W0004"
+severity = "error"
+phase = "backend-validate"
+summary = "generated Wasm failed backend validation"
+
+[[diagnostics]]
+code = "W0005"
+severity = "warning"
+phase = "component"
+summary = "non-exportable function skipped from component exports"
+
+[component]
+status = "Implemented in v2 on `wasm32-wasi-p2` for supported WIT-compatible exports"
+summary = "Only user `pub fn` with WIT-compatible types are exported"

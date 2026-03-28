@@ -4,14 +4,18 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 
 > 現行実装の確認先は [docs/current-state.md](docs/current-state.md) です。
 
+<!-- BEGIN GENERATED:README_STATUS -->
 ## Status
 
-- 更新基準日: 2026-03-27
-- 既定ターゲット: `wasm32-wasi-p1` (T1)
-- `wasm32-wasi-p2` (T3) は experimental
-- Unit tests: 95 passed
-- Fixture harness: 182 passed / 182 entries
-- `std/` では source-backed stdlib への移行を進めています
+- Updated: 2026-03-28
+- CLI default target: `wasm32-wasi-p1`
+- Canonical target: `wasm32-wasi-p2`
+- Component/WIT target: `wasm32-wasi-p2`
+- Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
+- Fixture harness: 374 passed / 374 entries
+- Verification: `bash scripts/verify-harness.sh` — 16/16 checks pass
+- Stdlib manifest-backed public API: 100 functions
+<!-- END GENERATED:README_STATUS -->
 
 ## Start here
 

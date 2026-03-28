@@ -2,7 +2,9 @@
 
 > This document reflects the actual, verified state of the project.
 > Current-first source of truth for user-visible behavior and verification gates.
+<!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
 > Updated: 2026-03-28.
+<!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
 
@@ -12,23 +14,27 @@
 - Shared orchestration entry point: `ark-driver::Session`
 - Hidden developer dump support exists via `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
+<!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
 
 | Target | Tier | Status | Run | Notes |
 |--------|------|--------|-----|-------|
-| wasm32-wasi-p1 | T1 | ✅ Implemented | ✅ | Legacy compatibility path (non-GC environments) |
-| wasm32-freestanding | T2 | ❌ Not implemented | ❌ | Registry only |
-| wasm32-wasi-p2 | T3 | ✅ Implemented | ✅ | **Primary path** — fully GC-native |
-| native | T4 | ❌ Not implemented | ❌ | Requires LLVM 18 |
-| wasm32-wasi-p3 | T5 | ❌ Not implemented | ❌ | Future |
+| `wasm32-wasi-p1` | T1 | Implemented | Yes | CLI default compatibility path for non-GC environments |
+| `wasm32-freestanding` | T2 | Not implemented | No | Registry only |
+| `wasm32-wasi-p2` | T3 | Implemented | Yes | Canonical GC-native path |
+| `native` | T4 | Not implemented | No | LLVM scaffold only |
+| `wasm32-wasi-p3` | T5 | Not implemented | No | Future |
+<!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
+<!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->
 ## Test Health
 
 - Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
-- Fixture harness: 362 passed, 0 failed (manifest-driven, includes 6 component-compile + 10 compile-error fixtures)
-- Fixture manifest: 362 entries
+- Fixture harness: 374 passed, 0 failed (manifest-driven)
+- Fixture manifest: 374 entries
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `bash scripts/verify-harness.sh` — **16/16 checks pass**
+<!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ## GC-Native Data Model (T3, wasm32-wasi-p2)
 
@@ -50,6 +56,7 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 | Tuples (generic) | `__tupleN_any` structs with `anyref` fields; `ref.i31` boxing/unboxing |
 | Closures | Parameter-passing captures; `call_indirect` for HOF dispatch |
 
+<!-- BEGIN GENERATED:CURRENT_STATE_PERF -->
 ## Baseline and Perf Gates
 
 - Baselines are materialized under `tests/baselines/`
@@ -62,6 +69,7 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
   - `arukellt check`: median compile time regression must stay within 10%
   - `arukellt compile`: median compile time regression must stay within 20%
 - Heavy perf comparisons are intentionally separated from the normal correctness gate
+<!-- END GENERATED:CURRENT_STATE_PERF -->
 
 ### Binary Size (T1 vs T3 GC-native)
 
@@ -71,15 +79,17 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 | vec.ark | 13,261 B | 1,866 B | 86% |
 | closure.ark | 12,222 B | 995 B | 92% |
 
+<!-- BEGIN GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 ## Diagnostics and Validation
 
 - Canonical diagnostics registry lives in `crates/ark-diagnostics`
 - Diagnostics are tracked by code, severity, and phase origin
-- `W0001`: same-body heuristic warning for shared mutable aliasing
-- `W0002`: deprecated target alias warning
-- `W0004`: generated Wasm failed backend validation — hard error in T3 path
-- `W0005`: non-exportable function skipped from component exports
+- `W0001`: same-body heuristic warning for shared mutable aliasing (warning, `typecheck`)
+- `W0002`: deprecated target alias warning (warning, `target`)
+- `W0004`: generated Wasm failed backend validation (error, `backend-validate`)
+- `W0005`: non-exportable function skipped from component exports (warning, `component`)
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
+<!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 
 ## Recent Changes (GC-native track, 2026-03-27)
 
