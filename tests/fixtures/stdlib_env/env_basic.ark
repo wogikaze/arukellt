@@ -1,0 +1,12 @@
+use std::env
+
+fn main() {
+    let a = env::args()
+    println(i32_to_string(len(a)))
+    println(i32_to_string(env::arg_count()))
+    let v = env::var("HOME")
+    match v {
+        Some(s) => println(concat("found: ", s)),
+        None => println("not found"),
+    }
+}

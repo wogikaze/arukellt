@@ -415,3 +415,6 @@ run:stdlib_text/string_replace.ark
 run:stdlib_text/string_repeat.ark
 run:stdlib_text/string_lines.ark
 run:stdlib_text/fmt_pad.ark
+run:stdlib_process/exit_zero.ark
+run:stdlib_env/env_basic.ark
+run:stdlib_cli/cli_basic.ark

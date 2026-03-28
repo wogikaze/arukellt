@@ -1,0 +1,10 @@
+use std::cli
+
+fn main() {
+    println(i32_to_string(cli::arg_count()))
+    println(bool_to_string(cli::has_flag("--verbose")))
+    match cli::arg_at(0) {
+        Some(s) => println(s),
+        None => println("no arg"),
+    }
+}

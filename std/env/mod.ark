@@ -1,0 +1,16 @@
+// std::env — environment access
+//
+// WASI args_get / environ_get not yet imported.
+// T1 fallback: args returns empty Vec, var returns None.
+
+pub fn args() -> Vec<String> {
+    Vec_new_String()
+}
+
+pub fn var(name: String) -> Option<String> {
+    None
+}
+
+pub fn arg_count() -> i32 {
+    0
+}

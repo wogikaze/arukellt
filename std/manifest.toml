@@ -1329,3 +1329,57 @@ name = "format_bool"
 module = "std::text"
 params = ["bool"]
 returns = "String"
+
+# === std::process ===
+
+[[functions]]
+name = "exit"
+module = "std::process"
+params = ["i32"]
+returns = "()"
+
+[[functions]]
+name = "abort"
+module = "std::process"
+params = []
+returns = "()"
+
+# === std::env ===
+
+[[functions]]
+name = "args"
+module = "std::env"
+params = []
+returns = "Vec<String>"
+
+[[functions]]
+name = "var"
+module = "std::env"
+params = ["String"]
+returns = "Option<String>"
+
+[[functions]]
+name = "arg_count"
+module = "std::env"
+params = []
+returns = "i32"
+
+# === std::cli ===
+
+[[functions]]
+name = "arg_at"
+module = "std::cli"
+params = ["i32"]
+returns = "Option<String>"
+
+[[functions]]
+name = "cli_arg_count"
+module = "std::cli"
+params = []
+returns = "i32"
+
+[[functions]]
+name = "has_flag"
+module = "std::cli"
+params = ["String"]
+returns = "bool"

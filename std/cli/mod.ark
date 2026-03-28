@@ -1,0 +1,15 @@
+// std::cli — command-line argument helpers
+//
+// Built on std::env. Currently returns stubs until WASI args are available.
+
+pub fn arg_at(index: i32) -> Option<String> {
+    None
+}
+
+pub fn arg_count() -> i32 {
+    0
+}
+
+pub fn has_flag(flag: String) -> bool {
+    false
+}
