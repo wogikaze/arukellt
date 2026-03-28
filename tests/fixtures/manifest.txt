@@ -401,3 +401,8 @@ run:scalar/type_annotation.ark
 run:scalar/u16_arithmetic.ark
 run:scalar/i16_basic.ark
 run:scalar/u8_overflow.ark
+module-run:stdlib_time/monotonic.ark
+module-run:stdlib_time/duration.ark
+module-run:stdlib_random/random_seed.ark
+module-run:stdlib_random/random_range.ark
+module-run:stdlib_random/shuffle.ark

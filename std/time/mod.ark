@@ -1,0 +1,40 @@
+// std::time — time and duration utilities
+//
+// Provides monotonic clock access and duration calculation.
+// monotonic_now returns nanoseconds since an unspecified epoch.
+// Do not compare values across processes.
+
+pub fn monotonic_now() -> i64 {
+    __intrinsic_clock_now()
+}
+
+pub fn duration_ms(start: i64, end: i64) -> i64 {
+    let diff = end - start
+    if diff < 0_i64 {
+        0_i64
+    } else {
+        diff / 1000000_i64
+    }
+}
+
+pub fn duration_us(start: i64, end: i64) -> i64 {
+    let diff = end - start
+    if diff < 0_i64 {
+        0_i64
+    } else {
+        diff / 1000_i64
+    }
+}
+
+pub fn duration_ns(start: i64, end: i64) -> i64 {
+    let diff = end - start
+    if diff < 0_i64 {
+        0_i64
+    } else {
+        diff
+    }
+}
+
+pub fn elapsed_ms(start: i64) -> i64 {
+    duration_ms(start, __intrinsic_clock_now())
+}

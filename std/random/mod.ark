@@ -1,0 +1,76 @@
+// std::random — deterministic pseudo-random number generation
+//
+// Uses xorshift32 PRNG seeded from __intrinsic_random_i32.
+// NOT cryptographically secure — do not use for security.
+
+pub fn seeded_random(seed_val: i32) -> i32 {
+    let s = if seed_val == 0 { 42 } else { seed_val }
+    // xorshift32 inline
+    let mut x = s
+    x = x ^ (x * 8192)
+    x = x ^ (x / 131072)
+    x = x ^ (x * 32)
+    if x == 0 {
+        1
+    } else {
+        x
+    }
+}
+
+pub fn seeded_range(seed_val: i32, lo: i32, hi: i32) -> i32 {
+    let r = seeded_random(seed_val)
+    let range = hi - lo
+    if range <= 0 {
+        lo
+    } else {
+        let val = r % range
+        if val < 0 {
+            lo + (val + range)
+        } else {
+            lo + val
+        }
+    }
+}
+
+pub fn random_i32() -> i32 {
+    __intrinsic_random_i32()
+}
+
+pub fn random_i32_range(lo: i32, hi: i32) -> i32 {
+    let r = __intrinsic_random_i32()
+    let range = hi - lo
+    if range <= 0 {
+        lo
+    } else {
+        let val = r % range
+        if val < 0 {
+            lo + (val + range)
+        } else {
+            lo + val
+        }
+    }
+}
+
+pub fn random_bool() -> bool {
+    __intrinsic_random_i32() % 2 == 0
+}
+
+pub fn shuffle_i32(v: Vec<i32>) -> Vec<i32> {
+    let n = len(v)
+    let mut result = Vec_new_i32()
+    let mut i = 0
+    while i < n {
+        push(result, get_unchecked(v, i))
+        i = i + 1
+    }
+    // Fisher-Yates shuffle
+    let mut j = n - 1
+    while j > 0 {
+        let idx = random_i32_range(0, j + 1)
+        let tmp = get_unchecked(result, j)
+        set(result, j, get_unchecked(result, idx))
+        set(result, idx, tmp)
+        j = j - 1
+    }
+    result
+}

@@ -1984,7 +1984,16 @@ impl LowerCtx {
     fn is_f64_operand_mir(&self, op: &Operand) -> bool {
         match op {
             Operand::ConstF64(_) => true,
-            Operand::Call(name, _) => matches!(name.as_str(), "sqrt"),
+            Operand::Call(name, _) => {
+                if matches!(name.as_str(), "sqrt") {
+                    return true;
+                }
+                // Check fn_return_types for user-defined functions returning f64
+                if let Some(ret_ty) = self.fn_return_types.get(name.as_str()) {
+                    return matches!(ret_ty, ast::TypeExpr::Named { name: n, .. } if n == "f64");
+                }
+                false
+            }
             Operand::BinOp(_, l, r) => self.is_f64_operand_mir(l) || self.is_f64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.f64_locals.contains(&lid.0),
             Operand::IfExpr {
@@ -2006,7 +2015,16 @@ impl LowerCtx {
     fn is_i64_operand_mir(&self, op: &Operand) -> bool {
         match op {
             Operand::ConstI64(_) | Operand::ConstU64(_) => true,
-            Operand::Call(name, _) => matches!(name.as_str(), "clock_now"),
+            Operand::Call(name, _) => {
+                if matches!(name.as_str(), "clock_now") {
+                    return true;
+                }
+                // Check fn_return_types for user-defined functions returning i64
+                if let Some(ret_ty) = self.fn_return_types.get(name.as_str()) {
+                    return matches!(ret_ty, ast::TypeExpr::Named { name: n, .. } if n == "i64" || n == "u64");
+                }
+                false
+            }
             Operand::BinOp(_, l, r) => self.is_i64_operand_mir(l) || self.is_i64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.i64_locals.contains(&lid.0),
             Operand::IfExpr {

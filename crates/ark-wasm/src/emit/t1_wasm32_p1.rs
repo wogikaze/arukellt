@@ -3660,9 +3660,24 @@ impl EmitCtx {
                         f.instruction(&Instruction::Drop);
                     }
                     other => {
-                        // User function call
-                        for arg in args {
-                            self.emit_operand(f, arg);
+                        // User function call — type-aware argument emission
+                        let param_types = self.fn_param_types.get(other).cloned();
+                        for (i, arg) in args.iter().enumerate() {
+                            let is_i64_param = param_types
+                                .as_ref()
+                                .and_then(|pts| pts.get(i))
+                                .is_some_and(|t| matches!(t, ark_typecheck::types::Type::I64 | ark_typecheck::types::Type::U64));
+                            let is_f64_param = param_types
+                                .as_ref()
+                                .and_then(|pts| pts.get(i))
+                                .is_some_and(|t| matches!(t, ark_typecheck::types::Type::F64));
+                            if is_i64_param {
+                                self.emit_i64_operand(f, arg);
+                            } else if is_f64_param {
+                                self.emit_f64_operand(f, arg);
+                            } else {
+                                self.emit_operand(f, arg);
+                            }
                         }
                         if let Some(idx) = self.resolve_fn(other) {
                             f.instruction(&Instruction::Call(idx));
@@ -8636,8 +8651,20 @@ impl EmitCtx {
                 ..
             } => {
                 self.emit_operand(f, cond);
+                // Determine the block result type from the then branch result
+                let block_valtype = if let Some(r) = then_result {
+                    if self.is_i64_operand(r) {
+                        ValType::I64
+                    } else if self.is_f64_operand(r) {
+                        ValType::F64
+                    } else {
+                        ValType::I32
+                    }
+                } else {
+                    ValType::I32
+                };
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
-                    ValType::I32,
+                    block_valtype,
                 )));
                 // Track depth for break/continue
                 if let Some(d) = self.loop_depths.last_mut() {
@@ -8647,7 +8674,13 @@ impl EmitCtx {
                     self.emit_stmt(f, s);
                 }
                 if let Some(r) = then_result {
-                    self.emit_operand(f, r);
+                    if block_valtype == ValType::I64 {
+                        self.emit_i64_operand(f, r);
+                    } else if block_valtype == ValType::F64 {
+                        self.emit_f64_operand(f, r);
+                    } else {
+                        self.emit_operand(f, r);
+                    }
                 } else {
                     f.instruction(&Instruction::I32Const(0));
                 }
@@ -8659,11 +8692,21 @@ impl EmitCtx {
                     if matches!(r.as_ref(), Operand::Unit) {
                         // Dead branch in exhaustive match — unreachable satisfies any type
                         f.instruction(&Instruction::Unreachable);
+                    } else if block_valtype == ValType::I64 {
+                        self.emit_i64_operand(f, r);
+                    } else if block_valtype == ValType::F64 {
+                        self.emit_f64_operand(f, r);
                     } else {
                         self.emit_operand(f, r);
                     }
                 } else {
-                    f.instruction(&Instruction::I32Const(0));
+                    if block_valtype == ValType::I64 {
+                        f.instruction(&Instruction::I64Const(0));
+                    } else if block_valtype == ValType::F64 {
+                        f.instruction(&Instruction::F64Const(0.0));
+                    } else {
+                        f.instruction(&Instruction::I32Const(0));
+                    }
                 }
                 f.instruction(&Instruction::End);
                 if let Some(d) = self.loop_depths.last_mut() {
@@ -9225,7 +9268,27 @@ impl EmitCtx {
             Operand::Place(Place::Local(id)) => self.f64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_f64_operand(l) || self.is_f64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_f64_operand(inner),
-            Operand::Call(name, _) => matches!(normalize_intrinsic_name(name.as_str()), "sqrt"),
+            Operand::Call(name, _) => {
+                let normalized = normalize_intrinsic_name(name.as_str());
+                if matches!(normalized, "sqrt") {
+                    return true;
+                }
+                self.fn_return_types
+                    .get(normalized)
+                    .is_some_and(|t| matches!(t, ark_typecheck::types::Type::F64))
+            }
+            Operand::IfExpr {
+                then_result,
+                else_result,
+                ..
+            } => {
+                then_result
+                    .as_ref()
+                    .is_some_and(|r| self.is_f64_operand(r))
+                    || else_result
+                        .as_ref()
+                        .is_some_and(|r| self.is_f64_operand(r))
+            }
             _ => false,
         }
     }
@@ -9237,7 +9300,26 @@ impl EmitCtx {
             Operand::BinOp(_, l, r) => self.is_i64_operand(l) || self.is_i64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_i64_operand(inner),
             Operand::Call(name, _) => {
-                matches!(normalize_intrinsic_name(name.as_str()), "clock_now")
+                let normalized = normalize_intrinsic_name(name.as_str());
+                if matches!(normalized, "clock_now") {
+                    return true;
+                }
+                // Check fn_return_types for user-defined functions returning i64
+                self.fn_return_types
+                    .get(normalized)
+                    .is_some_and(|t| matches!(t, ark_typecheck::types::Type::I64 | ark_typecheck::types::Type::U64))
+            }
+            Operand::IfExpr {
+                then_result,
+                else_result,
+                ..
+            } => {
+                then_result
+                    .as_ref()
+                    .is_some_and(|r| self.is_i64_operand(r))
+                    || else_result
+                        .as_ref()
+                        .is_some_and(|r| self.is_i64_operand(r))
             }
             _ => false,
         }

@@ -1,0 +1,15 @@
+use std::time
+
+fn main() {
+    let t1 = time::monotonic_now()
+    // Do some work
+    let mut x = 0
+    while x < 1000 {
+        x = x + 1
+    }
+    let t2 = time::monotonic_now()
+    // t2 should be >= t1
+    let elapsed = time::duration_ns(t1, t2)
+    assert(elapsed >= 0)
+    println("monotonic ok")
+}

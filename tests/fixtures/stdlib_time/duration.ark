@@ -1,0 +1,21 @@
+use std::time
+
+fn main() {
+    // Test duration_ms calculation
+    let d1 = time::duration_ms(0_i64, 5000000_i64)
+    assert_eq_i64(d1, 5_i64)
+
+    // Test duration_us
+    let d2 = time::duration_us(0_i64, 5000000_i64)
+    assert_eq_i64(d2, 5000_i64)
+
+    // Test duration_ns
+    let d3 = time::duration_ns(0_i64, 5000000_i64)
+    assert_eq_i64(d3, 5000000_i64)
+
+    // Negative duration should be 0
+    let d4 = time::duration_ms(10000000_i64, 5000000_i64)
+    assert_eq_i64(d4, 0_i64)
+
+    println("duration ok")
+}

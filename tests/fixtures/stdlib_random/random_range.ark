@@ -1,0 +1,20 @@
+use std::random
+
+fn main() {
+    let mut all_in_range = true
+    let mut seed = 99
+    let mut i = 0
+    while i < 50 {
+        let r = random::seeded_range(seed, 10, 20)
+        if r < 10 {
+            all_in_range = false
+        }
+        if r >= 20 {
+            all_in_range = false
+        }
+        seed = random::seeded_random(seed)
+        i = i + 1
+    }
+    assert(all_in_range)
+    println("random_range ok")
+}

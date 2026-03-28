@@ -1,0 +1,23 @@
+use std::random
+
+fn main() {
+    let v = Vec_new_i32()
+    push(v, 10)
+    push(v, 20)
+    push(v, 30)
+    push(v, 40)
+    push(v, 50)
+
+    let shuffled = random::shuffle_i32(v)
+    // Same length
+    assert_eq(len(shuffled), 5)
+    // Contains all original elements (sum check)
+    let mut sum = 0
+    let mut i = 0
+    while i < len(shuffled) {
+        sum = sum + get_unchecked(shuffled, i)
+        i = i + 1
+    }
+    assert_eq(sum, 150)
+    println("shuffle ok")
+}

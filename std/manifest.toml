@@ -1093,3 +1093,67 @@ name = "hash_combine"
 module = "std::core::hash"
 params = ["i32", "i32"]
 returns = "i32"
+
+# === std::time ===
+
+[[functions]]
+name = "monotonic_now"
+module = "std::time"
+params = []
+returns = "i64"
+
+[[functions]]
+name = "duration_ms"
+module = "std::time"
+params = ["i64", "i64"]
+returns = "i64"
+
+[[functions]]
+name = "duration_us"
+module = "std::time"
+params = ["i64", "i64"]
+returns = "i64"
+
+[[functions]]
+name = "duration_ns"
+module = "std::time"
+params = ["i64", "i64"]
+returns = "i64"
+
+[[functions]]
+name = "elapsed_ms"
+module = "std::time"
+params = ["i64"]
+returns = "i64"
+
+# === std::random ===
+
+[[functions]]
+name = "seeded_random"
+module = "std::random"
+params = ["i32"]
+returns = "i32"
+
+[[functions]]
+name = "seeded_range"
+module = "std::random"
+params = ["i32", "i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "random_i32_range"
+module = "std::random"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "random_bool"
+module = "std::random"
+params = []
+returns = "bool"
+
+[[functions]]
+name = "shuffle_i32"
+module = "std::random"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
