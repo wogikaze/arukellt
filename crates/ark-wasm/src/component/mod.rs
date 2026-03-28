@@ -4,6 +4,7 @@
 //! public API surface. Component wrapping uses external `wasm-tools`.
 
 mod wit;
+pub mod canonical_abi;
 pub mod wit_parse;
 
 pub use wit::{
