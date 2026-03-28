@@ -62,6 +62,7 @@ fn find_loop_candidates(function: &MirFunction) -> Vec<LoopCandidate> {
                 cond,
                 then_block,
                 else_block,
+                ..
             } => (cond, *then_block, *else_block),
             _ => continue,
         };
@@ -409,6 +410,7 @@ mod tests {
                 ),
                 then_block: BlockId(1),
                 else_block: BlockId(2),
+                hint: None,
             },
             source: SourceInfo::unknown(),
         };
@@ -470,6 +472,7 @@ mod tests {
                 ),
                 then_block: BlockId(1),
                 else_block: BlockId(2),
+                hint: None,
             },
             source: SourceInfo::unknown(),
         };
@@ -508,6 +511,7 @@ mod tests {
                 ),
                 then_block: BlockId(1),
                 else_block: BlockId(2),
+                hint: None,
             },
             source: SourceInfo::unknown(),
         };

@@ -822,6 +822,15 @@ pub fn stmt_calls(stmt: &MirStmt, out: &mut Vec<String>) {
     }
 }
 
+/// Hint for branch prediction (pure annotation, no semantic effect).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BranchHint {
+    /// The branch is expected to be taken (then-path likely).
+    Likely,
+    /// The branch is expected to fall through (then-path unlikely).
+    Unlikely,
+}
+
 /// How a basic block ends.
 #[derive(Debug, Clone)]
 pub enum Terminator {
@@ -830,6 +839,7 @@ pub enum Terminator {
         cond: Operand,
         then_block: BlockId,
         else_block: BlockId,
+        hint: Option<BranchHint>,
     },
     Switch {
         scrutinee: Operand,

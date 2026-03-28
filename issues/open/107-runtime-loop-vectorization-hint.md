@@ -8,7 +8,7 @@
 **Track**: runtime-perf
 **Blocks v4 exit**: no
 
-**Status note**: Depends on #064 (branch hinting). Deferred to v5+.
+**Status note**: Depends on #064 (branch hinting MIR infrastructure). WASM SIMD autovectorization hints are not yet standardized. Deferred to v5+.
 
 ## Summary
 

@@ -1,4 +1,5 @@
 pub mod bounds_check_elim;
+pub mod branch_hint;
 pub mod escape_analysis;
 pub mod loop_unroll;
 pub mod gc_hint;

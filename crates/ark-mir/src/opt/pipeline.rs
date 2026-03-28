@@ -29,6 +29,7 @@ pub enum OptimizationPass {
     BoundsCheckElim,
     EscapeAnalysis,
     TypeNarrowing,
+    BranchHintInfer,
 }
 
 impl OptimizationPass {
@@ -53,6 +54,7 @@ impl OptimizationPass {
             Self::BoundsCheckElim => "bounds_check_elim",
             Self::EscapeAnalysis => "escape_analysis",
             Self::TypeNarrowing => "type_narrowing",
+            Self::BranchHintInfer => "branch_hint_infer",
         }
     }
 }
@@ -77,6 +79,7 @@ pub const DEFAULT_PASS_ORDER: &[OptimizationPass] = &[
     OptimizationPass::StrengthReduction,
     OptimizationPass::Cse,
     OptimizationPass::GcHint,
+    OptimizationPass::BranchHintInfer,
 ];
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -101,6 +104,7 @@ pub struct OptimizationSummary {
     pub bounds_checks_eliminated: usize,
     pub scalar_replaced: usize,
     pub types_narrowed: usize,
+    pub branch_hinted: usize,
 }
 
 impl OptimizationSummary {
@@ -124,6 +128,7 @@ impl OptimizationSummary {
             || self.bounds_checks_eliminated > 0
             || self.scalar_replaced > 0
             || self.types_narrowed > 0
+            || self.branch_hinted > 0
     }
 
     fn absorb(&mut self, other: OptimizationSummary) {
@@ -146,6 +151,7 @@ impl OptimizationSummary {
         self.bounds_checks_eliminated += other.bounds_checks_eliminated;
         self.scalar_replaced += other.scalar_replaced;
         self.types_narrowed += other.types_narrowed;
+        self.branch_hinted += other.branch_hinted;
     }
 }
 
@@ -327,6 +333,7 @@ fn run_pass(function: &mut MirFunction, pass: OptimizationPass) -> OptimizationS
         OptimizationPass::BoundsCheckElim => super::bounds_check_elim::bounds_check_elim(function),
         OptimizationPass::EscapeAnalysis => super::escape_analysis::escape_analysis_pass(function),
         OptimizationPass::TypeNarrowing => super::type_narrowing::type_narrowing(function),
+        OptimizationPass::BranchHintInfer => super::branch_hint::branch_hint_infer(function),
     }
 }
 
@@ -353,6 +360,7 @@ fn branch_fold(function: &mut MirFunction) -> OptimizationSummary {
             cond: Operand::ConstBool(value),
             then_block,
             else_block,
+            ..
         } = &block.terminator
         {
             block.terminator = Terminator::Goto(if *value { *then_block } else { *else_block });
@@ -1659,6 +1667,7 @@ mod tests {
             cond: Operand::ConstBool(true),
             then_block: BlockId(0),
             else_block: BlockId(0),
+            hint: None,
         };
         let summary = optimize_module(&mut module).unwrap();
         assert!(summary.branch_folded >= 1);

@@ -284,10 +284,12 @@ impl<'ctx> LlvmEmitter<'ctx> {
                                 cond,
                                 then_block,
                                 else_block,
+                                hint,
                             } => Terminator::If {
                                 cond: cond.clone(),
                                 then_block: *then_block,
                                 else_block: *else_block,
+                                hint: *hint,
                             },
                             Terminator::Switch {
                                 scrutinee,

@@ -8,6 +8,8 @@
 **Depends on**: 074 (wasi-p2-native-component)
 **ADR candidate**: yes
 
+**Status note**: BLOCKED — depends on #074 (WASI P2 native component). Deferred to v5+.
+
 ---
 
 ## 概要

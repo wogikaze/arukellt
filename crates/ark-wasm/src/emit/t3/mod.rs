@@ -123,6 +123,8 @@ fn normalize_intrinsic(name: &str) -> &str {
             "Vec_new_f64" => "Vec_new_f64",
             "Vec_new_String" => "Vec_new_String",
             "sort_i32" => "sort_i32",
+            "memory_copy" => "memory_copy",
+            "memory_fill" => "memory_fill",
             other => other,
         }
     } else {

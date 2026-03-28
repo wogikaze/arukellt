@@ -10,17 +10,14 @@ graph TD
   I062["062 Wasm Memory64: i64 アドレス空間対応"]
   I063["063 Wasm Multi-Memory: 複数メモリモジュール対応"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
-  I065["065 Wasm Extended Const: 定数式での算術演算"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
   I068["068 Wasm Reference Types: table.get / table.set / externref フル対応"]
   I069["069 Wasm Typed Function References: ref.func / call_ref フル活用"]
   I071["071 Wasm GC Abstract Heap Types: any/eq/none/func/nofunc の完全活用"]
-  I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I097["097 コンパイル速度: MIR lowering のアリーナ割り当て"]
   I098["098 コンパイル速度: 並列型チェック (rayon)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
-  I118["118 Component Model: 複数エクスポート world の自動生成"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
   I107["107 実行時性能: ループのベクトル化可能性アノテーション"]
@@ -46,17 +43,14 @@ graph TD
 - **062** depends on: —; blocks: none
 - **063** depends on: —; blocks: none
 - **064** depends on: —; blocks: 107
-- **065** depends on: —; blocks: none
 - **066** depends on: —; blocks: none
 - **068** depends on: —; blocks: none
 - **069** depends on: —; blocks: none
 - **071** depends on: —; blocks: none
-- **073** depends on: —; blocks: none
 - **074** depends on: —; blocks: 075, 076, 077, 078, 079, 121
 - **097** depends on: —; blocks: none
 - **098** depends on: —; blocks: none
 - **099** depends on: —; blocks: none
-- **118** depends on: 117; blocks: none
 - **124** depends on: 074 (wasi-p2-native-component); blocks: none
 - **125** depends on: —; blocks: none
 - **107** depends on: 064; blocks: none

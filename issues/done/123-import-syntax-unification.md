@@ -198,9 +198,9 @@ LLM が混同するのは `std::io` と `wasi:io/streams` が「どちらも IO 
 
 ### v4 以降
 
-3. `import 単識別子` を `use 単識別子` に deprecate（W0101 警告）
-4. `import "namespace:package/interface"` 構文（文字列リテラル形式）を Component Model 境界宣言として設計・実装
-5. パーサーに `TokenKind::Import` を WIT import 専用 keyword として再割り当て
+1. `import 単識別子` を `use 単識別子` に deprecate（W0101 警告）
+2. `import "namespace:package/interface"` 構文（文字列リテラル形式）を Component Model 境界宣言として設計・実装
+3. パーサーに `TokenKind::Import` を WIT import 専用 keyword として再割り当て
 
 ---
 
