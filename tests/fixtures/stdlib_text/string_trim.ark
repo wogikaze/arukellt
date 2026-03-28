@@ -1,0 +1,10 @@
+use std::text
+
+fn main() {
+    let s = "  hello world  "
+    println(text::trim(s))
+    println(text::trim_start(s))
+    println(text::trim_end(s))
+    println(text::trim(""))
+    println(text::trim("   "))
+}

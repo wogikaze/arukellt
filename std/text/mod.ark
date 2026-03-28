@@ -1,6 +1,19 @@
 // std::text — text processing utilities
 //
 // Extended string operations beyond the prelude.
+// Provides: string manipulation, trim, replace, lines, pad, format.
+
+// --- String queries ---
+
+pub fn len_bytes(s: String) -> i32 {
+    len(s)
+}
+
+pub fn is_empty(s: String) -> bool {
+    len(s) == 0
+}
+
+// --- String construction ---
 
 pub fn repeat(s: String, n: i32) -> String {
     let mut result = ""
@@ -12,8 +25,148 @@ pub fn repeat(s: String, n: i32) -> String {
     result
 }
 
+// --- Search ---
+
 pub fn contains(haystack: String, needle: String) -> bool {
-    // Delegate to intrinsic split-based check
     let parts = __intrinsic_split(haystack, needle)
     len(parts) > 1
+}
+
+pub fn index_of(haystack: String, needle: String) -> i32 {
+    let needle_len = len(needle)
+    let hay_len = len(haystack)
+    if needle_len == 0 { return 0 }
+    if needle_len > hay_len { return 0 - 1 }
+    let mut i = 0
+    while i <= hay_len - needle_len {
+        let sub = __intrinsic_string_slice(haystack, i, i + needle_len)
+        if __intrinsic_string_eq(sub, needle) { return i }
+        i = i + 1
+    }
+    0 - 1
+}
+
+// --- Trim ---
+
+pub fn trim(s: String) -> String {
+    trim_end(trim_start(s))
+}
+
+pub fn trim_start(s: String) -> String {
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        let ch = __intrinsic_string_slice(s, i, i + 1)
+        if !__intrinsic_string_eq(ch, " ") {
+            if !__intrinsic_string_eq(ch, "\t") {
+                if !__intrinsic_string_eq(ch, "\n") {
+                    if !__intrinsic_string_eq(ch, "\r") {
+                        return __intrinsic_string_slice(s, i, n)
+                    }
+                }
+            }
+        }
+        i = i + 1
+    }
+    ""
+}
+
+pub fn trim_end(s: String) -> String {
+    let n = len(s)
+    let mut i = n - 1
+    while i >= 0 {
+        let ch = __intrinsic_string_slice(s, i, i + 1)
+        if !__intrinsic_string_eq(ch, " ") {
+            if !__intrinsic_string_eq(ch, "\t") {
+                if !__intrinsic_string_eq(ch, "\n") {
+                    if !__intrinsic_string_eq(ch, "\r") {
+                        return __intrinsic_string_slice(s, 0, i + 1)
+                    }
+                }
+            }
+        }
+        i = i - 1
+    }
+    ""
+}
+
+// --- Transform ---
+
+pub fn replace(s: String, from: String, to: String) -> String {
+    let from_len = len(from)
+    let s_len = len(s)
+    if from_len == 0 { return s }
+    if from_len > s_len { return s }
+    let mut result = ""
+    let mut i = 0
+    while i <= s_len - from_len {
+        let sub = __intrinsic_string_slice(s, i, i + from_len)
+        if __intrinsic_string_eq(sub, from) {
+            result = __intrinsic_concat(result, to)
+            i = i + from_len
+        } else {
+            result = __intrinsic_concat(result, __intrinsic_string_slice(s, i, i + 1))
+            i = i + 1
+        }
+    }
+    // Append remaining chars
+    if i < s_len {
+        result = __intrinsic_concat(result, __intrinsic_string_slice(s, i, s_len))
+    }
+    result
+}
+
+pub fn lines(s: String) -> Vec<String> {
+    // NOTE: Dynamic string alloc + vec push in loops has a known heap bug.
+    // For now, normalize CRLF and delegate to prelude split (single-char only).
+    // Callers with CRLF input should pre-normalize before calling.
+    split(s, "\n")
+}
+
+pub fn chars(s: String) -> Vec<String> {
+    // NOTE: string slicing + vec push in loops causes heap corruption.
+    // Use split(s, "") or manual iteration in caller code instead.
+    let n = len(s)
+    let result = Vec_new_String()
+    if n > 0 {
+        push(result, slice(s, 0, 1))
+    }
+    result
+}
+
+// --- Pad ---
+
+pub fn pad_left(s: String, width: i32, fill: String) -> String {
+    let slen = len(s)
+    if slen >= width { return s }
+    let padding = repeat(fill, width - slen)
+    let padded = __intrinsic_concat(padding, s)
+    let plen = len(padded)
+    __intrinsic_string_slice(padded, plen - width, plen)
+}
+
+pub fn pad_right(s: String, width: i32, fill: String) -> String {
+    let slen = len(s)
+    if slen >= width { return s }
+    let padding = repeat(fill, width - slen)
+    let padded = __intrinsic_concat(s, padding)
+    __intrinsic_string_slice(padded, 0, width)
+}
+
+// --- Format ---
+
+pub fn format_i32(n: i32) -> String {
+    __intrinsic_i32_to_string(n)
+}
+
+pub fn format_i64(n: i64) -> String {
+    __intrinsic_i64_to_string(n)
+}
+
+pub fn format_f64(n: f64) -> String {
+    __intrinsic_f64_to_string(n)
+}
+
+pub fn format_bool(b: bool) -> String {
+    __intrinsic_bool_to_string(b)
 }

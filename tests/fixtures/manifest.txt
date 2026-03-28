@@ -410,3 +410,8 @@ module-run:stdlib_test/assert_eq.ark
 module-run:stdlib_test/assert_ne.ark
 module-run:stdlib_test/expect_result.ark
 module-run:stdlib_test/expect_option.ark
+run:stdlib_text/string_trim.ark
+run:stdlib_text/string_replace.ark
+run:stdlib_text/string_repeat.ark
+run:stdlib_text/string_lines.ark
+run:stdlib_text/fmt_pad.ark

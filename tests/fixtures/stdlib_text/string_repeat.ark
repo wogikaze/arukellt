@@ -1,0 +1,10 @@
+use std::text
+
+fn main() {
+    println(text::repeat("ab", 3))
+    println(text::repeat("x", 5))
+    let empty = text::repeat("hi", 0)
+    println(i32_to_string(text::len_bytes(empty)))
+    println(bool_to_string(text::is_empty(empty)))
+    println(bool_to_string(text::is_empty("hello")))
+}

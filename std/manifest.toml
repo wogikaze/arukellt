@@ -1237,3 +1237,95 @@ name = "expect_none_i32"
 module = "std::test"
 params = ["Option<i32>"]
 returns = "()"
+
+# === std::text (extended) ===
+
+[[functions]]
+name = "len_bytes"
+module = "std::text"
+params = ["String"]
+returns = "i32"
+
+[[functions]]
+name = "is_empty"
+module = "std::text"
+params = ["String"]
+returns = "bool"
+
+[[functions]]
+name = "index_of"
+module = "std::text"
+params = ["String", "String"]
+returns = "i32"
+
+[[functions]]
+name = "trim"
+module = "std::text"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "trim_start"
+module = "std::text"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "trim_end"
+module = "std::text"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "replace"
+module = "std::text"
+params = ["String", "String", "String"]
+returns = "String"
+
+[[functions]]
+name = "lines"
+module = "std::text"
+params = ["String"]
+returns = "Vec<String>"
+
+[[functions]]
+name = "chars"
+module = "std::text"
+params = ["String"]
+returns = "Vec<String>"
+
+[[functions]]
+name = "pad_left"
+module = "std::text"
+params = ["String", "i32", "String"]
+returns = "String"
+
+[[functions]]
+name = "pad_right"
+module = "std::text"
+params = ["String", "i32", "String"]
+returns = "String"
+
+[[functions]]
+name = "format_i32"
+module = "std::text"
+params = ["i32"]
+returns = "String"
+
+[[functions]]
+name = "format_i64"
+module = "std::text"
+params = ["i64"]
+returns = "String"
+
+[[functions]]
+name = "format_f64"
+module = "std::text"
+params = ["f64"]
+returns = "String"
+
+[[functions]]
+name = "format_bool"
+module = "std::text"
+params = ["bool"]
+returns = "String"

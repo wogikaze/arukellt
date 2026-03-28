@@ -1,0 +1,7 @@
+use std::text
+
+fn main() {
+    println(text::replace("hello world", "world", "arukellt"))
+    println(text::replace("aaa", "a", "bb"))
+    println(text::replace("no match", "xyz", "!"))
+}

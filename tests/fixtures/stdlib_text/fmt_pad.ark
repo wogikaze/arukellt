@@ -1,0 +1,13 @@
+use std::text
+
+fn main() {
+    println(text::pad_left("42", 6, "0"))
+    println(text::pad_right("hi", 6, "."))
+    println(text::pad_left("toolong", 3, "x"))
+    println(text::format_i32(42))
+    println(text::format_bool(true))
+    let a = text::index_of("hello world", "world")
+    println(i32_to_string(a))
+    let b = text::index_of("hello", "xyz")
+    println(i32_to_string(b))
+}
