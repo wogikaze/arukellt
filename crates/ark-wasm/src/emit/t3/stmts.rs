@@ -6,11 +6,11 @@
 use ark_mir::mir::*;
 use ark_typecheck::types::Type;
 use wasm_encoder::{
-    HeapType, Instruction, RefType as WasmRefType, ValType,
+    HeapType, Instruction, MemArg, RefType as WasmRefType, ValType,
 };
 
 use super::peephole::PeepholeWriter;
-use super::{normalize_intrinsic, ref_nullable, Ctx};
+use super::{normalize_intrinsic, ref_nullable, Ctx, SCRATCH};
 
 impl Ctx {
     pub(super) fn emit_stmt(&mut self, f: &mut PeepholeWriter<'_>, stmt: &MirStmt) {
@@ -390,8 +390,12 @@ impl Ctx {
                 | "ends_with"
                 | "replace"
                 | "clock_now_ms"
+                | "clock_now"
                 | "random_i32"
                 | "random_f64"
+                | "exit"
+                | "proc_exit"
+                | "args"
                 | "HashMap_new_i32_i32"
                 | "HashMap_new_i32_String"
                 | "HashMap_new_String_i32"
@@ -703,6 +707,104 @@ impl Ctx {
             }
             "fs_write_file" => {
                 self.emit_fs_write_file_gc(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "clock_now" => {
+                // clock_time_get(clock_id=0 (realtime), precision=0, result_ptr=SCRATCH)
+                f.instruction(&Instruction::I32Const(0)); // clock_id = REALTIME
+                f.instruction(&Instruction::I64Const(0)); // precision
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_clock_time_get));
+                f.instruction(&Instruction::Drop); // drop errno
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "clock_now_ms" => {
+                // clock_time_get returns nanoseconds; divide by 1_000_000 for ms
+                f.instruction(&Instruction::I32Const(0)); // clock_id = REALTIME
+                f.instruction(&Instruction::I64Const(0)); // precision
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_clock_time_get));
+                f.instruction(&Instruction::Drop); // drop errno
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+                f.instruction(&Instruction::I64Const(1_000_000));
+                f.instruction(&Instruction::I64DivU);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "random_i32" => {
+                // random_get(buf_ptr=SCRATCH, buf_len=4)
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I32Const(4));
+                f.instruction(&Instruction::Call(self.wasi_random_get));
+                f.instruction(&Instruction::Drop); // drop errno
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I32Load(MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                }));
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "random_f64" => {
+                // random_get(buf_ptr=SCRATCH, buf_len=8), then convert u64 → f64 in [0,1)
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I32Const(8));
+                f.instruction(&Instruction::Call(self.wasi_random_get));
+                f.instruction(&Instruction::Drop); // drop errno
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+                // Mask to 53 bits, convert to f64, divide by 2^53 → [0, 1)
+                f.instruction(&Instruction::I64Const((1i64 << 53) - 1));
+                f.instruction(&Instruction::I64And);
+                f.instruction(&Instruction::F64ConvertI64U);
+                f.instruction(&Instruction::F64Const((1u64 << 53) as f64));
+                f.instruction(&Instruction::F64Div);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "exit" | "proc_exit" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand(f, arg);
+                } else {
+                    f.instruction(&Instruction::I32Const(0));
+                }
+                f.instruction(&Instruction::Call(self.wasi_proc_exit));
+            }
+            "args" => {
+                self.emit_args_builtin(f);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
@@ -1128,6 +1230,63 @@ impl Ctx {
             "HashMap_i32_i32_contains_key" => {
                 self.emit_hashmap_i32_i32_contains_key(f, args);
             }
+            "clock_now" => {
+                f.instruction(&Instruction::I32Const(0));
+                f.instruction(&Instruction::I64Const(0));
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_clock_time_get));
+                f.instruction(&Instruction::Drop);
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+            }
+            "clock_now_ms" => {
+                f.instruction(&Instruction::I32Const(0));
+                f.instruction(&Instruction::I64Const(0));
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_clock_time_get));
+                f.instruction(&Instruction::Drop);
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+                f.instruction(&Instruction::I64Const(1_000_000));
+                f.instruction(&Instruction::I64DivU);
+            }
+            "random_i32" => {
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I32Const(4));
+                f.instruction(&Instruction::Call(self.wasi_random_get));
+                f.instruction(&Instruction::Drop);
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I32Load(MemArg {
+                    offset: 0,
+                    align: 2,
+                    memory_index: 0,
+                }));
+            }
+            "random_f64" => {
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I32Const(8));
+                f.instruction(&Instruction::Call(self.wasi_random_get));
+                f.instruction(&Instruction::Drop);
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+                f.instruction(&Instruction::I64Const((1i64 << 53) - 1));
+                f.instruction(&Instruction::I64And);
+                f.instruction(&Instruction::F64ConvertI64U);
+                f.instruction(&Instruction::F64Const((1u64 << 53) as f64));
+                f.instruction(&Instruction::F64Div);
+            }
             _ => {
                 // Unimplemented builtin as operand — push null ref for string types
                 // or zero for scalars
@@ -1309,7 +1468,7 @@ impl Ctx {
             Operand::UnaryOp(_, inner) => self.is_i64_like_operand(inner),
             Operand::Call(name, _) => {
                 let canonical = normalize_intrinsic(name);
-                matches!(canonical, "clock_now") || self.fn_ret_types.get(name) == Some(&Type::I64)
+                matches!(canonical, "clock_now" | "clock_now_ms") || self.fn_ret_types.get(name) == Some(&Type::I64)
             }
             _ => false,
         }

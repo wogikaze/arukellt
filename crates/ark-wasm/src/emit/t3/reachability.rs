@@ -83,6 +83,243 @@ impl Ctx {
         }
     }
 
+    // ── Clock reachability ───────────────────────────────────────────
+
+    pub(super) fn mir_uses_clock(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    if Self::stmt_uses_clock(stmt) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_clock(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "clock_now" || name == "clock_now_ms"
+                    || name == "__intrinsic_clock_now" || name == "__intrinsic_clock_now_ms"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_clock(rvalue),
+            MirStmt::IfStmt { cond, then_body, else_body } => {
+                Self::operand_uses_clock(cond)
+                    || then_body.iter().any(|s| Self::stmt_uses_clock(s))
+                    || else_body.iter().any(|s| Self::stmt_uses_clock(s))
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_clock(cond)
+                    || body.iter().any(|s| Self::stmt_uses_clock(s))
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_clock(op),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_clock(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_clock(op),
+            Rvalue::BinaryOp(_, l, r) => Self::operand_uses_clock(l) || Self::operand_uses_clock(r),
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_clock(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_clock(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "clock_now" || name == "clock_now_ms"
+                    || name == "__intrinsic_clock_now" || name == "__intrinsic_clock_now_ms"
+                {
+                    return true;
+                }
+                args.iter().any(|a| Self::operand_uses_clock(a))
+            }
+            _ => false,
+        }
+    }
+
+    // ── Random reachability ──────────────────────────────────────────
+
+    pub(super) fn mir_uses_random(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    if Self::stmt_uses_random(stmt) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_random(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "random_i32" || name == "random_f64"
+                    || name == "__intrinsic_random_i32" || name == "__intrinsic_random_f64"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_random(rvalue),
+            MirStmt::IfStmt { cond, then_body, else_body } => {
+                Self::operand_uses_random(cond)
+                    || then_body.iter().any(|s| Self::stmt_uses_random(s))
+                    || else_body.iter().any(|s| Self::stmt_uses_random(s))
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_random(cond)
+                    || body.iter().any(|s| Self::stmt_uses_random(s))
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_random(op),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_random(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_random(op),
+            Rvalue::BinaryOp(_, l, r) => Self::operand_uses_random(l) || Self::operand_uses_random(r),
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_random(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_random(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "random_i32" || name == "random_f64"
+                    || name == "__intrinsic_random_i32" || name == "__intrinsic_random_f64"
+                {
+                    return true;
+                }
+                args.iter().any(|a| Self::operand_uses_random(a))
+            }
+            _ => false,
+        }
+    }
+
+    // ── proc_exit reachability ───────────────────────────────────────
+
+    pub(super) fn mir_uses_proc_exit(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    if Self::stmt_uses_proc_exit(stmt) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_proc_exit(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "exit" || name == "proc_exit"
+                    || name == "__intrinsic_exit" || name == "__intrinsic_proc_exit"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_proc_exit(rvalue),
+            MirStmt::IfStmt { cond, then_body, else_body } => {
+                Self::operand_uses_proc_exit(cond)
+                    || then_body.iter().any(|s| Self::stmt_uses_proc_exit(s))
+                    || else_body.iter().any(|s| Self::stmt_uses_proc_exit(s))
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_proc_exit(cond)
+                    || body.iter().any(|s| Self::stmt_uses_proc_exit(s))
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_proc_exit(op),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_proc_exit(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_proc_exit(op),
+            Rvalue::BinaryOp(_, l, r) => Self::operand_uses_proc_exit(l) || Self::operand_uses_proc_exit(r),
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_proc_exit(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_proc_exit(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "exit" || name == "proc_exit"
+                    || name == "__intrinsic_exit" || name == "__intrinsic_proc_exit"
+                {
+                    return true;
+                }
+                args.iter().any(|a| Self::operand_uses_proc_exit(a))
+            }
+            _ => false,
+        }
+    }
+
+    // ── args reachability ────────────────────────────────────────────
+
+    pub(super) fn mir_uses_args(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    if Self::stmt_uses_args(stmt) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_args(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "args" || name == "__intrinsic_args"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_args(rvalue),
+            MirStmt::IfStmt { cond, then_body, else_body } => {
+                Self::operand_uses_args(cond)
+                    || then_body.iter().any(|s| Self::stmt_uses_args(s))
+                    || else_body.iter().any(|s| Self::stmt_uses_args(s))
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_args(cond)
+                    || body.iter().any(|s| Self::stmt_uses_args(s))
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_args(op),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_args(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_args(op),
+            Rvalue::BinaryOp(_, l, r) => Self::operand_uses_args(l) || Self::operand_uses_args(r),
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_args(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_args(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "args" || name == "__intrinsic_args" {
+                    return true;
+                }
+                args.iter().any(|a| Self::operand_uses_args(a))
+            }
+            _ => false,
+        }
+    }
+
     pub(super) fn reachable_function_indices(&self, mir: &MirModule) -> Vec<usize> {
         let mut name_to_idx = HashMap::new();
         for (idx, func) in mir.functions.iter().enumerate() {

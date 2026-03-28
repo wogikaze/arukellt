@@ -14,6 +14,7 @@
 
 #![allow(dead_code)]
 
+mod const_expr;
 mod helpers;
 mod layout_opt;
 mod operands;
@@ -374,6 +375,15 @@ struct Ctx {
     wasi_fd_read: u32,
     wasi_fd_close: u32,
     wasi_needs_fs: bool,
+    wasi_clock_time_get: u32,
+    wasi_needs_clock: bool,
+    wasi_random_get: u32,
+    wasi_needs_random: bool,
+    wasi_proc_exit: u32,
+    wasi_needs_proc_exit: bool,
+    wasi_args_sizes_get: u32,
+    wasi_args_get: u32,
+    wasi_needs_args: bool,
     /// Optimization level (0 = O0, 1 = O1, 2 = O2).
     /// Tail-call emission (`return_call`) is enabled at opt_level >= 1.
     opt_level: u8,
@@ -699,6 +709,15 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         wasi_fd_read: 0,
         wasi_fd_close: 0,
         wasi_needs_fs: false,
+        wasi_clock_time_get: 0,
+        wasi_needs_clock: false,
+        wasi_random_get: 0,
+        wasi_needs_random: false,
+        wasi_proc_exit: 0,
+        wasi_needs_proc_exit: false,
+        wasi_args_sizes_get: 0,
+        wasi_args_get: 0,
+        wasi_needs_args: false,
         opt_level,
         string_intern_globals: HashMap::new(),
         string_intern_count: 0,
@@ -733,6 +752,14 @@ impl Ctx {
         // Scan MIR to determine which WASI imports are needed
         let needs_fs = Self::mir_uses_fs(mir, &reachable_user_indices);
         self.wasi_needs_fs = needs_fs;
+        let needs_clock = Self::mir_uses_clock(mir, &reachable_user_indices);
+        self.wasi_needs_clock = needs_clock;
+        let needs_random = Self::mir_uses_random(mir, &reachable_user_indices);
+        self.wasi_needs_random = needs_random;
+        let needs_proc_exit = Self::mir_uses_proc_exit(mir, &reachable_user_indices);
+        self.wasi_needs_proc_exit = needs_proc_exit;
+        let needs_args = Self::mir_uses_args(mir, &reachable_user_indices);
+        self.wasi_needs_args = needs_args;
 
         // Phase 1: Register GC types
         self.register_gc_types(mir);
@@ -759,15 +786,49 @@ impl Ctx {
         let fd_read_ty = fd_write_ty;
         // fd_close: (i32) -> i32
         let fd_close_ty = self.types.add_func(&[ValType::I32], &[ValType::I32]);
+        // clock_time_get: (i32, i64, i32) -> i32
+        let clock_time_get_ty = self.types.add_func(
+            &[ValType::I32, ValType::I64, ValType::I32],
+            &[ValType::I32],
+        );
+        // random_get: (i32, i32) -> i32
+        let random_get_ty = self.types.add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
+        // proc_exit: (i32) -> ()
+        let proc_exit_ty = self.types.add_func(&[ValType::I32], &[]);
+        // args_sizes_get: (i32, i32) -> i32
+        let args_sizes_get_ty = self.types.add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
+        // args_get: (i32, i32) -> i32
+        let args_get_ty = args_sizes_get_ty; // same signature
 
         // Count helper functions we'll need
-        // Dynamic WASI import count: fd_write is always needed; FS imports only if used
-        let num_imports = if needs_fs { 4u32 } else { 1u32 };
-        self.wasi_fd_write = 0; // fd_write is always index 0
+        // Dynamic WASI import count: fd_write is always needed; others conditional
+        let mut num_imports = 1u32; // fd_write always
+        self.wasi_fd_write = 0;
         if needs_fs {
-            self.wasi_path_open = 1;
-            self.wasi_fd_read = 2;
-            self.wasi_fd_close = 3;
+            self.wasi_path_open = num_imports;
+            num_imports += 1;
+            self.wasi_fd_read = num_imports;
+            num_imports += 1;
+            self.wasi_fd_close = num_imports;
+            num_imports += 1;
+        }
+        if needs_clock {
+            self.wasi_clock_time_get = num_imports;
+            num_imports += 1;
+        }
+        if needs_random {
+            self.wasi_random_get = num_imports;
+            num_imports += 1;
+        }
+        if needs_proc_exit {
+            self.wasi_proc_exit = num_imports;
+            num_imports += 1;
+        }
+        if needs_args {
+            self.wasi_args_sizes_get = num_imports;
+            num_imports += 1;
+            self.wasi_args_get = num_imports;
+            num_imports += 1;
         }
 
         // Scan MIR to determine which stdlib helpers are actually needed
@@ -1036,6 +1097,39 @@ impl Ctx {
                 wasm_encoder::EntityType::Function(fd_close_ty),
             );
         }
+        if needs_clock {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "clock_time_get",
+                wasm_encoder::EntityType::Function(clock_time_get_ty),
+            );
+        }
+        if needs_random {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "random_get",
+                wasm_encoder::EntityType::Function(random_get_ty),
+            );
+        }
+        if needs_proc_exit {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "proc_exit",
+                wasm_encoder::EntityType::Function(proc_exit_ty),
+            );
+        }
+        if needs_args {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "args_sizes_get",
+                wasm_encoder::EntityType::Function(args_sizes_get_ty),
+            );
+            imports.import(
+                "wasi_snapshot_preview1",
+                "args_get",
+                wasm_encoder::EntityType::Function(args_get_ty),
+            );
+        }
 
         // Function section
         let mut functions = FunctionSection::new();
@@ -1135,14 +1229,16 @@ impl Ctx {
 
         // Global: heap_ptr for legacy I/O buffer allocation and VecLiteral fallback.
         // Retained for backward compatibility with call_indirect-based HOF dispatch.
+        // At opt_level >= 2, uses extended const: (i32.add (i32.const DATA_START) (i32.const size))
         let mut globals = GlobalSection::new();
+        let heap_init = const_expr::heap_ptr_init(DATA_START, self.data_offset, self.opt_level);
         globals.global(
             GlobalType {
                 val_type: ValType::I32,
                 mutable: true,
                 shared: false,
             },
-            &wasm_encoder::ConstExpr::i32_const(self.data_offset as i32),
+            &heap_init,
         );
 
         // Interned string globals: (global (mut (ref null $string)) (ref.null $string))
@@ -1220,11 +1316,24 @@ impl Ctx {
         name_section.module("arukellt");
         let mut func_names = wasm_encoder::NameMap::new();
         // Import names (dynamically assigned)
-        func_names.append(0, "wasi:fd_write");
+        func_names.append(self.wasi_fd_write, "wasi:fd_write");
         if needs_fs {
-            func_names.append(1, "wasi:path_open");
-            func_names.append(2, "wasi:fd_read");
-            func_names.append(3, "wasi:fd_close");
+            func_names.append(self.wasi_path_open, "wasi:path_open");
+            func_names.append(self.wasi_fd_read, "wasi:fd_read");
+            func_names.append(self.wasi_fd_close, "wasi:fd_close");
+        }
+        if needs_clock {
+            func_names.append(self.wasi_clock_time_get, "wasi:clock_time_get");
+        }
+        if needs_random {
+            func_names.append(self.wasi_random_get, "wasi:random_get");
+        }
+        if needs_proc_exit {
+            func_names.append(self.wasi_proc_exit, "wasi:proc_exit");
+        }
+        if needs_args {
+            func_names.append(self.wasi_args_sizes_get, "wasi:args_sizes_get");
+            func_names.append(self.wasi_args_get, "wasi:args_get");
         }
         // Helper function names (sorted by index for NameMap)
         let mut helpers: Vec<(u32, &str)> = self.fn_map.iter()
