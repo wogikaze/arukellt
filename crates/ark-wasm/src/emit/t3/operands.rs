@@ -69,16 +69,16 @@ impl Ctx {
                         gidx
                     };
 
-                    let str_ref_non_null = ValType::Ref(WasmRefType {
-                        nullable: false,
+                    let str_ref_nullable = ValType::Ref(WasmRefType {
+                        nullable: true,
                         heap_type: HeapType::Concrete(self.string_ty),
                     });
                     // global.get $str_N
                     f.instruction(&Instruction::GlobalGet(global_idx));
                     // ref.is_null
                     f.instruction(&Instruction::RefIsNull);
-                    // if (result (ref $string))
-                    f.instruction(&Instruction::If(BlockType::Result(str_ref_non_null)));
+                    // if (result (ref null $string))
+                    f.instruction(&Instruction::If(BlockType::Result(str_ref_nullable)));
                     {
                         // First use: create string and cache it
                         f.instruction(&Instruction::I32Const(0));
@@ -96,7 +96,6 @@ impl Ctx {
                     {
                         // Already cached: reuse from global
                         f.instruction(&Instruction::GlobalGet(global_idx));
-                        f.instruction(&Instruction::RefAsNonNull);
                     }
                     f.instruction(&Instruction::End);
                 } else {
