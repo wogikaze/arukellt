@@ -355,6 +355,18 @@ impl Session {
     }
 
     fn run_frontend(&mut self, path: &Path) -> Result<FrontendResult, String> {
+        self.run_frontend_for(path, None)
+    }
+
+    /// Run frontend with optional selection hint to avoid double lowering.
+    /// When `hint` is `Some(Legacy)`, only legacy lowering runs.
+    /// When `hint` is `Some(CoreHir)`, only CoreHIR lowering runs (with legacy fallback).
+    /// When `hint` is `None`, both paths are lowered (needed for `compare_mir_paths`).
+    fn run_frontend_for(
+        &mut self,
+        path: &Path,
+        hint: Option<MirSelection>,
+    ) -> Result<FrontendResult, String> {
         let t_total = std::time::Instant::now();
         let resolved = self.resolve(path)?.resolved;
         self.sink = DiagnosticSink::new();
@@ -385,26 +397,68 @@ impl Session {
         let typecheck_ms = t_tc.elapsed().as_secs_f64() * 1000.0;
 
         let t_lower = std::time::Instant::now();
-        let mut legacy_mir = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
-        mark_selection(&mut legacy_mir, MirSelection::Legacy);
-        validate_mir(&legacy_mir)?;
 
-        let corehir_mir = if corehir_valid {
-            let mut mir =
-                lower_check_output_to_mir(&resolved.module, &core_hir, &checker, &mut self.sink)
-                    .unwrap_or_else(|_| legacy_mir.clone());
-            mark_selection(&mut mir, MirSelection::CoreHir);
-            if validate_mir(&mir).is_err() {
-                let mut fallback = legacy_mir.clone();
+        let need_legacy = match hint {
+            Some(MirSelection::CoreHir | MirSelection::OptimizedCoreHir) => false,
+            _ => true,
+        };
+        let need_corehir = match hint {
+            Some(MirSelection::Legacy | MirSelection::OptimizedLegacy) => false,
+            _ => true,
+        };
+
+        let legacy_mir = if need_legacy {
+            let mut mir = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
+            mark_selection(&mut mir, MirSelection::Legacy);
+            validate_mir(&mir)?;
+            mir
+        } else {
+            MirModule::new()
+        };
+
+        let corehir_mir = if need_corehir {
+            if corehir_valid {
+                let mut mir =
+                    lower_check_output_to_mir(&resolved.module, &core_hir, &checker, &mut self.sink)
+                        .unwrap_or_else(|_| {
+                            // Fallback: need legacy MIR
+                            let mut fb = if need_legacy {
+                                legacy_mir.clone()
+                            } else {
+                                let mut m = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
+                                mark_selection(&mut m, MirSelection::Legacy);
+                                m
+                            };
+                            mark_selection(&mut fb, MirSelection::CoreHir);
+                            fb
+                        });
+                mark_selection(&mut mir, MirSelection::CoreHir);
+                if validate_mir(&mir).is_err() {
+                    let mut fallback = if need_legacy {
+                        legacy_mir.clone()
+                    } else {
+                        let mut m = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
+                        mark_selection(&mut m, MirSelection::Legacy);
+                        m
+                    };
+                    mark_selection(&mut fallback, MirSelection::CoreHir);
+                    fallback
+                } else {
+                    mir
+                }
+            } else {
+                let mut fallback = if need_legacy {
+                    legacy_mir.clone()
+                } else {
+                    let mut m = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
+                    mark_selection(&mut m, MirSelection::Legacy);
+                    m
+                };
                 mark_selection(&mut fallback, MirSelection::CoreHir);
                 fallback
-            } else {
-                mir
             }
         } else {
-            let mut fallback = legacy_mir.clone();
-            mark_selection(&mut fallback, MirSelection::CoreHir);
-            fallback
+            MirModule::new()
         };
         let lower_ms = t_lower.elapsed().as_secs_f64() * 1000.0;
 
@@ -462,7 +516,7 @@ impl Session {
         path: &Path,
         selection: MirSelection,
     ) -> Result<MirModule, String> {
-        let frontend = self.run_frontend(path)?;
+        let frontend = self.run_frontend_for(path, Some(selection))?;
         let mut mir = match selection {
             MirSelection::Legacy | MirSelection::OptimizedLegacy => frontend.legacy_mir,
             MirSelection::CoreHir | MirSelection::OptimizedCoreHir => frontend.corehir_mir,
@@ -508,7 +562,7 @@ impl Session {
             return Err("error: native target uses the dedicated LLVM compile path".to_string());
         }
 
-        let frontend = self.run_frontend(path)?;
+        let frontend = self.run_frontend_for(path, Some(selection))?;
         let pending_diagnostics = frontend.pending_diagnostics.clone();
         let mut mir = match selection {
             MirSelection::Legacy | MirSelection::OptimizedLegacy => frontend.legacy_mir,
