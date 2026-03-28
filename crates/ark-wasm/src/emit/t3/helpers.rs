@@ -10,11 +10,9 @@ use wasm_encoder::{
     CodeSection, Function, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType,
 };
 
-use super::{normalize_intrinsic, ref_non_null, ref_nullable, Ctx};
+use super::{normalize_intrinsic, ref_nullable, Ctx};
 use super::{
-    IOV_BASE, IOV_LEN, NWRITTEN, SCRATCH, I32BUF, SCR_VAL64, DATA_START,
-    SCR_A_PTR, SCR_B_PTR, SCR_A_LEN, SCR_B_LEN, SCR_DST_PTR, SCR_I, SCR_J,
-    SCR_MATCH, SCR_RESULT, STR_FIELD_BYTES, VEC_FIELD_DATA, VEC_FIELD_LEN,
+    IOV_BASE, IOV_LEN, NWRITTEN, SCRATCH, I32BUF,
 };
 
 impl Ctx {

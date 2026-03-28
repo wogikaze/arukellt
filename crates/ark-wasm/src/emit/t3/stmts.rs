@@ -4,17 +4,12 @@
 //! assignment, control flow, and builtin call dispatch.
 
 use ark_mir::mir::*;
-use std::collections::HashSet;
 use ark_typecheck::types::Type;
 use wasm_encoder::{
-    Function, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType,
+    Function, HeapType, Instruction, RefType as WasmRefType, ValType,
 };
 
 use super::{normalize_intrinsic, ref_nullable, Ctx};
-use super::{
-    IOV_BASE, IOV_LEN, NWRITTEN,
-    STR_FIELD_BYTES, VEC_FIELD_DATA, VEC_FIELD_LEN, VEC_FIELD_CAP,
-};
 
 impl Ctx {
     pub(super) fn emit_stmt(&mut self, f: &mut Function, stmt: &MirStmt) {

@@ -24,11 +24,11 @@ mod types;
 use ark_diagnostics::DiagnosticSink;
 use ark_mir::mir::*;
 use ark_typecheck::types::Type;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashMap, HashSet};
 use wasm_encoder::{
     ArrayType, CodeSection, CompositeInnerType, CompositeType, DataSection, DataSegment,
-    ExportKind, ExportSection, FieldType, Function, FunctionSection, GlobalSection, GlobalType,
-    HeapType, ImportSection, Instruction, MemArg, MemorySection, MemoryType,
+    ExportKind, ExportSection, FieldType, FunctionSection, GlobalSection, GlobalType,
+    HeapType, ImportSection, MemorySection, MemoryType,
     RefType as WasmRefType, StorageType, StructType, SubType, TypeSection, ValType,
 };
 

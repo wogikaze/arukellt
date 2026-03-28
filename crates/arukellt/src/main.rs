@@ -37,12 +37,9 @@ enum Commands {
         /// WIT file(s) for host import binding
         #[arg(long = "wit", value_name = "PATH")]
         wit_files: Vec<PathBuf>,
-        /// Show memory profiling info (escape analysis, allocation hints)
+        /// Show memory profiling info (escape analysis, allocation hints, compiler RSS)
         #[arg(long)]
         profile_mem: bool,
-        /// Show compiler RSS (resident set size) after compilation
-        #[arg(long)]
-        profile_memory: bool,
         /// Show per-phase compilation time
         #[arg(long)]
         time: bool,
@@ -117,7 +114,6 @@ fn main() {
             emit: emit_kind,
             wit_files,
             profile_mem,
-            profile_memory,
             time,
             opt_level,
             no_pass,
@@ -125,7 +121,7 @@ fn main() {
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
-            commands::cmd_compile(file, output, target, emit_kind, wit_files, profile_mem, profile_memory, time, opt_level, no_pass, &mir_select);
+            commands::cmd_compile(file, output, target, emit_kind, wit_files, profile_mem, time, opt_level, no_pass, &mir_select);
         }
         Commands::Run {
             file,

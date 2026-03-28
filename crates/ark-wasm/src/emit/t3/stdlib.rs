@@ -4,18 +4,15 @@
 //! vector operations, hashmap operations, and filesystem operations.
 
 use ark_mir::mir::*;
-use std::collections::HashMap;
 use wasm_encoder::{
-    Function, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType,
+    Function, HeapType, Instruction, MemArg, ValType,
 };
 
-use super::{ref_non_null, ref_nullable, Ctx};
+use super::{ref_nullable, Ctx};
 use super::{
-    IOV_BASE, IOV_LEN, NWRITTEN,
-    STR_FIELD_BYTES, VEC_FIELD_DATA, VEC_FIELD_LEN, VEC_FIELD_CAP,
     FS_SCRATCH, FS_BUF_SIZE,
-    SCR_A_PTR, SCR_B_PTR, SCR_A_LEN, SCR_B_LEN, SCR_DST_PTR,
-    SCR_I, SCR_J, SCR_MATCH, SCR_RESULT, SCR_VAL64,
+    SCR_A_PTR, SCR_B_PTR, SCR_A_LEN, SCR_DST_PTR,
+    SCR_I, SCR_J, SCR_VAL64,
 };
 
 impl Ctx {

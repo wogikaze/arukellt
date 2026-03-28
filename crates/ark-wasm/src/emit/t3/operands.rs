@@ -7,10 +7,7 @@ use ark_mir::mir::*;
 use ark_typecheck::types::Type;
 use wasm_encoder::{Function, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType};
 
-use super::{normalize_intrinsic, ref_non_null, ref_nullable, Ctx};
-use super::{
-    STR_FIELD_BYTES, VEC_FIELD_DATA, VEC_FIELD_LEN,
-};
+use super::{normalize_intrinsic, Ctx};
 
 impl Ctx {
     pub(super) fn emit_operand(&mut self, f: &mut Function, op: &Operand) {
