@@ -330,6 +330,59 @@ impl Ctx {
                         .collect();
                     if variant_types.len() <= 1 {
                         f.instruction(&Instruction::I32Const(0));
+                    } else if variant_types.len() >= 3 && self.opt_level >= 1 {
+                        // br_on_cast chain: emit once, branch on successful cast
+                        let n = variant_types.len();
+                        let from_ref = WasmRefType {
+                            nullable: true,
+                            heap_type: HeapType::Abstract {
+                                shared: false,
+                                ty: wasm_encoder::AbstractHeapType::Any,
+                            },
+                        };
+
+                        // Outer block for the i32 result
+                        f.instruction(&Instruction::Block(BlockType::Result(ValType::I32)));
+
+                        // Inner blocks (reversed: innermost = first variant)
+                        for &vty in variant_types.iter().rev() {
+                            f.instruction(&Instruction::Block(BlockType::Result(
+                                ValType::Ref(WasmRefType {
+                                    nullable: false,
+                                    heap_type: HeapType::Concrete(vty),
+                                }),
+                            )));
+                        }
+
+                        // Emit enum value once
+                        self.emit_operand(f, inner);
+
+                        // br_on_cast chain: try each variant
+                        for (i, &vty) in variant_types.iter().enumerate() {
+                            f.instruction(&Instruction::BrOnCast {
+                                relative_depth: i as u32,
+                                from_ref_type: from_ref,
+                                to_ref_type: WasmRefType {
+                                    nullable: false,
+                                    heap_type: HeapType::Concrete(vty),
+                                },
+                            });
+                        }
+
+                        f.instruction(&Instruction::Unreachable);
+
+                        // End each variant block: drop casted ref, push tag
+                        for i in 0..n {
+                            f.instruction(&Instruction::End);
+                            f.instruction(&Instruction::Drop);
+                            f.instruction(&Instruction::I32Const(i as i32));
+                            if i < n - 1 {
+                                f.instruction(&Instruction::Br((n - 1 - i) as u32));
+                            }
+                        }
+
+                        // End $done block
+                        f.instruction(&Instruction::End);
                     } else {
                         // Nested if-else: ref.test $V0 ? 0 : ref.test $V1 ? 1 : ...
                         for (i, &vty) in variant_types.iter().enumerate() {
