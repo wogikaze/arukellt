@@ -37,6 +37,7 @@ pub(crate) fn rewrite_stmt_with_replacements(
                 changed |= rewrite_operand(value, replacements);
             }
         }
+        MirStmt::GcHint { .. } => {}
     }
     changed
 }
@@ -217,6 +218,9 @@ pub(crate) fn collect_stmt_locals(stmt: &MirStmt, used: &mut std::collections::H
             if let Some(value) = value {
                 collect_operand_locals(value, used);
             }
+        }
+        MirStmt::GcHint { local, .. } => {
+            used.insert(local.0);
         }
     }
 }

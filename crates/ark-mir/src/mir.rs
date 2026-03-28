@@ -204,6 +204,12 @@ pub struct BlockId(pub u32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct LocalId(pub u32);
 
+/// GC hint kind for allocation annotations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum GcHintKind {
+    ShortLived,
+}
+
 /// Unique function identifier.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FnId(pub u32);
@@ -327,6 +333,10 @@ pub enum MirStmt {
     Break,
     Continue,
     Return(Option<Operand>),
+    GcHint {
+        local: LocalId,
+        hint: GcHintKind,
+    },
 }
 
 impl MirStmt {
@@ -339,6 +349,7 @@ impl MirStmt {
             | Self::Break
             | Self::Continue
             | Self::Return(_) => EffectKind::ControlFlow,
+            Self::GcHint { .. } => EffectKind::Pure,
         }
     }
 }
@@ -451,6 +462,7 @@ fn is_backend_legal_stmt(stmt: &MirStmt) -> bool {
         }
         MirStmt::Break | MirStmt::Continue => true,
         MirStmt::Return(value) => value.as_ref().is_none_or(is_backend_legal_operand),
+        MirStmt::GcHint { .. } => true,
     }
 }
 
@@ -806,6 +818,7 @@ pub fn stmt_calls(stmt: &MirStmt, out: &mut Vec<String>) {
                 operand_calls(value, out);
             }
         }
+        MirStmt::GcHint { .. } => {}
     }
 }
 

@@ -1,4 +1,5 @@
 pub mod loop_unroll;
+pub mod gc_hint;
 pub mod pipeline;
 
 pub use pipeline::{

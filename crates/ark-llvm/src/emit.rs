@@ -620,6 +620,7 @@ impl<'ctx> LlvmEmitter<'ctx> {
                     self.builder.build_unconditional_branch(cond_bb).unwrap();
                 }
             }
+            MirStmt::GcHint { .. } => {}
         }
     }
 

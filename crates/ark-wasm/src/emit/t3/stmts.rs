@@ -322,6 +322,7 @@ impl Ctx {
             MirStmt::Return(None) => {
                 f.instruction(&Instruction::Return);
             }
+            MirStmt::GcHint { .. } => {}
         }
     }
 

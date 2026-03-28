@@ -179,7 +179,7 @@ impl Ctx {
             MirStmt::Return(Some(op)) => {
                 self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
             }
-            MirStmt::Break | MirStmt::Continue | MirStmt::Return(None) => {}
+            MirStmt::Break | MirStmt::Continue | MirStmt::Return(None) | MirStmt::GcHint { .. } => {}
         }
     }
 

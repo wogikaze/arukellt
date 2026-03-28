@@ -281,6 +281,7 @@ fn validate_stmt(
                 validate_operand(function_name, block_id, value, declared, errors);
             }
         }
+        MirStmt::GcHint { .. } => {}
     }
 }
 

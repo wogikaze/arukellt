@@ -25,6 +25,7 @@ pub enum OptimizationPass {
     StrengthReduction,
     Cse,
     LoopUnroll,
+    GcHint,
 }
 
 impl OptimizationPass {
@@ -45,6 +46,7 @@ impl OptimizationPass {
             Self::StrengthReduction => "strength_reduction",
             Self::Cse => "cse",
             Self::LoopUnroll => "loop_unroll",
+            Self::GcHint => "gc_hint",
         }
     }
 }
@@ -65,6 +67,7 @@ pub const DEFAULT_PASS_ORDER: &[OptimizationPass] = &[
     OptimizationPass::AlgebraicSimplify,
     OptimizationPass::StrengthReduction,
     OptimizationPass::Cse,
+    OptimizationPass::GcHint,
 ];
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -85,6 +88,7 @@ pub struct OptimizationSummary {
     pub strength_reduced: usize,
     pub cse_eliminated: usize,
     pub loops_unrolled: usize,
+    pub gc_hinted: usize,
 }
 
 impl OptimizationSummary {
@@ -104,6 +108,7 @@ impl OptimizationSummary {
             || self.strength_reduced > 0
             || self.cse_eliminated > 0
             || self.loops_unrolled > 0
+            || self.gc_hinted > 0
     }
 
     fn absorb(&mut self, other: OptimizationSummary) {
@@ -122,6 +127,7 @@ impl OptimizationSummary {
         self.strength_reduced += other.strength_reduced;
         self.cse_eliminated += other.cse_eliminated;
         self.loops_unrolled += other.loops_unrolled;
+        self.gc_hinted += other.gc_hinted;
     }
 }
 
@@ -299,6 +305,7 @@ fn run_pass(function: &mut MirFunction, pass: OptimizationPass) -> OptimizationS
         OptimizationPass::StrengthReduction => strength_reduction(function),
         OptimizationPass::Cse => cse(function),
         OptimizationPass::LoopUnroll => super::loop_unroll::loop_unroll(function),
+        OptimizationPass::GcHint => super::gc_hint::gc_hint_pass_inner(function),
     }
 }
 
@@ -764,6 +771,7 @@ fn rewrite_stmt_with_replacements(
                 changed |= rewrite_operand(value, replacements);
             }
         }
+        MirStmt::GcHint { .. } => {}
     }
     changed
 }
@@ -944,6 +952,9 @@ fn collect_stmt_locals(stmt: &MirStmt, used: &mut std::collections::HashSet<u32>
             if let Some(value) = value {
                 collect_operand_locals(value, used);
             }
+        }
+        MirStmt::GcHint { local, .. } => {
+            used.insert(local.0);
         }
     }
 }
