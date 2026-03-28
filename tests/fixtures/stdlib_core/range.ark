@@ -1,0 +1,11 @@
+use std::core
+
+fn main() {
+    let r = core::range_new(0, 5)
+    let inside = core::range_contains(r, 3)
+    let outside = core::range_contains(r, 5)
+    let length = core::range_len(r)
+    println(bool_to_string(inside))
+    println(bool_to_string(outside))
+    println(i32_to_string(length))
+}

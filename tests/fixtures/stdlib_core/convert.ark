@@ -1,0 +1,12 @@
+use std::core::convert
+
+fn main() {
+    println(convert::i32_to_string(42))
+    println(convert::f64_to_string(3.14))
+    println(convert::bool_to_string(true))
+    let parsed = convert::parse_i32("123")
+    match parsed {
+        Some(v) => println(i32_to_string(v)),
+        None => println("parse failed"),
+    }
+}

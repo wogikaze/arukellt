@@ -1,0 +1,14 @@
+use std::core
+
+fn main() {
+    match Ordering::Less {
+        Ordering::Less => println("less"),
+        Ordering::Equal => println("equal"),
+        Ordering::Greater => println("greater"),
+    }
+    match Ordering::Greater {
+        Ordering::Less => println("less"),
+        Ordering::Equal => println("equal"),
+        Ordering::Greater => println("greater"),
+    }
+}

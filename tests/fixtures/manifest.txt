@@ -127,6 +127,13 @@ run:stdlib_map/map_string.ark
 run:stdlib_math/abs_min_max.ark
 run:stdlib_math/clamp_i32.ark
 run:stdlib_math/sqrt.ark
+run:stdlib_core/range.ark
+run:stdlib_core/ordering.ark
+run:stdlib_core/math.ark
+run:stdlib_core/convert.ark
+run:stdlib_core/hash.ark
+run:stdlib_core/error_basic.ark
+run:stdlib_core/error_match.ark
 run:stdlib_option_result/is_some_none.ark
 run:stdlib_option_result/none_unwrap_or.ark
 run:stdlib_option_result/option_map.ark

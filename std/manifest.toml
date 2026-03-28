@@ -1035,3 +1035,61 @@ prelude = true
 name = "i16"
 prelude = true
 
+
+# ── std::core Types (v3) ─────────────
+[[types]]
+name = "Error"
+module = "std::core::error"
+prelude = false
+
+[[types]]
+name = "Ordering"
+module = "std::core"
+prelude = false
+
+[[types]]
+name = "Range"
+module = "std::core"
+prelude = false
+
+[[types]]
+name = "RangeInclusive"
+module = "std::core"
+prelude = false
+
+# ── std::core Functions (v3) ─────────────
+[[functions]]
+name = "range_new"
+module = "std::core"
+params = ["i32", "i32"]
+returns = "Range"
+
+[[functions]]
+name = "range_contains"
+module = "std::core"
+params = ["Range", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "range_len"
+module = "std::core"
+params = ["Range"]
+returns = "i32"
+
+[[functions]]
+name = "error_message"
+module = "std::core::error"
+params = ["Error"]
+returns = "String"
+
+[[functions]]
+name = "hash_i32"
+module = "std::core::hash"
+params = ["i32"]
+returns = "i32"
+
+[[functions]]
+name = "hash_combine"
+module = "std::core::hash"
+params = ["i32", "i32"]
+returns = "i32"

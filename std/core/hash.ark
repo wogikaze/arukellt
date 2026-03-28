@@ -1,0 +1,29 @@
+// std::core::hash — simple hash functions
+//
+// FNV-1a inspired hash for basic types.
+// Used as foundation for HashMap implementations.
+
+pub fn hash_i32(value: i32) -> i32 {
+    // Simple multiplicative hash (Knuth variant)
+    let mut h = 37
+    let mut v = value
+    if v < 0 { v = 0 - v }
+    let b0 = v - (v / 256) * 256
+    h = h * 31 + b0
+    v = v / 256
+    let b1 = v - (v / 256) * 256
+    h = h * 31 + b1
+    v = v / 256
+    let b2 = v - (v / 256) * 256
+    h = h * 31 + b2
+    v = v / 256
+    let b3 = v - (v / 256) * 256
+    h = h * 31 + b3
+    h
+}
+
+pub fn combine(h1: i32, h2: i32) -> i32 {
+    let mut h = h1
+    h = (h * 31) + h2
+    h
+}

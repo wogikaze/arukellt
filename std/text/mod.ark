@@ -3,8 +3,8 @@
 // Extended string operations beyond the prelude.
 
 pub fn repeat(s: String, n: i32) -> String {
-    let result = ""
-    let i = 0
+    let mut result = ""
+    let mut i = 0
     while i < n {
         result = __intrinsic_concat(result, s)
         i = i + 1

@@ -1,0 +1,31 @@
+// std::core::error — standard error types
+//
+// Provides a unified Error enum for stdlib functions.
+
+pub enum Error {
+    InvalidArgument(String),
+    IndexOutOfBounds(i32),
+    ParseError(String),
+    IoError(String),
+    NotFound(String),
+    AlreadyExists(String),
+    PermissionDenied(String),
+    Timeout,
+    WasmError(String),
+    Custom(String),
+}
+
+pub fn error_message(e: Error) -> String {
+    match e {
+        Error::InvalidArgument(msg) => __intrinsic_concat("InvalidArgument: ", msg),
+        Error::IndexOutOfBounds(idx) => __intrinsic_concat("IndexOutOfBounds: ", __intrinsic_i32_to_string(idx)),
+        Error::ParseError(msg) => __intrinsic_concat("ParseError: ", msg),
+        Error::IoError(msg) => __intrinsic_concat("IoError: ", msg),
+        Error::NotFound(msg) => __intrinsic_concat("NotFound: ", msg),
+        Error::AlreadyExists(msg) => __intrinsic_concat("AlreadyExists: ", msg),
+        Error::PermissionDenied(msg) => __intrinsic_concat("PermissionDenied: ", msg),
+        Error::Timeout => "Timeout",
+        Error::WasmError(msg) => __intrinsic_concat("WasmError: ", msg),
+        Error::Custom(msg) => msg,
+    }
+}

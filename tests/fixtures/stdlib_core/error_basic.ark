@@ -1,0 +1,15 @@
+use std::core::error
+
+fn main() {
+    let e1 = Error::InvalidArgument("bad input")
+    let msg1 = error::error_message(e1)
+    println(msg1)
+
+    let e2 = Error::Timeout
+    let msg2 = error::error_message(e2)
+    println(msg2)
+
+    let e3 = Error::Custom("something went wrong")
+    let msg3 = error::error_message(e3)
+    println(msg3)
+}

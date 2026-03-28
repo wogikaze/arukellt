@@ -1,7 +1,47 @@
 // std::core — fundamental types and traits
 //
-// Provides Error, Ordering, and Range types that form the
-// foundation of the standard library.
+// Provides Ordering, Range types and re-exports of math/convert functions
+// that form the foundation of the standard library.
+
+pub enum Ordering {
+    Less,
+    Equal,
+    Greater,
+}
+
+pub struct Range {
+    start: i32,
+    end: i32,
+}
+
+pub struct RangeInclusive {
+    start: i32,
+    end: i32,
+}
+
+pub fn range_new(start: i32, end: i32) -> Range {
+    Range { start: start, end: end }
+}
+
+pub fn range_contains(r: Range, value: i32) -> bool {
+    value >= r.start && value < r.end
+}
+
+pub fn range_len(r: Range, ) -> i32 {
+    if r.end > r.start {
+        r.end - r.start
+    } else {
+        0
+    }
+}
+
+pub fn range_inclusive_new(start: i32, end: i32) -> RangeInclusive {
+    RangeInclusive { start: start, end: end }
+}
+
+pub fn range_inclusive_contains(r: RangeInclusive, value: i32) -> bool {
+    value >= r.start && value <= r.end
+}
 
 pub fn identity(x: i32) -> i32 {
     x
