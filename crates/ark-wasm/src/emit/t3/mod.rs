@@ -16,6 +16,7 @@
 
 mod helpers;
 mod operands;
+mod peephole;
 mod reachability;
 mod stmts;
 mod stdlib;
@@ -375,6 +376,12 @@ struct Ctx {
     /// Optimization level (0 = O0, 1 = O1, 2 = O2).
     /// Tail-call emission (`return_call`) is enabled at opt_level >= 1.
     opt_level: u8,
+    /// Static string interning: maps string content → global index (opt_level >= 1).
+    /// Each unique string literal gets a `(global (mut (ref null $string)))` that
+    /// caches the GC array after first initialization.
+    string_intern_globals: HashMap<String, u32>,
+    /// Number of interned-string globals emitted (used for index allocation).
+    string_intern_count: u32,
 }
 
 impl Ctx {
@@ -689,6 +696,8 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         wasi_fd_close: 0,
         wasi_needs_fs: false,
         opt_level,
+        string_intern_globals: HashMap::new(),
+        string_intern_count: 0,
     };
     ctx.emit_module(mir)
 }
@@ -1077,6 +1086,18 @@ impl Ctx {
             },
             &wasm_encoder::ConstExpr::i32_const(self.data_offset as i32),
         );
+
+        // Interned string globals: (global (mut (ref null $string)) (ref.null $string))
+        for _ in 0..self.string_intern_count {
+            globals.global(
+                GlobalType {
+                    val_type: ref_nullable(self.string_ty),
+                    mutable: true,
+                    shared: false,
+                },
+                &wasm_encoder::ConstExpr::ref_null(HeapType::Concrete(self.string_ty)),
+            );
+        }
 
         // Data section: active segments first, then passive (string literals)
         let mut data = DataSection::new();

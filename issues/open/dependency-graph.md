@@ -24,7 +24,6 @@ graph TD
   I082["082 MIR: gc_hint パス — 短命オブジェクトのパターン検出"]
   I083["083 MIR: ループ展開 (Loop Unrolling) パス"]
   I087["087 MIR: 関数間インライン展開の強化 — 呼び出し回数・サイズ閾値の最適化"]
-  I088["088 T3 Peephole: local.get/set 冗長ペア除去"]
   I090["090 T3: 末尾位置の call → return_call 自動変換"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
@@ -37,7 +36,7 @@ graph TD
   I104["104 実行時性能: GC write barrier 削減 (immutable フィールド検出)"]
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
-  I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
+  I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
@@ -49,7 +48,6 @@ graph TD
   I078["078 WASI P2: wasi:sockets TCP/UDP ネイティブバインディング"]
   I079["079 WASI 0.3-rc: async func / stream<T> / future<T> コンパイルサポート"]
   I121["121 WASI P2: Canonical ABI ハンドリングの堅牢化"]
-  I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -60,7 +58,6 @@ graph TD
   I074 --> I078
   I074 --> I079
   I074 --> I121
-  I088 --> I108
   I117 --> I118
   I125 --> I126
 ```
@@ -85,7 +82,6 @@ graph TD
 - **082** depends on: —; blocks: none
 - **083** depends on: 080; blocks: none
 - **087** depends on: —; blocks: none
-- **088** depends on: —; blocks: 108
 - **090** depends on: 060; blocks: none
 - **094** depends on: —; blocks: none
 - **095** depends on: —; blocks: none
@@ -98,7 +94,7 @@ graph TD
 - **104** depends on: —; blocks: none
 - **105** depends on: —; blocks: none
 - **106** depends on: —; blocks: none
-- **112** depends on: 109; blocks: none
+- **108** depends on: 091, 092, 088, 089; blocks: none
 - **116** depends on: 114; blocks: none
 - **117** depends on: —; blocks: 118
 - **124** depends on: 074 (wasi-p2-native-component); blocks: none
@@ -110,7 +106,6 @@ graph TD
 - **078** depends on: 074; blocks: none
 - **079** depends on: 074; blocks: none
 - **121** depends on: 074; blocks: none
-- **108** depends on: 091, 092, 088, 089; blocks: none
 - **118** depends on: 117; blocks: none
 - **126** depends on: 125; blocks: none
 

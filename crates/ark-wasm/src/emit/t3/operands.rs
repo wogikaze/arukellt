@@ -5,12 +5,13 @@
 
 use ark_mir::mir::*;
 use ark_typecheck::types::Type;
-use wasm_encoder::{Function, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType};
+use wasm_encoder::{BlockType, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType};
 
+use super::peephole::PeepholeWriter;
 use super::{normalize_intrinsic, Ctx};
 
 impl Ctx {
-    pub(super) fn emit_operand(&mut self, f: &mut Function, op: &Operand) {
+    pub(super) fn emit_operand(&mut self, f: &mut PeepholeWriter<'_>, op: &Operand) {
         match op {
             Operand::ConstI32(v) => {
                 f.instruction(&Instruction::I32Const(*v));
@@ -53,15 +54,59 @@ impl Ctx {
                 let bytes = s.as_bytes();
                 let len = bytes.len() as u32;
                 let seg_idx = self.alloc_string_data(bytes);
-                // The absolute segment index = num_active + seg_idx
-                // (computed at assembly time, stored as relative for now)
                 let abs_seg = self.data_segs.len() as u32 + seg_idx;
-                f.instruction(&Instruction::I32Const(0)); // src offset in data segment
-                f.instruction(&Instruction::I32Const(len as i32)); // length
-                f.instruction(&Instruction::ArrayNewData {
-                    array_type_index: self.string_ty,
-                    array_data_index: abs_seg,
-                });
+
+                if self.opt_level >= 1 {
+                    // Static string interning: cache in a global, lazy-init on first access.
+                    let global_idx = if let Some(&gidx) = self.string_intern_globals.get(s.as_str())
+                    {
+                        gidx
+                    } else {
+                        // Allocate a new global (index 0 = heap_ptr, interned start at 1)
+                        let gidx = 1 + self.string_intern_count;
+                        self.string_intern_globals.insert(s.clone(), gidx);
+                        self.string_intern_count += 1;
+                        gidx
+                    };
+
+                    let str_ref_non_null = ValType::Ref(WasmRefType {
+                        nullable: false,
+                        heap_type: HeapType::Concrete(self.string_ty),
+                    });
+                    // global.get $str_N
+                    f.instruction(&Instruction::GlobalGet(global_idx));
+                    // ref.is_null
+                    f.instruction(&Instruction::RefIsNull);
+                    // if (result (ref $string))
+                    f.instruction(&Instruction::If(BlockType::Result(str_ref_non_null)));
+                    {
+                        // First use: create string and cache it
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Const(len as i32));
+                        f.instruction(&Instruction::ArrayNewData {
+                            array_type_index: self.string_ty,
+                            array_data_index: abs_seg,
+                        });
+                        let scratch = self.si(8); // ref scratch local
+                        f.instruction(&Instruction::LocalTee(scratch));
+                        f.instruction(&Instruction::GlobalSet(global_idx));
+                        f.instruction(&Instruction::LocalGet(scratch));
+                    }
+                    f.instruction(&Instruction::Else);
+                    {
+                        // Already cached: reuse from global
+                        f.instruction(&Instruction::GlobalGet(global_idx));
+                        f.instruction(&Instruction::RefAsNonNull);
+                    }
+                    f.instruction(&Instruction::End);
+                } else {
+                    f.instruction(&Instruction::I32Const(0));
+                    f.instruction(&Instruction::I32Const(len as i32));
+                    f.instruction(&Instruction::ArrayNewData {
+                        array_type_index: self.string_ty,
+                        array_data_index: abs_seg,
+                    });
+                }
             }
             Operand::Unit => {
                 // Unit doesn't push a value
@@ -435,7 +480,7 @@ impl Ctx {
     /// operand in a binary expression is i64/f64.
     pub(super) fn emit_operand_coerced(
         &mut self,
-        f: &mut Function,
+        f: &mut PeepholeWriter<'_>,
         op: &Operand,
         need_i64: bool,
         need_f64: bool,
@@ -453,7 +498,7 @@ impl Ctx {
         }
     }
 
-    pub(super) fn emit_binop(&self, f: &mut Function, op: BinOp, lhs_operand: Option<&Operand>) {
+    pub(super) fn emit_binop(&self, f: &mut PeepholeWriter<'_>, op: BinOp, lhs_operand: Option<&Operand>) {
         // Determine operand type from LHS (not destination — comparisons return bool/i32)
         let is_f64 = lhs_operand.is_some_and(|o| self.is_f64_like_operand(o));
         let is_i64 = lhs_operand.is_some_and(|o| self.is_i64_like_operand(o));
@@ -553,7 +598,7 @@ impl Ctx {
         }
     }
 
-    pub(super) fn emit_unaryop(&self, f: &mut Function, op: UnaryOp, local_id: u32) {
+    pub(super) fn emit_unaryop(&self, f: &mut PeepholeWriter<'_>, op: UnaryOp, local_id: u32) {
         match op {
             UnaryOp::Neg => {
                 if self.f64_locals.contains(&local_id) {

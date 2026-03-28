@@ -14,6 +14,7 @@ use super::{normalize_intrinsic, ref_nullable, Ctx};
 use super::{
     IOV_BASE, IOV_LEN, NWRITTEN, SCRATCH, I32BUF,
 };
+use super::peephole::PeepholeWriter;
 
 impl Ctx {
     // ── Helper function bodies ───────────────────────────────────
@@ -1998,41 +1999,52 @@ impl Ctx {
 
         let mut f = Function::new(local_types);
 
-        // Emit statements from entry block
-        if let Some(block) = func.blocks.first() {
-            for stmt in &block.stmts {
-                self.emit_stmt(&mut f, stmt);
-            }
-            // Handle terminator
-            match &block.terminator {
-                Terminator::Return(Some(op)) => {
-                    if func.name == "main" || func.name == "_start" {
-                        // WASI _start must be () -> (); emit for side effects but discard result
-                        if !matches!(op, Operand::Unit) {
-                            self.emit_operand(&mut f, op);
-                            if self.operand_produces_value(op) {
-                                f.instruction(&Instruction::Drop);
+        // Wrap in PeepholeWriter for local.set/get → local.tee optimization
+        let tee_count = {
+            let mut w = PeepholeWriter::new(&mut f, self.opt_level);
+
+            // Emit statements from entry block
+            if let Some(block) = func.blocks.first() {
+                for stmt in &block.stmts {
+                    self.emit_stmt(&mut w, stmt);
+                }
+                // Handle terminator
+                match &block.terminator {
+                    Terminator::Return(Some(op)) => {
+                        if func.name == "main" || func.name == "_start" {
+                            // WASI _start must be () -> (); emit for side effects but discard result
+                            if !matches!(op, Operand::Unit) {
+                                self.emit_operand(&mut w, op);
+                                if self.operand_produces_value(op) {
+                                    w.instruction(&Instruction::Drop);
+                                }
+                            }
+                        } else {
+                            self.emit_operand(&mut w, op);
+                            // Box value types when returning from generic function with anyref return
+                            if self.current_fn_return_ty == Type::Any {
+                                let op_vt = self.infer_operand_type(op);
+                                if op_vt == ValType::I32 {
+                                    w.instruction(&Instruction::RefI31);
+                                }
                             }
                         }
-                    } else {
-                        self.emit_operand(&mut f, op);
-                        // Box value types when returning from generic function with anyref return
-                        if self.current_fn_return_ty == Type::Any {
-                            let op_vt = self.infer_operand_type(op);
-                            if op_vt == ValType::I32 {
-                                f.instruction(&Instruction::RefI31);
-                            }
-                        }
+                        w.instruction(&Instruction::Return);
                     }
-                    f.instruction(&Instruction::Return);
+                    Terminator::Return(None) => {
+                        w.instruction(&Instruction::Return);
+                    }
+                    _ => {}
                 }
-                Terminator::Return(None) => {
-                    f.instruction(&Instruction::Return);
-                }
-                _ => {}
             }
+            w.instruction(&Instruction::End);
+            w.flush();
+            w.tee_count()
+        };
+        if tee_count > 0 {
+            // Peephole applied: `tee_count` local.set/get pairs → local.tee
+            let _ = tee_count;
         }
-        f.instruction(&Instruction::End);
         codes.function(&f);
     }
 }

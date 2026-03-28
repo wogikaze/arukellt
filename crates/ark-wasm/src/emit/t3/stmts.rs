@@ -6,13 +6,14 @@
 use ark_mir::mir::*;
 use ark_typecheck::types::Type;
 use wasm_encoder::{
-    Function, HeapType, Instruction, RefType as WasmRefType, ValType,
+    HeapType, Instruction, RefType as WasmRefType, ValType,
 };
 
+use super::peephole::PeepholeWriter;
 use super::{normalize_intrinsic, ref_nullable, Ctx};
 
 impl Ctx {
-    pub(super) fn emit_stmt(&mut self, f: &mut Function, stmt: &MirStmt) {
+    pub(super) fn emit_stmt(&mut self, f: &mut PeepholeWriter<'_>, stmt: &MirStmt) {
         match stmt {
             MirStmt::Assign(Place::Local(id), Rvalue::Use(op)) => {
                 self.emit_operand(f, op);
@@ -430,7 +431,7 @@ impl Ctx {
 
     pub(super) fn emit_call_builtin(
         &mut self,
-        f: &mut Function,
+        f: &mut PeepholeWriter<'_>,
         canonical: &str,
         args: &[Operand],
         dest: Option<&Place>,
@@ -781,7 +782,7 @@ impl Ctx {
     }
 
     /// Handle builtin calls as operands (result stays on the stack).
-    pub(super) fn emit_call_builtin_operand(&mut self, f: &mut Function, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_call_builtin_operand(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
         match canonical {
             "i32_to_string" => {
                 if let Some(arg) = args.first() {
@@ -1118,7 +1119,7 @@ impl Ctx {
     }
 
     /// Emit the ? operator: evaluate expr (Result enum), extract Ok payload or early-return Err
-    pub(super) fn emit_try_expr(&mut self, f: &mut Function, expr: &Operand) {
+    pub(super) fn emit_try_expr(&mut self, f: &mut PeepholeWriter<'_>, expr: &Operand) {
         // Determine which Result enum type the expr produces
         let result_type = self.infer_operand_type(expr);
 
@@ -1220,7 +1221,7 @@ impl Ctx {
         ValType::I32 // default
     }
 
-    pub(super) fn emit_println(&mut self, f: &mut Function, arg: &Operand) {
+    pub(super) fn emit_println(&mut self, f: &mut PeepholeWriter<'_>, arg: &Operand) {
         self.emit_operand(f, arg);
         if self.is_string_like_operand(arg) {
             if let Some(idx) = self.helper_print_str_ln {
@@ -1370,7 +1371,7 @@ impl Ctx {
         }
     }
 
-    pub(super) fn emit_concat(&mut self, f: &mut Function, _args: &[Operand], dest: Option<&Place>) {
+    pub(super) fn emit_concat(&mut self, f: &mut PeepholeWriter<'_>, _args: &[Operand], dest: Option<&Place>) {
         self.emit_concat_gc(f, _args);
         if let Some(Place::Local(id)) = dest {
             f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
@@ -1634,7 +1635,7 @@ impl Ctx {
     }
 
     /// Emit unboxing instructions to convert an anyref on the stack to a concrete type.
-    pub(super) fn emit_anyref_unbox(&self, f: &mut Function, target_vt: &ValType) {
+    pub(super) fn emit_anyref_unbox(&self, f: &mut PeepholeWriter<'_>, target_vt: &ValType) {
         match target_vt {
             ValType::I32 => {
                 // anyref → ref.cast (ref i31) → i31.get_s
@@ -1655,7 +1656,7 @@ impl Ctx {
     }
 
     /// Emit a default/zero value for a given ValType (used for Unit branches in if-expressions).
-    pub(super) fn emit_default_value(&self, f: &mut Function, vt: &ValType) {
+    pub(super) fn emit_default_value(&self, f: &mut PeepholeWriter<'_>, vt: &ValType) {
         match vt {
             ValType::I32 => f.instruction(&Instruction::I32Const(0)),
             ValType::I64 => f.instruction(&Instruction::I64Const(0)),
