@@ -24,13 +24,10 @@ graph TD
   I080["080 MIR: LICM (ループ不変式移動) パス"]
   I081["081 MIR: エスケープ解析 + Scalar Replacement パス"]
   I082["082 MIR: gc_hint パス — 短命オブジェクトのパターン検出"]
-  I084["084 MIR: Strength Reduction — 乗算→シフト、除算→逆数乗算"]
   I085["085 MIR: CSE (Common Subexpression Elimination) パス"]
-  I086["086 MIR: 代数的簡略化 — 恒等式・吸収則・ド・モルガン則"]
   I087["087 MIR: 関数間インライン展開の強化 — 呼び出し回数・サイズ閾値の最適化"]
   I088["088 T3 Peephole: local.get/set 冗長ペア除去"]
   I089["089 T3: 関数型セクション重複排除 (Type Section Dedup)"]
-  I091["091 T3: 同一文字列リテラルのデータセグメント共有"]
   I092["092 T3: 未使用 WASI import の除去"]
   I093["093 T3: 定数条件 if の emit 時除去"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
@@ -39,21 +36,18 @@ graph TD
   I097["097 コンパイル速度: MIR lowering のアリーナ割り当て"]
   I098["098 コンパイル速度: 並列型チェック (rayon)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
-  I100["100 CLI: --time フラグ + フェーズ別コンパイル時間計測"]
-  I101["101 CLI: --opt-level 0/1/2 フラグ + Session 統合"]
+  I102["102 コンパイル速度: Lexer / Parser のホットパス最適化"]
   I104["104 実行時性能: GC write barrier 削減 (immutable フィールド検出)"]
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I109["109 ベンチマーク: fib / binary_tree / vec_ops / string_concat / json_parse スイート"]
   I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
+  I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
   I115["115 Wasm Name Section: デバッグ用関数名・ローカル名セクション生成"]
   I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
-  I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
-  I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I127["127 `MIRValidate` をコンパイル経路で無条件実行"]
   I128["128 T3 GC エミッター (t3_wasm_gc.rs 8678行) をサブモジュールに分割"]
   I129["129 T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割"]
   I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
@@ -73,10 +67,6 @@ graph TD
   I083["083 MIR: ループ展開 (Loop Unrolling) パス"]
   I103["103 実行時性能: 配列境界チェック除去 (Bounds Check Elimination)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
-  I102["102 コンパイル速度: Lexer / Parser のホットパス最適化"]
-  I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
-  I119["119 MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応"]
-  I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I110["110 CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
@@ -92,14 +82,9 @@ graph TD
   I074 --> I121
   I080 --> I083
   I080 --> I103
-  I091 --> I108
   I092 --> I108
   I088 --> I108
   I089 --> I108
-  I100 --> I102
-  I100 --> I113
-  I101 --> I119
-  I101 --> I122
   I109 --> I110
   I109 --> I112
   I117 --> I118
@@ -126,13 +111,10 @@ graph TD
 - **080** depends on: —; blocks: 083, 103
 - **081** depends on: —; blocks: none
 - **082** depends on: —; blocks: none
-- **084** depends on: —; blocks: none
 - **085** depends on: —; blocks: none
-- **086** depends on: —; blocks: none
 - **087** depends on: —; blocks: none
 - **088** depends on: —; blocks: 108
 - **089** depends on: —; blocks: 108
-- **091** depends on: —; blocks: 108
 - **092** depends on: —; blocks: 108
 - **093** depends on: —; blocks: none
 - **094** depends on: —; blocks: none
@@ -141,21 +123,18 @@ graph TD
 - **097** depends on: —; blocks: none
 - **098** depends on: —; blocks: none
 - **099** depends on: —; blocks: none
-- **100** depends on: —; blocks: 102, 113
-- **101** depends on: —; blocks: 119, 122
+- **102** depends on: 100; blocks: none
 - **104** depends on: —; blocks: none
 - **105** depends on: —; blocks: none
 - **106** depends on: —; blocks: none
 - **109** depends on: —; blocks: 110, 112
 - **111** depends on: —; blocks: none
+- **113** depends on: 100; blocks: none
 - **115** depends on: —; blocks: none
 - **116** depends on: 114; blocks: none
 - **117** depends on: —; blocks: 118
-- **120** depends on: —; blocks: none
-- **123** depends on: none; blocks: none
 - **124** depends on: 074 (wasi-p2-native-component); blocks: none
 - **125** depends on: —; blocks: 126
-- **127** depends on: —; blocks: none
 - **128** depends on: —; blocks: none
 - **129** depends on: —; blocks: none
 - **130** depends on: —; blocks: none
@@ -175,10 +154,6 @@ graph TD
 - **083** depends on: 080; blocks: none
 - **103** depends on: 080; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
-- **102** depends on: 100; blocks: none
-- **113** depends on: 100; blocks: none
-- **119** depends on: 101; blocks: none
-- **122** depends on: 101; blocks: none
 - **110** depends on: 109; blocks: none
 - **112** depends on: 109; blocks: none
 - **118** depends on: 117; blocks: none
