@@ -5,6 +5,7 @@
 
 mod wit;
 pub mod canonical_abi;
+pub mod handle_table;
 pub mod wit_parse;
 pub mod wrap;
 

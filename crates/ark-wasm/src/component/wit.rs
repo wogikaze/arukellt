@@ -182,6 +182,14 @@ pub fn generate_wit(world: &WitWorld) -> Result<String, WitError> {
         writeln!(out).unwrap();
     }
 
+    // Resource declarations
+    for res_name in &world.resources {
+        writeln!(out, "resource {};", to_kebab_case(res_name)).unwrap();
+    }
+    if !world.resources.is_empty() {
+        writeln!(out).unwrap();
+    }
+
     writeln!(out, "world {} {{", to_kebab_case(&world.name)).unwrap();
 
     // Import declarations
@@ -342,5 +350,50 @@ mod tests {
             err: Some(Box::new(WitType::StringType)),
         };
         assert_eq!(rt.to_wit(), "result<s32, string>");
+    }
+
+    #[test]
+    fn test_resource_wit_generation() {
+        let world = WitWorld {
+            name: "storage".to_string(),
+            functions: vec![
+                WitFunction {
+                    name: "open".to_string(),
+                    params: vec![("path".to_string(), WitType::StringType)],
+                    result: Some(WitType::Own(Box::new(WitType::Resource(
+                        "file".to_string(),
+                    )))),
+                },
+                WitFunction {
+                    name: "read".to_string(),
+                    params: vec![(
+                        "f".to_string(),
+                        WitType::Borrow(Box::new(WitType::Resource("file".to_string()))),
+                    )],
+                    result: Some(WitType::StringType),
+                },
+            ],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec!["file".to_string()],
+        };
+        let wit = generate_wit(&world).unwrap();
+        assert!(wit.contains("resource file;"));
+        assert!(wit.contains("own<file>"));
+        assert!(wit.contains("borrow<file>"));
+    }
+
+    #[test]
+    fn test_own_borrow_wit_types() {
+        assert_eq!(
+            WitType::Own(Box::new(WitType::Resource("conn".to_string()))).to_wit(),
+            "own<conn>"
+        );
+        assert_eq!(
+            WitType::Borrow(Box::new(WitType::Resource("conn".to_string()))).to_wit(),
+            "borrow<conn>"
+        );
     }
 }
