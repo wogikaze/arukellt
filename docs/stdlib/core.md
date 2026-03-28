@@ -10,7 +10,6 @@
 - String → [modules/text.md](modules/text.md)
 - 安定性ラベル付き全 API → [reference.md](reference.md)
 
-
 現在よく使う公開面:
 
 ```ark

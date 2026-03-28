@@ -8,7 +8,6 @@
 - fs / path / process / random / time → [modules/io.md](modules/io.md)
 - 安定性ラベル付き全 API → [reference.md](reference.md)
 
-
 > このページは **現在の実装** に合わせた要約です。より広い capability 設計は `docs/platform/wasi-resource-model.md` を参照してください。
 
 現行実装で end-to-end に使える I/O は、薄い wrapper 経由の次の API です。

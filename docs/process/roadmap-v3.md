@@ -110,6 +110,7 @@ std.md §7 に基づく採用判断 (v3 スコープ):
 `use std::text::string` の解析は `ark-resolve` に追加する (#039)。v3 では `std::*` 組み込みモジュールのみサポート。ユーザー定義モジュール (別ファイル分割) は v4 以降。
 
 **正準 import 例** (std.md §5.1):
+
 ```ark
 use std::text::string
 use std::bytes
