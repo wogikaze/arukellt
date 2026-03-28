@@ -294,6 +294,13 @@ else
     check_skip "component interop (opt-in)"
 fi
 
+# ── WAT roundtrip verification ────────────────────────────────────────────────
+if [ "$QUICK_MODE" = true ]; then
+    check_skip "WAT roundtrip (quick mode)"
+else
+    run_check "WAT roundtrip (wasm2wat ⇄ wat2wasm)" "bash scripts/wat-roundtrip.sh"
+fi
+
 # ── Performance gate (opt-in) ─────────────────────────────────────────────────
 if [ "$PERF_GATE" = true ]; then
     printf '\n%s\n' "${YELLOW}[perf] Running performance regression gate...${NC}"
