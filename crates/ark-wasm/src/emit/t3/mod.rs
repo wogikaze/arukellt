@@ -15,6 +15,7 @@
 #![allow(dead_code)]
 
 mod helpers;
+mod layout_opt;
 mod operands;
 mod peephole;
 mod reachability;
@@ -382,6 +383,9 @@ struct Ctx {
     string_intern_globals: HashMap<String, u32>,
     /// Number of interned-string globals emitted (used for index allocation).
     string_intern_count: u32,
+    /// Struct field reorder map (opt_level >= 2): struct_name → permutation
+    /// where perm[old_idx] = new_idx.
+    field_remap: HashMap<String, Vec<usize>>,
 }
 
 impl Ctx {
@@ -698,6 +702,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         opt_level,
         string_intern_globals: HashMap::new(),
         string_intern_count: 0,
+        field_remap: HashMap::new(),
     };
     ctx.emit_module(mir)
 }
@@ -707,6 +712,23 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
 impl Ctx {
     pub(super) fn emit_module(&mut self, mir: &MirModule) -> Vec<u8> {
         let reachable_user_indices = self.reachable_function_indices(mir);
+
+        // Struct field layout optimization (opt_level >= 2): reorder fields
+        // by access frequency so hot fields get lower Wasm GC indices.
+        if self.opt_level >= 2 {
+            let remap = layout_opt::compute_field_reorder(
+                mir,
+                &reachable_user_indices,
+                &mir.type_table.struct_defs,
+            );
+            for (sname, perm) in &remap {
+                if let Some(layout) = self.struct_layouts.get(sname) {
+                    let reordered = layout_opt::reorder_layout(layout, perm);
+                    self.struct_layouts.insert(sname.clone(), reordered);
+                }
+            }
+            self.field_remap = remap;
+        }
 
         // Scan MIR to determine which WASI imports are needed
         let needs_fs = Self::mir_uses_fs(mir, &reachable_user_indices);

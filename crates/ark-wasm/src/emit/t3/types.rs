@@ -413,7 +413,16 @@ impl Ctx {
             topo_visit(sname, struct_defs, &mut visited, &mut sorted_structs);
         }
         for sname in &sorted_structs {
-            let fields = &struct_defs[*sname];
+            // Use self.struct_layouts (which may be reordered by layout_opt)
+            // for field iteration order when available.
+            let fields_from_layout;
+            let fields: &[(String, String)] =
+                if let Some(l) = self.struct_layouts.get(*sname) {
+                    fields_from_layout = l.clone();
+                    &fields_from_layout
+                } else {
+                    &struct_defs[*sname]
+                };
             let gc_fields: Vec<FieldType> = fields
                 .iter()
                 .map(|(fname, ty)| {
