@@ -13,6 +13,12 @@ pub struct WitFunction {
 /// WIT type mapping from Arukellt types.
 #[derive(Debug, Clone, PartialEq)]
 pub enum WitType {
+    U8,
+    U16,
+    U32,
+    U64,
+    S8,
+    S16,
     S32,
     S64,
     F32,
@@ -30,6 +36,12 @@ pub enum WitType {
     Enum(String),
     Variant(String),
     Tuple(Vec<WitType>),
+    /// Resource type reference (name only)
+    Resource(String),
+    /// Owned handle: `own<T>`
+    Own(Box<WitType>),
+    /// Borrowed handle: `borrow<T>`
+    Borrow(Box<WitType>),
 }
 
 /// A named record definition for WIT generation.
@@ -57,10 +69,15 @@ pub struct WitVariant {
 #[derive(Debug, Clone, Default)]
 pub struct WitWorld {
     pub name: String,
+    /// Exported functions
     pub functions: Vec<WitFunction>,
+    /// Imported functions (from WIT host interfaces)
+    pub imports: Vec<WitFunction>,
     pub records: Vec<WitRecord>,
     pub enums: Vec<WitEnum>,
     pub variants: Vec<WitVariant>,
+    /// Resource type names
+    pub resources: Vec<String>,
 }
 
 /// Errors during WIT generation.
@@ -88,6 +105,12 @@ impl WitType {
     /// Convert to WIT type string.
     pub fn to_wit(&self) -> String {
         match self {
+            WitType::U8 => "u8".to_string(),
+            WitType::U16 => "u16".to_string(),
+            WitType::U32 => "u32".to_string(),
+            WitType::U64 => "u64".to_string(),
+            WitType::S8 => "s8".to_string(),
+            WitType::S16 => "s16".to_string(),
             WitType::S32 => "s32".to_string(),
             WitType::S64 => "s64".to_string(),
             WitType::F32 => "f32".to_string(),
@@ -106,6 +129,9 @@ impl WitType {
             WitType::Record(name) | WitType::Enum(name) | WitType::Variant(name) => {
                 to_kebab_case(name)
             }
+            WitType::Resource(name) => to_kebab_case(name),
+            WitType::Own(inner) => format!("own<{}>", inner.to_wit()),
+            WitType::Borrow(inner) => format!("borrow<{}>", inner.to_wit()),
             WitType::Tuple(elems) => {
                 let parts: Vec<_> = elems.iter().map(|e| e.to_wit()).collect();
                 format!("tuple<{}>", parts.join(", "))
@@ -157,6 +183,38 @@ pub fn generate_wit(world: &WitWorld) -> Result<String, WitError> {
     }
 
     writeln!(out, "world {} {{", to_kebab_case(&world.name)).unwrap();
+
+    // Import declarations
+    for func in &world.imports {
+        let params: Vec<String> = func
+            .params
+            .iter()
+            .map(|(n, t)| format!("{}: {}", to_kebab_case(n), t.to_wit()))
+            .collect();
+        match &func.result {
+            Some(ret) => {
+                writeln!(
+                    out,
+                    "    import {}: func({}) -> {};",
+                    to_kebab_case(&func.name),
+                    params.join(", "),
+                    ret.to_wit()
+                )
+                .unwrap();
+            }
+            None => {
+                writeln!(
+                    out,
+                    "    import {}: func({});",
+                    to_kebab_case(&func.name),
+                    params.join(", ")
+                )
+                .unwrap();
+            }
+        }
+    }
+
+    // Export declarations
     for func in &world.functions {
         let params: Vec<String> = func
             .params
@@ -221,9 +279,11 @@ mod tests {
                 params: vec![("name".to_string(), WitType::StringType)],
                 result: Some(WitType::StringType),
             }],
+            imports: vec![],
             records: vec![],
             enums: vec![],
             variants: vec![],
+            resources: vec![],
         };
         let wit = generate_wit(&world).unwrap();
         assert!(wit.contains("package arukellt:app;"));
@@ -251,6 +311,7 @@ mod tests {
         let world = WitWorld {
             name: "shapes".to_string(),
             functions: vec![],
+            imports: vec![],
             records: vec![WitRecord {
                 name: "Point".to_string(),
                 fields: vec![
@@ -260,6 +321,7 @@ mod tests {
             }],
             enums: vec![],
             variants: vec![],
+            resources: vec![],
         };
         let wit = generate_wit(&world).unwrap();
         assert!(wit.contains("record point {"));

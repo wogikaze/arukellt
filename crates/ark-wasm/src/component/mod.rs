@@ -4,10 +4,12 @@
 //! public API surface. Component wrapping uses external `wasm-tools`.
 
 mod wit;
+pub mod wit_parse;
 
 pub use wit::{
     WitEnum, WitError, WitFunction, WitRecord, WitType, WitVariant, WitWorld, generate_wit,
 };
+pub use wit_parse::{WitDocument, WitInterface, WitParseError, parse_wit, wit_interface_to_mir_imports};
 
 use ark_mir::mir::MirModule;
 use ark_typecheck::types::Type;
@@ -20,10 +22,30 @@ pub fn mir_to_wit_world(mir: &MirModule, world_name: &str) -> Result<WitWorld, W
     let mut world = WitWorld {
         name: world_name.to_string(),
         functions: Vec::new(),
+        imports: Vec::new(),
         records: Vec::new(),
         enums: Vec::new(),
         variants: Vec::new(),
+        resources: Vec::new(),
     };
+
+    // Populate imports from MIR
+    for imp in &mir.imports {
+        let params: Vec<(String, WitType)> = imp
+            .param_types
+            .iter()
+            .enumerate()
+            .filter_map(|(i, ty)| {
+                wit_type_name_to_wit(ty).map(|wt| (format!("p{}", i), wt))
+            })
+            .collect();
+        let result = imp.return_type.as_ref().and_then(|ty| wit_type_name_to_wit(ty));
+        world.imports.push(WitFunction {
+            name: imp.name.clone(),
+            params,
+            result,
+        });
+    }
 
     // Convert struct definitions to WIT records (from type table)
     for (name, fields) in &mir.type_table.struct_defs {
@@ -183,6 +205,36 @@ fn type_name_to_wit(name: &str) -> Option<WitType> {
                 type_name_to_wit(inner).map(|t| WitType::Option(Box::new(t)))
             } else {
                 // Named struct/enum — assume record
+                Some(WitType::Record(other.to_string()))
+            }
+        }
+    }
+}
+
+/// Convert a WIT type name string (e.g., "s32", "string") to a WitType.
+fn wit_type_name_to_wit(name: &str) -> Option<WitType> {
+    match name {
+        "u8" => Some(WitType::U8),
+        "u16" => Some(WitType::U16),
+        "u32" => Some(WitType::U32),
+        "u64" => Some(WitType::U64),
+        "s8" => Some(WitType::S8),
+        "s16" => Some(WitType::S16),
+        "s32" => Some(WitType::S32),
+        "s64" => Some(WitType::S64),
+        "f32" => Some(WitType::F32),
+        "f64" => Some(WitType::F64),
+        "bool" => Some(WitType::Bool),
+        "char" => Some(WitType::Char),
+        "string" => Some(WitType::StringType),
+        other => {
+            if let Some(inner) = other.strip_prefix("list<").and_then(|s| s.strip_suffix('>')) {
+                wit_type_name_to_wit(inner).map(|t| WitType::List(Box::new(t)))
+            } else if let Some(inner) =
+                other.strip_prefix("option<").and_then(|s| s.strip_suffix('>'))
+            {
+                wit_type_name_to_wit(inner).map(|t| WitType::Option(Box::new(t)))
+            } else {
                 Some(WitType::Record(other.to_string()))
             }
         }

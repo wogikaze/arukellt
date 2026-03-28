@@ -196,6 +196,19 @@ pub struct TypeTable {
     pub fn_sigs: HashMap<String, MirFnSig>,
 }
 
+/// A WIT-derived import declaration for Component Model support.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MirImport {
+    /// WIT interface name (e.g., "wasi:cli/stdout@0.2.0")
+    pub interface: String,
+    /// Function name within the interface
+    pub name: String,
+    /// Parameter type names (WIT type strings)
+    pub param_types: Vec<String>,
+    /// Return type name (WIT type string), None for void
+    pub return_type: Option<String>,
+}
+
 /// A MIR module (after monomorphization).
 #[derive(Debug, Clone)]
 pub struct MirModule {
@@ -207,6 +220,8 @@ pub struct MirModule {
     pub struct_defs: HashMap<String, Vec<(String, String)>>,
     /// Enum variant types: enum_name -> vec of (variant_name, vec of payload type names)
     pub enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
+    /// WIT-derived imports for Component Model
+    pub imports: Vec<MirImport>,
     pub source_map: MirSourceMap,
     pub stats: MirStats,
 }
@@ -903,6 +918,7 @@ impl MirModule {
             type_table: TypeTable::default(),
             struct_defs: HashMap::new(),
             enum_defs: HashMap::new(),
+            imports: Vec::new(),
             source_map: MirSourceMap::default(),
             stats: MirStats::default(),
         }
