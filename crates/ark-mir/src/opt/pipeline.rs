@@ -236,6 +236,15 @@ fn optimize_module_with_passes(
         crate::mir::dump_mir_phase(module, "pre-opt");
     }
 
+    // ── Module-level inter-function inline (#087) ──
+    // Inline small leaf functions (≤ 20 stmts, called ≤ 3 times) into callers.
+    if passes.contains(&OptimizationPass::InlineSmallLeaf) {
+        let inlined = inter_function_inline(module, 20, 3);
+        if inlined > 0 && should_dump {
+            crate::mir::dump_mir_phase(module, "after-inter-fn-inline");
+        }
+    }
+
     let mut total = OptimizationSummary::default();
     module.stats.optimization_trace.clear();
 
@@ -1409,6 +1418,146 @@ fn remap_stmt_fn_ids(stmt: &mut MirStmt, map: &std::collections::HashMap<u32, u3
                 remap_stmt_fn_ids(s, map);
             }
         }
+        _ => {}
+    }
+}
+
+/// Inter-function inlining: substitute small function bodies at call sites.
+/// `max_stmts`: maximum statement count for inlining candidate.
+/// `max_calls`: maximum number of call sites for a candidate to be inlined.
+/// Returns the number of inlining substitutions performed.
+fn inter_function_inline(module: &mut MirModule, max_stmts: usize, max_calls: usize) -> usize {
+    use std::collections::HashMap;
+
+    // Phase 1: Identify inline candidates — small non-recursive leaf functions.
+    let mut candidates: HashMap<String, usize> = HashMap::new(); // name → fn index
+    for (idx, func) in module.functions.iter().enumerate() {
+        let total_stmts: usize = func.blocks.iter().map(|b| b.stmts.len()).sum();
+        if total_stmts > max_stmts || total_stmts == 0 {
+            continue;
+        }
+        // Skip if it calls itself (recursive)
+        let self_name = &func.name;
+        let mut is_recursive = false;
+        for block in &func.blocks {
+            for stmt in &block.stmts {
+                if let MirStmt::Call { func: fn_id, .. } = stmt {
+                    if module.functions.get(fn_id.0 as usize).map(|f| &f.name) == Some(self_name) {
+                        is_recursive = true;
+                    }
+                }
+                if let MirStmt::CallBuiltin { name, .. } = stmt {
+                    if name == self_name {
+                        is_recursive = true;
+                    }
+                }
+            }
+        }
+        if is_recursive {
+            continue;
+        }
+        candidates.insert(func.name.clone(), idx);
+    }
+
+    if candidates.is_empty() {
+        return 0;
+    }
+
+    // Phase 2: Count call sites per candidate.
+    let mut call_counts: HashMap<String, usize> = HashMap::new();
+    for func in &module.functions {
+        for block in &func.blocks {
+            for stmt in &block.stmts {
+                if let MirStmt::CallBuiltin { name, .. } = stmt {
+                    if candidates.contains_key(name) {
+                        *call_counts.entry(name.clone()).or_default() += 1;
+                    }
+                }
+            }
+            count_operand_calls(&block.terminator, &candidates, &mut call_counts);
+        }
+    }
+
+    // Filter to candidates called ≤ max_calls times
+    candidates.retain(|name, _| call_counts.get(name).copied().unwrap_or(0) <= max_calls);
+
+    if candidates.is_empty() {
+        return 0;
+    }
+
+    // Phase 3: Record candidate bodies (we need clones since we'll modify module).
+    let candidate_bodies: HashMap<String, Vec<MirStmt>> = candidates
+        .iter()
+        .filter_map(|(name, &idx)| {
+            let func = &module.functions[idx];
+            if func.blocks.len() == 1 {
+                Some((name.clone(), func.blocks[0].stmts.clone()))
+            } else {
+                None // Only inline single-block functions for safety
+            }
+        })
+        .collect();
+
+    // Phase 4: Substitute at call sites.
+    let mut total_inlined = 0usize;
+    for func in &mut module.functions {
+        for block in &mut func.blocks {
+            let mut i = 0;
+            while i < block.stmts.len() {
+                if let MirStmt::CallBuiltin { name, .. } = &block.stmts[i] {
+                    if let Some(body) = candidate_bodies.get(name) {
+                        // Replace CallBuiltin with the candidate's body
+                        block.stmts.splice(i..=i, body.iter().cloned());
+                        total_inlined += 1;
+                        i += body.len();
+                        continue;
+                    }
+                }
+                i += 1;
+            }
+        }
+    }
+
+    total_inlined
+}
+
+fn count_operand_calls(
+    terminator: &Terminator,
+    candidates: &std::collections::HashMap<String, usize>,
+    counts: &mut std::collections::HashMap<String, usize>,
+) {
+    match terminator {
+        Terminator::Return(Some(op)) => count_op_calls(op, candidates, counts),
+        Terminator::If { cond, .. } => count_op_calls(cond, candidates, counts),
+        Terminator::Switch { scrutinee, .. } => count_op_calls(scrutinee, candidates, counts),
+        _ => {}
+    }
+}
+
+fn count_op_calls(
+    op: &Operand,
+    candidates: &std::collections::HashMap<String, usize>,
+    counts: &mut std::collections::HashMap<String, usize>,
+) {
+    match op {
+        Operand::Call(name, args) => {
+            if candidates.contains_key(name) {
+                *counts.entry(name.clone()).or_default() += 1;
+            }
+            for a in args {
+                count_op_calls(a, candidates, counts);
+            }
+        }
+        Operand::IfExpr { cond, then_result, else_result, .. } => {
+            count_op_calls(cond, candidates, counts);
+            if let Some(r) = then_result { count_op_calls(r, candidates, counts); }
+            if let Some(r) = else_result { count_op_calls(r, candidates, counts); }
+        }
+        Operand::BinOp(_, a, b) => {
+            count_op_calls(a, candidates, counts);
+            count_op_calls(b, candidates, counts);
+        }
+        Operand::UnaryOp(_, a) => count_op_calls(a, candidates, counts),
         _ => {}
     }
 }
