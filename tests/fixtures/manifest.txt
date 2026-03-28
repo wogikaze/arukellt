@@ -429,3 +429,9 @@ run:stdlib_seq/seq_basic.ark
 run:stdlib_wasm/wasm_basic.ark
 run:stdlib_wit/wit_basic.ark
 run:stdlib_json/json_basic.ark
+
+# Benchmark suite (in benchmarks/ directory, not test fixtures)
+bench:../../benchmarks/fib.ark
+bench:../../benchmarks/binary_tree.ark
+bench:../../benchmarks/vec_ops.ark
+bench:../../benchmarks/string_concat.ark
