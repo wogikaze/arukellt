@@ -3,6 +3,7 @@ pub mod escape_analysis;
 pub mod loop_unroll;
 pub mod gc_hint;
 pub mod pipeline;
+pub mod type_narrowing;
 
 pub use pipeline::{
     OptimizationPass, OptimizationSummary, default_pass_order, eliminate_dead_functions, find_pass,

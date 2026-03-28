@@ -28,6 +28,7 @@ pub enum OptimizationPass {
     GcHint,
     BoundsCheckElim,
     EscapeAnalysis,
+    TypeNarrowing,
 }
 
 impl OptimizationPass {
@@ -51,6 +52,7 @@ impl OptimizationPass {
             Self::GcHint => "gc_hint",
             Self::BoundsCheckElim => "bounds_check_elim",
             Self::EscapeAnalysis => "escape_analysis",
+            Self::TypeNarrowing => "type_narrowing",
         }
     }
 }
@@ -62,6 +64,7 @@ pub const DEFAULT_PASS_ORDER: &[OptimizationPass] = &[
     OptimizationPass::LoopUnroll,
     OptimizationPass::CopyProp,
     OptimizationPass::ConstProp,
+    OptimizationPass::TypeNarrowing,
     OptimizationPass::EscapeAnalysis,
     OptimizationPass::BoundsCheckElim,
     OptimizationPass::DeadLocalElim,
@@ -97,6 +100,7 @@ pub struct OptimizationSummary {
     pub gc_hinted: usize,
     pub bounds_checks_eliminated: usize,
     pub scalar_replaced: usize,
+    pub types_narrowed: usize,
 }
 
 impl OptimizationSummary {
@@ -119,6 +123,7 @@ impl OptimizationSummary {
             || self.gc_hinted > 0
             || self.bounds_checks_eliminated > 0
             || self.scalar_replaced > 0
+            || self.types_narrowed > 0
     }
 
     fn absorb(&mut self, other: OptimizationSummary) {
@@ -140,6 +145,7 @@ impl OptimizationSummary {
         self.gc_hinted += other.gc_hinted;
         self.bounds_checks_eliminated += other.bounds_checks_eliminated;
         self.scalar_replaced += other.scalar_replaced;
+        self.types_narrowed += other.types_narrowed;
     }
 }
 
@@ -320,6 +326,7 @@ fn run_pass(function: &mut MirFunction, pass: OptimizationPass) -> OptimizationS
         OptimizationPass::GcHint => super::gc_hint::gc_hint_pass_inner(function),
         OptimizationPass::BoundsCheckElim => super::bounds_check_elim::bounds_check_elim(function),
         OptimizationPass::EscapeAnalysis => super::escape_analysis::escape_analysis_pass(function),
+        OptimizationPass::TypeNarrowing => super::type_narrowing::type_narrowing(function),
     }
 }
 
