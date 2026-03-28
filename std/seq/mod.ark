@@ -1,0 +1,125 @@
+// std::seq — Sequence operations (i32 monomorphic)
+//
+// Eager sequence operations on Vec<i32>.
+// Lazy sequences and closure-based map/filter deferred to v4 (requires closures).
+// Current: provides binary_search, min, max, sum, reverse, contains, unique, count.
+
+pub fn binary_search(v: Vec<i32>, target: i32) -> i32 {
+    let mut lo: i32 = 0
+    let mut hi: i32 = len(v)
+    let mut result: i32 = 0 - 1
+    while lo < hi {
+        let mid: i32 = (lo + hi) / 2
+        let val: i32 = get_unchecked(v, mid)
+        if val == target {
+            result = mid
+            lo = hi
+        } else {
+            if val < target {
+                lo = mid + 1
+            } else {
+                hi = mid
+            }
+        }
+    }
+    result
+}
+
+pub fn min_i32(v: Vec<i32>) -> i32 {
+    let n: i32 = len(v)
+    let mut result: i32 = get_unchecked(v, 0)
+    let mut i: i32 = 1
+    while i < n {
+        let val: i32 = get_unchecked(v, i)
+        if val < result {
+            result = val
+        }
+        i = i + 1
+    }
+    result
+}
+
+pub fn max_i32(v: Vec<i32>) -> i32 {
+    let n: i32 = len(v)
+    let mut result: i32 = get_unchecked(v, 0)
+    let mut i: i32 = 1
+    while i < n {
+        let val: i32 = get_unchecked(v, i)
+        if val > result {
+            result = val
+        }
+        i = i + 1
+    }
+    result
+}
+
+pub fn sum_i32(v: Vec<i32>) -> i32 {
+    let n: i32 = len(v)
+    let mut total: i32 = 0
+    let mut i: i32 = 0
+    while i < n {
+        total = total + get_unchecked(v, i)
+        i = i + 1
+    }
+    total
+}
+
+pub fn seq_reverse(v: Vec<i32>) -> Vec<i32> {
+    let n: i32 = len(v)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = n - 1
+    while i >= 0 {
+        push(result, get_unchecked(v, i))
+        i = i - 1
+    }
+    result
+}
+
+pub fn seq_contains(v: Vec<i32>, target: i32) -> bool {
+    let n: i32 = len(v)
+    let mut i: i32 = 0
+    let mut found: bool = false
+    while i < n {
+        if get_unchecked(v, i) == target {
+            found = true
+        }
+        i = i + 1
+    }
+    found
+}
+
+pub fn unique(v: Vec<i32>) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let n: i32 = len(v)
+    let mut i: i32 = 0
+    while i < n {
+        let val: i32 = get_unchecked(v, i)
+        let mut found: bool = false
+        let rn: i32 = len(result)
+        let mut j: i32 = 0
+        while j < rn {
+            if get_unchecked(result, j) == val {
+                found = true
+            }
+            j = j + 1
+        }
+        if found == false {
+            push(result, val)
+        }
+        i = i + 1
+    }
+    result
+}
+
+pub fn count_eq(v: Vec<i32>, target: i32) -> i32 {
+    let n: i32 = len(v)
+    let mut count: i32 = 0
+    let mut i: i32 = 0
+    while i < n {
+        if get_unchecked(v, i) == target {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}

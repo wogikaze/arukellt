@@ -1,0 +1,34 @@
+use std::bytes
+
+fn main() {
+    // bytes_new and push
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 72)
+    bytes::bytes_push(b, 101)
+    bytes::bytes_push(b, 108)
+    println(i32_to_string(bytes::bytes_len(b)))
+    println(i32_to_string(bytes::bytes_get(b, 0)))
+
+    // hex encode
+    let h: String = bytes::hex_encode(b)
+    println(h)
+
+    // hex decode roundtrip
+    let decoded: Vec<i32> = bytes::hex_decode("48656c")
+    println(i32_to_string(bytes::bytes_len(decoded)))
+    println(i32_to_string(bytes::bytes_get(decoded, 0)))
+
+    // leb128 encode u32
+    let leb: Vec<i32> = bytes::leb128_encode_u32(624485)
+    println(i32_to_string(bytes::bytes_len(leb)))
+    println(i32_to_string(bytes::bytes_get(leb, 0)))
+    println(i32_to_string(bytes::bytes_get(leb, 1)))
+    println(i32_to_string(bytes::bytes_get(leb, 2)))
+
+    // endian u32 LE
+    let le: Vec<i32> = bytes::u32_to_le_bytes(305419896)
+    println(i32_to_string(bytes::bytes_get(le, 0)))
+    println(i32_to_string(bytes::bytes_get(le, 1)))
+    let rt: i32 = bytes::u32_from_le_bytes(le)
+    println(i32_to_string(rt))
+}

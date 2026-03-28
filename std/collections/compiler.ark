@@ -1,0 +1,28 @@
+// std::collections::compiler — Compiler-oriented data structures (Experimental)
+//
+// Arena allocator, SlotMap, Interner — API may change in v4.
+// Current: minimal stubs backed by Vec<i32>.
+
+// --- Arena (bump allocator) ---
+
+pub fn arena_new() -> Vec<i32> {
+    // Layout: [count, ...values]
+    let a: Vec<i32> = Vec_new_i32()
+    push(a, 0)
+    a
+}
+
+pub fn arena_alloc(a: Vec<i32>, val: i32) -> i32 {
+    let idx: i32 = get_unchecked(a, 0)
+    push(a, val)
+    set(a, 0, idx + 1)
+    idx
+}
+
+pub fn arena_get(a: Vec<i32>, idx: i32) -> i32 {
+    get_unchecked(a, 1 + idx)
+}
+
+pub fn arena_len(a: Vec<i32>) -> i32 {
+    get_unchecked(a, 0)
+}

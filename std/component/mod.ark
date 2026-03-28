@@ -1,0 +1,6 @@
+// std::component — Component Model utilities (Experimental)
+//
+// Canonical ABI helper types. Full implementation deferred to v4.
+
+pub fn canonical_abi_version() -> i32 { 1 }
+pub fn component_model_version() -> String { "0.2.0" }

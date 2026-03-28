@@ -420,3 +420,12 @@ run:stdlib_env/env_basic.ark
 run:stdlib_cli/cli_basic.ark
 run:stdlib_path/path_basic.ark
 run:stdlib_io2/io_basic.ark
+run:stdlib_bytes/bytes_basic.ark
+run:stdlib_hash/hash_basic.ark
+run:stdlib_linear/linear_basic.ark
+run:stdlib_ordered/ordered_basic.ark
+run:stdlib_compiler/compiler_basic.ark
+run:stdlib_seq/seq_basic.ark
+run:stdlib_wasm/wasm_basic.ark
+run:stdlib_wit/wit_basic.ark
+run:stdlib_json/json_basic.ark

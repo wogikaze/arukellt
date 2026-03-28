@@ -4292,6 +4292,17 @@ fn is_void_expr(expr: &ast::Expr) -> bool {
                         // std::process
                         | "exit"
                         | "abort"
+                        // std::collections
+                        | "hashmap_set"
+                        | "deque_push_back"
+                        | "deque_push_front"
+                        | "sorted_map_insert"
+                        | "bitset_set"
+                        | "bitset_mark"
+                        | "bitset_unmark"
+                        | "bitset_clear"
+                        | "pq_push"
+                        | "bytes_push"
                 )
             } else {
                 false

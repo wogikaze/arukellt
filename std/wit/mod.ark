@@ -1,0 +1,36 @@
+// std::wit — WIT type definitions (Experimental)
+//
+// Mirrors WIT primitive types as constants.
+// Full WIT parser and type mapping deferred to v4.
+
+pub fn wit_type_bool() -> i32 { 1 }
+pub fn wit_type_u8() -> i32 { 2 }
+pub fn wit_type_u16() -> i32 { 3 }
+pub fn wit_type_u32() -> i32 { 4 }
+pub fn wit_type_u64() -> i32 { 5 }
+pub fn wit_type_s8() -> i32 { 6 }
+pub fn wit_type_s16() -> i32 { 7 }
+pub fn wit_type_s32() -> i32 { 8 }
+pub fn wit_type_s64() -> i32 { 9 }
+pub fn wit_type_f32() -> i32 { 10 }
+pub fn wit_type_f64() -> i32 { 11 }
+pub fn wit_type_char() -> i32 { 12 }
+pub fn wit_type_string() -> i32 { 13 }
+
+pub fn wit_type_name(ty: i32) -> String {
+    if ty == 1 { "bool" }
+    else { if ty == 2 { "u8" }
+    else { if ty == 3 { "u16" }
+    else { if ty == 4 { "u32" }
+    else { if ty == 5 { "u64" }
+    else { if ty == 6 { "s8" }
+    else { if ty == 7 { "s16" }
+    else { if ty == 8 { "s32" }
+    else { if ty == 9 { "s64" }
+    else { if ty == 10 { "f32" }
+    else { if ty == 11 { "f64" }
+    else { if ty == 12 { "char" }
+    else { if ty == 13 { "string" }
+    else { "unknown"
+    } } } } } } } } } } } } }
+}

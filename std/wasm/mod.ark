@@ -1,0 +1,41 @@
+// std::wasm — Wasm types and module builder (Experimental)
+//
+// API may change in v4. Basic Wasm opcode constants and LEB128 utilities.
+// Full module builder deferred until std::bytes is stabilized.
+
+pub fn wasm_magic() -> Vec<i32> {
+    let b: Vec<i32> = Vec_new_i32()
+    push(b, 0)
+    push(b, 97)
+    push(b, 115)
+    push(b, 109)
+    b
+}
+
+pub fn wasm_version() -> Vec<i32> {
+    let b: Vec<i32> = Vec_new_i32()
+    push(b, 1)
+    push(b, 0)
+    push(b, 0)
+    push(b, 0)
+    b
+}
+
+// Section IDs
+pub fn section_type() -> i32 { 1 }
+pub fn section_import() -> i32 { 2 }
+pub fn section_function() -> i32 { 3 }
+pub fn section_table() -> i32 { 4 }
+pub fn section_memory() -> i32 { 5 }
+pub fn section_global() -> i32 { 6 }
+pub fn section_export() -> i32 { 7 }
+pub fn section_start() -> i32 { 8 }
+pub fn section_element() -> i32 { 9 }
+pub fn section_code() -> i32 { 10 }
+pub fn section_data() -> i32 { 11 }
+
+// Value types
+pub fn valtype_i32() -> i32 { 127 }
+pub fn valtype_i64() -> i32 { 126 }
+pub fn valtype_f32() -> i32 { 125 }
+pub fn valtype_f64() -> i32 { 124 }

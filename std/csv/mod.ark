@@ -1,0 +1,7 @@
+// std::csv — CSV RFC 4180 parser (Experimental)
+//
+// Minimal CSV line splitting. Full RFC 4180 with quoting deferred to v4.
+
+pub fn csv_split_line(line: String) -> Vec<String> {
+    split(line, String_from(","))
+}

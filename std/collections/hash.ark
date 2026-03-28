@@ -1,0 +1,115 @@
+// std::collections::hash — HashMap and HashSet (monomorphic i32 keys)
+//
+// Uses open addressing with linear probing.
+// HashMap_i32_i32: maps i32 keys to i32 values
+// HashMap_String_i32: maps String keys to i32 values
+// Generic HashMap<K,V> deferred to v4 (requires generics).
+//
+// Representation: parallel arrays (keys, values, occupied flags).
+// Default capacity: 16, load factor threshold: 0.75.
+
+pub fn hashmap_new() -> Vec<i32> {
+    // Layout: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
+    // Stored as a flat Vec<i32>
+    let cap: i32 = 16
+    let m: Vec<i32> = Vec_new_i32()
+    push(m, cap)
+    push(m, 0)
+    // keys, values, flags (all zeroed via push)
+    let mut i: i32 = 0
+    while i < cap * 3 {
+        push(m, 0)
+        i = i + 1
+    }
+    m
+}
+
+pub fn hash_i32(key: i32) -> i32 {
+    // Simple hash: multiply by prime
+    let h: i32 = key * 1000003
+    if h < 0 { 0 - h } else { h }
+}
+
+pub fn hashmap_get(m: Vec<i32>, key: i32) -> i32 {
+    let cap: i32 = get_unchecked(m, 0)
+    let h: i32 = hash_i32(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: i32 = 0
+    let mut found: bool = false
+    while probes < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            let k: i32 = get_unchecked(m, 2 + idx)
+            if k == key {
+                result = get_unchecked(m, 2 + cap + idx)
+                found = true
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    result
+}
+
+pub fn hashmap_contains(m: Vec<i32>, key: i32) -> bool {
+    let cap: i32 = get_unchecked(m, 0)
+    let h: i32 = hash_i32(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut found: bool = false
+    while probes < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            let k: i32 = get_unchecked(m, 2 + idx)
+            if k == key {
+                found = true
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    found
+}
+
+pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) {
+    let cap: i32 = get_unchecked(m, 0)
+    let h: i32 = hash_i32(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut done: bool = false
+    while probes < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+        if flag == 0 {
+            set(m, 2 + idx, key)
+            set(m, 2 + cap + idx, value)
+            set(m, 2 + cap * 2 + idx, 1)
+            let sz: i32 = get_unchecked(m, 1) + 1
+            set(m, 1, sz)
+            done = true
+            probes = cap
+        } else {
+            let k: i32 = get_unchecked(m, 2 + idx)
+            if k == key {
+                set(m, 2 + cap + idx, value)
+                done = true
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+}
+
+pub fn hashmap_size(m: Vec<i32>) -> i32 {
+    get_unchecked(m, 1)
+}
