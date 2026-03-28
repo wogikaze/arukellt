@@ -1,0 +1,19 @@
+// Component interop test fixture: scalar exports only.
+//
+// String-returning exports (e.g. greet) are intentionally excluded:
+// canonical ABI lift/lower for GC-native String is not yet implemented.
+// See docs/process/roadmap-v2.md watchpoint on canonical ABI adapters.
+
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+pub fn mul(a: i32, b: i32) -> i32 {
+    a * b
+}
+
+pub fn negate(x: i32) -> i32 {
+    -x
+}
+
+fn main() {}

@@ -245,8 +245,27 @@ else
 fi
 
 # 16. Perf gate contract
-printf '\n%s\n' "${YELLOW}[16/16] Checking perf gate contract...${NC}"
+printf '\n%s\n' "${YELLOW}[16/17] Checking perf gate contract...${NC}"
 check_pass "Perf policy documented (check<=10%, compile<=20%; heavy perf separated)"
+
+# 17. Component interop (optional — requires wasmtime with GC + component-model support)
+# Enable with: ARUKELLT_TEST_COMPONENT=1 scripts/verify-harness.sh
+# Note: jco (JavaScript) interop is NOT tested here because jco 1.x does not support
+# Wasm GC types. When jco gains GC support, test.mjs can be added.
+if [ "${ARUKELLT_TEST_COMPONENT:-0}" = "1" ]; then
+    printf '\n%s\n' "${YELLOW}[17/17] Component interop smoke test (ARUKELLT_TEST_COMPONENT=1)...${NC}"
+    INTEROP_SCRIPT="tests/component-interop/jco/calculator/run.sh"
+    if [ ! -f "$INTEROP_SCRIPT" ]; then
+        check_skip "component interop script not found"
+    elif ! command -v wasmtime >/dev/null 2>&1; then
+        check_skip "component interop (wasmtime not found)"
+    else
+        run_check "component interop (wasmtime)" "bash $INTEROP_SCRIPT"
+    fi
+else
+    printf '\n%s\n' "${YELLOW}[17/17] Component interop (skipped — set ARUKELLT_TEST_COMPONENT=1 to enable)...${NC}"
+    check_skip "component interop (opt-in)"
+fi
 
 printf '\n%s\n' "${YELLOW}========================================${NC}"
 printf '%s\n' "${YELLOW}Summary${NC}"
