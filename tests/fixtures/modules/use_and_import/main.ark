@@ -1,0 +1,8 @@
+import math
+use std::core
+
+fn main() {
+    let a: i32 = math::add(10, 20)
+    let b: i32 = core::identity(a)
+    println(i32_to_string(b))
+}

@@ -94,6 +94,8 @@ pub enum DiagnosticCode {
     E0101,
     E0102,
     E0103,
+    /// Module not found
+    E0104,
 
     // E02xx: Type errors
     E0200,
@@ -143,6 +145,7 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::E0101,
     DiagnosticCode::E0102,
     DiagnosticCode::E0103,
+    DiagnosticCode::E0104,
     DiagnosticCode::E0200,
     DiagnosticCode::E0201,
     DiagnosticCode::E0202,
@@ -233,6 +236,13 @@ impl DiagnosticCode {
                 code: self,
                 id: "E0103",
                 message: "circular import",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0104 => DiagnosticSpec {
+                code: self,
+                id: "E0104",
+                message: "module not found",
                 severity: Severity::Error,
                 phase: DiagnosticPhase::Resolve,
             },

@@ -1,0 +1,6 @@
+use std::core
+
+fn main() {
+    let x: i32 = core::identity(42)
+    println(i32_to_string(x))
+}

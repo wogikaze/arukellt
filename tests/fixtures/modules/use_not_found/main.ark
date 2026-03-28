@@ -1,0 +1,5 @@
+use std::nonexistent
+
+fn main() {
+    println("should not reach")
+}

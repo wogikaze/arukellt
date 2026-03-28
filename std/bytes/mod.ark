@@ -1,0 +1,7 @@
+// std::bytes — byte buffer operations
+//
+// Provides byte-level manipulation utilities.
+
+pub fn byte_length(s: String) -> i32 {
+    len(s)
+}

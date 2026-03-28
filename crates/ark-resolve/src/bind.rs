@@ -9,7 +9,7 @@ pub(crate) fn bind_module(
     global_scope: ScopeId,
     sink: &mut DiagnosticSink,
 ) {
-    bind_module_impl(module, symbols, global_scope, sink, false);
+    bind_module_impl(module, symbols, global_scope, sink, false, false);
 }
 
 pub(crate) fn bind_public_module(
@@ -18,7 +18,7 @@ pub(crate) fn bind_public_module(
     global_scope: ScopeId,
     sink: &mut DiagnosticSink,
 ) {
-    bind_module_impl(module, symbols, global_scope, sink, true);
+    bind_module_impl(module, symbols, global_scope, sink, true, true);
 }
 
 fn bind_module_impl(
@@ -27,6 +27,7 @@ fn bind_module_impl(
     global_scope: ScopeId,
     sink: &mut DiagnosticSink,
     pub_only: bool,
+    skip_duplicates: bool,
 ) {
     for item in &module.items {
         match item {
@@ -35,10 +36,15 @@ fn bind_module_impl(
                     continue;
                 }
                 if symbols.lookup_local(global_scope, &f.name).is_some() {
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0101)
-                            .with_label(f.span, format!("duplicate definition of `{}`", f.name)),
-                    );
+                    if !skip_duplicates {
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0101)
+                                .with_label(
+                                    f.span,
+                                    format!("duplicate definition of `{}`", f.name),
+                                ),
+                        );
+                    }
                 } else {
                     symbols.define(
                         global_scope,
@@ -53,10 +59,15 @@ fn bind_module_impl(
                     continue;
                 }
                 if symbols.lookup_local(global_scope, &s.name).is_some() {
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0101)
-                            .with_label(s.span, format!("duplicate definition of `{}`", s.name)),
-                    );
+                    if !skip_duplicates {
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0101)
+                                .with_label(
+                                    s.span,
+                                    format!("duplicate definition of `{}`", s.name),
+                                ),
+                        );
+                    }
                 } else {
                     symbols.define(
                         global_scope,
@@ -73,10 +84,15 @@ fn bind_module_impl(
                     continue;
                 }
                 if symbols.lookup_local(global_scope, &e.name).is_some() {
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0101)
-                            .with_label(e.span, format!("duplicate definition of `{}`", e.name)),
-                    );
+                    if !skip_duplicates {
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0101)
+                                .with_label(
+                                    e.span,
+                                    format!("duplicate definition of `{}`", e.name),
+                                ),
+                        );
+                    }
                 } else {
                     symbols.define(
                         global_scope,

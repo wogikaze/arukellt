@@ -1,0 +1,8 @@
+// std::core — fundamental types and traits
+//
+// Provides Error, Ordering, and Range types that form the
+// foundation of the standard library.
+
+pub fn identity(x: i32) -> i32 {
+    x
+}

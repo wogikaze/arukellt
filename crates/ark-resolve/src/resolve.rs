@@ -8,7 +8,7 @@ use ark_parser::ast;
 use ark_parser::parse;
 
 use crate::analyze::{analyze_module, analyze_program};
-use crate::bind::{bind_module, inject_prelude_symbols};
+use crate::bind::{bind_module, bind_public_module, inject_prelude_symbols};
 use crate::load::load_program;
 use crate::scope::{ScopeId, SymbolTable};
 
@@ -167,7 +167,9 @@ fn parse_prelude_module(sink: &mut DiagnosticSink) -> ast::Module {
 
 pub fn merge_prelude(program: &mut ResolvedProgram, sink: &mut DiagnosticSink) {
     let prelude = parse_prelude_module(sink);
-    bind_module(&prelude, &mut program.symbols, program.global_scope, sink);
+    // Use bind_public_module to silently skip symbols already defined
+    // by user imports (prelude should not shadow explicit imports).
+    bind_public_module(&prelude, &mut program.symbols, program.global_scope, sink);
     program.modules.push(LoadedModule {
         name: "std::prelude".into(),
         path: PathBuf::from("<prelude>"),

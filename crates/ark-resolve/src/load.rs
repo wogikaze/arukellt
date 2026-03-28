@@ -27,21 +27,66 @@ pub(crate) fn resolve_import_path(
 ) -> PathBuf {
     if module_name.starts_with("std") {
         let rel = module_name.replace("::", "/");
-        std_root.join(format!("{}.ark", rel))
+        let file_path = std_root.join(format!("{}.ark", rel));
+        if file_path.exists() {
+            return file_path;
+        }
+        // Fallback: try mod.ark inside directory
+        let dir_path = std_root.join(&rel);
+        let mod_path = dir_path.join("mod.ark");
+        if mod_path.exists() {
+            return mod_path;
+        }
+        // Strip leading "std/" and try directly under std_root
+        let stripped = rel.strip_prefix("std/").unwrap_or(&rel);
+        let stripped_file = std_root.join(format!("{}.ark", stripped));
+        if stripped_file.exists() {
+            return stripped_file;
+        }
+        let stripped_mod = std_root.join(stripped).join("mod.ark");
+        if stripped_mod.exists() {
+            return stripped_mod;
+        }
+        // Return the file path (will error at load time if not found)
+        stripped_file
     } else {
         let rel = module_name.replace("::", "/");
-        let local_path = current_path
+        let parent = current_path
             .parent()
-            .unwrap_or_else(|| Path::new("."))
-            .join(format!("{}.ark", rel));
+            .unwrap_or_else(|| Path::new("."));
+        let local_path = parent.join(format!("{}.ark", rel));
+        let local_mod = parent.join(&rel).join("mod.ark");
         let std_path = std_root.join(format!("{}.ark", rel));
-        if local_path.exists() && std_path.exists() {
+        let std_mod = std_root.join(&rel).join("mod.ark");
+
+        // Determine effective local and std paths (prefer file, fallback to mod.ark)
+        let effective_local = if local_path.exists() {
+            Some(&local_path)
+        } else if local_mod.exists() {
+            Some(&local_mod)
+        } else {
+            None
+        };
+        let effective_std = if std_path.exists() {
+            Some(&std_path)
+        } else if std_mod.exists() {
+            Some(&std_mod)
+        } else {
+            None
+        };
+
+        if effective_local.is_some() && effective_std.is_some() {
             sink.emit(Diagnostic::new(DiagnosticCode::W0003).with_message(format!(
-                "ambiguous import `{}`: both local `{}` and std `{}` exist; using local",
+                "ambiguous import `{}`: both local and std exist; using local",
                 module_name,
-                local_path.display(),
-                std_path.display()
             )));
+        }
+
+        if let Some(p) = effective_local {
+            return p.clone();
+        }
+        if let Some(p) = effective_std {
+            return p.clone();
         }
         local_path
     }
@@ -80,7 +125,10 @@ fn load_module_recursive(
     let module = match parse_module_file(&path, sink) {
         Ok(module) => module,
         Err(msg) => {
-            sink.emit(Diagnostic::new(DiagnosticCode::E0100).with_message(msg));
+            sink.emit(
+                Diagnostic::new(DiagnosticCode::E0104)
+                    .with_message(format!("module `{}` not found: {}", module_name, msg)),
+            );
             visiting.remove(&path);
             return;
         }
@@ -88,11 +136,16 @@ fn load_module_recursive(
 
     for import in &module.imports {
         let import_path = resolve_import_path(&path, &import.module_name, std_root, sink);
-        load_module_recursive(
+        let effective_name = import.alias.clone().unwrap_or_else(|| {
             import
-                .alias
-                .clone()
-                .unwrap_or_else(|| import.module_name.clone()),
+                .module_name
+                .rsplit("::")
+                .next()
+                .unwrap_or(&import.module_name)
+                .to_string()
+        });
+        load_module_recursive(
+            effective_name,
             import_path,
             std_root,
             sink,
@@ -128,11 +181,17 @@ pub(crate) fn load_program(
 
     for import in &entry_module.imports {
         let import_path = resolve_import_path(entry_path, &import.module_name, &std_root, sink);
-        load_module_recursive(
+        let effective_name = import.alias.clone().unwrap_or_else(|| {
+            // For `use std::text`, the effective name should be `text` (last segment)
             import
-                .alias
-                .clone()
-                .unwrap_or_else(|| import.module_name.clone()),
+                .module_name
+                .rsplit("::")
+                .next()
+                .unwrap_or(&import.module_name)
+                .to_string()
+        });
+        load_module_recursive(
+            effective_name,
             import_path,
             &std_root,
             sink,

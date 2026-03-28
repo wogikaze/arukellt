@@ -1,0 +1,6 @@
+use std::bytes
+
+fn main() {
+    let n: i32 = bytes::byte_length("hello")
+    println(i32_to_string(n))
+}

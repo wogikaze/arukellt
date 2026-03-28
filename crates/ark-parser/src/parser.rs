@@ -118,6 +118,8 @@ impl<'a> Parser<'a> {
 
             if *self.peek() == TokenKind::Import {
                 imports.push(self.parse_import());
+            } else if *self.peek() == TokenKind::Use {
+                imports.push(self.parse_use_import());
             } else {
                 match self.parse_item() {
                     Some(item) => items.push(item),
@@ -164,6 +166,35 @@ impl<'a> Parser<'a> {
         };
         Import {
             module_name: name,
+            alias,
+            span: start.merge(self.span()),
+        }
+    }
+
+    /// Parse `use std::foo::bar` or `use std::foo::{bar, baz}`.
+    /// Produces one Import per path segment (destructuring expands to multiple).
+    fn parse_use_import(&mut self) -> Import {
+        let start = self.span();
+        self.expect(&TokenKind::Use);
+
+        // Parse path segments separated by ::
+        let mut segments = vec![self.expect_ident()];
+        while self.eat(&TokenKind::ColonColon) {
+            // Check for destructuring: use std::foo::{bar, baz}
+            // For now we don't support destructuring — just parse a single path
+            segments.push(self.expect_ident());
+        }
+
+        let module_name = segments.join("::");
+        let alias = if self.eat(&TokenKind::As) {
+            Some(self.expect_ident())
+        } else {
+            // Default alias is the last segment
+            None
+        };
+
+        Import {
+            module_name,
             alias,
             span: start.merge(self.span()),
         }

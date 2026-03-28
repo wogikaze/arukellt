@@ -43,6 +43,9 @@ pub enum TokenKind {
     Trait,
     Impl,
 
+    // Keywords (v3)
+    Use,
+
     // Reserved keywords (future)
     Reserved(String),
 
@@ -133,6 +136,7 @@ impl TokenKind {
                 | TokenKind::As
                 | TokenKind::Trait
                 | TokenKind::Impl
+                | TokenKind::Use
                 | TokenKind::BoolLit(_)
                 | TokenKind::Reserved(_)
         )
@@ -510,10 +514,11 @@ impl<'src> Lexer<'src> {
             "as" => TokenKind::As,
             "trait" => TokenKind::Trait,
             "impl" => TokenKind::Impl,
+            "use" => TokenKind::Use,
             "true" => TokenKind::BoolLit(true),
             "false" => TokenKind::BoolLit(false),
             "async" | "await" | "dyn" | "where" | "type" | "const" | "unsafe" | "extern"
-            | "use" | "mod" | "super" | "Self" => TokenKind::Reserved(text.to_owned()),
+            | "mod" | "super" | "Self" => TokenKind::Reserved(text.to_owned()),
             _ => {
                 // f"..." string interpolation
                 if text == "f" && self.peek() == Some(b'"') {
@@ -1094,7 +1099,7 @@ mod tests {
     #[test]
     fn reserved_keywords() {
         let reserved = [
-            "async", "await", "dyn", "where", "type", "const", "unsafe", "extern", "use", "mod",
+            "async", "await", "dyn", "where", "type", "const", "unsafe", "extern", "mod",
             "super", "Self",
         ];
         for kw in reserved {
@@ -1104,9 +1109,10 @@ mod tests {
                 "failed for reserved keyword: {kw}"
             );
         }
-        // trait and impl are first-class keywords, not reserved
+        // trait, impl, use are first-class keywords, not reserved
         assert_eq!(kinds("trait"), vec![TokenKind::Trait, TokenKind::Eof]);
         assert_eq!(kinds("impl"), vec![TokenKind::Impl, TokenKind::Eof]);
+        assert_eq!(kinds("use"), vec![TokenKind::Use, TokenKind::Eof]);
         // self is a regular identifier
         assert_eq!(
             kinds("self"),

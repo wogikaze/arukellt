@@ -91,6 +91,12 @@ module-run:modules/module_alias/main.ark
 module-run:modules/multi_import/main.ark
 module-run:modules/prelude_via_import/main.ark
 module-diag:modules/pub_private/main.ark
+module-run:modules/use_std_basic/main.ark
+module-run:modules/use_std_alias/main.ark
+module-run:modules/use_qualified_call/main.ark
+module-diag:modules/use_not_found/main.ark
+module-run:modules/use_local_module/main.ark
+module-run:modules/use_and_import/main.ark
 run:operators/arithmetic.ark
 run:operators/bitwise.ark
 run:operators/comparison.ark
