@@ -87,7 +87,11 @@ pub fn canonical_lift_list<T>(ptr: i32, len: i32) -> Result<Vec<T>, Error>
 
 ## 注意点
 
-1. canonical lower/lift は linear memory への書き出し — 1 page linear memory の制約に注意
+1. canonical lower/lift は linear memory への書き出し — ADR-008 で定義した制約を厳守すること:
+   線形メモリ 1 page (64KB)、offset 256–65535 を canonical ABI スクラッチ領域として使用、
+   per-call bump allocator (呼び出しごとにリセット)、最大 65280 bytes/call。
+   大きな文字列・リストはこの上限に引っかかるため、`canonical_lower_string`/`canonical_lower_list`
+   が上限を超える場合は `Error::MemoryOverflow` を返すこと。
 2. WIT parser は完全実装を目指さない — 基本構文のみ、edge case は v4
 3. HandleTable は SlotMap (#047) に依存するが、independent に i32 index + Vec でも実装可能
 

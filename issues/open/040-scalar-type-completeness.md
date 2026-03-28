@@ -59,6 +59,12 @@ Wasm 自体が u8/u16/u32/u64 を要求するため、Bytes 操作や LEB128 に
 1. 暗黙の型昇格を絶対に入れない — 明示変換のみ。LLM が型を見失うリスクを防ぐ
 2. u8/u16 は Wasm level では i32 だが、masking が必要 (0xFF, 0xFFFF)
 3. f32 の精度損失について warning を出すか検討 (f64 → f32 変換時)
+4. **Wasm GC spec で `i8`/`i16` は `packedtype` として struct/array フィールドにのみ存在する**
+   (`storagetype ::= valtype | packedtype`, `packedtype ::= i8 | i16`)。
+   関数パラメータ・ローカル変数・戻り値としての `i8`/`i16` は Wasm の valtype に存在しない。
+   Arukellt の `i8`/`i16` 型は、コンパイラ内では全て `i32` として emit し、masking/sign-extension
+   で semantics を再現する。GC struct/array フィールドに格納する場合のみ packed 型を使える。
+   この区別を T3 emitter の実装コメントに明記すること。
 
 ## 次版への受け渡し
 

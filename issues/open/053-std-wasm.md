@@ -23,7 +23,14 @@ Wasm ツールチェーン、自己ホスト、component glue 生成の基盤。
 ### std::wasm::types
 
 ```ark
-pub enum ValType { I32, I64, F32, F64, V128, FuncRef, ExternRef }
+pub enum ValType {
+    I32, I64, F32, F64,
+    V128,    // requires SIMD proposal — conditional on runtime support; mark Experimental
+    FuncRef, // reference-types proposal (shipped in major engines)
+    ExternRef,
+    // GC ref types (anyref, eqref, structref, arrayref, i31ref) are NOT included in v3
+    // They will be added in std::wasm::gc (v4+) once GC proposal is finalized in wasm-tools
+}
 pub enum NumType { I32, I64, F32, F64 }
 pub enum RefType { FuncRef, ExternRef }
 pub struct FuncType { params: Vec<ValType>, results: Vec<ValType> }
