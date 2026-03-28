@@ -715,17 +715,6 @@ impl Ctx {
         // Phase 1: Register GC types
         self.register_gc_types(mir);
 
-        // Pre-allocate "invalid number" error string for parse helpers
-        if self.enum_base_types.contains_key("Result")
-            || self.enum_base_types.contains_key("Result_i64_String")
-            || self.enum_base_types.contains_key("Result_f64_String")
-        {
-            let seg = self.alloc_string_data(b"parse error: invalid integer");
-            self.err_string_seg = Some(seg);
-            let seg_f = self.alloc_string_data(b"parse error: invalid float");
-            self.err_float_string_seg = Some(seg_f);
-        }
-
         // Phase 2: Register function type signatures
         let fd_write_ty = self.types.add_func(&[ValType::I32; 4], &[ValType::I32]);
         self.fd_write_ty = fd_write_ty;
@@ -758,27 +747,65 @@ impl Ctx {
             self.wasi_fd_read = 2;
             self.wasi_fd_close = 3;
         }
-        // GC-native helper function signatures
-        let str_ref = ref_nullable(self.string_ty);
-        let mut helper_fns: Vec<(String, Vec<ValType>, Vec<ValType>)> = vec![
-            // __print_str_ln: (ref $string) -> ()
-            ("__print_str_ln".into(), vec![str_ref], vec![]),
-            // __print_i32_ln: (i32) -> ()
-            ("__print_i32_ln".into(), vec![ValType::I32], vec![]),
-            // __print_bool_ln: (i32) -> ()
-            ("__print_bool_ln".into(), vec![ValType::I32], vec![]),
-            // __i32_to_str: (i32) -> (ref $string)
-            ("__i32_to_str".into(), vec![ValType::I32], vec![str_ref]),
-            // __print_newline: () -> ()
-            ("__print_newline".into(), vec![], vec![]),
-            // __i64_to_str: (i64) -> (ref $string)
-            ("__i64_to_str".into(), vec![ValType::I64], vec![str_ref]),
-            // __f64_to_str: (f64) -> (ref $string)
-            ("__f64_to_str".into(), vec![ValType::F64], vec![str_ref]),
-        ];
 
-        // Conditionally add parse helpers if the relevant Result enum types exist
-        let parse_i32_helper_idx = if self.enum_base_types.contains_key("Result") {
+        // Scan MIR to determine which stdlib helpers are actually needed
+        let needed = Self::scan_needed_helpers(mir, &reachable_user_indices);
+
+        // GC-native helper function signatures — only include needed ones
+        let str_ref = ref_nullable(self.string_ty);
+        let mut helper_fns: Vec<(String, Vec<ValType>, Vec<ValType>)> = Vec::new();
+
+        // Track position of each helper in the dynamic list
+        let mut print_str_ln_pos: Option<usize> = None;
+        let mut print_i32_ln_pos: Option<usize> = None;
+        let mut print_bool_ln_pos: Option<usize> = None;
+        let mut i32_to_str_pos: Option<usize> = None;
+        let mut print_newline_pos: Option<usize> = None;
+        let mut i64_to_str_pos: Option<usize> = None;
+        let mut f64_to_str_pos: Option<usize> = None;
+
+        // Always include print_str_ln — it's the most basic output primitive
+        if needed.print_str_ln || needed.print_i32_ln || needed.print_bool_ln {
+            print_str_ln_pos = Some(helper_fns.len());
+            helper_fns.push(("__print_str_ln".into(), vec![str_ref], vec![]));
+        }
+        if needed.print_i32_ln {
+            print_i32_ln_pos = Some(helper_fns.len());
+            helper_fns.push(("__print_i32_ln".into(), vec![ValType::I32], vec![]));
+        }
+        if needed.print_bool_ln {
+            print_bool_ln_pos = Some(helper_fns.len());
+            helper_fns.push(("__print_bool_ln".into(), vec![ValType::I32], vec![]));
+        }
+        if needed.i32_to_str {
+            i32_to_str_pos = Some(helper_fns.len());
+            helper_fns.push(("__i32_to_str".into(), vec![ValType::I32], vec![str_ref]));
+        }
+        if needed.print_newline {
+            print_newline_pos = Some(helper_fns.len());
+            helper_fns.push(("__print_newline".into(), vec![], vec![]));
+        }
+        if needed.i64_to_str {
+            i64_to_str_pos = Some(helper_fns.len());
+            helper_fns.push(("__i64_to_str".into(), vec![ValType::I64], vec![str_ref]));
+        }
+        if needed.f64_to_str {
+            f64_to_str_pos = Some(helper_fns.len());
+            helper_fns.push(("__f64_to_str".into(), vec![ValType::F64], vec![str_ref]));
+        }
+
+        // Pre-allocate error strings only when parse helpers are needed
+        if needed.parse_i32 || needed.parse_i64 {
+            let seg = self.alloc_string_data(b"parse error: invalid integer");
+            self.err_string_seg = Some(seg);
+        }
+        if needed.parse_f64 {
+            let seg_f = self.alloc_string_data(b"parse error: invalid float");
+            self.err_float_string_seg = Some(seg_f);
+        }
+
+        // Conditionally add parse helpers if needed AND the relevant Result enum types exist
+        let parse_i32_helper_idx = if needed.parse_i32 && self.enum_base_types.contains_key("Result") {
             let result_ref = ref_nullable(*self.enum_base_types.get("Result").unwrap());
             let idx = helper_fns.len();
             helper_fns.push(("__parse_i32".into(), vec![str_ref], vec![result_ref]));
@@ -786,7 +813,7 @@ impl Ctx {
         } else {
             None
         };
-        let parse_i64_helper_idx = if self.enum_base_types.contains_key("Result_i64_String") {
+        let parse_i64_helper_idx = if needed.parse_i64 && self.enum_base_types.contains_key("Result_i64_String") {
             let result_ref = ref_nullable(*self.enum_base_types.get("Result_i64_String").unwrap());
             let idx = helper_fns.len();
             helper_fns.push(("__parse_i64".into(), vec![str_ref], vec![result_ref]));
@@ -794,7 +821,7 @@ impl Ctx {
         } else {
             None
         };
-        let parse_f64_helper_idx = if self.enum_base_types.contains_key("Result_f64_String") {
+        let parse_f64_helper_idx = if needed.parse_f64 && self.enum_base_types.contains_key("Result_f64_String") {
             let result_ref = ref_nullable(*self.enum_base_types.get("Result_f64_String").unwrap());
             let idx = helper_fns.len();
             helper_fns.push(("__parse_f64".into(), vec![str_ref], vec![result_ref]));
@@ -920,13 +947,14 @@ impl Ctx {
             let fn_idx = helper_base + i as u32;
             self.fn_map.insert(name.clone(), fn_idx);
         }
-        self.helper_print_str_ln = Some(helper_base);
-        self.helper_print_i32_ln = Some(helper_base + 1);
-        self.helper_print_bool_ln = Some(helper_base + 2);
-        self.helper_i32_to_str = Some(helper_base + 3);
-        self.helper_print_newline = Some(helper_base + 4);
-        self.helper_i64_to_str = Some(helper_base + 5);
-        self.helper_f64_to_str = Some(helper_base + 6);
+        // Set helper indices based on dynamic positions
+        self.helper_print_str_ln = print_str_ln_pos.map(|p| helper_base + p as u32);
+        self.helper_print_i32_ln = print_i32_ln_pos.map(|p| helper_base + p as u32);
+        self.helper_print_bool_ln = print_bool_ln_pos.map(|p| helper_base + p as u32);
+        self.helper_i32_to_str = i32_to_str_pos.map(|p| helper_base + p as u32);
+        self.helper_print_newline = print_newline_pos.map(|p| helper_base + p as u32);
+        self.helper_i64_to_str = i64_to_str_pos.map(|p| helper_base + p as u32);
+        self.helper_f64_to_str = f64_to_str_pos.map(|p| helper_base + p as u32);
         if let Some(idx) = parse_i32_helper_idx {
             self.helper_parse_i32 = Some(helper_base + idx as u32);
         }
@@ -1035,20 +1063,28 @@ impl Ctx {
         // Code section: emit helper + user functions
         let mut codes = CodeSection::new();
 
-        // Helper: __print_str_ln(str_ref)
-        self.emit_print_str_ln_helper(&mut codes, newline_offset);
-        // Helper: __print_i32_ln(val)
-        self.emit_print_i32_ln_helper(&mut codes, newline_offset);
-        // Helper: __print_bool_ln(val)
-        self.emit_print_bool_ln_helper(&mut codes, true_offset, false_offset, newline_offset);
-        // Helper: __i32_to_str(val) -> ref $string
-        self.emit_i32_to_str_helper(&mut codes);
-        // Helper: __print_newline()
-        self.emit_print_newline_helper(&mut codes, newline_offset);
-        // Helper: __i64_to_str(i64) -> ref $string
-        self.emit_i64_to_str_helper(&mut codes);
-        // Helper: __f64_to_str(f64) -> ref $string
-        self.emit_f64_to_str_helper(&mut codes);
+        // Emit only the helpers that were registered (in order of registration)
+        if print_str_ln_pos.is_some() {
+            self.emit_print_str_ln_helper(&mut codes, newline_offset);
+        }
+        if print_i32_ln_pos.is_some() {
+            self.emit_print_i32_ln_helper(&mut codes, newline_offset);
+        }
+        if print_bool_ln_pos.is_some() {
+            self.emit_print_bool_ln_helper(&mut codes, true_offset, false_offset, newline_offset);
+        }
+        if i32_to_str_pos.is_some() {
+            self.emit_i32_to_str_helper(&mut codes);
+        }
+        if print_newline_pos.is_some() {
+            self.emit_print_newline_helper(&mut codes, newline_offset);
+        }
+        if i64_to_str_pos.is_some() {
+            self.emit_i64_to_str_helper(&mut codes);
+        }
+        if f64_to_str_pos.is_some() {
+            self.emit_f64_to_str_helper(&mut codes);
+        }
         // Helper: __parse_i32(ref $string) -> ref $Result
         if self.helper_parse_i32.is_some() {
             self.emit_parse_i32_helper(&mut codes);

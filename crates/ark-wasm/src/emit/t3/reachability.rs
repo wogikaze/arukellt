@@ -1,12 +1,29 @@
 //! Function reachability analysis for the T3 Wasm GC emitter.
 //!
 //! Determines which MIR functions are transitively reachable from entry points,
-//! and scans for filesystem-related builtins to minimize WASI imports.
+//! scans for filesystem-related builtins to minimize WASI imports, and
+//! determines which stdlib helper functions are actually needed.
 
 use ark_mir::mir::*;
+use ark_typecheck::Type;
 use std::collections::{HashMap, HashSet, VecDeque};
 
 use super::{normalize_intrinsic, Ctx};
+
+/// Tracks which stdlib helper functions are needed by user code.
+#[derive(Debug, Default)]
+pub(super) struct NeededHelpers {
+    pub print_str_ln: bool,
+    pub print_i32_ln: bool,
+    pub print_bool_ln: bool,
+    pub i32_to_str: bool,
+    pub print_newline: bool,
+    pub i64_to_str: bool,
+    pub f64_to_str: bool,
+    pub parse_i32: bool,
+    pub parse_i64: bool,
+    pub parse_f64: bool,
+}
 
 impl Ctx {
     /// Scan MIR for filesystem builtins (fs_read_file, fs_write_file) to
@@ -368,4 +385,274 @@ impl Ctx {
             queue.push_back(idx);
         }
     }
+
+    /// Scan reachable MIR functions to determine which stdlib helpers are needed.
+    pub(super) fn scan_needed_helpers(
+        mir: &MirModule,
+        reachable: &[usize],
+    ) -> NeededHelpers {
+        let mut needed = NeededHelpers::default();
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    Self::scan_stmt_for_helpers(stmt, func, &mut needed);
+                }
+                Self::scan_terminator_for_helpers(&block.terminator, func, &mut needed);
+            }
+        }
+        // Inter-helper deps: __print_i32_ln internally calls __i32_to_str
+        if needed.print_i32_ln {
+            needed.i32_to_str = true;
+        }
+        needed
+    }
+
+    fn scan_stmt_for_helpers(stmt: &MirStmt, func: &MirFunction, needed: &mut NeededHelpers) {
+        match stmt {
+            MirStmt::CallBuiltin { name, args, .. } => {
+                let canonical = normalize_intrinsic(name);
+                Self::mark_builtin_helpers(canonical, args, func, needed);
+                for arg in args {
+                    Self::scan_operand_for_helpers(arg, func, needed);
+                }
+            }
+            MirStmt::Assign(_, rvalue) => {
+                Self::scan_rvalue_for_helpers(rvalue, func, needed);
+            }
+            MirStmt::Call { args, .. } => {
+                for arg in args {
+                    Self::scan_operand_for_helpers(arg, func, needed);
+                }
+            }
+            MirStmt::IfStmt { cond, then_body, else_body } => {
+                Self::scan_operand_for_helpers(cond, func, needed);
+                for s in then_body { Self::scan_stmt_for_helpers(s, func, needed); }
+                for s in else_body { Self::scan_stmt_for_helpers(s, func, needed); }
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::scan_operand_for_helpers(cond, func, needed);
+                for s in body { Self::scan_stmt_for_helpers(s, func, needed); }
+            }
+            MirStmt::Return(Some(op)) => {
+                Self::scan_operand_for_helpers(op, func, needed);
+            }
+            _ => {}
+        }
+    }
+
+    fn scan_terminator_for_helpers(term: &Terminator, func: &MirFunction, needed: &mut NeededHelpers) {
+        match term {
+            Terminator::Return(Some(op)) | Terminator::If { cond: op, .. }
+            | Terminator::Switch { scrutinee: op, .. } => {
+                Self::scan_operand_for_helpers(op, func, needed);
+            }
+            _ => {}
+        }
+    }
+
+    fn scan_rvalue_for_helpers(rvalue: &Rvalue, func: &MirFunction, needed: &mut NeededHelpers) {
+        match rvalue {
+            Rvalue::Use(op) | Rvalue::UnaryOp(_, op) => {
+                Self::scan_operand_for_helpers(op, func, needed);
+            }
+            Rvalue::BinaryOp(_, l, r) => {
+                Self::scan_operand_for_helpers(l, func, needed);
+                Self::scan_operand_for_helpers(r, func, needed);
+            }
+            Rvalue::Aggregate(_, ops) => {
+                for op in ops { Self::scan_operand_for_helpers(op, func, needed); }
+            }
+            _ => {}
+        }
+    }
+
+    fn scan_operand_for_helpers(op: &Operand, func: &MirFunction, needed: &mut NeededHelpers) {
+        match op {
+            Operand::Call(name, args) => {
+                let canonical = normalize_intrinsic(name);
+                Self::mark_builtin_helpers(canonical, args, func, needed);
+                for a in args { Self::scan_operand_for_helpers(a, func, needed); }
+            }
+            Operand::BinOp(_, l, r) => {
+                Self::scan_operand_for_helpers(l, func, needed);
+                Self::scan_operand_for_helpers(r, func, needed);
+            }
+            Operand::UnaryOp(_, inner) | Operand::EnumTag(inner)
+            | Operand::TryExpr { expr: inner, .. } => {
+                Self::scan_operand_for_helpers(inner, func, needed);
+            }
+            Operand::IfExpr { cond, then_body, then_result, else_body, else_result } => {
+                Self::scan_operand_for_helpers(cond, func, needed);
+                for s in then_body { Self::scan_stmt_for_helpers(s, func, needed); }
+                if let Some(r) = then_result { Self::scan_operand_for_helpers(r, func, needed); }
+                for s in else_body { Self::scan_stmt_for_helpers(s, func, needed); }
+                if let Some(r) = else_result { Self::scan_operand_for_helpers(r, func, needed); }
+            }
+            Operand::StructInit { fields, .. } => {
+                for (_, f) in fields { Self::scan_operand_for_helpers(f, func, needed); }
+            }
+            Operand::FieldAccess { object, .. } | Operand::EnumPayload { object, .. } => {
+                Self::scan_operand_for_helpers(object, func, needed);
+            }
+            Operand::EnumInit { payload, .. } | Operand::ArrayInit { elements: payload } => {
+                for p in payload { Self::scan_operand_for_helpers(p, func, needed); }
+            }
+            Operand::LoopExpr { init, body, result } => {
+                Self::scan_operand_for_helpers(init, func, needed);
+                for s in body { Self::scan_stmt_for_helpers(s, func, needed); }
+                Self::scan_operand_for_helpers(result, func, needed);
+            }
+            Operand::CallIndirect { callee, args } => {
+                Self::scan_operand_for_helpers(callee, func, needed);
+                for a in args { Self::scan_operand_for_helpers(a, func, needed); }
+            }
+            Operand::IndexAccess { object, index } => {
+                Self::scan_operand_for_helpers(object, func, needed);
+                Self::scan_operand_for_helpers(index, func, needed);
+            }
+            _ => {}
+        }
+    }
+
+    /// Map a builtin name + its args to which helpers it requires.
+    fn mark_builtin_helpers(
+        canonical: &str,
+        args: &[Operand],
+        func: &MirFunction,
+        needed: &mut NeededHelpers,
+    ) {
+        match canonical {
+            "println" => {
+                if let Some(arg) = args.first() {
+                    match Self::infer_arg_category(arg, func) {
+                        ArgCategory::String => needed.print_str_ln = true,
+                        ArgCategory::Bool => needed.print_bool_ln = true,
+                        ArgCategory::I64 | ArgCategory::F64 | ArgCategory::I32 => {
+                            needed.print_i32_ln = true;
+                        }
+                        ArgCategory::Unknown => {
+                            needed.print_str_ln = true;
+                            needed.print_i32_ln = true;
+                            needed.print_bool_ln = true;
+                        }
+                    }
+                }
+            }
+            "print" => {
+                needed.print_newline = true;
+                if let Some(arg) = args.first() {
+                    match Self::infer_arg_category(arg, func) {
+                        ArgCategory::String => needed.print_str_ln = true,
+                        ArgCategory::Bool => needed.print_bool_ln = true,
+                        ArgCategory::I64 | ArgCategory::F64 | ArgCategory::I32 => {
+                            needed.print_i32_ln = true;
+                        }
+                        ArgCategory::Unknown => {
+                            needed.print_str_ln = true;
+                            needed.print_i32_ln = true;
+                            needed.print_bool_ln = true;
+                        }
+                    }
+                }
+            }
+            "i32_to_string" | "bool_to_string" | "char_to_string" => needed.i32_to_str = true,
+            "i64_to_string" => needed.i64_to_str = true,
+            "f64_to_string" => needed.f64_to_str = true,
+            // String interpolation (concat with non-string args) needs to_str helpers
+            "concat" | "join" | "string_interpolation" => {
+                for arg in args {
+                    match Self::infer_arg_category(arg, func) {
+                        ArgCategory::I32 => needed.i32_to_str = true,
+                        ArgCategory::I64 => needed.i64_to_str = true,
+                        ArgCategory::F64 => needed.f64_to_str = true,
+                        _ => {}
+                    }
+                }
+            }
+            // to_string dispatches based on arg type at emit time
+            "to_string" => {
+                if let Some(arg) = args.first() {
+                    match Self::infer_arg_category(arg, func) {
+                        ArgCategory::I32 => needed.i32_to_str = true,
+                        ArgCategory::Bool => needed.i32_to_str = true,
+                        ArgCategory::I64 => needed.i64_to_str = true,
+                        ArgCategory::F64 => needed.f64_to_str = true,
+                        ArgCategory::String => {} // no helper needed
+                        ArgCategory::Unknown => {
+                            // Conservative: include all to_str helpers
+                            needed.i32_to_str = true;
+                            needed.i64_to_str = true;
+                            needed.f64_to_str = true;
+                        }
+                    }
+                }
+            }
+            "parse_i32" => needed.parse_i32 = true,
+            "parse_i64" => needed.parse_i64 = true,
+            "parse_f64" => needed.parse_f64 = true,
+            _ => {}
+        }
+    }
+
+    fn infer_arg_category(op: &Operand, func: &MirFunction) -> ArgCategory {
+        match op {
+            Operand::ConstString(_) => ArgCategory::String,
+            Operand::ConstBool(_) => ArgCategory::Bool,
+            Operand::ConstI32(_) | Operand::ConstU8(_) | Operand::ConstU16(_)
+            | Operand::ConstU32(_) | Operand::ConstI8(_) | Operand::ConstI16(_)
+            | Operand::ConstChar(_) => ArgCategory::I32,
+            Operand::ConstI64(_) | Operand::ConstU64(_) => ArgCategory::I64,
+            Operand::ConstF32(_) | Operand::ConstF64(_) => ArgCategory::F64,
+            Operand::Place(Place::Local(id)) => {
+                if let Some(local) = func.locals.iter().find(|l| l.id == *id) {
+                    Self::type_to_category(&local.ty)
+                } else if let Some(param) = func.params.iter().find(|p| p.id == *id) {
+                    Self::type_to_category(&param.ty)
+                } else {
+                    ArgCategory::Unknown
+                }
+            }
+            Operand::Call(name, _) => {
+                let canonical = normalize_intrinsic(name);
+                match canonical {
+                    "concat" | "join" | "i32_to_string" | "i64_to_string"
+                    | "f64_to_string" | "bool_to_string" | "to_string"
+                    | "fs_read_file" | "trim" | "substring" | "replace"
+                    | "to_uppercase" | "to_lowercase" | "repeat" | "char_at" => ArgCategory::String,
+                    "eq" | "starts_with" | "ends_with" | "contains"
+                    | "assert" | "assert_eq" | "contains_i32" | "contains_String" => ArgCategory::Bool,
+                    _ => ArgCategory::Unknown,
+                }
+            }
+            Operand::FieldAccess { .. } | Operand::EnumPayload { .. } => ArgCategory::Unknown,
+            Operand::IfExpr { then_result, .. } => {
+                if let Some(r) = then_result {
+                    Self::infer_arg_category(r, func)
+                } else {
+                    ArgCategory::Unknown
+                }
+            }
+            _ => ArgCategory::Unknown,
+        }
+    }
+
+    fn type_to_category(ty: &Type) -> ArgCategory {
+        match ty {
+            Type::String => ArgCategory::String,
+            Type::Bool => ArgCategory::Bool,
+            Type::I64 | Type::U64 => ArgCategory::I64,
+            Type::F64 | Type::F32 => ArgCategory::F64,
+            _ => ArgCategory::I32,
+        }
+    }
+}
+
+enum ArgCategory {
+    String,
+    Bool,
+    I32,
+    I64,
+    F64,
+    Unknown,
 }
