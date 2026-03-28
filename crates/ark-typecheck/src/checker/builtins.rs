@@ -163,6 +163,66 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
+            "__intrinsic_read_line".into(),
+            FnSig {
+                name: "__intrinsic_read_line".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_trim".into(),
+            FnSig {
+                name: "__intrinsic_trim".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_contains".into(),
+            FnSig {
+                name: "__intrinsic_contains".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_char_at".into(),
+            FnSig {
+                name: "__intrinsic_char_at".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::I32],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_substring".into(),
+            FnSig {
+                name: "__intrinsic_substring".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::I32, Type::I32],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_replace".into(),
+            FnSig {
+                name: "__intrinsic_replace".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::String, Type::String],
+                ret: Type::String,
+            },
+        );
+        self.fn_sigs.insert(
             "__intrinsic_string_slice".into(),
             FnSig {
                 name: "__intrinsic_string_slice".into(),

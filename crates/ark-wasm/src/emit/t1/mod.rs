@@ -127,6 +127,12 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_split" => "split",
         "__intrinsic_join" => "join",
         "__intrinsic_push_char" => "push_char",
+        "__intrinsic_read_line" => "read_line",
+        "__intrinsic_trim" => "trim",
+        "__intrinsic_contains" => "contains",
+        "__intrinsic_char_at" => "char_at",
+        "__intrinsic_substring" => "substring",
+        "__intrinsic_replace" => "replace",
         "__intrinsic_fs_read_file" => "fs_read_file",
         "__intrinsic_fs_write_file" => "fs_write_file",
         "__intrinsic_clock_now" => "clock_now",
@@ -551,6 +557,10 @@ impl EmitCtx {
                         | "char_to_string"
                         | "join"
                         | "slice"
+                        | "substring"
+                        | "trim"
+                        | "replace"
+                        | "read_line"
                         | "to_lower"
                         | "to_upper"
                         | "clone"

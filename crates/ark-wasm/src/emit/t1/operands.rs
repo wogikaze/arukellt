@@ -3922,6 +3922,699 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
                     }
+                    "char_at" => {
+                        // char_at(s: String, i: i32) -> i32
+                        // Returns the byte value at index i (0-based) within the string data
+                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
+                        if let Some(i) = args.get(1) {
+                            self.emit_operand(f, i);
+                        }
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                    }
+                    "substring" => {
+                        // substring(s: String, start: i32, end: i32) -> String
+                        // Same as slice — copy bytes [start..end] to new heap allocation
+                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        // new_len = end - start
+                        f.instruction(&Instruction::GlobalGet(0));
+                        if let Some(end_arg) = args.get(2) {
+                            self.emit_operand(f, end_arg);
+                        }
+                        if let Some(start_arg) = args.get(1) {
+                            self.emit_operand(f, start_arg);
+                        }
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Use NWRITTEN as loop counter i = 0
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+                        // if i >= new_len, break
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Load(ma)); // new_len
+                        f.instruction(&Instruction::I32GeU);
+                        f.instruction(&Instruction::BrIf(1));
+                        // dst = heap + 4 + i
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        // src = s + start + i
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
+                        if let Some(start_arg) = args.get(1) {
+                            self.emit_operand(f, start_arg);
+                        }
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Store8(ma0));
+                        // i++
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0));
+                        f.instruction(&Instruction::End);
+                        f.instruction(&Instruction::End);
+                        // result = heap + 4
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        // bump heap past len + data
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Load(ma)); // new_len
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                    }
+                    "trim" => {
+                        // trim(s: String) -> String
+                        // Strip leading and trailing ASCII whitespace (byte <= 32)
+                        // SCRATCH+8  = s_ptr
+                        // SCRATCH+12 = s_len
+                        // SCRATCH+16 = start (first non-ws index)
+                        // SCRATCH+20 = end   (one past last non-ws index)
+                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        // Save s_ptr
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        // s_len = mem[s_ptr - 4]
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // start = 0
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Forward scan: while start < s_len && s[start] <= 32: start++
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+                        // if start >= s_len, break
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GeU);
+                        f.instruction(&Instruction::BrIf(1));
+                        // if s[start] > 32, break (non-whitespace)
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const(32));
+                        f.instruction(&Instruction::I32GtU);
+                        f.instruction(&Instruction::BrIf(1));
+                        // start++
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0));
+                        f.instruction(&Instruction::End);
+                        f.instruction(&Instruction::End);
+                        // end = s_len
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Backward scan: while end > start && s[end-1] <= 32: end--
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+                        // if end <= start, break
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32LeU);
+                        f.instruction(&Instruction::BrIf(1));
+                        // if s[end-1] > 32, break
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const(32));
+                        f.instruction(&Instruction::I32GtU);
+                        f.instruction(&Instruction::BrIf(1));
+                        // end--
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0));
+                        f.instruction(&Instruction::End);
+                        f.instruction(&Instruction::End);
+                        // new_len = end - start (may be 0 if all whitespace)
+                        // NWRITTEN = new_len
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Write len at heap
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Copy bytes: i = 0..new_len, dst[i] = src[start + i]
+                        // Reuse SCRATCH+24 as copy loop counter
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+                        // if i >= new_len, break
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GeU);
+                        f.instruction(&Instruction::BrIf(1));
+                        // dst = heap + 4 + i
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        // src byte = s[start + i]
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Store8(ma0));
+                        // i++
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0));
+                        f.instruction(&Instruction::End);
+                        f.instruction(&Instruction::End);
+                        // result = heap + 4
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        // bump heap by 4 + new_len
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                    }
+                    "contains" => {
+                        // contains(s: String, sub: String) -> bool
+                        // Naive O(n*m) substring search
+                        // SCRATCH+8  = s_ptr
+                        // SCRATCH+12 = s_len
+                        // SCRATCH+16 = sub_ptr
+                        // SCRATCH+20 = sub_len
+                        // SCRATCH+24 = i (outer position in s)
+                        // SCRATCH+28 = j (inner position in sub)
+                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        // Save s_ptr
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        // s_len
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // sub_ptr
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        if let Some(sub) = args.get(1) {
+                            self.emit_operand(f, sub);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        // sub_len
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // i = 0
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // result starts as 0 (not found); store at NWRITTEN
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // outer block/loop: for i in 0..=(s_len - sub_len)
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block2 (found-exit)
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block1 (outer loop exit)
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));  // loop0 (outer)
+                        // if i + sub_len > s_len, exit outer
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GtU);
+                        f.instruction(&Instruction::BrIf(1)); // exit block1
+                        // j = 0
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // inner block/loop: for j in 0..sub_len
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block_inner_exit
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));  // loop_inner
+                        // if j >= sub_len, match found
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GeU);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        // found: set result=1, break to block2
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(5)); // exit block2 (found)
+                        f.instruction(&Instruction::End);
+                        // if s[i+j] != sub[j], break inner
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Ne);
+                        f.instruction(&Instruction::BrIf(1)); // exit block_inner_exit
+                        // j++
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0)); // continue loop_inner
+                        f.instruction(&Instruction::End); // end loop_inner
+                        f.instruction(&Instruction::End); // end block_inner_exit
+                        // i++
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0)); // continue loop0
+                        f.instruction(&Instruction::End); // end loop0
+                        f.instruction(&Instruction::End); // end block1
+                        f.instruction(&Instruction::End); // end block2
+                        // return result
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                    }
+                    "replace" => {
+                        // replace(s: String, from: String, to: String) -> String
+                        // Replace all non-overlapping occurrences of `from` in `s` with `to`
+                        // Memory layout:
+                        //   SCRATCH+8  = s_ptr
+                        //   SCRATCH+12 = s_len
+                        //   SCRATCH+16 = from_ptr
+                        //   SCRATCH+20 = from_len
+                        //   SCRATCH+24 = to_ptr
+                        //   SCRATCH+28 = to_len  (byte 44 — last slot before I32BUF at 48)
+                        //   NWRITTEN=8 = i (position in s)
+                        //   FS_SCRATCH=160 = buf_start (data start, after 4-byte len prefix)
+                        //   FS_NREAD=164   = j (inner match/copy loop counter)
+                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        // Save inputs
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        if let Some(from) = args.get(1) {
+                            self.emit_operand(f, from);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        if let Some(to) = args.get(2) {
+                            self.emit_operand(f, to);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // buf_start = global[0] + 4  (reserve 4 bytes for length prefix)
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        // i = 0
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Main loop: while i < s_len
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block_outer_exit
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));  // loop_outer
+                        // if i >= s_len, break
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GeU);
+                        f.instruction(&Instruction::BrIf(1));
+                        // Check if from_len == 0: if so, just copy s[i] and advance
+                        // (to avoid infinite loop; also handle zero-length from)
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Eqz);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        // from_len==0: copy s[i] to output and i++
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Store8(ma0));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(1)); // continue loop_outer
+                        f.instruction(&Instruction::End); // end if from_len==0
+                        // Match check: does s[i..i+from_len] == from?
+                        // FS_NREAD = j (inner counter)
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // inner block/loop for match
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block_match_exit (no-match)
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));  // loop_match
+                        // if j >= from_len: full match
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GeU);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        // Match found: copy `to` bytes to heap
+                        // FS_NREAD = k (copy counter)
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block_copy_exit
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));  // loop_copy
+                        // if k >= to_len, break copy
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GeU);
+                        f.instruction(&Instruction::BrIf(1)); // exit block_copy_exit
+                        // mem[heap] = to[k]
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Store8(ma0));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        // k++
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0)); // continue loop_copy
+                        f.instruction(&Instruction::End); // end loop_copy
+                        f.instruction(&Instruction::End); // end block_copy_exit
+                        // i += from_len
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(5)); // continue loop_outer
+                        f.instruction(&Instruction::End); // end if j>=from_len (match found)
+                        // if i+j >= s_len or s[i+j] != from[j]: break (no match)
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GeU);
+                        f.instruction(&Instruction::BrIf(1)); // exit block_match_exit
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Ne);
+                        f.instruction(&Instruction::BrIf(1)); // exit block_match_exit (mismatch)
+                        // j++
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0)); // continue loop_match
+                        f.instruction(&Instruction::End); // end loop_match
+                        f.instruction(&Instruction::End); // end block_match_exit (no match)
+                        // No match at i: copy s[i] to output and i++
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Store8(ma0));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0)); // continue loop_outer
+                        f.instruction(&Instruction::End); // end loop_outer
+                        f.instruction(&Instruction::End); // end block_outer_exit
+                        // Store length prefix: mem[buf_start - 4] = global[0] - buf_start
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Store(ma));
+                        // return buf_start
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                    }
+                    "read_line" => {
+                        // read_line() -> String
+                        // Read from stdin (fd=0) one byte at a time until '\n' or EOF
+                        // IOV_BASE (0): iov.buf (updated each iteration)
+                        // IOV_BASE+4 (4): iov.len = 1
+                        // FS_NREAD (164): nread result from fd_read
+                        // FS_SCRATCH (160): buf_start (heap pointer after length slot)
+                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+                        // Set iov.len = 1 (constant for all iterations)
+                        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // buf_start = global[0] + 4 (reserve 4 bytes for length prefix)
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        // advance heap by 4
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        // Read loop
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block_exit
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));  // loop_read
+                        // iov.buf = global[0] (current write position)
+                        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // fd_read(fd=0, iov_ptr=0, iov_count=1, nread_ptr=FS_NREAD)
+                        f.instruction(&Instruction::I32Const(0)); // fd = stdin
+                        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::Call(FN_FD_READ));
+                        f.instruction(&Instruction::Drop); // drop errno
+                        // if nread == 0: EOF, break
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Eqz);
+                        f.instruction(&Instruction::BrIf(1)); // break block_exit
+                        // Load the byte just read (at global[0])
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // if byte == '\n' (10): break
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(10));
+                        f.instruction(&Instruction::I32Eq);
+                        f.instruction(&Instruction::BrIf(1)); // break block_exit
+                        // if byte == '\r' (13): skip (don't advance heap)
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(13));
+                        f.instruction(&Instruction::I32Eq);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        f.instruction(&Instruction::Br(1)); // continue loop_read
+                        f.instruction(&Instruction::End);
+                        // Valid byte: advance heap by 1
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        f.instruction(&Instruction::Br(0)); // continue loop_read
+                        f.instruction(&Instruction::End); // end loop_read
+                        f.instruction(&Instruction::End); // end block_exit
+                        // Store length: mem[buf_start - 4] = global[0] - buf_start
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Store(ma));
+                        // return buf_start
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                    }
                     "sort_String" => {
                         // sort_String(v: Vec<String>): bubble sort comparing strings lexicographically
                         // Uses __str_eq helper and byte comparison for ordering

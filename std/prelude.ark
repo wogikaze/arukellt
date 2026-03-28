@@ -54,6 +54,30 @@ pub fn slice(s: String, start: i32, end: i32) -> String {
     __intrinsic_string_slice(s, start, end)
 }
 
+pub fn read_line() -> String {
+    __intrinsic_read_line()
+}
+
+pub fn trim(s: String) -> String {
+    __intrinsic_trim(s)
+}
+
+pub fn contains(s: String, sub: String) -> bool {
+    __intrinsic_contains(s, sub)
+}
+
+pub fn char_at(s: String, i: i32) -> i32 {
+    __intrinsic_char_at(s, i)
+}
+
+pub fn substring(s: String, start: i32, end: i32) -> String {
+    __intrinsic_substring(s, start, end)
+}
+
+pub fn replace(s: String, from: String, to: String) -> String {
+    __intrinsic_replace(s, from, to)
+}
+
 // Conversion: to string
 pub fn i32_to_string(n: i32) -> String {
     __intrinsic_i32_to_string(n)
