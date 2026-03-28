@@ -1,0 +1,7 @@
+fn main() {
+    let a = 1000u16
+    let b = 500u16
+    println(a + b)
+    println(a - b)
+    println(a * 2u16)
+}

@@ -1,0 +1,8 @@
+fn main() {
+    let a = 0xFFu8
+    let b = 0x1Au16
+    let c = 0xDEADBEEFu32
+    println(a)
+    println(b)
+    println(c)
+}

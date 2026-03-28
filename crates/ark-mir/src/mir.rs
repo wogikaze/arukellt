@@ -337,6 +337,12 @@ impl Operand {
             | Self::ConstI64(_)
             | Self::ConstF32(_)
             | Self::ConstF64(_)
+            | Self::ConstU8(_)
+            | Self::ConstU16(_)
+            | Self::ConstU32(_)
+            | Self::ConstU64(_)
+            | Self::ConstI8(_)
+            | Self::ConstI16(_)
             | Self::ConstBool(_)
             | Self::ConstChar(_)
             | Self::ConstString(_)
@@ -635,6 +641,12 @@ pub fn operand_calls(operand: &Operand, out: &mut Vec<String>) {
         | Operand::ConstI64(_)
         | Operand::ConstF32(_)
         | Operand::ConstF64(_)
+        | Operand::ConstU8(_)
+        | Operand::ConstU16(_)
+        | Operand::ConstU32(_)
+        | Operand::ConstU64(_)
+        | Operand::ConstI8(_)
+        | Operand::ConstI16(_)
         | Operand::ConstBool(_)
         | Operand::ConstChar(_)
         | Operand::ConstString(_)
@@ -806,6 +818,15 @@ pub enum Operand {
     ConstBool(bool),
     ConstChar(char),
     ConstString(String),
+    // Extended scalar constants (v3 #040)
+    // At Wasm level, U8/U16/U32/I8/I16 are i32; U64 is i64.
+    // The type tag is preserved so the emitter can apply masking/sign-extension.
+    ConstU8(u8),
+    ConstU16(u16),
+    ConstU32(u32),
+    ConstU64(u64),
+    ConstI8(i8),
+    ConstI16(i16),
     Unit,
     BinOp(BinOp, Box<Operand>, Box<Operand>),
     UnaryOp(UnaryOp, Box<Operand>),

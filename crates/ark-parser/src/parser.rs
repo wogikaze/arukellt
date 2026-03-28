@@ -1227,6 +1227,7 @@ impl<'a> Parser<'a> {
                 self.advance();
                 Expr::IntLit {
                     value: v,
+                    suffix: None,
                     span: start,
                 }
             }
@@ -1234,6 +1235,23 @@ impl<'a> Parser<'a> {
                 self.advance();
                 Expr::FloatLit {
                     value: v,
+                    suffix: None,
+                    span: start,
+                }
+            }
+            TokenKind::TypedIntLit(v, s) => {
+                self.advance();
+                Expr::IntLit {
+                    value: v,
+                    suffix: Some(s),
+                    span: start,
+                }
+            }
+            TokenKind::TypedFloatLit(v, s) => {
+                self.advance();
+                Expr::FloatLit {
+                    value: v,
+                    suffix: Some(s),
                     span: start,
                 }
             }
@@ -1432,7 +1450,11 @@ impl<'a> Parser<'a> {
                         .with_label(sp, "here"),
                 );
                 self.advance();
-                Expr::IntLit { value: 0, span: sp }
+                Expr::IntLit {
+                    value: 0,
+                    suffix: None,
+                    span: sp,
+                }
             }
         }
     }
@@ -1690,6 +1712,7 @@ impl<'a> Parser<'a> {
                 self.advance();
                 Pattern::IntLit {
                     value: v,
+                    suffix: None,
                     span: start,
                 }
             }
@@ -1697,6 +1720,23 @@ impl<'a> Parser<'a> {
                 self.advance();
                 Pattern::FloatLit {
                     value: v,
+                    suffix: None,
+                    span: start,
+                }
+            }
+            TokenKind::TypedIntLit(v, s) => {
+                self.advance();
+                Pattern::IntLit {
+                    value: v,
+                    suffix: Some(s),
+                    span: start,
+                }
+            }
+            TokenKind::TypedFloatLit(v, s) => {
+                self.advance();
+                Pattern::FloatLit {
+                    value: v,
+                    suffix: Some(s),
                     span: start,
                 }
             }
@@ -1728,11 +1768,13 @@ impl<'a> Parser<'a> {
                     self.advance();
                     Pattern::IntLit {
                         value: -v,
+                        suffix: None,
                         span: start.merge(self.span()),
                     }
                 } else {
                     Pattern::IntLit {
                         value: 0,
+                        suffix: None,
                         span: start,
                     }
                 }

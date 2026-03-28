@@ -49,6 +49,10 @@ pub enum TokenKind {
     // Literals
     IntLit(i64),
     FloatLit(f64),
+    /// Integer literal with explicit type suffix (e.g. `42u8`, `1000u32`)
+    TypedIntLit(i64, String),
+    /// Float literal with explicit type suffix (e.g. `3.14f32`)
+    TypedFloatLit(f64, String),
     StringLit(String),
     FStringLit(Vec<FStringPart>),
     CharLit(char),
@@ -560,12 +564,23 @@ impl<'src> Lexer<'src> {
         }
 
         let text = &self.source[start..self.pos];
-        let span = self.span(start);
+        let span_before_suffix = self.span(start);
         let clean: String = text.chars().filter(|&c| c != '_').collect();
+
+        // Check for type suffix: u8, u16, u32, u64, i8, i16, i32, i64, f32, f64
+        let suffix = self.try_eat_type_suffix();
+
+        let span = self.span(start);
 
         if is_float {
             match clean.parse::<f64>() {
-                Ok(v) => Token::new(TokenKind::FloatLit(v), span),
+                Ok(v) => {
+                    if let Some(s) = suffix {
+                        Token::new(TokenKind::TypedFloatLit(v, s), span)
+                    } else {
+                        Token::new(TokenKind::FloatLit(v), span)
+                    }
+                }
                 Err(_) => {
                     self.emit(span, DiagnosticCode::E0003, "invalid float literal");
                     Token::new(TokenKind::Error, span)
@@ -573,9 +588,24 @@ impl<'src> Lexer<'src> {
             }
         } else {
             match clean.parse::<i64>() {
-                Ok(v) => Token::new(TokenKind::IntLit(v), span),
+                Ok(v) => {
+                    if let Some(ref s) = suffix {
+                        if s == "f32" || s == "f64" {
+                            // Integer with float suffix: treat as float
+                            Token::new(TokenKind::TypedFloatLit(v as f64, s.clone()), span)
+                        } else {
+                            Token::new(TokenKind::TypedIntLit(v, s.clone()), span)
+                        }
+                    } else {
+                        Token::new(TokenKind::IntLit(v), span)
+                    }
+                }
                 Err(_) => {
-                    self.emit(span, DiagnosticCode::E0003, "invalid integer literal");
+                    self.emit(
+                        span_before_suffix,
+                        DiagnosticCode::E0003,
+                        "invalid integer literal",
+                    );
                     Token::new(TokenKind::Error, span)
                 }
             }
@@ -605,7 +635,15 @@ impl<'src> Lexer<'src> {
             .filter(|&c| c != '_')
             .collect();
         match i64::from_str_radix(&digits, radix) {
-            Ok(v) => Token::new(TokenKind::IntLit(v), span),
+            Ok(v) => {
+                let suffix = self.try_eat_type_suffix();
+                let span = self.span(start);
+                if let Some(s) = suffix {
+                    Token::new(TokenKind::TypedIntLit(v, s), span)
+                } else {
+                    Token::new(TokenKind::IntLit(v), span)
+                }
+            }
             Err(_) => {
                 self.emit(span, DiagnosticCode::E0003, "integer literal out of range");
                 Token::new(TokenKind::Error, span)
@@ -621,6 +659,30 @@ impl<'src> Lexer<'src> {
                 break;
             }
         }
+    }
+
+    /// Try to consume a type suffix after a numeric literal.
+    /// Recognized suffixes: u8, u16, u32, u64, i8, i16, i32, i64, f32, f64
+    fn try_eat_type_suffix(&mut self) -> Option<String> {
+        let remaining = &self.source[self.pos..];
+        let suffixes = [
+            "u64", "u32", "u16", "u8", "i64", "i32", "i16", "i8", "f64", "f32",
+        ];
+        for suffix in &suffixes {
+            if remaining.starts_with(suffix) {
+                // Make sure the suffix is not followed by an alphanumeric char
+                // (to avoid matching `u8x` as suffix `u8` + ident `x`)
+                let after = self.pos + suffix.len();
+                if after < self.source.len()
+                    && (self.bytes[after].is_ascii_alphanumeric() || self.bytes[after] == b'_')
+                {
+                    continue;
+                }
+                self.pos += suffix.len();
+                return Some(suffix.to_string());
+            }
+        }
+        None
     }
 
     // ── Strings ──────────────────────────────────────────────────────────

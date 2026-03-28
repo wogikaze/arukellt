@@ -1,0 +1,8 @@
+fn main() {
+    let a = 42i32
+    let b = 100i64
+    let c = 3.14f64
+    println(a)
+    println(b)
+    println(c)
+}

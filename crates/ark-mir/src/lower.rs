@@ -2005,7 +2005,7 @@ impl LowerCtx {
 
     fn is_i64_operand_mir(&self, op: &Operand) -> bool {
         match op {
-            Operand::ConstI64(_) => true,
+            Operand::ConstI64(_) | Operand::ConstU64(_) => true,
             Operand::Call(name, _) => matches!(name.as_str(), "clock_now"),
             Operand::BinOp(_, l, r) => self.is_i64_operand_mir(l) || self.is_i64_operand_mir(r),
             Operand::Place(Place::Local(lid)) => self.i64_locals.contains(&lid.0),
@@ -2110,7 +2110,7 @@ impl LowerCtx {
                         if tname == "f64" {
                             self.f64_locals.insert(local_id.0);
                         }
-                        if tname == "i64" {
+                        if tname == "i64" || tname == "u64" {
                             self.i64_locals.insert(local_id.0);
                         }
                         if tname == "bool" {
@@ -3489,15 +3489,27 @@ impl LowerCtx {
     fn lower_expr(&mut self, expr: &ast::Expr) -> Operand {
         match expr {
             ast::Expr::StringLit { value, .. } => Operand::ConstString(value.clone()),
-            ast::Expr::IntLit { value, .. } => {
-                // Keep full i64 precision; will be promoted in let binding if needed
-                if *value > i32::MAX as i64 || *value < i32::MIN as i64 {
-                    Operand::ConstI64(*value)
-                } else {
-                    Operand::ConstI32(*value as i32)
+            ast::Expr::IntLit { value, suffix, .. } => match suffix.as_deref() {
+                Some("u8") => Operand::ConstU8(*value as u8),
+                Some("u16") => Operand::ConstU16(*value as u16),
+                Some("u32") => Operand::ConstU32(*value as u32),
+                Some("u64") => Operand::ConstU64(*value as u64),
+                Some("i8") => Operand::ConstI8(*value as i8),
+                Some("i16") => Operand::ConstI16(*value as i16),
+                Some("i64") => Operand::ConstI64(*value),
+                Some("i32") => Operand::ConstI32(*value as i32),
+                _ => {
+                    if *value > i32::MAX as i64 || *value < i32::MIN as i64 {
+                        Operand::ConstI64(*value)
+                    } else {
+                        Operand::ConstI32(*value as i32)
+                    }
                 }
-            }
-            ast::Expr::FloatLit { value, .. } => Operand::ConstF64(*value),
+            },
+            ast::Expr::FloatLit { value, suffix, .. } => match suffix.as_deref() {
+                Some("f32") => Operand::ConstF32(*value as f32),
+                _ => Operand::ConstF64(*value),
+            },
             ast::Expr::BoolLit { value, .. } => Operand::ConstBool(*value),
             ast::Expr::CharLit { value, .. } => Operand::ConstChar(*value),
             ast::Expr::Ident { name, .. } => {

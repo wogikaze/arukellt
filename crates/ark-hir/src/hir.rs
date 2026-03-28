@@ -369,6 +369,13 @@ pub enum Ty {
     I64,
     F32,
     F64,
+    // Extended scalar types (v3 #040)
+    U8,
+    U16,
+    U32,
+    U64,
+    I8,
+    I16,
     Bool,
     Char,
     Unit,

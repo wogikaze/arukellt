@@ -18,6 +18,16 @@ pub enum Type {
     Char,
     Unit,
 
+    // Extended scalar types (v3 #040)
+    // Unsigned: Wasm has no native unsigned types — these use i32/i64 with masking
+    U8,  // i32 with 0xFF mask
+    U16, // i32 with 0xFFFF mask
+    U32, // i32 (unsigned div/rem/cmp)
+    U64, // i64 (unsigned div/rem/cmp)
+    // Signed narrow: i32 with sign-extension
+    I8,  // i32 with sign-extend from 8-bit
+    I16, // i32 with sign-extend from 16-bit
+
     // String (built-in reference type)
     String,
 
@@ -48,12 +58,39 @@ pub enum Type {
 impl Type {
     /// Is this a numeric type?
     pub fn is_numeric(&self) -> bool {
-        matches!(self, Type::I32 | Type::I64 | Type::F32 | Type::F64)
+        matches!(
+            self,
+            Type::I32
+                | Type::I64
+                | Type::F32
+                | Type::F64
+                | Type::U8
+                | Type::U16
+                | Type::U32
+                | Type::U64
+                | Type::I8
+                | Type::I16
+        )
     }
 
     /// Is this an integer type?
     pub fn is_integer(&self) -> bool {
-        matches!(self, Type::I32 | Type::I64)
+        matches!(
+            self,
+            Type::I32
+                | Type::I64
+                | Type::U8
+                | Type::U16
+                | Type::U32
+                | Type::U64
+                | Type::I8
+                | Type::I16
+        )
+    }
+
+    /// Is this an unsigned integer type?
+    pub fn is_unsigned(&self) -> bool {
+        matches!(self, Type::U8 | Type::U16 | Type::U32 | Type::U64)
     }
 
     /// Is this a float type?
@@ -84,12 +121,30 @@ impl Type {
                 | Type::I64
                 | Type::F32
                 | Type::F64
+                | Type::U8
+                | Type::U16
+                | Type::U32
+                | Type::U64
+                | Type::I8
+                | Type::I16
                 | Type::Bool
                 | Type::Char
                 | Type::Unit
                 | Type::Tuple(_)
                 | Type::Array(_, _)
         )
+    }
+
+    /// Returns the Wasm-level width of this scalar type.
+    /// U8/U16/U32/I8/I16 → I32 (all narrow to i32 in Wasm)
+    /// U64 → I64
+    /// F32/F64 → themselves
+    pub fn wasm_width(&self) -> Type {
+        match self {
+            Type::U8 | Type::U16 | Type::U32 | Type::I8 | Type::I16 => Type::I32,
+            Type::U64 => Type::I64,
+            _ => self.clone(),
+        }
     }
 }
 
@@ -100,6 +155,12 @@ impl fmt::Display for Type {
             Type::I64 => write!(f, "i64"),
             Type::F32 => write!(f, "f32"),
             Type::F64 => write!(f, "f64"),
+            Type::U8 => write!(f, "u8"),
+            Type::U16 => write!(f, "u16"),
+            Type::U32 => write!(f, "u32"),
+            Type::U64 => write!(f, "u64"),
+            Type::I8 => write!(f, "i8"),
+            Type::I16 => write!(f, "i16"),
             Type::Bool => write!(f, "bool"),
             Type::Char => write!(f, "char"),
             Type::Unit => write!(f, "()"),
@@ -161,5 +222,22 @@ mod tests {
         assert!(Type::String.is_reference());
         assert!(Type::I32.is_value());
         assert!(!Type::String.is_value());
+        // Extended scalar types
+        assert!(Type::U8.is_numeric());
+        assert!(Type::U8.is_integer());
+        assert!(Type::U8.is_unsigned());
+        assert!(Type::U32.is_unsigned());
+        assert!(Type::U64.is_unsigned());
+        assert!(!Type::I32.is_unsigned());
+        assert!(Type::I8.is_integer());
+        assert!(Type::I16.is_integer());
+        assert!(Type::U8.is_value());
+        assert!(Type::U64.is_value());
+        assert_eq!(Type::U8.wasm_width(), Type::I32);
+        assert_eq!(Type::U16.wasm_width(), Type::I32);
+        assert_eq!(Type::U32.wasm_width(), Type::I32);
+        assert_eq!(Type::U64.wasm_width(), Type::I64);
+        assert_eq!(Type::I8.wasm_width(), Type::I32);
+        assert_eq!(Type::I16.wasm_width(), Type::I32);
     }
 }

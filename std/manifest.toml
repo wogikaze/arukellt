@@ -1009,3 +1009,29 @@ params = ["String"]
 returns = "bool"
 prelude = true
 doc_category = "string"
+
+# ── Scalar Types (v3) ─────────────
+[[types]]
+name = "u8"
+prelude = true
+
+[[types]]
+name = "u16"
+prelude = true
+
+[[types]]
+name = "u32"
+prelude = true
+
+[[types]]
+name = "u64"
+prelude = true
+
+[[types]]
+name = "i8"
+prelude = true
+
+[[types]]
+name = "i16"
+prelude = true
+

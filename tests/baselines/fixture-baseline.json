@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-03-28",
-  "fixture_count": 362,
+  "fixture_count": 374,
   "entries": [
     {
       "kind": "run",
@@ -3997,6 +3997,107 @@
       "status": 0,
       "stdout": "",
       "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/suffix_literals.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/suffix_literals.ark:2:15\n   |\n  2 |     let a = 42i32\n   |               ^^^ unresolved name `i32`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/suffix_literals.ark:3:16\n   |\n  3 |     let b = 100i64\n   |                ^^^ unresolved name `i64`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/suffix_literals.ark:4:17\n   |\n  4 |     let c = 3.14f64\n   |                 ^^^ unresolved name `f64`\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u8_basic.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_basic.ark:2:16\n   |\n  2 |     let a = 255u8\n   |                ^^ unresolved name `u8`\n   = help: did you mean `eq`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_basic.ark:3:16\n   |\n  3 |     let b = 100u8\n   |                ^^ unresolved name `u8`\n   = help: did you mean `eq`?\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u32_arithmetic.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u32_arithmetic.ark:2:20\n   |\n  2 |     let a = 1000000u32\n   |                    ^^^ unresolved name `u32`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u32_arithmetic.ark:3:19\n   |\n  3 |     let b = 999999u32\n   |                   ^^^ unresolved name `u32`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u32_arithmetic.ark:8:18\n   |\n  8 |     let d = a * 2u32\n   |                  ^^^ unresolved name `u32`\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u64_basic.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u64_basic.ark:2:24\n   |\n  2 |     let a = 10000000000u64\n   |                        ^^^ unresolved name `u64`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u64_basic.ark:3:23\n   |\n  3 |     let b = 9999999999u64\n   |                       ^^^ unresolved name `u64`\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/i8_sign.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/i8_sign.ark:2:15\n   |\n  2 |     let a = 42i8\n   |               ^^ unresolved name `i8`\n   = help: did you mean `min`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/i8_sign.ark:3:16\n   |\n  3 |     let b = 100i8\n   |                ^^ unresolved name `i8`\n   = help: did you mean `min`?\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/f32_basic.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/f32_basic.ark:2:17\n   |\n  2 |     let a = 3.14f64\n   |                 ^^^ unresolved name `f64`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/f32_basic.ark:3:16\n   |\n  3 |     let b = 2.0f64\n   |                ^^^ unresolved name `f64`\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/hex_literal.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/hex_literal.ark:2:17\n   |\n  2 |     let a = 0xFFu8\n   |                 ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/hex_literal.ark:3:17\n   |\n  3 |     let b = 0x1Au16\n   |                 ^^^ unresolved name `u16`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/hex_literal.ark:4:23\n   |\n  4 |     let c = 0xDEADBEEFu32\n   |                       ^^^ unresolved name `u32`\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/comparison.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/comparison.ark:2:15\n   |\n  2 |     let a = 10u32\n   |               ^^^ unresolved name `u32`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/comparison.ark:3:15\n   |\n  3 |     let b = 20u32\n   |               ^^^ unresolved name `u32`\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/type_annotation.ark",
+      "status": 0,
+      "stdout": "42\n1000\n100000\n500\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "1000",
+        "100000",
+        "500"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u16_arithmetic.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0002|parse]: expected `RParen`, found `Ident(\"u16\")`\n   = expected: RParen\n   = actual: Ident(\"u16\")\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u16_arithmetic.ark:6:18\n   |\n  6 |     println(a * 2u16)\n   |                  ^^^ here\n\nerror[E0001|parse]: expected expression, found `RParen`\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u16_arithmetic.ark:6:21\n   |\n  6 |     println(a * 2u16)\n   |                     ^ here\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/i16_basic.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0002|parse]: expected `RParen`, found `Ident(\"i16\")`\n   = expected: RParen\n   = actual: Ident(\"i16\")\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/i16_basic.ark:6:18\n   |\n  6 |     println(a * 2i16)\n   |                  ^^^ here\n\nerror[E0001|parse]: expected expression, found `RParen`\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/i16_basic.ark:6:21\n   |\n  6 |     println(a * 2i16)\n   |                     ^ here\n\n",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
+      "path": "scalar/u8_overflow.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_overflow.ark:2:16\n   |\n  2 |     let a = 250u8\n   |                ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_overflow.ark:3:15\n   |\n  3 |     let b = 10u8\n   |               ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_overflow.ark:6:16\n   |\n  6 |     let c = 100u8\n   |                ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/scalar/u8_overflow.ark:7:18\n   |\n  7 |     let d = c * 3u8\n   |                  ^^ unresolved name `u8`\n   = help: did you mean `Ok`?\n\n",
       "primary_text": []
     }
   ]

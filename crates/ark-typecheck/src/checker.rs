@@ -1264,6 +1264,22 @@ impl TypeChecker {
     }
 
     /// Resolve a type expression to a Type.
+    fn suffix_to_type(&self, suffix: &str) -> Type {
+        match suffix {
+            "i32" => Type::I32,
+            "i64" => Type::I64,
+            "f32" => Type::F32,
+            "f64" => Type::F64,
+            "u8" => Type::U8,
+            "u16" => Type::U16,
+            "u32" => Type::U32,
+            "u64" => Type::U64,
+            "i8" => Type::I8,
+            "i16" => Type::I16,
+            _ => Type::Error,
+        }
+    }
+
     pub fn resolve_type_expr(&self, ty: &ast::TypeExpr) -> Type {
         match ty {
             ast::TypeExpr::Named { name, .. } => match name.as_str() {
@@ -1271,6 +1287,12 @@ impl TypeChecker {
                 "i64" => Type::I64,
                 "f32" => Type::F32,
                 "f64" => Type::F64,
+                "u8" => Type::U8,
+                "u16" => Type::U16,
+                "u32" => Type::U32,
+                "u64" => Type::U64,
+                "i8" => Type::I8,
+                "i16" => Type::I16,
                 "bool" => Type::Bool,
                 "char" => Type::Char,
                 "String" => Type::String,
@@ -1624,6 +1646,12 @@ impl TypeChecker {
                         (ast::Expr::IntLit { .. }, Type::I64) => Type::I64,
                         (ast::Expr::IntLit { .. }, Type::F64) => Type::F64,
                         (ast::Expr::IntLit { .. }, Type::F32) => Type::F32,
+                        (ast::Expr::IntLit { .. }, Type::U8) => Type::U8,
+                        (ast::Expr::IntLit { .. }, Type::U16) => Type::U16,
+                        (ast::Expr::IntLit { .. }, Type::U32) => Type::U32,
+                        (ast::Expr::IntLit { .. }, Type::U64) => Type::U64,
+                        (ast::Expr::IntLit { .. }, Type::I8) => Type::I8,
+                        (ast::Expr::IntLit { .. }, Type::I16) => Type::I16,
                         _ => self.synthesize_expr(init, env, sink),
                     };
                     if !self.types_compatible(&init_type, &declared_type) {
@@ -1777,7 +1805,13 @@ impl TypeChecker {
         sink: &mut DiagnosticSink,
     ) -> Type {
         match expr {
+            ast::Expr::IntLit {
+                suffix: Some(s), ..
+            } => self.suffix_to_type(s),
             ast::Expr::IntLit { .. } => Type::I32,
+            ast::Expr::FloatLit {
+                suffix: Some(s), ..
+            } => self.suffix_to_type(s),
             ast::Expr::FloatLit { .. } => Type::F64,
             ast::Expr::StringLit { .. } => Type::String,
             ast::Expr::CharLit { .. } => Type::Char,

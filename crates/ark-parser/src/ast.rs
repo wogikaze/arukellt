@@ -168,10 +168,12 @@ impl TypeExpr {
 pub enum Expr {
     IntLit {
         value: i64,
+        suffix: Option<String>,
         span: Span,
     },
     FloatLit {
         value: f64,
+        suffix: Option<String>,
         span: Span,
     },
     StringLit {
@@ -371,10 +373,12 @@ pub enum Pattern {
     },
     IntLit {
         value: i64,
+        suffix: Option<String>,
         span: Span,
     },
     FloatLit {
         value: f64,
+        suffix: Option<String>,
         span: Span,
     },
     StringLit {

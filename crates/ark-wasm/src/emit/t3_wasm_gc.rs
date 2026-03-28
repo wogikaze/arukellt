@@ -356,9 +356,10 @@ struct Ctx {
 impl Ctx {
     fn type_to_val(&self, ty: &Type) -> ValType {
         match ty {
-            Type::I64 => ValType::I64,
+            Type::I64 | Type::U64 => ValType::I64,
             Type::F64 => ValType::F64,
             Type::F32 => ValType::F32,
+            Type::U8 | Type::U16 | Type::U32 | Type::I8 | Type::I16 => ValType::I32,
             Type::String => ref_nullable(self.string_ty),
             Type::Any => ValType::Ref(WasmRefType {
                 nullable: true,
@@ -377,8 +378,8 @@ impl Ctx {
     /// Resolve a type name (from fn_sigs or struct/enum defs) to a ValType.
     fn type_name_to_val(&self, name: &str) -> ValType {
         match name {
-            "i32" | "bool" | "char" | "()" => ValType::I32,
-            "i64" => ValType::I64,
+            "i32" | "bool" | "char" | "()" | "u8" | "u16" | "u32" | "i8" | "i16" => ValType::I32,
+            "i64" | "u64" => ValType::I64,
             "f64" => ValType::F64,
             "f32" => ValType::F32,
             "String" => ref_nullable(self.string_ty),
@@ -1367,6 +1368,12 @@ impl Ctx {
             | Operand::ConstI64(_)
             | Operand::ConstF32(_)
             | Operand::ConstF64(_)
+            | Operand::ConstU8(_)
+            | Operand::ConstU16(_)
+            | Operand::ConstU32(_)
+            | Operand::ConstU64(_)
+            | Operand::ConstI8(_)
+            | Operand::ConstI16(_)
             | Operand::ConstBool(_)
             | Operand::ConstChar(_)
             | Operand::ConstString(_)
@@ -3447,7 +3454,7 @@ impl Ctx {
                 Type::F64 => {
                     self.f64_locals.insert(local.id.0);
                 }
-                Type::I64 => {
+                Type::I64 | Type::U64 => {
                     self.i64_locals.insert(local.id.0);
                 }
                 Type::Bool => {
@@ -3854,6 +3861,24 @@ impl Ctx {
             }
             Operand::ConstF64(v) => {
                 f.instruction(&Instruction::F64Const(*v));
+            }
+            Operand::ConstU8(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
+            }
+            Operand::ConstU16(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
+            }
+            Operand::ConstU32(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
+            }
+            Operand::ConstU64(v) => {
+                f.instruction(&Instruction::I64Const(*v as i64));
+            }
+            Operand::ConstI8(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
+            }
+            Operand::ConstI16(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
             }
             Operand::ConstBool(v) => {
                 f.instruction(&Instruction::I32Const(if *v { 1 } else { 0 }));
@@ -5180,7 +5205,7 @@ impl Ctx {
 
     fn is_f64_like_operand(&self, operand: &Operand) -> bool {
         match operand {
-            Operand::ConstF64(_) => true,
+            Operand::ConstF64(_) | Operand::ConstF32(_) => true,
             Operand::Place(Place::Local(id)) => self.f64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_f64_like_operand(l) || self.is_f64_like_operand(r),
             Operand::UnaryOp(_, inner) => self.is_f64_like_operand(inner),
@@ -5195,7 +5220,7 @@ impl Ctx {
 
     fn is_i64_like_operand(&self, operand: &Operand) -> bool {
         match operand {
-            Operand::ConstI64(_) => true,
+            Operand::ConstI64(_) | Operand::ConstU64(_) => true,
             Operand::Place(Place::Local(id)) => self.i64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_i64_like_operand(l) || self.is_i64_like_operand(r),
             Operand::UnaryOp(_, inner) => self.is_i64_like_operand(inner),
@@ -5351,9 +5376,17 @@ impl Ctx {
     /// Infer the Wasm ValType that an operand produces.
     fn infer_operand_type(&self, op: &Operand) -> ValType {
         match op {
-            Operand::ConstI32(_) | Operand::ConstBool(_) | Operand::ConstChar(_) => ValType::I32,
-            Operand::ConstI64(_) => ValType::I64,
+            Operand::ConstI32(_)
+            | Operand::ConstBool(_)
+            | Operand::ConstChar(_)
+            | Operand::ConstU8(_)
+            | Operand::ConstU16(_)
+            | Operand::ConstU32(_)
+            | Operand::ConstI8(_)
+            | Operand::ConstI16(_) => ValType::I32,
+            Operand::ConstI64(_) | Operand::ConstU64(_) => ValType::I64,
             Operand::ConstF64(_) => ValType::F64,
+            Operand::ConstF32(_) => ValType::F32,
             Operand::ConstString(_) => ref_nullable(self.string_ty),
             Operand::Place(Place::Local(id)) => {
                 if self.string_locals.contains(&id.0) {

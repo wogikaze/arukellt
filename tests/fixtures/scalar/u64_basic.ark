@@ -1,0 +1,8 @@
+fn main() {
+    let a = 10000000000u64
+    let b = 9999999999u64
+    println(a)
+    println(b)
+    let c = a - b
+    println(c)
+}

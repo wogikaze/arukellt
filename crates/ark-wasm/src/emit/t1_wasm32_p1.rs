@@ -3303,7 +3303,7 @@ impl EmitCtx {
                 ark_typecheck::types::Type::F64 => {
                     self.f64_locals.insert(local.id.0);
                 }
-                ark_typecheck::types::Type::I64 => {
+                ark_typecheck::types::Type::I64 | ark_typecheck::types::Type::U64 => {
                     self.i64_locals.insert(local.id.0);
                 }
                 ark_typecheck::types::Type::Bool => {
@@ -3886,6 +3886,14 @@ impl EmitCtx {
                     self.emit_operand(f, arg);
                     if self.is_string_operand(arg) {
                         f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                    } else if self.is_i64_operand(arg) {
+                        f.instruction(&Instruction::Call(FN_I64_TO_STR));
+                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                    } else if self.is_f64_operand(arg) {
+                        f.instruction(&Instruction::Call(FN_F64_TO_STR));
+                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                    } else if self.is_bool_operand(arg) {
+                        f.instruction(&Instruction::Call(FN_PRINT_BOOL_LN));
                     } else {
                         f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
                     }
@@ -3981,6 +3989,24 @@ impl EmitCtx {
             }
             Operand::ConstF32(v) => {
                 f.instruction(&Instruction::F32Const(*v));
+            }
+            Operand::ConstU8(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
+            }
+            Operand::ConstU16(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
+            }
+            Operand::ConstU32(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
+            }
+            Operand::ConstU64(v) => {
+                f.instruction(&Instruction::I64Const(*v as i64));
+            }
+            Operand::ConstI8(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
+            }
+            Operand::ConstI16(v) => {
+                f.instruction(&Instruction::I32Const(*v as i32));
             }
             Operand::ConstBool(v) => {
                 f.instruction(&Instruction::I32Const(if *v { 1 } else { 0 }));
@@ -9195,7 +9221,7 @@ impl EmitCtx {
 
     fn is_f64_operand(&self, op: &Operand) -> bool {
         match op {
-            Operand::ConstF64(_) => true,
+            Operand::ConstF64(_) | Operand::ConstF32(_) => true,
             Operand::Place(Place::Local(id)) => self.f64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_f64_operand(l) || self.is_f64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_f64_operand(inner),
@@ -9206,7 +9232,7 @@ impl EmitCtx {
 
     fn is_i64_operand(&self, op: &Operand) -> bool {
         match op {
-            Operand::ConstI64(_) => true,
+            Operand::ConstI64(_) | Operand::ConstU64(_) => true,
             Operand::Place(Place::Local(id)) => self.i64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_i64_operand(l) || self.is_i64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_i64_operand(inner),

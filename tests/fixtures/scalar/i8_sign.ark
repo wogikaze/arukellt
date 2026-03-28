@@ -1,0 +1,8 @@
+fn main() {
+    let a = 42i8
+    let b = 100i8
+    println(a)
+    println(b)
+    let c = b - a
+    println(c)
+}
