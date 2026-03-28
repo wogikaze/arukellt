@@ -723,6 +723,41 @@ impl Session {
     pub fn cache_key_for(&self, path: &Path) -> Option<&PhaseKey> {
         self.artifacts.key_for_path(path)
     }
+
+    /// Read the compiler process's own RSS from `/proc/self/status` (Linux only).
+    ///
+    /// Returns a formatted summary of VmRSS (current resident size) and
+    /// VmHWM (peak resident size, aka high-water mark).
+    pub fn profile_rss() -> String {
+        #[cfg(target_os = "linux")]
+        {
+            match std::fs::read_to_string("/proc/self/status") {
+                Ok(contents) => {
+                    let mut rss_kb: Option<u64> = None;
+                    let mut hwm_kb: Option<u64> = None;
+                    for line in contents.lines() {
+                        if let Some(rest) = line.strip_prefix("VmRSS:") {
+                            rss_kb = rest.trim().strip_suffix("kB")
+                                .and_then(|v| v.trim().parse().ok());
+                        } else if let Some(rest) = line.strip_prefix("VmHWM:") {
+                            hwm_kb = rest.trim().strip_suffix("kB")
+                                .and_then(|v| v.trim().parse().ok());
+                        }
+                    }
+                    let rss = rss_kb.map_or("unknown".to_string(), |v| format!("{} KB", v));
+                    let hwm = hwm_kb.map_or("unknown".to_string(), |v| format!("{} KB", v));
+                    format!("[memory] VmRSS: {}, VmHWM: {}", rss, hwm)
+                }
+                Err(e) => {
+                    format!("[memory] warning: failed to read /proc/self/status: {}", e)
+                }
+            }
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            "[memory] warning: RSS profiling is only supported on Linux".to_string()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -743,6 +778,12 @@ mod tests {
         assert_eq!(MirSelection::CoreHir.as_str(), "corehir");
         assert_eq!(MirSelection::OptimizedLegacy.as_str(), "optimized-legacy");
         assert_eq!(MirSelection::OptimizedCoreHir.as_str(), "optimized-corehir");
+    }
+
+    #[test]
+    fn profile_rss_returns_memory_line() {
+        let output = Session::profile_rss();
+        assert!(output.starts_with("[memory]"), "expected [memory] prefix, got: {}", output);
     }
 }
 

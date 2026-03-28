@@ -16,6 +16,7 @@ pub(crate) fn cmd_compile(
     emit_kind: EmitKind,
     wit_files: Vec<PathBuf>,
     profile_mem: bool,
+    profile_memory: bool,
     time: bool,
     opt_level_raw: u8,
     no_pass: Vec<String>,
@@ -126,6 +127,9 @@ pub(crate) fn cmd_compile(
                 eprintln!("{}", info);
             }
         }
+        if profile_memory {
+            eprintln!("{}", Session::profile_rss());
+        }
         return;
     }
 
@@ -202,6 +206,9 @@ pub(crate) fn cmd_compile(
                 if let Ok(info) = session.profile_memory(&file) {
                     eprintln!("{}", info);
                 }
+            }
+            if profile_memory {
+                eprintln!("{}", Session::profile_rss());
             }
         }
         Err(errors) => {
