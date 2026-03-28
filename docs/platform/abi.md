@@ -73,3 +73,46 @@ Field access computes byte offset from field index and type sizes.
 Match expressions are lowered to MIR `Switch` terminators that branch on the enum tag.
 Each arm extracts payload fields via `EnumPayload` with byte-offset computation.
 Struct patterns use `FieldAccess` for each matched field.
+
+## Layer 2B: Component Model Canonical ABI (v2)
+
+When compiling with `--emit component`, the Component Model canonical ABI applies at
+the component boundary. The canonical ABI sits between the GC-native internal
+representation and the component interface.
+
+### Type mapping
+
+| Internal (GC) | Canonical ABI | WIT |
+|----------------|---------------|-----|
+| `i32` (unboxed) | i32 flat | `s32` |
+| `i64` (unboxed) | i64 flat | `s64` |
+| `f32` (unboxed) | f32 flat | `f32` |
+| `f64` (unboxed) | f64 flat | `f64` |
+| `i32` (bool) | i32 flat (0/1) | `bool` |
+| `(ref (array i8))` | ptr+len in linear mem | `string` |
+| `(ref struct{arr,len})` | ptr+len in linear mem | `list<T>` |
+
+### Export convention
+
+- User `pub fn` with WIT-compatible signatures are exported in core Wasm using
+  kebab-case names (e.g., `is_even` → `is-even`).
+- The component encoder (`wasm-tools component new`) generates canonical ABI
+  adapter functions that lift/lower between the core module's calling convention
+  and the component interface.
+- A WASI adapter module (`wasi_snapshot_preview1.reactor.wasm`) bridges WASI
+  preview1 imports to WASI preview2 component model interfaces.
+
+### Import convention
+
+- Host imports declared in WIT files are parsed and registered as `MirImport`
+  entries in the MIR module.
+- The WIT parser (`wit_parse.rs`) converts WIT interface declarations to MIR
+  import entries with typed parameters.
+
+### Linear memory budget
+
+- The core module retains 1 page (64 KB) of linear memory for WASI I/O marshaling.
+- Of this, 256 bytes are reserved for the iov buffer (fd_write/fd_read).
+- Available budget for canonical ABI string/list flattening: 65,280 bytes.
+- Complex type passing (string, list) at component boundaries uses this linear
+  memory for temporary serialization during lift/lower operations.

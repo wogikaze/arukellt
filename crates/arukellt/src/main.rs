@@ -34,6 +34,9 @@ enum Commands {
         /// Emit kind (core-wasm, component, wit, all)
         #[arg(long)]
         emit: Option<EmitKind>,
+        /// WIT file(s) for host import binding
+        #[arg(long = "wit", value_name = "PATH")]
+        wit_files: Vec<PathBuf>,
         /// Show memory profiling info (escape analysis, allocation hints)
         #[arg(long)]
         profile_mem: bool,
@@ -88,11 +91,12 @@ fn main() {
             output,
             target,
             emit: emit_kind,
+            wit_files,
             profile_mem,
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
-            commands::cmd_compile(file, output, target, emit_kind, profile_mem);
+            commands::cmd_compile(file, output, target, emit_kind, wit_files, profile_mem);
         }
         Commands::Run {
             file,

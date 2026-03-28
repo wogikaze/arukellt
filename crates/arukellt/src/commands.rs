@@ -14,6 +14,7 @@ pub(crate) fn cmd_compile(
     output: Option<PathBuf>,
     target: TargetId,
     emit_kind: EmitKind,
+    wit_files: Vec<PathBuf>,
     profile_mem: bool,
 ) {
     // Native target: handled separately via LLVM backend
@@ -35,6 +36,19 @@ pub(crate) fn cmd_compile(
     if let Err(e) = ark_wasm::emit::validate_emit_kind(target, emit_kind) {
         eprintln!("error: {}", e);
         process::exit(1);
+    }
+
+    // Validate --wit files exist
+    for wit_path in &wit_files {
+        if !wit_path.exists() {
+            eprintln!("error: WIT file not found: {}", wit_path.display());
+            process::exit(1);
+        }
+    }
+    if !wit_files.is_empty() && emit_kind != EmitKind::Component && emit_kind != EmitKind::All {
+        eprintln!(
+            "warning: --wit flag is only used with --emit component or --emit all"
+        );
     }
 
     // WIT-only emit
