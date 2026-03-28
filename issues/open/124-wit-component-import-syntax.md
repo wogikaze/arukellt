@@ -115,6 +115,7 @@ string_literal ::= '"' namespace ':' package '/' interface ('@' version)? '"'
 ```
 
 例:
+
 ```ark
 import "namespace:markdown-parser/parse" as md
 import "wasi:cli/stdin"            // alias = stdin (最後のセグメント)
@@ -321,26 +322,29 @@ arukellt build  # ark.toml を自動検出、依存 WIT を読み込み
 ### Phase 4: ドキュメント・cookbook
 
 **4-1. `docs/cookbook/component-import.md`**
-  - 外部コンポーネントを使う完全な手順（ark.toml + import + wasm-tools compose）
+- 外部コンポーネントを使う完全な手順（ark.toml + import + wasm-tools compose）
   
 **4-2. `docs/spec/import-system.md`** (issue #123 より)
-  - `use std::io` (stdlib) と `import "wasi:cli/stdin"` (WIT) の区別を明記
+- `use std::io` (stdlib) と `import "wasi:cli/stdin"` (WIT) の区別を明記
 
 ---
 
 ## 完了条件
 
 ### Phase 1 完了条件
+
 - `arukellt run --wit vendor/foo.wit main.ark` が動作する
 - WIT インターフェースの関数が型チェックを通過する
 - WIT 関数呼び出しを含む .ark が有効な Wasm component を生成する
 - `tests/fixtures/wit_import/` のフィクスチャが pass する
 
 ### Phase 2 完了条件
+
 - WIT record フィールドへのアクセスが型安全に動作する
 - WIT enum の match が可能
 
 ### Phase 3 完了条件
+
 - `arukellt build` が ark.toml を自動検出する
 - `ark.toml` の dependencies から WIT ファイルを自動読み込みする
 

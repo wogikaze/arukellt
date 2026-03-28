@@ -33,7 +33,6 @@ graph TD
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
   I102["102 コンパイル速度: Lexer / Parser のホットパス最適化"]
   I103["103 実行時性能: 配列境界チェック除去 (Bounds Check Elimination)"]
-  I104["104 実行時性能: GC write barrier 削減 (immutable フィールド検出)"]
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
@@ -90,7 +89,6 @@ graph TD
 - **099** depends on: —; blocks: none
 - **102** depends on: 100; blocks: none
 - **103** depends on: 080; blocks: none
-- **104** depends on: —; blocks: none
 - **105** depends on: —; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
 - **116** depends on: 114; blocks: none
