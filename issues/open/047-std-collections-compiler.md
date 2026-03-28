@@ -1,4 +1,4 @@
-# std::collections: Arena、SlotMap、Interner、Rope
+# std::collections: Arena、SlotMap、Interner ／ std::text: Rope
 
 **Status**: open
 **Created**: 2026-03-28
@@ -12,7 +12,8 @@
 
 コンパイラ・Wasm ツールチェーン・IDE 支援向けの高度なデータ構造を実装する。
 Arena (安定 ID と一括所有)、SlotMap (削除に強い handle map)、
-Interner (値 ↔ ID 双方向化)、Rope (大きいテキストの編集) を標準化し、
+Interner (値 ↔ ID 双方向化) を `std::collections` 配下に、
+Rope (大きいテキストの編集) を **`std::text::rope`** 配下に実装し、
 セルフホストと Wasm tooling の基盤を整備する。
 
 ## 安定性ラベル
@@ -51,7 +52,9 @@ pub fn resolve<T>(i: Interner<T>, sym: Symbol) -> Option<T>
 pub fn interner_len<T>(i: Interner<T>) -> i32
 ```
 
-### Rope
+### Rope (std::text::rope)
+
+`std::text` モジュールの一部として提供する (`std::collections` ではない)。
 
 ```ark
 pub fn rope_new() -> Rope
@@ -72,7 +75,7 @@ pub fn rope_line_count(r: Rope) -> i32
 4. Interner: HashMap<T, Symbol> + Vec<T> の双方向マップ
 5. Rope: balanced binary tree of text chunks
 6. `std/collections/arena.ark`, `slot_map.ark`, `interner.ark`
-7. `std/text/rope.ark`
+7. `std/text/rope.ark` (**`std::text::rope`** namespace に配置)
 
 ## 検証方法
 
@@ -96,7 +99,8 @@ pub fn rope_line_count(r: Rope) -> i32
 
 ## ドキュメント
 
-- `docs/stdlib/collections-advanced.md`: Arena, SlotMap, Interner, Rope のリファレンス
+- `docs/stdlib/collections-advanced.md`: Arena, SlotMap, Interner のリファレンス
+- `docs/stdlib/modules/text.md` に Rope セクションを追加 (std::text::rope)
 
 ## 未解決論点
 

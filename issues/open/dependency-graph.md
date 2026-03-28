@@ -15,7 +15,7 @@ graph TD
   I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
   I045["045 std::collections: Deque、PriorityQueue"]
   I046["046 std::collections: BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet"]
-  I047["047 std::collections: Arena、SlotMap、Interner、Rope"]
+  I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I048["048 std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム"]
   I056["056 std::test: assert、snapshot テスト、bench-lite"]
   I050["050 std::io: Reader、Writer、stdin/stdout/stderr、buffered I/O"]
@@ -26,6 +26,7 @@ graph TD
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I057["057 Prelude 再構成と API 移行"]
   I058["058 API 安定性ラベルとドキュメント体系"]
+  I059["059 v3 fixture 統合 + verify-harness.sh v3 ゲート"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I039 --> I041
   I039 --> I043
@@ -71,30 +72,50 @@ graph TD
   I049 --> I057
   I052 --> I057
   I057 --> I058
+  I039 --> I059
+  I040 --> I059
+  I041 --> I059
+  I042 --> I059
+  I043 --> I059
+  I044 --> I059
+  I045 --> I059
+  I046 --> I059
+  I047 --> I059
+  I048 --> I059
+  I049 --> I059
+  I050 --> I059
+  I051 --> I059
+  I052 --> I059
+  I053 --> I059
+  I054 --> I059
+  I055 --> I059
+  I056 --> I059
+  I057 --> I059
 ```
 
 ## Adjacency list
 
-- **039** depends on: —; blocks: 041, 042, 043, 044, 045, 046, 047, 048, 049, 050, 051, 052, 053, 054, 055, 056, 057
-- **040** depends on: —; blocks: 043, 051, 053
-- **041** depends on: 039; blocks: 042, 044, 045, 046, 047, 048, 049, 050, 056, 057
-- **043** depends on: 039, 040; blocks: 050, 053
-- **051** depends on: 039, 040; blocks: none
-- **042** depends on: 039, 041; blocks: 049, 052, 055, 057
-- **044** depends on: 039, 041; blocks: 054, 055, 057
-- **045** depends on: 039, 041; blocks: none
-- **046** depends on: 039, 041; blocks: none
-- **047** depends on: 039, 041; blocks: none
-- **048** depends on: 039, 041; blocks: 057
-- **056** depends on: 039, 041; blocks: none
-- **050** depends on: 039, 041, 043; blocks: none
-- **053** depends on: 039, 040, 043; blocks: 054
-- **049** depends on: 039, 041, 042; blocks: 057
-- **052** depends on: 039, 042; blocks: 057
-- **055** depends on: 039, 042, 044; blocks: none
-- **054** depends on: 039, 044, 053; blocks: none
-- **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: 058
+- **039** depends on: —; blocks: 041, 042, 043, 044, 045, 046, 047, 048, 049, 050, 051, 052, 053, 054, 055, 056, 057, 059
+- **040** depends on: —; blocks: 043, 051, 053, 059
+- **041** depends on: 039; blocks: 042, 044, 045, 046, 047, 048, 049, 050, 056, 057, 059
+- **043** depends on: 039, 040; blocks: 050, 053, 059
+- **051** depends on: 039, 040; blocks: 059
+- **042** depends on: 039, 041; blocks: 049, 052, 055, 057, 059
+- **044** depends on: 039, 041; blocks: 054, 055, 057, 059
+- **045** depends on: 039, 041; blocks: 059
+- **046** depends on: 039, 041; blocks: 059
+- **047** depends on: 039, 041; blocks: 059
+- **048** depends on: 039, 041; blocks: 057, 059
+- **056** depends on: 039, 041; blocks: 059
+- **050** depends on: 039, 041, 043; blocks: 059
+- **053** depends on: 039, 040, 043; blocks: 054, 059
+- **049** depends on: 039, 041, 042; blocks: 057, 059
+- **052** depends on: 039, 042; blocks: 057, 059
+- **055** depends on: 039, 042, 044; blocks: 059
+- **054** depends on: 039, 044, 053; blocks: 059
+- **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: 058, 059
 - **058** depends on: 057; blocks: none
+- **059** depends on: 039, 040, 041, 042, 043, 044, 045, 046, 047, 048, 049, 050, 051, 052, 053, 054, 055, 056, 057; blocks: none
 
 ### Blocked
 

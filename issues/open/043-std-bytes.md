@@ -120,8 +120,21 @@ pub fn leb128_decode_u64(c: ByteCursor) -> Result<u64, Error>
 
 - `docs/stdlib/bytes-reference.md`: 全 API リファレンス + endian/leb128 の使用例
 
+## ByteView について
+
+ByteView (読み取り専用スライス view) は **v3 Experimental** として実装する。
+
+```ark
+pub fn bytes_view(b: Bytes, start: i32, len: i32) -> ByteView   // zero-copy view
+pub fn byte_view_len(v: ByteView) -> i32
+pub fn byte_view_get(v: ByteView, i: i32) -> u8
+pub fn byte_view_to_bytes(v: ByteView) -> Bytes                  // copy out
+pub fn byte_view_to_cursor(v: ByteView) -> ByteCursor
+```
+
+実装ファイル: `std/bytes/view.ark`
+
 ## 未解決論点
 
-1. ByteView (読み取り専用 view) を v3 に含めるか
-2. Bytes の immutability を型レベルで保証するか、convention で保証するか
-3. エンディアン指定を enum (`Endian::Little`, `Endian::Big`) にするか関数名で分けるか
+1. Bytes の immutability を型レベルで保証するか、convention で保証するか
+2. エンディアン指定を enum (`Endian::Little`, `Endian::Big`) にするか関数名で分けるか
