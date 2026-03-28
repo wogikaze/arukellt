@@ -10,12 +10,27 @@
 | 版 | 状態 | 中核目標 | 詳細 |
 |----|------|---------|------|
 | v1 | **完了** (2026-03-27) | Wasm GC ネイティブ対応 | [roadmap-v1.md](roadmap-v1.md) |
-| v2 | 未着手 | Component Model 完全対応 | [roadmap-v2.md](roadmap-v2.md) |
-| v3 | 未着手 | 標準ライブラリ整備 | [roadmap-v3.md](roadmap-v3.md) |
+| v2 | **完了** (2026-03-28) | Component Model 完全対応 | [roadmap-v2.md](roadmap-v2.md) |
+| v3 | **進行中** (issues #039–#059) | 標準ライブラリ整備 | [roadmap-v3.md](roadmap-v3.md) |
 | v4 | 未着手 | 最適化 (4 軸定量目標) | [roadmap-v4.md](roadmap-v4.md) |
 | v5 | 未着手 | セルフホスト | [roadmap-v5.md](roadmap-v5.md) |
 
 横断事項 (依存関係マップ・リスク管理・意思決定基準) → [roadmap-cross-cutting.md](roadmap-cross-cutting.md)
+
+### v2 完了時の注記
+
+- ✅ `--emit component` + WIT generation + wasmtime smoke test 実装済み
+- ✅ ADR-008 (Component Model ラッピング戦略) 確定
+- ⚠️ jco によるブラウザ向けバインディング生成は Wasm GC 型サポート待ち → `issues/blocked/037`
+- ⚠️ WIT 16 型すべてのフィクスチャ (現行 5/16) → `issues/open/038` で追跡中
+
+### v3 現在の進捗 (2026-03-28)
+
+- issues: #039–#059 (21 件 open、依存グラフ → `issues/open/dependency-graph.md`)
+- stdlib 設計書: `docs/stdlib/std.md` (38 KB 多言語調査 + Arukellt 設計原則)
+- モジュール設計: `docs/stdlib/modules/` (core / text / bytes / collections / seq / io / wasm / test)
+- API 安定性マトリクス: `docs/stdlib/reference.md`
+- 実装着手前: `use std::*` モジュールシステム (#039) が全 v3 issues の先行依存
 
 ---
 
@@ -76,7 +91,7 @@ T3 の線形メモリ 1 ページ固定は v5 まで変更しない。WASI P3 (a
 
 ### 原則 6: テスト戦略
 
-- **fixture harness (346+ 件)**: `tests/fixtures/manifest.txt` 駆動。新しい言語機能は fixture を追加してから実装する (TDD)。
+- **fixture harness (379 件)**: `tests/fixtures/manifest.txt` 駆動。新しい言語機能は fixture を追加してから実装する (TDD)。
 - **カテゴリ管理**: `t3-compile:` (コンパイル検証) / `t3-run:` (実行検証) / `component:` (v2 追加) / `bench:` (v4 追加)。
 - **unit tests**: 各クレートの `#[test]` 。現行 95 件。新クレート (`ark-mir/passes/`) 追加時は unit test を同梱する。
 - **e2e テスト**: Component 相互運用テストは v2 から `tests/e2e/` に追加する。
@@ -99,7 +114,7 @@ T3 の線形メモリ 1 ページ固定は v5 まで変更しない。WASI P3 (a
 ### 原則 9: ドキュメント方針
 
 - **`docs/current-state.md`**: 各版のリリース時に必ず更新する。実装状況のソース。
-- **ADR**: 設計判断ごとに記録。判断の理由・却下した代替案・影響範囲を含む。現行 ADR-001–ADR-007; v2 で ADR-008 追加予定。
+- **ADR**: 設計判断ごとに記録。判断の理由・却下した代替案・影響範囲を含む。現行 ADR-001–ADR-008 (ADR-008: Component Model ラッピング戦略、2026-03-28 確定); v3 で ADR-009 以降を追加予定。
 - **`docs/migration/`**: 版間の破壊的変更に対して移行ガイドを書く。`v0-to-v1.md` は既存。`v1-to-v2.md`, `v2-to-v3.md`, `v3-to-v4.md`, `v4-to-v5.md` を各版リリース時に作成。
 - **言語仕様凍結**: v5 着手前に `docs/language/spec.md` の凍結版を作成し、以降の仕様変更は ADR 必須とする。
 
@@ -107,7 +122,7 @@ T3 の線形メモリ 1 ページ固定は v5 まで変更しない。WASI P3 (a
 
 リリース可能の定義: 「`scripts/verify-harness.sh` の全ゲート通過 + 版固有の追加ゲート通過 + 必須ドキュメント完備」。
 
-**全版共通ゲート (現行 16 点)**:
+**全版共通ゲート (現行 17 点)**:
 1. docs 構造チェック
 2. ADR 判定
 3. 言語仕様
@@ -119,10 +134,11 @@ T3 の線形メモリ 1 ページ固定は v5 まで変更しない。WASI P3 (a
 9. baseline 収集
 10. perf gate (コンパイル時間・バイナリサイズ)
 11–16: その他静的検証
+17: Component interop smoke test (optional — `ARUKELLT_TEST_COMPONENT=1` 時のみ有効)
 
 **版固有の追加ゲート**:
-- v2: `--emit component` の e2e smoke test (wasmtime + jco)
-- v3: stdlib API 安定性マトリクスの確認
+- v2: `--emit component` の e2e smoke test (wasmtime) — ✅ 実装済み; jco は GC 対応待ち (#037 blocked)
+- v3: stdlib API 安定性マトリクスの確認 + deprecated API 使用禁止チェック (Check 18–20、#059 で追加予定)
 - v4: 4 軸定量目標の達成確認 (fib, vec-ops ベンチマーク)
 - v5: Stage1/Stage2 fixpoint 検証 (`scripts/verify-bootstrap.sh`)
 
@@ -141,4 +157,4 @@ T3 の線形メモリ 1 ページ固定は v5 まで変更しない。WASI P3 (a
 9. **LLM の逃げ道**: 全原則を「何を、どの条件で」まで具体化。
 10. **ADR 反映**: ADR-001–007 を全て第 0 章に取り込んだ。
 11. **クレート構成変更**: `crates/ark-mir/src/passes/` (v4) の追加を原則 2 に記載。
-12. **issues 整合**: issues #019–#027 は v1 のスケルトンとして roadmap-v1.md に記載。
+12. **issues 整合**: issues #001–#038 は完了 (v1 + v2 トラック)。issues #039–#059 は v3 トラックとして open。issues/blocked/ に #037 (jco GC upstream 待ち) が 1 件。
