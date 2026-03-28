@@ -266,6 +266,7 @@ dependencies = [
  "ark-wasm",
  "clap",
  "tokio",
+ "wasmparser 0.225.0",
  "wasmtime",
  "wasmtime-wasi",
 ]

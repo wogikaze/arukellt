@@ -366,6 +366,9 @@ struct Ctx {
     wasi_fd_read: u32,
     wasi_fd_close: u32,
     wasi_needs_fs: bool,
+    /// Optimization level (0 = O0, 1 = O1, 2 = O2).
+    /// Tail-call emission (`return_call`) is enabled at opt_level >= 1.
+    opt_level: u8,
 }
 
 impl Ctx {
@@ -580,7 +583,7 @@ impl Ctx {
 /// Scalars live in Wasm locals. Strings, Vecs, structs, and enums use
 /// GC struct/array types. I/O bridges through a small linear memory
 /// region for WASI fd_write.
-pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
+pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u8> {
     // TODO(MIR-01): remove checker fallback — read layouts from type_table only
     let struct_layouts: HashMap<String, Vec<(String, String)>> = mir.type_table.struct_defs.clone();
     let fn_ret_types: HashMap<String, Type> = mir
@@ -679,6 +682,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         wasi_fd_read: 0,
         wasi_fd_close: 0,
         wasi_needs_fs: false,
+        opt_level,
     };
     ctx.emit_module(mir)
 }
@@ -3958,6 +3962,75 @@ impl Ctx {
                 f.instruction(&Instruction::Br(self.loop_break_extra_depth));
             }
             MirStmt::Return(Some(op)) => {
+                // ── Tail-call optimisation (return_call) ──
+                // When opt_level >= 1 and the returned value is a direct call
+                // whose Wasm return type matches the current function, emit
+                // `return_call` instead of `call` + `return`.
+                if self.opt_level >= 1 && !self.is_start_fn {
+                    if let Operand::Call(name, args) = op {
+                        let canonical = normalize_intrinsic(name).to_string();
+                        if !self.is_builtin_name(&canonical) {
+                            let callee_ret_is_any = self
+                                .fn_ret_types
+                                .get(canonical.as_str())
+                                .is_some_and(|t| *t == Type::Any);
+                            let current_ret_is_any = self.current_fn_return_ty == Type::Any;
+                            // return_call is valid only when no boxing/unboxing
+                            // is needed between the callee result and our return.
+                            if callee_ret_is_any == current_ret_is_any {
+                                if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
+                                    let param_types =
+                                        self.fn_param_types.get(canonical.as_str()).cloned();
+                                    for (i, arg) in args.iter().enumerate() {
+                                        self.emit_operand(f, arg);
+                                        if let Some(ref pts) = param_types {
+                                            if i < pts.len() && pts[i] == Type::Any {
+                                                let arg_vt = self.infer_operand_type(arg);
+                                                if arg_vt == ValType::I32 {
+                                                    f.instruction(&Instruction::RefI31);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    f.instruction(&Instruction::ReturnCall(fn_idx));
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    if let Operand::CallIndirect { callee, args } = op {
+                        if self.current_fn_return_ty != Type::Any {
+                            for arg in args {
+                                self.emit_operand(f, arg);
+                            }
+                            self.emit_operand(f, callee);
+                            let params: Vec<ValType> = args
+                                .iter()
+                                .map(|a| {
+                                    if self.is_f64_like_operand(a) {
+                                        ValType::F64
+                                    } else if self.is_i64_like_operand(a) {
+                                        ValType::I64
+                                    } else {
+                                        ValType::I32
+                                    }
+                                })
+                                .collect();
+                            let results = vec![ValType::I32];
+                            let type_index = self
+                                .indirect_types
+                                .get(&(params, results))
+                                .copied()
+                                .unwrap_or(0);
+                            f.instruction(&Instruction::ReturnCallIndirect {
+                                type_index,
+                                table_index: 0,
+                            });
+                            return;
+                        }
+                    }
+                }
+                // ── Normal (non-tail-call) path ──
                 if self.is_start_fn && !matches!(op, Operand::Unit) {
                     self.emit_operand(f, op);
                     if self.operand_produces_value(op) {

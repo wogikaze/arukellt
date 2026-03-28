@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-03-28",
-  "fixture_count": 415,
+  "fixture_count": 419,
   "entries": [
     {
       "kind": "run",
@@ -4606,6 +4606,49 @@
         "\"hello\"",
         "null",
         "123"
+      ]
+    },
+    {
+      "kind": "bench",
+      "path": "../../benchmarks/fib.ark",
+      "status": 0,
+      "stdout": "9227465\n",
+      "stderr": "",
+      "primary_text": [
+        "9227465"
+      ]
+    },
+    {
+      "kind": "bench",
+      "path": "../../benchmarks/binary_tree.ark",
+      "status": 0,
+      "stdout": "2097151\n",
+      "stderr": "",
+      "primary_text": [
+        "2097151"
+      ]
+    },
+    {
+      "kind": "bench",
+      "path": "../../benchmarks/vec_ops.ark",
+      "status": 0,
+      "stdout": "1000\n499500\nfound 500\nnot found 9999\n",
+      "stderr": "",
+      "primary_text": [
+        "1000",
+        "499500",
+        "found 500",
+        "not found 9999"
+      ]
+    },
+    {
+      "kind": "bench",
+      "path": "../../benchmarks/string_concat.ark",
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
       ]
     }
   ]

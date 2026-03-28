@@ -2,6 +2,23 @@
 
 This note is implementation-facing only. It freezes the frontend handoff expected by downstream MIR and docs work.
 
+## Compile path status
+
+CoreHIR is **not yet the default** compile path. The default remains `MirSelection::Legacy`.
+
+**Reason**: The CoreHIR MIR lowering path (`lower_check_output_to_mir`) does not fully desugar
+high-level IR operands (`IfExpr`, `LoopExpr`, `TryExpr`) into backend-legal form. The
+`validate_backend_legal_module` check rejects these nodes, causing compilation to fail
+with "backend-illegal MIR nodes remain after lowering". This affects all fixture programs
+that contain `if` expressions, loops, or `try` expressions in operand position.
+
+**CLI flag**: Use `--mir-select corehir` to opt in to the CoreHIR path for testing.
+The legacy path is the default and can be explicitly selected with `--mir-select legacy`.
+
+**Blocking work**: Before CoreHIR can become the default, the CoreHIR lowering pass must
+desugar `IfExpr`, `LoopExpr`, and `TryExpr` operands into control-flow graph form
+(branches + basic blocks) that passes `validate_backend_legal_module`.
+
 ## CoreHIR node inventory
 
 Defined in `crates/ark-hir/src/hir.rs`.

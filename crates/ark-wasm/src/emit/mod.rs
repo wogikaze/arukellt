@@ -28,9 +28,9 @@ fn validate_wasm(bytes: &[u8]) -> Result<(), String> {
 /// Emit a Wasm module from MIR for the given target.
 ///
 /// Builds a backend plan first, then routes emission through the plan consumer.
-pub fn emit(mir: &MirModule, sink: &mut DiagnosticSink, target: TargetId) -> Vec<u8> {
+pub fn emit(mir: &MirModule, sink: &mut DiagnosticSink, target: TargetId, opt_level: u8) -> Vec<u8> {
     match build_backend_plan(target, target.profile().default_emit_kind) {
-        Ok(plan) => emit_with_plan(mir, sink, &plan),
+        Ok(plan) => emit_with_plan(mir, sink, &plan, opt_level),
         Err(message) => {
             sink.emit(wasm_validation_diagnostic(message));
             Vec::new()
@@ -38,10 +38,15 @@ pub fn emit(mir: &MirModule, sink: &mut DiagnosticSink, target: TargetId) -> Vec
     }
 }
 
-pub fn emit_with_plan(mir: &MirModule, sink: &mut DiagnosticSink, plan: &BackendPlan) -> Vec<u8> {
+pub fn emit_with_plan(
+    mir: &MirModule,
+    sink: &mut DiagnosticSink,
+    plan: &BackendPlan,
+    opt_level: u8,
+) -> Vec<u8> {
     let bytes = match plan.runtime_model {
         RuntimeModel::T1LinearP1 => t1_wasm32_p1::emit(mir, sink),
-        RuntimeModel::T3WasmGcP2 => t3_wasm_gc::emit(mir, sink),
+        RuntimeModel::T3WasmGcP2 => t3_wasm_gc::emit(mir, sink, opt_level),
         RuntimeModel::T4LlvmScaffold => {
             sink.emit(wasm_validation_diagnostic(
                 "native backend plan cannot be emitted via ark-wasm".to_string(),

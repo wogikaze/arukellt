@@ -1,8 +1,9 @@
 use crate::mir::{
     BinOp, BlockId, LocalId, MirFunction, MirModule, MirStmt, Operand, Place, Rvalue, Terminator, UnaryOp,
-    push_optimization_trace,
+    push_optimization_trace, stmt_calls,
 };
 use crate::validate::validate_module;
+use std::collections::{HashSet, VecDeque};
 
 const MAX_OPT_ROUNDS: usize = 3;
 const INLINE_SMALL_LEAF_BUDGET: usize = 8;
@@ -1210,6 +1211,206 @@ fn is_pure_binop(op: BinOp) -> bool {
             | BinOp::Shl
             | BinOp::Shr
     )
+}
+
+/// Module-level dead function elimination.
+/// Starting from `main` (entry_fn), compute the transitive closure of called functions
+/// and remove all unreachable functions from the module.
+/// Returns the number of functions removed.
+pub fn eliminate_dead_functions(module: &mut MirModule) -> usize {
+    use crate::mir::FnId;
+
+    let entry_fn = match module.entry_fn {
+        Some(id) => id,
+        None => return 0,
+    };
+
+    // Debug: print all functions and their IDs
+    if std::env::var("ARUKELLT_DEBUG_DEAD_FN").is_ok() {
+        for (i, f) in module.functions.iter().enumerate() {
+            eprintln!("[dead-fn] idx={} id={} name={}", i, f.id.0, f.name);
+        }
+        eprintln!("[dead-fn] entry_fn={}", entry_fn.0);
+    }
+
+    // Build name→index map for all functions
+    let name_to_idx: std::collections::HashMap<String, usize> = module
+        .functions
+        .iter()
+        .enumerate()
+        .map(|(i, f)| (f.name.clone(), i))
+        .collect();
+
+    // Also map fn#N format to index (for MirStmt::Call which uses FnId)
+    let fnid_to_name: std::collections::HashMap<String, usize> = module
+        .functions
+        .iter()
+        .enumerate()
+        .map(|(i, f)| (format!("fn#{}", f.id.0), i))
+        .collect();
+
+    // Find entry function index
+    let entry_idx = match module.functions.iter().position(|f| f.id == entry_fn) {
+        Some(idx) => idx,
+        None => return 0,
+    };
+
+    // BFS from entry function
+    let mut reachable = HashSet::new();
+    let mut queue = VecDeque::new();
+    reachable.insert(entry_idx);
+    queue.push_back(entry_idx);
+
+    // Exported functions are also roots (pub fn)
+    for (idx, func) in module.functions.iter().enumerate() {
+        if func.is_exported && !reachable.contains(&idx) {
+            reachable.insert(idx);
+            queue.push_back(idx);
+        }
+    }
+
+    while let Some(idx) = queue.pop_front() {
+        let func = &module.functions[idx];
+        let mut callees = Vec::new();
+        for block in &func.blocks {
+            for stmt in &block.stmts {
+                stmt_calls(stmt, &mut callees);
+            }
+            // Also scan terminator for calls (tail expressions become Return(Some(Operand::Call(...))))
+            match &block.terminator {
+                Terminator::Return(Some(op)) => {
+                    crate::mir::operand_calls(op, &mut callees);
+                }
+                Terminator::If { cond, .. } => {
+                    crate::mir::operand_calls(cond, &mut callees);
+                }
+                Terminator::Switch { scrutinee, .. } => {
+                    crate::mir::operand_calls(scrutinee, &mut callees);
+                }
+                _ => {}
+            }
+        }
+
+        if std::env::var("ARUKELLT_DEBUG_DEAD_FN").is_ok() {
+            eprintln!("[dead-fn] scanning {} (idx={}): blocks={} stmts_per_block={:?}", func.name, idx,
+                func.blocks.len(),
+                func.blocks.iter().map(|b| b.stmts.len()).collect::<Vec<_>>());
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    eprintln!("[dead-fn]   stmt: {:?}", std::mem::discriminant(stmt));
+                }
+            }
+            eprintln!("[dead-fn]   callees={:?}", callees);
+        }
+
+        for callee_name in callees {
+            // Normalize __intrinsic_ prefix to canonical MIR function name
+            let canonical_owned;
+            let canonical: &str = if let Some(stripped) = callee_name.strip_prefix("__intrinsic_") {
+                canonical_owned = match stripped {
+                    "string_from" => "String_from".to_string(),
+                    "string_new" => "String_new".to_string(),
+                    "string_eq" => "eq".to_string(),
+                    "string_concat" => "concat".to_string(),
+                    "string_clone" => "clone".to_string(),
+                    "string_starts_with" => "starts_with".to_string(),
+                    "string_ends_with" => "ends_with".to_string(),
+                    "string_to_lower" => "to_lower".to_string(),
+                    "string_to_upper" => "to_upper".to_string(),
+                    "string_slice" => "slice".to_string(),
+                    "string_split" => "split".to_string(),
+                    "string_join" => "join".to_string(),
+                    "string_push_char" => "push_char".to_string(),
+                    other => other.to_string(),
+                };
+                &canonical_owned
+            } else {
+                &callee_name
+            };
+            let target_idx = name_to_idx
+                .get(canonical)
+                .or_else(|| fnid_to_name.get(&callee_name))
+                .copied();
+            if let Some(target) = target_idx {
+                if reachable.insert(target) {
+                    queue.push_back(target);
+                }
+            }
+        }
+    }
+
+    let original_count = module.functions.len();
+
+    if std::env::var("ARUKELLT_DEBUG_DEAD_FN").is_ok() {
+        let mut reachable_names: Vec<_> = reachable.iter().map(|&i| module.functions[i].name.clone()).collect();
+        reachable_names.sort();
+        eprintln!("[dead-fn] reachable ({}/{}): {:?}", reachable.len(), original_count, reachable_names);
+    }
+
+    // Build old FnId → new FnId remapping
+    let mut old_to_new: std::collections::HashMap<u32, u32> = std::collections::HashMap::new();
+    let mut new_id: u32 = 0;
+    for (i, func) in module.functions.iter().enumerate() {
+        if reachable.contains(&i) {
+            old_to_new.insert(func.id.0, new_id);
+            new_id += 1;
+        }
+    }
+
+    // Filter to reachable functions and reassign FnIds
+    module.functions = module
+        .functions
+        .drain(..)
+        .enumerate()
+        .filter(|(i, _)| reachable.contains(i))
+        .map(|(_, mut f)| {
+            let new_fn_id = old_to_new[&f.id.0];
+            f.id = FnId(new_fn_id);
+            // Remap Call FnIds in the function body
+            for block in &mut f.blocks {
+                for stmt in &mut block.stmts {
+                    remap_stmt_fn_ids(stmt, &old_to_new);
+                }
+            }
+            f
+        })
+        .collect();
+
+    // Update entry_fn
+    if let Some(new_entry) = old_to_new.get(&entry_fn.0) {
+        module.entry_fn = Some(FnId(*new_entry));
+    }
+
+    let removed = original_count - module.functions.len();
+    if removed > 0 {
+        push_optimization_trace(module, format!("dead_fn_elim: removed {} functions", removed));
+    }
+    removed
+}
+
+fn remap_stmt_fn_ids(stmt: &mut MirStmt, map: &std::collections::HashMap<u32, u32>) {
+    use crate::mir::FnId;
+    match stmt {
+        MirStmt::Call { func, .. } => {
+            if let Some(&new_id) = map.get(&func.0) {
+                *func = FnId(new_id);
+            }
+        }
+        MirStmt::IfStmt { then_body, else_body, .. } => {
+            for s in then_body.iter_mut() {
+                remap_stmt_fn_ids(s, map);
+            }
+            for s in else_body.iter_mut() {
+                remap_stmt_fn_ids(s, map);
+            }
+        }
+        MirStmt::WhileStmt { body, .. } => {
+            for s in body.iter_mut() {
+                remap_stmt_fn_ids(s, map);
+            }
+        }
+        _ => {}
+    }
 }
 
 #[cfg(test)]

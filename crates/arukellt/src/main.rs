@@ -49,6 +49,9 @@ enum Commands {
         /// Disable specific optimization pass by name
         #[arg(long = "no-pass", value_name = "NAME")]
         no_pass: Vec<String>,
+        /// MIR lowering path: legacy (default) or corehir
+        #[arg(long = "mir-select", value_name = "PATH", default_value = "legacy")]
+        mir_select: String,
     },
     /// Compile and run an .ark file
     Run {
@@ -72,6 +75,9 @@ enum Commands {
         /// Show memory profiling info (escape analysis, allocation hints)
         #[arg(long)]
         profile_mem: bool,
+        /// MIR lowering path: legacy (default) or corehir
+        #[arg(long = "mir-select", value_name = "PATH", default_value = "legacy")]
+        mir_select: String,
     },
     /// Type-check an .ark file without compiling
     Check {
@@ -85,6 +91,12 @@ enum Commands {
     Targets,
     /// Start the LSP server (stdio transport)
     Lsp,
+    /// Analyze a compiled Wasm binary
+    Analyze {
+        /// Analysis to perform
+        #[arg(long = "wasm-size", value_name = "FILE")]
+        wasm_size: PathBuf,
+    },
 }
 
 fn main() {
@@ -105,10 +117,11 @@ fn main() {
             time,
             opt_level,
             no_pass,
+            mir_select,
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
-            commands::cmd_compile(file, output, target, emit_kind, wit_files, profile_mem, time, opt_level, no_pass);
+            commands::cmd_compile(file, output, target, emit_kind, wit_files, profile_mem, time, opt_level, no_pass, &mir_select);
         }
         Commands::Run {
             file,
@@ -118,6 +131,7 @@ fn main() {
             deny_clock,
             deny_random,
             profile_mem,
+            mir_select,
         } => {
             commands::cmd_run(
                 file,
@@ -127,6 +141,7 @@ fn main() {
                 deny_clock,
                 deny_random,
                 profile_mem,
+                &mir_select,
             );
         }
         Commands::Check { file, target } => {
@@ -137,6 +152,9 @@ fn main() {
         }
         Commands::Lsp => {
             commands::cmd_lsp();
+        }
+        Commands::Analyze { wasm_size } => {
+            commands::cmd_analyze_wasm_size(&wasm_size);
         }
     }
 }

@@ -670,8 +670,10 @@ pub fn operand_calls(operand: &Operand, out: &mut Vec<String>) {
         Operand::UnaryOp(_, inner) | Operand::EnumTag(inner) => {
             operand_calls(inner, out);
         }
-        Operand::FnRef(_)
-        | Operand::Place(_)
+        Operand::FnRef(name) => {
+            out.push(name.clone());
+        }
+        Operand::Place(_)
         | Operand::ConstI32(_)
         | Operand::ConstI64(_)
         | Operand::ConstF32(_)
@@ -751,7 +753,7 @@ pub fn operand_calls(operand: &Operand, out: &mut Vec<String>) {
     }
 }
 
-fn stmt_calls(stmt: &MirStmt, out: &mut Vec<String>) {
+pub fn stmt_calls(stmt: &MirStmt, out: &mut Vec<String>) {
     match stmt {
         MirStmt::Assign(_, rvalue) => match rvalue {
             Rvalue::Use(operand) => operand_calls(operand, out),
@@ -773,7 +775,8 @@ fn stmt_calls(stmt: &MirStmt, out: &mut Vec<String>) {
                 operand_calls(operand, out);
             }
         }
-        MirStmt::CallBuiltin { args, .. } => {
+        MirStmt::CallBuiltin { name, args, .. } => {
+            out.push(name.clone());
             for operand in args {
                 operand_calls(operand, out);
             }

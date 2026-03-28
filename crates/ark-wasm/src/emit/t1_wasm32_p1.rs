@@ -578,7 +578,7 @@ impl EmitCtx {
 
         // Table section — for indirect calls (higher-order functions)
         let total_funcs =
-            4 + 19 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
+            FN_USER_BASE as u64 + mir.functions.len() as u64 + if needs_start_wrapper { 1 } else { 0 };
         let mut tables = wasm_encoder::TableSection::new();
         tables.table(wasm_encoder::TableType {
             element_type: wasm_encoder::RefType::FUNCREF,

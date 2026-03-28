@@ -430,6 +430,9 @@ run:stdlib_wasm/wasm_basic.ark
 run:stdlib_wit/wit_basic.ark
 run:stdlib_json/json_basic.ark
 
+# Optimisation tests
+run:opt/tail_call_deep.ark
+
 # Benchmark suite (in benchmarks/ directory, not test fixtures)
 bench:../../benchmarks/fib.ark
 bench:../../benchmarks/binary_tree.ark

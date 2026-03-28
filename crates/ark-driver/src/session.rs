@@ -4,7 +4,8 @@ use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
 use ark_hir::Program;
 use ark_lexer::Lexer;
 use ark_mir::{
-    MirModule, MirProvenance, compare_lowering_paths, lower_check_output_to_mir, lower_legacy_only,
+    MirModule, MirProvenance, compare_lowering_paths, eliminate_dead_functions,
+    lower_check_output_to_mir, lower_legacy_only,
     module_snapshot, optimization_pass_catalog, optimize_module, optimize_module_named,
     runtime_entry_name, set_mir_provenance,
     validate_backend_legal_module, validate_module,
@@ -572,6 +573,12 @@ impl Session {
         ) {
             validate_backend_ready_mir(&mir)?;
         }
+
+        // Dead function elimination: remove stdlib functions not reachable from main
+        if self.opt_level != OptLevel::O0 && std::env::var("ARUKELLT_NO_DEAD_FN").is_err() {
+            eliminate_dead_functions(&mut mir);
+        }
+
         let plan = build_backend_plan(target, EmitKind::CoreWasm)?;
 
         self.sink = DiagnosticSink::new();
@@ -580,7 +587,12 @@ impl Session {
             self.sink.emit(diag);
         }
         let t_emit = std::time::Instant::now();
-        let wasm = ark_wasm::emit_with_plan(&mir, &mut self.sink, &plan);
+        let opt_u8 = match self.opt_level {
+            OptLevel::O0 => 0u8,
+            OptLevel::O1 => 1u8,
+            OptLevel::O2 => 2u8,
+        };
+        let wasm = ark_wasm::emit_with_plan(&mir, &mut self.sink, &plan, opt_u8);
         let emit_ms = t_emit.elapsed().as_secs_f64() * 1000.0;
 
         if self.sink.has_errors() {

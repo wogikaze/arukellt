@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use std::process;
 
-use ark_driver::{OptLevel, Session};
+use ark_driver::{MirSelection, OptLevel, Session};
 use ark_target::{EmitKind, TargetId};
 
 use crate::native;
@@ -19,6 +19,7 @@ pub(crate) fn cmd_compile(
     time: bool,
     opt_level_raw: u8,
     no_pass: Vec<String>,
+    mir_select: &str,
 ) {
     // Native target: handled separately via LLVM backend
     if target == TargetId::Native {
@@ -133,7 +134,8 @@ pub(crate) fn cmd_compile(
     session.timing_enabled = time;
     session.opt_level = opt_level;
     session.disabled_passes = no_pass;
-    match session.compile(&file, target) {
+    let selection = parse_mir_select(mir_select);
+    match session.compile_selected(&file, target, selection).map(|c| c.wasm) {
         Ok(wasm) => {
             std::fs::write(&output, &wasm).unwrap_or_else(|e| {
                 eprintln!("error: failed to write {}: {}", output.display(), e);
@@ -217,6 +219,7 @@ pub(crate) fn cmd_run(
     deny_clock: bool,
     deny_random: bool,
     profile_mem: bool,
+    mir_select: &str,
 ) {
     // Native target: handled separately
     if target == TargetId::Native {
@@ -266,7 +269,8 @@ pub(crate) fn cmd_run(
     }
 
     let mut session = Session::new();
-    match session.compile(&file, target) {
+    let selection = parse_mir_select(mir_select);
+    match session.compile_selected(&file, target, selection).map(|c| c.wasm) {
         Ok(wasm) => {
             if profile_mem {
                 if let Ok(info) = session.profile_memory(&file) {
@@ -319,4 +323,131 @@ pub(crate) fn cmd_targets() {
 pub(crate) fn cmd_lsp() {
     let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(ark_lsp::run_lsp());
+}
+
+pub(crate) fn cmd_analyze_wasm_size(path: &std::path::Path) {
+    let bytes = std::fs::read(path).unwrap_or_else(|e| {
+        eprintln!("error: failed to read {}: {}", path.display(), e);
+        process::exit(1);
+    });
+
+    let total_size = bytes.len();
+
+    let mut sections: Vec<(&str, usize)> = Vec::new();
+    let mut custom_sections: Vec<(String, usize)> = Vec::new();
+    let mut code_funcs: Vec<(u32, usize)> = Vec::new();
+    let mut func_index: u32 = 0;
+
+    let parser = wasmparser::Parser::new(0);
+    for payload in parser.parse_all(&bytes) {
+        let payload = payload.unwrap_or_else(|e| {
+            eprintln!("error: failed to parse wasm: {}", e);
+            process::exit(1);
+        });
+        match payload {
+            wasmparser::Payload::TypeSection(reader) => {
+                sections.push(("type", reader.range().len()));
+            }
+            wasmparser::Payload::ImportSection(reader) => {
+                sections.push(("import", reader.range().len()));
+            }
+            wasmparser::Payload::FunctionSection(reader) => {
+                sections.push(("function", reader.range().len()));
+            }
+            wasmparser::Payload::TableSection(reader) => {
+                sections.push(("table", reader.range().len()));
+            }
+            wasmparser::Payload::MemorySection(reader) => {
+                sections.push(("memory", reader.range().len()));
+            }
+            wasmparser::Payload::GlobalSection(reader) => {
+                sections.push(("global", reader.range().len()));
+            }
+            wasmparser::Payload::ExportSection(reader) => {
+                sections.push(("export", reader.range().len()));
+            }
+            wasmparser::Payload::ElementSection(reader) => {
+                sections.push(("element", reader.range().len()));
+            }
+            wasmparser::Payload::DataSection(reader) => {
+                sections.push(("data", reader.range().len()));
+            }
+            wasmparser::Payload::CodeSectionStart { range, .. } => {
+                sections.push(("code", range.len()));
+            }
+            wasmparser::Payload::CodeSectionEntry(body) => {
+                code_funcs.push((func_index, body.range().len()));
+                func_index += 1;
+            }
+            wasmparser::Payload::TagSection(reader) => {
+                sections.push(("tag", reader.range().len()));
+            }
+            wasmparser::Payload::CustomSection(reader) => {
+                let size = reader.range().len();
+                custom_sections.push((reader.name().to_string(), size));
+                sections.push(("custom", size));
+            }
+            wasmparser::Payload::StartSection { range, .. } => {
+                sections.push(("start", range.len()));
+            }
+            wasmparser::Payload::DataCountSection { range, .. } => {
+                sections.push(("datacount", range.len()));
+            }
+            _ => {}
+        }
+    }
+
+    // Aggregate by section name
+    let mut aggregated: std::collections::BTreeMap<&str, usize> = std::collections::BTreeMap::new();
+    for (name, size) in &sections {
+        *aggregated.entry(name).or_insert(0) += size;
+    }
+
+    println!("Wasm binary size analysis: {} ({} bytes)", path.display(), total_size);
+    println!();
+
+    let mut sorted: Vec<_> = aggregated.iter().collect();
+    sorted.sort_by(|a, b| b.1.cmp(a.1));
+
+    for (name, size) in &sorted {
+        let pct = (**size as f64 / total_size as f64) * 100.0;
+        println!("{}: {} bytes ({:.1}%)", name, size, pct);
+    }
+
+    if !custom_sections.is_empty() {
+        println!();
+        println!("Custom sections:");
+        for (name, size) in &custom_sections {
+            let pct = (*size as f64 / total_size as f64) * 100.0;
+            println!("  custom({}): {} bytes ({:.1}%)", name, size, pct);
+        }
+    }
+
+    if !code_funcs.is_empty() {
+        code_funcs.sort_by(|a, b| b.1.cmp(&a.1));
+        println!();
+        println!("Top functions by code size:");
+        for (idx, size) in code_funcs.iter().take(10) {
+            println!("  func[{}]: {} bytes", idx, size);
+        }
+    }
+
+    let accounted: usize = aggregated.values().sum();
+    let overhead = total_size.saturating_sub(accounted);
+    if overhead > 0 {
+        let pct = (overhead as f64 / total_size as f64) * 100.0;
+        println!();
+        println!("header/overhead: {} bytes ({:.1}%)", overhead, pct);
+    }
+}
+
+fn parse_mir_select(s: &str) -> MirSelection {
+    match s {
+        "legacy" => MirSelection::Legacy,
+        "corehir" => MirSelection::CoreHir,
+        other => {
+            eprintln!("error: unknown --mir-select value: {:?} (expected \"legacy\" or \"corehir\")", other);
+            process::exit(1);
+        }
+    }
 }
