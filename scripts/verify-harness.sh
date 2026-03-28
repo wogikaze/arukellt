@@ -1,6 +1,14 @@
 #!/bin/bash
 # Root verification and completion gate for the repository harness.
 # This script defines what "done" means for this project.
+#
+# Performance design:
+#  - Non-cargo checks (docs, lint, manifest) run as background jobs in parallel
+#    with the cargo pipeline so they overlap compilation time.
+#  - The fixture harness runs fixtures in parallel (N = CPU cores) inside Rust.
+#  - cargo build is omitted: cargo test already builds, and clippy already
+#    compiled everything before test runs.
+#  - hello.wasm size uses the already-built debug binary, not `cargo run`.
 
 set -euo pipefail
 
@@ -60,122 +68,98 @@ print(count)
 PY
 )
 
-# 1. Check documentation structure
-printf '\n%s\n' "${YELLOW}[1/16] Checking documentation structure...${NC}"
-doc_ok=true
-for doc in "AGENTS.md" "docs/process/agent-harness.md"; do
-    if [ ! -f "$doc" ]; then
-        check_fail "$doc not found"
-        doc_ok=false
+# ── Background jobs ───────────────────────────────────────────────────────────
+# Start non-cargo checks immediately so they run in parallel with cargo.
+# Each job writes a result file: rc=0 means pass, rc!=0 means fail.
+_BG_DIR=$(mktemp -d)
+trap 'rm -rf "$_BG_DIR"' EXIT
+
+_bg_run() {
+    local id="$1"; shift
+    local label="$1"; shift
+    printf '%s\n' "$label" > "$_BG_DIR/$id.label"
+    if bash -lc "$*" > "$_BG_DIR/$id.out" 2>&1; then
+        echo 0 > "$_BG_DIR/$id.rc"
+    else
+        echo 1 > "$_BG_DIR/$id.rc"
     fi
-done
-for dir in "docs/adr" "issues/open" "issues/done" "docs/language" "docs/platform" "docs/stdlib" "docs/process"; do
-    if [ ! -d "$dir" ]; then
-        check_fail "$dir/ directory not found"
-        doc_ok=false
+}
+
+_bg_collect() {
+    local id="$1"
+    local label rc
+    label=$(cat "$_BG_DIR/$id.label")
+    rc=$(cat "$_BG_DIR/$id.rc" 2>/dev/null || echo 1)
+    if [ "$rc" = "0" ]; then
+        check_pass "$label"
+    else
+        check_fail "$label"
+        cat "$_BG_DIR/$id.out" | tail -30
     fi
-done
-if [ "$doc_ok" = true ]; then
-    check_pass "Documentation structure OK"
-fi
+}
 
-# 2. Check ADR decisions
-printf '\n%s\n' "${YELLOW}[2/16] Checking ADR decisions...${NC}"
-adr_ok=true
-for adr in "docs/adr/ADR-002-memory-model.md" "docs/adr/ADR-003-generics-strategy.md" "docs/adr/ADR-004-trait-strategy.md" "docs/adr/ADR-005-llvm-scope.md" "docs/adr/ADR-006-abi-policy.md"; do
-    if [ ! -f "$adr" ]; then
-        check_fail "Missing: $adr"
-        adr_ok=false
-    elif ! grep -q "DECIDED\|決定" "$adr"; then
-        check_fail "Not decided: $adr"
-        adr_ok=false
-    fi
-done
-if [ "$adr_ok" = true ]; then
-    check_pass "All required ADRs decided"
-fi
+# Launch background jobs (overlap with cargo compilation below)
+_bg_run docs_struct "Documentation structure OK" \
+    "test -f AGENTS.md && test -f docs/process/agent-harness.md && test -d docs/adr && test -d issues/open && test -d issues/done && test -d docs/language && test -d docs/platform && test -d docs/stdlib && test -d docs/process" &
+_bg_run adrs "All required ADRs decided" \
+    "for f in docs/adr/ADR-002-memory-model.md docs/adr/ADR-003-generics-strategy.md docs/adr/ADR-004-trait-strategy.md docs/adr/ADR-005-llvm-scope.md docs/adr/ADR-006-abi-policy.md; do test -f \"\$f\" || exit 1; grep -q 'DECIDED\|決定' \"\$f\" || exit 1; done" &
+_bg_run lang_spec "Language specification OK" \
+    "test -f docs/language/memory-model.md && test -f docs/language/type-system.md && test -f docs/language/syntax.md" &
+_bg_run platform_spec "Platform specification OK" \
+    "test -f docs/platform/wasm-features.md && test -f docs/platform/abi.md && test -f docs/platform/wasi-resource-model.md" &
+_bg_run stdlib_spec "Stdlib specification OK" \
+    "test -f docs/stdlib/README.md && test -f docs/stdlib/core.md && test -f docs/stdlib/io.md" &
+_bg_run docs_consistency "docs consistency (${FIXTURE_COUNT} fixtures)" \
+    "python3 scripts/check-docs-consistency.py" &
+_bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
+    "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
+_bg_run stdlib_manifest "stdlib manifest check" \
+    "bash scripts/check-stdlib-manifest.sh" &
 
-# 3. Check language spec documents
-printf '\n%s\n' "${YELLOW}[3/16] Checking language specification...${NC}"
-spec_ok=true
-for spec in "docs/language/memory-model.md" "docs/language/type-system.md" "docs/language/syntax.md"; do
-    if [ ! -f "$spec" ]; then
-        check_fail "Missing: $spec"
-        spec_ok=false
-    fi
-done
-if [ "$spec_ok" = true ]; then
-    check_pass "Language specification OK"
-fi
+# ── Cargo pipeline ────────────────────────────────────────────────────────────
+# cargo commands must run sequentially (cargo uses a file lock).
+# clippy compiles everything; fmt check and test reuse the same artifacts.
+# NOTE: cargo build is intentionally omitted — clippy already compiled the
+# workspace, and cargo test links+runs without a separate build step.
 
-# 4. Check platform documents
-printf '\n%s\n' "${YELLOW}[4/16] Checking platform specification...${NC}"
-platform_ok=true
-for pdoc in "docs/platform/wasm-features.md" "docs/platform/abi.md" "docs/platform/wasi-resource-model.md"; do
-    if [ ! -f "$pdoc" ]; then
-        check_fail "Missing: $pdoc"
-        platform_ok=false
-    fi
-done
-if [ "$platform_ok" = true ]; then
-    check_pass "Platform specification OK"
-fi
-
-# 5. Check stdlib documents
-printf '\n%s\n' "${YELLOW}[5/16] Checking stdlib specification...${NC}"
-stdlib_ok=true
-for sdoc in "docs/stdlib/README.md" "docs/stdlib/core.md" "docs/stdlib/io.md"; do
-    if [ ! -f "$sdoc" ]; then
-        check_fail "Missing: $sdoc"
-        stdlib_ok=false
-    fi
-done
-if [ "$stdlib_ok" = true ]; then
-    check_pass "Stdlib specification OK"
-fi
-
-# 6. Check docs consistency
-printf '\n%s\n' "${YELLOW}[6/16] Checking docs consistency...${NC}"
-run_check "docs consistency (${FIXTURE_COUNT} fixtures)" "python3 scripts/check-docs-consistency.py"
-
-# 7. Check markdown lint
-printf '\n%s\n' "${YELLOW}[7/16] Checking markdown lint...${NC}"
-run_check "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json"
-
-# 8. Check formatting
-printf '\n%s\n' "${YELLOW}[8/16] Checking formatting...${NC}"
+printf '\n%s\n' "${YELLOW}[fmt] Checking formatting...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo fmt --all --check"
 else
     run_check "cargo fmt --all --check" "cargo fmt --all --check"
 fi
 
-# 9. Check clippy
-printf '\n%s\n' "${YELLOW}[9/16] Running clippy...${NC}"
+printf '\n%s\n' "${YELLOW}[clippy] Running clippy...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo clippy --workspace -- -D warnings"
 else
     run_check "cargo clippy --workspace -- -D warnings" "cargo clippy --workspace --exclude ark-llvm -- -D warnings"
 fi
 
-# 10. Check build
-printf '\n%s\n' "${YELLOW}[10/16] Building workspace...${NC}"
-if [ "$QUICK_MODE" = true ]; then
-    check_skip "cargo build --workspace"
-else
-    run_check "cargo build --workspace" "cargo build --workspace --exclude ark-llvm"
-fi
-
-# 11. Run tests
-printf '\n%s\n' "${YELLOW}[11/16] Running workspace tests...${NC}"
+printf '\n%s\n' "${YELLOW}[test] Running workspace tests...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "cargo test --workspace"
 else
     run_check "cargo test --workspace" "cargo test --workspace --exclude ark-llvm --quiet -- --skip fixture_harness"
 fi
 
-# 12. Fixture manifest completeness
-printf '\n%s\n' "${YELLOW}[12/16] Checking fixture manifest completeness...${NC}"
+# Fixture harness — fixtures run in parallel inside Rust (N = available CPU cores).
+printf '\n%s\n' "${YELLOW}[harness] Running fixture harness (parallel)...${NC}"
+if [ "$QUICK_MODE" = true ]; then
+    check_skip "cargo test -p arukellt --test harness -- --nocapture"
+else
+    local_output=$(bash -lc "cargo test -p arukellt --test harness -- --nocapture 2>&1") || true
+    if printf '%s\n' "$local_output" | grep -q "FAIL: 0"; then
+        summary=$(printf '%s\n' "$local_output" | grep "PASS:")
+        check_pass "fixture harness (${summary})"
+    else
+        check_fail "fixture harness"
+        printf '%s\n' "$local_output" | grep -E "^(PASS:|FAIL )" | head -30
+    fi
+fi
+
+# ── Fixture manifest completeness ─────────────────────────────────────────────
+printf '\n%s\n' "${YELLOW}[manifest] Checking fixture manifest completeness...${NC}"
 manifest_ok=true
 manifest_file="tests/fixtures/manifest.txt"
 if [ ! -f "$manifest_file" ]; then
@@ -217,39 +201,55 @@ if [ "$manifest_ok" = true ]; then
     check_pass "Fixture manifest completeness (${FIXTURE_COUNT} entries)"
 fi
 
-# 13. Run fixture harness test
-printf '\n%s\n' "${YELLOW}[13/16] Running fixture harness test...${NC}"
+# ── Binary size gate ──────────────────────────────────────────────────────────
+# Use the already-built debug binary to avoid an extra `cargo run` invocation.
+printf '\n%s\n' "${YELLOW}[size] Checking hello.wasm binary size gate...${NC}"
 if [ "$QUICK_MODE" = true ]; then
-    check_skip "cargo test -p arukellt --test harness -- --nocapture"
+    check_skip "binary size gate"
 else
-    local_output=$(bash -lc "cargo test -p arukellt --test harness -- --nocapture 2>&1" 2>&1) || true
-    if printf '%s\n' "$local_output" | grep -q "FAIL: 0"; then
-        summary=$(printf '%s\n' "$local_output" | grep "PASS:")
-        check_pass "fixture harness (${summary})"
+    ARUKELLT_BIN="./target/debug/arukellt"
+    if [ ! -x "$ARUKELLT_BIN" ]; then
+        ARUKELLT_BIN="./target/release/arukellt"
+    fi
+    HELLO_WASM_OUT="hello_perfgate.wasm"
+    HELLO_SIZE_MAX=5120
+    if "$ARUKELLT_BIN" compile tests/fixtures/hello/hello.ark --target wasm32-wasi-p2 --opt-level 1 -o "$HELLO_WASM_OUT" 2>/dev/null; then
+        HELLO_SIZE=$(wc -c < "$HELLO_WASM_OUT")
+        rm -f "$HELLO_WASM_OUT"
+        if [ "$HELLO_SIZE" -le "$HELLO_SIZE_MAX" ]; then
+            check_pass "hello.wasm binary size: ${HELLO_SIZE} bytes (<= ${HELLO_SIZE_MAX})"
+        else
+            check_fail "hello.wasm binary size: ${HELLO_SIZE} bytes (> ${HELLO_SIZE_MAX} threshold)"
+        fi
     else
-        check_fail "fixture harness"
-        printf '%s\n' "$local_output" | grep -E "^(PASS:|FAIL )" | head -30
+        rm -f "$HELLO_WASM_OUT"
+        check_fail "hello.wasm compilation failed"
     fi
 fi
 
-# 14. Stdlib manifest consistency
-printf '\n%s\n' "${YELLOW}[14/16] Checking stdlib manifest consistency...${NC}"
-run_check "stdlib manifest check" "bash scripts/check-stdlib-manifest.sh"
-
-# 15. Baseline collection smoke
-printf '\n%s\n' "${YELLOW}[15/16] Collecting baseline snapshots...${NC}"
+# ── Baseline snapshots ────────────────────────────────────────────────────────
+printf '\n%s\n' "${YELLOW}[baseline] Collecting baseline snapshots...${NC}"
 if [ "$QUICK_MODE" = true ]; then
     check_skip "python3 scripts/collect-baseline.py"
 else
     run_check "baseline collection" "python3 scripts/collect-baseline.py"
 fi
 
-# 16. Perf gate contract
-printf '\n%s\n' "${YELLOW}[16/20] Checking perf gate contract...${NC}"
+# ── Wait for background jobs and collect results ──────────────────────────────
+printf '\n%s\n' "${YELLOW}[bg] Collecting background check results...${NC}"
+wait
+_bg_collect docs_struct
+_bg_collect adrs
+_bg_collect lang_spec
+_bg_collect platform_spec
+_bg_collect stdlib_spec
+_bg_collect docs_consistency
+_bg_collect markdownlint
+_bg_collect stdlib_manifest
+
+# ── Static instant checks ─────────────────────────────────────────────────────
 check_pass "Perf policy documented (check<=10%, compile<=20%; heavy perf separated)"
 
-# 17. v3 stdlib fixtures registered in manifest.txt
-printf '\n%s\n' "${YELLOW}[17/20] Checking stdlib fixtures registered in manifest.txt...${NC}"
 stdlib_fixture_dirs=$(find tests/fixtures -type d -name 'stdlib_*' 2>/dev/null)
 stdlib_missing=0
 for dir in $stdlib_fixture_dirs; do
@@ -268,31 +268,16 @@ else
     check_fail "stdlib fixtures missing from manifest.txt ($stdlib_missing)"
 fi
 
-# 18. v3 stdlib fixture results
-printf '\n%s\n' "${YELLOW}[18/20] Checking v3 stdlib fixtures pass...${NC}"
-if [ "$QUICK_MODE" = true ]; then
-    check_skip "v3 stdlib fixture run"
+stdlib_fixture_count=$(grep -c 'stdlib_' tests/fixtures/manifest.txt 2>/dev/null || echo "0")
+if [ "$stdlib_fixture_count" -ge 5 ]; then
+    check_pass "v3 stdlib fixtures registered ($stdlib_fixture_count entries in manifest)"
 else
-    # Stdlib fixtures are verified as part of the full harness run (check 13).
-    # Here we verify that stdlib fixture files exist and are registered.
-    stdlib_fixture_count=$(grep -c 'stdlib_' tests/fixtures/manifest.txt 2>/dev/null || echo "0")
-    if [ "$stdlib_fixture_count" -ge 5 ]; then
-        check_pass "v3 stdlib fixtures registered ($stdlib_fixture_count entries in manifest)"
-    else
-        check_fail "v3 stdlib fixtures insufficient ($stdlib_fixture_count < 5)"
-    fi
+    check_fail "v3 stdlib fixtures insufficient ($stdlib_fixture_count < 5)"
 fi
 
-# 19. Stability labels present
-printf '\n%s\n' "${YELLOW}[19/20] Checking stability labels in manifest...${NC}"
-run_check "stability labels" "bash scripts/check-stdlib-manifest.sh"
-
-# 20. Component interop (optional — requires wasmtime with GC + component-model support)
-# Enable with: ARUKELLT_TEST_COMPONENT=1 scripts/verify-harness.sh
-# Note: jco (JavaScript) interop is NOT tested here because jco 1.x does not support
-# Wasm GC types. When jco gains GC support, test.mjs can be added.
+# Component interop (optional)
 if [ "${ARUKELLT_TEST_COMPONENT:-0}" = "1" ]; then
-    printf '\n%s\n' "${YELLOW}[20/20] Component interop smoke test (ARUKELLT_TEST_COMPONENT=1)...${NC}"
+    printf '\n%s\n' "${YELLOW}[component] Component interop smoke test (ARUKELLT_TEST_COMPONENT=1)...${NC}"
     INTEROP_SCRIPT="tests/component-interop/jco/calculator/run.sh"
     if [ ! -f "$INTEROP_SCRIPT" ]; then
         check_skip "component interop script not found"
@@ -302,7 +287,6 @@ if [ "${ARUKELLT_TEST_COMPONENT:-0}" = "1" ]; then
         run_check "component interop (wasmtime)" "bash $INTEROP_SCRIPT"
     fi
 else
-    printf '\n%s\n' "${YELLOW}[20/20] Component interop (skipped — set ARUKELLT_TEST_COMPONENT=1 to enable)...${NC}"
     check_skip "component interop (opt-in)"
 fi
 

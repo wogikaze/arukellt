@@ -11,15 +11,25 @@
 //! - `compile-error:path`     → compile with flags from `.flags`, expect failure + check `.diag`
 //!
 //! Self-check: verifies every `.ark` entry point on disk is listed in the manifest.
+//!
+//! Fixtures run in parallel using a work-stealing channel over all available CPU cores.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::{Arc, Mutex, mpsc};
 
 /// A single manifest entry.
 struct ManifestEntry {
     kind: String,
     path: String, // relative to tests/fixtures/
+}
+
+/// Outcome of running a single fixture.
+enum FixtureOutcome {
+    Pass,
+    Fail(String),
+    Skip(String),
 }
 
 /// Parse `manifest.txt`: each non-empty, non-comment line is `kind:path`.
@@ -68,7 +78,6 @@ fn entry_points(fixture_dir: &Path) -> HashSet<String> {
         let rel = path.strip_prefix(fixture_dir).unwrap();
         let dir = path.parent().unwrap();
         let is_main = path.file_name() == Some(std::ffi::OsStr::new("main.ark"));
-        // Skip helper files in module directories
         if !is_main && dir.join("main.ark").exists() {
             continue;
         }
@@ -93,6 +102,210 @@ fn arukellt_binary() -> PathBuf {
         }
     }
     path
+}
+
+/// Run a single manifest entry. Safe to call from multiple threads.
+fn run_fixture_entry(bin: &Path, fixture_dir: &Path, entry: &ManifestEntry) -> FixtureOutcome {
+    let fixture = fixture_dir.join(&entry.path);
+    let name = &entry.path;
+    let mir_debug = std::env::var_os("ARUKELLT_TEST_MIR_DEBUG").is_some();
+
+    match entry.kind.as_str() {
+        "run" | "module-run" => {
+            let expected_path = fixture.with_extension("expected");
+            if !expected_path.exists() {
+                return FixtureOutcome::Skip(format!("{} (no .expected file)", name));
+            }
+            let expected = std::fs::read_to_string(&expected_path).unwrap();
+
+            let flags_path = fixture.with_extension("flags");
+            let extra_args: Vec<String> = if flags_path.exists() {
+                std::fs::read_to_string(&flags_path)
+                    .unwrap()
+                    .split_whitespace()
+                    .map(String::from)
+                    .collect()
+            } else {
+                vec![]
+            };
+
+            let output = Command::new(bin)
+                .arg("run")
+                .args(&extra_args)
+                .arg(&fixture)
+                .output()
+                .expect("failed to run arukellt");
+
+            if mir_debug {
+                let debug = Command::new(bin)
+                    .arg("check")
+                    .arg(&fixture)
+                    .env(
+                        "ARUKELLT_DUMP_PHASES",
+                        "parse,resolve,mir,optimized-mir,backend-plan",
+                    )
+                    .env("ARUKELLT_DUMP_DIAGNOSTICS", "1")
+                    .output()
+                    .expect("failed to run arukellt debug check");
+                let mut msg = format!("[mir-debug] fixture={}\n", name);
+                if !debug.stdout.is_empty() {
+                    msg.push_str(&String::from_utf8_lossy(&debug.stdout));
+                }
+                if !debug.stderr.is_empty() {
+                    msg.push_str(&String::from_utf8_lossy(&debug.stderr));
+                }
+                eprint!("{}", msg);
+            }
+
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if stdout.as_ref() == expected {
+                FixtureOutcome::Pass
+            } else {
+                FixtureOutcome::Fail(format!(
+                    "FAIL [{}] {}\n  expected: {:?}\n  got:      {:?}",
+                    entry.kind,
+                    name,
+                    expected.lines().next().unwrap_or(""),
+                    stdout.lines().next().unwrap_or("")
+                ))
+            }
+        }
+        "diag" | "module-diag" => {
+            let diag_path = fixture.with_extension("diag");
+            if !diag_path.exists() {
+                return FixtureOutcome::Skip(format!("{} (no .diag file)", name));
+            }
+            let diag_text = std::fs::read_to_string(&diag_path).unwrap();
+            let first_line = diag_text.lines().next().unwrap_or("").trim().to_string();
+
+            let output = Command::new(bin)
+                .arg("run")
+                .arg(&fixture)
+                .output()
+                .expect("failed to run arukellt");
+
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+
+            if stderr.contains(first_line.as_str()) || stdout.contains(first_line.as_str()) {
+                FixtureOutcome::Pass
+            } else {
+                FixtureOutcome::Fail(format!(
+                    "FAIL [{}] {}\n  expected to contain: {:?}\n  stderr: {:?}",
+                    entry.kind,
+                    name,
+                    first_line,
+                    stderr.lines().next().unwrap_or("")
+                ))
+            }
+        }
+        "t3-compile" => {
+            let output = Command::new(bin)
+                .arg("compile")
+                .arg("--target")
+                .arg("wasm32-wasi-p2")
+                .arg(&fixture)
+                .arg("-o")
+                .arg("/dev/null")
+                .output()
+                .expect("failed to run arukellt");
+
+            if output.status.success() {
+                FixtureOutcome::Pass
+            } else {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                FixtureOutcome::Fail(format!(
+                    "FAIL [t3-compile] {}\n  stderr: {:?}",
+                    name,
+                    stderr.lines().next().unwrap_or("")
+                ))
+            }
+        }
+        "component-compile" => {
+            let output = Command::new(bin)
+                .arg("compile")
+                .arg("--target")
+                .arg("wasm32-wasi-p2")
+                .arg("--emit")
+                .arg("component")
+                .arg(&fixture)
+                .arg("-o")
+                .arg("/dev/null")
+                .output()
+                .expect("failed to run arukellt");
+
+            if output.status.success() {
+                FixtureOutcome::Pass
+            } else {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                if stderr.contains("wasm-tools not found")
+                    || stderr.contains("ToolNotFound")
+                    || stderr.contains("failed to resolve import")
+                {
+                    FixtureOutcome::Skip(format!(
+                        "{} (wasm-tools or WASI adapter not available)",
+                        name
+                    ))
+                } else {
+                    FixtureOutcome::Fail(format!(
+                        "FAIL [component-compile] {}\n  stderr: {:?}",
+                        name,
+                        stderr.lines().next().unwrap_or("")
+                    ))
+                }
+            }
+        }
+        "compile-error" => {
+            let diag_path = fixture.with_extension("diag");
+            if !diag_path.exists() {
+                return FixtureOutcome::Skip(format!("{} (no .diag file)", name));
+            }
+            let diag_text = std::fs::read_to_string(&diag_path).unwrap();
+            let first_line = diag_text.lines().next().unwrap_or("").trim().to_string();
+
+            let flags_path = fixture.with_extension("flags");
+            let extra_args: Vec<String> = if flags_path.exists() {
+                std::fs::read_to_string(&flags_path)
+                    .unwrap()
+                    .split_whitespace()
+                    .map(String::from)
+                    .collect()
+            } else {
+                vec!["compile".into(), "--target".into(), "wasm32-wasi-p2".into()]
+            };
+
+            let output = Command::new(bin)
+                .args(&extra_args)
+                .arg(&fixture)
+                .arg("-o")
+                .arg("/dev/null")
+                .output()
+                .expect("failed to run arukellt");
+
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+
+            if !output.status.success()
+                && (stderr.contains(first_line.as_str())
+                    || stdout.contains(first_line.as_str()))
+            {
+                FixtureOutcome::Pass
+            } else if output.status.success() {
+                FixtureOutcome::Fail(format!(
+                    "FAIL [compile-error] {} — expected compile failure but succeeded",
+                    name
+                ))
+            } else {
+                FixtureOutcome::Fail(format!(
+                    "FAIL [compile-error] {}\n  expected to contain: {:?}\n  stderr: {:?}",
+                    name,
+                    first_line,
+                    stderr.lines().next().unwrap_or("")
+                ))
+            }
+        }
+        other => FixtureOutcome::Skip(format!("{} (unknown kind {:?})", name, other)),
+    }
 }
 
 #[test]
@@ -156,235 +369,67 @@ fn fixture_harness() {
         );
     }
 
-    // --- Run fixtures ---
+    // --- Run fixtures in parallel (work-stealing) ---
     let bin = arukellt_binary();
     eprintln!("Using binary: {:?}", bin);
 
-    let mut passed = 0;
-    let mut failed = 0;
-    let mut skipped = 0;
-    let mut failures = Vec::new();
+    let num_threads = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4)
+        .min(entries.len().max(1));
 
-    for entry in &entries {
-        let fixture = fixture_dir.join(&entry.path);
-        let name = &entry.path;
+    // Feed tasks via a channel; workers pull until the sender is closed.
+    let (task_tx, task_rx) = mpsc::channel::<(usize, String, String)>();
+    let task_rx = Arc::new(Mutex::new(task_rx));
+    let (res_tx, res_rx) = mpsc::channel::<(usize, FixtureOutcome)>();
 
-        match entry.kind.as_str() {
-            "run" | "module-run" => {
-                let expected_path = fixture.with_extension("expected");
-                if !expected_path.exists() {
-                    skipped += 1;
-                    eprintln!("  [skip] {} (no .expected file)", name);
-                    continue;
-                }
-                let expected = std::fs::read_to_string(&expected_path).unwrap();
+    for (i, entry) in entries.iter().enumerate() {
+        task_tx
+            .send((i, entry.kind.clone(), entry.path.clone()))
+            .unwrap();
+    }
+    drop(task_tx);
 
-                let flags_path = fixture.with_extension("flags");
-                let extra_args: Vec<String> = if flags_path.exists() {
-                    std::fs::read_to_string(&flags_path)
-                        .unwrap()
-                        .split_whitespace()
-                        .map(String::from)
-                        .collect()
-                } else {
-                    vec![]
-                };
-
-                let output = Command::new(&bin)
-                    .arg("run")
-                    .args(&extra_args)
-                    .arg(&fixture)
-                    .output()
-                    .expect("failed to run arukellt");
-
-                if std::env::var_os("ARUKELLT_TEST_MIR_DEBUG").is_some() {
-                    eprintln!("[mir-debug] fixture={}", name);
-                    let debug = Command::new(&bin)
-                        .arg("check")
-                        .arg(&fixture)
-                        .env(
-                            "ARUKELLT_DUMP_PHASES",
-                            "parse,resolve,mir,optimized-mir,backend-plan",
-                        )
-                        .env("ARUKELLT_DUMP_DIAGNOSTICS", "1")
-                        .output()
-                        .expect("failed to run arukellt debug check");
-                    if !debug.stdout.is_empty() {
-                        eprintln!("{}", String::from_utf8_lossy(&debug.stdout));
-                    }
-                    if !debug.stderr.is_empty() {
-                        eprintln!("{}", String::from_utf8_lossy(&debug.stderr));
+    std::thread::scope(|scope| {
+        for _ in 0..num_threads {
+            let task_rx = Arc::clone(&task_rx);
+            let res_tx = res_tx.clone();
+            let bin = &bin;
+            let fixture_dir = &fixture_dir;
+            scope.spawn(move || loop {
+                let task = task_rx.lock().unwrap().recv();
+                match task {
+                    Err(_) => break,
+                    Ok((idx, kind, path)) => {
+                        let entry = ManifestEntry { kind, path };
+                        let outcome = run_fixture_entry(bin, fixture_dir, &entry);
+                        res_tx.send((idx, outcome)).unwrap();
                     }
                 }
+            });
+        }
+        drop(res_tx);
+    });
 
-                if std::env::var_os("ARUKELLT_TEST_OPT_BISECT").is_some() {
-                    eprintln!("[opt-bisect] fixture={}", name);
-                }
+    // Collect and sort by original manifest index for deterministic output.
+    let mut outcomes: Vec<(usize, FixtureOutcome)> = res_rx.into_iter().collect();
+    outcomes.sort_by_key(|(i, _)| *i);
 
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                if stdout.as_ref() == expected {
-                    passed += 1;
-                } else {
-                    failed += 1;
-                    failures.push(format!(
-                        "FAIL [{}] {}\n  expected: {:?}\n  got:      {:?}",
-                        entry.kind,
-                        name,
-                        expected.lines().next().unwrap_or(""),
-                        stdout.lines().next().unwrap_or("")
-                    ));
-                }
+    let mut passed = 0usize;
+    let mut failed = 0usize;
+    let mut skipped = 0usize;
+    let mut failures: Vec<String> = Vec::new();
+
+    for (_, outcome) in outcomes {
+        match outcome {
+            FixtureOutcome::Pass => passed += 1,
+            FixtureOutcome::Fail(msg) => {
+                failed += 1;
+                failures.push(msg);
             }
-            "diag" | "module-diag" => {
-                let diag_path = fixture.with_extension("diag");
-                if !diag_path.exists() {
-                    skipped += 1;
-                    eprintln!("  [skip] {} (no .diag file)", name);
-                    continue;
-                }
-                let diag_text = std::fs::read_to_string(&diag_path).unwrap();
-                let first_line = diag_text.lines().next().unwrap_or("").trim();
-
-                let output = Command::new(&bin)
-                    .arg("run")
-                    .arg(&fixture)
-                    .output()
-                    .expect("failed to run arukellt");
-
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                let stdout = String::from_utf8_lossy(&output.stdout);
-
-                if stderr.contains(first_line) || stdout.contains(first_line) {
-                    passed += 1;
-                } else {
-                    failed += 1;
-                    failures.push(format!(
-                        "FAIL [{}] {}\n  expected to contain: {:?}\n  stderr: {:?}",
-                        entry.kind,
-                        name,
-                        first_line,
-                        stderr.lines().next().unwrap_or("")
-                    ));
-                }
-            }
-            "t3-compile" => {
-                let output = Command::new(&bin)
-                    .arg("compile")
-                    .arg("--target")
-                    .arg("wasm32-wasi-p2")
-                    .arg(&fixture)
-                    .arg("-o")
-                    .arg("/dev/null")
-                    .output()
-                    .expect("failed to run arukellt");
-
-                if output.status.success() {
-                    passed += 1;
-                } else {
-                    failed += 1;
-                    let stderr = String::from_utf8_lossy(&output.stderr);
-                    failures.push(format!(
-                        "FAIL [t3-compile] {}\n  stderr: {:?}",
-                        name,
-                        stderr.lines().next().unwrap_or("")
-                    ));
-                }
-            }
-            "component-compile" => {
-                // Compile to component via --emit component --target wasm32-wasi-p2.
-                // Requires wasm-tools; skip gracefully if unavailable.
-                let output = Command::new(&bin)
-                    .arg("compile")
-                    .arg("--target")
-                    .arg("wasm32-wasi-p2")
-                    .arg("--emit")
-                    .arg("component")
-                    .arg(&fixture)
-                    .arg("-o")
-                    .arg("/dev/null")
-                    .output()
-                    .expect("failed to run arukellt");
-
-                if output.status.success() {
-                    passed += 1;
-                } else {
-                    let stderr = String::from_utf8_lossy(&output.stderr);
-                    if stderr.contains("wasm-tools not found")
-                        || stderr.contains("ToolNotFound")
-                        || stderr.contains("failed to resolve import")
-                    {
-                        skipped += 1;
-                        eprintln!(
-                            "  [skip] {} (wasm-tools or WASI adapter not available)",
-                            name
-                        );
-                    } else {
-                        failed += 1;
-                        failures.push(format!(
-                            "FAIL [component-compile] {}\n  stderr: {:?}",
-                            name,
-                            stderr.lines().next().unwrap_or("")
-                        ));
-                    }
-                }
-            }
-            "compile-error" => {
-                // Compile with flags from .flags file, expect failure.
-                // Check that stderr/stdout contains the first line of .diag file.
-                let diag_path = fixture.with_extension("diag");
-                if !diag_path.exists() {
-                    skipped += 1;
-                    eprintln!("  [skip] {} (no .diag file)", name);
-                    continue;
-                }
-                let diag_text = std::fs::read_to_string(&diag_path).unwrap();
-                let first_line = diag_text.lines().next().unwrap_or("").trim();
-
-                let flags_path = fixture.with_extension("flags");
-                let extra_args: Vec<String> = if flags_path.exists() {
-                    std::fs::read_to_string(&flags_path)
-                        .unwrap()
-                        .split_whitespace()
-                        .map(String::from)
-                        .collect()
-                } else {
-                    vec!["compile".into(), "--target".into(), "wasm32-wasi-p2".into()]
-                };
-
-                let output = Command::new(&bin)
-                    .args(&extra_args)
-                    .arg(&fixture)
-                    .arg("-o")
-                    .arg("/dev/null")
-                    .output()
-                    .expect("failed to run arukellt");
-
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                let stdout = String::from_utf8_lossy(&output.stdout);
-
-                if !output.status.success()
-                    && (stderr.contains(first_line) || stdout.contains(first_line))
-                {
-                    passed += 1;
-                } else if output.status.success() {
-                    failed += 1;
-                    failures.push(format!(
-                        "FAIL [compile-error] {} — expected compile failure but succeeded",
-                        name
-                    ));
-                } else {
-                    failed += 1;
-                    failures.push(format!(
-                        "FAIL [compile-error] {}\n  expected to contain: {:?}\n  stderr: {:?}",
-                        name,
-                        first_line,
-                        stderr.lines().next().unwrap_or("")
-                    ));
-                }
-            }
-            other => {
+            FixtureOutcome::Skip(reason) => {
                 skipped += 1;
-                eprintln!("  [skip] {} (unknown kind {:?})", name, other);
+                eprintln!("  [skip] {}", reason);
             }
         }
     }
