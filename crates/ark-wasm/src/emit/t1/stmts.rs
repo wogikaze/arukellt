@@ -60,26 +60,26 @@ impl EmitCtx {
                     "print_i32_ln" => {
                         if let Some(arg) = args.first() {
                             self.emit_operand(f, arg);
-                            f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                            self.call_fn(f, FN_PRINT_I32_LN);
                         }
                     }
                     "print_bool_ln" => {
                         if let Some(arg) = args.first() {
                             self.emit_operand(f, arg);
-                            f.instruction(&Instruction::Call(FN_PRINT_BOOL_LN));
+                            self.call_fn(f, FN_PRINT_BOOL_LN);
                         }
                     }
                     "print_str_ln" => {
                         if let Some(arg) = args.first() {
                             self.emit_operand(f, arg);
-                            f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                            self.call_fn(f, FN_PRINT_STR_LN);
                         }
                     }
                     "i32_to_string" => {
                         // As statement, result is discarded
                         if let Some(arg) = args.first() {
                             self.emit_operand(f, arg);
-                            f.instruction(&Instruction::Call(FN_I32_TO_STR));
+                            self.call_fn(f, FN_I32_TO_STR);
                         }
                     }
                     "push"
@@ -262,29 +262,29 @@ impl EmitCtx {
                         "i32_to_string" => {
                             if let Some(inner) = inner_args.first() {
                                 self.emit_operand(f, inner);
-                                f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                                self.call_fn(f, FN_PRINT_I32_LN);
                             }
                         }
                         "bool_to_string" => {
                             if let Some(inner) = inner_args.first() {
                                 self.emit_operand(f, inner);
-                                f.instruction(&Instruction::Call(FN_PRINT_BOOL_LN));
+                                self.call_fn(f, FN_PRINT_BOOL_LN);
                             }
                         }
                         "f64_to_string" => {
                             // Convert f64 to string, then print as string
                             if let Some(inner) = inner_args.first() {
                                 self.emit_operand(f, inner);
-                                f.instruction(&Instruction::Call(FN_F64_TO_STR));
-                                f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                                self.call_fn(f, FN_F64_TO_STR);
+                                self.call_fn(f, FN_PRINT_STR_LN);
                             }
                         }
                         "i64_to_string" => {
                             // Convert i64 to string, then print as string
                             if let Some(inner) = inner_args.first() {
                                 self.emit_operand(f, inner);
-                                f.instruction(&Instruction::Call(FN_I64_TO_STR));
-                                f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                                self.call_fn(f, FN_I64_TO_STR);
+                                self.call_fn(f, FN_PRINT_STR_LN);
                             }
                         }
                         "concat" => {
@@ -292,8 +292,8 @@ impl EmitCtx {
                             for a in inner_args {
                                 self.emit_operand(f, a);
                             }
-                            f.instruction(&Instruction::Call(FN_CONCAT));
-                            f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                            self.call_fn(f, FN_CONCAT);
+                            self.call_fn(f, FN_PRINT_STR_LN);
                         }
                         "char_to_string" => {
                             // Write char byte to scratch, print it + newline
@@ -323,7 +323,7 @@ impl EmitCtx {
                                 f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                                 f.instruction(&Instruction::I32Const(1));
                                 f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                                f.instruction(&Instruction::Call(FN_FD_WRITE));
+                                self.call_fn(f, FN_FD_WRITE);
                                 f.instruction(&Instruction::Drop);
                                 // Print newline
                                 self.emit_static_print(f, NEWLINE, 1);
@@ -337,7 +337,7 @@ impl EmitCtx {
                                 self.emit_fd_write(f, 1, offset, len);
                             } else if let Some(inner) = inner_args.first() {
                                 self.emit_operand(f, inner);
-                                f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                                self.call_fn(f, FN_PRINT_STR_LN);
                             }
                         }
                         other => {
@@ -355,17 +355,17 @@ impl EmitCtx {
                                 let args_suggest_str =
                                     inner_args.iter().any(|a| self.is_string_operand(a));
                                 if is_str || args_suggest_str {
-                                    f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                                    self.call_fn(f, FN_PRINT_STR_LN);
                                 } else {
-                                    f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                                    self.call_fn(f, FN_PRINT_I32_LN);
                                 }
                             } else {
                                 // Inline builtin (len, get, etc.) — emit full operand
                                 self.emit_operand(f, arg);
                                 if self.is_string_operand(arg) {
-                                    f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                                    self.call_fn(f, FN_PRINT_STR_LN);
                                 } else {
-                                    f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                                    self.call_fn(f, FN_PRINT_I32_LN);
                                 }
                             }
                         }
@@ -374,34 +374,34 @@ impl EmitCtx {
                 Operand::Place(Place::Local(id)) => {
                     f.instruction(&Instruction::LocalGet(id.0));
                     if self.string_locals.contains(&id.0) {
-                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                        self.call_fn(f, FN_PRINT_STR_LN);
                     } else if self.i64_locals.contains(&id.0) {
-                        f.instruction(&Instruction::Call(FN_I64_TO_STR));
-                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                        self.call_fn(f, FN_I64_TO_STR);
+                        self.call_fn(f, FN_PRINT_STR_LN);
                     } else if self.f64_locals.contains(&id.0) {
-                        f.instruction(&Instruction::Call(FN_F64_TO_STR));
-                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                        self.call_fn(f, FN_F64_TO_STR);
+                        self.call_fn(f, FN_PRINT_STR_LN);
                     } else if self.bool_locals.contains(&id.0) {
-                        f.instruction(&Instruction::Call(FN_PRINT_BOOL_LN));
+                        self.call_fn(f, FN_PRINT_BOOL_LN);
                     } else {
-                        f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                        self.call_fn(f, FN_PRINT_I32_LN);
                     }
                 }
                 _ => {
                     // Generic: emit operand and dispatch based on type
                     self.emit_operand(f, arg);
                     if self.is_string_operand(arg) {
-                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                        self.call_fn(f, FN_PRINT_STR_LN);
                     } else if self.is_i64_operand(arg) {
-                        f.instruction(&Instruction::Call(FN_I64_TO_STR));
-                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                        self.call_fn(f, FN_I64_TO_STR);
+                        self.call_fn(f, FN_PRINT_STR_LN);
                     } else if self.is_f64_operand(arg) {
-                        f.instruction(&Instruction::Call(FN_F64_TO_STR));
-                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                        self.call_fn(f, FN_F64_TO_STR);
+                        self.call_fn(f, FN_PRINT_STR_LN);
                     } else if self.is_bool_operand(arg) {
-                        f.instruction(&Instruction::Call(FN_PRINT_BOOL_LN));
+                        self.call_fn(f, FN_PRINT_BOOL_LN);
                     } else {
-                        f.instruction(&Instruction::Call(FN_PRINT_I32_LN));
+                        self.call_fn(f, FN_PRINT_I32_LN);
                     }
                 }
             }
@@ -456,17 +456,17 @@ impl EmitCtx {
                     f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                     f.instruction(&Instruction::I32Const(1));
                     f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                    f.instruction(&Instruction::Call(FN_FD_WRITE));
+                    self.call_fn(f, FN_FD_WRITE);
                     f.instruction(&Instruction::Drop);
                 }
                 _ => {
                     self.emit_operand(f, arg);
                     if self.is_string_operand(arg) {
                         // String on stack: use print_str_ln (adds newline; best effort)
-                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                        self.call_fn(f, FN_PRINT_STR_LN);
                     } else {
                         // Print i32 without newline
-                        f.instruction(&Instruction::Call(FN_I32_TO_STR));
+                        self.call_fn(f, FN_I32_TO_STR);
                         let ma2 = MemArg {
                             offset: 0,
                             align: 2,
@@ -484,7 +484,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::Call(FN_FD_WRITE));
+                        self.call_fn(f, FN_FD_WRITE);
                         f.instruction(&Instruction::Drop);
                     }
                 }
@@ -508,7 +508,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        self.call_fn(f, FN_FD_WRITE);
         f.instruction(&Instruction::Drop);
     }
 

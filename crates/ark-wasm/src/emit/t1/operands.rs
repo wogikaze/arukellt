@@ -109,7 +109,7 @@ impl EmitCtx {
                         if let Some(a) = args.first() {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_I32_TO_STR));
+                        self.call_fn(f, FN_I32_TO_STR);
                         // After __i32_to_string: SCRATCH has offset, SCRATCH+4 has len
                         // Allocate length-prefixed string on heap
                         let ma2 = MemArg {
@@ -213,28 +213,28 @@ impl EmitCtx {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_STR_EQ));
+                        self.call_fn(f, FN_STR_EQ);
                     }
                     "concat" => {
                         // String concatenation: concat(a, b) -> new string ptr
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_CONCAT));
+                        self.call_fn(f, FN_CONCAT);
                     }
                     "f64_to_string" => {
                         // Convert f64 to length-prefixed string
                         if let Some(a) = args.first() {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_F64_TO_STR));
+                        self.call_fn(f, FN_F64_TO_STR);
                     }
                     "i64_to_string" => {
                         // Convert i64 to length-prefixed string
                         if let Some(a) = args.first() {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_I64_TO_STR));
+                        self.call_fn(f, FN_I64_TO_STR);
                     }
                     name if name == "Vec_new_i32"
                         || name == "Vec_new_String"
@@ -1160,7 +1160,7 @@ impl EmitCtx {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_STR_EQ));
+                        self.call_fn(f, FN_STR_EQ);
                     }
                     "String_new" => {
                         // Empty string: allocate [len=0] on heap, return data ptr
@@ -2463,7 +2463,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(0)); // clock_id = REALTIME
                         f.instruction(&Instruction::I64Const(0)); // precision
                         f.instruction(&Instruction::I32Const(SCRATCH as i32)); // result buffer
-                        f.instruction(&Instruction::Call(FN_CLOCK_TIME_GET));
+                        self.call_fn(f, FN_CLOCK_TIME_GET);
                         f.instruction(&Instruction::Drop); // drop errno
                         // Load i64 result from SCRATCH
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
@@ -2477,7 +2477,7 @@ impl EmitCtx {
                         // random_get(buf_ptr=SCRATCH, buf_len=4)
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
                         f.instruction(&Instruction::I32Const(4));
-                        f.instruction(&Instruction::Call(FN_RANDOM_GET));
+                        self.call_fn(f, FN_RANDOM_GET);
                         f.instruction(&Instruction::Drop); // drop errno
                         // Load i32 result from SCRATCH
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
@@ -2844,7 +2844,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I64Const(0)); // fs_rights_inheriting
                         f.instruction(&Instruction::I32Const(0)); // fdflags
                         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32)); // &opened_fd
-                        f.instruction(&Instruction::Call(FN_PATH_OPEN));
+                        self.call_fn(f, FN_PATH_OPEN);
 
                         // Check errno: 0 = success
                         f.instruction(&Instruction::I32Const(0));
@@ -2925,7 +2925,7 @@ impl EmitCtx {
                                 f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                                 f.instruction(&Instruction::I32Const(1));
                                 f.instruction(&Instruction::I32Const(FS_NREAD as i32));
-                                f.instruction(&Instruction::Call(FN_FD_READ));
+                                self.call_fn(f, FN_FD_READ);
                                 f.instruction(&Instruction::Drop);
 
                                 // if nread == 0, break
@@ -2960,7 +2960,7 @@ impl EmitCtx {
                             // fd_close(fd)
                             f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
                             f.instruction(&Instruction::I32Load(ma));
-                            f.instruction(&Instruction::Call(FN_FD_CLOSE));
+                            self.call_fn(f, FN_FD_CLOSE);
                             f.instruction(&Instruction::Drop);
 
                             // str_ptr = buf_start + 4
@@ -3029,7 +3029,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I64Const(0));
                         f.instruction(&Instruction::I32Const(0));
                         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
-                        f.instruction(&Instruction::Call(FN_PATH_OPEN));
+                        self.call_fn(f, FN_PATH_OPEN);
 
                         // Check errno
                         f.instruction(&Instruction::I32Const(0));
@@ -3101,12 +3101,12 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                             f.instruction(&Instruction::I32Const(1));
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                            f.instruction(&Instruction::Call(FN_FD_WRITE));
+                            self.call_fn(f, FN_FD_WRITE);
                             f.instruction(&Instruction::Drop);
                             // fd_close
                             f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
                             f.instruction(&Instruction::I32Load(ma));
-                            f.instruction(&Instruction::Call(FN_FD_CLOSE));
+                            self.call_fn(f, FN_FD_CLOSE);
                             f.instruction(&Instruction::Drop);
                             // Build Ok(()) enum: [tag=0][payload=0]
                             f.instruction(&Instruction::GlobalGet(0));
@@ -3130,31 +3130,31 @@ impl EmitCtx {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_MAP_I32));
+                        self.call_fn(f, FN_MAP_I32);
                     }
                     "filter_i32" | "filter_String" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_FILTER_I32));
+                        self.call_fn(f, FN_FILTER_I32);
                     }
                     "fold_i32_i32" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_FOLD_I32));
+                        self.call_fn(f, FN_FOLD_I32);
                     }
                     "map_i64_i64" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_MAP_I64));
+                        self.call_fn(f, FN_MAP_I64);
                     }
                     "filter_i64" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_FILTER_I64));
+                        self.call_fn(f, FN_FILTER_I64);
                     }
                     "fold_i64_i64" => {
                         // fold_i64_i64(vec, init: i64, fn): init must be i64
@@ -3167,64 +3167,64 @@ impl EmitCtx {
                         if let Some(fn_arg) = args.get(2) {
                             self.emit_operand(f, fn_arg);
                         }
-                        f.instruction(&Instruction::Call(FN_FOLD_I64));
+                        self.call_fn(f, FN_FOLD_I64);
                     }
                     "map_f64_f64" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_MAP_F64));
+                        self.call_fn(f, FN_MAP_F64);
                     }
                     "filter_f64" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_FILTER_F64));
+                        self.call_fn(f, FN_FILTER_F64);
                     }
                     "map_option_i32_i32" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_MAP_OPT_I32));
+                        self.call_fn(f, FN_MAP_OPT_I32);
                     }
                     "any_i32" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_ANY_I32));
+                        self.call_fn(f, FN_ANY_I32);
                     }
                     "find_i32" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_FIND_I32));
+                        self.call_fn(f, FN_FIND_I32);
                     }
                     "HashMap_i32_i32_new" => {
-                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_NEW));
+                        self.call_fn(f, FN_HASHMAP_I32_NEW);
                     }
                     "HashMap_i32_i32_insert" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_INSERT));
+                        self.call_fn(f, FN_HASHMAP_I32_INSERT);
                     }
                     "HashMap_i32_i32_get" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_GET));
+                        self.call_fn(f, FN_HASHMAP_I32_GET);
                     }
                     "HashMap_i32_i32_contains_key" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_CONTAINS));
+                        self.call_fn(f, FN_HASHMAP_I32_CONTAINS);
                     }
                     "HashMap_i32_i32_len" => {
                         for a in args {
                             self.emit_operand(f, a);
                         }
-                        f.instruction(&Instruction::Call(FN_HASHMAP_I32_LEN));
+                        self.call_fn(f, FN_HASHMAP_I32_LEN);
                     }
                     "Box_new" => {
                         // Box_new(value): allocate sizeof(enum) on heap, copy value, return pointer
@@ -3456,7 +3456,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::Call(FN_FD_WRITE));
+                        self.call_fn(f, FN_FD_WRITE);
                         f.instruction(&Instruction::Drop);
                         // Write user message to stderr
                         // Store msg ptr to SCRATCH+8
@@ -3481,7 +3481,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::Call(FN_FD_WRITE));
+                        self.call_fn(f, FN_FD_WRITE);
                         f.instruction(&Instruction::Drop);
                         // Write newline to stderr
                         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
@@ -3494,7 +3494,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                        f.instruction(&Instruction::Call(FN_FD_WRITE));
+                        self.call_fn(f, FN_FD_WRITE);
                         f.instruction(&Instruction::Drop);
                         f.instruction(&Instruction::Unreachable);
                     }
@@ -3528,7 +3528,7 @@ impl EmitCtx {
                         // assert_eq_str(a: String, b: String): if !str_eq(a, b), panic
                         self.emit_operand(f, &args[0]);
                         self.emit_operand(f, &args[1]);
-                        f.instruction(&Instruction::Call(FN_STR_EQ));
+                        self.call_fn(f, FN_STR_EQ);
                         f.instruction(&Instruction::I32Eqz);
                         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                         self.emit_static_panic(f, "assertion failed: assert_eq_str");
@@ -4567,7 +4567,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Const(FS_NREAD as i32));
-                        f.instruction(&Instruction::Call(FN_FD_READ));
+                        self.call_fn(f, FN_FD_READ);
                         f.instruction(&Instruction::Drop); // drop errno
                         // if nread == 0: EOF, break
                         f.instruction(&Instruction::I32Const(FS_NREAD as i32));
@@ -5028,7 +5028,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Const(s_target as i32));
                         f.instruction(&Instruction::I32Load(ma));
-                        f.instruction(&Instruction::Call(FN_STR_EQ));
+                        self.call_fn(f, FN_STR_EQ);
                         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::Br(3));
@@ -5319,7 +5319,7 @@ impl EmitCtx {
                             self.emit_operand(f, a);
                         }
                         f.instruction(&Instruction::F64PromoteF32);
-                        f.instruction(&Instruction::Call(FN_F64_TO_STR));
+                        self.call_fn(f, FN_F64_TO_STR);
                     }
                     other => {
                         // Type-aware argument emission for user functions
@@ -6136,6 +6136,19 @@ impl EmitCtx {
                 self.emit_operand(f, inner);
                 f.instruction(&Instruction::I32Const(-1));
                 f.instruction(&Instruction::I32Xor);
+            }
+            UnaryOp::SignExtend8 => {
+                self.emit_operand(f, inner);
+                f.instruction(&Instruction::I32Extend8S);
+            }
+            UnaryOp::SignExtend16 => {
+                self.emit_operand(f, inner);
+                f.instruction(&Instruction::I32Extend16S);
+            }
+            UnaryOp::SignExtend32 => {
+                self.emit_operand(f, inner);
+                // i64.extend32_s — only meaningful for i64 values
+                f.instruction(&Instruction::I64Extend32S);
             }
         }
     }

@@ -209,6 +209,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         type_registry: std::collections::HashMap::new(),
         next_type_idx: 0,
         local_struct_names: std::collections::HashMap::new(),
+        fn_map: Vec::new(),
     };
     ctx.emit_module(mir)
 }
@@ -253,6 +254,8 @@ struct EmitCtx {
     next_type_idx: u32,
     /// Locals known to hold a specific struct type (for field assignment dispatch).
     local_struct_names: std::collections::HashMap<u32, String>,
+    /// Maps canonical function index (FN_*) to actual Wasm function index after DCE.
+    fn_map: Vec<u32>,
 }
 
 impl EmitCtx {
@@ -406,7 +409,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        self.call_fn(f, FN_FD_WRITE);
         f.instruction(&Instruction::Drop);
         // Write newline to stderr
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
@@ -419,16 +422,21 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        self.call_fn(f, FN_FD_WRITE);
         f.instruction(&Instruction::Drop);
         f.instruction(&Instruction::Unreachable);
+    }
+
+    pub(super) fn call_fn(&self, f: &mut Function, canonical: u32) {
+        let idx = self.fn_map[canonical as usize];
+        f.instruction(&Instruction::Call(idx));
     }
 
     pub(super) fn resolve_fn(&self, name: &str) -> Option<u32> {
         self.fn_names
             .iter()
             .position(|n| n == name)
-            .map(|i| FN_USER_BASE + i as u32)
+            .map(|i| self.fn_map[FN_USER_BASE as usize + i])
     }
 
 
@@ -695,6 +703,301 @@ impl EmitCtx {
                 }
             }
             _ => false,
+        }
+    }
+}
+
+pub(super) fn collect_needed_fns(mir: &MirModule) -> std::collections::HashSet<u32> {
+    let mut needed = std::collections::HashSet::new();
+    needed.insert(FN_FD_WRITE);
+    for func in &mir.functions {
+        for block in &func.blocks {
+            for stmt in &block.stmts {
+                cfn_visit_stmt(stmt, func, mir, &mut needed);
+            }
+            match &block.terminator {
+                ark_mir::mir::Terminator::If { cond, .. } => {
+                    cfn_visit_operand(cond, func, mir, &mut needed);
+                }
+                ark_mir::mir::Terminator::Switch { scrutinee, .. } => {
+                    cfn_visit_operand(scrutinee, func, mir, &mut needed);
+                }
+                ark_mir::mir::Terminator::Return(Some(op)) => {
+                    cfn_visit_operand(op, func, mir, &mut needed);
+                }
+                _ => {}
+            }
+        }
+    }
+    // Transitive deps: stdlib functions that call other stdlib functions
+    cfn_add_transitive_deps(&mut needed);
+    needed
+}
+
+fn cfn_add_transitive_deps(needed: &mut std::collections::HashSet<u32>) {
+    loop {
+        let before = needed.len();
+        // FN_PRINT_I32_LN calls FN_I32_TO_STR and FN_FD_WRITE
+        if needed.contains(&FN_PRINT_I32_LN) {
+            needed.insert(FN_I32_TO_STR);
+            needed.insert(FN_FD_WRITE);
+        }
+        // FN_PRINT_BOOL_LN calls FN_FD_WRITE
+        if needed.contains(&FN_PRINT_BOOL_LN) {
+            needed.insert(FN_FD_WRITE);
+        }
+        // FN_PRINT_STR_LN calls FN_FD_WRITE
+        if needed.contains(&FN_PRINT_STR_LN) {
+            needed.insert(FN_FD_WRITE);
+        }
+        if needed.len() == before { break; }
+    }
+}
+
+fn cfn_visit_stmt(stmt: &MirStmt, func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+    match stmt {
+        MirStmt::CallBuiltin { name, args, .. } => {
+            let n = normalize_intrinsic_name(name.as_str());
+            cfn_handle_builtin(n, args, func, mir, needed);
+            for arg in args { cfn_visit_operand(arg, func, mir, needed); }
+        }
+        MirStmt::Call { args, .. } => {
+            for arg in args { cfn_visit_operand(arg, func, mir, needed); }
+        }
+        MirStmt::Assign(_, rvalue) => {
+            cfn_visit_rvalue(rvalue, func, mir, needed);
+        }
+        MirStmt::IfStmt { cond, then_body, else_body } => {
+            cfn_visit_operand(cond, func, mir, needed);
+            for s in then_body { cfn_visit_stmt(s, func, mir, needed); }
+            for s in else_body { cfn_visit_stmt(s, func, mir, needed); }
+        }
+        MirStmt::WhileStmt { cond, body } => {
+            cfn_visit_operand(cond, func, mir, needed);
+            for s in body { cfn_visit_stmt(s, func, mir, needed); }
+        }
+        MirStmt::Return(Some(op)) => {
+            cfn_visit_operand(op, func, mir, needed);
+        }
+        _ => {}
+    }
+}
+
+fn cfn_visit_rvalue(rvalue: &Rvalue, func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+    match rvalue {
+        Rvalue::Use(op) => cfn_visit_operand(op, func, mir, needed),
+        Rvalue::BinaryOp(_, l, r) => {
+            cfn_visit_operand(l, func, mir, needed);
+            cfn_visit_operand(r, func, mir, needed);
+        }
+        Rvalue::UnaryOp(_, o) => cfn_visit_operand(o, func, mir, needed),
+        Rvalue::Aggregate(_, ops) => {
+            for op in ops { cfn_visit_operand(op, func, mir, needed); }
+        }
+        Rvalue::Ref(_) => {}
+    }
+}
+
+fn cfn_visit_operand(op: &Operand, func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+    match op {
+        Operand::Call(name, args) => {
+            let n = normalize_intrinsic_name(name.as_str());
+            cfn_handle_builtin(n, args, func, mir, needed);
+            for arg in args { cfn_visit_operand(arg, func, mir, needed); }
+        }
+        Operand::BinOp(_, l, r) => {
+            cfn_visit_operand(l, func, mir, needed);
+            cfn_visit_operand(r, func, mir, needed);
+        }
+        Operand::UnaryOp(_, o) => cfn_visit_operand(o, func, mir, needed),
+        Operand::IfExpr { cond, then_body, then_result, else_body, else_result } => {
+            cfn_visit_operand(cond, func, mir, needed);
+            for s in then_body { cfn_visit_stmt(s, func, mir, needed); }
+            if let Some(r) = then_result { cfn_visit_operand(r, func, mir, needed); }
+            for s in else_body { cfn_visit_stmt(s, func, mir, needed); }
+            if let Some(r) = else_result { cfn_visit_operand(r, func, mir, needed); }
+        }
+        Operand::StructInit { fields, .. } => {
+            for (_, op) in fields { cfn_visit_operand(op, func, mir, needed); }
+        }
+        Operand::FieldAccess { object, .. } => cfn_visit_operand(object, func, mir, needed),
+        Operand::EnumInit { payload, .. } => {
+            for op in payload { cfn_visit_operand(op, func, mir, needed); }
+        }
+        Operand::EnumTag(o) => cfn_visit_operand(o, func, mir, needed),
+        Operand::EnumPayload { object, .. } => cfn_visit_operand(object, func, mir, needed),
+        Operand::LoopExpr { init, body, result } => {
+            cfn_visit_operand(init, func, mir, needed);
+            for s in body { cfn_visit_stmt(s, func, mir, needed); }
+            cfn_visit_operand(result, func, mir, needed);
+        }
+        Operand::TryExpr { expr, .. } => cfn_visit_operand(expr, func, mir, needed),
+        _ => {}
+    }
+}
+
+fn cfn_handle_builtin(n: &str, args: &[Operand], func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+    match n {
+        "println" | "print" | "eprintln" | "eprint" => {
+            needed.insert(FN_FD_WRITE);
+            if let Some(arg) = args.first() {
+                cfn_add_needed_for_print(arg, func, mir, needed);
+            }
+        }
+        "print_i32_ln" => { needed.insert(FN_FD_WRITE); needed.insert(FN_PRINT_I32_LN); }
+        "print_bool_ln" => { needed.insert(FN_FD_WRITE); needed.insert(FN_PRINT_BOOL_LN); }
+        "print_str_ln" => { needed.insert(FN_FD_WRITE); needed.insert(FN_PRINT_STR_LN); }
+        "str_eq" | "eq" => { needed.insert(FN_STR_EQ); }
+        "concat" => { needed.insert(FN_CONCAT); }
+        "i32_to_string" | "int_to_string" => { needed.insert(FN_I32_TO_STR); }
+        "f64_to_string" => { needed.insert(FN_F64_TO_STR); }
+        "i64_to_string" => { needed.insert(FN_I64_TO_STR); }
+        "to_string" => {
+            // Polymorphic dispatch: conservatively add all numeric to_string helpers
+            needed.insert(FN_I32_TO_STR);
+            needed.insert(FN_F64_TO_STR);
+            needed.insert(FN_I64_TO_STR);
+        }
+        "read_line" => { needed.insert(FN_FD_READ); }
+        "clock_now" | "clock_time_get" => { needed.insert(FN_CLOCK_TIME_GET); }
+        "random_i32" | "random_f64" => { needed.insert(FN_RANDOM_GET); }
+        "fs_read_file" => {
+            needed.insert(FN_PATH_OPEN);
+            needed.insert(FN_FD_READ);
+            needed.insert(FN_FD_CLOSE);
+        }
+        "fs_write_file" => {
+            needed.insert(FN_PATH_OPEN);
+            needed.insert(FN_FD_WRITE);
+            needed.insert(FN_FD_CLOSE);
+        }
+        "map" | "map_i32_i32" | "map_i64_i64" | "map_f64_f64" | "map_String_String" => {
+            needed.insert(FN_MAP_I32);
+            needed.insert(FN_MAP_I64);
+            needed.insert(FN_MAP_F64);
+        }
+        "filter" | "filter_i32" | "filter_i64" | "filter_f64" | "filter_String" => {
+            needed.insert(FN_FILTER_I32);
+            needed.insert(FN_FILTER_I64);
+            needed.insert(FN_FILTER_F64);
+        }
+        "fold" | "reduce" | "fold_i32_i32" | "fold_i64_i64" => {
+            needed.insert(FN_FOLD_I32);
+            needed.insert(FN_FOLD_I64);
+        }
+        "map_option" | "map_option_i32_i32" => { needed.insert(FN_MAP_OPT_I32); }
+        "any" | "any_i32" => { needed.insert(FN_ANY_I32); }
+        "find" | "find_i32" => { needed.insert(FN_FIND_I32); }
+        "panic" | "assert" | "assert_eq" | "assert_ne" | "assert_eq_str" | "assert_eq_i64" => {
+            needed.insert(FN_FD_WRITE);
+        }
+        other if (other.contains("HashMap") || other.contains("hashmap")) && other.ends_with("_new") => {
+            needed.insert(FN_HASHMAP_I32_NEW);
+        }
+        other if (other.contains("HashMap") || other.contains("hashmap")) && other.contains("_insert") => {
+            needed.insert(FN_HASHMAP_I32_INSERT);
+        }
+        other if (other.contains("HashMap") || other.contains("hashmap")) && other.contains("_get") && !other.contains("_contains") => {
+            needed.insert(FN_HASHMAP_I32_GET);
+        }
+        other if (other.contains("HashMap") || other.contains("hashmap")) && other.contains("_contains") => {
+            needed.insert(FN_HASHMAP_I32_CONTAINS);
+        }
+        other if (other.contains("HashMap") || other.contains("hashmap")) && other.contains("_len") => {
+            needed.insert(FN_HASHMAP_I32_LEN);
+        }
+        _ => {}
+    }
+}
+
+fn cfn_add_needed_for_print(arg: &Operand, func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+    match arg {
+        Operand::ConstString(_) => {
+            // emit_fd_write inline -> only FN_FD_WRITE (already added)
+        }
+        Operand::ConstBool(_) => {
+            needed.insert(FN_PRINT_BOOL_LN);
+        }
+        Operand::ConstI32(_) | Operand::ConstI8(_) | Operand::ConstI16(_)
+        | Operand::ConstU8(_) | Operand::ConstU16(_) | Operand::ConstU32(_)
+        | Operand::ConstChar(_) => {
+            needed.insert(FN_PRINT_I32_LN);
+        }
+        Operand::ConstF64(_) | Operand::ConstF32(_) => {
+            needed.insert(FN_F64_TO_STR);
+            needed.insert(FN_PRINT_STR_LN);
+        }
+        Operand::ConstI64(_) | Operand::ConstU64(_) => {
+            needed.insert(FN_I64_TO_STR);
+            needed.insert(FN_PRINT_STR_LN);
+        }
+        Operand::Call(name, _) => {
+            let n = normalize_intrinsic_name(name.as_str());
+            match n {
+                "i32_to_string" | "int_to_string" => { needed.insert(FN_PRINT_I32_LN); }
+                "bool_to_string" => { needed.insert(FN_PRINT_BOOL_LN); }
+                "f64_to_string" => { needed.insert(FN_F64_TO_STR); needed.insert(FN_PRINT_STR_LN); }
+                "i64_to_string" => { needed.insert(FN_I64_TO_STR); needed.insert(FN_PRINT_STR_LN); }
+                "concat" => { needed.insert(FN_CONCAT); needed.insert(FN_PRINT_STR_LN); }
+                "String_from" | "String_new" | "char_to_string" | "clone" => {
+                    needed.insert(FN_PRINT_STR_LN);
+                }
+                _ => {
+                    let ret_ty = mir.functions.iter().find(|f| f.name == n).map(|f| &f.return_ty);
+                    match ret_ty {
+                        Some(ark_typecheck::types::Type::String) => { needed.insert(FN_PRINT_STR_LN); }
+                        Some(ark_typecheck::types::Type::Bool) => { needed.insert(FN_PRINT_BOOL_LN); }
+                        Some(ark_typecheck::types::Type::F64) | Some(ark_typecheck::types::Type::F32) => {
+                            needed.insert(FN_F64_TO_STR); needed.insert(FN_PRINT_STR_LN);
+                        }
+                        Some(ark_typecheck::types::Type::I64) => {
+                            needed.insert(FN_I64_TO_STR); needed.insert(FN_PRINT_STR_LN);
+                        }
+                        _ => {
+                            needed.insert(FN_PRINT_I32_LN);
+                            needed.insert(FN_PRINT_BOOL_LN);
+                            needed.insert(FN_PRINT_STR_LN);
+                            needed.insert(FN_I32_TO_STR);
+                            needed.insert(FN_F64_TO_STR);
+                            needed.insert(FN_I64_TO_STR);
+                            needed.insert(FN_CONCAT);
+                        }
+                    }
+                }
+            }
+        }
+        Operand::Place(Place::Local(lid)) => {
+            let params_and_locals: Vec<_> = func.params.iter().chain(func.locals.iter()).collect();
+            if let Some(local) = params_and_locals.iter().find(|l| l.id.0 == lid.0) {
+                match &local.ty {
+                    ark_typecheck::types::Type::String => { needed.insert(FN_PRINT_STR_LN); }
+                    ark_typecheck::types::Type::Bool => { needed.insert(FN_PRINT_BOOL_LN); }
+                    ark_typecheck::types::Type::F64 | ark_typecheck::types::Type::F32 => {
+                        needed.insert(FN_F64_TO_STR); needed.insert(FN_PRINT_STR_LN);
+                    }
+                    ark_typecheck::types::Type::I64 | ark_typecheck::types::Type::U64 => {
+                        needed.insert(FN_I64_TO_STR); needed.insert(FN_PRINT_STR_LN);
+                    }
+                    _ => { needed.insert(FN_PRINT_I32_LN); }
+                }
+            } else {
+                needed.insert(FN_PRINT_I32_LN);
+                needed.insert(FN_PRINT_BOOL_LN);
+                needed.insert(FN_PRINT_STR_LN);
+                needed.insert(FN_I32_TO_STR);
+                needed.insert(FN_F64_TO_STR);
+                needed.insert(FN_I64_TO_STR);
+                needed.insert(FN_CONCAT);
+            }
+        }
+        _ => {
+            needed.insert(FN_PRINT_I32_LN);
+            needed.insert(FN_PRINT_BOOL_LN);
+            needed.insert(FN_PRINT_STR_LN);
+            needed.insert(FN_I32_TO_STR);
+            needed.insert(FN_F64_TO_STR);
+            needed.insert(FN_I64_TO_STR);
+            needed.insert(FN_CONCAT);
         }
     }
 }

@@ -132,7 +132,7 @@ impl EmitCtx {
 
         // Call __i32_to_string(value)
         f.instruction(&Instruction::LocalGet(0));
-        f.instruction(&Instruction::Call(FN_I32_TO_STR));
+        self.call_fn(&mut f, FN_I32_TO_STR);
 
         // Set up iov for the number string
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
@@ -150,7 +150,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        self.call_fn(&mut f, FN_FD_WRITE);
         f.instruction(&Instruction::Drop);
 
         // Print newline
@@ -201,7 +201,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        self.call_fn(&mut f, FN_FD_WRITE);
         f.instruction(&Instruction::Drop);
 
         // Print newline
@@ -240,7 +240,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        self.call_fn(&mut f, FN_FD_WRITE);
         f.instruction(&Instruction::Drop);
 
         // Print newline
@@ -267,7 +267,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        self.call_fn(f, FN_FD_WRITE);
         f.instruction(&Instruction::Drop);
     }
 
