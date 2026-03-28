@@ -26,6 +26,7 @@ pub enum OptimizationPass {
     Cse,
     LoopUnroll,
     GcHint,
+    BoundsCheckElim,
 }
 
 impl OptimizationPass {
@@ -47,6 +48,7 @@ impl OptimizationPass {
             Self::Cse => "cse",
             Self::LoopUnroll => "loop_unroll",
             Self::GcHint => "gc_hint",
+            Self::BoundsCheckElim => "bounds_check_elim",
         }
     }
 }
@@ -58,6 +60,7 @@ pub const DEFAULT_PASS_ORDER: &[OptimizationPass] = &[
     OptimizationPass::LoopUnroll,
     OptimizationPass::CopyProp,
     OptimizationPass::ConstProp,
+    OptimizationPass::BoundsCheckElim,
     OptimizationPass::DeadLocalElim,
     OptimizationPass::DeadBlockElim,
     OptimizationPass::UnreachableCleanup,
@@ -89,6 +92,8 @@ pub struct OptimizationSummary {
     pub cse_eliminated: usize,
     pub loops_unrolled: usize,
     pub gc_hinted: usize,
+    pub bounds_checks_eliminated: usize,
+    pub scalar_replaced: usize,
 }
 
 impl OptimizationSummary {
@@ -109,6 +114,8 @@ impl OptimizationSummary {
             || self.cse_eliminated > 0
             || self.loops_unrolled > 0
             || self.gc_hinted > 0
+            || self.bounds_checks_eliminated > 0
+            || self.scalar_replaced > 0
     }
 
     fn absorb(&mut self, other: OptimizationSummary) {
@@ -128,6 +135,8 @@ impl OptimizationSummary {
         self.cse_eliminated += other.cse_eliminated;
         self.loops_unrolled += other.loops_unrolled;
         self.gc_hinted += other.gc_hinted;
+        self.bounds_checks_eliminated += other.bounds_checks_eliminated;
+        self.scalar_replaced += other.scalar_replaced;
     }
 }
 
@@ -306,6 +315,7 @@ fn run_pass(function: &mut MirFunction, pass: OptimizationPass) -> OptimizationS
         OptimizationPass::Cse => cse(function),
         OptimizationPass::LoopUnroll => super::loop_unroll::loop_unroll(function),
         OptimizationPass::GcHint => super::gc_hint::gc_hint_pass_inner(function),
+        OptimizationPass::BoundsCheckElim => super::bounds_check_elim::bounds_check_elim(function),
     }
 }
 
