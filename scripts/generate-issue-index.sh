@@ -3,31 +3,35 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OPEN_DIR="$ROOT/issues/open"
+BLOCKED_DIR="$ROOT/issues/blocked"
 INDEX_OUT="$OPEN_DIR/index.md"
 GRAPH_OUT="$OPEN_DIR/dependency-graph.md"
 
-python3 - "$OPEN_DIR" "$INDEX_OUT" "$GRAPH_OUT" <<'PY'
+python3 - "$OPEN_DIR" "$BLOCKED_DIR" "$INDEX_OUT" "$GRAPH_OUT" <<'PY'
 import re
 import sys
 from pathlib import Path
 from collections import defaultdict, deque
 
 open_dir = Path(sys.argv[1])
-index_out = Path(sys.argv[2])
-graph_out = Path(sys.argv[3])
+blocked_dir = Path(sys.argv[2])
+index_out = Path(sys.argv[3])
+graph_out = Path(sys.argv[4])
 
-issue_files = sorted(open_dir.glob('*.md'))
+issue_files = sorted(p for p in open_dir.glob('*.md') if re.match(r'^\d', p.name))
+blocked_files = sorted(blocked_dir.glob('*.md')) if blocked_dir.exists() else []
 issues = {}
+blocked_issues = {}
 reverse = defaultdict(list)
 
 meta_re = re.compile(r"^\*\*(.+?)\*\*: (.*)$")
 
-for path in issue_files:
+def parse_file(path):
     text = path.read_text()
     lines = text.splitlines()
     title = lines[0][2:].strip() if lines and lines[0].startswith('# ') else path.stem
     meta = {}
-    for line in lines[1:12]:
+    for line in lines[1:14]:
         m = meta_re.match(line)
         if m:
             meta[m.group(1).strip()] = m.group(2).strip()
@@ -37,9 +41,10 @@ for path in issue_files:
     status = meta.get('Status', 'open')
     track = meta.get('Track', 'main')
     blocks_v1 = meta.get('Blocks v1 exit', 'no')
+    blocked_by = meta.get('Blocked by', '')
     acceptance_unchecked = sum(1 for line in lines if line.startswith('- [ ]'))
     acceptance_checked = sum(1 for line in lines if line.startswith('- [x]') or line.startswith('- [X]'))
-    issues[issue_id] = {
+    return {
         'id': issue_id,
         'title': title,
         'path': path.name,
@@ -47,9 +52,18 @@ for path in issue_files:
         'status': status,
         'track': track,
         'blocks_v1': blocks_v1,
+        'blocked_by': blocked_by,
         'unchecked': acceptance_unchecked,
         'checked': acceptance_checked,
     }
+
+for path in issue_files:
+    data = parse_file(path)
+    issues[data['id']] = data
+
+for path in blocked_files:
+    data = parse_file(path)
+    blocked_issues[data['id']] = data
 
 for issue_id, data in issues.items():
     for dep in data['deps']:
@@ -83,6 +97,7 @@ lines.append('')
 lines.append('## Summary')
 lines.append('')
 lines.append(f'- Total open issues: {len(issues)}')
+lines.append(f'- Blocked issues: {len(blocked_issues)}')
 lines.append(f'- Main-track issues: {sum(1 for i in issues.values() if i["track"] == "main")}')
 lines.append(f'- Parallel-track issues: {sum(1 for i in issues.values() if i["track"] == "parallel")}')
 lines.append(f'- V1-exit blockers: {sum(1 for i in issues.values() if i["blocks_v1"] == "yes")}')
@@ -103,15 +118,32 @@ for iid in order:
     blocks = ', '.join(sorted(reverse.get(iid, []))) if reverse.get(iid) else 'none'
     progress = f'{data["checked"]} checked / {data["unchecked"]} open'
     lines.append(f'| {iid} | [{data["title"]}]({data["path"]}) | {data["track"]} | {data["blocks_v1"]} | {deps} | {blocks} | {progress} | |')
+
+if blocked_issues:
+    lines.append('')
+    lines.append('## Blocked issues')
+    lines.append('')
+    lines.append('Issues in `issues/blocked/` — waiting on external dependencies.')
+    lines.append('')
+    lines.append('| ID | Title | Track | Blocked by | |')
+    lines.append('|----|-------|-------|------------|--|')
+    for iid in sorted(blocked_issues):
+        data = blocked_issues[iid]
+        blocked_by = data['blocked_by'] or 'see issue'
+        lines.append(f'| {iid} | [{data["title"]}](../../issues/blocked/{data["path"]}) | {data["track"]} | {blocked_by} | |')
+
 index_out.write_text('\n'.join(lines) + '\n')
 
 # graph markdown
+all_for_graph = {**issues, **blocked_issues}
 mermaid = ['graph TD']
 for iid in order:
     mermaid.append(f'  I{iid}["{iid} {issues[iid]["title"]}"]')
-for iid in order:
-    for dep in issues[iid]['deps']:
-        if dep in issues:
+for iid in sorted(blocked_issues):
+    mermaid.append(f'  I{iid}["{iid} {blocked_issues[iid]["title"]} ⛔"]')
+for iid in list(order) + sorted(blocked_issues):
+    for dep in all_for_graph[iid]['deps']:
+        if dep in all_for_graph:
             mermaid.append(f'  I{dep} --> I{iid}')
 
 graph = []
@@ -131,6 +163,14 @@ for iid in order:
     deps = ', '.join(issues[iid]['deps']) if issues[iid]['deps'] else 'none'
     blocks = ', '.join(sorted(reverse.get(iid, []))) if reverse.get(iid) else 'none'
     graph.append(f'- **{iid}** depends on: {deps}; blocks: {blocks}')
+if blocked_issues:
+    graph.append('')
+    graph.append('### Blocked')
+    graph.append('')
+    for iid in sorted(blocked_issues):
+        data = blocked_issues[iid]
+        deps = ', '.join(data['deps']) if data['deps'] else 'none'
+        graph.append(f'- **{iid}** ⛔ blocked — depends on: {deps}; blocked by: {data["blocked_by"] or "external"}')
 
 graph_out.write_text('\n'.join(graph) + '\n')
 PY
