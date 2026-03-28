@@ -65,6 +65,52 @@ pub struct WitVariant {
     pub cases: Vec<(String, Option<WitType>)>,
 }
 
+/// Specification for a standard WASI world.
+#[derive(Debug, Clone)]
+pub struct WitWorldSpec {
+    /// World name to use (e.g., "command", "proxy")
+    pub world_name: String,
+    /// `use` import directives (e.g., "wasi:cli/stdin@0.2.0")
+    pub use_imports: Vec<String>,
+    /// `use` export directives (e.g., "wasi:http/incoming-handler@0.2.0")
+    pub use_exports: Vec<String>,
+    /// Required exports the user code must provide (interface path → function name).
+    /// E.g., ("wasi:cli/run/run", "run")
+    pub required_exports: Vec<(String, String)>,
+}
+
+/// Parse a `--world` spec string into a `WitWorldSpec`.
+///
+/// Supported values: `wasi:cli/command`, `wasi:http/proxy`.
+/// Returns `None` for unrecognized specs.
+pub fn parse_world_spec(spec: &str) -> Option<WitWorldSpec> {
+    match spec {
+        "wasi:cli/command" => Some(WitWorldSpec {
+            world_name: "command".to_string(),
+            use_imports: vec![
+                "wasi:cli/stdin@0.2.0".to_string(),
+                "wasi:cli/stdout@0.2.0".to_string(),
+                "wasi:clocks/wall-clock@0.2.0".to_string(),
+            ],
+            use_exports: vec![],
+            required_exports: vec![
+                ("wasi:cli/run/run".to_string(), "run".to_string()),
+            ],
+        }),
+        "wasi:http/proxy" => Some(WitWorldSpec {
+            world_name: "proxy".to_string(),
+            use_imports: vec![
+                "wasi:http/types@0.2.0".to_string(),
+            ],
+            use_exports: vec![
+                "wasi:http/incoming-handler@0.2.0".to_string(),
+            ],
+            required_exports: vec![],
+        }),
+        _ => None,
+    }
+}
+
 /// Public API surface for WIT generation.
 #[derive(Debug, Clone, Default)]
 pub struct WitWorld {
@@ -78,6 +124,8 @@ pub struct WitWorld {
     pub variants: Vec<WitVariant>,
     /// Resource type names
     pub resources: Vec<String>,
+    /// Optional standard world spec (controls `use` directives)
+    pub world_spec: Option<WitWorldSpec>,
 }
 
 /// Errors during WIT generation.
@@ -85,6 +133,10 @@ pub struct WitWorld {
 pub enum WitError {
     /// Type cannot be exported via WIT (e.g., closure, raw ref)
     NonExportableType { type_name: String, reason: String },
+    /// Unknown `--world` spec string
+    UnknownWorld { spec: String },
+    /// Required export missing for the specified world
+    MissingWorldExport { world: String, required: String },
 }
 
 impl std::fmt::Display for WitError {
@@ -95,6 +147,20 @@ impl std::fmt::Display for WitError {
                     f,
                     "type `{}` cannot be exported via WIT: {}",
                     type_name, reason
+                )
+            }
+            WitError::UnknownWorld { spec } => {
+                write!(
+                    f,
+                    "unknown world `{}` (supported: wasi:cli/command, wasi:http/proxy)",
+                    spec
+                )
+            }
+            WitError::MissingWorldExport { world, required } => {
+                write!(
+                    f,
+                    "world `{}` requires export `{}`, but no matching function found",
+                    world, required
                 )
             }
         }
@@ -147,6 +213,19 @@ pub fn generate_wit(world: &WitWorld) -> Result<String, WitError> {
     writeln!(out, "package arukellt:app;").unwrap();
     writeln!(out).unwrap();
     writeln!(out, "world {} {{", to_kebab_case(&world.name)).unwrap();
+
+    // Emit `use` import directives from world spec
+    if let Some(ref spec) = world.world_spec {
+        for use_import in &spec.use_imports {
+            writeln!(out, "    import {};", use_import).unwrap();
+        }
+        for use_export in &spec.use_exports {
+            writeln!(out, "    export {};", use_export).unwrap();
+        }
+        if !spec.use_imports.is_empty() || !spec.use_exports.is_empty() {
+            writeln!(out).unwrap();
+        }
+    }
 
     // Type definitions inside world block
     for record in &world.records {
@@ -306,6 +385,7 @@ mod tests {
             enums: vec![],
             variants: vec![],
             resources: vec![],
+            world_spec: None,
         };
         let wit = generate_wit(&world).unwrap();
         assert!(wit.contains("package arukellt:app;"));
@@ -344,6 +424,7 @@ mod tests {
             enums: vec![],
             variants: vec![],
             resources: vec![],
+            world_spec: None,
         };
         let wit = generate_wit(&world).unwrap();
         assert!(wit.contains("record point {"));
@@ -392,6 +473,7 @@ mod tests {
             enums: vec![],
             variants: vec![],
             resources: vec!["file".to_string()],
+            world_spec: None,
         };
         let wit = generate_wit(&world).unwrap();
         assert!(wit.contains("resource file;"));
@@ -409,5 +491,72 @@ mod tests {
             WitType::Borrow(Box::new(WitType::Resource("conn".to_string()))).to_wit(),
             "borrow<conn>"
         );
+    }
+
+    #[test]
+    fn test_parse_world_spec_cli_command() {
+        let spec = parse_world_spec("wasi:cli/command").unwrap();
+        assert_eq!(spec.world_name, "command");
+        assert!(spec.use_imports.iter().any(|s| s.contains("stdin")));
+        assert!(spec.use_imports.iter().any(|s| s.contains("stdout")));
+        assert_eq!(spec.required_exports.len(), 1);
+        assert_eq!(spec.required_exports[0].1, "run");
+    }
+
+    #[test]
+    fn test_parse_world_spec_http_proxy() {
+        let spec = parse_world_spec("wasi:http/proxy").unwrap();
+        assert_eq!(spec.world_name, "proxy");
+        assert!(spec.use_imports.iter().any(|s| s.contains("http/types")));
+        assert!(spec.use_exports.iter().any(|s| s.contains("incoming-handler")));
+    }
+
+    #[test]
+    fn test_parse_world_spec_unknown() {
+        assert!(parse_world_spec("wasi:unknown/world").is_none());
+    }
+
+    #[test]
+    fn test_generate_wit_with_world_spec() {
+        let spec = parse_world_spec("wasi:cli/command").unwrap();
+        let world = WitWorld {
+            name: spec.world_name.clone(),
+            functions: vec![WitFunction {
+                name: "run".to_string(),
+                params: vec![],
+                result: None,
+            }],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: Some(spec),
+        };
+        let wit = generate_wit(&world).unwrap();
+        assert!(wit.contains("world command {"));
+        assert!(wit.contains("import wasi:cli/stdin@0.2.0;"));
+        assert!(wit.contains("import wasi:cli/stdout@0.2.0;"));
+        assert!(wit.contains("import wasi:clocks/wall-clock@0.2.0;"));
+        assert!(wit.contains("export run: func();"));
+    }
+
+    #[test]
+    fn test_generate_wit_http_proxy_spec() {
+        let spec = parse_world_spec("wasi:http/proxy").unwrap();
+        let world = WitWorld {
+            name: spec.world_name.clone(),
+            functions: vec![],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: Some(spec),
+        };
+        let wit = generate_wit(&world).unwrap();
+        assert!(wit.contains("world proxy {"));
+        assert!(wit.contains("import wasi:http/types@0.2.0;"));
+        assert!(wit.contains("export wasi:http/incoming-handler@0.2.0;"));
     }
 }

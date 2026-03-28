@@ -10,7 +10,8 @@ pub mod wit_parse;
 pub mod wrap;
 
 pub use wit::{
-    WitEnum, WitError, WitFunction, WitRecord, WitType, WitVariant, WitWorld, generate_wit,
+    WitEnum, WitError, WitFunction, WitRecord, WitType, WitVariant, WitWorld, WitWorldSpec,
+    generate_wit, parse_world_spec,
 };
 pub use wit_parse::{
     WitDocument, WitInterface, WitParseError, parse_wit, wit_interface_to_mir_imports,
@@ -25,13 +26,16 @@ use ark_typecheck::types::Type;
 /// Converts struct_defs and enum_defs to WIT records/variants.
 /// Returns (WitWorld, warnings) where warnings describe non-exportable functions.
 pub fn mir_to_wit_world(mir: &MirModule, world_name: &str) -> Result<WitWorld, WitError> {
-    mir_to_wit_world_with_warnings(mir, world_name).map(|(world, _)| world)
+    mir_to_wit_world_with_warnings(mir, world_name, None).map(|(world, _)| world)
 }
 
 /// Like `mir_to_wit_world` but also returns diagnostic warnings for non-exportable functions.
+/// Accepts an optional `world_spec` string (e.g., "wasi:cli/command") which adapts the
+/// generated world to conform to a standard WASI world.
 pub fn mir_to_wit_world_with_warnings(
     mir: &MirModule,
     world_name: &str,
+    world_spec: Option<&str>,
 ) -> Result<(WitWorld, Vec<String>), WitError> {
     let mut warnings = Vec::new();
     let mut world = WitWorld {
@@ -42,6 +46,7 @@ pub fn mir_to_wit_world_with_warnings(
         enums: Vec::new(),
         variants: Vec::new(),
         resources: Vec::new(),
+        world_spec: None,
     };
 
     // Populate imports from MIR
@@ -240,6 +245,27 @@ pub fn mir_to_wit_world_with_warnings(
     }
 
     world.functions = exported_fns;
+
+    // Apply standard world spec if requested
+    if let Some(spec_str) = world_spec {
+        let spec = parse_world_spec(spec_str).ok_or_else(|| WitError::UnknownWorld {
+            spec: spec_str.to_string(),
+        })?;
+
+        // Validate required exports
+        for (required_path, required_fn) in &spec.required_exports {
+            let has_export = world.functions.iter().any(|f| f.name == *required_fn);
+            if !has_export {
+                return Err(WitError::MissingWorldExport {
+                    world: spec_str.to_string(),
+                    required: required_path.clone(),
+                });
+            }
+        }
+
+        world.name = spec.world_name.clone();
+        world.world_spec = Some(spec);
+    }
 
     Ok((world, warnings))
 }
@@ -671,7 +697,7 @@ mod tests {
             vec![(Some("a".into()), Type::I32), (Some("b".into()), Type::I32)],
             Type::I32,
         ));
-        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         assert_eq!(world.functions.len(), 1);
         assert_eq!(world.functions[0].name, "add");
         assert!(warnings.is_empty());
@@ -685,7 +711,7 @@ mod tests {
             vec![(Some("name".into()), Type::String)],
             Type::String,
         ));
-        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         assert_eq!(world.functions.len(), 1);
         assert_eq!(world.functions[0].result, Some(WitType::StringType));
         assert!(warnings.is_empty());
@@ -703,7 +729,7 @@ mod tests {
             vec![(Some("f".into()), closure_ty)],
             Type::I32,
         ));
-        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         assert_eq!(world.functions.len(), 0);
         assert_eq!(warnings.len(), 1);
         assert!(warnings[0].contains("apply"));
@@ -718,7 +744,7 @@ mod tests {
             ret: Box::new(Type::I32),
         };
         mir.functions.push(make_func("get_fn", vec![], closure_ret));
-        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         assert_eq!(world.functions.len(), 0);
         assert_eq!(warnings.len(), 1);
         assert!(warnings[0].contains("get_fn"));
@@ -730,7 +756,7 @@ mod tests {
         mir.functions.push(make_func("main", vec![], Type::Unit));
         mir.functions.push(make_func("__helper", vec![], Type::I32));
         mir.functions.push(make_func("_start", vec![], Type::Unit));
-        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         assert_eq!(world.functions.len(), 0);
         assert!(warnings.is_empty());
     }
@@ -750,7 +776,7 @@ mod tests {
                 ("None".to_string(), vec![]),
             ],
         );
-        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         // Option should NOT be emitted as a variant
         assert!(world.variants.is_empty(), "Option should not be a variant");
         // The function should return option<s32>
@@ -775,7 +801,7 @@ mod tests {
                 ("Err".to_string(), vec!["String".to_string()]),
             ],
         );
-        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         assert!(
             world.variants.is_empty(),
             "Result should not be a variant"
@@ -804,7 +830,7 @@ mod tests {
                 ("Err".to_string(), vec!["String".to_string()]),
             ],
         );
-        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         assert!(
             world.variants.is_empty(),
             "Result_f64_String should not be a variant"
@@ -819,7 +845,7 @@ mod tests {
             vec![],
             Type::Tuple(vec![Type::I32, Type::I32]),
         ));
-        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         assert_eq!(
             world.functions[0].result,
             Some(WitType::Tuple(vec![WitType::S32, WitType::S32]))
@@ -902,7 +928,7 @@ mod tests {
             vec![(Some("my_param".into()), Type::I32)],
             Type::I32,
         ));
-        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         let wit = generate_wit(&world).unwrap();
         assert!(
             wit.contains("get-value"),
@@ -975,10 +1001,64 @@ mod tests {
             vec![(Some("s".into()), Type::String)],
             Type::I32,
         ));
-        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
         assert_eq!(world.functions.len(), 2);
         assert_eq!(world.functions[0].name, "add");
         assert_eq!(world.functions[1].name, "len");
         assert_eq!(warnings.len(), 1);
+    }
+
+    #[test]
+    fn world_spec_cli_command_with_run() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func("run", vec![], Type::Unit));
+        let (world, _) =
+            mir_to_wit_world_with_warnings(&mir, "test", Some("wasi:cli/command")).unwrap();
+        assert_eq!(world.name, "command");
+        assert!(world.world_spec.is_some());
+        let spec = world.world_spec.unwrap();
+        assert!(spec.use_imports.iter().any(|s| s.contains("stdin")));
+    }
+
+    #[test]
+    fn world_spec_cli_command_missing_run_errors() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func(
+            "add",
+            vec![(Some("a".into()), Type::I32)],
+            Type::I32,
+        ));
+        let result = mir_to_wit_world_with_warnings(&mir, "test", Some("wasi:cli/command"));
+        assert!(result.is_err());
+        let err = format!("{}", result.unwrap_err());
+        assert!(err.contains("wasi:cli/run/run"));
+        assert!(err.contains("no matching function found"));
+    }
+
+    #[test]
+    fn world_spec_http_proxy() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func("handle", vec![], Type::Unit));
+        let (world, _) =
+            mir_to_wit_world_with_warnings(&mir, "test", Some("wasi:http/proxy")).unwrap();
+        assert_eq!(world.name, "proxy");
+    }
+
+    #[test]
+    fn world_spec_unknown_errors() {
+        let mir = MirModule::new();
+        let result = mir_to_wit_world_with_warnings(&mir, "test", Some("wasi:unknown/thing"));
+        assert!(result.is_err());
+        let err = format!("{}", result.unwrap_err());
+        assert!(err.contains("unknown world"));
+    }
+
+    #[test]
+    fn world_spec_none_preserves_default_name() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func("add", vec![], Type::I32));
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "myapp", None).unwrap();
+        assert_eq!(world.name, "myapp");
+        assert!(world.world_spec.is_none());
     }
 }

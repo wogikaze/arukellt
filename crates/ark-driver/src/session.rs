@@ -681,9 +681,24 @@ impl Session {
     }
 
     pub fn compile_wit(&mut self, path: &Path) -> Result<String, String> {
+        self.compile_wit_with_world(path, None)
+    }
+
+    /// Compile to WIT text, optionally targeting a standard WASI world.
+    pub fn compile_wit_with_world(
+        &mut self,
+        path: &Path,
+        world_spec: Option<&str>,
+    ) -> Result<String, String> {
         let frontend = self.run_frontend(path)?;
         let world_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("app");
-        let world = ark_wasm::component::mir_to_wit_world(&frontend.corehir_mir, world_name)
+        let world =
+            ark_wasm::component::mir_to_wit_world_with_warnings(
+                &frontend.corehir_mir,
+                world_name,
+                world_spec,
+            )
+            .map(|(w, _)| w)
             .map_err(|e| format!("WIT generation error: {}", e))?;
         ark_wasm::component::generate_wit(&world)
             .map_err(|e| format!("WIT generation error: {}", e))
@@ -693,6 +708,16 @@ impl Session {
     ///
     /// Pipeline: frontend → MIR → core Wasm → WIT generation → component wrapping.
     pub fn compile_component(&mut self, path: &Path, target: TargetId) -> Result<Vec<u8>, String> {
+        self.compile_component_with_world(path, target, None)
+    }
+
+    /// Like `compile_component` but optionally targeting a standard WASI world.
+    pub fn compile_component_with_world(
+        &mut self,
+        path: &Path,
+        target: TargetId,
+        world_spec: Option<&str>,
+    ) -> Result<Vec<u8>, String> {
         if target == TargetId::Native {
             return Err("error: component model requires a Wasm target".to_string());
         }
@@ -710,7 +735,7 @@ impl Session {
         // Step 2: Generate WIT (with warnings for non-exportable functions)
         let world_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("app");
         let (world, export_warnings) =
-            ark_wasm::component::mir_to_wit_world_with_warnings(&compiled.mir, world_name)
+            ark_wasm::component::mir_to_wit_world_with_warnings(&compiled.mir, world_name, world_spec)
                 .map_err(|e| format!("WIT generation error: {}", e))?;
 
         // Emit W0005 warnings for non-exportable functions

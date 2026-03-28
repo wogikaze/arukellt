@@ -52,6 +52,9 @@ enum Commands {
         /// MIR lowering path: legacy (default) or corehir
         #[arg(long = "mir-select", value_name = "PATH", default_value = "legacy")]
         mir_select: String,
+        /// WASI world to target (e.g., wasi:cli/command, wasi:http/proxy)
+        #[arg(long)]
+        world: Option<String>,
     },
     /// Compile and run an .ark file
     Run {
@@ -118,10 +121,11 @@ fn main() {
             opt_level,
             no_pass,
             mir_select,
+            world,
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
-            commands::cmd_compile(file, output, target, emit_kind, wit_files, profile_mem, time, opt_level, no_pass, &mir_select);
+            commands::cmd_compile(file, output, target, emit_kind, wit_files, world, profile_mem, time, opt_level, no_pass, &mir_select);
         }
         Commands::Run {
             file,

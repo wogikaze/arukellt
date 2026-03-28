@@ -15,6 +15,7 @@ pub(crate) fn cmd_compile(
     target: TargetId,
     emit_kind: EmitKind,
     wit_files: Vec<PathBuf>,
+    world: Option<String>,
     profile_mem: bool,
     time: bool,
     opt_level_raw: u8,
@@ -53,6 +54,16 @@ pub(crate) fn cmd_compile(
         eprintln!("warning: --wit flag is only used with --emit component or --emit all");
     }
 
+    // Validate --world flag usage
+    if world.is_some()
+        && emit_kind != EmitKind::Component
+        && emit_kind != EmitKind::Wit
+        && emit_kind != EmitKind::All
+    {
+        eprintln!("warning: --world flag is only used with --emit component, --emit wit, or --emit all");
+    }
+    let world_spec = world.as_deref();
+
     let opt_level = match OptLevel::from_u8(opt_level_raw) {
         Ok(level) => level,
         Err(e) => {
@@ -67,8 +78,7 @@ pub(crate) fn cmd_compile(
         session.timing_enabled = time;
         session.opt_level = opt_level;
         session.disabled_passes = no_pass.clone();
-        match session.compile_wit(&file) {
-            Ok(wit_text) => {
+        match session.compile_wit_with_world(&file, world_spec) {            Ok(wit_text) => {
                 let wit_output = output.unwrap_or_else(|| file.with_extension("wit"));
                 std::fs::write(&wit_output, &wit_text).unwrap_or_else(|e| {
                     eprintln!("error: failed to write {}: {}", wit_output.display(), e);
@@ -96,7 +106,7 @@ pub(crate) fn cmd_compile(
         session.timing_enabled = time;
         session.opt_level = opt_level;
         session.disabled_passes = no_pass.clone();
-        match session.compile_component(&file, target) {
+        match session.compile_component_with_world(&file, target, world_spec) {
             Ok(component) => {
                 std::fs::write(&component_output, &component).unwrap_or_else(|e| {
                     eprintln!(
@@ -158,7 +168,7 @@ pub(crate) fn cmd_compile(
 
             // For --emit all, also generate WIT and component
             if emit_kind == EmitKind::All {
-                if let Ok(wit_text) = session.compile_wit(&file) {
+                if let Ok(wit_text) = session.compile_wit_with_world(&file, world_spec) {
                     let wit_output = file.with_extension("wit");
                     if let Err(e) = std::fs::write(&wit_output, &wit_text) {
                         eprintln!(
@@ -176,7 +186,7 @@ pub(crate) fn cmd_compile(
                 }
                 // Also generate component
                 let mut comp_session = Session::new();
-                match comp_session.compile_component(&file, target) {
+                match comp_session.compile_component_with_world(&file, target, world_spec) {
                     Ok(component) => {
                         let comp_output = file.with_extension("component.wasm");
                         if let Err(e) = std::fs::write(&comp_output, &component) {
