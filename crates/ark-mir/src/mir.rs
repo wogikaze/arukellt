@@ -139,6 +139,41 @@ pub fn module_snapshot(module: &MirModule) -> String {
     )
 }
 
+/// Produce a summary of MIR module function sizes (for --time / dump-phases).
+pub fn mir_size_summary(module: &MirModule) -> String {
+    let total_stmts: usize = module
+        .functions
+        .iter()
+        .map(|f| f.blocks.iter().map(|b| b.stmts.len()).sum::<usize>())
+        .sum();
+    let total_blocks: usize = module.functions.iter().map(|f| f.blocks.len()).sum();
+    format!(
+        "functions={} blocks={} stmts={}",
+        module.functions.len(),
+        total_blocks,
+        total_stmts
+    )
+}
+
+/// Check ARUKELLT_DUMP_PHASES env var and return whether MIR dump is requested.
+pub fn dump_phases_requested() -> Option<String> {
+    std::env::var("ARUKELLT_DUMP_PHASES").ok()
+}
+
+/// Dump MIR module summary to stderr for a given phase label.
+pub fn dump_mir_phase(module: &MirModule, label: &str) {
+    eprintln!("[arukellt:mir] {}: {}", label, mir_size_summary(module));
+    for func in &module.functions {
+        let stmt_count: usize = func.blocks.iter().map(|b| b.stmts.len()).sum();
+        eprintln!(
+            "[arukellt:mir]   fn {} — {} blocks, {} stmts",
+            func.name,
+            func.blocks.len(),
+            stmt_count
+        );
+    }
+}
+
 pub fn runtime_entry_name(module: &MirModule) -> Option<String> {
     if function_by_name(module, "_start").is_some() {
         Some("_start".to_string())

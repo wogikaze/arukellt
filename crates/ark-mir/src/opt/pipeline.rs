@@ -1,5 +1,5 @@
 use crate::mir::{
-    BinOp, BlockId, MirFunction, MirModule, MirStmt, Operand, Place, Rvalue, Terminator,
+    BinOp, BlockId, MirFunction, MirModule, MirStmt, Operand, Place, Rvalue, Terminator, UnaryOp,
     push_optimization_trace,
 };
 use crate::validate::validate_module;
@@ -20,6 +20,8 @@ pub enum OptimizationPass {
     InlineSmallLeaf,
     StringConcatOpt,
     AggregateSimplify,
+    AlgebraicSimplify,
+    StrengthReduction,
 }
 
 impl OptimizationPass {
@@ -36,6 +38,8 @@ impl OptimizationPass {
             Self::InlineSmallLeaf => "inline_small_leaf",
             Self::StringConcatOpt => "string_concat_opt",
             Self::AggregateSimplify => "aggregate_simplify",
+            Self::AlgebraicSimplify => "algebraic_simplify",
+            Self::StrengthReduction => "strength_reduction",
         }
     }
 }
@@ -52,6 +56,8 @@ pub const DEFAULT_PASS_ORDER: &[OptimizationPass] = &[
     OptimizationPass::InlineSmallLeaf,
     OptimizationPass::StringConcatOpt,
     OptimizationPass::AggregateSimplify,
+    OptimizationPass::AlgebraicSimplify,
+    OptimizationPass::StrengthReduction,
 ];
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -68,6 +74,8 @@ pub struct OptimizationSummary {
     pub inline_small_leaf: usize,
     pub string_concat_normalized: usize,
     pub aggregate_simplified: usize,
+    pub algebraic_simplified: usize,
+    pub strength_reduced: usize,
 }
 
 impl OptimizationSummary {
@@ -83,6 +91,8 @@ impl OptimizationSummary {
             || self.inline_small_leaf > 0
             || self.string_concat_normalized > 0
             || self.aggregate_simplified > 0
+            || self.algebraic_simplified > 0
+            || self.strength_reduced > 0
     }
 
     fn absorb(&mut self, other: OptimizationSummary) {
@@ -97,6 +107,8 @@ impl OptimizationSummary {
         self.inline_small_leaf += other.inline_small_leaf;
         self.string_concat_normalized += other.string_concat_normalized;
         self.aggregate_simplified += other.aggregate_simplified;
+        self.algebraic_simplified += other.algebraic_simplified;
+        self.strength_reduced += other.strength_reduced;
     }
 }
 
@@ -208,6 +220,15 @@ fn optimize_module_with_passes(
     validate_module(module)
         .map_err(|errors| format!("MIR validation failed before optimization: {errors:?}"))?;
 
+    let dump = crate::mir::dump_phases_requested();
+    let should_dump = dump
+        .as_deref()
+        .is_some_and(|d| d == "optimized-mir" || d == "all");
+
+    if should_dump {
+        crate::mir::dump_mir_phase(module, "pre-opt");
+    }
+
     let mut total = OptimizationSummary::default();
     module.stats.optimization_trace.clear();
 
@@ -215,6 +236,9 @@ fn optimize_module_with_passes(
         let mut round_summary = OptimizationSummary::default();
         for pass in passes {
             let pass_summary = run_single_pass(module, *pass)?;
+            if should_dump && pass_summary.changed() {
+                crate::mir::dump_mir_phase(module, &format!("after-{}", pass.as_str()));
+            }
             round_summary.absorb(pass_summary);
         }
         round_summary.rounds = 1;
@@ -228,6 +252,11 @@ fn optimize_module_with_passes(
     module.stats.optimization_rounds = total.rounds;
     validate_module(module)
         .map_err(|errors| format!("MIR validation failed after optimization: {errors:?}"))?;
+
+    if should_dump {
+        crate::mir::dump_mir_phase(module, "post-opt");
+    }
+
     Ok(total)
 }
 
@@ -244,6 +273,8 @@ fn run_pass(function: &mut MirFunction, pass: OptimizationPass) -> OptimizationS
         OptimizationPass::InlineSmallLeaf => inline_small_leaf(function),
         OptimizationPass::StringConcatOpt => string_concat_opt(function),
         OptimizationPass::AggregateSimplify => aggregate_simplify(function),
+        OptimizationPass::AlgebraicSimplify => algebraic_simplify(function),
+        OptimizationPass::StrengthReduction => strength_reduction(function),
     }
 }
 
@@ -436,6 +467,220 @@ fn aggregate_simplify(function: &mut MirFunction) -> OptimizationSummary {
         }
     }
     summary
+}
+
+/// Algebraic simplification: identity/absorbing element elimination.
+///
+/// Rules applied:
+///   x + 0 → x,  0 + x → x
+///   x - 0 → x
+///   x * 1 → x,  1 * x → x
+///   x * 0 → 0,  0 * x → 0
+///   x / 1 → x
+///   x & 0 → 0,  0 & x → 0
+///   x | 0 → x,  0 | x → x
+///   x ^ 0 → x,  0 ^ x → x
+///   x && true → x, true && x → x
+///   x && false → false
+///   x || false → x, false || x → x
+///   x || true → true
+///   !!x → x (double negation)
+///   --x → x (double negation for integers)
+fn algebraic_simplify(function: &mut MirFunction) -> OptimizationSummary {
+    let mut summary = OptimizationSummary::default();
+    for block in &mut function.blocks {
+        for stmt in &mut block.stmts {
+            if let MirStmt::Assign(place, rvalue) = stmt {
+                if let Some(simplified) = try_algebraic_simplify_rvalue(rvalue) {
+                    *stmt = MirStmt::Assign(place.clone(), Rvalue::Use(simplified));
+                    summary.algebraic_simplified += 1;
+                }
+            }
+        }
+    }
+    summary
+}
+
+fn try_algebraic_simplify_rvalue(rvalue: &Rvalue) -> Option<Operand> {
+    match rvalue {
+        Rvalue::BinaryOp(op, lhs, rhs) => try_algebraic_simplify_binop(*op, lhs, rhs),
+        Rvalue::UnaryOp(UnaryOp::Not, Operand::UnaryOp(UnaryOp::Not, inner)) => {
+            Some((**inner).clone())
+        }
+        Rvalue::UnaryOp(UnaryOp::Neg, Operand::UnaryOp(UnaryOp::Neg, inner)) => {
+            Some((**inner).clone())
+        }
+        _ => None,
+    }
+}
+
+fn try_algebraic_simplify_binop(op: BinOp, lhs: &Operand, rhs: &Operand) -> Option<Operand> {
+    let is_zero_i32 = |o: &Operand| matches!(o, Operand::ConstI32(0));
+    let is_zero_i64 = |o: &Operand| matches!(o, Operand::ConstI64(0));
+    let is_one_i32 = |o: &Operand| matches!(o, Operand::ConstI32(1));
+    let is_one_i64 = |o: &Operand| matches!(o, Operand::ConstI64(1));
+
+    match op {
+        // x + 0 → x, 0 + x → x
+        BinOp::Add => {
+            if is_zero_i32(rhs) || is_zero_i64(rhs) {
+                Some(lhs.clone())
+            } else if is_zero_i32(lhs) || is_zero_i64(lhs) {
+                Some(rhs.clone())
+            } else {
+                None
+            }
+        }
+        // x - 0 → x
+        BinOp::Sub => {
+            if is_zero_i32(rhs) || is_zero_i64(rhs) {
+                Some(lhs.clone())
+            } else {
+                None
+            }
+        }
+        // x * 1 → x, 1 * x → x, x * 0 → 0, 0 * x → 0
+        BinOp::Mul => {
+            if is_one_i32(rhs) || is_one_i64(rhs) {
+                Some(lhs.clone())
+            } else if is_one_i32(lhs) || is_one_i64(lhs) {
+                Some(rhs.clone())
+            } else if is_zero_i32(rhs) || is_zero_i32(lhs) {
+                Some(Operand::ConstI32(0))
+            } else if is_zero_i64(rhs) || is_zero_i64(lhs) {
+                Some(Operand::ConstI64(0))
+            } else {
+                None
+            }
+        }
+        // x / 1 → x
+        BinOp::Div => {
+            if is_one_i32(rhs) || is_one_i64(rhs) {
+                Some(lhs.clone())
+            } else {
+                None
+            }
+        }
+        // x & 0 → 0, 0 & x → 0, x | 0 → x, 0 | x → x
+        BinOp::BitAnd => {
+            if is_zero_i32(rhs) || is_zero_i32(lhs) {
+                Some(Operand::ConstI32(0))
+            } else if is_zero_i64(rhs) || is_zero_i64(lhs) {
+                Some(Operand::ConstI64(0))
+            } else {
+                None
+            }
+        }
+        BinOp::BitOr | BinOp::BitXor => {
+            if is_zero_i32(rhs) || is_zero_i64(rhs) {
+                Some(lhs.clone())
+            } else if is_zero_i32(lhs) || is_zero_i64(lhs) {
+                Some(rhs.clone())
+            } else {
+                None
+            }
+        }
+        // x && true → x, true && x → x, x && false → false
+        BinOp::And => {
+            if matches!(rhs, Operand::ConstBool(true)) {
+                Some(lhs.clone())
+            } else if matches!(lhs, Operand::ConstBool(true)) {
+                Some(rhs.clone())
+            } else if matches!(rhs, Operand::ConstBool(false))
+                || matches!(lhs, Operand::ConstBool(false))
+            {
+                Some(Operand::ConstBool(false))
+            } else {
+                None
+            }
+        }
+        // x || false → x, false || x → x, x || true → true
+        BinOp::Or => {
+            if matches!(rhs, Operand::ConstBool(false)) {
+                Some(lhs.clone())
+            } else if matches!(lhs, Operand::ConstBool(false)) {
+                Some(rhs.clone())
+            } else if matches!(rhs, Operand::ConstBool(true))
+                || matches!(lhs, Operand::ConstBool(true))
+            {
+                Some(Operand::ConstBool(true))
+            } else {
+                None
+            }
+        }
+        // x << 0 → x, x >> 0 → x
+        BinOp::Shl | BinOp::Shr => {
+            if is_zero_i32(rhs) || is_zero_i64(rhs) {
+                Some(lhs.clone())
+            } else {
+                None
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Strength reduction: replace expensive operations with cheaper ones.
+///
+/// Rules:
+///   x * 2^n → x << n  (for constant power-of-2 multiplier)
+///   x / 2^n → x >> n  (for constant power-of-2 divisor, unsigned semantics)
+fn strength_reduction(function: &mut MirFunction) -> OptimizationSummary {
+    let mut summary = OptimizationSummary::default();
+    for block in &mut function.blocks {
+        for stmt in &mut block.stmts {
+            if let MirStmt::Assign(place, Rvalue::BinaryOp(op, lhs, rhs)) = stmt {
+                if let Some(replacement) = try_strength_reduce(*op, lhs, rhs) {
+                    *stmt = MirStmt::Assign(place.clone(), replacement);
+                    summary.strength_reduced += 1;
+                }
+            }
+        }
+    }
+    summary
+}
+
+fn try_strength_reduce(op: BinOp, lhs: &Operand, rhs: &Operand) -> Option<Rvalue> {
+    match op {
+        BinOp::Mul => {
+            // x * 2^n → x << n
+            if let Some(shift) = power_of_two_i32(rhs) {
+                Some(Rvalue::BinaryOp(
+                    BinOp::Shl,
+                    lhs.clone(),
+                    Operand::ConstI32(shift),
+                ))
+            } else if let Some(shift) = power_of_two_i32(lhs) {
+                Some(Rvalue::BinaryOp(
+                    BinOp::Shl,
+                    rhs.clone(),
+                    Operand::ConstI32(shift),
+                ))
+            } else {
+                None
+            }
+        }
+        BinOp::Div => {
+            // x / 2^n → x >> n (unsigned)
+            if let Some(shift) = power_of_two_i32(rhs) {
+                Some(Rvalue::BinaryOp(
+                    BinOp::Shr,
+                    lhs.clone(),
+                    Operand::ConstI32(shift),
+                ))
+            } else {
+                None
+            }
+        }
+        _ => None,
+    }
+}
+
+fn power_of_two_i32(op: &Operand) -> Option<i32> {
+    match op {
+        Operand::ConstI32(n) if *n > 1 && n.count_ones() == 1 => Some(n.trailing_zeros() as i32),
+        _ => None,
+    }
 }
 
 fn fold_binary(op: BinOp, lhs: &Operand, rhs: &Operand) -> Option<Operand> {

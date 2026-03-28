@@ -281,6 +281,8 @@ struct Ctx {
     data_offset: u32,
     /// Passive data segments for string literals (consumed by array.new_data).
     string_data_segs: Vec<Vec<u8>>,
+    /// Deduplication cache: maps string bytes → segment index.
+    string_seg_cache: HashMap<Vec<u8>, u32>,
     fn_map: HashMap<String, u32>,
     fn_names: Vec<String>,
     next_fn: u32,
@@ -484,9 +486,14 @@ impl Ctx {
 
     /// Allocate a passive data segment for a string literal.
     /// Returns the segment index (used by array.new_data).
+    /// Deduplicates identical byte sequences.
     fn alloc_string_data(&mut self, data: &[u8]) -> u32 {
+        if let Some(&idx) = self.string_seg_cache.get(data) {
+            return idx;
+        }
         let idx = self.string_data_segs.len() as u32;
         self.string_data_segs.push(data.to_vec());
+        self.string_seg_cache.insert(data.to_vec(), idx);
         idx
     }
 
@@ -598,6 +605,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         data_segs: Vec::new(),
         data_offset: DATA_START,
         string_data_segs: Vec::new(),
+        string_seg_cache: HashMap::new(),
         fn_map: HashMap::new(),
         fn_names: mir.functions.iter().map(|f| f.name.clone()).collect(),
         next_fn: 0,
