@@ -1,6 +1,6 @@
 # CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-03-28
 **ID**: 110
