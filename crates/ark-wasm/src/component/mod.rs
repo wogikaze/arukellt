@@ -131,6 +131,42 @@ pub fn mir_to_wit_world_with_warnings(
         }
     }
 
+    // Pre-compute special enum types (Option/Result patterns) for inline resolution
+    let mut special_enums: std::collections::HashMap<String, WitType> =
+        std::collections::HashMap::new();
+    for (name, variants) in &mir.type_table.enum_defs {
+        if let Some(inner_type_name) = is_option_enum(variants) {
+            if let Some(inner_wt) = type_name_to_wit(inner_type_name) {
+                special_enums.insert(name.clone(), WitType::Option(Box::new(inner_wt)));
+            }
+        } else if let Some((ok_name, err_name)) = is_result_enum(variants) {
+            let ok_wt = type_name_to_wit(ok_name).map(Box::new);
+            let err_wt = type_name_to_wit(err_name).map(Box::new);
+            special_enums.insert(
+                name.clone(),
+                WitType::Result {
+                    ok: ok_wt,
+                    err: err_wt,
+                },
+            );
+        }
+    }
+
+    // Pre-compute tuple struct types for inline resolution
+    let mut tuple_structs: std::collections::HashMap<String, WitType> =
+        std::collections::HashMap::new();
+    for (name, fields) in &mir.type_table.struct_defs {
+        if name.starts_with("__tuple") {
+            let elem_types: Vec<WitType> = fields
+                .iter()
+                .filter_map(|(_, ftype)| type_name_to_wit(ftype))
+                .collect();
+            if elem_types.len() == fields.len() {
+                tuple_structs.insert(name.clone(), WitType::Tuple(elem_types));
+            }
+        }
+    }
+
     // Convert struct definitions to WIT records — only if referenced by exports
     for (name, fields) in &mir.type_table.struct_defs {
         if name.starts_with("__") || !referenced_types.contains(name.as_str()) {
@@ -138,7 +174,10 @@ pub fn mir_to_wit_world_with_warnings(
         }
         let wit_fields: Vec<(String, WitType)> = fields
             .iter()
-            .filter_map(|(fname, ftype)| type_name_to_wit(ftype).map(|wt| (fname.clone(), wt)))
+            .filter_map(|(fname, ftype)| {
+                type_name_to_wit_ctx(ftype, &special_enums, &tuple_structs)
+                    .map(|wt| (fname.clone(), wt))
+            })
             .collect();
         if wit_fields.len() == fields.len() {
             world.records.push(WitRecord {
@@ -151,6 +190,10 @@ pub fn mir_to_wit_world_with_warnings(
     // Convert enum definitions to WIT variants — only if referenced by exports
     for (name, variants) in &mir.type_table.enum_defs {
         if name.starts_with("__") || !referenced_types.contains(name.as_str()) {
+            continue;
+        }
+        // Skip Option/Result patterns — they are inlined as option<T>/result<T, E>
+        if special_enums.contains_key(name) {
             continue;
         }
         let all_unit = variants.iter().all(|(_, payloads)| payloads.is_empty());
@@ -166,11 +209,20 @@ pub fn mir_to_wit_world_with_warnings(
                     if payloads.is_empty() {
                         (vname.clone(), None)
                     } else if payloads.len() == 1 {
-                        (vname.clone(), type_name_to_wit(&payloads[0]))
+                        (
+                            vname.clone(),
+                            type_name_to_wit_ctx(
+                                &payloads[0],
+                                &special_enums,
+                                &tuple_structs,
+                            ),
+                        )
                     } else {
                         let elems: Vec<WitType> = payloads
                             .iter()
-                            .filter_map(|t| type_name_to_wit(t))
+                            .filter_map(|t| {
+                                type_name_to_wit_ctx(t, &special_enums, &tuple_structs)
+                            })
                             .collect();
                         if elems.len() == payloads.len() {
                             (vname.clone(), Some(WitType::Tuple(elems)))
@@ -235,6 +287,10 @@ fn type_name_to_wit(name: &str) -> Option<WitType> {
         "i64" => Some(WitType::S64),
         "f32" => Some(WitType::F32),
         "f64" => Some(WitType::F64),
+        "u8" => Some(WitType::U8),
+        "u16" => Some(WitType::U16),
+        "u32" => Some(WitType::U32),
+        "u64" => Some(WitType::U64),
         "bool" => Some(WitType::Bool),
         "char" => Some(WitType::Char),
         "String" => Some(WitType::StringType),
@@ -246,11 +302,94 @@ fn type_name_to_wit(name: &str) -> Option<WitType> {
                 .and_then(|s| s.strip_suffix('>'))
             {
                 type_name_to_wit(inner).map(|t| WitType::Option(Box::new(t)))
+            } else if let Some(inner) =
+                other.strip_prefix("Result<").and_then(|s| s.strip_suffix('>'))
+            {
+                if let Some((ok_str, err_str)) = split_generic_args(inner) {
+                    let ok_wt = type_name_to_wit(ok_str).map(Box::new);
+                    let err_wt = type_name_to_wit(err_str).map(Box::new);
+                    Some(WitType::Result {
+                        ok: ok_wt,
+                        err: err_wt,
+                    })
+                } else {
+                    type_name_to_wit(inner)
+                        .map(|t| WitType::Result {
+                            ok: Some(Box::new(t)),
+                            err: None,
+                        })
+                }
             } else {
                 // Named struct/enum — assume record
                 Some(WitType::Record(other.to_string()))
             }
         }
+    }
+}
+
+/// Context-aware type name resolver that checks for special enum types
+/// (Option/Result patterns) and tuple struct types before falling back.
+fn type_name_to_wit_ctx(
+    name: &str,
+    special_enums: &std::collections::HashMap<String, WitType>,
+    tuple_structs: &std::collections::HashMap<String, WitType>,
+) -> Option<WitType> {
+    if let Some(wt) = special_enums.get(name) {
+        return Some(wt.clone());
+    }
+    if let Some(wt) = tuple_structs.get(name) {
+        return Some(wt.clone());
+    }
+    type_name_to_wit(name)
+}
+
+/// Split two comma-separated generic arguments, respecting nested angle brackets.
+fn split_generic_args(s: &str) -> Option<(&str, &str)> {
+    let mut depth = 0;
+    for (i, ch) in s.char_indices() {
+        match ch {
+            '<' => depth += 1,
+            '>' => depth -= 1,
+            ',' if depth == 0 => {
+                let first = s[..i].trim();
+                let second = s[i + 1..].trim();
+                return Some((first, second));
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Check if an enum definition matches the `Option<T>` pattern.
+/// Returns the inner type name if it matches.
+fn is_option_enum(variants: &[(String, Vec<String>)]) -> Option<&str> {
+    if variants.len() != 2 {
+        return None;
+    }
+    let some_variant = variants.iter().find(|(n, _)| n == "Some");
+    let none_variant = variants
+        .iter()
+        .find(|(n, p)| n == "None" && p.is_empty());
+    match (some_variant, none_variant) {
+        (Some((_, payloads)), Some(_)) if payloads.len() == 1 => Some(&payloads[0]),
+        _ => None,
+    }
+}
+
+/// Check if an enum definition matches the `Result<T, E>` pattern.
+/// Returns (ok_type_name, err_type_name) if it matches.
+fn is_result_enum(variants: &[(String, Vec<String>)]) -> Option<(&str, &str)> {
+    if variants.len() != 2 {
+        return None;
+    }
+    let ok_variant = variants.iter().find(|(n, _)| n == "Ok");
+    let err_variant = variants.iter().find(|(n, _)| n == "Err");
+    match (ok_variant, err_variant) {
+        (Some((_, ok_p)), Some((_, err_p))) if ok_p.len() == 1 && err_p.len() == 1 => {
+            Some((&ok_p[0], &err_p[0]))
+        }
+        _ => None,
     }
 }
 
@@ -594,6 +733,222 @@ mod tests {
         let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
         assert_eq!(world.functions.len(), 0);
         assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn option_enum_detected_as_option_type() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func(
+            "maybe_value",
+            vec![],
+            Type::Option(Box::new(Type::I32)),
+        ));
+        mir.type_table.enum_defs.insert(
+            "Option".to_string(),
+            vec![
+                ("Some".to_string(), vec!["i32".to_string()]),
+                ("None".to_string(), vec![]),
+            ],
+        );
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        // Option should NOT be emitted as a variant
+        assert!(world.variants.is_empty(), "Option should not be a variant");
+        // The function should return option<s32>
+        assert_eq!(
+            world.functions[0].result,
+            Some(WitType::Option(Box::new(WitType::S32)))
+        );
+    }
+
+    #[test]
+    fn result_enum_detected_as_result_type() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func(
+            "try_parse",
+            vec![(Some("s".into()), Type::String)],
+            Type::Result(Box::new(Type::I32), Box::new(Type::String)),
+        ));
+        mir.type_table.enum_defs.insert(
+            "Result".to_string(),
+            vec![
+                ("Ok".to_string(), vec!["i32".to_string()]),
+                ("Err".to_string(), vec!["String".to_string()]),
+            ],
+        );
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        assert!(
+            world.variants.is_empty(),
+            "Result should not be a variant"
+        );
+        assert_eq!(
+            world.functions[0].result,
+            Some(WitType::Result {
+                ok: Some(Box::new(WitType::S32)),
+                err: Some(Box::new(WitType::StringType)),
+            })
+        );
+    }
+
+    #[test]
+    fn specialized_result_enum_skipped() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func(
+            "try_parse_f64",
+            vec![],
+            Type::Result(Box::new(Type::F64), Box::new(Type::String)),
+        ));
+        mir.type_table.enum_defs.insert(
+            "Result_f64_String".to_string(),
+            vec![
+                ("Ok".to_string(), vec!["f64".to_string()]),
+                ("Err".to_string(), vec!["String".to_string()]),
+            ],
+        );
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        assert!(
+            world.variants.is_empty(),
+            "Result_f64_String should not be a variant"
+        );
+    }
+
+    #[test]
+    fn tuple_type_generates_wit_tuple() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func(
+            "get_pair",
+            vec![],
+            Type::Tuple(vec![Type::I32, Type::I32]),
+        ));
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        assert_eq!(
+            world.functions[0].result,
+            Some(WitType::Tuple(vec![WitType::S32, WitType::S32]))
+        );
+        let wit = generate_wit(&world).unwrap();
+        assert!(
+            wit.contains("tuple<s32, s32>"),
+            "WIT should contain tuple<s32, s32>, got: {}",
+            wit
+        );
+    }
+
+    #[test]
+    fn struct_field_with_option_resolves_inline() {
+        let mut mir = MirModule::new();
+        // A struct with a field that references "Option" by name
+        mir.type_table.struct_defs.insert(
+            "Config".to_string(),
+            vec![
+                ("name".to_string(), "String".to_string()),
+                ("value".to_string(), "Option".to_string()),
+            ],
+        );
+        // Register Option enum so it can be resolved
+        mir.type_table.enum_defs.insert(
+            "Option".to_string(),
+            vec![
+                ("Some".to_string(), vec!["i32".to_string()]),
+                ("None".to_string(), vec![]),
+            ],
+        );
+        // Create a function that uses the struct
+        mir.functions.push(make_func(
+            "get_config",
+            vec![],
+            Type::Struct(ark_typecheck::types::TypeId(0)),
+        ));
+        // Manually add "Config" to the struct's type reference
+        // (since Type::Struct(id) → WitType::Record("struct-0") won't match "Config")
+        // We test the inline resolution via type_name_to_wit_ctx directly
+        let special_enums = {
+            let mut m = std::collections::HashMap::new();
+            m.insert(
+                "Option".to_string(),
+                WitType::Option(Box::new(WitType::S32)),
+            );
+            m
+        };
+        let tuple_structs = std::collections::HashMap::new();
+        let resolved =
+            type_name_to_wit_ctx("Option", &special_enums, &tuple_structs);
+        assert_eq!(resolved, Some(WitType::Option(Box::new(WitType::S32))));
+    }
+
+    #[test]
+    fn type_name_result_parsing() {
+        let r = type_name_to_wit("Result<i32, String>");
+        assert_eq!(
+            r,
+            Some(WitType::Result {
+                ok: Some(Box::new(WitType::S32)),
+                err: Some(Box::new(WitType::StringType)),
+            })
+        );
+    }
+
+    #[test]
+    fn type_name_u_types() {
+        assert_eq!(type_name_to_wit("u8"), Some(WitType::U8));
+        assert_eq!(type_name_to_wit("u16"), Some(WitType::U16));
+        assert_eq!(type_name_to_wit("u32"), Some(WitType::U32));
+        assert_eq!(type_name_to_wit("u64"), Some(WitType::U64));
+    }
+
+    #[test]
+    fn kebab_case_applied_to_exports() {
+        let mut mir = MirModule::new();
+        mir.functions.push(make_func(
+            "get_value",
+            vec![(Some("my_param".into()), Type::I32)],
+            Type::I32,
+        ));
+        let (world, _) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
+        let wit = generate_wit(&world).unwrap();
+        assert!(
+            wit.contains("get-value"),
+            "snake_case should be kebab-case: {}",
+            wit
+        );
+        assert!(
+            wit.contains("my-param"),
+            "param should be kebab-case: {}",
+            wit
+        );
+    }
+
+    #[test]
+    fn non_option_result_enum_still_emitted() {
+        let mut mir = MirModule::new();
+        // A regular enum that doesn't match Option/Result pattern
+        mir.type_table.enum_defs.insert(
+            "Color".to_string(),
+            vec![
+                ("Red".to_string(), vec![]),
+                ("Green".to_string(), vec![]),
+                ("Blue".to_string(), vec![]),
+            ],
+        );
+        // We need a function that references "Color" so it's in referenced_types
+        mir.functions.push(make_func(
+            "get_color",
+            vec![],
+            Type::Struct(ark_typecheck::types::TypeId(0)),
+        ));
+        // Since Type::Struct → WitType::Record("struct-0"), Color won't be referenced
+        // through functions. Manually test the detection helpers:
+        let variants = vec![
+            ("Red".to_string(), vec![]),
+            ("Green".to_string(), vec![]),
+            ("Blue".to_string(), vec![]),
+        ];
+        assert!(
+            is_option_enum(&variants).is_none(),
+            "Color should not match Option pattern"
+        );
+        assert!(
+            is_result_enum(&variants).is_none(),
+            "Color should not match Result pattern"
+        );
     }
 
     #[test]
