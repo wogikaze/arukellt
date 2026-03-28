@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 use std::process;
 
-use ark_driver::Session;
+use ark_driver::{OptLevel, Session};
 use ark_target::{EmitKind, TargetId};
 
 use crate::native;
@@ -16,6 +16,9 @@ pub(crate) fn cmd_compile(
     emit_kind: EmitKind,
     wit_files: Vec<PathBuf>,
     profile_mem: bool,
+    time: bool,
+    opt_level_raw: u8,
+    no_pass: Vec<String>,
 ) {
     // Native target: handled separately via LLVM backend
     if target == TargetId::Native {
@@ -49,9 +52,20 @@ pub(crate) fn cmd_compile(
         eprintln!("warning: --wit flag is only used with --emit component or --emit all");
     }
 
+    let opt_level = match OptLevel::from_u8(opt_level_raw) {
+        Ok(level) => level,
+        Err(e) => {
+            eprintln!("error: {}", e);
+            process::exit(1);
+        }
+    };
+
     // WIT-only emit
     if emit_kind == EmitKind::Wit {
         let mut session = Session::new();
+        session.timing_enabled = time;
+        session.opt_level = opt_level;
+        session.disabled_passes = no_pass.clone();
         match session.compile_wit(&file) {
             Ok(wit_text) => {
                 let wit_output = output.unwrap_or_else(|| file.with_extension("wit"));
@@ -78,6 +92,9 @@ pub(crate) fn cmd_compile(
     if emit_kind == EmitKind::Component {
         let component_output = output.unwrap_or_else(|| file.with_extension("component.wasm"));
         let mut session = Session::new();
+        session.timing_enabled = time;
+        session.opt_level = opt_level;
+        session.disabled_passes = no_pass.clone();
         match session.compile_component(&file, target) {
             Ok(component) => {
                 std::fs::write(&component_output, &component).unwrap_or_else(|e| {
@@ -113,6 +130,9 @@ pub(crate) fn cmd_compile(
 
     let output = output.unwrap_or_else(|| file.with_extension("wasm"));
     let mut session = Session::new();
+    session.timing_enabled = time;
+    session.opt_level = opt_level;
+    session.disabled_passes = no_pass;
     match session.compile(&file, target) {
         Ok(wasm) => {
             std::fs::write(&output, &wasm).unwrap_or_else(|e| {
@@ -126,6 +146,12 @@ pub(crate) fn cmd_compile(
                 wasm.len(),
                 target,
             );
+
+            if time {
+                if let Some(ref timing) = session.last_timing {
+                    eprintln!("{}", timing);
+                }
+            }
 
             // For --emit all, also generate WIT and component
             if emit_kind == EmitKind::All {

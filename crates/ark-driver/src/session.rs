@@ -5,7 +5,8 @@ use ark_hir::Program;
 use ark_lexer::Lexer;
 use ark_mir::{
     MirModule, MirProvenance, compare_lowering_paths, lower_check_output_to_mir, lower_legacy_only,
-    module_snapshot, optimize_module, runtime_entry_name, set_mir_provenance,
+    module_snapshot, optimization_pass_catalog, optimize_module, optimize_module_named,
+    runtime_entry_name, set_mir_provenance,
     validate_backend_legal_module, validate_module,
 };
 use ark_parser::{ast, parse};
@@ -74,11 +75,72 @@ pub struct RuntimeParityReport {
     pub snapshot: String,
 }
 
+/// Compilation timing report for `--time`.
+#[derive(Debug, Clone, Default)]
+pub struct CompileTiming {
+    pub lex_ms: f64,
+    pub parse_ms: f64,
+    pub resolve_ms: f64,
+    pub typecheck_ms: f64,
+    pub lower_ms: f64,
+    pub opt_ms: f64,
+    pub emit_ms: f64,
+    pub total_ms: f64,
+    pub opt_detail: String,
+}
+
+impl std::fmt::Display for CompileTiming {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "[arukellt] lex:       {:>7.1}ms", self.lex_ms)?;
+        writeln!(f, "[arukellt] parse:     {:>7.1}ms", self.parse_ms)?;
+        writeln!(f, "[arukellt] resolve:   {:>7.1}ms", self.resolve_ms)?;
+        writeln!(f, "[arukellt] typecheck: {:>7.1}ms", self.typecheck_ms)?;
+        writeln!(f, "[arukellt] lower:     {:>7.1}ms", self.lower_ms)?;
+        if !self.opt_detail.is_empty() {
+            writeln!(
+                f,
+                "[arukellt] opt:       {:>7.1}ms  ({})",
+                self.opt_ms, self.opt_detail
+            )?;
+        } else {
+            writeln!(f, "[arukellt] opt:       {:>7.1}ms", self.opt_ms)?;
+        }
+        writeln!(f, "[arukellt] emit:      {:>7.1}ms", self.emit_ms)?;
+        write!(f, "[arukellt] total:     {:>7.1}ms", self.total_ms)
+    }
+}
+
+/// Optimization level controlling which MIR passes are enabled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OptLevel {
+    /// No optimizations (debug build).
+    O0,
+    /// Safe optimizations only (default).
+    O1,
+    /// All optimizations including aggressive passes.
+    O2,
+}
+
+impl OptLevel {
+    pub fn from_u8(level: u8) -> Result<Self, String> {
+        match level {
+            0 => Ok(Self::O0),
+            1 => Ok(Self::O1),
+            2 => Ok(Self::O2),
+            _ => Err(format!("invalid opt-level: {} (expected 0, 1, or 2)", level)),
+        }
+    }
+}
+
 pub struct Session {
     source_map: SourceMap,
     sink: DiagnosticSink,
     config: PipelineConfig,
     artifacts: ArtifactStore,
+    pub timing_enabled: bool,
+    pub last_timing: Option<CompileTiming>,
+    pub opt_level: OptLevel,
+    pub disabled_passes: Vec<String>,
 }
 
 impl Default for Session {
@@ -138,6 +200,10 @@ impl Session {
             sink: DiagnosticSink::new(),
             config: PipelineConfig::default(),
             artifacts: ArtifactStore::default(),
+            timing_enabled: false,
+            last_timing: None,
+            opt_level: OptLevel::O1,
+            disabled_passes: Vec::new(),
         }
     }
 
@@ -288,9 +354,11 @@ impl Session {
     }
 
     fn run_frontend(&mut self, path: &Path) -> Result<FrontendResult, String> {
+        let t_total = std::time::Instant::now();
         let resolved = self.resolve(path)?.resolved;
         self.sink = DiagnosticSink::new();
 
+        let t_tc = std::time::Instant::now();
         let mut checker = TypeChecker::new();
         checker.register_builtins();
         // Run CoreHIR typecheck into an isolated sink so that E0200 CoreHIR
@@ -313,7 +381,9 @@ impl Session {
                 &self.source_map,
             ));
         }
+        let typecheck_ms = t_tc.elapsed().as_secs_f64() * 1000.0;
 
+        let t_lower = std::time::Instant::now();
         let mut legacy_mir = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
         mark_selection(&mut legacy_mir, MirSelection::Legacy);
         validate_mir(&legacy_mir)?;
@@ -335,6 +405,20 @@ impl Session {
             mark_selection(&mut fallback, MirSelection::CoreHir);
             fallback
         };
+        let lower_ms = t_lower.elapsed().as_secs_f64() * 1000.0;
+
+        // Record timing for resolve/typecheck/lower phases if enabled.
+        // Lex/parse timing is captured from the pipeline cache overhead in resolve.
+        if self.timing_enabled {
+            let frontend_ms = t_total.elapsed().as_secs_f64() * 1000.0;
+            let resolve_ms = frontend_ms - typecheck_ms - lower_ms;
+            self.last_timing = Some(CompileTiming {
+                resolve_ms,
+                typecheck_ms,
+                lower_ms,
+                ..CompileTiming::default()
+            });
+        }
 
         // Collect warnings from frontend to pass downstream (they survive the sink reset in compile_selected).
         let pending_diagnostics: Vec<ark_diagnostics::Diagnostic> = self
@@ -389,8 +473,8 @@ impl Session {
             optimize_module(&mut mir)
                 .map_err(|message| format!("internal error: optimizer failed: {message}"))?;
             mark_selection(&mut mir, selection);
-            validate_mir(&mir)?;
         }
+        validate_mir(&mir)?;
         Ok(mir)
     }
 
@@ -418,6 +502,7 @@ impl Session {
         target: TargetId,
         selection: MirSelection,
     ) -> Result<CompiledModule, String> {
+        let t_total = std::time::Instant::now();
         if target == TargetId::Native {
             return Err("error: native target uses the dedicated LLVM compile path".to_string());
         }
@@ -428,15 +513,55 @@ impl Session {
             MirSelection::Legacy | MirSelection::OptimizedLegacy => frontend.legacy_mir,
             MirSelection::CoreHir | MirSelection::OptimizedCoreHir => frontend.corehir_mir,
         };
-        if matches!(
+        let t_opt = std::time::Instant::now();
+        let opt_detail = if matches!(
             selection,
             MirSelection::OptimizedLegacy | MirSelection::OptimizedCoreHir
-        ) {
-            optimize_module(&mut mir)
+        ) && self.opt_level != OptLevel::O0
+        {
+            let summary = if self.opt_level == OptLevel::O1 {
+                let o1_passes: &[&str] = &[
+                    "const_fold",
+                    "branch_fold",
+                    "cfg_simplify",
+                    "copy_prop",
+                    "const_prop",
+                    "dead_local_elim",
+                    "dead_block_elim",
+                    "unreachable_cleanup",
+                ];
+                let passes: Vec<&str> = o1_passes
+                    .iter()
+                    .filter(|p| !self.disabled_passes.iter().any(|d| d == *p))
+                    .copied()
+                    .collect();
+                optimize_module_named(&mut mir, &passes)
+            } else {
+                if self.disabled_passes.is_empty() {
+                    optimize_module(&mut mir)
+                } else {
+                    let all_passes = optimization_pass_catalog();
+                    let passes: Vec<&str> = all_passes
+                        .iter()
+                        .filter(|p| !self.disabled_passes.iter().any(|d| d == *p))
+                        .copied()
+                        .collect();
+                    optimize_module_named(&mut mir, &passes)
+                }
+            };
+            let summary = summary
                 .map_err(|message| format!("internal error: optimizer failed: {message}"))?;
             mark_selection(&mut mir, selection);
-            validate_mir(&mir)?;
-        }
+            format!(
+                "rounds={}, const_fold={}, dce={}",
+                summary.rounds, summary.const_folded, summary.dead_locals_removed
+            )
+        } else {
+            String::new()
+        };
+        let opt_ms = t_opt.elapsed().as_secs_f64() * 1000.0;
+
+        validate_mir(&mir)?;
         ensure_runtime_entry(&mir, selection)?;
         // The legacy T1 backend handles high-level IR nodes (IfExpr, LoopExpr, TryExpr)
         // directly, so backend-legal validation only applies to the CoreHIR path.
@@ -453,7 +578,10 @@ impl Session {
         for diag in pending_diagnostics {
             self.sink.emit(diag);
         }
+        let t_emit = std::time::Instant::now();
         let wasm = ark_wasm::emit_with_plan(&mir, &mut self.sink, &plan);
+        let emit_ms = t_emit.elapsed().as_secs_f64() * 1000.0;
+
         if self.sink.has_errors() {
             return Err(render_diagnostics(
                 self.sink.diagnostics(),
@@ -465,6 +593,16 @@ impl Session {
                 "{}",
                 render_diagnostics(self.sink.diagnostics(), &self.source_map)
             );
+        }
+
+        // Finalize timing report
+        if self.timing_enabled {
+            if let Some(ref mut timing) = self.last_timing {
+                timing.opt_ms = opt_ms;
+                timing.opt_detail = opt_detail;
+                timing.emit_ms = emit_ms;
+                timing.total_ms = t_total.elapsed().as_secs_f64() * 1000.0;
+            }
         }
 
         mark_selection(&mut mir, selection);

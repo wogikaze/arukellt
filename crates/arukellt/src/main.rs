@@ -40,6 +40,15 @@ enum Commands {
         /// Show memory profiling info (escape analysis, allocation hints)
         #[arg(long)]
         profile_mem: bool,
+        /// Show per-phase compilation time
+        #[arg(long)]
+        time: bool,
+        /// Optimization level (0=none, 1=safe, 2=all). Default: 1
+        #[arg(long, default_value = "1")]
+        opt_level: u8,
+        /// Disable specific optimization pass by name
+        #[arg(long = "no-pass", value_name = "NAME")]
+        no_pass: Vec<String>,
     },
     /// Compile and run an .ark file
     Run {
@@ -93,10 +102,13 @@ fn main() {
             emit: emit_kind,
             wit_files,
             profile_mem,
+            time,
+            opt_level,
+            no_pass,
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
-            commands::cmd_compile(file, output, target, emit_kind, wit_files, profile_mem);
+            commands::cmd_compile(file, output, target, emit_kind, wit_files, profile_mem, time, opt_level, no_pass);
         }
         Commands::Run {
             file,
