@@ -1,4 +1,13 @@
-# std/io — 現在の I/O API
+# std/io — I/O API
+
+> このページは v2 以前の旧インデックスです。  
+> **v3 以降は [modules/io.md](modules/io.md) を参照してください。**
+
+## リダイレクト
+
+- fs / path / process / random / time → [modules/io.md](modules/io.md)
+- 安定性ラベル付き全 API → [reference.md](reference.md)
+
 
 > このページは **現在の実装** に合わせた要約です。より広い capability 設計は `docs/platform/wasi-resource-model.md` を参照してください。
 

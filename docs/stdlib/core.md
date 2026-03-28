@@ -1,11 +1,15 @@
 # std/core — 現在使えるコア API
 
-> このページは **現行実装で確認できる公開 API** に絞っています。将来設計は `docs/spec/` や ADR を参照してください。
+> このページは v2 以前の旧インデックスです。  
+> **v3 以降は [modules/core.md](modules/core.md) を参照してください。**
 
-Arukellt では現在、多くのコア API が `std/prelude.ark` から提供されています。
-型表現や内部実装は linear memory + compiler intrinsic ベースで、Wasm GC 前提の設計文書とは一致しません。
+## リダイレクト
 
-## Option / Result
+- Option / Result → [modules/core.md](modules/core.md)
+- Vec / HashMap → [modules/collections.md](modules/collections.md)
+- String → [modules/text.md](modules/text.md)
+- 安定性ラベル付き全 API → [reference.md](reference.md)
+
 
 現在よく使う公開面:
 
