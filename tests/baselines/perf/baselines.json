@@ -1,0 +1,17 @@
+{
+  "hello": {
+    "compile_ms": 65,
+    "binary_bytes": 3806,
+    "run_ms": 40
+  },
+  "fibonacci": {
+    "compile_ms": 90,
+    "binary_bytes": 3977,
+    "run_ms": 32
+  },
+  "higher_order": {
+    "compile_ms": 65,
+    "binary_bytes": 3896,
+    "run_ms": 23
+  }
+}

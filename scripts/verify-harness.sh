@@ -18,9 +18,13 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 QUICK_MODE=false
-if [[ "${1:-}" == "--quick" ]]; then
-    QUICK_MODE=true
-fi
+PERF_GATE=false
+for arg in "$@"; do
+    case "$arg" in
+        --quick)     QUICK_MODE=true ;;
+        --perf-gate) PERF_GATE=true ;;
+    esac
+done
 
 echo -e "${YELLOW}Running harness verification...${NC}"
 if [ "$QUICK_MODE" = true ]; then
@@ -288,6 +292,18 @@ if [ "${ARUKELLT_TEST_COMPONENT:-0}" = "1" ]; then
     fi
 else
     check_skip "component interop (opt-in)"
+fi
+
+# ── Performance gate (opt-in) ─────────────────────────────────────────────────
+if [ "$PERF_GATE" = true ]; then
+    printf '\n%s\n' "${YELLOW}[perf] Running performance regression gate...${NC}"
+    if [ "$QUICK_MODE" = true ]; then
+        check_skip "perf gate (quick mode)"
+    else
+        run_check "perf gate (compile time / binary size / run time)" "bash scripts/perf-gate.sh"
+    fi
+else
+    check_skip "perf gate (opt-in via --perf-gate)"
 fi
 
 printf '\n%s\n' "${YELLOW}========================================${NC}"
