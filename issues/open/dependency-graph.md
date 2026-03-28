@@ -46,11 +46,14 @@ graph TD
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I109["109 ベンチマーク: fib / binary_tree / vec_ops / string_concat / json_parse スイート"]
   I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
-  I114["114 Wasm 検証エラーをエラーに昇格 (W0004 warning → error)"]
   I115["115 Wasm Name Section: デバッグ用関数名・ローカル名セクション生成"]
+  I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
+  I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
+  I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
+  I127["127 `MIRValidate` をコンパイル経路で無条件実行"]
   I090["090 T3: 末尾位置の call → return_call 自動変換"]
   I107["107 実行時性能: ループのベクトル化可能性アノテーション"]
   I075["075 WASI P2 ネイティブ: wasi:clocks / wasi:random / wasi:io バインディング"]
@@ -68,8 +71,8 @@ graph TD
   I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I110["110 CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
-  I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
+  I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I060 --> I090
   I064 --> I107
@@ -91,8 +94,8 @@ graph TD
   I101 --> I122
   I109 --> I110
   I109 --> I112
-  I114 --> I116
   I117 --> I118
+  I125 --> I126
 ```
 
 ## Adjacency list
@@ -137,11 +140,14 @@ graph TD
 - **106** depends on: —; blocks: none
 - **109** depends on: —; blocks: 110, 112
 - **111** depends on: —; blocks: none
-- **114** depends on: —; blocks: 116
 - **115** depends on: —; blocks: none
+- **116** depends on: 114; blocks: none
 - **117** depends on: —; blocks: 118
 - **120** depends on: —; blocks: none
 - **123** depends on: none; blocks: none
+- **124** depends on: 074 (wasi-p2-native-component); blocks: none
+- **125** depends on: —; blocks: 126
+- **127** depends on: —; blocks: none
 - **090** depends on: 060; blocks: none
 - **107** depends on: 064; blocks: none
 - **075** depends on: 074; blocks: none
@@ -159,8 +165,8 @@ graph TD
 - **122** depends on: 101; blocks: none
 - **110** depends on: 109; blocks: none
 - **112** depends on: 109; blocks: none
-- **116** depends on: 114; blocks: none
 - **118** depends on: 117; blocks: none
+- **126** depends on: 125; blocks: none
 
 ### Blocked
 
