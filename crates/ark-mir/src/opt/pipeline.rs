@@ -27,6 +27,7 @@ pub enum OptimizationPass {
     LoopUnroll,
     GcHint,
     BoundsCheckElim,
+    EscapeAnalysis,
 }
 
 impl OptimizationPass {
@@ -49,6 +50,7 @@ impl OptimizationPass {
             Self::LoopUnroll => "loop_unroll",
             Self::GcHint => "gc_hint",
             Self::BoundsCheckElim => "bounds_check_elim",
+            Self::EscapeAnalysis => "escape_analysis",
         }
     }
 }
@@ -60,6 +62,7 @@ pub const DEFAULT_PASS_ORDER: &[OptimizationPass] = &[
     OptimizationPass::LoopUnroll,
     OptimizationPass::CopyProp,
     OptimizationPass::ConstProp,
+    OptimizationPass::EscapeAnalysis,
     OptimizationPass::BoundsCheckElim,
     OptimizationPass::DeadLocalElim,
     OptimizationPass::DeadBlockElim,
@@ -316,6 +319,7 @@ fn run_pass(function: &mut MirFunction, pass: OptimizationPass) -> OptimizationS
         OptimizationPass::LoopUnroll => super::loop_unroll::loop_unroll(function),
         OptimizationPass::GcHint => super::gc_hint::gc_hint_pass_inner(function),
         OptimizationPass::BoundsCheckElim => super::bounds_check_elim::bounds_check_elim(function),
+        OptimizationPass::EscapeAnalysis => super::escape_analysis::escape_analysis_pass(function),
     }
 }
 
