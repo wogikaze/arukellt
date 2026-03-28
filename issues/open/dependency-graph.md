@@ -26,7 +26,6 @@ graph TD
   I082["082 MIR: gc_hint パス — 短命オブジェクトのパターン検出"]
   I087["087 MIR: 関数間インライン展開の強化 — 呼び出し回数・サイズ閾値の最適化"]
   I088["088 T3 Peephole: local.get/set 冗長ペア除去"]
-  I092["092 T3: 未使用 WASI import の除去"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
@@ -49,10 +48,7 @@ graph TD
   I129["129 T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割"]
   I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
   I131["131 TypeChecker checker.rs (2790行) をサブモジュールに分割"]
-  I132["132 Parser parser.rs (2003行) をサブモジュールに分割"]
   I133["133 MIR opt/pipeline.rs (916行) を passes/ ディレクトリに分割"]
-  I134["134 ark-lexer lib.rs (1698行) をサブモジュールに分割"]
-  I135["135 ark-diagnostics lib.rs (1099行) をサブモジュールに分割"]
   I090["090 T3: 末尾位置の call → return_call 自動変換"]
   I107["107 実行時性能: ループのベクトル化可能性アノテーション"]
   I075["075 WASI P2 ネイティブ: wasi:clocks / wasi:random / wasi:io バインディング"]
@@ -77,7 +73,6 @@ graph TD
   I074 --> I121
   I080 --> I083
   I080 --> I103
-  I092 --> I108
   I088 --> I108
   I117 --> I118
   I125 --> I126
@@ -105,7 +100,6 @@ graph TD
 - **082** depends on: —; blocks: none
 - **087** depends on: —; blocks: none
 - **088** depends on: —; blocks: 108
-- **092** depends on: —; blocks: 108
 - **094** depends on: —; blocks: none
 - **095** depends on: —; blocks: none
 - **096** depends on: —; blocks: none
@@ -128,10 +122,7 @@ graph TD
 - **129** depends on: —; blocks: none
 - **130** depends on: —; blocks: none
 - **131** depends on: —; blocks: none
-- **132** depends on: —; blocks: none
 - **133** depends on: —; blocks: none
-- **134** depends on: —; blocks: none
-- **135** depends on: —; blocks: none
 - **090** depends on: 060; blocks: none
 - **107** depends on: 064; blocks: none
 - **075** depends on: 074; blocks: none

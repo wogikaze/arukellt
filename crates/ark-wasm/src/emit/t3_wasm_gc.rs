@@ -49,11 +49,11 @@ const VEC_FIELD_DATA: u32 = 0;
 const VEC_FIELD_LEN: u32 = 1;
 const VEC_FIELD_CAP: u32 = 2;
 
-// Well-known import function indices
-const FN_FD_WRITE: u32 = 0;
-const FN_PATH_OPEN: u32 = 1;
-const FN_FD_READ: u32 = 2;
-const FN_FD_CLOSE: u32 = 3;
+// Well-known import function indices (set dynamically based on usage)
+// const FN_FD_WRITE: u32 = 0;  -- now self.wasi_fd_write
+// const FN_PATH_OPEN: u32 = 1; -- now self.wasi_path_open  
+// const FN_FD_READ: u32 = 2;   -- now self.wasi_fd_read
+// const FN_FD_CLOSE: u32 = 3;  -- now self.wasi_fd_close
 
 // I/O scratch memory layout
 const FS_SCRATCH: u32 = 160;
@@ -360,6 +360,12 @@ struct Ctx {
     current_fn_type_params: Vec<String>,
     // Return type of the function being emitted
     current_fn_return_ty: Type,
+    // WASI import indices (dynamically assigned based on usage)
+    wasi_fd_write: u32,
+    wasi_path_open: u32,
+    wasi_fd_read: u32,
+    wasi_fd_close: u32,
+    wasi_needs_fs: bool,
 }
 
 impl Ctx {
@@ -668,6 +674,11 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         loop_break_extra_depth: 0,
         current_fn_type_params: vec![],
         current_fn_return_ty: Type::Unit,
+        wasi_fd_write: 0,
+        wasi_path_open: 0,
+        wasi_fd_read: 0,
+        wasi_fd_close: 0,
+        wasi_needs_fs: false,
     };
     ctx.emit_module(mir)
 }
@@ -677,6 +688,10 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
 impl Ctx {
     fn emit_module(&mut self, mir: &MirModule) -> Vec<u8> {
         let reachable_user_indices = self.reachable_function_indices(mir);
+
+        // Scan MIR to determine which WASI imports are needed
+        let needs_fs = Self::mir_uses_fs(mir, &reachable_user_indices);
+        self.wasi_needs_fs = needs_fs;
 
         // Phase 1: Register GC types
         self.register_gc_types(mir);
@@ -716,7 +731,14 @@ impl Ctx {
         let fd_close_ty = self.types.add_func(&[ValType::I32], &[ValType::I32]);
 
         // Count helper functions we'll need
-        let num_imports = 4u32; // fd_write, path_open, fd_read, fd_close
+        // Dynamic WASI import count: fd_write is always needed; FS imports only if used
+        let num_imports = if needs_fs { 4u32 } else { 1u32 };
+        self.wasi_fd_write = 0; // fd_write is always index 0
+        if needs_fs {
+            self.wasi_path_open = 1;
+            self.wasi_fd_read = 2;
+            self.wasi_fd_close = 3;
+        }
         // GC-native helper function signatures
         let str_ref = ref_nullable(self.string_ty);
         let mut helper_fns: Vec<(String, Vec<ValType>, Vec<ValType>)> = vec![
@@ -921,28 +943,30 @@ impl Ctx {
 
         // ── Build sections ───────────────────────────────────────
 
-        // Import section: WASI functions
+        // Import section: WASI functions (only those actually used)
         let mut imports = ImportSection::new();
         imports.import(
             "wasi_snapshot_preview1",
             "fd_write",
             wasm_encoder::EntityType::Function(fd_write_ty),
         );
-        imports.import(
-            "wasi_snapshot_preview1",
-            "path_open",
-            wasm_encoder::EntityType::Function(path_open_ty),
-        );
-        imports.import(
-            "wasi_snapshot_preview1",
-            "fd_read",
-            wasm_encoder::EntityType::Function(fd_read_ty),
-        );
-        imports.import(
-            "wasi_snapshot_preview1",
-            "fd_close",
-            wasm_encoder::EntityType::Function(fd_close_ty),
-        );
+        if needs_fs {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "path_open",
+                wasm_encoder::EntityType::Function(path_open_ty),
+            );
+            imports.import(
+                "wasi_snapshot_preview1",
+                "fd_read",
+                wasm_encoder::EntityType::Function(fd_read_ty),
+            );
+            imports.import(
+                "wasi_snapshot_preview1",
+                "fd_close",
+                wasm_encoder::EntityType::Function(fd_close_ty),
+            );
+        }
 
         // Function section
         let mut functions = FunctionSection::new();
@@ -1106,11 +1130,13 @@ impl Ctx {
         let mut name_section = wasm_encoder::NameSection::new();
         name_section.module("arukellt");
         let mut func_names = wasm_encoder::NameMap::new();
-        // Import names (indices 0-3)
+        // Import names (dynamically assigned)
         func_names.append(0, "wasi:fd_write");
-        func_names.append(1, "wasi:path_open");
-        func_names.append(2, "wasi:fd_read");
-        func_names.append(3, "wasi:fd_close");
+        if needs_fs {
+            func_names.append(1, "wasi:path_open");
+            func_names.append(2, "wasi:fd_read");
+            func_names.append(3, "wasi:fd_close");
+        }
         // Helper function names (sorted by index for NameMap)
         let mut helpers: Vec<(u32, &str)> = self.fn_map.iter()
             .filter(|(_, idx)| **idx >= num_imports && **idx < user_base)
@@ -1129,6 +1155,63 @@ impl Ctx {
         module.section(&name_section);
 
         module.finish()
+    }
+
+    /// Scan MIR for filesystem builtins (fs_read_file, fs_write_file) to
+    /// determine if path_open/fd_read/fd_close WASI imports are needed.
+    fn mir_uses_fs(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    if Self::stmt_uses_fs(stmt) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_fs(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "fs_read_file" || name == "fs_write_file"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_fs(rvalue),
+            MirStmt::IfStmt { cond, then_body, else_body } => {
+                Self::operand_uses_fs(cond)
+                    || then_body.iter().any(|s| Self::stmt_uses_fs(s))
+                    || else_body.iter().any(|s| Self::stmt_uses_fs(s))
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_fs(cond)
+                    || body.iter().any(|s| Self::stmt_uses_fs(s))
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_fs(op),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_fs(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_fs(op),
+            Rvalue::BinaryOp(_, l, r) => Self::operand_uses_fs(l) || Self::operand_uses_fs(r),
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_fs(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_fs(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "fs_read_file" || name == "fs_write_file" {
+                    return true;
+                }
+                args.iter().any(|a| Self::operand_uses_fs(a))
+            }
+            _ => false,
+        }
     }
 
     fn reachable_function_indices(&self, mir: &MirModule) -> Vec<usize> {
@@ -1698,7 +1781,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1)); // iovs_len
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
 
         // Print newline
@@ -1712,7 +1795,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
         f.instruction(&Instruction::End);
         codes.function(&f);
@@ -1773,7 +1856,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
         // newline
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
@@ -1786,7 +1869,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
         f.instruction(&Instruction::Return);
         f.instruction(&Instruction::End);
@@ -1854,7 +1937,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
         // newline
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
@@ -1867,7 +1950,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
         f.instruction(&Instruction::End);
         codes.function(&f);
@@ -1910,7 +1993,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
         // newline
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
@@ -1923,7 +2006,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
         f.instruction(&Instruction::End);
         codes.function(&f);
@@ -2085,7 +2168,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(IOV_BASE as i32));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
         f.instruction(&Instruction::End);
         codes.function(&f);
@@ -7272,7 +7355,7 @@ impl Ctx {
         f.instruction(&Instruction::I64Const(0)); // inheriting
         f.instruction(&Instruction::I32Const(0)); // fdflags
         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32)); // &opened_fd
-        f.instruction(&Instruction::Call(FN_PATH_OPEN));
+        f.instruction(&Instruction::Call(self.wasi_path_open));
 
         // Step 3: Check error
         f.instruction(&Instruction::I32Const(0));
@@ -7320,7 +7403,7 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(0)); // iov_ptr
         f.instruction(&Instruction::I32Const(1)); // iov_count
         f.instruction(&Instruction::I32Const(8)); // &nread
-        f.instruction(&Instruction::Call(FN_FD_READ));
+        f.instruction(&Instruction::Call(self.wasi_fd_read));
         f.instruction(&Instruction::Drop); // drop errno
 
         // nread = mem[8]
@@ -7344,7 +7427,7 @@ impl Ctx {
 
         // Step 5: Close fd
         f.instruction(&Instruction::LocalGet(self.si(3)));
-        f.instruction(&Instruction::Call(FN_FD_CLOSE));
+        f.instruction(&Instruction::Call(self.wasi_fd_close));
         f.instruction(&Instruction::Drop);
 
         // Step 6: Build Ok(string) — copy linear memory to GC string
@@ -7468,7 +7551,7 @@ impl Ctx {
         f.instruction(&Instruction::I64Const(0));
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32)); // &fd
-        f.instruction(&Instruction::Call(FN_PATH_OPEN));
+        f.instruction(&Instruction::Call(self.wasi_path_open));
 
         // Check error
         f.instruction(&Instruction::I32Const(0));
@@ -7546,12 +7629,12 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(0)); // iov_ptr
         f.instruction(&Instruction::I32Const(1)); // iov_count
         f.instruction(&Instruction::I32Const(8)); // &nwritten
-        f.instruction(&Instruction::Call(FN_FD_WRITE));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
 
         // Close fd
         f.instruction(&Instruction::LocalGet(self.si(3)));
-        f.instruction(&Instruction::Call(FN_FD_CLOSE));
+        f.instruction(&Instruction::Call(self.wasi_fd_close));
         f.instruction(&Instruction::Drop);
 
         // Build Ok(()) — Ok variant with i32(0) payload
