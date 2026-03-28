@@ -34,6 +34,8 @@ pub enum LayoutClass {
 pub enum EmitCapability {
     CoreWasm,
     Wit,
+    /// Component Model: core wasm + WIT → component binary via wasm-tools
+    Component,
     NativeBinary,
 }
 
@@ -65,15 +67,14 @@ pub struct BackendPlan {
 pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<BackendPlan, String> {
     let profile = target.profile();
 
-    if emit_kind == EmitKind::Component {
-        return Err(
-            "--emit component is not yet implemented. Only core Wasm modules are currently supported. Use --emit core-wasm instead.".to_string(),
-        );
-    }
-    if emit_kind == EmitKind::All {
-        return Err(
-            "--emit all is not yet supported because component model output is not implemented. Use --emit core-wasm instead.".to_string(),
-        );
+    // Component emit requires a target with component_model support
+    if emit_kind == EmitKind::Component || emit_kind == EmitKind::All {
+        if !profile.component_model {
+            return Err(format!(
+                "error: component model requires --target wasm32-wasi-p2 (target `{}` does not support components)",
+                target
+            ));
+        }
     }
 
     let (runtime_model, capability, abi_class, layout_class) = match target {
@@ -90,6 +91,7 @@ pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<Backe
             RuntimeModel::T3WasmGcP2,
             match emit_kind {
                 EmitKind::Wit => EmitCapability::Wit,
+                EmitKind::Component | EmitKind::All => EmitCapability::Component,
                 _ => EmitCapability::CoreWasm,
             },
             AbiClass::WasmGcRef,
@@ -201,8 +203,16 @@ mod tests {
     }
 
     #[test]
-    fn component_emit_is_rejected_at_plan_creation() {
-        let err = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::Component).unwrap_err();
-        assert!(err.contains("--emit component"));
+    fn component_emit_plan_uses_component_capability() {
+        let plan = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::Component).unwrap();
+        assert_eq!(plan.capability, EmitCapability::Component);
+        assert_eq!(plan.runtime_model, RuntimeModel::T3WasmGcP2);
+        assert!(plan_matches_target_profile(&plan));
+    }
+
+    #[test]
+    fn component_emit_rejected_for_t1() {
+        let err = build_backend_plan(TargetId::Wasm32WasiP1, EmitKind::Component).unwrap_err();
+        assert!(err.contains("component model requires"));
     }
 }

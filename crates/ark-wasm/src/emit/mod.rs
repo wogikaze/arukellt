@@ -72,7 +72,7 @@ pub fn backend_validate(bytes: &[u8], sink: &mut DiagnosticSink) {
 pub fn validate_emit_kind(target: TargetId, emit_kind: EmitKind) -> Result<(), String> {
     let plan = build_backend_plan(target, emit_kind)?;
     match plan.capability {
-        EmitCapability::CoreWasm | EmitCapability::Wit => Ok(()),
+        EmitCapability::CoreWasm | EmitCapability::Wit | EmitCapability::Component => Ok(()),
         EmitCapability::NativeBinary => Err(
             "native emission must go through the LLVM backend, not the Wasm backend".to_string(),
         ),
@@ -85,9 +85,13 @@ mod tests {
     use ark_mir::{MirModule, runtime_entry_name};
 
     #[test]
-    fn component_emit_is_rejected() {
-        let err = validate_emit_kind(TargetId::Wasm32WasiP2, EmitKind::Component).unwrap_err();
-        assert!(err.contains("--emit component"));
+    fn component_emit_is_accepted_for_t3() {
+        assert!(validate_emit_kind(TargetId::Wasm32WasiP2, EmitKind::Component).is_ok());
+    }
+
+    #[test]
+    fn component_emit_rejected_for_t1() {
+        assert!(validate_emit_kind(TargetId::Wasm32WasiP1, EmitKind::Component).is_err());
     }
 
     #[test]

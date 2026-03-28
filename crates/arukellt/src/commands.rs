@@ -62,6 +62,43 @@ pub(crate) fn cmd_compile(
         return;
     }
 
+    // Component emit
+    if emit_kind == EmitKind::Component {
+        let component_output = output.unwrap_or_else(|| file.with_extension("component.wasm"));
+        let mut session = Session::new();
+        match session.compile_component(&file, target) {
+            Ok(component) => {
+                std::fs::write(&component_output, &component).unwrap_or_else(|e| {
+                    eprintln!(
+                        "error: failed to write {}: {}",
+                        component_output.display(),
+                        e
+                    );
+                    process::exit(1);
+                });
+                eprintln!(
+                    "Compiled component {} -> {} ({} bytes, target: {})",
+                    file.display(),
+                    component_output.display(),
+                    component.len(),
+                    target,
+                );
+            }
+            Err(errors) => {
+                eprint!("{}", errors);
+                process::exit(1);
+            }
+        }
+
+        if profile_mem {
+            let mut session = Session::new();
+            if let Ok(info) = session.profile_memory(&file) {
+                eprintln!("{}", info);
+            }
+        }
+        return;
+    }
+
     let output = output.unwrap_or_else(|| file.with_extension("wasm"));
     let mut session = Session::new();
     match session.compile(&file, target) {
@@ -78,7 +115,7 @@ pub(crate) fn cmd_compile(
                 target,
             );
 
-            // For --emit all, also generate WIT
+            // For --emit all, also generate WIT and component
             if emit_kind == EmitKind::All {
                 if let Ok(wit_text) = session.compile_wit(&file) {
                     let wit_output = file.with_extension("wit");
@@ -94,6 +131,29 @@ pub(crate) fn cmd_compile(
                             wit_output.display(),
                             wit_text.len()
                         );
+                    }
+                }
+                // Also generate component
+                let mut comp_session = Session::new();
+                match comp_session.compile_component(&file, target) {
+                    Ok(component) => {
+                        let comp_output = file.with_extension("component.wasm");
+                        if let Err(e) = std::fs::write(&comp_output, &component) {
+                            eprintln!(
+                                "warning: failed to write component {}: {}",
+                                comp_output.display(),
+                                e
+                            );
+                        } else {
+                            eprintln!(
+                                "Compiled component {} ({} bytes)",
+                                comp_output.display(),
+                                component.len()
+                            );
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("warning: component generation failed: {}", e);
                     }
                 }
             }

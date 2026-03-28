@@ -6,6 +6,7 @@
 mod wit;
 pub mod canonical_abi;
 pub mod wit_parse;
+pub mod wrap;
 
 pub use wit::{
     WitEnum, WitError, WitFunction, WitRecord, WitType, WitVariant, WitWorld, generate_wit,

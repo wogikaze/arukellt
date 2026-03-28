@@ -484,6 +484,45 @@ impl Session {
             .map_err(|e| format!("WIT generation error: {}", e))
     }
 
+    /// Compile to a Component Model binary (.component.wasm).
+    ///
+    /// Pipeline: frontend → MIR → core Wasm → WIT generation → component wrapping.
+    pub fn compile_component(
+        &mut self,
+        path: &Path,
+        target: TargetId,
+    ) -> Result<Vec<u8>, String> {
+        if target == TargetId::Native {
+            return Err("error: component model requires a Wasm target".to_string());
+        }
+        let profile = target.profile();
+        if !profile.component_model {
+            return Err(format!(
+                "error: component model requires --target wasm32-wasi-p2 (target `{}` does not support components)",
+                target
+            ));
+        }
+
+        // Step 1: Compile to core Wasm
+        let compiled = self.compile_selected(path, target, MirSelection::Legacy)?;
+
+        // Step 2: Generate WIT
+        let world_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("app");
+        let world = ark_wasm::component::mir_to_wit_world(&compiled.mir, world_name)
+            .map_err(|e| format!("WIT generation error: {}", e))?;
+        let wit_text = ark_wasm::component::generate_wit(&world)
+            .map_err(|e| format!("WIT generation error: {}", e))?;
+
+        // Step 3: Wrap into component via wasm-tools
+        let component_bytes = ark_wasm::component::wrap::wrap_core_to_component(
+            &compiled.wasm,
+            &wit_text,
+        )
+        .map_err(|e| format!("{}", e))?;
+
+        Ok(component_bytes)
+    }
+
     pub fn analyze_result(&mut self, path: &Path) -> Result<AnalysisResult, String> {
         let frontend = self.run_frontend(path)?;
         Ok(AnalysisResult {
