@@ -8,6 +8,8 @@
 **Track**: pipeline-refactor
 **Blocks v4 exit**: yes
 
+**Status note**: BLOCKED — CoreHIR path fails 378/410 fixtures. Legacy path must remain default.
+
 ## Summary
 
 `ark-driver/src/session.rs` の `compile()` は現在 `MirSelection::Legacy` をデフォルトとして使用している。

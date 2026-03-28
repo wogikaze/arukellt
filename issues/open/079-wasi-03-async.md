@@ -8,6 +8,8 @@
 **Track**: wasi-feature
 **Blocks v4 exit**: no
 
+**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+
 ## Summary
 
 WASI 0.3.0-rc (`docs/spec/spec-WASI-0.3.0-rc/OVERVIEW.md`) で導入される

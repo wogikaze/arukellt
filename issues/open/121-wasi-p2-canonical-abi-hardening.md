@@ -8,6 +8,8 @@
 **Track**: wasi-feature
 **Blocks v4 exit**: no
 
+**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+
 ## Summary
 
 WASI P2 の Component Model では、Canonical ABI (Lift/Lower 規則) が

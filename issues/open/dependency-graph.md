@@ -17,7 +17,6 @@ graph TD
   I071["071 Wasm GC Abstract Heap Types: any/eq/none/func/nofunc の完全活用"]
   I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I097["097 コンパイル速度: MIR lowering のアリーナ割り当て"]
   I098["098 コンパイル速度: 並列型チェック (rayon)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
@@ -54,7 +53,6 @@ graph TD
 - **071** depends on: —; blocks: none
 - **073** depends on: —; blocks: none
 - **074** depends on: —; blocks: 075, 076, 077, 078, 079, 121
-- **095** depends on: —; blocks: none
 - **097** depends on: —; blocks: none
 - **098** depends on: —; blocks: none
 - **099** depends on: —; blocks: none

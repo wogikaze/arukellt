@@ -8,6 +8,8 @@
 **Track**: wasi-feature
 **Blocks v4 exit**: no
 
+**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+
 ## Summary
 
 現在の Component Model 出力は「Core Wasm → WASI P1 adapter → Component」という

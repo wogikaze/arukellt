@@ -8,6 +8,8 @@
 **Track**: wasm-feature
 **Blocks v4 exit**: no
 
+**Status note**: Wasm proposal — deferred to v5+. Not implemented.
+
 ## Summary
 
 WebAssembly Typed Function References 提案 (`docs/spec/spec-3.0.0/proposals/function-references/Overview.md`) の

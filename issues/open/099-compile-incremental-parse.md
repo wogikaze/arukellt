@@ -8,6 +8,8 @@
 **Track**: compile-speed
 **Blocks v4 exit**: no
 
+**Status note**: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.
+
 ## Summary
 
 `arukellt compile --watch` モードや LSP (`ark-lsp`) での繰り返しコンパイルで、

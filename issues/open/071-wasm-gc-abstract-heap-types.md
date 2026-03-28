@@ -8,6 +8,8 @@
 **Track**: wasm-feature
 **Blocks v4 exit**: no
 
+**Status note**: Partially implemented. Remaining items deferred to v5+.
+
 ## Summary
 
 WasmGC 提案の抽象ヒープ型 (`anyref`, `eqref`, `structref`, `arrayref`, `noneref`, `funcref`, `nofuncref`)

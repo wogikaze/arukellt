@@ -8,6 +8,8 @@
 **Track**: wasi-feature
 **Blocks v4 exit**: no
 
+**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+
 ## Summary
 
 WASI Preview 2 の `wasi:sockets/tcp`・`wasi:sockets/udp`・`wasi:sockets/ip-name-lookup` を

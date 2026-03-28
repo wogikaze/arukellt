@@ -8,6 +8,8 @@
 **Track**: wasi-feature
 **Blocks v4 exit**: yes
 
+**Status note**: WASI feature — deferred to v5+. Requires WASI P2 runtime maturity.
+
 ## Summary
 
 現在 T3 emitter が wasm import する WASI Preview 1 関数は

@@ -8,6 +8,8 @@
 **Track**: wasm-feature
 **Blocks v4 exit**: no
 
+**Status note**: Partially implemented. Remaining items deferred to v5+.
+
 ## Summary
 
 WebAssembly Reference Types 提案の `table.get`・`table.set`・`table.fill`・`table.copy`・

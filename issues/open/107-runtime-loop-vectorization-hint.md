@@ -8,6 +8,8 @@
 **Track**: runtime-perf
 **Blocks v4 exit**: no
 
+**Status note**: Depends on #064 (branch hinting). Deferred to v5+.
+
 ## Summary
 
 Branch Hinting 提案 (#064) の発展として、

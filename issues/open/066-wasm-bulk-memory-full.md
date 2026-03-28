@@ -8,6 +8,8 @@
 **Track**: wasm-feature
 **Blocks v4 exit**: no
 
+**Status note**: Wasm proposal — deferred to v5+. Not implemented.
+
 ## Summary
 
 WebAssembly Bulk Memory 提案 (`docs/spec/spec-1.0.0/proposals/bulk-memory-operations/Overview.md`) の

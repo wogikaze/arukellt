@@ -8,6 +8,8 @@
 **Track**: compile-speed
 **Blocks v4 exit**: no
 
+**Status note**: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.
+
 ## Summary
 
 `ark-mir` の MIR lowering は多数の `Vec<MirStmt>` / `Box<Operand>` を個別にヒープ確保する。

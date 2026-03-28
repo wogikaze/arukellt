@@ -8,6 +8,8 @@
 **Track**: wasm-feature
 **Blocks v4 exit**: no
 
+**Status note**: Wasm proposal — deferred to v5+. Not implemented.
+
 ## Summary
 
 WebAssembly Multi-Memory 提案 (`docs/spec/spec-3.0.0/proposals/multi-memory/Overview.md`) を実装し、

@@ -8,6 +8,8 @@
 **Track**: compile-speed
 **Blocks v4 exit**: no
 
+**Status note**: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.
+
 ## Summary
 
 `ark-typecheck` の関数型チェックは関数間の依存がない場合は並列化可能。
