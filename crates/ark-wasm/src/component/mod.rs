@@ -3,16 +3,18 @@
 //! Generates WIT (Wasm Interface Type) descriptions from the compiler's
 //! public API surface. Component wrapping uses external `wasm-tools`.
 
-mod wit;
 pub mod canonical_abi;
 pub mod handle_table;
+mod wit;
 pub mod wit_parse;
 pub mod wrap;
 
 pub use wit::{
     WitEnum, WitError, WitFunction, WitRecord, WitType, WitVariant, WitWorld, generate_wit,
 };
-pub use wit_parse::{WitDocument, WitInterface, WitParseError, parse_wit, wit_interface_to_mir_imports};
+pub use wit_parse::{
+    WitDocument, WitInterface, WitParseError, parse_wit, wit_interface_to_mir_imports,
+};
 
 use ark_mir::mir::MirModule;
 use ark_typecheck::types::Type;
@@ -48,11 +50,12 @@ pub fn mir_to_wit_world_with_warnings(
             .param_types
             .iter()
             .enumerate()
-            .filter_map(|(i, ty)| {
-                wit_type_name_to_wit(ty).map(|wt| (format!("p{}", i), wt))
-            })
+            .filter_map(|(i, ty)| wit_type_name_to_wit(ty).map(|wt| (format!("p{}", i), wt)))
             .collect();
-        let result = imp.return_type.as_ref().and_then(|ty| wit_type_name_to_wit(ty));
+        let result = imp
+            .return_type
+            .as_ref()
+            .and_then(|ty| wit_type_name_to_wit(ty));
         world.imports.push(WitFunction {
             name: imp.name.clone(),
             params,
@@ -294,10 +297,14 @@ fn wit_type_name_to_wit(name: &str) -> Option<WitType> {
         "char" => Some(WitType::Char),
         "string" => Some(WitType::StringType),
         other => {
-            if let Some(inner) = other.strip_prefix("list<").and_then(|s| s.strip_suffix('>')) {
+            if let Some(inner) = other
+                .strip_prefix("list<")
+                .and_then(|s| s.strip_suffix('>'))
+            {
                 wit_type_name_to_wit(inner).map(|t| WitType::List(Box::new(t)))
-            } else if let Some(inner) =
-                other.strip_prefix("option<").and_then(|s| s.strip_suffix('>'))
+            } else if let Some(inner) = other
+                .strip_prefix("option<")
+                .and_then(|s| s.strip_suffix('>'))
             {
                 wit_type_name_to_wit(inner).map(|t| WitType::Option(Box::new(t)))
             } else {
@@ -370,10 +377,7 @@ mod tests {
         let mut mir = MirModule::new();
         mir.functions.push(make_func(
             "add",
-            vec![
-                (Some("a".into()), Type::I32),
-                (Some("b".into()), Type::I32),
-            ],
+            vec![(Some("a".into()), Type::I32), (Some("b".into()), Type::I32)],
             Type::I32,
         ));
         let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
@@ -399,7 +403,10 @@ mod tests {
     #[test]
     fn closure_param_excluded_with_warning() {
         let mut mir = MirModule::new();
-        let closure_ty = Type::Function { params: vec![Type::I32], ret: Box::new(Type::I32) };
+        let closure_ty = Type::Function {
+            params: vec![Type::I32],
+            ret: Box::new(Type::I32),
+        };
         mir.functions.push(make_func(
             "apply",
             vec![(Some("f".into()), closure_ty)],
@@ -415,9 +422,11 @@ mod tests {
     #[test]
     fn non_exportable_return_type_warns() {
         let mut mir = MirModule::new();
-        let closure_ret = Type::Function { params: vec![], ret: Box::new(Type::I32) };
-        mir.functions
-            .push(make_func("get_fn", vec![], closure_ret));
+        let closure_ret = Type::Function {
+            params: vec![],
+            ret: Box::new(Type::I32),
+        };
+        mir.functions.push(make_func("get_fn", vec![], closure_ret));
         let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
         assert_eq!(world.functions.len(), 0);
         assert_eq!(warnings.len(), 1);
@@ -427,12 +436,9 @@ mod tests {
     #[test]
     fn main_and_internal_excluded_silently() {
         let mut mir = MirModule::new();
-        mir.functions
-            .push(make_func("main", vec![], Type::Unit));
-        mir.functions
-            .push(make_func("__helper", vec![], Type::I32));
-        mir.functions
-            .push(make_func("_start", vec![], Type::Unit));
+        mir.functions.push(make_func("main", vec![], Type::Unit));
+        mir.functions.push(make_func("__helper", vec![], Type::I32));
+        mir.functions.push(make_func("_start", vec![], Type::Unit));
         let (world, warnings) = mir_to_wit_world_with_warnings(&mir, "test").unwrap();
         assert_eq!(world.functions.len(), 0);
         assert!(warnings.is_empty());
@@ -450,7 +456,10 @@ mod tests {
             "apply",
             vec![(
                 Some("f".into()),
-                Type::Function { params: vec![Type::I32], ret: Box::new(Type::I32) },
+                Type::Function {
+                    params: vec![Type::I32],
+                    ret: Box::new(Type::I32),
+                },
             )],
             Type::I32,
         ));

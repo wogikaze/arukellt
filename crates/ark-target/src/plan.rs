@@ -68,13 +68,12 @@ pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<Backe
     let profile = target.profile();
 
     // Component emit requires a target with component_model support
-    if emit_kind == EmitKind::Component || emit_kind == EmitKind::All {
-        if !profile.component_model {
-            return Err(format!(
-                "error: component model requires --target wasm32-wasi-p2 (target `{}` does not support components)",
-                target
-            ));
-        }
+    if (emit_kind == EmitKind::Component || emit_kind == EmitKind::All) && !profile.component_model
+    {
+        return Err(format!(
+            "error: component model requires --target wasm32-wasi-p2 (target `{}` does not support components)",
+            target
+        ));
     }
 
     let (runtime_model, capability, abi_class, layout_class) = match target {

@@ -9,34 +9,27 @@ use std::process::Command;
 ///
 /// Invokes `wasm-tools component new` with the core module and WIT text.
 /// Returns the component binary bytes on success.
-pub fn wrap_core_to_component(
-    core_wasm: &[u8],
-    wit_text: &str,
-) -> Result<Vec<u8>, WrapError> {
+pub fn wrap_core_to_component(core_wasm: &[u8], wit_text: &str) -> Result<Vec<u8>, WrapError> {
     // Check if wasm-tools is available
     let wasm_tools = find_wasm_tools()?;
 
     // Write core module and WIT to unique temp files (avoid races in parallel tests)
     let unique = std::process::id();
     let tmp_dir = std::env::temp_dir().join(format!("arukellt_wrap_{}", unique));
-    std::fs::create_dir_all(&tmp_dir).map_err(|e| {
-        WrapError::Io(format!("failed to create temp directory: {}", e))
-    })?;
+    std::fs::create_dir_all(&tmp_dir)
+        .map_err(|e| WrapError::Io(format!("failed to create temp directory: {}", e)))?;
     let core_path = tmp_dir.join("core.wasm");
     let wit_dir = tmp_dir.join("wit");
     let wit_file = wit_dir.join("world.wit");
     let embedded_path = tmp_dir.join("embedded.wasm");
     let out_path = tmp_dir.join("component.wasm");
 
-    std::fs::write(&core_path, core_wasm).map_err(|e| {
-        WrapError::Io(format!("failed to write core module: {}", e))
-    })?;
-    std::fs::create_dir_all(&wit_dir).map_err(|e| {
-        WrapError::Io(format!("failed to create WIT directory: {}", e))
-    })?;
-    std::fs::write(&wit_file, wit_text).map_err(|e| {
-        WrapError::Io(format!("failed to write WIT file: {}", e))
-    })?;
+    std::fs::write(&core_path, core_wasm)
+        .map_err(|e| WrapError::Io(format!("failed to write core module: {}", e)))?;
+    std::fs::create_dir_all(&wit_dir)
+        .map_err(|e| WrapError::Io(format!("failed to create WIT directory: {}", e)))?;
+    std::fs::write(&wit_file, wit_text)
+        .map_err(|e| WrapError::Io(format!("failed to write WIT file: {}", e)))?;
 
     // Step 1: Embed WIT metadata into core module
     let embed_output = Command::new(&wasm_tools)
@@ -72,7 +65,10 @@ pub fn wrap_core_to_component(
 
     // Automatically provide WASI adapter if available
     if let Some(adapter_path) = find_wasi_adapter() {
-        cmd.args(["--adapt", &format!("wasi_snapshot_preview1={}", adapter_path)]);
+        cmd.args([
+            "--adapt",
+            &format!("wasi_snapshot_preview1={}", adapter_path),
+        ]);
     }
 
     let new_output = cmd
@@ -88,9 +84,8 @@ pub fn wrap_core_to_component(
         )));
     }
 
-    let component_bytes = std::fs::read(&out_path).map_err(|e| {
-        WrapError::Io(format!("failed to read component output: {}", e))
-    })?;
+    let component_bytes = std::fs::read(&out_path)
+        .map_err(|e| WrapError::Io(format!("failed to read component output: {}", e)))?;
     let _ = std::fs::remove_dir_all(&tmp_dir);
 
     Ok(component_bytes)
@@ -116,9 +111,7 @@ fn find_wasm_tools() -> Result<String, WrapError> {
 
     // Try common locations
     let home = std::env::var("HOME").unwrap_or_default();
-    let candidates = [
-        format!("{}/.cargo/bin/wasm-tools", home),
-    ];
+    let candidates = [format!("{}/.cargo/bin/wasm-tools", home)];
     for path in &candidates {
         if std::path::Path::new(path).exists() {
             return Ok(path.clone());

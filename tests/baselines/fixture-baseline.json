@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-03-28",
-  "fixture_count": 346,
+  "fixture_count": 351,
   "entries": [
     {
       "kind": "run",
@@ -3870,6 +3870,46 @@
         "10",
         "20"
       ]
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_add.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/multi_export.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_bool.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_f64.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "component-compile",
+      "path": "component/export_i64.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
     }
   ]
 }

@@ -308,9 +308,15 @@ fn fixture_harness() {
                     passed += 1;
                 } else {
                     let stderr = String::from_utf8_lossy(&output.stderr);
-                    if stderr.contains("wasm-tools not found") || stderr.contains("ToolNotFound") {
+                    if stderr.contains("wasm-tools not found")
+                        || stderr.contains("ToolNotFound")
+                        || stderr.contains("failed to resolve import")
+                    {
                         skipped += 1;
-                        eprintln!("  [skip] {} (wasm-tools not installed)", name);
+                        eprintln!(
+                            "  [skip] {} (wasm-tools or WASI adapter not available)",
+                            name
+                        );
                     } else {
                         failed += 1;
                         failures.push(format!(

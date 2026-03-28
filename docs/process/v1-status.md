@@ -79,6 +79,7 @@ All value representations use Wasm GC instructions. Linear memory is used
 All 27 issues in the v1 exit + GC-native queue are in `issues/done/`:
 
 ### V1 exit (001–018)
+
 - 001: V1 exit criteria docs
 - 002: T3 compile fixture matrix
 - 003: Align target profile and backend plan
@@ -99,6 +100,7 @@ All 27 issues in the v1 exit + GC-native queue are in `issues/done/`:
 - 018: LLVM scaffold follow-up
 
 ### GC-native codegen (019–027)
+
 - 019: GC-native scaffolding — type registry, subtype hierarchies
 - 020: GC-native scalars and control flow
 - 021: GC-native structs

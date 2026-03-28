@@ -62,6 +62,7 @@ v2 までに確立した言語基盤の上で、モノモーフ関数群 (`Vec_n
 ### 5.2 HashMap の実装
 
 v3 で実装する HashMap はセルフホスト (v5) で多用される。実装要件:
+
 ```wat
 (type $hashmap_i32_i32 (struct
   (field $keys   (mut (ref $arr_i32)))

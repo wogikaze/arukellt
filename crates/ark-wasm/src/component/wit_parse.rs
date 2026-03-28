@@ -153,7 +153,10 @@ impl<'a> Parser<'a> {
         self.skip_ws_and_comments();
         if self.remaining().starts_with(kw) {
             let after = self.pos + kw.len();
-            let next_ch = self.input.get(after..after + 1).and_then(|s| s.chars().next());
+            let next_ch = self
+                .input
+                .get(after..after + 1)
+                .and_then(|s| s.chars().next());
             if next_ch.is_none() || !is_ident_char(next_ch.unwrap()) {
                 self.advance(kw.len());
                 return Ok(());
@@ -198,7 +201,10 @@ impl<'a> Parser<'a> {
         self.skip_ws_and_comments();
         if self.remaining().starts_with(kw) {
             let after = self.pos + kw.len();
-            let next_ch = self.input.get(after..after + 1).and_then(|s| s.chars().next());
+            let next_ch = self
+                .input
+                .get(after..after + 1)
+                .and_then(|s| s.chars().next());
             if next_ch.is_none() || !is_ident_char(next_ch.unwrap()) {
                 self.advance(kw.len());
                 return true;
@@ -537,9 +543,7 @@ pub fn parse_wit(input: &str) -> Result<WitDocument, WitParseError> {
 }
 
 /// Convert parsed WIT interface functions to MIR imports.
-pub fn wit_interface_to_mir_imports(
-    iface: &WitInterface,
-) -> Vec<ark_mir::mir::MirImport> {
+pub fn wit_interface_to_mir_imports(iface: &WitInterface) -> Vec<ark_mir::mir::MirImport> {
     iface
         .functions
         .iter()
@@ -655,10 +659,7 @@ mod tests {
         "#;
         let doc = parse_wit(wit).unwrap();
         let funcs = &doc.interfaces[0].functions;
-        assert_eq!(
-            funcs[0].result,
-            Some(WitType::List(Box::new(WitType::S32)))
-        );
+        assert_eq!(funcs[0].result, Some(WitType::List(Box::new(WitType::S32))));
         assert_eq!(
             funcs[1].result,
             Some(WitType::Option(Box::new(WitType::StringType)))

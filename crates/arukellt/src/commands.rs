@@ -46,9 +46,7 @@ pub(crate) fn cmd_compile(
         }
     }
     if !wit_files.is_empty() && emit_kind != EmitKind::Component && emit_kind != EmitKind::All {
-        eprintln!(
-            "warning: --wit flag is only used with --emit component or --emit all"
-        );
+        eprintln!("warning: --wit flag is only used with --emit component or --emit all");
     }
 
     // WIT-only emit

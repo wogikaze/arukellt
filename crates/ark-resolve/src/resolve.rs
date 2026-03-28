@@ -102,7 +102,7 @@ pub fn resolve_module(module: ast::Module, sink: &mut DiagnosticSink) -> Resolve
 pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
     let mut module = program.entry_module.clone();
     for loaded in &program.modules {
-        let is_stdlib = loaded.path.to_str().map_or(false, |p| p.starts_with('<'));
+        let is_stdlib = loaded.path.to_str().is_some_and(|p| p.starts_with('<'));
         for item in &loaded.ast.items {
             let is_pub = match item {
                 ast::Item::FnDef(f) => f.is_pub,

@@ -487,11 +487,7 @@ impl Session {
     /// Compile to a Component Model binary (.component.wasm).
     ///
     /// Pipeline: frontend → MIR → core Wasm → WIT generation → component wrapping.
-    pub fn compile_component(
-        &mut self,
-        path: &Path,
-        target: TargetId,
-    ) -> Result<Vec<u8>, String> {
+    pub fn compile_component(&mut self, path: &Path, target: TargetId) -> Result<Vec<u8>, String> {
         if target == TargetId::Native {
             return Err("error: component model requires a Wasm target".to_string());
         }
@@ -514,20 +510,19 @@ impl Session {
 
         // Emit W0005 warnings for non-exportable functions
         for warning in &export_warnings {
-            self.sink.emit(
-                ark_diagnostics::non_exportable_function_diagnostic("", warning),
-            );
+            self.sink
+                .emit(ark_diagnostics::non_exportable_function_diagnostic(
+                    "", warning,
+                ));
         }
 
         let wit_text = ark_wasm::component::generate_wit(&world)
             .map_err(|e| format!("WIT generation error: {}", e))?;
 
         // Step 3: Wrap into component via wasm-tools
-        let component_bytes = ark_wasm::component::wrap::wrap_core_to_component(
-            &compiled.wasm,
-            &wit_text,
-        )
-        .map_err(|e| format!("{}", e))?;
+        let component_bytes =
+            ark_wasm::component::wrap::wrap_core_to_component(&compiled.wasm, &wit_text)
+                .map_err(|e| format!("{}", e))?;
 
         Ok(component_bytes)
     }

@@ -153,7 +153,14 @@ pub fn generate_wit(world: &WitWorld) -> Result<String, WitError> {
         writeln!(out, "    record {} {{", to_kebab_case(&record.name)).unwrap();
         for (i, (name, ty)) in record.fields.iter().enumerate() {
             let comma = if i < record.fields.len() - 1 { "," } else { "" };
-            writeln!(out, "        {}: {}{}", to_kebab_case(name), ty.to_wit(), comma).unwrap();
+            writeln!(
+                out,
+                "        {}: {}{}",
+                to_kebab_case(name),
+                ty.to_wit(),
+                comma
+            )
+            .unwrap();
         }
         writeln!(out, "    }}").unwrap();
         writeln!(out).unwrap();
@@ -175,7 +182,14 @@ pub fn generate_wit(world: &WitWorld) -> Result<String, WitError> {
             let comma = if i < var.cases.len() - 1 { "," } else { "" };
             match payload {
                 Some(ty) => {
-                    writeln!(out, "        {}({}){}", to_kebab_case(name), ty.to_wit(), comma).unwrap();
+                    writeln!(
+                        out,
+                        "        {}({}){}",
+                        to_kebab_case(name),
+                        ty.to_wit(),
+                        comma
+                    )
+                    .unwrap();
                 }
                 None => writeln!(out, "        {}{}", to_kebab_case(name), comma).unwrap(),
             }

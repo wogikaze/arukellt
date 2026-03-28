@@ -61,18 +61,20 @@ pub enum ScalarKind {
 /// Classify a WIT type for canonical ABI boundary crossing.
 pub fn classify_wit_type(ty: &WitType) -> CanonicalAbiClass {
     match ty {
-        WitType::U8 | WitType::U16 | WitType::U32 | WitType::S8 | WitType::S16
-        | WitType::S32 | WitType::Bool | WitType::Char => {
-            CanonicalAbiClass::Scalar(ScalarKind::I32)
-        }
+        WitType::U8
+        | WitType::U16
+        | WitType::U32
+        | WitType::S8
+        | WitType::S16
+        | WitType::S32
+        | WitType::Bool
+        | WitType::Char => CanonicalAbiClass::Scalar(ScalarKind::I32),
         WitType::U64 | WitType::S64 => CanonicalAbiClass::Scalar(ScalarKind::I64),
         WitType::F32 => CanonicalAbiClass::Scalar(ScalarKind::F32),
         WitType::F64 => CanonicalAbiClass::Scalar(ScalarKind::F64),
         WitType::StringType => CanonicalAbiClass::String,
         WitType::List(inner) => CanonicalAbiClass::List(Box::new(classify_wit_type(inner))),
-        WitType::Option(inner) => {
-            CanonicalAbiClass::OptionType(Box::new(classify_wit_type(inner)))
-        }
+        WitType::Option(inner) => CanonicalAbiClass::OptionType(Box::new(classify_wit_type(inner))),
         WitType::Result { ok, err } => CanonicalAbiClass::ResultType {
             ok: ok.as_ref().map(|t| Box::new(classify_wit_type(t))),
             err: err.as_ref().map(|t| Box::new(classify_wit_type(t))),
@@ -90,9 +92,7 @@ pub fn classify_wit_type(ty: &WitType) -> CanonicalAbiClass {
             // requires looking up the type definition in the type table.
             CanonicalAbiClass::Scalar(ScalarKind::I32)
         }
-        WitType::Resource(_) | WitType::Own(_) | WitType::Borrow(_) => {
-            CanonicalAbiClass::Handle
-        }
+        WitType::Resource(_) | WitType::Own(_) | WitType::Borrow(_) => CanonicalAbiClass::Handle,
     }
 }
 
@@ -100,7 +100,7 @@ pub fn classify_wit_type(ty: &WitType) -> CanonicalAbiClass {
 pub fn flat_count(class: &CanonicalAbiClass) -> usize {
     match class {
         CanonicalAbiClass::Scalar(_) => 1,
-        CanonicalAbiClass::String => 2, // (ptr, len)
+        CanonicalAbiClass::String => 2,  // (ptr, len)
         CanonicalAbiClass::List(_) => 2, // (ptr, len)
         CanonicalAbiClass::Handle => 1,  // i32 index
         CanonicalAbiClass::Record(fields) => fields.iter().map(|(_, c)| flat_count(c)).sum(),
@@ -269,7 +269,13 @@ mod tests {
     #[test]
     fn scalar_roundtrip_is_identity() {
         // Scalars require no conversion: lower then lift = identity
-        for ty in &[WitType::S32, WitType::S64, WitType::F32, WitType::F64, WitType::Bool] {
+        for ty in &[
+            WitType::S32,
+            WitType::S64,
+            WitType::F32,
+            WitType::F64,
+            WitType::Bool,
+        ] {
             let class = classify_wit_type(ty);
             assert!(is_scalar_passthrough(&class));
             assert_eq!(flat_count(&class), 1);
