@@ -529,6 +529,7 @@ impl Session {
                     "dead_local_elim",
                     "dead_block_elim",
                     "unreachable_cleanup",
+                    "cse",
                 ];
                 let passes: Vec<&str> = o1_passes
                     .iter()

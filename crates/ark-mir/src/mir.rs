@@ -930,7 +930,7 @@ pub enum Operand {
 }
 
 /// Binary operations.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BinOp {
     Add,
     Sub,
@@ -952,8 +952,7 @@ pub enum BinOp {
     Shr,
 }
 
-/// Unary operations.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum UnaryOp {
     Neg,
     Not,

@@ -3697,6 +3697,14 @@ impl EmitCtx {
                 then_body,
                 else_body,
             } => {
+                // Const-if elimination: skip the branch structure for constant conditions
+                if let Operand::ConstBool(value) = cond {
+                    let body = if *value { then_body } else { else_body };
+                    for s in body {
+                        self.emit_stmt(f, s);
+                    }
+                    return;
+                }
                 self.emit_operand(f, cond);
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                 // Track block depth for break/continue

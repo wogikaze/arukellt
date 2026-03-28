@@ -125,6 +125,7 @@ fn normalize_intrinsic(name: &str) -> &str {
 struct TypeAlloc {
     next_idx: u32,
     names: HashMap<String, u32>,
+    func_cache: HashMap<(Vec<ValType>, Vec<ValType>), u32>,
     section: TypeSection,
 }
 
@@ -133,15 +134,21 @@ impl TypeAlloc {
         Self {
             next_idx: 0,
             names: HashMap::new(),
+            func_cache: HashMap::new(),
             section: TypeSection::new(),
         }
     }
 
     fn add_func(&mut self, params: &[ValType], results: &[ValType]) -> u32 {
+        let key = (params.to_vec(), results.to_vec());
+        if let Some(&idx) = self.func_cache.get(&key) {
+            return idx;
+        }
         let idx = self.next_idx;
         self.section
             .ty()
             .function(params.iter().copied(), results.iter().copied());
+        self.func_cache.insert(key, idx);
         self.next_idx += 1;
         idx
     }
@@ -1094,6 +1101,33 @@ impl Ctx {
         });
         module.section(&codes);
         module.section(&data);
+
+        // Name section: emit function names for debug/profiling
+        let mut name_section = wasm_encoder::NameSection::new();
+        name_section.module("arukellt");
+        let mut func_names = wasm_encoder::NameMap::new();
+        // Import names (indices 0-3)
+        func_names.append(0, "wasi:fd_write");
+        func_names.append(1, "wasi:path_open");
+        func_names.append(2, "wasi:fd_read");
+        func_names.append(3, "wasi:fd_close");
+        // Helper function names (sorted by index for NameMap)
+        let mut helpers: Vec<(u32, &str)> = self.fn_map.iter()
+            .filter(|(_, idx)| **idx >= num_imports && **idx < user_base)
+            .map(|(name, idx)| (*idx, name.as_str()))
+            .collect();
+        helpers.sort_by_key(|(idx, _)| *idx);
+        for (idx, name) in helpers {
+            func_names.append(idx, name);
+        }
+        // User function names
+        for (i, &mir_idx) in reachable_user_indices.iter().enumerate() {
+            let wasm_idx = user_base + i as u32;
+            func_names.append(wasm_idx, &mir.functions[mir_idx].name);
+        }
+        name_section.functions(&func_names);
+        module.section(&name_section);
+
         module.finish()
     }
 
@@ -3792,6 +3826,14 @@ impl Ctx {
                 then_body,
                 else_body,
             } => {
+                // Const-if elimination: skip the branch structure for constant conditions
+                if let Operand::ConstBool(value) = cond {
+                    let body = if *value { then_body } else { else_body };
+                    for s in body {
+                        self.emit_stmt(f, s);
+                    }
+                    return;
+                }
                 self.emit_operand(f, cond);
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                 self.loop_break_extra_depth += 1;
