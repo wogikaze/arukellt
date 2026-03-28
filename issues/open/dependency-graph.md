@@ -54,6 +54,14 @@ graph TD
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
   I127["127 `MIRValidate` をコンパイル経路で無条件実行"]
+  I128["128 T3 GC エミッター (t3_wasm_gc.rs 8678行) をサブモジュールに分割"]
+  I129["129 T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割"]
+  I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
+  I131["131 TypeChecker checker.rs (2790行) をサブモジュールに分割"]
+  I132["132 Parser parser.rs (2003行) をサブモジュールに分割"]
+  I133["133 MIR opt/pipeline.rs (916行) を passes/ ディレクトリに分割"]
+  I134["134 ark-lexer lib.rs (1698行) をサブモジュールに分割"]
+  I135["135 ark-diagnostics lib.rs (1099行) をサブモジュールに分割"]
   I090["090 T3: 末尾位置の call → return_call 自動変換"]
   I107["107 実行時性能: ループのベクトル化可能性アノテーション"]
   I075["075 WASI P2 ネイティブ: wasi:clocks / wasi:random / wasi:io バインディング"]
@@ -148,6 +156,14 @@ graph TD
 - **124** depends on: 074 (wasi-p2-native-component); blocks: none
 - **125** depends on: —; blocks: 126
 - **127** depends on: —; blocks: none
+- **128** depends on: —; blocks: none
+- **129** depends on: —; blocks: none
+- **130** depends on: —; blocks: none
+- **131** depends on: —; blocks: none
+- **132** depends on: —; blocks: none
+- **133** depends on: —; blocks: none
+- **134** depends on: —; blocks: none
+- **135** depends on: —; blocks: none
 - **090** depends on: 060; blocks: none
 - **107** depends on: 064; blocks: none
 - **075** depends on: 074; blocks: none
