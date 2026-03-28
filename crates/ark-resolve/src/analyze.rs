@@ -42,8 +42,10 @@ mod tests {
     #[test]
     fn analyze_module_populates_symbols() {
         let module = ast::Module {
+            docs: vec![],
             imports: vec![],
             items: vec![ast::Item::StructDef(ast::StructDef {
+                docs: vec![],
                 name: "Point".into(),
                 type_params: vec![],
                 fields: vec![],

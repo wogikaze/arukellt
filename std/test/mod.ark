@@ -1,7 +1,7 @@
-// std::test — testing utilities
-//
-// Provides typed assertions, Result/Option expectations,
-// and lightweight benchmarking.
+//! Testing utilities for fixture and example code.
+//!
+//! The current module provides typed assertions and expectation helpers for
+//! `Result` and `Option`.
 
 // === Typed assertions ===
 

@@ -1,16 +1,19 @@
-// std::env — environment access
-//
-// WASI args_get / environ_get not yet imported.
-// T1 fallback: args returns empty Vec, var returns None.
+//! Runtime environment helpers.
+//!
+//! Until the WASI argument and environment imports are wired in, these
+//! functions expose stubbed fallback behavior.
 
+/// Returns the process argument vector.
 pub fn args() -> Vec<String> {
     Vec_new_String()
 }
 
+/// Looks up an environment variable by name.
 pub fn var(name: String) -> Option<String> {
     None
 }
 
+/// Returns the number of process arguments.
 pub fn arg_count() -> i32 {
     0
 }

@@ -1,7 +1,7 @@
-// std::wasm — Wasm types and module builder (Experimental)
-//
-// API may change in v4. Basic Wasm opcode constants and LEB128 utilities.
-// Full module builder deferred until std::bytes is stabilized.
+//! Experimental WebAssembly helpers.
+//!
+//! The current surface exposes magic bytes, version bytes, section IDs, and
+//! value-type constants.
 
 pub fn wasm_magic() -> Vec<i32> {
     let b: Vec<i32> = Vec_new_i32()

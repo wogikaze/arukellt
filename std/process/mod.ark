@@ -1,8 +1,9 @@
-// std::process — process control
-//
-// exit/abort for process termination.
-// NOTE: WASI proc_exit not yet imported; exit uses panic as fallback.
+//! Process-control helpers.
+//!
+//! The current implementation uses lightweight fallbacks because the WASI
+//! `proc_exit` import is not wired in yet.
 
+/// Requests process termination with the given exit code.
 pub fn exit(code: i32) {
     if code == 0 {
         // Clean exit: no-op (let program end naturally)
@@ -11,6 +12,7 @@ pub fn exit(code: i32) {
     }
 }
 
+/// Aborts execution immediately by panicking.
 pub fn abort() {
     panic("abort: process aborted")
 }

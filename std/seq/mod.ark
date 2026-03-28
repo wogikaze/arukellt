@@ -1,8 +1,7 @@
-// std::seq — Sequence operations (i32 monomorphic)
-//
-// Eager sequence operations on Vec<i32>.
-// Lazy sequences and closure-based map/filter deferred to v4 (requires closures).
-// Current: provides binary_search, min, max, sum, reverse, contains, unique, count.
+//! Eager sequence helpers over `Vec<i32>`.
+//!
+//! Lazy pipelines and closure-heavy adapters are deferred. The current module
+//! focuses on search, aggregation, and deduplication helpers.
 
 pub fn binary_search(v: Vec<i32>, target: i32) -> i32 {
     let mut lo: i32 = 0

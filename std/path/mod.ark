@@ -1,10 +1,11 @@
-// std::path — path manipulation (String-based)
-//
-// Path is represented as String. All operations are pure string manipulation.
-// Separator is always '/' (POSIX/WASI convention).
+//! Pure string-based path manipulation helpers.
+//!
+//! Paths are represented as `String` values and always use `/` as the
+//! separator to match POSIX and WASI conventions.
 
 use std::text
 
+/// Joins two path segments with a single `/` separator.
 pub fn join(base: String, child: String) -> String {
     if text::is_empty(base) {
         child
@@ -21,6 +22,7 @@ pub fn join(base: String, child: String) -> String {
     }
 }
 
+/// Returns the final path segment after the last `/`.
 pub fn file_name(p: String) -> String {
     let idx = last_index_of(p, "/")
     if idx < 0 {
@@ -30,6 +32,7 @@ pub fn file_name(p: String) -> String {
     }
 }
 
+/// Returns the extension without the leading `.`.
 pub fn extension(p: String) -> String {
     let name = file_name(p)
     let idx = last_index_of(name, ".")
@@ -40,6 +43,7 @@ pub fn extension(p: String) -> String {
     }
 }
 
+/// Replaces the current extension, or appends one when missing.
 pub fn with_extension(p: String, ext: String) -> String {
     let dot_idx = last_index_of(p, ".")
     let slash_idx = last_index_of(p, "/")
@@ -53,6 +57,7 @@ pub fn with_extension(p: String, ext: String) -> String {
     }
 }
 
+/// Returns true when the path starts with `/`.
 pub fn is_absolute(p: String) -> bool {
     if text::is_empty(p) {
         false
@@ -61,6 +66,7 @@ pub fn is_absolute(p: String) -> bool {
     }
 }
 
+/// Returns the parent directory path, or an empty string at the root.
 pub fn parent(p: String) -> String {
     let idx = last_index_of(p, "/")
     if idx <= 0 {

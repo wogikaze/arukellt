@@ -1,12 +1,14 @@
-// std::fs — filesystem operations
-//
-// Wraps existing WASI P1 intrinsics (fs_read_file, fs_write_file).
-// Additional operations (exists, mkdir, etc.) require new WASI imports (v4).
+//! Filesystem operations backed by the current WASI P1 intrinsics.
+//!
+//! The current surface is intentionally small: read a file into a string or
+//! write a string to a file.
 
+/// Reads a UTF-8 text file into memory.
 pub fn read_to_string(path: String) -> Result<String, String> {
     __intrinsic_fs_read_file(path)
 }
 
+/// Writes a UTF-8 string to a file, replacing any existing contents.
 pub fn write_string(path: String, contents: String) -> Result<String, String> {
     __intrinsic_fs_write_file(path, contents)
 }

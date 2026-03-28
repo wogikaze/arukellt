@@ -1,7 +1,6 @@
-// std::wit — WIT type definitions (Experimental)
-//
-// Mirrors WIT primitive types as constants.
-// Full WIT parser and type mapping deferred to v4.
+//! Experimental WIT helpers.
+//!
+//! The current surface mirrors WIT primitive types as integer constants.
 
 pub fn wit_type_bool() -> i32 { 1 }
 pub fn wit_type_u8() -> i32 { 2 }

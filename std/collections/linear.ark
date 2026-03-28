@@ -1,8 +1,7 @@
-// std::collections::linear — Deque and PriorityQueue (i32 monomorphic)
-//
-// Deque: double-ended queue using a ring buffer (Vec<i32>).
-// PriorityQueue: min-heap using Vec<i32>.
-// Generic versions deferred to v4 (requires generics).
+//! Linear collection helpers such as deque and priority queue.
+//!
+//! The current implementations are monomorphic `i32` containers backed by
+//! vectors.
 
 // --- Deque (ring buffer) ---
 

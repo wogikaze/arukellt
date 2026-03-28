@@ -1,32 +1,38 @@
-// std::core — fundamental types and traits
-//
-// Provides Ordering, Range types and re-exports of math/convert functions
-// that form the foundation of the standard library.
+//! Fundamental types and helpers shared across the standard library.
+//!
+//! The current manifest-backed surface focuses on range construction and
+//! membership checks.
 
+/// Ordering relationship between two values.
 pub enum Ordering {
     Less,
     Equal,
     Greater,
 }
 
+/// Half-open integer range `[start, end)`.
 pub struct Range {
     start: i32,
     end: i32,
 }
 
+/// Closed integer range `[start, end]`.
 pub struct RangeInclusive {
     start: i32,
     end: i32,
 }
 
+/// Builds a half-open range `[start, end)`.
 pub fn range_new(start: i32, end: i32) -> Range {
     Range { start: start, end: end }
 }
 
+/// Returns true when `value` lies inside the half-open range.
 pub fn range_contains(r: Range, value: i32) -> bool {
     value >= r.start && value < r.end
 }
 
+/// Returns the non-negative length of the half-open range.
 pub fn range_len(r: Range, ) -> i32 {
     if r.end > r.start {
         r.end - r.start

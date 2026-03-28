@@ -5,6 +5,7 @@ use ark_diagnostics::Span;
 /// A parsed module (one source file).
 #[derive(Debug, Clone)]
 pub struct Module {
+    pub docs: Vec<String>,
     pub imports: Vec<Import>,
     pub items: Vec<Item>,
 }
@@ -27,6 +28,7 @@ pub enum Item {
 
 #[derive(Debug, Clone)]
 pub struct FnDef {
+    pub docs: Vec<String>,
     pub name: String,
     pub type_params: Vec<String>,
     pub type_param_bounds: Vec<(String, Vec<String>)>,
@@ -46,6 +48,7 @@ pub struct Param {
 
 #[derive(Debug, Clone)]
 pub struct StructDef {
+    pub docs: Vec<String>,
     pub name: String,
     pub type_params: Vec<String>,
     pub fields: Vec<Field>,
@@ -62,6 +65,7 @@ pub struct Field {
 
 #[derive(Debug, Clone)]
 pub struct EnumDef {
+    pub docs: Vec<String>,
     pub name: String,
     pub type_params: Vec<String>,
     pub variants: Vec<Variant>,
@@ -90,6 +94,7 @@ pub enum Variant {
 /// A method signature in a trait definition (no body).
 #[derive(Debug, Clone)]
 pub struct TraitMethodSig {
+    pub docs: Vec<String>,
     pub name: String,
     pub params: Vec<Param>,
     pub return_type: Option<TypeExpr>,
@@ -98,6 +103,7 @@ pub struct TraitMethodSig {
 
 #[derive(Debug, Clone)]
 pub struct TraitDef {
+    pub docs: Vec<String>,
     pub name: String,
     pub type_params: Vec<String>,
     pub methods: Vec<TraitMethodSig>,
@@ -107,6 +113,7 @@ pub struct TraitDef {
 
 #[derive(Debug, Clone)]
 pub struct ImplBlock {
+    pub docs: Vec<String>,
     pub trait_name: Option<String>,
     pub target_type: String,
     pub methods: Vec<FnDef>,

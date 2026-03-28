@@ -1,7 +1,6 @@
-// std::toml — TOML basic parser (Experimental)
-//
-// Minimal key=value parser for simple TOML files.
-// Full table/array support deferred to v4.
+//! Experimental TOML helpers.
+//!
+//! The current implementation only handles simple `key=value` style lines.
 
 pub fn toml_parse_line(line: String) -> String {
     // Returns "key=value" format or "" for comments/blank lines

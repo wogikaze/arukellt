@@ -1,7 +1,6 @@
-// std::json — JSON parser/stringify (Experimental)
-//
-// Handles JSON primitives: string, number, bool, null.
-// Full object/array parsing deferred to v4 (requires recursive data types).
+//! Experimental JSON helpers.
+//!
+//! The current module focuses on primitive stringify and parse helpers.
 
 pub fn json_stringify_i32(val: i32) -> String {
     i32_to_string(val)

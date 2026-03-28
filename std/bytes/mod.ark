@@ -1,8 +1,7 @@
-// std::bytes — Binary data operations
-//
-// Bytes represented as Vec<i32> where each element is a byte (0-255).
-// Hex/LEB128 encoding provided as pure functions.
-// ByteCursor and ByteView deferred to v4 (requires struct + mutable state).
+//! Binary data helpers built on `Vec<i32>`.
+//!
+//! Each element is treated as a byte in the `0..=255` range. The current
+//! module focuses on buffer helpers plus hex and LEB128 encoding.
 
 // --- Byte buffer creation ---
 

@@ -28,9 +28,11 @@ mod tests {
     fn test_empty_main() {
         let (module, sink) = parse_src("fn main() {}");
         assert!(!sink.has_errors());
+        assert!(module.docs.is_empty());
         assert_eq!(module.items.len(), 1);
         if let ast::Item::FnDef(f) = &module.items[0] {
             assert_eq!(f.name, "main");
+            assert!(f.docs.is_empty());
             assert!(f.params.is_empty());
             assert!(f.return_type.is_none());
         } else {
@@ -147,8 +149,23 @@ mod tests {
     fn test_import() {
         let (module, sink) = parse_src("import io\nfn main() {}");
         assert!(!sink.has_errors());
+        assert!(module.docs.is_empty());
         assert_eq!(module.imports.len(), 1);
         assert_eq!(module.imports[0].module_name, "io");
+    }
+
+    #[test]
+    fn test_module_and_item_doc_comments() {
+        let (module, sink) = parse_src(
+            "//! std::math helpers\n/// Adds two integers.\nfn add(a: i32, b: i32) -> i32 { a + b }",
+        );
+        assert!(!sink.has_errors());
+        assert_eq!(module.docs, vec!["std::math helpers"]);
+        if let ast::Item::FnDef(f) = &module.items[0] {
+            assert_eq!(f.docs, vec!["Adds two integers."]);
+        } else {
+            panic!("expected FnDef");
+        }
     }
 
     #[test]
@@ -282,6 +299,20 @@ mod tests {
                 .iter()
                 .any(|i| matches!(i, ast::Item::ImplBlock(_)))
         );
+    }
+
+    #[test]
+    fn test_impl_method_doc_comments() {
+        let (module, sink) = parse_src(
+            "impl Counter {\n    /// Advances the counter.\n    fn next(self) -> i32 { 1 }\n}",
+        );
+        assert!(!sink.has_errors());
+        if let ast::Item::ImplBlock(block) = &module.items[0] {
+            assert!(block.docs.is_empty());
+            assert_eq!(block.methods[0].docs, vec!["Advances the counter."]);
+        } else {
+            panic!("expected ImplBlock");
+        }
     }
 
     #[test]

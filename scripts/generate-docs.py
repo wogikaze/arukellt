@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 import tomllib
@@ -23,6 +24,172 @@ class DocEntry:
     rel_path: str
     title: str
     summary: str
+
+
+STDLIB_MODULE_PAGES = [
+    {
+        "path": "modules/bytes.md",
+        "title": "std::bytes",
+        "description": "Source-backed docs for binary data helpers.",
+        "modules": ["std::bytes"],
+    },
+    {
+        "path": "modules/collections.md",
+        "title": "std::collections family",
+        "description": "Source-backed docs for the currently supported collection modules.",
+        "modules": [
+            "std::collections::compiler",
+            "std::collections::hash",
+            "std::collections::linear",
+            "std::collections::ordered",
+        ],
+    },
+    {
+        "path": "modules/component.md",
+        "title": "std::component",
+        "description": "Source-backed docs for component-model helpers.",
+        "modules": ["std::component"],
+    },
+    {
+        "path": "modules/core.md",
+        "title": "std::core family",
+        "description": "Source-backed docs for ranges, errors, and hashing helpers.",
+        "modules": ["std::core", "std::core::error", "std::core::hash"],
+    },
+    {
+        "path": "modules/csv.md",
+        "title": "std::csv",
+        "description": "Source-backed docs for CSV parsing helpers.",
+        "modules": ["std::csv"],
+    },
+    {
+        "path": "modules/fs.md",
+        "title": "std::fs",
+        "description": "Source-backed docs for filesystem operations.",
+        "modules": ["std::fs"],
+    },
+    {
+        "path": "modules/io.md",
+        "title": "std::io family",
+        "description": "Source-backed docs for terminal I/O, filesystem, path, process, environment, and CLI helpers.",
+        "modules": ["std::io", "std::fs", "std::path", "std::process", "std::env", "std::cli"],
+    },
+    {
+        "path": "modules/json.md",
+        "title": "std::json",
+        "description": "Source-backed docs for the current JSON helpers.",
+        "modules": ["std::json"],
+    },
+    {
+        "path": "modules/path.md",
+        "title": "std::path",
+        "description": "Source-backed docs for path manipulation helpers.",
+        "modules": ["std::path"],
+    },
+    {
+        "path": "modules/process.md",
+        "title": "std::process / std::env / std::cli",
+        "description": "Source-backed docs for process control and runtime environment helpers.",
+        "modules": ["std::process", "std::env", "std::cli"],
+    },
+    {
+        "path": "modules/random.md",
+        "title": "std::random",
+        "description": "Source-backed docs for pseudo-random utilities.",
+        "modules": ["std::random"],
+    },
+    {
+        "path": "modules/seq.md",
+        "title": "std::seq",
+        "description": "Source-backed docs for eager sequence helpers.",
+        "modules": ["std::seq"],
+    },
+    {
+        "path": "modules/test.md",
+        "title": "std::test",
+        "description": "Source-backed docs for assertion and expectation helpers.",
+        "modules": ["std::test"],
+    },
+    {
+        "path": "modules/text.md",
+        "title": "std::text",
+        "description": "Source-backed docs for string and formatting helpers.",
+        "modules": ["std::text"],
+    },
+    {
+        "path": "modules/time.md",
+        "title": "std::time",
+        "description": "Source-backed docs for clocks and duration helpers.",
+        "modules": ["std::time"],
+    },
+    {
+        "path": "modules/toml.md",
+        "title": "std::toml",
+        "description": "Source-backed docs for the current TOML helpers.",
+        "modules": ["std::toml"],
+    },
+    {
+        "path": "modules/wasm.md",
+        "title": "std::wasm",
+        "description": "Source-backed docs for WebAssembly helpers.",
+        "modules": ["std::wasm"],
+    },
+    {
+        "path": "modules/wit.md",
+        "title": "std::wit",
+        "description": "Source-backed docs for WIT helpers.",
+        "modules": ["std::wit"],
+    },
+]
+
+STDLIB_ALIAS_PAGES = [
+    {
+        "path": "core.md",
+        "title": "std/core — generated index",
+        "description": "Legacy landing page for the current core-related stdlib docs.",
+        "links": [
+            {"path": "modules/core.md", "label": "Core family docs", "notes": "Source-backed core, error, and hash modules."},
+            {"path": "reference.md", "label": "Manifest reference", "notes": "Complete manifest-backed public API."},
+            {"path": "cookbook.md", "label": "Cookbook", "notes": "Current-first usage examples."},
+        ],
+    },
+    {
+        "path": "io.md",
+        "title": "std/io — generated index",
+        "description": "Legacy landing page for the current I/O and runtime-environment stdlib docs.",
+        "links": [
+            {"path": "modules/io.md", "label": "I/O family docs", "notes": "Terminal I/O, fs, path, process, env, and CLI helpers."},
+            {"path": "modules/fs.md", "label": "Filesystem", "notes": "Manifest-backed file read/write surface."},
+            {"path": "modules/path.md", "label": "Path helpers", "notes": "Path manipulation helpers."},
+            {"path": "modules/process.md", "label": "Process/env/cli", "notes": "Process control and runtime environment helpers."},
+            {"path": "reference.md", "label": "Manifest reference", "notes": "Complete manifest-backed public API."},
+        ],
+    },
+]
+
+SOURCE_SECTION_RE = re.compile(r"//\s*---\s*(.*?)\s*---\s*$")
+SOURCE_ITEM_PATTERNS = (
+    ("fn", re.compile(r"pub fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")),
+    ("struct", re.compile(r"pub struct\s+([A-Za-z_][A-Za-z0-9_]*)\b")),
+    ("enum", re.compile(r"pub enum\s+([A-Za-z_][A-Za-z0-9_]*)\b")),
+)
+
+
+@dataclass(frozen=True)
+class StdlibSourceItem:
+    name: str
+    kind: str
+    docs: list[str]
+    section: str | None
+    order: int
+
+
+@dataclass(frozen=True)
+class StdlibSourceModule:
+    module: str
+    source_path: Path
+    docs: list[str]
+    items: list[StdlibSourceItem]
 
 
 def load_toml(path: Path) -> dict:
@@ -61,6 +228,8 @@ def extract_doc_entry(path: Path, base_dir: Path) -> DocEntry:
         if in_code or not stripped:
             continue
         if stripped.startswith("<!--") or stripped == "---":
+            continue
+        if stripped.startswith("> This file is generated by"):
             continue
         if stripped.startswith("#") or stripped.startswith("|"):
             continue
@@ -135,6 +304,111 @@ def stdlib_stats(manifest: dict) -> dict:
         "prelude_functions": prelude_functions,
         "category_counts": category_counts,
     }
+
+
+def rel_link(from_path: Path, to_path: Path) -> str:
+    return Path(os.path.relpath(to_path, from_path.parent)).as_posix()
+
+
+def module_source_path(module_name: str) -> Path:
+    parts = module_name.split("::")[1:]
+    candidate = ROOT / "std" / Path(*parts)
+    mod_path = candidate / "mod.ark"
+    file_path = candidate.with_suffix(".ark")
+    if mod_path.exists():
+        return mod_path
+    if file_path.exists():
+        return file_path
+    raise FileNotFoundError(f"no std source file found for {module_name}")
+
+
+def extract_stdlib_source_module(module_name: str) -> StdlibSourceModule:
+    source_path = module_source_path(module_name)
+    lines = source_path.read_text(encoding="utf-8").splitlines()
+    module_docs: list[str] = []
+    items: list[StdlibSourceItem] = []
+    pending_docs: list[str] = []
+    current_section: str | None = None
+    collecting_module_docs = True
+    item_order = 0
+
+    for raw_line in lines:
+        stripped = raw_line.strip()
+        if collecting_module_docs:
+            if stripped.startswith("//!"):
+                module_docs.append(stripped[3:].lstrip())
+                continue
+            if not stripped:
+                if module_docs:
+                    module_docs.append("")
+                continue
+            collecting_module_docs = False
+
+        if stripped.startswith("///"):
+            pending_docs.append(stripped[3:].lstrip())
+            continue
+
+        section_match = SOURCE_SECTION_RE.fullmatch(stripped)
+        if section_match:
+            current_section = section_match.group(1).strip()
+            pending_docs = []
+            continue
+
+        matched_item = None
+        for kind, pattern in SOURCE_ITEM_PATTERNS:
+            match = pattern.search(stripped)
+            if match:
+                matched_item = (kind, match.group(1))
+                break
+        if matched_item is not None:
+            item_order += 1
+            kind, name = matched_item
+            items.append(
+                StdlibSourceItem(
+                    name=name,
+                    kind=kind,
+                    docs=pending_docs.copy(),
+                    section=current_section,
+                    order=item_order,
+                )
+            )
+            pending_docs = []
+            continue
+
+        if not stripped or not stripped.startswith("//"):
+            pending_docs = []
+
+    while module_docs and not module_docs[-1]:
+        module_docs.pop()
+    return StdlibSourceModule(module=module_name, source_path=source_path, docs=module_docs, items=items)
+
+
+def collect_stdlib_source_modules() -> dict[str, StdlibSourceModule]:
+    modules = {
+        module
+        for page in STDLIB_MODULE_PAGES
+        for module in page["modules"]
+    }
+    return {module: extract_stdlib_source_module(module) for module in sorted(modules)}
+
+
+def source_doc_summary(lines: list[str]) -> str:
+    for line in lines:
+        stripped = line.strip()
+        if stripped:
+            return escape_table(stripped)
+    return "-"
+
+
+def render_source_doc_block(lines: list[str], fallback: str) -> list[str]:
+    if not lines:
+        return [fallback]
+    return lines.copy()
+
+
+def format_stability_counts(entries: list[dict]) -> str:
+    counts = Counter(entry.get("stability", "unknown") for entry in entries)
+    return ", ".join(f"{name} {count}" for name, count in sorted(counts.items()))
 
 
 def join_pipeline(parts: list[str]) -> str:
@@ -330,7 +604,13 @@ def render_generic_section_readme(section: dict, entries: list[DocEntry], snapsh
     return "\n".join(lines) + "\n"
 
 
-def render_stdlib_readme(section: dict, entries: list[DocEntry], state: dict, manifest_stats: dict) -> str:
+def render_stdlib_readme(
+    section: dict,
+    entries: list[DocEntry],
+    state: dict,
+    manifest_stats: dict,
+    source_modules: dict[str, StdlibSourceModule],
+) -> str:
     types = ", ".join(f"`{entry['name']}`" for entry in manifest_stats["types"] if entry.get("prelude"))
     values = ", ".join(f"`{entry['name']}`" for entry in manifest_stats["values"] if entry.get("prelude"))
     category_summary = ", ".join(
@@ -344,16 +624,20 @@ def render_stdlib_readme(section: dict, entries: list[DocEntry], state: dict, ma
         "",
         "## Current Snapshot",
         "",
-        "- Current source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), and [`reference.md`](reference.md)",
+        "- Current source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), and the `std/*.ark` source files that carry doc comments.",
         f"- Manifest-backed public functions: {len(manifest_stats['public_functions'])}",
         f"- Prelude wrappers: {len(manifest_stats['prelude_functions'])}",
         f"- Prelude types: {types}",
         f"- Prelude values: {values}",
         f"- Categories: {category_summary}",
+        f"- Source-backed modules: {len(source_modules)}",
         "",
         "## Recommended Reads",
         "",
         "- [reference.md](reference.md)",
+        "- [modules/core.md](modules/core.md)",
+        "- [modules/io.md](modules/io.md)",
+        "- [modules/text.md](modules/text.md)",
         "- [std.md](std.md)",
         "- [cookbook.md](cookbook.md)",
         "",
@@ -364,6 +648,121 @@ def render_stdlib_readme(section: dict, entries: list[DocEntry], state: dict, ma
     ]
     for entry in entries:
         lines.append(f"| [{entry.rel_path}]({entry.rel_path}) | {escape_table(entry.title)} | {entry.summary} |")
+    return "\n".join(lines) + "\n"
+
+
+def render_stdlib_module_page(
+    page: dict,
+    manifest_functions_by_module: dict[str, list[dict]],
+    source_modules: dict[str, StdlibSourceModule],
+) -> str:
+    output_path = DOCS / "stdlib" / page["path"]
+    lines = [
+        f"# {page['title']}",
+        "",
+        f"> This file is generated by `python3 scripts/generate-docs.py` from source doc comments and [`{rel_link(output_path, STDLIB_MANIFEST)}`]({rel_link(output_path, STDLIB_MANIFEST)}).",
+        page["description"],
+    ]
+
+    for module_name in page["modules"]:
+        source_module = source_modules[module_name]
+        functions = manifest_functions_by_module.get(module_name, [])
+        items_by_name = {item.name: item for item in source_module.items}
+        source_link = rel_link(output_path, source_module.source_path)
+        lines.extend(
+            [
+                "",
+                f"## `{module_name}`",
+                "",
+                f"- Source: [`{source_link}`]({source_link})",
+                f"- Manifest-backed functions: {len(functions)}",
+                f"- Stability: {format_stability_counts(functions) if functions else 'n/a'}",
+                "",
+            ]
+        )
+        lines.extend(
+            render_source_doc_block(
+                source_module.docs,
+                "_No module doc comment yet. Add `//!` comments in the source file to describe this module._",
+            )
+        )
+
+        type_items = [item for item in source_module.items if item.kind != "fn"]
+        if type_items:
+            lines.extend(
+                [
+                    "",
+                    "### Public Types",
+                    "",
+                    "| Name | Kind | Summary |",
+                    "|------|------|---------|",
+                ]
+            )
+            for item in type_items:
+                lines.append(
+                    f"| `{item.name}` | `{item.kind}` | {source_doc_summary(item.docs)} |"
+                )
+
+        if not functions:
+            lines.extend(["", "_No manifest-backed functions in this module._"])
+            continue
+
+        ordered_functions = sorted(
+            functions,
+            key=lambda entry: (
+                items_by_name.get(entry["name"]).order if entry["name"] in items_by_name else 10_000,
+                entry["name"],
+            ),
+        )
+        grouped: dict[str, list[dict]] = defaultdict(list)
+        section_order: list[str] = []
+        for entry in ordered_functions:
+            section = items_by_name.get(entry["name"]).section if entry["name"] in items_by_name else None
+            label = section or "Public API"
+            if label not in grouped:
+                section_order.append(label)
+            grouped[label].append(entry)
+
+        for section_name in section_order:
+            lines.extend(
+                [
+                    "",
+                    f"### {section_name}",
+                    "",
+                    "| Name | Signature | Stability | Summary |",
+                    "|------|-----------|-----------|---------|",
+                ]
+            )
+            for entry in grouped[section_name]:
+                item = items_by_name.get(entry["name"])
+                lines.append(
+                    "| `{name}` | `{signature}` | `{stability}` | {summary} |".format(
+                        name=entry["name"],
+                        signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
+                        stability=entry.get("stability", "unknown"),
+                        summary=source_doc_summary(item.docs if item else []),
+                    )
+                )
+
+    return "\n".join(lines) + "\n"
+
+
+def render_stdlib_alias_page(page: dict) -> str:
+    output_path = DOCS / "stdlib" / page["path"]
+    lines = [
+        f"# {page['title']}",
+        "",
+        "> This file is generated by `python3 scripts/generate-docs.py`.",
+        page["description"],
+        "",
+        "## Current Docs",
+        "",
+        "| File | Notes |",
+        "|------|-------|",
+    ]
+    for link in page["links"]:
+        rel = rel_link(output_path, DOCS / "stdlib" / link["path"])
+        lines.append(f"| [{link['label']}]({rel}) | {escape_table(link['notes'])} |")
     return "\n".join(lines) + "\n"
 
 
@@ -527,16 +926,19 @@ def render_stdlib_reference(manifest: dict) -> str:
                 "",
                 f"## {humanize_slug(category)}",
                 "",
-                "| Name | Signature | Kind | Prelude | Intrinsic |",
-                "|------|-----------|------|---------|-----------|",
+                "| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |",
+                "|------|-----------|--------|-----------|------|---------|-----------|",
             ]
         )
         for entry in sorted(grouped[category], key=lambda item: item["name"]):
             intrinsic = f"`{entry['intrinsic']}`" if entry.get("intrinsic") else "-"
+            module_name = f"`{entry['module']}`" if entry.get("module") else "`prelude`"
             lines.append(
-                "| `{name}` | `{signature}` | `{kind}` | {prelude} | {intrinsic} |".format(
+                "| `{name}` | `{signature}` | {module_name} | `{stability}` | `{kind}` | {prelude} | {intrinsic} |".format(
                     name=entry["name"],
                     signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
+                    module_name=module_name,
+                    stability=entry.get("stability", "unknown"),
                     kind=entry.get("kind", "builtin"),
                     prelude="yes" if entry.get("prelude") else "no",
                     intrinsic=intrinsic,
@@ -589,6 +991,12 @@ def main() -> int:
     sections = load_toml(SECTIONS_FILE)["sections"]
     manifest = load_stdlib_manifest()
     manifest_stats = stdlib_stats(manifest)
+    manifest_functions_by_module: dict[str, list[dict]] = defaultdict(list)
+    for entry in manifest_stats["public_functions"]:
+        module_name = entry.get("module")
+        if module_name:
+            manifest_functions_by_module[module_name].append(entry)
+    source_modules = collect_stdlib_source_modules()
     examples = collect_examples(state)
     fixture_total = fixture_count()
     stale: list[Path] = []
@@ -617,12 +1025,21 @@ def main() -> int:
     write_file(DOCS / "README.md", render_root_docs_readme(sections, state, fixture_total, manifest_stats), args.check, stale)
     write_file(DOCS / "_sidebar.md", render_sidebar(sections), args.check, stale)
     write_file(DOCS / "stdlib" / "reference.md", render_stdlib_reference(manifest), args.check, stale)
+    for page in STDLIB_MODULE_PAGES:
+        write_file(
+            DOCS / "stdlib" / page["path"],
+            render_stdlib_module_page(page, manifest_functions_by_module, source_modules),
+            args.check,
+            stale,
+        )
+    for page in STDLIB_ALIAS_PAGES:
+        write_file(DOCS / "stdlib" / page["path"], render_stdlib_alias_page(page), args.check, stale)
 
     for section in sections:
         section_dir = DOCS / section["dir"]
         entries = collect_markdown_entries(section_dir)
         if section["dir"] == "stdlib":
-            content = render_stdlib_readme(section, entries, state, manifest_stats)
+            content = render_stdlib_readme(section, entries, state, manifest_stats, source_modules)
         elif section["dir"] == "examples":
             content = render_examples_readme(section, examples, state)
         elif section["dir"] == "sample":

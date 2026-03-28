@@ -1,7 +1,6 @@
-// std::core::error — standard error types
-//
-// Provides a unified Error enum for stdlib functions.
+//! Shared error types for manifest-backed stdlib modules.
 
+/// Shared error variants used across stdlib modules.
 pub enum Error {
     InvalidArgument(String),
     IndexOutOfBounds(i32),
@@ -15,6 +14,7 @@ pub enum Error {
     Custom(String),
 }
 
+/// Converts an `Error` value into a human-readable message.
 pub fn error_message(e: Error) -> String {
     match e {
         Error::InvalidArgument(msg) => __intrinsic_concat("InvalidArgument: ", msg),

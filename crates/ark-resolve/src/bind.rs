@@ -265,9 +265,11 @@ mod tests {
     #[test]
     fn bind_detects_duplicate_defs() {
         let module = ast::Module {
+            docs: vec![],
             imports: vec![],
             items: vec![
                 ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
                     name: "foo".into(),
                     type_params: vec![],
                     type_param_bounds: vec![],
@@ -282,6 +284,7 @@ mod tests {
                     span: Span::dummy(),
                 }),
                 ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
                     name: "foo".into(),
                     type_params: vec![],
                     type_param_bounds: vec![],

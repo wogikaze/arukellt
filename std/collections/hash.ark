@@ -1,12 +1,7 @@
-// std::collections::hash — HashMap and HashSet (monomorphic i32 keys)
-//
-// Uses open addressing with linear probing.
-// HashMap_i32_i32: maps i32 keys to i32 values
-// HashMap_String_i32: maps String keys to i32 values
-// Generic HashMap<K,V> deferred to v4 (requires generics).
-//
-// Representation: parallel arrays (keys, values, occupied flags).
-// Default capacity: 16, load factor threshold: 0.75.
+//! Hash-based collection helpers.
+//!
+//! The current implementation uses open addressing with linear probing and a
+//! monomorphic `i32 -> i32` map representation.
 
 pub fn hashmap_new() -> Vec<i32> {
     // Layout: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]

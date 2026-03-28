@@ -1,7 +1,7 @@
-// std::random — deterministic pseudo-random number generation
-//
-// Uses xorshift32 PRNG seeded from __intrinsic_random_i32.
-// NOT cryptographically secure — do not use for security.
+//! Pseudo-random helper functions.
+//!
+//! The current module mixes intrinsic randomness with a small deterministic
+//! xorshift-style helper. It is not suitable for cryptographic use.
 
 pub fn seeded_random(seed_val: i32) -> i32 {
     let s = if seed_val == 0 { 42 } else { seed_val }

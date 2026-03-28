@@ -232,8 +232,10 @@ mod tests {
     #[test]
     fn resolve_module_preserves_symbols() {
         let module = ast::Module {
+            docs: vec![],
             imports: vec![],
             items: vec![ast::Item::StructDef(ast::StructDef {
+                docs: vec![],
                 name: "Point".into(),
                 type_params: vec![],
                 fields: vec![],

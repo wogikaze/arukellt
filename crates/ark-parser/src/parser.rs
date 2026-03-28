@@ -95,13 +95,48 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn collect_outer_doc_comments(&mut self) -> Vec<String> {
+        let mut docs = Vec::new();
+        while let TokenKind::OuterDocComment(text) = self.peek().clone() {
+            self.advance();
+            docs.push(text);
+        }
+        docs
+    }
+
+    fn collect_inner_doc_comments(&mut self) -> Vec<String> {
+        let mut docs = Vec::new();
+        while let TokenKind::InnerDocComment(text) = self.peek().clone() {
+            self.advance();
+            docs.push(text);
+        }
+        docs
+    }
+
+    fn emit_doc_comment_error(&mut self, message: &str) {
+        let sp = self.span();
+        self.sink.emit(
+            Diagnostic::new(DiagnosticCode::E0001)
+                .with_message(message)
+                .with_label(sp, "here"),
+        );
+    }
+
     // === Module parsing ===
 
     pub fn parse_module(&mut self) -> Module {
+        let docs = self.collect_inner_doc_comments();
         let mut imports = Vec::new();
         let mut items = Vec::new();
 
         while *self.peek() != TokenKind::Eof {
+            let item_docs = self.collect_outer_doc_comments();
+            if matches!(self.peek(), TokenKind::InnerDocComment(_)) {
+                self.emit_doc_comment_error("inner doc comments are only allowed at module start");
+                self.advance();
+                continue;
+            }
+
             // Check for reserved keyword violations
             if let TokenKind::Reserved(kw) = self.peek() {
                 let kw = kw.clone();
@@ -117,11 +152,17 @@ impl<'a> Parser<'a> {
             }
 
             if *self.peek() == TokenKind::Import {
+                if !item_docs.is_empty() {
+                    self.emit_doc_comment_error("doc comments on imports are not supported");
+                }
                 imports.push(self.parse_import());
             } else if *self.peek() == TokenKind::Use {
+                if !item_docs.is_empty() {
+                    self.emit_doc_comment_error("doc comments on imports are not supported");
+                }
                 imports.push(self.parse_use_import());
             } else {
-                match self.parse_item() {
+                match self.parse_item(item_docs) {
                     Some(item) => items.push(item),
                     None => {
                         self.advance();
@@ -131,7 +172,11 @@ impl<'a> Parser<'a> {
             }
         }
 
-        Module { imports, items }
+        Module {
+            docs,
+            imports,
+            items,
+        }
     }
 
     fn synchronize(&mut self) {
@@ -143,6 +188,8 @@ impl<'a> Parser<'a> {
                 | TokenKind::Trait
                 | TokenKind::Impl
                 | TokenKind::Import
+                | TokenKind::OuterDocComment(_)
+                | TokenKind::InnerDocComment(_)
                 | TokenKind::Pub => return,
                 TokenKind::RBrace => {
                     self.advance();
@@ -200,13 +247,13 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_item(&mut self) -> Option<Item> {
+    fn parse_item(&mut self, docs: Vec<String>) -> Option<Item> {
         let is_pub = self.eat(&TokenKind::Pub);
         match self.peek() {
-            TokenKind::Fn => Some(Item::FnDef(self.parse_fn_def(is_pub))),
-            TokenKind::Struct => Some(Item::StructDef(self.parse_struct_def(is_pub))),
-            TokenKind::Enum => Some(Item::EnumDef(self.parse_enum_def(is_pub))),
-            TokenKind::Trait => Some(Item::TraitDef(self.parse_trait_def(is_pub))),
+            TokenKind::Fn => Some(Item::FnDef(self.parse_fn_def(docs, is_pub))),
+            TokenKind::Struct => Some(Item::StructDef(self.parse_struct_def(docs, is_pub))),
+            TokenKind::Enum => Some(Item::EnumDef(self.parse_enum_def(docs, is_pub))),
+            TokenKind::Trait => Some(Item::TraitDef(self.parse_trait_def(docs, is_pub))),
             TokenKind::Impl => {
                 if is_pub {
                     let sp = self.span();
@@ -216,7 +263,7 @@ impl<'a> Parser<'a> {
                             .with_label(sp, "here"),
                     );
                 }
-                Some(Item::ImplBlock(self.parse_impl_block()))
+                Some(Item::ImplBlock(self.parse_impl_block(docs)))
             }
             _ => {
                 let sp = self.span();
@@ -233,7 +280,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_fn_def(&mut self, is_pub: bool) -> FnDef {
+    fn parse_fn_def(&mut self, docs: Vec<String>, is_pub: bool) -> FnDef {
         let start = self.span();
         self.expect(&TokenKind::Fn);
         let name = self.expect_ident();
@@ -260,6 +307,7 @@ impl<'a> Parser<'a> {
         let body = self.parse_block();
         let span = start.merge(body.span);
         FnDef {
+            docs,
             name,
             type_params,
             type_param_bounds,
@@ -342,7 +390,7 @@ impl<'a> Parser<'a> {
         params
     }
 
-    fn parse_struct_def(&mut self, is_pub: bool) -> StructDef {
+    fn parse_struct_def(&mut self, docs: Vec<String>, is_pub: bool) -> StructDef {
         let start = self.span();
         self.expect(&TokenKind::Struct);
         let name = self.expect_ident();
@@ -355,6 +403,7 @@ impl<'a> Parser<'a> {
         let fields = self.parse_fields();
         let end = self.expect(&TokenKind::RBrace);
         StructDef {
+            docs,
             name,
             type_params,
             fields,
@@ -378,7 +427,7 @@ impl<'a> Parser<'a> {
         fields
     }
 
-    fn parse_enum_def(&mut self, is_pub: bool) -> EnumDef {
+    fn parse_enum_def(&mut self, docs: Vec<String>, is_pub: bool) -> EnumDef {
         let start = self.span();
         self.expect(&TokenKind::Enum);
         let name = self.expect_ident();
@@ -430,6 +479,7 @@ impl<'a> Parser<'a> {
         }
         let end = self.expect(&TokenKind::RBrace);
         EnumDef {
+            docs,
             name,
             type_params,
             variants,
@@ -440,7 +490,7 @@ impl<'a> Parser<'a> {
 
     // === Trait / Impl parsing ===
 
-    fn parse_trait_def(&mut self, is_pub: bool) -> TraitDef {
+    fn parse_trait_def(&mut self, docs: Vec<String>, is_pub: bool) -> TraitDef {
         let start = self.span();
         self.expect(&TokenKind::Trait);
         let name = self.expect_ident();
@@ -454,6 +504,7 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::LBrace);
         let mut methods = Vec::new();
         while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
+            let method_docs = self.collect_outer_doc_comments();
             if *self.peek() == TokenKind::Fn {
                 let m_start = self.span();
                 self.expect(&TokenKind::Fn);
@@ -468,18 +519,23 @@ impl<'a> Parser<'a> {
                 };
                 let span = m_start.merge(self.span());
                 methods.push(TraitMethodSig {
+                    docs: method_docs,
                     name: m_name,
                     params,
                     return_type,
                     span,
                 });
             } else {
+                if !method_docs.is_empty() {
+                    self.emit_doc_comment_error("doc comments inside traits must attach to methods");
+                }
                 // Skip unexpected tokens inside trait
                 self.advance();
             }
         }
         let end = self.expect(&TokenKind::RBrace);
         TraitDef {
+            docs,
             name,
             type_params,
             methods,
@@ -488,7 +544,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse_impl_block(&mut self) -> ImplBlock {
+    fn parse_impl_block(&mut self, docs: Vec<String>) -> ImplBlock {
         let start = self.span();
         self.expect(&TokenKind::Impl);
         let first_name = self.expect_ident();
@@ -505,6 +561,7 @@ impl<'a> Parser<'a> {
         self.expect(&TokenKind::LBrace);
         let mut methods = Vec::new();
         while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
+            let method_docs = self.collect_outer_doc_comments();
             if *self.peek() == TokenKind::Fn {
                 let m_start = self.span();
                 self.expect(&TokenKind::Fn);
@@ -520,6 +577,7 @@ impl<'a> Parser<'a> {
                 let body = self.parse_block();
                 let span = m_start.merge(body.span);
                 methods.push(FnDef {
+                    docs: method_docs,
                     name: m_name,
                     type_params: vec![],
                     type_param_bounds: vec![],
@@ -530,11 +588,15 @@ impl<'a> Parser<'a> {
                     span,
                 });
             } else {
+                if !method_docs.is_empty() {
+                    self.emit_doc_comment_error("doc comments inside impl blocks must attach to methods");
+                }
                 self.advance();
             }
         }
         let end = self.expect(&TokenKind::RBrace);
         ImplBlock {
+            docs,
             trait_name,
             target_type,
             methods,

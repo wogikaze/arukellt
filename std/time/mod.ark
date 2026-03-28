@@ -1,8 +1,7 @@
-// std::time — time and duration utilities
-//
-// Provides monotonic clock access and duration calculation.
-// monotonic_now returns nanoseconds since an unspecified epoch.
-// Do not compare values across processes.
+//! Time and duration helpers.
+//!
+//! `monotonic_now` returns nanoseconds from an unspecified epoch and should
+//! only be compared inside the same process.
 
 pub fn monotonic_now() -> i64 {
     __intrinsic_clock_now()

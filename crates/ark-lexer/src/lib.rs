@@ -1,7 +1,8 @@
 //! Lexer for the Arukellt language (v0).
 //!
 //! Tokenizes UTF-8 source into a stream of [`Token`]s with accurate [`Span`] tracking.
-//! Supports line comments (`//`), nested block comments (`/* ... */`), and shebang lines.
+//! Supports doc comments (`///`, `//!`), line comments (`//`), nested block comments
+//! (`/* ... */`), and shebang lines.
 
 use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
 
@@ -105,6 +106,8 @@ pub enum TokenKind {
 
     // Special
     Ident(String),
+    OuterDocComment(String),
+    InnerDocComment(String),
     Newline,
     Eof,
     Error,
@@ -327,6 +330,11 @@ impl<'src> Lexer<'src> {
             // Single-char operators
             b'+' => self.lex_single(start, TokenKind::Plus),
             b'*' => self.lex_single(start, TokenKind::Star),
+            b'/' if matches!(self.peek_at(1), Some(b'/'))
+                && matches!(self.peek_at(2), Some(b'/' | b'!')) =>
+            {
+                self.lex_doc_comment(start)
+            }
             b'/' => self.lex_single(start, TokenKind::Slash),
             b'%' => self.lex_single(start, TokenKind::Percent),
             b'^' => self.lex_single(start, TokenKind::Caret),
@@ -393,6 +401,9 @@ impl<'src> Lexer<'src> {
             if self.peek() == Some(b'/') {
                 match self.peek_at(1) {
                     Some(b'/') => {
+                        if matches!(self.peek_at(2), Some(b'/' | b'!')) {
+                            break;
+                        }
                         self.skip_line_comment();
                         continue;
                     }
@@ -413,6 +424,32 @@ impl<'src> Lexer<'src> {
                 break;
             }
             self.pos += 1;
+        }
+    }
+
+    fn lex_doc_comment(&mut self, start: usize) -> Token {
+        self.pos += 2; // `//`
+        let kind = match self.advance() {
+            b'/' => "outer",
+            b'!' => "inner",
+            _ => unreachable!("lex_doc_comment called on a non-doc comment"),
+        };
+        let comment_start = self.pos;
+        while let Some(b) = self.peek() {
+            if b == b'\n' || b == b'\r' {
+                break;
+            }
+            self.pos += 1;
+        }
+        let text = self.source[comment_start..self.pos]
+            .strip_prefix(' ')
+            .unwrap_or(&self.source[comment_start..self.pos])
+            .to_string();
+        let span = self.span(start);
+        match kind {
+            "outer" => Token::new(TokenKind::OuterDocComment(text), span),
+            "inner" => Token::new(TokenKind::InnerDocComment(text), span),
+            _ => unreachable!(),
         }
     }
 
@@ -1365,6 +1402,34 @@ mod tests {
                 TokenKind::Ident("foo".into()),
                 TokenKind::Newline,
                 TokenKind::Ident("bar".into()),
+                TokenKind::Eof,
+            ]
+        );
+    }
+
+    #[test]
+    fn outer_doc_comment() {
+        assert_eq!(
+            kinds("/// Adds two values.\nfn add"),
+            vec![
+                TokenKind::OuterDocComment("Adds two values.".into()),
+                TokenKind::Newline,
+                TokenKind::Fn,
+                TokenKind::Ident("add".into()),
+                TokenKind::Eof,
+            ]
+        );
+    }
+
+    #[test]
+    fn inner_doc_comment() {
+        assert_eq!(
+            kinds("//! std::math helpers\nfn add"),
+            vec![
+                TokenKind::InnerDocComment("std::math helpers".into()),
+                TokenKind::Newline,
+                TokenKind::Fn,
+                TokenKind::Ident("add".into()),
                 TokenKind::Eof,
             ]
         );

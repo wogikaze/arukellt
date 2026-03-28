@@ -1,7 +1,7 @@
-// std::collections::compiler — Compiler-oriented data structures (Experimental)
-//
-// Arena allocator, SlotMap, Interner — API may change in v4.
-// Current: minimal stubs backed by Vec<i32>.
+//! Experimental compiler-oriented collections.
+//!
+//! The current source-backed surface is intentionally small and may change in
+//! future versions.
 
 // --- Arena (bump allocator) ---
 

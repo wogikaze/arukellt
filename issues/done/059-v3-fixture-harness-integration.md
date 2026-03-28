@@ -10,7 +10,7 @@
 
 ## Summary
 
-# 039–#057 の各 issue が個別の fixture 要件を持つ
+### 039–#057 の各 issue が個別の fixture 要件を持つ
 
 この issue ではそれらを統合し、`verify-harness.sh` に **v3 ゲート** を追加して
 v3 の全受け入れ条件を自動検証できるようにする。

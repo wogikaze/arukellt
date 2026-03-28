@@ -1,8 +1,6 @@
-// std::core::hash — simple hash functions
-//
-// FNV-1a inspired hash for basic types.
-// Used as foundation for HashMap implementations.
+//! Small hashing helpers used by the current collection implementations.
 
+/// Hashes an `i32` into a stable non-negative integer.
 pub fn hash_i32(value: i32) -> i32 {
     // Simple multiplicative hash (Knuth variant)
     let mut h = 37

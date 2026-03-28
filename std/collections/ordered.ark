@@ -1,7 +1,6 @@
-// std::collections::ordered — BTreeMap and sorted collections (i32 monomorphic)
-//
-// Sorted array-backed map. True B-tree deferred to v4 (requires generics + complex node layout).
-// Current implementation: sorted Vec<i32> pairs with binary search.
+//! Ordered collection helpers backed by sorted vectors.
+//!
+//! The current surface provides a sorted map and bitset-style utilities.
 
 pub fn sorted_map_new() -> Vec<i32> {
     // Layout: [count, ...keys(n), ...values(n)] — kept sorted by key
