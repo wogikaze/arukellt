@@ -578,6 +578,7 @@ mod tests {
             enum_typed_locals: HashMap::new(),
             type_params: vec![],
             source: default_function_source(),
+            is_exported: false,
         }
     }
 

@@ -102,6 +102,7 @@ pub fn resolve_module(module: ast::Module, sink: &mut DiagnosticSink) -> Resolve
 pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
     let mut module = program.entry_module.clone();
     for loaded in &program.modules {
+        let is_stdlib = loaded.path.to_str().map_or(false, |p| p.starts_with('<'));
         for item in &loaded.ast.items {
             let is_pub = match item {
                 ast::Item::FnDef(f) => f.is_pub,
@@ -111,7 +112,21 @@ pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
                 ast::Item::ImplBlock(_) => false,
             };
             if is_pub {
-                module.items.push(item.clone());
+                // Strip is_pub on stdlib items so they are not treated as
+                // user-exported in the MIR lowerer (component export surface).
+                if is_stdlib {
+                    let mut item = item.clone();
+                    match &mut item {
+                        ast::Item::FnDef(f) => f.is_pub = false,
+                        ast::Item::StructDef(s) => s.is_pub = false,
+                        ast::Item::EnumDef(e) => e.is_pub = false,
+                        ast::Item::TraitDef(t) => t.is_pub = false,
+                        ast::Item::ImplBlock(_) => {}
+                    }
+                    module.items.push(item);
+                } else {
+                    module.items.push(item.clone());
+                }
             }
         }
     }

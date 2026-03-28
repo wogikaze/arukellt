@@ -356,3 +356,10 @@ t3-compile:v0_constraints/no_impl.ark
 t3-compile:v0_constraints/no_nested_generics.ark
 t3-compile:variables/char_lit.ark
 t3-compile:variables/tuple.ark
+
+# Component Model compile-only tests
+component-compile:component/export_add.ark
+component-compile:component/multi_export.ark
+component-compile:component/export_bool.ark
+component-compile:component/export_f64.ark
+component-compile:component/export_i64.ark

@@ -865,6 +865,7 @@ mod tests {
             enum_typed_locals: Default::default(),
             type_params: vec![],
             source: default_function_source(),
+            is_exported: false,
         });
         sync_module_metadata(&mut module);
         module

@@ -514,7 +514,7 @@ impl Session {
 
         // Emit W0005 warnings for non-exportable functions
         for warning in &export_warnings {
-            self.pending_diagnostics.push(
+            self.sink.emit(
                 ark_diagnostics::non_exportable_function_diagnostic("", warning),
             );
         }

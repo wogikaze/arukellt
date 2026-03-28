@@ -146,51 +146,51 @@ pub fn generate_wit(world: &WitWorld) -> Result<String, WitError> {
 
     writeln!(out, "package arukellt:app;").unwrap();
     writeln!(out).unwrap();
+    writeln!(out, "world {} {{", to_kebab_case(&world.name)).unwrap();
 
+    // Type definitions inside world block
     for record in &world.records {
-        writeln!(out, "record {} {{", to_kebab_case(&record.name)).unwrap();
+        writeln!(out, "    record {} {{", to_kebab_case(&record.name)).unwrap();
         for (i, (name, ty)) in record.fields.iter().enumerate() {
             let comma = if i < record.fields.len() - 1 { "," } else { "" };
-            writeln!(out, "    {}: {}{}", to_kebab_case(name), ty.to_wit(), comma).unwrap();
+            writeln!(out, "        {}: {}{}", to_kebab_case(name), ty.to_wit(), comma).unwrap();
         }
-        writeln!(out, "}}").unwrap();
+        writeln!(out, "    }}").unwrap();
         writeln!(out).unwrap();
     }
 
     for en in &world.enums {
-        writeln!(out, "enum {} {{", to_kebab_case(&en.name)).unwrap();
+        writeln!(out, "    enum {} {{", to_kebab_case(&en.name)).unwrap();
         for (i, variant) in en.variants.iter().enumerate() {
             let comma = if i < en.variants.len() - 1 { "," } else { "" };
-            writeln!(out, "    {}{}", to_kebab_case(variant), comma).unwrap();
+            writeln!(out, "        {}{}", to_kebab_case(variant), comma).unwrap();
         }
-        writeln!(out, "}}").unwrap();
+        writeln!(out, "    }}").unwrap();
         writeln!(out).unwrap();
     }
 
     for var in &world.variants {
-        writeln!(out, "variant {} {{", to_kebab_case(&var.name)).unwrap();
+        writeln!(out, "    variant {} {{", to_kebab_case(&var.name)).unwrap();
         for (i, (name, payload)) in var.cases.iter().enumerate() {
             let comma = if i < var.cases.len() - 1 { "," } else { "" };
             match payload {
                 Some(ty) => {
-                    writeln!(out, "    {}({}){}", to_kebab_case(name), ty.to_wit(), comma).unwrap();
+                    writeln!(out, "        {}({}){}", to_kebab_case(name), ty.to_wit(), comma).unwrap();
                 }
-                None => writeln!(out, "    {}{}", to_kebab_case(name), comma).unwrap(),
+                None => writeln!(out, "        {}{}", to_kebab_case(name), comma).unwrap(),
             }
         }
-        writeln!(out, "}}").unwrap();
+        writeln!(out, "    }}").unwrap();
         writeln!(out).unwrap();
     }
 
     // Resource declarations
     for res_name in &world.resources {
-        writeln!(out, "resource {};", to_kebab_case(res_name)).unwrap();
+        writeln!(out, "    resource {};", to_kebab_case(res_name)).unwrap();
     }
     if !world.resources.is_empty() {
         writeln!(out).unwrap();
     }
-
-    writeln!(out, "world {} {{", to_kebab_case(&world.name)).unwrap();
 
     // Import declarations
     for func in &world.imports {

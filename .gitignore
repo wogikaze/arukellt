@@ -10,3 +10,4 @@ test_output.txt
 
 # compiled wasm artifacts in fixture directories
 tests/fixtures/**/*.wasm
+wasi_snapshot_preview1.reactor.wasm

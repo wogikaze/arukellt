@@ -60,10 +60,78 @@ pub fn mir_to_wit_world_with_warnings(
         });
     }
 
-    // Convert struct definitions to WIT records (from type table)
+    // First pass: collect exported functions and the type names they reference
+    let mut exported_fns = Vec::new();
+    for func in &mir.functions {
+        let name = &func.name;
+        if name.starts_with("__") || name == "_start" || name == "main" {
+            continue;
+        }
+        if !func.is_exported {
+            continue;
+        }
+
+        let params: Vec<(String, WitType)> = func
+            .params
+            .iter()
+            .filter_map(|p| {
+                let pname = p.name.clone().unwrap_or_else(|| format!("p{}", p.id.0));
+                type_to_wit(&p.ty).map(|wt| (pname, wt))
+            })
+            .collect();
+
+        if params.len() != func.params.len() {
+            let non_exportable: Vec<_> = func
+                .params
+                .iter()
+                .filter(|p| type_to_wit(&p.ty).is_none())
+                .map(|p| format!("{:?}", p.ty))
+                .collect();
+            warnings.push(format!(
+                "function `{}` has non-exportable parameter type(s): {}",
+                name,
+                non_exportable.join(", ")
+            ));
+            continue;
+        }
+
+        let result = type_to_wit(&func.return_ty);
+        let result = match &func.return_ty {
+            Type::Unit => None,
+            _ => {
+                if result.is_none() && func.return_ty != Type::Unit {
+                    warnings.push(format!(
+                        "function `{}` has non-exportable return type: {:?}",
+                        name, func.return_ty
+                    ));
+                    continue;
+                }
+                result
+            }
+        };
+
+        exported_fns.push(WitFunction {
+            name: name.clone(),
+            params,
+            result,
+        });
+    }
+
+    // Collect type names referenced by exported functions (and imports)
+    let mut referenced_types = std::collections::HashSet::new();
+    for f in exported_fns.iter().chain(world.imports.iter()) {
+        for (_, wt) in &f.params {
+            collect_wit_type_refs(wt, &mut referenced_types);
+        }
+        if let Some(wt) = &f.result {
+            collect_wit_type_refs(wt, &mut referenced_types);
+        }
+    }
+
+    // Convert struct definitions to WIT records — only if referenced by exports
     for (name, fields) in &mir.type_table.struct_defs {
-        if name.starts_with("__") {
-            continue; // skip internal structs
+        if name.starts_with("__") || !referenced_types.contains(name.as_str()) {
+            continue;
         }
         let wit_fields: Vec<(String, WitType)> = fields
             .iter()
@@ -77,20 +145,18 @@ pub fn mir_to_wit_world_with_warnings(
         }
     }
 
-    // Convert enum definitions to WIT variants (from type table)
+    // Convert enum definitions to WIT variants — only if referenced by exports
     for (name, variants) in &mir.type_table.enum_defs {
-        if name.starts_with("__") {
+        if name.starts_with("__") || !referenced_types.contains(name.as_str()) {
             continue;
         }
         let all_unit = variants.iter().all(|(_, payloads)| payloads.is_empty());
         if all_unit {
-            // Simple enum (no payloads)
             world.enums.push(WitEnum {
                 name: name.clone(),
                 variants: variants.iter().map(|(vname, _)| vname.clone()).collect(),
             });
         } else {
-            // Variant with payloads
             let cases: Vec<(String, Option<WitType>)> = variants
                 .iter()
                 .map(|(vname, payloads)| {
@@ -99,7 +165,6 @@ pub fn mir_to_wit_world_with_warnings(
                     } else if payloads.len() == 1 {
                         (vname.clone(), type_name_to_wit(&payloads[0]))
                     } else {
-                        // Multi-field payload → tuple
                         let elems: Vec<WitType> = payloads
                             .iter()
                             .filter_map(|t| type_name_to_wit(t))
@@ -119,65 +184,7 @@ pub fn mir_to_wit_world_with_warnings(
         }
     }
 
-    // Convert public functions to WIT exports
-    for func in &mir.functions {
-        let name = &func.name;
-        // Skip internal/helper functions
-        if name.starts_with("__") || name == "_start" {
-            continue;
-        }
-        // Skip main — it's the entrypoint, not an export
-        if name == "main" {
-            continue;
-        }
-
-        let params: Vec<(String, WitType)> = func
-            .params
-            .iter()
-            .filter_map(|p| {
-                let pname = p.name.clone().unwrap_or_else(|| format!("p{}", p.id.0));
-                type_to_wit(&p.ty).map(|wt| (pname, wt))
-            })
-            .collect();
-
-        // Warn about functions with non-exportable parameter types
-        if params.len() != func.params.len() {
-            let non_exportable: Vec<_> = func
-                .params
-                .iter()
-                .filter(|p| type_to_wit(&p.ty).is_none())
-                .map(|p| format!("{:?}", p.ty))
-                .collect();
-            warnings.push(format!(
-                "function `{}` has non-exportable parameter type(s): {}",
-                name,
-                non_exportable.join(", ")
-            ));
-            continue;
-        }
-
-        let result = type_to_wit(&func.return_ty);
-        // Unit return → no WIT result
-        let result = match &func.return_ty {
-            Type::Unit => None,
-            _ => {
-                if result.is_none() && func.return_ty != Type::Unit {
-                    warnings.push(format!(
-                        "function `{}` has non-exportable return type: {:?}",
-                        name, func.return_ty
-                    ));
-                    continue;
-                }
-                result
-            }
-        };
-
-        world.functions.push(WitFunction {
-            name: name.clone(),
-            params,
-            result,
-        });
-    }
+    world.functions = exported_fns;
 
     Ok((world, warnings))
 }
@@ -244,6 +251,32 @@ fn type_name_to_wit(name: &str) -> Option<WitType> {
     }
 }
 
+/// Collect type names referenced by a WitType (records, variants, enums).
+fn collect_wit_type_refs(wt: &WitType, out: &mut std::collections::HashSet<String>) {
+    match wt {
+        WitType::Record(name) | WitType::Variant(name) => {
+            out.insert(name.clone());
+        }
+        WitType::List(inner) | WitType::Option(inner) => {
+            collect_wit_type_refs(inner, out);
+        }
+        WitType::Result { ok, err } => {
+            if let Some(inner) = ok {
+                collect_wit_type_refs(inner, out);
+            }
+            if let Some(inner) = err {
+                collect_wit_type_refs(inner, out);
+            }
+        }
+        WitType::Tuple(elems) => {
+            for e in elems {
+                collect_wit_type_refs(e, out);
+            }
+        }
+        _ => {}
+    }
+}
+
 /// Convert a WIT type name string (e.g., "s32", "string") to a WitType.
 fn wit_type_name_to_wit(name: &str) -> Option<WitType> {
     match name {
@@ -292,6 +325,15 @@ mod tests {
     }
 
     fn make_func(name: &str, params: Vec<(Option<String>, Type)>, ret: Type) -> MirFunction {
+        make_func_exported(name, params, ret, true)
+    }
+
+    fn make_func_exported(
+        name: &str,
+        params: Vec<(Option<String>, Type)>,
+        ret: Type,
+        is_exported: bool,
+    ) -> MirFunction {
         let mir_params: Vec<MirLocal> = params
             .into_iter()
             .enumerate()
@@ -319,6 +361,7 @@ mod tests {
             enum_typed_locals: Default::default(),
             type_params: Vec::new(),
             source: SourceInfo::unknown(),
+            is_exported,
         }
     }
 

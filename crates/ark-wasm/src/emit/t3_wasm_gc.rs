@@ -957,6 +957,16 @@ impl Ctx {
             exports.export("_start", ExportKind::Func, main_idx);
         }
 
+        // Export user pub functions for Component Model (kebab-case names for WIT)
+        for func in &mir.functions {
+            if func.is_exported && func.name != "main" && !func.name.starts_with("__") {
+                if let Some(&idx) = self.fn_map.get(func.name.as_str()) {
+                    let export_name = func.name.replace('_', "-");
+                    exports.export(&export_name, ExportKind::Func, idx);
+                }
+            }
+        }
+
         // Data section: static string literals and constants
         // Pre-allocate "true", "false", "\n" for print helpers
         let true_offset = self.alloc_data(b"true");
@@ -1102,6 +1112,13 @@ impl Ctx {
                 if let Some(&idx) = name_to_idx.get(root_name) {
                     push_root(idx, &mut reachable, &mut queue);
                 }
+            }
+        }
+
+        // Exported functions are also roots (for Component Model exports)
+        for (idx, func) in mir.functions.iter().enumerate() {
+            if func.is_exported && func.name != "main" && !func.name.starts_with("__") {
+                push_root(idx, &mut reachable, &mut queue);
             }
         }
 

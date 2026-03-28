@@ -2,11 +2,12 @@
 //!
 //! Reads `tests/fixtures/manifest.txt` for the fixture list.
 //! For each entry:
-//! - `run:path`         → compile + run, compare stdout against `.expected`
-//! - `diag:path`        → compile-fail, check first line of `.diag` in output
-//! - `module-run:path`  → same as run, for multi-file modules
-//! - `module-diag:path` → same as diag, for multi-file modules
-//! - `t3-compile:path`  → T3 compile-only, verify exit code 0
+//! - `run:path`               → compile + run, compare stdout against `.expected`
+//! - `diag:path`              → compile-fail, check first line of `.diag` in output
+//! - `module-run:path`        → same as run, for multi-file modules
+//! - `module-diag:path`       → same as diag, for multi-file modules
+//! - `t3-compile:path`        → T3 compile-only, verify exit code 0
+//! - `component-compile:path` → T3 component compile, verify exit code 0
 //!
 //! Self-check: verifies every `.ark` entry point on disk is listed in the manifest.
 
@@ -286,6 +287,38 @@ fn fixture_harness() {
                         name,
                         stderr.lines().next().unwrap_or("")
                     ));
+                }
+            }
+            "component-compile" => {
+                // Compile to component via --emit component --target wasm32-wasi-p2.
+                // Requires wasm-tools; skip gracefully if unavailable.
+                let output = Command::new(&bin)
+                    .arg("compile")
+                    .arg("--target")
+                    .arg("wasm32-wasi-p2")
+                    .arg("--emit")
+                    .arg("component")
+                    .arg(&fixture)
+                    .arg("-o")
+                    .arg("/dev/null")
+                    .output()
+                    .expect("failed to run arukellt");
+
+                if output.status.success() {
+                    passed += 1;
+                } else {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    if stderr.contains("wasm-tools not found") || stderr.contains("ToolNotFound") {
+                        skipped += 1;
+                        eprintln!("  [skip] {} (wasm-tools not installed)", name);
+                    } else {
+                        failed += 1;
+                        failures.push(format!(
+                            "FAIL [component-compile] {}\n  stderr: {:?}",
+                            name,
+                            stderr.lines().next().unwrap_or("")
+                        ));
+                    }
                 }
             }
             other => {

@@ -244,6 +244,9 @@ pub struct MirFunction {
     /// Type parameter names (empty for non-generic functions)
     pub type_params: Vec<String>,
     pub source: SourceInfo,
+    /// Whether this function is user-defined `pub fn` (exported at component boundary).
+    /// Defaults to false; set to true by the lowerer for `pub fn` declarations.
+    pub is_exported: bool,
 }
 
 /// A local variable (parameter or temporary).

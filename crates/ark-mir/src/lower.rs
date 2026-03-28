@@ -145,6 +145,7 @@ fn fallback_function(
     struct_typed_locals: std::collections::HashMap<u32, String>,
     enum_typed_locals: std::collections::HashMap<u32, String>,
     type_params: Vec<String>,
+    is_exported: bool,
 ) -> MirFunction {
     MirFunction {
         id,
@@ -159,6 +160,7 @@ fn fallback_function(
         enum_typed_locals,
         type_params,
         source: default_function_source(),
+        is_exported,
     }
 }
 
@@ -1231,6 +1233,7 @@ pub fn lower_to_mir(
                 ctx.struct_typed_locals.clone(),
                 ctx.enum_typed_locals.clone(),
                 f.type_params.clone(),
+                f.is_pub,
             );
 
             if f.name == "main" {
@@ -1399,6 +1402,7 @@ pub fn lower_to_mir(
                     ctx.struct_typed_locals.clone(),
                     ctx.enum_typed_locals.clone(),
                     method.type_params.clone(),
+                    false, // impl methods are not component exports
                 );
 
                 push_function(&mut mir, mir_fn);
@@ -4110,6 +4114,7 @@ impl LowerCtx {
                     sub_ctx.struct_typed_locals.clone(),
                     sub_ctx.enum_typed_locals.clone(),
                     vec![], // closures are not generic
+                    false,  // closures are not component exports
                 );
 
                 let mir_fn = MirFunction {
