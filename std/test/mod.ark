@@ -1,0 +1,111 @@
+// std::test — testing utilities
+//
+// Provides typed assertions, Result/Option expectations,
+// and lightweight benchmarking.
+
+// === Typed assertions ===
+
+pub fn assert_true(cond: bool) {
+    if !cond {
+        panic("assertion failed: expected true, got false")
+    }
+}
+
+pub fn assert_false(cond: bool) {
+    if cond {
+        panic("assertion failed: expected false, got true")
+    }
+}
+
+pub fn assert_eq_i32(actual: i32, expected: i32) {
+    if actual != expected {
+        let msg = concat("assert_eq_i32 failed: expected ", concat(i32_to_string(expected), concat(", got ", i32_to_string(actual))))
+        panic(msg)
+    }
+}
+
+pub fn assert_eq_i64(actual: i64, expected: i64) {
+    if actual != expected {
+        let msg = concat("assert_eq_i64 failed: expected ", concat(i64_to_string(expected), concat(", got ", i64_to_string(actual))))
+        panic(msg)
+    }
+}
+
+pub fn assert_eq_f64(actual: f64, expected: f64) {
+    if actual != expected {
+        let msg = concat("assert_eq_f64 failed: expected ", concat(f64_to_string(expected), concat(", got ", f64_to_string(actual))))
+        panic(msg)
+    }
+}
+
+pub fn assert_eq_string(actual: String, expected: String) {
+    if !eq(actual, expected) {
+        let msg = concat("assert_eq_string failed: expected \"", concat(expected, concat("\", got \"", concat(actual, "\""))))
+        panic(msg)
+    }
+}
+
+pub fn assert_eq_bool(actual: bool, expected: bool) {
+    if actual != expected {
+        let msg = concat("assert_eq_bool failed: expected ", concat(bool_to_string(expected), concat(", got ", bool_to_string(actual))))
+        panic(msg)
+    }
+}
+
+pub fn assert_ne_i32(actual: i32, unexpected: i32) {
+    if actual == unexpected {
+        let msg = concat("assert_ne_i32 failed: values should differ, both are ", i32_to_string(actual))
+        panic(msg)
+    }
+}
+
+pub fn assert_ne_string(actual: String, unexpected: String) {
+    if eq(actual, unexpected) {
+        let msg = concat("assert_ne_string failed: values should differ, both are \"", concat(actual, "\""))
+        panic(msg)
+    }
+}
+
+// === Result/Option expectations ===
+
+pub fn expect_ok_i32(r: Result<i32, String>) -> i32 {
+    match r {
+        Ok(v) => v,
+        Err(e) => {
+            let msg = concat("expect_ok_i32: got Err(\"", concat(e, "\")"))
+            panic(msg)
+            0
+        }
+    }
+}
+
+pub fn expect_err_string(r: Result<i32, String>) -> String {
+    match r {
+        Ok(v) => {
+            let msg = concat("expect_err_string: got Ok(", concat(i32_to_string(v), ")"))
+            panic(msg)
+            String_new()
+        },
+        Err(e) => e
+    }
+}
+
+pub fn expect_some_i32(o: Option<i32>) -> i32 {
+    match o {
+        Some(v) => v,
+        None => {
+            panic("expect_some_i32: got None")
+            0
+        }
+    }
+}
+
+pub fn expect_none_i32(o: Option<i32>) {
+    match o {
+        Some(v) => {
+            let msg = concat("expect_none_i32: got Some(", concat(i32_to_string(v), ")"))
+            panic(msg)
+        },
+        None => {}
+    }
+}

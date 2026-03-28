@@ -4239,7 +4239,43 @@ fn is_void_expr(expr: &ast::Expr) -> bool {
     match expr {
         ast::Expr::Call { callee, .. } => {
             if let ast::Expr::Ident { name, .. } = callee.as_ref() {
-                matches!(name.as_str(), "println" | "print" | "eprintln")
+                matches!(
+                    name.as_str(),
+                    "println"
+                        | "print"
+                        | "eprintln"
+                        | "panic"
+                        | "assert"
+                        | "assert_eq"
+                        | "assert_ne"
+                        | "assert_eq_str"
+                        | "assert_eq_i64"
+                        | "push"
+                        | "push_char"
+                        | "set"
+                        | "sort_i32"
+                        | "sort_String"
+                        | "sort_i64"
+                        | "sort_f64"
+                        | "reverse_i32"
+                        | "reverse_String"
+                        | "remove_i32"
+                )
+            } else if let ast::Expr::QualifiedIdent { name, .. } = callee.as_ref() {
+                // Module-qualified void calls: test::assert_eq_i32, etc.
+                matches!(
+                    name.as_str(),
+                    "assert_true"
+                        | "assert_false"
+                        | "assert_eq_i32"
+                        | "assert_eq_i64"
+                        | "assert_eq_f64"
+                        | "assert_eq_string"
+                        | "assert_eq_bool"
+                        | "assert_ne_i32"
+                        | "assert_ne_string"
+                        | "expect_none_i32"
+                )
             } else {
                 false
             }

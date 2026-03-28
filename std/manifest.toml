@@ -1157,3 +1157,83 @@ name = "shuffle_i32"
 module = "std::random"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
+
+# === std::test ===
+
+[[functions]]
+name = "assert_true"
+module = "std::test"
+params = ["bool"]
+returns = "()"
+
+[[functions]]
+name = "assert_false"
+module = "std::test"
+params = ["bool"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_i32"
+module = "std::test"
+params = ["i32", "i32"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_i64"
+module = "std::test"
+params = ["i64", "i64"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_f64"
+module = "std::test"
+params = ["f64", "f64"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_string"
+module = "std::test"
+params = ["String", "String"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_bool"
+module = "std::test"
+params = ["bool", "bool"]
+returns = "()"
+
+[[functions]]
+name = "assert_ne_i32"
+module = "std::test"
+params = ["i32", "i32"]
+returns = "()"
+
+[[functions]]
+name = "assert_ne_string"
+module = "std::test"
+params = ["String", "String"]
+returns = "()"
+
+[[functions]]
+name = "expect_ok_i32"
+module = "std::test"
+params = ["Result<i32, String>"]
+returns = "i32"
+
+[[functions]]
+name = "expect_err_string"
+module = "std::test"
+params = ["Result<i32, String>"]
+returns = "String"
+
+[[functions]]
+name = "expect_some_i32"
+module = "std::test"
+params = ["Option<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "expect_none_i32"
+module = "std::test"
+params = ["Option<i32>"]
+returns = "()"

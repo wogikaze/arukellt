@@ -1,0 +1,30 @@
+use std::test
+
+fn main() {
+    // i32
+    test::assert_eq_i32(42, 42)
+    test::assert_eq_i32(0, 0)
+    test::assert_eq_i32(-1, -1)
+
+    // i64
+    test::assert_eq_i64(100_i64, 100_i64)
+    test::assert_eq_i64(0_i64, 0_i64)
+
+    // f64
+    test::assert_eq_f64(3.14, 3.14)
+    test::assert_eq_f64(0.0, 0.0)
+
+    // string
+    test::assert_eq_string("hello", "hello")
+    test::assert_eq_string("", "")
+
+    // bool
+    test::assert_eq_bool(true, true)
+    test::assert_eq_bool(false, false)
+
+    // true/false
+    test::assert_true(1 == 1)
+    test::assert_false(1 == 2)
+
+    println("assert_eq ok")
+}
