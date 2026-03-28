@@ -973,6 +973,12 @@ pub enum UnaryOp {
     Neg,
     Not,
     BitNot,
+    /// Sign-extend the low 8 bits (i32.extend8_s / i64.extend8_s).
+    SignExtend8,
+    /// Sign-extend the low 16 bits (i32.extend16_s / i64.extend16_s).
+    SignExtend16,
+    /// Sign-extend the low 32 bits (i64.extend32_s). Only meaningful for i64.
+    SignExtend32,
 }
 
 /// Kind of aggregate being constructed.

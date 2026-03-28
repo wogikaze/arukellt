@@ -845,6 +845,11 @@ impl<'ctx> LlvmEmitter<'ctx> {
                     None
                 }
             }
+            UnaryOp::SignExtend8 | UnaryOp::SignExtend16 | UnaryOp::SignExtend32 => {
+                // Sign extension is a Wasm-specific concern; LLVM handles
+                // narrow types natively so this is a no-op pass-through.
+                Some(val)
+            }
         }
     }
 

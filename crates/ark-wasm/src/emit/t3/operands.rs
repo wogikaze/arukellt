@@ -160,6 +160,23 @@ impl Ctx {
                         f.instruction(&Instruction::I32Const(-1));
                         f.instruction(&Instruction::I32Xor);
                     }
+                    UnaryOp::SignExtend8 => {
+                        if is_i64 {
+                            f.instruction(&Instruction::I64Extend8S);
+                        } else {
+                            f.instruction(&Instruction::I32Extend8S);
+                        }
+                    }
+                    UnaryOp::SignExtend16 => {
+                        if is_i64 {
+                            f.instruction(&Instruction::I64Extend16S);
+                        } else {
+                            f.instruction(&Instruction::I32Extend16S);
+                        }
+                    }
+                    UnaryOp::SignExtend32 => {
+                        f.instruction(&Instruction::I64Extend32S);
+                    }
                 }
             }
             Operand::Call(name, args) => {
@@ -670,6 +687,23 @@ impl Ctx {
             UnaryOp::Not | UnaryOp::BitNot => {
                 f.instruction(&Instruction::I32Const(-1));
                 f.instruction(&Instruction::I32Xor);
+            }
+            UnaryOp::SignExtend8 => {
+                if self.i64_locals.contains(&local_id) {
+                    f.instruction(&Instruction::I64Extend8S);
+                } else {
+                    f.instruction(&Instruction::I32Extend8S);
+                }
+            }
+            UnaryOp::SignExtend16 => {
+                if self.i64_locals.contains(&local_id) {
+                    f.instruction(&Instruction::I64Extend16S);
+                } else {
+                    f.instruction(&Instruction::I32Extend16S);
+                }
+            }
+            UnaryOp::SignExtend32 => {
+                f.instruction(&Instruction::I64Extend32S);
             }
         }
     }
