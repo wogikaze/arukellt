@@ -14,6 +14,7 @@
 |------|-------|---------|
 | [scalar-types.md](scalar-types.md) | Scalar Types Specification | Arukellt provides a complete set of scalar types for integer, floating-point, |
 | [spec-1.0.0/Contributing.md](spec-1.0.0/Contributing.md) | Contributing to WebAssembly | Interested in participating? Please follow |
+| [spec-1.0.0/OVERVIEW.md](spec-1.0.0/OVERVIEW.md) | WebAssembly 1.0 仕様 — 見取り図 | このファイルは LLM 実装者向けナビゲータです。各文書の役割と読む順序を示します。 |
 | [spec-1.0.0/proposals/bulk-memory-operations/Overview.md](spec-1.0.0/proposals/bulk-memory-operations/Overview.md) | Bulk Memory Operations and Conditional Segment Initialization | Some people have mentioned that memcpy and memmove functions are hot |
 | [spec-1.0.0/proposals/multi-value/Overview.md](spec-1.0.0/proposals/multi-value/Overview.md) | Multi-value Extension | A simple swap function. |
 | [spec-1.0.0/proposals/nontrapping-float-to-int-conversion/Overview.md](spec-1.0.0/proposals/nontrapping-float-to-int-conversion/Overview.md) | Non-trapping Float-to-int Conversions | The primary motivations are: |
@@ -38,6 +39,7 @@
 | [spec-1.0.0/test/Todo.md](spec-1.0.0/test/Todo.md) | Todo | This is a rough list of "tests to write". Everything here should either be |
 | [spec-1.0.0/test/js-api/LICENSE.md](spec-1.0.0/test/js-api/LICENSE.md) | Dual-License for W3C Test Suites | All documents in this Repository are licensed by contributors to be distributed under both the W3C Test Suite License and the W3C 3-clause BSD License, reproduced below. The choice of license is up to the licensee. For more information, see Licenses for W3C Test Suites |
 | [spec-2.0.0/Contributing.md](spec-2.0.0/Contributing.md) | Contributing to WebAssembly | Interested in participating? Please follow |
+| [spec-2.0.0/OVERVIEW.md](spec-2.0.0/OVERVIEW.md) | WebAssembly 2.0 仕様 — 見取り図 | このファイルはLLM実装者向けナビゲータです。各文書の役割と読む順序を示します。 |
 | [spec-2.0.0/proposals/bulk-memory-operations/Overview.md](spec-2.0.0/proposals/bulk-memory-operations/Overview.md) | Bulk Memory Operations and Conditional Segment Initialization | Some people have mentioned that memcpy and memmove functions are hot |
 | [spec-2.0.0/proposals/multi-value/Overview.md](spec-2.0.0/proposals/multi-value/Overview.md) | Multi-value Extension | A simple swap function. |
 | [spec-2.0.0/proposals/nontrapping-float-to-int-conversion/Overview.md](spec-2.0.0/proposals/nontrapping-float-to-int-conversion/Overview.md) | Non-trapping Float-to-int Conversions | The primary motivations are: |
@@ -62,6 +64,7 @@
 | [spec-2.0.0/test/Todo.md](spec-2.0.0/test/Todo.md) | Todo | This is a rough list of "tests to write". Everything here should either be |
 | [spec-2.0.0/test/js-api/LICENSE.md](spec-2.0.0/test/js-api/LICENSE.md) | Dual-License for W3C Test Suites | All documents in this Repository are licensed by contributors to be distributed under both the W3C Test Suite License and the W3C 3-clause BSD License, reproduced below. The choice of license is up to the licensee. For more information, see Licenses for W3C Test Suites |
 | [spec-3.0.0/Contributing.md](spec-3.0.0/Contributing.md) | Contributing to WebAssembly | Interested in participating? Please follow |
+| [spec-3.0.0/OVERVIEW.md](spec-3.0.0/OVERVIEW.md) | WebAssembly 3.0 仕様 — 見取り図 | このファイルは LLM実装者向けナビゲータ です。 |
 | [spec-3.0.0/proposals/annotations/Overview.md](spec-3.0.0/proposals/annotations/Overview.md) | Custom Annotation Syntax for the Wasm Text Format | Problem |
 | [spec-3.0.0/proposals/branch-hinting/Motivation.md](spec-3.0.0/proposals/branch-hinting/Motivation.md) | Proposal motivation | This document has the purpose of explaining better the underlying issues that the proposal |
 | [spec-3.0.0/proposals/branch-hinting/Overview.md](spec-3.0.0/proposals/branch-hinting/Overview.md) | Branch hinting | The motivation for this proposal is to improve the performance of the compiled wasm |
@@ -115,4 +118,96 @@
 | [spec-3.0.0/spectec/test-splice/TEST.md](spec-3.0.0/spectec/test-splice/TEST.md) | Preview | See the document for details. |
 | [spec-3.0.0/test/Todo.md](spec-3.0.0/test/Todo.md) | Todo | This is a rough list of "tests to write". Everything here should either be |
 | [spec-3.0.0/test/js-api/LICENSE.md](spec-3.0.0/test/js-api/LICENSE.md) | Dual-License for W3C Test Suites | All documents in this Repository are licensed by contributors to be distributed under both the W3C Test Suite License and the W3C 3-clause BSD License, reproduced below. The choice of license is up to the licensee. For more information, see Licenses for W3C Test Suites |
+| [spec-WASI-0.1.0/.github/RELEASE.md](spec-WASI-0.1.0/.github/RELEASE.md) | WASI Release Process | ┌─────────────────┐ ┌──────────────┐ ┌─────────────┐ |
+| [spec-WASI-0.1.0/CONTRIBUTING.md](spec-WASI-0.1.0/CONTRIBUTING.md) | Contributing to WASI | Interested in participating? Please follow |
+| [spec-WASI-0.1.0/LICENSE.md](spec-WASI-0.1.0/LICENSE.md) | LICENSE | Copyright © 2019-2023 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.1.0/OVERVIEW.md](spec-WASI-0.1.0/OVERVIEW.md) | WASI 0.1.0 (Preview 1) 仕様 — 見取り図 | このファイルはLLM実装者向けナビゲータです。コンパイラバックエンドがWASI Preview 1準拠のコードを生成するために必要な情報を素早く把握するためのガイドです。 |
+| [spec-WASI-0.1.0/application-abi.md](spec-WASI-0.1.0/application-abi.md) | application-abi | WASI Application ABI |
+| [spec-WASI-0.1.0/optional-imports.md](spec-WASI-0.1.0/optional-imports.md) | optional-imports | Optional Imports |
+| [spec-WASI-0.1.0/preview0/docs.md](spec-WASI-0.1.0/preview0/docs.md) | Types | Size: 4 |
+| [spec-WASI-0.1.0/preview1/docs.md](spec-WASI-0.1.0/preview1/docs.md) | Types | Size: 4 |
+| [spec-WASI-0.1.0/tools/witx-docs.md](spec-WASI-0.1.0/tools/witx-docs.md) | Know your witx | Witx is an experimental IDL. The text format is based on a text format |
+| [spec-WASI-0.2.10/.github/RELEASE.md](spec-WASI-0.2.10/.github/RELEASE.md) | WASI Release Process | ┌─────────────────┐ ┌──────────────┐ ┌─────────────┐ |
+| [spec-WASI-0.2.10/CONTRIBUTING.md](spec-WASI-0.2.10/CONTRIBUTING.md) | Contributing to WASI | Interested in participating? Please follow |
+| [spec-WASI-0.2.10/LICENSE.md](spec-WASI-0.2.10/LICENSE.md) | LICENSE | Copyright © 2019-2023 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.2.10/OVERVIEW.md](spec-WASI-0.2.10/OVERVIEW.md) | WASI 0.2.10 (Preview 2) 仕様 — 見取り図 | このファイルは LLM実装者向けナビゲータ です。 |
+| [spec-WASI-0.2.10/docs/Capabilities.md](spec-WASI-0.2.10/docs/Capabilities.md) | Capabilities in WASI | What is a capability? |
+| [spec-WASI-0.2.10/docs/Charter.md](spec-WASI-0.2.10/docs/Charter.md) | WebAssembly System Interface Subgroup Charter | The System Interface Subgroup is a sub-organization of the |
+| [spec-WASI-0.2.10/docs/DesignPrinciples.md](spec-WASI-0.2.10/docs/DesignPrinciples.md) | DesignPrinciples | WASI is designed with capability-based security principles, using the |
+| [spec-WASI-0.2.10/docs/HighLevelGoals.md](spec-WASI-0.2.10/docs/HighLevelGoals.md) | HighLevelGoals | (In the spirit of WebAssembly's High-Level Goals.) |
+| [spec-WASI-0.2.10/docs/Preview2.md](spec-WASI-0.2.10/docs/Preview2.md) | WASI Preview 2 | WASI Preview 2 represents a major milestone for WASI. It marks the moment |
+| [spec-WASI-0.2.10/docs/Proposals.md](spec-WASI-0.2.10/docs/Proposals.md) | WASI proposals | WASI APIs are developed as proposals. These proposals go through 5 phases of development (following [the WASI Subgroup's Phase Process]). |
+| [spec-WASI-0.2.10/docs/WitInWasi.md](spec-WASI-0.2.10/docs/WitInWasi.md) | Wit in WASI | Starting in Preview2, WASI APIs are defined using the [Wit IDL]. |
+| [spec-WASI-0.2.10/proposals/cli/LICENSE.md](spec-WASI-0.2.10/proposals/cli/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.2.10/proposals/cli/command.md](spec-WASI-0.2.10/proposals/cli/command.md) | command | <h1><a id="command"></a>World command</h1> |
+| [spec-WASI-0.2.10/proposals/cli/imports.md](spec-WASI-0.2.10/proposals/cli/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.2.10/proposals/clocks/imports.md](spec-WASI-0.2.10/proposals/clocks/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.2.10/proposals/filesystem/LICENSE.md](spec-WASI-0.2.10/proposals/filesystem/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.2.10/proposals/filesystem/imports.md](spec-WASI-0.2.10/proposals/filesystem/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.2.10/proposals/filesystem/path-resolution.md](spec-WASI-0.2.10/proposals/filesystem/path-resolution.md) | WASI filesystem path resolution | wasi-filesystem uses a filesystem path sandboxing scheme modeled after the |
+| [spec-WASI-0.2.10/proposals/http/LICENSE.md](spec-WASI-0.2.10/proposals/http/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.2.10/proposals/http/imports.md](spec-WASI-0.2.10/proposals/http/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.2.10/proposals/http/proxy.md](spec-WASI-0.2.10/proposals/http/proxy.md) | proxy | <h1><a id="proxy"></a>World proxy</h1> |
+| [spec-WASI-0.2.10/proposals/io/LICENSE.md](spec-WASI-0.2.10/proposals/io/LICENSE.md) | LICENSE | Copyright © 2019-2023 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.2.10/proposals/io/imports.md](spec-WASI-0.2.10/proposals/io/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.2.10/proposals/random/LICENSE.md](spec-WASI-0.2.10/proposals/random/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.2.10/proposals/random/imports.md](spec-WASI-0.2.10/proposals/random/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.2.10/proposals/sockets/GrantingAccess.md](spec-WASI-0.2.10/proposals/sockets/GrantingAccess.md) | GrantingAccess | This section is mostly here to illustrate the granularity of permissions that ought to be possible. It is by no means a recommendation of any kind. It's just spitballing how a CLI-based implementation might grant network access. |
+| [spec-WASI-0.2.10/proposals/sockets/LICENSE.md](spec-WASI-0.2.10/proposals/sockets/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.2.10/proposals/sockets/Posix-compatibility.md](spec-WASI-0.2.10/proposals/sockets/Posix-compatibility.md) | POSIX Compatibility | This document provides an overview of the POSIX interface along with common non-standard extensions and their mapping to functionalities provided by this proposal. |
+| [spec-WASI-0.2.10/proposals/sockets/TcpSocketOperationalSemantics-0.3.0-draft.md](spec-WASI-0.2.10/proposals/sockets/TcpSocketOperationalSemantics-0.3.0-draft.md) | Operational semantics of WASI TCP sockets | WASI TCP sockets must behave as-if they are implemented using the state machine described in this document. |
+| [spec-WASI-0.2.10/proposals/sockets/TcpSocketOperationalSemantics.md](spec-WASI-0.2.10/proposals/sockets/TcpSocketOperationalSemantics.md) | Operational semantics of WASI TCP sockets | WASI TCP sockets must behave as-if they are implemented using the state machine described in this document. |
+| [spec-WASI-0.2.10/proposals/sockets/imports.md](spec-WASI-0.2.10/proposals/sockets/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.0/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.0/Overview.md) | WASI Specification v0.2.0 | This is version 0.2.0 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.1/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.1/Overview.md) | WASI Specification v0.2.1 | This is version 0.2.1 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.2/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.2/Overview.md) | WASI Specification v0.2.2 | This is version 0.2.2 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.3/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.3/Overview.md) | WASI Specification v0.2.3 | This is version 0.2.3 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.4/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.4/Overview.md) | WASI Specification v0.2.4 | This is version 0.2.4 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.5/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.5/Overview.md) | WASI Specification v0.2.5 | This is version 0.2.5 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.6/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.6/Overview.md) | WASI Specification v0.2.6 | This is version 0.2.6 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.7/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.7/Overview.md) | WASI Specification v0.2.7 | This is version 0.2.7 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.8/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.8/Overview.md) | WASI Specification v0.2.8 | This is version 0.2.8 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.2.10/specifications/wasi-0.2.9/Overview.md](spec-WASI-0.2.10/specifications/wasi-0.2.9/Overview.md) | WASI Specification v0.2.9 | This is version 0.2.9 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/.github/RELEASE.md](spec-WASI-0.3.0-rc/.github/RELEASE.md) | WASI Release Process | ┌─────────────────┐ ┌──────────────┐ ┌─────────────┐ |
+| [spec-WASI-0.3.0-rc/CONTRIBUTING.md](spec-WASI-0.3.0-rc/CONTRIBUTING.md) | Contributing to WASI | Interested in participating? Please follow |
+| [spec-WASI-0.3.0-rc/LICENSE.md](spec-WASI-0.3.0-rc/LICENSE.md) | LICENSE | Copyright © 2019-2023 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.3.0-rc/OVERVIEW.md](spec-WASI-0.3.0-rc/OVERVIEW.md) | WASI 0.3.0-rc (Preview 3 RC) 仕様 — 見取り図 | このファイルはLLM実装者向けナビゲータです。RC (Release Candidate) 段階のドキュメントです。 |
+| [spec-WASI-0.3.0-rc/docs/Capabilities.md](spec-WASI-0.3.0-rc/docs/Capabilities.md) | Capabilities in WASI | What is a capability? |
+| [spec-WASI-0.3.0-rc/docs/Charter.md](spec-WASI-0.3.0-rc/docs/Charter.md) | WebAssembly System Interface Subgroup Charter | The System Interface Subgroup is a sub-organization of the |
+| [spec-WASI-0.3.0-rc/docs/DesignPrinciples.md](spec-WASI-0.3.0-rc/docs/DesignPrinciples.md) | DesignPrinciples | WASI is designed with capability-based security principles, using the |
+| [spec-WASI-0.3.0-rc/docs/HighLevelGoals.md](spec-WASI-0.3.0-rc/docs/HighLevelGoals.md) | HighLevelGoals | (In the spirit of WebAssembly's High-Level Goals.) |
+| [spec-WASI-0.3.0-rc/docs/Preview2.md](spec-WASI-0.3.0-rc/docs/Preview2.md) | WASI Preview 2 | WASI Preview 2 represents a major milestone for WASI. It marks the moment |
+| [spec-WASI-0.3.0-rc/docs/Proposals.md](spec-WASI-0.3.0-rc/docs/Proposals.md) | WASI proposals | WASI APIs are developed as proposals. These proposals go through 5 phases of development (following [the WASI Subgroup's Phase Process]). |
+| [spec-WASI-0.3.0-rc/docs/WitInWasi.md](spec-WASI-0.3.0-rc/docs/WitInWasi.md) | Wit in WASI | Starting in Preview2, WASI APIs are defined using the [Wit IDL]. |
+| [spec-WASI-0.3.0-rc/proposals/cli/LICENSE.md](spec-WASI-0.3.0-rc/proposals/cli/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.3.0-rc/proposals/cli/command.md](spec-WASI-0.3.0-rc/proposals/cli/command.md) | command | <h1><a id="command"></a>World command</h1> |
+| [spec-WASI-0.3.0-rc/proposals/cli/imports.md](spec-WASI-0.3.0-rc/proposals/cli/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.3.0-rc/proposals/clocks/imports.md](spec-WASI-0.3.0-rc/proposals/clocks/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.3.0-rc/proposals/filesystem/LICENSE.md](spec-WASI-0.3.0-rc/proposals/filesystem/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.3.0-rc/proposals/filesystem/imports.md](spec-WASI-0.3.0-rc/proposals/filesystem/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.3.0-rc/proposals/filesystem/path-resolution.md](spec-WASI-0.3.0-rc/proposals/filesystem/path-resolution.md) | WASI filesystem path resolution | wasi-filesystem uses a filesystem path sandboxing scheme modeled after the |
+| [spec-WASI-0.3.0-rc/proposals/http/LICENSE.md](spec-WASI-0.3.0-rc/proposals/http/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.3.0-rc/proposals/http/imports.md](spec-WASI-0.3.0-rc/proposals/http/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.3.0-rc/proposals/http/proxy.md](spec-WASI-0.3.0-rc/proposals/http/proxy.md) | proxy | <h1><a id="proxy"></a>World proxy</h1> |
+| [spec-WASI-0.3.0-rc/proposals/io/LICENSE.md](spec-WASI-0.3.0-rc/proposals/io/LICENSE.md) | LICENSE | Copyright © 2019-2023 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.3.0-rc/proposals/io/imports.md](spec-WASI-0.3.0-rc/proposals/io/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.3.0-rc/proposals/random/LICENSE.md](spec-WASI-0.3.0-rc/proposals/random/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.3.0-rc/proposals/random/imports.md](spec-WASI-0.3.0-rc/proposals/random/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.3.0-rc/proposals/sockets/GrantingAccess.md](spec-WASI-0.3.0-rc/proposals/sockets/GrantingAccess.md) | GrantingAccess | This section is mostly here to illustrate the granularity of permissions that ought to be possible. It is by no means a recommendation of any kind. It's just spitballing how a CLI-based implementation might grant network access. |
+| [spec-WASI-0.3.0-rc/proposals/sockets/LICENSE.md](spec-WASI-0.3.0-rc/proposals/sockets/LICENSE.md) | LICENSE | Copyright © 2019-2024 the Contributors to the WASI Specification, published |
+| [spec-WASI-0.3.0-rc/proposals/sockets/Posix-compatibility.md](spec-WASI-0.3.0-rc/proposals/sockets/Posix-compatibility.md) | POSIX Compatibility | This document provides an overview of the POSIX interface along with common non-standard extensions and their mapping to functionalities provided by this proposal. |
+| [spec-WASI-0.3.0-rc/proposals/sockets/TcpSocketOperationalSemantics-0.3.0-draft.md](spec-WASI-0.3.0-rc/proposals/sockets/TcpSocketOperationalSemantics-0.3.0-draft.md) | Operational semantics of WASI TCP sockets | WASI TCP sockets must behave as-if they are implemented using the state machine described in this document. |
+| [spec-WASI-0.3.0-rc/proposals/sockets/TcpSocketOperationalSemantics.md](spec-WASI-0.3.0-rc/proposals/sockets/TcpSocketOperationalSemantics.md) | Operational semantics of WASI TCP sockets | WASI TCP sockets must behave as-if they are implemented using the state machine described in this document. |
+| [spec-WASI-0.3.0-rc/proposals/sockets/imports.md](spec-WASI-0.3.0-rc/proposals/sockets/imports.md) | imports | <h1><a id="imports"></a>World imports</h1> |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.0/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.0/Overview.md) | WASI Specification v0.2.0 | This is version 0.2.0 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.1/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.1/Overview.md) | WASI Specification v0.2.1 | This is version 0.2.1 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.10/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.10/Overview.md) | WASI Specification v0.2.10 | This is version 0.2.10 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.2/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.2/Overview.md) | WASI Specification v0.2.2 | This is version 0.2.2 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.3/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.3/Overview.md) | WASI Specification v0.2.3 | This is version 0.2.3 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.4/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.4/Overview.md) | WASI Specification v0.2.4 | This is version 0.2.4 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.5/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.5/Overview.md) | WASI Specification v0.2.5 | This is version 0.2.5 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.6/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.6/Overview.md) | WASI Specification v0.2.6 | This is version 0.2.6 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.7/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.7/Overview.md) | WASI Specification v0.2.7 | This is version 0.2.7 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.8/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.8/Overview.md) | WASI Specification v0.2.8 | This is version 0.2.8 of the WASI specification, based on the [WebAssembly |
+| [spec-WASI-0.3.0-rc/specifications/wasi-0.2.9/Overview.md](spec-WASI-0.3.0-rc/specifications/wasi-0.2.9/Overview.md) | WASI Specification v0.2.9 | This is version 0.2.9 of the WASI specification, based on the [WebAssembly |
 | [v0-unified-spec.md](v0-unified-spec.md) | Archived v0 unified spec | この文書は、以前の v0 統合仕様を 1 箇所に集めていた設計資料です。 |
