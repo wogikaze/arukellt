@@ -7,6 +7,7 @@ pub mod escape;
 pub mod lower;
 pub mod mir;
 pub mod opt;
+pub mod passes;
 pub mod validate;
 
 pub use lower::{compare_lowering_paths, lower_check_output_to_mir, lower_legacy_only};
