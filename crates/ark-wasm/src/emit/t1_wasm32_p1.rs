@@ -3942,30 +3942,60 @@ impl EmitCtx {
                     let (offset, len) = self.alloc_string(s);
                     self.emit_fd_write(f, 1, offset, len);
                 }
-                _ => {
-                    // Print i32 without newline — call i32_to_string then fd_write
-                    self.emit_operand(f, arg);
-                    f.instruction(&Instruction::Call(FN_I32_TO_STR));
+                Operand::Place(Place::Local(id)) if self.string_locals.contains(&id.0) => {
+                    // String local: print via fd_write without newline
                     let ma2 = MemArg {
                         offset: 0,
                         align: 2,
                         memory_index: 0,
                     };
-                    // iov setup from SCRATCH
+                    // iov.base = ptr
                     f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-                    f.instruction(&Instruction::I32Const(SCRATCH as i32));
-                    f.instruction(&Instruction::I32Load(ma2));
+                    f.instruction(&Instruction::LocalGet(id.0));
                     f.instruction(&Instruction::I32Store(ma2));
+                    // iov.len = i32.load(ptr - 4)
                     f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
-                    f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+                    f.instruction(&Instruction::LocalGet(id.0));
+                    f.instruction(&Instruction::I32Const(4));
+                    f.instruction(&Instruction::I32Sub);
                     f.instruction(&Instruction::I32Load(ma2));
                     f.instruction(&Instruction::I32Store(ma2));
+                    // fd_write(1, iov, 1, nwritten)
                     f.instruction(&Instruction::I32Const(1));
                     f.instruction(&Instruction::I32Const(IOV_BASE as i32));
                     f.instruction(&Instruction::I32Const(1));
                     f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                     f.instruction(&Instruction::Call(FN_FD_WRITE));
                     f.instruction(&Instruction::Drop);
+                }
+                _ => {
+                    self.emit_operand(f, arg);
+                    if self.is_string_operand(arg) {
+                        // String on stack: use print_str_ln (adds newline; best effort)
+                        f.instruction(&Instruction::Call(FN_PRINT_STR_LN));
+                    } else {
+                        // Print i32 without newline
+                        f.instruction(&Instruction::Call(FN_I32_TO_STR));
+                        let ma2 = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma2));
+                        f.instruction(&Instruction::I32Store(ma2));
+                        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Load(ma2));
+                        f.instruction(&Instruction::I32Store(ma2));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::Call(FN_FD_WRITE));
+                        f.instruction(&Instruction::Drop);
+                    }
                 }
             }
         }

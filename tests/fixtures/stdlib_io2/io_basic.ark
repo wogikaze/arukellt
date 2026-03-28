@@ -1,0 +1,7 @@
+use std::io
+
+fn main() {
+    io::write_stdout("hello ")
+    io::writeln_stdout("world")
+    io::writeln_stdout("done")
+}

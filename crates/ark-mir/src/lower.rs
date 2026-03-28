@@ -2536,6 +2536,14 @@ impl LowerCtx {
                         name: name.clone(),
                         args: mir_args,
                     });
+                } else if let ast::Expr::QualifiedIdent { name, .. } = callee.as_ref() {
+                    // Module-qualified void calls: io::writeln_stdout, etc.
+                    let mir_args: Vec<Operand> = args.iter().map(|a| self.lower_expr(a)).collect();
+                    out.push(MirStmt::CallBuiltin {
+                        dest: None,
+                        name: name.clone(),
+                        args: mir_args,
+                    });
                 } else if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref() {
                     // Method call as statement: x.method(args) → discard result
                     if let Some((mangled, _)) = self.method_resolutions.get(&span.start).cloned() {
@@ -4262,9 +4270,10 @@ fn is_void_expr(expr: &ast::Expr) -> bool {
                         | "remove_i32"
                 )
             } else if let ast::Expr::QualifiedIdent { name, .. } = callee.as_ref() {
-                // Module-qualified void calls: test::assert_eq_i32, etc.
+                // Module-qualified void calls
                 matches!(
                     name.as_str(),
+                    // std::test
                     "assert_true"
                         | "assert_false"
                         | "assert_eq_i32"
@@ -4275,6 +4284,14 @@ fn is_void_expr(expr: &ast::Expr) -> bool {
                         | "assert_ne_i32"
                         | "assert_ne_string"
                         | "expect_none_i32"
+                        // std::io
+                        | "write_stdout"
+                        | "write_stderr"
+                        | "writeln_stdout"
+                        | "writeln_stderr"
+                        // std::process
+                        | "exit"
+                        | "abort"
                 )
             } else {
                 false

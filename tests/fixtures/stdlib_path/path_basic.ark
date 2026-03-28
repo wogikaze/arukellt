@@ -1,0 +1,26 @@
+use std::path
+
+fn main() {
+    // join
+    println(path::join("/usr", "bin"))
+    println(path::join("/usr/", "bin"))
+    println(path::join("", "file.txt"))
+
+    // parent
+    println(path::parent("/usr/bin/ls"))
+    println(path::parent("/"))
+
+    // file_name
+    println(path::file_name("/usr/bin/ls"))
+
+    // extension
+    println(path::extension("main.ark"))
+    println(path::extension("Makefile"))
+
+    // with_extension
+    println(path::with_extension("main.rs", "ark"))
+
+    // is_absolute
+    println(bool_to_string(path::is_absolute("/usr")))
+    println(bool_to_string(path::is_absolute("relative")))
+}

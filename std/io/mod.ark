@@ -1,0 +1,21 @@
+// std::io — I/O operations
+//
+// Provides write_stdout, write_stderr, and read_line_stdin.
+// Reader/Writer abstractions deferred to v4 (requires trait system).
+// Current implementation wraps existing println/print/eprintln intrinsics.
+
+pub fn write_stdout(s: String) {
+    __intrinsic_print(s)
+}
+
+pub fn write_stderr(s: String) {
+    __intrinsic_eprintln(s)
+}
+
+pub fn writeln_stdout(s: String) {
+    __intrinsic_println(s)
+}
+
+pub fn writeln_stderr(s: String) {
+    __intrinsic_eprintln(s)
+}

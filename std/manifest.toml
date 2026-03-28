@@ -1383,3 +1383,81 @@ name = "has_flag"
 module = "std::cli"
 params = ["String"]
 returns = "bool"
+
+# === std::path ===
+
+[[functions]]
+name = "join"
+module = "std::path"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "parent"
+module = "std::path"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "file_name"
+module = "std::path"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "extension"
+module = "std::path"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "with_extension"
+module = "std::path"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "is_absolute"
+module = "std::path"
+params = ["String"]
+returns = "bool"
+
+# === std::fs ===
+
+[[functions]]
+name = "read_to_string"
+module = "std::fs"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "write_string"
+module = "std::fs"
+params = ["String", "String"]
+returns = "()"
+
+# === std::io ===
+
+[[functions]]
+name = "write_stdout"
+module = "std::io"
+params = ["String"]
+returns = "()"
+
+[[functions]]
+name = "write_stderr"
+module = "std::io"
+params = ["String"]
+returns = "()"
+
+[[functions]]
+name = "writeln_stdout"
+module = "std::io"
+params = ["String"]
+returns = "()"
+
+[[functions]]
+name = "writeln_stderr"
+module = "std::io"
+params = ["String"]
+returns = "()"
