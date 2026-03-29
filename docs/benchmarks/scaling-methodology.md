@@ -21,19 +21,17 @@ This matters because:
 
 ## Running a Scaling Sweep
 
+Use `mise bench` (full mode) to capture timing data across multiple iterations,
+then compare results across runs stored in `benchmarks/results/` to observe
+scaling behaviour.
+
 ```bash
-# Full sweep (5 sizes × 5 iterations)
-scripts/bench-scaling.sh fib
-
-# Quick sweep (3 sizes × 3 iterations)
-scripts/bench-scaling.sh binary_tree --quick
-
-# Custom iteration count
-scripts/bench-scaling.sh vec_ops --iterations=10
+mise bench   # full mode (10 iterations)
 ```
 
-Output is JSON conforming to `arukellt-scaling-bench-v1`, including
-per-size median timing, growth ratios, and cliff warnings.
+Output conforms to `arukellt-bench-v1` schema. Per-size analysis can be done
+by inspecting the JSON results directly or by running
+`python3 scripts/benchmark_runner.py --mode compare`.
 
 ## Benchmark Scaling Parameters
 
@@ -126,7 +124,7 @@ adjacent size points. Common causes:
 When a cliff is detected, investigate by:
 
 1. Narrowing the sweep range around the cliff point
-2. Checking memory metrics (`scripts/bench-memory.sh`)
+2. Checking memory metrics (`mise bench` — memory fields in JSON results)
 3. Reviewing recent code changes for algorithmic regressions
 
 ## Integration with CI
@@ -146,4 +144,3 @@ every push). Recommended usage:
 - [`benchmarks/README.md`](../../benchmarks/README.md) — benchmark suite overview
 - [`docs/benchmarks/governance.md`](governance.md) — naming, schema, comparison methodology
 - [`docs/benchmarks/variance-control.md`](variance-control.md) — controlling measurement noise
-- [`scripts/bench-scaling.sh`](../../scripts/bench-scaling.sh) — the scaling sweep script

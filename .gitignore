@@ -1,6 +1,10 @@
 .worktrees/
 target/
 
+# Python bytecache
+__pycache__/
+*.pyc
+
 # instant-grep index
 .ig/
 

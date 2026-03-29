@@ -136,6 +136,9 @@ benchmarks/
 ├── vec_ops.expected
 ├── string_concat.ark
 ├── string_concat.expected
+├── bench_parse_tree_distance.ark
+├── bench_parse_tree_distance.expected
+├── bench_parse_tree_distance.input.txt
 ├── run_benchmarks.sh       # Thin wrapper around benchmark_runner.py
 ├── parity-check.sh         # T1 vs T3 parity verification
 ├── size-compare.sh         # Wasm binary size comparison
@@ -155,7 +158,6 @@ docs/sample/
 
 scripts/
 ├── benchmark_runner.py     # Canonical runner (all modes)
-├── compare-benchmarks.sh   # Baseline comparison wrapper
 └── perf-gate.sh            # CI gate wrapper
 ```
 
@@ -194,9 +196,10 @@ A regression is flagged when `delta_pct` exceeds the threshold for that metric
 1. Create `benchmarks/bench_<category>_<name>.ark` following the naming
    convention.
 2. Create `benchmarks/bench_<category>_<name>.expected` with correct stdout.
-3. Register the benchmark in `scripts/benchmark_runner.py` by adding a
+3. If the benchmark reads checked-in files at runtime, add the required wasmtime args (for example `run --dir=.`) in its `BenchmarkCase` entry.
+4. Register the benchmark in `scripts/benchmark_runner.py` by adding a
    `BenchmarkCase` entry to the `BENCHMARKS` tuple.
-4. Run `mise bench` to verify it compiles, runs, and produces correct output.
+5. Run `mise bench` to verify it compiles, runs, and produces correct output.
 5. Run `mise bench:update-baseline` to include the new benchmark in the
    baseline.
-6. Commit the fixture, expected file, and updated baseline together.
+6. Commit the fixture, expected file, any checked-in input files, and updated baseline together.

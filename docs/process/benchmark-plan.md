@@ -21,9 +21,7 @@ ADR-002（GC vs non-GC）の決定に必要なデータを収集する。
 補助 wrapper:
 
 - `bash benchmarks/run_benchmarks.sh`
-- `bash scripts/compare-benchmarks.sh`
 - `bash scripts/perf-gate.sh`
-- `bash scripts/update-perf-baselines.sh`
 
 これらはすべて `scripts/benchmark_runner.py` を呼ぶ薄い入口とする。
 

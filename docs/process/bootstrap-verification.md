@@ -55,8 +55,8 @@ formal verification.
 
 Fixpoint verification only works when compilation is **deterministic**.
 The compiler must not embed timestamps, random nonces, or pointer-derived
-values into the output binary.  The existing `scripts/check-reproducible-build.sh`
-validates this property for individual fixtures and will be extended to
+values into the output binary.  Determinism is verified by `scripts/verify-harness.sh`
+(which compiles fixtures twice and asserts byte-identical output) and will be extended to
 cover the self-hosted compiler once it exists.
 
 ## Running

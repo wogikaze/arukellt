@@ -59,19 +59,17 @@ a stable order (e.g. first-occurrence in AST walk).
 
 ## Verification
 
-The reproducible-build gate is enforced by:
+The reproducible-build gate is enforced by `scripts/verify-harness.sh`. To
+verify manually, compile the same fixture twice and compare:
 
 ```bash
-scripts/check-reproducible-build.sh
+arukellt compile fixture.ark -o out1.wasm
+arukellt compile fixture.ark -o out2.wasm
+cmp out1.wasm out2.wasm
 ```
 
-This script compiles each fixture file twice and asserts byte-identical
-output via `cmp` / `sha256sum`. It is designed to run in CI and can also
-be invoked manually.
-
-On failure the script prints both SHA-256 checksums and the first
-divergent byte offset, which can be combined with `wasm-tools dump` or
-WAT diff to locate the non-deterministic section.
+On failure, compare WAT output (`wasm-tools print out1.wasm > a.wat`, etc.)
+to locate the non-deterministic section.
 
 ## Debugging a Failure
 

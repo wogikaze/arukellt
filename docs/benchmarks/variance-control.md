@@ -93,29 +93,19 @@ When a benchmark exceeds its CV threshold:
 - The measurement is flagged **unstable** in reports.
 - CI treats unstable benchmarks as informational (no gate failure) unless the
   regression also exceeds the [regression threshold](governance.md#threshold-policy-ci-gate).
-- The `scripts/bench-check-variance.sh` script can be used to diagnose the
-  source of noise (see §5).
+- To diagnose noise, run the benchmark with more iterations via `mise bench` and compare variance across runs (see §5).
 
 ## 5. Detecting Noisy Measurements
 
-Use the variance-check script to diagnose instability:
+To detect instability, run the benchmark multiple times and observe variance:
 
 ```bash
-# Run fib benchmark 10 times, fail if CV ≥ 10 %
-scripts/bench-check-variance.sh benchmarks/fib.ark
-
-# Custom threshold (5 %)
-scripts/bench-check-variance.sh benchmarks/fib.ark 5
-
-# Custom iteration count
-BENCH_ITERATIONS=20 scripts/bench-check-variance.sh benchmarks/fib.ark
+# Run with 10 iterations
+mise bench
 ```
 
-The script reports:
-
-- **Min**, **max**, **median**, **mean**, **stddev**, and **CV** of the
-  measured samples.
-- A **PASS** / **FAIL** verdict against the CV threshold.
+Compare runs by looking at the CV (coefficient of variation) in the JSON results
+stored in `benchmarks/results/`.
 
 ### Triage checklist for noisy benchmarks
 
