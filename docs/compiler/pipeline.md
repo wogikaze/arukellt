@@ -1,7 +1,7 @@
 # コンパイルパイプライン
 
 > **Current reality first**: 実装の現在地は [../current-state.md](../current-state.md) を基準にしてください。
-> このページは current path と refactor target path を並べて示します。
+> このページは、現在の主要経路と、repo が保持している設計境界を整理するための補助資料です。
 
 ## 現在の主要経路
 
@@ -13,16 +13,20 @@ source (.ark)
   → ark-typecheck
   → ark-mir
   → ark-wasm
-  → wasm32-wasi-p1 artifact / run via wasmtime
 ```
 
-- `ark-driver::Session` が shared analysis / orchestration の入口
+現在の user-visible な主経路は `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm` です。
+
+- `ark-driver::Session` が共有 orchestration の入口
 - `arukellt` が `check` / `compile` / `run` を提供
-- `check` は frontend diagnostics まで、`compile` / `run` は Wasm emit と backend validation まで進む
+- `check` は frontend diagnostics まで
+- `compile` / `run` は backend validation まで進む
+- `wasm32-wasi-p1` は互換パス、`wasm32-wasi-p2` は canonical GC-native パス
+- `--emit component` / `--emit wit` は `wasm32-wasi-p2` 側の追加出力
 
-## 採用済みの refactor target path
+## 設計上の境界
 
-この refactor で採用する 1 本化パイプラインは次です。
+repo 内では、より細かい段階名も引き続き使います。
 
 ```text
 Lex
@@ -40,13 +44,7 @@ Lex
   → BackendValidate
 ```
 
-### 分割方針
-
-- 新規共有 crate は `ark-hir` のみ
-- `Bind / Load / Analyze / Resolve` は `ark-resolve` 内 module 分割
-- `MIRValidate / MIROptimize` は `ark-mir` 内 module 分割
-- `BackendPlan` は `ark-target` 側
-- crate 数を不必要に増やさず、責務境界だけ明確化する
+これは「今すぐ全部が独立した public surface」という意味ではなく、責務分割の目印です。
 
 ## 現在の crate map
 
@@ -54,21 +52,21 @@ Lex
 - `crates/ark-parser`
 - `crates/ark-resolve`
 - `crates/ark-typecheck`
+- `crates/ark-hir`
 - `crates/ark-mir`
 - `crates/ark-wasm`
-- `crates/ark-driver`
 - `crates/ark-target`
 - `crates/ark-diagnostics`
+- `crates/ark-driver`
+- `crates/ark-stdlib`
 - `crates/ark-lsp`
 - `crates/ark-llvm`
-- `crates/ark-stdlib`
 - `crates/arukellt`
-- planned shared IR crate for this refactor: `crates/ark-hir`
 
 ## Session / Artifact Graph 方針
 
-`ark-driver::Session` は段階的に artifact graph へ寄せる。
-最小単位の query / artifact は次を想定する。
+`ark-driver::Session` は artifact / query 指向の境界をまとめるハブです。
+現在参照される主な段階名:
 
 - `parse()`
 - `bind()`
@@ -81,32 +79,34 @@ Lex
 - `plan_backend()`
 - `emit_wasm()`
 
-互換のため旧 API は shim として残し、内部で新 query を呼ぶ。
+旧 API や移行途中の境界が残っていても、現挙動の判定は `docs/current-state.md` と実装コードを優先してください。
 
 ## Diagnostics / Validation 境界
 
 - frontend diagnostics は parse / resolve / typecheck origin を持つ
-- backend validation は `W0004` を hard error として扱う
-- hidden snapshot/dump support は `ARUKELLT_DUMP_PHASES` で有効化できる
-- dump phase 名は `parse`, `resolve`, `corehir`, `mir`, `optimized-mir`, `backend-plan`
+- backend validation failure (`W0004`) は hard error
+- component export surface では `W0005` が使われる
+- hidden snapshot / dump support は `ARUKELLT_DUMP_PHASES` と `ARUKELLT_DUMP_DIAGNOSTICS=1`
 
 ## Test / Verification Hook
 
-- fixture harness は manifest-driven で 362 entries
-- baseline collector は `tests/baselines/` を更新する
-- `scripts/check-docs-consistency.py` が docs の drift を最低限検出する
-- `scripts/verify-harness.sh` が correctness gate を担い、heavy perf は別 job に分ける
+- fixture harness は `tests/fixtures/manifest.txt` 駆動
+- fixture 総数や verification gate の現在値は `docs/current-state.md` を参照
+- `scripts/check-docs-consistency.py` が generated docs drift を検出
+- `scripts/verify-harness.sh` が correctness gate を担う
 
 ## 読み方
 
 - 現挙動の説明は [../current-state.md](../current-state.md) を優先
-- このページの refactor target は「採用した設計境界」を示す
-- 旧 ADR / design 文書は制約や履歴としては有効でも、現挙動の source of truth にはしない
+- このページは pipeline の責務境界を読むための補助資料
+- 古い refactor 計画や historical docs は、current behavior の source of truth ではない
 
 ## 関連
 
 - [../current-state.md](../current-state.md)
 - [diagnostics.md](diagnostics.md)
+- [ir-spec.md](ir-spec.md) — CoreHIR / MIR の正規仕様
+- [../language/spec.md](../language/spec.md) — 言語仕様 (凍結対象)
 - [../platform/wasm-features.md](../platform/wasm-features.md)
 - [../migration/t1-to-t3.md](../migration/t1-to-t3.md)
 - [../contributing.md](../contributing.md)

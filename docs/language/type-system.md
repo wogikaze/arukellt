@@ -115,6 +115,8 @@ let v: Vec<i32> = Vec_new_i32()
 
 ## 関連
 
+- [spec.md](spec.md) — 言語仕様 (凍結対象)
 - [syntax.md](syntax.md)
 - [memory-model.md](memory-model.md)
+- [../compiler/ir-spec.md](../compiler/ir-spec.md) — CoreHIR / MIR の正規仕様
 - [../current-state.md](../current-state.md)
