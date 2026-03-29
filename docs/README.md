@@ -9,9 +9,9 @@
 - CLI default target: `wasm32-wasi-p1`
 - Canonical target: `wasm32-wasi-p2`
 - Component emit: available on `wasm32-wasi-p2` (requires external `wasm-tools` binary and WASI adapter module)
-- Fixture harness: 415 passed / 415 entries
+- Fixture harness: 421 passed / 421 entries
 - Verification: `bash scripts/verify-harness.sh` — 16/16 checks pass
-- Stdlib manifest-backed public API: 261 functions
+- Stdlib manifest-backed public API: 263 functions
 
 ## First Reads
 

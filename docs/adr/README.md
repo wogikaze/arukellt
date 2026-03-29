@@ -20,3 +20,6 @@
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI の上限 | ステータス: DECIDED |
 | [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | ステータス: DECIDED |
 | [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | ステータス: DECIDED |
+| [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Status: DECIDED |
+| [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | ステータス: DECIDED |
+| [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: WASI ホスト API は version ではなく capability で名前付けする | ステータス: DECIDED |

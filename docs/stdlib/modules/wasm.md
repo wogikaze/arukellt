@@ -6,8 +6,8 @@ Source-backed docs for WebAssembly helpers.
 ## `std::wasm`
 
 - Source: [`../../../std/wasm/mod.ark`](../../../std/wasm/mod.ark)
-- Manifest-backed functions: 17
-- Stability: experimental 17
+- Manifest-backed functions: 19
+- Stability: experimental 19
 
 Experimental WebAssembly helpers.
 
@@ -35,3 +35,5 @@ value-type constants.
 | `valtype_i64` | `() -> i32` | `experimental` | - |
 | `valtype_f32` | `() -> i32` | `experimental` | - |
 | `valtype_f64` | `() -> i32` | `experimental` | - |
+| `memory_copy` | `(i32, i32, i32) -> ()` | `experimental` | - |
+| `memory_fill` | `(i32, i32, i32) -> ()` | `experimental` | - |

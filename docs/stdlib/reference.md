@@ -226,6 +226,8 @@
 | `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - |
 | `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - |
 | `max_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
+| `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` |
+| `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` |
 | `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
 | `monotonic_now` | `() -> i64` | `std::time` | `stable` | `builtin` | no | - |
 | `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - |
