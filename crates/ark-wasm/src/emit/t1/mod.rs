@@ -116,6 +116,9 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_Vec_new_i64" => "Vec_new_i64",
         "__intrinsic_Vec_new_f64" => "Vec_new_f64",
         "__intrinsic_Vec_new_String" => "Vec_new_String",
+        "__intrinsic_Vec_new_i32_with_cap" => "Vec_new_i32_with_cap",
+        "__intrinsic_Vec_new_i64_with_cap" => "Vec_new_i64_with_cap",
+        "__intrinsic_Vec_new_f64_with_cap" => "Vec_new_f64_with_cap",
         "__intrinsic_sort_i32" => "sort_i32",
         "__intrinsic_sort_String" => "sort_String",
         "__intrinsic_map_i32_i32" => "map_i32_i32",
@@ -128,6 +131,7 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_join" => "join",
         "__intrinsic_push_char" => "push_char",
         "__intrinsic_read_line" => "read_line",
+        "__intrinsic_read_int" => "read_int",
         "__intrinsic_trim" => "trim",
         "__intrinsic_contains" => "contains",
         "__intrinsic_char_at" => "char_at",
@@ -858,7 +862,7 @@ fn cfn_handle_builtin(n: &str, args: &[Operand], func: &MirFunction, mir: &MirMo
             needed.insert(FN_F64_TO_STR);
             needed.insert(FN_I64_TO_STR);
         }
-        "read_line" => { needed.insert(FN_FD_READ); }
+        "read_line" | "read_int" => { needed.insert(FN_FD_READ); }
         "clock_now" | "clock_time_get" => { needed.insert(FN_CLOCK_TIME_GET); }
         "random_i32" | "random_f64" => { needed.insert(FN_RANDOM_GET); }
         "fs_read_file" => {

@@ -58,6 +58,10 @@ pub fn read_line() -> String {
     __intrinsic_read_line()
 }
 
+pub fn read_int() -> i32 {
+    __intrinsic_read_int()
+}
+
 pub fn trim(s: String) -> String {
     __intrinsic_trim(s)
 }
@@ -154,6 +158,19 @@ pub fn Vec_new_f64() -> Vec<f64> {
 
 pub fn Vec_new_String() -> Vec<String> {
     __intrinsic_Vec_new_String()
+}
+
+// Vec pre-allocation with exact capacity (no realloc on push up to cap elements)
+pub fn Vec_new_i32_with_cap(cap: i32) -> Vec<i32> {
+    __intrinsic_Vec_new_i32_with_cap(cap)
+}
+
+pub fn Vec_new_i64_with_cap(cap: i32) -> Vec<i64> {
+    __intrinsic_Vec_new_i64_with_cap(cap)
+}
+
+pub fn Vec_new_f64_with_cap(cap: i32) -> Vec<f64> {
+    __intrinsic_Vec_new_f64_with_cap(cap)
 }
 
 // Vec sorting (Ark-native bubble sort)

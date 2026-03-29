@@ -236,6 +236,58 @@ impl EmitCtx {
                         }
                         self.call_fn(f, FN_I64_TO_STR);
                     }
+                    name if name == "Vec_new_i32_with_cap"
+                        || name == "Vec_new_i64_with_cap"
+                        || name == "Vec_new_f64_with_cap" =>
+                    {
+                        // Allocate Vec with exact capacity: {len:0, cap:args[0], data_ptr}
+                        // No realloc needed if push count <= cap.
+                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let elem_size: i32 = if name == "Vec_new_i64_with_cap" || name == "Vec_new_f64_with_cap" { 8 } else { 4 };
+
+                        // Save start_ptr = current heap into SCRATCH (addr 16)
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // header[0] = len = 0
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // header[4] = cap = args[0]
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        self.emit_operand(f, &args[0]);
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // bump heap past header (12 bytes)
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(12));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+
+                        // header[8] = data_ptr = current heap
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // start_ptr
+                        f.instruction(&Instruction::I32Const(8));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // bump heap past data: heap += cap * elem_size
+                        f.instruction(&Instruction::GlobalGet(0));
+                        self.emit_operand(f, &args[0]); // cap
+                        f.instruction(&Instruction::I32Const(elem_size));
+                        f.instruction(&Instruction::I32Mul);
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+
+                        // result = start_ptr (saved at SCRATCH)
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                    }
                     name if name == "Vec_new_i32"
                         || name == "Vec_new_String"
                         || name.starts_with("Vec_new_") =>
@@ -4530,6 +4582,143 @@ impl EmitCtx {
                         // return buf_start
                         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
                         f.instruction(&Instruction::I32Load(ma));
+                    }
+                    "read_int" => {
+                        // read_int() -> i32
+                        // Reads an integer from stdin without any heap allocation.
+                        // Uses fixed scratch addresses only:
+                        //   IOV_BASE (0):     iov.buf = 8 (read byte into NWRITTEN)
+                        //   IOV_BASE+4 (4):   iov.len = 1
+                        //   NWRITTEN (8):     single-byte read buffer
+                        //   SCRATCH (16):     sign (1 or -1)
+                        //   SCRATCH+4 (20):   result accumulator
+                        //   FS_NREAD (164):   nread count from fd_read
+                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+
+                        // Setup: iov.buf=8, iov.len=1
+                        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                        f.instruction(&Instruction::I32Const((NWRITTEN) as i32));
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // sign = 1
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // result = 0
+                        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // Phase 1: skip whitespace, detect '-' or first digit
+                        // block $exit_p1 { loop $loop_p1 { ... } }
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // $exit_p1 (br 1 from loop)
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));  // $loop_p1 (br 0 = continue)
+
+                        // fd_read(0, IOV_BASE, 1, FS_NREAD)
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        self.call_fn(f, FN_FD_READ);
+                        f.instruction(&Instruction::Drop);
+
+                        // if nread == 0 (EOF): return 0 (result stays 0, sign=1)
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Eqz);
+                        f.instruction(&Instruction::BrIf(1)); // br $exit_p1
+
+                        // byte = mem[NWRITTEN] (i32 loaded, but we only care about low byte)
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load8U(ma0));
+
+                        // if byte <= 32 (whitespace: space, tab, \n, \r): continue loop
+                        f.instruction(&Instruction::I32Const(32));
+                        f.instruction(&Instruction::I32LeU);
+                        f.instruction(&Instruction::BrIf(0)); // continue $loop_p1
+
+                        // if byte == '-' (45): sign = -1, exit phase 1 (will read digits in phase 2)
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const(45));
+                        f.instruction(&Instruction::I32Eq);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Const(-1i32));
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(2)); // br $exit_p1 (from inside if: +1 depth)
+                        f.instruction(&Instruction::End);
+
+                        // else: first digit — result = byte - '0'
+                        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const(48));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(1)); // br $exit_p1
+
+                        f.instruction(&Instruction::End); // end $loop_p1
+                        f.instruction(&Instruction::End); // end $exit_p1
+
+                        // Phase 2: read remaining digits
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // $exit_p2 (br 1)
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));  // $loop_p2 (br 0)
+
+                        // fd_read(0, IOV_BASE, 1, FS_NREAD)
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        self.call_fn(f, FN_FD_READ);
+                        f.instruction(&Instruction::Drop);
+
+                        // if EOF: break
+                        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Eqz);
+                        f.instruction(&Instruction::BrIf(1)); // br $exit_p2
+
+                        // if byte < '0' (48): break (non-digit)
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const(48));
+                        f.instruction(&Instruction::I32LtU);
+                        f.instruction(&Instruction::BrIf(1)); // br $exit_p2
+
+                        // if byte > '9' (57): break
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const(57));
+                        f.instruction(&Instruction::I32GtU);
+                        f.instruction(&Instruction::BrIf(1)); // br $exit_p2
+
+                        // result = result * 10 + (byte - '0')
+                        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(10));
+                        f.instruction(&Instruction::I32Mul);
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const(48));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0)); // continue $loop_p2
+
+                        f.instruction(&Instruction::End); // end $loop_p2
+                        f.instruction(&Instruction::End); // end $exit_p2
+
+                        // return result * sign
+                        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Mul);
                     }
                     "read_line" => {
                         // read_line() -> String

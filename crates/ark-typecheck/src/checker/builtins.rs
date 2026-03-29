@@ -173,6 +173,16 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
+            "__intrinsic_read_int".into(),
+            FnSig {
+                name: "__intrinsic_read_int".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
             "__intrinsic_trim".into(),
             FnSig {
                 name: "__intrinsic_trim".into(),
@@ -686,6 +696,36 @@ impl TypeChecker {
                 type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_Vec_new_i32_with_cap".into(),
+            FnSig {
+                name: "__intrinsic_Vec_new_i32_with_cap".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::Vec(Box::new(Type::I32)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_Vec_new_i64_with_cap".into(),
+            FnSig {
+                name: "__intrinsic_Vec_new_i64_with_cap".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::Vec(Box::new(Type::I64)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_Vec_new_f64_with_cap".into(),
+            FnSig {
+                name: "__intrinsic_Vec_new_f64_with_cap".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::Vec(Box::new(Type::F64)),
             },
         );
         self.fn_sigs.insert(
