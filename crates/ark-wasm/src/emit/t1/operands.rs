@@ -6282,10 +6282,10 @@ impl EmitCtx {
 
     /// Returns the element byte size for a vector operand: 8 for Vec<i64>/Vec<f64>, 4 otherwise.
     pub(super) fn vec_elem_size(&self, vec_op: &Operand) -> u32 {
-        if let Operand::Place(Place::Local(id)) = vec_op {
-            if self.vec_i64_locals.contains(&id.0) || self.vec_f64_locals.contains(&id.0) {
-                return 8;
-            }
+        if let Operand::Place(Place::Local(id)) = vec_op
+            && (self.vec_i64_locals.contains(&id.0) || self.vec_f64_locals.contains(&id.0))
+        {
+            return 8;
         }
         4
     }

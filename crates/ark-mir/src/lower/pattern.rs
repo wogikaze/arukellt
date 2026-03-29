@@ -30,10 +30,10 @@ impl LowerCtx {
                 let tmp = self.declare_local("__match_scrut");
                 out.push(MirStmt::Assign(Place::Local(tmp), Rvalue::Use(scrut_val)));
                 // If scrutinee is a function call, resolve generic enum payload types
-                if let ast::Expr::Call { callee, .. } = scrutinee {
-                    if let ast::Expr::Ident { name: fn_name, .. } = callee.as_ref() {
-                        self.resolve_enum_payload_types_for_local(tmp, fn_name);
-                    }
+                if let ast::Expr::Call { callee, .. } = scrutinee
+                    && let ast::Expr::Ident { name: fn_name, .. } = callee.as_ref()
+                {
+                    self.resolve_enum_payload_types_for_local(tmp, fn_name);
                 }
                 Operand::Place(Place::Local(tmp))
             }
@@ -303,31 +303,28 @@ impl LowerCtx {
                         if let ast::Pattern::Ident { name: binding, .. } = field_pat {
                             let local_id = self.declare_local(binding);
                             // Check if this payload field is a string
-                            if let Some(ref ps) = payload_strings {
-                                if ps.contains(&(variant.clone(), i as u32)) {
-                                    self.string_locals.insert(local_id.0);
-                                }
+                            if let Some(ref ps) = payload_strings
+                                && ps.contains(&(variant.clone(), i as u32))
+                            {
+                                self.string_locals.insert(local_id.0);
                             }
                             // Check if this payload field is f64, i64, or String
                             if let Some(variants) = self.enum_defs.get(effective_enum_name.as_str())
-                            {
-                                if let Some((_, types)) =
+                                && let Some((_, types)) =
                                     variants.iter().find(|(vn, _)| vn == variant)
-                                {
-                                    if let Some(t) = types.get(i) {
-                                        if t == "f64" {
-                                            self.f64_locals.insert(local_id.0);
-                                        }
-                                        if t == "i64" {
-                                            self.i64_locals.insert(local_id.0);
-                                        }
-                                        if t == "String" {
-                                            self.string_locals.insert(local_id.0);
-                                        }
-                                        if self.enum_defs.contains_key(t.as_str()) {
-                                            self.enum_typed_locals.insert(local_id.0, t.clone());
-                                        }
-                                    }
+                                && let Some(t) = types.get(i)
+                            {
+                                if t == "f64" {
+                                    self.f64_locals.insert(local_id.0);
+                                }
+                                if t == "i64" {
+                                    self.i64_locals.insert(local_id.0);
+                                }
+                                if t == "String" {
+                                    self.string_locals.insert(local_id.0);
+                                }
+                                if self.enum_defs.contains_key(t.as_str()) {
+                                    self.enum_typed_locals.insert(local_id.0, t.clone());
                                 }
                             }
                             let payload = Operand::EnumPayload {
@@ -441,24 +438,22 @@ impl LowerCtx {
                             let field_idx =
                                 def_field_names.iter().position(|n| n == fname).unwrap_or(0);
                             // Track f64/i64/String types
-                            if let Some(variants) = self.enum_defs.get(enum_name) {
-                                if let Some((_, types)) =
+                            if let Some(variants) = self.enum_defs.get(enum_name)
+                                && let Some((_, types)) =
                                     variants.iter().find(|(vn, _)| vn == variant_name)
-                                {
-                                    if let Some(t) = types.get(field_idx) {
-                                        if t == "f64" {
-                                            self.f64_locals.insert(local_id.0);
-                                        }
-                                        if t == "i64" {
-                                            self.i64_locals.insert(local_id.0);
-                                        }
-                                        if t == "String" {
-                                            self.string_locals.insert(local_id.0);
-                                        }
-                                        if self.enum_defs.contains_key(t.as_str()) {
-                                            self.enum_typed_locals.insert(local_id.0, t.clone());
-                                        }
-                                    }
+                                && let Some(t) = types.get(field_idx)
+                            {
+                                if t == "f64" {
+                                    self.f64_locals.insert(local_id.0);
+                                }
+                                if t == "i64" {
+                                    self.i64_locals.insert(local_id.0);
+                                }
+                                if t == "String" {
+                                    self.string_locals.insert(local_id.0);
+                                }
+                                if self.enum_defs.contains_key(t.as_str()) {
+                                    self.enum_typed_locals.insert(local_id.0, t.clone());
                                 }
                             }
                             let payload = Operand::EnumPayload {
@@ -497,14 +492,14 @@ impl LowerCtx {
                     };
                     let local_id = self.declare_local(&binding_name);
                     // Detect f64/String fields from struct_defs
-                    if let Some(sdef) = self.struct_defs.get(name.as_str()) {
-                        if let Some((_, ftype)) = sdef.iter().find(|(n, _)| n == fname) {
-                            if ftype == "f64" {
-                                self.f64_locals.insert(local_id.0);
-                            }
-                            if ftype == "String" {
-                                self.string_locals.insert(local_id.0);
-                            }
+                    if let Some(sdef) = self.struct_defs.get(name.as_str())
+                        && let Some((_, ftype)) = sdef.iter().find(|(n, _)| n == fname)
+                    {
+                        if ftype == "f64" {
+                            self.f64_locals.insert(local_id.0);
+                        }
+                        if ftype == "String" {
+                            self.string_locals.insert(local_id.0);
                         }
                     }
                     let field_access = Operand::FieldAccess {
@@ -701,26 +696,24 @@ impl LowerCtx {
                     for (i, field_pat) in fields.iter().enumerate() {
                         if let ast::Pattern::Ident { name: binding, .. } = field_pat {
                             let local_id = self.declare_local(binding);
-                            if let Some(ref ps) = payload_strings {
-                                if ps.contains(&(variant.clone(), i as u32)) {
+                            if let Some(ref ps) = payload_strings
+                                && ps.contains(&(variant.clone(), i as u32))
+                            {
+                                self.string_locals.insert(local_id.0);
+                            }
+                            if let Some(variants) = self.enum_defs.get(path.as_str())
+                                && let Some((_, types)) =
+                                    variants.iter().find(|(vn, _)| vn == variant)
+                                && let Some(t) = types.get(i)
+                            {
+                                if t == "f64" {
+                                    self.f64_locals.insert(local_id.0);
+                                }
+                                if t == "String" {
                                     self.string_locals.insert(local_id.0);
                                 }
-                            }
-                            if let Some(variants) = self.enum_defs.get(path.as_str()) {
-                                if let Some((_, types)) =
-                                    variants.iter().find(|(vn, _)| vn == variant)
-                                {
-                                    if let Some(t) = types.get(i) {
-                                        if t == "f64" {
-                                            self.f64_locals.insert(local_id.0);
-                                        }
-                                        if t == "String" {
-                                            self.string_locals.insert(local_id.0);
-                                        }
-                                        if self.enum_defs.contains_key(t.as_str()) {
-                                            self.enum_typed_locals.insert(local_id.0, t.clone());
-                                        }
-                                    }
+                                if self.enum_defs.contains_key(t.as_str()) {
+                                    self.enum_typed_locals.insert(local_id.0, t.clone());
                                 }
                             }
                             let payload = Operand::EnumPayload {
@@ -821,21 +814,19 @@ impl LowerCtx {
                             let local_id = self.declare_local(&binding_name);
                             let field_idx =
                                 def_field_names.iter().position(|n| n == fname).unwrap_or(0);
-                            if let Some(variants) = self.enum_defs.get(enum_name) {
-                                if let Some((_, types)) =
+                            if let Some(variants) = self.enum_defs.get(enum_name)
+                                && let Some((_, types)) =
                                     variants.iter().find(|(vn, _)| vn == variant_name)
-                                {
-                                    if let Some(t) = types.get(field_idx) {
-                                        if t == "f64" {
-                                            self.f64_locals.insert(local_id.0);
-                                        }
-                                        if t == "String" {
-                                            self.string_locals.insert(local_id.0);
-                                        }
-                                        if self.enum_defs.contains_key(t.as_str()) {
-                                            self.enum_typed_locals.insert(local_id.0, t.clone());
-                                        }
-                                    }
+                                && let Some(t) = types.get(field_idx)
+                            {
+                                if t == "f64" {
+                                    self.f64_locals.insert(local_id.0);
+                                }
+                                if t == "String" {
+                                    self.string_locals.insert(local_id.0);
+                                }
+                                if self.enum_defs.contains_key(t.as_str()) {
+                                    self.enum_typed_locals.insert(local_id.0, t.clone());
                                 }
                             }
                             let payload = Operand::EnumPayload {
@@ -869,14 +860,14 @@ impl LowerCtx {
                         _ => fname.clone(),
                     };
                     let local_id = self.declare_local(&binding_name);
-                    if let Some(sdef) = self.struct_defs.get(name.as_str()) {
-                        if let Some((_, ftype)) = sdef.iter().find(|(n, _)| n == fname) {
-                            if ftype == "f64" {
-                                self.f64_locals.insert(local_id.0);
-                            }
-                            if ftype == "String" {
-                                self.string_locals.insert(local_id.0);
-                            }
+                    if let Some(sdef) = self.struct_defs.get(name.as_str())
+                        && let Some((_, ftype)) = sdef.iter().find(|(n, _)| n == fname)
+                    {
+                        if ftype == "f64" {
+                            self.f64_locals.insert(local_id.0);
+                        }
+                        if ftype == "String" {
+                            self.string_locals.insert(local_id.0);
                         }
                     }
                     let field_access = Operand::FieldAccess {

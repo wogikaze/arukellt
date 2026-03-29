@@ -181,10 +181,10 @@ fn find_field_mutations_stmts(
                 dest: Some(Place::Field(inner, field_name)),
                 ..
             } => {
-                if let Place::Local(id) = inner.as_ref() {
-                    if let Some(sname) = local_structs.get(&id.0) {
-                        out.insert((sname.clone(), field_name.clone()));
-                    }
+                if let Place::Local(id) = inner.as_ref()
+                    && let Some(sname) = local_structs.get(&id.0)
+                {
+                    out.insert((sname.clone(), field_name.clone()));
                 }
             }
             _ => {}

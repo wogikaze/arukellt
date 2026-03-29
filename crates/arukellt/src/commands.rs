@@ -167,10 +167,8 @@ pub(crate) fn cmd_compile(
                 target,
             );
 
-            if time {
-                if let Some(ref timing) = session.last_timing {
-                    eprintln!("{}", timing);
-                }
+            if time && let Some(ref timing) = session.last_timing {
+                eprintln!("{}", timing);
             }
 
             // For --emit all, also generate WIT and component
@@ -298,10 +296,8 @@ pub(crate) fn cmd_run(
             .map(|c| c.wasm)
         {
             Ok(wasm) => {
-                if profile_mem {
-                    if let Ok(info) = session.profile_memory(&file) {
-                        eprintln!("{}", info);
-                    }
+                if profile_mem && let Ok(info) = session.profile_memory(&file) {
+                    eprintln!("{}", info);
                 }
                 let caps = RuntimeCaps::from_cli(&dirs, deny_fs, deny_clock, deny_random);
                 let result = match target {

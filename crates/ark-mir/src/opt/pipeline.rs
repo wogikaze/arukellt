@@ -341,12 +341,12 @@ fn const_fold(function: &mut MirFunction) -> OptimizationSummary {
     let mut summary = OptimizationSummary::default();
     for block in &mut function.blocks {
         for stmt in &mut block.stmts {
-            if let MirStmt::Assign(_, Rvalue::BinaryOp(op, lhs, rhs)) = stmt {
-                if let Some(folded) = fold_binary(*op, lhs, rhs) {
-                    let place = extract_assign_target(stmt);
-                    *stmt = MirStmt::Assign(place, Rvalue::Use(folded));
-                    summary.const_folded += 1;
-                }
+            if let MirStmt::Assign(_, Rvalue::BinaryOp(op, lhs, rhs)) = stmt
+                && let Some(folded) = fold_binary(*op, lhs, rhs)
+            {
+                let place = extract_assign_target(stmt);
+                *stmt = MirStmt::Assign(place, Rvalue::Use(folded));
+                summary.const_folded += 1;
             }
         }
     }
@@ -406,13 +406,13 @@ fn const_prop(function: &mut MirFunction) -> OptimizationSummary {
     for block in &mut function.blocks {
         let mut constants = std::collections::HashMap::new();
         for stmt in &mut block.stmts {
-            if let MirStmt::Assign(Place::Local(dest), Rvalue::Use(value)) = stmt {
-                if matches!(
+            if let MirStmt::Assign(Place::Local(dest), Rvalue::Use(value)) = stmt
+                && matches!(
                     value,
                     Operand::ConstI32(_) | Operand::ConstI64(_) | Operand::ConstBool(_)
-                ) {
-                    constants.insert(dest.0, value.clone());
-                }
+                )
+            {
+                constants.insert(dest.0, value.clone());
             }
             if rewrite_stmt_with_replacements(stmt, &constants) {
                 summary.const_propagated += 1;
@@ -461,11 +461,10 @@ fn unreachable_cleanup(function: &mut MirFunction) -> OptimizationSummary {
             .stmts
             .iter()
             .position(|stmt| matches!(stmt, MirStmt::Return(_)))
+            && index + 1 < block.stmts.len()
         {
-            if index + 1 < block.stmts.len() {
-                block.stmts.truncate(index + 1);
-                summary.unreachable_cleaned += 1;
-            }
+            block.stmts.truncate(index + 1);
+            summary.unreachable_cleaned += 1;
         }
     }
     summary
@@ -484,14 +483,15 @@ fn inline_small_leaf(function: &mut MirFunction) -> OptimizationSummary {
     }
     for block in &mut function.blocks {
         for stmt in &mut block.stmts {
-            if let MirStmt::CallBuiltin { name, args, .. } = stmt {
-                if name == "identity" && args.len() == 1 {
-                    *stmt = MirStmt::Assign(
-                        Place::Local(crate::mir::LocalId(0)),
-                        Rvalue::Use(args[0].clone()),
-                    );
-                    summary.inline_small_leaf += 1;
-                }
+            if let MirStmt::CallBuiltin { name, args, .. } = stmt
+                && name == "identity"
+                && args.len() == 1
+            {
+                *stmt = MirStmt::Assign(
+                    Place::Local(crate::mir::LocalId(0)),
+                    Rvalue::Use(args[0].clone()),
+                );
+                summary.inline_small_leaf += 1;
             }
         }
     }
@@ -502,10 +502,11 @@ fn string_concat_opt(function: &mut MirFunction) -> OptimizationSummary {
     let mut summary = OptimizationSummary::default();
     for block in &mut function.blocks {
         for stmt in &mut block.stmts {
-            if let MirStmt::Assign(_, Rvalue::Use(Operand::Call(name, args))) = stmt {
-                if name == "concat" && args.len() == 2 {
-                    summary.string_concat_normalized += 1;
-                }
+            if let MirStmt::Assign(_, Rvalue::Use(Operand::Call(name, args))) = stmt
+                && name == "concat"
+                && args.len() == 2
+            {
+                summary.string_concat_normalized += 1;
             }
         }
     }
@@ -516,13 +517,13 @@ fn aggregate_simplify(function: &mut MirFunction) -> OptimizationSummary {
     let mut summary = OptimizationSummary::default();
     for block in &mut function.blocks {
         for stmt in &mut block.stmts {
-            if let MirStmt::Assign(place, Rvalue::Aggregate(_, operands)) = stmt {
-                if operands.len() == 1 {
-                    let place = place.clone();
-                    let operand = operands[0].clone();
-                    *stmt = MirStmt::Assign(place, Rvalue::Use(operand));
-                    summary.aggregate_simplified += 1;
-                }
+            if let MirStmt::Assign(place, Rvalue::Aggregate(_, operands)) = stmt
+                && operands.len() == 1
+            {
+                let place = place.clone();
+                let operand = operands[0].clone();
+                *stmt = MirStmt::Assign(place, Rvalue::Use(operand));
+                summary.aggregate_simplified += 1;
             }
         }
     }
@@ -550,11 +551,11 @@ fn algebraic_simplify(function: &mut MirFunction) -> OptimizationSummary {
     let mut summary = OptimizationSummary::default();
     for block in &mut function.blocks {
         for stmt in &mut block.stmts {
-            if let MirStmt::Assign(place, rvalue) = stmt {
-                if let Some(simplified) = try_algebraic_simplify_rvalue(rvalue) {
-                    *stmt = MirStmt::Assign(place.clone(), Rvalue::Use(simplified));
-                    summary.algebraic_simplified += 1;
-                }
+            if let MirStmt::Assign(place, rvalue) = stmt
+                && let Some(simplified) = try_algebraic_simplify_rvalue(rvalue)
+            {
+                *stmt = MirStmt::Assign(place.clone(), Rvalue::Use(simplified));
+                summary.algebraic_simplified += 1;
             }
         }
     }
@@ -689,11 +690,11 @@ fn strength_reduction(function: &mut MirFunction) -> OptimizationSummary {
     let mut summary = OptimizationSummary::default();
     for block in &mut function.blocks {
         for stmt in &mut block.stmts {
-            if let MirStmt::Assign(place, Rvalue::BinaryOp(op, lhs, rhs)) = stmt {
-                if let Some(replacement) = try_strength_reduce(*op, lhs, rhs) {
-                    *stmt = MirStmt::Assign(place.clone(), replacement);
-                    summary.strength_reduced += 1;
-                }
+            if let MirStmt::Assign(place, Rvalue::BinaryOp(op, lhs, rhs)) = stmt
+                && let Some(replacement) = try_strength_reduce(*op, lhs, rhs)
+            {
+                *stmt = MirStmt::Assign(place.clone(), replacement);
+                summary.strength_reduced += 1;
             }
         }
     }
@@ -1383,10 +1384,10 @@ pub fn eliminate_dead_functions(module: &mut MirModule) -> usize {
                 .get(canonical)
                 .or_else(|| fnid_to_name.get(&callee_name))
                 .copied();
-            if let Some(target) = target_idx {
-                if reachable.insert(target) {
-                    queue.push_back(target);
-                }
+            if let Some(target) = target_idx
+                && reachable.insert(target)
+            {
+                queue.push_back(target);
             }
         }
     }
@@ -1499,15 +1500,15 @@ fn inter_function_inline(module: &mut MirModule, max_stmts: usize, max_calls: us
         let mut is_recursive = false;
         for block in &func.blocks {
             for stmt in &block.stmts {
-                if let MirStmt::Call { func: fn_id, .. } = stmt {
-                    if module.functions.get(fn_id.0 as usize).map(|f| &f.name) == Some(self_name) {
-                        is_recursive = true;
-                    }
+                if let MirStmt::Call { func: fn_id, .. } = stmt
+                    && module.functions.get(fn_id.0 as usize).map(|f| &f.name) == Some(self_name)
+                {
+                    is_recursive = true;
                 }
-                if let MirStmt::CallBuiltin { name, .. } = stmt {
-                    if name == self_name {
-                        is_recursive = true;
-                    }
+                if let MirStmt::CallBuiltin { name, .. } = stmt
+                    && name == self_name
+                {
+                    is_recursive = true;
                 }
             }
         }
@@ -1526,10 +1527,10 @@ fn inter_function_inline(module: &mut MirModule, max_stmts: usize, max_calls: us
     for func in &module.functions {
         for block in &func.blocks {
             for stmt in &block.stmts {
-                if let MirStmt::CallBuiltin { name, .. } = stmt {
-                    if candidates.contains_key(name) {
-                        *call_counts.entry(name.clone()).or_default() += 1;
-                    }
+                if let MirStmt::CallBuiltin { name, .. } = stmt
+                    && candidates.contains_key(name)
+                {
+                    *call_counts.entry(name.clone()).or_default() += 1;
                 }
             }
             count_operand_calls(&block.terminator, &candidates, &mut call_counts);
@@ -1562,14 +1563,14 @@ fn inter_function_inline(module: &mut MirModule, max_stmts: usize, max_calls: us
         for block in &mut func.blocks {
             let mut i = 0;
             while i < block.stmts.len() {
-                if let MirStmt::CallBuiltin { name, .. } = &block.stmts[i] {
-                    if let Some(body) = candidate_bodies.get(name) {
-                        // Replace CallBuiltin with the candidate's body
-                        block.stmts.splice(i..=i, body.iter().cloned());
-                        total_inlined += 1;
-                        i += body.len();
-                        continue;
-                    }
+                if let MirStmt::CallBuiltin { name, .. } = &block.stmts[i]
+                    && let Some(body) = candidate_bodies.get(name)
+                {
+                    // Replace CallBuiltin with the candidate's body
+                    block.stmts.splice(i..=i, body.iter().cloned());
+                    total_inlined += 1;
+                    i += body.len();
+                    continue;
                 }
                 i += 1;
             }

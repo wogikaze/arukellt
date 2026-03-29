@@ -79,10 +79,11 @@ fn remove_non_constant_assigned(stmts: &[MirStmt], candidates: &mut HashSet<u32>
     for stmt in stmts {
         match stmt {
             MirStmt::Assign(place, rvalue) => {
-                if let Some(lid) = local_of(place) {
-                    if candidates.contains(&lid) && !is_i32_range_constant(rvalue) {
-                        candidates.remove(&lid);
-                    }
+                if let Some(lid) = local_of(place)
+                    && candidates.contains(&lid)
+                    && !is_i32_range_constant(rvalue)
+                {
+                    candidates.remove(&lid);
                 }
             }
             // A local assigned from a call cannot be narrowed.
@@ -176,17 +177,17 @@ fn exclude_unsafe_in_rvalue(
         Rvalue::Use(op) => {
             // A simple copy `dest = Use(Place(Local(id)))` is safe only if the
             // destination is also a candidate or already i32-typed.
-            if let Some(src_lid) = operand_local(op) {
-                if candidates.contains(&src_lid) {
-                    if let Some(dst_lid) = local_of(dest) {
-                        let dst_ty = find_local_type(func, dst_lid);
-                        if dst_ty != Some(&Type::I32) && !candidates.contains(&dst_lid) {
-                            candidates.remove(&src_lid);
-                        }
-                    } else {
-                        // Destination is a field/index projection — not safe.
+            if let Some(src_lid) = operand_local(op)
+                && candidates.contains(&src_lid)
+            {
+                if let Some(dst_lid) = local_of(dest) {
+                    let dst_ty = find_local_type(func, dst_lid);
+                    if dst_ty != Some(&Type::I32) && !candidates.contains(&dst_lid) {
                         candidates.remove(&src_lid);
                     }
+                } else {
+                    // Destination is a field/index projection — not safe.
+                    candidates.remove(&src_lid);
                 }
             }
             // For non-local operands (nested exprs), conservatively exclude.
@@ -382,10 +383,10 @@ fn rewrite_stmts(stmts: &mut [MirStmt], narrowed: &HashSet<u32>) {
     for stmt in stmts.iter_mut() {
         match stmt {
             MirStmt::Assign(place, rvalue) => {
-                if let Some(lid) = local_of(place) {
-                    if narrowed.contains(&lid) {
-                        rewrite_rvalue(rvalue);
-                    }
+                if let Some(lid) = local_of(place)
+                    && narrowed.contains(&lid)
+                {
+                    rewrite_rvalue(rvalue);
                 }
             }
             MirStmt::IfStmt {

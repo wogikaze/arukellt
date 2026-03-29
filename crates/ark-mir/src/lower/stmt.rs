@@ -122,15 +122,15 @@ impl LowerCtx {
                         if tname == "Vec" && args.first().is_some_and(is_string_type) {
                             self.vec_string_locals.insert(local_id.0);
                         }
-                        if tname == "Vec" {
-                            if let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first() {
-                                if inner == "i64" {
-                                    self.vec_i64_locals.insert(local_id.0);
-                                } else if inner == "f64" {
-                                    self.vec_f64_locals.insert(local_id.0);
-                                } else if inner == "i32" {
-                                    self.vec_i32_locals.insert(local_id.0);
-                                }
+                        if tname == "Vec"
+                            && let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first()
+                        {
+                            if inner == "i64" {
+                                self.vec_i64_locals.insert(local_id.0);
+                            } else if inner == "f64" {
+                                self.vec_f64_locals.insert(local_id.0);
+                            } else if inner == "i32" {
+                                self.vec_i32_locals.insert(local_id.0);
                             }
                         }
                         if self.enum_variants.contains_key(tname.as_str()) {
@@ -177,53 +177,55 @@ impl LowerCtx {
                 }
                 // Infer struct type from StructInit initializer when there's no type annotation
                 #[allow(clippy::map_entry)]
-                if !self.struct_typed_locals.contains_key(&local_id.0) {
-                    if let Some(sname) = self.infer_struct_from_init(init) {
-                        self.struct_typed_locals.insert(local_id.0, sname);
-                    }
+                if !self.struct_typed_locals.contains_key(&local_id.0)
+                    && let Some(sname) = self.infer_struct_from_init(init)
+                {
+                    self.struct_typed_locals.insert(local_id.0, sname);
                 }
                 // Infer enum type from call return type when there's no explicit annotation
                 #[allow(clippy::map_entry)]
-                if !self.enum_typed_locals.contains_key(&local_id.0) {
-                    if let Some(ret_te) = self.infer_return_type_expr(init) {
-                        let is_result = matches!(&ret_te, ast::TypeExpr::Generic { name, .. } if name == "Result");
-                        let is_option = matches!(&ret_te, ast::TypeExpr::Generic { name, .. } if name == "Option");
-                        if is_result || is_option {
-                            let enum_name = if is_result { "Result" } else { "Option" };
-                            self.enum_typed_locals
-                                .insert(local_id.0, enum_name.to_string());
-                            // Compute payload strings for the inferred type
-                            let mut payload_strings = HashSet::new();
-                            if let ast::TypeExpr::Generic { args, .. } = &ret_te {
-                                if enum_name == "Option" {
-                                    if args.first().is_some_and(is_string_type) {
-                                        payload_strings.insert(("Some".to_string(), 0u32));
-                                    }
-                                } else if enum_name == "Result" {
-                                    if args.first().is_some_and(is_string_type) {
-                                        payload_strings.insert(("Ok".to_string(), 0u32));
-                                    }
-                                    if args.get(1).is_some_and(is_string_type) {
-                                        payload_strings.insert(("Err".to_string(), 0u32));
-                                    }
+                if !self.enum_typed_locals.contains_key(&local_id.0)
+                    && let Some(ret_te) = self.infer_return_type_expr(init)
+                {
+                    let is_result =
+                        matches!(&ret_te, ast::TypeExpr::Generic { name, .. } if name == "Result");
+                    let is_option =
+                        matches!(&ret_te, ast::TypeExpr::Generic { name, .. } if name == "Option");
+                    if is_result || is_option {
+                        let enum_name = if is_result { "Result" } else { "Option" };
+                        self.enum_typed_locals
+                            .insert(local_id.0, enum_name.to_string());
+                        // Compute payload strings for the inferred type
+                        let mut payload_strings = HashSet::new();
+                        if let ast::TypeExpr::Generic { args, .. } = &ret_te {
+                            if enum_name == "Option" {
+                                if args.first().is_some_and(is_string_type) {
+                                    payload_strings.insert(("Some".to_string(), 0u32));
+                                }
+                            } else if enum_name == "Result" {
+                                if args.first().is_some_and(is_string_type) {
+                                    payload_strings.insert(("Ok".to_string(), 0u32));
+                                }
+                                if args.get(1).is_some_and(is_string_type) {
+                                    payload_strings.insert(("Err".to_string(), 0u32));
                                 }
                             }
-                            if !payload_strings.is_empty() {
-                                self.enum_local_payload_strings
-                                    .insert(local_id.0, payload_strings);
-                            }
-                            if let Some(spec) = detect_specialized_result(&ret_te) {
-                                self.enum_local_specialized.insert(local_id.0, spec);
-                            }
+                        }
+                        if !payload_strings.is_empty() {
+                            self.enum_local_payload_strings
+                                .insert(local_id.0, payload_strings);
+                        }
+                        if let Some(spec) = detect_specialized_result(&ret_te) {
+                            self.enum_local_specialized.insert(local_id.0, spec);
                         }
                     }
                 }
                 // Track closure locals: if the init expression was a closure, record captures
-                if let Operand::FnRef(ref fn_name) = op {
-                    if let Some(caps) = self.closure_fn_captures.get(fn_name).cloned() {
-                        self.closure_locals
-                            .insert(local_id.0, (fn_name.clone(), caps));
-                    }
+                if let Operand::FnRef(ref fn_name) = op
+                    && let Some(caps) = self.closure_fn_captures.get(fn_name).cloned()
+                {
+                    self.closure_locals
+                        .insert(local_id.0, (fn_name.clone(), caps));
                 }
                 // Promote integer literals to i64 when type annotation is i64
                 let op = if self.i64_locals.contains(&local_id.0) {
@@ -551,19 +553,19 @@ impl LowerCtx {
                     }
                 } else if let ast::Expr::FieldAccess { object, field, .. } = target.as_ref() {
                     // self.field = value → FieldStore
-                    if let ast::Expr::Ident { name, .. } = object.as_ref() {
-                        if let Some(local_id) = self.lookup_local(name) {
-                            let struct_name = self.struct_typed_locals.get(&local_id.0).cloned();
-                            let val_op = self.lower_expr(value);
-                            out.push(MirStmt::Assign(
-                                Place::Field(Box::new(Place::Local(local_id)), field.clone()),
-                                Rvalue::Use(val_op),
-                            ));
-                            // Track struct type for the field access
-                            if let Some(sname) = struct_name {
-                                // No-op: struct type already tracked
-                                let _ = sname;
-                            }
+                    if let ast::Expr::Ident { name, .. } = object.as_ref()
+                        && let Some(local_id) = self.lookup_local(name)
+                    {
+                        let struct_name = self.struct_typed_locals.get(&local_id.0).cloned();
+                        let val_op = self.lower_expr(value);
+                        out.push(MirStmt::Assign(
+                            Place::Field(Box::new(Place::Local(local_id)), field.clone()),
+                            Rvalue::Use(val_op),
+                        ));
+                        // Track struct type for the field access
+                        if let Some(sname) = struct_name {
+                            // No-op: struct type already tracked
+                            let _ = sname;
                         }
                     }
                 }
@@ -587,11 +589,11 @@ impl LowerCtx {
                 });
             }
             ast::Expr::Break { value, .. } => {
-                if let Some(val) = value {
-                    if let Some(result_id) = self.loop_result_local {
-                        let op = self.lower_expr(val);
-                        out.push(MirStmt::Assign(Place::Local(result_id), Rvalue::Use(op)));
-                    }
+                if let Some(val) = value
+                    && let Some(result_id) = self.loop_result_local
+                {
+                    let op = self.lower_expr(val);
+                    out.push(MirStmt::Assign(Place::Local(result_id), Rvalue::Use(op)));
                 }
                 out.push(MirStmt::Break);
             }

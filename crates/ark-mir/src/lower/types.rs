@@ -121,15 +121,15 @@ fn nominalize_type_expr(ty: &ast::TypeExpr) -> Option<String> {
 }
 
 pub(crate) fn detect_specialized_result(type_expr: &ast::TypeExpr) -> Option<String> {
-    if let ast::TypeExpr::Generic { name, .. } = type_expr {
-        if name == "Result" {
-            let specialized = nominalize_type_expr(type_expr)?;
-            return matches!(
-                specialized.as_str(),
-                "Result_i64_String" | "Result_f64_String" | "Result_String_String"
-            )
-            .then_some(specialized);
-        }
+    if let ast::TypeExpr::Generic { name, .. } = type_expr
+        && name == "Result"
+    {
+        let specialized = nominalize_type_expr(type_expr)?;
+        return matches!(
+            specialized.as_str(),
+            "Result_i64_String" | "Result_f64_String" | "Result_String_String"
+        )
+        .then_some(specialized);
     }
     None
 }
@@ -163,10 +163,9 @@ impl LowerCtx {
                     let mangled = format!("{}__{}", struct_name, field);
                     if let Some(ast::TypeExpr::Named { name, .. }) =
                         self.fn_return_types.get(&mangled)
+                        && self.struct_defs.contains_key(name.as_str())
                     {
-                        if self.struct_defs.contains_key(name.as_str()) {
-                            return Some(name.clone());
-                        }
+                        return Some(name.clone());
                     }
                 }
                 None
@@ -187,40 +186,35 @@ impl LowerCtx {
             }
             ast::Expr::Call { callee, .. } => {
                 // Check if function returns a struct type
-                if let ast::Expr::Ident { name, .. } = callee.as_ref() {
-                    if let Some(ast::TypeExpr::Named { name: tname, .. }) =
+                if let ast::Expr::Ident { name, .. } = callee.as_ref()
+                    && let Some(ast::TypeExpr::Named { name: tname, .. }) =
                         self.fn_return_types.get(name)
-                    {
-                        if self.struct_defs.contains_key(tname.as_str()) {
-                            return Some(tname.clone());
-                        }
-                    }
+                    && self.struct_defs.contains_key(tname.as_str())
+                {
+                    return Some(tname.clone());
                 }
                 // Check method call returning struct
-                if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref() {
-                    if let Some(struct_name) = self.infer_struct_type(object) {
-                        let mangled = format!("{}__{}", struct_name, field);
-                        if let Some(ast::TypeExpr::Named { name: tname, .. }) =
-                            self.fn_return_types.get(&mangled)
-                        {
-                            if self.struct_defs.contains_key(tname.as_str()) {
-                                return Some(tname.clone());
-                            }
-                        }
+                if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref()
+                    && let Some(struct_name) = self.infer_struct_type(object)
+                {
+                    let mangled = format!("{}__{}", struct_name, field);
+                    if let Some(ast::TypeExpr::Named { name: tname, .. }) =
+                        self.fn_return_types.get(&mangled)
+                        && self.struct_defs.contains_key(tname.as_str())
+                    {
+                        return Some(tname.clone());
                     }
                 }
                 None
             }
             ast::Expr::Binary { span, .. } => {
                 // Check if operator overloading returns a struct
-                if let Some((mangled, _)) = self.method_resolutions.get(&span.start) {
-                    if let Some(ast::TypeExpr::Named { name: tname, .. }) =
+                if let Some((mangled, _)) = self.method_resolutions.get(&span.start)
+                    && let Some(ast::TypeExpr::Named { name: tname, .. }) =
                         self.fn_return_types.get(mangled)
-                    {
-                        if self.struct_defs.contains_key(tname.as_str()) {
-                            return Some(tname.clone());
-                        }
-                    }
+                    && self.struct_defs.contains_key(tname.as_str())
+                {
+                    return Some(tname.clone());
                 }
                 None
             }
@@ -235,11 +229,11 @@ impl LowerCtx {
                 if let ast::Expr::Ident { name, .. } = callee.as_ref() {
                     return self.fn_return_types.get(name).cloned();
                 }
-                if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref() {
-                    if let Some(struct_name) = self.infer_struct_type(object) {
-                        let mangled = format!("{}__{}", struct_name, field);
-                        return self.fn_return_types.get(&mangled).cloned();
-                    }
+                if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref()
+                    && let Some(struct_name) = self.infer_struct_type(object)
+                {
+                    let mangled = format!("{}__{}", struct_name, field);
+                    return self.fn_return_types.get(&mangled).cloned();
                 }
                 None
             }

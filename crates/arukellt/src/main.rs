@@ -183,23 +183,20 @@ fn main() {
 /// Check raw CLI args for deprecated target aliases and emit warnings.
 fn check_target_alias_warning() {
     let args: Vec<String> = std::env::args().collect();
-    if let Some(pos) = args.iter().position(|a| a == "--target") {
-        if let Some(value) = args.get(pos + 1) {
-            if let Ok(result) = parse_target(value) {
-                if let Some((used_alias, canonical_name)) = result.alias_parts() {
-                    emit_target_alias_warning(used_alias, canonical_name);
-                }
-            }
-        }
+    if let Some(pos) = args.iter().position(|a| a == "--target")
+        && let Some(value) = args.get(pos + 1)
+        && let Ok(result) = parse_target(value)
+        && let Some((used_alias, canonical_name)) = result.alias_parts()
+    {
+        emit_target_alias_warning(used_alias, canonical_name);
     }
     // Also check --target=value form
     for arg in &args {
-        if let Some(value) = arg.strip_prefix("--target=") {
-            if let Ok(result) = parse_target(value) {
-                if let Some((used_alias, canonical_name)) = result.alias_parts() {
-                    emit_target_alias_warning(used_alias, canonical_name);
-                }
-            }
+        if let Some(value) = arg.strip_prefix("--target=")
+            && let Ok(result) = parse_target(value)
+            && let Some((used_alias, canonical_name)) = result.alias_parts()
+        {
+            emit_target_alias_warning(used_alias, canonical_name);
         }
     }
 }

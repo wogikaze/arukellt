@@ -73,15 +73,15 @@ impl LowerCtx {
             ast::Expr::CharLit { value, .. } => Operand::ConstChar(*value),
             ast::Expr::Ident { name, .. } => {
                 // Check if this is a bare enum variant (e.g., None)
-                if let Some((enum_name, tag, field_count)) = self.bare_variant_tags.get(name) {
-                    if *field_count == 0 {
-                        return Operand::EnumInit {
-                            enum_name: enum_name.clone(),
-                            variant: name.clone(),
-                            tag: *tag,
-                            payload: vec![],
-                        };
-                    }
+                if let Some((enum_name, tag, field_count)) = self.bare_variant_tags.get(name)
+                    && *field_count == 0
+                {
+                    return Operand::EnumInit {
+                        enum_name: enum_name.clone(),
+                        variant: name.clone(),
+                        tag: *tag,
+                        payload: vec![],
+                    };
                 }
                 if let Some(local_id) = self.lookup_local(name) {
                     Operand::Place(Place::Local(local_id))
@@ -591,13 +591,11 @@ impl LowerCtx {
                         }
                         _ => {
                             // Propagate struct type info for captured variables
-                            if let Some(pname) = &p.name {
-                                if let Some(parent_lid) = self.lookup_local(pname) {
-                                    if let Some(sname) = self.struct_typed_locals.get(&parent_lid.0)
-                                    {
-                                        sub_ctx.struct_typed_locals.insert(lid.0, sname.clone());
-                                    }
-                                }
+                            if let Some(pname) = &p.name
+                                && let Some(parent_lid) = self.lookup_local(pname)
+                                && let Some(sname) = self.struct_typed_locals.get(&parent_lid.0)
+                            {
+                                sub_ctx.struct_typed_locals.insert(lid.0, sname.clone());
                             }
                         }
                     }

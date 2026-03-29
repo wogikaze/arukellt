@@ -11,6 +11,12 @@ GREEN=$'\033[0;32m'
 YELLOW=$'\033[1;33m'
 NC=$'\033[0m'
 
+# Use mise to ensure the correct Rust toolchain version if available.
+MISE=""
+if command -v mise &>/dev/null; then
+  MISE="mise x --"
+fi
+
 RUN_CARGO=false
 RUN_FIXTURES=false
 RUN_BASELINE=false
@@ -181,14 +187,14 @@ fi
 # ── Optional heavy groups ────────────────────────────────────────────────────
 if [ "$RUN_CARGO" = true ]; then
     printf '\n%s\n' "${YELLOW}[cargo] Running cargo verification...${NC}"
-    run_check "cargo fmt --all --check" "cargo fmt --all --check"
-    run_check "cargo clippy --workspace -- -D warnings" "cargo clippy --workspace --exclude ark-llvm -- -D warnings"
-    run_check "cargo test --workspace" "cargo test --workspace --exclude ark-llvm --quiet -- --skip fixture_harness"
+    run_check "cargo fmt --all --check" "$MISE cargo fmt --all --check"
+    run_check "cargo clippy --workspace -- -D warnings" "$MISE cargo clippy --workspace --exclude ark-llvm -- -D warnings"
+    run_check "cargo test --workspace" "$MISE cargo test --workspace --exclude ark-llvm --quiet -- --skip fixture_harness"
 fi
 
 if [ "$RUN_FIXTURES" = true ]; then
     printf '\n%s\n' "${YELLOW}[fixtures] Running fixture harness...${NC}"
-    local_output=$(bash -lc "cargo test -p arukellt --test harness -- --nocapture 2>&1") || true
+    local_output=$($MISE bash -lc "cargo test -p arukellt --test harness -- --nocapture 2>&1") || true
     if printf '%s\n' "$local_output" | grep -q "FAIL: 0"; then
         summary=$(printf '%s\n' "$local_output" | grep "PASS:")
         check_pass "fixture harness (${summary})"

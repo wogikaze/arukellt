@@ -331,16 +331,16 @@ impl EmitCtx {
         variant_name: &str,
         field_index: usize,
     ) -> (u32, bool, bool) {
-        if let Some(variants) = self.enum_payload_types.get(enum_name) {
-            if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant_name) {
-                let mut offset = 4u32; // skip tag
-                for (i, ftype) in types.iter().enumerate() {
-                    let (size, is_f64, is_i64) = Self::field_type_info(ftype);
-                    if i == field_index {
-                        return (offset, is_f64, is_i64);
-                    }
-                    offset += size;
+        if let Some(variants) = self.enum_payload_types.get(enum_name)
+            && let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant_name)
+        {
+            let mut offset = 4u32; // skip tag
+            for (i, ftype) in types.iter().enumerate() {
+                let (size, is_f64, is_i64) = Self::field_type_info(ftype);
+                if i == field_index {
+                    return (offset, is_f64, is_i64);
                 }
+                offset += size;
             }
         }
         // Fallback: assume all i32
@@ -349,11 +349,11 @@ impl EmitCtx {
 
     /// Total size of an enum variant (tag + all payloads)
     pub(super) fn enum_variant_total_size(&self, enum_name: &str, variant_name: &str) -> u32 {
-        if let Some(variants) = self.enum_payload_types.get(enum_name) {
-            if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant_name) {
-                let payload_size: u32 = types.iter().map(|t| Self::field_type_info(t).0).sum();
-                return 4 + payload_size; // tag + payload
-            }
+        if let Some(variants) = self.enum_payload_types.get(enum_name)
+            && let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant_name)
+        {
+            let payload_size: u32 = types.iter().map(|t| Self::field_type_info(t).0).sum();
+            return 4 + payload_size; // tag + payload
         }
         4 // just tag
     }
@@ -605,12 +605,11 @@ impl EmitCtx {
                     return true;
                 }
                 // get/get_unchecked on Vec<String> returns String
-                if matches!(name, "get" | "get_unchecked") {
-                    if let Some(Operand::Place(Place::Local(id))) = args.first() {
-                        if self.vec_string_locals.contains(&id.0) {
-                            return true;
-                        }
-                    }
+                if matches!(name, "get" | "get_unchecked")
+                    && let Some(Operand::Place(Place::Local(id))) = args.first()
+                    && self.vec_string_locals.contains(&id.0)
+                {
+                    return true;
                 }
                 // Check if function returns String
                 if self
@@ -710,14 +709,12 @@ impl EmitCtx {
                 ..
             } => {
                 // Check if this payload field is a String type
-                if let Some(variants) = self.enum_payload_types.get(enum_name.as_str()) {
-                    if let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant_name) {
-                        if let Some(t) = types.get(*index as usize) {
-                            if t == "String" {
-                                return true;
-                            }
-                        }
-                    }
+                if let Some(variants) = self.enum_payload_types.get(enum_name.as_str())
+                    && let Some((_, types)) = variants.iter().find(|(vn, _)| vn == variant_name)
+                    && let Some(t) = types.get(*index as usize)
+                    && t == "String"
+                {
+                    return true;
                 }
                 // Fallback: check if the variable is known to hold strings
                 if let Operand::Place(Place::Local(id)) = object.as_ref() {

@@ -225,21 +225,18 @@ impl Session {
         let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
 
         // Fast path: if mtime is unchanged, reuse the cached source without re-reading.
-        if let Ok(meta) = std::fs::metadata(&canonical) {
-            if let Ok(mtime) = meta.modified() {
-                if let Some((cached_mtime, cached_src, cached_key)) =
-                    self.file_mtime_cache.get(&canonical)
-                {
-                    if *cached_mtime == mtime {
-                        self.artifacts
-                            .remember_key(canonical.clone(), cached_key.clone());
-                        let file_id = self
-                            .source_map
-                            .add_file(canonical.display().to_string(), cached_src.clone());
-                        return Ok((cached_src.clone(), cached_key.clone(), file_id));
-                    }
-                }
-            }
+        if let Ok(meta) = std::fs::metadata(&canonical)
+            && let Ok(mtime) = meta.modified()
+            && let Some((cached_mtime, cached_src, cached_key)) =
+                self.file_mtime_cache.get(&canonical)
+            && *cached_mtime == mtime
+        {
+            self.artifacts
+                .remember_key(canonical.clone(), cached_key.clone());
+            let file_id = self
+                .source_map
+                .add_file(canonical.display().to_string(), cached_src.clone());
+            return Ok((cached_src.clone(), cached_key.clone(), file_id));
         }
 
         let source = std::fs::read_to_string(path)
@@ -248,11 +245,11 @@ impl Session {
         self.artifacts.remember_key(canonical.clone(), key.clone());
 
         // Update mtime cache.
-        if let Ok(meta) = std::fs::metadata(&canonical) {
-            if let Ok(mtime) = meta.modified() {
-                self.file_mtime_cache
-                    .insert(canonical.clone(), (mtime, source.clone(), key.clone()));
-            }
+        if let Ok(meta) = std::fs::metadata(&canonical)
+            && let Ok(mtime) = meta.modified()
+        {
+            self.file_mtime_cache
+                .insert(canonical.clone(), (mtime, source.clone(), key.clone()));
         }
 
         let file_id = self
@@ -707,13 +704,13 @@ impl Session {
         }
 
         // Finalize timing report
-        if self.timing_enabled {
-            if let Some(ref mut timing) = self.last_timing {
-                timing.opt_ms = opt_ms;
-                timing.opt_detail = opt_detail;
-                timing.emit_ms = emit_ms;
-                timing.total_ms = t_total.elapsed().as_secs_f64() * 1000.0;
-            }
+        if self.timing_enabled
+            && let Some(ref mut timing) = self.last_timing
+        {
+            timing.opt_ms = opt_ms;
+            timing.opt_detail = opt_detail;
+            timing.emit_ms = emit_ms;
+            timing.total_ms = t_total.elapsed().as_secs_f64() * 1000.0;
         }
 
         mark_selection(&mut mir, selection);

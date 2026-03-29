@@ -88,16 +88,16 @@ fn find_loop_candidates(function: &MirFunction) -> Vec<LoopCandidate> {
             }
 
             // Try to determine trip count from the condition + header stmts.
-            if let Some(trip) = deduce_trip_count(header, body, cond, body_id == then_block) {
-                if (1..=MAX_UNROLL_ITERATIONS).contains(&trip) {
-                    candidates.push(LoopCandidate {
-                        header_idx: h_idx,
-                        body_idx: b_idx,
-                        exit_block: exit_id,
-                        trip_count: trip,
-                    });
-                    break; // only one candidate per header
-                }
+            if let Some(trip) = deduce_trip_count(header, body, cond, body_id == then_block)
+                && (1..=MAX_UNROLL_ITERATIONS).contains(&trip)
+            {
+                candidates.push(LoopCandidate {
+                    header_idx: h_idx,
+                    body_idx: b_idx,
+                    exit_block: exit_id,
+                    trip_count: trip,
+                });
+                break; // only one candidate per header
             }
         }
     }
@@ -222,18 +222,18 @@ fn operand_const_i64(op: &Operand) -> Option<i64> {
 /// Look for `Assign(Local(ind), BinaryOp(Add, Place(Local(ind)), Const(step)))` in body.
 fn find_induction_step(body: &BasicBlock, ind: u32) -> Option<i64> {
     for stmt in &body.stmts {
-        if let MirStmt::Assign(Place::Local(dest), Rvalue::BinaryOp(BinOp::Add, lhs, rhs)) = stmt {
-            if dest.0 == ind {
-                if let (Some(l), Some(r)) = (operand_local(lhs), operand_const_i64(rhs)) {
-                    if l == ind {
-                        return Some(r);
-                    }
-                }
-                if let (Some(l), Some(r)) = (operand_const_i64(lhs), operand_local(rhs)) {
-                    if r == ind {
-                        return Some(l);
-                    }
-                }
+        if let MirStmt::Assign(Place::Local(dest), Rvalue::BinaryOp(BinOp::Add, lhs, rhs)) = stmt
+            && dest.0 == ind
+        {
+            if let (Some(l), Some(r)) = (operand_local(lhs), operand_const_i64(rhs))
+                && l == ind
+            {
+                return Some(r);
+            }
+            if let (Some(l), Some(r)) = (operand_const_i64(lhs), operand_local(rhs))
+                && r == ind
+            {
+                return Some(l);
             }
         }
     }
@@ -243,10 +243,10 @@ fn find_induction_step(body: &BasicBlock, ind: u32) -> Option<i64> {
 /// Find `Assign(Local(id), Use(Const(v)))` in a block and return the constant value.
 fn find_const_assign_in_block(block: &BasicBlock, id: u32) -> Option<i64> {
     for stmt in &block.stmts {
-        if let MirStmt::Assign(Place::Local(dest), Rvalue::Use(val)) = stmt {
-            if dest.0 == id {
-                return operand_const_i64(val);
-            }
+        if let MirStmt::Assign(Place::Local(dest), Rvalue::Use(val)) = stmt
+            && dest.0 == id
+        {
+            return operand_const_i64(val);
         }
     }
     None

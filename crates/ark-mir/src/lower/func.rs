@@ -244,10 +244,10 @@ pub fn lower_to_mir(
     // Build set of generic function names
     let mut generic_fn_names: HashSet<String> = HashSet::new();
     for item in &module.items {
-        if let ast::Item::FnDef(f) = item {
-            if !f.type_params.is_empty() {
-                generic_fn_names.insert(f.name.clone());
-            }
+        if let ast::Item::FnDef(f) = item
+            && !f.type_params.is_empty()
+        {
+            generic_fn_names.insert(f.name.clone());
         }
         if let ast::Item::ImplBlock(ib) = item {
             for method in &ib.methods {
@@ -302,10 +302,10 @@ pub fn lower_to_mir(
                         ctx.enum_typed_locals.insert(pid.0, tname.clone());
                     }
                 }
-                if let ast::TypeExpr::Generic { name: tname, .. } = &param.ty {
-                    if ctx.enum_variants.contains_key(tname.as_str()) {
-                        ctx.enum_typed_locals.insert(pid.0, tname.clone());
-                    }
+                if let ast::TypeExpr::Generic { name: tname, .. } = &param.ty
+                    && ctx.enum_variants.contains_key(tname.as_str())
+                {
+                    ctx.enum_typed_locals.insert(pid.0, tname.clone());
                 }
             }
 
@@ -486,10 +486,10 @@ pub fn lower_to_mir(
                             ctx.enum_typed_locals.insert(pid.0, tname.clone());
                         }
                     }
-                    if let ast::TypeExpr::Generic { name: tname, .. } = &param.ty {
-                        if ctx.enum_variants.contains_key(tname.as_str()) {
-                            ctx.enum_typed_locals.insert(pid.0, tname.clone());
-                        }
+                    if let ast::TypeExpr::Generic { name: tname, .. } = &param.ty
+                        && ctx.enum_variants.contains_key(tname.as_str())
+                    {
+                        ctx.enum_typed_locals.insert(pid.0, tname.clone());
                     }
                 }
 

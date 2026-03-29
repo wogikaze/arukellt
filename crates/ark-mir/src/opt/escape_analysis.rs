@@ -130,11 +130,11 @@ fn operand_escapes(
             // A FieldAccess on a candidate is fine (non-escaping).
             // But we need to check the object: if the object is Place::Local(candidate),
             // that's the expected pattern. If it's something else, recurse.
-            if let Operand::Place(Place::Local(id)) = object.as_ref() {
-                if candidate_ids.contains(&id.0) {
-                    // This is a valid field access — does not escape.
-                    return;
-                }
+            if let Operand::Place(Place::Local(id)) = object.as_ref()
+                && candidate_ids.contains(&id.0)
+            {
+                // This is a valid field access — does not escape.
+                return;
             }
             operand_escapes(object, candidate_ids, candidates);
         }
@@ -338,12 +338,11 @@ fn mark_escaping_in_rvalue(
         }
         Rvalue::Ref(place) => {
             // Taking a reference to a candidate → escapes.
-            if let Place::Local(id) = place {
-                if candidate_ids.contains(&id.0) {
-                    if let Some(c) = candidates.get_mut(&id.0) {
-                        c.escapes = true;
-                    }
-                }
+            if let Place::Local(id) = place
+                && candidate_ids.contains(&id.0)
+                && let Some(c) = candidates.get_mut(&id.0)
+            {
+                c.escapes = true;
             }
             place_escapes(place, candidate_ids, candidates);
         }
@@ -546,12 +545,11 @@ fn rewrite_operand_deep(
             struct_name,
             field,
         } => {
-            if let Operand::Place(Place::Local(id)) = object.as_ref() {
-                if non_escaping.contains_key(&id.0) {
-                    if let Some(&scalar_id) = scalar_map.get(&(id.0, field.clone())) {
-                        return Operand::Place(Place::Local(scalar_id));
-                    }
-                }
+            if let Operand::Place(Place::Local(id)) = object.as_ref()
+                && non_escaping.contains_key(&id.0)
+                && let Some(&scalar_id) = scalar_map.get(&(id.0, field.clone()))
+            {
+                return Operand::Place(Place::Local(scalar_id));
             }
             // Not a candidate field access — recurse into object.
             Operand::FieldAccess {

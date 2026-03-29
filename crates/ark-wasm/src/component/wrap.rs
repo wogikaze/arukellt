@@ -159,10 +159,10 @@ fn find_wasi_adapter() -> Option<String> {
         }
     }
     // Check ARK_WASI_ADAPTER env var
-    if let Ok(path) = std::env::var("ARK_WASI_ADAPTER") {
-        if std::path::Path::new(&path).exists() {
-            return Some(path);
-        }
+    if let Ok(path) = std::env::var("ARK_WASI_ADAPTER")
+        && std::path::Path::new(&path).exists()
+    {
+        return Some(path);
     }
     None
 }

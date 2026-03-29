@@ -555,10 +555,10 @@ impl Ctx {
                 if let Some(&base_idx) = self.enum_base_types.get(name) {
                     return ref_nullable(base_idx);
                 }
-                if let Some(specialized_name) = nominalize_generic_type_name(name) {
-                    if let Some(&base_idx) = self.enum_base_types.get(specialized_name.as_str()) {
-                        return ref_nullable(base_idx);
-                    }
+                if let Some(specialized_name) = nominalize_generic_type_name(name)
+                    && let Some(&base_idx) = self.enum_base_types.get(specialized_name.as_str())
+                {
+                    return ref_nullable(base_idx);
                 }
                 // Vec types: Vec<i32>, Vec<String>, etc.
                 if name.starts_with("Vec<") {
@@ -578,16 +578,16 @@ impl Ctx {
                     }
                 }
                 // Option<T> → use "Option" base enum type
-                if name.starts_with("Option<") || name == "Option" {
-                    if let Some(&base_idx) = self.enum_base_types.get("Option") {
-                        return ref_nullable(base_idx);
-                    }
+                if (name.starts_with("Option<") || name == "Option")
+                    && let Some(&base_idx) = self.enum_base_types.get("Option")
+                {
+                    return ref_nullable(base_idx);
                 }
                 // Result<T, E> → use "Result" base enum type
-                if name.starts_with("Result<") || name == "Result" {
-                    if let Some(&base_idx) = self.enum_base_types.get("Result") {
-                        return ref_nullable(base_idx);
-                    }
+                if (name.starts_with("Result<") || name == "Result")
+                    && let Some(&base_idx) = self.enum_base_types.get("Result")
+                {
+                    return ref_nullable(base_idx);
                 }
                 ValType::I32
             }
@@ -602,10 +602,10 @@ impl Ctx {
         if base != "Result" || args.len() != 2 {
             return None;
         }
-        if let Some(specialized_name) = nominalize_generic_type_name(type_name) {
-            if self.enum_base_types.contains_key(specialized_name.as_str()) {
-                return Some(specialized_name);
-            }
+        if let Some(specialized_name) = nominalize_generic_type_name(type_name)
+            && self.enum_base_types.contains_key(specialized_name.as_str())
+        {
+            return Some(specialized_name);
         }
         if self.enum_base_types.contains_key("Result") {
             Some("Result".to_string())
@@ -679,22 +679,22 @@ impl Ctx {
         vec_sets: Option<(&HashSet<u32>, &HashSet<u32>, &HashSet<u32>, &HashSet<u32>)>,
     ) -> ValType {
         // Check struct side-channel first
-        if let Some(sname) = struct_typed_locals.get(&local.id.0) {
-            if let Some(&ty_idx) = self.struct_gc_types.get(sname) {
-                return ref_nullable(ty_idx);
-            }
+        if let Some(sname) = struct_typed_locals.get(&local.id.0)
+            && let Some(&ty_idx) = self.struct_gc_types.get(sname)
+        {
+            return ref_nullable(ty_idx);
         }
         // Check enum side-channel
-        if let Some(ename) = enum_typed_locals.get(&local.id.0) {
-            if let Some(&base_idx) = self.enum_base_types.get(ename) {
-                return ref_nullable(base_idx);
-            }
+        if let Some(ename) = enum_typed_locals.get(&local.id.0)
+            && let Some(&base_idx) = self.enum_base_types.get(ename)
+        {
+            return ref_nullable(base_idx);
         }
         // Check Vec<Struct> side-channel
-        if let Some(sname) = self.struct_vec_locals.get(&local.id.0) {
-            if let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname.as_str()) {
-                return ref_nullable(vec_ty);
-            }
+        if let Some(sname) = self.struct_vec_locals.get(&local.id.0)
+            && let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname.as_str())
+        {
+            return ref_nullable(vec_ty);
         }
         // Check propagated vec types
         if let Some((vi32, vi64, vf64, vstr)) = vec_sets {
@@ -720,7 +720,7 @@ impl Ctx {
         self.data_segs.push((offset, data.to_vec()));
         self.data_offset += data.len() as u32;
         // Align to 4 bytes
-        while self.data_offset % 4 != 0 {
+        while !self.data_offset.is_multiple_of(4) {
             self.data_offset += 1;
         }
         offset
@@ -773,10 +773,10 @@ impl Ctx {
                 self.scan_op_for_vec_struct(op, struct_defs, out);
             }
             MirStmt::CallBuiltin { name, args, .. } => {
-                if let Some(sname) = name.strip_prefix("Vec_new_") {
-                    if struct_defs.contains_key(sname) {
-                        out.insert(sname.to_string());
-                    }
+                if let Some(sname) = name.strip_prefix("Vec_new_")
+                    && struct_defs.contains_key(sname)
+                {
+                    out.insert(sname.to_string());
                 }
                 for a in args {
                     self.scan_op_for_vec_struct(a, struct_defs, out);
@@ -792,12 +792,11 @@ impl Ctx {
         struct_defs: &HashMap<String, Vec<(String, String)>>,
         out: &mut HashSet<String>,
     ) {
-        if let Operand::Call(name, _) = op {
-            if let Some(sname) = name.strip_prefix("Vec_new_") {
-                if struct_defs.contains_key(sname) {
-                    out.insert(sname.to_string());
-                }
-            }
+        if let Operand::Call(name, _) = op
+            && let Some(sname) = name.strip_prefix("Vec_new_")
+            && struct_defs.contains_key(sname)
+        {
+            out.insert(sname.to_string());
         }
     }
 }
@@ -1428,11 +1427,12 @@ impl Ctx {
 
         // Export user pub functions for Component Model (kebab-case names for WIT)
         for func in &mir.functions {
-            if func.is_exported && is_component_export_candidate(&func.name) {
-                if let Some(&idx) = self.fn_map.get(func.name.as_str()) {
-                    let export_name = func.name.replace('_', "-");
-                    exports.export(&export_name, ExportKind::Func, idx);
-                }
+            if func.is_exported
+                && is_component_export_candidate(&func.name)
+                && let Some(&idx) = self.fn_map.get(func.name.as_str())
+            {
+                let export_name = func.name.replace('_', "-");
+                exports.export(&export_name, ExportKind::Func, idx);
             }
         }
 

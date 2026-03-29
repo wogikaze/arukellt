@@ -196,14 +196,15 @@ impl Ctx {
                     for (i, arg) in args.iter().enumerate() {
                         self.emit_operand(f, arg);
                         // Box i32/bool/char → ref.i31 when callee expects anyref
-                        if let Some(ref pts) = param_types {
-                            if i < pts.len() && pts[i] == Type::Any {
-                                let arg_vt = self.infer_operand_type(arg);
-                                if arg_vt == ValType::I32 {
-                                    f.instruction(&Instruction::RefI31);
-                                }
-                                // ref types (String, struct, enum) are anyref-compatible
+                        if let Some(ref pts) = param_types
+                            && i < pts.len()
+                            && pts[i] == Type::Any
+                        {
+                            let arg_vt = self.infer_operand_type(arg);
+                            if arg_vt == ValType::I32 {
+                                f.instruction(&Instruction::RefI31);
                             }
+                            // ref types (String, struct, enum) are anyref-compatible
                         }
                     }
                     if let Some(&fn_idx) = self
@@ -222,12 +223,11 @@ impl Ctx {
                         .get(canonical.as_str())
                         .or_else(|| self.fn_ret_types.get(lookup_name))
                         .cloned()
+                        && ret_ty == Type::Any
                     {
-                        if ret_ty == Type::Any {
-                            // Infer concrete type from first Any-typed arg
-                            let concrete = self.infer_generic_return_type(&canonical, args);
-                            self.emit_anyref_unbox(f, &concrete);
-                        }
+                        // Infer concrete type from first Any-typed arg
+                        let concrete = self.infer_generic_return_type(&canonical, args);
+                        self.emit_anyref_unbox(f, &concrete);
                     }
                 }
             }

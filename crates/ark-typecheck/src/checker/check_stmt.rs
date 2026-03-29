@@ -94,18 +94,17 @@ impl TypeChecker {
                     span: src_span,
                     ..
                 } = init
+                    && env.is_mutable(src_name)
                 {
-                    if env.is_mutable(src_name) {
-                        let src_ty = env.lookup(src_name).cloned().unwrap_or(Type::Error);
-                        if matches!(src_ty, Type::Vec(_)) {
-                            sink.emit(
+                    let src_ty = env.lookup(src_name).cloned().unwrap_or(Type::Error);
+                    if matches!(src_ty, Type::Vec(_)) {
+                        sink.emit(
                                 Diagnostic::new(DiagnosticCode::W0001)
                                     .with_label(*src_span, format!(
                                         "mutable `{}` is shared by reference; mutations affect both variables",
                                         src_name
                                     )),
                             );
-                        }
                     }
                 }
             }

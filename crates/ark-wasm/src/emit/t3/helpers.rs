@@ -1768,17 +1768,17 @@ impl Ctx {
                                         enum_name.clone()
                                     };
                                 let key = (effective_enum_name, variant_name.clone());
-                                if let Some(field_types) = self.enum_variant_field_types.get(&key) {
-                                    if let Some(ft) = field_types.get(*index as usize) {
-                                        if ft == "String" {
-                                            extra_string.insert(dst.0);
-                                        }
-                                        if self.enum_base_types.contains_key(ft.as_str()) {
-                                            extra_enum.entry(dst.0).or_insert_with(|| ft.clone());
-                                        }
-                                        if self.struct_gc_types.contains_key(ft.as_str()) {
-                                            extra_struct.entry(dst.0).or_insert_with(|| ft.clone());
-                                        }
+                                if let Some(field_types) = self.enum_variant_field_types.get(&key)
+                                    && let Some(ft) = field_types.get(*index as usize)
+                                {
+                                    if ft == "String" {
+                                        extra_string.insert(dst.0);
+                                    }
+                                    if self.enum_base_types.contains_key(ft.as_str()) {
+                                        extra_enum.entry(dst.0).or_insert_with(|| ft.clone());
+                                    }
+                                    if self.struct_gc_types.contains_key(ft.as_str()) {
+                                        extra_struct.entry(dst.0).or_insert_with(|| ft.clone());
                                     }
                                 }
                             }
@@ -1800,21 +1800,16 @@ impl Ctx {
                                     let key = (enum_name, "Ok".to_string());
                                     if let Some(field_types) =
                                         self.enum_variant_field_types.get(&key)
+                                        && let Some(ft) = field_types.first()
                                     {
-                                        if let Some(ft) = field_types.first() {
-                                            if ft == "String" {
-                                                extra_string.insert(dst.0);
-                                            }
-                                            if self.enum_base_types.contains_key(ft.as_str()) {
-                                                extra_enum
-                                                    .entry(dst.0)
-                                                    .or_insert_with(|| ft.clone());
-                                            }
-                                            if self.struct_gc_types.contains_key(ft.as_str()) {
-                                                extra_struct
-                                                    .entry(dst.0)
-                                                    .or_insert_with(|| ft.clone());
-                                            }
+                                        if ft == "String" {
+                                            extra_string.insert(dst.0);
+                                        }
+                                        if self.enum_base_types.contains_key(ft.as_str()) {
+                                            extra_enum.entry(dst.0).or_insert_with(|| ft.clone());
+                                        }
+                                        if self.struct_gc_types.contains_key(ft.as_str()) {
+                                            extra_struct.entry(dst.0).or_insert_with(|| ft.clone());
                                         }
                                     }
                                 }
@@ -1921,15 +1916,11 @@ impl Ctx {
                                         extra_enum.entry(dst.0).or_insert_with(|| ret_name.clone());
                                     } else if let Some(specialized_name) =
                                         nominalize_generic_type_name(ret_name)
-                                    {
-                                        if self
+                                        && self
                                             .enum_base_types
                                             .contains_key(specialized_name.as_str())
-                                        {
-                                            extra_enum
-                                                .entry(dst.0)
-                                                .or_insert_with(|| specialized_name);
-                                        }
+                                    {
+                                        extra_enum.entry(dst.0).or_insert_with(|| specialized_name);
                                     }
                                 }
                             }
@@ -2158,40 +2149,40 @@ impl Ctx {
             self.string_vec_locals.insert(*lid);
         }
         // Track generic function params as enum/vec locals based on fn_param_type_names
-        if !func.type_params.is_empty() {
-            if let Some(param_names) = self.fn_param_type_names.get(&func.name).cloned() {
-                for (i, pname) in param_names.iter().enumerate() {
-                    if let Some(p) = func.params.get(i) {
-                        if pname.starts_with("Option") {
-                            self.local_enum.insert(p.id.0, "Option".to_string());
-                        } else if pname.starts_with("Result") {
-                            let rname = if pname.contains("i64") {
-                                "Result_i64_String"
-                            } else if pname.contains("f64") {
-                                "Result_f64_String"
-                            } else if pname.contains("String, String")
-                                || pname.contains("String,String")
-                            {
-                                "Result_String_String"
-                            } else {
-                                "Result"
-                            };
-                            self.local_enum.insert(p.id.0, rname.to_string());
-                        } else if pname.starts_with("Vec<") {
-                            let inner = &pname[4..pname.len().saturating_sub(1)];
-                            match inner {
-                                "i64" => {
-                                    self.i64_vec_locals.insert(p.id.0);
-                                }
-                                "f64" => {
-                                    self.f64_vec_locals.insert(p.id.0);
-                                }
-                                "String" => {
-                                    self.string_vec_locals.insert(p.id.0);
-                                }
-                                _ => {
-                                    self.i32_vec_locals.insert(p.id.0);
-                                }
+        if !func.type_params.is_empty()
+            && let Some(param_names) = self.fn_param_type_names.get(&func.name).cloned()
+        {
+            for (i, pname) in param_names.iter().enumerate() {
+                if let Some(p) = func.params.get(i) {
+                    if pname.starts_with("Option") {
+                        self.local_enum.insert(p.id.0, "Option".to_string());
+                    } else if pname.starts_with("Result") {
+                        let rname = if pname.contains("i64") {
+                            "Result_i64_String"
+                        } else if pname.contains("f64") {
+                            "Result_f64_String"
+                        } else if pname.contains("String, String")
+                            || pname.contains("String,String")
+                        {
+                            "Result_String_String"
+                        } else {
+                            "Result"
+                        };
+                        self.local_enum.insert(p.id.0, rname.to_string());
+                    } else if pname.starts_with("Vec<") {
+                        let inner = &pname[4..pname.len().saturating_sub(1)];
+                        match inner {
+                            "i64" => {
+                                self.i64_vec_locals.insert(p.id.0);
+                            }
+                            "f64" => {
+                                self.f64_vec_locals.insert(p.id.0);
+                            }
+                            "String" => {
+                                self.string_vec_locals.insert(p.id.0);
+                            }
+                            _ => {
+                                self.i32_vec_locals.insert(p.id.0);
                             }
                         }
                     }

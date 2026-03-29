@@ -455,26 +455,25 @@ impl TypeChecker {
                             // Type::Option / Type::Result, not Type::Enum
                             let mut bound_from_builtin = false;
                             if variant == "Some" {
-                                if let Type::Option(ref inner) = scrutinee_ty {
-                                    if let Some(ast::Pattern::Ident { name, .. }) = fields.first() {
-                                        arm_env.bind(name.clone(), *inner.clone());
-                                        bound_from_builtin = true;
-                                    }
+                                if let Type::Option(ref inner) = scrutinee_ty
+                                    && let Some(ast::Pattern::Ident { name, .. }) = fields.first()
+                                {
+                                    arm_env.bind(name.clone(), *inner.clone());
+                                    bound_from_builtin = true;
                                 }
                             } else if variant == "Ok" {
-                                if let Type::Result(ref ok_ty, _) = scrutinee_ty {
-                                    if let Some(ast::Pattern::Ident { name, .. }) = fields.first() {
-                                        arm_env.bind(name.clone(), *ok_ty.clone());
-                                        bound_from_builtin = true;
-                                    }
+                                if let Type::Result(ref ok_ty, _) = scrutinee_ty
+                                    && let Some(ast::Pattern::Ident { name, .. }) = fields.first()
+                                {
+                                    arm_env.bind(name.clone(), *ok_ty.clone());
+                                    bound_from_builtin = true;
                                 }
-                            } else if variant == "Err" {
-                                if let Type::Result(_, ref err_ty) = scrutinee_ty {
-                                    if let Some(ast::Pattern::Ident { name, .. }) = fields.first() {
-                                        arm_env.bind(name.clone(), *err_ty.clone());
-                                        bound_from_builtin = true;
-                                    }
-                                }
+                            } else if variant == "Err"
+                                && let Type::Result(_, ref err_ty) = scrutinee_ty
+                                && let Some(ast::Pattern::Ident { name, .. }) = fields.first()
+                            {
+                                arm_env.bind(name.clone(), *err_ty.clone());
+                                bound_from_builtin = true;
                             }
                             if !bound_from_builtin {
                                 let enum_name = if path.is_empty() {
@@ -490,22 +489,16 @@ impl TypeChecker {
                                 } else {
                                     Some(path.clone())
                                 };
-                                if let Some(ref ename) = enum_name {
-                                    if let Some(info) = self.enum_defs.get(ename) {
-                                        if let Some(vinfo) =
-                                            info.variants.iter().find(|v| v.name == *variant)
-                                        {
-                                            for (i, field_pat) in fields.iter().enumerate() {
-                                                if let ast::Pattern::Ident { name, .. } = field_pat
-                                                {
-                                                    let field_ty = vinfo
-                                                        .fields
-                                                        .get(i)
-                                                        .cloned()
-                                                        .unwrap_or(Type::Error);
-                                                    arm_env.bind(name.clone(), field_ty);
-                                                }
-                                            }
+                                if let Some(ref ename) = enum_name
+                                    && let Some(info) = self.enum_defs.get(ename)
+                                    && let Some(vinfo) =
+                                        info.variants.iter().find(|v| v.name == *variant)
+                                {
+                                    for (i, field_pat) in fields.iter().enumerate() {
+                                        if let ast::Pattern::Ident { name, .. } = field_pat {
+                                            let field_ty =
+                                                vinfo.fields.get(i).cloned().unwrap_or(Type::Error);
+                                            arm_env.bind(name.clone(), field_ty);
                                         }
                                     }
                                 }
@@ -519,27 +512,24 @@ impl TypeChecker {
                             // Check if this is an enum struct variant pattern: "EnumName::VariantName"
                             if let Some((enum_name, variant_name)) = sname.split_once("::") {
                                 covered_variants.push(sname.clone());
-                                if let Some(einfo) = self.enum_defs.get(enum_name) {
-                                    if let Some(vinfo) =
+                                if let Some(einfo) = self.enum_defs.get(enum_name)
+                                    && let Some(vinfo) =
                                         einfo.variants.iter().find(|v| v.name == variant_name)
-                                    {
-                                        for (fname, fpat) in sfields {
-                                            let binding_name = match fpat {
-                                                Some(ast::Pattern::Ident { name: n, .. }) => {
-                                                    n.clone()
-                                                }
-                                                None => fname.clone(),
-                                                _ => fname.clone(),
-                                            };
-                                            let field_ty = vinfo
-                                                .field_names
-                                                .iter()
-                                                .position(|n| n == fname)
-                                                .and_then(|idx| vinfo.fields.get(idx))
-                                                .cloned()
-                                                .unwrap_or(Type::Error);
-                                            arm_env.bind(binding_name, field_ty);
-                                        }
+                                {
+                                    for (fname, fpat) in sfields {
+                                        let binding_name = match fpat {
+                                            Some(ast::Pattern::Ident { name: n, .. }) => n.clone(),
+                                            None => fname.clone(),
+                                            _ => fname.clone(),
+                                        };
+                                        let field_ty = vinfo
+                                            .field_names
+                                            .iter()
+                                            .position(|n| n == fname)
+                                            .and_then(|idx| vinfo.fields.get(idx))
+                                            .cloned()
+                                            .unwrap_or(Type::Error);
+                                        arm_env.bind(binding_name, field_ty);
                                     }
                                 }
                             } else {
@@ -626,41 +616,39 @@ impl TypeChecker {
                     }
                 }
                 // Check exhaustiveness for enum types
-                if !has_wildcard {
-                    if let Type::Enum(ref type_id) = scrutinee_ty {
-                        // Find enum info by TypeId
-                        let enum_entry = self
-                            .enum_defs
+                if !has_wildcard && let Type::Enum(ref type_id) = scrutinee_ty {
+                    // Find enum info by TypeId
+                    let enum_entry = self
+                        .enum_defs
+                        .iter()
+                        .find(|(_, info)| &info.type_id == type_id);
+                    if let Some((enum_name, info)) = enum_entry {
+                        let enum_name = enum_name.clone();
+                        let all_variants: Vec<String> = info
+                            .variants
                             .iter()
-                            .find(|(_, info)| &info.type_id == type_id);
-                        if let Some((enum_name, info)) = enum_entry {
-                            let enum_name = enum_name.clone();
-                            let all_variants: Vec<String> = info
-                                .variants
-                                .iter()
-                                .map(|v| format!("{}::{}", enum_name, v.name))
-                                .collect();
-                            let missing: Vec<&String> = all_variants
-                                .iter()
-                                .filter(|v| !covered_variants.contains(v))
-                                .collect();
-                            if !missing.is_empty() {
-                                sink.emit(
-                                    Diagnostic::new(DiagnosticCode::E0204)
-                                        .with_message("non-exhaustive match")
-                                        .with_label(
-                                            *span,
-                                            format!(
-                                                "missing patterns: {}",
-                                                missing
-                                                    .iter()
-                                                    .map(|s| s.as_str())
-                                                    .collect::<Vec<_>>()
-                                                    .join(", ")
-                                            ),
+                            .map(|v| format!("{}::{}", enum_name, v.name))
+                            .collect();
+                        let missing: Vec<&String> = all_variants
+                            .iter()
+                            .filter(|v| !covered_variants.contains(v))
+                            .collect();
+                        if !missing.is_empty() {
+                            sink.emit(
+                                Diagnostic::new(DiagnosticCode::E0204)
+                                    .with_message("non-exhaustive match")
+                                    .with_label(
+                                        *span,
+                                        format!(
+                                            "missing patterns: {}",
+                                            missing
+                                                .iter()
+                                                .map(|s| s.as_str())
+                                                .collect::<Vec<_>>()
+                                                .join(", ")
                                         ),
-                                );
-                            }
+                                    ),
+                            );
                         }
                     }
                 }
@@ -745,14 +733,11 @@ impl TypeChecker {
             }
             ast::Expr::FieldAccess { object, field, .. } => {
                 let obj_ty = self.synthesize_expr(object, env, sink);
-                if let Type::Struct(type_id) = &obj_ty {
-                    if let Some(info) = self.struct_defs.values().find(|s| s.type_id == *type_id) {
-                        if let Some((_, field_ty)) =
-                            info.fields.iter().find(|(name, _)| name == field)
-                        {
-                            return field_ty.clone();
-                        }
-                    }
+                if let Type::Struct(type_id) = &obj_ty
+                    && let Some(info) = self.struct_defs.values().find(|s| s.type_id == *type_id)
+                    && let Some((_, field_ty)) = info.fields.iter().find(|(name, _)| name == field)
+                {
+                    return field_ty.clone();
                 }
                 // Struct field access at Wasm level is always i32 (pointer)
                 Type::I32
@@ -852,46 +837,46 @@ impl TypeChecker {
             return Type::Error;
         }
         // Check for operator overloading on struct types
-        if let (Type::Struct(left_id), Type::Struct(right_id)) = (left, right) {
-            if left_id == right_id {
-                let struct_name = self
-                    .struct_defs
-                    .values()
-                    .find(|s| s.type_id == *left_id)
-                    .map(|s| s.name.clone());
-                if let Some(sname) = struct_name {
-                    let op_method = match op {
-                        Add => "add",
-                        Sub => "sub",
-                        Mul => "mul",
-                        Div => "div",
-                        Mod => "rem",
-                        Eq | Ne => "eq",
-                        Lt | Le | Gt | Ge => "cmp",
-                        _ => "",
-                    };
-                    if !op_method.is_empty() {
-                        let mangled = format!("{}__{}", sname, op_method);
-                        if let Some(sig) = self.fn_sigs.get(&mangled).cloned() {
-                            // Record method resolution for MIR lowering
-                            self.method_resolutions
-                                .insert(span.start, (mangled.clone(), sname.clone()));
-                            let ret_ty = match op {
-                                Eq | Ne | Lt | Le | Gt | Ge => Type::Bool,
-                                _ => sig.ret,
-                            };
-                            let expr_id = self.node_ids.fresh_expr();
-                            self.typed_ast_map.register_span(span.start, expr_id);
-                            self.typed_ast_map.insert_expr(
-                                expr_id,
-                                TypedExprInfo {
-                                    ty: ret_ty.clone(),
-                                    method_resolution: Some((mangled, sname)),
-                                },
-                            );
-                            // For comparison ops, return Bool
-                            return ret_ty;
-                        }
+        if let (Type::Struct(left_id), Type::Struct(right_id)) = (left, right)
+            && left_id == right_id
+        {
+            let struct_name = self
+                .struct_defs
+                .values()
+                .find(|s| s.type_id == *left_id)
+                .map(|s| s.name.clone());
+            if let Some(sname) = struct_name {
+                let op_method = match op {
+                    Add => "add",
+                    Sub => "sub",
+                    Mul => "mul",
+                    Div => "div",
+                    Mod => "rem",
+                    Eq | Ne => "eq",
+                    Lt | Le | Gt | Ge => "cmp",
+                    _ => "",
+                };
+                if !op_method.is_empty() {
+                    let mangled = format!("{}__{}", sname, op_method);
+                    if let Some(sig) = self.fn_sigs.get(&mangled).cloned() {
+                        // Record method resolution for MIR lowering
+                        self.method_resolutions
+                            .insert(span.start, (mangled.clone(), sname.clone()));
+                        let ret_ty = match op {
+                            Eq | Ne | Lt | Le | Gt | Ge => Type::Bool,
+                            _ => sig.ret,
+                        };
+                        let expr_id = self.node_ids.fresh_expr();
+                        self.typed_ast_map.register_span(span.start, expr_id);
+                        self.typed_ast_map.insert_expr(
+                            expr_id,
+                            TypedExprInfo {
+                                ty: ret_ty.clone(),
+                                method_resolution: Some((mangled, sname)),
+                            },
+                        );
+                        // For comparison ops, return Bool
+                        return ret_ty;
                     }
                 }
             }
@@ -1016,8 +1001,8 @@ fn edit_distance(a: &str, b: &str) -> usize {
     for (i, row) in dp.iter_mut().enumerate().take(n + 1) {
         row[0] = i;
     }
-    for j in 0..=m {
-        dp[0][j] = j;
+    for (j, cell) in dp[0].iter_mut().enumerate().take(m + 1) {
+        *cell = j;
     }
     for i in 1..=n {
         for j in 1..=m {

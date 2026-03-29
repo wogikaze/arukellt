@@ -53,10 +53,10 @@ fn annotate_short_lived(body: &mut Vec<MirStmt>, summary: &mut OptimizationSumma
     // Collect (index, local) pairs for struct allocations whose local doesn't escape.
     let mut hints: Vec<(usize, LocalId)> = Vec::new();
     for (i, stmt) in body.iter().enumerate() {
-        if let Some(local) = struct_alloc_local(stmt) {
-            if !escaping.contains(&local.0) {
-                hints.push((i, local));
-            }
+        if let Some(local) = struct_alloc_local(stmt)
+            && !escaping.contains(&local.0)
+        {
+            hints.push((i, local));
         }
     }
 

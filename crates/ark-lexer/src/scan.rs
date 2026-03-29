@@ -329,11 +329,11 @@ impl<'src> Lexer<'src> {
             self.advance();
             return Token::new(kind1, self.span(start));
         }
-        if let Some((next2, kind2)) = alt {
-            if self.peek() == Some(next2) {
-                self.advance();
-                return Token::new(kind2, self.span(start));
-            }
+        if let Some((next2, kind2)) = alt
+            && self.peek() == Some(next2)
+        {
+            self.advance();
+            return Token::new(kind2, self.span(start));
         }
         Token::new(fallback, self.span(start))
     }

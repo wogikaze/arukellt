@@ -147,25 +147,24 @@ fn can_eliminate_builtin_check(
     }
 
     // Duplicate check: same (array, index) already verified.
-    if let Some(key) = bounds_check_key_from(args) {
-        if checked.contains(&key) {
-            return true;
-        }
+    if let Some(key) = bounds_check_key_from(args)
+        && checked.contains(&key)
+    {
+        return true;
     }
 
     // Constant index into known-size array.
-    if let Some(arr_local) = operand_local(&args[0]) {
-        if let Some(&size) = known_sizes.get(&arr_local) {
-            if let Some(idx_val) = operand_const_usize(&args[1]) {
-                return idx_val < size;
-            }
-        }
+    if let Some(arr_local) = operand_local(&args[0])
+        && let Some(&size) = known_sizes.get(&arr_local)
+        && let Some(idx_val) = operand_const_usize(&args[1])
+    {
+        return idx_val < size;
     }
     // Also handle (index, len) convention.
-    if let Some(idx_val) = operand_const_usize(&args[0]) {
-        if let Some(len_val) = operand_const_usize(&args[1]) {
-            return idx_val < len_val;
-        }
+    if let Some(idx_val) = operand_const_usize(&args[0])
+        && let Some(len_val) = operand_const_usize(&args[1])
+    {
+        return idx_val < len_val;
     }
     false
 }
@@ -235,28 +234,28 @@ fn eliminate_loop_bounds_checks(
     // length is `upper`, and remove any associated bounds-check CallBuiltin.
     let mut to_remove: Vec<usize> = Vec::new();
     for (i, stmt) in body.iter().enumerate() {
-        if let MirStmt::CallBuiltin { name, args, .. } = stmt {
-            if is_bounds_check_name(name) {
-                // If the check's index is the induction variable and the array
-                // size matches the bound, it's safe.
-                if args.len() >= 2 {
-                    let idx_is_iv = operand_local(&args[1]).map(|l| l == iv).unwrap_or(false)
-                        || operand_local(&args[0]).map(|l| l == iv).unwrap_or(false);
-                    if idx_is_iv {
-                        // Check if the array size matches.
-                        let arr_matches = args.iter().any(|a| {
-                            operand_local(a)
-                                .and_then(|l| known_sizes.get(&l))
-                                .map(|&s| s >= upper)
-                                .unwrap_or(false)
-                        });
-                        let len_matches = args
-                            .iter()
-                            .any(|a| operand_const_usize(a).map(|v| v >= upper).unwrap_or(false));
-                        if arr_matches || len_matches {
-                            to_remove.push(i);
-                            summary.bounds_checks_eliminated += 1;
-                        }
+        if let MirStmt::CallBuiltin { name, args, .. } = stmt
+            && is_bounds_check_name(name)
+        {
+            // If the check's index is the induction variable and the array
+            // size matches the bound, it's safe.
+            if args.len() >= 2 {
+                let idx_is_iv = operand_local(&args[1]).map(|l| l == iv).unwrap_or(false)
+                    || operand_local(&args[0]).map(|l| l == iv).unwrap_or(false);
+                if idx_is_iv {
+                    // Check if the array size matches.
+                    let arr_matches = args.iter().any(|a| {
+                        operand_local(a)
+                            .and_then(|l| known_sizes.get(&l))
+                            .map(|&s| s >= upper)
+                            .unwrap_or(false)
+                    });
+                    let len_matches = args
+                        .iter()
+                        .any(|a| operand_const_usize(a).map(|v| v >= upper).unwrap_or(false));
+                    if arr_matches || len_matches {
+                        to_remove.push(i);
+                        summary.bounds_checks_eliminated += 1;
                     }
                 }
             }
@@ -274,31 +273,27 @@ fn has_unit_increment(stmts: &[MirStmt], iv: u32) -> bool {
             Place::Local(LocalId(dest)),
             Rvalue::Use(Operand::BinOp(BinOp::Add, lhs, rhs)),
         ) = stmt
+            && *dest == iv
         {
-            if *dest == iv {
-                let lhs_is_iv = operand_local(lhs).map(|l| l == iv).unwrap_or(false);
-                let rhs_is_one = operand_const_usize(rhs) == Some(1);
-                let rhs_is_iv = operand_local(rhs).map(|l| l == iv).unwrap_or(false);
-                let lhs_is_one = operand_const_usize(lhs) == Some(1);
-                if (lhs_is_iv && rhs_is_one) || (rhs_is_iv && lhs_is_one) {
-                    return true;
-                }
+            let lhs_is_iv = operand_local(lhs).map(|l| l == iv).unwrap_or(false);
+            let rhs_is_one = operand_const_usize(rhs) == Some(1);
+            let rhs_is_iv = operand_local(rhs).map(|l| l == iv).unwrap_or(false);
+            let lhs_is_one = operand_const_usize(lhs) == Some(1);
+            if (lhs_is_iv && rhs_is_one) || (rhs_is_iv && lhs_is_one) {
+                return true;
             }
         }
         // Also check Rvalue::BinaryOp form.
-        if let MirStmt::Assign(
-            Place::Local(LocalId(dest)),
-            Rvalue::BinaryOp(BinOp::Add, lhs, rhs),
-        ) = stmt
+        if let MirStmt::Assign(Place::Local(LocalId(dest)), Rvalue::BinaryOp(BinOp::Add, lhs, rhs)) =
+            stmt
+            && *dest == iv
         {
-            if *dest == iv {
-                let lhs_is_iv = operand_local(lhs).map(|l| l == iv).unwrap_or(false);
-                let rhs_is_one = operand_const_usize(rhs) == Some(1);
-                let rhs_is_iv = operand_local(rhs).map(|l| l == iv).unwrap_or(false);
-                let lhs_is_one = operand_const_usize(lhs) == Some(1);
-                if (lhs_is_iv && rhs_is_one) || (rhs_is_iv && lhs_is_one) {
-                    return true;
-                }
+            let lhs_is_iv = operand_local(lhs).map(|l| l == iv).unwrap_or(false);
+            let rhs_is_one = operand_const_usize(rhs) == Some(1);
+            let rhs_is_iv = operand_local(rhs).map(|l| l == iv).unwrap_or(false);
+            let lhs_is_one = operand_const_usize(lhs) == Some(1);
+            if (lhs_is_iv && rhs_is_one) || (rhs_is_iv && lhs_is_one) {
+                return true;
             }
         }
     }
@@ -311,14 +306,12 @@ fn resolve_bound(op: &Operand, known_sizes: &HashMap<u32, usize>) -> Option<usiz
         return Some(v);
     }
     // `Call("len", [Place(Local(arr))])` where arr has a known size.
-    if let Operand::Call(name, args) = op {
-        if name == "len" || name == "__intrinsic_len" {
-            if let Some(Operand::Place(Place::Local(LocalId(arr)))) = args.first() {
-                if let Some(&sz) = known_sizes.get(arr) {
-                    return Some(sz);
-                }
-            }
-        }
+    if let Operand::Call(name, args) = op
+        && (name == "len" || name == "__intrinsic_len")
+        && let Some(Operand::Place(Place::Local(LocalId(arr)))) = args.first()
+        && let Some(&sz) = known_sizes.get(arr)
+    {
+        return Some(sz);
     }
     // Place(Local(x)) where x holds a known size from a previous `len` assign.
     // (This would require more data flow; skip for now.)

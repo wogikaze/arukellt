@@ -16,20 +16,21 @@ impl Ctx {
             MirStmt::Assign(Place::Local(id), Rvalue::Use(op)) => {
                 self.emit_operand(f, op);
                 // Unbox anyref from __tupleN_any FieldAccess to the destination local's concrete type
-                if let Operand::FieldAccess { struct_name, .. } = op {
-                    if struct_name.starts_with("__tuple") && struct_name.ends_with("_any") {
-                        if self.string_locals.contains(&id.0) {
-                            f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
-                                self.string_ty,
-                            )));
-                        } else {
-                            // Default: i32 — unbox from i31ref
-                            f.instruction(&Instruction::RefCastNullable(HeapType::Abstract {
-                                shared: false,
-                                ty: wasm_encoder::AbstractHeapType::I31,
-                            }));
-                            f.instruction(&Instruction::I31GetS);
-                        }
+                if let Operand::FieldAccess { struct_name, .. } = op
+                    && struct_name.starts_with("__tuple")
+                    && struct_name.ends_with("_any")
+                {
+                    if self.string_locals.contains(&id.0) {
+                        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+                            self.string_ty,
+                        )));
+                    } else {
+                        // Default: i32 — unbox from i31ref
+                        f.instruction(&Instruction::RefCastNullable(HeapType::Abstract {
+                            shared: false,
+                            ty: wasm_encoder::AbstractHeapType::I31,
+                        }));
+                        f.instruction(&Instruction::I31GetS);
                     }
                 }
                 let local_idx = self.local_wasm_idx(id.0);
@@ -39,22 +40,22 @@ impl Ctx {
                 // struct.set: obj_ref field_idx value
                 if let Place::Local(id) = inner.as_ref() {
                     let struct_name = self.local_struct.get(&id.0).cloned();
-                    if let Some(ref sname) = struct_name {
-                        if let Some(&ty_idx) = self.struct_gc_types.get(sname) {
-                            let field_idx = self
-                                .struct_layouts
-                                .get(sname)
-                                .and_then(|fields| fields.iter().position(|(n, _)| n == field_name))
-                                .unwrap_or(0) as u32;
-                            let local_idx = self.local_wasm_idx(id.0);
-                            f.instruction(&Instruction::LocalGet(local_idx));
-                            self.emit_operand(f, op);
-                            f.instruction(&Instruction::StructSet {
-                                struct_type_index: ty_idx,
-                                field_index: field_idx,
-                            });
-                            return;
-                        }
+                    if let Some(ref sname) = struct_name
+                        && let Some(&ty_idx) = self.struct_gc_types.get(sname)
+                    {
+                        let field_idx = self
+                            .struct_layouts
+                            .get(sname)
+                            .and_then(|fields| fields.iter().position(|(n, _)| n == field_name))
+                            .unwrap_or(0) as u32;
+                        let local_idx = self.local_wasm_idx(id.0);
+                        f.instruction(&Instruction::LocalGet(local_idx));
+                        self.emit_operand(f, op);
+                        f.instruction(&Instruction::StructSet {
+                            struct_type_index: ty_idx,
+                            field_index: field_idx,
+                        });
+                        return;
                     }
                 }
                 // Fallback: drop
@@ -196,11 +197,12 @@ impl Ctx {
                             .get(&fn_name)
                             .or_else(|| self.fn_ret_types.get(lookup_name))
                             .cloned();
-                        if let Some(ref rt) = ret_ty {
-                            if *rt == Type::Any && dest.is_some() {
-                                let concrete = self.infer_generic_return_type(&fn_name, args);
-                                self.emit_anyref_unbox(f, &concrete);
-                            }
+                        if let Some(ref rt) = ret_ty
+                            && *rt == Type::Any
+                            && dest.is_some()
+                        {
+                            let concrete = self.infer_generic_return_type(&fn_name, args);
+                            self.emit_anyref_unbox(f, &concrete);
                         }
                         if let Some(Place::Local(id)) = dest.as_ref() {
                             f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
@@ -277,57 +279,58 @@ impl Ctx {
                             let current_ret_is_any = self.current_fn_return_ty == Type::Any;
                             // return_call is valid only when no boxing/unboxing
                             // is needed between the callee result and our return.
-                            if callee_ret_is_any == current_ret_is_any {
-                                if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
-                                    let param_types =
-                                        self.fn_param_types.get(canonical.as_str()).cloned();
-                                    for (i, arg) in args.iter().enumerate() {
-                                        self.emit_operand(f, arg);
-                                        if let Some(ref pts) = param_types {
-                                            if i < pts.len() && pts[i] == Type::Any {
-                                                let arg_vt = self.infer_operand_type(arg);
-                                                if arg_vt == ValType::I32 {
-                                                    f.instruction(&Instruction::RefI31);
-                                                }
-                                            }
+                            if callee_ret_is_any == current_ret_is_any
+                                && let Some(&fn_idx) = self.fn_map.get(canonical.as_str())
+                            {
+                                let param_types =
+                                    self.fn_param_types.get(canonical.as_str()).cloned();
+                                for (i, arg) in args.iter().enumerate() {
+                                    self.emit_operand(f, arg);
+                                    if let Some(ref pts) = param_types
+                                        && i < pts.len()
+                                        && pts[i] == Type::Any
+                                    {
+                                        let arg_vt = self.infer_operand_type(arg);
+                                        if arg_vt == ValType::I32 {
+                                            f.instruction(&Instruction::RefI31);
                                         }
                                     }
-                                    f.instruction(&Instruction::ReturnCall(fn_idx));
-                                    return;
                                 }
+                                f.instruction(&Instruction::ReturnCall(fn_idx));
+                                return;
                             }
                         }
                     }
-                    if let Operand::CallIndirect { callee, args } = op {
-                        if self.current_fn_return_ty != Type::Any {
-                            for arg in args {
-                                self.emit_operand(f, arg);
-                            }
-                            self.emit_operand(f, callee);
-                            let params: Vec<ValType> = args
-                                .iter()
-                                .map(|a| {
-                                    if self.is_f64_like_operand(a) {
-                                        ValType::F64
-                                    } else if self.is_i64_like_operand(a) {
-                                        ValType::I64
-                                    } else {
-                                        ValType::I32
-                                    }
-                                })
-                                .collect();
-                            let results = vec![ValType::I32];
-                            let type_index = self
-                                .indirect_types
-                                .get(&(params, results))
-                                .copied()
-                                .unwrap_or(0);
-                            f.instruction(&Instruction::ReturnCallIndirect {
-                                type_index,
-                                table_index: 0,
-                            });
-                            return;
+                    if let Operand::CallIndirect { callee, args } = op
+                        && self.current_fn_return_ty != Type::Any
+                    {
+                        for arg in args {
+                            self.emit_operand(f, arg);
                         }
+                        self.emit_operand(f, callee);
+                        let params: Vec<ValType> = args
+                            .iter()
+                            .map(|a| {
+                                if self.is_f64_like_operand(a) {
+                                    ValType::F64
+                                } else if self.is_i64_like_operand(a) {
+                                    ValType::I64
+                                } else {
+                                    ValType::I32
+                                }
+                            })
+                            .collect();
+                        let results = vec![ValType::I32];
+                        let type_index = self
+                            .indirect_types
+                            .get(&(params, results))
+                            .copied()
+                            .unwrap_or(0);
+                        f.instruction(&Instruction::ReturnCallIndirect {
+                            type_index,
+                            table_index: 0,
+                        });
+                        return;
                     }
                 }
                 // ── Normal (non-tail-call) path ──
@@ -1509,12 +1512,11 @@ impl Ctx {
                         struct_type_index: err_variant,
                         field_index: 0,
                     });
-                    if outer_result_enum != "Result" {
-                        if let Some(from_fn_name) = from_fn {
-                            if let Some(&from_idx) = self.fn_map.get(from_fn_name.as_str()) {
-                                f.instruction(&Instruction::Call(from_idx));
-                            }
-                        }
+                    if outer_result_enum != "Result"
+                        && let Some(from_fn_name) = from_fn
+                        && let Some(&from_idx) = self.fn_map.get(from_fn_name.as_str())
+                    {
+                        f.instruction(&Instruction::Call(from_idx));
                     }
                     f.instruction(&Instruction::StructNew(outer_err_variant));
                     f.instruction(&Instruction::Return);
@@ -1534,10 +1536,10 @@ impl Ctx {
     pub(super) fn get_ok_payload_type(&self, enum_name: &str) -> ValType {
         if let Some(variants) = self.enum_defs.get(enum_name) {
             for (vname, fields) in variants {
-                if vname == "Ok" {
-                    if let Some(field_type) = fields.first() {
-                        return self.type_name_to_val(field_type);
-                    }
+                if vname == "Ok"
+                    && let Some(field_type) = fields.first()
+                {
+                    return self.type_name_to_val(field_type);
                 }
             }
         }
@@ -1793,7 +1795,7 @@ impl Ctx {
         });
         // If any branch produces anyref, the result type must be anyref
         // (value types in the other branch will be boxed via ref.i31)
-        if types.iter().any(|t| *t == anyref_vt) {
+        if types.contains(&anyref_vt) {
             return anyref_vt;
         }
         // If both branches produce enum refs and one is non-null, prefer nullable
@@ -1843,15 +1845,15 @@ impl Ctx {
                         heap_type: HeapType::ANY,
                     });
                 }
-                if let Some(sname) = self.local_struct.get(&id.0) {
-                    if let Some(&ty_idx) = self.struct_gc_types.get(sname) {
-                        return ref_nullable(ty_idx);
-                    }
+                if let Some(sname) = self.local_struct.get(&id.0)
+                    && let Some(&ty_idx) = self.struct_gc_types.get(sname)
+                {
+                    return ref_nullable(ty_idx);
                 }
-                if let Some(ename) = self.local_enum.get(&id.0) {
-                    if let Some(&base_idx) = self.enum_base_types.get(ename) {
-                        return ref_nullable(base_idx);
-                    }
+                if let Some(ename) = self.local_enum.get(&id.0)
+                    && let Some(&base_idx) = self.enum_base_types.get(ename)
+                {
+                    return ref_nullable(base_idx);
                 }
                 // Vec locals
                 if self.i32_vec_locals.contains(&id.0) {
@@ -1866,10 +1868,10 @@ impl Ctx {
                 if self.string_vec_locals.contains(&id.0) {
                     return ref_nullable(self.vec_string_ty);
                 }
-                if let Some(sname) = self.struct_vec_locals.get(&id.0) {
-                    if let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname) {
-                        return ref_nullable(vec_ty);
-                    }
+                if let Some(sname) = self.struct_vec_locals.get(&id.0)
+                    && let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname)
+                {
+                    return ref_nullable(vec_ty);
                 }
                 ValType::I32
             }
@@ -1911,10 +1913,10 @@ impl Ctx {
                             return ValType::F64;
                         } else if self.is_i64_vec_operand(&args[0]) {
                             return ValType::I64;
-                        } else if let Some(sname) = self.get_struct_vec_name(&args[0]) {
-                            if let Some(&ty_idx) = self.struct_gc_types.get(&sname) {
-                                return ref_nullable(ty_idx);
-                            }
+                        } else if let Some(sname) = self.get_struct_vec_name(&args[0])
+                            && let Some(&ty_idx) = self.struct_gc_types.get(&sname)
+                        {
+                            return ref_nullable(ty_idx);
                         }
                         // For get(), it returns Result — fall through to fn_ret_type_names
                         if canonical == "get_unchecked" {
@@ -1966,10 +1968,10 @@ impl Ctx {
                     _ => {}
                 }
                 // Check Vec_new_* for struct names
-                if let Some(sname) = canonical.strip_prefix("Vec_new_") {
-                    if let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname) {
-                        return ref_nullable(vec_ty);
-                    }
+                if let Some(sname) = canonical.strip_prefix("Vec_new_")
+                    && let Some(&(_, vec_ty)) = self.custom_vec_types.get(sname)
+                {
+                    return ref_nullable(vec_ty);
                 }
                 if let Some(ret_name) = self
                     .fn_ret_type_names
@@ -1981,10 +1983,9 @@ impl Ctx {
                         .fn_ret_types
                         .get(name)
                         .or_else(|| self.fn_ret_types.get(canonical))
+                        && *ret_ty == Type::Any
                     {
-                        if *ret_ty == Type::Any {
-                            return self.infer_generic_return_type(name, args);
-                        }
+                        return self.infer_generic_return_type(name, args);
                     }
                     self.type_name_to_val(ret_name)
                 } else if let Some(ret_ty) = self
@@ -2031,10 +2032,10 @@ impl Ctx {
         if let Some(pts) = param_types {
             // Find the first Any-typed param and use its corresponding arg's type
             for (i, pt) in pts.iter().enumerate() {
-                if *pt == Type::Any {
-                    if let Some(arg) = args.get(i) {
-                        return self.infer_operand_type(arg);
-                    }
+                if *pt == Type::Any
+                    && let Some(arg) = args.get(i)
+                {
+                    return self.infer_operand_type(arg);
                 }
             }
         }
