@@ -260,10 +260,26 @@ def extract_doc_entry(path: Path, base_dir: Path) -> DocEntry:
     )
 
 
+def _git_tracked_files(directory: Path) -> set[Path]:
+    """Return the set of git-tracked files under *directory*."""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["git", "ls-files", "--full-name", str(directory.relative_to(ROOT))],
+            capture_output=True, text=True, cwd=ROOT, check=True,
+        )
+        return {ROOT / line for line in result.stdout.splitlines() if line}
+    except Exception:
+        return set()
+
+
 def collect_markdown_entries(section_dir: Path) -> list[DocEntry]:
+    tracked = _git_tracked_files(section_dir)
     entries: list[DocEntry] = []
     for path in sorted(section_dir.rglob("*.md")):
         if path.name == "README.md":
+            continue
+        if tracked and path.resolve() not in tracked:
             continue
         entries.append(extract_doc_entry(path, section_dir))
     return entries

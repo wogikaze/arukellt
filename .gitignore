@@ -16,3 +16,6 @@ test_output.txt
 tests/fixtures/**/*.wasm
 wasi_snapshot_preview1.reactor.wasm
 tests/component-interop/**/*.wasm
+
+# local-only reference specs (not tracked; cause docs-gen drift)
+docs/spec/spec-*/
