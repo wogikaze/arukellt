@@ -1,6 +1,6 @@
 # 横断検証: snapshot / baseline 更新導線と verify-harness 統合
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 152
