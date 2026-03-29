@@ -67,6 +67,7 @@ Rust compiler crates (`ark-lexer`, `ark-parser`, `ark-resolve`,
 | `f64_to_string` | `fn f64_to_string(n: f64) -> String` | ✅ | Lexer | Prelude |
 | `bool_to_string` | `fn bool_to_string(b: bool) -> String` | ✅ | Diagnostics | Prelude |
 | `char_to_string` | `fn char_to_string(c: char) -> String` | ✅ | Lexer | Prelude |
+| `to_string` | `fn to_string(x: any) -> String` | ✅ | All | Canonical user-facing conversion surface |
 | `parse_i32` | `fn parse_i32(s: String) -> Result<i32, String>` | ✅ | Parser | Prelude |
 | `parse_i64` | `fn parse_i64(s: String) -> Result<i64, String>` | ✅ | Lexer | Prelude |
 | `parse_f64` | `fn parse_f64(s: String) -> Result<f64, String>` | ✅ | Lexer | Prelude |

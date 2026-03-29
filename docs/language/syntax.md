@@ -76,8 +76,8 @@ let x = p.x
 ```ark
 let s = Shape::Rect(10, 20)
 match s {
-    Shape::Circle(r) => println(i32_to_string(r)),
-    Shape::Rect(w, h) => println(i32_to_string(w * h)),
+    Shape::Circle(r) => println(to_string(r)),
+    Shape::Rect(w, h) => println(to_string(w * h)),
 }
 ```
 
@@ -111,11 +111,11 @@ loop {
 
 ```ark
 for i in 0..10 {
-    println(i32_to_string(i))
+    println(to_string(i))
 }
 
 for item in values(v) {
-    println(i32_to_string(item))
+    println(to_string(item))
 }
 ```
 
@@ -127,9 +127,11 @@ for item in values(v) {
 push(v, 42)
 let n = len(v)
 let s2 = concat(s1, s2)
+let text = to_string(n)
 ```
 
 このブランチでは v1 のメソッド構文もありますが、まずは上の形を基準にするのが安全です。
+文字列化も `.to_string()` より `to_string(x)` を基準にするのが安全です。
 
 ## match
 
@@ -143,7 +145,7 @@ match value {
 
 ```ark
 match opt {
-    Some(x) => println(i32_to_string(x)),
+    Some(x) => println(to_string(x)),
     None => println(String_from("none")),
 }
 ```

@@ -20,8 +20,8 @@ mod layout_opt;
 mod operands;
 mod peephole;
 mod reachability;
-mod stmts;
 mod stdlib;
+mod stmts;
 mod types;
 
 use ark_diagnostics::DiagnosticSink;
@@ -30,9 +30,9 @@ use ark_typecheck::types::Type;
 use std::collections::{HashMap, HashSet};
 use wasm_encoder::{
     ArrayType, CodeSection, CompositeInnerType, CompositeType, DataSection, DataSegment,
-    ExportKind, ExportSection, FieldType, FunctionSection, GlobalSection, GlobalType,
-    HeapType, ImportSection, MemorySection, MemoryType,
-    RefType as WasmRefType, StorageType, StructType, SubType, TypeSection, ValType,
+    ExportKind, ExportSection, FieldType, FunctionSection, GlobalSection, GlobalType, HeapType,
+    ImportSection, MemorySection, MemoryType, RefType as WasmRefType, StorageType, StructType,
+    SubType, TypeSection, ValType,
 };
 
 // ── Linear memory layout (IO bridge only) ────────────────────────
@@ -61,7 +61,7 @@ const VEC_FIELD_CAP: u32 = 2;
 
 // Well-known import function indices (set dynamically based on usage)
 // const FN_FD_WRITE: u32 = 0;  -- now self.wasi_fd_write
-// const FN_PATH_OPEN: u32 = 1; -- now self.wasi_path_open  
+// const FN_PATH_OPEN: u32 = 1; -- now self.wasi_path_open
 // const FN_FD_READ: u32 = 2;   -- now self.wasi_fd_read
 // const FN_FD_CLOSE: u32 = 3;  -- now self.wasi_fd_close
 
@@ -102,6 +102,9 @@ fn ref_non_null(idx: u32) -> ValType {
 
 /// Normalize `__intrinsic_*` names to canonical emit names.
 fn normalize_intrinsic(name: &str) -> &str {
+    if name == "__intrinsic_replace" {
+        return "__intrinsic_replace";
+    }
     if let Some(stripped) = name.strip_prefix("__intrinsic_") {
         match stripped {
             "println" => "println",
@@ -154,11 +157,7 @@ pub(super) fn nominalize_generic_type_name(name: &str) -> Option<String> {
     while out.ends_with('_') {
         out.pop();
     }
-    if out.is_empty() {
-        None
-    } else {
-        Some(out)
-    }
+    if out.is_empty() { None } else { Some(out) }
 }
 
 fn split_generic_type_args(name: &str) -> Option<(String, Vec<String>)> {
@@ -237,7 +236,6 @@ pub(super) fn is_component_export_candidate(name: &str) -> bool {
             | "String_from"
     ) && !name.starts_with("__")
 }
-
 
 struct TypeAlloc {
     next_idx: u32,
@@ -321,7 +319,12 @@ impl TypeAlloc {
     }
 
     /// Add a final variant struct subtype with the given supertype.
-    pub(super) fn add_sub_struct_variant(&mut self, name: &str, super_idx: u32, fields: &[FieldType]) -> u32 {
+    pub(super) fn add_sub_struct_variant(
+        &mut self,
+        name: &str,
+        super_idx: u32,
+        fields: &[FieldType],
+    ) -> u32 {
         let idx = self.next_idx;
         self.names.insert(name.to_string(), idx);
         self.section.ty().subtype(&SubType {
@@ -441,6 +444,7 @@ struct Ctx {
     f64_locals: std::collections::HashSet<u32>,
     i64_locals: std::collections::HashSet<u32>,
     bool_locals: std::collections::HashSet<u32>,
+    char_locals: std::collections::HashSet<u32>,
     any_locals: std::collections::HashSet<u32>,
     f64_vec_locals: std::collections::HashSet<u32>,
     i64_vec_locals: std::collections::HashSet<u32>,
@@ -632,7 +636,10 @@ impl Ctx {
             if base != "Result" || args.len() != 2 {
                 continue;
             }
-            if !args.iter().all(|arg| is_concrete_specialization_arg(arg.as_str())) {
+            if !args
+                .iter()
+                .all(|arg| is_concrete_specialization_arg(arg.as_str()))
+            {
                 continue;
             }
             let Some(enum_name) = nominalize_generic_type_name(type_name.as_str()) else {
@@ -869,6 +876,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         f64_locals: Default::default(),
         i64_locals: Default::default(),
         bool_locals: Default::default(),
+        char_locals: Default::default(),
         any_locals: Default::default(),
         f64_vec_locals: Default::default(),
         i64_vec_locals: Default::default(),
@@ -988,16 +996,19 @@ impl Ctx {
         // fd_close: (i32) -> i32
         let fd_close_ty = self.types.add_func(&[ValType::I32], &[ValType::I32]);
         // clock_time_get: (i32, i64, i32) -> i32
-        let clock_time_get_ty = self.types.add_func(
-            &[ValType::I32, ValType::I64, ValType::I32],
-            &[ValType::I32],
-        );
+        let clock_time_get_ty = self
+            .types
+            .add_func(&[ValType::I32, ValType::I64, ValType::I32], &[ValType::I32]);
         // random_get: (i32, i32) -> i32
-        let random_get_ty = self.types.add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
+        let random_get_ty = self
+            .types
+            .add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
         // proc_exit: (i32) -> ()
         let proc_exit_ty = self.types.add_func(&[ValType::I32], &[]);
         // args_sizes_get: (i32, i32) -> i32
-        let args_sizes_get_ty = self.types.add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
+        let args_sizes_get_ty = self
+            .types
+            .add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
         // args_get: (i32, i32) -> i32
         let args_get_ty = args_sizes_get_ty; // same signature
 
@@ -1053,14 +1064,13 @@ impl Ctx {
         let mut print_newline_pos: Option<usize> = None;
         let mut i64_to_str_pos: Option<usize> = None;
         let mut f64_to_str_pos: Option<usize> = None;
-        let needs_p2_stdio_shims =
-            needed.print_str
-                || needed.print_i32
-                || needed.print_bool
-                || needed.print_str_ln
-                || needed.print_i32_ln
-                || needed.print_bool_ln
-                || needed.print_newline;
+        let needs_p2_stdio_shims = needed.print_str
+            || needed.print_i32
+            || needed.print_bool
+            || needed.print_str_ln
+            || needed.print_i32_ln
+            || needed.print_bool_ln
+            || needed.print_newline;
 
         if needs_p2_stdio_shims {
             p2_get_stdout_pos = Some(helper_fns.len());
@@ -1072,7 +1082,11 @@ impl Ctx {
                 vec![],
             ));
             p2_drop_output_stream_pos = Some(helper_fns.len());
-            helper_fns.push(("__wasi_p2_drop_output_stream".into(), vec![ValType::I32], vec![]));
+            helper_fns.push((
+                "__wasi_p2_drop_output_stream".into(),
+                vec![ValType::I32],
+                vec![],
+            ));
         }
 
         if needed.print_str {
@@ -1128,15 +1142,18 @@ impl Ctx {
         }
 
         // Conditionally add parse helpers if needed AND the relevant Result enum types exist
-        let parse_i32_helper_idx = if needed.parse_i32 && self.enum_base_types.contains_key("Result") {
-            let result_ref = ref_nullable(*self.enum_base_types.get("Result").unwrap());
-            let idx = helper_fns.len();
-            helper_fns.push(("__parse_i32".into(), vec![str_ref], vec![result_ref]));
-            Some(idx)
-        } else {
-            None
-        };
-        let parse_i64_helper_idx = if needed.parse_i64 && self.enum_base_types.contains_key("Result_i64_String") {
+        let parse_i32_helper_idx =
+            if needed.parse_i32 && self.enum_base_types.contains_key("Result") {
+                let result_ref = ref_nullable(*self.enum_base_types.get("Result").unwrap());
+                let idx = helper_fns.len();
+                helper_fns.push(("__parse_i32".into(), vec![str_ref], vec![result_ref]));
+                Some(idx)
+            } else {
+                None
+            };
+        let parse_i64_helper_idx = if needed.parse_i64
+            && self.enum_base_types.contains_key("Result_i64_String")
+        {
             let result_ref = ref_nullable(*self.enum_base_types.get("Result_i64_String").unwrap());
             let idx = helper_fns.len();
             helper_fns.push(("__parse_i64".into(), vec![str_ref], vec![result_ref]));
@@ -1144,7 +1161,9 @@ impl Ctx {
         } else {
             None
         };
-        let parse_f64_helper_idx = if needed.parse_f64 && self.enum_base_types.contains_key("Result_f64_String") {
+        let parse_f64_helper_idx = if needed.parse_f64
+            && self.enum_base_types.contains_key("Result_f64_String")
+        {
             let result_ref = ref_nullable(*self.enum_base_types.get("Result_f64_String").unwrap());
             let idx = helper_fns.len();
             helper_fns.push(("__parse_f64".into(), vec![str_ref], vec![result_ref]));
@@ -1272,8 +1291,7 @@ impl Ctx {
         }
         // Set helper indices based on dynamic positions
         self.wasi_p2_get_stdout = p2_get_stdout_pos.map_or(0, |p| helper_base + p as u32);
-        self.wasi_p2_write_and_flush =
-            p2_write_and_flush_pos.map_or(0, |p| helper_base + p as u32);
+        self.wasi_p2_write_and_flush = p2_write_and_flush_pos.map_or(0, |p| helper_base + p as u32);
         self.wasi_p2_drop_output_stream =
             p2_drop_output_stream_pos.map_or(0, |p| helper_base + p as u32);
         self.helper_print_str = print_str_pos.map(|p| helper_base + p as u32);
@@ -1602,7 +1620,9 @@ impl Ctx {
             func_names.append(self.wasi_args_get, "wasi:args_get");
         }
         // Helper function names (sorted by index for NameMap)
-        let mut helpers: Vec<(u32, &str)> = self.fn_map.iter()
+        let mut helpers: Vec<(u32, &str)> = self
+            .fn_map
+            .iter()
             .filter(|(_, idx)| **idx >= num_imports && **idx < user_base)
             .map(|(name, idx)| (*idx, name.as_str()))
             .collect();

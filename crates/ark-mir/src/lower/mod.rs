@@ -130,7 +130,11 @@ pub(crate) fn infer_fn_id(name: &str, next_fn_id: u32) -> FnId {
     }
 }
 
-pub(crate) fn fallback_block(id: BlockId, stmts: Vec<MirStmt>, terminator: Terminator) -> BasicBlock {
+pub(crate) fn fallback_block(
+    id: BlockId,
+    stmts: Vec<MirStmt>,
+    terminator: Terminator,
+) -> BasicBlock {
     BasicBlock {
         id,
         stmts,
@@ -832,7 +836,6 @@ pub fn lowering_pair_report(legacy: &MirModule, corehir: &MirModule) -> String {
     )
 }
 
-
 pub(crate) struct LowerCtx {
     pub(super) locals: Vec<(String, LocalId)>,
     pub(super) next_local: u32,
@@ -840,6 +843,7 @@ pub(crate) struct LowerCtx {
     pub(super) f64_locals: HashSet<u32>,
     pub(super) i64_locals: HashSet<u32>,
     pub(super) bool_locals: HashSet<u32>,
+    pub(super) char_locals: HashSet<u32>,
     pub(super) enum_tags: HashMap<String, i32>,
     /// enum name -> variant info: (variant_name, field_count)
     pub(super) enum_variants: HashMap<String, Vec<(String, usize)>>,
@@ -915,6 +919,7 @@ impl LowerCtx {
             f64_locals: HashSet::new(),
             i64_locals: HashSet::new(),
             bool_locals: HashSet::new(),
+            char_locals: HashSet::new(),
             enum_tags,
             enum_variants,
             variant_to_enum,

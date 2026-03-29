@@ -6,8 +6,8 @@
 mod helpers;
 mod operands;
 mod sections;
-mod stmts;
 mod stdlib;
+mod stmts;
 
 use ark_diagnostics::DiagnosticSink;
 use ark_mir::mir::*;
@@ -24,10 +24,10 @@ const FS_SCRATCH: u32 = 160; // scratch for fs operations (opened_fd: 4 bytes)
 const FS_NREAD: u32 = 164; // nread result from fd_read (4 bytes)
 const STDIN_BUF_POS: u32 = 168; // i32: current read position in stdin buffer
 const STDIN_BUF_LEN: u32 = 172; // i32: valid byte count in stdin buffer
-const FS_BUF_SIZE: u32 = 4096;  // read buffer chunk size for fs_read_file
-const STDIN_BUF: u32 = 4096;    // 65536-byte stdin buffer (4096..69631)
+const FS_BUF_SIZE: u32 = 4096; // read buffer chunk size for fs_read_file
+const STDIN_BUF: u32 = 4096; // 65536-byte stdin buffer (4096..69631)
 const STDIN_BUF_SIZE: u32 = 65536;
-const HEAP_START: u32 = 69632;  // = STDIN_BUF + STDIN_BUF_SIZE
+const HEAP_START: u32 = 69632; // = STDIN_BUF + STDIN_BUF_SIZE
 const BOOL_TRUE: u32 = 80; // "true" (4 bytes)
 const BOOL_FALSE: u32 = 84; // "false" (5 bytes)
 const NEWLINE: u32 = 89; // "\n" (1 byte)
@@ -85,7 +85,7 @@ const FN_FILTER_I64: u32 = 26;
 const FN_FOLD_I64: u32 = 27;
 const FN_MAP_F64: u32 = 28;
 const FN_FILTER_F64: u32 = 29;
-const FN_GET_BYTE: u32 = 30;   // buffered stdin helper
+const FN_GET_BYTE: u32 = 30; // buffered stdin helper
 const FN_USER_BASE: u32 = 31;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
@@ -142,7 +142,7 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_contains" => "contains",
         "__intrinsic_char_at" => "char_at",
         "__intrinsic_substring" => "substring",
-        "__intrinsic_replace" => "replace",
+        "__intrinsic_replace" => "__intrinsic_replace",
         "__intrinsic_fs_read_file" => "fs_read_file",
         "__intrinsic_fs_write_file" => "fs_write_file",
         "__intrinsic_clock_now" => "clock_now",
@@ -198,6 +198,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         f64_locals: HashSet::new(),
         i64_locals: HashSet::new(),
         bool_locals: HashSet::new(),
+        char_locals: HashSet::new(),
         fn_return_types: mir
             .functions
             .iter()
@@ -248,6 +249,8 @@ struct EmitCtx {
     i64_locals: HashSet<u32>,
     /// Locals known to hold bool values.
     bool_locals: HashSet<u32>,
+    /// Locals known to hold char values.
+    char_locals: HashSet<u32>,
     /// Function return types (for println dispatch on user function calls).
     fn_return_types: std::collections::HashMap<String, ark_typecheck::types::Type>,
     /// Function parameter types (for type-correct argument emission).
@@ -290,7 +293,11 @@ impl EmitCtx {
     }
 
     /// Compute field offset and type info for a struct
-    pub(super) fn struct_field_info(&self, struct_name: &str, field_name: &str) -> (u32, bool, bool) {
+    pub(super) fn struct_field_info(
+        &self,
+        struct_name: &str,
+        field_name: &str,
+    ) -> (u32, bool, bool) {
         if let Some(fields) = self.struct_layouts.get(struct_name) {
             let mut offset = 0u32;
             for (fname, ftype) in fields {
@@ -370,7 +377,11 @@ impl EmitCtx {
     }
 
     /// Look up a type index for call_indirect. Must have been registered during type section build.
-    pub(super) fn lookup_or_register_indirect_type(&self, params: Vec<ValType>, results: Vec<ValType>) -> u32 {
+    pub(super) fn lookup_or_register_indirect_type(
+        &self,
+        params: Vec<ValType>,
+        results: Vec<ValType>,
+    ) -> u32 {
         let key = (params, results);
         self.type_registry.get(&key).copied().unwrap_or(0)
     }
@@ -449,7 +460,6 @@ impl EmitCtx {
             .map(|i| self.fn_map[FN_USER_BASE as usize + i])
     }
 
-
     pub(super) fn emit_bump_alloc(&self, f: &mut Function, size: i32) {
         // ptr = heap_ptr
         f.instruction(&Instruction::GlobalGet(0));
@@ -486,6 +496,7 @@ impl EmitCtx {
         self.f64_locals.clear();
         self.i64_locals.clear();
         self.bool_locals.clear();
+        self.char_locals.clear();
         for local in func.params.iter().chain(func.locals.iter()) {
             match &local.ty {
                 ark_typecheck::types::Type::String => {
@@ -499,6 +510,9 @@ impl EmitCtx {
                 }
                 ark_typecheck::types::Type::Bool => {
                     self.bool_locals.insert(local.id.0);
+                }
+                ark_typecheck::types::Type::Char => {
+                    self.char_locals.insert(local.id.0);
                 }
                 ark_typecheck::types::Type::Vec(inner) => match inner.as_ref() {
                     ark_typecheck::types::Type::String => {
@@ -764,31 +778,52 @@ fn cfn_add_transitive_deps(needed: &mut std::collections::HashSet<u32>) {
         if needed.contains(&FN_GET_BYTE) {
             needed.insert(FN_FD_READ);
         }
-        if needed.len() == before { break; }
+        if needed.len() == before {
+            break;
+        }
     }
 }
 
-fn cfn_visit_stmt(stmt: &MirStmt, func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+fn cfn_visit_stmt(
+    stmt: &MirStmt,
+    func: &MirFunction,
+    mir: &MirModule,
+    needed: &mut std::collections::HashSet<u32>,
+) {
     match stmt {
         MirStmt::CallBuiltin { name, args, .. } => {
             let n = normalize_intrinsic_name(name.as_str());
             cfn_handle_builtin(n, args, func, mir, needed);
-            for arg in args { cfn_visit_operand(arg, func, mir, needed); }
+            for arg in args {
+                cfn_visit_operand(arg, func, mir, needed);
+            }
         }
         MirStmt::Call { args, .. } => {
-            for arg in args { cfn_visit_operand(arg, func, mir, needed); }
+            for arg in args {
+                cfn_visit_operand(arg, func, mir, needed);
+            }
         }
         MirStmt::Assign(_, rvalue) => {
             cfn_visit_rvalue(rvalue, func, mir, needed);
         }
-        MirStmt::IfStmt { cond, then_body, else_body } => {
+        MirStmt::IfStmt {
+            cond,
+            then_body,
+            else_body,
+        } => {
             cfn_visit_operand(cond, func, mir, needed);
-            for s in then_body { cfn_visit_stmt(s, func, mir, needed); }
-            for s in else_body { cfn_visit_stmt(s, func, mir, needed); }
+            for s in then_body {
+                cfn_visit_stmt(s, func, mir, needed);
+            }
+            for s in else_body {
+                cfn_visit_stmt(s, func, mir, needed);
+            }
         }
         MirStmt::WhileStmt { cond, body } => {
             cfn_visit_operand(cond, func, mir, needed);
-            for s in body { cfn_visit_stmt(s, func, mir, needed); }
+            for s in body {
+                cfn_visit_stmt(s, func, mir, needed);
+            }
         }
         MirStmt::Return(Some(op)) => {
             cfn_visit_operand(op, func, mir, needed);
@@ -797,7 +832,12 @@ fn cfn_visit_stmt(stmt: &MirStmt, func: &MirFunction, mir: &MirModule, needed: &
     }
 }
 
-fn cfn_visit_rvalue(rvalue: &Rvalue, func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+fn cfn_visit_rvalue(
+    rvalue: &Rvalue,
+    func: &MirFunction,
+    mir: &MirModule,
+    needed: &mut std::collections::HashSet<u32>,
+) {
     match rvalue {
         Rvalue::Use(op) => cfn_visit_operand(op, func, mir, needed),
         Rvalue::BinaryOp(_, l, r) => {
@@ -806,43 +846,72 @@ fn cfn_visit_rvalue(rvalue: &Rvalue, func: &MirFunction, mir: &MirModule, needed
         }
         Rvalue::UnaryOp(_, o) => cfn_visit_operand(o, func, mir, needed),
         Rvalue::Aggregate(_, ops) => {
-            for op in ops { cfn_visit_operand(op, func, mir, needed); }
+            for op in ops {
+                cfn_visit_operand(op, func, mir, needed);
+            }
         }
         Rvalue::Ref(_) => {}
     }
 }
 
-fn cfn_visit_operand(op: &Operand, func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+fn cfn_visit_operand(
+    op: &Operand,
+    func: &MirFunction,
+    mir: &MirModule,
+    needed: &mut std::collections::HashSet<u32>,
+) {
     match op {
         Operand::Call(name, args) => {
             let n = normalize_intrinsic_name(name.as_str());
             cfn_handle_builtin(n, args, func, mir, needed);
-            for arg in args { cfn_visit_operand(arg, func, mir, needed); }
+            for arg in args {
+                cfn_visit_operand(arg, func, mir, needed);
+            }
         }
         Operand::BinOp(_, l, r) => {
             cfn_visit_operand(l, func, mir, needed);
             cfn_visit_operand(r, func, mir, needed);
         }
         Operand::UnaryOp(_, o) => cfn_visit_operand(o, func, mir, needed),
-        Operand::IfExpr { cond, then_body, then_result, else_body, else_result } => {
+        Operand::IfExpr {
+            cond,
+            then_body,
+            then_result,
+            else_body,
+            else_result,
+        } => {
             cfn_visit_operand(cond, func, mir, needed);
-            for s in then_body { cfn_visit_stmt(s, func, mir, needed); }
-            if let Some(r) = then_result { cfn_visit_operand(r, func, mir, needed); }
-            for s in else_body { cfn_visit_stmt(s, func, mir, needed); }
-            if let Some(r) = else_result { cfn_visit_operand(r, func, mir, needed); }
+            for s in then_body {
+                cfn_visit_stmt(s, func, mir, needed);
+            }
+            if let Some(r) = then_result {
+                cfn_visit_operand(r, func, mir, needed);
+            }
+            for s in else_body {
+                cfn_visit_stmt(s, func, mir, needed);
+            }
+            if let Some(r) = else_result {
+                cfn_visit_operand(r, func, mir, needed);
+            }
         }
         Operand::StructInit { fields, .. } => {
-            for (_, op) in fields { cfn_visit_operand(op, func, mir, needed); }
+            for (_, op) in fields {
+                cfn_visit_operand(op, func, mir, needed);
+            }
         }
         Operand::FieldAccess { object, .. } => cfn_visit_operand(object, func, mir, needed),
         Operand::EnumInit { payload, .. } => {
-            for op in payload { cfn_visit_operand(op, func, mir, needed); }
+            for op in payload {
+                cfn_visit_operand(op, func, mir, needed);
+            }
         }
         Operand::EnumTag(o) => cfn_visit_operand(o, func, mir, needed),
         Operand::EnumPayload { object, .. } => cfn_visit_operand(object, func, mir, needed),
         Operand::LoopExpr { init, body, result } => {
             cfn_visit_operand(init, func, mir, needed);
-            for s in body { cfn_visit_stmt(s, func, mir, needed); }
+            for s in body {
+                cfn_visit_stmt(s, func, mir, needed);
+            }
             cfn_visit_operand(result, func, mir, needed);
         }
         Operand::TryExpr { expr, .. } => cfn_visit_operand(expr, func, mir, needed),
@@ -850,7 +919,13 @@ fn cfn_visit_operand(op: &Operand, func: &MirFunction, mir: &MirModule, needed: 
     }
 }
 
-fn cfn_handle_builtin(n: &str, args: &[Operand], func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+fn cfn_handle_builtin(
+    n: &str,
+    args: &[Operand],
+    func: &MirFunction,
+    mir: &MirModule,
+    needed: &mut std::collections::HashSet<u32>,
+) {
     match n {
         "println" | "print" | "eprintln" | "eprint" => {
             needed.insert(FN_FD_WRITE);
@@ -858,24 +933,51 @@ fn cfn_handle_builtin(n: &str, args: &[Operand], func: &MirFunction, mir: &MirMo
                 cfn_add_needed_for_print(arg, func, mir, needed);
             }
         }
-        "print_i32_ln" => { needed.insert(FN_FD_WRITE); needed.insert(FN_PRINT_I32_LN); }
-        "print_bool_ln" => { needed.insert(FN_FD_WRITE); needed.insert(FN_PRINT_BOOL_LN); }
-        "print_str_ln" => { needed.insert(FN_FD_WRITE); needed.insert(FN_PRINT_STR_LN); }
-        "str_eq" | "eq" => { needed.insert(FN_STR_EQ); }
-        "concat" => { needed.insert(FN_CONCAT); }
-        "i32_to_string" | "int_to_string" => { needed.insert(FN_I32_TO_STR); }
-        "f64_to_string" => { needed.insert(FN_F64_TO_STR); }
-        "i64_to_string" => { needed.insert(FN_I64_TO_STR); }
+        "print_i32_ln" => {
+            needed.insert(FN_FD_WRITE);
+            needed.insert(FN_PRINT_I32_LN);
+        }
+        "print_bool_ln" => {
+            needed.insert(FN_FD_WRITE);
+            needed.insert(FN_PRINT_BOOL_LN);
+        }
+        "print_str_ln" => {
+            needed.insert(FN_FD_WRITE);
+            needed.insert(FN_PRINT_STR_LN);
+        }
+        "str_eq" | "eq" => {
+            needed.insert(FN_STR_EQ);
+        }
+        "concat" => {
+            needed.insert(FN_CONCAT);
+        }
+        "i32_to_string" | "int_to_string" => {
+            needed.insert(FN_I32_TO_STR);
+        }
+        "f64_to_string" => {
+            needed.insert(FN_F64_TO_STR);
+        }
+        "i64_to_string" => {
+            needed.insert(FN_I64_TO_STR);
+        }
         "to_string" => {
             // Polymorphic dispatch: conservatively add all numeric to_string helpers
             needed.insert(FN_I32_TO_STR);
             needed.insert(FN_F64_TO_STR);
             needed.insert(FN_I64_TO_STR);
         }
-        "read_line" => { needed.insert(FN_FD_READ); }
-        "read_int" => { needed.insert(FN_GET_BYTE); }
-        "clock_now" | "clock_time_get" => { needed.insert(FN_CLOCK_TIME_GET); }
-        "random_i32" | "random_f64" => { needed.insert(FN_RANDOM_GET); }
+        "read_line" => {
+            needed.insert(FN_FD_READ);
+        }
+        "read_int" => {
+            needed.insert(FN_GET_BYTE);
+        }
+        "clock_now" | "clock_time_get" => {
+            needed.insert(FN_CLOCK_TIME_GET);
+        }
+        "random_i32" | "random_f64" => {
+            needed.insert(FN_RANDOM_GET);
+        }
         "fs_read_file" => {
             needed.insert(FN_PATH_OPEN);
             needed.insert(FN_FD_READ);
@@ -900,32 +1002,59 @@ fn cfn_handle_builtin(n: &str, args: &[Operand], func: &MirFunction, mir: &MirMo
             needed.insert(FN_FOLD_I32);
             needed.insert(FN_FOLD_I64);
         }
-        "map_option" | "map_option_i32_i32" => { needed.insert(FN_MAP_OPT_I32); }
-        "any" | "any_i32" => { needed.insert(FN_ANY_I32); }
-        "find" | "find_i32" => { needed.insert(FN_FIND_I32); }
+        "map_option" | "map_option_i32_i32" => {
+            needed.insert(FN_MAP_OPT_I32);
+        }
+        "any" | "any_i32" => {
+            needed.insert(FN_ANY_I32);
+        }
+        "find" | "find_i32" => {
+            needed.insert(FN_FIND_I32);
+        }
         "panic" | "assert" | "assert_eq" | "assert_ne" | "assert_eq_str" | "assert_eq_i64" => {
             needed.insert(FN_FD_WRITE);
         }
-        other if (other.contains("HashMap") || other.contains("hashmap")) && other.ends_with("_new") => {
+        other
+            if (other.contains("HashMap") || other.contains("hashmap"))
+                && other.ends_with("_new") =>
+        {
             needed.insert(FN_HASHMAP_I32_NEW);
         }
-        other if (other.contains("HashMap") || other.contains("hashmap")) && other.contains("_insert") => {
+        other
+            if (other.contains("HashMap") || other.contains("hashmap"))
+                && other.contains("_insert") =>
+        {
             needed.insert(FN_HASHMAP_I32_INSERT);
         }
-        other if (other.contains("HashMap") || other.contains("hashmap")) && other.contains("_get") && !other.contains("_contains") => {
+        other
+            if (other.contains("HashMap") || other.contains("hashmap"))
+                && other.contains("_get")
+                && !other.contains("_contains") =>
+        {
             needed.insert(FN_HASHMAP_I32_GET);
         }
-        other if (other.contains("HashMap") || other.contains("hashmap")) && other.contains("_contains") => {
+        other
+            if (other.contains("HashMap") || other.contains("hashmap"))
+                && other.contains("_contains") =>
+        {
             needed.insert(FN_HASHMAP_I32_CONTAINS);
         }
-        other if (other.contains("HashMap") || other.contains("hashmap")) && other.contains("_len") => {
+        other
+            if (other.contains("HashMap") || other.contains("hashmap"))
+                && other.contains("_len") =>
+        {
             needed.insert(FN_HASHMAP_I32_LEN);
         }
         _ => {}
     }
 }
 
-fn cfn_add_needed_for_print(arg: &Operand, func: &MirFunction, mir: &MirModule, needed: &mut std::collections::HashSet<u32>) {
+fn cfn_add_needed_for_print(
+    arg: &Operand,
+    func: &MirFunction,
+    mir: &MirModule,
+    needed: &mut std::collections::HashSet<u32>,
+) {
     match arg {
         Operand::ConstString(_) => {
             // emit_fd_write inline -> only FN_FD_WRITE (already added)
@@ -933,8 +1062,12 @@ fn cfn_add_needed_for_print(arg: &Operand, func: &MirFunction, mir: &MirModule, 
         Operand::ConstBool(_) => {
             needed.insert(FN_PRINT_BOOL_LN);
         }
-        Operand::ConstI32(_) | Operand::ConstI8(_) | Operand::ConstI16(_)
-        | Operand::ConstU8(_) | Operand::ConstU16(_) | Operand::ConstU32(_)
+        Operand::ConstI32(_)
+        | Operand::ConstI8(_)
+        | Operand::ConstI16(_)
+        | Operand::ConstU8(_)
+        | Operand::ConstU16(_)
+        | Operand::ConstU32(_)
         | Operand::ConstChar(_) => {
             needed.insert(FN_PRINT_I32_LN);
         }
@@ -949,24 +1082,48 @@ fn cfn_add_needed_for_print(arg: &Operand, func: &MirFunction, mir: &MirModule, 
         Operand::Call(name, _) => {
             let n = normalize_intrinsic_name(name.as_str());
             match n {
-                "i32_to_string" | "int_to_string" => { needed.insert(FN_PRINT_I32_LN); }
-                "bool_to_string" => { needed.insert(FN_PRINT_BOOL_LN); }
-                "f64_to_string" => { needed.insert(FN_F64_TO_STR); needed.insert(FN_PRINT_STR_LN); }
-                "i64_to_string" => { needed.insert(FN_I64_TO_STR); needed.insert(FN_PRINT_STR_LN); }
-                "concat" => { needed.insert(FN_CONCAT); needed.insert(FN_PRINT_STR_LN); }
+                "i32_to_string" | "int_to_string" => {
+                    needed.insert(FN_PRINT_I32_LN);
+                }
+                "bool_to_string" => {
+                    needed.insert(FN_PRINT_BOOL_LN);
+                }
+                "f64_to_string" => {
+                    needed.insert(FN_F64_TO_STR);
+                    needed.insert(FN_PRINT_STR_LN);
+                }
+                "i64_to_string" => {
+                    needed.insert(FN_I64_TO_STR);
+                    needed.insert(FN_PRINT_STR_LN);
+                }
+                "concat" => {
+                    needed.insert(FN_CONCAT);
+                    needed.insert(FN_PRINT_STR_LN);
+                }
                 "String_from" | "String_new" | "char_to_string" | "clone" => {
                     needed.insert(FN_PRINT_STR_LN);
                 }
                 _ => {
-                    let ret_ty = mir.functions.iter().find(|f| f.name == n).map(|f| &f.return_ty);
+                    let ret_ty = mir
+                        .functions
+                        .iter()
+                        .find(|f| f.name == n)
+                        .map(|f| &f.return_ty);
                     match ret_ty {
-                        Some(ark_typecheck::types::Type::String) => { needed.insert(FN_PRINT_STR_LN); }
-                        Some(ark_typecheck::types::Type::Bool) => { needed.insert(FN_PRINT_BOOL_LN); }
-                        Some(ark_typecheck::types::Type::F64) | Some(ark_typecheck::types::Type::F32) => {
-                            needed.insert(FN_F64_TO_STR); needed.insert(FN_PRINT_STR_LN);
+                        Some(ark_typecheck::types::Type::String) => {
+                            needed.insert(FN_PRINT_STR_LN);
+                        }
+                        Some(ark_typecheck::types::Type::Bool) => {
+                            needed.insert(FN_PRINT_BOOL_LN);
+                        }
+                        Some(ark_typecheck::types::Type::F64)
+                        | Some(ark_typecheck::types::Type::F32) => {
+                            needed.insert(FN_F64_TO_STR);
+                            needed.insert(FN_PRINT_STR_LN);
                         }
                         Some(ark_typecheck::types::Type::I64) => {
-                            needed.insert(FN_I64_TO_STR); needed.insert(FN_PRINT_STR_LN);
+                            needed.insert(FN_I64_TO_STR);
+                            needed.insert(FN_PRINT_STR_LN);
                         }
                         _ => {
                             needed.insert(FN_PRINT_I32_LN);
@@ -985,15 +1142,23 @@ fn cfn_add_needed_for_print(arg: &Operand, func: &MirFunction, mir: &MirModule, 
             let params_and_locals: Vec<_> = func.params.iter().chain(func.locals.iter()).collect();
             if let Some(local) = params_and_locals.iter().find(|l| l.id.0 == lid.0) {
                 match &local.ty {
-                    ark_typecheck::types::Type::String => { needed.insert(FN_PRINT_STR_LN); }
-                    ark_typecheck::types::Type::Bool => { needed.insert(FN_PRINT_BOOL_LN); }
+                    ark_typecheck::types::Type::String => {
+                        needed.insert(FN_PRINT_STR_LN);
+                    }
+                    ark_typecheck::types::Type::Bool => {
+                        needed.insert(FN_PRINT_BOOL_LN);
+                    }
                     ark_typecheck::types::Type::F64 | ark_typecheck::types::Type::F32 => {
-                        needed.insert(FN_F64_TO_STR); needed.insert(FN_PRINT_STR_LN);
+                        needed.insert(FN_F64_TO_STR);
+                        needed.insert(FN_PRINT_STR_LN);
                     }
                     ark_typecheck::types::Type::I64 | ark_typecheck::types::Type::U64 => {
-                        needed.insert(FN_I64_TO_STR); needed.insert(FN_PRINT_STR_LN);
+                        needed.insert(FN_I64_TO_STR);
+                        needed.insert(FN_PRINT_STR_LN);
                     }
-                    _ => { needed.insert(FN_PRINT_I32_LN); }
+                    _ => {
+                        needed.insert(FN_PRINT_I32_LN);
+                    }
                 }
             } else {
                 needed.insert(FN_PRINT_I32_LN);

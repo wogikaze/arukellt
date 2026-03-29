@@ -6,7 +6,7 @@
 ## Current Snapshot
 
 - Current user-visible behavior is described by [../current-state.md](../current-state.md).
-- Fixture-backed verification covers 429 manifest entries.
+- Fixture-backed verification covers 433 manifest entries.
 - Canonical target for current docs: `wasm32-wasi-p2`
 
 ## Documents
@@ -15,6 +15,7 @@
 |------|-------|---------|
 | [error-handling.md](error-handling.md) | エラー処理 | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [memory-model.md](memory-model.md) | メモリモデル | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
+| [spec.md](spec.md) | Arukellt Language Specification | Status: Frozen for v5 (self-hosting). |
 | [syntax-v1-preview.md](syntax-v1-preview.md) | v1 構文メモ | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [syntax.md](syntax.md) | 構文仕様 | Current-first: いま動く構文の確認は ../current-state.md を基準にしてください。 |
 | [type-system.md](type-system.md) | 型システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |

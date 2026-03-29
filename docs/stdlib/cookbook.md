@@ -11,6 +11,7 @@
 2. `get` / `pop` の戻り値は `Option<T>` として扱う
 3. `Result<T, String>` は `match` または `?` で処理する
 4. v1 機能があっても、まずは Prelude ベースの書き方を優先する
+5. 文字列化は primitive helper より `to_string(x)` を優先する
 
 ## Vec
 
@@ -29,7 +30,7 @@ use std::host::stdio
 
 let x = get(v, 0)
 match x {
-    Some(value) => stdio::println(i32_to_string(value)),
+    Some(value) => stdio::println(to_string(value)),
     None => stdio::println(String_from("out of bounds")),
 }
 ```
@@ -40,7 +41,7 @@ match x {
 use std::host::stdio
 
 let x: i32 = get_unchecked(v, 0)
-stdio::println(i32_to_string(x))
+stdio::println(to_string(x))
 ```
 
 ### map / filter / fold
@@ -55,7 +56,7 @@ fn sum(acc: i32, x: i32) -> i32 { acc + x }
 let mapped = map_i32_i32(v, double)
 let filtered = filter_i32(mapped, is_even)
 let total = fold_i32_i32(filtered, 0, sum)
-stdio::println(i32_to_string(total))
+stdio::println(to_string(total))
 ```
 
 ### 追加 helper
@@ -98,9 +99,9 @@ stdio::println(joined)
 use std::host::clock
 use std::host::stdio
 
-stdio::println(i32_to_string(42))
-stdio::println(i64_to_string(clock::monotonic_now()))
-stdio::println(bool_to_string(true))
+stdio::println(to_string(42))
+stdio::println(to_string(clock::monotonic_now()))
+stdio::println(to_string(true))
 ```
 
 ## Option
@@ -112,7 +113,7 @@ use std::host::stdio
 
 let x: Option<i32> = Some(21)
 if is_some(x) {
-    stdio::println(i32_to_string(unwrap(x)))
+    stdio::println(to_string(unwrap(x)))
 }
 ```
 
@@ -122,7 +123,7 @@ if is_some(x) {
 use std::host::stdio
 
 let y: i32 = unwrap_or(get(v, 100), 0)
-stdio::println(i32_to_string(y))
+stdio::println(to_string(y))
 ```
 
 ### map_option_i32_i32
@@ -142,7 +143,7 @@ use std::host::stdio
 
 let r = parse_i32(String_from("42"))
 match r {
-    Ok(n) => stdio::println(i32_to_string(n)),
+    Ok(n) => stdio::println(to_string(n)),
     Err(e) => stdio::println(e),
 }
 ```
@@ -184,8 +185,8 @@ use std::host::clock
 use std::host::random as host_random
 use std::host::stdio
 
-stdio::println(i64_to_string(clock::monotonic_now()))
-stdio::println(i32_to_string(host_random::random_i32()))
+stdio::println(to_string(clock::monotonic_now()))
+stdio::println(to_string(host_random::random_i32()))
 ```
 
 ## v1 feature note

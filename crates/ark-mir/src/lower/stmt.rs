@@ -101,6 +101,9 @@ impl LowerCtx {
                         if tname == "bool" {
                             self.bool_locals.insert(local_id.0);
                         }
+                        if tname == "char" {
+                            self.char_locals.insert(local_id.0);
+                        }
                     }
                     // Track struct-typed locals
                     if let ast::TypeExpr::Named { name: tname, .. } = type_expr {
@@ -168,6 +171,11 @@ impl LowerCtx {
                 // Infer String from initializer when there's no explicit type annotation
                 if !self.string_locals.contains(&local_id.0) && self.is_string_operand_mir(&op) {
                     self.string_locals.insert(local_id.0);
+                }
+                if !self.char_locals.contains(&local_id.0)
+                    && matches!(op, Operand::ConstChar(_))
+                {
+                    self.char_locals.insert(local_id.0);
                 }
                 // Infer struct type from StructInit initializer when there's no type annotation
                 #[allow(clippy::map_entry)]

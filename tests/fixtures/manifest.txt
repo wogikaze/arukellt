@@ -123,6 +123,8 @@ run:stdlib_io/f64_to_string.ark
 run:stdlib_io/fs_read_error.ark
 run:stdlib_io/fs_read_write.ark
 run:stdlib_io/i32_to_string.ark
+run:stdlib_io/to_string.ark
+run:stdlib_io/to_string_char_local.ark
 run:stdlib_io/parse_int.ark
 run:stdlib_io/print_hello.ark
 run:stdlib_io/println_multi.ark
@@ -332,6 +334,8 @@ t3-compile:stdlib_io/f64_to_string.ark
 t3-compile:stdlib_io/fs_read_error.ark
 t3-compile:stdlib_io/fs_read_write.ark
 t3-compile:stdlib_io/i32_to_string.ark
+t3-compile:stdlib_io/to_string.ark
+t3-compile:stdlib_io/to_string_char_local.ark
 t3-compile:stdlib_io/parse_int.ark
 t3-compile:stdlib_io/print_hello.ark
 t3-compile:stdlib_io/println_multi.ark

@@ -5,12 +5,10 @@
 
 use ark_mir::mir::*;
 use ark_typecheck::types::Type;
-use wasm_encoder::{
-    HeapType, Instruction, MemArg, RefType as WasmRefType, ValType,
-};
+use wasm_encoder::{HeapType, Instruction, MemArg, RefType as WasmRefType, ValType};
 
 use super::peephole::PeepholeWriter;
-use super::{normalize_intrinsic, ref_nullable, Ctx, SCRATCH};
+use super::{Ctx, SCRATCH, normalize_intrinsic, ref_nullable};
 
 impl Ctx {
     pub(super) fn emit_stmt(&mut self, f: &mut PeepholeWriter<'_>, stmt: &MirStmt) {
@@ -388,7 +386,7 @@ impl Ctx {
                 | "split"
                 | "starts_with"
                 | "ends_with"
-                | "replace"
+                | "__intrinsic_replace"
                 | "clock_now_ms"
                 | "clock_now"
                 | "random_i32"
@@ -601,9 +599,21 @@ impl Ctx {
                     f.instruction(&Instruction::Drop);
                 }
             }
-            "string_len" | "char_at" | "substring" | "string_slice" | "clone" | "to_uppercase"
-            | "to_lowercase" | "to_upper" | "to_lower" | "trim" | "contains" | "starts_with"
-            | "ends_with" | "replace" | "split" => {
+            "string_len"
+            | "char_at"
+            | "substring"
+            | "string_slice"
+            | "clone"
+            | "to_uppercase"
+            | "to_lowercase"
+            | "to_upper"
+            | "to_lower"
+            | "trim"
+            | "contains"
+            | "starts_with"
+            | "ends_with"
+            | "__intrinsic_replace"
+            | "split" => {
                 // Delegate to operand version then store/drop
                 self.emit_call_builtin_operand(f, canonical, args);
                 if let Some(Place::Local(id)) = dest {
@@ -658,6 +668,11 @@ impl Ctx {
                         self.emit_operand(f, &converted);
                     } else if self.is_bool_like_operand(arg) {
                         let converted = Operand::Call("bool_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    } else if matches!(arg, Operand::ConstChar(_))
+                        || matches!(arg, Operand::Place(Place::Local(id)) if self.char_locals.contains(&id.0))
+                    {
+                        let converted = Operand::Call("char_to_string".to_string(), args.to_vec());
                         self.emit_operand(f, &converted);
                     } else {
                         let converted = Operand::Call("i32_to_string".to_string(), args.to_vec());
@@ -966,7 +981,12 @@ impl Ctx {
     }
 
     /// Handle builtin calls as operands (result stays on the stack).
-    pub(super) fn emit_call_builtin_operand(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_call_builtin_operand(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         match canonical {
             "i32_to_string" => {
                 if let Some(arg) = args.first() {
@@ -1048,6 +1068,11 @@ impl Ctx {
                         self.emit_operand(f, &converted);
                     } else if self.is_bool_like_operand(arg) {
                         let converted = Operand::Call("bool_to_string".to_string(), args.to_vec());
+                        self.emit_operand(f, &converted);
+                    } else if matches!(arg, Operand::ConstChar(_))
+                        || matches!(arg, Operand::Place(Place::Local(id)) if self.char_locals.contains(&id.0))
+                    {
+                        let converted = Operand::Call("char_to_string".to_string(), args.to_vec());
                         self.emit_operand(f, &converted);
                     } else {
                         let converted = Operand::Call("i32_to_string".to_string(), args.to_vec());
@@ -1167,7 +1192,7 @@ impl Ctx {
                     f.instruction(&Instruction::I32Const(0));
                 }
             }
-            "replace" => {
+            "__intrinsic_replace" => {
                 // Stub: return clone of input
                 if let Some(arg) = args.first() {
                     self.emit_string_clone_gc(f, arg);
@@ -1590,7 +1615,8 @@ impl Ctx {
             Operand::UnaryOp(_, inner) => self.is_i64_like_operand(inner),
             Operand::Call(name, _) => {
                 let canonical = normalize_intrinsic(name);
-                matches!(canonical, "clock_now" | "clock_now_ms") || self.fn_ret_types.get(name) == Some(&Type::I64)
+                matches!(canonical, "clock_now" | "clock_now_ms")
+                    || self.fn_ret_types.get(name) == Some(&Type::I64)
             }
             _ => false,
         }
@@ -1670,7 +1696,12 @@ impl Ctx {
         }
     }
 
-    pub(super) fn emit_concat(&mut self, f: &mut PeepholeWriter<'_>, _args: &[Operand], dest: Option<&Place>) {
+    pub(super) fn emit_concat(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        _args: &[Operand],
+        dest: Option<&Place>,
+    ) {
         self.emit_concat_gc(f, _args);
         if let Some(Place::Local(id)) = dest {
             f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
@@ -1824,9 +1855,7 @@ impl Ctx {
                 }
             }
             Operand::EnumInit {
-                enum_name,
-                variant,
-                ..
+                enum_name, variant, ..
             } => {
                 let effective_enum_name = if matches!(variant.as_str(), "Ok" | "Err") {
                     self.current_result_enum_name()
@@ -1866,10 +1895,24 @@ impl Ctx {
                             return ValType::I32;
                         }
                     }
-                    "concat" | "clone" | "to_uppercase" | "to_lowercase" | "to_upper"
-                    | "to_lower" | "trim" | "replace" | "substring" | "string_slice"
-                    | "String_from" | "String_new" | "string_new" | "char_to_string"
-                    | "i32_to_string" | "i64_to_string" | "f64_to_string" | "bool_to_string"
+                    "concat"
+                    | "clone"
+                    | "to_uppercase"
+                    | "to_lowercase"
+                    | "to_upper"
+                    | "to_lower"
+                    | "trim"
+                    | "__intrinsic_replace"
+                    | "substring"
+                    | "string_slice"
+                    | "String_from"
+                    | "String_new"
+                    | "string_new"
+                    | "char_to_string"
+                    | "i32_to_string"
+                    | "i64_to_string"
+                    | "f64_to_string"
+                    | "bool_to_string"
                     | "to_string" => {
                         return ref_nullable(self.string_ty);
                     }
@@ -1993,5 +2036,4 @@ impl Ctx {
             _ => f.instruction(&Instruction::I32Const(0)),
         };
     }
-
 }

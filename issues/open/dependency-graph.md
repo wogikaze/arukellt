@@ -16,6 +16,7 @@ graph TD
   I167["167 167: Arukellt 版コンパイラの ARUKELLT_DUMP_PHASES 実装"]
   I169["169 169: ブートストラップ手順ドキュメント"]
   I170["170 170: v4→v5 移行ガイド"]
+  I171["171 canonical stringification surface を `to_string(x)` に統一する"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
@@ -38,6 +39,7 @@ graph TD
 - **167** depends on: #163 (Driver + CLI); blocks: none
 - **169** depends on: #166 (Bootstrap verification); blocks: none
 - **170** depends on: #165 (Phase 3 完了後); blocks: none
+- **171** depends on: none; blocks: none
 - **077** depends on: 074, 137; blocks: 136
 - **139** depends on: 074, 137; blocks: 136
 - **136** depends on: 137, 138, 077, 139; blocks: none

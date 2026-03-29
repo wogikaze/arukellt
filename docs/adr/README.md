@@ -15,6 +15,7 @@
 | [ADR-0001-harness-bootstrap.md](ADR-0001-harness-bootstrap.md) | ADR-0001: Harness Bootstrap Strategy | Status: Accepted |
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | ステータス: DECIDED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ステータス: DECIDED |
+| [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: Method Syntax Evaluation | Status: DEFERRED |
 | [ADR-004-trait-strategy.md](ADR-004-trait-strategy.md) | ADR-004: trait を v0 に入れるか | ステータス: DECIDED |
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | ステータス: DECIDED |
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI の上限 | ステータス: DECIDED |
@@ -23,3 +24,4 @@
 | [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Status: DECIDED |
 | [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | ステータス: DECIDED |
 | [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | ステータス: DECIDED |
+| [ADR-012-stringification-surface.md](ADR-012-stringification-surface.md) | ADR-012: stringification surface は to_string(x) を canonical にする | ステータス: DECIDED |

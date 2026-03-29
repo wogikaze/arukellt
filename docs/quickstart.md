@@ -39,11 +39,11 @@ fn main() {
 
     let first: Option<i32> = get(v, 0)
     match first {
-        Some(x) => stdio::println(i32_to_string(x)),
+        Some(x) => stdio::println(to_string(x)),
         None => stdio::println(String_from("empty")),
     }
 
-    stdio::println(i32_to_string(len(v)))
+    stdio::println(to_string(len(v)))
 }
 ```
 
@@ -80,7 +80,7 @@ fn parse_positive(s: String) -> Result<i32, String> {
 
 fn main() {
     match parse_positive(String_from("42")) {
-        Ok(n) => stdio::println(i32_to_string(n)),
+        Ok(n) => stdio::println(to_string(n)),
         Err(e) => stdio::println(e),
     }
 }
@@ -106,6 +106,10 @@ fn main() {
 - `fs::read_to_string(path: String) -> Result<String, String>`
 - `fs::write_string(path: String, content: String) -> Result<(), String>`
 
+## 文字列化
+
+`to_string(x)` を基準に使うのが一番安定です。`i32_to_string` などの型別 helper は互換用として残っています。
+
 ## Clock / Random
 
 ```ark
@@ -114,8 +118,8 @@ use std::host::random as host_random
 use std::host::stdio
 
 fn main() {
-    stdio::println(i64_to_string(clock::monotonic_now()))
-    stdio::println(i32_to_string(host_random::random_i32()))
+    stdio::println(to_string(clock::monotonic_now()))
+    stdio::println(to_string(host_random::random_i32()))
 }
 ```
 

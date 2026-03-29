@@ -149,7 +149,13 @@ impl EmitCtx {
                             let is_i64_param = param_types
                                 .as_ref()
                                 .and_then(|pts| pts.get(i))
-                                .is_some_and(|t| matches!(t, ark_typecheck::types::Type::I64 | ark_typecheck::types::Type::U64));
+                                .is_some_and(|t| {
+                                    matches!(
+                                        t,
+                                        ark_typecheck::types::Type::I64
+                                            | ark_typecheck::types::Type::U64
+                                    )
+                                });
                             let is_f64_param = param_types
                                 .as_ref()
                                 .and_then(|pts| pts.get(i))
@@ -296,37 +302,13 @@ impl EmitCtx {
                             self.call_fn(f, FN_PRINT_STR_LN);
                         }
                         "char_to_string" => {
-                            // Write char byte to scratch, print it + newline
                             if let Some(inner) = inner_args.first() {
-                                let ma0 = MemArg {
-                                    offset: 0,
-                                    align: 0,
-                                    memory_index: 0,
-                                };
-                                let ma2 = MemArg {
-                                    offset: 0,
-                                    align: 2,
-                                    memory_index: 0,
-                                };
-                                let char_addr = SCRATCH + 12;
-                                f.instruction(&Instruction::I32Const(char_addr as i32));
-                                self.emit_operand(f, inner);
-                                f.instruction(&Instruction::I32Store8(ma0));
-                                // Print char
-                                f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-                                f.instruction(&Instruction::I32Const(char_addr as i32));
-                                f.instruction(&Instruction::I32Store(ma2));
-                                f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
-                                f.instruction(&Instruction::I32Const(1));
-                                f.instruction(&Instruction::I32Store(ma2));
-                                f.instruction(&Instruction::I32Const(1));
-                                f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-                                f.instruction(&Instruction::I32Const(1));
-                                f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-                                self.call_fn(f, FN_FD_WRITE);
-                                f.instruction(&Instruction::Drop);
-                                // Print newline
-                                self.emit_static_print(f, NEWLINE, 1);
+                                let converted = Operand::Call(
+                                    "char_to_string".to_string(),
+                                    vec![inner.clone()],
+                                );
+                                self.emit_operand(f, &converted);
+                                self.call_fn(f, FN_PRINT_STR_LN);
                             }
                         }
                         "String_from" => {
@@ -383,6 +365,14 @@ impl EmitCtx {
                         self.call_fn(f, FN_PRINT_STR_LN);
                     } else if self.bool_locals.contains(&id.0) {
                         self.call_fn(f, FN_PRINT_BOOL_LN);
+                    } else if self.char_locals.contains(&id.0) {
+                        let converted = Operand::Call(
+                            "char_to_string".to_string(),
+                            vec![Operand::Place(Place::Local(*id))],
+                        );
+                        f.instruction(&Instruction::Drop);
+                        self.emit_operand(f, &converted);
+                        self.call_fn(f, FN_PRINT_STR_LN);
                     } else {
                         self.call_fn(f, FN_PRINT_I32_LN);
                     }
@@ -400,6 +390,13 @@ impl EmitCtx {
                         self.call_fn(f, FN_PRINT_STR_LN);
                     } else if self.is_bool_operand(arg) {
                         self.call_fn(f, FN_PRINT_BOOL_LN);
+                    } else if matches!(arg, Operand::ConstChar(_))
+                        || matches!(arg, Operand::Place(Place::Local(id)) if self.char_locals.contains(&id.0))
+                    {
+                        let converted = Operand::Call("char_to_string".to_string(), vec![arg.clone()]);
+                        f.instruction(&Instruction::Drop);
+                        self.emit_operand(f, &converted);
+                        self.call_fn(f, FN_PRINT_STR_LN);
                     } else {
                         self.call_fn(f, FN_PRINT_I32_LN);
                     }
@@ -492,7 +489,13 @@ impl EmitCtx {
         }
     }
 
-    pub(super) fn emit_fd_write(&mut self, f: &mut Function, fd: u32, str_offset: u32, str_len: u32) {
+    pub(super) fn emit_fd_write(
+        &mut self,
+        f: &mut Function,
+        fd: u32,
+        str_offset: u32,
+        str_len: u32,
+    ) {
         let ma2 = MemArg {
             offset: 0,
             align: 2,
@@ -511,5 +514,4 @@ impl EmitCtx {
         self.call_fn(f, FN_FD_WRITE);
         f.instruction(&Instruction::Drop);
     }
-
 }

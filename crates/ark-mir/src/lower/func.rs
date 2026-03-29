@@ -4,14 +4,16 @@ use std::collections::{HashMap, HashSet};
 
 use ark_diagnostics::DiagnosticSink;
 use ark_parser::ast;
-use ark_typecheck::types::Type as CheckerType;
 use ark_typecheck::TypeChecker;
+use ark_typecheck::types::Type as CheckerType;
 
 use crate::mir::*;
 
 use super::LowerCtx;
 use super::types::{is_string_type, is_void_expr, type_expr_name};
-use super::{fallback_block, fallback_function, finalize_lowered_module, push_function, type_to_sig_name};
+use super::{
+    fallback_block, fallback_function, finalize_lowered_module, push_function, type_to_sig_name,
+};
 
 #[allow(dead_code)]
 fn fn_id_name(func: FnId) -> String {
@@ -346,6 +348,9 @@ pub fn lower_to_mir(
                             ast::TypeExpr::Named { name, .. } if name == "bool" => {
                                 ark_typecheck::types::Type::Bool
                             }
+                            ast::TypeExpr::Named { name, .. } if name == "char" => {
+                                ark_typecheck::types::Type::Char
+                            }
                             ast::TypeExpr::Named { name, .. } if f.type_params.contains(name) => {
                                 ark_typecheck::types::Type::Any
                             }
@@ -367,6 +372,9 @@ pub fn lower_to_mir(
                     Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => {
                         ark_typecheck::types::Type::Bool
                     }
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "char" => {
+                        ark_typecheck::types::Type::Char
+                    }
                     Some(ast::TypeExpr::Named { name, .. }) if f.type_params.contains(name) => {
                         ark_typecheck::types::Type::Any
                     }
@@ -386,6 +394,8 @@ pub fn lower_to_mir(
                             ark_typecheck::types::Type::I64
                         } else if ctx.bool_locals.contains(&id.0) {
                             ark_typecheck::types::Type::Bool
+                        } else if ctx.char_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::Char
                         } else if ctx.vec_string_locals.contains(&id.0) {
                             ark_typecheck::types::Type::Vec(Box::new(
                                 ark_typecheck::types::Type::String,
@@ -521,6 +531,9 @@ pub fn lower_to_mir(
                                 ast::TypeExpr::Named { name, .. } if name == "bool" => {
                                     ark_typecheck::types::Type::Bool
                                 }
+                                ast::TypeExpr::Named { name, .. } if name == "char" => {
+                                    ark_typecheck::types::Type::Char
+                                }
                                 _ => ark_typecheck::types::Type::I32,
                             },
                         })
@@ -539,6 +552,9 @@ pub fn lower_to_mir(
                         Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => {
                             ark_typecheck::types::Type::Bool
                         }
+                        Some(ast::TypeExpr::Named { name, .. }) if name == "char" => {
+                            ark_typecheck::types::Type::Char
+                        }
                         Some(_) => ark_typecheck::types::Type::I32,
                         None => ark_typecheck::types::Type::Unit,
                     },
@@ -555,6 +571,8 @@ pub fn lower_to_mir(
                                 ark_typecheck::types::Type::I64
                             } else if ctx.bool_locals.contains(&id.0) {
                                 ark_typecheck::types::Type::Bool
+                            } else if ctx.char_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::Char
                             } else if ctx.vec_string_locals.contains(&id.0) {
                                 ark_typecheck::types::Type::Vec(Box::new(
                                     ark_typecheck::types::Type::String,
@@ -677,7 +695,12 @@ pub fn lower_to_mir(
 
 impl LowerCtx {
     /// Collect free variables in an expression that are not in the given bound set.
-    pub(super) fn collect_free_vars(&self, expr: &ast::Expr, bound: &HashSet<&str>, out: &mut Vec<String>) {
+    pub(super) fn collect_free_vars(
+        &self,
+        expr: &ast::Expr,
+        bound: &HashSet<&str>,
+        out: &mut Vec<String>,
+    ) {
         match expr {
             ast::Expr::Ident { name, .. } => {
                 if !bound.contains(name.as_str()) {

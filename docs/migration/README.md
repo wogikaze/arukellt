@@ -16,3 +16,6 @@
 | [t1-to-t3.md](t1-to-t3.md) | Migration Guide: T1 → T3 | Current-first: this page explains migration from the T1 compatibility path to the canonical T3 path. |
 | [v0-to-v1.md](v0-to-v1.md) | v0 → v1 Migration Guide | This guide covers all breaking changes and new features when upgrading from Arukellt v0 to v1. |
 | [v1-to-v2.md](v1-to-v2.md) | Migration Guide: v1 → v2 (Component Model) | Updated: 2026-03-28 |
+| [v2-to-v3.md](v2-to-v3.md) | Migration Guide: v2 → v3 (Standard Library) | Updated: 2026-03-29 |
+| [v3-to-v4.md](v3-to-v4.md) | Migration Guide: v3 → v4 (Optimization) | Updated: 2026-03-29 |
+| [v4-to-v5.md](v4-to-v5.md) | Migration Guide: v4 → v5 (Self-Hosting) | Updated: 2026-03-29 |

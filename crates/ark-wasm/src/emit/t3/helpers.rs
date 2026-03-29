@@ -4,17 +4,15 @@
 //! and the main user function emission logic.
 
 use ark_mir::mir::*;
-use std::collections::{HashMap, HashSet};
 use ark_typecheck::types::Type;
+use std::collections::{HashMap, HashSet};
 use wasm_encoder::{
     CodeSection, Function, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType,
 };
 
-use super::{nominalize_generic_type_name, normalize_intrinsic, ref_nullable, Ctx};
-use super::{
-    SCRATCH, I32BUF, P2_RETPTR,
-};
 use super::peephole::PeepholeWriter;
+use super::{Ctx, nominalize_generic_type_name, normalize_intrinsic, ref_nullable};
+use super::{I32BUF, P2_RETPTR, SCRATCH};
 
 impl Ctx {
     // ── Helper function bodies ───────────────────────────────────
@@ -63,7 +61,11 @@ impl Ctx {
     }
 
     pub(super) fn emit_print_str_helper(&self, codes: &mut CodeSection) {
-        let ma1 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        let ma1 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
         // Param 0 = (ref null $string). Locals 1=len, 2=i, 3=handle.
         let mut f = Function::new([(3, ValType::I32)]);
 
@@ -108,7 +110,11 @@ impl Ctx {
     }
 
     pub(super) fn emit_print_i32_helper(&self, codes: &mut CodeSection) {
-        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
         // param 0 = i32 value. Locals: 1=is_neg, 2=digit_count, 3=abs_val, 4=temp, 5=handle.
         let mut f = Function::new([
             (1, ValType::I32),
@@ -245,7 +251,11 @@ impl Ctx {
     }
 
     pub(super) fn emit_print_str_ln_helper(&self, codes: &mut CodeSection, newline_off: u32) {
-        let ma1 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        let ma1 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
         // Param 0 = (ref null $string). Locals 1=len, 2=i, 3=handle.
         let mut f = Function::new([(3, ValType::I32)]);
 
@@ -295,7 +305,11 @@ impl Ctx {
     }
 
     pub(super) fn emit_print_i32_ln_helper(&self, codes: &mut CodeSection, newline_off: u32) {
-        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
         // param 0 = i32 value. Locals: 1=is_neg, 2=digit_count, 3=abs_val, 4=temp, 5=handle.
         let mut f = Function::new([
             (1, ValType::I32), // local 1: is_neg
@@ -1592,6 +1606,7 @@ impl Ctx {
         self.f64_locals.clear();
         self.i64_locals.clear();
         self.bool_locals.clear();
+        self.char_locals.clear();
         self.any_locals.clear();
         self.f64_vec_locals.clear();
         self.i64_vec_locals.clear();
@@ -1769,10 +1784,11 @@ impl Ctx {
                             }
                             Operand::TryExpr { expr, .. } => {
                                 let ok_enum_name = match &**expr {
-                                    Operand::Call(name, _) => self
-                                        .fn_ret_type_names
-                                        .get(name)
-                                        .and_then(|ret_name| self.result_enum_name_for_type_name(ret_name)),
+                                    Operand::Call(name, _) => {
+                                        self.fn_ret_type_names.get(name).and_then(|ret_name| {
+                                            self.result_enum_name_for_type_name(ret_name)
+                                        })
+                                    }
                                     Operand::Place(Place::Local(src)) => func
                                         .enum_typed_locals
                                         .get(&src.0)
@@ -1782,16 +1798,22 @@ impl Ctx {
                                 };
                                 if let Some(enum_name) = ok_enum_name {
                                     let key = (enum_name, "Ok".to_string());
-                                    if let Some(field_types) = self.enum_variant_field_types.get(&key) {
+                                    if let Some(field_types) =
+                                        self.enum_variant_field_types.get(&key)
+                                    {
                                         if let Some(ft) = field_types.first() {
                                             if ft == "String" {
                                                 extra_string.insert(dst.0);
                                             }
                                             if self.enum_base_types.contains_key(ft.as_str()) {
-                                                extra_enum.entry(dst.0).or_insert_with(|| ft.clone());
+                                                extra_enum
+                                                    .entry(dst.0)
+                                                    .or_insert_with(|| ft.clone());
                                             }
                                             if self.struct_gc_types.contains_key(ft.as_str()) {
-                                                extra_struct.entry(dst.0).or_insert_with(|| ft.clone());
+                                                extra_struct
+                                                    .entry(dst.0)
+                                                    .or_insert_with(|| ft.clone());
                                             }
                                         }
                                     }
@@ -2086,6 +2108,9 @@ impl Ctx {
                 }
                 Type::Bool => {
                     self.bool_locals.insert(local.id.0);
+                }
+                Type::Char => {
+                    self.char_locals.insert(local.id.0);
                 }
                 Type::Vec(elem) => match elem.as_ref() {
                     Type::F64 => {

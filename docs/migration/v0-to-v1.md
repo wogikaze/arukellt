@@ -18,14 +18,14 @@ let f: f64 = parse_f64(String_from("3.14"))
 ```ark
 let r: Result<i64, String> = parse_i64(String_from("42"))
 match r {
-    Ok(n) => println(i64_to_string(n)),
+    Ok(n) => println(to_string(n)),
     Err(e) => println(e),
 }
 
 // Or with type inference (no annotation needed):
 let r = parse_f64(String_from("3.14"))
 match r {
-    Ok(f) => println(f64_to_string(f)),
+    Ok(f) => println(to_string(f)),
     Err(e) => println(e),
 }
 ```

@@ -26,13 +26,13 @@
 
 ```ark
 for i in 0..10 {
-    println(i32_to_string(i))
+    println(to_string(i))
 }
 ```
 
 ```ark
 for item in values(v) {
-    println(i32_to_string(item))
+    println(to_string(item))
 }
 ```
 

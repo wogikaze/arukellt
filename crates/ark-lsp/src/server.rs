@@ -187,6 +187,7 @@ impl ArukellBackend {
             ("get", "Get element from Vec by index"),
             ("set", "Set element in Vec at index"),
             ("pop", "Remove last element from Vec"),
+            ("to_string", "Convert a value to String"),
             ("i32_to_string", "Convert i32 to String"),
             ("i64_to_string", "Convert i64 to String"),
             ("f64_to_string", "Convert f64 to String"),

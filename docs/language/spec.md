@@ -800,8 +800,10 @@ import. Non-prelude functions require a `use` or `import` declaration.
 | `f64_to_string(n: f64) -> String` | f64 → String |
 | `bool_to_string(b: bool) -> String` | bool → String |
 | `char_to_string(c: char) -> String` | char → String |
-| `to_string(x: any) -> String` | Polymorphic conversion |
+| `to_string(x: any) -> String` | Canonical polymorphic conversion |
 | `parse_i32(s: String) -> Result<i32, String>` | String → i32 |
+
+`to_string(x)` is the canonical user-facing conversion form. Type-specific helpers such as `i32_to_string` and `char_to_string` remain available as compatibility and backend-mapped surface.
 | `parse_i64(s: String) -> Result<i64, String>` | String → i64 |
 | `parse_f64(s: String) -> Result<f64, String>` | String → f64 |
 

@@ -14,5 +14,10 @@
 
 | File | Title | Summary |
 |------|-------|---------|
+| [determinism.md](determinism.md) | Compiler Determinism | This document defines the rules that keep Arukellt's .wasm output |
 | [diagnostics.md](diagnostics.md) | 診断システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
+| [error-codes.md](error-codes.md) | Error Code Reference | Canonical listing of every diagnostic code emitted by the Arukellt compiler. |
+| [ir-spec.md](ir-spec.md) | CoreHIR / MIR Specification | This document describes the intermediate representations (IRs) used by the |
+| [optimization.md](optimization.md) | Optimization Passes | Current-first reference for the v4 optimization pipeline. |
 | [pipeline.md](pipeline.md) | コンパイルパイプライン | Current reality first: 実装の現在地は ../current-state.md を基準にしてください。 |
+| [t3-rmw-optimization.md](t3-rmw-optimization.md) | T3 Backend: Read-Modify-Write Optimization Analysis | Resolved: T3 backend already generates optimal RMW code for struct fields. |

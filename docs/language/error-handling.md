@@ -26,7 +26,7 @@ fn parse_positive(s: String) -> Result<i32, String> {
 
 ```ark
 match parse_positive(String_from("42")) {
-    Ok(n) => println(i32_to_string(n)),
+    Ok(n) => println(to_string(n)),
     Err(e) => println(e),
 }
 ```
@@ -36,7 +36,7 @@ match parse_positive(String_from("42")) {
 ```ark
 let x = get(v, 0)
 match x {
-    Some(value) => println(i32_to_string(value)),
+    Some(value) => println(to_string(value)),
     None => println(String_from("empty")),
 }
 ```

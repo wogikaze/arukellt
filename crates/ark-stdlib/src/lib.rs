@@ -61,6 +61,11 @@ pub fn stdlib_functions() -> Vec<StdlibFn> {
             wasi_import: None,
         },
         StdlibFn {
+            name: "to_string".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
             name: "parse_f64".into(),
             module: "prelude",
             wasi_import: None,
