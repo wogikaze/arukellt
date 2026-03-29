@@ -21,8 +21,11 @@ Before changing behavior, read:
 # Build the CLI
 cargo build --release -p arukellt
 
-# Run the repository verification contract
+# Run the fast local verification gate
 bash scripts/verify-harness.sh
+
+# Run the full local verification set when needed
+bash scripts/verify-harness.sh --full
 
 # Run a sample program
 ./target/release/arukellt run docs/examples/hello.ark
@@ -34,11 +37,14 @@ bash scripts/verify-harness.sh
 cargo fmt --all --check
 cargo clippy --workspace --exclude ark-llvm -- -D warnings
 cargo test --workspace --exclude ark-llvm
-bash scripts/verify-harness.sh --quick
 bash scripts/verify-harness.sh
+bash scripts/verify-harness.sh --cargo
+bash scripts/verify-harness.sh --fixtures
+bash scripts/verify-harness.sh --full
 python3 scripts/generate-docs.py
 python3 scripts/check-docs-consistency.py
 python3 scripts/collect-baseline.py
+bash scripts/install-git-hooks.sh
 ```
 
 ## Project Structure
@@ -98,23 +104,33 @@ This updates / validates generated landing pages, README status blocks, sidebar 
 
 ## Verification Contract
 
-All behavior changes should pass:
+Default local verification is the fast deterministic gate:
 
 ```bash
 bash scripts/verify-harness.sh
 ```
 
-The harness covers, among other checks:
+It covers, among other checks:
 
 - docs structure and docs drift
-- formatting (`cargo fmt`)
-- lint (`cargo clippy`)
-- workspace tests
-- manifest-driven fixture execution
+- fixture manifest completeness
 - stdlib manifest checks
-- baseline collection smoke
+- cheap deterministic policy / registration checks
 
-Use `--quick` while iterating, then run the full harness before finishing.
+Run heavier groups explicitly when needed:
+
+```bash
+bash scripts/verify-harness.sh --cargo
+bash scripts/verify-harness.sh --fixtures
+bash scripts/verify-harness.sh --full
+```
+
+Heavy checks also belong in CI and can be installed locally as a pre-commit hook via:
+
+```bash
+bash scripts/install-git-hooks.sh
+bash scripts/pre-commit-verify.sh
+```
 
 ## Perf Policy
 

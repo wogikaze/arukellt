@@ -1,14 +1,8 @@
 #!/bin/bash
-# Root verification and completion gate for the repository harness.
-# This script defines what "done" means for this project.
+# Root verification entry point for the repository harness.
 #
-# Performance design:
-#  - Non-cargo checks (docs, lint, manifest) run as background jobs in parallel
-#    with the cargo pipeline so they overlap compilation time.
-#  - The fixture harness runs fixtures in parallel (N = CPU cores) inside Rust.
-#  - cargo build is omitted: cargo test already builds, and clippy already
-#    compiled everything before test runs.
-#  - hello.wasm size uses the already-built debug binary, not `cargo run`.
+# Default behavior is a fast local deterministic gate intended to finish quickly.
+# Heavier checks are opt-in via explicit flags and are also wired into CI / optional hooks.
 
 set -euo pipefail
 
@@ -17,18 +11,83 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-QUICK_MODE=false
+RUN_CARGO=false
+RUN_FIXTURES=false
+RUN_BASELINE=false
+RUN_SIZE=false
+RUN_WAT=false
+RUN_DOCS=false
+RUN_COMPONENT=false
 PERF_GATE=false
+
+usage() {
+    cat <<'EOF'
+Usage: bash scripts/verify-harness.sh [options]
+
+No options:
+  Run the fast local verification gate.
+
+Options:
+  --quick      Alias for the default fast local gate
+  --cargo      Run cargo fmt, clippy, and workspace tests
+  --fixtures   Run the manifest-driven fixture harness
+  --baseline   Run baseline collection
+  --size       Run the hello.wasm size gate
+  --wat        Run the WAT roundtrip gate
+  --docs       Run markdownlint in addition to default docs checks
+  --component  Run the optional component interop smoke test
+  --full       Run all heavy local verification groups
+  --perf-gate  Run the perf regression gate (still opt-in)
+  --help       Show this help message
+EOF
+}
+
 for arg in "$@"; do
     case "$arg" in
-        --quick)     QUICK_MODE=true ;;
+        --quick) ;;
+        --cargo) RUN_CARGO=true ;;
+        --fixtures) RUN_FIXTURES=true ;;
+        --baseline) RUN_BASELINE=true ;;
+        --size) RUN_SIZE=true ;;
+        --wat) RUN_WAT=true ;;
+        --docs) RUN_DOCS=true ;;
+        --component) RUN_COMPONENT=true ;;
+        --full)
+            RUN_CARGO=true
+            RUN_FIXTURES=true
+            RUN_BASELINE=true
+            RUN_SIZE=true
+            RUN_WAT=true
+            RUN_DOCS=true
+            RUN_COMPONENT=true
+            ;;
         --perf-gate) PERF_GATE=true ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}error: unknown option: $arg${NC}"
+            usage
+            exit 1
+            ;;
     esac
 done
 
 echo -e "${YELLOW}Running harness verification...${NC}"
-if [ "$QUICK_MODE" = true ]; then
-    echo -e "${YELLOW}Quick mode: skipping slower cargo verification steps${NC}"
+if [ "$RUN_CARGO" = false ] && [ "$RUN_FIXTURES" = false ] && [ "$RUN_BASELINE" = false ] && [ "$RUN_SIZE" = false ] && [ "$RUN_WAT" = false ] && [ "$RUN_DOCS" = false ] && [ "$RUN_COMPONENT" = false ] && [ "$PERF_GATE" = false ]; then
+    echo -e "${YELLOW}Mode: fast local gate${NC}"
+else
+    selected=()
+    [ "$RUN_CARGO" = true ] && selected+=(cargo)
+    [ "$RUN_FIXTURES" = true ] && selected+=(fixtures)
+    [ "$RUN_BASELINE" = true ] && selected+=(baseline)
+    [ "$RUN_SIZE" = true ] && selected+=(size)
+    [ "$RUN_WAT" = true ] && selected+=(wat)
+    [ "$RUN_DOCS" = true ] && selected+=(docs)
+    [ "$RUN_COMPONENT" = true ] && selected+=(component)
+    [ "$PERF_GATE" = true ] && selected+=(perf-gate)
+    echo -e "${YELLOW}Mode: fast local gate + ${selected[*]}${NC}"
 fi
 
 TOTAL_CHECKS=0
@@ -73,8 +132,6 @@ PY
 )
 
 # ── Background jobs ───────────────────────────────────────────────────────────
-# Start non-cargo checks immediately so they run in parallel with cargo.
-# Each job writes a result file: rc=0 means pass, rc!=0 means fail.
 _BG_DIR=$(mktemp -d)
 trap 'rm -rf "$_BG_DIR"' EXIT
 
@@ -102,7 +159,6 @@ _bg_collect() {
     fi
 }
 
-# Launch background jobs (overlap with cargo compilation below)
 _bg_run docs_struct "Documentation structure OK" \
     "test -f AGENTS.md && test -f docs/process/agent-harness.md && test -d docs/adr && test -d issues/open && test -d issues/done && test -d docs/language && test -d docs/platform && test -d docs/stdlib && test -d docs/process" &
 _bg_run adrs "All required ADRs decided" \
@@ -115,43 +171,23 @@ _bg_run stdlib_spec "Stdlib specification OK" \
     "test -f docs/stdlib/README.md && test -f docs/stdlib/core.md && test -f docs/stdlib/io.md" &
 _bg_run docs_consistency "docs consistency (${FIXTURE_COUNT} fixtures)" \
     "python3 scripts/check-docs-consistency.py" &
-_bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
-    "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
 _bg_run stdlib_manifest "stdlib manifest check" \
     "bash scripts/check-stdlib-manifest.sh" &
+if [ "$RUN_DOCS" = true ]; then
+    _bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
+        "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
+fi
 
-# ── Cargo pipeline ────────────────────────────────────────────────────────────
-# cargo commands must run sequentially (cargo uses a file lock).
-# clippy compiles everything; fmt check and test reuse the same artifacts.
-# NOTE: cargo build is intentionally omitted — clippy already compiled the
-# workspace, and cargo test links+runs without a separate build step.
-
-printf '\n%s\n' "${YELLOW}[fmt] Checking formatting...${NC}"
-if [ "$QUICK_MODE" = true ]; then
-    check_skip "cargo fmt --all --check"
-else
+# ── Optional heavy groups ────────────────────────────────────────────────────
+if [ "$RUN_CARGO" = true ]; then
+    printf '\n%s\n' "${YELLOW}[cargo] Running cargo verification...${NC}"
     run_check "cargo fmt --all --check" "cargo fmt --all --check"
-fi
-
-printf '\n%s\n' "${YELLOW}[clippy] Running clippy...${NC}"
-if [ "$QUICK_MODE" = true ]; then
-    check_skip "cargo clippy --workspace -- -D warnings"
-else
     run_check "cargo clippy --workspace -- -D warnings" "cargo clippy --workspace --exclude ark-llvm -- -D warnings"
-fi
-
-printf '\n%s\n' "${YELLOW}[test] Running workspace tests...${NC}"
-if [ "$QUICK_MODE" = true ]; then
-    check_skip "cargo test --workspace"
-else
     run_check "cargo test --workspace" "cargo test --workspace --exclude ark-llvm --quiet -- --skip fixture_harness"
 fi
 
-# Fixture harness — fixtures run in parallel inside Rust (N = available CPU cores).
-printf '\n%s\n' "${YELLOW}[harness] Running fixture harness (parallel)...${NC}"
-if [ "$QUICK_MODE" = true ]; then
-    check_skip "cargo test -p arukellt --test harness -- --nocapture"
-else
+if [ "$RUN_FIXTURES" = true ]; then
+    printf '\n%s\n' "${YELLOW}[fixtures] Running fixture harness...${NC}"
     local_output=$(bash -lc "cargo test -p arukellt --test harness -- --nocapture 2>&1") || true
     if printf '%s\n' "$local_output" | grep -q "FAIL: 0"; then
         summary=$(printf '%s\n' "$local_output" | grep "PASS:")
@@ -162,7 +198,7 @@ else
     fi
 fi
 
-# ── Fixture manifest completeness ─────────────────────────────────────────────
+# ── Fast default checks ──────────────────────────────────────────────────────
 printf '\n%s\n' "${YELLOW}[manifest] Checking fixture manifest completeness...${NC}"
 manifest_ok=true
 manifest_file="tests/fixtures/manifest.txt"
@@ -208,12 +244,8 @@ if [ "$manifest_ok" = true ]; then
     check_pass "Fixture manifest completeness (${FIXTURE_COUNT} entries)"
 fi
 
-# ── Binary size gate ──────────────────────────────────────────────────────────
-# Use the already-built debug binary to avoid an extra `cargo run` invocation.
-printf '\n%s\n' "${YELLOW}[size] Checking hello.wasm binary size gate...${NC}"
-if [ "$QUICK_MODE" = true ]; then
-    check_skip "binary size gate"
-else
+if [ "$RUN_SIZE" = true ]; then
+    printf '\n%s\n' "${YELLOW}[size] Checking hello.wasm binary size gate...${NC}"
     ARUKELLT_BIN="./target/debug/arukellt"
     if [ ! -x "$ARUKELLT_BIN" ]; then
         ARUKELLT_BIN="./target/release/arukellt"
@@ -234,15 +266,11 @@ else
     fi
 fi
 
-# ── Baseline snapshots ────────────────────────────────────────────────────────
-printf '\n%s\n' "${YELLOW}[baseline] Collecting baseline snapshots...${NC}"
-if [ "$QUICK_MODE" = true ]; then
-    check_skip "python3 scripts/collect-baseline.py"
-else
+if [ "$RUN_BASELINE" = true ]; then
+    printf '\n%s\n' "${YELLOW}[baseline] Collecting baseline snapshots...${NC}"
     run_check "baseline collection" "python3 scripts/collect-baseline.py"
 fi
 
-# ── Wait for background jobs and collect results ──────────────────────────────
 printf '\n%s\n' "${YELLOW}[bg] Collecting background check results...${NC}"
 wait
 _bg_collect docs_struct
@@ -251,10 +279,11 @@ _bg_collect lang_spec
 _bg_collect platform_spec
 _bg_collect stdlib_spec
 _bg_collect docs_consistency
-_bg_collect markdownlint
 _bg_collect stdlib_manifest
+if [ "$RUN_DOCS" = true ]; then
+    _bg_collect markdownlint
+fi
 
-# ── Static instant checks ─────────────────────────────────────────────────────
 check_pass "Perf policy documented (check<=10%, compile<=20%; heavy perf separated)"
 
 stdlib_fixture_dirs=$(find tests/fixtures -type d -name 'stdlib_*' 2>/dev/null)
@@ -282,9 +311,8 @@ else
     check_fail "v3 stdlib fixtures insufficient ($stdlib_fixture_count < 5)"
 fi
 
-# Component interop (optional)
-if [ "${ARUKELLT_TEST_COMPONENT:-0}" = "1" ]; then
-    printf '\n%s\n' "${YELLOW}[component] Component interop smoke test (ARUKELLT_TEST_COMPONENT=1)...${NC}"
+if [ "$RUN_COMPONENT" = true ]; then
+    printf '\n%s\n' "${YELLOW}[component] Component interop smoke test...${NC}"
     INTEROP_SCRIPT="tests/component-interop/jco/calculator/run.sh"
     if [ ! -f "$INTEROP_SCRIPT" ]; then
         check_skip "component interop script not found"
@@ -293,27 +321,16 @@ if [ "${ARUKELLT_TEST_COMPONENT:-0}" = "1" ]; then
     else
         run_check "component interop (wasmtime)" "bash $INTEROP_SCRIPT"
     fi
-else
-    check_skip "component interop (opt-in)"
 fi
 
-# ── WAT roundtrip verification ────────────────────────────────────────────────
-if [ "$QUICK_MODE" = true ]; then
-    check_skip "WAT roundtrip (quick mode)"
-else
+if [ "$RUN_WAT" = true ]; then
+    printf '\n%s\n' "${YELLOW}[wat] Running WAT roundtrip verification...${NC}"
     run_check "WAT roundtrip (wasm2wat ⇄ wat2wasm)" "bash scripts/wat-roundtrip.sh"
 fi
 
-# ── Performance gate (opt-in) ─────────────────────────────────────────────────
 if [ "$PERF_GATE" = true ]; then
     printf '\n%s\n' "${YELLOW}[perf] Running performance regression gate...${NC}"
-    if [ "$QUICK_MODE" = true ]; then
-        check_skip "perf gate (quick mode)"
-    else
-        run_check "perf gate (compile time / binary size / run time)" "bash scripts/perf-gate.sh"
-    fi
-else
-    check_skip "perf gate (opt-in via --perf-gate)"
+    run_check "perf gate (compile time / binary size / run time)" "bash scripts/perf-gate.sh"
 fi
 
 printf '\n%s\n' "${YELLOW}========================================${NC}"
@@ -325,9 +342,9 @@ printf 'Skipped: %b%s%b\n' "$YELLOW" "$SKIPPED_CHECKS" "$NC"
 printf 'Failed: %b%s%b\n' "$RED" "$((TOTAL_CHECKS - PASSED_CHECKS - SKIPPED_CHECKS))" "$NC"
 
 if [ $PASSED_CHECKS -eq $TOTAL_CHECKS ] || [ $((PASSED_CHECKS + SKIPPED_CHECKS)) -eq $TOTAL_CHECKS ]; then
-    printf '\n%b✓ All harness checks passed%b\n' "$GREEN" "$NC"
+    printf '\n%b✓ All selected harness checks passed%b\n' "$GREEN" "$NC"
     exit 0
 else
-    printf '\n%b✗ Some harness checks failed%b\n' "$RED" "$NC"
+    printf '\n%b✗ Some selected harness checks failed%b\n' "$RED" "$NC"
     exit 1
 fi

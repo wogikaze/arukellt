@@ -57,15 +57,24 @@
 
 Normal correctness verification lives in `scripts/verify-harness.sh` and should stay deterministic.
 
-It includes:
+The default invocation is the fast local gate. It covers:
 
 - docs structure checks
 - docs consistency drift checks
-- fmt / clippy / tests
-- manifest-driven fixture harness execution
+- manifest completeness / registration checks
 - stdlib manifest checks
-- baseline collection smoke
+- cheap deterministic policy checks
 
+Heavier groups are explicit and opt-in locally:
+
+- `--cargo` for fmt / clippy / workspace tests
+- `--fixtures` for the manifest-driven fixture harness
+- `--baseline` for baseline collection smoke
+- `--size` for the hello.wasm size gate
+- `--wat` for WAT roundtrip verification
+- `--full` for the full local verification set
+
+CI should request the heavy groups explicitly rather than relying on the fast default mode.
 The current gate totals belong to `docs/current-state.md` and the harness output; do not hardcode them here unless policy itself changes.
 
 ## Perf Policy

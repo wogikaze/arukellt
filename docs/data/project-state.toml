@@ -2,7 +2,7 @@
 name = "Arukellt"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
 updated = "2026-03-28"
-verification_command = "bash scripts/verify-harness.sh"
+verification_command = "bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)"
 current_state_doc = "docs/current-state.md"
 
 [pipeline]

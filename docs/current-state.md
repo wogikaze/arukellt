@@ -33,7 +33,7 @@
 - Fixture harness: 434 passed, 0 failed (manifest-driven)
 - Fixture manifest: 434 entries
 - Wasm validation is a hard error (W0004)
-- Verification entry point: `bash scripts/verify-harness.sh` — **16/16 checks pass**
+- Verification entry point: `bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)` — **16/16 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
 
 ## GC-Native Data Model (T3, wasm32-wasi-p2)

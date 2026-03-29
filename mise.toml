@@ -35,11 +35,47 @@ description = "Check formatting"
 
 [tasks.verify]
 run = "bash scripts/verify-harness.sh"
-description = "Run full verification harness (10 checks)"
+description = "Run fast local verification"
 
 [tasks."verify:quick"]
 run = "bash scripts/verify-harness.sh --quick"
-description = "Run quick verification"
+description = "Run fast local verification (alias)"
+
+[tasks."verify:cargo"]
+run = "bash scripts/verify-harness.sh --cargo"
+description = "Run cargo fmt, clippy, and workspace tests"
+
+[tasks."verify:fixtures"]
+run = "bash scripts/verify-harness.sh --fixtures"
+description = "Run manifest-driven fixture harness"
+
+[tasks."verify:baseline"]
+run = "bash scripts/verify-harness.sh --baseline"
+description = "Collect baseline snapshots"
+
+[tasks."verify:full"]
+run = "bash scripts/verify-harness.sh --full"
+description = "Run full local verification"
+
+[tasks."verify:ci"]
+run = "bash scripts/verify-harness.sh --cargo --size --wat --docs"
+description = "Run the explicit heavy verification groups used by CI correctness"
+
+[tasks."verify:pre-commit"]
+run = "bash scripts/verify-harness.sh --cargo --docs"
+description = "Run the recommended pre-commit verification groups"
+
+[tasks."hooks:install"]
+run = "bash scripts/install-git-hooks.sh"
+description = "Install repository-managed git hooks"
+
+[tasks."hooks:pre-commit"]
+run = "bash scripts/pre-commit-verify.sh"
+description = "Run the repository-managed pre-commit verification script"
+
+[tasks."hooks:remove"]
+run = "bash scripts/install-git-hooks.sh --remove"
+description = "Remove repository-managed git hooks"
 
 [tasks.check]
 run = "cargo check --workspace"

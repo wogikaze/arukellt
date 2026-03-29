@@ -15,14 +15,15 @@ This is a short pointer document for developers and agents working in this repos
 scripts/verify-harness.sh
 ```
 
-This is your completion gate. Make sure it passes before marking work done.
+This is the fast local verification gate.
+Before marking substantial work done, run the heavier groups you touched (for example `--cargo`, `--fixtures`) or use `scripts/verify-harness.sh --full`.
 
 ## Making Changes
 
 1. Pick a task from `issues/open/`
 2. Move it conceptually through: planning → implementation → verification
 3. Update relevant docs/ADRs if approach changes
-4. Run `scripts/verify-harness.sh` to verify
+4. Run `scripts/verify-harness.sh` for a fast local verify pass; add `--cargo`, `--fixtures`, or `--full` when your change touches those surfaces
 5. Move completed task to `issues/done/`
 
 ## Key Files
