@@ -5,7 +5,7 @@ use crate::ast::*;
 
 use super::Parser;
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     pub(crate) fn parse_expr(&mut self) -> Expr {
         self.parse_assignment()
     }
@@ -594,16 +594,14 @@ impl<'a> Parser<'a> {
         while i < self.tokens.len() && self.tokens[i].kind == TokenKind::Newline {
             i += 1;
         }
-        if i + 1 < self.tokens.len() {
-            if let TokenKind::Ident(_) = &self.tokens[i].kind {
-                // Skip newlines between ident and potential colon
-                let mut j = i + 1;
-                while j < self.tokens.len() && self.tokens[j].kind == TokenKind::Newline {
-                    j += 1;
-                }
-                if j < self.tokens.len() && self.tokens[j].kind == TokenKind::Colon {
-                    return true;
-                }
+        if i + 1 < self.tokens.len() && matches!(&self.tokens[i].kind, TokenKind::Ident(_)) {
+            // Skip newlines between ident and potential colon
+            let mut j = i + 1;
+            while j < self.tokens.len() && self.tokens[j].kind == TokenKind::Newline {
+                j += 1;
+            }
+            if j < self.tokens.len() && self.tokens[j].kind == TokenKind::Colon {
+                return true;
             }
         }
         false

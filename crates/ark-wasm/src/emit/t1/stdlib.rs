@@ -1583,5 +1583,4 @@ impl EmitCtx {
         f.instruction(&Instruction::End);
         f
     }
-
 }

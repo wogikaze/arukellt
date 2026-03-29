@@ -151,10 +151,16 @@ impl Ctx {
                 if let Some(fn_name) = self.fn_names.get(fn_idx_mir).cloned() {
                     // Check if this is a stdlib wrapper function — redirect to CallBuiltin path
                     let canonical = normalize_intrinsic(&fn_name);
-                    if self.is_builtin_name(canonical) {
+                    let lookup_name = fn_name.rsplit("::").next().unwrap_or(fn_name.as_str());
+                    let prefer_user_fn = fn_name.contains("::");
+                    if self.is_builtin_name(canonical) && !prefer_user_fn {
                         self.emit_call_builtin(f, canonical, args, dest.as_ref());
                     } else {
-                        let param_types = self.fn_param_types.get(&fn_name).cloned();
+                        let param_types = self
+                            .fn_param_types
+                            .get(&fn_name)
+                            .or_else(|| self.fn_param_types.get(lookup_name))
+                            .cloned();
                         for (i, arg) in args.iter().enumerate() {
                             let need_i64 = param_types
                                 .as_ref()
@@ -177,11 +183,19 @@ impl Ctx {
                                 }
                             }
                         }
-                        if let Some(&fn_idx) = self.fn_map.get(&fn_name) {
+                        if let Some(&fn_idx) = self
+                            .fn_map
+                            .get(&fn_name)
+                            .or_else(|| self.fn_map.get(lookup_name))
+                        {
                             f.instruction(&Instruction::Call(fn_idx));
                         }
                         // Unbox anyref return if needed
-                        let ret_ty = self.fn_ret_types.get(&fn_name).cloned();
+                        let ret_ty = self
+                            .fn_ret_types
+                            .get(&fn_name)
+                            .or_else(|| self.fn_ret_types.get(lookup_name))
+                            .cloned();
                         if let Some(ref rt) = ret_ty {
                             if *rt == Type::Any && dest.is_some() {
                                 let concrete = self.infer_generic_return_type(&fn_name, args);
@@ -1574,7 +1588,11 @@ impl Ctx {
                 matches!(
                     canonical,
                     "eq" | "starts_with" | "ends_with" | "contains" | "assert" | "assert_eq"
-                ) || self.fn_ret_types.get(name) == Some(&Type::Bool)
+                ) || self
+                    .fn_ret_types
+                    .get(name)
+                    .or_else(|| self.fn_ret_types.get(canonical))
+                    == Some(&Type::Bool)
             }
             Operand::BinOp(op, _, _) => matches!(
                 op,
@@ -1601,7 +1619,11 @@ impl Ctx {
             Operand::Call(name, _) => {
                 let canonical = normalize_intrinsic(name);
                 matches!(canonical, "sqrt" | "random_f64")
-                    || self.fn_ret_types.get(name) == Some(&Type::F64)
+                    || self
+                        .fn_ret_types
+                        .get(name)
+                        .or_else(|| self.fn_ret_types.get(canonical))
+                        == Some(&Type::F64)
             }
             _ => false,
         }
@@ -1616,7 +1638,11 @@ impl Ctx {
             Operand::Call(name, _) => {
                 let canonical = normalize_intrinsic(name);
                 matches!(canonical, "clock_now" | "clock_now_ms")
-                    || self.fn_ret_types.get(name) == Some(&Type::I64)
+                    || self
+                        .fn_ret_types
+                        .get(name)
+                        .or_else(|| self.fn_ret_types.get(canonical))
+                        == Some(&Type::I64)
             }
             _ => false,
         }
@@ -1945,15 +1971,27 @@ impl Ctx {
                         return ref_nullable(vec_ty);
                     }
                 }
-                if let Some(ret_name) = self.fn_ret_type_names.get(name) {
+                if let Some(ret_name) = self
+                    .fn_ret_type_names
+                    .get(name)
+                    .or_else(|| self.fn_ret_type_names.get(canonical))
+                {
                     // Check if the function returns Any (generic) — infer concrete type
-                    if let Some(ret_ty) = self.fn_ret_types.get(name) {
+                    if let Some(ret_ty) = self
+                        .fn_ret_types
+                        .get(name)
+                        .or_else(|| self.fn_ret_types.get(canonical))
+                    {
                         if *ret_ty == Type::Any {
                             return self.infer_generic_return_type(name, args);
                         }
                     }
                     self.type_name_to_val(ret_name)
-                } else if let Some(ret_ty) = self.fn_ret_types.get(name) {
+                } else if let Some(ret_ty) = self
+                    .fn_ret_types
+                    .get(name)
+                    .or_else(|| self.fn_ret_types.get(canonical))
+                {
                     if *ret_ty == Type::Any {
                         return self.infer_generic_return_type(name, args);
                     }

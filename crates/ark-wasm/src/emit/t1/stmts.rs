@@ -49,8 +49,19 @@ impl EmitCtx {
                     }
                 }
             }
+            MirStmt::CallBuiltin {
+                dest: Some(Place::Local(id)),
+                name,
+                args,
+            } => {
+                let call_op = Operand::Call(name.clone(), args.clone());
+                self.emit_operand(f, &call_op);
+                f.instruction(&Instruction::LocalSet(id.0));
+            }
             MirStmt::CallBuiltin { name, args, .. } => {
-                let name = normalize_intrinsic_name(name.as_str());
+                let original_name = name.as_str();
+                let lookup_name = original_name.rsplit("::").next().unwrap_or(original_name);
+                let name = normalize_intrinsic_name(lookup_name);
                 match name {
                     "println" => self.emit_println(f, args),
                     "print" => self.emit_print(f, args),
@@ -144,7 +155,11 @@ impl EmitCtx {
                     }
                     other => {
                         // User function call — type-aware argument emission
-                        let param_types = self.fn_param_types.get(other).cloned();
+                        let param_types = self
+                            .fn_param_types
+                            .get(other)
+                            .or_else(|| self.fn_param_types.get(lookup_name))
+                            .cloned();
                         for (i, arg) in args.iter().enumerate() {
                             let is_i64_param = param_types
                                 .as_ref()
@@ -168,11 +183,15 @@ impl EmitCtx {
                                 self.emit_operand(f, arg);
                             }
                         }
-                        if let Some(idx) = self.resolve_fn(other) {
+                        if let Some(idx) = self
+                            .resolve_fn(other)
+                            .or_else(|| self.resolve_fn(lookup_name))
+                        {
                             f.instruction(&Instruction::Call(idx));
                             let returns_value = self
                                 .fn_return_types
                                 .get(other)
+                                .or_else(|| self.fn_return_types.get(lookup_name))
                                 .is_some_and(|t| !matches!(t, ark_typecheck::types::Type::Unit));
                             if returns_value {
                                 f.instruction(&Instruction::Drop);
@@ -393,7 +412,8 @@ impl EmitCtx {
                     } else if matches!(arg, Operand::ConstChar(_))
                         || matches!(arg, Operand::Place(Place::Local(id)) if self.char_locals.contains(&id.0))
                     {
-                        let converted = Operand::Call("char_to_string".to_string(), vec![arg.clone()]);
+                        let converted =
+                            Operand::Call("char_to_string".to_string(), vec![arg.clone()]);
                         f.instruction(&Instruction::Drop);
                         self.emit_operand(f, &converted);
                         self.call_fn(f, FN_PRINT_STR_LN);

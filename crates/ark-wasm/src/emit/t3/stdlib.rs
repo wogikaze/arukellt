@@ -4,16 +4,13 @@
 //! vector operations, hashmap operations, and filesystem operations.
 
 use ark_mir::mir::*;
-use wasm_encoder::{
-    HeapType, Instruction, MemArg, ValType,
-};
+use wasm_encoder::{HeapType, Instruction, MemArg, ValType};
 
 use super::peephole::PeepholeWriter;
-use super::{ref_nullable, Ctx};
+use super::{Ctx, ref_nullable};
 use super::{
-    FS_SCRATCH, FS_BUF_SIZE, SCRATCH,
-    SCR_A_PTR, SCR_B_PTR, SCR_A_LEN, SCR_DST_PTR,
-    SCR_I, SCR_J, SCR_VAL64,
+    FS_BUF_SIZE, FS_SCRATCH, SCR_A_LEN, SCR_A_PTR, SCR_B_PTR, SCR_DST_PTR, SCR_I, SCR_J, SCR_VAL64,
+    SCRATCH,
 };
 
 impl Ctx {
@@ -111,7 +108,13 @@ impl Ctx {
     }
 
     /// substring(s, start, end) → new GC string
-    pub(super) fn emit_substring_gc(&mut self, f: &mut PeepholeWriter<'_>, s: &Operand, start: &Operand, end: &Operand) {
+    pub(super) fn emit_substring_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        s: &Operand,
+        start: &Operand,
+        end: &Operand,
+    ) {
         let s0 = self.si(4);
         let result = self.si(5);
         let start_idx = self.si(0);
@@ -146,7 +149,12 @@ impl Ctx {
     }
 
     /// to_uppercase/to_lowercase: clone + byte-by-byte transform
-    pub(super) fn emit_case_transform_gc(&mut self, f: &mut PeepholeWriter<'_>, arg: &Operand, to_upper: bool) {
+    pub(super) fn emit_case_transform_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        arg: &Operand,
+        to_upper: bool,
+    ) {
         let s0 = self.si(4);
         let result = self.si(5);
         let len = self.si(0);
@@ -348,7 +356,12 @@ impl Ctx {
     }
 
     /// starts_with(s, prefix) → i32 (0 or 1)
-    pub(super) fn emit_starts_with_gc(&mut self, f: &mut PeepholeWriter<'_>, s: &Operand, prefix: &Operand) {
+    pub(super) fn emit_starts_with_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        s: &Operand,
+        prefix: &Operand,
+    ) {
         let s0 = self.si(4);
         let s1 = self.si(5);
         let s_len = self.si(0);
@@ -414,7 +427,12 @@ impl Ctx {
     }
 
     /// ends_with(s, suffix) → i32
-    pub(super) fn emit_ends_with_gc(&mut self, f: &mut PeepholeWriter<'_>, s: &Operand, suffix: &Operand) {
+    pub(super) fn emit_ends_with_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        s: &Operand,
+        suffix: &Operand,
+    ) {
         let s0 = self.si(4);
         let s1 = self.si(5);
         let s_len = self.si(0);
@@ -557,7 +575,12 @@ impl Ctx {
     }
 
     /// contains(s, sub) → i32
-    pub(super) fn emit_contains_gc(&mut self, f: &mut PeepholeWriter<'_>, s: &Operand, sub: &Operand) {
+    pub(super) fn emit_contains_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        s: &Operand,
+        sub: &Operand,
+    ) {
         let s0 = self.si(4);
         let s1 = self.si(5);
         let s_len = self.si(0);
@@ -663,7 +686,12 @@ impl Ctx {
 
     /// Emit inline filter HOF: filter(vec, predicate_fn) -> new_vec
     /// Uses scratch memory for loop state.
-    pub(super) fn emit_filter_hof_inline(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_filter_hof_inline(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         let ma = MemArg {
             offset: 0,
             align: 2,
@@ -834,7 +862,12 @@ impl Ctx {
     }
 
     /// Emit inline map HOF: map(vec, mapper_fn) -> new_vec
-    pub(super) fn emit_map_hof_inline(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_map_hof_inline(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         let ma = MemArg {
             offset: 0,
             align: 2,
@@ -1123,7 +1156,12 @@ impl Ctx {
 
     /// GC-native filter HOF: filter(vec, predicate) -> new_vec
     /// Uses GC struct/array ops instead of linear memory.
-    pub(super) fn emit_filter_hof_gc(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_filter_hof_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         if args.len() < 2 {
             return;
         }
@@ -1235,7 +1273,12 @@ impl Ctx {
     }
 
     /// GC-native map HOF: map(vec, mapper) -> new_vec
-    pub(super) fn emit_map_hof_gc(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_map_hof_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         if args.len() < 2 {
             return;
         }
@@ -1319,7 +1362,12 @@ impl Ctx {
     }
 
     /// GC-native fold HOF: fold(vec, init, folder) -> acc
-    pub(super) fn emit_fold_hof_gc(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_fold_hof_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         if args.len() < 3 {
             return;
         }
@@ -1390,7 +1438,12 @@ impl Ctx {
     }
 
     /// GC-native any HOF: any(vec, pred) -> bool
-    pub(super) fn emit_any_hof_gc(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_any_hof_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         if args.len() < 2 {
             f.instruction(&Instruction::I32Const(0));
             return;
@@ -1460,7 +1513,12 @@ impl Ctx {
     }
 
     /// GC-native find HOF: find(vec, pred) -> Option<T>
-    pub(super) fn emit_find_hof_gc(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_find_hof_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         if args.len() < 2 {
             // Return None
             if let Some(&base_ty) = self.enum_base_types.get("Option") {
@@ -1932,7 +1990,12 @@ impl Ctx {
         )));
     }
 
-    pub(super) fn emit_vec_new(&mut self, f: &mut PeepholeWriter<'_>, element_size: i32, dest: Option<&Place>) {
+    pub(super) fn emit_vec_new(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        element_size: i32,
+        dest: Option<&Place>,
+    ) {
         self.emit_vec_new_inline(f, element_size);
         if let Some(Place::Local(id)) = dest {
             f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
@@ -1981,7 +2044,11 @@ impl Ctx {
     /// HashMap_i32_i32_insert(map, key, value)
     /// Linear scan keys[0..count], update if found, else append.
     /// Uses scratch: si(0)=count, si(1)=i, si(2)=key, si(3)=value, si(9)=found
-    pub(super) fn emit_hashmap_i32_i32_insert(&mut self, f: &mut PeepholeWriter<'_>, args: &[Operand]) {
+    pub(super) fn emit_hashmap_i32_i32_insert(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
         if args.len() < 3 {
             return;
         }
@@ -2108,7 +2175,11 @@ impl Ctx {
 
     /// HashMap_i32_i32_get(map, key) -> Option<i32>
     /// Linear scan, returns Some(value) or None as GC enum variants.
-    pub(super) fn emit_hashmap_i32_i32_get(&mut self, f: &mut PeepholeWriter<'_>, args: &[Operand]) {
+    pub(super) fn emit_hashmap_i32_i32_get(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
         if args.len() < 2 {
             // Return None
             if let Some(&base_ty) = self.enum_base_types.get("Option") {
@@ -2212,7 +2283,11 @@ impl Ctx {
     }
 
     /// HashMap_i32_i32_contains_key(map, key) -> bool (i32)
-    pub(super) fn emit_hashmap_i32_i32_contains_key(&mut self, f: &mut PeepholeWriter<'_>, args: &[Operand]) {
+    pub(super) fn emit_hashmap_i32_i32_contains_key(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
         if args.len() < 2 {
             f.instruction(&Instruction::I32Const(0));
             return;
@@ -2356,7 +2431,11 @@ impl Ctx {
         }
     }
 
-    pub(super) fn emit_get_unchecked_inline(&mut self, f: &mut PeepholeWriter<'_>, args: &[Operand]) {
+    pub(super) fn emit_get_unchecked_inline(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
         if args.len() < 2 {
             f.instruction(&Instruction::I32Const(0));
             return;
@@ -2549,7 +2628,12 @@ impl Ctx {
     }
 
     /// contains_i32(v, x) / contains_String(v, s) → bool
-    pub(super) fn emit_contains_inline(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_contains_inline(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         if args.len() < 2 {
             f.instruction(&Instruction::I32Const(0));
             return;
@@ -2632,7 +2716,12 @@ impl Ctx {
     }
 
     /// reverse_i32(v) / reverse_String(v) — in-place reversal
-    pub(super) fn emit_reverse_inline(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_reverse_inline(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         if args.is_empty() {
             return;
         }
@@ -2805,7 +2894,12 @@ impl Ctx {
     }
 
     /// sum_i32/i64/f64 / product_i32/i64/f64 — fold over vec
-    pub(super) fn emit_sum_product_inline(&mut self, f: &mut PeepholeWriter<'_>, canonical: &str, args: &[Operand]) {
+    pub(super) fn emit_sum_product_inline(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        canonical: &str,
+        args: &[Operand],
+    ) {
         if args.is_empty() {
             f.instruction(&Instruction::I32Const(0));
             return;
@@ -3087,5 +3181,4 @@ impl Ctx {
         // Push result vec onto stack
         f.instruction(&Instruction::LocalGet(self.si(10)));
     }
-
 }

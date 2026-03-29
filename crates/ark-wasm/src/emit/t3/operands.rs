@@ -8,7 +8,7 @@ use ark_typecheck::types::Type;
 use wasm_encoder::{BlockType, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType};
 
 use super::peephole::PeepholeWriter;
-use super::{normalize_intrinsic, Ctx};
+use super::{Ctx, normalize_intrinsic};
 
 impl Ctx {
     pub(super) fn emit_operand(&mut self, f: &mut PeepholeWriter<'_>, op: &Operand) {
@@ -181,12 +181,18 @@ impl Ctx {
             }
             Operand::Call(name, args) => {
                 let canonical = normalize_intrinsic(name).to_string();
+                let lookup_name = name.rsplit("::").next().unwrap_or(name.as_str());
+                let prefer_user_fn = name.contains("::");
                 // Check if this is a builtin — redirect to inline implementation
-                if self.is_builtin_name(&canonical) {
+                if self.is_builtin_name(&canonical) && !prefer_user_fn {
                     self.emit_call_builtin_operand(f, &canonical, args);
                 } else {
                     // Check if callee has Any-typed (generic) params needing boxing
-                    let param_types = self.fn_param_types.get(canonical.as_str()).cloned();
+                    let param_types = self
+                        .fn_param_types
+                        .get(canonical.as_str())
+                        .or_else(|| self.fn_param_types.get(lookup_name))
+                        .cloned();
                     for (i, arg) in args.iter().enumerate() {
                         self.emit_operand(f, arg);
                         // Box i32/bool/char → ref.i31 when callee expects anyref
@@ -200,14 +206,23 @@ impl Ctx {
                             }
                         }
                     }
-                    if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
+                    if let Some(&fn_idx) = self
+                        .fn_map
+                        .get(canonical.as_str())
+                        .or_else(|| self.fn_map.get(lookup_name))
+                    {
                         f.instruction(&Instruction::Call(fn_idx));
                     } else {
                         // Unknown function: push zero
                         f.instruction(&Instruction::I32Const(0));
                     }
                     // Unbox anyref return → concrete type based on arg-inferred substitution
-                    if let Some(ret_ty) = self.fn_ret_types.get(canonical.as_str()).cloned() {
+                    if let Some(ret_ty) = self
+                        .fn_ret_types
+                        .get(canonical.as_str())
+                        .or_else(|| self.fn_ret_types.get(lookup_name))
+                        .cloned()
+                    {
                         if ret_ty == Type::Any {
                             // Infer concrete type from first Any-typed arg
                             let concrete = self.infer_generic_return_type(&canonical, args);
@@ -369,12 +384,12 @@ impl Ctx {
 
                         // Inner blocks (reversed: innermost = first variant)
                         for &vty in variant_types.iter().rev() {
-                            f.instruction(&Instruction::Block(BlockType::Result(
-                                ValType::Ref(WasmRefType {
+                            f.instruction(&Instruction::Block(BlockType::Result(ValType::Ref(
+                                WasmRefType {
                                     nullable: false,
                                     heap_type: HeapType::Concrete(vty),
-                                }),
-                            )));
+                                },
+                            ))));
                         }
 
                         // Emit enum value once
@@ -448,17 +463,16 @@ impl Ctx {
                 } else {
                     enum_name.clone()
                 };
-                let effective_variant_name = if enum_name == "Option"
-                    && effective_enum_name != *enum_name
-                {
-                    match variant_name.as_str() {
-                        "Some" => "Ok",
-                        "None" => "Err",
-                        _ => variant_name.as_str(),
-                    }
-                } else {
-                    variant_name.as_str()
-                };
+                let effective_variant_name =
+                    if enum_name == "Option" && effective_enum_name != *enum_name {
+                        match variant_name.as_str() {
+                            "Some" => "Ok",
+                            "None" => "Err",
+                            _ => variant_name.as_str(),
+                        }
+                    } else {
+                        variant_name.as_str()
+                    };
                 let variant_ty = self
                     .enum_variant_types
                     .get(effective_enum_name.as_str())
@@ -594,7 +608,12 @@ impl Ctx {
         }
     }
 
-    pub(super) fn emit_binop(&self, f: &mut PeepholeWriter<'_>, op: BinOp, lhs_operand: Option<&Operand>) {
+    pub(super) fn emit_binop(
+        &self,
+        f: &mut PeepholeWriter<'_>,
+        op: BinOp,
+        lhs_operand: Option<&Operand>,
+    ) {
         // Determine operand type from LHS (not destination — comparisons return bool/i32)
         let is_f64 = lhs_operand.is_some_and(|o| self.is_f64_like_operand(o));
         let is_i64 = lhs_operand.is_some_and(|o| self.is_i64_like_operand(o));

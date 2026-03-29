@@ -976,8 +976,16 @@ impl EmitCtx {
         // local 0: result byte (default -1 = EOF)
         let mut f = Function::new(vec![(1, ValType::I32)]);
 
-        let ma  = MemArg { offset: 0, align: 2, memory_index: 0 };
-        let ma1 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma1 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
 
         // default: result = -1 (EOF)
         f.instruction(&Instruction::I32Const(-1i32));
@@ -1049,6 +1057,4 @@ impl EmitCtx {
         f.instruction(&Instruction::End);
         f
     }
-
-
 }
