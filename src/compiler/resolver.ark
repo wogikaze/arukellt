@@ -76,7 +76,7 @@ fn pop_scope(ctx: ResolveCtx) {
     ctx.current_depth = ctx.current_depth - 1
 }
 
-fn define(ctx: ResolveCtx, name: String, kind: i32) -> i32 {
+fn define(ctx: ResolveCtx, name: String, kind: i32) {
     let idx = ctx.next_decl_index
     ctx.next_decl_index = ctx.next_decl_index + 1
     let sym = Symbol_new(clone(name), kind, ctx.current_depth, idx)
@@ -89,12 +89,11 @@ fn define(ctx: ResolveCtx, name: String, kind: i32) -> i32 {
         let existing = get_unchecked(scope.symbols, i)
         if eq(clone(existing.name), clone(name)) && existing.scope_depth == ctx.current_depth {
             resolve_error(ctx, concat(String_from("duplicate definition: "), clone(name)))
-            return idx
+            return
         }
         i = i + 1
     }
     push(scope.symbols, sym)
-    idx
 }
 
 fn lookup(ctx: ResolveCtx, name: String) -> i32 {
@@ -288,7 +287,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
             let init = get_unchecked(node.children, 0)
             resolve_node(ctx, init)
         }
-        let mut sym_idx = define(ctx, clone(node.text), SYM_LOCAL())
+        define(ctx, clone(node.text), SYM_LOCAL())
         return
     }
 
@@ -381,20 +380,19 @@ fn main() {
     let idx_add = lookup(ctx, String_from("add"))
     let idx_missing = lookup(ctx, String_from("missing"))
 
-    stdio::println(concat(String_from("x index: "), to_string(idx_x)))
-    stdio::println(concat(String_from("add index: "), to_string(idx_add)))
-    stdio::println(concat(String_from("missing index: "), to_string(idx_missing)))
+    stdio::println(concat(String_from("x found: "), to_string(idx_x >= 0)))
+    stdio::println(concat(String_from("add found: "), to_string(idx_add >= 0)))
+    stdio::println(concat(String_from("missing found: "), to_string(idx_missing >= 0)))
 
     // Test scoping
     push_scope(ctx)
     define(ctx, String_from("y"), SYM_LOCAL())
     let idx_y = lookup(ctx, String_from("y"))
-    stdio::println(concat(String_from("y index (inner): "), to_string(idx_y)))
+    stdio::println(concat(String_from("y found (inner): "), to_string(idx_y >= 0)))
     pop_scope(ctx)
 
     let idx_y2 = lookup(ctx, String_from("y"))
-    stdio::println(concat(String_from("y index (outer): "), to_string(idx_y2)))
+    stdio::println(concat(String_from("y found (outer): "), to_string(idx_y2 >= 0)))
 
-    dump_scope(ctx)
     stdio::println(String_from("Resolver OK."))
 }

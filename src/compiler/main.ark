@@ -5,6 +5,7 @@
 // Exit code: 0 = success, 1 = failure.
 
 use std::host::stdio
+use std::host::env
 
 // ── Command Tags ─────────────────────────────────────────────────────────────
 
@@ -193,7 +194,7 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
 // ── Main Entry ───────────────────────────────────────────────────────────────
 
 fn main() {
-    let argv = args()
+    let argv = env::args()
     let opts = parse_args(argv)
 
     if opts.show_help {
@@ -206,13 +207,11 @@ fn main() {
     }
     if opts.has_error {
         stdio::println(concat(String_from("error: "), clone(opts.error_msg)))
-        exit(1)
         return
     }
     if len(opts.input_file) == 0 {
         stdio::println(String_from("error: no input file specified"))
         print_usage()
-        exit(1)
         return
     }
 

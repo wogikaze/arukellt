@@ -252,6 +252,10 @@ struct Token {
     end: i32,
 }
 
+fn Token_new(kind: i32, text: String, start: i32, end: i32) -> Token {
+    Token { kind: kind, text: text, int_val: 0, float_val: 0.0, start: start, end: end }
+}
+
 // ── Parser State ─────────────────────────────────────────────────────────────
 
 struct Parser {
@@ -302,7 +306,7 @@ fn skip_newlines(p: Parser) {
     }
 }
 
-fn expect(p: Parser, kind: i32) -> Token {
+fn expect_token(p: Parser, kind: i32) -> Token {
     skip_newlines(p)
     let t = cur(p)
     if t.kind == kind {
@@ -410,13 +414,13 @@ fn parse_type(p: Parser) -> AstNode {
             push(node.children, base)
             let mut first = true
             while !at(p, TK_GT()) && !at_eof(p) {
-                if !first { expect(p, TK_COMMA()) }
+                if !first { expect_token(p, TK_COMMA()) }
                 first = false
                 skip_newlines(p)
                 let arg = parse_type(p)
                 push(node.children, arg)
             }
-            expect(p, TK_GT())
+            expect_token(p, TK_GT())
             return node
         }
         return base
@@ -428,13 +432,13 @@ fn parse_type(p: Parser) -> AstNode {
         let node = AstNode_new(NK_TYPE_TUPLE(), tok_span(t))
         let mut first = true
         while !at(p, TK_RPAREN()) && !at_eof(p) {
-            if !first { expect(p, TK_COMMA()) }
+            if !first { expect_token(p, TK_COMMA()) }
             first = false
             skip_newlines(p)
             let elem = parse_type(p)
             push(node.children, elem)
         }
-        expect(p, TK_RPAREN())
+        expect_token(p, TK_RPAREN())
 
         // Check for fn type: (T1, T2) -> Ret
         if peek_kind(p) == TK_ARROW() {
@@ -488,7 +492,7 @@ fn parse_pattern(p: Parser) -> AstNode {
         // Check for path: Enum::Variant
         if peek_kind(p) == TK_COLONCOLON() {
             p.pos = p.pos + 1
-            let variant_tok = expect(p, TK_IDENT())
+            let variant_tok = expect_token(p, TK_IDENT())
             let node = AstNode_new(NK_PAT_VARIANT(), tok_span(t))
             node.text = concat(clone(t.text), concat(String_from("::"), clone(variant_tok.text)))
 
@@ -497,13 +501,13 @@ fn parse_pattern(p: Parser) -> AstNode {
                 p.pos = p.pos + 1
                 let mut first = true
                 while !at(p, TK_RPAREN()) && !at_eof(p) {
-                    if !first { expect(p, TK_COMMA()) }
+                    if !first { expect_token(p, TK_COMMA()) }
                     first = false
                     skip_newlines(p)
                     let field_pat = parse_pattern(p)
                     push(node.children, field_pat)
                 }
-                expect(p, TK_RPAREN())
+                expect_token(p, TK_RPAREN())
             }
             return node
         }
@@ -515,13 +519,13 @@ fn parse_pattern(p: Parser) -> AstNode {
             p.pos = p.pos + 1
             let mut first = true
             while !at(p, TK_RPAREN()) && !at_eof(p) {
-                if !first { expect(p, TK_COMMA()) }
+                if !first { expect_token(p, TK_COMMA()) }
                 first = false
                 skip_newlines(p)
                 let field_pat = parse_pattern(p)
                 push(node.children, field_pat)
             }
-            expect(p, TK_RPAREN())
+            expect_token(p, TK_RPAREN())
             return node
         }
 
@@ -585,7 +589,7 @@ fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
         if k == TK_DOT() {
             p.pos = p.pos + 1
             skip_newlines(p)
-            let field_tok = expect(p, TK_IDENT())
+            let field_tok = expect_token(p, TK_IDENT())
 
             // Method call: expr.method(args)
             if peek_kind(p) == TK_LPAREN() {
@@ -595,13 +599,13 @@ fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
                 push(node.children, lhs)
                 let mut first = true
                 while !at(p, TK_RPAREN()) && !at_eof(p) {
-                    if !first { expect(p, TK_COMMA()) }
+                    if !first { expect_token(p, TK_COMMA()) }
                     first = false
                     skip_newlines(p)
                     let arg = parse_expr(p)
                     push(node.children, arg)
                 }
-                expect(p, TK_RPAREN())
+                expect_token(p, TK_RPAREN())
                 lhs = node
                 continue
             }
@@ -617,7 +621,7 @@ fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
         if k == TK_LBRACKET() {
             p.pos = p.pos + 1
             let idx = parse_expr(p)
-            expect(p, TK_RBRACKET())
+            expect_token(p, TK_RBRACKET())
             let node = AstNode_new(NK_INDEX(), lhs.span)
             push(node.children, lhs)
             push(node.children, idx)
@@ -632,13 +636,13 @@ fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
             push(node.children, lhs)
             let mut first = true
             while !at(p, TK_RPAREN()) && !at_eof(p) {
-                if !first { expect(p, TK_COMMA()) }
+                if !first { expect_token(p, TK_COMMA()) }
                 first = false
                 skip_newlines(p)
                 let arg = parse_expr(p)
                 push(node.children, arg)
             }
-            expect(p, TK_RPAREN())
+            expect_token(p, TK_RPAREN())
             lhs = node
             continue
         }
@@ -646,7 +650,7 @@ fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
         // Path: ident::ident (only valid postfix after call check)
         if k == TK_COLONCOLON() {
             p.pos = p.pos + 1
-            let seg = expect(p, TK_IDENT())
+            let seg = expect_token(p, TK_IDENT())
             let node = AstNode_new(NK_PATH(), lhs.span)
             node.text = concat(lhs.text, concat(String_from("::"), clone(seg.text)))
             push(node.children, lhs)
@@ -738,11 +742,11 @@ fn parse_prefix(p: Parser) -> AstNode {
                 while !at(p, TK_RBRACE()) && !at_eof(p) {
                     skip_newlines(p)
                     if at(p, TK_RBRACE()) { break }
-                    if !first { expect(p, TK_COMMA()) }
+                    if !first { expect_token(p, TK_COMMA()) }
                     first = false
                     skip_newlines(p)
-                    let fname = expect(p, TK_IDENT())
-                    expect(p, TK_COLON())
+                    let fname = expect_token(p, TK_IDENT())
+                    expect_token(p, TK_COLON())
                     skip_newlines(p)
                     let fval = parse_expr(p)
                     let field = AstNode_new(NK_IDENT(), tok_span(fname))
@@ -751,7 +755,7 @@ fn parse_prefix(p: Parser) -> AstNode {
                     push(node.children, field)
                 }
                 skip_newlines(p)
-                expect(p, TK_RBRACE())
+                expect_token(p, TK_RBRACE())
                 return node
             }
         }
@@ -781,10 +785,10 @@ fn parse_prefix(p: Parser) -> AstNode {
                 push(node.children, elem)
                 skip_newlines(p)
             }
-            expect(p, TK_RPAREN())
+            expect_token(p, TK_RPAREN())
             return node
         }
-        expect(p, TK_RPAREN())
+        expect_token(p, TK_RPAREN())
         return first_expr
     }
 
@@ -794,14 +798,14 @@ fn parse_prefix(p: Parser) -> AstNode {
         let node = AstNode_new(NK_ARRAY_LIT(), tok_span(t))
         let mut first = true
         while !at(p, TK_RBRACKET()) && !at_eof(p) {
-            if !first { expect(p, TK_COMMA()) }
+            if !first { expect_token(p, TK_COMMA()) }
             first = false
             skip_newlines(p)
             let elem = parse_expr(p)
             push(node.children, elem)
             skip_newlines(p)
         }
-        expect(p, TK_RBRACKET())
+        expect_token(p, TK_RBRACKET())
         return node
     }
 
@@ -828,7 +832,7 @@ fn parse_prefix(p: Parser) -> AstNode {
 // ── If Expression ────────────────────────────────────────────────────────────
 
 fn parse_if_expr(p: Parser) -> AstNode {
-    let t = expect(p, TK_IF())
+    let t = expect_token(p, TK_IF())
     let node = AstNode_new(NK_IF_EXPR(), tok_span(t))
     skip_newlines(p)
     let cond = parse_expr(p)
@@ -854,20 +858,20 @@ fn parse_if_expr(p: Parser) -> AstNode {
 // ── Match Expression ─────────────────────────────────────────────────────────
 
 fn parse_match_expr(p: Parser) -> AstNode {
-    let t = expect(p, TK_MATCH())
+    let t = expect_token(p, TK_MATCH())
     let node = AstNode_new(NK_MATCH_EXPR(), tok_span(t))
     skip_newlines(p)
     let scrutinee = parse_expr(p)
     push(node.children, scrutinee)
     skip_newlines(p)
-    expect(p, TK_LBRACE())
+    expect_token(p, TK_LBRACE())
     skip_newlines(p)
     while !at(p, TK_RBRACE()) && !at_eof(p) {
         skip_newlines(p)
         if at(p, TK_RBRACE()) { break }
         let pat = parse_pattern(p)
         skip_newlines(p)
-        expect(p, TK_FATARROW())
+        expect_token(p, TK_FATARROW())
         skip_newlines(p)
         let body = parse_expr_or_block(p)
         // Match arm: pattern => body stored as pair in children
@@ -880,7 +884,7 @@ fn parse_match_expr(p: Parser) -> AstNode {
         if peek_kind(p) == TK_COMMA() { p.pos = p.pos + 1 }
         skip_newlines(p)
     }
-    expect(p, TK_RBRACE())
+    expect_token(p, TK_RBRACE())
     node
 }
 
@@ -895,7 +899,7 @@ fn parse_expr_or_block(p: Parser) -> AstNode {
 // ── Block ────────────────────────────────────────────────────────────────────
 
 fn parse_block(p: Parser) -> AstNode {
-    let t = expect(p, TK_LBRACE())
+    let t = expect_token(p, TK_LBRACE())
     let node = AstNode_new(NK_BLOCK(), tok_span(t))
     skip_newlines(p)
     while !at(p, TK_RBRACE()) && !at_eof(p) {
@@ -905,7 +909,7 @@ fn parse_block(p: Parser) -> AstNode {
         push(node.children, stmt)
         skip_newlines(p)
     }
-    expect(p, TK_RBRACE())
+    expect_token(p, TK_RBRACE())
     node
 }
 
@@ -931,7 +935,7 @@ fn parse_stmt(p: Parser) -> AstNode {
 }
 
 fn parse_let(p: Parser) -> AstNode {
-    let t = expect(p, TK_LET())
+    let t = expect_token(p, TK_LET())
     let node = AstNode_new(NK_LET(), tok_span(t))
     skip_newlines(p)
 
@@ -941,7 +945,7 @@ fn parse_let(p: Parser) -> AstNode {
         node.is_mut = true
     }
 
-    let name = expect(p, TK_IDENT())
+    let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
 
     // Optional type annotation: : Type
@@ -964,7 +968,7 @@ fn parse_let(p: Parser) -> AstNode {
 }
 
 fn parse_return(p: Parser) -> AstNode {
-    let t = expect(p, TK_RETURN())
+    let t = expect_token(p, TK_RETURN())
     let node = AstNode_new(NK_RETURN(), tok_span(t))
     skip_newlines(p)
     let k = peek_kind(p)
@@ -976,17 +980,17 @@ fn parse_return(p: Parser) -> AstNode {
 }
 
 fn parse_break(p: Parser) -> AstNode {
-    let t = expect(p, TK_BREAK())
+    let t = expect_token(p, TK_BREAK())
     AstNode_new(NK_BREAK(), tok_span(t))
 }
 
 fn parse_continue(p: Parser) -> AstNode {
-    let t = expect(p, TK_CONTINUE())
+    let t = expect_token(p, TK_CONTINUE())
     AstNode_new(NK_CONTINUE(), tok_span(t))
 }
 
 fn parse_while(p: Parser) -> AstNode {
-    let t = expect(p, TK_WHILE())
+    let t = expect_token(p, TK_WHILE())
     let node = AstNode_new(NK_WHILE(), tok_span(t))
     skip_newlines(p)
     let cond = parse_expr(p)
@@ -998,7 +1002,7 @@ fn parse_while(p: Parser) -> AstNode {
 }
 
 fn parse_loop(p: Parser) -> AstNode {
-    let t = expect(p, TK_LOOP())
+    let t = expect_token(p, TK_LOOP())
     let node = AstNode_new(NK_LOOP(), tok_span(t))
     skip_newlines(p)
     let body = parse_block(p)
@@ -1007,12 +1011,12 @@ fn parse_loop(p: Parser) -> AstNode {
 }
 
 fn parse_for(p: Parser) -> AstNode {
-    let t = expect(p, TK_FOR())
+    let t = expect_token(p, TK_FOR())
     let node = AstNode_new(NK_FOR(), tok_span(t))
     skip_newlines(p)
-    let binding = expect(p, TK_IDENT())
+    let binding = expect_token(p, TK_IDENT())
     node.text = clone(binding.text)
-    expect(p, TK_IN())
+    expect_token(p, TK_IN())
     skip_newlines(p)
     let iter = parse_expr(p)
     push(node.children, iter)
@@ -1049,9 +1053,9 @@ fn parse_decl(p: Parser) -> AstNode {
 }
 
 fn parse_fn_decl(p: Parser) -> AstNode {
-    let t = expect(p, TK_FN())
+    let t = expect_token(p, TK_FN())
     let node = AstNode_new(NK_FN_DECL(), tok_span(t))
-    let name = expect(p, TK_IDENT())
+    let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
 
     // Generic params: <T, U>
@@ -1059,33 +1063,33 @@ fn parse_fn_decl(p: Parser) -> AstNode {
         p.pos = p.pos + 1
         let mut first = true
         while !at(p, TK_GT()) && !at_eof(p) {
-            if !first { expect(p, TK_COMMA()) }
+            if !first { expect_token(p, TK_COMMA()) }
             first = false
             skip_newlines(p)
-            let gp = expect(p, TK_IDENT())
+            let gp = expect_token(p, TK_IDENT())
             let gpn = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
             push(node.type_ann, gpn)
         }
-        expect(p, TK_GT())
+        expect_token(p, TK_GT())
     }
 
     // Parameters
-    expect(p, TK_LPAREN())
+    expect_token(p, TK_LPAREN())
     let mut first = true
     while !at(p, TK_RPAREN()) && !at_eof(p) {
-        if !first { expect(p, TK_COMMA()) }
+        if !first { expect_token(p, TK_COMMA()) }
         first = false
         skip_newlines(p)
-        let pname = expect(p, TK_IDENT())
+        let pname = expect_token(p, TK_IDENT())
         let param = AstNode_leaf(NK_IDENT(), clone(pname.text), tok_span(pname))
-        expect(p, TK_COLON())
+        expect_token(p, TK_COLON())
         skip_newlines(p)
         let pty = parse_type(p)
         push(param.type_ann, pty)
         push(node.children, param)
         skip_newlines(p)
     }
-    expect(p, TK_RPAREN())
+    expect_token(p, TK_RPAREN())
 
     // Return type
     if peek_kind(p) == TK_ARROW() {
@@ -1107,9 +1111,9 @@ fn parse_fn_decl(p: Parser) -> AstNode {
 }
 
 fn parse_struct_decl(p: Parser) -> AstNode {
-    let t = expect(p, TK_STRUCT())
+    let t = expect_token(p, TK_STRUCT())
     let node = AstNode_new(NK_STRUCT_DECL(), tok_span(t))
-    let name = expect(p, TK_IDENT())
+    let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
 
     // Generic params
@@ -1117,28 +1121,28 @@ fn parse_struct_decl(p: Parser) -> AstNode {
         p.pos = p.pos + 1
         let mut first = true
         while !at(p, TK_GT()) && !at_eof(p) {
-            if !first { expect(p, TK_COMMA()) }
+            if !first { expect_token(p, TK_COMMA()) }
             first = false
             skip_newlines(p)
-            let gp = expect(p, TK_IDENT())
+            let gp = expect_token(p, TK_IDENT())
             let gpn = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
             push(node.type_ann, gpn)
         }
-        expect(p, TK_GT())
+        expect_token(p, TK_GT())
     }
 
     skip_newlines(p)
-    expect(p, TK_LBRACE())
+    expect_token(p, TK_LBRACE())
     skip_newlines(p)
     let mut first = true
     while !at(p, TK_RBRACE()) && !at_eof(p) {
         skip_newlines(p)
         if at(p, TK_RBRACE()) { break }
-        if !first { expect(p, TK_COMMA()) }
+        if !first { expect_token(p, TK_COMMA()) }
         first = false
         skip_newlines(p)
-        let fname = expect(p, TK_IDENT())
-        expect(p, TK_COLON())
+        let fname = expect_token(p, TK_IDENT())
+        expect_token(p, TK_COLON())
         skip_newlines(p)
         let fty = parse_type(p)
         let field = AstNode_leaf(NK_IDENT(), clone(fname.text), tok_span(fname))
@@ -1146,14 +1150,14 @@ fn parse_struct_decl(p: Parser) -> AstNode {
         push(node.children, field)
         skip_newlines(p)
     }
-    expect(p, TK_RBRACE())
+    expect_token(p, TK_RBRACE())
     node
 }
 
 fn parse_enum_decl(p: Parser) -> AstNode {
-    let t = expect(p, TK_ENUM())
+    let t = expect_token(p, TK_ENUM())
     let node = AstNode_new(NK_ENUM_DECL(), tok_span(t))
-    let name = expect(p, TK_IDENT())
+    let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
 
     // Generic params
@@ -1161,23 +1165,23 @@ fn parse_enum_decl(p: Parser) -> AstNode {
         p.pos = p.pos + 1
         let mut first = true
         while !at(p, TK_GT()) && !at_eof(p) {
-            if !first { expect(p, TK_COMMA()) }
+            if !first { expect_token(p, TK_COMMA()) }
             first = false
             skip_newlines(p)
-            let gp = expect(p, TK_IDENT())
+            let gp = expect_token(p, TK_IDENT())
             let gpn = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
             push(node.type_ann, gpn)
         }
-        expect(p, TK_GT())
+        expect_token(p, TK_GT())
     }
 
     skip_newlines(p)
-    expect(p, TK_LBRACE())
+    expect_token(p, TK_LBRACE())
     skip_newlines(p)
     while !at(p, TK_RBRACE()) && !at_eof(p) {
         skip_newlines(p)
         if at(p, TK_RBRACE()) { break }
-        let vname = expect(p, TK_IDENT())
+        let vname = expect_token(p, TK_IDENT())
         let variant = AstNode_leaf(NK_IDENT(), clone(vname.text), tok_span(vname))
 
         // Variant fields: Variant(Type1, Type2)
@@ -1185,13 +1189,13 @@ fn parse_enum_decl(p: Parser) -> AstNode {
             p.pos = p.pos + 1
             let mut first = true
             while !at(p, TK_RPAREN()) && !at_eof(p) {
-                if !first { expect(p, TK_COMMA()) }
+                if !first { expect_token(p, TK_COMMA()) }
                 first = false
                 skip_newlines(p)
                 let vty = parse_type(p)
                 push(variant.type_ann, vty)
             }
-            expect(p, TK_RPAREN())
+            expect_token(p, TK_RPAREN())
         }
 
         push(node.children, variant)
@@ -1199,17 +1203,17 @@ fn parse_enum_decl(p: Parser) -> AstNode {
         if peek_kind(p) == TK_COMMA() { p.pos = p.pos + 1 }
         skip_newlines(p)
     }
-    expect(p, TK_RBRACE())
+    expect_token(p, TK_RBRACE())
     node
 }
 
 fn parse_trait_decl(p: Parser) -> AstNode {
-    let t = expect(p, TK_TRAIT())
+    let t = expect_token(p, TK_TRAIT())
     let node = AstNode_new(NK_TRAIT_DECL(), tok_span(t))
-    let name = expect(p, TK_IDENT())
+    let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
     skip_newlines(p)
-    expect(p, TK_LBRACE())
+    expect_token(p, TK_LBRACE())
     skip_newlines(p)
     while !at(p, TK_RBRACE()) && !at_eof(p) {
         skip_newlines(p)
@@ -1218,17 +1222,17 @@ fn parse_trait_decl(p: Parser) -> AstNode {
         push(node.children, member)
         skip_newlines(p)
     }
-    expect(p, TK_RBRACE())
+    expect_token(p, TK_RBRACE())
     node
 }
 
 fn parse_impl_decl(p: Parser) -> AstNode {
-    let t = expect(p, TK_IMPL())
+    let t = expect_token(p, TK_IMPL())
     let node = AstNode_new(NK_IMPL_DECL(), tok_span(t))
-    let name = expect(p, TK_IDENT())
+    let name = expect_token(p, TK_IDENT())
     node.text = clone(name.text)
     skip_newlines(p)
-    expect(p, TK_LBRACE())
+    expect_token(p, TK_LBRACE())
     skip_newlines(p)
     while !at(p, TK_RBRACE()) && !at_eof(p) {
         skip_newlines(p)
@@ -1237,21 +1241,21 @@ fn parse_impl_decl(p: Parser) -> AstNode {
         push(node.children, member)
         skip_newlines(p)
     }
-    expect(p, TK_RBRACE())
+    expect_token(p, TK_RBRACE())
     node
 }
 
 fn parse_use_decl(p: Parser) -> AstNode {
-    let t = expect(p, TK_USE())
+    let t = expect_token(p, TK_USE())
     let node = AstNode_new(NK_USE(), tok_span(t))
     skip_newlines(p)
     // use std::host::module
     let mut path = String_new()
-    let first_seg = expect(p, TK_IDENT())
+    let first_seg = expect_token(p, TK_IDENT())
     path = clone(first_seg.text)
     while peek_kind(p) == TK_COLONCOLON() {
         p.pos = p.pos + 1
-        let seg = expect(p, TK_IDENT())
+        let seg = expect_token(p, TK_IDENT())
         path = concat(path, concat(String_from("::"), clone(seg.text)))
     }
     node.text = path
@@ -1259,10 +1263,10 @@ fn parse_use_decl(p: Parser) -> AstNode {
 }
 
 fn parse_import_decl(p: Parser) -> AstNode {
-    let t = expect(p, TK_IMPORT())
+    let t = expect_token(p, TK_IMPORT())
     let node = AstNode_new(NK_IMPORT(), tok_span(t))
     skip_newlines(p)
-    let path_tok = expect(p, TK_STRING())
+    let path_tok = expect_token(p, TK_STRING())
     node.text = clone(path_tok.text)
     node
 }
@@ -1358,16 +1362,25 @@ fn print_ast(node: AstNode, depth: i32) {
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
-    // Tokenize and parse a small sample
-    let source = String_from("use std::host::stdio\n\nstruct Point {\n    x: i32,\n    y: i32,\n}\n\nfn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\nfn main() {\n    let p = Point { x: 1, y: 2 }\n    let sum = add(p.x, p.y)\n    stdio::println(to_string(sum))\n}\n")
+    // Build a minimal token list by hand to test the parser
+    let tokens = Vec_new_Token()
 
-    // Inline tokenizer (simplified — reuse lexer logic)
-    let tokens = tokenize(source)
+    // Tokens for: fn main() { 42 }
+    push(tokens, Token_new(TK_FN(), String_from("fn"), 0, 2))
+    push(tokens, Token_new(TK_IDENT(), String_from("main"), 3, 7))
+    push(tokens, Token_new(TK_LPAREN(), String_from("("), 7, 8))
+    push(tokens, Token_new(TK_RPAREN(), String_from(")"), 8, 9))
+    push(tokens, Token_new(TK_LBRACE(), String_from("{"), 10, 11))
+    push(tokens, Token_new(TK_INT(), String_from("42"), 12, 14))
+    push(tokens, Token_new(TK_RBRACE(), String_from("}"), 15, 16))
+    push(tokens, Token_new(TK_EOF(), String_from(""), 16, 16))
 
     let p = Parser_new(tokens)
     let decls = parse_module(p)
 
     let n = len(decls)
+    stdio::println(concat(String_from("Parsed "), concat(to_string(n), String_from(" declaration(s)"))))
+
     let mut i = 0
     while i < n {
         let d = get_unchecked(decls, i)
