@@ -1,8 +1,9 @@
+use std::host::stdio
 fn main() {
-    println(bool_to_string(1 == 1))
-    println(bool_to_string(1 != 2))
-    println(bool_to_string(1 < 2))
-    println(bool_to_string(2 <= 2))
-    println(bool_to_string(3 > 2))
-    println(bool_to_string(3 >= 3))
+    stdio::println(bool_to_string(1 == 1))
+    stdio::println(bool_to_string(1 != 2))
+    stdio::println(bool_to_string(1 < 2))
+    stdio::println(bool_to_string(2 <= 2))
+    stdio::println(bool_to_string(3 > 2))
+    stdio::println(bool_to_string(3 >= 3))
 }

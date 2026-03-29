@@ -1,7 +1,8 @@
+use std::host::stdio
 fn square(x: i32) -> i32 {
     x * x
 }
 
 fn main() {
-    println(i32_to_string(square(7)))
+    stdio::println(i32_to_string(square(7)))
 }

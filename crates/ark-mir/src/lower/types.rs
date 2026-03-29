@@ -50,12 +50,11 @@ pub(crate) fn is_void_expr(expr: &ast::Expr) -> bool {
                         | "assert_ne_i32"
                         | "assert_ne_string"
                         | "expect_none_i32"
-                        // std::io
-                        | "write_stdout"
-                        | "write_stderr"
-                        | "writeln_stdout"
-                        | "writeln_stderr"
-                        // std::process
+                        // std::host::stdio
+                        | "print"
+                        | "println"
+                        | "eprintln"
+                        // std::host::process
                         | "exit"
                         | "abort"
                         // std::collections
@@ -410,7 +409,7 @@ impl LowerCtx {
         match op {
             Operand::ConstI64(_) | Operand::ConstU64(_) => true,
             Operand::Call(name, _) => {
-                if matches!(name.as_str(), "clock_now") {
+                if matches!(name.as_str(), "clock_now" | "monotonic_now") {
                     return true;
                 }
                 // Check fn_return_types for user-defined functions returning i64

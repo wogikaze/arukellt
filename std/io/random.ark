@@ -1,5 +1,0 @@
-// std/io/random — Random number generation (WASI random_get)
-
-pub fn random_i32() -> i32 {
-    __intrinsic_random_i32()
-}

@@ -1,3 +1,4 @@
+use std::host::stdio
 struct Config {
     width: i32,
     height: i32,
@@ -11,6 +12,6 @@ fn with_title(c: Config, new_title: String) -> Config {
 fn main() {
     let c1: Config = Config { width: 800, height: 600, title: String_from("old") }
     let c2: Config = with_title(c1, String_from("new"))
-    println(c2.title)
-    println(i32_to_string(c2.width))
+    stdio::println(c2.title)
+    stdio::println(i32_to_string(c2.width))
 }

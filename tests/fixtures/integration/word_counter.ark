@@ -1,3 +1,4 @@
+use std::host::stdio
 fn count_words(s: String) -> i32 {
     if is_empty(s) {
         return 0
@@ -16,8 +17,8 @@ fn count_words(s: String) -> i32 {
 }
 
 fn main() {
-    println(i32_to_string(count_words(String_from("hello world"))))
-    println(i32_to_string(count_words(String_from("the quick brown fox jumps"))))
-    println(i32_to_string(count_words(String_from(""))))
-    println(i32_to_string(count_words(String_from("single"))))
+    stdio::println(i32_to_string(count_words(String_from("hello world"))))
+    stdio::println(i32_to_string(count_words(String_from("the quick brown fox jumps"))))
+    stdio::println(i32_to_string(count_words(String_from(""))))
+    stdio::println(i32_to_string(count_words(String_from("single"))))
 }

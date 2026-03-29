@@ -1,3 +1,4 @@
+use std::host::stdio
 enum Expr {
     Num(i32),
     Add(i32, i32),
@@ -15,8 +16,8 @@ fn eval(e: Expr) -> i32 {
 }
 
 fn main() {
-    println(i32_to_string(eval(Expr::Num(42))))
-    println(i32_to_string(eval(Expr::Add(10, 20))))
-    println(i32_to_string(eval(Expr::Sub(50, 8))))
-    println(i32_to_string(eval(Expr::Mul(6, 7))))
+    stdio::println(i32_to_string(eval(Expr::Num(42))))
+    stdio::println(i32_to_string(eval(Expr::Add(10, 20))))
+    stdio::println(i32_to_string(eval(Expr::Sub(50, 8))))
+    stdio::println(i32_to_string(eval(Expr::Mul(6, 7))))
 }

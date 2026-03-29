@@ -1,4 +1,5 @@
+use std::host::stdio
 fn main() {
     let s: String = String_from("hello")
-    println(i32_to_string(len(s)))
+    stdio::println(i32_to_string(len(s)))
 }

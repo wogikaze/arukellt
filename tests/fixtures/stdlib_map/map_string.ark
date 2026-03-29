@@ -1,3 +1,4 @@
+use std::host::stdio
 fn to_upper_wrapper(s: String) -> String {
     to_upper(s)
 }
@@ -10,7 +11,7 @@ fn main() {
     let result: Vec<String> = map_String_String(v, to_upper_wrapper)
     let mut i: i32 = 0
     while i < len(result) {
-        println(get_unchecked(result, i))
+        stdio::println(get_unchecked(result, i))
         i = i + 1
     }
 }

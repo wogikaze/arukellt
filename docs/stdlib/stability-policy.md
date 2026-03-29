@@ -37,14 +37,15 @@ Every module and public API in the Arukellt standard library carries one of thre
 | `std::collections` | Vec, HashMap, HashSet, Deque (hash/linear/ordered) |
 | `std::seq` | Lazy sequence combinators |
 | `std::path` | Path manipulation (string-based) |
-| `std::fs` | File read/write |
-| `std::io` | Standard input/output streams |
-| `std::time` | Monotonic clock and duration |
-| `std::random` | PRNG and WASI random |
-| `std::process` | Process exit/abort |
+| `std::time` | Pure duration arithmetic |
+| `std::random` | Deterministic seeded helpers |
 | `std::test` | Assertions and test utilities |
-| `std::env` | Environment access |
-| `std::cli` | CLI argument parsing |
+| `std::host::stdio` | Standard output/error access |
+| `std::host::fs` | File read/write |
+| `std::host::process` | Process exit/abort |
+| `std::host::env` | Environment and CLI arguments |
+| `std::host::clock` | Monotonic host clock |
+| `std::host::random` | Host entropy |
 
 ### Experimental
 

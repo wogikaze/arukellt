@@ -1,8 +1,9 @@
+use std::host::stdio
 fn main() {
     let a = 42i8
     let b = 100i8
-    println(a)
-    println(b)
+    stdio::println(a)
+    stdio::println(b)
     let c = b - a
-    println(c)
+    stdio::println(c)
 }

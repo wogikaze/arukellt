@@ -190,7 +190,10 @@ for line in manifest.read_text().splitlines():
     line = line.strip()
     if not line or line.startswith('#'):
         continue
-    rows.add(line.split(':', 1)[1])
+    kind, path = line.split(':', 1)
+    if kind == 'bench':
+        continue
+    rows.add(path)
 print('\n'.join(sorted(rows)))
 PY
 )

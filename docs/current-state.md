@@ -30,8 +30,8 @@
 ## Test Health
 
 - Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
-- Fixture harness: 421 passed, 0 failed (manifest-driven)
-- Fixture manifest: 421 entries
+- Fixture harness: 429 passed, 0 failed (manifest-driven)
+- Fixture manifest: 429 entries
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `bash scripts/verify-harness.sh` — **16/16 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
@@ -97,7 +97,7 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 - Generics via `anyref` polymorphism — `Option<T>`, `Result<T,E>`, `Vec<T>`, generic fns
 - `__tupleN_any` structs for generic tuple returns with `ref.i31` boxing/unboxing
 - `HashMap<i32,i32>` GC struct with array-backed linear scan
-- WASI file I/O (`fs_read_file`, `fs_write_file`) via bridge to linear memory
+- WASI host file I/O via `std::host::fs` and a bridge to linear memory
 - `parse_i64`, `parse_f64` returning `Result<i64,String>`, `Result<f64,String>`
 - HOF (filter/map/fold/any/find) using `call_indirect` for function dispatch
 - Clippy clean, `cargo fmt` clean, `verify-harness.sh` 16/16

@@ -1,3 +1,4 @@
+use std::host::stdio
 fn divide(a: i32, b: i32) -> Result<i32, String> {
     if b == 0 {
         Err(String_from("division by zero"))
@@ -8,11 +9,11 @@ fn divide(a: i32, b: i32) -> Result<i32, String> {
 
 fn main() {
     match divide(10, 2) {
-        Ok(v) => println(i32_to_string(v)),
-        Err(e) => println(e),
+        Ok(v) => stdio::println(i32_to_string(v)),
+        Err(e) => stdio::println(e),
     }
     match divide(10, 0) {
-        Ok(v) => println(i32_to_string(v)),
-        Err(e) => println(e),
+        Ok(v) => stdio::println(i32_to_string(v)),
+        Err(e) => stdio::println(e),
     }
 }

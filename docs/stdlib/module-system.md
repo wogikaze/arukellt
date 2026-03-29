@@ -90,10 +90,13 @@ std/
 ├── collections/
 │   ├── string.ark       # use std::collections::string
 │   └── ...
-└── io/
-    ├── fs.ark           # use std::io::fs
-    ├── clock.ark        # use std::io::clock
-    └── random.ark       # use std::io::random
+└── host/
+    ├── stdio.ark        # use std::host::stdio
+    ├── fs.ark           # use std::host::fs
+    ├── env.ark          # use std::host::env
+    ├── process.ark      # use std::host::process
+    ├── clock.ark        # use std::host::clock
+    └── random.ark       # use std::host::random
 ```
 
 ## Limitations (v3)

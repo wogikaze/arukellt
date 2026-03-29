@@ -1,3 +1,4 @@
+use std::host::stdio
 struct Point {
     x: i32,
     y: i32,
@@ -16,8 +17,8 @@ impl Point {
 fn main() {
     let p = Point { x: 3, y: 4 }
     let q = Point { x: 10, y: 20 }
-    println(p.sum())
+    stdio::println(p.sum())
     let r = p.add(q)
-    println(r.x)
-    println(r.y)
+    stdio::println(r.x)
+    stdio::println(r.y)
 }

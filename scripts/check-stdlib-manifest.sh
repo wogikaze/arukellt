@@ -11,7 +11,7 @@ NC='\033[0m'
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MANIFEST="$REPO_ROOT/std/manifest.toml"
-CHECKER="$REPO_ROOT/crates/ark-typecheck/src/checker.rs"
+CHECKER="$REPO_ROOT/crates/ark-typecheck/src/checker/builtins.rs"
 PRELUDE="$REPO_ROOT/std/prelude.ark"
 
 python3 - "$MANIFEST" "$CHECKER" "$PRELUDE" <<'PY'
@@ -58,16 +58,16 @@ if extra_manifest:
     for name in extra_manifest:
         print(f"    {name}")
 
-print(f"{YELLOW}[2/3] Checking checker.rs FnSig names vs manifest...{NC}")
+print(f"{YELLOW}[2/3] Checking checker/builtins.rs FnSig names vs manifest...{NC}")
 ignored = {'Some', 'Ok', 'Err'}
 missing_checker = [name for name in checker_names if name not in manifest_all and name not in ignored]
 if missing_checker:
-    print(f"{RED}  FnSigs in checker.rs but NOT in manifest:{NC}")
+    print(f"{RED}  FnSigs in checker/builtins.rs but NOT in manifest:{NC}")
     for name in missing_checker:
         print(f"    {name}")
     errors += 1
 else:
-    print(f"{GREEN}  ✓ All checker.rs FnSig names present in manifest{NC}")
+    print(f"{GREEN}  ✓ All checker/builtins.rs FnSig names present in manifest{NC}")
 
 print(f"{YELLOW}[3/3] Checking intrinsic coverage in manifest...{NC}")
 manifest_intrinsics = sorted({entry['intrinsic'] for entry in functions if 'intrinsic' in entry})

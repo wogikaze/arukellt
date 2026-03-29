@@ -1,5 +1,6 @@
+use std::host::stdio
 fn main() {
     for i in 0..5 {
-        println(i32_to_string(i))
+        stdio::println(i32_to_string(i))
     }
 }

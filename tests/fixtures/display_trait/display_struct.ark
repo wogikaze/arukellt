@@ -1,3 +1,4 @@
+use std::host::stdio
 struct Point {
     x: i32,
     y: i32,
@@ -15,7 +16,7 @@ impl Display for Point {
 
 fn main() {
     let p = Point { x: 3, y: 4 }
-    println(to_string(p))
+    stdio::println(to_string(p))
     let msg = f"Point is {p}"
-    println(msg)
+    stdio::println(msg)
 }

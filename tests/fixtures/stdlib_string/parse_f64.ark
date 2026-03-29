@@ -1,31 +1,32 @@
+use std::host::stdio
 fn main() {
     let r1: Result<f64, String> = parse_f64(String_from("3.14"))
     match r1 {
-        Ok(v) => println(f64_to_string(v)),
-        Err(e) => println(e),
+        Ok(v) => stdio::println(f64_to_string(v)),
+        Err(e) => stdio::println(e),
     }
 
     let r2: Result<f64, String> = parse_f64(String_from("-2.5"))
     match r2 {
-        Ok(v) => println(f64_to_string(v)),
-        Err(e) => println(e),
+        Ok(v) => stdio::println(f64_to_string(v)),
+        Err(e) => stdio::println(e),
     }
 
     let r3: Result<f64, String> = parse_f64(String_from("42"))
     match r3 {
-        Ok(v) => println(f64_to_string(v)),
-        Err(e) => println(e),
+        Ok(v) => stdio::println(f64_to_string(v)),
+        Err(e) => stdio::println(e),
     }
 
     let r4: Result<f64, String> = parse_f64(String_from("0.001"))
     match r4 {
-        Ok(v) => println(f64_to_string(v)),
-        Err(e) => println(e),
+        Ok(v) => stdio::println(f64_to_string(v)),
+        Err(e) => stdio::println(e),
     }
 
     let r5: Result<f64, String> = parse_f64(String_from("xyz"))
     match r5 {
-        Ok(v) => println(f64_to_string(v)),
-        Err(e) => println(e),
+        Ok(v) => stdio::println(f64_to_string(v)),
+        Err(e) => stdio::println(e),
     }
 }

@@ -6,18 +6,20 @@ manifest-backed な公開 API と利用ガイド。
 ## Current Snapshot
 
 - Current source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), and the `std/*.ark` source files that carry doc comments.
-- Manifest-backed public functions: 263
-- Prelude wrappers: 99
+- Manifest-backed public functions: 262
+- Prelude wrappers: 100
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
 - Prelude values: `Some`, `None`, `Ok`, `Err`, `true`, `false`
-- Categories: `assert` 5, `box` 2, `collections` 42, `control` 1, `conversion` 10, `io` 7, `math` 5, `misc` 163, `option_result` 14, `string` 14
-- Source-backed modules: 25
+- Categories: `assert` 5, `box` 2, `collections` 45, `control` 1, `conversion` 10, `host_clock` 1, `host_env` 5, `host_fs` 2, `host_process` 2, `host_random` 3, `host_stdio` 3, `math` 5, `misc` 145, `option_result` 14, `string` 19
+- Source-backed modules: 26
 
 ## Recommended Reads
 
 - [reference.md](reference.md)
 - [modules/core.md](modules/core.md)
 - [modules/io.md](modules/io.md)
+- [modules/time.md](modules/time.md)
+- [modules/random.md](modules/random.md)
 - [modules/text.md](modules/text.md)
 - [std.md](std.md)
 - [cookbook.md](cookbook.md)
@@ -28,23 +30,23 @@ manifest-backed な公開 API と利用ガイド。
 |------|-------|---------|
 | [cookbook.md](cookbook.md) | Core API Cookbook | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [core.md](core.md) | std/core — generated index | Legacy landing page for the current core-related stdlib docs. |
-| [io.md](io.md) | std/io — generated index | Legacy landing page for the current I/O and runtime-environment stdlib docs. |
+| [io.md](io.md) | std/io — generated index | Legacy landing page for the current host-capability and path stdlib docs. |
 | [module-system.md](module-system.md) | Module System | Arukellt supports two import syntaxes for bringing modules into scope. |
 | [modules/bytes.md](modules/bytes.md) | std::bytes | Source-backed docs for binary data helpers. |
 | [modules/collections.md](modules/collections.md) | std::collections family | Source-backed docs for the currently supported collection modules. |
 | [modules/component.md](modules/component.md) | std::component | Source-backed docs for component-model helpers. |
 | [modules/core.md](modules/core.md) | std::core family | Source-backed docs for ranges, errors, and hashing helpers. |
 | [modules/csv.md](modules/csv.md) | std::csv | Source-backed docs for CSV parsing helpers. |
-| [modules/fs.md](modules/fs.md) | std::fs | Source-backed docs for filesystem operations. |
-| [modules/io.md](modules/io.md) | std::io family | Source-backed docs for terminal I/O, filesystem, path, process, environment, and CLI helpers. |
+| [modules/fs.md](modules/fs.md) | std::host::fs | Source-backed docs for explicit host filesystem operations. |
+| [modules/io.md](modules/io.md) | std::host family | Source-backed docs for explicit host capabilities and adjacent path helpers. |
 | [modules/json.md](modules/json.md) | std::json | Source-backed docs for the current JSON helpers. |
 | [modules/path.md](modules/path.md) | std::path | Source-backed docs for path manipulation helpers. |
-| [modules/process.md](modules/process.md) | std::process / std::env / std::cli | Source-backed docs for process control and runtime environment helpers. |
+| [modules/process.md](modules/process.md) | std::host::process / std::host::env | Source-backed docs for process control and runtime environment helpers. |
 | [modules/random.md](modules/random.md) | std::random | Source-backed docs for pseudo-random utilities. |
 | [modules/seq.md](modules/seq.md) | std::seq | Source-backed docs for eager sequence helpers. |
 | [modules/test.md](modules/test.md) | std::test | Source-backed docs for assertion and expectation helpers. |
 | [modules/text.md](modules/text.md) | std::text | Source-backed docs for string and formatting helpers. |
-| [modules/time.md](modules/time.md) | std::time | Source-backed docs for clocks and duration helpers. |
+| [modules/time.md](modules/time.md) | std::time | Source-backed docs for pure duration helpers. |
 | [modules/toml.md](modules/toml.md) | std::toml | Source-backed docs for the current TOML helpers. |
 | [modules/wasm.md](modules/wasm.md) | std::wasm | Source-backed docs for WebAssembly helpers. |
 | [modules/wit.md](modules/wit.md) | std::wit | Source-backed docs for WIT helpers. |

@@ -1,4 +1,4 @@
-# WASI P2: `std::wasi::sockets` facade と T3 実行検証
+# WASI P2: `std::host::sockets` facade と T3 実行検証
 
 **Status**: open
 **Created**: 2026-03-29
@@ -12,13 +12,13 @@
 
 ## Summary
 
-WASI Preview 2 の sockets capability を `std::wasi::sockets` として提供する。
+WASI Preview 2 の sockets capability を `std::host::sockets` として提供する。
 ユーザー向け API は capability 名で固定し、P2 / Component 実装差分は backend に閉じ込める。
 
 ## 受け入れ条件
 
-1. `std::wasi::sockets` の最小 public API が `std/manifest.toml` と `std/*.ark` に定義される
-2. T1 で `use std::wasi::sockets` した場合は専用 diagnostics で compile-time error になる
+1. `std::host::sockets` の最小 public API が `std/manifest.toml` と `std/*.ark` に定義される
+2. T1 で `use std::host::sockets` した場合は専用 diagnostics で compile-time error になる
 3. T3 では wasmtime 等の P2 対応ランタイム上で実際に socket I/O が動作する
 4. compile fixtures, runtime fixtures, docs examples が追加される
 5. `bash scripts/verify-harness.sh --quick` が status 0

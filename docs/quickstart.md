@@ -6,8 +6,10 @@
 ## Hello World
 
 ```ark
+use std::host::stdio
+
 fn main() {
-    print("Hello, world!")
+    stdio::print("Hello, world!")
 }
 ```
 
@@ -28,6 +30,8 @@ let s: String = String_from("hello")
 ## Vec
 
 ```ark
+use std::host::stdio
+
 fn main() {
     let v: Vec<i32> = Vec_new_i32()
     push(v, 10)
@@ -35,11 +39,11 @@ fn main() {
 
     let first: Option<i32> = get(v, 0)
     match first {
-        Some(x) => println(i32_to_string(x)),
-        None => println(String_from("empty")),
+        Some(x) => stdio::println(i32_to_string(x)),
+        None => stdio::println(String_from("empty")),
     }
 
-    println(i32_to_string(len(v)))
+    stdio::println(i32_to_string(len(v)))
 }
 ```
 
@@ -48,20 +52,24 @@ fn main() {
 ## String
 
 ```ark
+use std::host::stdio
+
 fn main() {
     let s1 = String_from("hello")
     let s2 = String_from(" world")
     let s3 = concat(s1, s2)
-    println(s3)
+    stdio::println(s3)
 
     let sub = slice(s3, 0, 5)
-    println(sub)
+    stdio::println(sub)
 }
 ```
 
 ## Option / Result
 
 ```ark
+use std::host::stdio
+
 fn parse_positive(s: String) -> Result<i32, String> {
     let n = parse_i32(s)?
     if n < 0 {
@@ -72,35 +80,42 @@ fn parse_positive(s: String) -> Result<i32, String> {
 
 fn main() {
     match parse_positive(String_from("42")) {
-        Ok(n) => println(i32_to_string(n)),
-        Err(e) => println(e),
+        Ok(n) => stdio::println(i32_to_string(n)),
+        Err(e) => stdio::println(e),
     }
 }
 ```
 
 ## Filesystem I/O
 
-現行実装では capability 引数ではなく、直接 wrapper を呼びます。
+現行実装では host access を `std::host::*` から明示 import します。
 
 ```ark
+use std::host::fs
+use std::host::stdio
+
 fn main() {
-    let r = fs_read_file(String_from("input.txt"))
+    let r = fs::read_to_string("input.txt")
     match r {
-        Ok(content) => print(content),
-        Err(e) => println(e),
+        Ok(content) => stdio::print(content),
+        Err(e) => stdio::println(e),
     }
 }
 ```
 
-- `fs_read_file(path: String) -> Result<String, String>`
-- `fs_write_file(path: String, content: String) -> Result<(), String>`
+- `fs::read_to_string(path: String) -> Result<String, String>`
+- `fs::write_string(path: String, content: String) -> Result<(), String>`
 
 ## Clock / Random
 
 ```ark
+use std::host::clock
+use std::host::random as host_random
+use std::host::stdio
+
 fn main() {
-    println(i64_to_string(clock_now()))
-    println(i32_to_string(random_i32()))
+    stdio::println(i64_to_string(clock::monotonic_now()))
+    stdio::println(i32_to_string(host_random::random_i32()))
 }
 ```
 

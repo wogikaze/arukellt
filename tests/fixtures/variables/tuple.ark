@@ -1,6 +1,7 @@
+use std::host::stdio
 fn main() {
     let pair: (i32, i32) = (10, 20)
     let (a, b) = pair
-    println(i32_to_string(a))
-    println(i32_to_string(b))
+    stdio::println(i32_to_string(a))
+    stdio::println(i32_to_string(b))
 }

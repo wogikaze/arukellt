@@ -1,7 +1,8 @@
+use std::host::stdio
 fn main() {
-    println(i32_to_string(10 + 3))
-    println(i32_to_string(10 - 3))
-    println(i32_to_string(10 * 3))
-    println(i32_to_string(10 / 3))
-    println(i32_to_string(10 % 3))
+    stdio::println(i32_to_string(10 + 3))
+    stdio::println(i32_to_string(10 - 3))
+    stdio::println(i32_to_string(10 * 3))
+    stdio::println(i32_to_string(10 / 3))
+    stdio::println(i32_to_string(10 % 3))
 }

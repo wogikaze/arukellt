@@ -1,6 +1,7 @@
+use std::host::stdio
 fn main() {
     let arr = [10, 20, 30]
-    println(arr[0])
-    println(arr[1])
-    println(arr[2])
+    stdio::println(arr[0])
+    stdio::println(arr[1])
+    stdio::println(arr[2])
 }

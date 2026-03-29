@@ -1,3 +1,4 @@
+use std::host::stdio
 fn is_large(x: f64) -> bool {
     x > 5.0
 }
@@ -11,7 +12,7 @@ fn main() {
     let large: Vec<f64> = filter_f64(v, is_large)
     let mut i: i32 = 0
     while i < len(large) {
-        println(f64_to_string(get_unchecked(large, i)))
+        stdio::println(f64_to_string(get_unchecked(large, i)))
         i = i + 1
     }
 }

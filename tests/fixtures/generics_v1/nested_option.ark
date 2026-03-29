@@ -1,4 +1,5 @@
+use std::host::stdio
 fn main() {
     let v: Vec<Option<i32>> = Vec_new_i32()
-    println(i32_to_string(len(v)))
+    stdio::println(i32_to_string(len(v)))
 }

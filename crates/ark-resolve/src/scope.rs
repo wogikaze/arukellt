@@ -209,7 +209,10 @@ mod tests {
     fn test_qualified_name_with_module() {
         let mut table = SymbolTable::new();
         let scope = table.create_scope(None);
-        table.get_scope_mut(scope).module_path = vec!["std".into(), "io".into()];
-        assert_eq!(table.qualified_name(scope, "println"), "std::io::println");
+        table.get_scope_mut(scope).module_path = vec!["std".into(), "host".into(), "stdio".into()];
+        assert_eq!(
+            table.qualified_name(scope, "println"),
+            "std::host::stdio::println"
+        );
     }
 }

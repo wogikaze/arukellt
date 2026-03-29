@@ -1,3 +1,4 @@
+use std::host::stdio
 fn describe(opt: Option<i32>) -> String {
     match opt {
         Some(val) => concat(String_from("got "), i32_to_string(val)),
@@ -6,6 +7,6 @@ fn describe(opt: Option<i32>) -> String {
 }
 
 fn main() {
-    println(describe(Some(42)))
-    println(describe(None))
+    stdio::println(describe(Some(42)))
+    stdio::println(describe(None))
 }

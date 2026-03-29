@@ -1,3 +1,4 @@
+use std::host::stdio
 struct Point {
     x: i32,
     y: i32,
@@ -12,12 +13,12 @@ impl Point {
 
 fn main() -> i32 {
     let p = Point { x: 10, y: 20 }
-    println(p.x)
-    println(p.y)
+    stdio::println(p.x)
+    stdio::println(p.y)
     p.translate(5, 3)
-    println(p.x)
-    println(p.y)
+    stdio::println(p.x)
+    stdio::println(p.y)
     p.x = 100
-    println(p.x)
+    stdio::println(p.x)
     0
 }

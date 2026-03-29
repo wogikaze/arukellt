@@ -1,7 +1,7 @@
-use std::io
+use std::host::stdio
 
 fn main() {
-    io::write_stdout("hello ")
-    io::writeln_stdout("world")
-    io::writeln_stdout("done")
+    stdio::print("hello ")
+    stdio::println("world")
+    stdio::println("done")
 }

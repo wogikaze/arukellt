@@ -1,5 +1,6 @@
+use std::host::stdio
 fn greet() {
-    println("hello from greet")
+    stdio::println("hello from greet")
 }
 
 fn main() {

@@ -1,9 +1,10 @@
 use std::test
+use std::host::stdio
 
 fn main() {
     test::assert_ne_i32(1, 2)
     test::assert_ne_i32(0, -1)
     test::assert_ne_string("hello", "world")
     test::assert_ne_string("", "x")
-    println("assert_ne ok")
+    stdio::println("assert_ne ok")
 }

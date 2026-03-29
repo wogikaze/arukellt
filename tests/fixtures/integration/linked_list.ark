@@ -1,3 +1,4 @@
+use std::host::stdio
 enum List {
     Nil,
     Cons(i32, Box<List>),
@@ -32,6 +33,6 @@ fn main() {
     let list: List = prepend(list, 3)
     let list: List = prepend(list, 2)
     let list: List = prepend(list, 1)
-    println(list_to_string(list))
-    println(i32_to_string(list_sum(list)))
+    stdio::println(list_to_string(list))
+    stdio::println(i32_to_string(list_sum(list)))
 }

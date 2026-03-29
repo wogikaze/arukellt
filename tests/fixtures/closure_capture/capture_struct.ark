@@ -1,3 +1,4 @@
+use std::host::stdio
 struct Point {
     x: i32,
     y: i32,
@@ -8,11 +9,11 @@ fn main() {
     let f = |n: i32| -> i32 {
         p.x + p.y + n
     }
-    println(i32_to_string(f(5)))
+    stdio::println(i32_to_string(f(5)))
 
     let s = String_from("hello ")
     let g = |x: i32| -> String {
         concat(s, i32_to_string(x))
     }
-    println(g(42))
+    stdio::println(g(42))
 }

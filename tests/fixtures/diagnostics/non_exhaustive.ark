@@ -1,3 +1,4 @@
+use std::host::stdio
 enum Color {
     Red,
     Green,
@@ -7,7 +8,7 @@ enum Color {
 fn main() {
     let c: Color = Color::Red
     match c {
-        Color::Red => println("red"),
-        Color::Green => println("green"),
+        Color::Red => stdio::println("red"),
+        Color::Green => stdio::println("green"),
     }
 }

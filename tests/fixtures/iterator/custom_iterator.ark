@@ -1,3 +1,4 @@
+use std::host::stdio
 struct Counter {
     current: i32,
     max: i32,
@@ -18,7 +19,7 @@ impl Counter {
 fn main() -> i32 {
     let c = Counter { current: 0, max: 5 }
     for x in c {
-        println(x)
+        stdio::println(x)
     }
     0
 }

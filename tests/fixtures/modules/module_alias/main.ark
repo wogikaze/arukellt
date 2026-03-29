@@ -1,5 +1,6 @@
+use std::host::stdio
 import utils as u
 
 fn main() {
-    println(u::greet(String_from("world")))
+    stdio::println(u::greet(String_from("world")))
 }

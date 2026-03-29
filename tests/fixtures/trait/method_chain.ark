@@ -1,3 +1,4 @@
+use std::host::stdio
 struct Vec2 {
     x: i32,
     y: i32,
@@ -25,12 +26,12 @@ fn main() {
     let a = Vec2 { x: 1, y: 2 }
     let b = Vec2 { x: 3, y: 4 }
     let c = a.add(b)
-    println(c.x)
-    println(c.y)
+    stdio::println(c.x)
+    stdio::println(c.y)
 
     let d = a.scale(10)
-    println(d.x)
-    println(d.y)
+    stdio::println(d.x)
+    stdio::println(d.y)
 
-    println(a.magnitude_sq())
+    stdio::println(a.magnitude_sq())
 }

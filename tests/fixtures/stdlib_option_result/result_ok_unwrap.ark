@@ -1,4 +1,5 @@
+use std::host::stdio
 fn main() {
     let r: Result<i32, String> = Ok(100)
-    println(i32_to_string(unwrap(r)))
+    stdio::println(i32_to_string(unwrap(r)))
 }

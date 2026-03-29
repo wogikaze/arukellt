@@ -1,5 +1,6 @@
+use std::host::stdio
 fn main() {
     let s: String = String_from("hello world")
     let sub: String = slice(s, 0, 5)
-    println(sub)
+    stdio::println(sub)
 }

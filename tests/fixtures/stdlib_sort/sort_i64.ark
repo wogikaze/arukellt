@@ -1,3 +1,4 @@
+use std::host::stdio
 fn main() {
     let mut v: Vec<i64> = Vec_new_i64()
     let a: i64 = 30
@@ -13,7 +14,7 @@ fn main() {
     sort_i64(v)
     let mut i: i32 = 0
     while i < len(v) {
-        println(i64_to_string(get_unchecked(v, i)))
+        stdio::println(i64_to_string(get_unchecked(v, i)))
         i = i + 1
     }
 }

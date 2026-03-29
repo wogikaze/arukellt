@@ -1,3 +1,4 @@
+use std::host::stdio
 fn add(acc: i32, x: i32) -> i32 {
     acc + x
 }
@@ -10,5 +11,5 @@ fn main() {
     push(v, 4)
     push(v, 5)
     let sum: i32 = fold_i32_i32(v, 0, add)
-    println(i32_to_string(sum))
+    stdio::println(i32_to_string(sum))
 }

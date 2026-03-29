@@ -1,10 +1,11 @@
 use std::collections::compiler
+use std::host::stdio
 
 fn main() {
     let a: Vec<i32> = compiler::arena_new()
     let idx0: i32 = compiler::arena_alloc(a, 42)
     let idx1: i32 = compiler::arena_alloc(a, 99)
-    println(i32_to_string(compiler::arena_len(a)))
-    println(i32_to_string(compiler::arena_get(a, idx0)))
-    println(i32_to_string(compiler::arena_get(a, idx1)))
+    stdio::println(i32_to_string(compiler::arena_len(a)))
+    stdio::println(i32_to_string(compiler::arena_get(a, idx0)))
+    stdio::println(i32_to_string(compiler::arena_get(a, idx1)))
 }

@@ -1,5 +1,6 @@
+use std::host::stdio
 fn main() {
     let offset: i32 = 10
     let add_offset = |x: i32| -> i32 { x + offset }
-    println(i32_to_string(add_offset(32)))
+    stdio::println(i32_to_string(add_offset(32)))
 }

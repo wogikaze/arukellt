@@ -1,23 +1,25 @@
 # Cookbook: File Processing
 
-Read a file, process its lines, and write output using `std::fs` and `std::text`.
+Read a file, process its lines, and write output using `std::host::fs`, `std::host::stdio`, and `std::text`.
 
 ## Read a File and Print Its Contents
 
 ```ark
-use std::fs
+use std::host::fs
+use std::host::stdio
 
 let result = fs::read_to_string("input.txt")
 match result {
-    Ok(contents) => println(contents),
-    Err(e) => eprintln(concat("error: ", e)),
+    Ok(contents) => stdio::println(contents),
+    Err(e) => stdio::eprintln(concat("error: ", e)),
 }
 ```
 
 ## Process Lines
 
 ```ark
-use std::fs
+use std::host::fs
+use std::host::stdio
 use std::text
 
 let result = fs::read_to_string("data.csv")
@@ -29,19 +31,20 @@ match result {
         while i < n {
             let line = get(lines, i)
             if text::is_empty(line) == false {
-                println(concat("line ", concat(i32_to_string(i), concat(": ", line))))
+                stdio::println(concat("line ", concat(i32_to_string(i), concat(": ", line))))
             }
             i = i + 1
         }
     },
-    Err(e) => eprintln(concat("read failed: ", e)),
+    Err(e) => stdio::eprintln(concat("read failed: ", e)),
 }
 ```
 
 ## Filter and Write Output
 
 ```ark
-use std::fs
+use std::host::fs
+use std::host::stdio
 use std::text
 
 // Read input, keep only non-empty lines, write to output
@@ -61,18 +64,19 @@ match result {
         }
         let write_result = fs::write_string("output.txt", output)
         match write_result {
-            Ok(_) => println("done"),
-            Err(e) => eprintln(concat("write failed: ", e)),
+            Ok(_) => stdio::println("done"),
+            Err(e) => stdio::eprintln(concat("write failed: ", e)),
         }
     },
-    Err(e) => eprintln(concat("read failed: ", e)),
+    Err(e) => stdio::eprintln(concat("read failed: ", e)),
 }
 ```
 
 ## Read, Transform, and Write (Pipeline Pattern)
 
 ```ark
-use std::fs
+use std::host::fs
+use std::host::stdio
 use std::text
 
 fn to_upper_line(line: String) -> String {
@@ -95,6 +99,6 @@ match result {
         }
         fs::write_string("upper_names.txt", output)
     },
-    Err(e) => eprintln(concat("error: ", e)),
+    Err(e) => stdio::eprintln(concat("error: ", e)),
 }
 ```

@@ -1,3 +1,4 @@
+use std::host::stdio
 fn fib(n: i32) -> i32 {
     if n <= 1 {
         n
@@ -7,5 +8,5 @@ fn fib(n: i32) -> i32 {
 }
 
 fn main() {
-    println(i32_to_string(fib(10)))
+    stdio::println(i32_to_string(fib(10)))
 }

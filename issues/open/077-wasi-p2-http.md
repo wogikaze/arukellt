@@ -1,4 +1,4 @@
-# WASI P2: `std::wasi::http` facade と runtime 検証
+# WASI P2: `std::host::http` facade と runtime 検証
 
 **Status**: open
 **Created**: 2026-03-28
@@ -13,14 +13,14 @@
 ## Summary
 
 WASI Preview 2 の `wasi:http/incoming-handler` と `wasi:http/outgoing-handler` を
-`std::wasi::http` として提供する。
+`std::host::http` として提供する。
 HTTP サーバ (incoming-handler world をエクスポート) と
 HTTP クライアント (outgoing-handler をインポート) の両方を capability-based facade に載せる。
 
 ## 受け入れ条件
 
-1. `std::wasi::http` に request / response / headers / body streaming の最小 API を追加する
-2. T1 で `use std::wasi::http` した場合は専用 diagnostics で compile-time error になる
+1. `std::host::http` に request / response / headers / body streaming の最小 API を追加する
+2. T1 で `use std::host::http` した場合は専用 diagnostics で compile-time error になる
 3. Arukellt プログラムが `wasi:http/proxy` world として HTTP サーバになれる
 4. compile fixtures, runtime fixtures, docs examples が追加される
 5. wasmtime (`wasi-http` feature) 上の T3 実行で HTTP client / server の両方を確認する

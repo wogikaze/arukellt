@@ -1,5 +1,0 @@
-// std/io/clock — Wall-clock time (WASI clock_time_get)
-
-pub fn clock_now() -> i64 {
-    __intrinsic_clock_now()
-}

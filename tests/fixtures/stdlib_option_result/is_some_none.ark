@@ -1,8 +1,9 @@
+use std::host::stdio
 fn main() {
     let a: Option<i32> = Some(1)
     let b: Option<i32> = None
-    println(bool_to_string(is_some(a)))
-    println(bool_to_string(is_none(a)))
-    println(bool_to_string(is_some(b)))
-    println(bool_to_string(is_none(b)))
+    stdio::println(bool_to_string(is_some(a)))
+    stdio::println(bool_to_string(is_none(a)))
+    stdio::println(bool_to_string(is_some(b)))
+    stdio::println(bool_to_string(is_none(b)))
 }

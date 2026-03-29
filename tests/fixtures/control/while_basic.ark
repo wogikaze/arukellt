@@ -1,7 +1,8 @@
+use std::host::stdio
 fn main() {
     let mut i: i32 = 0
     while i < 3 {
-        println(i32_to_string(i))
+        stdio::println(i32_to_string(i))
         i = i + 1
     }
 }

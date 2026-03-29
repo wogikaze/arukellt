@@ -120,7 +120,7 @@ let bad = parse_i32("abc")
 assert(is_err(bad))
 
 // Verify file-not-found
-use std::fs
+use std::host::fs
 let result = fs::read_to_string("nonexistent.txt")
 assert(is_err(result))
 ```
@@ -133,11 +133,12 @@ Each test file has a `main()` that runs assertions directly:
 ```ark
 // tests/fixtures/test_path.ark
 use std::path
+use std::host::stdio
 
 fn main() {
     assert_eq_str(path::join("a", "b"), "a/b")
     assert_eq_str(path::parent("a/b"), "a")
     assert_eq_str(path::extension("f.txt"), "txt")
-    println("all path tests passed")
+    stdio::println("all path tests passed")
 }
 ```

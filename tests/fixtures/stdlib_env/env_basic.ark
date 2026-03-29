@@ -1,12 +1,13 @@
-use std::env
+use std::host::env
+use std::host::stdio
 
 fn main() {
     let a = env::args()
-    println(i32_to_string(len(a)))
-    println(i32_to_string(env::arg_count()))
+    stdio::println(i32_to_string(len(a)))
+    stdio::println(i32_to_string(env::arg_count()))
     let v = env::var("HOME")
     match v {
-        Some(s) => println(concat("found: ", s)),
-        None => println("not found"),
+        Some(s) => stdio::println(concat("found: ", s)),
+        None => stdio::println("not found"),
     }
 }

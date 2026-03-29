@@ -1,3 +1,4 @@
+use std::host::stdio
 enum Shape {
     Circle(f64),
     Rectangle(f64, f64),
@@ -11,6 +12,6 @@ fn describe(s: Shape) -> String {
 }
 
 fn main() {
-    println(describe(Shape::Circle(5.0)))
-    println(describe(Shape::Rectangle(3.0, 4.0)))
+    stdio::println(describe(Shape::Circle(5.0)))
+    stdio::println(describe(Shape::Rectangle(3.0, 4.0)))
 }

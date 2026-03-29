@@ -25,23 +25,29 @@ push(v, 20)
 ### 取得
 
 ```ark
+use std::host::stdio
+
 let x = get(v, 0)
 match x {
-    Some(value) => println(i32_to_string(value)),
-    None => println(String_from("out of bounds")),
+    Some(value) => stdio::println(i32_to_string(value)),
+    None => stdio::println(String_from("out of bounds")),
 }
 ```
 
 ### 安全でない取得
 
 ```ark
+use std::host::stdio
+
 let x: i32 = get_unchecked(v, 0)
-println(i32_to_string(x))
+stdio::println(i32_to_string(x))
 ```
 
 ### map / filter / fold
 
 ```ark
+use std::host::stdio
+
 fn double(x: i32) -> i32 { x * 2 }
 fn is_even(x: i32) -> bool { x % 2 == 0 }
 fn sum(acc: i32, x: i32) -> i32 { acc + x }
@@ -49,7 +55,7 @@ fn sum(acc: i32, x: i32) -> i32 { acc + x }
 let mapped = map_i32_i32(v, double)
 let filtered = filter_i32(mapped, is_even)
 let total = fold_i32_i32(filtered, 0, sum)
-println(i32_to_string(total))
+stdio::println(i32_to_string(total))
 ```
 
 ### 追加 helper
@@ -66,28 +72,35 @@ reverse_i32(v)
 ### 作成と連結
 
 ```ark
+use std::host::stdio
+
 let s1 = String_from("hello")
 let s2 = String_from(" world")
 let s3 = concat(s1, s2)
-println(s3)
+stdio::println(s3)
 ```
 
 ### slice / split / join
 
 ```ark
+use std::host::stdio
+
 let sub = slice(s3, 0, 5)
 let parts = split(String_from("a,b,c"), String_from(","))
 let joined = join(parts, String_from("-"))
-println(sub)
-println(joined)
+stdio::println(sub)
+stdio::println(joined)
 ```
 
 ### 変換
 
 ```ark
-println(i32_to_string(42))
-println(i64_to_string(clock_now()))
-println(bool_to_string(true))
+use std::host::clock
+use std::host::stdio
+
+stdio::println(i32_to_string(42))
+stdio::println(i64_to_string(clock::monotonic_now()))
+stdio::println(bool_to_string(true))
 ```
 
 ## Option
@@ -95,17 +108,21 @@ println(bool_to_string(true))
 ### 基本
 
 ```ark
+use std::host::stdio
+
 let x: Option<i32> = Some(21)
 if is_some(x) {
-    println(i32_to_string(unwrap(x)))
+    stdio::println(i32_to_string(unwrap(x)))
 }
 ```
 
 ### unwrap_or
 
 ```ark
+use std::host::stdio
+
 let y: i32 = unwrap_or(get(v, 100), 0)
-println(i32_to_string(y))
+stdio::println(i32_to_string(y))
 ```
 
 ### map_option_i32_i32
@@ -121,10 +138,12 @@ let y: Option<i32> = map_option_i32_i32(x, double)
 ### match で処理
 
 ```ark
+use std::host::stdio
+
 let r = parse_i32(String_from("42"))
 match r {
-    Ok(n) => println(i32_to_string(n)),
-    Err(e) => println(e),
+    Ok(n) => stdio::println(i32_to_string(n)),
+    Err(e) => stdio::println(e),
 }
 ```
 
@@ -143,14 +162,17 @@ fn parse_positive(s: String) -> Result<i32, String> {
 ## Filesystem
 
 ```ark
+use std::host::fs
+use std::host::stdio
+
 fn main() {
-    let r = fs_read_file(String_from("input.txt"))
+    let r = fs::read_to_string("input.txt")
     match r {
         Ok(content) => {
-            print(content)
-            let _ = fs_write_file(String_from("output.txt"), content)
+            stdio::print(content)
+            let _ = fs::write_string("output.txt", content)
         }
-        Err(e) => println(e),
+        Err(e) => stdio::println(e),
     }
 }
 ```
@@ -158,8 +180,12 @@ fn main() {
 ## Clock / Random
 
 ```ark
-println(i64_to_string(clock_now()))
-println(i32_to_string(random_i32()))
+use std::host::clock
+use std::host::random as host_random
+use std::host::stdio
+
+stdio::println(i64_to_string(clock::monotonic_now()))
+stdio::println(i32_to_string(host_random::random_i32()))
 ```
 
 ## v1 feature note

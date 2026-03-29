@@ -1,4 +1,5 @@
+use std::host::stdio
 fn main() {
-    eprintln("error message")
-    println("normal output")
+    stdio::eprintln("error message")
+    stdio::println("normal output")
 }

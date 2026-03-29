@@ -1,14 +1,15 @@
 use std::core::hash
+use std::host::stdio
 
 fn main() {
     let h1 = hash::hash_i32(42)
     let h2 = hash::hash_i32(42)
     let h3 = hash::hash_i32(0)
     // Same input should give same hash
-    println(bool_to_string(h1 == h2))
+    stdio::println(bool_to_string(h1 == h2))
     // Different input should (likely) give different hash
-    println(bool_to_string(h1 != h3))
+    stdio::println(bool_to_string(h1 != h3))
     // Combine two hashes
     let combined = hash::combine(h1, h3)
-    println(bool_to_string(combined != 0))
+    stdio::println(bool_to_string(combined != 0))
 }

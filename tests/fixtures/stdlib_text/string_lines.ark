@@ -1,14 +1,15 @@
 use std::text
+use std::host::stdio
 
 fn main() {
     let input: String = String_from("line1\nline2\nline3")
     let result: Vec<String> = split(input, String_from("\n"))
-    println(i32_to_string(len(result)))
+    stdio::println(i32_to_string(len(result)))
     let mut i: i32 = 0
     while i < len(result) {
-        println(get_unchecked(result, i))
+        stdio::println(get_unchecked(result, i))
         i = i + 1
     }
-    println(bool_to_string(text::is_empty("")))
-    println(i32_to_string(text::len_bytes("hello")))
+    stdio::println(bool_to_string(text::is_empty("")))
+    stdio::println(i32_to_string(text::len_bytes("hello")))
 }

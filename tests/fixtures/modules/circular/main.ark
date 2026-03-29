@@ -1,5 +1,6 @@
+use std::host::stdio
 import a
 
 fn main() {
-    println(a::from_a())
+    stdio::println(a::from_a())
 }

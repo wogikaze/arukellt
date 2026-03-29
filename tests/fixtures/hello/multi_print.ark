@@ -1,5 +1,6 @@
+use std::host::stdio
 fn main() {
-    println("first")
-    println("second")
-    println("third")
+    stdio::println("first")
+    stdio::println("second")
+    stdio::println("third")
 }

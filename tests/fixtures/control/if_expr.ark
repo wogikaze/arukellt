@@ -1,3 +1,4 @@
+use std::host::stdio
 fn main() {
     let x: i32 = 10
     let label: String = if x > 5 {
@@ -5,5 +6,5 @@ fn main() {
     } else {
         String_from("small")
     }
-    println(label)
+    stdio::println(label)
 }

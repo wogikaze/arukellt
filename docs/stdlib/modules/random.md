@@ -6,13 +6,13 @@ Source-backed docs for pseudo-random utilities.
 ## `std::random`
 
 - Source: [`../../../std/random/mod.ark`](../../../std/random/mod.ark)
-- Manifest-backed functions: 5
-- Stability: stable 5
+- Manifest-backed functions: 3
+- Stability: stable 3
 
-Pseudo-random helper functions.
+Deterministic pseudo-random helper functions.
 
-The current module mixes intrinsic randomness with a small deterministic
-xorshift-style helper. It is not suitable for cryptographic use.
+Host entropy lives in `std::host::random`. This module only provides
+seeded helpers so callers can reason about reproducibility.
 
 ### Public API
 
@@ -20,6 +20,4 @@ xorshift-style helper. It is not suitable for cryptographic use.
 |------|-----------|-----------|---------|
 | `seeded_random` | `(i32) -> i32` | `stable` | - |
 | `seeded_range` | `(i32, i32, i32) -> i32` | `stable` | - |
-| `random_i32_range` | `(i32, i32) -> i32` | `stable` | - |
-| `random_bool` | `() -> bool` | `stable` | - |
-| `shuffle_i32` | `(Vec<i32>) -> Vec<i32>` | `stable` | - |
+| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | - |

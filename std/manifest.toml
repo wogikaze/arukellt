@@ -88,78 +88,6 @@ prelude = true
 # For prelude_wrapper entries, `intrinsic` names the backing __intrinsic_*.
 # params/returns use Arukellt type syntax.
 
-# ── I/O ──────────────────────────────────────
-
-[[functions]]
-name = "println"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_println"
-params = ["String"]
-returns = "()"
-prelude = true
-stability = "stable"
-doc_category = "io"
-
-[[functions]]
-name = "print"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_print"
-params = ["String"]
-returns = "()"
-prelude = true
-stability = "stable"
-doc_category = "io"
-
-[[functions]]
-name = "eprintln"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_eprintln"
-params = ["String"]
-returns = "()"
-prelude = true
-stability = "stable"
-doc_category = "io"
-
-[[functions]]
-name = "fs_read_file"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_fs_read_file"
-params = ["String"]
-returns = "Result<String, String>"
-prelude = true
-stability = "stable"
-doc_category = "io"
-
-[[functions]]
-name = "fs_write_file"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_fs_write_file"
-params = ["String", "String"]
-returns = "Result<(), String>"
-prelude = true
-stability = "stable"
-doc_category = "io"
-
-[[functions]]
-name = "clock_now"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_clock_now"
-params = []
-returns = "i64"
-prelude = true
-stability = "stable"
-doc_category = "io"
-
-[[functions]]
-name = "random_i32"
-kind = "prelude_wrapper"
-intrinsic = "__intrinsic_random_i32"
-params = []
-returns = "i32"
-prelude = true
-stability = "stable"
-doc_category = "io"
-
 # ── String construction ──────────────────────
 
 [[functions]]
@@ -261,6 +189,56 @@ name = "slice"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_string_slice"
 params = ["String", "i32", "i32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "trim"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_trim"
+params = ["String"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "contains"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_contains"
+params = ["String", "String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "char_at"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_char_at"
+params = ["String", "i32"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "substring"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_substring"
+params = ["String", "i32", "i32"]
+returns = "String"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
+name = "replace"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_replace"
+params = ["String", "String", "String"]
 returns = "String"
 prelude = true
 stability = "stable"
@@ -509,6 +487,36 @@ kind = "prelude_wrapper"
 intrinsic = "__intrinsic_Vec_new_String"
 params = []
 returns = "Vec<String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_i32_with_cap"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_i32_with_cap"
+params = ["i32"]
+returns = "Vec<i32>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_i64_with_cap"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_i64_with_cap"
+params = ["i32"]
+returns = "Vec<i64>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "Vec_new_f64_with_cap"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_Vec_new_f64_with_cap"
+params = ["i32"]
+returns = "Vec<f64>"
 prelude = true
 stability = "stable"
 doc_category = "collections"
@@ -1216,13 +1224,6 @@ returns = "i32"
 # === std::time ===
 
 [[functions]]
-name = "monotonic_now"
-module = "std::time"
-stability = "stable"
-params = []
-returns = "i64"
-
-[[functions]]
 name = "duration_ms"
 module = "std::time"
 stability = "stable"
@@ -1243,13 +1244,6 @@ stability = "stable"
 params = ["i64", "i64"]
 returns = "i64"
 
-[[functions]]
-name = "elapsed_ms"
-module = "std::time"
-stability = "stable"
-params = ["i64"]
-returns = "i64"
-
 # === std::random ===
 
 [[functions]]
@@ -1267,24 +1261,10 @@ params = ["i32", "i32", "i32"]
 returns = "i32"
 
 [[functions]]
-name = "random_i32_range"
-module = "std::random"
-stability = "stable"
-params = ["i32", "i32"]
-returns = "i32"
-
-[[functions]]
-name = "random_bool"
-module = "std::random"
-stability = "stable"
-params = []
-returns = "bool"
-
-[[functions]]
 name = "shuffle_i32"
 module = "std::random"
 stability = "stable"
-params = ["Vec<i32>"]
+params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
 
 # === std::test ===
@@ -1487,67 +1467,65 @@ stability = "stable"
 params = ["bool"]
 returns = "String"
 
-# === std::process ===
+# === std::host::process ===
 
 [[functions]]
 name = "exit"
-module = "std::process"
+module = "std::host::process"
 stability = "stable"
 params = ["i32"]
 returns = "()"
+doc_category = "host_process"
 
 [[functions]]
 name = "abort"
-module = "std::process"
+module = "std::host::process"
 stability = "stable"
 params = []
 returns = "()"
+doc_category = "host_process"
 
-# === std::env ===
+# === std::host::env ===
 
 [[functions]]
 name = "args"
-module = "std::env"
+module = "std::host::env"
 stability = "stable"
 params = []
 returns = "Vec<String>"
+doc_category = "host_env"
 
 [[functions]]
 name = "var"
-module = "std::env"
+module = "std::host::env"
 stability = "stable"
 params = ["String"]
 returns = "Option<String>"
+doc_category = "host_env"
 
 [[functions]]
 name = "arg_count"
-module = "std::env"
+module = "std::host::env"
 stability = "stable"
 params = []
 returns = "i32"
-
-# === std::cli ===
+doc_category = "host_env"
 
 [[functions]]
 name = "arg_at"
-module = "std::cli"
+module = "std::host::env"
 stability = "stable"
 params = ["i32"]
 returns = "Option<String>"
-
-[[functions]]
-name = "cli_arg_count"
-module = "std::cli"
-stability = "stable"
-params = []
-returns = "i32"
+doc_category = "host_env"
 
 [[functions]]
 name = "has_flag"
-module = "std::cli"
+module = "std::host::env"
 stability = "stable"
 params = ["String"]
 returns = "bool"
+doc_category = "host_env"
 
 # === std::path ===
 
@@ -1593,51 +1571,94 @@ stability = "stable"
 params = ["String"]
 returns = "bool"
 
-# === std::fs ===
+# === std::host::fs ===
 
 [[functions]]
 name = "read_to_string"
-module = "std::fs"
+module = "std::host::fs"
 stability = "stable"
 params = ["String"]
-returns = "String"
+returns = "Result<String, String>"
+intrinsic = "__intrinsic_fs_read_file"
+doc_category = "host_fs"
 
 [[functions]]
 name = "write_string"
-module = "std::fs"
+module = "std::host::fs"
 stability = "stable"
 params = ["String", "String"]
-returns = "()"
+returns = "Result<(), String>"
+intrinsic = "__intrinsic_fs_write_file"
+doc_category = "host_fs"
 
-# === std::io ===
+# === std::host::stdio ===
 
 [[functions]]
-name = "write_stdout"
-module = "std::io"
+name = "print"
+module = "std::host::stdio"
 stability = "stable"
 params = ["String"]
 returns = "()"
+intrinsic = "__intrinsic_print"
+doc_category = "host_stdio"
 
 [[functions]]
-name = "write_stderr"
-module = "std::io"
+name = "println"
+module = "std::host::stdio"
 stability = "stable"
 params = ["String"]
 returns = "()"
+intrinsic = "__intrinsic_println"
+doc_category = "host_stdio"
 
 [[functions]]
-name = "writeln_stdout"
-module = "std::io"
+name = "eprintln"
+module = "std::host::stdio"
 stability = "stable"
 params = ["String"]
 returns = "()"
+intrinsic = "__intrinsic_eprintln"
+doc_category = "host_stdio"
+
+# === std::host::clock ===
 
 [[functions]]
-name = "writeln_stderr"
-module = "std::io"
+name = "monotonic_now"
+module = "std::host::clock"
 stability = "stable"
-params = ["String"]
-returns = "()"
+params = []
+returns = "i64"
+intrinsic = "__intrinsic_clock_now"
+doc_category = "host_clock"
+
+# === std::host::random ===
+
+[[functions]]
+name = "random_i32"
+module = "std::host::random"
+stability = "stable"
+params = []
+returns = "i32"
+intrinsic = "__intrinsic_random_i32"
+doc_category = "host_random"
+
+[[functions]]
+name = "random_i32_range"
+module = "std::host::random"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+intrinsic = "__intrinsic_random_i32"
+doc_category = "host_random"
+
+[[functions]]
+name = "random_bool"
+module = "std::host::random"
+stability = "stable"
+params = []
+returns = "bool"
+intrinsic = "__intrinsic_random_i32"
+doc_category = "host_random"
 
 # === std::bytes ===
 

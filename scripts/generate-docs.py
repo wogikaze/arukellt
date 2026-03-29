@@ -64,15 +64,23 @@ STDLIB_MODULE_PAGES = [
     },
     {
         "path": "modules/fs.md",
-        "title": "std::fs",
-        "description": "Source-backed docs for filesystem operations.",
-        "modules": ["std::fs"],
+        "title": "std::host::fs",
+        "description": "Source-backed docs for explicit host filesystem operations.",
+        "modules": ["std::host::fs"],
     },
     {
         "path": "modules/io.md",
-        "title": "std::io family",
-        "description": "Source-backed docs for terminal I/O, filesystem, path, process, environment, and CLI helpers.",
-        "modules": ["std::io", "std::fs", "std::path", "std::process", "std::env", "std::cli"],
+        "title": "std::host family",
+        "description": "Source-backed docs for explicit host capabilities and adjacent path helpers.",
+        "modules": [
+            "std::host::stdio",
+            "std::host::fs",
+            "std::path",
+            "std::host::process",
+            "std::host::env",
+            "std::host::clock",
+            "std::host::random",
+        ],
     },
     {
         "path": "modules/json.md",
@@ -88,9 +96,9 @@ STDLIB_MODULE_PAGES = [
     },
     {
         "path": "modules/process.md",
-        "title": "std::process / std::env / std::cli",
+        "title": "std::host::process / std::host::env",
         "description": "Source-backed docs for process control and runtime environment helpers.",
-        "modules": ["std::process", "std::env", "std::cli"],
+        "modules": ["std::host::process", "std::host::env"],
     },
     {
         "path": "modules/random.md",
@@ -119,7 +127,7 @@ STDLIB_MODULE_PAGES = [
     {
         "path": "modules/time.md",
         "title": "std::time",
-        "description": "Source-backed docs for clocks and duration helpers.",
+        "description": "Source-backed docs for pure duration helpers.",
         "modules": ["std::time"],
     },
     {
@@ -156,12 +164,14 @@ STDLIB_ALIAS_PAGES = [
     {
         "path": "io.md",
         "title": "std/io — generated index",
-        "description": "Legacy landing page for the current I/O and runtime-environment stdlib docs.",
+        "description": "Legacy landing page for the current host-capability and path stdlib docs.",
         "links": [
-            {"path": "modules/io.md", "label": "I/O family docs", "notes": "Terminal I/O, fs, path, process, env, and CLI helpers."},
-            {"path": "modules/fs.md", "label": "Filesystem", "notes": "Manifest-backed file read/write surface."},
+            {"path": "modules/io.md", "label": "Host family docs", "notes": "Explicit host stdio/fs/env/process/clock/random modules plus path helpers."},
+            {"path": "modules/fs.md", "label": "Host filesystem", "notes": "Manifest-backed file read/write surface."},
             {"path": "modules/path.md", "label": "Path helpers", "notes": "Path manipulation helpers."},
-            {"path": "modules/process.md", "label": "Process/env/cli", "notes": "Process control and runtime environment helpers."},
+            {"path": "modules/process.md", "label": "Process/env", "notes": "Process control and runtime environment helpers."},
+            {"path": "modules/time.md", "label": "Pure time helpers", "notes": "Duration arithmetic without host clock access."},
+            {"path": "modules/random.md", "label": "Deterministic random helpers", "notes": "Seeded helpers without host entropy."},
             {"path": "reference.md", "label": "Manifest reference", "notes": "Complete manifest-backed public API."},
         ],
     },
@@ -637,6 +647,8 @@ def render_stdlib_readme(
         "- [reference.md](reference.md)",
         "- [modules/core.md](modules/core.md)",
         "- [modules/io.md](modules/io.md)",
+        "- [modules/time.md](modules/time.md)",
+        "- [modules/random.md](modules/random.md)",
         "- [modules/text.md](modules/text.md)",
         "- [std.md](std.md)",
         "- [cookbook.md](cookbook.md)",

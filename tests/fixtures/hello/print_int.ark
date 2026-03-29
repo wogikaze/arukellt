@@ -1,3 +1,4 @@
+use std::host::stdio
 fn main() {
-    println(i32_to_string(42))
+    stdio::println(i32_to_string(42))
 }

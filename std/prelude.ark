@@ -1,16 +1,3 @@
-// I/O
-pub fn println(s: String) {
-    __intrinsic_println(s);
-}
-
-pub fn print(s: String) {
-    __intrinsic_print(s);
-}
-
-pub fn eprintln(s: String) {
-    __intrinsic_eprintln(s);
-}
-
 // String construction
 pub fn String_from(s: String) -> String {
     __intrinsic_string_from(s)
@@ -52,14 +39,6 @@ pub fn to_upper(s: String) -> String {
 
 pub fn slice(s: String, start: i32, end: i32) -> String {
     __intrinsic_string_slice(s, start, end)
-}
-
-pub fn read_line() -> String {
-    __intrinsic_read_line()
-}
-
-pub fn read_int() -> i32 {
-    __intrinsic_read_int()
 }
 
 pub fn trim(s: String) -> String {
@@ -233,24 +212,6 @@ pub fn push_char(s: String, c: char) {
     __intrinsic_push_char(s, c);
 }
 
-// I/O: filesystem
-pub fn fs_read_file(path: String) -> Result<String, String> {
-    __intrinsic_fs_read_file(path)
-}
-
-pub fn fs_write_file(path: String, content: String) -> Result<String, String> {
-    __intrinsic_fs_write_file(path, content)
-}
-
-// I/O: clock and random
-pub fn clock_now() -> i64 {
-    __intrinsic_clock_now()
-}
-
-pub fn random_i32() -> i32 {
-    __intrinsic_random_i32()
-}
-
 // Vec: additional sorting
 pub fn sort_i64(v: Vec<i64>) {
     __intrinsic_sort_i64(v);
@@ -386,4 +347,3 @@ pub fn product_i32(v: Vec<i32>) -> i32 {
     }
     total
 }
-

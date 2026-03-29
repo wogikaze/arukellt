@@ -1,10 +1,11 @@
-use std::cli
+use std::host::env
+use std::host::stdio
 
 fn main() {
-    println(i32_to_string(cli::arg_count()))
-    println(bool_to_string(cli::has_flag("--verbose")))
-    match cli::arg_at(0) {
-        Some(s) => println(s),
-        None => println("no arg"),
+    stdio::println(i32_to_string(env::arg_count()))
+    stdio::println(bool_to_string(env::has_flag("--verbose")))
+    match env::arg_at(0) {
+        Some(s) => stdio::println(s),
+        None => stdio::println("no arg"),
     }
 }

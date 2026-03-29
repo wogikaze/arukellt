@@ -8,6 +8,73 @@ use crate::types::Type;
 
 use super::{TypeChecker, TypeEnv};
 
+fn moved_host_prelude_diagnostic(name: &str, span: Span) -> Option<Diagnostic> {
+    match name {
+        "println" => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host I/O is no longer available from the prelude")
+                .with_note("import `use std::host::stdio` and call `stdio::println(...)`"),
+        ),
+        "print" => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host I/O is no longer available from the prelude")
+                .with_note("import `use std::host::stdio` and call `stdio::print(...)`"),
+        ),
+        "eprintln" => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host I/O is no longer available from the prelude")
+                .with_note("import `use std::host::stdio` and call `stdio::eprintln(...)`"),
+        ),
+        "fs_read_file" => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host filesystem access is no longer available from the prelude")
+                .with_note("import `use std::host::fs` and call `fs::read_to_string(...)`"),
+        ),
+        "fs_write_file" => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host filesystem access is no longer available from the prelude")
+                .with_note("import `use std::host::fs` and call `fs::write_string(...)`"),
+        ),
+        "clock_now" => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host clock access is no longer available from the prelude")
+                .with_note("import `use std::host::clock` and call `clock::monotonic_now()`"),
+        ),
+        "random_i32" => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host randomness is no longer available from the prelude")
+                .with_note("import `use std::host::random as host_random` and call `host_random::random_i32()`"),
+        ),
+        _ => None,
+    }
+}
+
+fn moved_qualified_diagnostic(module: &str, name: &str, span: Span) -> Option<Diagnostic> {
+    match (module, name) {
+        ("time", "monotonic_now") => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host clock reads moved out of `std::time`")
+                .with_note("import `use std::host::clock` and call `clock::monotonic_now()`"),
+        ),
+        ("random", "random_i32") => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host randomness moved out of `std::random`")
+                .with_note("import `use std::host::random as host_random` and call `host_random::random_i32()`"),
+        ),
+        ("random", "random_i32_range") => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host randomness moved out of `std::random`")
+                .with_note("import `use std::host::random as host_random` and call `host_random::random_i32_range(...)`"),
+        ),
+        ("random", "random_bool") => Some(
+            Diagnostic::new(DiagnosticCode::E0100)
+                .with_label(span, "host randomness moved out of `std::random`")
+                .with_note("import `use std::host::random as host_random` and call `host_random::random_bool()`"),
+        ),
+        _ => None,
+    }
+}
+
 impl TypeChecker {
     /// Synthesize the type of an expression.
     pub(crate) fn synthesize_expr(
@@ -47,6 +114,9 @@ impl TypeChecker {
                         params: vec![],
                         ret: Box::new(Type::I32),
                     }
+                } else if let Some(diag) = moved_host_prelude_diagnostic(name, *span) {
+                    sink.emit(diag);
+                    Type::Error
                 } else {
                     // "Did you mean?" suggestion
                     let candidates: Vec<&str> = self
@@ -726,7 +796,7 @@ impl TypeChecker {
                     ret: Box::new(ret_ty),
                 }
             }
-            ast::Expr::QualifiedIdent { module, name, .. } => {
+            ast::Expr::QualifiedIdent { module, name, span } => {
                 // Qualified enum variant or module function reference
                 let qualified = format!("{}::{}", module, name);
                 if let Some(sig) = self.fn_sigs.get(&qualified).cloned() {
@@ -755,8 +825,14 @@ impl TypeChecker {
                         }
                         None => Type::Enum(info.type_id),
                     }
+                } else if let Some(diag) = moved_qualified_diagnostic(module, name, *span) {
+                    sink.emit(diag);
+                    Type::Error
                 } else {
-                    // Qualified names not yet resolvable
+                    sink.emit(
+                        Diagnostic::new(DiagnosticCode::E0100)
+                            .with_label(*span, format!("unresolved name `{}::{}`", module, name)),
+                    );
                     Type::Error
                 }
             }

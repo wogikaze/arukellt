@@ -1,14 +1,15 @@
 use std::core
+use std::host::stdio
 
 fn main() {
     match Ordering::Less {
-        Ordering::Less => println("less"),
-        Ordering::Equal => println("equal"),
-        Ordering::Greater => println("greater"),
+        Ordering::Less => stdio::println("less"),
+        Ordering::Equal => stdio::println("equal"),
+        Ordering::Greater => stdio::println("greater"),
     }
     match Ordering::Greater {
-        Ordering::Less => println("less"),
-        Ordering::Equal => println("equal"),
-        Ordering::Greater => println("greater"),
+        Ordering::Less => stdio::println("less"),
+        Ordering::Equal => stdio::println("equal"),
+        Ordering::Greater => stdio::println("greater"),
     }
 }

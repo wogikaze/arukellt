@@ -1,8 +1,9 @@
+use std::host::stdio
 fn main() {
     let mut x: i32 = 1
-    println(i32_to_string(x))
+    stdio::println(i32_to_string(x))
     x = 2
-    println(i32_to_string(x))
+    stdio::println(i32_to_string(x))
     x = 3
-    println(i32_to_string(x))
+    stdio::println(i32_to_string(x))
 }

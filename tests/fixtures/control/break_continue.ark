@@ -1,3 +1,4 @@
+use std::host::stdio
 fn main() {
     let mut i: i32 = 0
     while i < 10 {
@@ -8,6 +9,6 @@ fn main() {
         if i > 7 {
             break
         }
-        println(i32_to_string(i))
+        stdio::println(i32_to_string(i))
     }
 }

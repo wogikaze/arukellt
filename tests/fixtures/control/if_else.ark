@@ -1,8 +1,9 @@
+use std::host::stdio
 fn main() {
     let x: i32 = 3
     if x > 5 {
-        println("big")
+        stdio::println("big")
     } else {
-        println("small")
+        stdio::println("small")
     }
 }

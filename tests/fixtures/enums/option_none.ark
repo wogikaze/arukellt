@@ -1,7 +1,8 @@
+use std::host::stdio
 fn main() {
     let x: Option<i32> = None
     match x {
-        Some(val) => println(i32_to_string(val)),
-        None => println("none"),
+        Some(val) => stdio::println(i32_to_string(val)),
+        None => stdio::println("none"),
     }
 }

@@ -1,7 +1,8 @@
 use std::text
+use std::host::stdio
 
 fn main() {
-    println(text::replace("hello world", "world", "arukellt"))
-    println(text::replace("aaa", "a", "bb"))
-    println(text::replace("no match", "xyz", "!"))
+    stdio::println(text::replace("hello world", "world", "arukellt"))
+    stdio::println(text::replace("aaa", "a", "bb"))
+    stdio::println(text::replace("no match", "xyz", "!"))
 }

@@ -1,17 +1,18 @@
+use std::host::stdio
 fn returns_true() -> bool {
-    println("evaluated")
+    stdio::println("evaluated")
     true
 }
 
 fn returns_false() -> bool {
-    println("evaluated")
+    stdio::println("evaluated")
     false
 }
 
 fn main() {
-    println("test &&:")
+    stdio::println("test &&:")
     let _ = false && returns_true()
-    println("test ||:")
+    stdio::println("test ||:")
     let _ = true || returns_false()
-    println("done")
+    stdio::println("done")
 }

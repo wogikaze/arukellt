@@ -8,6 +8,60 @@ use ark_parser::{ast, parse};
 use crate::module_graph::ModuleGraph;
 use crate::resolve::LoadedModule;
 
+fn deprecated_std_import_replacement(module_name: &str) -> Option<(&'static str, &'static str)> {
+    match module_name {
+        "std::io" => Some((
+            "std::host::stdio",
+            "host standard I/O is no longer exposed as `std::io`",
+        )),
+        "std::fs" => Some((
+            "std::host::fs",
+            "host filesystem access is no longer exposed as `std::fs`",
+        )),
+        "std::env" => Some((
+            "std::host::env",
+            "host environment access is no longer exposed as `std::env`",
+        )),
+        "std::process" => Some((
+            "std::host::process",
+            "host process control is no longer exposed as `std::process`",
+        )),
+        "std::cli" => Some((
+            "std::host::env",
+            "CLI argument helpers now live in `std::host::env`",
+        )),
+        _ => None,
+    }
+}
+
+fn emit_deprecated_std_import(import: &ast::Import, sink: &mut DiagnosticSink) -> bool {
+    let Some((replacement, note)) = deprecated_std_import_replacement(&import.module_name) else {
+        return false;
+    };
+
+    let replacement_text = if let Some(alias) = &import.alias {
+        format!("use {} as {}", replacement, alias)
+    } else {
+        format!("use {}", replacement)
+    };
+
+    sink.emit(
+        Diagnostic::new(DiagnosticCode::E0104)
+            .with_message(format!(
+                "module `{}` has moved to `{}`",
+                import.module_name, replacement
+            ))
+            .with_label(import.span, "deprecated std import")
+            .with_fix_it(
+                import.span,
+                replacement_text,
+                "replace the deprecated import",
+            )
+            .with_note(note),
+    );
+    true
+}
+
 pub(crate) fn parse_module_file(
     path: &Path,
     sink: &mut DiagnosticSink,
@@ -51,9 +105,7 @@ pub(crate) fn resolve_import_path(
         stripped_file
     } else {
         let rel = module_name.replace("::", "/");
-        let parent = current_path
-            .parent()
-            .unwrap_or_else(|| Path::new("."));
+        let parent = current_path.parent().unwrap_or_else(|| Path::new("."));
         let local_path = parent.join(format!("{}.ark", rel));
         let local_mod = parent.join(&rel).join("mod.ark");
         let std_path = std_root.join(format!("{}.ark", rel));
@@ -135,6 +187,9 @@ fn load_module_recursive(
     };
 
     for import in &module.imports {
+        if emit_deprecated_std_import(import, sink) {
+            continue;
+        }
         let import_path = resolve_import_path(&path, &import.module_name, std_root, sink);
         let effective_name = import.alias.clone().unwrap_or_else(|| {
             import
@@ -180,6 +235,9 @@ pub(crate) fn load_program(
     let mut loaded = HashMap::new();
 
     for import in &entry_module.imports {
+        if emit_deprecated_std_import(import, sink) {
+            continue;
+        }
         let import_path = resolve_import_path(entry_path, &import.module_name, &std_root, sink);
         let effective_name = import.alias.clone().unwrap_or_else(|| {
             // For `use std::text`, the effective name should be `text` (last segment)

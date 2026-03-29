@@ -1,3 +1,4 @@
+use std::host::stdio
 struct Vec2 {
     x: i32,
     y: i32,
@@ -21,23 +22,23 @@ fn main() {
     let a = Vec2 { x: 1, y: 2 }
     let b = Vec2 { x: 3, y: 4 }
     let c = a + b
-    println(c.x)
-    println(c.y)
+    stdio::println(c.x)
+    stdio::println(c.y)
 
     let d = b - a
-    println(d.x)
-    println(d.y)
+    stdio::println(d.x)
+    stdio::println(d.y)
 
     let e = Vec2 { x: 1, y: 2 }
     if a == e {
-        println(1)
+        stdio::println(1)
     } else {
-        println(0)
+        stdio::println(0)
     }
 
     if a == b {
-        println(1)
+        stdio::println(1)
     } else {
-        println(0)
+        stdio::println(0)
     }
 }

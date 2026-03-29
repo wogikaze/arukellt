@@ -1,9 +1,10 @@
+use std::host::stdio
 fn main() {
     let a = 250u8
     let b = 10u8
     let sum = a + b
-    println(sum)
+    stdio::println(sum)
     let c = 100u8
     let d = c * 3u8
-    println(d)
+    stdio::println(d)
 }

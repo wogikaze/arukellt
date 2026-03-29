@@ -18,13 +18,13 @@
 
 を扱っていました。
 
-しかし現行実装では、利用者向け I/O は主に次の薄い wrapper です。
+しかし現行実装では、利用者向け host API は主に次の `std::host::*` wrapper です。
 
 ```ark
-fs_read_file(path: String) -> Result<String, String>
-fs_write_file(path: String, content: String) -> Result<(), String>
-clock_now() -> i64
-random_i32() -> i32
+std::host::fs::read_to_string(path: String) -> Result<String, String>
+std::host::fs::write_string(path: String, content: String) -> Result<(), String>
+std::host::clock::monotonic_now() -> i64
+std::host::random::random_i32() -> i32
 ```
 
 そのため、この文書を active guidance として残すと誤読されやすくなっていました。
@@ -36,5 +36,5 @@ random_i32() -> i32
 ## いま見るべき文書
 
 - 実装の現在地: [../current-state.md](../current-state.md)
-- 現行 I/O API: [../stdlib/io.md](../stdlib/io.md)
+- 現行 host API: [../stdlib/io.md](../stdlib/io.md)
 - T1/T3 の位置づけ: [wasm-features.md](wasm-features.md)

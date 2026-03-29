@@ -1,3 +1,4 @@
+use std::host::stdio
 fn main() {
-    println("Hello, Arukellt!")
+    stdio::println("Hello, Arukellt!")
 }

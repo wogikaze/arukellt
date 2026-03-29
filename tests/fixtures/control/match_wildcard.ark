@@ -1,3 +1,4 @@
+use std::host::stdio
 fn main() {
     let x: i32 = 99
     let label: String = match x {
@@ -5,5 +6,5 @@ fn main() {
         1 => String_from("one"),
         _ => String_from("many"),
     }
-    println(label)
+    stdio::println(label)
 }

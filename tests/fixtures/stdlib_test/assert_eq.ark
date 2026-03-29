@@ -1,4 +1,5 @@
 use std::test
+use std::host::stdio
 
 fn main() {
     // i32
@@ -26,5 +27,5 @@ fn main() {
     test::assert_true(1 == 1)
     test::assert_false(1 == 2)
 
-    println("assert_eq ok")
+    stdio::println("assert_eq ok")
 }

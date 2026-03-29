@@ -1,7 +1,7 @@
-//! Pseudo-random helper functions.
+//! Deterministic pseudo-random helper functions.
 //!
-//! The current module mixes intrinsic randomness with a small deterministic
-//! xorshift-style helper. It is not suitable for cryptographic use.
+//! Host entropy lives in `std::host::random`. This module only provides
+//! seeded helpers so callers can reason about reproducibility.
 
 pub fn seeded_random(seed_val: i32) -> i32 {
     let s = if seed_val == 0 { 42 } else { seed_val }
@@ -32,30 +32,7 @@ pub fn seeded_range(seed_val: i32, lo: i32, hi: i32) -> i32 {
     }
 }
 
-pub fn random_i32() -> i32 {
-    __intrinsic_random_i32()
-}
-
-pub fn random_i32_range(lo: i32, hi: i32) -> i32 {
-    let r = __intrinsic_random_i32()
-    let range = hi - lo
-    if range <= 0 {
-        lo
-    } else {
-        let val = r % range
-        if val < 0 {
-            lo + (val + range)
-        } else {
-            lo + val
-        }
-    }
-}
-
-pub fn random_bool() -> bool {
-    __intrinsic_random_i32() % 2 == 0
-}
-
-pub fn shuffle_i32(v: Vec<i32>) -> Vec<i32> {
+pub fn shuffle_i32(v: Vec<i32>, seed_val: i32) -> Vec<i32> {
     let n = len(v)
     let mut result = Vec_new_i32()
     let mut i = 0
@@ -64,9 +41,11 @@ pub fn shuffle_i32(v: Vec<i32>) -> Vec<i32> {
         i = i + 1
     }
     // Fisher-Yates shuffle
+    let mut seed = if seed_val == 0 { 42 } else { seed_val }
     let mut j = n - 1
     while j > 0 {
-        let idx = random_i32_range(0, j + 1)
+        seed = seeded_random(seed)
+        let idx = seeded_range(seed, 0, j + 1)
         let tmp = get_unchecked(result, j)
         set(result, j, get_unchecked(result, idx))
         set(result, idx, tmp)

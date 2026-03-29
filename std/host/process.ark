@@ -1,4 +1,4 @@
-//! Process-control helpers.
+//! Host process-control helpers.
 //!
 //! The current implementation uses lightweight fallbacks because the WASI
 //! `proc_exit` import is not wired in yet.

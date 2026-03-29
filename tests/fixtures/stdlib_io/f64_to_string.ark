@@ -1,5 +1,6 @@
+use std::host::stdio
 fn main() {
-    println(f64_to_string(3.14))
-    println(f64_to_string(0.0))
-    println(f64_to_string(-2.5))
+    stdio::println(f64_to_string(3.14))
+    stdio::println(f64_to_string(0.0))
+    stdio::println(f64_to_string(-2.5))
 }

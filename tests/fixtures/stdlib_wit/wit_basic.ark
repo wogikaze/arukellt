@@ -1,7 +1,8 @@
 use std::wit
+use std::host::stdio
 
 fn main() {
-    println(i32_to_string(wit::wit_type_string()))
-    println(wit::wit_type_name(wit::wit_type_bool()))
-    println(wit::wit_type_name(wit::wit_type_f64()))
+    stdio::println(i32_to_string(wit::wit_type_string()))
+    stdio::println(wit::wit_type_name(wit::wit_type_bool()))
+    stdio::println(wit::wit_type_name(wit::wit_type_f64()))
 }

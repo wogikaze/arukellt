@@ -1,26 +1,27 @@
 use std::path
+use std::host::stdio
 
 fn main() {
     // join
-    println(path::join("/usr", "bin"))
-    println(path::join("/usr/", "bin"))
-    println(path::join("", "file.txt"))
+    stdio::println(path::join("/usr", "bin"))
+    stdio::println(path::join("/usr/", "bin"))
+    stdio::println(path::join("", "file.txt"))
 
     // parent
-    println(path::parent("/usr/bin/ls"))
-    println(path::parent("/"))
+    stdio::println(path::parent("/usr/bin/ls"))
+    stdio::println(path::parent("/"))
 
     // file_name
-    println(path::file_name("/usr/bin/ls"))
+    stdio::println(path::file_name("/usr/bin/ls"))
 
     // extension
-    println(path::extension("main.ark"))
-    println(path::extension("Makefile"))
+    stdio::println(path::extension("main.ark"))
+    stdio::println(path::extension("Makefile"))
 
     // with_extension
-    println(path::with_extension("main.rs", "ark"))
+    stdio::println(path::with_extension("main.rs", "ark"))
 
     // is_absolute
-    println(bool_to_string(path::is_absolute("/usr")))
-    println(bool_to_string(path::is_absolute("relative")))
+    stdio::println(bool_to_string(path::is_absolute("/usr")))
+    stdio::println(bool_to_string(path::is_absolute("relative")))
 }

@@ -1,11 +1,12 @@
 use std::core
+use std::host::stdio
 
 fn main() {
     let r = core::range_new(0, 5)
     let inside = core::range_contains(r, 3)
     let outside = core::range_contains(r, 5)
     let length = core::range_len(r)
-    println(bool_to_string(inside))
-    println(bool_to_string(outside))
-    println(i32_to_string(length))
+    stdio::println(bool_to_string(inside))
+    stdio::println(bool_to_string(outside))
+    stdio::println(i32_to_string(length))
 }

@@ -1,4 +1,5 @@
 use std::random
+use std::host::stdio
 
 fn main() {
     let mut all_in_range = true
@@ -16,5 +17,5 @@ fn main() {
         i = i + 1
     }
     assert(all_in_range)
-    println("random_range ok")
+    stdio::println("random_range ok")
 }

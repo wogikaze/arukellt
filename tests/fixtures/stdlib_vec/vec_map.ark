@@ -1,3 +1,4 @@
+use std::host::stdio
 fn double(x: i32) -> i32 {
     x * 2
 }
@@ -10,7 +11,7 @@ fn main() {
     let doubled: Vec<i32> = map_i32_i32(v, double)
     let mut i: i32 = 0
     while i < len(doubled) {
-        println(i32_to_string(get_unchecked(doubled, i)))
+        stdio::println(i32_to_string(get_unchecked(doubled, i)))
         i = i + 1
     }
 }

@@ -1,3 +1,4 @@
+use std::host::stdio
 fn main() {
     let x = 3
     let result = match x {
@@ -5,7 +6,7 @@ fn main() {
         3 | 4 | 5 => "three to five",
         _ => "other"
     }
-    println(result)
+    stdio::println(result)
 
     let y = 7
     let r2 = match y {
@@ -13,5 +14,5 @@ fn main() {
         2 | 4 | 6 | 8 | 10 => "even",
         _ => "out of range"
     }
-    println(r2)
+    stdio::println(r2)
 }

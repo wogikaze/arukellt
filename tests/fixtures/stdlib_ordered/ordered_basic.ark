@@ -1,23 +1,24 @@
 use std::collections::ordered
+use std::host::stdio
 
 fn main() {
     let m: Vec<i32> = ordered::sorted_map_new()
     ordered::sorted_map_insert(m, 30, 300)
     ordered::sorted_map_insert(m, 10, 100)
     ordered::sorted_map_insert(m, 20, 200)
-    println(i32_to_string(ordered::sorted_map_len(m)))
-    println(i32_to_string(ordered::sorted_map_get(m, 10)))
-    println(i32_to_string(ordered::sorted_map_get(m, 20)))
-    println(i32_to_string(ordered::sorted_map_get(m, 30)))
-    println(bool_to_string(ordered::sorted_map_contains(m, 20)))
-    println(bool_to_string(ordered::sorted_map_contains(m, 99)))
+    stdio::println(i32_to_string(ordered::sorted_map_len(m)))
+    stdio::println(i32_to_string(ordered::sorted_map_get(m, 10)))
+    stdio::println(i32_to_string(ordered::sorted_map_get(m, 20)))
+    stdio::println(i32_to_string(ordered::sorted_map_get(m, 30)))
+    stdio::println(bool_to_string(ordered::sorted_map_contains(m, 20)))
+    stdio::println(bool_to_string(ordered::sorted_map_contains(m, 99)))
 
     // BitSet
     let bs: Vec<i32> = ordered::bitset_new()
     ordered::bitset_mark(bs, 5)
     ordered::bitset_mark(bs, 42)
-    println(bool_to_string(ordered::bitset_test(bs, 5)))
-    println(bool_to_string(ordered::bitset_test(bs, 6)))
+    stdio::println(bool_to_string(ordered::bitset_test(bs, 5)))
+    stdio::println(bool_to_string(ordered::bitset_test(bs, 6)))
     ordered::bitset_unmark(bs, 5)
-    println(bool_to_string(ordered::bitset_test(bs, 5)))
+    stdio::println(bool_to_string(ordered::bitset_test(bs, 5)))
 }

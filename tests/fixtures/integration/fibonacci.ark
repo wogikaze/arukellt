@@ -1,3 +1,4 @@
+use std::host::stdio
 fn fib(n: i32) -> i32 {
     if n <= 1 {
         return n
@@ -17,7 +18,7 @@ fn fib(n: i32) -> i32 {
 fn main() {
     let mut i: i32 = 0
     while i <= 10 {
-        println(i32_to_string(fib(i)))
+        stdio::println(i32_to_string(fib(i)))
         i = i + 1
     }
 }

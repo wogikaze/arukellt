@@ -1,3 +1,4 @@
+use std::host::stdio
 fn main() {
     let mut i: i32 = 0
     let result: i32 = loop {
@@ -6,5 +7,5 @@ fn main() {
         }
         i = i + 1
     }
-    println(i32_to_string(result))
+    stdio::println(i32_to_string(result))
 }

@@ -1,11 +1,7 @@
-//! Time and duration helpers.
+//! Pure duration helpers.
 //!
-//! `monotonic_now` returns nanoseconds from an unspecified epoch and should
-//! only be compared inside the same process.
-
-pub fn monotonic_now() -> i64 {
-    __intrinsic_clock_now()
-}
+//! Host clock reads live in `std::host::clock`. This module only provides
+//! pure arithmetic over timestamps supplied by the caller.
 
 pub fn duration_ms(start: i64, end: i64) -> i64 {
     let diff = end - start
@@ -32,8 +28,4 @@ pub fn duration_ns(start: i64, end: i64) -> i64 {
     } else {
         diff
     }
-}
-
-pub fn elapsed_ms(start: i64) -> i64 {
-    duration_ms(start, __intrinsic_clock_now())
 }

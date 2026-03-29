@@ -1,8 +1,9 @@
+use std::host::stdio
 fn identity<T>(x: T) -> T {
     x
 }
 
 fn main() {
-    println(i32_to_string(identity(42)))
-    println(identity(String_from("hello")))
+    stdio::println(i32_to_string(identity(42)))
+    stdio::println(identity(String_from("hello")))
 }

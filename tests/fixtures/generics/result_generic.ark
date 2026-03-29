@@ -1,3 +1,4 @@
+use std::host::stdio
 fn ok_or_default<T, E>(res: Result<T, E>, default: T) -> T {
     match res {
         Ok(val) => val,
@@ -8,6 +9,6 @@ fn ok_or_default<T, E>(res: Result<T, E>, default: T) -> T {
 fn main() {
     let a: Result<i32, String> = Ok(42)
     let b: Result<i32, String> = Err(String_from("oops"))
-    println(i32_to_string(ok_or_default(a, 0)))
-    println(i32_to_string(ok_or_default(b, 0)))
+    stdio::println(i32_to_string(ok_or_default(a, 0)))
+    stdio::println(i32_to_string(ok_or_default(b, 0)))
 }

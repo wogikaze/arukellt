@@ -1,3 +1,4 @@
+use std::host::stdio
 enum Shape {
     Circle { radius: i32 },
     Rect { width: i32, height: i32 },
@@ -13,6 +14,6 @@ fn area(s: Shape) -> i32 {
 fn main() {
     let c = Shape::Circle { radius: 5 }
     let r = Shape::Rect { width: 4, height: 6 }
-    println(i32_to_string(area(c)))
-    println(i32_to_string(area(r)))
+    stdio::println(i32_to_string(area(c)))
+    stdio::println(i32_to_string(area(r)))
 }

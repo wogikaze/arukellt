@@ -1,10 +1,11 @@
+use std::host::stdio
 fn main() {
     let a = 10u32
     let b = 20u32
-    println(a < b)
-    println(a > b)
-    println(a == b)
-    println(a != b)
-    println(a <= b)
-    println(a >= b)
+    stdio::println(a < b)
+    stdio::println(a > b)
+    stdio::println(a == b)
+    stdio::println(a != b)
+    stdio::println(a <= b)
+    stdio::println(a >= b)
 }

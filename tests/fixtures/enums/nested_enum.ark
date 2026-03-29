@@ -1,3 +1,4 @@
+use std::host::stdio
 enum Inner {
     A,
     B(i32),
@@ -19,7 +20,7 @@ fn describe(o: Outer) -> String {
 }
 
 fn main() {
-    println(describe(Outer::Wrap(Inner::A)))
-    println(describe(Outer::Wrap(Inner::B(7))))
-    println(describe(Outer::Empty))
+    stdio::println(describe(Outer::Wrap(Inner::A)))
+    stdio::println(describe(Outer::Wrap(Inner::B(7))))
+    stdio::println(describe(Outer::Empty))
 }

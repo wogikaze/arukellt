@@ -92,6 +92,7 @@ interface render {
 //                関数と型を `md` という名前空間で使えるようにする
 import "namespace:markdown-parser/parse" as md
 import "namespace:tui/render" as tui
+use std::host::fs
 
 fn main() {
     let content = fs::read_to_string("README.md")
@@ -216,7 +217,7 @@ exports = [
 // crates/ark-parser/src/ast.rs に追加
 pub enum ImportKind {
     Local,                // import math  (既存)
-    Stdlib,               // use std::io  (既存)
+    Stdlib,               // use std::host::stdio  (既存)
     Wit { package_id: String },  // import "namespace:pkg/iface" (新規)
 }
 ```
@@ -327,7 +328,7 @@ arukellt build  # ark.toml を自動検出、依存 WIT を読み込み
 - 外部コンポーネントを使う完全な手順（ark.toml + import + wasm-tools compose）
   
 **4-2. `docs/spec/import-system.md`** (issue #123 より)
-- `use std::io` (stdlib) と `import "wasi:cli/stdin"` (WIT) の区別を明記
+- `use std::host::stdio` (stdlib) と `import "wasi:cli/stdin"` (WIT) の区別を明記
 
 ---
 

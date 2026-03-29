@@ -1,18 +1,19 @@
+use std::host::stdio
 fn main() {
     let m = HashMap_i32_i32_new()
     HashMap_i32_i32_insert(m, 1, 100)
     HashMap_i32_i32_insert(m, 2, 200)
     HashMap_i32_i32_insert(m, 3, 300)
     match HashMap_i32_i32_get(m, 2) {
-        Some(v) => println(v),
-        None => println(-1),
+        Some(v) => stdio::println(v),
+        None => stdio::println(-1),
     }
-    println(HashMap_i32_i32_len(m))
+    stdio::println(HashMap_i32_i32_len(m))
     if HashMap_i32_i32_contains_key(m, 1) {
-        println(String_from("found"))
+        stdio::println(String_from("found"))
     }
     match HashMap_i32_i32_get(m, 99) {
-        Some(v) => println(v),
-        None => println(String_from("not found")),
+        Some(v) => stdio::println(v),
+        None => stdio::println(String_from("not found")),
     }
 }

@@ -1,3 +1,4 @@
+use std::host::stdio
 fn add(acc: i64, x: i64) -> i64 {
     acc + x
 }
@@ -8,5 +9,5 @@ fn main() {
     push(v, 20)
     push(v, 30)
     let total: i64 = fold_i64_i64(v, 0, add)
-    println(i64_to_string(total))
+    stdio::println(i64_to_string(total))
 }

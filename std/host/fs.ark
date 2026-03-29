@@ -1,7 +1,6 @@
-//! Filesystem operations backed by the current WASI P1 intrinsics.
+//! Host filesystem helpers backed by the current WASI filesystem intrinsics.
 //!
-//! The current surface is intentionally small: read a file into a string or
-//! write a string to a file.
+//! These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 
 /// Reads a UTF-8 text file into memory.
 pub fn read_to_string(path: String) -> Result<String, String> {
@@ -9,6 +8,6 @@ pub fn read_to_string(path: String) -> Result<String, String> {
 }
 
 /// Writes a UTF-8 string to a file, replacing any existing contents.
-pub fn write_string(path: String, contents: String) -> Result<String, String> {
+pub fn write_string(path: String, contents: String) -> Result<(), String> {
     __intrinsic_fs_write_file(path, contents)
 }
