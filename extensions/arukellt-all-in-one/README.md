@@ -10,6 +10,7 @@ Minimal VS Code extension scaffold for Arukellt.
 - Supports restarting the language server from the command palette
 - Adds command palette actions for `check`, `compile`, and `run` on the active `.ark` file
 - Adds a basic `arukellt` task provider and status bar state
+- Adds setup doctor, command graph, and environment diff diagnostics in the output channel
 
 ## Commands
 

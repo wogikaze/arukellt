@@ -16,7 +16,10 @@
     "onCommand:arukellt.restartLanguageServer",
     "onCommand:arukellt.checkCurrentFile",
     "onCommand:arukellt.compileCurrentFile",
-    "onCommand:arukellt.runCurrentFile"
+    "onCommand:arukellt.runCurrentFile",
+    "onCommand:arukellt.showSetupDoctor",
+    "onCommand:arukellt.showCommandGraph",
+    "onCommand:arukellt.showEnvironmentDiff"
   ],
   "main": "./src/extension.js",
   "contributes": {
@@ -62,6 +65,18 @@
       {
         "command": "arukellt.runCurrentFile",
         "title": "Arukellt: Run Current File"
+      },
+      {
+        "command": "arukellt.showSetupDoctor",
+        "title": "Arukellt: Show Setup Doctor"
+      },
+      {
+        "command": "arukellt.showCommandGraph",
+        "title": "Arukellt: Show Command Graph"
+      },
+      {
+        "command": "arukellt.showEnvironmentDiff",
+        "title": "Arukellt: Show Environment Diff"
       }
     ],
     "configuration": {

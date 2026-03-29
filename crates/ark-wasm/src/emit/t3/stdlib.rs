@@ -3013,75 +3013,72 @@ impl Ctx {
             memory_index: 0,
         };
 
-        // si(0) = argc, si(1) = argv_buf_size, si(2) = loop counter
-        // si(10) = result Vec<String> ref
+        // Scratch local mapping (must match declared types in helpers.rs):
+        //   si(0)  = argc          (i32)
+        //   si(1)  = reused:       buf_size initially, then j (byte copy), then vec_len (i32)
+        //   si(2)  = i outer loop  (i32)
+        //   si(3)  = str_ptr       (i32)
+        //   si(4)  = str_ref       (ref null $string) ← ref type
+        //   si(9)  = len           (i32)
+        //   si(10) = vec result    (anyref — holds Vec<String> GC ref)
 
-        // Step 1: Call args_sizes_get to get argc and total buffer size
-        // args_sizes_get writes argc at SCRATCH, argv_buf_size at SCRATCH+4
+        // Step 1: args_sizes_get
         f.instruction(&Instruction::I32Const(SCRATCH as i32));
         f.instruction(&Instruction::I32Const(SCRATCH as i32 + 4));
         f.instruction(&Instruction::Call(self.wasi_args_sizes_get));
-        f.instruction(&Instruction::Drop); // drop errno
+        f.instruction(&Instruction::Drop);
 
-        // Load argc and argv_buf_size
         f.instruction(&Instruction::I32Const(SCRATCH as i32));
         f.instruction(&Instruction::I32Load(ma));
         f.instruction(&Instruction::LocalSet(self.si(0))); // argc
 
         f.instruction(&Instruction::I32Const(SCRATCH as i32 + 4));
         f.instruction(&Instruction::I32Load(ma));
-        f.instruction(&Instruction::LocalSet(self.si(1))); // argv_buf_size
+        f.instruction(&Instruction::LocalSet(self.si(1))); // buf_size (temp)
 
-        // Step 2: Call args_get with argv at FS_SCRATCH and argv_buf at FS_SCRATCH + argc*4
-        // argv pointers start at FS_SCRATCH
-        // argv buffer starts at FS_SCRATCH + argc * 4
+        // Step 2: args_get — argv pointers at FS_SCRATCH, buf after argc*4
         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
-        // buf_ptr = FS_SCRATCH + argc * 4
         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
         f.instruction(&Instruction::LocalGet(self.si(0)));
         f.instruction(&Instruction::I32Const(4));
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::Call(self.wasi_args_get));
-        f.instruction(&Instruction::Drop); // drop errno
+        f.instruction(&Instruction::Drop);
 
-        // Step 3: Create empty Vec<String>
+        // Step 3: create empty Vec<String>
         self.emit_vec_new_gc(f, self.vec_string_ty, self.arr_string_ty);
-        f.instruction(&Instruction::LocalSet(self.si(10))); // result vec
+        f.instruction(&Instruction::LocalSet(self.si(10)));
 
-        // Step 4: Loop over argc args, create GC strings, push to vec
-        f.instruction(&Instruction::I32Const(0));
-        f.instruction(&Instruction::LocalSet(self.si(2))); // i = 0
+        // Step 4: loop i = 1..argc (skip argv[0] = program name)
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::LocalSet(self.si(2)));
 
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
 
-        // if i >= argc, break
         f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::LocalGet(self.si(0)));
         f.instruction(&Instruction::I32GeU);
         f.instruction(&Instruction::BrIf(1));
 
-        // argv[i] is a pointer to a null-terminated string in linear memory
-        // ptr = mem[FS_SCRATCH + i * 4]
+        // str_ptr = mem[FS_SCRATCH + i * 4]
         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
         f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::I32Const(4));
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Load(ma));
-        f.instruction(&Instruction::LocalSet(self.si(3))); // str_ptr
+        f.instruction(&Instruction::LocalSet(self.si(3)));
 
-        // Calculate string length: scan until null byte
-        // len = 0
+        // Scan null terminator → si(9) = len
         f.instruction(&Instruction::I32Const(0));
-        f.instruction(&Instruction::LocalSet(self.si(4))); // len
+        f.instruction(&Instruction::LocalSet(self.si(9)));
 
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
-        // if mem[str_ptr + len] == 0, break
         f.instruction(&Instruction::LocalGet(self.si(3)));
-        f.instruction(&Instruction::LocalGet(self.si(4)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Load8U(MemArg {
             offset: 0,
@@ -3090,40 +3087,38 @@ impl Ctx {
         }));
         f.instruction(&Instruction::I32Eqz);
         f.instruction(&Instruction::BrIf(1));
-        // len++
-        f.instruction(&Instruction::LocalGet(self.si(4)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::LocalSet(self.si(4)));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
         f.instruction(&Instruction::Br(0));
-        f.instruction(&Instruction::End); // loop
-        f.instruction(&Instruction::End); // block
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
 
-        // Create GC string array of length len, then copy bytes
-        f.instruction(&Instruction::I32Const(0)); // fill value
-        f.instruction(&Instruction::LocalGet(self.si(4))); // length
-        f.instruction(&Instruction::ArrayNew(self.string_ty));
-        f.instruction(&Instruction::LocalSet(self.si(5))); // str_ref
-
-        // Copy bytes from linear memory to GC array
+        // Allocate GC string → si(4) (ref $string ✓)
         f.instruction(&Instruction::I32Const(0));
-        f.instruction(&Instruction::LocalSet(self.si(6))); // j = 0
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::ArrayNew(self.string_ty));
+        f.instruction(&Instruction::LocalSet(self.si(4)));
+
+        // Copy bytes: j = 0 → si(1)
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
 
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
-        f.instruction(&Instruction::LocalGet(self.si(6)));
-        f.instruction(&Instruction::LocalGet(self.si(4)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
         f.instruction(&Instruction::I32GeU);
         f.instruction(&Instruction::BrIf(1));
 
-        // array.set $string str_ref j mem[str_ptr + j]
-        f.instruction(&Instruction::LocalGet(self.si(5)));
+        f.instruction(&Instruction::LocalGet(self.si(4)));
         f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
             self.string_ty,
         )));
-        f.instruction(&Instruction::LocalGet(self.si(6)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::LocalGet(self.si(3)));
-        f.instruction(&Instruction::LocalGet(self.si(6)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Load8U(MemArg {
             offset: 0,
@@ -3132,36 +3127,36 @@ impl Ctx {
         }));
         f.instruction(&Instruction::ArraySet(self.string_ty));
 
-        f.instruction(&Instruction::LocalGet(self.si(6)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::LocalSet(self.si(6)));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
         f.instruction(&Instruction::Br(0));
-        f.instruction(&Instruction::End); // loop
-        f.instruction(&Instruction::End); // block
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
 
-        // Push string onto Vec<String> (inline push via scratch locals)
-        // len = struct.get $vec_string 1
+        // Push str_ref onto Vec<String> — inline push:
+        // vec_len = struct.get $vec_string field 1 → si(1) (reuse as vec_len)
         f.instruction(&Instruction::LocalGet(self.si(10)));
         f.instruction(&Instruction::StructGet {
             struct_type_index: self.vec_string_ty,
             field_index: 1,
         });
-        f.instruction(&Instruction::LocalSet(self.si(7))); // len
+        f.instruction(&Instruction::LocalSet(self.si(1)));
 
-        // array.set backing[len] = str_ref
+        // backing_array[vec_len] = str_ref
         f.instruction(&Instruction::LocalGet(self.si(10)));
         f.instruction(&Instruction::StructGet {
             struct_type_index: self.vec_string_ty,
             field_index: 0,
         });
-        f.instruction(&Instruction::LocalGet(self.si(7))); // index = len
-        f.instruction(&Instruction::LocalGet(self.si(5))); // str_ref
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(4)));
         f.instruction(&Instruction::ArraySet(self.arr_string_ty));
 
-        // struct.set vec.len = len + 1
+        // vec.len = vec_len + 1
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::LocalGet(self.si(7)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::StructSet {
@@ -3175,10 +3170,10 @@ impl Ctx {
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalSet(self.si(2)));
         f.instruction(&Instruction::Br(0));
-        f.instruction(&Instruction::End); // loop
-        f.instruction(&Instruction::End); // block
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
 
-        // Push result vec onto stack
+        // Leave vec ref on stack
         f.instruction(&Instruction::LocalGet(self.si(10)));
     }
 
@@ -3194,9 +3189,11 @@ impl Ctx {
         f.instruction(&Instruction::I32Const(SCRATCH as i32 + 4));
         f.instruction(&Instruction::Call(self.wasi_args_sizes_get));
         f.instruction(&Instruction::Drop); // drop errno
-        // Load argc and leave it on the stack
+        // Load argc, then subtract 1 to exclude argv[0]
         f.instruction(&Instruction::I32Const(SCRATCH as i32));
         f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Sub);
     }
 
     /// Emit `arg_at(i: i32)` → String: return the i-th CLI argument string.
@@ -3207,8 +3204,13 @@ impl Ctx {
             memory_index: 0,
         };
 
-        // si(0) = argc, si(1) = argv_buf_size, si(2) = index i
-        // si(3) = str_ptr, si(4) = len, si(5) = str_ref, si(6) = byte loop j
+        // Scratch local mapping (must match the declared types in helpers.rs):
+        //   si(0) = argc        (i32)
+        //   si(1) = buf_size    (i32)
+        //   si(2) = adj_index   (i32) — reused as byte_loop_j after str_ptr is loaded
+        //   si(3) = str_ptr     (i32)
+        //   si(4) = str_ref     (ref null $string) ← ref type
+        //   si(9) = len         (i32)
 
         // Step 1: args_sizes_get
         f.instruction(&Instruction::I32Const(SCRATCH as i32));
@@ -3222,7 +3224,7 @@ impl Ctx {
 
         f.instruction(&Instruction::I32Const(SCRATCH as i32 + 4));
         f.instruction(&Instruction::I32Load(ma));
-        f.instruction(&Instruction::LocalSet(self.si(1))); // argv_buf_size
+        f.instruction(&Instruction::LocalSet(self.si(1))); // buf_size
 
         // Step 2: args_get — argv pointers at FS_SCRATCH, buf after that
         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
@@ -3234,11 +3236,13 @@ impl Ctx {
         f.instruction(&Instruction::Call(self.wasi_args_get));
         f.instruction(&Instruction::Drop);
 
-        // Step 3: load requested index into si(2)
+        // Step 3: adjusted index = i + 1 (skip argv[0])
         self.emit_operand(f, index_op);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalSet(self.si(2)));
 
-        // Step 4: str_ptr = mem32[FS_SCRATCH + i * 4]
+        // Step 4: str_ptr = mem32[FS_SCRATCH + adj_index * 4]
         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
         f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::I32Const(4));
@@ -3247,14 +3251,14 @@ impl Ctx {
         f.instruction(&Instruction::I32Load(ma));
         f.instruction(&Instruction::LocalSet(self.si(3)));
 
-        // Step 5: scan for null terminator to get length
+        // Step 5: scan for null terminator to get length (stored in si(9))
         f.instruction(&Instruction::I32Const(0));
-        f.instruction(&Instruction::LocalSet(self.si(4))); // len = 0
+        f.instruction(&Instruction::LocalSet(self.si(9))); // len = 0
 
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::LocalGet(self.si(3)));
-        f.instruction(&Instruction::LocalGet(self.si(4)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Load8U(MemArg {
             offset: 0,
@@ -3263,38 +3267,38 @@ impl Ctx {
         }));
         f.instruction(&Instruction::I32Eqz);
         f.instruction(&Instruction::BrIf(1));
-        f.instruction(&Instruction::LocalGet(self.si(4)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::LocalSet(self.si(4)));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
         f.instruction(&Instruction::Br(0));
         f.instruction(&Instruction::End);
         f.instruction(&Instruction::End);
 
-        // Step 6: allocate GC string of length `len`
+        // Step 6: allocate GC string of length `len`, stored in si(4) (ref $string)
         f.instruction(&Instruction::I32Const(0));
-        f.instruction(&Instruction::LocalGet(self.si(4)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
         f.instruction(&Instruction::ArrayNew(self.string_ty));
-        f.instruction(&Instruction::LocalSet(self.si(5)));
+        f.instruction(&Instruction::LocalSet(self.si(4)));
 
-        // Step 7: copy bytes
+        // Step 7: copy bytes — reuse si(2) as byte loop counter j
         f.instruction(&Instruction::I32Const(0));
-        f.instruction(&Instruction::LocalSet(self.si(6)));
+        f.instruction(&Instruction::LocalSet(self.si(2)));
 
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
-        f.instruction(&Instruction::LocalGet(self.si(6)));
-        f.instruction(&Instruction::LocalGet(self.si(4)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
         f.instruction(&Instruction::I32GeU);
         f.instruction(&Instruction::BrIf(1));
 
-        f.instruction(&Instruction::LocalGet(self.si(5)));
+        f.instruction(&Instruction::LocalGet(self.si(4)));
         f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
             self.string_ty,
         )));
-        f.instruction(&Instruction::LocalGet(self.si(6)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::LocalGet(self.si(3)));
-        f.instruction(&Instruction::LocalGet(self.si(6)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Load8U(MemArg {
             offset: 0,
@@ -3303,15 +3307,15 @@ impl Ctx {
         }));
         f.instruction(&Instruction::ArraySet(self.string_ty));
 
-        f.instruction(&Instruction::LocalGet(self.si(6)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::LocalSet(self.si(6)));
+        f.instruction(&Instruction::LocalSet(self.si(2)));
         f.instruction(&Instruction::Br(0));
         f.instruction(&Instruction::End);
         f.instruction(&Instruction::End);
 
         // Leave str_ref on stack
-        f.instruction(&Instruction::LocalGet(self.si(5)));
+        f.instruction(&Instruction::LocalGet(self.si(4)));
     }
 }

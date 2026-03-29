@@ -196,6 +196,82 @@ function runCliCommand(kind) {
   })
 }
 
+function environmentSummary() {
+  const config = getConfiguration()
+  const { command, extraArgs } = resolveServerCommand()
+  const probe = probeServerBinary(command)
+  return {
+    command,
+    extraArgs,
+    probe,
+    target: config.get('target', 'wasm32-wasi-p1'),
+    emit: config.get('emit', 'core-wasm'),
+    workspaceFolders: hasVscodeHost() && vscode.workspace.workspaceFolders
+      ? vscode.workspace.workspaceFolders.map((folder) => folder.uri.fsPath)
+      : [],
+  }
+}
+
+function showSetupDoctor() {
+  const summary = environmentSummary()
+  const lines = [
+    '# Arukellt Setup Doctor',
+    '',
+    `- CLI command: ${summary.command}`,
+    `- CLI args before lsp: ${summary.extraArgs.join(' ') || '(none)'}`,
+    `- CLI probe: ${summary.probe.ok ? `ok (${summary.probe.version || 'version unknown'})` : `failed (${summary.probe.message})`}`,
+    `- Default target: ${summary.target}`,
+    `- Default emit: ${summary.emit}`,
+    `- Workspace folders: ${summary.workspaceFolders.length > 0 ? summary.workspaceFolders.join(', ') : '(none)'}`,
+  ]
+  if (outputChannel) {
+    outputChannel.clear()
+    outputChannel.appendLine(lines.join('\n'))
+    outputChannel.show()
+  }
+  notifyInfo('Arukellt setup doctor written to the output channel.')
+}
+
+function showCommandGraph() {
+  const lines = [
+    '# Arukellt Command Graph',
+    '',
+    'check -> compile -> run',
+    '   \\-> restart language server',
+    '',
+    '- check: arukellt check <file> --target <target>',
+    '- compile: arukellt compile <file> --target <target> --emit <emit>',
+    '- run: arukellt run <file> --target <target>',
+  ]
+  if (outputChannel) {
+    outputChannel.clear()
+    outputChannel.appendLine(lines.join('\n'))
+    outputChannel.show()
+  }
+  updateStatus('Arukellt: graph ready', 'Command graph written to output channel')
+}
+
+function showEnvironmentDiff() {
+  const summary = environmentSummary()
+  const lines = [
+    '# Arukellt Environment Diff',
+    '',
+    '| Surface | Local | CI/Profile assumption |',
+    '|---|---|---|',
+    `| arukellt binary | ${summary.command} | ci uses PATH lookup unless overridden |`,
+    `| extra args | ${summary.extraArgs.join(' ') || '(none)'} | often empty in CI |`,
+    `| target | ${summary.target} | may differ per task/profile |`,
+    `| emit | ${summary.emit} | may differ per task/profile |`,
+    `| workspace folders | ${summary.workspaceFolders.length > 0 ? summary.workspaceFolders.join(', ') : '(none)'} | usually repository root only |`,
+  ]
+  if (outputChannel) {
+    outputChannel.clear()
+    outputChannel.appendLine(lines.join('\n'))
+    outputChannel.show()
+  }
+  updateStatus('Arukellt: env diff ready', 'Environment diff written to output channel')
+}
+
 function registerCommandSurfaces(context) {
   if (!hasVscodeHost()) {
     return
@@ -203,6 +279,9 @@ function registerCommandSurfaces(context) {
   pushDisposable(context, vscode.commands.registerCommand('arukellt.checkCurrentFile', () => runCliCommand('check')))
   pushDisposable(context, vscode.commands.registerCommand('arukellt.compileCurrentFile', () => runCliCommand('compile')))
   pushDisposable(context, vscode.commands.registerCommand('arukellt.runCurrentFile', () => runCliCommand('run')))
+  pushDisposable(context, vscode.commands.registerCommand('arukellt.showSetupDoctor', showSetupDoctor))
+  pushDisposable(context, vscode.commands.registerCommand('arukellt.showCommandGraph', showCommandGraph))
+  pushDisposable(context, vscode.commands.registerCommand('arukellt.showEnvironmentDiff', showEnvironmentDiff))
 }
 
 function registerTaskProvider(context) {
