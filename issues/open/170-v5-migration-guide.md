@@ -1,22 +1,24 @@
-# 170: v4→v5 移行ガイド
+# v5 Migration guide
 
-**Version**: v5
-**Priority**: P2
-**Depends on**: #165 (Phase 3 完了後)
+**Status**: open
+**ID**: 170
+**Depends on**: 165, 166, 169
+**Track**: main
+**Blocks v1 exit**: no
 
-## 概要
+## Summary
 
-`docs/migration/v4-to-v5.md` に v4 から v5 への移行ガイドを記述する。
+`docs/migration/v4-to-v5.md` に v4→v5 移行ガイドを整理する。特に、デフォルトコンパイラ切り替えの有無、bootstrap 手順の位置づけ、Rust 版と selfhost 版の二重メンテナンス方針を明文化する。
 
-## 内容
+## Acceptance
 
-1. v5 で追加されたもの: セルフホストコンパイラ、ブートストラップ手順
-2. v5 で変更されたもの: デフォルトコンパイラの切り替え (Rust → Arukellt) の有無
-3. v5 での仕様凍結: 凍結された仕様のバージョン、変更手続き
-4. ユーザーへの影響: コンパイル方法の変更点があれば記載
-5. 開発者への影響: 二重メンテナンスの手順
+- [ ] v5 で追加された selfhost compiler / bootstrap workflow の説明がある
+- [ ] デフォルトコンパイラ切り替えの有無が曖昧さなく記述されている
+- [ ] 開発者向けに Rust 版と selfhost 版の併走方針が記述されている
 
-## 完了条件
+## References
 
-- `docs/migration/v4-to-v5.md` が存在する
-- 上記5項目をすべて含む
+- `issues/open/165-v5-phase3-wasm-emitter.md`
+- `issues/open/166-v5-bootstrap-verification.md`
+- `issues/open/169-v5-bootstrap-doc.md`
+- `docs/current-state.md`

@@ -26,6 +26,29 @@ reverse = defaultdict(list)
 
 meta_re = re.compile(r"^\*\*(.+?)\*\*: (.*)$")
 
+def normalize_dep_token(token):
+    token = token.strip()
+    if not token or token in {'none', 'なし', '—', '-'}:
+        return None
+    if token.startswith('#'):
+        m = re.match(r'^#?(\d+)', token)
+        if m:
+            return m.group(1)
+    m = re.match(r'^(\d+)', token)
+    if m:
+        return m.group(1)
+    return token
+
+def normalize_deps(raw):
+    if raw.strip() in {'', 'none', 'なし', '—', '-'}:
+        return []
+    deps = []
+    for token in raw.split(','):
+        dep = normalize_dep_token(token)
+        if dep:
+            deps.append(dep)
+    return deps
+
 def parse_file(path):
     text = path.read_text()
     lines = text.splitlines()
@@ -37,7 +60,7 @@ def parse_file(path):
             meta[m.group(1).strip()] = m.group(2).strip()
     issue_id = meta.get('ID', path.name.split('-')[0])
     deps_raw = meta.get('Depends on', 'none')
-    deps = [] if deps_raw == 'none' else [d.strip() for d in deps_raw.split(',') if d.strip()]
+    deps = normalize_deps(deps_raw)
     status = meta.get('Status', 'open')
     track = meta.get('Track', 'main')
     blocks_v1 = meta.get('Blocks v1 exit', 'no')

@@ -1,25 +1,23 @@
-# 169: ブートストラップ手順ドキュメント
+# v5 Bootstrap guide documentation
 
-**Version**: v5
-**Priority**: P2
-**Depends on**: #166 (Bootstrap verification)
+**Status**: open
+**ID**: 169
+**Depends on**: 166, 167
+**Track**: main
+**Blocks v1 exit**: no
 
-## 概要
+## Summary
 
-`docs/compiler/bootstrap.md` にセルフホストのブートストラップ手順を記述する。
+`docs/compiler/bootstrap.md` に、Stage 0/1/2 のブートストラップ手順と fixpoint 未達時のデバッグ導線をまとめる。検証スクリプト本体は #166、dump phases は #167 に依存する。
 
-## 内容
+## Acceptance
 
-1. ブートストラップの概念説明 (Stage 0/1/2)
-2. 前提条件 (Rust toolchain, wasmtime, wasm-tools)
-3. ステップバイステップの手順
-4. fixpoint 検証方法
-5. fixpoint 未達時のデバッグ方法
-6. CI 統合方法
-7. Rust 版と Arukellt 版の二重メンテナンス方針
+- [ ] bootstrap guide が Stage 0/1/2、前提ツール、fixpoint 検証、debug 手順を含む
+- [ ] bootstrap verification (#166) と dump phases (#167) への参照が docs から辿れる
+- [ ] docs 単体で第三者が再現手順を追える構成になっている
 
-## 完了条件
+## References
 
-- `docs/compiler/bootstrap.md` が存在する
-- 上記7項目をすべて含む
-- 第三者がこのドキュメントだけでブートストラップを再現できる
+- `issues/open/166-v5-bootstrap-verification.md`
+- `issues/open/167-v5-debug-dump-phases.md`
+- `docs/current-state.md`

@@ -1,35 +1,26 @@
-# 165: Phase 3 — Wasm Emitter の Arukellt 実装
+# v5 Phase 3: Backend + Wasm emission epic
 
-**Version**: v5 Phase 3
-**Priority**: P1
-**Depends on**: #164 (Resolver + TypeChecker)
+**Status**: open
+**ID**: 165
+**Depends on**: 179, 180
+**Track**: main
+**Blocks v1 exit**: no
 
-## 概要
+**Status note**: Parent issue for backend work after typed HIR exists. Includes MIR lowering and Wasm emission.
 
-Arukellt で書かれた Wasm バイナリエミッターを実装する。MIR から Wasm バイナリを生成し、stdout に出力する。
+## Summary
 
-## タスク
+v5 backend は 1 本の "emitter" ではなく、typed IR を MIR に落とす段階と、決定的な Wasm バイナリを出す段階に分かれる。fixpoint まで含めて見ても、この 2 段を分離して追跡したほうが queue が実態に近い。
 
-1. `src/compiler/emitter.ark`: Wasm バイナリ生成
-   - Wasm バイナリフォーマット: magic number, version, sections
-   - LEB128 エンコード (符号付き/符号なし)
-   - Type section, Import section, Function section, Memory section, Export section, Code section, Data section
-   - GC 拡張: struct.new, array.new, ref.cast, br_on_cast
-2. `src/compiler/wasm_types.ark`: Wasm 型定義ヘルパー
-   - ValType, FuncType, StructType, ArrayType
-3. バイナリ出力: `Vec<i32>` (バイト列) として構築し `fd_write(1, bytes, len)` で stdout に書き出す
-4. wasmparser による生成 Wasm の validation (外部コマンド or inline)
-5. T1 (wasm32-wasi-p1) と T3 (wasm-gc-p2) の両方の emit モード
+## Acceptance
 
-## 完了条件
+- [ ] #179, #180 が完了している
+- [ ] HIR→MIR lowering と Wasm binary emission の責務が別 issue に分かれている
+- [ ] T1/T3 backend 差分と deterministic output requirements が child issue に反映されている
 
-- `arukellt compile src/compiler/*.ark -o arukellt-s1.wasm` が成功する
-- `arukellt-s1.wasm` が wasmparser で valid
-- `arukellt-s1.wasm` で 全 fixture test を pass する
-- Stage 1 → Stage 2 の fixpoint が達成される (sha256 一致)
+## References
 
-## 注意事項
-
-- Wasm バイナリの関数インデックス順序を決定的にする (fixpoint のため)
-- バイナリ生成は最も低レベルなコンポーネント。LEB128 のオフバイワンエラーに注意
-- GC 拡張命令のエンコーディングは wasm-gc spec を厳密に参照する
+- `issues/open/164-v5-phase2-resolver-typechecker.md`
+- `issues/done/168-v5-ir-spec-doc.md`
+- `crates/ark-mir/src/lower/`
+- `crates/ark-wasm/src/emit/`

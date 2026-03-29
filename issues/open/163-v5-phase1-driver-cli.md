@@ -1,32 +1,26 @@
-# 163: Phase 1 — Driver + CLI の Arukellt 実装
+# v5 Phase 1: Driver + CLI epic
 
-**Version**: v5 Phase 1
-**Priority**: P1
-**Depends on**: #161 (Lexer), #162 (Parser)
+**Status**: open
+**ID**: 163
+**Depends on**: 175, 176
+**Track**: main
+**Blocks v1 exit**: no
 
-## 概要
+**Status note**: Parent issue for the selfhost driver / CLI surface. Debug dumping is tracked separately in #167.
 
-Arukellt で書かれた Driver と CLI エントリーポイントを実装する。Phase 1 完了時点では Lexer + Parser のみを呼び出し、AST をダンプする。
+## Summary
 
-## タスク
+Phase 1 の driver/CLI は、コマンド surface とコンパイルパイプライン接続を分けて追う必要がある。特に `ARUKELLT_DUMP_PHASES` は継続的に拡張されるため、この issue から切り離して #167 に集約する。
 
-1. `src/compiler/main.ark`: CLI エントリーポイント
-   - `args()` でコマンドライン引数取得
-   - サブコマンド: `parse` (AST ダンプ), `compile` (Phase 2 以降で有効化)
-2. `src/compiler/driver.ark`: パイプラインオーケストレーション
-   - `fs_read_file(path)` でソース読み込み
-   - `tokenize()` → `parse()` の呼び出し
-   - 結果の stdout 出力
-3. エラーハンドリング: ファイル不在、パースエラーで exit(1)
-4. `ARUKELLT_DUMP_PHASES` 環境変数対応 (Phase 1: tokens, ast)
+## Acceptance
 
-## 完了条件
+- [ ] #175, #176 が完了している
+- [ ] `parse` / `compile` / exit code / file loading の責務が child issue に分解されている
+- [ ] debug dump の責務が #167 にのみ存在し、本文間で重複していない
 
-- `arukellt compile src/compiler/*.ark -o arukellt-p1.wasm` が成功する
-- `wasmtime run arukellt-p1.wasm -- parse tests/fixtures/basic/hello.ark` が AST を出力する
-- exit code が正常系で 0、エラー系で 1
+## References
 
-## 注意事項
-
-- Phase 1 Driver は compile サブコマンドを stub にしておく (Phase 2 で Resolver + TypeChecker を接続)
-- args() の挙動は WASI によって異なるため、WASI P1/P2 両方でテスト
+- `issues/open/162-v5-phase1-parser.md`
+- `issues/open/167-v5-debug-dump-phases.md`
+- `crates/ark-driver/src/session.rs`
+- `crates/arukellt/src/main.rs`

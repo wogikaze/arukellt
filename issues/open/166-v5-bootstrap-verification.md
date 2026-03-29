@@ -1,45 +1,25 @@
-# 166: ブートストラップ検証スクリプト
+# v5 Bootstrap verification epic
 
-**Version**: v5
-**Priority**: P1
-**Depends on**: #165 (Wasm Emitter)
+**Status**: open
+**ID**: 166
+**Depends on**: 181, 182
+**Track**: main
+**Blocks v1 exit**: no
 
-## 概要
+**Status note**: Parent issue for bootstrap verification. End-user documentation is tracked separately in #169.
 
-Stage 0 → Stage 1 → Stage 2 のブートストラップを自動検証するスクリプトを作成する。
+## Summary
 
-## タスク
+ブートストラップ検証は、fixpoint を確認する比較スクリプトと、verify-harness / CI への接続を分けて扱う必要がある。手順書は検証コードとは別の成果物なので #169 に分離する。
 
-1. `scripts/verify-bootstrap.sh` の作成:
+## Acceptance
 
-   ```bash
-   #!/bin/bash
-   set -euo pipefail
-   
-   # Stage 0: Rust 版でコンパイル
-   cargo build --release -p arukellt
-   target/release/arukellt compile src/compiler/*.ark -o arukellt-s1.wasm
-   
-   # Stage 1 で fixture テスト
-   for f in tests/fixtures/**/*.ark; do
-     wasmtime run arukellt-s1.wasm -- compile "$f" -o /tmp/test.wasm
-     # validate output
-   done
-   
-   # Stage 1 → Stage 2
-   wasmtime run arukellt-s1.wasm -- compile src/compiler/*.ark -o arukellt-s2.wasm
-   
-   # fixpoint 検証
-   sha256sum arukellt-s1.wasm arukellt-s2.wasm
-   diff <(sha256sum arukellt-s1.wasm | cut -d' ' -f1) <(sha256sum arukellt-s2.wasm | cut -d' ' -f1)
-   echo "BOOTSTRAP FIXPOINT VERIFIED"
-   ```
+- [ ] #181, #182 が完了している
+- [ ] bootstrap verification の実装責務と docs 責務が分離されている
+- [ ] selfhost fixpoint 検証が issue queue 上で追跡できる
 
-2. `scripts/compare-outputs.sh`: Rust 版と Arukellt 版の phase 出力比較
-3. CI 連携: verify-bootstrap.sh を verify-harness.sh に統合 (条件付き実行)
+## References
 
-## 完了条件
-
-- `scripts/verify-bootstrap.sh` が exit 0 で完了する
-- fixpoint (sha256 一致) が確認される
-- `docs/compiler/bootstrap.md` にブートストラップ手順が記載されている
+- `issues/open/165-v5-phase3-wasm-emitter.md`
+- `issues/open/169-v5-bootstrap-doc.md`
+- `scripts/verify-harness.sh`
