@@ -1,0 +1,248 @@
+[
+  {
+    "name": "binary_tree",
+    "total_bytes": 713,
+    "sections": {
+      "types": 97,
+      "imports": 35,
+      "functions": 10,
+      "tables": 5,
+      "memories": 4,
+      "globals": 8,
+      "exports": 19,
+      "elements": 18,
+      "code": 459,
+      "data": 29
+    },
+    "top_functions": [
+      {
+        "index": 0,
+        "bytes": 142
+      },
+      {
+        "index": 8,
+        "bytes": 103
+      },
+      {
+        "index": 1,
+        "bytes": 63
+      },
+      {
+        "index": 2,
+        "bytes": 59
+      },
+      {
+        "index": 3,
+        "bytes": 43
+      },
+      {
+        "index": 4,
+        "bytes": 20
+      },
+      {
+        "index": 5,
+        "bytes": 6
+      },
+      {
+        "index": 6,
+        "bytes": 6
+      },
+      {
+        "index": 7,
+        "bytes": 6
+      }
+    ]
+  },
+  {
+    "name": "fib",
+    "total_bytes": 737,
+    "sections": {
+      "types": 97,
+      "imports": 35,
+      "functions": 10,
+      "tables": 5,
+      "memories": 4,
+      "globals": 8,
+      "exports": 19,
+      "elements": 18,
+      "code": 483,
+      "data": 29
+    },
+    "top_functions": [
+      {
+        "index": 0,
+        "bytes": 142
+      },
+      {
+        "index": 8,
+        "bytes": 103
+      },
+      {
+        "index": 3,
+        "bytes": 73
+      },
+      {
+        "index": 1,
+        "bytes": 63
+      },
+      {
+        "index": 2,
+        "bytes": 59
+      },
+      {
+        "index": 4,
+        "bytes": 14
+      },
+      {
+        "index": 5,
+        "bytes": 6
+      },
+      {
+        "index": 6,
+        "bytes": 6
+      },
+      {
+        "index": 7,
+        "bytes": 6
+      }
+    ]
+  },
+  {
+    "name": "startup",
+    "total_bytes": 241,
+    "sections": {
+      "types": 97,
+      "imports": 35,
+      "functions": 2,
+      "tables": 5,
+      "memories": 4,
+      "globals": 8,
+      "exports": 19,
+      "elements": 10,
+      "code": 4,
+      "data": 29
+    },
+    "top_functions": [
+      {
+        "index": 0,
+        "bytes": 2
+      }
+    ]
+  },
+  {
+    "name": "string_concat",
+    "total_bytes": 904,
+    "sections": {
+      "types": 97,
+      "imports": 35,
+      "functions": 12,
+      "tables": 5,
+      "memories": 4,
+      "globals": 8,
+      "exports": 19,
+      "elements": 20,
+      "code": 613,
+      "data": 62
+    },
+    "top_functions": [
+      {
+        "index": 3,
+        "bytes": 144
+      },
+      {
+        "index": 0,
+        "bytes": 142
+      },
+      {
+        "index": 10,
+        "bytes": 103
+      },
+      {
+        "index": 1,
+        "bytes": 63
+      },
+      {
+        "index": 2,
+        "bytes": 59
+      },
+      {
+        "index": 4,
+        "bytes": 58
+      },
+      {
+        "index": 9,
+        "bytes": 8
+      },
+      {
+        "index": 5,
+        "bytes": 6
+      },
+      {
+        "index": 6,
+        "bytes": 6
+      },
+      {
+        "index": 7,
+        "bytes": 6
+      }
+    ]
+  },
+  {
+    "name": "vec_ops",
+    "total_bytes": 1506,
+    "sections": {
+      "types": 97,
+      "imports": 35,
+      "functions": 11,
+      "tables": 5,
+      "memories": 4,
+      "globals": 8,
+      "exports": 19,
+      "elements": 19,
+      "code": 1176,
+      "data": 103
+    },
+    "top_functions": [
+      {
+        "index": 3,
+        "bytes": 665
+      },
+      {
+        "index": 0,
+        "bytes": 142
+      },
+      {
+        "index": 7,
+        "bytes": 103
+      },
+      {
+        "index": 1,
+        "bytes": 63
+      },
+      {
+        "index": 9,
+        "bytes": 62
+      },
+      {
+        "index": 2,
+        "bytes": 59
+      },
+      {
+        "index": 8,
+        "bytes": 51
+      },
+      {
+        "index": 4,
+        "bytes": 6
+      },
+      {
+        "index": 5,
+        "bytes": 6
+      },
+      {
+        "index": 6,
+        "bytes": 6
+      }
+    ]
+  }
+]
