@@ -3020,7 +3020,7 @@ impl Ctx {
         //   si(3)  = str_ptr       (i32)
         //   si(4)  = str_ref       (ref null $string) ← ref type
         //   si(9)  = len           (i32)
-        //   si(10) = vec result    (anyref — holds Vec<String> GC ref)
+        //   si(12) = vec result    (ref null $vec_string_ty)
 
         // Step 1: args_sizes_get
         f.instruction(&Instruction::I32Const(SCRATCH as i32));
@@ -3048,7 +3048,7 @@ impl Ctx {
 
         // Step 3: create empty Vec<String>
         self.emit_vec_new_gc(f, self.vec_string_ty, self.arr_string_ty);
-        f.instruction(&Instruction::LocalSet(self.si(10)));
+        f.instruction(&Instruction::LocalSet(self.si(12)));
 
         // Step 4: loop i = 1..argc (skip argv[0] = program name)
         f.instruction(&Instruction::I32Const(1));
@@ -3137,7 +3137,7 @@ impl Ctx {
 
         // Push str_ref onto Vec<String> — inline push:
         // vec_len = struct.get $vec_string field 1 → si(1) (reuse as vec_len)
-        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::LocalGet(self.si(12)));
         f.instruction(&Instruction::StructGet {
             struct_type_index: self.vec_string_ty,
             field_index: 1,
@@ -3145,7 +3145,7 @@ impl Ctx {
         f.instruction(&Instruction::LocalSet(self.si(1)));
 
         // backing_array[vec_len] = str_ref
-        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::LocalGet(self.si(12)));
         f.instruction(&Instruction::StructGet {
             struct_type_index: self.vec_string_ty,
             field_index: 0,
@@ -3155,7 +3155,7 @@ impl Ctx {
         f.instruction(&Instruction::ArraySet(self.arr_string_ty));
 
         // vec.len = vec_len + 1
-        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::LocalGet(self.si(12)));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
@@ -3174,7 +3174,7 @@ impl Ctx {
         f.instruction(&Instruction::End);
 
         // Leave vec ref on stack
-        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::LocalGet(self.si(12)));
     }
 
     /// Emit `arg_count()` → i32: number of CLI arguments (excluding argv[0]).

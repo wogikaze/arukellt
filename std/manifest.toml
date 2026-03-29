@@ -1493,6 +1493,7 @@ module = "std::host::env"
 stability = "stable"
 params = []
 returns = "Vec<String>"
+intrinsic = "__intrinsic_args"
 doc_category = "host_env"
 
 [[functions]]
@@ -1509,6 +1510,7 @@ module = "std::host::env"
 stability = "stable"
 params = []
 returns = "i32"
+intrinsic = "__intrinsic_arg_count"
 doc_category = "host_env"
 
 [[functions]]
@@ -1517,6 +1519,7 @@ module = "std::host::env"
 stability = "stable"
 params = ["i32"]
 returns = "Option<String>"
+intrinsic = "__intrinsic_arg_at"
 doc_category = "host_env"
 
 [[functions]]

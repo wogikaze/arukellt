@@ -131,6 +131,9 @@ impl LowerCtx {
                                 self.vec_f64_locals.insert(local_id.0);
                             } else if inner == "i32" {
                                 self.vec_i32_locals.insert(local_id.0);
+                            } else if self.struct_defs.contains_key(inner.as_str()) {
+                                // Vec<StructName> — track for get_unchecked result type inference
+                                self.vec_struct_locals.insert(local_id.0, inner.clone());
                             }
                         }
                         if self.enum_variants.contains_key(tname.as_str()) {
@@ -182,6 +185,35 @@ impl LowerCtx {
                 {
                     self.struct_typed_locals.insert(local_id.0, sname);
                 }
+                // Infer Vec<Struct> elem type from Vec_new_* init (no annotation case)
+                if !self.vec_struct_locals.contains_key(&local_id.0)
+                    && let ast::Expr::Call { callee, .. } = init
+                    && let ast::Expr::Ident {
+                        name: callee_name, ..
+                    } = callee.as_ref()
+                    && let Some(sname) = callee_name.strip_prefix("Vec_new_")
+                    && self.struct_defs.contains_key(sname)
+                {
+                    self.vec_struct_locals.insert(local_id.0, sname.to_string());
+                }
+                // Infer struct type from get_unchecked(vec, i) where vec is a Vec<Struct>
+                if !self.struct_typed_locals.contains_key(&local_id.0)
+                    && let ast::Expr::Call {
+                        callee,
+                        args: call_args,
+                        ..
+                    } = init
+                    && let ast::Expr::Ident {
+                        name: callee_name, ..
+                    } = callee.as_ref()
+                    && (callee_name == "get_unchecked" || callee_name == "get")
+                    && let Some(first_arg) = call_args.first()
+                    && let ast::Expr::Ident { name: arg_name, .. } = first_arg
+                    && let Some(vec_local_id) = self.lookup_local(arg_name)
+                    && let Some(sname) = self.vec_struct_locals.get(&vec_local_id.0).cloned()
+                {
+                    self.struct_typed_locals.insert(local_id.0, sname);
+                }
                 // Infer enum type from call return type when there's no explicit annotation
                 #[allow(clippy::map_entry)]
                 if !self.enum_typed_locals.contains_key(&local_id.0)
@@ -217,6 +249,25 @@ impl LowerCtx {
                         }
                         if let Some(spec) = detect_specialized_result(&ret_te) {
                             self.enum_local_specialized.insert(local_id.0, spec);
+                        }
+                    }
+                    // Infer Vec type from return type expr
+                    if let ast::TypeExpr::Generic {
+                        name: tname, args, ..
+                    } = &ret_te
+                        && tname == "Vec"
+                    {
+                        if args.first().is_some_and(is_string_type) {
+                            self.vec_string_locals.insert(local_id.0);
+                        } else if let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first()
+                        {
+                            if inner == "i64" {
+                                self.vec_i64_locals.insert(local_id.0);
+                            } else if inner == "f64" {
+                                self.vec_f64_locals.insert(local_id.0);
+                            } else {
+                                self.vec_i32_locals.insert(local_id.0);
+                            }
                         }
                     }
                 }

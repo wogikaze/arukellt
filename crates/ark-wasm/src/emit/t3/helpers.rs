@@ -1817,7 +1817,7 @@ impl Ctx {
                             Operand::StructInit { name, .. } => {
                                 extra_struct.entry(dst.0).or_insert_with(|| name.clone());
                             }
-                            Operand::Call(name, _) => {
+                            Operand::Call(name, args) => {
                                 let canonical = normalize_intrinsic(name);
                                 if let Some(sname) = canonical.strip_prefix("Vec_new_") {
                                     match sname {
@@ -1908,6 +1908,16 @@ impl Ctx {
                                             .entry(dst.0)
                                             .or_insert_with(|| "Option".to_string());
                                     }
+                                    // get_unchecked on Vec<Struct> → result is a struct
+                                    "get_unchecked" | "get" => {
+                                        if let Some(first_arg) = args.first()
+                                            && let Operand::Place(Place::Local(src)) = first_arg
+                                            && let Some(sname) =
+                                                self.struct_vec_locals.get(&src.0).cloned()
+                                        {
+                                            extra_struct.entry(dst.0).or_insert(sname);
+                                        }
+                                    }
                                     _ => {}
                                 }
                                 // Also check fn_ret_type_names for enum return types
@@ -1921,6 +1931,11 @@ impl Ctx {
                                             .contains_key(specialized_name.as_str())
                                     {
                                         extra_enum.entry(dst.0).or_insert_with(|| specialized_name);
+                                    } else if self.struct_gc_types.contains_key(ret_name.as_str()) {
+                                        // Function returns a struct type
+                                        extra_struct
+                                            .entry(dst.0)
+                                            .or_insert_with(|| ret_name.clone());
                                     }
                                 }
                             }
@@ -1930,6 +1945,7 @@ impl Ctx {
                     MirStmt::CallBuiltin {
                         dest: Some(Place::Local(dst)),
                         name,
+                        args,
                         ..
                     } => {
                         let canonical = normalize_intrinsic(name);
@@ -2019,6 +2035,15 @@ impl Ctx {
                                 extra_enum
                                     .entry(dst.0)
                                     .or_insert_with(|| "Option".to_string());
+                            }
+                            // get_unchecked on Vec<Struct> → result is a struct
+                            "get_unchecked" | "get" => {
+                                if let Some(first_arg) = args.first()
+                                    && let Operand::Place(Place::Local(src)) = first_arg
+                                    && let Some(sname) = self.struct_vec_locals.get(&src.0).cloned()
+                                {
+                                    extra_struct.entry(dst.0).or_insert(sname);
+                                }
                             }
                             _ => {}
                         }
@@ -2218,6 +2243,9 @@ impl Ctx {
         local_types.push((1, anyref_ty));
         // si(11): anyref scratch #2 for HOF operations
         local_types.push((1, anyref_ty));
+        // si(12): ref null $vec_string_ty scratch for emit_args_builtin
+        let vec_string_ref = ref_nullable(self.vec_string_ty);
+        local_types.push((1, vec_string_ref));
 
         let mut f = Function::new(local_types);
 

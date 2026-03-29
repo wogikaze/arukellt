@@ -153,9 +153,17 @@ impl Ctx {
                     // Check if this is a stdlib wrapper function — redirect to CallBuiltin path
                     let canonical = normalize_intrinsic(&fn_name);
                     let lookup_name = fn_name.rsplit("::").next().unwrap_or(fn_name.as_str());
-                    let prefer_user_fn = fn_name.contains("::");
-                    if self.is_builtin_name(canonical) && !prefer_user_fn {
-                        self.emit_call_builtin(f, canonical, args, dest.as_ref());
+                    // Host-module builtins (e.g. env::arg_count) are qualified with "::" but
+                    // must still be inlined rather than forwarded to a separate function.
+                    let is_lookup_builtin = self.is_builtin_name(lookup_name);
+                    let prefer_user_fn = fn_name.contains("::") && !is_lookup_builtin;
+                    let effective_builtin = if self.is_builtin_name(canonical) {
+                        canonical
+                    } else {
+                        lookup_name
+                    };
+                    if (self.is_builtin_name(canonical) || is_lookup_builtin) && !prefer_user_fn {
+                        self.emit_call_builtin(f, effective_builtin, args, dest.as_ref());
                     } else {
                         let param_types = self
                             .fn_param_types
@@ -465,6 +473,10 @@ impl Ctx {
                 | "fs_write_file"
                 | "memory_copy"
                 | "memory_fill"
+                | "arg_count"
+                | "arg_at"
+                | "has_flag"
+                | "var"
         ) || (name.starts_with("Vec_new_") && self.custom_vec_types.contains_key(&name[8..]))
     }
 
@@ -901,6 +913,23 @@ impl Ctx {
             }
             "args" => {
                 self.emit_args_builtin(f);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "arg_count" => {
+                self.emit_arg_count_builtin(f);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "arg_at" => {
+                let idx_op = args.first().cloned().unwrap_or(Operand::ConstI32(0));
+                self.emit_arg_at_builtin(f, &idx_op);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
@@ -1415,6 +1444,16 @@ impl Ctx {
                 f.instruction(&Instruction::F64ConvertI64U);
                 f.instruction(&Instruction::F64Const((1u64 << 53) as f64));
                 f.instruction(&Instruction::F64Div);
+            }
+            "arg_count" => {
+                self.emit_arg_count_builtin(f);
+            }
+            "arg_at" => {
+                let idx_op = args.first().cloned().unwrap_or(Operand::ConstI32(0));
+                self.emit_arg_at_builtin(f, &idx_op);
+            }
+            "args" => {
+                self.emit_args_builtin(f);
             }
             _ => {
                 // Unimplemented builtin as operand — push null ref for string types

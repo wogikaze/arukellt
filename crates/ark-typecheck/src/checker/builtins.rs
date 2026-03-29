@@ -1050,5 +1050,98 @@ impl TypeChecker {
                 ret: Type::I32,
             },
         );
+
+        // --- std::host::env builtins ---
+        for name in &["args", "env::args"] {
+            self.fn_sigs.insert(
+                (*name).into(),
+                FnSig {
+                    name: (*name).into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![],
+                    ret: Type::Vec(Box::new(Type::String)),
+                },
+            );
+        }
+        for name in &["arg_count", "env::arg_count"] {
+            self.fn_sigs.insert(
+                (*name).into(),
+                FnSig {
+                    name: (*name).into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![],
+                    ret: Type::I32,
+                },
+            );
+        }
+        for name in &["arg_at", "env::arg_at"] {
+            self.fn_sigs.insert(
+                (*name).into(),
+                FnSig {
+                    name: (*name).into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![Type::I32],
+                    ret: Type::String,
+                },
+            );
+        }
+        for name in &["has_flag", "env::has_flag"] {
+            self.fn_sigs.insert(
+                (*name).into(),
+                FnSig {
+                    name: (*name).into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![Type::String],
+                    ret: Type::Bool,
+                },
+            );
+        }
+        for name in &["var", "env::var"] {
+            self.fn_sigs.insert(
+                (*name).into(),
+                FnSig {
+                    name: (*name).into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![Type::String],
+                    ret: Type::Option(Box::new(Type::String)),
+                },
+            );
+        }
+        // __intrinsic_* counterparts for use in std/host/env.ark
+        self.fn_sigs.insert(
+            "__intrinsic_args".into(),
+            FnSig {
+                name: "__intrinsic_args".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::Vec(Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_arg_count".into(),
+            FnSig {
+                name: "__intrinsic_arg_count".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_arg_at".into(),
+            FnSig {
+                name: "__intrinsic_arg_at".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::String,
+            },
+        );
     }
 }

@@ -131,6 +131,9 @@ fn normalize_intrinsic(name: &str) -> &str {
             "sort_i32" => "sort_i32",
             "memory_copy" => "memory_copy",
             "memory_fill" => "memory_fill",
+            "args" => "args",
+            "arg_count" => "arg_count",
+            "arg_at" => "arg_at",
             other => other,
         }
     } else {
@@ -1502,7 +1505,8 @@ impl Ctx {
         for &idx in &reachable_user_indices {
             let func = &mir.functions[idx];
             let canonical = normalize_intrinsic(&func.name);
-            if self.is_builtin_name(canonical) {
+            let lookup = func.name.rsplit("::").next().unwrap_or(&func.name);
+            if self.is_builtin_name(canonical) || self.is_builtin_name(lookup) {
                 // Builtin functions are inlined at call sites — emit a stub body
                 // that just returns a default value to satisfy validation.
                 self.emit_builtin_stub(&mut codes, func);

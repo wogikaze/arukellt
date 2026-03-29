@@ -182,10 +182,16 @@ impl Ctx {
             Operand::Call(name, args) => {
                 let canonical = normalize_intrinsic(name).to_string();
                 let lookup_name = name.rsplit("::").next().unwrap_or(name.as_str());
-                let prefer_user_fn = name.contains("::");
+                let is_lookup_builtin = self.is_builtin_name(lookup_name);
+                let prefer_user_fn = name.contains("::") && !is_lookup_builtin;
+                let effective_builtin = if self.is_builtin_name(&canonical) {
+                    canonical.as_str()
+                } else {
+                    lookup_name
+                };
                 // Check if this is a builtin — redirect to inline implementation
-                if self.is_builtin_name(&canonical) && !prefer_user_fn {
-                    self.emit_call_builtin_operand(f, &canonical, args);
+                if (self.is_builtin_name(&canonical) || is_lookup_builtin) && !prefer_user_fn {
+                    self.emit_call_builtin_operand(f, effective_builtin, args);
                 } else {
                     // Check if callee has Any-typed (generic) params needing boxing
                     let param_types = self

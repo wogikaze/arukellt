@@ -213,6 +213,30 @@ impl TypeChecker {
                             }
                         }
                     }
+                    // Vec method calls: vec.len(), vec.get(i), vec.push(v), etc.
+                    if matches!(obj_ty, Type::Vec(_)) {
+                        let method_name = field.as_str();
+                        if let Some(sig) = self.fn_sigs.get(method_name).cloned() {
+                            for a in args {
+                                self.synthesize_expr(a, env, sink);
+                            }
+                            self.method_resolutions
+                                .insert(span.start, (method_name.to_string(), "Vec".to_string()));
+                            let expr_id = self.node_ids.fresh_expr();
+                            self.typed_ast_map.register_span(span.start, expr_id);
+                            self.typed_ast_map.insert_expr(
+                                expr_id,
+                                TypedExprInfo {
+                                    ty: sig.ret.clone(),
+                                    method_resolution: Some((
+                                        method_name.to_string(),
+                                        "Vec".to_string(),
+                                    )),
+                                },
+                            );
+                            return sig.ret;
+                        }
+                    }
                     // Not a method call — synthesize args but return I32 (struct field or error)
                     for a in args {
                         self.synthesize_expr(a, env, sink);

@@ -29,15 +29,15 @@ The current implementation uses lightweight fallbacks because the WASI
 
 Host environment helpers.
 
-The current implementation is intentionally small and still uses stubbed
-fallbacks until WASI argument and environment imports are wired end-to-end.
+Backed by WASI args_sizes_get / args_get for CLI argument access.
+Environment variable lookup remains a stub (WASI environ not yet wired).
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `args` | `() -> Vec<String>` | `stable` | Returns the process argument vector. |
-| `arg_count` | `() -> i32` | `stable` | Returns the number of process arguments. |
-| `var` | `(String) -> Option<String>` | `stable` | Looks up an environment variable by name. |
-| `arg_at` | `(i32) -> Option<String>` | `stable` | Returns the argument at the given index when present. |
+| `args` | `() -> Vec<String>` | `stable` | Returns the process argument vector (excluding argv[0]). |
+| `arg_count` | `() -> i32` | `stable` | Returns the number of process arguments (excluding argv[0]). |
+| `arg_at` | `(i32) -> Option<String>` | `stable` | Returns the argument at the given index when in range. |
+| `var` | `(String) -> Option<String>` | `stable` | Looks up an environment variable by name (stub — always returns None). |
 | `has_flag` | `(String) -> bool` | `stable` | Returns true when the argument vector contains the given flag. |

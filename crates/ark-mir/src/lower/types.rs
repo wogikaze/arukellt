@@ -229,6 +229,13 @@ impl LowerCtx {
                 if let ast::Expr::Ident { name, .. } = callee.as_ref() {
                     return self.fn_return_types.get(name).cloned();
                 }
+                if let ast::Expr::QualifiedIdent { module, name, .. } = callee.as_ref() {
+                    let qualified = format!("{}::{}", module, name);
+                    if let Some(ret) = self.fn_return_types.get(&qualified).cloned() {
+                        return Some(ret);
+                    }
+                    return self.fn_return_types.get(name.as_str()).cloned();
+                }
                 if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref()
                     && let Some(struct_name) = self.infer_struct_type(object)
                 {

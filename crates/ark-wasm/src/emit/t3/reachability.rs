@@ -355,7 +355,12 @@ impl Ctx {
 
     fn stmt_uses_args(stmt: &MirStmt) -> bool {
         match stmt {
-            MirStmt::CallBuiltin { name, .. } => name == "args" || name == "__intrinsic_args",
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "args"
+                    || name == "__intrinsic_args"
+                    || name == "arg_count"
+                    || name == "arg_at"
+            }
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_args(rvalue),
             MirStmt::IfStmt {
                 cond,
@@ -386,7 +391,13 @@ impl Ctx {
     fn operand_uses_args(op: &Operand) -> bool {
         match op {
             Operand::Call(name, args) => {
-                if name == "args" || name == "__intrinsic_args" {
+                if name == "args"
+                    || name == "__intrinsic_args"
+                    || name == "arg_count"
+                    || name == "__intrinsic_arg_count"
+                    || name == "arg_at"
+                    || name == "__intrinsic_arg_at"
+                {
                     return true;
                 }
                 args.iter().any(Self::operand_uses_args)

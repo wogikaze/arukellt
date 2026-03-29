@@ -67,6 +67,14 @@ fn type_to_type_expr(ty: &CheckerType) -> Option<ast::TypeExpr> {
                 span: dummy,
             })
         }
+        CheckerType::Vec(elem) => {
+            let elem_te = type_to_type_expr(elem)?;
+            Some(ast::TypeExpr::Generic {
+                name: "Vec".into(),
+                args: vec![elem_te],
+                span: dummy,
+            })
+        }
         _ => None,
     }
 }
