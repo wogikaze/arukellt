@@ -1,0 +1,25 @@
+# Semantic preview / diff / ghost refactor surface
+
+**Status**: open
+**Created**: 2026-03-29
+**Updated**: 2026-03-29
+**ID**: 194
+**Depends on**: 193
+**Track**: parallel
+**Blocks v1 exit**: no
+
+## Summary
+
+text diff を超えて AST / symbol / behavior diff を提示し、rename / format / organize imports / structural rewrite を仮想適用で preview できるようにする。refactor の見える化専用の child issue。
+
+## Acceptance
+
+- [ ] semantic diff と behavior-aware diff の責務が追跡できる
+- [ ] ghost refactor / preview-only apply の導線が定義されている
+- [ ] refactor 前後の見える化 UX を issue queue 上で追跡できる
+
+## References
+
+- `issues/open/185-lsp-ide-workflows-rename-code-actions-formatting.md`
+- `issues/open/193-refactor-search-and-workspace-navigation-surface.md`
+- `crates/ark-lsp/src/server.rs`

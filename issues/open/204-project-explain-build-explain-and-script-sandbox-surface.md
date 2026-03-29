@@ -1,0 +1,25 @@
+# Project explain / build explain / script sandbox surface
+
+**Status**: open
+**Created**: 2026-03-29
+**Updated**: 2026-03-29
+**ID**: 204
+**Depends on**: 202, 203
+**Track**: parallel
+**Blocks v1 exit**: no
+
+## Summary
+
+workspace knowledge graph、`why is this compiled?`、build/target explain、script sandbox preview、environment diff、reachability/dead-code reporting など、project understanding の explain/inspection surface を追う。
+
+## Acceptance
+
+- [ ] project/build/script explain 系 UX の責務が追跡できる
+- [ ] sandbox preview / environment diff の責務が整理されている
+- [ ] reachability / dead-code / project graph の責務を issue queue 上で追跡できる
+
+## References
+
+- `issues/open/188-ark-toml-project-workspace-and-scripts.md`
+- `issues/open/202-ark-toml-schema-and-project-workspace-discovery.md`
+- `issues/open/203-script-run-and-script-list-cli-surface.md`

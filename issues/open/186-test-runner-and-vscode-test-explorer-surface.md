@@ -4,37 +4,27 @@
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 186
-**Depends on**: none
+**Depends on**: 196, 197, 198
 **Track**: parallel
 **Blocks v1 exit**: no
 
+**Status note**: Parent issue for test discovery/runner, VS Code test integration, and advanced test UX.
+
 ## Summary
 
-`std::test` 自体は存在するが、`issues/done/056-std-test.md` にも未解決論点として残っている通り、test runner（テスト関数の自動検出・実行）はまだ first-class ではない。
-VS Code の all-in-one 拡張で Test Explorer を成立させるには、言語ランタイム / CLI 側に「テストとは何か」「どう列挙し、どう実行し、どう結果を返すか」という安定 surface が必要である。
+Arukellt の test UX は、CLI runner の整備、VS Code Test Explorer 連携、高度な snapshot / impact / fuzz UX で責務が分かれる。
+拡張側の見た目だけ先に作らず、CLI / runner / IDE integration / advanced UX を child issue で分けて追跡する。
 
-本 issue では、Arukellt のテスト宣言・検出・実行・machine-readable reporting を CLI surface として固め、拡張が shell の生ログ解析に依存しなくて済む状態を作る。
+## Acceptance
 
-## 受け入れ条件
+- [ ] #196, #197, #198 が完了している
+- [ ] runner core / VS Code test integration / advanced test UX の責務が child issue に分解されている
+- [ ] test UX の残課題が issue queue 上で追跡できる
 
-1. テスト関数 / テストファイル / テストモジュールの discovery rule が定義され、docs から辿れる
-2. `arukellt test` で package / file / single test name 単位の実行ができる
-3. `arukellt test --json` などの machine-readable reporter が、discover / start / pass / fail / skip / duration / location を出力する
-4. assertion failure / snapshot mismatch / panic が test result と source location に結び付く
-5. 失敗テストの再実行、filter 実行、snapshot 更新フローを CLI surface として扱える
-6. VS Code Test Explorer がこの surface をそのまま利用できる
+## References
 
-## 実装タスク
-
-1. test declaration / discovery rule を決める
-2. runner と reporter 形式（JSON lines など）を定義する
-3. `arukellt test` subcommand を実装する
-4. `std::test` の assertion / snapshot failure を runner と接続する
-5. fixtures / docs / sample project を追加する
-
-## 参照
-
+- `issues/open/196-arukellt-test-discovery-runner-and-json-reporter.md`
+- `issues/open/197-vscode-test-explorer-and-inline-test-execution.md`
+- `issues/open/198-advanced-test-ux-impact-analysis-snapshot-diff-and-fuzz-ui.md`
 - `issues/done/056-std-test.md`
 - `docs/cookbook/testing-patterns.md`
-- `docs/stdlib/modules/test.md`
-- `docs/current-state.md`
