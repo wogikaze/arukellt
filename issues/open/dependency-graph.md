@@ -14,8 +14,6 @@ graph TD
   I142["142 計測: startup / throughput / tail latency ベンチ"]
   I143["143 計測: allocation / live-set / GC pause / RSS telemetry"]
   I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
-  I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
-  I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
   I162["162 162: Phase 1 — Parser の Arukellt 実装"]
   I163["163 163: Phase 1 — Driver + CLI の Arukellt 実装"]
   I164["164 164: Phase 2 — Resolver + TypeChecker の Arukellt 実装"]
@@ -45,7 +43,6 @@ graph TD
   I142 --> I148
   I143 --> I148
   I145 --> I148
-  I146 --> I148
   I137 --> I136
   I138 --> I136
   I077 --> I136
@@ -68,8 +65,6 @@ graph TD
 - **142** depends on: 149; blocks: 144, 148, 158
 - **143** depends on: 149; blocks: 144, 148, 158
 - **145** depends on: 149; blocks: 148, 158
-- **146** depends on: 149; blocks: 148
-- **147** depends on: 149; blocks: none
 - **162** depends on: #161 (Lexer); blocks: none
 - **163** depends on: #161 (Lexer), #162 (Parser); blocks: none
 - **164** depends on: #163 (Driver + CLI); blocks: none
