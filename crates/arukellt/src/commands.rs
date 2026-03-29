@@ -232,6 +232,7 @@ pub(crate) fn cmd_run(
     deny_random: bool,
     profile_mem: bool,
     mir_select: &str,
+    watch: bool,
 ) {
     // Native target: handled separately
     if target == TargetId::Native {
@@ -282,26 +283,59 @@ pub(crate) fn cmd_run(
 
     let mut session = Session::new();
     let selection = parse_mir_select(mir_select);
-    match session.compile_selected(&file, target, selection).map(|c| c.wasm) {
-        Ok(wasm) => {
-            if profile_mem {
-                if let Ok(info) = session.profile_memory(&file) {
-                    eprintln!("{}", info);
+
+    let run_once = |session: &mut Session| -> bool {
+        match session.compile_selected(&file, target, selection).map(|c| c.wasm) {
+            Ok(wasm) => {
+                if profile_mem {
+                    if let Ok(info) = session.profile_memory(&file) {
+                        eprintln!("{}", info);
+                    }
                 }
+                let caps = RuntimeCaps::from_cli(&dirs, deny_fs, deny_clock, deny_random);
+                let result = match target {
+                    TargetId::Wasm32WasiP2 => run_wasm_gc(&wasm, &caps),
+                    _ => run_wasm_p1(&wasm, &caps),
+                };
+                if let Err(e) = result {
+                    eprintln!("error: runtime: {}", e);
+                }
+                true
             }
-            let caps = RuntimeCaps::from_cli(&dirs, deny_fs, deny_clock, deny_random);
-            let result = match target {
-                TargetId::Wasm32WasiP2 => run_wasm_gc(&wasm, &caps),
-                _ => run_wasm_p1(&wasm, &caps),
-            };
-            if let Err(e) = result {
-                eprintln!("error: runtime: {}", e);
-                process::exit(1);
+            Err(errors) => {
+                eprint!("{}", errors);
+                false
             }
         }
-        Err(errors) => {
-            eprint!("{}", errors);
+    };
+
+    if !watch {
+        let ok = run_once(&mut session);
+        if !ok {
             process::exit(1);
+        }
+        return;
+    }
+
+    // --watch: poll file mtime every 200ms and recompile on change.
+    eprintln!("[watch] watching {} for changes", file.display());
+    run_once(&mut session);
+
+    let mut last_mtime = std::fs::metadata(&file)
+        .and_then(|m| m.modified())
+        .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+
+    loop {
+        std::thread::sleep(std::time::Duration::from_millis(200));
+        let mtime = match std::fs::metadata(&file).and_then(|m| m.modified()) {
+            Ok(t) => t,
+            Err(_) => continue,
+        };
+        if mtime != last_mtime {
+            last_mtime = mtime;
+            eprintln!("[watch] change detected, recompiling...");
+            session.invalidate_file(&file);
+            run_once(&mut session);
         }
     }
 }

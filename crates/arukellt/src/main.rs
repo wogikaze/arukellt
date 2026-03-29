@@ -78,9 +78,12 @@ enum Commands {
         /// Show memory profiling info (escape analysis, allocation hints)
         #[arg(long)]
         profile_mem: bool,
-        /// MIR lowering path: legacy (default) or corehir
-        #[arg(long = "mir-select", value_name = "PATH", default_value = "legacy")]
+        /// MIR lowering path: legacy or corehir (default)
+        #[arg(long = "mir-select", value_name = "PATH", default_value = "corehir")]
         mir_select: String,
+        /// Watch file for changes and recompile automatically
+        #[arg(long)]
+        watch: bool,
     },
     /// Type-check an .ark file without compiling
     Check {
@@ -136,6 +139,7 @@ fn main() {
             deny_random,
             profile_mem,
             mir_select,
+            watch,
         } => {
             commands::cmd_run(
                 file,
@@ -146,6 +150,7 @@ fn main() {
                 deny_random,
                 profile_mem,
                 &mir_select,
+                watch,
             );
         }
         Commands::Check { file, target } => {

@@ -1,4 +1,6 @@
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::time::SystemTime;
 
 use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
 use ark_hir::Program;
@@ -138,6 +140,9 @@ pub struct Session {
     sink: DiagnosticSink,
     config: PipelineConfig,
     artifacts: ArtifactStore,
+    /// mtime-based cache: path → (mtime, source, key). Lets `load_source` skip
+    /// `fs::read_to_string` when the file has not changed since the last compile.
+    file_mtime_cache: HashMap<PathBuf, (SystemTime, String, PhaseKey)>,
     pub timing_enabled: bool,
     pub last_timing: Option<CompileTiming>,
     pub opt_level: OptLevel,
@@ -202,6 +207,7 @@ impl Session {
             sink: DiagnosticSink::new(),
             config: PipelineConfig::default(),
             artifacts: ArtifactStore::default(),
+            file_mtime_cache: HashMap::new(),
             timing_enabled: false,
             last_timing: None,
             opt_level: OptLevel::O1,
@@ -214,14 +220,56 @@ impl Session {
     }
 
     fn load_source(&mut self, path: &Path) -> Result<(String, PhaseKey, u32), String> {
+        let canonical = path
+            .canonicalize()
+            .unwrap_or_else(|_| path.to_path_buf());
+
+        // Fast path: if mtime is unchanged, reuse the cached source without re-reading.
+        if let Ok(meta) = std::fs::metadata(&canonical) {
+            if let Ok(mtime) = meta.modified() {
+                if let Some((cached_mtime, cached_src, cached_key)) =
+                    self.file_mtime_cache.get(&canonical)
+                {
+                    if *cached_mtime == mtime {
+                        self.artifacts
+                            .remember_key(canonical.clone(), cached_key.clone());
+                        let file_id = self
+                            .source_map
+                            .add_file(canonical.display().to_string(), cached_src.clone());
+                        return Ok((cached_src.clone(), cached_key.clone(), file_id));
+                    }
+                }
+            }
+        }
+
         let source = std::fs::read_to_string(path)
             .map_err(|e| format!("error: {}: {}", path.display(), e))?;
         let key = PhaseKey::for_path(path, &source, &self.config);
-        self.artifacts.remember_key(path.to_path_buf(), key.clone());
+        self.artifacts.remember_key(canonical.clone(), key.clone());
+
+        // Update mtime cache.
+        if let Ok(meta) = std::fs::metadata(&canonical) {
+            if let Ok(mtime) = meta.modified() {
+                self.file_mtime_cache
+                    .insert(canonical.clone(), (mtime, source.clone(), key.clone()));
+            }
+        }
+
         let file_id = self
             .source_map
             .add_file(path.display().to_string(), source.clone());
         Ok((source, key, file_id))
+    }
+
+    /// Evict the incremental cache for `path`. Call this in watch mode when a
+    /// file-change event is detected so the next compile re-reads from disk.
+    pub fn invalidate_file(&mut self, path: &Path) {
+        let canonical = path
+            .canonicalize()
+            .unwrap_or_else(|_| path.to_path_buf());
+        self.file_mtime_cache.remove(&canonical);
+        // Also clear the downstream artifact cache so the whole pipeline re-runs.
+        self.artifacts = ArtifactStore::default();
     }
 
     pub fn parse(&mut self, path: &Path) -> Result<ast::Module, String> {
