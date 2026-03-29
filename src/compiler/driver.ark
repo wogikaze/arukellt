@@ -1,0 +1,291 @@
+// Arukellt Selfhost — Compilation Driver
+//
+// Orchestrates the compilation pipeline:
+//   source → tokens → AST → (resolve → typecheck → HIR → MIR → Wasm)
+// Error propagation stops at first phase failure.
+
+use std::host::stdio
+use std::host::fs
+
+// ── Pipeline Phase Tags ──────────────────────────────────────────────────────
+
+fn PHASE_LEX() -> i32 { 1 }
+fn PHASE_PARSE() -> i32 { 2 }
+fn PHASE_RESOLVE() -> i32 { 3 }
+fn PHASE_TYPECHECK() -> i32 { 4 }
+fn PHASE_LOWER() -> i32 { 5 }
+fn PHASE_EMIT() -> i32 { 6 }
+
+// ── Compilation Result ───────────────────────────────────────────────────────
+
+struct CompileResult {
+    success: bool,
+    phase_reached: i32,
+    error_count: i32,
+    error_messages: Vec<String>,
+    output_bytes: Vec<i32>,
+}
+
+fn CompileResult_ok(phase: i32) -> CompileResult {
+    CompileResult {
+        success: true,
+        phase_reached: phase,
+        error_count: 0,
+        error_messages: Vec_new_String(),
+        output_bytes: Vec_new_i32(),
+    }
+}
+
+fn CompileResult_err(phase: i32, msg: String) -> CompileResult {
+    let mut msgs: Vec<String> = Vec_new_String()
+    push(msgs, msg)
+    CompileResult {
+        success: false,
+        phase_reached: phase,
+        error_count: 1,
+        error_messages: msgs,
+        output_bytes: Vec_new_i32(),
+    }
+}
+
+// ── Driver Configuration ─────────────────────────────────────────────────────
+
+struct DriverConfig {
+    target: String,
+    opt_level: i32,
+    dump_tokens: bool,
+    dump_ast: bool,
+    dump_hir: bool,
+    dump_mir: bool,
+    dump_wasm: bool,
+    parse_only: bool,
+    check_only: bool,
+}
+
+fn DriverConfig_default() -> DriverConfig {
+    DriverConfig {
+        target: String_from("wasm32-wasi-p2"),
+        opt_level: 0,
+        dump_tokens: false,
+        dump_ast: false,
+        dump_hir: false,
+        dump_mir: false,
+        dump_wasm: false,
+        parse_only: false,
+        check_only: false,
+    }
+}
+
+// ── File Loading ─────────────────────────────────────────────────────────────
+
+fn load_source(path: String) -> Result<String, String> {
+    fs::read_to_string(path)
+}
+
+// ── Pipeline Orchestration ───────────────────────────────────────────────────
+
+fn compile_source(source: String, config: DriverConfig) -> CompileResult {
+    // Phase 1: Lex
+    let tokens = tokenize(clone(source))
+    let token_count = len(tokens)
+
+    if config.dump_tokens {
+        stdio::eprintln(String_from("=== TOKENS ==="))
+        let mut i = 0
+        while i < token_count {
+            let tok = get_unchecked(tokens, i)
+            stdio::eprintln(concat(token_kind_name(tok.kind), concat(String_from(" "), clone(tok.text))))
+            i = i + 1
+        }
+    }
+
+    // Check for lexer errors
+    let mut lex_errors = 0
+    let mut i = 0
+    while i < token_count {
+        let tok = get_unchecked(tokens, i)
+        if tok.kind == 7 {  // TK_ERROR
+            lex_errors = lex_errors + 1
+        }
+        i = i + 1
+    }
+    if lex_errors > 0 {
+        return CompileResult_err(PHASE_LEX(), concat(to_string(lex_errors), String_from(" lexer error(s)")))
+    }
+
+    // Phase 2: Parse
+    let parser = Parser_new(tokens)
+    let decls = parse_module(parser)
+
+    if config.dump_ast {
+        stdio::eprintln(String_from("=== AST ==="))
+        let decl_count = len(decls)
+        let mut j = 0
+        while j < decl_count {
+            let d = get_unchecked(decls, j)
+            print_ast_stderr(d, 0)
+            j = j + 1
+        }
+    }
+
+    let parse_error_count = len(parser.errors)
+    if parse_error_count > 0 {
+        let mut result = CompileResult_err(PHASE_PARSE(), concat(to_string(parse_error_count), String_from(" parse error(s)")))
+        let mut k = 0
+        while k < parse_error_count {
+            let pe = get_unchecked(parser.errors, k)
+            push(result.error_messages, clone(pe.message))
+            k = k + 1
+        }
+        result.error_count = parse_error_count
+        return result
+    }
+
+    if config.parse_only {
+        return CompileResult_ok(PHASE_PARSE())
+    }
+
+    // Phase 3: Resolve (name binding)
+    let resolve_ctx = resolve_module(decls)
+
+    if config.dump_hir {
+        stdio::eprintln(String_from("=== HIR (post-resolve) ==="))
+        dump_scope(resolve_ctx)
+    }
+
+    if resolve_ctx.error_count > 0 {
+        return CompileResult_err(PHASE_RESOLVE(), concat(to_string(resolve_ctx.error_count), String_from(" resolve error(s)")))
+    }
+
+    // Phase 4: Type check
+    let check_result = typecheck_module(resolve_ctx)
+
+    if config.dump_hir {
+        stdio::eprintln(String_from("=== TYPED HIR ==="))
+        dump_typed_hir(check_result)
+    }
+
+    if check_result.error_count > 0 {
+        return CompileResult_err(PHASE_TYPECHECK(), concat(to_string(check_result.error_count), String_from(" type error(s)")))
+    }
+
+    if config.check_only {
+        return CompileResult_ok(PHASE_TYPECHECK())
+    }
+
+    // Phase 5: Lower to MIR
+    let mir_module = lower_to_mir(check_result)
+
+    if config.dump_mir {
+        stdio::eprintln(String_from("=== MIR ==="))
+        dump_mir(mir_module)
+    }
+
+    // Phase 6: Emit Wasm
+    let wasm_bytes = emit_wasm(mir_module, clone(config.target), config.opt_level)
+
+    if config.dump_wasm {
+        stdio::eprintln(String_from("=== WASM ==="))
+        stdio::eprintln(concat(String_from("output size: "), concat(to_string(len(wasm_bytes)), String_from(" bytes"))))
+    }
+
+    let mut result = CompileResult_ok(PHASE_EMIT())
+    result.output_bytes = wasm_bytes
+    result
+}
+
+// ── Compile File ─────────────────────────────────────────────────────────────
+
+fn compile_file(path: String, config: DriverConfig) -> CompileResult {
+    let source_result = load_source(clone(path))
+    match source_result {
+        Ok(source) => {
+            compile_source(source, config)
+        },
+        Err(e) => {
+            CompileResult_err(0, concat(String_from("failed to read file: "), e))
+        },
+    }
+}
+
+// ── Stub Functions (filled in by later phases) ──────────────────────────────
+// These forward-declare the signatures that parser/resolver/typechecker/
+// emitter modules will provide. In the final selfhost binary, all modules
+// are compiled together and these stubs are replaced by real implementations.
+
+// Tokenizer (from lexer.ark — duplicated for standalone compilation)
+fn TK_ERROR_TAG() -> i32 { 7 }
+
+fn token_kind_name(kind: i32) -> String {
+    if kind == 0 { return String_from("EOF") }
+    if kind == 1 { return String_from("IDENT") }
+    if kind == 2 { return String_from("INT") }
+    if kind == 3 { return String_from("FLOAT") }
+    if kind == 4 { return String_from("STRING") }
+    if kind == 5 { return String_from("BOOL") }
+    if kind == 6 { return String_from("NEWLINE") }
+    if kind == 7 { return String_from("ERROR") }
+    if kind == 10 { return String_from("FN") }
+    if kind == 11 { return String_from("STRUCT") }
+    if kind == 12 { return String_from("ENUM") }
+    if kind == 13 { return String_from("LET") }
+    String_from("OTHER")
+}
+
+// Stub: print AST to stderr
+fn print_ast_stderr(node: AstNode, depth: i32) {
+    let mut indent = String_new()
+    let mut d = 0
+    while d < depth {
+        indent = concat(indent, String_from("  "))
+        d = d + 1
+    }
+    stdio::eprintln(concat(indent, node_kind_name(node.kind)))
+    let child_count = len(node.children)
+    let mut i = 0
+    while i < child_count {
+        let child = get_unchecked(node.children, i)
+        print_ast_stderr(child, depth + 1)
+        i = i + 1
+    }
+}
+
+fn node_kind_name(kind: i32) -> String {
+    if kind == 1 { return String_from("IntLit") }
+    if kind == 5 { return String_from("Ident") }
+    if kind == 6 { return String_from("Binary") }
+    if kind == 8 { return String_from("Call") }
+    if kind == 20 { return String_from("Block") }
+    if kind == 30 { return String_from("Let") }
+    if kind == 37 { return String_from("ExprStmt") }
+    if kind == 50 { return String_from("FnDecl") }
+    if kind == 51 { return String_from("StructDecl") }
+    if kind == 52 { return String_from("EnumDecl") }
+    if kind == 54 { return String_from("Use") }
+    String_from("Node")
+}
+
+// ── Entry Point ──────────────────────────────────────────────────────────────
+
+fn main() {
+    let config = DriverConfig_default()
+    config.dump_tokens = true
+    config.dump_ast = true
+
+    let source = String_from("fn add(a: i32, b: i32) -> i32 { a + b }\nfn main() { let x = add(1, 2) }")
+    let result = compile_source(source, config)
+
+    if result.success {
+        stdio::println(concat(String_from("Compilation succeeded (phase "), concat(to_string(result.phase_reached), String_from(")"))))
+    } else {
+        stdio::println(concat(String_from("Compilation failed at phase "), to_string(result.phase_reached)))
+        let err_count = len(result.error_messages)
+        let mut i = 0
+        while i < err_count {
+            let msg = get_unchecked(result.error_messages, i)
+            stdio::println(concat(String_from("  error: "), clone(msg)))
+            i = i + 1
+        }
+        exit(1)
+    }
+}

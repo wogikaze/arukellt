@@ -1,0 +1,242 @@
+// Arukellt Selfhost — CLI Entry Point
+//
+// Command surface for the self-hosted compiler.
+// Supports: parse, compile, check subcommands.
+// Exit code: 0 = success, 1 = failure.
+
+use std::host::stdio
+
+// ── Command Tags ─────────────────────────────────────────────────────────────
+
+fn CMD_PARSE() -> i32 { 1 }
+fn CMD_COMPILE() -> i32 { 2 }
+fn CMD_CHECK() -> i32 { 3 }
+fn CMD_HELP() -> i32 { 4 }
+fn CMD_VERSION() -> i32 { 5 }
+fn CMD_UNKNOWN() -> i32 { 0 }
+
+// ── Parsed CLI ───────────────────────────────────────────────────────────────
+
+struct CliOptions {
+    command: i32,
+    input_file: String,
+    output_file: String,
+    target: String,
+    opt_level: i32,
+    dump_phases: String,
+    emit_mode: String,
+    show_help: bool,
+    show_version: bool,
+    has_error: bool,
+    error_msg: String,
+}
+
+fn CliOptions_default() -> CliOptions {
+    CliOptions {
+        command: CMD_UNKNOWN(),
+        input_file: String_new(),
+        output_file: String_new(),
+        target: String_from("wasm32-wasi-p2"),
+        opt_level: 0,
+        dump_phases: String_new(),
+        emit_mode: String_from("wasm"),
+        show_help: false,
+        show_version: false,
+        has_error: false,
+        error_msg: String_new(),
+    }
+}
+
+// ── Argument Parsing ─────────────────────────────────────────────────────────
+
+fn parse_command(name: String) -> i32 {
+    if eq(name, "parse") { return CMD_PARSE() }
+    if eq(name, "compile") { return CMD_COMPILE() }
+    if eq(name, "check") { return CMD_CHECK() }
+    if eq(name, "help") { return CMD_HELP() }
+    if eq(name, "version") { return CMD_VERSION() }
+    CMD_UNKNOWN()
+}
+
+fn parse_args(argv: Vec<String>) -> CliOptions {
+    let opts = CliOptions_default()
+    let argc = len(argv)
+
+    if argc <= 1 {
+        opts.show_help = true
+        return opts
+    }
+
+    // First positional arg is the command
+    let cmd_str = get_unchecked(argv, 1)
+    opts.command = parse_command(clone(cmd_str))
+
+    if opts.command == CMD_HELP() {
+        opts.show_help = true
+        return opts
+    }
+    if opts.command == CMD_VERSION() {
+        opts.show_version = true
+        return opts
+    }
+    if opts.command == CMD_UNKNOWN() {
+        // Treat as input file with implicit compile
+        opts.command = CMD_COMPILE()
+        opts.input_file = clone(cmd_str)
+    }
+
+    let mut i = 2
+    while i < argc {
+        let arg = get_unchecked(argv, i)
+        if eq(clone(arg), "--target") {
+            i = i + 1
+            if i < argc {
+                opts.target = clone(get_unchecked(argv, i))
+            }
+        } else if eq(clone(arg), "--opt-level") {
+            i = i + 1
+            if i < argc {
+                let val = get_unchecked(argv, i)
+                // Simple parse
+                if eq(clone(val), "0") { opts.opt_level = 0 }
+                else if eq(clone(val), "1") { opts.opt_level = 1 }
+                else if eq(clone(val), "2") { opts.opt_level = 2 }
+            }
+        } else if eq(clone(arg), "--emit") {
+            i = i + 1
+            if i < argc {
+                opts.emit_mode = clone(get_unchecked(argv, i))
+            }
+        } else if eq(clone(arg), "-o") {
+            i = i + 1
+            if i < argc {
+                opts.output_file = clone(get_unchecked(argv, i))
+            }
+        } else if eq(clone(arg), "--dump-phases") {
+            i = i + 1
+            if i < argc {
+                opts.dump_phases = clone(get_unchecked(argv, i))
+            }
+        } else if eq(clone(arg), "--help") {
+            opts.show_help = true
+        } else if eq(clone(arg), "--version") {
+            opts.show_version = true
+        } else {
+            // Positional: input file
+            if len(opts.input_file) == 0 {
+                opts.input_file = clone(arg)
+            } else {
+                opts.has_error = true
+                opts.error_msg = concat(String_from("unexpected argument: "), clone(arg))
+            }
+        }
+        i = i + 1
+    }
+
+    opts
+}
+
+// ── Usage / Version ──────────────────────────────────────────────────────────
+
+fn print_usage() {
+    stdio::println(String_from("arukellt-s1 — self-hosted Arukellt compiler"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("USAGE:"))
+    stdio::println(String_from("  arukellt-s1 <command> [options] <input.ark>"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("COMMANDS:"))
+    stdio::println(String_from("  parse      Parse and dump AST"))
+    stdio::println(String_from("  check      Type-check without codegen"))
+    stdio::println(String_from("  compile    Compile to Wasm (default)"))
+    stdio::println(String_from("  help       Show this help"))
+    stdio::println(String_from("  version    Show version"))
+    stdio::println(String_from(""))
+    stdio::println(String_from("OPTIONS:"))
+    stdio::println(String_from("  --target <target>      Target triple (default: wasm32-wasi-p2)"))
+    stdio::println(String_from("  --opt-level <0|1|2>    Optimization level (default: 0)"))
+    stdio::println(String_from("  --emit <wasm|wat|component|wit>  Emit mode"))
+    stdio::println(String_from("  --dump-phases <list>   Dump intermediate phases (tokens,ast,hir,mir,wasm)"))
+    stdio::println(String_from("  -o <file>              Output file"))
+}
+
+fn print_version() {
+    stdio::println(String_from("arukellt-s1 0.1.0 (selfhost stage 1)"))
+}
+
+// ── Dump Phase Support (#167) ────────────────────────────────────────────────
+
+fn should_dump(opts: CliOptions, phase: String) -> bool {
+    if len(opts.dump_phases) == 0 { return false }
+    // Check if phase is contained in the comma-separated dump_phases string
+    // Simple substring check
+    let phases = clone(opts.dump_phases)
+    let phase_len = len(phase)
+    let phases_len = len(phases)
+    let mut i = 0
+    while i <= phases_len - phase_len {
+        let sub = substring(phases, i, i + phase_len)
+        if eq(sub, clone(phase)) {
+            // Check boundaries: start of string or preceded by comma
+            let at_start = i == 0
+            let after_comma = i > 0 && char_at(phases, i - 1) == 44
+            let at_end = i + phase_len == phases_len
+            let before_comma = i + phase_len < phases_len && char_at(phases, i + phase_len) == 44
+            if (at_start || after_comma) && (at_end || before_comma) {
+                return true
+            }
+        }
+        i = i + 1
+    }
+    false
+}
+
+// ── Main Entry ───────────────────────────────────────────────────────────────
+
+fn main() {
+    let argv = args()
+    let opts = parse_args(argv)
+
+    if opts.show_help {
+        print_usage()
+        return
+    }
+    if opts.show_version {
+        print_version()
+        return
+    }
+    if opts.has_error {
+        stdio::println(concat(String_from("error: "), clone(opts.error_msg)))
+        exit(1)
+        return
+    }
+    if len(opts.input_file) == 0 {
+        stdio::println(String_from("error: no input file specified"))
+        print_usage()
+        exit(1)
+        return
+    }
+
+    // Dispatch to driver
+    stdio::println(concat(String_from("compiling: "), clone(opts.input_file)))
+    stdio::println(concat(String_from("target: "), clone(opts.target)))
+    stdio::println(concat(String_from("command: "), to_string(opts.command)))
+
+    // Phase dump demo
+    if should_dump(opts, String_from("tokens")) {
+        stdio::println(String_from("[dump] tokens phase requested"))
+    }
+    if should_dump(opts, String_from("ast")) {
+        stdio::println(String_from("[dump] ast phase requested"))
+    }
+    if should_dump(opts, String_from("hir")) {
+        stdio::println(String_from("[dump] hir phase requested"))
+    }
+    if should_dump(opts, String_from("mir")) {
+        stdio::println(String_from("[dump] mir phase requested"))
+    }
+    if should_dump(opts, String_from("wasm")) {
+        stdio::println(String_from("[dump] wasm phase requested"))
+    }
+
+    stdio::println(String_from("Done."))
+}

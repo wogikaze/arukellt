@@ -14,6 +14,7 @@
 
 | File | Title | Summary |
 |------|-------|---------|
+| [bootstrap.md](bootstrap.md) | Bootstrap Guide | Self-hosting verification for the Arukellt compiler. |
 | [determinism.md](determinism.md) | Compiler Determinism | This document defines the rules that keep Arukellt's .wasm output |
 | [diagnostics.md](diagnostics.md) | 診断システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [error-codes.md](error-codes.md) | Error Code Reference | Canonical listing of every diagnostic code emitted by the Arukellt compiler. |

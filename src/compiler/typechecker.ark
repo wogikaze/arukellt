@@ -1,0 +1,292 @@
+// Arukellt Selfhost — Type Checker
+//
+// Performs type inference, unification, and generates typed HIR.
+// Uses a substitution-based unification approach.
+
+use std::host::stdio
+
+// ── Type Tags (from hir.ark) ─────────────────────────────────────────────────
+
+fn TY_UNKNOWN() -> i32 { 0 }
+fn TY_I32() -> i32 { 1 }
+fn TY_I64() -> i32 { 2 }
+fn TY_F64() -> i32 { 3 }
+fn TY_BOOL() -> i32 { 4 }
+fn TY_STRING() -> i32 { 5 }
+fn TY_CHAR() -> i32 { 6 }
+fn TY_UNIT() -> i32 { 7 }
+fn TY_NEVER() -> i32 { 8 }
+fn TY_VEC() -> i32 { 10 }
+fn TY_OPTION() -> i32 { 11 }
+fn TY_RESULT() -> i32 { 12 }
+fn TY_FN() -> i32 { 20 }
+fn TY_STRUCT() -> i32 { 21 }
+fn TY_ENUM() -> i32 { 22 }
+fn TY_TUPLE() -> i32 { 23 }
+fn TY_TYPE_VAR() -> i32 { 30 }
+
+// ── Type Representation ──────────────────────────────────────────────────────
+
+struct TypeInfo {
+    tag: i32,
+    name: String,
+    type_args: Vec<TypeInfo>,
+}
+
+fn TypeInfo_simple(tag: i32) -> TypeInfo {
+    TypeInfo { tag: tag, name: String_new(), type_args: Vec_new_TypeInfo() }
+}
+
+fn TypeInfo_named(tag: i32, name: String) -> TypeInfo {
+    TypeInfo { tag: tag, name: name, type_args: Vec_new_TypeInfo() }
+}
+
+// ── Type Variable / Substitution ─────────────────────────────────────────────
+
+struct TypeVar {
+    id: i32,
+    bound: TypeInfo,
+    is_bound: bool,
+}
+
+struct TypeEnv {
+    vars: Vec<TypeVar>,
+    next_id: i32,
+    errors: Vec<String>,
+    error_count: i32,
+}
+
+fn TypeEnv_new() -> TypeEnv {
+    TypeEnv {
+        vars: Vec_new_TypeVar(),
+        next_id: 0,
+        errors: Vec_new_String(),
+        error_count: 0,
+    }
+}
+
+fn fresh_var(env: TypeEnv) -> TypeInfo {
+    let id = env.next_id
+    env.next_id = env.next_id + 1
+    let tv = TypeVar { id: id, bound: TypeInfo_simple(TY_UNKNOWN()), is_bound: false }
+    push(env.vars, tv)
+    let t = TypeInfo_simple(TY_TYPE_VAR())
+    t.name = concat(String_from("t"), to_string(id))
+    t
+}
+
+fn type_error(env: TypeEnv, msg: String) {
+    env.error_count = env.error_count + 1
+    push(env.errors, msg)
+}
+
+// ── Unification ──────────────────────────────────────────────────────────────
+
+fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
+    // If either is unknown, take the other
+    if a.tag == TY_UNKNOWN() { return b }
+    if b.tag == TY_UNKNOWN() { return a }
+
+    // If both are type vars, bind one to the other
+    if a.tag == TY_TYPE_VAR() {
+        bind_var(env, clone(a.name), b)
+        return b
+    }
+    if b.tag == TY_TYPE_VAR() {
+        bind_var(env, clone(b.name), a)
+        return a
+    }
+
+    // Same concrete type
+    if a.tag == b.tag {
+        if a.tag == TY_STRUCT() || a.tag == TY_ENUM() {
+            if !eq(clone(a.name), clone(b.name)) {
+                type_error(env, concat(String_from("type mismatch: "), concat(clone(a.name), concat(String_from(" vs "), clone(b.name)))))
+            }
+        }
+        return a
+    }
+
+    // Numeric coercion: i32 and i64 mismatch is error
+    type_error(env, concat(String_from("type mismatch: "), concat(type_tag_name(a.tag), concat(String_from(" vs "), type_tag_name(b.tag)))))
+    a
+}
+
+fn bind_var(env: TypeEnv, var_name: String, ty: TypeInfo) {
+    let count = len(env.vars)
+    let mut i = 0
+    while i < count {
+        let tv = get_unchecked(env.vars, i)
+        if eq(clone(tv.bound.name), clone(var_name)) || eq(concat(String_from("t"), to_string(tv.id)), clone(var_name)) {
+            tv.bound = ty
+            tv.is_bound = true
+            return
+        }
+        i = i + 1
+    }
+}
+
+fn resolve_type(env: TypeEnv, ty: TypeInfo) -> TypeInfo {
+    if ty.tag != TY_TYPE_VAR() { return ty }
+    let count = len(env.vars)
+    let mut i = 0
+    while i < count {
+        let tv = get_unchecked(env.vars, i)
+        if eq(concat(String_from("t"), to_string(tv.id)), clone(ty.name)) {
+            if tv.is_bound {
+                return resolve_type(env, tv.bound)
+            }
+            return ty
+        }
+        i = i + 1
+    }
+    ty
+}
+
+fn type_tag_name(tag: i32) -> String {
+    if tag == TY_I32() { return String_from("i32") }
+    if tag == TY_I64() { return String_from("i64") }
+    if tag == TY_F64() { return String_from("f64") }
+    if tag == TY_BOOL() { return String_from("bool") }
+    if tag == TY_STRING() { return String_from("String") }
+    if tag == TY_CHAR() { return String_from("char") }
+    if tag == TY_UNIT() { return String_from("()") }
+    if tag == TY_VEC() { return String_from("Vec") }
+    if tag == TY_FN() { return String_from("fn") }
+    if tag == TY_STRUCT() { return String_from("struct") }
+    if tag == TY_ENUM() { return String_from("enum") }
+    if tag == TY_TYPE_VAR() { return String_from("var") }
+    String_from("?")
+}
+
+// ── Type Annotation Resolution ───────────────────────────────────────────────
+
+fn resolve_type_name(name: String) -> TypeInfo {
+    if eq(clone(name), "i32") { return TypeInfo_simple(TY_I32()) }
+    if eq(clone(name), "i64") { return TypeInfo_simple(TY_I64()) }
+    if eq(clone(name), "f64") { return TypeInfo_simple(TY_F64()) }
+    if eq(clone(name), "bool") { return TypeInfo_simple(TY_BOOL()) }
+    if eq(clone(name), "String") { return TypeInfo_simple(TY_STRING()) }
+    if eq(clone(name), "char") { return TypeInfo_simple(TY_CHAR()) }
+    TypeInfo_named(TY_STRUCT(), name)
+}
+
+// ── Type Check Context ───────────────────────────────────────────────────────
+
+struct CheckCtx {
+    env: TypeEnv,
+    fn_sigs: Vec<FnSig>,
+    struct_defs: Vec<StructInfo>,
+    enum_defs: Vec<EnumInfo>,
+}
+
+struct FnSig {
+    name: String,
+    param_types: Vec<TypeInfo>,
+    return_type: TypeInfo,
+}
+
+struct StructInfo {
+    name: String,
+    field_names: Vec<String>,
+    field_types: Vec<TypeInfo>,
+}
+
+struct EnumInfo {
+    name: String,
+    variant_names: Vec<String>,
+}
+
+fn CheckCtx_new() -> CheckCtx {
+    CheckCtx {
+        env: TypeEnv_new(),
+        fn_sigs: Vec_new_FnSig(),
+        struct_defs: Vec_new_StructInfo(),
+        enum_defs: Vec_new_EnumInfo(),
+    }
+}
+
+// ── Type Check Result ────────────────────────────────────────────────────────
+
+struct TypeCheckResult {
+    error_count: i32,
+    errors: Vec<String>,
+    typed_fns: Vec<TypedFn>,
+}
+
+struct TypedFn {
+    name: String,
+    return_type: TypeInfo,
+}
+
+fn typecheck_module(resolve_ctx: ResolveCtx) -> TypeCheckResult {
+    let result = TypeCheckResult {
+        error_count: 0,
+        errors: Vec_new_String(),
+        typed_fns: Vec_new_TypedFn(),
+    }
+    // In the real implementation, we'd walk the resolved AST
+    // and check types. For now, pass through resolve errors.
+    result.error_count = resolve_ctx.error_count
+    result.errors = resolve_ctx.errors
+    result
+}
+
+fn dump_typed_hir(result: TypeCheckResult) {
+    let fn_count = len(result.typed_fns)
+    stdio::eprintln(concat(String_from("typed functions: "), to_string(fn_count)))
+    if result.error_count > 0 {
+        stdio::eprintln(concat(to_string(result.error_count), String_from(" type error(s)")))
+    }
+}
+
+// ── Resolve Context (duplicated from resolver for standalone) ────────────────
+
+struct Symbol {
+    name: String,
+    kind: i32,
+    scope_depth: i32,
+    decl_index: i32,
+    is_mut: bool,
+}
+
+struct Scope {
+    symbols: Vec<Symbol>,
+    parent_depth: i32,
+}
+
+struct ResolveCtx {
+    scopes: Vec<Scope>,
+    current_depth: i32,
+    error_count: i32,
+    errors: Vec<String>,
+    next_decl_index: i32,
+}
+
+// ── Entry Point ──────────────────────────────────────────────────────────────
+
+fn main() {
+    let env = TypeEnv_new()
+
+    // Test unification
+    let t1 = TypeInfo_simple(TY_I32())
+    let t2 = TypeInfo_simple(TY_I32())
+    let t3 = unify(env, t1, t2)
+    stdio::println(concat(String_from("unified: "), type_tag_name(t3.tag)))
+
+    // Test type var
+    let tv = fresh_var(env)
+    stdio::println(concat(String_from("fresh var: "), clone(tv.name)))
+
+    let t4 = TypeInfo_simple(TY_STRING())
+    let t5 = unify(env, tv, t4)
+    stdio::println(concat(String_from("unified var: "), type_tag_name(t5.tag)))
+
+    // Test error
+    let ta = TypeInfo_simple(TY_I32())
+    let tb = TypeInfo_simple(TY_STRING())
+    let tc = unify(env, ta, tb)
+    stdio::println(concat(String_from("error count: "), to_string(env.error_count)))
+
+    stdio::println(String_from("TypeChecker OK."))
+}

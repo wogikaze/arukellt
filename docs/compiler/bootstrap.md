@@ -1,0 +1,207 @@
+# Bootstrap Guide
+
+> Self-hosting verification for the Arukellt compiler.
+
+## Overview
+
+The Arukellt v5 compiler is written in Arukellt itself (`src/compiler/*.ark`).
+Bootstrap verification proves correctness by reaching a **fixpoint**: the
+self-hosted compiler produces a bit-identical binary when it compiles itself.
+
+```
+Stage 0 (Rust compiler)
+  └─ compiles src/compiler/*.ark → arukellt-s1.wasm   (trusted base)
+
+Stage 1 (arukellt-s1.wasm under wasmtime)
+  └─ compiles src/compiler/*.ark → arukellt-s2.wasm   (first self-compile)
+
+Stage 2 (fixpoint check)
+  └─ sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)
+```
+
+If `arukellt-s1.wasm` and `arukellt-s2.wasm` are byte-identical, the compiler
+is a **fixpoint**: it reproduces itself when it compiles itself.  This is the
+strongest practical proof of compiler correctness short of formal verification.
+
+## Prerequisites
+
+| Tool | Purpose | Install |
+|------|---------|---------|
+| Rust toolchain (rustc 1.85+) | Build the Stage 0 Rust compiler | `rustup` or `mise` |
+| wasmtime | Execute `.wasm` artifacts | `mise` installs automatically |
+| sha256sum | Compare fixpoint checksums | coreutils (pre-installed on Linux) |
+
+## Quick Start
+
+```bash
+# Build the Rust compiler first
+cargo build --release
+
+# Stage 0 only — Rust compiles selfhost sources
+scripts/verify-bootstrap.sh --stage1-only
+
+# Full fixpoint verification (Stages 0 → 1 → 2)
+scripts/verify-bootstrap.sh
+
+# Run a single stage
+scripts/verify-bootstrap.sh --stage 0
+```
+
+## Verification Stages
+
+### Stage 0 — Compile with Rust compiler
+
+The Rust-hosted compiler (`target/release/arukellt`) compiles each
+`src/compiler/*.ark` file.  This is the **trusted base**: if the Rust
+compiler is correct, the output is correct.
+
+When `main.ark` produces a unified `main.wasm`, it is copied to
+`.bootstrap-build/arukellt-s1.wasm` for the next stage.
+
+### Stage 1 — Self-compile with arukellt-s1.wasm
+
+The Stage 0 artifact (`arukellt-s1.wasm`) is executed under wasmtime to
+compile the same selfhost sources again.  The output is
+`.bootstrap-build/arukellt-s2.wasm`.
+
+> **Note:** Stage 1 is skipped automatically when the selfhost compiler
+> is not yet mature enough to produce a unified binary.
+
+### Stage 2 — Fixpoint check
+
+Compare `sha256(arukellt-s1.wasm)` with `sha256(arukellt-s2.wasm)`.
+Identical checksums prove the compiler is a fixpoint.
+
+### Determinism requirement
+
+Fixpoint verification only works when compilation is **deterministic**.
+The compiler must not embed timestamps, random nonces, or pointer-derived
+values into the output binary.  `scripts/verify-harness.sh` already
+checks determinism for fixtures and will be extended to the selfhost
+compiler.
+
+## Selfhost Compiler Components
+
+| File | Role |
+|------|------|
+| `lexer.ark` | Tokenizer — character stream → token stream |
+| `parser.ark` | Recursive descent + Pratt parser → AST |
+| `resolver.ark` | Name resolution and scope management |
+| `typechecker.ark` | Type inference and unification |
+| `hir.ark` | High-level IR data structures |
+| `mir.ark` | Mid-level IR and HIR→MIR lowering |
+| `emitter.ark` | MIR → Wasm binary emission |
+| `driver.ark` | Pipeline orchestration (lex→parse→…→emit) |
+| `main.ark` | CLI entry point and argument parsing |
+
+## Debug Procedures
+
+### Dump compiler phases
+
+Both compilers support phase dumping for debugging.
+
+**Rust compiler** — uses the `ARUKELLT_DUMP_PHASES` environment variable
+(output on stderr):
+
+```bash
+# Available phases: parse, resolve, corehir, mir, optimized-mir, backend-plan
+ARUKELLT_DUMP_PHASES=parse cargo run -- compile hello.ark
+ARUKELLT_DUMP_PHASES=mir,optimized-mir cargo run -- compile hello.ark
+```
+
+**Selfhost compiler** — uses the `--dump-phases` CLI flag
+(output on stderr):
+
+```bash
+# Available phases: tokens, ast, hir, mir, wasm
+wasmtime arukellt-s1.wasm -- compile --dump-phases tokens hello.ark
+wasmtime arukellt-s1.wasm -- compile --dump-phases ast hello.ark
+```
+
+### Compare Rust vs selfhost output
+
+Use `scripts/compare-outputs.sh` to diff phase output between the two
+compilers:
+
+```bash
+# Compare token output for hello.ark
+scripts/compare-outputs.sh tokens tests/fixtures/hello/hello.ark
+
+# Compare AST output
+scripts/compare-outputs.sh ast tests/fixtures/hello/hello.ark
+
+# Use a custom selfhost binary
+scripts/compare-outputs.sh mir hello.ark --selfhost-wasm ./arukellt-s1.wasm
+```
+
+The script runs both compilers, captures stderr, and shows a unified diff.
+Exit code 0 means identical output; exit code 1 means divergence.
+
+### Investigate fixpoint failures
+
+When Stage 2 reports that `arukellt-s1.wasm ≠ arukellt-s2.wasm`:
+
+1. **Find the divergent phase** — run `scripts/compare-outputs.sh` for
+   each phase (`tokens`, `ast`, `hir`, `mir`, `wasm`) against a small
+   fixture to locate the first phase where output differs.
+
+2. **Narrow the fixture** — use the smallest fixture that reproduces the
+   divergence (start with `tests/fixtures/hello/hello.ark`).
+
+3. **Compare phase output** — dump the divergent phase from both Stage 0
+   and Stage 1 compilers:
+
+   ```bash
+   # Stage 0 (Rust)
+   ARUKELLT_DUMP_PHASES=mir target/release/arukellt compile fixture.ark 2>s0.mir
+   # Stage 1 (selfhost)
+   wasmtime .bootstrap-build/arukellt-s1.wasm -- compile --dump-phases mir fixture.ark 2>s1.mir
+   diff -u s0.mir s1.mir
+   ```
+
+4. **Fix and verify** — correct the selfhost source and re-run:
+
+   ```bash
+   scripts/verify-bootstrap.sh
+   ```
+
+## Artifact Naming Convention
+
+| Artifact | Path | Producer |
+|----------|------|----------|
+| `lexer.wasm` | `src/compiler/lexer.wasm` | Rust compiler |
+| `arukellt-s1.wasm` | `.bootstrap-build/arukellt-s1.wasm` | Rust compiler (Stage 0) |
+| `arukellt-s2.wasm` | `.bootstrap-build/arukellt-s2.wasm` | arukellt-s1.wasm (Stage 1) |
+
+Intermediate fixpoint artifacts live in `.bootstrap-build/` and are cleaned
+up after each verification run.  Only component `.wasm` files (e.g.
+`lexer.wasm`) are committed to the repository.
+
+## CI Integration
+
+The bootstrap check is available via `scripts/verify-bootstrap.sh`:
+
+| Context | Command | Notes |
+|---------|---------|-------|
+| PR checks | `scripts/verify-bootstrap.sh --stage1-only` | Fast — Rust compilation only |
+| Merge to main | `scripts/verify-bootstrap.sh` | Full fixpoint when available |
+| Local dev | `scripts/verify-bootstrap.sh --stage 0` | Single stage |
+
+The `--stage1-only` flag is suitable for PR checks (faster), while full
+fixpoint verification runs on merge to main.
+
+## Verification Scripts
+
+| Script | Purpose | Issue |
+|--------|---------|-------|
+| `scripts/verify-bootstrap.sh` | Stage 0→1→2 fixpoint verification | #181, #182 |
+| `scripts/compare-outputs.sh` | Phase output diff (Rust vs selfhost) | #174 |
+| `scripts/verify-harness.sh` | Top-level verification gate | — |
+
+## See Also
+
+- [Bootstrap Verification Process](../process/bootstrap-verification.md)
+- [Migration Guide: v4 → v5](../migration/v4-to-v5.md)
+- [Compiler Pipeline](pipeline.md)
+- [IR Specification](ir-spec.md)
+- [ADR-0001: Harness Bootstrap](../adr/ADR-0001-harness-bootstrap.md)

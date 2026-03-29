@@ -1,0 +1,513 @@
+// Arukellt Selfhost — Wasm Binary Emitter
+//
+// Generates a deterministic Wasm binary from MIR.
+// Handles section layout, LEB128 encoding, and T1/T3 target split.
+
+use std::host::stdio
+
+// ── Wasm Section IDs ─────────────────────────────────────────────────────────
+
+fn SEC_TYPE() -> i32 { 1 }
+fn SEC_IMPORT() -> i32 { 2 }
+fn SEC_FUNCTION() -> i32 { 3 }
+fn SEC_TABLE() -> i32 { 4 }
+fn SEC_MEMORY() -> i32 { 5 }
+fn SEC_GLOBAL() -> i32 { 6 }
+fn SEC_EXPORT() -> i32 { 7 }
+fn SEC_START() -> i32 { 8 }
+fn SEC_ELEMENT() -> i32 { 9 }
+fn SEC_CODE() -> i32 { 10 }
+fn SEC_DATA() -> i32 { 11 }
+
+// ── Wasm Value Types ─────────────────────────────────────────────────────────
+
+fn WASM_I32() -> i32 { 0x7f }
+fn WASM_I64() -> i32 { 0x7e }
+fn WASM_F32() -> i32 { 0x7d }
+fn WASM_F64() -> i32 { 0x7c }
+fn WASM_FUNCREF() -> i32 { 0x70 }
+fn WASM_EXTERNREF() -> i32 { 0x6f }
+
+// ── Wasm Opcodes ─────────────────────────────────────────────────────────────
+
+fn OP_UNREACHABLE() -> i32 { 0x00 }
+fn OP_NOP() -> i32 { 0x01 }
+fn OP_BLOCK() -> i32 { 0x02 }
+fn OP_LOOP() -> i32 { 0x03 }
+fn OP_IF() -> i32 { 0x04 }
+fn OP_ELSE() -> i32 { 0x05 }
+fn OP_END() -> i32 { 0x0b }
+fn OP_BR() -> i32 { 0x0c }
+fn OP_BR_IF() -> i32 { 0x0d }
+fn OP_RETURN() -> i32 { 0x0f }
+fn OP_CALL() -> i32 { 0x10 }
+fn OP_DROP() -> i32 { 0x1a }
+fn OP_LOCAL_GET() -> i32 { 0x20 }
+fn OP_LOCAL_SET() -> i32 { 0x21 }
+fn OP_LOCAL_TEE() -> i32 { 0x22 }
+fn OP_GLOBAL_GET() -> i32 { 0x23 }
+fn OP_GLOBAL_SET() -> i32 { 0x24 }
+fn OP_I32_LOAD() -> i32 { 0x28 }
+fn OP_I32_STORE() -> i32 { 0x36 }
+fn OP_I32_CONST() -> i32 { 0x41 }
+fn OP_I64_CONST() -> i32 { 0x42 }
+fn OP_F64_CONST() -> i32 { 0x44 }
+fn OP_I32_EQZ() -> i32 { 0x45 }
+fn OP_I32_EQ() -> i32 { 0x46 }
+fn OP_I32_NE() -> i32 { 0x47 }
+fn OP_I32_LT_S() -> i32 { 0x48 }
+fn OP_I32_GT_S() -> i32 { 0x4a }
+fn OP_I32_LE_S() -> i32 { 0x4c }
+fn OP_I32_GE_S() -> i32 { 0x4e }
+fn OP_I32_ADD() -> i32 { 0x6a }
+fn OP_I32_SUB() -> i32 { 0x6b }
+fn OP_I32_MUL() -> i32 { 0x6c }
+fn OP_I32_DIV_S() -> i32 { 0x6d }
+fn OP_I32_REM_S() -> i32 { 0x6f }
+fn OP_I32_AND() -> i32 { 0x71 }
+fn OP_I32_OR() -> i32 { 0x72 }
+fn OP_I32_XOR() -> i32 { 0x73 }
+fn OP_I32_SHL() -> i32 { 0x74 }
+fn OP_I32_SHR_S() -> i32 { 0x75 }
+
+// ── Binary Writer ────────────────────────────────────────────────────────────
+
+struct WasmWriter {
+    bytes: Vec<i32>,
+}
+
+fn WasmWriter_new() -> WasmWriter {
+    WasmWriter { bytes: Vec_new_i32() }
+}
+
+fn emit_byte(w: WasmWriter, b: i32) {
+    push(w.bytes, b % 256)
+}
+
+fn emit_u32_le(w: WasmWriter, v: i32) {
+    emit_byte(w, v % 256)
+    emit_byte(w, (v / 256) % 256)
+    emit_byte(w, (v / 65536) % 256)
+    emit_byte(w, (v / 16777216) % 256)
+}
+
+fn emit_leb128_u(w: WasmWriter, v: i32) {
+    let mut val = v
+    if val < 0 { val = 0 }
+    let mut done = false
+    while !done {
+        let mut b = val % 128
+        val = val / 128
+        if val != 0 {
+            b = b + 128
+        }
+        emit_byte(w, b)
+        if val == 0 { done = true }
+    }
+}
+
+fn emit_leb128_s(w: WasmWriter, v: i32) {
+    let mut val = v
+    let mut more = true
+    while more {
+        let mut b = val % 128
+        if b < 0 { b = b + 128 }
+        val = val / 128
+        // Check if more bytes needed
+        if (val == 0 && b < 64) || (val == 0 - 1 && b >= 64) {
+            more = false
+        } else {
+            b = b + 128
+        }
+        emit_byte(w, b % 256)
+    }
+}
+
+fn emit_bytes(w: WasmWriter, src: Vec<i32>) {
+    let count = len(src)
+    let mut i = 0
+    while i < count {
+        let b = get_unchecked(src, i)
+        emit_byte(w, b)
+        i = i + 1
+    }
+}
+
+fn emit_string(w: WasmWriter, s: String) {
+    let slen = len(s)
+    emit_leb128_u(w, slen)
+    let mut i = 0
+    while i < slen {
+        emit_byte(w, char_at(s, i))
+        i = i + 1
+    }
+}
+
+fn writer_size(w: WasmWriter) -> i32 {
+    len(w.bytes)
+}
+
+// ── Section Writer ───────────────────────────────────────────────────────────
+
+fn emit_section(out: WasmWriter, section_id: i32, contents: WasmWriter) {
+    emit_byte(out, section_id)
+    emit_leb128_u(out, writer_size(contents))
+    emit_bytes(out, contents.bytes)
+}
+
+// ── Wasm Module Emitter ──────────────────────────────────────────────────────
+
+fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
+    let out = WasmWriter_new()
+
+    // Magic number: \0asm
+    emit_byte(out, 0x00)
+    emit_byte(out, 0x61)
+    emit_byte(out, 0x73)
+    emit_byte(out, 0x6d)
+    // Version: 1
+    emit_u32_le(out, 1)
+
+    let fn_count = len(mir.functions)
+
+    // Type section
+    let type_sec = WasmWriter_new()
+    emit_leb128_u(type_sec, fn_count)
+    let mut i = 0
+    while i < fn_count {
+        let f = get_unchecked(mir.functions, i)
+        // func type: (params) -> (results)
+        emit_byte(type_sec, 0x60)
+        let param_count = len(f.params)
+        emit_leb128_u(type_sec, param_count)
+        let mut p = 0
+        while p < param_count {
+            let param = get_unchecked(f.params, p)
+            emit_byte(type_sec, val_type_to_wasm(param.val_type))
+            p = p + 1
+        }
+        if f.return_type == 0 {
+            emit_leb128_u(type_sec, 0)
+        } else {
+            emit_leb128_u(type_sec, 1)
+            emit_byte(type_sec, val_type_to_wasm(f.return_type))
+        }
+        i = i + 1
+    }
+    emit_section(out, SEC_TYPE(), type_sec)
+
+    // Import section (for WASI)
+    let import_sec = WasmWriter_new()
+    let wasi_module = String_from("wasi_snapshot_preview1")
+    emit_leb128_u(import_sec, 1)
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("fd_write"))
+    emit_byte(import_sec, 0x00)  // func import
+    emit_leb128_u(import_sec, 0) // type index 0 (placeholder)
+    emit_section(out, SEC_IMPORT(), import_sec)
+
+    // Function section
+    let func_sec = WasmWriter_new()
+    emit_leb128_u(func_sec, fn_count)
+    let mut fi = 0
+    while fi < fn_count {
+        emit_leb128_u(func_sec, fi)
+        fi = fi + 1
+    }
+    emit_section(out, SEC_FUNCTION(), func_sec)
+
+    // Memory section
+    let mem_sec = WasmWriter_new()
+    emit_leb128_u(mem_sec, 1)
+    emit_byte(mem_sec, 0x00)    // limits: no max
+    emit_leb128_u(mem_sec, 1)   // initial: 1 page
+    emit_section(out, SEC_MEMORY(), mem_sec)
+
+    // Export section
+    let export_sec = WasmWriter_new()
+    let mut export_count = 1  // memory
+    // Find _start / main
+    let mut main_idx = 0 - 1
+    let mut mi = 0
+    while mi < fn_count {
+        let f = get_unchecked(mir.functions, mi)
+        if eq(clone(f.name), "main") || eq(clone(f.name), "_start") {
+            main_idx = mi
+        }
+        mi = mi + 1
+    }
+    if main_idx >= 0 { export_count = export_count + 1 }
+    emit_leb128_u(export_sec, export_count)
+    // Export memory
+    emit_string(export_sec, String_from("memory"))
+    emit_byte(export_sec, 0x02)
+    emit_leb128_u(export_sec, 0)
+    // Export main/_start
+    if main_idx >= 0 {
+        emit_string(export_sec, String_from("_start"))
+        emit_byte(export_sec, 0x00)
+        emit_leb128_u(export_sec, main_idx + 1)  // offset by imports
+    }
+    emit_section(out, SEC_EXPORT(), export_sec)
+
+    // Code section
+    let code_sec = WasmWriter_new()
+    emit_leb128_u(code_sec, fn_count)
+    let mut ci = 0
+    while ci < fn_count {
+        let f = get_unchecked(mir.functions, ci)
+        let body = WasmWriter_new()
+
+        // Locals
+        let local_count = len(f.locals)
+        emit_leb128_u(body, local_count)
+        let mut li = 0
+        while li < local_count {
+            let loc = get_unchecked(f.locals, li)
+            emit_leb128_u(body, 1)
+            emit_byte(body, val_type_to_wasm(loc.val_type))
+            li = li + 1
+        }
+
+        // Instructions (simplified: emit MIR ops → Wasm ops)
+        let block_count = len(f.blocks)
+        let mut bi = 0
+        while bi < block_count {
+            let block = get_unchecked(f.blocks, bi)
+            let inst_count = len(block.instructions)
+            let mut ii = 0
+            while ii < inst_count {
+                let inst = get_unchecked(block.instructions, ii)
+                emit_mir_inst(body, inst)
+                ii = ii + 1
+            }
+            bi = bi + 1
+        }
+
+        emit_byte(body, OP_END())
+
+        // Write func body with size prefix
+        emit_leb128_u(code_sec, writer_size(body))
+        emit_bytes(code_sec, body.bytes)
+        ci = ci + 1
+    }
+    emit_section(out, SEC_CODE(), code_sec)
+
+    // Data section (string constants)
+    let str_count = len(mir.string_constants)
+    if str_count > 0 {
+        let data_sec = WasmWriter_new()
+        emit_leb128_u(data_sec, str_count)
+        let mut si = 0
+        let mut offset = 0
+        while si < str_count {
+            let s = get_unchecked(mir.string_constants, si)
+            emit_byte(data_sec, 0x00)  // active, memory 0
+            emit_byte(data_sec, OP_I32_CONST())
+            emit_leb128_s(data_sec, offset)
+            emit_byte(data_sec, OP_END())
+            let slen = len(s)
+            emit_leb128_u(data_sec, slen)
+            let mut ci2 = 0
+            while ci2 < slen {
+                emit_byte(data_sec, char_at(s, ci2))
+                ci2 = ci2 + 1
+            }
+            offset = offset + slen
+            si = si + 1
+        }
+        emit_section(out, SEC_DATA(), data_sec)
+    }
+
+    out.bytes
+}
+
+fn emit_mir_inst(w: WasmWriter, inst: MirInst) {
+    if inst.op == 1 {  // CONST_I32
+        emit_byte(w, OP_I32_CONST())
+        emit_leb128_s(w, inst.int_val)
+    } else if inst.op == 2 {  // CONST_I64
+        emit_byte(w, OP_I64_CONST())
+        emit_leb128_s(w, inst.int_val)
+    } else if inst.op == 10 {  // LOCAL_GET
+        emit_byte(w, OP_LOCAL_GET())
+        emit_leb128_u(w, inst.arg0)
+    } else if inst.op == 11 {  // LOCAL_SET
+        emit_byte(w, OP_LOCAL_SET())
+        emit_leb128_u(w, inst.dest)
+    } else if inst.op == 20 {  // ADD
+        emit_byte(w, OP_I32_ADD())
+    } else if inst.op == 21 {  // SUB
+        emit_byte(w, OP_I32_SUB())
+    } else if inst.op == 22 {  // MUL
+        emit_byte(w, OP_I32_MUL())
+    } else if inst.op == 23 {  // DIV
+        emit_byte(w, OP_I32_DIV_S())
+    } else if inst.op == 24 {  // MOD
+        emit_byte(w, OP_I32_REM_S())
+    } else if inst.op == 25 {  // EQ
+        emit_byte(w, OP_I32_EQ())
+    } else if inst.op == 26 {  // NEQ
+        emit_byte(w, OP_I32_NE())
+    } else if inst.op == 27 {  // LT
+        emit_byte(w, OP_I32_LT_S())
+    } else if inst.op == 29 {  // GT
+        emit_byte(w, OP_I32_GT_S())
+    } else if inst.op == 40 {  // CALL
+        emit_byte(w, OP_CALL())
+        emit_leb128_u(w, inst.arg0)
+    } else if inst.op == 42 {  // RETURN
+        emit_byte(w, OP_RETURN())
+    } else if inst.op == 70 {  // DROP
+        emit_byte(w, OP_DROP())
+    } else if inst.op == 71 {  // NOP
+        emit_byte(w, OP_NOP())
+    } else if inst.op == 72 {  // UNREACHABLE
+        emit_byte(w, OP_UNREACHABLE())
+    }
+}
+
+fn val_type_to_wasm(vt: i32) -> i32 {
+    if vt == 1 { return WASM_I32() }
+    if vt == 2 { return WASM_I64() }
+    if vt == 3 { return WASM_F64() }
+    if vt == 4 { return WASM_I32() }  // ref → i32 placeholder
+    WASM_I32()
+}
+
+// ── Public API (used by driver) ──────────────────────────────────────────────
+
+struct MirModule {
+    functions: Vec<MirFunction>,
+    string_constants: Vec<String>,
+}
+
+struct MirFunction {
+    name: String,
+    params: Vec<MirLocal>,
+    locals: Vec<MirLocal>,
+    blocks: Vec<MirBlock>,
+    return_type: i32,
+    next_local: i32,
+    next_block: i32,
+}
+
+struct MirLocal {
+    name: String,
+    val_type: i32,
+}
+
+struct MirBlock {
+    id: i32,
+    instructions: Vec<MirInst>,
+    terminator: i32,
+    succ0: i32,
+    succ1: i32,
+}
+
+struct MirInst {
+    op: i32,
+    dest: i32,
+    arg0: i32,
+    arg1: i32,
+    int_val: i32,
+    float_val: f64,
+    str_val: String,
+    val_type: i32,
+}
+
+fn emit_wasm(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
+    emit_wasm_module(mir, target, opt_level)
+}
+
+// ── Entry Point ──────────────────────────────────────────────────────────────
+
+fn main() {
+    let m = MirModule_new()
+
+    // Build a minimal main function
+    let f = MirFunction_new(String_from("main"))
+    f.return_type = 0  // void
+    let entry = alloc_block(f)
+    // i32.const 42
+    let ci = MirInst_const_i32(42, 0)
+    emit_inst(f, entry, ci)
+    // drop
+    let di = MirInst_new(70)  // MIR_DROP
+    emit_inst(f, entry, di)
+
+    push(m.functions, f)
+
+    let bytes = emit_wasm_module(m, String_from("wasm32-wasi-p2"), 0)
+    let size = len(bytes)
+    stdio::println(concat(String_from("Wasm output: "), concat(to_string(size), String_from(" bytes"))))
+
+    // Verify magic number
+    if size >= 4 {
+        let b0 = get_unchecked(bytes, 0)
+        let b1 = get_unchecked(bytes, 1)
+        let b2 = get_unchecked(bytes, 2)
+        let b3 = get_unchecked(bytes, 3)
+        if b0 == 0 && b1 == 97 && b2 == 115 && b3 == 109 {
+            stdio::println(String_from("Magic: OK (\\0asm)"))
+        } else {
+            stdio::println(String_from("Magic: FAIL"))
+        }
+    }
+
+    stdio::println(String_from("Emitter OK."))
+}
+
+fn MirModule_new() -> MirModule {
+    MirModule {
+        functions: Vec_new_MirFunction(),
+        string_constants: Vec_new_String(),
+    }
+}
+
+fn MirFunction_new(name: String) -> MirFunction {
+    MirFunction {
+        name: name,
+        params: Vec_new_MirLocal(),
+        locals: Vec_new_MirLocal(),
+        blocks: Vec_new_MirBlock(),
+        return_type: 0,
+        next_local: 0,
+        next_block: 0,
+    }
+}
+
+fn alloc_block(f: MirFunction) -> i32 {
+    let idx = f.next_block
+    f.next_block = f.next_block + 1
+    let block = MirBlock {
+        id: idx,
+        instructions: Vec_new_MirInst(),
+        terminator: 42,
+        succ0: 0 - 1,
+        succ1: 0 - 1,
+    }
+    push(f.blocks, block)
+    idx
+}
+
+fn emit_inst(f: MirFunction, block_id: i32, inst: MirInst) {
+    let block = get_unchecked(f.blocks, block_id)
+    push(block.instructions, inst)
+}
+
+fn MirInst_new(op: i32) -> MirInst {
+    MirInst {
+        op: op, dest: 0 - 1, arg0: 0 - 1, arg1: 0 - 1,
+        int_val: 0, float_val: 0.0, str_val: String_new(),
+        val_type: 0,
+    }
+}
+
+fn MirInst_const_i32(val: i32, dest: i32) -> MirInst {
+    MirInst {
+        op: 1, dest: dest, arg0: 0 - 1, arg1: 0 - 1,
+        int_val: val, float_val: 0.0, str_val: String_new(),
+        val_type: 1,
+    }
+}

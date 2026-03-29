@@ -1,0 +1,323 @@
+// Arukellt Selfhost — MIR (Mid-level IR) + HIR→MIR Lowering
+//
+// Flattens the typed HIR tree into a flat list of basic blocks
+// with explicit control flow, preparing for Wasm emission.
+
+use std::host::stdio
+
+// ── MIR Instruction Tags ─────────────────────────────────────────────────────
+
+fn MIR_CONST_I32() -> i32 { 1 }
+fn MIR_CONST_I64() -> i32 { 2 }
+fn MIR_CONST_F64() -> i32 { 3 }
+fn MIR_CONST_BOOL() -> i32 { 4 }
+fn MIR_CONST_STRING() -> i32 { 5 }
+fn MIR_LOCAL_GET() -> i32 { 10 }
+fn MIR_LOCAL_SET() -> i32 { 11 }
+fn MIR_GLOBAL_GET() -> i32 { 12 }
+fn MIR_GLOBAL_SET() -> i32 { 13 }
+fn MIR_ADD() -> i32 { 20 }
+fn MIR_SUB() -> i32 { 21 }
+fn MIR_MUL() -> i32 { 22 }
+fn MIR_DIV() -> i32 { 23 }
+fn MIR_MOD() -> i32 { 24 }
+fn MIR_EQ() -> i32 { 25 }
+fn MIR_NEQ() -> i32 { 26 }
+fn MIR_LT() -> i32 { 27 }
+fn MIR_LTEQ() -> i32 { 28 }
+fn MIR_GT() -> i32 { 29 }
+fn MIR_GTEQ() -> i32 { 30 }
+fn MIR_AND() -> i32 { 31 }
+fn MIR_OR() -> i32 { 32 }
+fn MIR_NEG() -> i32 { 33 }
+fn MIR_NOT() -> i32 { 34 }
+fn MIR_CALL() -> i32 { 40 }
+fn MIR_CALL_INDIRECT() -> i32 { 41 }
+fn MIR_RETURN() -> i32 { 42 }
+fn MIR_BR() -> i32 { 50 }
+fn MIR_BR_IF() -> i32 { 51 }
+fn MIR_BR_TABLE() -> i32 { 52 }
+fn MIR_BLOCK() -> i32 { 53 }
+fn MIR_LOOP() -> i32 { 54 }
+fn MIR_IF() -> i32 { 55 }
+fn MIR_STRUCT_NEW() -> i32 { 60 }
+fn MIR_STRUCT_GET() -> i32 { 61 }
+fn MIR_STRUCT_SET() -> i32 { 62 }
+fn MIR_ARRAY_NEW() -> i32 { 63 }
+fn MIR_ARRAY_GET() -> i32 { 64 }
+fn MIR_ARRAY_SET() -> i32 { 65 }
+fn MIR_ARRAY_LEN() -> i32 { 66 }
+fn MIR_DROP() -> i32 { 70 }
+fn MIR_NOP() -> i32 { 71 }
+fn MIR_UNREACHABLE() -> i32 { 72 }
+
+// ── MIR Value Type Tags ─────────────────────────────────────────────────────
+
+fn VT_I32() -> i32 { 1 }
+fn VT_I64() -> i32 { 2 }
+fn VT_F64() -> i32 { 3 }
+fn VT_REF() -> i32 { 4 }
+fn VT_VOID() -> i32 { 0 }
+
+// ── MIR Instruction ──────────────────────────────────────────────────────────
+
+struct MirInst {
+    op: i32,
+    dest: i32,
+    arg0: i32,
+    arg1: i32,
+    int_val: i32,
+    float_val: f64,
+    str_val: String,
+    val_type: i32,
+}
+
+fn MirInst_new(op: i32) -> MirInst {
+    MirInst {
+        op: op, dest: 0 - 1, arg0: 0 - 1, arg1: 0 - 1,
+        int_val: 0, float_val: 0.0, str_val: String_new(),
+        val_type: VT_VOID(),
+    }
+}
+
+fn MirInst_const_i32(val: i32, dest: i32) -> MirInst {
+    MirInst {
+        op: MIR_CONST_I32(), dest: dest, arg0: 0 - 1, arg1: 0 - 1,
+        int_val: val, float_val: 0.0, str_val: String_new(),
+        val_type: VT_I32(),
+    }
+}
+
+fn MirInst_const_string(val: String, dest: i32) -> MirInst {
+    MirInst {
+        op: MIR_CONST_STRING(), dest: dest, arg0: 0 - 1, arg1: 0 - 1,
+        int_val: 0, float_val: 0.0, str_val: val,
+        val_type: VT_REF(),
+    }
+}
+
+fn MirInst_binop(op: i32, dest: i32, a: i32, b: i32) -> MirInst {
+    MirInst {
+        op: op, dest: dest, arg0: a, arg1: b,
+        int_val: 0, float_val: 0.0, str_val: String_new(),
+        val_type: VT_I32(),
+    }
+}
+
+// ── MIR Basic Block ──────────────────────────────────────────────────────────
+
+struct MirBlock {
+    id: i32,
+    instructions: Vec<MirInst>,
+    terminator: i32,
+    succ0: i32,
+    succ1: i32,
+}
+
+fn MirBlock_new(id: i32) -> MirBlock {
+    MirBlock {
+        id: id,
+        instructions: Vec_new_MirInst(),
+        terminator: MIR_RETURN(),
+        succ0: 0 - 1,
+        succ1: 0 - 1,
+    }
+}
+
+// ── MIR Function ─────────────────────────────────────────────────────────────
+
+struct MirLocal {
+    name: String,
+    val_type: i32,
+}
+
+struct MirFunction {
+    name: String,
+    params: Vec<MirLocal>,
+    locals: Vec<MirLocal>,
+    blocks: Vec<MirBlock>,
+    return_type: i32,
+    next_local: i32,
+    next_block: i32,
+}
+
+fn MirFunction_new(name: String) -> MirFunction {
+    MirFunction {
+        name: name,
+        params: Vec_new_MirLocal(),
+        locals: Vec_new_MirLocal(),
+        blocks: Vec_new_MirBlock(),
+        return_type: VT_VOID(),
+        next_local: 0,
+        next_block: 0,
+    }
+}
+
+fn alloc_local(f: MirFunction, name: String, vt: i32) -> i32 {
+    let idx = f.next_local
+    f.next_local = f.next_local + 1
+    push(f.locals, MirLocal { name: name, val_type: vt })
+    idx
+}
+
+fn alloc_block(f: MirFunction) -> i32 {
+    let idx = f.next_block
+    f.next_block = f.next_block + 1
+    push(f.blocks, MirBlock_new(idx))
+    idx
+}
+
+fn emit_inst(f: MirFunction, block_id: i32, inst: MirInst) {
+    let block = get_unchecked(f.blocks, block_id)
+    push(block.instructions, inst)
+}
+
+// ── MIR Module ───────────────────────────────────────────────────────────────
+
+struct MirModule {
+    functions: Vec<MirFunction>,
+    string_constants: Vec<String>,
+}
+
+fn MirModule_new() -> MirModule {
+    MirModule {
+        functions: Vec_new_MirFunction(),
+        string_constants: Vec_new_String(),
+    }
+}
+
+fn intern_string(m: MirModule, s: String) -> i32 {
+    let count = len(m.string_constants)
+    let mut i = 0
+    while i < count {
+        let existing = get_unchecked(m.string_constants, i)
+        if eq(clone(existing), clone(s)) {
+            return i
+        }
+        i = i + 1
+    }
+    push(m.string_constants, s)
+    count
+}
+
+// ── HIR→MIR Lowering ────────────────────────────────────────────────────────
+// Takes TypeCheckResult and produces MirModule.
+// Currently a framework; full lowering will be expanded in Phase 3.
+
+struct TypeCheckResult {
+    error_count: i32,
+    errors: Vec<String>,
+    typed_fns: Vec<TypedFn>,
+}
+
+struct TypedFn {
+    name: String,
+    return_type: TypeInfo,
+}
+
+struct TypeInfo {
+    tag: i32,
+    name: String,
+    type_args: Vec<TypeInfo>,
+}
+
+fn lower_to_mir(check_result: TypeCheckResult) -> MirModule {
+    let m = MirModule_new()
+    // For each typed function, create a MIR function skeleton
+    let fn_count = len(check_result.typed_fns)
+    let mut i = 0
+    while i < fn_count {
+        let tf = get_unchecked(check_result.typed_fns, i)
+        let mf = MirFunction_new(clone(tf.name))
+        let entry = alloc_block(mf)
+        push(m.functions, mf)
+        i = i + 1
+    }
+    m
+}
+
+// ── MIR Dump ─────────────────────────────────────────────────────────────────
+
+fn dump_mir(m: MirModule) {
+    let fn_count = len(m.functions)
+    stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
+    let mut i = 0
+    while i < fn_count {
+        let f = get_unchecked(m.functions, i)
+        let block_count = len(f.blocks)
+        let local_count = len(f.locals)
+        stdio::eprintln(concat(String_from("  fn "), concat(clone(f.name), concat(String_from(" ("), concat(to_string(local_count), concat(String_from(" locals, "), concat(to_string(block_count), String_from(" blocks)"))))))))
+        let mut b = 0
+        while b < block_count {
+            let block = get_unchecked(f.blocks, b)
+            let inst_count = len(block.instructions)
+            stdio::eprintln(concat(String_from("    bb"), concat(to_string(b), concat(String_from(": "), concat(to_string(inst_count), String_from(" instructions"))))))
+            let mut j = 0
+            while j < inst_count {
+                let inst = get_unchecked(block.instructions, j)
+                stdio::eprintln(concat(String_from("      "), concat(mir_op_name(inst.op), concat(String_from(" -> %"), to_string(inst.dest)))))
+                j = j + 1
+            }
+            b = b + 1
+        }
+        i = i + 1
+    }
+    let str_count = len(m.string_constants)
+    if str_count > 0 {
+        stdio::eprintln(concat(String_from("  strings: "), to_string(str_count)))
+    }
+}
+
+fn mir_op_name(op: i32) -> String {
+    if op == MIR_CONST_I32() { return String_from("const.i32") }
+    if op == MIR_CONST_I64() { return String_from("const.i64") }
+    if op == MIR_CONST_F64() { return String_from("const.f64") }
+    if op == MIR_CONST_STRING() { return String_from("const.string") }
+    if op == MIR_LOCAL_GET() { return String_from("local.get") }
+    if op == MIR_LOCAL_SET() { return String_from("local.set") }
+    if op == MIR_ADD() { return String_from("add") }
+    if op == MIR_SUB() { return String_from("sub") }
+    if op == MIR_MUL() { return String_from("mul") }
+    if op == MIR_DIV() { return String_from("div") }
+    if op == MIR_CALL() { return String_from("call") }
+    if op == MIR_RETURN() { return String_from("return") }
+    if op == MIR_BR() { return String_from("br") }
+    if op == MIR_BR_IF() { return String_from("br_if") }
+    if op == MIR_STRUCT_NEW() { return String_from("struct.new") }
+    if op == MIR_STRUCT_GET() { return String_from("struct.get") }
+    if op == MIR_DROP() { return String_from("drop") }
+    if op == MIR_NOP() { return String_from("nop") }
+    String_from("?op")
+}
+
+// ── Entry Point ──────────────────────────────────────────────────────────────
+
+fn main() {
+    let m = MirModule_new()
+
+    // Build a simple function: fn add(a: i32, b: i32) -> i32 { a + b }
+    let f = MirFunction_new(String_from("add"))
+    let pa = alloc_local(f, String_from("a"), VT_I32())
+    let pb = alloc_local(f, String_from("b"), VT_I32())
+    let tmp = alloc_local(f, String_from("_t0"), VT_I32())
+    f.return_type = VT_I32()
+
+    let entry = alloc_block(f)
+    emit_inst(f, entry, MirInst_new(MIR_LOCAL_GET()))
+    emit_inst(f, entry, MirInst_new(MIR_LOCAL_GET()))
+    emit_inst(f, entry, MirInst_binop(MIR_ADD(), tmp, pa, pb))
+    emit_inst(f, entry, MirInst_new(MIR_RETURN()))
+
+    push(m.functions, f)
+
+    // Intern some strings
+    let s0 = intern_string(m, String_from("hello"))
+    let s1 = intern_string(m, String_from("world"))
+    let s2 = intern_string(m, String_from("hello"))
+    stdio::println(concat(String_from("intern 'hello': "), to_string(s0)))
+    stdio::println(concat(String_from("intern 'world': "), to_string(s1)))
+    stdio::println(concat(String_from("intern 'hello' again: "), to_string(s2)))
+
+    dump_mir(m)
+    stdio::println(String_from("MIR module OK."))
+}
