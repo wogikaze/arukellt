@@ -15,6 +15,11 @@ for f in benchmarks/*.ark; do
         continue
     fi
 
+    if [ "$base" = "bench_parse_tree_distance" ]; then
+        echo "SKIP: $base (large file-backed benchmark; excluded from parity check)"
+        continue
+    fi
+
     t1_out=$("$ARUKELLT" run --target wasm32-wasi-p1 "$f" 2>/dev/null) || t1_out="[T1 ERROR]"
     t3_out=$("$ARUKELLT" run --target wasm32-wasi-p2 "$f" 2>/dev/null) || t3_out="[T3 ERROR]"
     exp=$(cat "$expected")

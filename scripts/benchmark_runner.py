@@ -36,6 +36,7 @@ class BenchmarkCase:
     expected: str
     description: str
     tags: tuple[str, ...]
+    runtime_args: tuple[str, ...] = ()
     metrics: tuple[str, ...] = ("compile", "runtime", "size", "memory")
 
 
@@ -67,6 +68,14 @@ BENCHMARKS: tuple[BenchmarkCase, ...] = (
         expected="benchmarks/string_concat.expected",
         description="String concat in loop (100 iterations)",
         tags=("string-heavy", "allocation-heavy", "gc-pressure"),
+    ),
+    BenchmarkCase(
+        name="parse_tree_distance",
+        source="benchmarks/bench_parse_tree_distance.ark",
+        expected="benchmarks/bench_parse_tree_distance.expected",
+        description="Packed-tree distance validator on a 1200-node star matrix",
+        tags=("parse", "allocation-heavy", "container", "iteration"),
+        runtime_args=("run", "--dir=."),
     ),
 )
 
@@ -258,6 +267,7 @@ def measure_runtime(
     warmups: int,
     wasmtime_bin: str | None,
     time_bin: str | None,
+    runtime_args: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     if wasmtime_bin is None:
         return {
@@ -272,7 +282,8 @@ def measure_runtime(
             "correctness": "skipped",
             "command": None,
         }
-    warmup_cmd = [wasmtime_bin, str(wasm_path)]
+    runtime_cmd = [wasmtime_bin, *runtime_args, str(wasm_path)]
+    warmup_cmd = runtime_cmd
     for _ in range(warmups):
         warm = run_measured(warmup_cmd, cwd=ROOT, time_bin=time_bin)
         if warm["returncode"] != 0:
@@ -292,7 +303,7 @@ def measure_runtime(
     samples: list[dict[str, Any]] = []
     last_output: dict[str, Any] | None = None
     for _ in range(iterations):
-        output = run_measured([wasmtime_bin, str(wasm_path)], cwd=ROOT, time_bin=time_bin)
+        output = run_measured(runtime_cmd, cwd=ROOT, time_bin=time_bin)
         last_output = output
         if output["returncode"] != 0:
             return {
@@ -322,7 +333,7 @@ def measure_runtime(
         "max_rss_kb": summarize_samples(samples, "max_rss_kb"),
         "stdout": stdout,
         "correctness": correctness,
-        "command": last_output["command"] if last_output else command_display([wasmtime_bin, str(wasm_path)]),
+        "command": last_output["command"] if last_output else command_display(runtime_cmd),
     }
 
 
@@ -378,6 +389,7 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
                     warmups=args.runtime_warmups if args.runtime_warmups is not None else preset["runtime_warmups"],
                     wasmtime_bin=wasmtime_bin,
                     time_bin=time_bin,
+                    runtime_args=case.runtime_args,
                 )
             else:
                 runtime_result = {

@@ -158,6 +158,7 @@ docs/sample/
 
 scripts/
 ├── benchmark_runner.py     # Canonical runner (all modes)
+├── compare-benchmarks.sh   # Baseline comparison wrapper
 └── perf-gate.sh            # CI gate wrapper
 ```
 
@@ -200,6 +201,6 @@ A regression is flagged when `delta_pct` exceeds the threshold for that metric
 4. Register the benchmark in `scripts/benchmark_runner.py` by adding a
    `BenchmarkCase` entry to the `BENCHMARKS` tuple.
 5. Run `mise bench` to verify it compiles, runs, and produces correct output.
-5. Run `mise bench:update-baseline` to include the new benchmark in the
+6. Run `mise bench:update-baseline` to include the new benchmark in the
    baseline.
-6. Commit the fixture, expected file, any checked-in input files, and updated baseline together.
+7. Commit the fixture, expected file, any checked-in input files, and updated baseline together.

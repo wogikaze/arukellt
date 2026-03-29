@@ -63,7 +63,7 @@ human-readable report to `docs/process/benchmark-results.md`.
 | binary_tree | `binary_tree.ark` | Recursive node counting (depth 20) | `recursion-heavy`, `call-heavy` |
 | vec_ops | `vec_ops.ark` | Vec push/sum/contains (1k elements) | `allocation-heavy`, `container`, `iteration` |
 | string_concat | `string_concat.ark` | String concat in loop (100 iterations) | `string-heavy`, `allocation-heavy`, `gc-pressure` |
-| parse_tree_distance | `bench_parse_tree_distance.ark` | Packed-tree distance validator on a 3000-node star matrix | `parse`, `allocation-heavy`, `container`, `iteration` |
+| parse_tree_distance | `bench_parse_tree_distance.ark` | Packed-tree distance validator on a 1200-node star matrix | `parse`, `allocation-heavy`, `container`, `iteration` |
 
 A complex parser workload lives at [`docs/sample/parser.ark`](../docs/sample/parser.ark)
 and serves as a real-world stress test for the compiler and runtime.
@@ -81,6 +81,7 @@ and serves as a real-world stress test for the compiler and runtime.
 - **`scripts/benchmark_runner.py`** — canonical runner used by `mise bench`, compare, baseline update, and CI gate.
 - **`benchmarks/run_benchmarks.sh`** — wrapper for the canonical runner.
 - **`scripts/perf-gate.sh`** — CI-oriented wrapper (`--mode ci` / `--mode update-baseline`).
+- **`scripts/compare-benchmarks.sh`** — baseline comparison wrapper.
 - **`parity-check.sh`** — Verify T1 vs T3 produce identical output for all `.ark` fixtures.
 - **`size-compare.sh`** — Compare Wasm binary sizes between T1 and T3.
 
