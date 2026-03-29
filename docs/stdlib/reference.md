@@ -144,6 +144,13 @@
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` |
 
+## Host Http
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
+|------|-----------|--------|-----------|------|---------|-----------|
+| `get` | `(String) -> Result<String, String>` | `std::host::http` | `experimental` | `host_stub` | no | - |
+| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `experimental` | `host_stub` | no | - |
+
 ## Host Process
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
@@ -158,6 +165,12 @@
 | `random_bool` | `() -> bool` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` |
 | `random_i32` | `() -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` |
 | `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` |
+
+## Host Sockets
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
+|------|-----------|--------|-----------|------|---------|-----------|
+| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `experimental` | `host_stub` | no | - |
 
 ## Host Stdio
 
