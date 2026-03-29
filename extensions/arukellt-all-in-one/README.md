@@ -8,6 +8,15 @@ Minimal VS Code extension scaffold for Arukellt.
 - Provides a basic language configuration, grammar, and snippets
 - Launches `arukellt lsp` using the configured CLI path
 - Supports restarting the language server from the command palette
+- Adds command palette actions for `check`, `compile`, and `run` on the active `.ark` file
+- Adds a basic `arukellt` task provider and status bar state
+
+## Commands
+
+- `Arukellt: Restart Language Server`
+- `Arukellt: Check Current File`
+- `Arukellt: Compile Current File`
+- `Arukellt: Run Current File`
 
 ## Settings
 

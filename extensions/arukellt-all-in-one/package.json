@@ -13,7 +13,10 @@
   ],
   "activationEvents": [
     "onLanguage:arukellt",
-    "onCommand:arukellt.restartLanguageServer"
+    "onCommand:arukellt.restartLanguageServer",
+    "onCommand:arukellt.checkCurrentFile",
+    "onCommand:arukellt.compileCurrentFile",
+    "onCommand:arukellt.runCurrentFile"
   ],
   "main": "./src/extension.js",
   "contributes": {
@@ -47,6 +50,18 @@
       {
         "command": "arukellt.restartLanguageServer",
         "title": "Arukellt: Restart Language Server"
+      },
+      {
+        "command": "arukellt.checkCurrentFile",
+        "title": "Arukellt: Check Current File"
+      },
+      {
+        "command": "arukellt.compileCurrentFile",
+        "title": "Arukellt: Compile Current File"
+      },
+      {
+        "command": "arukellt.runCurrentFile",
+        "title": "Arukellt: Run Current File"
       }
     ],
     "configuration": {
@@ -64,6 +79,16 @@
             "type": "string"
           },
           "description": "Additional arguments passed before the built-in `lsp` subcommand."
+        },
+        "arukellt.target": {
+          "type": "string",
+          "default": "wasm32-wasi-p1",
+          "description": "Default target passed by extension commands such as check, compile, and run."
+        },
+        "arukellt.emit": {
+          "type": "string",
+          "default": "core-wasm",
+          "description": "Default emit kind passed by extension compile commands."
         }
       }
     }

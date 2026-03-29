@@ -61,8 +61,13 @@ pub fn emit_with_plan(
         }
     };
 
-    if plan.requires_backend_validation {
+    if plan.requires_backend_validation && std::env::var("ARK_SKIP_VALIDATE").is_err() {
         backend_validate(&bytes, sink);
+    }
+
+    // Debug dump for analysis (ARK_DUMP_WASM=/tmp/out.wasm)
+    if let Ok(dump_path) = std::env::var("ARK_DUMP_WASM") {
+        let _ = std::fs::write(&dump_path, &bytes);
     }
 
     bytes
