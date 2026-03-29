@@ -77,3 +77,18 @@ For tracked issue work, that normally means:
 - Prefer `ig` for code search.
 - `ark-llvm` is present in the workspace but excluded from normal default verification because it requires LLVM 18.
 - Generated docs and manifest-backed stdlib reference pages should be regenerated, not hand-maintained.
+
+## Markdown Navigation
+
+- When reading large Markdown files such as `README.md`, docs, ADRs, or issue indexes, prefer `markdive` over loading the whole file at once.
+- Use `npx markdive` so the workflow works even when the CLI is not globally installed.
+- Recommended flow:
+
+```bash
+npx markdive dive <file> --depth 2
+npx markdive dive <file> --path <section-id> --depth 2
+npx markdive read <file> --path <section-id>
+```
+
+- First inspect structure with `dive`, then drill down with `--path`, and only then read the target section with `read`.
+- Fall back to normal file reads only when `markdive` cannot handle the document.
