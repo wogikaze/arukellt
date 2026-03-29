@@ -17,7 +17,6 @@ graph TD
   I155["155 横断 docs: selfhosting stdlib checklist と不足 migration guides を整備"]
   I156["156 T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化"]
   I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
-  I159["159 159: 言語仕様凍結版の作成"]
   I161["161 161: Phase 1 — Lexer の Arukellt 実装"]
   I162["162 162: Phase 1 — Parser の Arukellt 実装"]
   I163["163 163: Phase 1 — Driver + CLI の Arukellt 実装"]
@@ -92,7 +91,6 @@ graph TD
 - **155** depends on: —; blocks: 158
 - **156** depends on: —; blocks: none
 - **157** depends on: —; blocks: none
-- **159** depends on: なし; blocks: none
 - **161** depends on: #159 (仕様凍結), #160 (stdlib チェックリスト); blocks: none
 - **162** depends on: #161 (Lexer); blocks: none
 - **163** depends on: #161 (Lexer), #162 (Parser); blocks: none
