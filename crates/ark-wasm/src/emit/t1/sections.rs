@@ -225,7 +225,7 @@ impl EmitCtx {
         // Memory section
         let mut memory = MemorySection::new();
         memory.memory(MemoryType {
-            minimum: 64,
+            minimum: 256,
             maximum: None,
             memory64: false,
             shared: false,
