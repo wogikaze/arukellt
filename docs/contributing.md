@@ -3,85 +3,122 @@
 ## Prerequisites
 
 - Rust stable toolchain (install via [rustup](https://rustup.rs/))
-- `cargo`, `clippy`, `rustfmt` components
+- `cargo`, `clippy`, `rustfmt`
+- `python3`
+- `npx` / `markdownlint-cli2` for the markdown check used by the harness
+
+## Start Here
+
+Before changing behavior, read:
+
+- [`current-state.md`](current-state.md) — current verified project behavior
+- [`process/policy.md`](process/policy.md) — operational / verification policy
+- [`README.md`](README.md) — docs index and quick links
 
 ## Quick Start
 
 ```bash
-# Clone and build
-git clone <repo-url>
-cd arukellt
+# Build the CLI
 cargo build --release -p arukellt
 
-# Run verification
+# Run the repository verification contract
 bash scripts/verify-harness.sh
 
-# Run a program
-target/release/arukellt run tests/fixtures/hello/hello.ark
+# Run a sample program
+./target/release/arukellt run docs/examples/hello.ark
 ```
 
-## Raw Commands
+## Common Commands
 
 ```bash
 cargo fmt --all --check
 cargo clippy --workspace --exclude ark-llvm -- -D warnings
-cargo build --workspace --exclude ark-llvm
 cargo test --workspace --exclude ark-llvm
+bash scripts/verify-harness.sh --quick
 bash scripts/verify-harness.sh
-python3 scripts/collect-baseline.py
+python3 scripts/generate-docs.py
 python3 scripts/check-docs-consistency.py
+python3 scripts/collect-baseline.py
 ```
 
 ## Project Structure
 
 ```text
 crates/
-  ark-lexer/        # Tokenizer
-  ark-parser/       # Parser / AST
-  ark-resolve/      # Bind/Load/Analyze/Resolve refactor target area
-  ark-typecheck/    # Type checking (+ planned CoreHIR build)
-  ark-hir/          # Planned shared CoreHIR crate for this refactor
-  ark-mir/          # MIR lowering / validation / optimization boundary
-  ark-wasm/         # Wasm backend emit + backend validation
-  ark-target/       # Target registry + backend planning boundary
-  ark-diagnostics/  # Canonical diagnostic registry + rendering
-  ark-driver/       # Session / orchestration
+  ark-lexer/        # tokenizer
+  ark-parser/       # parser / AST
+  ark-resolve/      # name resolution, imports, module loading
+  ark-typecheck/    # type checking
+  ark-hir/          # shared HIR crate
+  ark-mir/          # MIR lowering / validation / optimization
+  ark-wasm/         # Wasm backend + component / WIT emit
+  ark-target/       # target registry + backend planning
+  ark-diagnostics/  # diagnostics registry + rendering
+  ark-driver/       # session / orchestration
+  ark-stdlib/       # stdlib support crate
+  ark-lsp/          # LSP scaffold
+  ark-llvm/         # LLVM backend scaffold (excluded from default verification)
   arukellt/         # CLI entry point
+std/                # source-backed stdlib wrappers and manifest
+tests/fixtures/     # manifest-driven fixtures
+benchmarks/         # perf cases
+scripts/            # verification / generation utilities
+docs/               # user-facing and design docs
 ```
 
-## Fixture / Baseline Contract
+## Fixtures and Baselines
 
-- `tests/fixtures/manifest.txt` is the single source of truth for fixture entry points
-- Current manifest size: **351** entries
-- Harness kinds:
+- `tests/fixtures/manifest.txt` is the single source of truth for fixture entry points.
+- The harness is manifest-driven; do not assume globbing.
+- Current totals are derived dynamically by `scripts/verify-harness.sh` and surfaced in [`current-state.md`](current-state.md).
+- Fixture kinds currently include:
   - `run`
   - `diag`
   - `module-run`
   - `module-diag`
-- Baselines live under `tests/baselines/`
-  - `perf-baseline.json` — T1/T3 compile-time and binary-size telemetry
-  - `fixture-baseline.json`
-  - `api-baseline.json`
+  - `t3-compile`
+  - `t3-run`
+  - `component-compile`
+  - `compile-error`
+  - `bench`
+- Baselines live under `tests/baselines/`.
+
+## Documentation Workflow
+
+Some docs are generated and should be regenerated rather than hand-edited.
+
+Use:
+
+```bash
+python3 scripts/generate-docs.py
+python3 scripts/check-docs-consistency.py
+```
+
+This updates / validates generated landing pages, README status blocks, sidebar content, and manifest-backed stdlib reference material.
 
 ## Verification Contract
 
-All PRs must pass `scripts/verify-harness.sh` with exit code 0.
+All behavior changes should pass:
 
-It includes:
+```bash
+bash scripts/verify-harness.sh
+```
 
-- docs structure checks
-- docs consistency drift checks
+The harness covers, among other checks:
+
+- docs structure and docs drift
 - formatting (`cargo fmt`)
 - lint (`cargo clippy`)
-- workspace build/tests
-- fixture harness execution
-- All fixture tests (362 pass, 0 fail)
-- stdlib manifest check
+- workspace tests
+- manifest-driven fixture execution
+- stdlib manifest checks
 - baseline collection smoke
 
-## Perf Gate Policy
+Use `--quick` while iterating, then run the full harness before finishing.
 
-Baseline compile-time cases:
+## Perf Policy
+
+Baseline compile-time cases are:
 
 - `docs/examples/hello.ark`
 - `docs/examples/vec.ark`
@@ -90,27 +127,20 @@ Baseline compile-time cases:
 
 Thresholds:
 
-- `arukellt check`: median compile time regression must stay within 10%
-- `arukellt compile`: median compile time regression must stay within 20%
+- `arukellt check`: median regression must stay within 10%
+- `arukellt compile`: median regression must stay within 20%
 
-Heavy perf comparison belongs in a separate CI job, not the default correctness gate.
+Heavy perf comparison belongs outside the default correctness gate.
 
-## Diagnostics / Snapshot Tooling
+## Hidden Developer Tooling
 
-Hidden developer support only:
+These are developer/debug aids, not stable public CLI options:
 
 - `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 - `ARUKELLT_DUMP_DIAGNOSTICS=1`
 
-These are for snapshot/debug work and are not stable public CLI options.
-
 ## Compatibility Notes
 
-Internal migration docs should keep the following distinction explicit:
-
-- old Session API / direct pipeline calls
-- new artifact/query-oriented pipeline surface
-
-Intentional behavior change in this refactor track:
-
-- `W0004` is now a hard error instead of warning-only
+- `docs/current-state.md` is the current behavior contract.
+- Historical roadmap / migration / completion docs should not override current-state.
+- `W0004` is a hard error: backend validation failure is build-breaking, not warning-only.

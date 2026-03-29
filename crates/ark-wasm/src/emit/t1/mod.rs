@@ -22,7 +22,12 @@ const STRUCT_BASE: u32 = 96; // scratch area for struct init base pointers (8 sl
 const ENUM_BASE: u32 = 128; // scratch area for enum init base pointers (8 slots × 4 bytes = 128..160)
 const FS_SCRATCH: u32 = 160; // scratch for fs operations (opened_fd: 4 bytes)
 const FS_NREAD: u32 = 164; // nread result from fd_read (4 bytes)
-const FS_BUF_SIZE: u32 = 4096; // read buffer chunk size
+const STDIN_BUF_POS: u32 = 168; // i32: current read position in stdin buffer
+const STDIN_BUF_LEN: u32 = 172; // i32: valid byte count in stdin buffer
+const FS_BUF_SIZE: u32 = 4096;  // read buffer chunk size for fs_read_file
+const STDIN_BUF: u32 = 4096;    // 65536-byte stdin buffer (4096..69631)
+const STDIN_BUF_SIZE: u32 = 65536;
+const HEAP_START: u32 = 69632;  // = STDIN_BUF + STDIN_BUF_SIZE
 const BOOL_TRUE: u32 = 80; // "true" (4 bytes)
 const BOOL_FALSE: u32 = 84; // "false" (5 bytes)
 const NEWLINE: u32 = 89; // "\n" (1 byte)
@@ -80,7 +85,8 @@ const FN_FILTER_I64: u32 = 26;
 const FN_FOLD_I64: u32 = 27;
 const FN_MAP_F64: u32 = 28;
 const FN_FILTER_F64: u32 = 29;
-const FN_USER_BASE: u32 = 30;
+const FN_GET_BYTE: u32 = 30;   // buffered stdin helper
+const FN_USER_BASE: u32 = 31;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
@@ -754,6 +760,10 @@ fn cfn_add_transitive_deps(needed: &mut std::collections::HashSet<u32>) {
         if needed.contains(&FN_PRINT_STR_LN) {
             needed.insert(FN_FD_WRITE);
         }
+        // FN_GET_BYTE (buffered stdin) calls FN_FD_READ
+        if needed.contains(&FN_GET_BYTE) {
+            needed.insert(FN_FD_READ);
+        }
         if needed.len() == before { break; }
     }
 }
@@ -862,7 +872,8 @@ fn cfn_handle_builtin(n: &str, args: &[Operand], func: &MirFunction, mir: &MirMo
             needed.insert(FN_F64_TO_STR);
             needed.insert(FN_I64_TO_STR);
         }
-        "read_line" | "read_int" => { needed.insert(FN_FD_READ); }
+        "read_line" => { needed.insert(FN_FD_READ); }
+        "read_int" => { needed.insert(FN_GET_BYTE); }
         "clock_now" | "clock_time_get" => { needed.insert(FN_CLOCK_TIME_GET); }
         "random_i32" | "random_f64" => { needed.insert(FN_RANDOM_GET); }
         "fs_read_file" => {

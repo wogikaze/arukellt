@@ -8,7 +8,7 @@ use ark_mir::mir::*;
 use ark_typecheck::Type;
 use std::collections::{HashMap, HashSet, VecDeque};
 
-use super::{normalize_intrinsic, Ctx};
+use super::{is_component_export_candidate, normalize_intrinsic, Ctx};
 
 /// Tracks which stdlib helper functions are needed by user code.
 #[derive(Debug, Default)]
@@ -393,14 +393,9 @@ impl Ctx {
             }
         }
 
-        // Only pure export modules root `pub fn`s. Command-style programs with
-        // `main`/`_start` should not drag every public stdlib wrapper into the
-        // core Wasm surface.
-        if queue.is_empty() {
-            for (idx, func) in mir.functions.iter().enumerate() {
-                if func.is_exported && func.name != "main" && !func.name.starts_with("__") {
-                    push_root(idx, &mut reachable, &mut queue);
-                }
+        for (idx, func) in mir.functions.iter().enumerate() {
+            if func.is_exported && is_component_export_candidate(&func.name) {
+                push_root(idx, &mut reachable, &mut queue);
             }
         }
 

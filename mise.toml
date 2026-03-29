@@ -44,3 +44,23 @@ description = "Run quick verification"
 [tasks.check]
 run = "cargo check --workspace"
 description = "Type-check all crates"
+
+[tasks.bench]
+run = "bash scripts/run-benchmarks.sh --full"
+description = "Run default local benchmark workflow"
+
+[tasks."bench:quick"]
+run = "bash scripts/run-benchmarks.sh --quick"
+description = "Run quick benchmark smoke workflow"
+
+[tasks."bench:compare"]
+run = "cargo build --release -p arukellt && python3 scripts/benchmark_runner.py --mode compare"
+description = "Compare current benchmark results against baseline"
+
+[tasks."bench:update-baseline"]
+run = "cargo build --release -p arukellt && python3 scripts/benchmark_runner.py --mode update-baseline"
+description = "Update benchmark baselines from current measurements"
+
+[tasks."bench:ci"]
+run = "cargo build --release -p arukellt && python3 scripts/benchmark_runner.py --mode ci"
+description = "Run benchmark regression gate for CI"

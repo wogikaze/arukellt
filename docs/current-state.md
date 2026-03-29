@@ -91,76 +91,52 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
 <!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 
-## Recent Changes (GC-native track, 2026-03-27)
+## Recent Milestones
 
-- **GC-native T3 emitter complete** — all 352 fixtures pass with pure GC output (346 original + 6 component)
-- Generics via `anyref` polymorphism — `Option<T>`, `Result<T,E>`, `Vec<T>`, generic fns
-- `__tupleN_any` structs for generic tuple returns with `ref.i31` boxing/unboxing
-- `HashMap<i32,i32>` GC struct with array-backed linear scan
-- WASI host file I/O via `std::host::fs` and a bridge to linear memory
-- `parse_i64`, `parse_f64` returning `Result<i64,String>`, `Result<f64,String>`
-- HOF (filter/map/fold/any/find) using `call_indirect` for function dispatch
-- Clippy clean, `cargo fmt` clean, `verify-harness.sh` 16/16
+- **GC-native T3 emitter complete** — the v1 GC-native track closed on 2026-03-27
+- **Component / WIT support added in v2** — `--emit component`, `--emit wit`, and `--emit all` are available on `wasm32-wasi-p2`
+- **Stdlib v3 track completed** — the stdlib roadmap items tracked as issues 039–059 now live in `issues/done/`
+- **Current open queue shifted** — active work now focuses on WASI / `std::host::*` rollout rather than the completed v3 stdlib track
 
 ## V1 Exit Status: **COMPLETE**
 
 All v1 exit criteria are satisfied as of 2026-03-27.
 
-1. ✅ **T3 compile/run correctness**: `--target wasm32-wasi-p2` compiles and runs all 346
-   fixture categories using the fully GC-native T3 backend.
-2. ✅ **True GC-native data model**: All values live in Wasm GC heap. No bridge mode.
-   Linear memory is used only for WASI I/O byte marshaling.
-3. ✅ **T1 retained as compatibility path**: `wasm32-wasi-p1` remains functional for
-   non-GC environments (AtCoder/iwasm) but is no longer the primary path.
+1. ✅ **T3 compile/run correctness**: `--target wasm32-wasi-p2` compiles and runs the v1 exit fixture set using the fully GC-native T3 backend.
+2. ✅ **True GC-native data model**: All values live in Wasm GC heap. Linear memory remains only for I/O marshaling.
+3. ✅ **T1 retained as compatibility path**: `wasm32-wasi-p1` remains functional for non-GC environments.
 4. ✅ **Runtime model**: `RuntimeModel::T3WasmGcP2` is the sole T3 runtime model.
-   `RuntimeModel::T3FallbackToT1` has been removed.
 
-### What is NOT in scope (post-v1)
+### What is NOT in the original v1 gate
 
-- ~~`--emit component` (Component Model output)~~ **→ Implemented in v2**
-- ~~WIT generation as a deployment artifact~~ **→ Implemented in v2**
-- T4 (native/LLVM) completion — scaffold only, not a gate
-- WASI Preview 3 / async-first runtime — future work (T5)
-- `call_ref`-based HOF dispatch — current: `call_indirect`; future migration planned
-
-### Completed issue queue (28 issues total)
-
-Issues 001–027 are all in `issues/done/`. The open queue contains only
-auto-generated index files (`index.md`, `dependency-graph.md`).
+- Component output and WIT generation (added later in v2)
+- T4 (native/LLVM) completion
+- WASI Preview 3 / async-first runtime work
+- `call_ref`-based HOF dispatch migration
 
 ## V2 Exit Status: **COMPLETE**
 
 v2 (Component Model) implementation is complete as of 2026-03-28.
 
-1. ✅ **Component emit**: `--emit component` produces valid `.component.wasm` binaries
-   for all scalar, boolean, float, and integer export signatures.
-2. ✅ **WIT generation**: `--emit wit` generates correct WIT from `pub fn` signatures.
-   Stdlib functions are correctly filtered from the export surface.
-3. ✅ **Import parsing**: WIT parser supports interface/function/type import declarations.
-   Canonical ABI classification (flat/lower/lift) is implemented.
-4. ✅ **Export surface**: Only user `pub fn` with WIT-compatible types are exported.
-   Non-exportable functions emit W0005 warnings.
-5. ✅ **Resource types**: `own<T>`, `borrow<T>`, `resource` WIT parsing and handle table
-   planning implemented.
-6. ✅ **CLI integration**: `--wit <path>` flag, `--emit component`, `--emit all` all work.
-7. ✅ **No v1 regressions**: All existing 362 fixture tests continue to pass.
-8. ✅ **Documentation**: ADR-008 (component wrapping), migration guide (v1→v2), ABI docs.
+1. ✅ **Component emit**: `--emit component` produces `.component.wasm` outputs on the supported `wasm32-wasi-p2` path.
+2. ✅ **WIT generation**: `--emit wit` generates WIT for the supported export surface.
+3. ✅ **CLI integration**: `--wit <path>`, `--emit component`, and `--emit all` are wired into the CLI.
+4. ✅ **Current export behavior**: non-exportable functions surface `W0005` warnings.
+5. ✅ **No regression to core Wasm paths**: T1/T3 core Wasm flows remain available.
 
-### V2 issues (028–035)
+### Known v2 carry-over limitations
 
-Issues 028–035 are the v2 Component Model track.
+- `--emit component` requires external `wasm-tools` and a WASI adapter module
+- string/list/complex canonical ABI lift-lower coverage is not complete for every case
+- async Component Model features are not supported
+- jco browser-facing flow remains blocked upstream (`issues/blocked/037`)
 
 ## Known Limitations
 
-- `--emit component` requires external `wasm-tools` binary and WASI adapter module
-- `--deny-clock` and `--deny-random` are not enforced (hard error)
-- No `--dir` flag = no filesystem access (deny-by-default)
-- HashMap only supports `<i32,i32>` monomorphization in T3; other key/value types use stubs
-- HOF dispatch uses `call_indirect` + function table (not `call_ref`); requires table section
-- `heap_ptr` global retained for I/O buffer management and legacy `VecLiteral` fallback
+- `--deny-clock` and `--deny-random` are not enforced as full capability filters yet (they are hard-error placeholders)
+- No `--dir` flag means no filesystem access
 - `ark-llvm` is excluded from default builds (requires LLVM 18)
-- Component Model: string/list canonical ABI lift/lower not yet wired into emitter
-- Component Model: async features (streams, futures) not yet supported
+- some historical docs remain archived / historical and should not override current-state
 
 ## API Baseline Notes
 

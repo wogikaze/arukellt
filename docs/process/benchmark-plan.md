@@ -6,13 +6,69 @@ ADR-002（GC vs non-GC）の決定に必要なデータを収集する。
 
 ---
 
+## 標準実行モード
+
+ベンチマーク導線は `mise bench` 系に統一する。
+
+| Mode | コマンド | 意味 |
+|------|----------|------|
+| `quick` | `mise bench:quick` | 単発サンプルのローカル smoke 計測 |
+| `full` | `mise bench` | 標準ローカル計測 |
+| `compare` | `mise bench:compare` | baseline 比較付き計測 |
+| `ci` | `mise bench:ci` | baseline 回帰で failure を返す CI 用計測 |
+| `update-baseline` | `mise bench:update-baseline` | 現在値で baseline を更新 |
+
+補助 wrapper:
+
+- `bash benchmarks/run_benchmarks.sh`
+- `bash scripts/compare-benchmarks.sh`
+- `bash scripts/perf-gate.sh`
+- `bash scripts/update-perf-baselines.sh`
+
+これらはすべて `scripts/benchmark_runner.py` を呼ぶ薄い入口とする。
+
+---
+
+## 結果 schema
+
+benchmark JSON は `schema_version = arukellt-bench-v1` を使う。
+最低限の共通項目は以下。
+
+### Run metadata
+
+- `mode`
+- `generated_at`
+- `target`
+- `environment`
+- `tooling` (`wasmtime`, `hyperfine`, `time` の有無)
+
+### Per-benchmark compile metrics
+
+- `median_ms`
+- `binary_bytes`
+- `max_rss_kb`
+
+### Per-benchmark runtime metrics
+
+- `median_ms`
+- `max_rss_kb`
+- `correctness`
+
+### Taxonomy
+
+各 benchmark は少なくとも workload tag を持つ。
+例: `cpu-bound`, `recursion-heavy`, `allocation-heavy`, `string-heavy`, `container`, `iteration`, `gc-pressure`。
+
+---
+
 ## 測定対象
 
 | 指標 | 単位 | 測定方法 |
 |------|------|---------|
-| バイナリサイズ | bytes | `wc -c` |
-| 実行時間 | ms | `hyperfine` または内部計測 |
-| ピークメモリ使用量 | KB | wasmtime の `--max-wasm-stack` 出力 |
+| バイナリサイズ | bytes | 生成 `.wasm` の file size |
+| 実行時間 | ms | canonical runner の内部計測 |
+| ピークメモリ使用量 | KB | `/usr/bin/time -f %M` による max RSS |
+| compile 時間 | ms | canonical runner の内部計測 |
 
 ---
 

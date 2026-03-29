@@ -1,3 +1,5 @@
+use std::host::stdio
+
 fn main() {
     let mut s: String = String_from("")
     let mut i: i32 = 0
@@ -5,5 +7,5 @@ fn main() {
         s = concat(s, String_from("x"))
         i = i + 1
     }
-    println(i32_to_string(len(s)))
+    stdio::println(i32_to_string(len(s)))
 }

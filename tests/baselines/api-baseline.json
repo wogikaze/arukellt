@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-28",
+  "generated_at": "2026-03-29",
   "parse_i64": {
     "return_shape": "Result<i64, String>",
     "observed_output": [

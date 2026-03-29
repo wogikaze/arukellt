@@ -1,10 +1,7 @@
 #!/bin/bash
-# Regenerate performance baselines from current measurements.
+# Regenerate performance baselines from current benchmark measurements.
 #
 # Usage: scripts/update-perf-baselines.sh
-#
-# This runs the same benchmark suite as perf-gate.sh and writes
-# the results as the new baseline file.
 
 set -euo pipefail
 

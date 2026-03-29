@@ -1,0 +1,237 @@
+{
+  "schema_version": "arukellt-bench-v1",
+  "generated_at": "2026-03-29T04:00:50+00:00",
+  "mode": "ci",
+  "mode_description": "compare current results with baseline and fail on regression",
+  "target": "wasm32-wasi-p1",
+  "thresholds": {
+    "compile_ms": 20,
+    "run_ms": 10,
+    "binary_bytes": 15
+  },
+  "compiler": {
+    "path": "target/release/arukellt"
+  },
+  "environment": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "kernel": "6.6.87.2-microsoft-standard-WSL2"
+  },
+  "tooling": {
+    "wasmtime": {
+      "name": "wasmtime",
+      "available": true,
+      "path": "/home/wogikaze/.wasmtime/bin/wasmtime"
+    },
+    "hyperfine": {
+      "name": "hyperfine",
+      "available": false,
+      "path": null
+    },
+    "time": {
+      "name": "/usr/bin/time",
+      "available": true,
+      "path": "/usr/bin/time"
+    }
+  },
+  "benchmarks": [
+    {
+      "name": "fib",
+      "source": "benchmarks/fib.ark",
+      "expected": "benchmarks/fib.expected",
+      "description": "Iterative Fibonacci(35)",
+      "tags": [
+        "cpu-bound",
+        "loop",
+        "scalar"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7.308,
+          7.911,
+          10.193,
+          7.058,
+          20.058
+        ],
+        "median_ms": 7.911,
+        "max_rss_kb": 9856,
+        "binary_bytes": 737,
+        "command": "/home/wogikaze/arukellt.worktrees/feature-arukellt-v1/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-ozmnhqo3/fib.wasm /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/benchmarks/fib.ark"
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 5,
+        "warmups": 1,
+        "samples_ms": [
+          8.117,
+          7.588,
+          8.825,
+          8.09,
+          11.162
+        ],
+        "median_ms": 8.117,
+        "max_rss_kb": 18832,
+        "stdout": "9227465\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-ozmnhqo3/fib.wasm"
+      }
+    },
+    {
+      "name": "binary_tree",
+      "source": "benchmarks/binary_tree.ark",
+      "expected": "benchmarks/binary_tree.expected",
+      "description": "Recursive node counting (depth 20)",
+      "tags": [
+        "recursion-heavy",
+        "allocation-light",
+        "call-heavy"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          6.546,
+          6.204,
+          6.088,
+          6.287,
+          6.376
+        ],
+        "median_ms": 6.287,
+        "max_rss_kb": 9856,
+        "binary_bytes": 713,
+        "command": "/home/wogikaze/arukellt.worktrees/feature-arukellt-v1/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-ozmnhqo3/binary_tree.wasm /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/benchmarks/binary_tree.ark"
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 5,
+        "warmups": 1,
+        "samples_ms": [
+          14.772,
+          13.652,
+          12.79,
+          11.873,
+          16.692
+        ],
+        "median_ms": 13.652,
+        "max_rss_kb": 18832,
+        "stdout": "2097151\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-ozmnhqo3/binary_tree.wasm"
+      }
+    },
+    {
+      "name": "vec_ops",
+      "source": "benchmarks/vec_ops.ark",
+      "expected": "benchmarks/vec_ops.expected",
+      "description": "Vec push/sum/contains (1k elements)",
+      "tags": [
+        "allocation-heavy",
+        "container",
+        "iteration"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          7.932,
+          7.171,
+          7.487,
+          14.135,
+          11.69
+        ],
+        "median_ms": 7.932,
+        "max_rss_kb": 10208,
+        "binary_bytes": 1506,
+        "command": "/home/wogikaze/arukellt.worktrees/feature-arukellt-v1/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-ozmnhqo3/vec_ops.wasm /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/benchmarks/vec_ops.ark"
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 5,
+        "warmups": 1,
+        "samples_ms": [
+          10.099,
+          9.283,
+          8.748,
+          11.074,
+          9.866
+        ],
+        "median_ms": 9.866,
+        "max_rss_kb": 19008,
+        "stdout": "1000\n499500\nfound 500\nnot found 9999\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-ozmnhqo3/vec_ops.wasm"
+      }
+    },
+    {
+      "name": "string_concat",
+      "source": "benchmarks/string_concat.ark",
+      "expected": "benchmarks/string_concat.expected",
+      "description": "String concat in loop (100 iterations)",
+      "tags": [
+        "string-heavy",
+        "allocation-heavy",
+        "gc-pressure"
+      ],
+      "metrics": [
+        "compile",
+        "runtime",
+        "size",
+        "memory"
+      ],
+      "compile": {
+        "status": "ok",
+        "iterations": 5,
+        "samples_ms": [
+          6.993,
+          8.105,
+          7.103,
+          7.889,
+          6.473
+        ],
+        "median_ms": 7.103,
+        "max_rss_kb": 9856,
+        "binary_bytes": 904,
+        "command": "/home/wogikaze/arukellt.worktrees/feature-arukellt-v1/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-ozmnhqo3/string_concat.wasm /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/benchmarks/string_concat.ark"
+      },
+      "runtime": {
+        "status": "ok",
+        "iterations": 5,
+        "warmups": 1,
+        "samples_ms": [
+          8.036,
+          10.066,
+          7.633,
+          7.536,
+          8.229
+        ],
+        "median_ms": 8.036,
+        "max_rss_kb": 19008,
+        "stdout": "100\n",
+        "correctness": "pass",
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-ozmnhqo3/string_concat.wasm"
+      }
+    }
+  ]
+}

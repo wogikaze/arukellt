@@ -50,6 +50,7 @@ impl EmitCtx {
             FN_FOLD_I64,
             FN_MAP_F64,
             FN_FILTER_F64,
+            FN_GET_BYTE,
         ];
 
         // Build fn_map: canonical index -> actual Wasm function index
@@ -188,6 +189,7 @@ impl EmitCtx {
                     x if x == FN_FOLD_I64 => ty_fold_i64,
                     x if x == FN_MAP_F64 => ty_i32_i32_i32,
                     x if x == FN_FILTER_F64 => ty_i32_i32_i32,
+                    x if x == FN_GET_BYTE => ty_void_i32,
                     _ => ty_i32_void,
                 };
                 functions.function(ty);
@@ -241,7 +243,7 @@ impl EmitCtx {
                 mutable: true,
                 shared: false,
             },
-            &wasm_encoder::ConstExpr::i32_const(4096),
+            &wasm_encoder::ConstExpr::i32_const(HEAP_START as i32),
         );
         module.section(&globals);
 
@@ -298,6 +300,7 @@ impl EmitCtx {
                 x if x == FN_FOLD_I64 => { let f = self.build_fold_i64(); code.function(&f); }
                 x if x == FN_MAP_F64 => { let f = self.build_map_f64(); code.function(&f); }
                 x if x == FN_FILTER_F64 => { let f = self.build_filter_f64(); code.function(&f); }
+                x if x == FN_GET_BYTE => { let f = self.build_get_byte(); code.function(&f); }
                 _ => {}
             }
         }

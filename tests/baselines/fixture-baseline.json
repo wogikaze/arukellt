@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-03-28",
-  "fixture_count": 419,
+  "generated_at": "2026-03-29",
+  "fixture_count": 429,
   "entries": [
     {
       "kind": "run",
@@ -182,6 +182,48 @@
     },
     {
       "kind": "diag",
+      "path": "diagnostics/deprecated_prelude_println.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_prelude_println.ark:2:5\n   |\n  2 |     println(\"hi\")\n   |     ^^^^^^^ host I/O is no longer available from the prelude\n   = note: import `use std::host::stdio` and call `stdio::println(...)`\n\n",
+      "primary_text": [
+        "error[E0100|resolve]: unresolved name",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_prelude_println.ark:2:5",
+        "   |",
+        "  2 |     println(\"hi\")",
+        "   |     ^^^^^^^ host I/O is no longer available from the prelude"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/deprecated_std_io_import.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0104|resolve]: module `std::io` has moved to `std::host::stdio`\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_std_io_import.ark:1:1\n   |\n  1 | use std::io\n   | ^^^^^^^^^^^^^^^ deprecated std import\nhelp: replace the deprecated import\n   |\n  1 | use std::host::stdio\n   = note: host standard I/O is no longer exposed as `std::io`\n\n",
+      "primary_text": [
+        "error[E0104|resolve]: module `std::io` has moved to `std::host::stdio`",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_std_io_import.ark:1:1",
+        "   |",
+        "  1 | use std::io",
+        "   | ^^^^^^^^^^^^^^^ deprecated std import"
+      ]
+    },
+    {
+      "kind": "diag",
+      "path": "diagnostics/deprecated_time_monotonic_now.ark",
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_time_monotonic_now.ark:4:13\n   |\n  4 |     let _ = time::monotonic_now()\n   |             ^^^^^^^^^^^^^^^^^^^^^^^ host clock reads moved out of `std::time`\n   = note: import `use std::host::clock` and call `clock::monotonic_now()`\n\n",
+      "primary_text": [
+        "error[E0100|resolve]: unresolved name",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_time_monotonic_now.ark:4:13",
+        "   |",
+        "  4 |     let _ = time::monotonic_now()",
+        "   |             ^^^^^^^^^^^^^^^^^^^^^^^ host clock reads moved out of `std::time`"
+      ]
+    },
+    {
+      "kind": "diag",
       "path": "diagnostics/immutable_mutation.ark",
       "status": 1,
       "stdout": "",
@@ -271,13 +313,13 @@
       "path": "diagnostics/non_exhaustive.ark",
       "status": 1,
       "stdout": "",
-      "stderr": "error[E0204|typecheck]: non-exhaustive match\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/non_exhaustive.ark:9:5\n   |\n  9 |     match c {\n   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing patterns: Color::Blue\n\n",
+      "stderr": "error[E0204|typecheck]: non-exhaustive match\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/non_exhaustive.ark:10:5\n   |\n 10 |     match c {\n   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing patterns: Color::Blue\n\n",
       "primary_text": [
         "error[E0204|typecheck]: non-exhaustive match",
-        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/non_exhaustive.ark:9:5",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/non_exhaustive.ark:10:5",
         "   |",
-        "  9 |     match c {",
-        "   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing patterns: Color::Blue"
+        " 10 |     match c {",
+        "   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing patterns: Color::Blue"
       ]
     },
     {
@@ -893,9 +935,9 @@
       "path": "modules/circular/main.ark",
       "status": 1,
       "stdout": "",
-      "stderr": "error[E0103|resolve]: circular import detected: a.ark \u2192 b.ark \u2192 a.ark\n\n",
+      "stderr": "error[E0103|resolve]: circular import detected: b.ark \u2192 a.ark \u2192 a.ark\n\n",
       "primary_text": [
-        "error[E0103|resolve]: circular import detected: a.ark \u2192 b.ark \u2192 a.ark"
+        "error[E0103|resolve]: circular import detected: b.ark \u2192 a.ark \u2192 a.ark"
       ]
     },
     {
@@ -945,13 +987,13 @@
       "path": "modules/pub_private/main.ark",
       "status": 1,
       "stdout": "",
-      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/modules/pub_private/main.ark:6:12\n   |\n  6 | \n   |            ^^^^^^ unresolved name `secret`\n\n",
+      "stderr": "error[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/modules/pub_private/main.ark:4:13\n   |\n  4 |     let x = lib::secret()\n   |             ^^^^^^^^^^^^^^^ unresolved name `lib::secret`\n\nerror[E0100|resolve]: unresolved name\n  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/modules/pub_private/main.ark:6:12\n   |\n  6 | \n   |            ^^^^^^ unresolved name `secret`\n\n",
       "primary_text": [
         "error[E0100|resolve]: unresolved name",
-        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/modules/pub_private/main.ark:6:12",
+        "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/modules/pub_private/main.ark:4:13",
         "   |",
-        "  6 | ",
-        "   |            ^^^^^^ unresolved name `secret`"
+        "  4 |     let x = lib::secret()",
+        "   |             ^^^^^^^^^^^^^^^ unresolved name `lib::secret`"
       ]
     },
     {
@@ -2146,10 +2188,10 @@
       "path": "v0_constraints/no_method_call.ark",
       "status": 1,
       "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0xf1d)\n\n",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0xdc)\n\n",
       "primary_text": [
         "error[W0004|backend-validate]: generated Wasm module failed validation",
-        "   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0xf1d)"
+        "   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0xdc)"
       ]
     },
     {
@@ -2165,10 +2207,10 @@
       "path": "v0_constraints/no_operator_overload.ark",
       "status": 1,
       "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found f64 (at offset 0xf35)\n\n",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found f64 (at offset 0xf3)\n\n",
       "primary_text": [
         "error[W0004|backend-validate]: generated Wasm module failed validation",
-        "   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found f64 (at offset 0xf35)"
+        "   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found f64 (at offset 0xf3)"
       ]
     },
     {
@@ -4108,9 +4150,9 @@
     {
       "kind": "compile-error",
       "path": "component/export_variant.ark",
-      "status": 1,
+      "status": 0,
       "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found f64 (at offset 0xf42)\n\n",
+      "stderr": "",
       "primary_text": []
     },
     {
@@ -4293,18 +4335,22 @@
     {
       "kind": "module-run",
       "path": "stdlib_time/monotonic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found i64 (at offset 0xf29)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "monotonic ok\n",
+      "stderr": "",
+      "primary_text": [
+        "monotonic ok"
+      ]
     },
     {
       "kind": "module-run",
       "path": "stdlib_time/duration.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found i64 (at offset 0xf30)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "duration ok\n",
+      "stderr": "",
+      "primary_text": [
+        "duration ok"
+      ]
     },
     {
       "kind": "module-run",
@@ -4337,36 +4383,96 @@
       ]
     },
     {
+      "kind": "t3-run",
+      "path": "stdlib_io/clock_random.ark",
+      "status": 0,
+      "stdout": "true\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true"
+      ]
+    },
+    {
+      "kind": "t3-run",
+      "path": "stdlib_io2/io_basic.ark",
+      "status": 0,
+      "stdout": "hello world\ndone\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "done"
+      ]
+    },
+    {
+      "kind": "t3-run",
+      "path": "stdlib_random/random_seed.ark",
+      "status": 0,
+      "stdout": "random_seed ok\n",
+      "stderr": "",
+      "primary_text": [
+        "random_seed ok"
+      ]
+    },
+    {
+      "kind": "t3-run",
+      "path": "stdlib_random/random_range.ark",
+      "status": 0,
+      "stdout": "random_range ok\n",
+      "stderr": "",
+      "primary_text": [
+        "random_range ok"
+      ]
+    },
+    {
+      "kind": "t3-run",
+      "path": "stdlib_time/monotonic.ark",
+      "status": 0,
+      "stdout": "monotonic ok\n",
+      "stderr": "",
+      "primary_text": [
+        "monotonic ok"
+      ]
+    },
+    {
       "kind": "module-run",
       "path": "stdlib_test/assert_eq.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: values remaining on stack at end of block (at offset 0xfbb)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "assert_eq ok\n",
+      "stderr": "",
+      "primary_text": [
+        "assert_eq ok"
+      ]
     },
     {
       "kind": "module-run",
       "path": "stdlib_test/assert_ne.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: values remaining on stack at end of block (at offset 0xfbb)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "assert_ne ok\n",
+      "stderr": "",
+      "primary_text": [
+        "assert_ne ok"
+      ]
     },
     {
       "kind": "module-run",
       "path": "stdlib_test/expect_result.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: values remaining on stack at end of block (at offset 0x10ae)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "expect_result ok\n",
+      "stderr": "",
+      "primary_text": [
+        "expect_result ok"
+      ]
     },
     {
       "kind": "module-run",
       "path": "stdlib_test/expect_option.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: values remaining on stack at end of block (at offset 0x1059)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "expect_option ok\n",
+      "stderr": "",
+      "primary_text": [
+        "expect_option ok"
+      ]
     },
     {
       "kind": "run",
@@ -4383,14 +4489,10 @@
     {
       "kind": "run",
       "path": "stdlib_text/string_replace.ark",
-      "status": 0,
-      "stdout": "hello arukellt\nbbbbbb\nno match\n",
-      "stderr": "",
-      "primary_text": [
-        "hello arukellt",
-        "bbbbbb",
-        "no match"
-      ]
+      "status": 1,
+      "stdout": "",
+      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0x1310)\n\n",
+      "primary_text": []
     },
     {
       "kind": "run",
@@ -4487,9 +4589,10 @@
       "kind": "run",
       "path": "stdlib_io2/io_basic.ark",
       "status": 0,
-      "stdout": "done\n",
+      "stdout": "hello world\ndone\n",
       "stderr": "",
       "primary_text": [
+        "hello world",
         "done"
       ]
     },
@@ -4497,12 +4600,12 @@
       "kind": "run",
       "path": "stdlib_bytes/bytes_basic.ark",
       "status": 0,
-      "stdout": "0\n0\n\n3\n72\n3\n229\n142\n38\n120\n86\n305419896\n",
+      "stdout": "3\n72\n48656c\n3\n72\n3\n229\n142\n38\n120\n86\n305419896\n",
       "stderr": "",
       "primary_text": [
-        "0",
-        "0",
-        "",
+        "3",
+        "72",
+        "48656c",
         "3",
         "72"
       ]
@@ -4511,13 +4614,13 @@
       "kind": "run",
       "path": "stdlib_hash/hash_basic.ark",
       "status": 0,
-      "stdout": "0\n0\n0\nfalse\nfalse\n0\n0\n",
+      "stdout": "2\n100\n200\ntrue\nfalse\n300\n2\n",
       "stderr": "",
       "primary_text": [
-        "0",
-        "0",
-        "0",
-        "false",
+        "2",
+        "100",
+        "200",
+        "true",
         "false"
       ]
     },
@@ -4525,23 +4628,29 @@
       "kind": "run",
       "path": "stdlib_linear/linear_basic.ark",
       "status": 0,
-      "stdout": "0\n0\n0\n-2\n0\n0\n0\n",
+      "stdout": "3\n5\n20\n1\n3\n10\n20\n",
       "stderr": "",
       "primary_text": [
-        "0",
-        "0",
-        "0",
-        "-2",
-        "0"
+        "3",
+        "5",
+        "20",
+        "1",
+        "3"
       ]
     },
     {
       "kind": "run",
       "path": "stdlib_ordered/ordered_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0x1215)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n100\n200\n300\ntrue\nfalse\ntrue\nfalse\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "100",
+        "200",
+        "300",
+        "true"
+      ]
     },
     {
       "kind": "run",
@@ -4584,6 +4693,14 @@
     },
     {
       "kind": "run",
+      "path": "stdlib_wasm/memory_ops.ark",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "primary_text": []
+    },
+    {
+      "kind": "run",
       "path": "stdlib_wit/wit_basic.ark",
       "status": 0,
       "stdout": "13\nbool\nf64\n",
@@ -4606,6 +4723,16 @@
         "\"hello\"",
         "null",
         "123"
+      ]
+    },
+    {
+      "kind": "run",
+      "path": "opt/tail_call_deep.ark",
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
       ]
     },
     {

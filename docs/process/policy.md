@@ -16,7 +16,8 @@
 | Artifact | Commit? | Regeneration |
 |----------|---------|--------------|
 | Baseline JSON under `tests/baselines/` | Yes | `python3 scripts/collect-baseline.py` |
-| Target reference / docs sync material | Yes | via docs + consistency checks |
+| Generated docs / landing pages / status blocks | Yes | `python3 scripts/generate-docs.py` |
+| Issue queue indexes under `issues/open/` | Yes | `bash scripts/generate-issue-index.sh` |
 | CLI help text | No | built from source |
 
 ## Target Support Policy
@@ -24,31 +25,33 @@
 | Target | Status | Support level |
 |--------|--------|---------------|
 | `wasm32-wasi-p1` (T1) | Implemented | Compatibility path for non-GC environments |
-| `wasm32-freestanding` (T2) | Planned | Registry only |
-| `wasm32-wasi-p2` (T3) | Implemented | Canonical v1 path, WasmGC-enabled |
-| `native` (T4) | Planned | Optional/scaffold only |
-| `wasm32-wasi-p3` (T5) | Future | Registry only |
+| `wasm32-freestanding` (T2) | Registry only | Not implemented |
+| `wasm32-wasi-p2` (T3) | Implemented | Canonical GC-native path |
+| `native` (T4) | LLVM scaffold only | Not implemented |
+| `wasm32-wasi-p3` (T5) | Future | Not implemented |
 
 ## Emit Policy
 
-- `--emit component` is currently a hard error
-- `--emit all` is currently blocked for the same reason
-- current production artifact is core Wasm
-- Component/WIT docs are design or migration context, not current shipped behavior
+- `--emit core-wasm` is the default production artifact path.
+- `--emit component`, `--emit wit`, and `--emit all` are available on `wasm32-wasi-p2`.
+- Component output currently depends on an external `wasm-tools` binary and a WASI adapter module.
+- Component export support is implemented for the currently wired WIT-compatible surface; not every canonical ABI case is complete yet.
+- `--emit component` is implemented in v2, but it is **not** part of the original v1 completion gate.
 
 ## Diagnostic Quality Standards
 
-- Every diagnostic has a canonical code
-- Registry tracks severity and phase origin
-- Type mismatch style diagnostics should expose expected/actual when possible
-- Fix hints should be rendered when the compiler has one
-- Deterministic structured snapshots are available for tests/docs
+- Every diagnostic has a canonical code.
+- Registry tracks severity and phase origin.
+- Type mismatch diagnostics should expose expected / actual when possible.
+- Fix hints should be rendered when the compiler has one.
+- Deterministic structured snapshots are available for tests / docs.
 
 ### Canonical current warnings/errors
 
 - `W0001`: warning, `typecheck`, same-body shared alias heuristic
 - `W0002`: warning, `target`, deprecated target alias
 - `W0004`: error, `backend-validate`, generated Wasm failed validation
+- `W0005`: warning, `component`, non-exportable function skipped from component exports
 
 ## Verification Policy
 
@@ -57,25 +60,20 @@ Normal correctness verification lives in `scripts/verify-harness.sh` and should 
 It includes:
 
 - docs structure checks
-- docs consistency drift checks (T3 target status, fixture count, validation policy)
-- fmt / clippy / build / tests
-- manifest-driven fixture harness (including 160 T3 compile fixtures)
-- stdlib manifest check
+- docs consistency drift checks
+- fmt / clippy / tests
+- manifest-driven fixture harness execution
+- stdlib manifest checks
 - baseline collection smoke
 
-### CI Workflow Structure
-
-- **Correctness** (required): `verify-harness.sh` — all 16 checks must pass
-- **Target behavior** (required): T1 and T3 fixture matrix on both targets
-- **Perf baseline** (push-only): collects T1/T3 compile-time and binary-size telemetry
-- **Final Gate**: passes only when correctness + target-behavior both succeed
+The current gate totals belong to `docs/current-state.md` and the harness output; do not hardcode them here unless policy itself changes.
 
 ## Perf Policy
 
-- Baseline sources are frozen under `tests/baselines/`
-- `arukellt check` median compile time budget: within 10% of baseline
-- `arukellt compile` median compile time budget: within 20% of baseline
-- Heavy perf comparisons are split from the normal correctness gate to avoid unstable CI
+- Baseline sources are frozen under `tests/baselines/`.
+- `arukellt check` median compile-time budget: within 10% of baseline.
+- `arukellt compile` median compile-time budget: within 20% of baseline.
+- Heavy perf comparisons are split from the normal correctness gate to avoid unstable CI.
 
 ## Hidden Developer Support
 
@@ -84,21 +82,14 @@ These are development aids, not stable public CLI surface.
 - `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 - `ARUKELLT_DUMP_DIAGNOSTICS=1`
 
-## V1 Completion Gate
+## Historical Gates vs Current Reality
 
-V1 exit is defined by T3 (`wasm32-wasi-p2`) core-wasm compile/run correctness with WasmGC-native data representations. The canonical criteria are documented in `docs/current-state.md` § V1 Exit Criteria.
-
-Operational requirements for the gate:
-
-- All T3 compile fixtures pass with the `T3WasmGcP2` runtime model.
-- `RuntimeModel::T3WasmGcP2` is the active T3 runtime model.
-- `verify-harness.sh` passes with T3 compile verification enabled.
-- `--emit component` is **not** part of the v1 gate and remains a hard error.
-- T4 (native/LLVM) is **not** part of the v1 gate.
+- v1 completion was defined around **T3 core-wasm compile/run correctness**.
+- v2 added Component Model support on top of that base.
+- Old docs that still describe `--emit component` as a hard error should be treated as historical and updated or ignored in favor of `docs/current-state.md`.
 
 ## Compatibility / Migration Policy
 
-- current source of truth is `docs/current-state.md` + executable baselines
-- internal API migration must document old Session API → new artifact API mapping
-- intentional behavior change in this track: `W0004` is now a hard error
-- docs must not drift on fixture count, target status, component emit status, or warning/error severity
+- Current behavior source of truth is `docs/current-state.md` plus executable baselines.
+- Internal API migration docs should distinguish old Session API vs newer artifact / query-oriented surfaces.
+- Docs must not drift on target status, verification policy, diagnostic severity, or component support status.

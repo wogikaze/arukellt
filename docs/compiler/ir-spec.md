@@ -1088,6 +1088,7 @@ Each source expression lowers to an `Operand`:
 ### 6.4 Loop Desugaring (stmt.rs)
 
 **Range for-loop** (`for i in start..end`):
+
 ```
 let i = start;
 while i < end {
@@ -1095,9 +1096,11 @@ while i < end {
     i = i + 1;
 }
 ```
+
 Produces: `Assign(i, start)` → `WhileStmt { cond: BinOp(Lt, i, end), body: [<body>, Assign(i, Add(i, 1))] }`
 
 **Value for-loop** (`for x in values(v)`):
+
 ```
 let _idx = 0;
 let _len = len(v);
@@ -1123,6 +1126,7 @@ match scrutinee {
 ```
 
 Becomes:
+
 ```
 let _tag = EnumTag(scrutinee);
 if _tag == 0 {
@@ -1152,6 +1156,7 @@ let f = |x| x + y;
 ```
 
 Becomes:
+
 ```
 fn closure_0(x: i32, _capture_y: i32) -> i32 { x + _capture_y }
 let f = FnRef("closure_0");
@@ -1632,6 +1637,7 @@ struct.new $VariantType
 ```
 
 **Tag extraction** (optimized, `opt_level >= 1`, ≥ 3 variants):
+
 ```wasm
 block $done (result i32)
   block $v0 (result (ref $Var0))
@@ -1651,6 +1657,7 @@ end
 ```
 
 **Tag extraction** (fallback, < 3 variants):
+
 ```wasm
 emit_operand(enum_value)
 ref.test (non-null) $Var0
@@ -1662,6 +1669,7 @@ end
 ```
 
 **Payload extraction**:
+
 ```
 EnumPayload { object, index, variant_name }
   →
@@ -1733,17 +1741,20 @@ call_indirect type_index
 For generic functions using `Type::Any`:
 
 **Boxing (i32 → anyref)**:
+
 ```wasm
 ref.i31          ;; wrap i32 into i31ref
 ```
 
 **Unboxing (anyref → i32)**:
+
 ```wasm
 ref.cast (nullable) i31
 i31.get_s        ;; extract signed i32 value
 ```
 
 **String unboxing (anyref → ref $string)**:
+
 ```wasm
 ref.cast (nullable) $string_type
 ```

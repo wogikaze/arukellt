@@ -50,7 +50,7 @@ manifest-backed な公開 API と利用ガイド。
 | [modules/toml.md](modules/toml.md) | std::toml | Source-backed docs for the current TOML helpers. |
 | [modules/wasm.md](modules/wasm.md) | std::wasm | Source-backed docs for WebAssembly helpers. |
 | [modules/wit.md](modules/wit.md) | std::wit | Source-backed docs for WIT helpers. |
-| [prelude-migration.md](prelude-migration.md) | Prelude Migration Guide (v3) | The Arukellt prelude contains 67 functions auto-imported into every module. |
+| [prelude-migration.md](prelude-migration.md) | Prelude Migration Guide (v3) | Historical migration note: this document records the v3 prelude migration strategy and compatibility story. |
 | [reference.md](reference.md) | stdlib API Reference | It reflects the current implemented public API, not roadmap-only or archived design notes. |
 | [stability-policy.md](stability-policy.md) | Standard Library Stability Policy | Every module and public API in the Arukellt standard library carries one of three stability labels. |
 | [std.md](std.md) | Arukellt 標準ライブラリ総合設計書 | 多言語標準ライブラリ調査を踏まえた LLM-first / Wasm-first 設計 |

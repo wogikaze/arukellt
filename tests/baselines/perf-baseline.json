@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-28",
+  "generated_at": "2026-03-29",
   "compile_time_thresholds": {
     "check_vs_baseline_max_regression_percent": 10,
     "compile_vs_baseline_max_regression_percent": 20
@@ -9,7 +9,7 @@
       "file": "docs/examples/hello.ark",
       "check": {
         "status": 0,
-        "median_ms": 6.14,
+        "median_ms": 10.946,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark"
         ],
@@ -17,28 +17,28 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 14.887,
+        "median_ms": 14.094,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t1.wasm (12229 bytes, target: wasm32-wasi-p1)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t1.wasm (379 bytes, target: wasm32-wasi-p1)"
         ],
         "stdout_head": []
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 14.549,
+        "median_ms": 11.586,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t3.wasm (2565 bytes, target: wasm32-wasi-p2)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t3.wasm (809 bytes, target: wasm32-wasi-p2)"
         ],
         "stdout_head": []
       },
-      "binary_size_t1": 12229,
-      "binary_size_t3": 2565
+      "binary_size_t1": 379,
+      "binary_size_t3": 809
     },
     {
       "file": "docs/examples/vec.ark",
       "check": {
         "status": 0,
-        "median_ms": 6.089,
+        "median_ms": 8.084,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark"
         ],
@@ -46,28 +46,28 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 16.337,
+        "median_ms": 21.978,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t1.wasm (13261 bytes, target: wasm32-wasi-p1)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t1.wasm (1769 bytes, target: wasm32-wasi-p1)"
         ],
         "stdout_head": []
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 15.271,
+        "median_ms": 22.342,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t3.wasm (3035 bytes, target: wasm32-wasi-p2)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t3.wasm (1477 bytes, target: wasm32-wasi-p2)"
         ],
         "stdout_head": []
       },
-      "binary_size_t1": 13261,
-      "binary_size_t3": 3035
+      "binary_size_t1": 1769,
+      "binary_size_t3": 1477
     },
     {
       "file": "docs/examples/closure.ark",
       "check": {
         "status": 0,
-        "median_ms": 7.724,
+        "median_ms": 7.471,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark"
         ],
@@ -75,22 +75,22 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 19.667,
+        "median_ms": 18.173,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t1.wasm (12222 bytes, target: wasm32-wasi-p1)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t1.wasm (691 bytes, target: wasm32-wasi-p1)"
         ],
         "stdout_head": []
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 20.399,
+        "median_ms": 16.059,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t3.wasm (2660 bytes, target: wasm32-wasi-p2)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t3.wasm (1106 bytes, target: wasm32-wasi-p2)"
         ],
         "stdout_head": []
       },
-      "binary_size_t1": 12222,
-      "binary_size_t3": 2660
+      "binary_size_t1": 691,
+      "binary_size_t3": 1106
     },
     {
       "file": "docs/sample/parser.ark",
@@ -98,16 +98,8 @@
         "status": 1,
         "median_ms": null,
         "stderr_head": [
-          "error[E0001|parse]: expected item (fn, struct, enum, trait, impl), found `Let`",
-          "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:17:1",
-          "   |",
-          " 17 | let RUBY_KATAKANA_HIRAGANA:  String = \"ruby-katakana-hiragana\"",
-          "   | ^^^ here",
-          "",
-          "error[E0002|parse]: expected identifier, found `IntLit(0)`",
-          "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:183:20",
-          "   |",
-          "183 |     let line = pos.0"
+          "error[E0104|resolve]: module `io` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/io.ark: No such file or directory (os error 2)",
+          ""
         ],
         "stdout_head": []
       },
@@ -115,16 +107,8 @@
         "status": 1,
         "median_ms": null,
         "stderr_head": [
-          "error[E0001|parse]: expected item (fn, struct, enum, trait, impl), found `Let`",
-          "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:17:1",
-          "   |",
-          " 17 | let RUBY_KATAKANA_HIRAGANA:  String = \"ruby-katakana-hiragana\"",
-          "   | ^^^ here",
-          "",
-          "error[E0002|parse]: expected identifier, found `IntLit(0)`",
-          "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:183:20",
-          "   |",
-          "183 |     let line = pos.0"
+          "error[E0104|resolve]: module `io` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/io.ark: No such file or directory (os error 2)",
+          ""
         ],
         "stdout_head": []
       },
@@ -132,21 +116,13 @@
         "status": 1,
         "median_ms": null,
         "stderr_head": [
-          "error[E0001|parse]: expected item (fn, struct, enum, trait, impl), found `Let`",
-          "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:17:1",
-          "   |",
-          " 17 | let RUBY_KATAKANA_HIRAGANA:  String = \"ruby-katakana-hiragana\"",
-          "   | ^^^ here",
-          "",
-          "error[E0002|parse]: expected identifier, found `IntLit(0)`",
-          "  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/parser.ark:183:20",
-          "   |",
-          "183 |     let line = pos.0"
+          "error[E0104|resolve]: module `io` not found: error: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/sample/io.ark: No such file or directory (os error 2)",
+          ""
         ],
         "stdout_head": []
       },
-      "binary_size_t1": 12222,
-      "binary_size_t3": 2660
+      "binary_size_t1": 691,
+      "binary_size_t3": 1106
     }
   ]
 }

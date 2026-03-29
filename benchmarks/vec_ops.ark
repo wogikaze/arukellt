@@ -1,3 +1,5 @@
+use std::host::stdio
+
 fn main() {
     let mut v: Vec<i32> = Vec_new_i32()
     let mut i: i32 = 0
@@ -5,7 +7,7 @@ fn main() {
         push(v, i)
         i = i + 1
     }
-    println(i32_to_string(len(v)))
+    stdio::println(i32_to_string(len(v)))
 
     let mut sum: i32 = 0
     let mut j: i32 = 0
@@ -13,16 +15,16 @@ fn main() {
         sum = sum + get_unchecked(v, j)
         j = j + 1
     }
-    println(i32_to_string(sum))
+    stdio::println(i32_to_string(sum))
 
     if contains_i32(v, 500) {
-        println("found 500")
+        stdio::println("found 500")
     } else {
-        println("not found 500")
+        stdio::println("not found 500")
     }
     if contains_i32(v, 9999) {
-        println("found 9999")
+        stdio::println("found 9999")
     } else {
-        println("not found 9999")
+        stdio::println("not found 9999")
     }
 }

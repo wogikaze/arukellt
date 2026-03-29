@@ -1,17 +1,17 @@
 # Wasm 機能レイヤー
 
 > **Current-first**: 実装の現在地は [`../current-state.md`](../current-state.md) を参照。
-> このページは current deployment reality と、そこから見た target layering を整理する。
+> このページは target layering と現在の deployment surface を整理するための要約です。
 
 ## 現在の reality
 
-- **T3 `wasm32-wasi-p2`** は canonical v1 path (WasmGC-enabled)
-  <!-- doc-check: T3 `wasm32-wasi-p2` は canonical -->
-- **T1 `wasm32-wasi-p1`** は compatibility path (non-GC environments)
-- T3 は P1 WASI I/O bridge + WasmGC types を使う
-- `--emit component` is a hard error
-- `--emit all` is also blocked for the same reason
-- backend validation failure (`W0004`) is a hard error
+- **T1 `wasm32-wasi-p1`** は non-GC 環境向け compatibility path
+- **T3 `wasm32-wasi-p2`** は canonical GC-native path
+- T3 のデータ表現は GC-native。linear memory は主に WASI I/O marshaling に残る
+- `--emit core-wasm` は T1 / T3 の通常出力
+- `--emit component`, `--emit wit`, `--emit all` は `wasm32-wasi-p2` で利用可能
+- Component output には外部 `wasm-tools` と WASI adapter module が必要
+- backend validation failure (`W0004`) は hard error
 
 ## Current target view
 
@@ -19,14 +19,22 @@
 |-------|------|----------------|-------|
 | `wasm32-wasi-p1` | T1 | Implemented | compatibility path for non-GC environments |
 | `wasm32-freestanding` | T2 | Not implemented | registry only |
-| `wasm32-wasi-p2` | T3 | Implemented | canonical v1 path, WasmGC-enabled |
+| `wasm32-wasi-p2` | T3 | Implemented | canonical GC-native path |
 | `native` | T4 | Not implemented | LLVM scaffold only |
 | `wasm32-wasi-p3` | T5 | Future | not started |
 
+## Emit surface
+
+| Emit kind | T1 | T3 | Notes |
+|-----------|----|----|-------|
+| `core-wasm` | Yes | Yes | default production path |
+| `component` | No | Yes | requires external `wasm-tools` + adapter |
+| `wit` | No | Yes | WIT export surface generation |
+| `all` | No | Yes | emits both core Wasm and component artifacts |
+
 ## Alias policy
 
-旧ターゲット alias は受理されるが `W0002` を出す。
-canonical 名を使うこと。
+旧ターゲット alias は受理されるが `W0002` を出します。canonical 名を使ってください。
 
 - `wasm32-wasi` → `wasm32-wasi-p1`
 - `wasm-gc` → `wasm32-wasi-p2`
@@ -35,111 +43,49 @@ canonical 名を使うこと。
 
 ## Current layering guidance
 
-### Layer A: production paths
+### Layer A: current production / supported paths
 
-- T3 (`wasm32-wasi-p2`): canonical v1 path, WasmGC types + P1 I/O bridge
-- T1 (`wasm32-wasi-p1`): compatibility path for non-GC runtimes
-- WASI Preview 1 I/O surface for both paths
+- T1 (`wasm32-wasi-p1`) core Wasm
+- T3 (`wasm32-wasi-p2`) core Wasm
+- T3 component / WIT output for the currently supported export surface
 
-### Layer B: future design space
+### Layer B: still incomplete / future work
 
-- Component Model deployment
+- full canonical ABI coverage for every complex type case
+- WASI Preview 3 / async-first runtime work
 - native backend completion
-- p3/async-first runtime work
 
-## What not to assume from old docs
+## Runtime / capability notes
 
-古い文書や ADR を読んでも、以下を current reality と誤読しないこと。
+- Filesystem access is deny-by-default unless `--dir` grants it
+- `--deny-fs` is supported
+- `--deny-clock` and `--deny-random` are still hard-error placeholders rather than fully enforced capability filtering
 
-- T3 が full Component Model deploy path である
-- WIT/component emit が使える
-- backend validation が warning-only のままである
-- T1 details が消えている
+## What not to infer from old docs
+
+古い v1-era 文書には次のような historical state が残っていますが、current reality ではありません。
+
+- `--emit component` が hard error のまま
+- T3 が linear-memory bridge mode のまま
+- Component / WIT が design-only で shipped behavior ではない
+
+判断に迷ったら `docs/current-state.md` を優先してください。
 
 ## Runtime model terminology
 
-The `BackendPlan` uses `RuntimeModel` to distinguish executable reality from target intent:
+`BackendPlan` / target planning では次の区別を使います。
 
 | RuntimeModel | Meaning | Current state |
 |-------------|---------|---------------|
-| `T1LinearP1` | Linear memory + WASI P1 | Active, production |
-| `T3WasmGcP2` | WasmGC types + P1 I/O bridge | Active, T3 production path |
-| `T4LlvmScaffold` | LLVM native scaffold | Optional, not v1 gate |
+| `T1LinearP1` | Linear memory + WASI P1 | Active |
+| `T3WasmGcP2` | Wasm GC-native runtime on `wasm32-wasi-p2` | Active |
+| `T4LlvmScaffold` | LLVM native scaffold | Optional / not implemented |
 
-## T3 String representation (bridge mode)
-
-T3 uses a **linear-memory bridge** for String values:
-
-- **Layout**: `[len:4 bytes LE][data bytes]` — pointer (i32) points to data start; length at `ptr - 4`
-- **GC type section**: A `(type $string (struct (field (ref (array i8))))` is declared but **not used at runtime**
-- **Allocation**: Bump allocator (global 0); no GC collection yet
-
-### Implemented operations
-
-| Operation | Status | Notes |
-|-----------|--------|-------|
-| `String_from` | ✓ | Identity (passthrough) |
-| `concat` | ✓ | Allocates new string, copies both halves |
-| `to_string` | ✓ | Polymorphic: i32→helper fn, f64/i64/bool→stubs |
-| `string_len` | ✓ | Reads `[ptr-4]` |
-| `char_at` | ✓ | Loads single byte at offset |
-| `substring` | ✓ | Allocates new string from range |
-| `clone` | ✓ | Full copy via memory.copy |
-| `to_uppercase` / `to_lowercase` | ✓ | ASCII-only, clone + in-place transform |
-| `trim` | ✓ | Scans whitespace from both ends, returns substring |
-| `contains` | ✓ | Byte-by-byte substring search |
-| `starts_with` / `ends_with` | ✓ | Prefix/suffix byte comparison |
-| `replace` | stub | Returns clone (ignores replacement args) |
-| `split` | stub | Returns empty vec |
-| `i32_to_string` | ✓ | Helper function with div/mod loop |
-| `f64_to_string` | stub | Pushes 0 |
-| `i64_to_string` | stub | Falls through to default |
-
-### Design rationale
-
-Bridge mode keeps the T3 emitter operational without requiring full WasmGC runtime support
-(reference counting, GC arrays). When WasmGC runtimes mature, String can migrate to
-`(array i8)` with minimal API change since the byte-oriented layout is preserved.
+## 関連
 
 - [../current-state.md](../current-state.md)
 - [abi.md](abi.md)
+- [abi-reference.md](abi-reference.md)
 - [../process/policy.md](../process/policy.md)
 - [../migration/t1-to-t3.md](../migration/t1-to-t3.md)
-
-## T3 Vec representation (bridge mode)
-
-T3 uses **linear-memory** for Vec values, matching the T1 layout:
-
-- **Layout**: `[data_ptr:4][len:4][cap:4]` — 12-byte header; data area is contiguous
-- **Element sizes**: 4 bytes (i32, String ptr), 8 bytes (i64, f64)
-- **GC type section**: Array/struct GC types are declared but not used at runtime
-- **Allocation**: Bump allocator (global 0); grow doubles capacity via `memory.copy`
-
-### Implemented operations
-
-| Operation | Status | Notes |
-|-----------|--------|-------|
-| `Vec_new_i32/i64/f64/String` | ✓ | Allocates 12-byte header + initial capacity |
-| `push` | ✓ | Type-aware (i32/i64/f64); auto-grow when `len >= cap` |
-| `get` | ✓ | Bounds-checked; returns element or 0 |
-| `get_unchecked` | ✓ | Direct load by element size |
-| `set` | ✓ | Direct store by element size |
-| `pop` | ✓ | Decrements len, returns last element |
-| `len` | ✓ | Reads `[header+4]` |
-
-### Higher-order function operations
-
-HOF operations are emitted **inline** at call sites using scratch memory for loop state.
-
-| Operation | Status | Notes |
-|-----------|--------|-------|
-| `filter_i32/i64/f64/String` | ✓ | Predicate via `call_indirect`; allocates new vec |
-| `map_i32_i32/i64_i64/f64_f64` | ✓ | Mapper via `call_indirect`; allocates new vec |
-| `fold_i64_i64` | ✓ | Accumulator via `call_indirect` |
-
-### Type coercion for i64/f64
-
-The MIR lowerer now tracks i64-typed parameters alongside f64, ensuring correct
-wasm local declarations. The emitter provides `emit_operand_coerced()` which promotes
-`ConstI32` literals to `I64Const`/`F64Const` when the target context requires it.
-Call sites use `fn_param_types` to coerce arguments to the callee's expected types.
+- [../migration/v1-to-v2.md](../migration/v1-to-v2.md)

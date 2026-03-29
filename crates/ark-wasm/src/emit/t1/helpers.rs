@@ -968,4 +968,87 @@ impl EmitCtx {
         f
     }
 
+    /// Buffered stdin reader: returns next byte (0–255) or -1 on EOF.
+    /// Reads 65536 bytes at a time from fd=0 into linear memory at STDIN_BUF.
+    /// Uses STDIN_BUF_POS (mem[168]) and STDIN_BUF_LEN (mem[172]) as state.
+    pub(super) fn build_get_byte(&self) -> Function {
+        // Signature: () -> i32
+        // local 0: result byte (default -1 = EOF)
+        let mut f = Function::new(vec![(1, ValType::I32)]);
+
+        let ma  = MemArg { offset: 0, align: 2, memory_index: 0 };
+        let ma1 = MemArg { offset: 0, align: 0, memory_index: 0 };
+
+        // default: result = -1 (EOF)
+        f.instruction(&Instruction::I32Const(-1i32));
+        f.instruction(&Instruction::LocalSet(0));
+
+        // if STDIN_BUF_POS >= STDIN_BUF_LEN -> refill
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // $filled
+        f.instruction(&Instruction::I32Const(STDIN_BUF_POS as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(STDIN_BUF_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32LtU);
+        f.instruction(&Instruction::BrIf(0)); // buffer has data, skip refill
+
+        // --- refill: call fd_read(fd=0, iov, 1, &nread) ---
+        // IOV at address 0: iov_base=STDIN_BUF, iov_len=STDIN_BUF_SIZE
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(STDIN_BUF as i32));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+        f.instruction(&Instruction::I32Const(STDIN_BUF_SIZE as i32));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // fd_read(0, IOV_BASE, 1, FS_NREAD)
+        f.instruction(&Instruction::I32Const(0)); // fd=0 (stdin)
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+        self.call_fn(&mut f, FN_FD_READ);
+        f.instruction(&Instruction::Drop);
+
+        // STDIN_BUF_POS = 0
+        f.instruction(&Instruction::I32Const(STDIN_BUF_POS as i32));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // STDIN_BUF_LEN = mem[FS_NREAD]
+        f.instruction(&Instruction::I32Const(STDIN_BUF_LEN as i32));
+        f.instruction(&Instruction::I32Const(FS_NREAD as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::End); // end $filled
+
+        // if STDIN_BUF_LEN > 0: read byte, increment POS
+        f.instruction(&Instruction::I32Const(STDIN_BUF_LEN as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty)); // if EOF: skip
+        f.instruction(&Instruction::Else);
+        // byte = STDIN_BUF[STDIN_BUF_POS]
+        f.instruction(&Instruction::I32Const(STDIN_BUF as i32));
+        f.instruction(&Instruction::I32Const(STDIN_BUF_POS as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma1));
+        f.instruction(&Instruction::LocalSet(0)); // result = byte
+        // STDIN_BUF_POS += 1
+        f.instruction(&Instruction::I32Const(STDIN_BUF_POS as i32));
+        f.instruction(&Instruction::I32Const(STDIN_BUF_POS as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::End); // end if
+
+        // return result
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::End);
+        f
+    }
+
+
 }
