@@ -1,0 +1,221 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "arukellt-bench-v1",
+  "title": "Arukellt Benchmark Result",
+  "description": "Schema for Arukellt benchmark suite output (schema_version: arukellt-bench-v1).",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "mode",
+    "target",
+    "benchmarks"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "arukellt-bench-v1",
+      "description": "Schema version identifier."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of when the results were generated."
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["quick", "full", "compare", "ci", "update-baseline"],
+      "description": "Execution mode used for this run."
+    },
+    "mode_description": {
+      "type": "string",
+      "description": "Human-readable description of the mode."
+    },
+    "target": {
+      "type": "string",
+      "description": "Compilation target (e.g. wasm32-wasi-p1)."
+    },
+    "thresholds": {
+      "type": "object",
+      "description": "Regression thresholds as percentage allowed increase.",
+      "properties": {
+        "compile_ms": { "type": "number" },
+        "run_ms": { "type": "number" },
+        "binary_bytes": { "type": "number" }
+      },
+      "additionalProperties": { "type": "number" }
+    },
+    "compiler": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Relative path to the compiler binary used."
+        }
+      },
+      "required": ["path"]
+    },
+    "environment": {
+      "type": "object",
+      "description": "Host environment metadata.",
+      "properties": {
+        "platform": { "type": "string" },
+        "python": { "type": "string" },
+        "machine": { "type": "string" },
+        "processor": { "type": "string" },
+        "kernel": { "type": "string" }
+      }
+    },
+    "tooling": {
+      "type": "object",
+      "description": "Availability of external tools used during benchmarking.",
+      "additionalProperties": {
+        "$ref": "#/definitions/tool_info"
+      }
+    },
+    "benchmarks": {
+      "type": "array",
+      "description": "Array of individual benchmark results.",
+      "items": {
+        "$ref": "#/definitions/benchmark_result"
+      }
+    }
+  },
+  "definitions": {
+    "tool_info": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "available": { "type": "boolean" },
+        "path": { "type": ["string", "null"] }
+      },
+      "required": ["name", "available"]
+    },
+    "benchmark_result": {
+      "type": "object",
+      "required": ["name", "source", "tags", "compile", "runtime"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Benchmark identifier."
+        },
+        "source": {
+          "type": "string",
+          "description": "Relative path to the .ark source file."
+        },
+        "expected": {
+          "type": "string",
+          "description": "Relative path to the .expected output file."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable benchmark description."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Workload taxonomy tags."
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["compile", "runtime", "size", "memory"]
+          },
+          "description": "Metric categories collected for this benchmark."
+        },
+        "compile": {
+          "$ref": "#/definitions/compile_metrics"
+        },
+        "runtime": {
+          "$ref": "#/definitions/runtime_metrics"
+        }
+      }
+    },
+    "compile_metrics": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ok", "skipped"],
+          "description": "Whether compile metrics were collected."
+        },
+        "iterations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of compile samples taken."
+        },
+        "samples_ms": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Raw wall-clock compile time samples in milliseconds."
+        },
+        "median_ms": {
+          "type": "number",
+          "description": "Median compile time in milliseconds."
+        },
+        "max_rss_kb": {
+          "type": ["number", "null"],
+          "description": "Peak resident set size in KiB (null if unavailable)."
+        },
+        "binary_bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Output binary size in bytes."
+        },
+        "command": {
+          "type": "string",
+          "description": "Full command line used for compilation."
+        }
+      }
+    },
+    "runtime_metrics": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ok", "skipped"],
+          "description": "Whether runtime metrics were collected."
+        },
+        "iterations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of timed runtime iterations."
+        },
+        "warmups": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of warmup iterations (discarded)."
+        },
+        "samples_ms": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Raw wall-clock runtime samples in milliseconds."
+        },
+        "median_ms": {
+          "type": "number",
+          "description": "Median runtime in milliseconds."
+        },
+        "max_rss_kb": {
+          "type": ["number", "null"],
+          "description": "Peak resident set size in KiB (null if unavailable)."
+        },
+        "stdout": {
+          "type": "string",
+          "description": "Captured stdout from the benchmark run."
+        },
+        "correctness": {
+          "type": "string",
+          "enum": ["pass", "fail"],
+          "description": "Whether stdout matched the .expected file."
+        },
+        "command": {
+          "type": "string",
+          "description": "Full command line used for runtime execution."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+error[E0204|typecheck]: non-exhaustive match
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/non_exhaustive.ark:10:5
+   |
+ 10 |     match c {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing patterns: Color::Blue
+

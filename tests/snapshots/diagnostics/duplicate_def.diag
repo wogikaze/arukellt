@@ -1,0 +1,6 @@
+error[E0101|resolve]: duplicate definition
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/duplicate_def.ark:5:1
+   |
+  5 | fn foo() -> i32 {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^ duplicate definition of `foo`
+

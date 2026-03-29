@@ -1,0 +1,7 @@
+error[E0100|resolve]: unresolved name
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_prelude_println.ark:2:5
+   |
+  2 |     println("hi")
+   |     ^^^^^^^ host I/O is no longer available from the prelude
+   = note: import `use std::host::stdio` and call `stdio::println(...)`
+

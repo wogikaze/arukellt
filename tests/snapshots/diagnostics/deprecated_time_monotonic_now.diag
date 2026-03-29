@@ -1,0 +1,7 @@
+error[E0100|resolve]: unresolved name
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_time_monotonic_now.ark:4:13
+   |
+  4 |     let _ = time::monotonic_now()
+   |             ^^^^^^^^^^^^^^^^^^^^^^^ host clock reads moved out of `std::time`
+   = note: import `use std::host::clock` and call `clock::monotonic_now()`
+

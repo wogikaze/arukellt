@@ -1,0 +1,8 @@
+error[E0205|typecheck]: mismatched match arm types
+   = expected: i32
+   = actual: String
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/mismatched_arms.ark:3:13
+   |
+  3 |     let y = match x {
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `i32`, found `String`
+

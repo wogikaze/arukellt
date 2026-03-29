@@ -1,0 +1,10 @@
+error[E0104|resolve]: module `std::io` has moved to `std::host::stdio`
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/deprecated_std_io_import.ark:1:1
+   |
+  1 | use std::io
+   | ^^^^^^^^^^^^^^^ deprecated std import
+help: replace the deprecated import
+   |
+  1 | use std::host::stdio
+   = note: host standard I/O is no longer exposed as `std::io`
+

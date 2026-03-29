@@ -1,0 +1,34 @@
+# 基盤: benchmark schema・命名・実行モードの標準化
+
+**Status**: open
+**Created**: 2026-03-29
+**Updated**: 2026-03-29
+**ID**: 149
+**Depends on**: —
+**Track**: benchmark
+**Blocks v1 exit**: no
+
+## Summary
+
+ベンチ関連スクリプトが増える前に、結果 schema・fixture 命名・quick/full/ci モード・baseline 更新ルールを標準化する。
+後続 issue が同じ言葉で会話できる土台を先に作る。
+
+## 受け入れ条件
+
+1. benchmark result schema (compile/runtime/size/memory/metadata) を定義する
+2. fixture 命名規約と tag/taxonomy の置き場を決める
+3. `quick` / `full` / `compare` / `ci` / `update-baseline` の意味を明文化する
+4. `benchmarks/README.md` と `docs/process/benchmark-plan.md` に標準ルールを反映する
+
+## 実装タスク
+
+1. 既存 benchmark script の出力項目を棚卸しする
+2. 最小共通 schema と optional field を定義する
+3. 新規 benchmark issue が従うテンプレートを決める
+
+## 参照
+
+- `benchmarks/README.md`
+- `docs/process/benchmark-plan.md`
+- `scripts/perf-gate.sh`
+- `scripts/compare-benchmarks.sh`

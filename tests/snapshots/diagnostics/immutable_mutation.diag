@@ -1,0 +1,6 @@
+error[E0207|typecheck]: cannot assign to immutable variable `x`
+  --> /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/tests/fixtures/diagnostics/immutable_mutation.ark:3:5
+   |
+  3 |     x = 20
+   |     ^ cannot assign to immutable variable
+

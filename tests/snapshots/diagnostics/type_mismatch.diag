@@ -1,0 +1,4 @@
+error[E0200|typecheck]: expected `i32`, found `String`
+   = expected: i32
+   = actual: String
+
