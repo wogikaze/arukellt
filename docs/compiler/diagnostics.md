@@ -151,6 +151,7 @@ These prefixes allow distinguishing T3 backend/runtime failures from frontend
 
 ## 関連
 
+- [error-codes.md](error-codes.md) — canonical error code reference (all codes, examples, phases)
 - [../current-state.md](../current-state.md)
 - [pipeline.md](pipeline.md)
 - [../language/error-handling.md](../language/error-handling.md)

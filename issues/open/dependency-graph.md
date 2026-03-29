@@ -16,7 +16,6 @@ graph TD
   I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
   I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
-  I151["151 横断 docs: `docs/compiler/error-codes.md` と診断コード一覧の正規化"]
   I154["154 横断基盤: `scripts/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
   I156["156 T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化"]
   I162["162 162: Phase 1 — Parser の Arukellt 実装"]
@@ -73,7 +72,6 @@ graph TD
 - **145** depends on: 149; blocks: 148, 158
 - **146** depends on: 149; blocks: 148
 - **147** depends on: 149; blocks: none
-- **151** depends on: —; blocks: none
 - **154** depends on: 153; blocks: none
 - **156** depends on: —; blocks: none
 - **162** depends on: #161 (Lexer); blocks: none
