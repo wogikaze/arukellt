@@ -1383,7 +1383,12 @@ impl Ctx {
     }
 
     /// Emit the ? operator: evaluate expr (Result enum), extract Ok payload or early-return Err
-    pub(super) fn emit_try_expr(&mut self, f: &mut PeepholeWriter<'_>, expr: &Operand) {
+    pub(super) fn emit_try_expr(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        expr: &Operand,
+        from_fn: Option<&String>,
+    ) {
         // Determine which Result enum type the expr produces
         let result_type = self.infer_operand_type(expr);
 
@@ -1418,8 +1423,16 @@ impl Ctx {
             (None, None, None)
         };
 
-        if let (Some(_ename), Some(ok_variant), Some(err_variant)) = (enum_name, ok_ty, err_ty) {
+        if let (Some(ename), Some(ok_variant), Some(err_variant)) = (enum_name, ok_ty, err_ty) {
             let anyref_scratch = self.si(10);
+            let outer_result_enum = self
+                .current_result_enum_name()
+                .unwrap_or_else(|| ename.clone());
+            let outer_err_variant = self
+                .enum_variant_types
+                .get(outer_result_enum.as_str())
+                .and_then(|variants| variants.get("Err"))
+                .copied();
 
             // Emit inner expression → ref $Result on stack
             self.emit_operand(f, expr);
@@ -1432,7 +1445,7 @@ impl Ctx {
             f.instruction(&Instruction::RefTestNonNull(HeapType::Concrete(ok_variant)));
 
             // Determine Ok payload type from enum_defs
-            let ok_payload_ty = self.get_ok_payload_type(&_ename);
+            let ok_payload_ty = self.get_ok_payload_type(&ename);
 
             f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
                 ok_payload_ty,
@@ -1448,21 +1461,28 @@ impl Ctx {
             }
             f.instruction(&Instruction::Else);
             {
-                // Err path: cast to Err variant, re-wrap in function return type, and return
-                // In the common case (same Result type), just return the original ref
-                f.instruction(&Instruction::LocalGet(anyref_scratch));
-                f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
-                    err_variant,
-                )));
-                // Extract Err payload (ref $string)
-                f.instruction(&Instruction::StructGet {
-                    struct_type_index: err_variant,
-                    field_index: 0,
-                });
-                // Re-wrap in function's return Result.Err
-                // For simplicity, assume function returns same Result type
-                f.instruction(&Instruction::StructNew(err_variant));
-                f.instruction(&Instruction::Return);
+                if let Some(outer_err_variant) = outer_err_variant {
+                    f.instruction(&Instruction::LocalGet(anyref_scratch));
+                    f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                        err_variant,
+                    )));
+                    f.instruction(&Instruction::StructGet {
+                        struct_type_index: err_variant,
+                        field_index: 0,
+                    });
+                    if outer_result_enum != "Result" {
+                        if let Some(from_fn_name) = from_fn {
+                            if let Some(&from_idx) = self.fn_map.get(from_fn_name.as_str()) {
+                                f.instruction(&Instruction::Call(from_idx));
+                            }
+                        }
+                    }
+                    f.instruction(&Instruction::StructNew(outer_err_variant));
+                    f.instruction(&Instruction::Return);
+                } else {
+                    f.instruction(&Instruction::LocalGet(anyref_scratch));
+                    f.instruction(&Instruction::Return);
+                }
             }
             f.instruction(&Instruction::End);
         } else {
@@ -1669,10 +1689,28 @@ impl Ctx {
     /// Infer the enum name from an operand (for EnumTag dispatch).
     pub(super) fn infer_enum_name(&self, operand: &Operand) -> String {
         match operand {
-            Operand::Place(Place::Local(id)) => {
-                self.local_enum.get(&id.0).cloned().unwrap_or_default()
-            }
-            _ => String::new(),
+            Operand::Place(Place::Local(id)) => self
+                .local_enum
+                .get(&id.0)
+                .cloned()
+                .or_else(|| self.enum_name_from_val_type(&self.infer_operand_type(operand)))
+                .unwrap_or_default(),
+            _ => self
+                .enum_name_from_val_type(&self.infer_operand_type(operand))
+                .unwrap_or_default(),
+        }
+    }
+
+    pub(super) fn enum_name_from_val_type(&self, val_type: &ValType) -> Option<String> {
+        match val_type {
+            ValType::Ref(rt) => match rt.heap_type {
+                HeapType::Concrete(idx) => self
+                    .enum_base_types
+                    .iter()
+                    .find_map(|(name, &base_idx)| (base_idx == idx).then(|| name.clone())),
+                _ => None,
+            },
+            _ => None,
         }
     }
 
@@ -1785,8 +1823,18 @@ impl Ctx {
                     ValType::I32
                 }
             }
-            Operand::EnumInit { enum_name, .. } => {
-                if let Some(&base_idx) = self.enum_base_types.get(enum_name.as_str()) {
+            Operand::EnumInit {
+                enum_name,
+                variant,
+                ..
+            } => {
+                let effective_enum_name = if matches!(variant.as_str(), "Ok" | "Err") {
+                    self.current_result_enum_name()
+                        .unwrap_or_else(|| enum_name.clone())
+                } else {
+                    enum_name.clone()
+                };
+                if let Some(&base_idx) = self.enum_base_types.get(effective_enum_name.as_str()) {
                     ref_nullable(base_idx)
                 } else {
                     ValType::I32

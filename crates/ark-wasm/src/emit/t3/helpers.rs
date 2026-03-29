@@ -10,7 +10,7 @@ use wasm_encoder::{
     CodeSection, Function, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType,
 };
 
-use super::{normalize_intrinsic, ref_nullable, Ctx};
+use super::{nominalize_generic_type_name, normalize_intrinsic, ref_nullable, Ctx};
 use super::{
     SCRATCH, I32BUF, P2_RETPTR,
 };
@@ -1602,6 +1602,7 @@ impl Ctx {
         self.local_enum.clear();
         self.current_fn_type_params = func.type_params.clone();
         self.current_fn_return_ty = func.return_ty.clone();
+        self.current_fn_ret_type_name = self.fn_ret_type_names.get(&func.name).cloned();
 
         // ── Type propagation: scan ALL assignments (including nested) to infer ref types ──
         let mut extra_enum: HashMap<u32, String> = HashMap::new();
@@ -1610,6 +1611,7 @@ impl Ctx {
         let mut extra_vec_i64: HashSet<u32> = HashSet::new();
         let mut extra_vec_f64: HashSet<u32> = HashSet::new();
         let mut extra_vec_string: HashSet<u32> = HashSet::new();
+        let mut extra_string: HashSet<u32> = HashSet::new();
 
         // Collect ALL statements recursively (flattens IfStmt/WhileStmt bodies)
         fn collect_stmts_recursive<'a>(stmts: &'a [MirStmt], out: &mut Vec<&'a MirStmt>) {
@@ -1717,6 +1719,9 @@ impl Ctx {
                                 if extra_vec_string.contains(&src.0) {
                                     extra_vec_string.insert(dst.0);
                                 }
+                                if extra_string.contains(&src.0) {
+                                    extra_string.insert(dst.0);
+                                }
                                 // Propagate struct-vec
                                 if let Some(svn) = self.struct_vec_locals.get(&src.0).cloned() {
                                     self.struct_vec_locals.entry(dst.0).or_insert(svn);
@@ -1726,20 +1731,68 @@ impl Ctx {
                                 extra_enum.entry(dst.0).or_insert_with(|| enum_name.clone());
                             }
                             Operand::EnumPayload {
+                                object,
                                 enum_name,
                                 variant_name,
                                 index,
                                 ..
                             } => {
                                 // The payload type comes from enum_variant_field_types
-                                let key = (enum_name.clone(), variant_name.clone());
+                                let effective_enum_name =
+                                    if matches!(enum_name.as_str(), "Result" | "Option") {
+                                        if let Operand::Place(Place::Local(src)) = &**object {
+                                            func.enum_typed_locals
+                                                .get(&src.0)
+                                                .or_else(|| extra_enum.get(&src.0))
+                                                .cloned()
+                                                .unwrap_or_else(|| enum_name.clone())
+                                        } else {
+                                            enum_name.clone()
+                                        }
+                                    } else {
+                                        enum_name.clone()
+                                    };
+                                let key = (effective_enum_name, variant_name.clone());
                                 if let Some(field_types) = self.enum_variant_field_types.get(&key) {
                                     if let Some(ft) = field_types.get(*index as usize) {
+                                        if ft == "String" {
+                                            extra_string.insert(dst.0);
+                                        }
                                         if self.enum_base_types.contains_key(ft.as_str()) {
                                             extra_enum.entry(dst.0).or_insert_with(|| ft.clone());
                                         }
                                         if self.struct_gc_types.contains_key(ft.as_str()) {
                                             extra_struct.entry(dst.0).or_insert_with(|| ft.clone());
+                                        }
+                                    }
+                                }
+                            }
+                            Operand::TryExpr { expr, .. } => {
+                                let ok_enum_name = match &**expr {
+                                    Operand::Call(name, _) => self
+                                        .fn_ret_type_names
+                                        .get(name)
+                                        .and_then(|ret_name| self.result_enum_name_for_type_name(ret_name)),
+                                    Operand::Place(Place::Local(src)) => func
+                                        .enum_typed_locals
+                                        .get(&src.0)
+                                        .or_else(|| extra_enum.get(&src.0))
+                                        .cloned(),
+                                    _ => None,
+                                };
+                                if let Some(enum_name) = ok_enum_name {
+                                    let key = (enum_name, "Ok".to_string());
+                                    if let Some(field_types) = self.enum_variant_field_types.get(&key) {
+                                        if let Some(ft) = field_types.first() {
+                                            if ft == "String" {
+                                                extra_string.insert(dst.0);
+                                            }
+                                            if self.enum_base_types.contains_key(ft.as_str()) {
+                                                extra_enum.entry(dst.0).or_insert_with(|| ft.clone());
+                                            }
+                                            if self.struct_gc_types.contains_key(ft.as_str()) {
+                                                extra_struct.entry(dst.0).or_insert_with(|| ft.clone());
+                                            }
                                         }
                                     }
                                 }
@@ -1844,6 +1897,17 @@ impl Ctx {
                                 if let Some(ret_name) = self.fn_ret_type_names.get(canonical) {
                                     if self.enum_base_types.contains_key(ret_name.as_str()) {
                                         extra_enum.entry(dst.0).or_insert_with(|| ret_name.clone());
+                                    } else if let Some(specialized_name) =
+                                        nominalize_generic_type_name(ret_name)
+                                    {
+                                        if self
+                                            .enum_base_types
+                                            .contains_key(specialized_name.as_str())
+                                        {
+                                            extra_enum
+                                                .entry(dst.0)
+                                                .or_insert_with(|| specialized_name);
+                                        }
                                     }
                                 }
                             }
@@ -2001,7 +2065,11 @@ impl Ctx {
         let num_params = func.params.len();
         let mut local_types: Vec<(u32, ValType)> = Vec::new();
         for local in func.locals.iter().skip(num_params) {
-            let vt = self.local_val_type(local, &merged_struct, &merged_enum, vec_sets);
+            let vt = if extra_string.contains(&local.id.0) {
+                ref_nullable(self.string_ty)
+            } else {
+                self.local_val_type(local, &merged_struct, &merged_enum, vec_sets)
+            };
             local_types.push((1, vt));
         }
         // Track type metadata for all locals (including params)
@@ -2038,6 +2106,9 @@ impl Ctx {
                 }
                 _ => {}
             }
+        }
+        for lid in &extra_string {
+            self.string_locals.insert(*lid);
         }
         // Populate struct/enum local maps from side-channel + propagated types
         for (lid, sname) in &merged_struct {

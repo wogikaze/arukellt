@@ -471,7 +471,7 @@ impl Ctx {
         // Each enum is emitted as one rec group so that structurally
         // identical variants (e.g., unit variants) are type-distinct.
         // Topological sort: enums whose variant fields reference other enums must be processed after them.
-        let enum_names: Vec<String> = mir.type_table.enum_defs.keys().cloned().collect();
+        let enum_names: Vec<String> = self.enum_defs.keys().cloned().collect();
         let mut enum_order: Vec<String> = Vec::new();
         let mut enum_visited: HashSet<String> = HashSet::new();
         fn enum_topo_visit(
@@ -498,13 +498,13 @@ impl Ctx {
         for ename in &enum_names {
             enum_topo_visit(
                 ename,
-                &mir.type_table.enum_defs,
+                &self.enum_defs,
                 &mut enum_visited,
                 &mut enum_order,
             );
         }
         for ename in &enum_order {
-            let variants = mir.type_table.enum_defs.get(ename).unwrap();
+            let variants = self.enum_defs.get(ename).unwrap();
             let variant_fields: Vec<(String, Vec<FieldType>)> = variants
                 .iter()
                 .map(|(vname, field_types)| {

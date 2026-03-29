@@ -7,7 +7,7 @@ use ark_parser::ast;
 use crate::mir::*;
 
 use super::LowerCtx;
-use super::types::is_string_type;
+use super::types::{detect_specialized_result, is_string_type};
 
 impl LowerCtx {
     /// Lower a match expression used as a statement (result discarded).
@@ -269,14 +269,33 @@ impl LowerCtx {
                         None
                     };
                     // Determine specialized enum name for i64/f64 payloads
-                    let effective_enum_name = if let Operand::Place(Place::Local(lid)) = scrut {
-                        self.enum_local_specialized
+                    let effective_enum_name = match scrut {
+                        Operand::Place(Place::Local(lid)) => self
+                            .enum_local_specialized
                             .get(&lid.0)
                             .cloned()
-                            .unwrap_or_else(|| path.clone())
-                    } else {
-                        path.clone()
+                            .unwrap_or_else(|| path.clone()),
+                        Operand::Call(name, _) => self
+                            .fn_return_types
+                            .get(name)
+                            .and_then(detect_specialized_result)
+                            .or_else(|| {
+                                self.fn_return_types.get(name).and_then(|ret_ty| {
+                                    if let ast::TypeExpr::Named { name, .. } = ret_ty {
+                                        self.enum_defs.contains_key(name.as_str()).then(|| name.clone())
+                                    } else {
+                                        None
+                                    }
+                                })
+                            })
+                            .unwrap_or_else(|| path.clone()),
+                        _ => path.clone(),
                     };
+                    if let Operand::Place(Place::Local(lid)) = scrut {
+                        self.enum_typed_locals
+                            .entry(lid.0)
+                            .or_insert_with(|| effective_enum_name.clone());
+                    }
                     // Bind payload fields to local variables
                     for (i, field_pat) in fields.iter().enumerate() {
                         if let ast::Pattern::Ident { name: binding, .. } = field_pat {
@@ -302,6 +321,9 @@ impl LowerCtx {
                                         }
                                         if t == "String" {
                                             self.string_locals.insert(local_id.0);
+                                        }
+                                        if self.enum_defs.contains_key(t.as_str()) {
+                                            self.enum_typed_locals.insert(local_id.0, t.clone());
                                         }
                                     }
                                 }
@@ -430,6 +452,9 @@ impl LowerCtx {
                                         }
                                         if t == "String" {
                                             self.string_locals.insert(local_id.0);
+                                        }
+                                        if self.enum_defs.contains_key(t.as_str()) {
+                                            self.enum_typed_locals.insert(local_id.0, t.clone());
                                         }
                                     }
                                 }
@@ -690,6 +715,9 @@ impl LowerCtx {
                                         if t == "String" {
                                             self.string_locals.insert(local_id.0);
                                         }
+                                        if self.enum_defs.contains_key(t.as_str()) {
+                                            self.enum_typed_locals.insert(local_id.0, t.clone());
+                                        }
                                     }
                                 }
                             }
@@ -801,6 +829,9 @@ impl LowerCtx {
                                         }
                                         if t == "String" {
                                             self.string_locals.insert(local_id.0);
+                                        }
+                                        if self.enum_defs.contains_key(t.as_str()) {
+                                            self.enum_typed_locals.insert(local_id.0, t.clone());
                                         }
                                     }
                                 }

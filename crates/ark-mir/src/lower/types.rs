@@ -105,20 +105,30 @@ pub(crate) fn type_expr_name(ty: &ast::TypeExpr) -> String {
 
 /// Detect specialized Result enum name for concrete i64/f64 payloads.
 /// Returns Some("Result_i64_String") for Result<i64, String>, etc.
-pub(crate) fn detect_specialized_result(type_expr: &ast::TypeExpr) -> Option<String> {
-    if let ast::TypeExpr::Generic { name, args, .. } = type_expr {
-        if name == "Result" {
-            if let Some(ast::TypeExpr::Named { name: ok_name, .. }) = args.first() {
-                if ok_name == "i64" {
-                    return Some("Result_i64_String".to_string());
-                }
-                if ok_name == "f64" {
-                    return Some("Result_f64_String".to_string());
-                }
-                if ok_name == "String" {
-                    return Some("Result_String_String".to_string());
-                }
+fn nominalize_type_expr(ty: &ast::TypeExpr) -> Option<String> {
+    match ty {
+        ast::TypeExpr::Named { name, .. } => Some(name.clone()),
+        ast::TypeExpr::Unit(_) => Some("Unit".to_string()),
+        ast::TypeExpr::Generic { name, args, .. } => {
+            let mut parts = vec![name.clone()];
+            for arg in args {
+                parts.push(nominalize_type_expr(arg)?);
             }
+            Some(parts.join("_"))
+        }
+        _ => None,
+    }
+}
+
+pub(crate) fn detect_specialized_result(type_expr: &ast::TypeExpr) -> Option<String> {
+    if let ast::TypeExpr::Generic { name, .. } = type_expr {
+        if name == "Result" {
+            let specialized = nominalize_type_expr(type_expr)?;
+            return matches!(
+                specialized.as_str(),
+                "Result_i64_String" | "Result_f64_String" | "Result_String_String"
+            )
+            .then_some(specialized);
         }
     }
     None

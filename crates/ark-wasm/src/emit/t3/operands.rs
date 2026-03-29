@@ -320,9 +320,15 @@ impl Ctx {
                 payload,
             } => {
                 // GC-native: push payload fields, then struct.new $Variant
+                let effective_enum_name = if matches!(variant.as_str(), "Ok" | "Err") {
+                    self.current_result_enum_name()
+                        .unwrap_or_else(|| enum_name.clone())
+                } else {
+                    enum_name.clone()
+                };
                 let ty_idx = self
                     .enum_variant_types
-                    .get(enum_name.as_str())
+                    .get(effective_enum_name.as_str())
                     .and_then(|vs| vs.get(variant.as_str()))
                     .copied()
                     .unwrap_or(0);
@@ -432,10 +438,31 @@ impl Ctx {
                 variant_name,
             } => {
                 // GC-native: ref.cast to variant type, then struct.get
+                let effective_enum_name = if matches!(enum_name.as_str(), "Result" | "Option") {
+                    let inferred = self.infer_enum_name(object);
+                    if inferred.is_empty() {
+                        enum_name.clone()
+                    } else {
+                        inferred
+                    }
+                } else {
+                    enum_name.clone()
+                };
+                let effective_variant_name = if enum_name == "Option"
+                    && effective_enum_name != *enum_name
+                {
+                    match variant_name.as_str() {
+                        "Some" => "Ok",
+                        "None" => "Err",
+                        _ => variant_name.as_str(),
+                    }
+                } else {
+                    variant_name.as_str()
+                };
                 let variant_ty = self
                     .enum_variant_types
-                    .get(enum_name.as_str())
-                    .and_then(|vs| vs.get(variant_name.as_str()))
+                    .get(effective_enum_name.as_str())
+                    .and_then(|vs| vs.get(effective_variant_name))
                     .copied()
                     .unwrap_or(0);
                 self.emit_operand(f, object);
@@ -451,10 +478,10 @@ impl Ctx {
                 }
                 self.emit_operand(f, result);
             }
-            Operand::TryExpr { expr, .. } => {
+            Operand::TryExpr { expr, from_fn } => {
                 // ? operator: evaluate expr (returns Result enum ref),
                 // if Ok → extract payload, if Err → early return
-                self.emit_try_expr(f, expr);
+                self.emit_try_expr(f, expr, from_fn.as_ref());
             }
             Operand::FnRef(name) => {
                 if let Some(&idx) = self.fn_map.get(name.as_str()) {

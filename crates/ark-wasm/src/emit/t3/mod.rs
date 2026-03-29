@@ -135,6 +135,109 @@ fn normalize_intrinsic(name: &str) -> &str {
     }
 }
 
+pub(super) fn nominalize_generic_type_name(name: &str) -> Option<String> {
+    if !name.contains('<') {
+        return None;
+    }
+
+    let mut out = String::with_capacity(name.len());
+    let mut prev_was_sep = false;
+    for ch in name.chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch);
+            prev_was_sep = false;
+        } else if !prev_was_sep {
+            out.push('_');
+            prev_was_sep = true;
+        }
+    }
+    while out.ends_with('_') {
+        out.pop();
+    }
+    if out.is_empty() {
+        None
+    } else {
+        Some(out)
+    }
+}
+
+fn split_generic_type_args(name: &str) -> Option<(String, Vec<String>)> {
+    let start = name.find('<')?;
+    let end = name.rfind('>')?;
+    if end <= start {
+        return None;
+    }
+
+    let base = name[..start].trim().to_string();
+    let mut args = Vec::new();
+    let mut depth = 0usize;
+    let mut current = String::new();
+    for ch in name[start + 1..end].chars() {
+        match ch {
+            '<' => {
+                depth += 1;
+                current.push(ch);
+            }
+            '>' => {
+                if depth == 0 {
+                    return None;
+                }
+                depth -= 1;
+                current.push(ch);
+            }
+            ',' if depth == 0 => {
+                args.push(current.trim().to_string());
+                current.clear();
+            }
+            _ => current.push(ch),
+        }
+    }
+    if !current.trim().is_empty() {
+        args.push(current.trim().to_string());
+    }
+    Some((base, args))
+}
+
+fn is_concrete_specialization_arg(name: &str) -> bool {
+    !(name.len() == 1 && name.chars().all(|ch| ch.is_ascii_uppercase()))
+}
+
+pub(super) fn is_component_export_candidate(name: &str) -> bool {
+    !matches!(
+        name,
+        "main"
+            | "print"
+            | "println"
+            | "eprintln"
+            | "read_to_string"
+            | "write_string"
+            | "args"
+            | "arg_count"
+            | "arg_at"
+            | "var"
+            | "has_flag"
+            | "exit"
+            | "abort"
+            | "monotonic_now"
+            | "duration_ms"
+            | "duration_us"
+            | "duration_ns"
+            | "random_i32"
+            | "random_i32_range"
+            | "random_bool"
+            | "seeded_random"
+            | "seeded_range"
+            | "shuffle_i32"
+            | "panic"
+            | "assert"
+            | "assert_eq"
+            | "assert_ne"
+            | "assert_eq_i64"
+            | "assert_eq_str"
+            | "String_from"
+    ) && !name.starts_with("__")
+}
+
 
 struct TypeAlloc {
     next_idx: u32,
@@ -377,6 +480,7 @@ struct Ctx {
     current_fn_type_params: Vec<String>,
     // Return type of the function being emitted
     current_fn_return_ty: Type,
+    current_fn_ret_type_name: Option<String>,
     // P2 WASI import indices (always present)
     wasi_p2_get_stdout: u32,
     wasi_p2_write_and_flush: u32,
@@ -447,6 +551,11 @@ impl Ctx {
                 if let Some(&base_idx) = self.enum_base_types.get(name) {
                     return ref_nullable(base_idx);
                 }
+                if let Some(specialized_name) = nominalize_generic_type_name(name) {
+                    if let Some(&base_idx) = self.enum_base_types.get(specialized_name.as_str()) {
+                        return ref_nullable(base_idx);
+                    }
+                }
                 // Vec types: Vec<i32>, Vec<String>, etc.
                 if name.starts_with("Vec<") {
                     let inner = &name[4..name.len() - 1];
@@ -478,6 +587,77 @@ impl Ctx {
                 }
                 ValType::I32
             }
+        }
+    }
+
+    pub(super) fn result_enum_name_for_type_name(&self, type_name: &str) -> Option<String> {
+        if self.enum_base_types.contains_key(type_name) {
+            return Some(type_name.to_string());
+        }
+        let (base, args) = split_generic_type_args(type_name)?;
+        if base != "Result" || args.len() != 2 {
+            return None;
+        }
+        if let Some(specialized_name) = nominalize_generic_type_name(type_name) {
+            if self.enum_base_types.contains_key(specialized_name.as_str()) {
+                return Some(specialized_name);
+            }
+        }
+        if self.enum_base_types.contains_key("Result") {
+            Some("Result".to_string())
+        } else {
+            None
+        }
+    }
+
+    pub(super) fn current_result_enum_name(&self) -> Option<String> {
+        self.current_fn_ret_type_name
+            .as_deref()
+            .and_then(|type_name| self.result_enum_name_for_type_name(type_name))
+    }
+
+    pub(super) fn ensure_specialized_result_enums(&mut self) {
+        let mut pending = Vec::new();
+        let mut type_names: Vec<String> = self.fn_ret_type_names.values().cloned().collect();
+        type_names.extend(
+            self.fn_param_type_names
+                .values()
+                .flat_map(|params| params.iter().cloned()),
+        );
+
+        for type_name in type_names {
+            let Some((base, args)) = split_generic_type_args(type_name.as_str()) else {
+                continue;
+            };
+            if base != "Result" || args.len() != 2 {
+                continue;
+            }
+            if !args.iter().all(|arg| is_concrete_specialization_arg(arg.as_str())) {
+                continue;
+            }
+            let Some(enum_name) = nominalize_generic_type_name(type_name.as_str()) else {
+                continue;
+            };
+            if !matches!(
+                enum_name.as_str(),
+                "Result_i64_String" | "Result_f64_String" | "Result_String_String"
+            ) {
+                continue;
+            }
+            if enum_name == "Result" || self.enum_defs.contains_key(enum_name.as_str()) {
+                continue;
+            }
+            pending.push((
+                enum_name,
+                vec![
+                    ("Ok".to_string(), vec![args[0].clone()]),
+                    ("Err".to_string(), vec![args[1].clone()]),
+                ],
+            ));
+        }
+
+        for (enum_name, variants) in pending {
+            self.enum_defs.insert(enum_name, variants);
         }
     }
 
@@ -719,6 +899,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         loop_break_extra_depth: 0,
         current_fn_type_params: vec![],
         current_fn_return_ty: Type::Unit,
+        current_fn_ret_type_name: None,
         wasi_p2_get_stdout: 0,
         wasi_p2_write_and_flush: 0,
         wasi_p2_drop_output_stream: 0,
@@ -778,6 +959,8 @@ impl Ctx {
         self.wasi_needs_proc_exit = needs_proc_exit;
         let needs_args = Self::mir_uses_args(mir, &reachable_user_indices);
         self.wasi_needs_args = needs_args;
+
+        self.ensure_specialized_result_enums();
 
         // Phase 1: Register GC types
         self.register_gc_types(mir);
@@ -1225,17 +1408,12 @@ impl Ctx {
             exports.export("_start", ExportKind::Func, main_idx);
         }
 
-        let export_component_funcs =
-            !self.fn_map.contains_key("_start") && !self.fn_map.contains_key("main");
-
         // Export user pub functions for Component Model (kebab-case names for WIT)
-        if export_component_funcs {
-            for func in &mir.functions {
-                if func.is_exported && func.name != "main" && !func.name.starts_with("__") {
-                    if let Some(&idx) = self.fn_map.get(func.name.as_str()) {
-                        let export_name = func.name.replace('_', "-");
-                        exports.export(&export_name, ExportKind::Func, idx);
-                    }
+        for func in &mir.functions {
+            if func.is_exported && is_component_export_candidate(&func.name) {
+                if let Some(&idx) = self.fn_map.get(func.name.as_str()) {
+                    let export_name = func.name.replace('_', "-");
+                    exports.export(&export_name, ExportKind::Func, idx);
                 }
             }
         }
