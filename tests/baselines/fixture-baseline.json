@@ -5,34 +5,50 @@
     {
       "kind": "run",
       "path": "arrays/array_literal.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x15f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30"
+      ]
     },
     {
       "kind": "run",
       "path": "arrays/array_repeat.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x17e)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n0\n15\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "15"
+      ]
     },
     {
       "kind": "run",
       "path": "closure_capture/capture_struct.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x288)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "35\nhello 42\n",
+      "stderr": "",
+      "primary_text": [
+        "35",
+        "hello 42"
+      ]
     },
     {
       "kind": "run",
       "path": "control/break_continue.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1dc)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1\n3\n5\n7\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "3",
+        "5",
+        "7"
+      ]
     },
     {
       "kind": "run",
@@ -67,18 +83,24 @@
     {
       "kind": "run",
       "path": "control/loop_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c5)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
     },
     {
       "kind": "run",
       "path": "control/loop_break_value.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e3)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "50\n",
+      "stderr": "",
+      "primary_text": [
+        "50"
+      ]
     },
     {
       "kind": "run",
@@ -113,26 +135,36 @@
     {
       "kind": "run",
       "path": "control/nested_loops.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1d7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
     },
     {
       "kind": "run",
       "path": "control/while_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1be)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
     },
     {
       "kind": "run",
       "path": "control/while_counter.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1d6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
     },
     {
       "kind": "diag",
@@ -384,10 +416,13 @@
     {
       "kind": "run",
       "path": "enums/enum_struct_variant.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x270)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "75\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "75",
+        "24"
+      ]
     },
     {
       "kind": "run",
@@ -416,34 +451,42 @@
     {
       "kind": "run",
       "path": "enums/option_none.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e8)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "none\n",
+      "stderr": "",
+      "primary_text": [
+        "none"
+      ]
     },
     {
       "kind": "run",
       "path": "enums/option_some.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "run",
       "path": "enums/result_err.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f9)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "something went wrong\n",
+      "stderr": "",
+      "primary_text": [
+        "something went wrong"
+      ]
     },
     {
       "kind": "run",
       "path": "enums/result_ok.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
     },
     {
       "kind": "run",
@@ -469,34 +512,48 @@
     {
       "kind": "run",
       "path": "for_loops/for_range.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1d0)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
     },
     {
       "kind": "run",
       "path": "for_loops/for_sum.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f0)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
     },
     {
       "kind": "run",
       "path": "for_loops/for_values.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x448)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30"
+      ]
     },
     {
       "kind": "run",
       "path": "from_trait/from_auto_convert.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x225)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "file not found\n",
+      "stderr": "",
+      "primary_text": [
+        "file not found"
+      ]
     },
     {
       "kind": "run",
@@ -511,18 +568,22 @@
     {
       "kind": "run",
       "path": "functions/closure_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b9)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "run",
       "path": "functions/closure_capture.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1be)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "run",
@@ -539,58 +600,74 @@
     {
       "kind": "run",
       "path": "functions/generic_fn.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\nhello\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "hello"
+      ]
     },
     {
       "kind": "run",
       "path": "functions/higher_order.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "run",
       "path": "functions/multiple_params.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c4)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "7\n12\n",
+      "stderr": "",
+      "primary_text": [
+        "7",
+        "12"
+      ]
     },
     {
       "kind": "run",
       "path": "functions/pub_fn.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ba)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "7\n",
+      "stderr": "",
+      "primary_text": [
+        "7"
+      ]
     },
     {
       "kind": "run",
       "path": "functions/recursive.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1cd)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
     },
     {
       "kind": "run",
       "path": "functions/return_value.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b8)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "49\n",
+      "stderr": "",
+      "primary_text": [
+        "49"
+      ]
     },
     {
       "kind": "run",
       "path": "generics/identity_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1bb)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "run",
@@ -605,58 +682,76 @@
     {
       "kind": "run",
       "path": "generics/option_generic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x234)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "0"
+      ]
     },
     {
       "kind": "run",
       "path": "generics/result_generic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x245)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "0"
+      ]
     },
     {
       "kind": "run",
       "path": "generics/two_params.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x201)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\nhello\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "hello"
+      ]
     },
     {
       "kind": "run",
       "path": "generics/vec_generic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x329)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
     },
     {
       "kind": "run",
       "path": "generics_v1/generic_struct.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e1)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "run",
       "path": "generics_v1/nested_generics.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
     },
     {
       "kind": "run",
       "path": "generics_v1/nested_option.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
     },
     {
       "kind": "run",
@@ -709,34 +804,50 @@
     {
       "kind": "run",
       "path": "hello/print_int.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ac)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "run",
       "path": "integration/calculator.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x277)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n30\n42\n42\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "30",
+        "42",
+        "42"
+      ]
     },
     {
       "kind": "run",
       "path": "integration/fibonacci.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x20c)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n1\n2\n3\n5\n8\n13\n21\n34\n55\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "1",
+        "2",
+        "3"
+      ]
     },
     {
       "kind": "run",
       "path": "integration/linked_list.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x3d3)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1 -> 2 -> 3 -> nil\n6\n",
+      "stderr": "",
+      "primary_text": [
+        "1 -> 2 -> 3 -> nil",
+        "6"
+      ]
     },
     {
       "kind": "run",
@@ -751,18 +862,29 @@
     {
       "kind": "run",
       "path": "integration/word_counter.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x3f1)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "2\n5\n0\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "5",
+        "0",
+        "1"
+      ]
     },
     {
       "kind": "run",
       "path": "iterator/custom_iterator.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x200)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
     },
     {
       "kind": "run",
@@ -789,18 +911,24 @@
     {
       "kind": "run",
       "path": "match_extensions/struct_field_update.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x21a)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "2"
+      ]
     },
     {
       "kind": "run",
       "path": "match_extensions/struct_pattern.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f3)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "4"
+      ]
     },
     {
       "kind": "module-diag",
@@ -815,10 +943,12 @@
     {
       "kind": "module-run",
       "path": "modules/import_basic/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ba)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "7\n",
+      "stderr": "",
+      "primary_text": [
+        "7"
+      ]
     },
     {
       "kind": "module-run",
@@ -833,18 +963,24 @@
     {
       "kind": "module-run",
       "path": "modules/multi_import/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x254)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "30\nababab\n",
+      "stderr": "",
+      "primary_text": [
+        "30",
+        "ababab"
+      ]
     },
     {
       "kind": "module-run",
       "path": "modules/prelude_via_import/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x260)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "hello world\n3\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "3"
+      ]
     },
     {
       "kind": "module-diag",
@@ -863,26 +999,32 @@
     {
       "kind": "module-run",
       "path": "modules/use_std_basic/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c0)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "module-run",
       "path": "modules/use_std_alias/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c0)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n",
+      "stderr": "",
+      "primary_text": [
+        "10"
+      ]
     },
     {
       "kind": "module-run",
       "path": "modules/use_qualified_call/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x2d3)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "5\n",
+      "stderr": "",
+      "primary_text": [
+        "5"
+      ]
     },
     {
       "kind": "module-diag",
@@ -897,74 +1039,113 @@
     {
       "kind": "module-run",
       "path": "modules/use_local_module/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "module-run",
       "path": "modules/use_and_import/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1cc)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "30\n",
+      "stderr": "",
+      "primary_text": [
+        "30"
+      ]
     },
     {
       "kind": "run",
       "path": "operators/arithmetic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1af)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "13\n7\n30\n3\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "7",
+        "30",
+        "3",
+        "1"
+      ]
     },
     {
       "kind": "run",
       "path": "operators/bitwise.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1af)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "8\n14\n6\n16\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "8",
+        "14",
+        "6",
+        "16",
+        "4"
+      ]
     },
     {
       "kind": "run",
       "path": "operators/comparison.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x11d)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\ntrue\ntrue\ntrue\ntrue\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true",
+        "true",
+        "true",
+        "true"
+      ]
     },
     {
       "kind": "run",
       "path": "operators/logical.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x122)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\ntrue\nfalse\nfalse\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "true",
+        "false",
+        "false"
+      ]
     },
     {
       "kind": "run",
       "path": "operators/mixed_types.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x444)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "15\n30\n7.0\n",
+      "stderr": "",
+      "primary_text": [
+        "15",
+        "30",
+        "7.0"
+      ]
     },
     {
       "kind": "run",
       "path": "operators/overflow.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1bf)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "-2147483648\n",
+      "stderr": "",
+      "primary_text": [
+        "-2147483648"
+      ]
     },
     {
       "kind": "run",
       "path": "operators/precedence.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b2)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "14\n20\n5\n8\n",
+      "stderr": "",
+      "primary_text": [
+        "14",
+        "20",
+        "5",
+        "8"
+      ]
     },
     {
       "kind": "run",
@@ -981,18 +1162,24 @@
     {
       "kind": "run",
       "path": "operators/string_eq.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x190)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
       "path": "operators/unary.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "-5\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "-5",
+        "false"
+      ]
     },
     {
       "kind": "run",
@@ -1008,10 +1195,15 @@
     {
       "kind": "run",
       "path": "stdlib_hashmap/hashmap_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x45f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "200\n3\nfound\nnot found\n",
+      "stderr": "",
+      "primary_text": [
+        "200",
+        "3",
+        "found",
+        "not found"
+      ]
     },
     {
       "kind": "run",
@@ -1072,10 +1264,13 @@
     {
       "kind": "run",
       "path": "stdlib_io/clock_random.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found i64 (at offset 0x252)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true"
+      ]
     },
     {
       "kind": "run",
@@ -1159,10 +1354,12 @@
     {
       "kind": "run",
       "path": "stdlib_io/parse_int.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x457)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "run",
@@ -1201,18 +1398,29 @@
     {
       "kind": "run",
       "path": "stdlib_math/abs_min_max.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x123)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "5\n3\n3\n7\n",
+      "stderr": "",
+      "primary_text": [
+        "5",
+        "3",
+        "3",
+        "7"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_math/clamp_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b4)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "5\n0\n10\n0\n10\n",
+      "stderr": "",
+      "primary_text": [
+        "5",
+        "0",
+        "10",
+        "0",
+        "10"
+      ]
     },
     {
       "kind": "run",
@@ -1228,10 +1436,14 @@
     {
       "kind": "run",
       "path": "stdlib_core/range.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e0)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "5"
+      ]
     },
     {
       "kind": "run",
@@ -1247,34 +1459,53 @@
     {
       "kind": "run",
       "path": "stdlib_core/math.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e4)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n3\n10\n10\n0\n1024\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "3",
+        "10",
+        "10",
+        "0"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_core/convert.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x4a8)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n3.14\ntrue\n123\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "3.14",
+        "true",
+        "123"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_core/hash.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x13b)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\ntrue\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true",
+        "true"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_core/error_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x288)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "InvalidArgument: bad input\nTimeout\nsomething went wrong\n",
+      "stderr": "",
+      "primary_text": [
+        "InvalidArgument: bad input",
+        "Timeout",
+        "something went wrong"
+      ]
     },
     {
       "kind": "run",
@@ -1291,26 +1522,36 @@
     {
       "kind": "run",
       "path": "stdlib_option_result/is_some_none.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x177)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\nfalse\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "false",
+        "true"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_option_result/none_unwrap_or.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e5)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_option_result/option_map.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x27f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\nnone\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "none"
+      ]
     },
     {
       "kind": "run",
@@ -1326,34 +1567,43 @@
     {
       "kind": "run",
       "path": "stdlib_option_result/question_mark.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x4ba)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\nparse error: invalid integer\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "parse error: invalid integer"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_option_result/result_err_match.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x28f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "error: bad input\n",
+      "stderr": "",
+      "primary_text": [
+        "error: bad input"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_option_result/result_ok_unwrap.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e5)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_option_result/some_unwrap.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e4)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "run",
@@ -1444,10 +1694,13 @@
     {
       "kind": "run",
       "path": "stdlib_string/string_eq.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x190)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
@@ -1462,18 +1715,23 @@
     {
       "kind": "run",
       "path": "stdlib_string/string_len.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1bb)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "5\n",
+      "stderr": "",
+      "primary_text": [
+        "5"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_string/string_new.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1cd)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "true"
+      ]
     },
     {
       "kind": "run",
@@ -1500,10 +1758,15 @@
     {
       "kind": "run",
       "path": "stdlib_string/string_starts_ends.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1a5)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
@@ -1532,122 +1795,173 @@
     {
       "kind": "run",
       "path": "stdlib_vec/vec_filter.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x7bc)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "2\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "4"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec/vec_fold.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x624)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "15\n",
+      "stderr": "",
+      "primary_text": [
+        "15"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec/vec_get.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x46d)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "20\nout of bounds\n",
+      "stderr": "",
+      "primary_text": [
+        "20",
+        "out of bounds"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec/vec_len.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n2\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "2",
+        "1"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec/vec_map.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x5c6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "2\n4\n6\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "4",
+        "6"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec/vec_new.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec/vec_pop.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x3c1)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "20\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "20",
+        "1"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec/vec_push.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x409)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n",
+      "stderr": "",
+      "primary_text": [
+        "3"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec/vec_set.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x429)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec/vec_sort.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x68a)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n30\n40\n50\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30",
+        "40",
+        "50"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec_ops/contains_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x3e4)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec_ops/contains_string.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x38f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec_ops/remove_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x4b6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n10\n30\n40\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "10",
+        "30",
+        "40"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec_ops/reverse_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x4ec)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "4\n3\n2\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "3",
+        "2",
+        "1"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_vec_ops/product_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x57a)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "120\n7\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "120",
+        "7",
+        "24"
+      ]
     },
     {
       "kind": "run",
@@ -1664,10 +1978,14 @@
     {
       "kind": "run",
       "path": "stdlib_vec_ops/sum_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x57a)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "15\n0\n42\n",
+      "stderr": "",
+      "primary_text": [
+        "15",
+        "0",
+        "42"
+      ]
     },
     {
       "kind": "run",
@@ -1696,18 +2014,27 @@
     {
       "kind": "run",
       "path": "struct_mutation/field_assign.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x175)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n15\n23\n100\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "15",
+        "23",
+        "100"
+      ]
     },
     {
       "kind": "run",
       "path": "structs/basic_struct.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e1)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "run",
@@ -1723,34 +2050,48 @@
     {
       "kind": "run",
       "path": "structs/field_access.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ee)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "Alice\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "Alice",
+        "30"
+      ]
     },
     {
       "kind": "run",
       "path": "structs/nested_struct.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x21f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1\n2\n10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "2",
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "run",
       "path": "structs/struct_clone.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x225)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "run",
       "path": "structs/struct_eq.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1dc)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
@@ -1766,10 +2107,13 @@
     {
       "kind": "run",
       "path": "structs/struct_update.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x253)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "new\n800\n",
+      "stderr": "",
+      "primary_text": [
+        "new",
+        "800"
+      ]
     },
     {
       "kind": "run",
@@ -1784,10 +2128,16 @@
     {
       "kind": "run",
       "path": "t3/arithmetic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1af)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "13\n7\n30\n3\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "7",
+        "30",
+        "3",
+        "1"
+      ]
     },
     {
       "kind": "run",
@@ -1802,26 +2152,42 @@
     {
       "kind": "run",
       "path": "trait/basic_impl.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1df)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "7\n13\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "7",
+        "13",
+        "24"
+      ]
     },
     {
       "kind": "run",
       "path": "trait/method_chain.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x23b)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "4\n6\n10\n20\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "6",
+        "10",
+        "20",
+        "5"
+      ]
     },
     {
       "kind": "run",
       "path": "trait/operator_overload.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x24b)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "4\n6\n2\n2\n1\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "6",
+        "2",
+        "2",
+        "1"
+      ]
     },
     {
       "kind": "run",
@@ -1874,10 +2240,13 @@
     {
       "kind": "run",
       "path": "variables/bool_lit.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x126)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
@@ -1902,10 +2271,12 @@
     {
       "kind": "run",
       "path": "variables/i32_lit.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b2)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "run",
@@ -1920,10 +2291,14 @@
     {
       "kind": "run",
       "path": "variables/mut_var.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b2)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1\n2\n3\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "2",
+        "3"
+      ]
     },
     {
       "kind": "run",
@@ -1938,10 +2313,13 @@
     {
       "kind": "run",
       "path": "variables/tuple.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f9)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -1956,10 +2334,12 @@
     {
       "kind": "t3-compile",
       "path": "hello/print_int.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ac)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -1984,10 +2364,12 @@
     {
       "kind": "t3-compile",
       "path": "variables/i32_lit.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b2)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2012,10 +2394,13 @@
     {
       "kind": "t3-compile",
       "path": "variables/bool_lit.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x126)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2030,42 +2415,67 @@
     {
       "kind": "t3-compile",
       "path": "variables/mut_var.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b2)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1\n2\n3\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "2",
+        "3"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "operators/arithmetic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1af)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "13\n7\n30\n3\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "7",
+        "30",
+        "3",
+        "1"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "operators/comparison.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x11d)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\ntrue\ntrue\ntrue\ntrue\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true",
+        "true",
+        "true",
+        "true"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "operators/logical.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x122)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\ntrue\nfalse\nfalse\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "true",
+        "false",
+        "false"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "operators/unary.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "-5\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "-5",
+        "false"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2100,50 +2510,71 @@
     {
       "kind": "t3-compile",
       "path": "control/while_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1be)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "control/while_counter.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1d6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "control/loop_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c5)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "control/loop_break_value.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e3)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "50\n",
+      "stderr": "",
+      "primary_text": [
+        "50"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "control/nested_loops.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1d7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "control/break_continue.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1dc)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1\n3\n5\n7\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "3",
+        "5",
+        "7"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2188,26 +2619,33 @@
     {
       "kind": "t3-compile",
       "path": "functions/multiple_params.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c4)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "7\n12\n",
+      "stderr": "",
+      "primary_text": [
+        "7",
+        "12"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "functions/return_value.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b8)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "49\n",
+      "stderr": "",
+      "primary_text": [
+        "49"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "functions/recursive.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1cd)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2224,66 +2662,88 @@
     {
       "kind": "t3-compile",
       "path": "functions/pub_fn.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ba)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "7\n",
+      "stderr": "",
+      "primary_text": [
+        "7"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "functions/closure_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b9)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "functions/closure_capture.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1be)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "functions/higher_order.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "functions/generic_fn.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\nhello\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "hello"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "structs/basic_struct.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e1)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "structs/field_access.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ee)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "Alice\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "Alice",
+        "30"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "structs/nested_struct.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x21f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1\n2\n10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "1",
+        "2",
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2299,26 +2759,35 @@
     {
       "kind": "t3-compile",
       "path": "structs/struct_clone.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x225)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "structs/struct_eq.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1dc)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "structs/struct_update.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x253)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "new\n800\n",
+      "stderr": "",
+      "primary_text": [
+        "new",
+        "800"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2334,10 +2803,14 @@
     {
       "kind": "t3-compile",
       "path": "trait/basic_impl.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1df)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "7\n13\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "7",
+        "13",
+        "24"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2352,26 +2825,40 @@
     {
       "kind": "t3-compile",
       "path": "trait/method_chain.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x23b)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "4\n6\n10\n20\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "6",
+        "10",
+        "20",
+        "5"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "trait/operator_overload.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x24b)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "4\n6\n2\n2\n1\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "6",
+        "2",
+        "2",
+        "1"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "generics/identity_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1bb)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2386,26 +2873,33 @@
     {
       "kind": "t3-compile",
       "path": "generics/vec_generic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x329)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "generics_v1/generic_struct.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e1)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "generics_v1/nested_generics.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2420,106 +2914,145 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_string/string_len.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1bb)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "5\n",
+      "stderr": "",
+      "primary_text": [
+        "5"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_string/string_new.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1cd)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "true"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_push.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x409)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n",
+      "stderr": "",
+      "primary_text": [
+        "3"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_len.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n2\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "2",
+        "1"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_pop.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x3c1)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "20\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "20",
+        "1"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_get.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x46d)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "20\nout of bounds\n",
+      "stderr": "",
+      "primary_text": [
+        "20",
+        "out of bounds"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_set.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x429)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "for_loops/for_range.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1d0)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "for_loops/for_values.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x448)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "for_loops/for_sum.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f0)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "55\n",
+      "stderr": "",
+      "primary_text": [
+        "55"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_option_result/question_mark.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x4ba)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\nparse error: invalid integer\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "parse error: invalid integer"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_option_result/result_ok_unwrap.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e5)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "closure_capture/capture_struct.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x288)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "35\nhello 42\n",
+      "stderr": "",
+      "primary_text": [
+        "35",
+        "hello 42"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2535,10 +3068,15 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_math/abs_min_max.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x123)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "5\n3\n3\n7\n",
+      "stderr": "",
+      "primary_text": [
+        "5",
+        "3",
+        "3",
+        "7"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2554,42 +3092,56 @@
     {
       "kind": "t3-compile",
       "path": "enums/option_some.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "enums/option_none.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e8)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "none\n",
+      "stderr": "",
+      "primary_text": [
+        "none"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "enums/result_ok.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f7)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "enums/result_err.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f9)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "something went wrong\n",
+      "stderr": "",
+      "primary_text": [
+        "something went wrong"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "integration/fibonacci.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x20c)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n1\n2\n3\n5\n8\n13\n21\n34\n55\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "1",
+        "2",
+        "3"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2604,18 +3156,23 @@
     {
       "kind": "t3-compile",
       "path": "modules/import_basic/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ba)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "7\n",
+      "stderr": "",
+      "primary_text": [
+        "7"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "modules/multi_import/main.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x254)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "30\nababab\n",
+      "stderr": "",
+      "primary_text": [
+        "30",
+        "ababab"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2630,26 +3187,40 @@
     {
       "kind": "t3-compile",
       "path": "t3/arithmetic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1af)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "13\n7\n30\n3\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "7",
+        "30",
+        "3",
+        "1"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "arrays/array_literal.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x15f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n30\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "arrays/array_repeat.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x17e)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n0\n15\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "15"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2697,10 +3268,13 @@
     {
       "kind": "t3-compile",
       "path": "enums/enum_struct_variant.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x270)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "75\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "75",
+        "24"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2750,42 +3324,55 @@
     {
       "kind": "t3-compile",
       "path": "from_trait/from_auto_convert.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x225)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "file not found\n",
+      "stderr": "",
+      "primary_text": [
+        "file not found"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "generics/option_generic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x234)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "0"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "generics/result_generic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x245)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n0\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "0"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "generics/two_params.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x201)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\nhello\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "hello"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "generics_v1/nested_option.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2808,26 +3395,42 @@
     {
       "kind": "t3-compile",
       "path": "integration/calculator.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x277)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n30\n42\n42\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "30",
+        "42",
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "integration/word_counter.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x3f1)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "2\n5\n0\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "5",
+        "0",
+        "1"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "iterator/custom_iterator.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x200)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n1\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2854,50 +3457,73 @@
     {
       "kind": "t3-compile",
       "path": "match_extensions/struct_field_update.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x21a)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "2"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "match_extensions/struct_pattern.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f3)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "4"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "operators/bitwise.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1af)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "8\n14\n6\n16\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "8",
+        "14",
+        "6",
+        "16",
+        "4"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "operators/mixed_types.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x444)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "15\n30\n7.0\n",
+      "stderr": "",
+      "primary_text": [
+        "15",
+        "30",
+        "7.0"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "operators/overflow.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1bf)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "-2147483648\n",
+      "stderr": "",
+      "primary_text": [
+        "-2147483648"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "operators/precedence.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b2)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "14\n20\n5\n8\n",
+      "stderr": "",
+      "primary_text": [
+        "14",
+        "20",
+        "5",
+        "8"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2914,10 +3540,13 @@
     {
       "kind": "t3-compile",
       "path": "operators/string_eq.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x190)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -2933,10 +3562,15 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_hashmap/hashmap_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x45f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "200\n3\nfound\nnot found\n",
+      "stderr": "",
+      "primary_text": [
+        "200",
+        "3",
+        "found",
+        "not found"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -3020,10 +3654,12 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_io/parse_int.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x457)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -3062,34 +3698,50 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_math/clamp_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1b4)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "5\n0\n10\n0\n10\n",
+      "stderr": "",
+      "primary_text": [
+        "5",
+        "0",
+        "10",
+        "0",
+        "10"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_option_result/is_some_none.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x177)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\nfalse\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "false",
+        "true"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_option_result/none_unwrap_or.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e5)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "99\n",
+      "stderr": "",
+      "primary_text": [
+        "99"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_option_result/option_map.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x27f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\nnone\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "none"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -3105,18 +3757,22 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_option_result/result_err_match.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x28f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "error: bad input\n",
+      "stderr": "",
+      "primary_text": [
+        "error: bad input"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_option_result/some_unwrap.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e4)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n",
+      "stderr": "",
+      "primary_text": [
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -3169,10 +3825,13 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_string/string_eq.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x190)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -3209,10 +3868,15 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_string/string_starts_ends.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1a5)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -3241,82 +3905,119 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_filter.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x7bc)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "2\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "4"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_fold.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x624)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "15\n",
+      "stderr": "",
+      "primary_text": [
+        "15"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_map.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x5c6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "2\n4\n6\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "4",
+        "6"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_new.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec/vec_sort.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x68a)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n30\n40\n50\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "30",
+        "40",
+        "50"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec_ops/contains_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x3e4)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec_ops/contains_string.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x38f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec_ops/product_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x57a)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "120\n7\n24\n",
+      "stderr": "",
+      "primary_text": [
+        "120",
+        "7",
+        "24"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec_ops/remove_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x4b6)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n10\n30\n40\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "10",
+        "30",
+        "40"
+      ]
     },
     {
       "kind": "t3-compile",
       "path": "stdlib_vec_ops/reverse_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x4ec)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "4\n3\n2\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "4",
+        "3",
+        "2",
+        "1"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -3333,10 +4034,14 @@
     {
       "kind": "t3-compile",
       "path": "stdlib_vec_ops/sum_i32.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x57a)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "15\n0\n42\n",
+      "stderr": "",
+      "primary_text": [
+        "15",
+        "0",
+        "42"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -3354,10 +4059,16 @@
     {
       "kind": "t3-compile",
       "path": "struct_mutation/field_assign.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x175)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n15\n23\n100\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20",
+        "15",
+        "23",
+        "100"
+      ]
     },
     {
       "kind": "t3-compile",
@@ -3388,10 +4099,13 @@
     {
       "kind": "t3-compile",
       "path": "variables/tuple.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f9)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "10",
+        "20"
+      ]
     },
     {
       "kind": "component-compile",
@@ -3524,114 +4238,167 @@
     {
       "kind": "run",
       "path": "scalar/suffix_literals.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x132)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n100\n3.14\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "100",
+        "3.14"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/u8_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x128)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "255\n100\n155\n",
+      "stderr": "",
+      "primary_text": [
+        "255",
+        "100",
+        "155"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/u32_arithmetic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x12c)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1000000\n999999\n1\n2000000\n",
+      "stderr": "",
+      "primary_text": [
+        "1000000",
+        "999999",
+        "1",
+        "2000000"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/u64_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x12e)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "10000000000\n9999999999\n1\n",
+      "stderr": "",
+      "primary_text": [
+        "10000000000",
+        "9999999999",
+        "1"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/i8_sign.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x127)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n100\n58\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "100",
+        "58"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/f32_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x13b)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "6.28\n",
+      "stderr": "",
+      "primary_text": [
+        "6.28"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/hex_literal.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x12f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "255\n26\n-559038737\n",
+      "stderr": "",
+      "primary_text": [
+        "255",
+        "26",
+        "-559038737"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/comparison.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x127)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\nfalse\nfalse\ntrue\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "false",
+        "false",
+        "true",
+        "true"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/type_annotation.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x134)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\n1000\n100000\n500\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "1000",
+        "100000",
+        "500"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/u16_arithmetic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x129)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1500\n500\n2000\n",
+      "stderr": "",
+      "primary_text": [
+        "1500",
+        "500",
+        "2000"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/i16_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x129)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "500\n100\n600\n",
+      "stderr": "",
+      "primary_text": [
+        "500",
+        "100",
+        "600"
+      ]
     },
     {
       "kind": "run",
       "path": "scalar/u8_overflow.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x132)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "260\n300\n",
+      "stderr": "",
+      "primary_text": [
+        "260",
+        "300"
+      ]
     },
     {
       "kind": "module-run",
       "path": "stdlib_time/monotonic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found i64 (at offset 0x15c)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "monotonic ok\n",
+      "stderr": "",
+      "primary_text": [
+        "monotonic ok"
+      ]
     },
     {
       "kind": "module-run",
       "path": "stdlib_time/duration.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found i64 (at offset 0x139)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "duration ok\n",
+      "stderr": "",
+      "primary_text": [
+        "duration ok"
+      ]
     },
     {
       "kind": "module-run",
@@ -3666,10 +4433,13 @@
     {
       "kind": "t3-run",
       "path": "stdlib_io/clock_random.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found i64 (at offset 0x252)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "true\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "true",
+        "true"
+      ]
     },
     {
       "kind": "t3-run",
@@ -3705,10 +4475,12 @@
     {
       "kind": "t3-run",
       "path": "stdlib_time/monotonic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32, found i64 (at offset 0x15c)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "monotonic ok\n",
+      "stderr": "",
+      "primary_text": [
+        "monotonic ok"
+      ]
     },
     {
       "kind": "module-run",
@@ -3753,42 +4525,68 @@
     {
       "kind": "run",
       "path": "stdlib_text/string_trim.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0xef0)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "hello world\nhello world  \n  hello world\n\n\n",
+      "stderr": "",
+      "primary_text": [
+        "hello world",
+        "hello world  ",
+        "  hello world"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_text/string_replace.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: type mismatch: expected i32 but nothing on stack (at offset 0x10be)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "hello arukellt\nbbbbbb\nno match\n",
+      "stderr": "",
+      "primary_text": [
+        "hello arukellt",
+        "bbbbbb",
+        "no match"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_text/string_repeat.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x564)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "ababab\nxxxxx\n0\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "ababab",
+        "xxxxx",
+        "0",
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_text/string_lines.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x72c)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\nline1\nline2\nline3\ntrue\n5\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "line1",
+        "line2",
+        "line3",
+        "true"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_text/fmt_pad.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x56f)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "000042\nhi....\ntoolong\n42\ntrue\n6\n-1\n",
+      "stderr": "",
+      "primary_text": [
+        "000042",
+        "hi....",
+        "toolong",
+        "42",
+        "true"
+      ]
     },
     {
       "kind": "run",
@@ -3804,26 +4602,40 @@
     {
       "kind": "run",
       "path": "stdlib_env/env_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x25d)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n0\nnot found\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "0",
+        "not found"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_cli/cli_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c0)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\nfalse\nno arg\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "false",
+        "no arg"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_path/path_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x9ad)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "/usr/bin\n/usr/bin\nfile.txt\n/usr/bin\n\nls\nark\n\nmain.ark\ntrue\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "/usr/bin",
+        "/usr/bin",
+        "file.txt",
+        "/usr/bin",
+        ""
+      ]
     },
     {
       "kind": "run",
@@ -3839,58 +4651,97 @@
     {
       "kind": "run",
       "path": "stdlib_bytes/bytes_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x2f2)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n72\n48656c\n3\n72\n3\n229\n142\n38\n120\n86\n305419896\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "72",
+        "48656c",
+        "3",
+        "72"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_hash/hash_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x33d)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "2\n100\n200\ntrue\nfalse\n300\n2\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "100",
+        "200",
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_linear/linear_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1f2)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n5\n20\n1\n3\n10\n20\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "5",
+        "20",
+        "1",
+        "3"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_ordered/ordered_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ef)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "3\n100\n200\n300\ntrue\nfalse\ntrue\nfalse\nfalse\n",
+      "stderr": "",
+      "primary_text": [
+        "3",
+        "100",
+        "200",
+        "300",
+        "true"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_compiler/compiler_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1d3)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "2\n42\n99\n",
+      "stderr": "",
+      "primary_text": [
+        "2",
+        "42",
+        "99"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_seq/seq_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x58c)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "14\n1\n5\ntrue\nfalse\n2\n3\n4\n",
+      "stderr": "",
+      "primary_text": [
+        "14",
+        "1",
+        "5",
+        "true",
+        "false"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_wasm/wasm_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e9)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n97\n1\n127\n",
+      "stderr": "",
+      "primary_text": [
+        "0",
+        "97",
+        "1",
+        "127"
+      ]
     },
     {
       "kind": "run",
@@ -3903,58 +4754,81 @@
     {
       "kind": "run",
       "path": "stdlib_wit/wit_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1c8)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "13\nbool\nf64\n",
+      "stderr": "",
+      "primary_text": [
+        "13",
+        "bool",
+        "f64"
+      ]
     },
     {
       "kind": "run",
       "path": "stdlib_json/json_basic.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x2af)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "42\ntrue\n\"hello\"\nnull\n123\ntrue\n",
+      "stderr": "",
+      "primary_text": [
+        "42",
+        "true",
+        "\"hello\"",
+        "null",
+        "123"
+      ]
     },
     {
       "kind": "run",
       "path": "opt/tail_call_deep.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1cb)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "0\n",
+      "stderr": "",
+      "primary_text": [
+        "0"
+      ]
     },
     {
       "kind": "bench",
       "path": "../../benchmarks/fib.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x200)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "9227465\n",
+      "stderr": "",
+      "primary_text": [
+        "9227465"
+      ]
     },
     {
       "kind": "bench",
       "path": "../../benchmarks/binary_tree.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1e8)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "2097151\n",
+      "stderr": "",
+      "primary_text": [
+        "2097151"
+      ]
     },
     {
       "kind": "bench",
       "path": "../../benchmarks/vec_ops.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x2c1)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "1000\n499500\nfound 500\nnot found 9999\n",
+      "stderr": "",
+      "primary_text": [
+        "1000",
+        "499500",
+        "found 500",
+        "not found 9999"
+      ]
     },
     {
       "kind": "bench",
       "path": "../../benchmarks/string_concat.ark",
-      "status": 1,
-      "stdout": "",
-      "stderr": "error[W0004|backend-validate]: generated Wasm module failed validation\n   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x278)\n\n",
-      "primary_text": []
+      "status": 0,
+      "stdout": "100\n",
+      "stderr": "",
+      "primary_text": [
+        "100"
+      ]
     },
     {
       "kind": "bench",

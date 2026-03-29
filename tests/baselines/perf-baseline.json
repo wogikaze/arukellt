@@ -9,7 +9,7 @@
       "file": "docs/examples/hello.ark",
       "check": {
         "status": 0,
-        "median_ms": 7.098,
+        "median_ms": 6.906,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark"
         ],
@@ -17,7 +17,7 @@
       },
       "compile_t1": {
         "status": 0,
-        "median_ms": 13.415,
+        "median_ms": 12.168,
         "stderr_head": [
           "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t1.wasm (379 bytes, target: wasm32-wasi-p1)"
         ],
@@ -25,78 +25,72 @@
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 14.532,
+        "median_ms": 19.9,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t3.wasm (548 bytes, target: wasm32-wasi-p2)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/hello.ark -> /tmp/arukellt-baseline-t3.wasm (809 bytes, target: wasm32-wasi-p2)"
         ],
         "stdout_head": []
       },
       "binary_size_t1": 379,
-      "binary_size_t3": 548
+      "binary_size_t3": 809
     },
     {
       "file": "docs/examples/vec.ark",
       "check": {
         "status": 0,
-        "median_ms": 7.751,
+        "median_ms": 8.103,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark"
         ],
         "stdout_head": []
       },
       "compile_t1": {
-        "status": 1,
-        "median_ms": null,
+        "status": 0,
+        "median_ms": 13.396,
         "stderr_head": [
-          "error[W0004|backend-validate]: generated Wasm module failed validation",
-          "   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x41b)",
-          ""
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t1.wasm (1769 bytes, target: wasm32-wasi-p1)"
         ],
         "stdout_head": []
       },
       "compile_t3": {
-        "status": 1,
-        "median_ms": null,
+        "status": 0,
+        "median_ms": 13.892,
         "stderr_head": [
-          "error[W0004|backend-validate]: generated Wasm module failed validation",
-          "   = note: internal error: generated invalid Wasm module: type mismatch: values remaining on stack at end of block (at offset 0x34e)",
-          ""
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/vec.ark -> /tmp/arukellt-baseline-t3.wasm (1477 bytes, target: wasm32-wasi-p2)"
         ],
         "stdout_head": []
       },
-      "binary_size_t1": 379,
-      "binary_size_t3": 548
+      "binary_size_t1": 1769,
+      "binary_size_t3": 1477
     },
     {
       "file": "docs/examples/closure.ark",
       "check": {
         "status": 0,
-        "median_ms": 7.705,
+        "median_ms": 6.765,
         "stderr_head": [
           "OK: /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark"
         ],
         "stdout_head": []
       },
       "compile_t1": {
-        "status": 1,
-        "median_ms": null,
+        "status": 0,
+        "median_ms": 12.646,
         "stderr_head": [
-          "error[W0004|backend-validate]: generated Wasm module failed validation",
-          "   = note: internal error: generated invalid Wasm module: unknown function 4294967295: function index out of bounds (at offset 0x1ca)",
-          ""
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t1.wasm (691 bytes, target: wasm32-wasi-p1)"
         ],
         "stdout_head": []
       },
       "compile_t3": {
         "status": 0,
-        "median_ms": 14.534,
+        "median_ms": 12.351,
         "stderr_head": [
-          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t3.wasm (845 bytes, target: wasm32-wasi-p2)"
+          "Compiled /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/docs/examples/closure.ark -> /tmp/arukellt-baseline-t3.wasm (1106 bytes, target: wasm32-wasi-p2)"
         ],
         "stdout_head": []
       },
-      "binary_size_t1": 379,
-      "binary_size_t3": 845
+      "binary_size_t1": 691,
+      "binary_size_t3": 1106
     },
     {
       "file": "docs/sample/parser.ark",
@@ -127,8 +121,8 @@
         ],
         "stdout_head": []
       },
-      "binary_size_t1": 379,
-      "binary_size_t3": 845
+      "binary_size_t1": 691,
+      "binary_size_t3": 1106
     }
   ]
 }
