@@ -81,6 +81,22 @@ Lex
 
 旧 API や移行途中の境界が残っていても、現挙動の判定は `docs/current-state.md` と実装コードを優先してください。
 
+## MIR / Backend Optimization
+
+`--opt-level` controls the optimization pipeline (default: 1).
+
+| Level | MIR | Backend | Dead Function Elimination |
+|-------|-----|---------|--------------------------|
+| `0` | None | None | Disabled |
+| `1` | 9 safe passes (const_fold, branch_fold, cfg_simplify, copy_prop, const_prop, dead_local_elim, dead_block_elim, unreachable_cleanup, cse) | peephole (`local.tee`) | Enabled |
+| `2` | All 20 passes × up to 3 rounds + inter-function inline | peephole + struct field layout reorder | Enabled |
+
+MIR optimization runs between `opt_mir()` and `plan_backend()`.
+Dead function elimination runs after MIR optimization, before backend emission.
+Backend peephole and layout optimization run during `emit_wasm()`.
+
+Full documentation: [optimization.md](optimization.md)
+
 ## Diagnostics / Validation 境界
 
 - frontend diagnostics は parse / resolve / typecheck origin を持つ
@@ -109,4 +125,5 @@ Lex
 - [../language/spec.md](../language/spec.md) — 言語仕様 (凍結対象)
 - [../platform/wasm-features.md](../platform/wasm-features.md)
 - [../migration/t1-to-t3.md](../migration/t1-to-t3.md)
+- [optimization.md](optimization.md) — MIR + backend optimization passes
 - [../contributing.md](../contributing.md)

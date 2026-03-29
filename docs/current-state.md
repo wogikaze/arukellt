@@ -138,6 +138,19 @@ v2 (Component Model) implementation is complete as of 2026-03-28.
 - `ark-llvm` is excluded from default builds (requires LLVM 18)
 - some historical docs remain archived / historical and should not override current-state
 
+## V4 Optimization Status
+
+The v4 optimization pipeline is fully implemented and active. See [docs/compiler/optimization.md](docs/compiler/optimization.md) for the complete reference.
+
+- **20 MIR passes** implemented in `crates/ark-mir/src/opt/`, running up to 3 fixed-point rounds
+- **`--opt-level` 0/1/2** controls which passes run; default is O1 (9 safe passes)
+- **Dead function elimination** removes unreachable stdlib functions at O1+
+- **T3 backend peephole**: `local.set`/`local.get` → `local.tee` conversion at O1+
+- **Struct field layout reorder**: hot-field-first layout at O2
+- **Backend reachability**: only reachable functions and WASI imports are emitted
+- **MIR validation** brackets every pass for early bug detection
+- Dump support: `ARUKELLT_DUMP_PHASES=optimized-mir` shows before/after state
+
 ## API Baseline Notes
 
 - `parse_i64` baseline shape: `Result<i64, String>`
