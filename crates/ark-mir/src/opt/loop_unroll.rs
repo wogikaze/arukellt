@@ -1,8 +1,8 @@
-use crate::mir::{
-    BasicBlock, BlockId, MirFunction, MirStmt, Operand, Place, Rvalue, Terminator,
-    next_available_block_id, BinOp,
-};
 use super::OptimizationSummary;
+use crate::mir::{
+    BasicBlock, BinOp, BlockId, MirFunction, MirStmt, Operand, Place, Rvalue, Terminator,
+    next_available_block_id,
+};
 
 const MAX_UNROLL_ITERATIONS: usize = 4;
 const MAX_BODY_STMTS: usize = 8;
@@ -89,7 +89,7 @@ fn find_loop_candidates(function: &MirFunction) -> Vec<LoopCandidate> {
 
             // Try to determine trip count from the condition + header stmts.
             if let Some(trip) = deduce_trip_count(header, body, cond, body_id == then_block) {
-                if trip >= 1 && trip <= MAX_UNROLL_ITERATIONS {
+                if (1..=MAX_UNROLL_ITERATIONS).contains(&trip) {
                     candidates.push(LoopCandidate {
                         header_idx: h_idx,
                         body_idx: b_idx,
@@ -159,12 +159,11 @@ fn deduce_trip_count(
     }
 
     // Find the initial value of ind in the header stmts.
-    let init = find_const_assign_in_block(header, ind_local)
-        .or_else(|| {
-            // The init might not be in the header itself — accept 0 as fallback
-            // only when the header has no assignment to ind_local.
-            None
-        })?;
+    let init = find_const_assign_in_block(header, ind_local).or({
+        // The init might not be in the header itself — accept 0 as fallback
+        // only when the header has no assignment to ind_local.
+        None
+    })?;
 
     compute_trip_count(init, bound, step, op, body_is_then)
 }
@@ -225,12 +224,12 @@ fn find_induction_step(body: &BasicBlock, ind: u32) -> Option<i64> {
     for stmt in &body.stmts {
         if let MirStmt::Assign(Place::Local(dest), Rvalue::BinaryOp(BinOp::Add, lhs, rhs)) = stmt {
             if dest.0 == ind {
-                if let (Some(l), Some(r)) = (operand_local(&lhs), operand_const_i64(&rhs)) {
+                if let (Some(l), Some(r)) = (operand_local(lhs), operand_const_i64(rhs)) {
                     if l == ind {
                         return Some(r);
                     }
                 }
-                if let (Some(l), Some(r)) = (operand_const_i64(&lhs), operand_local(&rhs)) {
+                if let (Some(l), Some(r)) = (operand_const_i64(lhs), operand_local(rhs)) {
                     if r == ind {
                         return Some(l);
                     }
@@ -283,9 +282,9 @@ fn compute_trip_count(
 
     // Compute range length.
     let range = match effective_op {
-        BinOp::Lt => bound - init,         // while i < bound
-        BinOp::Le => bound - init + 1,     // while i <= bound
-        BinOp::Gt => init - bound,         // while i > bound  (counting down — not typical)
+        BinOp::Lt => bound - init,     // while i < bound
+        BinOp::Le => bound - init + 1, // while i <= bound
+        BinOp::Gt => init - bound,     // while i > bound  (counting down — not typical)
         BinOp::Ge => init - bound + 1,
         _ => return None,
     };
@@ -295,10 +294,10 @@ fn compute_trip_count(
     }
 
     // Round up: iterations = ceil(range / step)
-    let iters = ((range as u64) + (step as u64) - 1) / (step as u64);
+    let iters = (range as u64).div_ceil(step as u64);
     let iters = iters as usize;
 
-    if iters >= 1 && iters <= MAX_UNROLL_ITERATIONS {
+    if (1..=MAX_UNROLL_ITERATIONS).contains(&iters) {
         Some(iters)
     } else {
         None
@@ -374,13 +373,11 @@ mod tests {
             },
             params: vec![],
             return_ty: Type::Unit,
-            locals: vec![
-                MirLocal {
-                    id: LocalId(0),
-                    name: Some("i".into()),
-                    ty: Type::I32,
-                },
-            ],
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: Some("i".into()),
+                ty: Type::I32,
+            }],
             blocks,
             entry,
             struct_typed_locals: Default::default(),
@@ -450,12 +447,7 @@ mod tests {
     fn skip_large_body() {
         // Body has > MAX_BODY_STMTS statements — should not unroll.
         let stmts: Vec<MirStmt> = (0..=MAX_BODY_STMTS)
-            .map(|_| {
-                MirStmt::Assign(
-                    Place::Local(LocalId(0)),
-                    Rvalue::Use(Operand::ConstI32(0)),
-                )
-            })
+            .map(|_| MirStmt::Assign(Place::Local(LocalId(0)), Rvalue::Use(Operand::ConstI32(0))))
             .collect();
 
         let header = BasicBlock {

@@ -1,6 +1,6 @@
 use crate::mir::{
-    BinOp, BlockId, LocalId, MirFunction, MirModule, MirStmt, Operand, Place, Rvalue, Terminator, UnaryOp,
-    push_optimization_trace, stmt_calls,
+    BinOp, BlockId, LocalId, MirFunction, MirModule, MirStmt, Operand, Place, Rvalue, Terminator,
+    UnaryOp, push_optimization_trace, stmt_calls,
 };
 use crate::validate::validate_module;
 use std::collections::{HashSet, VecDeque};
@@ -710,27 +710,16 @@ fn try_strength_reduce(op: BinOp, lhs: &Operand, rhs: &Operand) -> Option<Rvalue
                     lhs.clone(),
                     Operand::ConstI32(shift),
                 ))
-            } else if let Some(shift) = power_of_two_i32(lhs) {
-                Some(Rvalue::BinaryOp(
-                    BinOp::Shl,
-                    rhs.clone(),
-                    Operand::ConstI32(shift),
-                ))
             } else {
-                None
+                power_of_two_i32(lhs).map(|shift| {
+                    Rvalue::BinaryOp(BinOp::Shl, rhs.clone(), Operand::ConstI32(shift))
+                })
             }
         }
         BinOp::Div => {
             // x / 2^n → x >> n (unsigned)
-            if let Some(shift) = power_of_two_i32(rhs) {
-                Some(Rvalue::BinaryOp(
-                    BinOp::Shr,
-                    lhs.clone(),
-                    Operand::ConstI32(shift),
-                ))
-            } else {
-                None
-            }
+            power_of_two_i32(rhs)
+                .map(|shift| Rvalue::BinaryOp(BinOp::Shr, lhs.clone(), Operand::ConstI32(shift)))
         }
         _ => None,
     }
@@ -1348,9 +1337,16 @@ pub fn eliminate_dead_functions(module: &mut MirModule) -> usize {
         }
 
         if std::env::var("ARUKELLT_DEBUG_DEAD_FN").is_ok() {
-            eprintln!("[dead-fn] scanning {} (idx={}): blocks={} stmts_per_block={:?}", func.name, idx,
+            eprintln!(
+                "[dead-fn] scanning {} (idx={}): blocks={} stmts_per_block={:?}",
+                func.name,
+                idx,
                 func.blocks.len(),
-                func.blocks.iter().map(|b| b.stmts.len()).collect::<Vec<_>>());
+                func.blocks
+                    .iter()
+                    .map(|b| b.stmts.len())
+                    .collect::<Vec<_>>()
+            );
             for block in &func.blocks {
                 for stmt in &block.stmts {
                     eprintln!("[dead-fn]   stmt: {:?}", std::mem::discriminant(stmt));
@@ -1398,9 +1394,17 @@ pub fn eliminate_dead_functions(module: &mut MirModule) -> usize {
     let original_count = module.functions.len();
 
     if std::env::var("ARUKELLT_DEBUG_DEAD_FN").is_ok() {
-        let mut reachable_names: Vec<_> = reachable.iter().map(|&i| module.functions[i].name.clone()).collect();
+        let mut reachable_names: Vec<_> = reachable
+            .iter()
+            .map(|&i| module.functions[i].name.clone())
+            .collect();
         reachable_names.sort();
-        eprintln!("[dead-fn] reachable ({}/{}): {:?}", reachable.len(), original_count, reachable_names);
+        eprintln!(
+            "[dead-fn] reachable ({}/{}): {:?}",
+            reachable.len(),
+            original_count,
+            reachable_names
+        );
     }
 
     // Build old FnId → new FnId remapping
@@ -1439,7 +1443,10 @@ pub fn eliminate_dead_functions(module: &mut MirModule) -> usize {
 
     let removed = original_count - module.functions.len();
     if removed > 0 {
-        push_optimization_trace(module, format!("dead_fn_elim: removed {} functions", removed));
+        push_optimization_trace(
+            module,
+            format!("dead_fn_elim: removed {} functions", removed),
+        );
     }
     removed
 }
@@ -1452,7 +1459,11 @@ fn remap_stmt_fn_ids(stmt: &mut MirStmt, map: &std::collections::HashMap<u32, u3
                 *func = FnId(new_id);
             }
         }
-        MirStmt::IfStmt { then_body, else_body, .. } => {
+        MirStmt::IfStmt {
+            then_body,
+            else_body,
+            ..
+        } => {
             for s in then_body.iter_mut() {
                 remap_stmt_fn_ids(s, map);
             }
@@ -1595,10 +1606,19 @@ fn count_op_calls(
                 count_op_calls(a, candidates, counts);
             }
         }
-        Operand::IfExpr { cond, then_result, else_result, .. } => {
+        Operand::IfExpr {
+            cond,
+            then_result,
+            else_result,
+            ..
+        } => {
             count_op_calls(cond, candidates, counts);
-            if let Some(r) = then_result { count_op_calls(r, candidates, counts); }
-            if let Some(r) = else_result { count_op_calls(r, candidates, counts); }
+            if let Some(r) = then_result {
+                count_op_calls(r, candidates, counts);
+            }
+            if let Some(r) = else_result {
+                count_op_calls(r, candidates, counts);
+            }
         }
         Operand::BinOp(_, a, b) => {
             count_op_calls(a, candidates, counts);

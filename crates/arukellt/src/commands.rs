@@ -9,6 +9,7 @@ use ark_target::{EmitKind, TargetId};
 use crate::native;
 use crate::runtime::{RuntimeCaps, run_wasm_gc, run_wasm_p1};
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn cmd_compile(
     file: PathBuf,
     output: Option<PathBuf>,
@@ -60,7 +61,9 @@ pub(crate) fn cmd_compile(
         && emit_kind != EmitKind::Wit
         && emit_kind != EmitKind::All
     {
-        eprintln!("warning: --world flag is only used with --emit component, --emit wit, or --emit all");
+        eprintln!(
+            "warning: --world flag is only used with --emit component, --emit wit, or --emit all"
+        );
     }
     let world_spec = world.as_deref();
 
@@ -78,7 +81,8 @@ pub(crate) fn cmd_compile(
         session.timing_enabled = time;
         session.opt_level = opt_level;
         session.disabled_passes = no_pass.clone();
-        match session.compile_wit_with_world(&file, world_spec) {            Ok(wit_text) => {
+        match session.compile_wit_with_world(&file, world_spec) {
+            Ok(wit_text) => {
                 let wit_output = output.unwrap_or_else(|| file.with_extension("wit"));
                 std::fs::write(&wit_output, &wit_text).unwrap_or_else(|e| {
                     eprintln!("error: failed to write {}: {}", wit_output.display(), e);
@@ -146,7 +150,10 @@ pub(crate) fn cmd_compile(
     session.opt_level = opt_level;
     session.disabled_passes = no_pass;
     let selection = parse_mir_select(mir_select);
-    match session.compile_selected(&file, target, selection).map(|c| c.wasm) {
+    match session
+        .compile_selected(&file, target, selection)
+        .map(|c| c.wasm)
+    {
         Ok(wasm) => {
             std::fs::write(&output, &wasm).unwrap_or_else(|e| {
                 eprintln!("error: failed to write {}: {}", output.display(), e);
@@ -223,6 +230,7 @@ pub(crate) fn cmd_compile(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn cmd_run(
     file: PathBuf,
     target: TargetId,
@@ -285,7 +293,10 @@ pub(crate) fn cmd_run(
     let selection = parse_mir_select(mir_select);
 
     let run_once = |session: &mut Session| -> bool {
-        match session.compile_selected(&file, target, selection).map(|c| c.wasm) {
+        match session
+            .compile_selected(&file, target, selection)
+            .map(|c| c.wasm)
+        {
             Ok(wasm) => {
                 if profile_mem {
                     if let Ok(info) = session.profile_memory(&file) {
@@ -449,7 +460,11 @@ pub(crate) fn cmd_analyze_wasm_size(path: &std::path::Path) {
         *aggregated.entry(name).or_insert(0) += size;
     }
 
-    println!("Wasm binary size analysis: {} ({} bytes)", path.display(), total_size);
+    println!(
+        "Wasm binary size analysis: {} ({} bytes)",
+        path.display(),
+        total_size
+    );
     println!();
 
     let mut sorted: Vec<_> = aggregated.iter().collect();
@@ -492,7 +507,10 @@ fn parse_mir_select(s: &str) -> MirSelection {
         "legacy" => MirSelection::Legacy,
         "corehir" => MirSelection::CoreHir,
         other => {
-            eprintln!("error: unknown --mir-select value: {:?} (expected \"legacy\" or \"corehir\")", other);
+            eprintln!(
+                "error: unknown --mir-select value: {:?} (expected \"legacy\" or \"corehir\")",
+                other
+            );
             process::exit(1);
         }
     }

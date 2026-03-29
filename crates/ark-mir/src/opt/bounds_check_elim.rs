@@ -13,8 +13,8 @@
 //!      `i += 1` step) where every index access uses the induction variable on
 //!      the guarded array.
 
-use crate::mir::{BinOp, LocalId, MirFunction, MirStmt, Operand, Place, Rvalue};
 use super::pipeline::OptimizationSummary;
+use crate::mir::{BinOp, LocalId, MirFunction, MirStmt, Operand, Place, Rvalue};
 use std::collections::{HashMap, HashSet};
 
 /// Top-level entry point called by the pipeline dispatcher.
@@ -45,10 +45,17 @@ fn collect_known_array_sizes(func: &MirFunction) -> HashMap<u32, usize> {
 fn collect_sizes_from_stmts(stmts: &[MirStmt], sizes: &mut HashMap<u32, usize>) {
     for stmt in stmts {
         match stmt {
-            MirStmt::Assign(Place::Local(LocalId(id)), Rvalue::Use(Operand::ArrayInit { elements })) => {
+            MirStmt::Assign(
+                Place::Local(LocalId(id)),
+                Rvalue::Use(Operand::ArrayInit { elements }),
+            ) => {
                 sizes.insert(*id, elements.len());
             }
-            MirStmt::IfStmt { then_body, else_body, .. } => {
+            MirStmt::IfStmt {
+                then_body,
+                else_body,
+                ..
+            } => {
                 collect_sizes_from_stmts(then_body, sizes);
                 collect_sizes_from_stmts(else_body, sizes);
             }
@@ -70,12 +77,10 @@ fn eliminate_in_stmts(
     let mut checked: HashSet<(u32, OperandKey)> = HashSet::new();
     let mut indices_to_remove: Vec<usize> = Vec::new();
 
-    for i in 0..stmts.len() {
-        match &stmts[i] {
+    for (i, stmt) in stmts.iter().enumerate() {
+        match stmt {
             // Pattern 1 & 2: CallBuiltin whose name relates to bounds checking.
-            MirStmt::CallBuiltin { name, args, .. }
-                if is_bounds_check_name(name) =>
-            {
+            MirStmt::CallBuiltin { name, args, .. } if is_bounds_check_name(name) => {
                 if can_eliminate_builtin_check(args, known_sizes, &checked) {
                     indices_to_remove.push(i);
                     summary.bounds_checks_eliminated += 1;
@@ -98,7 +103,11 @@ fn eliminate_in_stmts(
     // Second pass: recurse into nested bodies (IfStmt / WhileStmt).
     for stmt in stmts.iter_mut() {
         match stmt {
-            MirStmt::IfStmt { then_body, else_body, .. } => {
+            MirStmt::IfStmt {
+                then_body,
+                else_body,
+                ..
+            } => {
                 eliminate_in_stmts(then_body, known_sizes, summary);
                 eliminate_in_stmts(else_body, known_sizes, summary);
             }
@@ -231,12 +240,8 @@ fn eliminate_loop_bounds_checks(
                 // If the check's index is the induction variable and the array
                 // size matches the bound, it's safe.
                 if args.len() >= 2 {
-                    let idx_is_iv = operand_local(&args[1])
-                        .map(|l| l == iv)
-                        .unwrap_or(false)
-                        || operand_local(&args[0])
-                            .map(|l| l == iv)
-                            .unwrap_or(false);
+                    let idx_is_iv = operand_local(&args[1]).map(|l| l == iv).unwrap_or(false)
+                        || operand_local(&args[0]).map(|l| l == iv).unwrap_or(false);
                     if idx_is_iv {
                         // Check if the array size matches.
                         let arr_matches = args.iter().any(|a| {
@@ -245,9 +250,9 @@ fn eliminate_loop_bounds_checks(
                                 .map(|&s| s >= upper)
                                 .unwrap_or(false)
                         });
-                        let len_matches = args.iter().any(|a| {
-                            operand_const_usize(a).map(|v| v >= upper).unwrap_or(false)
-                        });
+                        let len_matches = args
+                            .iter()
+                            .any(|a| operand_const_usize(a).map(|v| v >= upper).unwrap_or(false));
                         if arr_matches || len_matches {
                             to_remove.push(i);
                             summary.bounds_checks_eliminated += 1;
@@ -281,7 +286,11 @@ fn has_unit_increment(stmts: &[MirStmt], iv: u32) -> bool {
             }
         }
         // Also check Rvalue::BinaryOp form.
-        if let MirStmt::Assign(Place::Local(LocalId(dest)), Rvalue::BinaryOp(BinOp::Add, lhs, rhs)) = stmt {
+        if let MirStmt::Assign(
+            Place::Local(LocalId(dest)),
+            Rvalue::BinaryOp(BinOp::Add, lhs, rhs),
+        ) = stmt
+        {
             if *dest == iv {
                 let lhs_is_iv = operand_local(lhs).map(|l| l == iv).unwrap_or(false);
                 let rhs_is_one = operand_const_usize(rhs) == Some(1);
@@ -373,9 +382,21 @@ mod tests {
             params: vec![],
             return_ty: Type::I32,
             locals: vec![
-                MirLocal { id: LocalId(0), name: None, ty: Type::I32 },
-                MirLocal { id: LocalId(1), name: None, ty: Type::I32 },
-                MirLocal { id: LocalId(2), name: None, ty: Type::I32 },
+                MirLocal {
+                    id: LocalId(0),
+                    name: None,
+                    ty: Type::I32,
+                },
+                MirLocal {
+                    id: LocalId(1),
+                    name: None,
+                    ty: Type::I32,
+                },
+                MirLocal {
+                    id: LocalId(2),
+                    name: None,
+                    ty: Type::I32,
+                },
             ],
             blocks: vec![BasicBlock {
                 id: BlockId(0),

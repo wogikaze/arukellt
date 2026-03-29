@@ -1,7 +1,7 @@
+use super::OptimizationSummary;
 use crate::mir::{
     AggregateKind, GcHintKind, LocalId, MirFunction, MirStmt, Operand, Place, Rvalue,
 };
-use super::OptimizationSummary;
 use std::collections::HashSet;
 
 /// Detect short-lived struct allocations inside loops and annotate them with
@@ -21,9 +21,9 @@ pub(crate) fn gc_hint_pass_inner(func: &mut MirFunction) -> OptimizationSummary 
 }
 
 /// Walk statements recursively, looking for `WhileStmt` bodies to annotate.
-fn process_stmts(stmts: &mut Vec<MirStmt>, summary: &mut OptimizationSummary) {
-    for i in 0..stmts.len() {
-        match &mut stmts[i] {
+fn process_stmts(stmts: &mut [MirStmt], summary: &mut OptimizationSummary) {
+    for stmt in stmts.iter_mut() {
+        match stmt {
             MirStmt::WhileStmt { body, .. } => {
                 // Recurse into nested control flow first
                 process_stmts(body, summary);
@@ -120,9 +120,8 @@ fn collect_escaping(stmt: &MirStmt, escaping: &mut HashSet<u32>) {
 }
 
 fn collect_escaping_operand(op: &Operand, escaping: &mut HashSet<u32>) {
-    match op {
-        Operand::Place(place) => collect_escaping_place(place, escaping),
-        _ => {}
+    if let Operand::Place(place) = op {
+        collect_escaping_place(place, escaping)
     }
 }
 

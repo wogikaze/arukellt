@@ -8,7 +8,7 @@ use ark_mir::mir::*;
 use ark_typecheck::Type;
 use std::collections::{HashMap, HashSet, VecDeque};
 
-use super::{is_component_export_candidate, normalize_intrinsic, Ctx};
+use super::{Ctx, is_component_export_candidate, normalize_intrinsic};
 
 /// Tracks which stdlib helper functions are needed by user code.
 #[derive(Debug, Default)]
@@ -54,14 +54,17 @@ impl Ctx {
                     || name == "__intrinsic_fs_write_file"
             }
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_fs(rvalue),
-            MirStmt::IfStmt { cond, then_body, else_body } => {
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
                 Self::operand_uses_fs(cond)
-                    || then_body.iter().any(|s| Self::stmt_uses_fs(s))
-                    || else_body.iter().any(|s| Self::stmt_uses_fs(s))
+                    || then_body.iter().any(Self::stmt_uses_fs)
+                    || else_body.iter().any(Self::stmt_uses_fs)
             }
             MirStmt::WhileStmt { cond, body } => {
-                Self::operand_uses_fs(cond)
-                    || body.iter().any(|s| Self::stmt_uses_fs(s))
+                Self::operand_uses_fs(cond) || body.iter().any(Self::stmt_uses_fs)
             }
             MirStmt::Return(Some(op)) => Self::operand_uses_fs(op),
             _ => false,
@@ -87,7 +90,7 @@ impl Ctx {
                 {
                     return true;
                 }
-                args.iter().any(|a| Self::operand_uses_fs(a))
+                args.iter().any(Self::operand_uses_fs)
             }
             _ => false,
         }
@@ -121,18 +124,23 @@ impl Ctx {
     fn stmt_uses_clock(stmt: &MirStmt) -> bool {
         match stmt {
             MirStmt::CallBuiltin { name, .. } => {
-                name == "clock_now" || name == "clock_now_ms"
-                    || name == "__intrinsic_clock_now" || name == "__intrinsic_clock_now_ms"
+                name == "clock_now"
+                    || name == "clock_now_ms"
+                    || name == "__intrinsic_clock_now"
+                    || name == "__intrinsic_clock_now_ms"
             }
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_clock(rvalue),
-            MirStmt::IfStmt { cond, then_body, else_body } => {
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
                 Self::operand_uses_clock(cond)
-                    || then_body.iter().any(|s| Self::stmt_uses_clock(s))
-                    || else_body.iter().any(|s| Self::stmt_uses_clock(s))
+                    || then_body.iter().any(Self::stmt_uses_clock)
+                    || else_body.iter().any(Self::stmt_uses_clock)
             }
             MirStmt::WhileStmt { cond, body } => {
-                Self::operand_uses_clock(cond)
-                    || body.iter().any(|s| Self::stmt_uses_clock(s))
+                Self::operand_uses_clock(cond) || body.iter().any(Self::stmt_uses_clock)
             }
             MirStmt::Return(Some(op)) => Self::operand_uses_clock(op),
             _ => false,
@@ -151,12 +159,14 @@ impl Ctx {
     fn operand_uses_clock(op: &Operand) -> bool {
         match op {
             Operand::Call(name, args) => {
-                if name == "clock_now" || name == "clock_now_ms"
-                    || name == "__intrinsic_clock_now" || name == "__intrinsic_clock_now_ms"
+                if name == "clock_now"
+                    || name == "clock_now_ms"
+                    || name == "__intrinsic_clock_now"
+                    || name == "__intrinsic_clock_now_ms"
                 {
                     return true;
                 }
-                args.iter().any(|a| Self::operand_uses_clock(a))
+                args.iter().any(Self::operand_uses_clock)
             }
             _ => false,
         }
@@ -190,18 +200,23 @@ impl Ctx {
     fn stmt_uses_random(stmt: &MirStmt) -> bool {
         match stmt {
             MirStmt::CallBuiltin { name, .. } => {
-                name == "random_i32" || name == "random_f64"
-                    || name == "__intrinsic_random_i32" || name == "__intrinsic_random_f64"
+                name == "random_i32"
+                    || name == "random_f64"
+                    || name == "__intrinsic_random_i32"
+                    || name == "__intrinsic_random_f64"
             }
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_random(rvalue),
-            MirStmt::IfStmt { cond, then_body, else_body } => {
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
                 Self::operand_uses_random(cond)
-                    || then_body.iter().any(|s| Self::stmt_uses_random(s))
-                    || else_body.iter().any(|s| Self::stmt_uses_random(s))
+                    || then_body.iter().any(Self::stmt_uses_random)
+                    || else_body.iter().any(Self::stmt_uses_random)
             }
             MirStmt::WhileStmt { cond, body } => {
-                Self::operand_uses_random(cond)
-                    || body.iter().any(|s| Self::stmt_uses_random(s))
+                Self::operand_uses_random(cond) || body.iter().any(Self::stmt_uses_random)
             }
             MirStmt::Return(Some(op)) => Self::operand_uses_random(op),
             _ => false,
@@ -211,7 +226,9 @@ impl Ctx {
     fn rvalue_uses_random(rvalue: &Rvalue) -> bool {
         match rvalue {
             Rvalue::Use(op) => Self::operand_uses_random(op),
-            Rvalue::BinaryOp(_, l, r) => Self::operand_uses_random(l) || Self::operand_uses_random(r),
+            Rvalue::BinaryOp(_, l, r) => {
+                Self::operand_uses_random(l) || Self::operand_uses_random(r)
+            }
             Rvalue::UnaryOp(_, op) => Self::operand_uses_random(op),
             _ => false,
         }
@@ -220,12 +237,14 @@ impl Ctx {
     fn operand_uses_random(op: &Operand) -> bool {
         match op {
             Operand::Call(name, args) => {
-                if name == "random_i32" || name == "random_f64"
-                    || name == "__intrinsic_random_i32" || name == "__intrinsic_random_f64"
+                if name == "random_i32"
+                    || name == "random_f64"
+                    || name == "__intrinsic_random_i32"
+                    || name == "__intrinsic_random_f64"
                 {
                     return true;
                 }
-                args.iter().any(|a| Self::operand_uses_random(a))
+                args.iter().any(Self::operand_uses_random)
             }
             _ => false,
         }
@@ -259,18 +278,23 @@ impl Ctx {
     fn stmt_uses_proc_exit(stmt: &MirStmt) -> bool {
         match stmt {
             MirStmt::CallBuiltin { name, .. } => {
-                name == "exit" || name == "proc_exit"
-                    || name == "__intrinsic_exit" || name == "__intrinsic_proc_exit"
+                name == "exit"
+                    || name == "proc_exit"
+                    || name == "__intrinsic_exit"
+                    || name == "__intrinsic_proc_exit"
             }
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_proc_exit(rvalue),
-            MirStmt::IfStmt { cond, then_body, else_body } => {
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
                 Self::operand_uses_proc_exit(cond)
-                    || then_body.iter().any(|s| Self::stmt_uses_proc_exit(s))
-                    || else_body.iter().any(|s| Self::stmt_uses_proc_exit(s))
+                    || then_body.iter().any(Self::stmt_uses_proc_exit)
+                    || else_body.iter().any(Self::stmt_uses_proc_exit)
             }
             MirStmt::WhileStmt { cond, body } => {
-                Self::operand_uses_proc_exit(cond)
-                    || body.iter().any(|s| Self::stmt_uses_proc_exit(s))
+                Self::operand_uses_proc_exit(cond) || body.iter().any(Self::stmt_uses_proc_exit)
             }
             MirStmt::Return(Some(op)) => Self::operand_uses_proc_exit(op),
             _ => false,
@@ -289,7 +313,9 @@ impl Ctx {
     fn rvalue_uses_proc_exit(rvalue: &Rvalue) -> bool {
         match rvalue {
             Rvalue::Use(op) => Self::operand_uses_proc_exit(op),
-            Rvalue::BinaryOp(_, l, r) => Self::operand_uses_proc_exit(l) || Self::operand_uses_proc_exit(r),
+            Rvalue::BinaryOp(_, l, r) => {
+                Self::operand_uses_proc_exit(l) || Self::operand_uses_proc_exit(r)
+            }
             Rvalue::UnaryOp(_, op) => Self::operand_uses_proc_exit(op),
             _ => false,
         }
@@ -298,12 +324,14 @@ impl Ctx {
     fn operand_uses_proc_exit(op: &Operand) -> bool {
         match op {
             Operand::Call(name, args) => {
-                if name == "exit" || name == "proc_exit"
-                    || name == "__intrinsic_exit" || name == "__intrinsic_proc_exit"
+                if name == "exit"
+                    || name == "proc_exit"
+                    || name == "__intrinsic_exit"
+                    || name == "__intrinsic_proc_exit"
                 {
                     return true;
                 }
-                args.iter().any(|a| Self::operand_uses_proc_exit(a))
+                args.iter().any(Self::operand_uses_proc_exit)
             }
             _ => false,
         }
@@ -327,18 +355,19 @@ impl Ctx {
 
     fn stmt_uses_args(stmt: &MirStmt) -> bool {
         match stmt {
-            MirStmt::CallBuiltin { name, .. } => {
-                name == "args" || name == "__intrinsic_args"
-            }
+            MirStmt::CallBuiltin { name, .. } => name == "args" || name == "__intrinsic_args",
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_args(rvalue),
-            MirStmt::IfStmt { cond, then_body, else_body } => {
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
                 Self::operand_uses_args(cond)
-                    || then_body.iter().any(|s| Self::stmt_uses_args(s))
-                    || else_body.iter().any(|s| Self::stmt_uses_args(s))
+                    || then_body.iter().any(Self::stmt_uses_args)
+                    || else_body.iter().any(Self::stmt_uses_args)
             }
             MirStmt::WhileStmt { cond, body } => {
-                Self::operand_uses_args(cond)
-                    || body.iter().any(|s| Self::stmt_uses_args(s))
+                Self::operand_uses_args(cond) || body.iter().any(Self::stmt_uses_args)
             }
             MirStmt::Return(Some(op)) => Self::operand_uses_args(op),
             _ => false,
@@ -360,7 +389,7 @@ impl Ctx {
                 if name == "args" || name == "__intrinsic_args" {
                     return true;
                 }
-                args.iter().any(|a| Self::operand_uses_args(a))
+                args.iter().any(Self::operand_uses_args)
             }
             _ => false,
         }
@@ -478,7 +507,8 @@ impl Ctx {
             MirStmt::Return(Some(op)) => {
                 self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
             }
-            MirStmt::Break | MirStmt::Continue | MirStmt::Return(None) | MirStmt::GcHint { .. } => {}
+            MirStmt::Break | MirStmt::Continue | MirStmt::Return(None) | MirStmt::GcHint { .. } => {
+            }
         }
     }
 
@@ -669,10 +699,7 @@ impl Ctx {
     }
 
     /// Scan reachable MIR functions to determine which stdlib helpers are needed.
-    pub(super) fn scan_needed_helpers(
-        mir: &MirModule,
-        reachable: &[usize],
-    ) -> NeededHelpers {
+    pub(super) fn scan_needed_helpers(mir: &MirModule, reachable: &[usize]) -> NeededHelpers {
         let mut needed = NeededHelpers::default();
         for &idx in reachable {
             let func = &mir.functions[idx];
@@ -707,14 +734,24 @@ impl Ctx {
                     Self::scan_operand_for_helpers(arg, func, needed);
                 }
             }
-            MirStmt::IfStmt { cond, then_body, else_body } => {
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
                 Self::scan_operand_for_helpers(cond, func, needed);
-                for s in then_body { Self::scan_stmt_for_helpers(s, func, needed); }
-                for s in else_body { Self::scan_stmt_for_helpers(s, func, needed); }
+                for s in then_body {
+                    Self::scan_stmt_for_helpers(s, func, needed);
+                }
+                for s in else_body {
+                    Self::scan_stmt_for_helpers(s, func, needed);
+                }
             }
             MirStmt::WhileStmt { cond, body } => {
                 Self::scan_operand_for_helpers(cond, func, needed);
-                for s in body { Self::scan_stmt_for_helpers(s, func, needed); }
+                for s in body {
+                    Self::scan_stmt_for_helpers(s, func, needed);
+                }
             }
             MirStmt::Return(Some(op)) => {
                 Self::scan_operand_for_helpers(op, func, needed);
@@ -723,9 +760,14 @@ impl Ctx {
         }
     }
 
-    fn scan_terminator_for_helpers(term: &Terminator, func: &MirFunction, needed: &mut NeededHelpers) {
+    fn scan_terminator_for_helpers(
+        term: &Terminator,
+        func: &MirFunction,
+        needed: &mut NeededHelpers,
+    ) {
         match term {
-            Terminator::Return(Some(op)) | Terminator::If { cond: op, .. }
+            Terminator::Return(Some(op))
+            | Terminator::If { cond: op, .. }
             | Terminator::Switch { scrutinee: op, .. } => {
                 Self::scan_operand_for_helpers(op, func, needed);
             }
@@ -743,7 +785,9 @@ impl Ctx {
                 Self::scan_operand_for_helpers(r, func, needed);
             }
             Rvalue::Aggregate(_, ops) => {
-                for op in ops { Self::scan_operand_for_helpers(op, func, needed); }
+                for op in ops {
+                    Self::scan_operand_for_helpers(op, func, needed);
+                }
             }
             _ => {}
         }
@@ -754,40 +798,65 @@ impl Ctx {
             Operand::Call(name, args) => {
                 let canonical = normalize_intrinsic(name);
                 Self::mark_builtin_helpers(canonical, args, func, needed);
-                for a in args { Self::scan_operand_for_helpers(a, func, needed); }
+                for a in args {
+                    Self::scan_operand_for_helpers(a, func, needed);
+                }
             }
             Operand::BinOp(_, l, r) => {
                 Self::scan_operand_for_helpers(l, func, needed);
                 Self::scan_operand_for_helpers(r, func, needed);
             }
-            Operand::UnaryOp(_, inner) | Operand::EnumTag(inner)
+            Operand::UnaryOp(_, inner)
+            | Operand::EnumTag(inner)
             | Operand::TryExpr { expr: inner, .. } => {
                 Self::scan_operand_for_helpers(inner, func, needed);
             }
-            Operand::IfExpr { cond, then_body, then_result, else_body, else_result } => {
+            Operand::IfExpr {
+                cond,
+                then_body,
+                then_result,
+                else_body,
+                else_result,
+            } => {
                 Self::scan_operand_for_helpers(cond, func, needed);
-                for s in then_body { Self::scan_stmt_for_helpers(s, func, needed); }
-                if let Some(r) = then_result { Self::scan_operand_for_helpers(r, func, needed); }
-                for s in else_body { Self::scan_stmt_for_helpers(s, func, needed); }
-                if let Some(r) = else_result { Self::scan_operand_for_helpers(r, func, needed); }
+                for s in then_body {
+                    Self::scan_stmt_for_helpers(s, func, needed);
+                }
+                if let Some(r) = then_result {
+                    Self::scan_operand_for_helpers(r, func, needed);
+                }
+                for s in else_body {
+                    Self::scan_stmt_for_helpers(s, func, needed);
+                }
+                if let Some(r) = else_result {
+                    Self::scan_operand_for_helpers(r, func, needed);
+                }
             }
             Operand::StructInit { fields, .. } => {
-                for (_, f) in fields { Self::scan_operand_for_helpers(f, func, needed); }
+                for (_, f) in fields {
+                    Self::scan_operand_for_helpers(f, func, needed);
+                }
             }
             Operand::FieldAccess { object, .. } | Operand::EnumPayload { object, .. } => {
                 Self::scan_operand_for_helpers(object, func, needed);
             }
             Operand::EnumInit { payload, .. } | Operand::ArrayInit { elements: payload } => {
-                for p in payload { Self::scan_operand_for_helpers(p, func, needed); }
+                for p in payload {
+                    Self::scan_operand_for_helpers(p, func, needed);
+                }
             }
             Operand::LoopExpr { init, body, result } => {
                 Self::scan_operand_for_helpers(init, func, needed);
-                for s in body { Self::scan_stmt_for_helpers(s, func, needed); }
+                for s in body {
+                    Self::scan_stmt_for_helpers(s, func, needed);
+                }
                 Self::scan_operand_for_helpers(result, func, needed);
             }
             Operand::CallIndirect { callee, args } => {
                 Self::scan_operand_for_helpers(callee, func, needed);
-                for a in args { Self::scan_operand_for_helpers(a, func, needed); }
+                for a in args {
+                    Self::scan_operand_for_helpers(a, func, needed);
+                }
             }
             Operand::IndexAccess { object, index } => {
                 Self::scan_operand_for_helpers(object, func, needed);
@@ -883,8 +952,12 @@ impl Ctx {
         match op {
             Operand::ConstString(_) => ArgCategory::String,
             Operand::ConstBool(_) => ArgCategory::Bool,
-            Operand::ConstI32(_) | Operand::ConstU8(_) | Operand::ConstU16(_)
-            | Operand::ConstU32(_) | Operand::ConstI8(_) | Operand::ConstI16(_)
+            Operand::ConstI32(_)
+            | Operand::ConstU8(_)
+            | Operand::ConstU16(_)
+            | Operand::ConstU32(_)
+            | Operand::ConstI8(_)
+            | Operand::ConstI16(_)
             | Operand::ConstChar(_) => ArgCategory::I32,
             Operand::ConstI64(_) | Operand::ConstU64(_) => ArgCategory::I64,
             Operand::ConstF32(_) | Operand::ConstF64(_) => ArgCategory::F64,
@@ -900,12 +973,13 @@ impl Ctx {
             Operand::Call(name, _) => {
                 let canonical = normalize_intrinsic(name);
                 match canonical {
-                    "concat" | "join" | "i32_to_string" | "i64_to_string"
-                    | "f64_to_string" | "bool_to_string" | "to_string"
-                    | "fs_read_file" | "trim" | "substring" | "replace"
-                    | "to_uppercase" | "to_lowercase" | "repeat" | "char_at" => ArgCategory::String,
-                    "eq" | "starts_with" | "ends_with" | "contains"
-                    | "assert" | "assert_eq" | "contains_i32" | "contains_String" => ArgCategory::Bool,
+                    "concat" | "join" | "i32_to_string" | "i64_to_string" | "f64_to_string"
+                    | "bool_to_string" | "to_string" | "fs_read_file" | "trim" | "substring"
+                    | "replace" | "to_uppercase" | "to_lowercase" | "repeat" | "char_at" => {
+                        ArgCategory::String
+                    }
+                    "eq" | "starts_with" | "ends_with" | "contains" | "assert" | "assert_eq"
+                    | "contains_i32" | "contains_String" => ArgCategory::Bool,
                     _ => ArgCategory::Unknown,
                 }
             }

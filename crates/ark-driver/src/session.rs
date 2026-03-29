@@ -7,9 +7,8 @@ use ark_hir::Program;
 use ark_lexer::Lexer;
 use ark_mir::{
     MirModule, MirProvenance, compare_lowering_paths, eliminate_dead_functions,
-    lower_check_output_to_mir, lower_legacy_only,
-    module_snapshot, optimization_pass_catalog, optimize_module, optimize_module_named,
-    runtime_entry_name, set_mir_provenance,
+    lower_check_output_to_mir, lower_legacy_only, module_snapshot, optimization_pass_catalog,
+    optimize_module, optimize_module_named, runtime_entry_name, set_mir_provenance,
     validate_backend_legal_module, validate_module,
 };
 use ark_parser::{ast, parse};
@@ -130,7 +129,10 @@ impl OptLevel {
             0 => Ok(Self::O0),
             1 => Ok(Self::O1),
             2 => Ok(Self::O2),
-            _ => Err(format!("invalid opt-level: {} (expected 0, 1, or 2)", level)),
+            _ => Err(format!(
+                "invalid opt-level: {} (expected 0, 1, or 2)",
+                level
+            )),
         }
     }
 }
@@ -220,9 +222,7 @@ impl Session {
     }
 
     fn load_source(&mut self, path: &Path) -> Result<(String, PhaseKey, u32), String> {
-        let canonical = path
-            .canonicalize()
-            .unwrap_or_else(|_| path.to_path_buf());
+        let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
 
         // Fast path: if mtime is unchanged, reuse the cached source without re-reading.
         if let Ok(meta) = std::fs::metadata(&canonical) {
@@ -264,9 +264,7 @@ impl Session {
     /// Evict the incremental cache for `path`. Call this in watch mode when a
     /// file-change event is detected so the next compile re-reads from disk.
     pub fn invalidate_file(&mut self, path: &Path) {
-        let canonical = path
-            .canonicalize()
-            .unwrap_or_else(|_| path.to_path_buf());
+        let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
         self.file_mtime_cache.remove(&canonical);
         // Also clear the downstream artifact cache so the whole pipeline re-runs.
         self.artifacts = ArtifactStore::default();
@@ -447,14 +445,14 @@ impl Session {
 
         let t_lower = std::time::Instant::now();
 
-        let need_legacy = match hint {
-            Some(MirSelection::CoreHir | MirSelection::OptimizedCoreHir) => false,
-            _ => true,
-        };
-        let need_corehir = match hint {
-            Some(MirSelection::Legacy | MirSelection::OptimizedLegacy) => false,
-            _ => true,
-        };
+        let need_legacy = !matches!(
+            hint,
+            Some(MirSelection::CoreHir | MirSelection::OptimizedCoreHir)
+        );
+        let need_corehir = !matches!(
+            hint,
+            Some(MirSelection::Legacy | MirSelection::OptimizedLegacy)
+        );
 
         let legacy_mir = if need_legacy {
             let mut mir = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
@@ -467,20 +465,24 @@ impl Session {
 
         let corehir_mir = if need_corehir {
             if corehir_valid {
-                let mut mir =
-                    lower_check_output_to_mir(&resolved.module, &core_hir, &checker, &mut self.sink)
-                        .unwrap_or_else(|_| {
-                            // Fallback: need legacy MIR
-                            let mut fb = if need_legacy {
-                                legacy_mir.clone()
-                            } else {
-                                let mut m = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
-                                mark_selection(&mut m, MirSelection::Legacy);
-                                m
-                            };
-                            mark_selection(&mut fb, MirSelection::CoreHir);
-                            fb
-                        });
+                let mut mir = lower_check_output_to_mir(
+                    &resolved.module,
+                    &core_hir,
+                    &checker,
+                    &mut self.sink,
+                )
+                .unwrap_or_else(|_| {
+                    // Fallback: need legacy MIR
+                    let mut fb = if need_legacy {
+                        legacy_mir.clone()
+                    } else {
+                        let mut m = lower_legacy_only(&resolved.module, &checker, &mut self.sink);
+                        mark_selection(&mut m, MirSelection::Legacy);
+                        m
+                    };
+                    mark_selection(&mut fb, MirSelection::CoreHir);
+                    fb
+                });
                 mark_selection(&mut mir, MirSelection::CoreHir);
                 if validate_mir(&mir).is_err() {
                     let mut fallback = if need_legacy {
@@ -641,18 +643,16 @@ impl Session {
                     .copied()
                     .collect();
                 optimize_module_named(&mut mir, &passes)
+            } else if self.disabled_passes.is_empty() {
+                optimize_module(&mut mir)
             } else {
-                if self.disabled_passes.is_empty() {
-                    optimize_module(&mut mir)
-                } else {
-                    let all_passes = optimization_pass_catalog();
-                    let passes: Vec<&str> = all_passes
-                        .iter()
-                        .filter(|p| !self.disabled_passes.iter().any(|d| d == *p))
-                        .copied()
-                        .collect();
-                    optimize_module_named(&mut mir, &passes)
-                }
+                let all_passes = optimization_pass_catalog();
+                let passes: Vec<&str> = all_passes
+                    .iter()
+                    .filter(|p| !self.disabled_passes.iter().any(|d| d == *p))
+                    .copied()
+                    .collect();
+                optimize_module_named(&mut mir, &passes)
             };
             let summary = summary
                 .map_err(|message| format!("internal error: optimizer failed: {message}"))?;
@@ -736,14 +736,13 @@ impl Session {
     ) -> Result<String, String> {
         let frontend = self.run_frontend(path)?;
         let world_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("app");
-        let world =
-            ark_wasm::component::mir_to_wit_world_with_warnings(
-                &frontend.corehir_mir,
-                world_name,
-                world_spec,
-            )
-            .map(|(w, _)| w)
-            .map_err(|e| format!("WIT generation error: {}", e))?;
+        let world = ark_wasm::component::mir_to_wit_world_with_warnings(
+            &frontend.corehir_mir,
+            world_name,
+            world_spec,
+        )
+        .map(|(w, _)| w)
+        .map_err(|e| format!("WIT generation error: {}", e))?;
         ark_wasm::component::generate_wit(&world)
             .map_err(|e| format!("WIT generation error: {}", e))
     }
@@ -778,9 +777,12 @@ impl Session {
 
         // Step 2: Generate WIT (with warnings for non-exportable functions)
         let world_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("app");
-        let (world, export_warnings) =
-            ark_wasm::component::mir_to_wit_world_with_warnings(&compiled.mir, world_name, world_spec)
-                .map_err(|e| format!("WIT generation error: {}", e))?;
+        let (world, export_warnings) = ark_wasm::component::mir_to_wit_world_with_warnings(
+            &compiled.mir,
+            world_name,
+            world_spec,
+        )
+        .map_err(|e| format!("WIT generation error: {}", e))?;
 
         // Emit W0005 warnings for non-exportable functions
         for warning in &export_warnings {
@@ -860,10 +862,14 @@ impl Session {
                     let mut hwm_kb: Option<u64> = None;
                     for line in contents.lines() {
                         if let Some(rest) = line.strip_prefix("VmRSS:") {
-                            rss_kb = rest.trim().strip_suffix("kB")
+                            rss_kb = rest
+                                .trim()
+                                .strip_suffix("kB")
                                 .and_then(|v| v.trim().parse().ok());
                         } else if let Some(rest) = line.strip_prefix("VmHWM:") {
-                            hwm_kb = rest.trim().strip_suffix("kB")
+                            hwm_kb = rest
+                                .trim()
+                                .strip_suffix("kB")
                                 .and_then(|v| v.trim().parse().ok());
                         }
                     }
@@ -906,7 +912,11 @@ mod tests {
     #[test]
     fn profile_rss_returns_memory_line() {
         let output = Session::profile_rss();
-        assert!(output.starts_with("[memory]"), "expected [memory] prefix, got: {}", output);
+        assert!(
+            output.starts_with("[memory]"),
+            "expected [memory] prefix, got: {}",
+            output
+        );
     }
 }
 

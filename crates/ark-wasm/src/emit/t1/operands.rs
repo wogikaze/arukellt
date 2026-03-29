@@ -5656,14 +5656,12 @@ impl EmitCtx {
                     } else {
                         self.emit_operand(f, r);
                     }
+                } else if block_valtype == ValType::I64 {
+                    f.instruction(&Instruction::I64Const(0));
+                } else if block_valtype == ValType::F64 {
+                    f.instruction(&Instruction::F64Const(0.0));
                 } else {
-                    if block_valtype == ValType::I64 {
-                        f.instruction(&Instruction::I64Const(0));
-                    } else if block_valtype == ValType::F64 {
-                        f.instruction(&Instruction::F64Const(0.0));
-                    } else {
-                        f.instruction(&Instruction::I32Const(0));
-                    }
+                    f.instruction(&Instruction::I32Const(0));
                 }
                 f.instruction(&Instruction::End);
                 if let Some(d) = self.loop_depths.last_mut() {
