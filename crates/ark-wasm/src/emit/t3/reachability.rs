@@ -13,6 +13,9 @@ use super::{normalize_intrinsic, Ctx};
 /// Tracks which stdlib helper functions are needed by user code.
 #[derive(Debug, Default)]
 pub(super) struct NeededHelpers {
+    pub print_str: bool,
+    pub print_i32: bool,
+    pub print_bool: bool,
     pub print_str_ln: bool,
     pub print_i32_ln: bool,
     pub print_bool_ln: bool,
@@ -32,10 +35,10 @@ impl Ctx {
         for &idx in reachable {
             let func = &mir.functions[idx];
             for block in &func.blocks {
-                for stmt in &block.stmts {
-                    if Self::stmt_uses_fs(stmt) {
-                        return true;
-                    }
+                if block.stmts.iter().any(Self::stmt_uses_fs)
+                    || Self::terminator_uses_fs(&block.terminator)
+                {
+                    return true;
                 }
             }
         }
@@ -45,7 +48,10 @@ impl Ctx {
     pub(super) fn stmt_uses_fs(stmt: &MirStmt) -> bool {
         match stmt {
             MirStmt::CallBuiltin { name, .. } => {
-                name == "fs_read_file" || name == "fs_write_file"
+                name == "fs_read_file"
+                    || name == "fs_write_file"
+                    || name == "__intrinsic_fs_read_file"
+                    || name == "__intrinsic_fs_write_file"
             }
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_fs(rvalue),
             MirStmt::IfStmt { cond, then_body, else_body } => {
@@ -74,11 +80,24 @@ impl Ctx {
     pub(super) fn operand_uses_fs(op: &Operand) -> bool {
         match op {
             Operand::Call(name, args) => {
-                if name == "fs_read_file" || name == "fs_write_file" {
+                if name == "fs_read_file"
+                    || name == "fs_write_file"
+                    || name == "__intrinsic_fs_read_file"
+                    || name == "__intrinsic_fs_write_file"
+                {
                     return true;
                 }
                 args.iter().any(|a| Self::operand_uses_fs(a))
             }
+            _ => false,
+        }
+    }
+
+    fn terminator_uses_fs(terminator: &Terminator) -> bool {
+        match terminator {
+            Terminator::Return(Some(op)) => Self::operand_uses_fs(op),
+            Terminator::If { cond, .. } => Self::operand_uses_fs(cond),
+            Terminator::Switch { scrutinee, .. } => Self::operand_uses_fs(scrutinee),
             _ => false,
         }
     }
@@ -89,10 +108,10 @@ impl Ctx {
         for &idx in reachable {
             let func = &mir.functions[idx];
             for block in &func.blocks {
-                for stmt in &block.stmts {
-                    if Self::stmt_uses_clock(stmt) {
-                        return true;
-                    }
+                if block.stmts.iter().any(Self::stmt_uses_clock)
+                    || Self::terminator_uses_clock(&block.terminator)
+                {
+                    return true;
                 }
             }
         }
@@ -143,16 +162,25 @@ impl Ctx {
         }
     }
 
+    fn terminator_uses_clock(terminator: &Terminator) -> bool {
+        match terminator {
+            Terminator::Return(Some(op)) => Self::operand_uses_clock(op),
+            Terminator::If { cond, .. } => Self::operand_uses_clock(cond),
+            Terminator::Switch { scrutinee, .. } => Self::operand_uses_clock(scrutinee),
+            _ => false,
+        }
+    }
+
     // ── Random reachability ──────────────────────────────────────────
 
     pub(super) fn mir_uses_random(mir: &MirModule, reachable: &[usize]) -> bool {
         for &idx in reachable {
             let func = &mir.functions[idx];
             for block in &func.blocks {
-                for stmt in &block.stmts {
-                    if Self::stmt_uses_random(stmt) {
-                        return true;
-                    }
+                if block.stmts.iter().any(Self::stmt_uses_random)
+                    || Self::terminator_uses_random(&block.terminator)
+                {
+                    return true;
                 }
             }
         }
@@ -203,16 +231,25 @@ impl Ctx {
         }
     }
 
+    fn terminator_uses_random(terminator: &Terminator) -> bool {
+        match terminator {
+            Terminator::Return(Some(op)) => Self::operand_uses_random(op),
+            Terminator::If { cond, .. } => Self::operand_uses_random(cond),
+            Terminator::Switch { scrutinee, .. } => Self::operand_uses_random(scrutinee),
+            _ => false,
+        }
+    }
+
     // ── proc_exit reachability ───────────────────────────────────────
 
     pub(super) fn mir_uses_proc_exit(mir: &MirModule, reachable: &[usize]) -> bool {
         for &idx in reachable {
             let func = &mir.functions[idx];
             for block in &func.blocks {
-                for stmt in &block.stmts {
-                    if Self::stmt_uses_proc_exit(stmt) {
-                        return true;
-                    }
+                if block.stmts.iter().any(Self::stmt_uses_proc_exit)
+                    || Self::terminator_uses_proc_exit(&block.terminator)
+                {
+                    return true;
                 }
             }
         }
@@ -236,6 +273,15 @@ impl Ctx {
                     || body.iter().any(|s| Self::stmt_uses_proc_exit(s))
             }
             MirStmt::Return(Some(op)) => Self::operand_uses_proc_exit(op),
+            _ => false,
+        }
+    }
+
+    fn terminator_uses_proc_exit(terminator: &Terminator) -> bool {
+        match terminator {
+            Terminator::Return(Some(op)) => Self::operand_uses_proc_exit(op),
+            Terminator::If { cond, .. } => Self::operand_uses_proc_exit(cond),
+            Terminator::Switch { scrutinee, .. } => Self::operand_uses_proc_exit(scrutinee),
             _ => false,
         }
     }
@@ -347,10 +393,14 @@ impl Ctx {
             }
         }
 
-        // Exported functions are also roots (for Component Model exports)
-        for (idx, func) in mir.functions.iter().enumerate() {
-            if func.is_exported && func.name != "main" && !func.name.starts_with("__") {
-                push_root(idx, &mut reachable, &mut queue);
+        // Only pure export modules root `pub fn`s. Command-style programs with
+        // `main`/`_start` should not drag every public stdlib wrapper into the
+        // core Wasm surface.
+        if queue.is_empty() {
+            for (idx, func) in mir.functions.iter().enumerate() {
+                if func.is_exported && func.name != "main" && !func.name.starts_with("__") {
+                    push_root(idx, &mut reachable, &mut queue);
+                }
             }
         }
 
@@ -777,15 +827,17 @@ impl Ctx {
                 }
             }
             "print" => {
-                needed.print_newline = true;
                 if let Some(arg) = args.first() {
                     match Self::infer_arg_category(arg, func) {
-                        ArgCategory::String => needed.print_str_ln = true,
-                        ArgCategory::Bool => needed.print_bool_ln = true,
+                        ArgCategory::String => needed.print_str = true,
+                        ArgCategory::Bool => needed.print_bool = true,
                         ArgCategory::I64 | ArgCategory::F64 | ArgCategory::I32 => {
-                            needed.print_i32_ln = true;
+                            needed.print_i32 = true;
                         }
                         ArgCategory::Unknown => {
+                            needed.print_str = true;
+                            needed.print_i32 = true;
+                            needed.print_bool = true;
                             needed.print_str_ln = true;
                             needed.print_i32_ln = true;
                             needed.print_bool_ln = true;

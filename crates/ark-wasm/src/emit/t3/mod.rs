@@ -69,6 +69,9 @@ const VEC_FIELD_CAP: u32 = 2;
 const FS_SCRATCH: u32 = 160;
 const FS_BUF_SIZE: u32 = 4096;
 
+/// P2 canonical ABI: retptr area (12 bytes, reuses IOV_BASE region)
+pub(super) const P2_RETPTR: u32 = 0;
+
 fn mutable_field(st: StorageType) -> FieldType {
     FieldType {
         element_type: st,
@@ -350,6 +353,9 @@ struct Ctx {
     helper_i32_to_str: Option<u32>,
     helper_i64_to_str: Option<u32>,
     helper_f64_to_str: Option<u32>,
+    helper_print_i32: Option<u32>,
+    helper_print_bool: Option<u32>,
+    helper_print_str: Option<u32>,
     helper_print_i32_ln: Option<u32>,
     helper_print_bool_ln: Option<u32>,
     helper_print_str_ln: Option<u32>,
@@ -371,7 +377,11 @@ struct Ctx {
     current_fn_type_params: Vec<String>,
     // Return type of the function being emitted
     current_fn_return_ty: Type,
-    // WASI import indices (dynamically assigned based on usage)
+    // P2 WASI import indices (always present)
+    wasi_p2_get_stdout: u32,
+    wasi_p2_write_and_flush: u32,
+    wasi_p2_drop_output_stream: u32,
+    // P1 WASI import indices (conditional)
     wasi_fd_write: u32,
     wasi_path_open: u32,
     wasi_fd_read: u32,
@@ -691,6 +701,9 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         helper_i32_to_str: None,
         helper_i64_to_str: None,
         helper_f64_to_str: None,
+        helper_print_i32: None,
+        helper_print_bool: None,
+        helper_print_str: None,
         helper_print_i32_ln: None,
         helper_print_bool_ln: None,
         helper_print_str_ln: None,
@@ -706,6 +719,9 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         loop_break_extra_depth: 0,
         current_fn_type_params: vec![],
         current_fn_return_ty: Type::Unit,
+        wasi_p2_get_stdout: 0,
+        wasi_p2_write_and_flush: 0,
+        wasi_p2_drop_output_stream: 0,
         wasi_fd_write: 0,
         wasi_path_open: 0,
         wasi_fd_read: 0,
@@ -841,6 +857,12 @@ impl Ctx {
         let mut helper_fns: Vec<(String, Vec<ValType>, Vec<ValType>)> = Vec::new();
 
         // Track position of each helper in the dynamic list
+        let mut p2_get_stdout_pos: Option<usize> = None;
+        let mut p2_write_and_flush_pos: Option<usize> = None;
+        let mut p2_drop_output_stream_pos: Option<usize> = None;
+        let mut print_str_pos: Option<usize> = None;
+        let mut print_i32_pos: Option<usize> = None;
+        let mut print_bool_pos: Option<usize> = None;
         let mut print_str_ln_pos: Option<usize> = None;
         let mut print_i32_ln_pos: Option<usize> = None;
         let mut print_bool_ln_pos: Option<usize> = None;
@@ -848,7 +870,40 @@ impl Ctx {
         let mut print_newline_pos: Option<usize> = None;
         let mut i64_to_str_pos: Option<usize> = None;
         let mut f64_to_str_pos: Option<usize> = None;
+        let needs_p2_stdio_shims =
+            needed.print_str
+                || needed.print_i32
+                || needed.print_bool
+                || needed.print_str_ln
+                || needed.print_i32_ln
+                || needed.print_bool_ln
+                || needed.print_newline;
 
+        if needs_p2_stdio_shims {
+            p2_get_stdout_pos = Some(helper_fns.len());
+            helper_fns.push(("__wasi_p2_get_stdout".into(), vec![], vec![ValType::I32]));
+            p2_write_and_flush_pos = Some(helper_fns.len());
+            helper_fns.push((
+                "__wasi_p2_write_and_flush".into(),
+                vec![ValType::I32, ValType::I32, ValType::I32, ValType::I32],
+                vec![],
+            ));
+            p2_drop_output_stream_pos = Some(helper_fns.len());
+            helper_fns.push(("__wasi_p2_drop_output_stream".into(), vec![ValType::I32], vec![]));
+        }
+
+        if needed.print_str {
+            print_str_pos = Some(helper_fns.len());
+            helper_fns.push(("__print_str".into(), vec![str_ref], vec![]));
+        }
+        if needed.print_i32 {
+            print_i32_pos = Some(helper_fns.len());
+            helper_fns.push(("__print_i32".into(), vec![ValType::I32], vec![]));
+        }
+        if needed.print_bool {
+            print_bool_pos = Some(helper_fns.len());
+            helper_fns.push(("__print_bool".into(), vec![ValType::I32], vec![]));
+        }
         // Always include print_str_ln — it's the most basic output primitive
         if needed.print_str_ln || needed.print_i32_ln || needed.print_bool_ln {
             print_str_ln_pos = Some(helper_fns.len());
@@ -1033,6 +1088,14 @@ impl Ctx {
             self.fn_map.insert(name.clone(), fn_idx);
         }
         // Set helper indices based on dynamic positions
+        self.wasi_p2_get_stdout = p2_get_stdout_pos.map_or(0, |p| helper_base + p as u32);
+        self.wasi_p2_write_and_flush =
+            p2_write_and_flush_pos.map_or(0, |p| helper_base + p as u32);
+        self.wasi_p2_drop_output_stream =
+            p2_drop_output_stream_pos.map_or(0, |p| helper_base + p as u32);
+        self.helper_print_str = print_str_pos.map(|p| helper_base + p as u32);
+        self.helper_print_i32 = print_i32_pos.map(|p| helper_base + p as u32);
+        self.helper_print_bool = print_bool_pos.map(|p| helper_base + p as u32);
         self.helper_print_str_ln = print_str_ln_pos.map(|p| helper_base + p as u32);
         self.helper_print_i32_ln = print_i32_ln_pos.map(|p| helper_base + p as u32);
         self.helper_print_bool_ln = print_bool_ln_pos.map(|p| helper_base + p as u32);
@@ -1162,12 +1225,17 @@ impl Ctx {
             exports.export("_start", ExportKind::Func, main_idx);
         }
 
+        let export_component_funcs =
+            !self.fn_map.contains_key("_start") && !self.fn_map.contains_key("main");
+
         // Export user pub functions for Component Model (kebab-case names for WIT)
-        for func in &mir.functions {
-            if func.is_exported && func.name != "main" && !func.name.starts_with("__") {
-                if let Some(&idx) = self.fn_map.get(func.name.as_str()) {
-                    let export_name = func.name.replace('_', "-");
-                    exports.export(&export_name, ExportKind::Func, idx);
+        if export_component_funcs {
+            for func in &mir.functions {
+                if func.is_exported && func.name != "main" && !func.name.starts_with("__") {
+                    if let Some(&idx) = self.fn_map.get(func.name.as_str()) {
+                        let export_name = func.name.replace('_', "-");
+                        exports.export(&export_name, ExportKind::Func, idx);
+                    }
                 }
             }
         }
@@ -1182,6 +1250,24 @@ impl Ctx {
         let mut codes = CodeSection::new();
 
         // Emit only the helpers that were registered (in order of registration)
+        if p2_get_stdout_pos.is_some() {
+            self.emit_wasi_p2_get_stdout_shim(&mut codes);
+        }
+        if p2_write_and_flush_pos.is_some() {
+            self.emit_wasi_p2_write_and_flush_shim(&mut codes);
+        }
+        if p2_drop_output_stream_pos.is_some() {
+            self.emit_wasi_p2_drop_output_stream_shim(&mut codes);
+        }
+        if print_str_pos.is_some() {
+            self.emit_print_str_helper(&mut codes);
+        }
+        if print_i32_pos.is_some() {
+            self.emit_print_i32_helper(&mut codes);
+        }
+        if print_bool_pos.is_some() {
+            self.emit_print_bool_helper(&mut codes, true_offset, false_offset);
+        }
         if print_str_ln_pos.is_some() {
             self.emit_print_str_ln_helper(&mut codes, newline_offset);
         }

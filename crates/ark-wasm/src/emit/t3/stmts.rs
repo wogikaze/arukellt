@@ -466,6 +466,47 @@ impl Ctx {
                     self.emit_println(f, arg);
                 }
             }
+            "print" => {
+                if let Some(arg) = args.first() {
+                    self.emit_print(f, arg);
+                }
+            }
+            "assert" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand(f, arg);
+                    f.instruction(&Instruction::I32Eqz);
+                    f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                    f.instruction(&Instruction::Unreachable);
+                    f.instruction(&Instruction::End);
+                }
+            }
+            "assert_eq" => {
+                if args.len() >= 2 {
+                    let lhs = &args[0];
+                    let rhs = &args[1];
+                    if self.is_string_like_operand(lhs) || self.is_string_like_operand(rhs) {
+                        self.emit_operand(f, lhs);
+                        self.emit_operand(f, rhs);
+                        self.emit_string_eq_gc(f);
+                    } else if self.is_f64_like_operand(lhs) || self.is_f64_like_operand(rhs) {
+                        self.emit_operand_coerced(f, lhs, false, true);
+                        self.emit_operand_coerced(f, rhs, false, true);
+                        f.instruction(&Instruction::F64Eq);
+                    } else if self.is_i64_like_operand(lhs) || self.is_i64_like_operand(rhs) {
+                        self.emit_operand_coerced(f, lhs, true, false);
+                        self.emit_operand_coerced(f, rhs, true, false);
+                        f.instruction(&Instruction::I64Eq);
+                    } else {
+                        self.emit_operand(f, lhs);
+                        self.emit_operand(f, rhs);
+                        f.instruction(&Instruction::I32Eq);
+                    }
+                    f.instruction(&Instruction::I32Eqz);
+                    f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                    f.instruction(&Instruction::Unreachable);
+                    f.instruction(&Instruction::End);
+                }
+            }
             "i32_to_string" => {
                 if let Some(arg) = args.first() {
                     self.emit_operand(f, arg);
@@ -1455,6 +1496,21 @@ impl Ctx {
                 f.instruction(&Instruction::Call(idx));
             }
         } else if let Some(idx) = self.helper_print_i32_ln {
+            f.instruction(&Instruction::Call(idx));
+        }
+    }
+
+    pub(super) fn emit_print(&mut self, f: &mut PeepholeWriter<'_>, arg: &Operand) {
+        self.emit_operand(f, arg);
+        if self.is_string_like_operand(arg) {
+            if let Some(idx) = self.helper_print_str {
+                f.instruction(&Instruction::Call(idx));
+            }
+        } else if self.is_bool_like_operand(arg) {
+            if let Some(idx) = self.helper_print_bool {
+                f.instruction(&Instruction::Call(idx));
+            }
+        } else if let Some(idx) = self.helper_print_i32 {
             f.instruction(&Instruction::Call(idx));
         }
     }

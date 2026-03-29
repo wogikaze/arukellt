@@ -1755,7 +1755,7 @@ impl Ctx {
 
         // Push result
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
             result_base,
         )));
     }
@@ -1927,7 +1927,7 @@ impl Ctx {
 
         // Push result
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
             result_base,
         )));
     }

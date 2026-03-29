@@ -12,245 +12,405 @@ use wasm_encoder::{
 
 use super::{normalize_intrinsic, ref_nullable, Ctx};
 use super::{
-    IOV_BASE, IOV_LEN, NWRITTEN, SCRATCH, I32BUF,
+    SCRATCH, I32BUF, P2_RETPTR,
 };
 use super::peephole::PeepholeWriter;
 
 impl Ctx {
     // ── Helper function bodies ───────────────────────────────────
 
-    pub(super) fn emit_print_str_ln_helper(&self, codes: &mut CodeSection, newline_off: u32) {
+    pub(super) fn emit_wasi_p2_get_stdout_shim(&self, codes: &mut CodeSection) {
+        let mut f = Function::new([]);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::End);
+        codes.function(&f);
+    }
+
+    pub(super) fn emit_wasi_p2_write_and_flush_shim(&self, codes: &mut CodeSection) {
         let ma = MemArg {
             offset: 0,
             align: 2,
             memory_index: 0,
         };
-        let ma1 = MemArg {
-            offset: 0,
-            align: 0,
-            memory_index: 0,
-        };
-        let _str_ref = ref_nullable(self.string_ty);
-        // Param 0 = (ref null $string). Locals: len (i32), i (i32).
-        // Note: param 0 uses slot 0 but is ref type (not declared in local_types).
-        let mut f = Function::new([(1, ValType::I32), (1, ValType::I32)]);
+        // Params: 0=stream handle, 1=ptr, 2=len, 3=retptr scratch.
+        let mut f = Function::new([]);
 
-        // Get string length: array.len
-        f.instruction(&Instruction::LocalGet(0)); // ref $string
-        f.instruction(&Instruction::ArrayLen);
-        f.instruction(&Instruction::LocalSet(1)); // local 1 = len
-
-        // Copy GC string bytes to linear memory at SCRATCH.
-        // for i = 0; i < len; i++ { mem[SCRATCH + i] = array.get_u $string (param0) i }
-        f.instruction(&Instruction::I32Const(0));
-        f.instruction(&Instruction::LocalSet(2)); // i = 0
-        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
-        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
-        // if i >= len, break
-        f.instruction(&Instruction::LocalGet(2));
+        // Reuse the caller-provided retptr area as a single preview1 iovec plus nwritten slot.
+        f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::LocalGet(1));
-        f.instruction(&Instruction::I32GeU);
-        f.instruction(&Instruction::BrIf(1)); // break outer block
-        // mem[SCRATCH + i] = array.get_u $string param0 i
-        f.instruction(&Instruction::I32Const(SCRATCH as i32));
-        f.instruction(&Instruction::LocalGet(2));
-        f.instruction(&Instruction::I32Add); // SCRATCH + i
-        f.instruction(&Instruction::LocalGet(0)); // ref $string
-        f.instruction(&Instruction::LocalGet(2)); // i
-        f.instruction(&Instruction::ArrayGetU(self.string_ty));
-        f.instruction(&Instruction::I32Store8(ma1));
-        // i++
-        f.instruction(&Instruction::LocalGet(2));
-        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(4));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::LocalSet(2));
-        f.instruction(&Instruction::Br(0)); // continue loop
-        f.instruction(&Instruction::End); // end loop
-        f.instruction(&Instruction::End); // end block
-
-        // Set up IOV: base = SCRATCH, len = string length
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::LocalGet(2));
         f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
-        f.instruction(&Instruction::LocalGet(1)); // len
-        f.instruction(&Instruction::I32Store(ma));
-        // fd_write(1, &iov, 1, &nwritten)
-        f.instruction(&Instruction::I32Const(1)); // fd=stdout
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1)); // iovs_len
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(self.wasi_fd_write));
-        f.instruction(&Instruction::Drop);
-
-        // Print newline
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(newline_off as i32));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::Call(self.wasi_fd_write));
         f.instruction(&Instruction::Drop);
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
 
-    pub(super) fn emit_print_i32_ln_helper(&self, codes: &mut CodeSection, newline_off: u32) {
-        let ma = MemArg {
-            offset: 0,
-            align: 2,
-            memory_index: 0,
-        };
-        let ma0 = MemArg {
-            offset: 0,
-            align: 0,
-            memory_index: 0,
-        };
-        // param 0 = i32 value
+    pub(super) fn emit_wasi_p2_drop_output_stream_shim(&self, codes: &mut CodeSection) {
+        let mut f = Function::new([]);
+        f.instruction(&Instruction::End);
+        codes.function(&f);
+    }
+
+    pub(super) fn emit_print_str_helper(&self, codes: &mut CodeSection) {
+        let ma1 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        // Param 0 = (ref null $string). Locals 1=len, 2=i, 3=handle.
+        let mut f = Function::new([(3, ValType::I32)]);
+
+        f.instruction(&Instruction::Call(self.wasi_p2_get_stdout));
+        f.instruction(&Instruction::LocalSet(3));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(1));
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma1));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
+        f.instruction(&Instruction::End);
+        codes.function(&f);
+    }
+
+    pub(super) fn emit_print_i32_helper(&self, codes: &mut CodeSection) {
+        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        // param 0 = i32 value. Locals: 1=is_neg, 2=digit_count, 3=abs_val, 4=temp, 5=handle.
         let mut f = Function::new([
-            (1, ValType::I32), // local 1: is_neg
-            (1, ValType::I32), // local 2: digit_count
-            (1, ValType::I32), // local 3: abs_val
-            (1, ValType::I32), // local 4: temp
+            (1, ValType::I32),
+            (1, ValType::I32),
+            (1, ValType::I32),
+            (1, ValType::I32),
+            (1, ValType::I32),
         ]);
         let buf_base = I32BUF;
-        let buf_end = buf_base + 11; // max i32 digits + sign
+        let buf_end = buf_base + 11;
 
-        // Handle negative: if val < 0, set is_neg=1, val = -val
+        f.instruction(&Instruction::Call(self.wasi_p2_get_stdout));
+        f.instruction(&Instruction::LocalSet(5));
+
         f.instruction(&Instruction::LocalGet(0));
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::I32LtS);
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::LocalSet(1)); // is_neg = 1
+        f.instruction(&Instruction::LocalSet(1));
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::LocalGet(0));
         f.instruction(&Instruction::I32Sub);
-        f.instruction(&Instruction::LocalSet(3)); // abs_val = -val
+        f.instruction(&Instruction::LocalSet(3));
         f.instruction(&Instruction::Else);
         f.instruction(&Instruction::LocalGet(0));
-        f.instruction(&Instruction::LocalSet(3)); // abs_val = val
+        f.instruction(&Instruction::LocalSet(3));
         f.instruction(&Instruction::End);
 
-        // Handle zero specially
         f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Eqz);
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
-        // Write "0\n"
+        f.instruction(&Instruction::I32Const(buf_base as i32));
+        f.instruction(&Instruction::I32Const(48));
+        f.instruction(&Instruction::I32Store8(ma0));
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(buf_base as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
+        f.instruction(&Instruction::Return);
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::I32Const(buf_end as i32));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(10));
+        f.instruction(&Instruction::I32RemU);
+        f.instruction(&Instruction::I32Const(48));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Store8(ma0));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(10));
+        f.instruction(&Instruction::I32DivU);
+        f.instruction(&Instruction::LocalSet(3));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::I32Const(buf_end as i32));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(45));
+        f.instruction(&Instruction::I32Store8(ma0));
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(buf_end as i32));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
+        f.instruction(&Instruction::End);
+        codes.function(&f);
+    }
+
+    pub(super) fn emit_print_bool_helper(
+        &self,
+        codes: &mut CodeSection,
+        true_off: u32,
+        false_off: u32,
+    ) {
+        // param 0 = i32 (0=false, 1=true). Local 1 = stdout handle.
+        let mut f = Function::new([(1, ValType::I32)]);
+
+        f.instruction(&Instruction::Call(self.wasi_p2_get_stdout));
+        f.instruction(&Instruction::LocalSet(1));
+
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(true_off as i32));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::Else);
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(false_off as i32));
+        f.instruction(&Instruction::I32Const(5));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
+        f.instruction(&Instruction::End);
+        codes.function(&f);
+    }
+
+    pub(super) fn emit_print_str_ln_helper(&self, codes: &mut CodeSection, newline_off: u32) {
+        let ma1 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        // Param 0 = (ref null $string). Locals 1=len, 2=i, 3=handle.
+        let mut f = Function::new([(3, ValType::I32)]);
+
+        f.instruction(&Instruction::Call(self.wasi_p2_get_stdout));
+        f.instruction(&Instruction::LocalSet(3));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(1));
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma1));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(newline_off as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
+        f.instruction(&Instruction::End);
+        codes.function(&f);
+    }
+
+    pub(super) fn emit_print_i32_ln_helper(&self, codes: &mut CodeSection, newline_off: u32) {
+        let ma0 = MemArg { offset: 0, align: 0, memory_index: 0 };
+        // param 0 = i32 value. Locals: 1=is_neg, 2=digit_count, 3=abs_val, 4=temp, 5=handle.
+        let mut f = Function::new([
+            (1, ValType::I32), // local 1: is_neg
+            (1, ValType::I32), // local 2: digit_count
+            (1, ValType::I32), // local 3: abs_val
+            (1, ValType::I32), // local 4: temp
+            (1, ValType::I32), // local 5: stdout handle
+        ]);
+        let buf_base = I32BUF;
+        let buf_end = buf_base + 11;
+
+        // Get stdout handle → local 5
+        f.instruction(&Instruction::Call(self.wasi_p2_get_stdout));
+        f.instruction(&Instruction::LocalSet(5));
+
+        // Handle negative
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32LtS);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::LocalSet(1));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::LocalSet(3));
+        f.instruction(&Instruction::Else);
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::LocalSet(3));
+        f.instruction(&Instruction::End);
+
+        // Handle zero: write "0\n", drop handle, return
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::I32Const(buf_base as i32));
         f.instruction(&Instruction::I32Const(48)); // '0'
         f.instruction(&Instruction::I32Store8(ma0));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::LocalGet(5));
         f.instruction(&Instruction::I32Const(buf_base as i32));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
         f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(self.wasi_fd_write));
-        f.instruction(&Instruction::Drop);
-        // newline
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(5));
         f.instruction(&Instruction::I32Const(newline_off as i32));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
         f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(self.wasi_fd_write));
-        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
         f.instruction(&Instruction::Return);
         f.instruction(&Instruction::End);
 
         // Extract digits right-to-left into buf
         f.instruction(&Instruction::I32Const(0));
-        f.instruction(&Instruction::LocalSet(2)); // digit_count = 0
+        f.instruction(&Instruction::LocalSet(2));
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Eqz);
-        f.instruction(&Instruction::BrIf(1)); // break if abs_val == 0
-        // digit = abs_val % 10
+        f.instruction(&Instruction::BrIf(1));
         f.instruction(&Instruction::I32Const(buf_end as i32));
         f.instruction(&Instruction::LocalGet(2));
-        f.instruction(&Instruction::I32Sub); // buf_end - digit_count
+        f.instruction(&Instruction::I32Sub);
         f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Const(10));
         f.instruction(&Instruction::I32RemU);
-        f.instruction(&Instruction::I32Const(48)); // + '0'
+        f.instruction(&Instruction::I32Const(48));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Store8(ma0));
-        // abs_val /= 10
         f.instruction(&Instruction::LocalGet(3));
         f.instruction(&Instruction::I32Const(10));
         f.instruction(&Instruction::I32DivU);
         f.instruction(&Instruction::LocalSet(3));
-        // digit_count++
         f.instruction(&Instruction::LocalGet(2));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalSet(2));
-        f.instruction(&Instruction::Br(0)); // continue
-        f.instruction(&Instruction::End); // loop
-        f.instruction(&Instruction::End); // block
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
 
         // If negative, prepend '-'
-        f.instruction(&Instruction::LocalGet(1)); // is_neg
+        f.instruction(&Instruction::LocalGet(1));
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
         f.instruction(&Instruction::LocalGet(2));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::LocalSet(2)); // digit_count++
-        f.instruction(&Instruction::I32Const(buf_end as i32));
-        f.instruction(&Instruction::LocalGet(2));
-        f.instruction(&Instruction::I32Sub);
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Add); // position for '-'
-        f.instruction(&Instruction::I32Const(45)); // '-'
-        f.instruction(&Instruction::I32Store8(ma0));
-        f.instruction(&Instruction::End);
-
-        // Print: iov_base = buf_end - digit_count + 1, iov_len = digit_count
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::LocalSet(2));
         f.instruction(&Instruction::I32Const(buf_end as i32));
         f.instruction(&Instruction::LocalGet(2));
         f.instruction(&Instruction::I32Sub);
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
+        f.instruction(&Instruction::I32Const(45)); // '-'
+        f.instruction(&Instruction::I32Store8(ma0));
+        f.instruction(&Instruction::End);
+
+        // write digits: ptr = buf_end - digit_count + 1, len = digit_count
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(buf_end as i32));
         f.instruction(&Instruction::LocalGet(2));
-        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Sub);
         f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(self.wasi_fd_write));
-        f.instruction(&Instruction::Drop);
-        // newline
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(5));
         f.instruction(&Instruction::I32Const(newline_off as i32));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
         f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(self.wasi_fd_write));
-        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
@@ -262,51 +422,35 @@ impl Ctx {
         false_off: u32,
         newline_off: u32,
     ) {
-        let ma = MemArg {
-            offset: 0,
-            align: 2,
-            memory_index: 0,
-        };
-        let mut f = Function::new([]);
-        // param 0 = i32 (0 or 1)
+        // param 0 = i32 (0=false, 1=true). Local 1 = stdout handle.
+        let mut f = Function::new([(1, ValType::I32)]);
+
+        // Get stdout handle → local 1
+        f.instruction(&Instruction::Call(self.wasi_p2_get_stdout));
+        f.instruction(&Instruction::LocalSet(1));
+
+        // Write "true" or "false"
         f.instruction(&Instruction::LocalGet(0));
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
-        // true
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::LocalGet(1));
         f.instruction(&Instruction::I32Const(true_off as i32));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
-        f.instruction(&Instruction::I32Const(4)); // "true".len()
-        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
         f.instruction(&Instruction::Else);
-        // false
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::LocalGet(1));
         f.instruction(&Instruction::I32Const(false_off as i32));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
-        f.instruction(&Instruction::I32Const(5)); // "false".len()
-        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(5));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
         f.instruction(&Instruction::End);
-
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(self.wasi_fd_write));
-        f.instruction(&Instruction::Drop);
-        // newline
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::LocalGet(1));
         f.instruction(&Instruction::I32Const(newline_off as i32));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
         f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(self.wasi_fd_write));
-        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
@@ -451,30 +595,21 @@ impl Ctx {
     }
 
     pub(super) fn emit_print_newline_helper(&self, codes: &mut CodeSection, newline_off: u32) {
-        let ma = MemArg {
-            offset: 0,
-            align: 2,
-            memory_index: 0,
-        };
-        let mut f = Function::new([]);
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        // No params. Local 0 = stdout handle.
+        let mut f = Function::new([(1, ValType::I32)]);
+        f.instruction(&Instruction::Call(self.wasi_p2_get_stdout));
+        f.instruction(&Instruction::LocalSet(0));
+        f.instruction(&Instruction::LocalGet(0));
         f.instruction(&Instruction::I32Const(newline_off as i32));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(IOV_LEN as i32));
         f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Store(ma));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
-        f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
-        f.instruction(&Instruction::Call(self.wasi_fd_write));
-        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
         f.instruction(&Instruction::End);
         codes.function(&f);
     }
 
-    /// Emit __i64_to_str(val: i64) -> ref $string
-    /// Converts an i64 to decimal string representation as GC byte array.
     pub(super) fn emit_i64_to_str_helper(&mut self, codes: &mut CodeSection) {
         let ma0 = MemArg {
             offset: 0,

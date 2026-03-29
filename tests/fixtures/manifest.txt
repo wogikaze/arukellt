@@ -21,6 +21,9 @@ run:control/nested_loops.ark
 run:control/while_basic.ark
 run:control/while_counter.ark
 diag:diagnostics/duplicate_def.ark
+diag:diagnostics/deprecated_prelude_println.ark
+diag:diagnostics/deprecated_std_io_import.ark
+diag:diagnostics/deprecated_time_monotonic_now.ark
 diag:diagnostics/immutable_mutation.ark
 run:diagnostics/method_syntax.ark
 diag:diagnostics/mismatched_arms.ark
@@ -406,6 +409,11 @@ module-run:stdlib_time/duration.ark
 module-run:stdlib_random/random_seed.ark
 module-run:stdlib_random/random_range.ark
 module-run:stdlib_random/shuffle.ark
+t3-run:stdlib_io/clock_random.ark
+t3-run:stdlib_io2/io_basic.ark
+t3-run:stdlib_random/random_seed.ark
+t3-run:stdlib_random/random_range.ark
+t3-run:stdlib_time/monotonic.ark
 module-run:stdlib_test/assert_eq.ark
 module-run:stdlib_test/assert_ne.ark
 module-run:stdlib_test/expect_result.ark

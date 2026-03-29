@@ -6,6 +6,7 @@
 //! - `diag:path`       → compile-fail, check first line of `.diag` in output
 //! - `module-run:path` → same as run, for multi-file modules
 //! - `module-diag:path`→ same as diag, for multi-file modules
+//! - `t3-run:path`     → compile + run on wasm32-wasi-p2, compare stdout against `.expected`
 //!
 //! Self-check: verifies every `.ark` entry point on disk is listed in the manifest.
 
@@ -109,7 +110,11 @@ fn fixture_harness() {
     // --- Load manifest ---
     let manifest_path = fixture_dir.join("manifest.txt");
     let entries = load_manifest(&manifest_path);
-    eprintln!("Manifest: {} entries from {:?}", entries.len(), manifest_path);
+    eprintln!(
+        "Manifest: {} entries from {:?}",
+        entries.len(),
+        manifest_path
+    );
 
     // --- Self-check: manifest completeness ---
     let disk_entries = entry_points(&fixture_dir);
@@ -129,7 +134,11 @@ fn fixture_harness() {
         sorted.sort();
         panic!(
             "Fixture files on disk but NOT in manifest.txt:\n  {}",
-            sorted.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("\n  ")
+            sorted
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                .join("\n  ")
         );
     }
     if !missing_from_disk.is_empty() {
@@ -137,7 +146,11 @@ fn fixture_harness() {
         sorted.sort();
         panic!(
             "Manifest entries whose files do NOT exist on disk:\n  {}",
-            sorted.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("\n  ")
+            sorted
+                .iter()
+                .map(|s| s.as_str())
+                .collect::<Vec<_>>()
+                .join("\n  ")
         );
     }
 
@@ -225,6 +238,37 @@ fn fixture_harness() {
                         name,
                         first_line,
                         stderr.lines().next().unwrap_or("")
+                    ));
+                }
+            }
+            "t3-run" => {
+                let expected_path = fixture.with_extension("expected");
+                if !expected_path.exists() {
+                    skipped += 1;
+                    eprintln!("  [skip] {} (no .expected file)", name);
+                    continue;
+                }
+                let expected = std::fs::read_to_string(&expected_path).unwrap();
+
+                let output = Command::new(&bin)
+                    .arg("run")
+                    .arg("--target")
+                    .arg("wasm32-wasi-p2")
+                    .arg(&fixture)
+                    .output()
+                    .expect("failed to run arukellt");
+
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                if stdout.as_ref() == expected {
+                    passed += 1;
+                } else {
+                    failed += 1;
+                    failures.push(format!(
+                        "FAIL [{}] {}\n  expected: {:?}\n  got:      {:?}",
+                        entry.kind,
+                        name,
+                        expected.lines().next().unwrap_or(""),
+                        stdout.lines().next().unwrap_or("")
                     ));
                 }
             }

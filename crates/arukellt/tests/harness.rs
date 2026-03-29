@@ -6,6 +6,7 @@
 //! - `diag:path`              → compile-fail, check first line of `.diag` in output
 //! - `module-run:path`        → same as run, for multi-file modules
 //! - `module-diag:path`       → same as diag, for multi-file modules
+//! - `t3-run:path`            → compile + run on wasm32-wasi-p2, compare stdout against `.expected`
 //! - `t3-compile:path`        → T3 compile-only, verify exit code 0
 //! - `component-compile:path` → T3 component compile, verify exit code 0
 //! - `compile-error:path`     → compile with flags from `.flags`, expect failure + check `.diag`
@@ -199,6 +200,33 @@ fn run_fixture_entry(bin: &Path, fixture_dir: &Path, entry: &ManifestEntry) -> F
                 ))
             }
         }
+        "t3-run" => {
+            let expected_path = fixture.with_extension("expected");
+            if !expected_path.exists() {
+                return FixtureOutcome::Skip(format!("{} (no .expected file)", name));
+            }
+            let expected = std::fs::read_to_string(&expected_path).unwrap();
+
+            let output = Command::new(bin)
+                .arg("run")
+                .arg("--target")
+                .arg("wasm32-wasi-p2")
+                .arg(&fixture)
+                .output()
+                .expect("failed to run arukellt");
+
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            if stdout.as_ref() == expected {
+                FixtureOutcome::Pass
+            } else {
+                FixtureOutcome::Fail(format!(
+                    "FAIL [t3-run] {}\n  expected: {:?}\n  got:      {:?}",
+                    name,
+                    expected.lines().next().unwrap_or(""),
+                    stdout.lines().next().unwrap_or("")
+                ))
+            }
+        }
         "t3-compile" => {
             let output = Command::new(bin)
                 .arg("compile")
@@ -286,8 +314,7 @@ fn run_fixture_entry(bin: &Path, fixture_dir: &Path, entry: &ManifestEntry) -> F
             let stdout = String::from_utf8_lossy(&output.stdout);
 
             if !output.status.success()
-                && (stderr.contains(first_line.as_str())
-                    || stdout.contains(first_line.as_str()))
+                && (stderr.contains(first_line.as_str()) || stdout.contains(first_line.as_str()))
             {
                 FixtureOutcome::Pass
             } else if output.status.success() {
@@ -396,14 +423,16 @@ fn fixture_harness() {
             let res_tx = res_tx.clone();
             let bin = &bin;
             let fixture_dir = &fixture_dir;
-            scope.spawn(move || loop {
-                let task = task_rx.lock().unwrap().recv();
-                match task {
-                    Err(_) => break,
-                    Ok((idx, kind, path)) => {
-                        let entry = ManifestEntry { kind, path };
-                        let outcome = run_fixture_entry(bin, fixture_dir, &entry);
-                        res_tx.send((idx, outcome)).unwrap();
+            scope.spawn(move || {
+                loop {
+                    let task = task_rx.lock().unwrap().recv();
+                    match task {
+                        Err(_) => break,
+                        Ok((idx, kind, path)) => {
+                            let entry = ManifestEntry { kind, path };
+                            let outcome = run_fixture_entry(bin, fixture_dir, &entry);
+                            res_tx.send((idx, outcome)).unwrap();
+                        }
                     }
                 }
             });
