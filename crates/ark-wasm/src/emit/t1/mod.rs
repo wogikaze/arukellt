@@ -142,7 +142,7 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_contains" => "contains",
         "__intrinsic_char_at" => "char_at",
         "__intrinsic_substring" => "substring",
-        "__intrinsic_replace" => "__intrinsic_replace",
+        "__intrinsic_replace" => "replace",
         "__intrinsic_fs_read_file" => "fs_read_file",
         "__intrinsic_fs_write_file" => "fs_write_file",
         "__intrinsic_clock_now" => "clock_now",

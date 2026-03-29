@@ -74,7 +74,9 @@ impl EmitCtx {
                 self.emit_unaryop(f, op, inner);
             }
             Operand::Call(name, args) => {
-                let name = normalize_intrinsic_name(name.as_str());
+                let original_name = name.as_str();
+                let lookup_name = original_name.rsplit("::").next().unwrap_or(original_name);
+                let name = normalize_intrinsic_name(lookup_name);
                 match name {
                     "to_string" => {
                         // Polymorphic to_string: dispatch based on argument type
@@ -4591,7 +4593,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Store(ma));
-                        f.instruction(&Instruction::Br(5)); // continue loop_outer
+                        f.instruction(&Instruction::Br(3)); // continue loop_outer (If=0, loop_match=1, block_match_exit=2, loop_outer=3)
                         f.instruction(&Instruction::End); // end if j>=from_len (match found)
                         // if i+j >= s_len or s[i+j] != from[j]: break (no match)
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
@@ -5563,7 +5565,12 @@ impl EmitCtx {
                     }
                     other => {
                         // Type-aware argument emission for user functions
-                        let param_types = self.fn_param_types.get(other).cloned();
+                        let lookup_name = other.rsplit("::").next().unwrap_or(other);
+                        let param_types = self
+                            .fn_param_types
+                            .get(other)
+                            .or_else(|| self.fn_param_types.get(lookup_name))
+                            .cloned();
                         for (i, a) in args.iter().enumerate() {
                             let is_i64_param = param_types
                                 .as_ref()
@@ -5581,7 +5588,10 @@ impl EmitCtx {
                                 self.emit_operand(f, a);
                             }
                         }
-                        if let Some(idx) = self.resolve_fn(other) {
+                        if let Some(idx) = self
+                            .resolve_fn(other)
+                            .or_else(|| self.resolve_fn(lookup_name))
+                        {
                             f.instruction(&Instruction::Call(idx));
                         } else {
                             f.instruction(&Instruction::I32Const(0));
@@ -5974,7 +5984,10 @@ impl EmitCtx {
             }
             Operand::FnRef(name) => {
                 // Push the function's table index (== function index)
-                if let Some(idx) = self.resolve_fn(name) {
+                if let Some(idx) = self
+                    .resolve_fn(name)
+                    .or_else(|| self.resolve_fn(name.rsplit("::").next().unwrap_or(name)))
+                {
                     f.instruction(&Instruction::I32Const(idx as i32));
                 } else {
                     f.instruction(&Instruction::I32Const(0));
@@ -6217,11 +6230,13 @@ impl EmitCtx {
             Operand::UnaryOp(_, inner) => self.is_f64_operand(inner),
             Operand::Call(name, _) => {
                 let normalized = normalize_intrinsic_name(name.as_str());
+                let lookup_name = name.rsplit("::").next().unwrap_or(name.as_str());
                 if matches!(normalized, "sqrt") {
                     return true;
                 }
                 self.fn_return_types
                     .get(normalized)
+                    .or_else(|| self.fn_return_types.get(lookup_name))
                     .is_some_and(|t| matches!(t, ark_typecheck::types::Type::F64))
             }
             Operand::IfExpr {
