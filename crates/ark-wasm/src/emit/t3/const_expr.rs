@@ -12,44 +12,32 @@ use wasm_encoder::ConstExpr;
 
 /// Build an `i32.add` constant expression: `(i32.add (i32.const a) (i32.const b))`.
 pub fn i32_add(a: i32, b: i32) -> ConstExpr {
-    ConstExpr::i32_const(a)
-        .with_i32_const(b)
-        .with_i32_add()
+    ConstExpr::i32_const(a).with_i32_const(b).with_i32_add()
 }
 
 /// Build an `i32.sub` constant expression: `(i32.sub (i32.const a) (i32.const b))`.
 pub fn i32_sub(a: i32, b: i32) -> ConstExpr {
-    ConstExpr::i32_const(a)
-        .with_i32_const(b)
-        .with_i32_sub()
+    ConstExpr::i32_const(a).with_i32_const(b).with_i32_sub()
 }
 
 /// Build an `i32.mul` constant expression: `(i32.mul (i32.const a) (i32.const b))`.
 pub fn i32_mul(a: i32, b: i32) -> ConstExpr {
-    ConstExpr::i32_const(a)
-        .with_i32_const(b)
-        .with_i32_mul()
+    ConstExpr::i32_const(a).with_i32_const(b).with_i32_mul()
 }
 
 /// Build an `i64.add` constant expression: `(i64.add (i64.const a) (i64.const b))`.
 pub fn i64_add(a: i64, b: i64) -> ConstExpr {
-    ConstExpr::i64_const(a)
-        .with_i64_const(b)
-        .with_i64_add()
+    ConstExpr::i64_const(a).with_i64_const(b).with_i64_add()
 }
 
 /// Build an `i64.sub` constant expression: `(i64.sub (i64.const a) (i64.const b))`.
 pub fn i64_sub(a: i64, b: i64) -> ConstExpr {
-    ConstExpr::i64_const(a)
-        .with_i64_const(b)
-        .with_i64_sub()
+    ConstExpr::i64_const(a).with_i64_const(b).with_i64_sub()
 }
 
 /// Build an `i64.mul` constant expression: `(i64.mul (i64.const a) (i64.const b))`.
 pub fn i64_mul(a: i64, b: i64) -> ConstExpr {
-    ConstExpr::i64_const(a)
-        .with_i64_const(b)
-        .with_i64_mul()
+    ConstExpr::i64_const(a).with_i64_const(b).with_i64_mul()
 }
 
 /// Build a heap-pointer initializer.

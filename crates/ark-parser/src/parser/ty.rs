@@ -5,7 +5,7 @@ use crate::ast::*;
 
 use super::Parser;
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     pub(crate) fn parse_type_expr(&mut self) -> TypeExpr {
         let start = self.span();
         match self.peek().clone() {

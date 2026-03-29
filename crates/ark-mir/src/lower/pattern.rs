@@ -282,7 +282,9 @@ impl LowerCtx {
                             .or_else(|| {
                                 self.fn_return_types.get(name).and_then(|ret_ty| {
                                     if let ast::TypeExpr::Named { name, .. } = ret_ty {
-                                        self.enum_defs.contains_key(name.as_str()).then(|| name.clone())
+                                        self.enum_defs
+                                            .contains_key(name.as_str())
+                                            .then(|| name.clone())
                                     } else {
                                         None
                                     }

@@ -123,11 +123,7 @@ fn is_i32_range_constant(rvalue: &Rvalue) -> bool {
 // ── Phase 2 helpers ─────────────────────────────────────────────────────────
 
 /// Exclude candidates that appear in unsafe read positions.
-fn exclude_unsafe_in_stmts(
-    stmts: &[MirStmt],
-    candidates: &mut HashSet<u32>,
-    func: &MirFunction,
-) {
+fn exclude_unsafe_in_stmts(stmts: &[MirStmt], candidates: &mut HashSet<u32>, func: &MirFunction) {
     for stmt in stmts {
         match stmt {
             MirStmt::Assign(dest, rvalue) => {
@@ -284,11 +280,7 @@ fn exclude_in_operand(op: &Operand, candidates: &mut HashSet<u32>) {
             exclude_in_operand(object, candidates);
             exclude_in_operand(index, candidates);
         }
-        Operand::LoopExpr {
-            init,
-            body,
-            result,
-        } => {
+        Operand::LoopExpr { init, body, result } => {
             exclude_in_operand(init, candidates);
             exclude_in_nested_stmts(body, candidates);
             exclude_in_operand(result, candidates);
@@ -538,10 +530,7 @@ mod tests {
             ty: Type::I64,
         }];
         let stmts = vec![
-            MirStmt::Assign(
-                Place::Local(LocalId(0)),
-                Rvalue::Use(Operand::ConstI64(5)),
-            ),
+            MirStmt::Assign(Place::Local(LocalId(0)), Rvalue::Use(Operand::ConstI64(5))),
             MirStmt::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
         ];
         let mut func = make_function(locals, stmts);
@@ -557,10 +546,7 @@ mod tests {
             ty: Type::I64,
         }];
         let stmts = vec![
-            MirStmt::Assign(
-                Place::Local(LocalId(0)),
-                Rvalue::Use(Operand::ConstI64(10)),
-            ),
+            MirStmt::Assign(Place::Local(LocalId(0)), Rvalue::Use(Operand::ConstI64(10))),
             MirStmt::Call {
                 dest: None,
                 func: FnId(1),
@@ -587,10 +573,7 @@ mod tests {
             },
         ];
         let stmts = vec![
-            MirStmt::Assign(
-                Place::Local(LocalId(0)),
-                Rvalue::Use(Operand::ConstI64(1)),
-            ),
+            MirStmt::Assign(Place::Local(LocalId(0)), Rvalue::Use(Operand::ConstI64(1))),
             // Assigned from another local — not a constant.
             MirStmt::Assign(
                 Place::Local(LocalId(0)),
@@ -635,9 +618,11 @@ mod tests {
         let mut module = MirModule::default();
         module.functions.push(func);
 
-        let summary =
-            crate::opt::pipeline::run_single_pass(&mut module, crate::opt::OptimizationPass::TypeNarrowing)
-                .unwrap();
+        let summary = crate::opt::pipeline::run_single_pass(
+            &mut module,
+            crate::opt::OptimizationPass::TypeNarrowing,
+        )
+        .unwrap();
         assert_eq!(summary.types_narrowed, 1);
     }
 }

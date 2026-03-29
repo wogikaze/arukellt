@@ -8,7 +8,10 @@ use crate::mir::*;
 
 use super::LowerCtx;
 use super::types::is_string_type;
-use super::{default_function_instance, fallback_block, fallback_function, finalize_function_metadata, infer_fn_id};
+use super::{
+    default_function_instance, fallback_block, fallback_function, finalize_function_metadata,
+    infer_fn_id,
+};
 
 fn lower_binop(op: &ast::BinOp) -> BinOp {
     match op {

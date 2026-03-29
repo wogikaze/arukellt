@@ -216,18 +216,12 @@ pub fn mir_to_wit_world_with_warnings(
                     } else if payloads.len() == 1 {
                         (
                             vname.clone(),
-                            type_name_to_wit_ctx(
-                                &payloads[0],
-                                &special_enums,
-                                &tuple_structs,
-                            ),
+                            type_name_to_wit_ctx(&payloads[0], &special_enums, &tuple_structs),
                         )
                     } else {
                         let elems: Vec<WitType> = payloads
                             .iter()
-                            .filter_map(|t| {
-                                type_name_to_wit_ctx(t, &special_enums, &tuple_structs)
-                            })
+                            .filter_map(|t| type_name_to_wit_ctx(t, &special_enums, &tuple_structs))
                             .collect();
                         if elems.len() == payloads.len() {
                             (vname.clone(), Some(WitType::Tuple(elems)))
@@ -328,8 +322,9 @@ fn type_name_to_wit(name: &str) -> Option<WitType> {
                 .and_then(|s| s.strip_suffix('>'))
             {
                 type_name_to_wit(inner).map(|t| WitType::Option(Box::new(t)))
-            } else if let Some(inner) =
-                other.strip_prefix("Result<").and_then(|s| s.strip_suffix('>'))
+            } else if let Some(inner) = other
+                .strip_prefix("Result<")
+                .and_then(|s| s.strip_suffix('>'))
             {
                 if let Some((ok_str, err_str)) = split_generic_args(inner) {
                     let ok_wt = type_name_to_wit(ok_str).map(Box::new);
@@ -339,11 +334,10 @@ fn type_name_to_wit(name: &str) -> Option<WitType> {
                         err: err_wt,
                     })
                 } else {
-                    type_name_to_wit(inner)
-                        .map(|t| WitType::Result {
-                            ok: Some(Box::new(t)),
-                            err: None,
-                        })
+                    type_name_to_wit(inner).map(|t| WitType::Result {
+                        ok: Some(Box::new(t)),
+                        err: None,
+                    })
                 }
             } else {
                 // Named struct/enum — assume record
@@ -394,9 +388,7 @@ fn is_option_enum(variants: &[(String, Vec<String>)]) -> Option<&str> {
         return None;
     }
     let some_variant = variants.iter().find(|(n, _)| n == "Some");
-    let none_variant = variants
-        .iter()
-        .find(|(n, p)| n == "None" && p.is_empty());
+    let none_variant = variants.iter().find(|(n, p)| n == "None" && p.is_empty());
     match (some_variant, none_variant) {
         (Some((_, payloads)), Some(_)) if payloads.len() == 1 => Some(&payloads[0]),
         _ => None,
@@ -802,10 +794,7 @@ mod tests {
             ],
         );
         let (world, _) = mir_to_wit_world_with_warnings(&mir, "test", None).unwrap();
-        assert!(
-            world.variants.is_empty(),
-            "Result should not be a variant"
-        );
+        assert!(world.variants.is_empty(), "Result should not be a variant");
         assert_eq!(
             world.functions[0].result,
             Some(WitType::Result {
@@ -895,8 +884,7 @@ mod tests {
             m
         };
         let tuple_structs = std::collections::HashMap::new();
-        let resolved =
-            type_name_to_wit_ctx("Option", &special_enums, &tuple_structs);
+        let resolved = type_name_to_wit_ctx("Option", &special_enums, &tuple_structs);
         assert_eq!(resolved, Some(WitType::Option(Box::new(WitType::S32))));
     }
 

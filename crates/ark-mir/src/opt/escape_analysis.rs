@@ -24,7 +24,11 @@ pub fn escape_analysis_pass(func: &mut MirFunction) -> OptimizationSummary {
 
     for block in &func.blocks {
         for stmt in &block.stmts {
-            if let MirStmt::Assign(Place::Local(dest), Rvalue::Use(Operand::StructInit { name: _, fields })) = stmt {
+            if let MirStmt::Assign(
+                Place::Local(dest),
+                Rvalue::Use(Operand::StructInit { name: _, fields }),
+            ) = stmt
+            {
                 candidates.insert(
                     dest.0,
                     StructCandidate {
@@ -412,8 +416,7 @@ fn rewrite_stmt(
             1
         }
         // Replace writes to candidate.field with writes to the scalar local.
-        MirStmt::Assign(Place::Field(inner_place, field_name), rvalue)
-            if matches!(inner_place.as_ref(), Place::Local(id) if non_escaping.contains_key(&id.0)) =>
+        MirStmt::Assign(Place::Field(inner_place, field_name), rvalue) if matches!(inner_place.as_ref(), Place::Local(id) if non_escaping.contains_key(&id.0)) =>
         {
             let local_id = match inner_place.as_ref() {
                 Place::Local(id) => id.0,
@@ -436,12 +439,20 @@ fn rewrite_stmt(
             out.push(MirStmt::Assign(place, rvalue));
             0
         }
-        MirStmt::Call { dest, func: fn_id, args } => {
+        MirStmt::Call {
+            dest,
+            func: fn_id,
+            args,
+        } => {
             let args = args
                 .into_iter()
                 .map(|a| rewrite_operand_deep(a, non_escaping, scalar_map))
                 .collect();
-            out.push(MirStmt::Call { dest, func: fn_id, args });
+            out.push(MirStmt::Call {
+                dest,
+                func: fn_id,
+                args,
+            });
             0
         }
         MirStmt::CallBuiltin { dest, name, args } => {
@@ -592,9 +603,11 @@ fn rewrite_operand_deep(
                 .map(|p| rewrite_operand_deep(p, non_escaping, scalar_map))
                 .collect(),
         },
-        Operand::EnumTag(inner) => {
-            Operand::EnumTag(Box::new(rewrite_operand_deep(*inner, non_escaping, scalar_map)))
-        }
+        Operand::EnumTag(inner) => Operand::EnumTag(Box::new(rewrite_operand_deep(
+            *inner,
+            non_escaping,
+            scalar_map,
+        ))),
         Operand::EnumPayload {
             object,
             index,
@@ -671,8 +684,8 @@ fn rewrite_terminator_operands(
 mod tests {
     use super::*;
     use crate::mir::{
-        BasicBlock, BlockId, FnId, LocalId, MirFunction, MirLocal, MirStmt, Operand, Place,
-        Rvalue, SourceInfo, Terminator,
+        BasicBlock, BlockId, FnId, LocalId, MirFunction, MirLocal, MirStmt, Operand, Place, Rvalue,
+        SourceInfo, Terminator,
     };
     use ark_typecheck::types::Type;
 
@@ -696,9 +709,21 @@ mod tests {
             params: vec![],
             return_ty: Type::Unit,
             locals: vec![
-                MirLocal { id: LocalId(0), name: Some("tmp".into()), ty: Type::I32 },
-                MirLocal { id: LocalId(1), name: Some("a".into()), ty: Type::I32 },
-                MirLocal { id: LocalId(2), name: Some("b".into()), ty: Type::I32 },
+                MirLocal {
+                    id: LocalId(0),
+                    name: Some("tmp".into()),
+                    ty: Type::I32,
+                },
+                MirLocal {
+                    id: LocalId(1),
+                    name: Some("a".into()),
+                    ty: Type::I32,
+                },
+                MirLocal {
+                    id: LocalId(2),
+                    name: Some("b".into()),
+                    ty: Type::I32,
+                },
             ],
             blocks: vec![BasicBlock {
                 id: BlockId(0),

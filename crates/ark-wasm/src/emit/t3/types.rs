@@ -11,7 +11,7 @@ use ark_mir::mir::*;
 use std::collections::{HashMap, HashSet};
 use wasm_encoder::{FieldType, StorageType, ValType};
 
-use super::{immutable_field, mutable_field, ref_nullable, Ctx};
+use super::{Ctx, immutable_field, mutable_field, ref_nullable};
 
 /// Scan all MIR functions and collect `(struct_name, field_name)` pairs that
 /// are mutated after construction (i.e. appear as `Assign(Place::Field(…), …)`).
@@ -221,7 +221,9 @@ fn find_field_mutations_terminator(
     match term {
         Terminator::Return(Some(op)) => find_field_mutations_op(op, local_structs, out),
         Terminator::If { cond, .. } => find_field_mutations_op(cond, local_structs, out),
-        Terminator::Switch { scrutinee, .. } => find_field_mutations_op(scrutinee, local_structs, out),
+        Terminator::Switch { scrutinee, .. } => {
+            find_field_mutations_op(scrutinee, local_structs, out)
+        }
         _ => {}
     }
 }
@@ -416,13 +418,12 @@ impl Ctx {
             // Use self.struct_layouts (which may be reordered by layout_opt)
             // for field iteration order when available.
             let fields_from_layout;
-            let fields: &[(String, String)] =
-                if let Some(l) = self.struct_layouts.get(*sname) {
-                    fields_from_layout = l.clone();
-                    &fields_from_layout
-                } else {
-                    &struct_defs[*sname]
-                };
+            let fields: &[(String, String)] = if let Some(l) = self.struct_layouts.get(*sname) {
+                fields_from_layout = l.clone();
+                &fields_from_layout
+            } else {
+                &struct_defs[*sname]
+            };
             let gc_fields: Vec<FieldType> = fields
                 .iter()
                 .map(|(fname, ty)| {
@@ -496,12 +497,7 @@ impl Ctx {
             order.push(name.to_string());
         }
         for ename in &enum_names {
-            enum_topo_visit(
-                ename,
-                &self.enum_defs,
-                &mut enum_visited,
-                &mut enum_order,
-            );
+            enum_topo_visit(ename, &self.enum_defs, &mut enum_visited, &mut enum_order);
         }
         for ename in &enum_order {
             let variants = self.enum_defs.get(ename).unwrap();

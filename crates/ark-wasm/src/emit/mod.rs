@@ -29,7 +29,12 @@ fn validate_wasm(bytes: &[u8]) -> Result<(), String> {
 /// Emit a Wasm module from MIR for the given target.
 ///
 /// Builds a backend plan first, then routes emission through the plan consumer.
-pub fn emit(mir: &MirModule, sink: &mut DiagnosticSink, target: TargetId, opt_level: u8) -> Vec<u8> {
+pub fn emit(
+    mir: &MirModule,
+    sink: &mut DiagnosticSink,
+    target: TargetId,
+    opt_level: u8,
+) -> Vec<u8> {
     match build_backend_plan(target, target.profile().default_emit_kind) {
         Ok(plan) => emit_with_plan(mir, sink, &plan, opt_level),
         Err(message) => {

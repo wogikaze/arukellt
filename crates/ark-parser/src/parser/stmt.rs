@@ -5,7 +5,7 @@ use crate::ast::*;
 
 use super::Parser;
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     pub(crate) fn parse_block(&mut self) -> Block {
         let start = self.span();
         self.expect(&TokenKind::LBrace);

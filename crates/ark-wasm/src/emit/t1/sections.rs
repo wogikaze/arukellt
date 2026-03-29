@@ -110,8 +110,15 @@ impl EmitCtx {
         let ty_path_open = self.register_type(
             &mut types,
             vec![
-                ValType::I32, ValType::I32, ValType::I32, ValType::I32, ValType::I32,
-                ValType::I64, ValType::I64, ValType::I32, ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I64,
+                ValType::I64,
+                ValType::I32,
+                ValType::I32,
             ],
             vec![ValType::I32],
         );
@@ -274,33 +281,110 @@ impl EmitCtx {
         // Code section
         let mut code = CodeSection::new();
         for &canonical in STDLIB_ORDER {
-            if !needed.contains(&canonical) { continue; }
+            if !needed.contains(&canonical) {
+                continue;
+            }
             match canonical {
-                x if x == FN_I32_TO_STR => { let f = self.build_i32_to_string(); code.function(&f); }
-                x if x == FN_PRINT_I32_LN => { let f = self.build_print_i32_ln(); code.function(&f); }
-                x if x == FN_PRINT_BOOL_LN => { let f = self.build_print_bool_ln(); code.function(&f); }
-                x if x == FN_PRINT_STR_LN => { let f = self.build_print_str_ln(); code.function(&f); }
-                x if x == FN_STR_EQ => { let f = self.build_str_eq(); code.function(&f); }
-                x if x == FN_CONCAT => { let f = self.build_concat(); code.function(&f); }
-                x if x == FN_F64_TO_STR => { let f = self.build_f64_to_string(); code.function(&f); }
-                x if x == FN_I64_TO_STR => { let f = self.build_i64_to_string(); code.function(&f); }
-                x if x == FN_MAP_I32 => { let f = self.build_map_i32(); code.function(&f); }
-                x if x == FN_FILTER_I32 => { let f = self.build_filter_i32(); code.function(&f); }
-                x if x == FN_FOLD_I32 => { let f = self.build_fold_i32(); code.function(&f); }
-                x if x == FN_MAP_OPT_I32 => { let f = self.build_map_option_i32(); code.function(&f); }
-                x if x == FN_ANY_I32 => { let f = self.build_any_i32(); code.function(&f); }
-                x if x == FN_FIND_I32 => { let f = self.build_find_i32(); code.function(&f); }
-                x if x == FN_HASHMAP_I32_NEW => { let f = self.build_hashmap_i32_new(); code.function(&f); }
-                x if x == FN_HASHMAP_I32_INSERT => { let f = self.build_hashmap_i32_insert(); code.function(&f); }
-                x if x == FN_HASHMAP_I32_GET => { let f = self.build_hashmap_i32_get(); code.function(&f); }
-                x if x == FN_HASHMAP_I32_CONTAINS => { let f = self.build_hashmap_i32_contains(); code.function(&f); }
-                x if x == FN_HASHMAP_I32_LEN => { let f = self.build_hashmap_i32_len(); code.function(&f); }
-                x if x == FN_MAP_I64 => { let f = self.build_map_i64(); code.function(&f); }
-                x if x == FN_FILTER_I64 => { let f = self.build_filter_i64(); code.function(&f); }
-                x if x == FN_FOLD_I64 => { let f = self.build_fold_i64(); code.function(&f); }
-                x if x == FN_MAP_F64 => { let f = self.build_map_f64(); code.function(&f); }
-                x if x == FN_FILTER_F64 => { let f = self.build_filter_f64(); code.function(&f); }
-                x if x == FN_GET_BYTE => { let f = self.build_get_byte(); code.function(&f); }
+                x if x == FN_I32_TO_STR => {
+                    let f = self.build_i32_to_string();
+                    code.function(&f);
+                }
+                x if x == FN_PRINT_I32_LN => {
+                    let f = self.build_print_i32_ln();
+                    code.function(&f);
+                }
+                x if x == FN_PRINT_BOOL_LN => {
+                    let f = self.build_print_bool_ln();
+                    code.function(&f);
+                }
+                x if x == FN_PRINT_STR_LN => {
+                    let f = self.build_print_str_ln();
+                    code.function(&f);
+                }
+                x if x == FN_STR_EQ => {
+                    let f = self.build_str_eq();
+                    code.function(&f);
+                }
+                x if x == FN_CONCAT => {
+                    let f = self.build_concat();
+                    code.function(&f);
+                }
+                x if x == FN_F64_TO_STR => {
+                    let f = self.build_f64_to_string();
+                    code.function(&f);
+                }
+                x if x == FN_I64_TO_STR => {
+                    let f = self.build_i64_to_string();
+                    code.function(&f);
+                }
+                x if x == FN_MAP_I32 => {
+                    let f = self.build_map_i32();
+                    code.function(&f);
+                }
+                x if x == FN_FILTER_I32 => {
+                    let f = self.build_filter_i32();
+                    code.function(&f);
+                }
+                x if x == FN_FOLD_I32 => {
+                    let f = self.build_fold_i32();
+                    code.function(&f);
+                }
+                x if x == FN_MAP_OPT_I32 => {
+                    let f = self.build_map_option_i32();
+                    code.function(&f);
+                }
+                x if x == FN_ANY_I32 => {
+                    let f = self.build_any_i32();
+                    code.function(&f);
+                }
+                x if x == FN_FIND_I32 => {
+                    let f = self.build_find_i32();
+                    code.function(&f);
+                }
+                x if x == FN_HASHMAP_I32_NEW => {
+                    let f = self.build_hashmap_i32_new();
+                    code.function(&f);
+                }
+                x if x == FN_HASHMAP_I32_INSERT => {
+                    let f = self.build_hashmap_i32_insert();
+                    code.function(&f);
+                }
+                x if x == FN_HASHMAP_I32_GET => {
+                    let f = self.build_hashmap_i32_get();
+                    code.function(&f);
+                }
+                x if x == FN_HASHMAP_I32_CONTAINS => {
+                    let f = self.build_hashmap_i32_contains();
+                    code.function(&f);
+                }
+                x if x == FN_HASHMAP_I32_LEN => {
+                    let f = self.build_hashmap_i32_len();
+                    code.function(&f);
+                }
+                x if x == FN_MAP_I64 => {
+                    let f = self.build_map_i64();
+                    code.function(&f);
+                }
+                x if x == FN_FILTER_I64 => {
+                    let f = self.build_filter_i64();
+                    code.function(&f);
+                }
+                x if x == FN_FOLD_I64 => {
+                    let f = self.build_fold_i64();
+                    code.function(&f);
+                }
+                x if x == FN_MAP_F64 => {
+                    let f = self.build_map_f64();
+                    code.function(&f);
+                }
+                x if x == FN_FILTER_F64 => {
+                    let f = self.build_filter_f64();
+                    code.function(&f);
+                }
+                x if x == FN_GET_BYTE => {
+                    let f = self.build_get_byte();
+                    code.function(&f);
+                }
                 _ => {}
             }
         }
@@ -351,5 +435,4 @@ impl EmitCtx {
 
         module.finish()
     }
-
 }

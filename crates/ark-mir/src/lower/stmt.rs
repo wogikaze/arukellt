@@ -172,9 +172,7 @@ impl LowerCtx {
                 if !self.string_locals.contains(&local_id.0) && self.is_string_operand_mir(&op) {
                     self.string_locals.insert(local_id.0);
                 }
-                if !self.char_locals.contains(&local_id.0)
-                    && matches!(op, Operand::ConstChar(_))
-                {
+                if !self.char_locals.contains(&local_id.0) && matches!(op, Operand::ConstChar(_)) {
                     self.char_locals.insert(local_id.0);
                 }
                 // Infer struct type from StructInit initializer when there's no type annotation

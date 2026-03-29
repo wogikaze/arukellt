@@ -81,8 +81,8 @@ mod tests {
     #[test]
     fn reserved_keywords() {
         let reserved = [
-            "async", "await", "dyn", "where", "type", "const", "unsafe", "extern", "mod",
-            "super", "Self",
+            "async", "await", "dyn", "where", "type", "const", "unsafe", "extern", "mod", "super",
+            "Self",
         ];
         for kw in reserved {
             assert_eq!(

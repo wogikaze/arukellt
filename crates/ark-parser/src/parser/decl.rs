@@ -5,7 +5,7 @@ use crate::ast::*;
 
 use super::Parser;
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     pub(crate) fn parse_import(&mut self) -> Import {
         let start = self.span();
         self.expect(&TokenKind::Import);
@@ -331,7 +331,9 @@ impl<'a> Parser<'a> {
                 });
             } else {
                 if !method_docs.is_empty() {
-                    self.emit_doc_comment_error("doc comments inside traits must attach to methods");
+                    self.emit_doc_comment_error(
+                        "doc comments inside traits must attach to methods",
+                    );
                 }
                 // Skip unexpected tokens inside trait
                 self.advance();
@@ -393,7 +395,9 @@ impl<'a> Parser<'a> {
                 });
             } else {
                 if !method_docs.is_empty() {
-                    self.emit_doc_comment_error("doc comments inside impl blocks must attach to methods");
+                    self.emit_doc_comment_error(
+                        "doc comments inside impl blocks must attach to methods",
+                    );
                 }
                 self.advance();
             }

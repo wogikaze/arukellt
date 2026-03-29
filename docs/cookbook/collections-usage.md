@@ -34,7 +34,7 @@ let mut j = 0
 while j < nk {
     let k = get(keys, j)
     let v = unwrap(hashmap_get(counts, k))
-    println(concat(k, concat(": ", i32_to_string(v))))
+    println(concat(k, concat(": ", to_string(v))))
     j = j + 1
 }
 // apple: 3, banana: 2, cherry: 1
@@ -55,7 +55,7 @@ register("alice", 1)
 register("bob", 2)
 
 let id = unwrap(hashmap_get(name_to_id, "alice"))
-println(i32_to_string(id)) // 1
+println(to_string(id)) // 1
 
 let name = unwrap(hashmap_get(id_to_name, 2))
 println(name) // "bob"
@@ -78,8 +78,8 @@ assert(contains_i32(v, 3))
 assert(contains_i32(v, 9) == false)
 
 // Sum and product
-println(i32_to_string(sum_i32(v)))     // 19
-println(i32_to_string(product_i32(v))) // 240
+println(to_string(sum_i32(v)))     // 19
+println(to_string(product_i32(v))) // 240
 ```
 
 ## Vec — Functional Transforms
@@ -98,7 +98,7 @@ let evens = filter_i32(nums, fn(x: i32) -> bool { x % 2 == 0 })
 
 // Sum with fold
 let total = fold_i32_i32(nums, 0, fn(acc: i32, x: i32) -> i32 { acc + x })
-println(i32_to_string(total)) // 15
+println(to_string(total)) // 15
 
 // Check if any element matches
 let has_big = any_i32(nums, fn(x: i32) -> bool { x > 3 })
@@ -115,7 +115,7 @@ push(stack, 30)
 
 pop(stack)  // removes 30
 let top = get(stack, len(stack) - 1)
-println(i32_to_string(top)) // 20
+println(to_string(top)) // 20
 ```
 
 ## Deque — BFS Pattern (v3)
@@ -127,7 +127,7 @@ deque_push_back(queue, 0)  // start node
 
 while deque_is_empty(queue) == false {
     let node = unwrap(deque_pop_front(queue))
-    println(concat("visiting: ", i32_to_string(node)))
+    println(concat("visiting: ", to_string(node)))
     // push neighbors...
     if node < 3 {
         deque_push_back(queue, node + 1)

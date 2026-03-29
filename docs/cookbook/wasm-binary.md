@@ -128,7 +128,7 @@ let mut j = 0
 while j < n {
     let ty = get(types, j)
     let name = wit::wit_type_name(ty)
-    println(concat(i32_to_string(ty), concat(": ", name)))
+    println(concat(to_string(ty), concat(": ", name)))
     j = j + 1
 }
 // 1: bool, 2: u8, ..., 13: string
@@ -141,6 +141,6 @@ use std::component
 
 let abi = component::canonical_abi_version()
 let ver = component::component_model_version()
-println(concat("ABI v", i32_to_string(abi)))  // "ABI v1"
+println(concat("ABI v", to_string(abi)))  // "ABI v1"
 println(concat("CM ", ver))                     // "CM 0.2.0"
 ```

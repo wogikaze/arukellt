@@ -26,7 +26,7 @@ assert_eq_i64(1000000000_i64, 1000000000_i64)
 
 // String equality
 assert_eq_str("hello", "hello")
-assert_eq_str(i32_to_string(42), "42")
+assert_eq_str(to_string(42), "42")
 ```
 
 ## Testing Option Values
@@ -67,7 +67,7 @@ assert(text::starts_with("hello", "hel"))
 // Test parse round-trip
 let n = unwrap(parse_i32("42"))
 assert_eq(n, 42)
-assert_eq_str(i32_to_string(n), "42")
+assert_eq_str(to_string(n), "42")
 ```
 
 ## Testing Collections

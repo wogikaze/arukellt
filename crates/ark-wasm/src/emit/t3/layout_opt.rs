@@ -51,7 +51,10 @@ pub(super) fn compute_field_reorder(
         indexed.sort_by(|a, b| b.1.cmp(&a.1));
 
         // Check if the sort actually changed anything
-        let is_identity = indexed.iter().enumerate().all(|(new, (old, _))| new == *old);
+        let is_identity = indexed
+            .iter()
+            .enumerate()
+            .all(|(new, (old, _))| new == *old);
         if is_identity {
             continue;
         }
@@ -260,9 +263,7 @@ fn count_place(
             // Resolve struct name from the inner place's local
             if let Place::Local(id) = inner.as_ref() {
                 if let Some(sname) = struct_locals.get(&id.0) {
-                    *freq
-                        .entry((sname.clone(), field_name.clone()))
-                        .or_insert(0) += 1;
+                    *freq.entry((sname.clone(), field_name.clone())).or_insert(0) += 1;
                 }
             }
             count_place(freq, inner, struct_locals);

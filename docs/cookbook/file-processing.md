@@ -31,7 +31,7 @@ match result {
         while i < n {
             let line = get(lines, i)
             if text::is_empty(line) == false {
-                stdio::println(concat("line ", concat(i32_to_string(i), concat(": ", line))))
+                stdio::println(concat("line ", concat(to_string(i), concat(": ", line))))
             }
             i = i + 1
         }

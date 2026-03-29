@@ -128,7 +128,19 @@ fn main() {
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
-            commands::cmd_compile(file, output, target, emit_kind, wit_files, world, profile_mem, time, opt_level, no_pass, &mir_select);
+            commands::cmd_compile(
+                file,
+                output,
+                target,
+                emit_kind,
+                wit_files,
+                world,
+                profile_mem,
+                time,
+                opt_level,
+                no_pass,
+                &mir_select,
+            );
         }
         Commands::Run {
             file,

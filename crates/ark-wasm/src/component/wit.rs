@@ -93,18 +93,12 @@ pub fn parse_world_spec(spec: &str) -> Option<WitWorldSpec> {
                 "wasi:clocks/wall-clock@0.2.0".to_string(),
             ],
             use_exports: vec![],
-            required_exports: vec![
-                ("wasi:cli/run/run".to_string(), "run".to_string()),
-            ],
+            required_exports: vec![("wasi:cli/run/run".to_string(), "run".to_string())],
         }),
         "wasi:http/proxy" => Some(WitWorldSpec {
             world_name: "proxy".to_string(),
-            use_imports: vec![
-                "wasi:http/types@0.2.0".to_string(),
-            ],
-            use_exports: vec![
-                "wasi:http/incoming-handler@0.2.0".to_string(),
-            ],
+            use_imports: vec!["wasi:http/types@0.2.0".to_string()],
+            use_exports: vec!["wasi:http/incoming-handler@0.2.0".to_string()],
             required_exports: vec![],
         }),
         _ => None,
@@ -508,7 +502,11 @@ mod tests {
         let spec = parse_world_spec("wasi:http/proxy").unwrap();
         assert_eq!(spec.world_name, "proxy");
         assert!(spec.use_imports.iter().any(|s| s.contains("http/types")));
-        assert!(spec.use_exports.iter().any(|s| s.contains("incoming-handler")));
+        assert!(
+            spec.use_exports
+                .iter()
+                .any(|s| s.contains("incoming-handler"))
+        );
     }
 
     #[test]

@@ -1,5 +1,5 @@
-use crate::mir::{BasicBlock, BlockId, BranchHint, MirFunction, MirStmt, Operand, Terminator};
 use super::OptimizationSummary;
+use crate::mir::{BasicBlock, BlockId, BranchHint, MirFunction, MirStmt, Operand, Terminator};
 
 /// Infer branch hints for `Terminator::If` nodes.
 ///

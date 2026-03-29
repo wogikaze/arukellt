@@ -5,7 +5,7 @@ use crate::ast::*;
 
 use super::Parser;
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     /// Parse a pattern with optional or-alternatives: `A | B | C`
     pub(crate) fn parse_pattern_with_or(&mut self) -> Pattern {
         let start = self.span();

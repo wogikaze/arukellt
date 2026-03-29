@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use crate::codes::{DiagnosticCode, DIAGNOSTIC_DUMP_ENV, PHASE_DUMP_ENV};
+use crate::codes::{DIAGNOSTIC_DUMP_ENV, DiagnosticCode, PHASE_DUMP_ENV};
 use crate::render::render_structured_snapshots;
 use crate::sink::{Diagnostic, DiagnosticPhase, SourceMap};
 

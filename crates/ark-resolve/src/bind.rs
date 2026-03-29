@@ -38,11 +38,10 @@ fn bind_module_impl(
                 if symbols.lookup_local(global_scope, &f.name).is_some() {
                     if !skip_duplicates {
                         sink.emit(
-                            Diagnostic::new(DiagnosticCode::E0101)
-                                .with_label(
-                                    f.span,
-                                    format!("duplicate definition of `{}`", f.name),
-                                ),
+                            Diagnostic::new(DiagnosticCode::E0101).with_label(
+                                f.span,
+                                format!("duplicate definition of `{}`", f.name),
+                            ),
                         );
                     }
                 } else {
@@ -61,11 +60,10 @@ fn bind_module_impl(
                 if symbols.lookup_local(global_scope, &s.name).is_some() {
                     if !skip_duplicates {
                         sink.emit(
-                            Diagnostic::new(DiagnosticCode::E0101)
-                                .with_label(
-                                    s.span,
-                                    format!("duplicate definition of `{}`", s.name),
-                                ),
+                            Diagnostic::new(DiagnosticCode::E0101).with_label(
+                                s.span,
+                                format!("duplicate definition of `{}`", s.name),
+                            ),
                         );
                     }
                 } else {
@@ -86,11 +84,10 @@ fn bind_module_impl(
                 if symbols.lookup_local(global_scope, &e.name).is_some() {
                     if !skip_duplicates {
                         sink.emit(
-                            Diagnostic::new(DiagnosticCode::E0101)
-                                .with_label(
-                                    e.span,
-                                    format!("duplicate definition of `{}`", e.name),
-                                ),
+                            Diagnostic::new(DiagnosticCode::E0101).with_label(
+                                e.span,
+                                format!("duplicate definition of `{}`", e.name),
+                            ),
                         );
                     }
                 } else {
