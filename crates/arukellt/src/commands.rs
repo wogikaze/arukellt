@@ -17,6 +17,7 @@ pub(crate) fn cmd_compile(
     emit_kind: EmitKind,
     wit_files: Vec<PathBuf>,
     world: Option<String>,
+    p2_native: bool,
     profile_mem: bool,
     time: bool,
     opt_level_raw: u8,
@@ -67,6 +68,18 @@ pub(crate) fn cmd_compile(
     }
     let world_spec = world.as_deref();
 
+    // Validate --p2-native flag usage
+    if p2_native && target != TargetId::Wasm32WasiP2 {
+        eprintln!(
+            "error: --p2-native requires --target wasm32-wasi-p2 (current target: {})",
+            target
+        );
+        process::exit(1);
+    }
+    if p2_native && emit_kind != EmitKind::Component && emit_kind != EmitKind::All {
+        eprintln!("warning: --p2-native only affects --emit component or --emit all");
+    }
+
     let opt_level = match OptLevel::from_u8(opt_level_raw) {
         Ok(level) => level,
         Err(e) => {
@@ -110,6 +123,7 @@ pub(crate) fn cmd_compile(
         session.timing_enabled = time;
         session.opt_level = opt_level;
         session.disabled_passes = no_pass.clone();
+        session.p2_native = p2_native;
         match session.compile_component_with_world(&file, target, world_spec) {
             Ok(component) => {
                 std::fs::write(&component_output, &component).unwrap_or_else(|e| {
@@ -191,6 +205,7 @@ pub(crate) fn cmd_compile(
                 }
                 // Also generate component
                 let mut comp_session = Session::new();
+                comp_session.p2_native = p2_native;
                 match comp_session.compile_component_with_world(&file, target, world_spec) {
                     Ok(component) => {
                         let comp_output = file.with_extension("component.wasm");

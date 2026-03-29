@@ -8,8 +8,14 @@ use std::process::Command;
 /// Wrap a core Wasm module into a Component Model binary.
 ///
 /// Invokes `wasm-tools component new` with the core module and WIT text.
+/// When `p2_native` is true the WASI Preview 1 adapter is skipped —
+/// the core module is assumed to import P2-native interfaces directly.
 /// Returns the component binary bytes on success.
-pub fn wrap_core_to_component(core_wasm: &[u8], wit_text: &str) -> Result<Vec<u8>, WrapError> {
+pub fn wrap_core_to_component(
+    core_wasm: &[u8],
+    wit_text: &str,
+    p2_native: bool,
+) -> Result<Vec<u8>, WrapError> {
     // Check if wasm-tools is available
     let wasm_tools = find_wasm_tools()?;
 
@@ -63,8 +69,8 @@ pub fn wrap_core_to_component(core_wasm: &[u8], wit_text: &str) -> Result<Vec<u8
         out_path.to_str().unwrap(),
     ]);
 
-    // Automatically provide WASI adapter if available
-    if let Some(adapter_path) = find_wasi_adapter() {
+    // Automatically provide WASI adapter if available (skipped in P2-native mode)
+    if !p2_native && let Some(adapter_path) = find_wasi_adapter() {
         cmd.args([
             "--adapt",
             &format!("wasi_snapshot_preview1={}", adapter_path),

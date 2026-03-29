@@ -55,6 +55,9 @@ enum Commands {
         /// WASI world to target (e.g., wasi:cli/command, wasi:http/proxy)
         #[arg(long)]
         world: Option<String>,
+        /// Generate P2-native component (skip P1 adapter, ~100KB smaller)
+        #[arg(long)]
+        p2_native: bool,
     },
     /// Compile and run an .ark file
     Run {
@@ -125,6 +128,7 @@ fn main() {
             no_pass,
             mir_select,
             world,
+            p2_native,
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
@@ -135,6 +139,7 @@ fn main() {
                 emit_kind,
                 wit_files,
                 world,
+                p2_native,
                 profile_mem,
                 time,
                 opt_level,

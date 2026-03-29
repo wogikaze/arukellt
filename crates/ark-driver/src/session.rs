@@ -149,6 +149,8 @@ pub struct Session {
     pub last_timing: Option<CompileTiming>,
     pub opt_level: OptLevel,
     pub disabled_passes: Vec<String>,
+    /// When true, component wrapping skips the P1 adapter (~100 KB savings).
+    pub p2_native: bool,
 }
 
 impl Default for Session {
@@ -214,6 +216,7 @@ impl Session {
             last_timing: None,
             opt_level: OptLevel::O1,
             disabled_passes: Vec::new(),
+            p2_native: false,
         }
     }
 
@@ -819,9 +822,12 @@ impl Session {
         }
 
         // Step 3: Wrap into component via wasm-tools
-        let component_bytes =
-            ark_wasm::component::wrap::wrap_core_to_component(&compiled.wasm, &wit_text)
-                .map_err(|e| format!("{}", e))?;
+        let component_bytes = ark_wasm::component::wrap::wrap_core_to_component(
+            &compiled.wasm,
+            &wit_text,
+            self.p2_native,
+        )
+        .map_err(|e| format!("{}", e))?;
 
         Ok(component_bytes)
     }
