@@ -12,7 +12,7 @@
 //! - `textDocument/hover` — shows type-aware information for
 //!   identifiers (function signatures, struct fields, enum variants)
 //! - `textDocument/completion` — suggests local variables, functions,
-//!   and built-in names
+//!   built-in names, and importable module aliases with relevance ordering
 //! - `textDocument/definition` — go-to-definition for functions,
 //!   structs, enums, traits, and let bindings
 //! - `textDocument/references` — find all uses of an identifier

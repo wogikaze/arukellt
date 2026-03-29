@@ -8,7 +8,7 @@ use ark_diagnostics::{DiagnosticSink, Severity};
 use ark_lexer::{Lexer, TokenKind};
 use ark_parser::ast;
 use ark_parser::parse;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;
 
 // Semantic token types registered with the client.
@@ -175,39 +175,234 @@ impl ArukellBackend {
             .collect()
     }
 
-    fn get_completions(source: &str, tokens: &[ark_lexer::Token]) -> Vec<CompletionItem> {
-        let mut items = Vec::new();
+    fn completion_prefix(source: &str, offset: usize) -> String {
+        let capped = offset.min(source.len());
+        let bytes = source.as_bytes();
+        let mut start = capped;
+        while start > 0 {
+            let b = bytes[start - 1];
+            let is_ident = b.is_ascii_alphanumeric() || b == b'_';
+            if !is_ident {
+                break;
+            }
+            start -= 1;
+        }
+        source[start..capped].to_string()
+    }
 
-        // Built-in functions
+    fn already_imported_modules(module: &ast::Module) -> HashSet<String> {
+        module
+            .imports
+            .iter()
+            .map(|import| import.module_name.clone())
+            .collect()
+    }
+
+    fn imported_aliases(module: &ast::Module) -> HashSet<String> {
+        module
+            .imports
+            .iter()
+            .flat_map(|import| {
+                let mut names = vec![import.module_name.clone()];
+                if let Some(alias) = &import.alias {
+                    names.push(alias.clone());
+                }
+                names
+            })
+            .collect()
+    }
+
+    fn expected_type_from_context(source: &str, offset: usize) -> Option<&'static str> {
+        let capped = offset.min(source.len());
+        let before = &source[..capped];
+        if before.ends_with("println(") || before.ends_with("print(") {
+            return Some("String");
+        }
+        if before.ends_with("len(") {
+            return Some("collection");
+        }
+        None
+    }
+
+    fn push_completion(
+        items: &mut Vec<CompletionItem>,
+        seen: &mut HashSet<String>,
+        item: CompletionItem,
+    ) {
+        if seen.insert(item.label.clone()) {
+            items.push(item);
+        }
+    }
+
+    fn get_completions(
+        source: &str,
+        tokens: &[ark_lexer::Token],
+        module: &ast::Module,
+        offset: usize,
+    ) -> Vec<CompletionItem> {
+        let mut items = Vec::new();
+        let mut seen = HashSet::new();
+        let prefix = Self::completion_prefix(source, offset);
+        let imported_modules = Self::already_imported_modules(module);
+        let imported_aliases = Self::imported_aliases(module);
+        let expected_type = Self::expected_type_from_context(source, offset);
+
+        // Built-in functions with simple relevance ordering.
         let builtins = [
-            ("println", "Print a value followed by newline"),
-            ("print", "Print a value"),
-            ("len", "Get length of a Vec or String"),
-            ("push", "Push element to Vec"),
-            ("get", "Get element from Vec by index"),
-            ("set", "Set element in Vec at index"),
-            ("pop", "Remove last element from Vec"),
-            ("to_string", "Convert a value to String"),
-            ("i32_to_string", "Convert i32 to String"),
-            ("i64_to_string", "Convert i64 to String"),
-            ("f64_to_string", "Convert f64 to String"),
-            ("bool_to_string", "Convert bool to String"),
-            ("concat", "Concatenate two strings"),
-            ("Vec_new_i32", "Create new Vec<i32>"),
-            ("Vec_new_String", "Create new Vec<String>"),
-            ("sort_i32", "Sort Vec<i32> in place"),
-            ("assert", "Assert a boolean condition"),
-            ("assert_eq", "Assert two values are equal"),
-            ("parse_i32", "Parse string to i32"),
+            (
+                "println",
+                "Print a value followed by newline",
+                Some("String"),
+                "010",
+            ),
+            ("print", "Print a value", Some("String"), "011"),
+            (
+                "len",
+                "Get length of a Vec or String",
+                Some("collection"),
+                "020",
+            ),
+            ("push", "Push element to Vec", Some("collection"), "030"),
+            (
+                "get",
+                "Get element from Vec by index",
+                Some("collection"),
+                "031",
+            ),
+            (
+                "set",
+                "Set element in Vec at index",
+                Some("collection"),
+                "032",
+            ),
+            (
+                "pop",
+                "Remove last element from Vec",
+                Some("collection"),
+                "033",
+            ),
+            (
+                "to_string",
+                "Convert a value to String",
+                Some("String"),
+                "012",
+            ),
+            (
+                "i32_to_string",
+                "Convert i32 to String",
+                Some("String"),
+                "013",
+            ),
+            (
+                "i64_to_string",
+                "Convert i64 to String",
+                Some("String"),
+                "014",
+            ),
+            (
+                "f64_to_string",
+                "Convert f64 to String",
+                Some("String"),
+                "015",
+            ),
+            (
+                "bool_to_string",
+                "Convert bool to String",
+                Some("String"),
+                "016",
+            ),
+            ("concat", "Concatenate two strings", Some("String"), "017"),
+            (
+                "Vec_new_i32",
+                "Create new Vec<i32>",
+                Some("collection"),
+                "040",
+            ),
+            (
+                "Vec_new_String",
+                "Create new Vec<String>",
+                Some("collection"),
+                "041",
+            ),
+            (
+                "sort_i32",
+                "Sort Vec<i32> in place",
+                Some("collection"),
+                "042",
+            ),
+            ("assert", "Assert a boolean condition", None, "050"),
+            ("assert_eq", "Assert two values are equal", None, "051"),
+            ("parse_i32", "Parse string to i32", None, "052"),
         ];
 
-        for (name, detail) in &builtins {
-            items.push(CompletionItem {
-                label: name.to_string(),
-                kind: Some(CompletionItemKind::FUNCTION),
-                detail: Some(detail.to_string()),
-                ..Default::default()
-            });
+        for (name, detail, expected, base_rank) in &builtins {
+            if !prefix.is_empty() && !name.starts_with(&prefix) {
+                continue;
+            }
+            let rank = if expected_type.is_some() && expected_type == *expected {
+                format!("0-{base_rank}")
+            } else {
+                format!("1-{base_rank}")
+            };
+            Self::push_completion(
+                &mut items,
+                &mut seen,
+                CompletionItem {
+                    label: (*name).to_string(),
+                    kind: Some(CompletionItemKind::FUNCTION),
+                    detail: Some((*detail).to_string()),
+                    sort_text: Some(rank),
+                    filter_text: Some((*name).to_string()),
+                    ..Default::default()
+                },
+            );
+        }
+
+        // Importable std/host modules with auto-import hints.
+        let importable_modules = [
+            "std::host::stdio",
+            "std::host::fs",
+            "std::host::env",
+            "std::path",
+            "std::time",
+            "std::test",
+        ];
+        for module_name in &importable_modules {
+            let alias = module_name.rsplit("::").next().unwrap_or(module_name);
+            if !prefix.is_empty()
+                && !alias.starts_with(&prefix)
+                && !module_name.starts_with(&prefix)
+            {
+                continue;
+            }
+            let detail =
+                if imported_modules.contains(*module_name) || imported_aliases.contains(alias) {
+                    format!("module {module_name}")
+                } else {
+                    format!("module {module_name} (auto import candidate)")
+                };
+            let documentation =
+                if imported_modules.contains(*module_name) || imported_aliases.contains(alias) {
+                    None
+                } else {
+                    Some(Documentation::String(format!(
+                        "Add `use {module_name}` to import this module alias."
+                    )))
+                };
+            Self::push_completion(
+                &mut items,
+                &mut seen,
+                CompletionItem {
+                    label: alias.to_string(),
+                    kind: Some(CompletionItemKind::MODULE),
+                    detail: Some(detail),
+                    documentation,
+                    sort_text: Some(format!("2-{alias}")),
+                    filter_text: Some(module_name.to_string()),
+                    insert_text: Some(alias.to_string()),
+                    ..Default::default()
+                },
+            );
         }
 
         // Keywords
@@ -216,11 +411,19 @@ impl ArukellBackend {
             "continue", "true", "false", "struct", "enum", "trait", "impl", "type", "use", "mod",
         ];
         for kw in &keywords {
-            items.push(CompletionItem {
-                label: kw.to_string(),
-                kind: Some(CompletionItemKind::KEYWORD),
-                ..Default::default()
-            });
+            if !prefix.is_empty() && !kw.starts_with(&prefix) {
+                continue;
+            }
+            Self::push_completion(
+                &mut items,
+                &mut seen,
+                CompletionItem {
+                    label: kw.to_string(),
+                    kind: Some(CompletionItemKind::KEYWORD),
+                    sort_text: Some(format!("3-{kw}")),
+                    ..Default::default()
+                },
+            );
         }
 
         // Types
@@ -228,33 +431,48 @@ impl ArukellBackend {
             "i32", "i64", "f32", "f64", "bool", "char", "String", "Vec", "Option", "Result",
         ];
         for ty in &types {
-            items.push(CompletionItem {
-                label: ty.to_string(),
-                kind: Some(CompletionItemKind::CLASS),
-                ..Default::default()
-            });
+            if !prefix.is_empty() && !ty.starts_with(&prefix) {
+                continue;
+            }
+            Self::push_completion(
+                &mut items,
+                &mut seen,
+                CompletionItem {
+                    label: ty.to_string(),
+                    kind: Some(CompletionItemKind::CLASS),
+                    sort_text: Some(format!("4-{ty}")),
+                    ..Default::default()
+                },
+            );
         }
 
-        // Extract identifiers from cached tokens
-        let mut seen = std::collections::HashSet::new();
+        // Extract identifiers from cached tokens.
         for tok in tokens {
             if let ark_lexer::TokenKind::Ident(_) = &tok.kind {
                 let start = tok.span.start as usize;
                 let end = tok.span.end as usize;
                 if end <= source.len() {
                     let name = &source[start..end];
-                    if !seen.contains(name) && !keywords.contains(&name) {
-                        seen.insert(name.to_string());
-                        items.push(CompletionItem {
-                            label: name.to_string(),
-                            kind: Some(CompletionItemKind::VARIABLE),
-                            ..Default::default()
-                        });
+                    if !prefix.is_empty() && !name.starts_with(&prefix) {
+                        continue;
+                    }
+                    if !keywords.contains(&name) {
+                        Self::push_completion(
+                            &mut items,
+                            &mut seen,
+                            CompletionItem {
+                                label: name.to_string(),
+                                kind: Some(CompletionItemKind::VARIABLE),
+                                sort_text: Some(format!("5-{name}")),
+                                ..Default::default()
+                            },
+                        );
                     }
                 }
             }
         }
 
+        items.sort_by(|a, b| a.sort_text.cmp(&b.sort_text).then(a.label.cmp(&b.label)));
         items
     }
 
@@ -851,7 +1069,8 @@ impl LanguageServer for ArukellBackend {
             .entry(uri)
             .or_insert_with(|| Self::analyze_source(&source));
 
-        let items = Self::get_completions(&source, &analysis.tokens);
+        let offset = Self::position_to_offset(&source, params.text_document_position.position);
+        let items = Self::get_completions(&source, &analysis.tokens, &analysis.module, offset);
         Ok(Some(CompletionResponse::Array(items)))
     }
 
@@ -996,4 +1215,68 @@ pub async fn run_lsp() {
 
     let (service, socket) = LspService::new(ArukellBackend::new);
     Server::new(stdin, stdout, socket).serve(service).await;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ark_diagnostics::Span;
+
+    fn empty_module() -> ast::Module {
+        ast::Module {
+            docs: vec![],
+            imports: vec![],
+            items: vec![],
+        }
+    }
+
+    #[test]
+    fn completion_includes_auto_import_candidate_for_stdio() {
+        let source = "std";
+        let tokens = vec![];
+        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len());
+        let stdio = items
+            .iter()
+            .find(|item| item.label == "stdio")
+            .expect("stdio completion");
+        assert_eq!(stdio.kind, Some(CompletionItemKind::MODULE));
+        assert!(
+            stdio
+                .detail
+                .as_deref()
+                .unwrap_or_default()
+                .contains("auto import candidate")
+        );
+    }
+
+    #[test]
+    fn completion_prefers_string_helpers_in_print_context() {
+        let source = "fn main() { println(to_";
+        let tokens = vec![];
+        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len());
+        assert_eq!(
+            items.first().map(|item| item.label.as_str()),
+            Some("to_string")
+        );
+    }
+
+    #[test]
+    fn completion_marks_imported_modules_as_already_imported() {
+        let source = "use std::host::stdio\nfn main() { std";
+        let module = ast::Module {
+            docs: vec![],
+            imports: vec![ast::Import {
+                module_name: "std::host::stdio".to_string(),
+                alias: None,
+                span: Span::new(0, 0, 16),
+            }],
+            items: vec![],
+        };
+        let items = ArukellBackend::get_completions(source, &[], &module, source.len());
+        let stdio = items
+            .iter()
+            .find(|item| item.label == "stdio")
+            .expect("stdio completion");
+        assert_eq!(stdio.detail.as_deref(), Some("module std::host::stdio"));
+    }
 }
