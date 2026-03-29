@@ -12,6 +12,42 @@
 
 import io
 
+fn str_find(s: String, needle: String) -> Option<i32> {
+    let n = len(needle)
+    let m = len(s)
+    let mut i = 0
+    while i + n <= m {
+        if substring(s, i, i + n) == needle {
+            return Some(i)
+        }
+        i = i + 1
+    }
+    None
+}
+
+fn str_char_count(s: String) -> i32 {
+    len(s)
+}
+
+fn trim_start(s: String) -> String {
+    let mut i = 0
+    while i < len(s) && (char_at(s, i) == 32 || char_at(s, i) == 9 || char_at(s, i) == 13) {
+        i = i + 1
+    }
+    substring(s, i, len(s))
+}
+
+fn char_byte_len(c: i32) -> i32 {
+    if c < 128 { 1 }
+    else if c < 224 { 2 }
+    else if c < 240 { 3 }
+    else { 4 }
+}
+
+fn char_at_char_index(s: String, i: i32) -> i32 {
+    char_at(s, i)
+}
+
 // ── Warning codes ────────────────────────────────────────────────────────────
 
 fn RUBY_KATAKANA_HIRAGANA() -> String { "ruby-katakana-hiragana" }
@@ -40,13 +76,23 @@ struct FrontMatterField {
     raw: String,
 }
 
+struct FmBounds {
+    fm_end: i32,
+    content_start: i32,
+}
+
+struct FmResult {
+    fields: Vec<FrontMatterField>,
+    remainder: String,
+}
+
 fn FrontMatterField_new(key: String, raw: String) -> FrontMatterField {
     FrontMatterField { key: key, raw: raw }
 }
 
 // Extract a front matter block from the very start of text.
-// Returns Option<(Vec<FrontMatterField>, String)> where second is remainder.
-fn extract_front_matter(text: String) -> Option<(Vec<FrontMatterField>, String)> {
+// Returns Option<FmResult> where remainder is the content after front matter.
+fn extract_front_matter(text: String) -> Option<FmResult> {
     if !starts_with(text, "---\n") {
         if !starts_with(text, "---\r\n") {
             return None
@@ -59,14 +105,14 @@ fn extract_front_matter(text: String) -> Option<(Vec<FrontMatterField>, String)>
     // Find closing --- line
     let close_pos = str_find(rest, "\n---\n")
     let close = match close_pos {
-        Some(p) => Some((p, p + 5)),
+        Some(p) => Some(FmBounds { fm_end: p, content_start: p + 5 }),
         None => {
             let close2 = str_find(rest, "\n---\r\n")
             match close2 {
-                Some(p) => Some((p, p + 6)),
+                Some(p) => Some(FmBounds { fm_end: p, content_start: p + 6 }),
                 None => {
                     if ends_with(rest, "\n---") {
-                        Some((len(rest) - 4, len(rest)))
+                        Some(FmBounds { fm_end: len(rest) - 4, content_start: len(rest) })
                     } else {
                         None
                     }
@@ -77,10 +123,10 @@ fn extract_front_matter(text: String) -> Option<(Vec<FrontMatterField>, String)>
 
     match close {
         None => None,
-        Some((fm_end, content_start)) => {
-            let fm_str = substring(rest, 0, fm_end)
-            let remainder = if content_start < len(rest) {
-                substring(rest, content_start, len(rest))
+        Some(b) => {
+            let fm_str = substring(rest, 0, b.fm_end)
+            let remainder = if b.content_start < len(rest) {
+                substring(rest, b.content_start, len(rest))
             } else {
                 ""
             }
@@ -107,7 +153,7 @@ fn extract_front_matter(text: String) -> Option<(Vec<FrontMatterField>, String)>
                 }
                 i = i + 1
             }
-            Some((fields, remainder))
+            Some(FmResult { fields: fields, remainder: remainder })
         },
     }
 }
@@ -139,7 +185,7 @@ fn ParseCtx_new(input: String, source: String) -> ParseCtx {
     push(starts, 0)
     let mut i = 0
     while i < len(input) {
-        if char_at(input, i) == '\n' {
+        if char_at(input, i) == 10 {
             push(starts, i + 1)
         }
         i = i + 1
@@ -165,14 +211,14 @@ fn ctx_pos(ctx: ParseCtx, offset: i32) -> Pos {
     let mut hi = len(ctx.line_starts) - 1
     while lo < hi {
         let mid = (lo + hi + 1) / 2
-        if get(ctx.line_starts, mid) <= offset {
+        if get_unchecked(ctx.line_starts, mid) <= offset {
             lo = mid
         } else {
             hi = mid - 1
         }
     }
     let line = lo + 1
-    let line_start = get(ctx.line_starts, lo)
+    let line_start = get_unchecked(ctx.line_starts, lo)
     let col = str_char_count(substring(ctx.input, line_start, offset)) + 1
     Pos { line: line, col: col }
 }
@@ -257,9 +303,9 @@ fn parse_with_source(text: String, source: String) -> ParserResult {
 
     // Strip front matter first
     let content = match extract_front_matter(text) {
-        Some((fields, remainder)) => {
-            push(events, Event::FrontMatter(fields))
-            remainder
+        Some(r) => {
+            push(events, Event::FrontMatter(r.fields))
+            r.remainder
         },
         None => text,
     }
@@ -337,19 +383,18 @@ fn split_source_blocks(input: String) -> Vec<String> {
 
 // ── Unicode helpers ───────────────────────────────────────────────────────────
 
-fn is_kanji(c: char) -> bool {
-    let cp = char_to_i32(c)
-    (cp >= 0x4E00 && cp <= 0x9FFF)
-        || (cp >= 0x3400 && cp <= 0x4DBF)
-        || (cp >= 0x20000 && cp <= 0x2A6DF)
-        || (cp >= 0x2A700 && cp <= 0x2B73F)
-        || (cp >= 0x2B740 && cp <= 0x2B81F)
-        || (cp >= 0x2B820 && cp <= 0x2CEAF)
-        || (cp >= 0x2CEB0 && cp <= 0x2EBEF)
-        || (cp >= 0x30000 && cp <= 0x3134F)
-        || (cp >= 0xF900 && cp <= 0xFAFF)
-        || (cp >= 0x2F800 && cp <= 0x2FA1F)
-        || cp == 0x3005
+fn is_kanji(c: i32) -> bool {
+    (c >= 0x4E00 && c <= 0x9FFF)
+        || (c >= 0x3400 && c <= 0x4DBF)
+        || (c >= 0x20000 && c <= 0x2A6DF)
+        || (c >= 0x2A700 && c <= 0x2B73F)
+        || (c >= 0x2B740 && c <= 0x2B81F)
+        || (c >= 0x2B820 && c <= 0x2CEAF)
+        || (c >= 0x2CEB0 && c <= 0x2EBEF)
+        || (c >= 0x30000 && c <= 0x3134F)
+        || (c >= 0xF900 && c <= 0xFAFF)
+        || (c >= 0x2F800 && c <= 0x2FA1F)
+        || c == 0x3005
 }
 
 fn contains_kanji(s: String) -> bool {
@@ -363,16 +408,14 @@ fn contains_kanji(s: String) -> bool {
     false
 }
 
-fn is_katakana(c: char) -> bool {
-    let cp = char_to_i32(c)
-    (cp >= 0x30A0 && cp <= 0x30FF)
-        || (cp >= 0x31F0 && cp <= 0x31FF)
-        || (cp >= 0xFF65 && cp <= 0xFF9F)
+fn is_katakana(c: i32) -> bool {
+    (c >= 0x30A0 && c <= 0x30FF)
+        || (c >= 0x31F0 && c <= 0x31FF)
+        || (c >= 0xFF65 && c <= 0xFF9F)
 }
 
-fn is_hiragana(c: char) -> bool {
-    let cp = char_to_i32(c)
-    (cp >= 0x3040 && cp <= 0x309F) || cp == 0x30FC
+fn is_hiragana(c: i32) -> bool {
+    (c >= 0x3040 && c <= 0x309F) || c == 0x30FC
 }
 
 fn is_purely_katakana(s: String) -> bool {
@@ -395,12 +438,11 @@ fn is_purely_hiragana(s: String) -> bool {
     true
 }
 
-fn is_kana(c: char) -> bool {
-    let cp = char_to_i32(c)
-    (cp >= 0x3040 && cp <= 0x309F)
-        || (cp >= 0x30A0 && cp <= 0x30FF)
-        || (cp >= 0x31F0 && cp <= 0x31FF)
-        || (cp >= 0xFF65 && cp <= 0xFF9F)
+fn is_kana(c: i32) -> bool {
+    (c >= 0x3040 && c <= 0x309F)
+        || (c >= 0x30A0 && c <= 0x30FF)
+        || (c >= 0x31F0 && c <= 0x31FF)
+        || (c >= 0xFF65 && c <= 0xFF9F)
 }
 
 fn has_kana(s: String) -> bool {
@@ -421,25 +463,24 @@ fn has_kanji(s: String) -> bool {
     false
 }
 
-fn is_kana_or_punct(c: char) -> bool {
-    let cp = char_to_i32(c)
-    (cp >= 0x3040 && cp <= 0x309F)
-        || (cp >= 0x30A0 && cp <= 0x30FF)
-        || (cp >= 0x31F0 && cp <= 0x31FF)
-        || (cp >= 0xFF65 && cp <= 0xFF9F)
-        || (cp >= 0x3000 && cp <= 0x303F)
-        || (cp >= 0xFE30 && cp <= 0xFE4F)
-        || (cp >= 0xFF00 && cp <= 0xFF60)
-        || (cp >= 0xFFE0 && cp <= 0xFFE6)
-        || cp == 0x02CA || cp == 0x02C7 || cp == 0x02CB || cp == 0x02D9
-        || (cp >= 0x31A0 && cp <= 0x31BF)
-        || (cp >= 0x3100 && cp <= 0x312F)
-        || (cp >= 0xAC00 && cp <= 0xD7AF)
-        || (cp >= 0x1100 && cp <= 0x11FF)
-        || (cp >= 0x3130 && cp <= 0x318F)
-        || (cp >= 0x0100 && cp <= 0x024F)
-        || (cp >= 0x1E00 && cp <= 0x1EFF)
-        || cp == 0x20   // space
+fn is_kana_or_punct(c: i32) -> bool {
+    (c >= 0x3040 && c <= 0x309F)
+        || (c >= 0x30A0 && c <= 0x30FF)
+        || (c >= 0x31F0 && c <= 0x31FF)
+        || (c >= 0xFF65 && c <= 0xFF9F)
+        || (c >= 0x3000 && c <= 0x303F)
+        || (c >= 0xFE30 && c <= 0xFE4F)
+        || (c >= 0xFF00 && c <= 0xFF60)
+        || (c >= 0xFFE0 && c <= 0xFFE6)
+        || c == 0x02CA || c == 0x02C7 || c == 0x02CB || c == 0x02D9
+        || (c >= 0x31A0 && c <= 0x31BF)
+        || (c >= 0x3100 && c <= 0x312F)
+        || (c >= 0xAC00 && c <= 0xD7AF)
+        || (c >= 0x1100 && c <= 0x11FF)
+        || (c >= 0x3130 && c <= 0x318F)
+        || (c >= 0x0100 && c <= 0x024F)
+        || (c >= 0x1E00 && c <= 0x1EFF)
+        || c == 0x20   // space
 }
 
 fn is_purely_kana_or_punct(s: String) -> bool {
@@ -475,7 +516,7 @@ fn collect_fn_defs(lines: Vec<String>) -> Vec<FnDef> {
                         let mut already = false
                         let mut j = 0
                         while j < len(defs) {
-                            if get(defs, j).id == id {
+                            if get_unchecked(defs, j).id == id {
                                 already = true
                             }
                             j = j + 1
@@ -499,8 +540,8 @@ fn collect_fn_defs(lines: Vec<String>) -> Vec<FnDef> {
 fn fn_defs_find(defs: Vec<FnDef>, id: String) -> Option<String> {
     let mut i = 0
     while i < len(defs) {
-        if get(defs, i).id == id {
-            return Some(get(defs, i).content)
+        if get_unchecked(defs, i).id == id {
+            return Some(get_unchecked(defs, i).content)
         }
         i = i + 1
     }
@@ -510,7 +551,7 @@ fn fn_defs_find(defs: Vec<FnDef>, id: String) -> Option<String> {
 fn fn_refs_contains(refs: Vec<String>, id: String) -> bool {
     let mut i = 0
     while i < len(refs) {
-        if get(refs, i) == id { return true }
+        if get_unchecked(refs, i) == id { return true }
         i = i + 1
     }
     false
@@ -519,7 +560,7 @@ fn fn_refs_contains(refs: Vec<String>, id: String) -> bool {
 fn fn_refs_position(refs: Vec<String>, id: String) -> Option<i32> {
     let mut i = 0
     while i < len(refs) {
-        if get(refs, i) == id { return Some(i) }
+        if get_unchecked(refs, i) == id { return Some(i) }
         i = i + 1
     }
     None
@@ -644,11 +685,11 @@ fn parse_blocks(
         } else if starts_with(tline, "#") {
             // Heading
             let mut level = 0
-            while level < len(tline) && char_at(tline, level) == '#' {
+            while level < len(tline) && char_at(tline, level) == 35 {
                 level = level + 1
             }
             if level > 0 && level <= 6 {
-                let valid = level == len(tline) || char_at(tline, level) == ' '
+                let valid = level == len(tline) || char_at(tline, level) == 32
                 if valid {
                     if root {
                         close_sections_until(events, section_stack, level)
@@ -668,7 +709,7 @@ fn parse_blocks(
             } else {
                 i = parse_paragraph(lines, i, events, warnings, ctx, fn_defs, fn_refs)
             }
-        } else if starts_with(line, "---") && all_chars_eq(line, '-') {
+        } else if starts_with(line, "---") && all_chars_eq(line, 45) {
             // Thematic break
             if root && len(line) == 3 {
                 pop_section(events, section_stack)
@@ -799,7 +840,7 @@ fn parse_blocks(
 
 fn pop_section(events: Vec<Event>, stack: Vec<i32>) {
     if len(stack) > 0 {
-        let level = get(stack, len(stack) - 1)
+        let level = get_unchecked(stack, len(stack) - 1)
         // remove last element
         let _ = pop(stack)
         push(events, Event::End(Tag::Section(level)))
@@ -808,7 +849,7 @@ fn pop_section(events: Vec<Event>, stack: Vec<i32>) {
 
 fn close_sections_until(events: Vec<Event>, stack: Vec<i32>, level: i32) {
     while len(stack) > 0 {
-        let top = get(stack, len(stack) - 1)
+        let top = get_unchecked(stack, len(stack) - 1)
         if top >= level {
             pop_section(events, stack)
         } else {
@@ -838,7 +879,7 @@ fn count_leading_digits(s: String) -> i32 {
     count
 }
 
-fn all_chars_eq(s: String, c: char) -> bool {
+fn all_chars_eq(s: String, c: i32) -> bool {
     let mut i = 0
     while i < str_char_count(s) {
         if char_at_char_index(s, i) != c { return false }
@@ -916,7 +957,7 @@ fn is_block_start(line: String, tline: String) -> bool {
     len(tline) == 0
         || starts_with(tline, "```")
         || starts_with(tline, "#")
-        || (starts_with(line, "---") && all_chars_eq(line, '-'))
+        || (starts_with(line, "---") && all_chars_eq(line, 45))
         || starts_with(line, ";;;")
         || starts_with(line, ">")
         || is_table_line(line)
@@ -1087,7 +1128,7 @@ fn parse_inline(
             let close_alt = find_matching_bracket(remaining, 1)
             match close_alt {
                 Some(ca) => {
-                    if ca + 1 < len(remaining) && char_at(remaining, ca + 1) == '(' {
+                    if ca + 1 < len(remaining) && char_at(remaining, ca + 1) == 40 {
                         let cp = str_find(substring(remaining, ca + 2, len(remaining)), ")")
                         match cp {
                             Some(p) => {
@@ -1156,7 +1197,7 @@ fn parse_inline(
                 Some(cb) => {
                     let content = substring(remaining, 1, cb)
                     // [text](url) link
-                    if cb + 1 < len(remaining) && char_at(remaining, cb + 1) == '(' {
+                    if cb + 1 < len(remaining) && char_at(remaining, cb + 1) == 40 {
                         let cp = str_find(substring(remaining, cb + 2, len(remaining)), ")")
                         match cp {
                             Some(p) => {
@@ -1254,7 +1295,7 @@ fn parse_inline(
             match close_brace {
                 Some(end) => {
                     let content = substring(remaining, 1, end)
-                    let parts = split_at_depth_zero(content, '/')
+                    let parts = split_at_depth_zero(content, 47)
                     if len(parts) >= 2 {
                         let base = get(parts, 0)
                         let mut notes: Vec<String> = Vec_new_String()
@@ -1338,8 +1379,8 @@ fn find_matching_bracket(text: String, start: i32) -> Option<i32> {
     let mut i = start
     while i < len(text) {
         let c = char_at(text, i)
-        if c == '[' { bracket = bracket + 1 }
-        if c == ']' {
+        if c == 91 { bracket = bracket + 1 }
+        if c == 93 {
             bracket = bracket - 1
             if bracket == 0 { return Some(i) }
         }
@@ -1353,8 +1394,8 @@ fn find_matching_brace(text: String) -> Option<i32> {
     let mut i = 0
     while i < len(text) {
         let c = char_at(text, i)
-        if c == '{' { depth = depth + 1 }
-        if c == '}' {
+        if c == 123 { depth = depth + 1 }
+        if c == 125 {
             depth = depth - 1
             if depth == 0 { return Some(i) }
         }
@@ -1368,23 +1409,23 @@ fn find_slash_at_depth_zero(content: String) -> Option<i32> {
     let mut i = 0
     while i < len(content) {
         let c = char_at(content, i)
-        if c == '[' { blk = blk + 1 }
-        if c == ']' { blk = blk - 1 }
-        if c == '/' && blk == 0 { return Some(i) }
+        if c == 91 { blk = blk + 1 }
+        if c == 93 { blk = blk - 1 }
+        if c == 47 && blk == 0 { return Some(i) }
         i = i + 1
     }
     None
 }
 
-fn split_at_depth_zero(content: String, sep: char) -> Vec<String> {
+fn split_at_depth_zero(content: String, sep: i32) -> Vec<String> {
     let mut parts: Vec<String> = Vec_new_String()
     let mut last = 0
     let mut blk = 0
     let mut i = 0
     while i < len(content) {
         let c = char_at(content, i)
-        if c == '[' { blk = blk + 1 }
-        if c == ']' { blk = blk - 1 }
+        if c == 91 { blk = blk + 1 }
+        if c == 93 { blk = blk - 1 }
         if c == sep && blk == 0 {
             push(parts, substring(content, last, i))
             last = i + 1
@@ -1399,8 +1440,8 @@ fn find_next_special(text: String) -> i32 {
     let mut i = 0
     while i < len(text) {
         let c = char_at(text, i)
-        if c == '$' || c == '[' || c == '{' || c == '`'
-            || c == '\\' || c == '*' || c == '~' || c == '!' {
+        if c == 36 || c == 91 || c == 123 || c == 96
+            || c == 92 || c == 42 || c == 126 || c == 33 {
             return i
         }
         i = i + 1
@@ -1408,8 +1449,8 @@ fn find_next_special(text: String) -> i32 {
     len(text)
 }
 
-fn is_ascii_digit(c: char) -> bool {
-    c >= '0' && c <= '9'
+fn is_ascii_digit(c: i32) -> bool {
+    c >= 48 && c <= 57
 }
 
 fn min_i32(a: i32, b: i32) -> i32 {
