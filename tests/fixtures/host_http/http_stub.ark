@@ -1,0 +1,6 @@
+use std::host::http
+use std::host::stdio
+
+fn main() {
+    stdio::println(String_from("http module loaded"))
+}

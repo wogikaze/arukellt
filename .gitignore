@@ -19,3 +19,7 @@ tests/component-interop/**/*.wasm
 
 # local-only reference specs (not tracked; cause docs-gen drift)
 docs/spec/spec-*/
+
+# bootstrap verification scratch directories
+.bootstrap-build/
+.compare-outputs-scratch/

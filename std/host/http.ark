@@ -1,0 +1,16 @@
+//! HTTP client helpers via WASI Preview 2 wasi:http interfaces.
+//!
+//! These APIs are host-bound and only available on wasm32-wasi-p2 targets.
+//! They are stubs until the WASI HTTP adapter is fully wired.
+
+/// Sends an HTTP request with the given method, URL, and body.
+/// Returns the response body or an error string.
+pub fn request(method: String, url: String, body: String) -> Result<String, String> {
+    Err(String_from("std::host::http::request is not yet implemented (WASI P2 host stub)"))
+}
+
+/// Sends an HTTP GET request to the given URL.
+/// Returns the response body or an error string.
+pub fn get(url: String) -> Result<String, String> {
+    Err(String_from("std::host::http::get is not yet implemented (WASI P2 host stub)"))
+}

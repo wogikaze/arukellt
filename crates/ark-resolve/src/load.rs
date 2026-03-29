@@ -8,6 +8,12 @@ use ark_parser::{ast, parse};
 use crate::module_graph::ModuleGraph;
 use crate::resolve::LoadedModule;
 
+// TODO(issue-077, issue-139): Add target-gating for WASI P2-only modules.
+// When target is wasm32-wasi-p1 (T1), imports of `std::host::http` and
+// `std::host::sockets` should emit a compile-time diagnostic error because
+// these modules require WASI Preview 2 host capabilities.
+// This requires threading the active TargetId into the module loader.
+
 fn deprecated_std_import_replacement(module_name: &str) -> Option<(&'static str, &'static str)> {
     match module_name {
         "std::io" => Some((

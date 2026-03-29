@@ -1,0 +1,6 @@
+use std::host::sockets
+use std::host::stdio
+
+fn main() {
+    stdio::println(String_from("sockets module loaded"))
+}

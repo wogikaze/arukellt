@@ -1,0 +1,10 @@
+//! TCP/UDP socket helpers via WASI Preview 2 wasi:sockets interfaces.
+//!
+//! These APIs are host-bound and only available on wasm32-wasi-p2 targets.
+//! They are stubs until the WASI sockets adapter is fully wired.
+
+/// Opens a TCP connection to the given host and port.
+/// Returns a socket descriptor or an error string.
+pub fn connect(host: String, port: i32) -> Result<i32, String> {
+    Err(String_from("std::host::sockets::connect is not yet implemented (WASI P2 host stub)"))
+}

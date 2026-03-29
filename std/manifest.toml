@@ -1660,6 +1660,52 @@ returns = "bool"
 intrinsic = "__intrinsic_random_i32"
 doc_category = "host_random"
 
+# === std::host::http ===
+
+[[modules]]
+name = "std::host::http"
+target = ["wasm32-wasi-p2"]
+stability = "experimental"
+doc = "HTTP client and server via WASI Preview 2 wasi:http interfaces"
+
+[[functions]]
+name = "request"
+module = "std::host::http"
+kind = "host_stub"
+params = ["String", "String", "String"]
+returns = "Result<String, String>"
+target = ["wasm32-wasi-p2"]
+stability = "experimental"
+doc_category = "host_http"
+
+[[functions]]
+name = "get"
+module = "std::host::http"
+kind = "host_stub"
+params = ["String"]
+returns = "Result<String, String>"
+target = ["wasm32-wasi-p2"]
+stability = "experimental"
+doc_category = "host_http"
+
+# === std::host::sockets ===
+
+[[modules]]
+name = "std::host::sockets"
+target = ["wasm32-wasi-p2"]
+stability = "experimental"
+doc = "TCP/UDP sockets via WASI Preview 2 wasi:sockets interfaces"
+
+[[functions]]
+name = "connect"
+module = "std::host::sockets"
+kind = "host_stub"
+params = ["String", "i32"]
+returns = "Result<i32, String>"
+target = ["wasm32-wasi-p2"]
+stability = "experimental"
+doc_category = "host_sockets"
+
 # === std::bytes ===
 
 [[functions]]
