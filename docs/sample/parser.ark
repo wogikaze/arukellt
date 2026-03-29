@@ -14,24 +14,24 @@ import io
 
 // ── Warning codes ────────────────────────────────────────────────────────────
 
-let RUBY_KATAKANA_HIRAGANA:  String = "ruby-katakana-hiragana"
-let RUBY_EMPTY_BASE:         String = "ruby-empty-base"
-let RUBY_EMPTY_READING:      String = "ruby-empty-reading"
-let RUBY_SELF_REFERENTIAL:   String = "ruby-self-referential"
-let RUBY_MALFORMED:          String = "ruby-malformed"
-let ANNO_LOOKS_LIKE_RUBY:    String = "anno-looks-like-ruby"
-let ANNO_MALFORMED:          String = "anno-malformed"
-let ANNO_EMPTY_BASE:         String = "anno-empty-base"
-let KANJI_NO_RUBY:           String = "kanji-no-ruby"
-let MATH_UNCLOSED_DISPLAY:   String = "math-unclosed-display"
-let MATH_UNCLOSED_INLINE:    String = "math-unclosed-inline"
-let FOOTNOTE_UNDEFINED_REF:  String = "footnote-undefined-ref"
-let FOOTNOTE_UNUSED_DEF:     String = "footnote-unused-def"
-let CARD_NON_HTTP:           String = "card-non-http"
-let CARD_MALFORMED:          String = "card-malformed"
-let CARD_UNKNOWN_TYPE:       String = "card-unknown-type"
-let RUBY_KANA_BASE:          String = "ruby-kana-base"
-let RUBY_KANJI_READING:      String = "ruby-kanji-reading"
+fn RUBY_KATAKANA_HIRAGANA() -> String { "ruby-katakana-hiragana" }
+fn RUBY_EMPTY_BASE() -> String { "ruby-empty-base" }
+fn RUBY_EMPTY_READING() -> String { "ruby-empty-reading" }
+fn RUBY_SELF_REFERENTIAL() -> String { "ruby-self-referential" }
+fn RUBY_MALFORMED() -> String { "ruby-malformed" }
+fn ANNO_LOOKS_LIKE_RUBY() -> String { "anno-looks-like-ruby" }
+fn ANNO_MALFORMED() -> String { "anno-malformed" }
+fn ANNO_EMPTY_BASE() -> String { "anno-empty-base" }
+fn KANJI_NO_RUBY() -> String { "kanji-no-ruby" }
+fn MATH_UNCLOSED_DISPLAY() -> String { "math-unclosed-display" }
+fn MATH_UNCLOSED_INLINE() -> String { "math-unclosed-inline" }
+fn FOOTNOTE_UNDEFINED_REF() -> String { "footnote-undefined-ref" }
+fn FOOTNOTE_UNUSED_DEF() -> String { "footnote-unused-def" }
+fn CARD_NON_HTTP() -> String { "card-non-http" }
+fn CARD_MALFORMED() -> String { "card-malformed" }
+fn CARD_UNKNOWN_TYPE() -> String { "card-unknown-type" }
+fn RUBY_KANA_BASE() -> String { "ruby-kana-base" }
+fn RUBY_KANJI_READING() -> String { "ruby-kanji-reading" }
 
 // ── Front matter ─────────────────────────────────────────────────────────────
 
@@ -148,12 +148,17 @@ fn ParseCtx_new(input: String, source: String) -> ParseCtx {
 }
 
 // Convert a byte offset to (1-based line, 1-based col).
-fn ctx_pos(ctx: ParseCtx, offset: i32) -> (i32, i32) {
+struct Pos {
+    line: i32,
+    col: i32,
+}
+
+fn ctx_pos(ctx: ParseCtx, offset: i32) -> Pos {
     if offset < 0 {
-        return (1, 1)
+        return Pos { line: 1, col: 1 }
     }
     if offset > len(ctx.input) {
-        return (1, 1)
+        return Pos { line: 1, col: 1 }
     }
     // binary search for last line_start <= offset
     let mut lo = 0
@@ -169,7 +174,7 @@ fn ctx_pos(ctx: ParseCtx, offset: i32) -> (i32, i32) {
     let line = lo + 1
     let line_start = get(ctx.line_starts, lo)
     let col = str_char_count(substring(ctx.input, line_start, offset)) + 1
-    (line, col)
+    Pos { line: line, col: col }
 }
 
 fn ctx_warn(
@@ -180,8 +185,8 @@ fn ctx_warn(
     at_offset: i32,
 ) {
     let pos = ctx_pos(ctx, at_offset)
-    let line = pos.0
-    let col = pos.1
+    let line = pos.line
+    let col = pos.col
     push(warnings, Warning_new(code, msg, ctx.source, line, col))
 }
 
@@ -230,7 +235,7 @@ enum Event {
     Rule,
     CardLink(String),
     FootnoteRef(i32),
-    BlockId(i64),
+    BlockId(i32),
     FrontMatter(Vec<FrontMatterField>),
 }
 
@@ -269,13 +274,13 @@ fn parse_with_source(text: String, source: String) -> ParserResult {
 
 // ── FNV-1a hash ──────────────────────────────────────────────────────────────
 
-fn fnv1a(s: String) -> i64 {
-    let mut h: i64 = 14695981039346656037
+fn fnv1a(s: String) -> i32 {
+    let mut h: i32 = -2128831035
     let mut i = 0
     while i < len(s) {
-        let b = byte_at(s, i)
-        h = h ^ (b as i64)
-        h = wrapping_mul_i64(h, 1099511628211)
+        let b = char_at(s, i)
+        h = h ^ b
+        h = h * 16777619
         i = i + 1
     }
     h
@@ -531,7 +536,7 @@ fn emit_fn_section(
     while i < len(fn_defs) {
         let def = get(fn_defs, i)
         if !fn_refs_contains(fn_refs, def.id) {
-            ctx_warn(ctx, warnings, FOOTNOTE_UNUSED_DEF,
+            ctx_warn(ctx, warnings, FOOTNOTE_UNUSED_DEF(),
                 concat("Footnote '[^", concat(def.id, concat("' is defined but never referenced.", ""))),
                 0)
         }
@@ -594,19 +599,19 @@ fn parse_blocks(
                         if starts_with(after, "(") && ends_with(after, ")") {
                             let url = substring(after, 1, len(after) - 1)
                             if !starts_with(url, "http://") && !starts_with(url, "https://") {
-                                ctx_warn(ctx, warnings, CARD_NON_HTTP,
+                                ctx_warn(ctx, warnings, CARD_NON_HTTP(),
                                     concat("Card link URL '", concat(url, "' should start with http:// or https://")),
                                     0)
                             }
                             push(events, Event::CardLink(url))
                         } else {
-                            ctx_warn(ctx, warnings, CARD_MALFORMED,
+                            ctx_warn(ctx, warnings, CARD_MALFORMED(),
                                 concat("Malformed @[card] syntax near '",
                                     concat(substring(tline, 0, min_i32(len(tline), 40)), "'.")),
                                 0)
                         }
                     } else {
-                        ctx_warn(ctx, warnings, CARD_UNKNOWN_TYPE,
+                        ctx_warn(ctx, warnings, CARD_UNKNOWN_TYPE(),
                             concat("Unknown embed type '", concat(type_name, "': only 'card' is supported.")),
                             0)
                     }
@@ -856,15 +861,15 @@ fn count_occurrences(s: String, needle: String) -> i32 {
     count
 }
 
-fn fnv1a_lines(lines: Vec<String>) -> i64 {
-    let mut h: i64 = 14695981039346656037
+fn fnv1a_lines(lines: Vec<String>) -> i32 {
+    let mut h: i32 = -2128831035
     let mut i = 0
     while i < len(lines) {
         let line = get(lines, i)
         let mut j = 0
         while j < len(line) {
-            h = h ^ (byte_at(line, j) as i64)
-            h = wrapping_mul_i64(h, 1099511628211)
+            h = h ^ char_at(line, j)
+            h = h * 16777619
             j = j + 1
         }
         i = i + 1
@@ -985,7 +990,7 @@ fn parse_inline(
                     pos = pos + 2 + e + 2
                 },
                 None => {
-                    ctx_warn(ctx, warnings, MATH_UNCLOSED_DISPLAY,
+                    ctx_warn(ctx, warnings, MATH_UNCLOSED_DISPLAY(),
                         "Unclosed '$$' math block: no matching '$$' found.", pos)
                     pos = pos + 1
                 },
@@ -999,7 +1004,7 @@ fn parse_inline(
                     pos = pos + 1 + e + 1
                 },
                 None => {
-                    ctx_warn(ctx, warnings, MATH_UNCLOSED_INLINE,
+                    ctx_warn(ctx, warnings, MATH_UNCLOSED_INLINE(),
                         "Unclosed '$' math expression: no matching '$' found.", pos)
                     pos = pos + 1
                 },
@@ -1128,7 +1133,7 @@ fn parse_inline(
                             }
                             push(events, Event::FootnoteRef(num))
                         } else {
-                            ctx_warn(ctx, warnings, FOOTNOTE_UNDEFINED_REF,
+                            ctx_warn(ctx, warnings, FOOTNOTE_UNDEFINED_REF(),
                                 concat("Footnote reference '[^", concat(id, "]' has no matching definition.")),
                                 pos)
                             push(events, Event::Text(substring(remaining, 0, total_len)))
@@ -1178,33 +1183,33 @@ fn parse_inline(
 
                                 // Lint checks
                                 if len(base) == 0 {
-                                    ctx_warn(ctx, warnings, RUBY_EMPTY_BASE,
+                                    ctx_warn(ctx, warnings, RUBY_EMPTY_BASE(),
                                         concat("Ruby '[", concat(content, "': base text is empty.")),
                                         pos)
                                 }
                                 if len(ruby) == 0 {
-                                    ctx_warn(ctx, warnings, RUBY_EMPTY_READING,
+                                    ctx_warn(ctx, warnings, RUBY_EMPTY_READING(),
                                         concat("Ruby '[", concat(content, "': reading is empty.")),
                                         pos)
                                 }
                                 if len(base) > 0 && len(ruby) > 0 && base == ruby {
-                                    ctx_warn(ctx, warnings, RUBY_SELF_REFERENTIAL,
+                                    ctx_warn(ctx, warnings, RUBY_SELF_REFERENTIAL(),
                                         concat("Ruby '[", concat(base, concat("/", concat(ruby, "': base and reading are identical.")))),
                                         pos)
                                 }
                                 if is_purely_katakana(base) && is_purely_hiragana(ruby) {
-                                    ctx_warn(ctx, warnings, RUBY_KATAKANA_HIRAGANA,
+                                    ctx_warn(ctx, warnings, RUBY_KATAKANA_HIRAGANA(),
                                         concat("Ruby '[", concat(base, concat("/", concat(ruby,
                                             "': katakana base with hiragana reading.")))),
                                         pos)
                                 } else if len(base) > 0 && has_kana(base) {
-                                    ctx_warn(ctx, warnings, RUBY_KANA_BASE,
+                                    ctx_warn(ctx, warnings, RUBY_KANA_BASE(),
                                         concat("Ruby '[", concat(base, concat("/", concat(ruby,
                                             "': base text contains kana.")))),
                                         pos)
                                 }
                                 if len(ruby) > 0 && has_kanji(ruby) {
-                                    ctx_warn(ctx, warnings, RUBY_KANJI_READING,
+                                    ctx_warn(ctx, warnings, RUBY_KANJI_READING(),
                                         concat("Ruby '[", concat(base, concat("/", concat(ruby,
                                             "': reading contains kanji.")))),
                                         pos)
@@ -1218,7 +1223,7 @@ fn parse_inline(
                             None => {
                                 // No slash found — check for malformed
                                 if is_some(str_find(content, "/")) {
-                                    ctx_warn(ctx, warnings, RUBY_MALFORMED,
+                                    ctx_warn(ctx, warnings, RUBY_MALFORMED(),
                                         concat("Possibly malformed ruby syntax '[",
                                             concat(substring(content, 0, min_i32(len(content), 30)), "'].")),
                                         pos)
@@ -1234,7 +1239,7 @@ fn parse_inline(
                     if is_some(str_find(substring(remaining, 1, len(remaining)), "/"))
                         || is_some(str_find(substring(remaining, 1, len(remaining)), "]"))
                     {
-                        ctx_warn(ctx, warnings, RUBY_MALFORMED,
+                        ctx_warn(ctx, warnings, RUBY_MALFORMED(),
                             concat("Possibly malformed ruby syntax near '",
                                 concat(substring(remaining, 0, min_i32(len(remaining), 30)), "'.")),
                             pos)
@@ -1261,12 +1266,12 @@ fn parse_inline(
 
                         // Lint checks
                         if len(base) == 0 {
-                            ctx_warn(ctx, warnings, ANNO_EMPTY_BASE,
+                            ctx_warn(ctx, warnings, ANNO_EMPTY_BASE(),
                                 concat("Anno '", concat(content, "': base text is empty.")),
                                 pos)
                         }
                         if len(notes) == 1 && contains_kanji(base) && is_purely_kana_or_punct(get(notes, 0)) {
-                            ctx_warn(ctx, warnings, ANNO_LOOKS_LIKE_RUBY,
+                            ctx_warn(ctx, warnings, ANNO_LOOKS_LIKE_RUBY(),
                                 concat("Anno '{", concat(base, concat("/", concat(get(notes, 0),
                                     "}' looks like a Ruby reading.")))),
                                 pos)
@@ -1290,7 +1295,7 @@ fn parse_inline(
                     }
                 },
                 None => {
-                    ctx_warn(ctx, warnings, ANNO_MALFORMED,
+                    ctx_warn(ctx, warnings, ANNO_MALFORMED(),
                         concat("Possibly malformed anno syntax near '",
                             concat(substring(remaining, 0, min_i32(len(remaining), 30)), "'.")),
                         pos)
@@ -1306,7 +1311,7 @@ fn parse_inline(
                 let ch_len = char_byte_len(ch)
                 let t = substring(remaining, 0, ch_len)
                 if !in_annotation && contains_kanji(t) {
-                    ctx_warn(ctx, warnings, KANJI_NO_RUBY,
+                    ctx_warn(ctx, warnings, KANJI_NO_RUBY(),
                         concat("Kanji without ruby: '", concat(trim(t), "'")),
                         pos)
                 }
@@ -1315,7 +1320,7 @@ fn parse_inline(
             } else {
                 let t = substring(remaining, 0, next_special)
                 if !in_annotation && contains_kanji(t) {
-                    ctx_warn(ctx, warnings, KANJI_NO_RUBY,
+                    ctx_warn(ctx, warnings, KANJI_NO_RUBY(),
                         concat("Kanji without ruby: '", concat(trim(t), "'")),
                         pos)
                 }

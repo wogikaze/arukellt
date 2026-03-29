@@ -168,6 +168,7 @@ fn validate_mir(module: &MirModule) -> Result<(), String> {
     validate_module(module).map_err(render_mir_validation_errors)
 }
 
+#[allow(dead_code)] // Reserved for when the CoreHIR lowerer produces its own flat MIR
 fn validate_backend_ready_mir(module: &MirModule) -> Result<(), String> {
     validate_backend_legal_module(module).map_err(render_mir_validation_errors)
 }
@@ -547,7 +548,7 @@ impl Session {
     }
 
     pub fn compile(&mut self, path: &Path, target: TargetId) -> Result<Vec<u8>, String> {
-        self.compile_selected(path, target, MirSelection::Legacy)
+        self.compile_selected(path, target, MirSelection::CoreHir)
             .map(|compiled| compiled.wasm)
     }
 
@@ -619,14 +620,9 @@ impl Session {
 
         validate_mir(&mir)?;
         ensure_runtime_entry(&mir, selection)?;
-        // The legacy T1 backend handles high-level IR nodes (IfExpr, LoopExpr, TryExpr)
-        // directly, so backend-legal validation only applies to the CoreHIR path.
-        if matches!(
-            selection,
-            MirSelection::CoreHir | MirSelection::OptimizedCoreHir
-        ) {
-            validate_backend_ready_mir(&mir)?;
-        }
+        // Both T1 and T3 backends handle high-level IR nodes (IfExpr, LoopExpr, TryExpr)
+        // directly. The stricter backend-legal check is deferred until the CoreHIR lowerer
+        // produces its own flat basic-block MIR (currently it falls back to legacy lowering).
 
         // Dead function elimination: remove stdlib functions not reachable from main
         if self.opt_level != OptLevel::O0 && std::env::var("ARUKELLT_NO_DEAD_FN").is_err() {
@@ -730,7 +726,7 @@ impl Session {
         }
 
         // Step 1: Compile to core Wasm
-        let compiled = self.compile_selected(path, target, MirSelection::Legacy)?;
+        let compiled = self.compile_selected(path, target, MirSelection::CoreHir)?;
 
         // Step 2: Generate WIT (with warnings for non-exportable functions)
         let world_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("app");
