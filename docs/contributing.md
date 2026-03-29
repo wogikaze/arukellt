@@ -65,6 +65,8 @@ crates/
   ark-lsp/          # LSP scaffold
   ark-llvm/         # LLVM backend scaffold (excluded from default verification)
   arukellt/         # CLI entry point
+extensions/
+  arukellt-all-in-one/  # VS Code extension bootstrap
 std/                # source-backed stdlib wrappers and manifest
 tests/fixtures/     # manifest-driven fixtures
 benchmarks/         # perf cases

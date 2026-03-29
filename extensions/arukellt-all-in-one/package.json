@@ -1,0 +1,74 @@
+{
+  "name": "arukellt-all-in-one",
+  "displayName": "Arukellt All-in-One",
+  "description": "VS Code support for Arukellt via the arukellt LSP server.",
+  "version": "0.0.1",
+  "publisher": "arukellt",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:arukellt",
+    "onCommand:arukellt.restartLanguageServer"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "arukellt",
+        "aliases": [
+          "Arukellt",
+          "arukellt"
+        ],
+        "extensions": [
+          ".ark"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "arukellt",
+        "scopeName": "source.arukellt",
+        "path": "./syntaxes/arukellt.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "arukellt",
+        "path": "./snippets/arukellt.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "arukellt.restartLanguageServer",
+        "title": "Arukellt: Restart Language Server"
+      }
+    ],
+    "configuration": {
+      "title": "Arukellt",
+      "properties": {
+        "arukellt.server.path": {
+          "type": "string",
+          "default": "arukellt",
+          "description": "Path to the arukellt CLI used to launch the language server."
+        },
+        "arukellt.server.args": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Additional arguments passed before the built-in `lsp` subcommand."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\""
+  }
+}

@@ -31,6 +31,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - `crates/ark-driver` — 共有 analysis/session 層
 - `crates/ark-target` — ターゲット定義
 - `crates/ark-lsp` — LSP scaffold
+- `extensions/arukellt-all-in-one` — VS Code extension bootstrap
 - `crates/ark-llvm` — LLVM backend scaffold（既定ビルド外）
 - `std/` — source-backed stdlib wrappers
 - `tests/fixtures/` — manifest-driven end-to-end fixtures

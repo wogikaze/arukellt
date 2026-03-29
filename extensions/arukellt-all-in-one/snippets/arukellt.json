@@ -1,0 +1,27 @@
+{
+  "Function": {
+    "prefix": "fn",
+    "body": [
+      "fn ${1:name}(${2})${3: -> ${4:i32}} {",
+      "    ${5}",
+      "}"
+    ],
+    "description": "Arukellt function"
+  },
+  "Let": {
+    "prefix": "let",
+    "body": [
+      "let ${1:name} = ${2};"
+    ],
+    "description": "Arukellt let binding"
+  },
+  "Main": {
+    "prefix": "main",
+    "body": [
+      "fn main() {",
+      "    ${1}",
+      "}"
+    ],
+    "description": "Arukellt main function"
+  }
+}
