@@ -51,10 +51,10 @@ bench                   → perf
 
 ### Non-blocking / optional jobs
 
-4. **perf-baseline** — push-only baseline collection
-5. *(planned)* **editor-smoke** — VS Code extension tests
-6. *(planned)* **bootstrap-check** — selfhost fixpoint verification
-7. *(planned)* **determinism-check** — binary reproducibility
+1. **perf-baseline** — push-only baseline collection
+2. *(planned)* **editor-smoke** — VS Code extension tests
+3. *(planned)* **bootstrap-check** — selfhost fixpoint verification
+4. *(planned)* **determinism-check** — binary reproducibility
 
 ## Adding a new test
 
