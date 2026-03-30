@@ -1,4 +1,8 @@
 .vscode/**
 .github/**
 .markdownlintignore
-**/node_modules/**
+.gitignore
+package-lock.json
+bun.lock
+tests/**
+src/**/*.test.js

@@ -5,6 +5,11 @@
   "version": "0.0.1",
   "publisher": "arukellt",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wogikaze/arukellt.git",
+    "directory": "extensions/arukellt-all-in-one"
+  },
   "engines": {
     "vscode": "^1.113.0"
   },
