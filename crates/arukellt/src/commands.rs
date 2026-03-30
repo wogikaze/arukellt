@@ -14,12 +14,14 @@ use crate::runtime::{RuntimeCaps, run_wasm_gc, run_wasm_p1};
 
 #[derive(Deserialize)]
 pub(crate) struct ArkManifest {
+    #[allow(dead_code)]
     pub package: PackageMetadata,
     pub bin: Option<BinMetadata>,
 }
 
 #[derive(Deserialize)]
 pub(crate) struct PackageMetadata {
+    #[allow(dead_code)]
     pub name: String,
 }
 
