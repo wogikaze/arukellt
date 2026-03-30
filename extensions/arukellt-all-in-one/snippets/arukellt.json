@@ -1,27 +1,1909 @@
 {
-  "Function": {
-    "prefix": "fn",
-    "body": [
-      "fn ${1:name}(${2})${3: -> ${4:i32}} {",
-      "    ${5}",
-      "}"
-    ],
-    "description": "Arukellt function"
-  },
-  "Let": {
-    "prefix": "let",
-    "body": [
-      "let ${1:name} = ${2};"
-    ],
-    "description": "Arukellt let binding"
-  },
   "Main": {
-    "prefix": "main",
+    "scope": "arukellt",
+    "prefix": [
+      "main",
+      "ark.main"
+    ],
     "body": [
       "fn main() {",
-      "    ${1}",
+      "    $0",
       "}"
     ],
-    "description": "Arukellt main function"
+    "description": "main entry point"
+  },
+  "Main returns i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "mainret",
+      "ark.mainret"
+    ],
+    "body": [
+      "fn main() -> i32 {",
+      "    ${1:0}",
+      "}"
+    ],
+    "description": "main entry point returning i32"
+  },
+  "Function": {
+    "scope": "arukellt",
+    "prefix": [
+      "fn",
+      "ark.fn"
+    ],
+    "body": [
+      "fn ${1:name}(${2})${3: -> ${4:i32}} {",
+      "    $0",
+      "}"
+    ],
+    "description": "function definition"
+  },
+  "Public function": {
+    "scope": "arukellt",
+    "prefix": [
+      "pubfn",
+      "ark.pubfn"
+    ],
+    "body": [
+      "pub fn ${1:name}(${2})${3: -> ${4:i32}} {",
+      "    $0",
+      "}"
+    ],
+    "description": "public function"
+  },
+  "Generic function": {
+    "scope": "arukellt",
+    "prefix": [
+      "fng",
+      "ark.fng"
+    ],
+    "body": [
+      "fn ${1:name}<${2:T}>(${3:value}: ${2:T}) -> ${2:T} {",
+      "    $0",
+      "}"
+    ],
+    "description": "generic function with one type parameter"
+  },
+  "Generic function two params": {
+    "scope": "arukellt",
+    "prefix": [
+      "fng2",
+      "ark.fng2"
+    ],
+    "body": [
+      "fn ${1:name}<${2:T}, ${3:U}>(${4:left}: ${2:T}, ${5:right}: ${3:U}) -> ${2:T} {",
+      "    ${4:left}",
+      "}"
+    ],
+    "description": "generic function with two type parameters"
+  },
+  "Function pointer arg": {
+    "scope": "arukellt",
+    "prefix": [
+      "fnptr",
+      "ark.fnptr"
+    ],
+    "body": [
+      "fn ${1:apply}(f: fn(${2:i32}) -> ${3:i32}, x: ${2:i32}) -> ${3:i32} {",
+      "    f(x)",
+      "}"
+    ],
+    "description": "function taking a function pointer"
+  },
+  "Closure binding": {
+    "scope": "arukellt",
+    "prefix": [
+      "closure",
+      "ark.closure"
+    ],
+    "body": [
+      "let ${1:double} = |${2:x}: ${3:i32}| -> ${4:i32} { ${5:x * 2} }",
+      "$0"
+    ],
+    "description": "closure binding"
+  },
+  "Return": {
+    "scope": "arukellt",
+    "prefix": [
+      "ret",
+      "return",
+      "ark.return"
+    ],
+    "body": [
+      "return ${1:value}"
+    ],
+    "description": "return statement"
+  },
+  "Guard return": {
+    "scope": "arukellt",
+    "prefix": [
+      "guard",
+      "ark.guard"
+    ],
+    "body": [
+      "if ${1:condition} {",
+      "    return ${2:value}",
+      "}",
+      "$0"
+    ],
+    "description": "guard clause with early return"
+  },
+  "Let": {
+    "scope": "arukellt",
+    "prefix": [
+      "let",
+      "ark.let"
+    ],
+    "body": [
+      "let ${1:name} = ${2:value}"
+    ],
+    "description": "immutable let binding"
+  },
+  "Let mut": {
+    "scope": "arukellt",
+    "prefix": [
+      "letm",
+      "letmut",
+      "ark.letmut"
+    ],
+    "body": [
+      "let mut ${1:name} = ${2:value}"
+    ],
+    "description": "mutable let binding"
+  },
+  "Typed let": {
+    "scope": "arukellt",
+    "prefix": [
+      "letty",
+      "ark.letty"
+    ],
+    "body": [
+      "let ${1:name}: ${2:i32} = ${3:value}"
+    ],
+    "description": "let binding with explicit type"
+  },
+  "Assignment": {
+    "scope": "arukellt",
+    "prefix": [
+      "assign",
+      "ark.assign"
+    ],
+    "body": [
+      "${1:name} = ${2:value}"
+    ],
+    "description": "assignment to mutable binding"
+  },
+  "Tuple destructuring": {
+    "scope": "arukellt",
+    "prefix": [
+      "lettuple",
+      "ark.lettuple"
+    ],
+    "body": [
+      "let (${1:a}, ${2:b}) = ${3:value}"
+    ],
+    "description": "tuple destructuring"
+  },
+  "Struct literal binding": {
+    "scope": "arukellt",
+    "prefix": [
+      "letstruct",
+      "ark.letstruct"
+    ],
+    "body": [
+      "let ${1:value} = ${2:Point} { ${3:x}: ${4:1}, ${5:y}: ${6:2} }"
+    ],
+    "description": "struct literal in a let binding"
+  },
+  "Import": {
+    "scope": "arukellt",
+    "prefix": [
+      "import",
+      "ark.import"
+    ],
+    "body": [
+      "import ${1:math}"
+    ],
+    "description": "local module import"
+  },
+  "Import alias": {
+    "scope": "arukellt",
+    "prefix": [
+      "importas",
+      "ark.importas"
+    ],
+    "body": [
+      "import ${1:utils} as ${2:u}"
+    ],
+    "description": "local module import with alias"
+  },
+  "Use": {
+    "scope": "arukellt",
+    "prefix": [
+      "use",
+      "ark.use"
+    ],
+    "body": [
+      "use ${1:std::host::stdio}"
+    ],
+    "description": "namespaced module import"
+  },
+  "Use alias": {
+    "scope": "arukellt",
+    "prefix": [
+      "useas",
+      "ark.useas"
+    ],
+    "body": [
+      "use ${1:std::text} as ${2:text}"
+    ],
+    "description": "namespaced module import with alias"
+  },
+  "StdIO prelude": {
+    "scope": "arukellt",
+    "prefix": [
+      "stdio",
+      "ark.stdio"
+    ],
+    "body": [
+      "use std::host::stdio"
+    ],
+    "description": "import stdio host module"
+  },
+  "FS module": {
+    "scope": "arukellt",
+    "prefix": [
+      "fsuse",
+      "ark.fsuse"
+    ],
+    "body": [
+      "use std::host::fs"
+    ],
+    "description": "import filesystem host module"
+  },
+  "Env module": {
+    "scope": "arukellt",
+    "prefix": [
+      "envuse",
+      "ark.envuse"
+    ],
+    "body": [
+      "use std::host::env"
+    ],
+    "description": "import env host module"
+  },
+  "Clock module": {
+    "scope": "arukellt",
+    "prefix": [
+      "clockuse",
+      "ark.clockuse"
+    ],
+    "body": [
+      "use std::host::clock"
+    ],
+    "description": "import clock host module"
+  },
+  "Random module": {
+    "scope": "arukellt",
+    "prefix": [
+      "randuse",
+      "ark.randuse"
+    ],
+    "body": [
+      "use std::host::random as ${1:host_random}"
+    ],
+    "description": "import random host module with alias"
+  },
+  "Struct": {
+    "scope": "arukellt",
+    "prefix": [
+      "struct",
+      "ark.struct"
+    ],
+    "body": [
+      "struct ${1:Name} {",
+      "    ${2:field}: ${3:i32},",
+      "}"
+    ],
+    "description": "struct definition"
+  },
+  "Public struct": {
+    "scope": "arukellt",
+    "prefix": [
+      "pubstruct",
+      "ark.pubstruct"
+    ],
+    "body": [
+      "pub struct ${1:Name} {",
+      "    ${2:field}: ${3:i32},",
+      "}"
+    ],
+    "description": "public struct definition"
+  },
+  "Struct two fields": {
+    "scope": "arukellt",
+    "prefix": [
+      "struct2",
+      "ark.struct2"
+    ],
+    "body": [
+      "struct ${1:Point} {",
+      "    ${2:x}: ${3:i32},",
+      "    ${4:y}: ${5:i32},",
+      "}"
+    ],
+    "description": "struct with two fields"
+  },
+  "Enum simple": {
+    "scope": "arukellt",
+    "prefix": [
+      "enum",
+      "ark.enum"
+    ],
+    "body": [
+      "enum ${1:Color} {",
+      "    ${2:Red},",
+      "    ${3:Green},",
+      "    ${4:Blue},",
+      "}"
+    ],
+    "description": "simple enum definition"
+  },
+  "Enum tuple variants": {
+    "scope": "arukellt",
+    "prefix": [
+      "enumt",
+      "ark.enumt"
+    ],
+    "body": [
+      "enum ${1:Shape} {",
+      "    ${2:Circle}(${3:i32}),",
+      "    ${4:Rect}(${5:i32}, ${6:i32}),",
+      "}"
+    ],
+    "description": "enum with tuple variants"
+  },
+  "Generic struct": {
+    "scope": "arukellt",
+    "prefix": [
+      "structg",
+      "ark.structg"
+    ],
+    "body": [
+      "struct ${1:Pair}<${2:A}, ${3:B}> {",
+      "    ${4:first}: ${2:A},",
+      "    ${5:second}: ${3:B},",
+      "}"
+    ],
+    "description": "generic struct"
+  },
+  "Generic enum": {
+    "scope": "arukellt",
+    "prefix": [
+      "enumg",
+      "ark.enumg"
+    ],
+    "body": [
+      "enum ${1:Either}<${2:L}, ${3:R}> {",
+      "    ${4:Left}(${2:L}),",
+      "    ${5:Right}(${3:R}),",
+      "}"
+    ],
+    "description": "generic enum"
+  },
+  "Trait": {
+    "scope": "arukellt",
+    "prefix": [
+      "trait",
+      "ark.trait"
+    ],
+    "body": [
+      "trait ${1:Display} {",
+      "    fn ${2:display}(self) -> ${3:String}",
+      "}"
+    ],
+    "description": "trait definition"
+  },
+  "Trait with method args": {
+    "scope": "arukellt",
+    "prefix": [
+      "traitfn",
+      "ark.traitfn"
+    ],
+    "body": [
+      "trait ${1:TraitName} {",
+      "    fn ${2:method}(self, ${3:arg}: ${4:i32}) -> ${5:i32}",
+      "}"
+    ],
+    "description": "trait with one method"
+  },
+  "Impl": {
+    "scope": "arukellt",
+    "prefix": [
+      "impl",
+      "ark.impl"
+    ],
+    "body": [
+      "impl ${1:TypeName} {",
+      "    fn ${2:new}(${3}) -> ${1:TypeName} {",
+      "        $0",
+      "    }",
+      "}"
+    ],
+    "description": "inherent impl block"
+  },
+  "Impl trait": {
+    "scope": "arukellt",
+    "prefix": [
+      "impltrait",
+      "ark.impltrait"
+    ],
+    "body": [
+      "impl ${1:TraitName} for ${2:TypeName} {",
+      "    fn ${3:method}(self) -> ${4:String} {",
+      "        $0",
+      "    }",
+      "}"
+    ],
+    "description": "trait implementation"
+  },
+  "Impl generic trait": {
+    "scope": "arukellt",
+    "prefix": [
+      "implg",
+      "ark.implg"
+    ],
+    "body": [
+      "impl<${1:T}> ${2:TraitName} for ${3:TypeName}<${1:T}> {",
+      "    fn ${4:method}(self) -> ${5:String} {",
+      "        $0",
+      "    }",
+      "}"
+    ],
+    "description": "generic trait implementation"
+  },
+  "If": {
+    "scope": "arukellt",
+    "prefix": [
+      "if",
+      "ark.if"
+    ],
+    "body": [
+      "if ${1:condition} {",
+      "    $0",
+      "}"
+    ],
+    "description": "if block"
+  },
+  "If else": {
+    "scope": "arukellt",
+    "prefix": [
+      "ifelse",
+      "ark.ifelse"
+    ],
+    "body": [
+      "if ${1:condition} {",
+      "    ${2:then_branch}",
+      "} else {",
+      "    ${3:else_branch}",
+      "}"
+    ],
+    "description": "if / else block"
+  },
+  "If expression let": {
+    "scope": "arukellt",
+    "prefix": [
+      "ifexpr",
+      "ark.ifexpr"
+    ],
+    "body": [
+      "let ${1:label} = if ${2:x > 0} {",
+      "    ${3:String_from(\"positive\")}",
+      "} else {",
+      "    ${4:String_from(\"other\")}",
+      "}"
+    ],
+    "description": "if expression assigned to a variable"
+  },
+  "While": {
+    "scope": "arukellt",
+    "prefix": [
+      "while",
+      "ark.while"
+    ],
+    "body": [
+      "while ${1:condition} {",
+      "    $0",
+      "}"
+    ],
+    "description": "while loop"
+  },
+  "Loop": {
+    "scope": "arukellt",
+    "prefix": [
+      "loop",
+      "ark.loop"
+    ],
+    "body": [
+      "loop {",
+      "    $0",
+      "}"
+    ],
+    "description": "infinite loop"
+  },
+  "Loop with break": {
+    "scope": "arukellt",
+    "prefix": [
+      "loopbreak",
+      "ark.loopbreak"
+    ],
+    "body": [
+      "loop {",
+      "    if ${1:done} {",
+      "        break",
+      "    }",
+      "    $0",
+      "}"
+    ],
+    "description": "loop with break condition"
+  },
+  "Break": {
+    "scope": "arukellt",
+    "prefix": [
+      "break",
+      "ark.break"
+    ],
+    "body": [
+      "break"
+    ],
+    "description": "break statement"
+  },
+  "Continue": {
+    "scope": "arukellt",
+    "prefix": [
+      "continue",
+      "ark.continue"
+    ],
+    "body": [
+      "continue"
+    ],
+    "description": "continue statement"
+  },
+  "For range": {
+    "scope": "arukellt",
+    "prefix": [
+      "for",
+      "ark.for"
+    ],
+    "body": [
+      "for ${1:i} in ${2:0}..${3:10} {",
+      "    $0",
+      "}"
+    ],
+    "description": "for loop over a numeric range"
+  },
+  "For values": {
+    "scope": "arukellt",
+    "prefix": [
+      "forval",
+      "ark.forval"
+    ],
+    "body": [
+      "for ${1:item} in values(${2:v}) {",
+      "    $0",
+      "}"
+    ],
+    "description": "for loop over values(seq)"
+  },
+  "Match": {
+    "scope": "arukellt",
+    "prefix": [
+      "match",
+      "ark.match"
+    ],
+    "body": [
+      "match ${1:value} {",
+      "    ${2:pattern} => ${3:expr},",
+      "    _ => ${4:default},",
+      "}"
+    ],
+    "description": "generic match expression"
+  },
+  "Match literal": {
+    "scope": "arukellt",
+    "prefix": [
+      "matchlit",
+      "ark.matchlit"
+    ],
+    "body": [
+      "match ${1:value} {",
+      "    0 => ${2:String_from(\"zero\")},",
+      "    1 => ${3:String_from(\"one\")},",
+      "    _ => ${4:String_from(\"other\")},",
+      "}"
+    ],
+    "description": "match on literals"
+  },
+  "Match Option": {
+    "scope": "arukellt",
+    "prefix": [
+      "matchopt",
+      "ark.matchopt"
+    ],
+    "body": [
+      "match ${1:opt} {",
+      "    Some(${2:x}) => ${3:expr},",
+      "    None => ${4:expr},",
+      "}"
+    ],
+    "description": "match on Option"
+  },
+  "Match Result": {
+    "scope": "arukellt",
+    "prefix": [
+      "matchres",
+      "ark.matchres"
+    ],
+    "body": [
+      "match ${1:res} {",
+      "    Ok(${2:value}) => ${3:expr},",
+      "    Err(${4:err}) => ${5:expr},",
+      "}"
+    ],
+    "description": "match on Result"
+  },
+  "Match enum": {
+    "scope": "arukellt",
+    "prefix": [
+      "matchenum",
+      "ark.matchenum"
+    ],
+    "body": [
+      "match ${1:value} {",
+      "    ${2:Enum}::${3:Variant} => ${4:expr},",
+      "    _ => ${5:default},",
+      "}"
+    ],
+    "description": "match on enum variants"
+  },
+  "Match enum tuple": {
+    "scope": "arukellt",
+    "prefix": [
+      "matchenumt",
+      "ark.matchenumt"
+    ],
+    "body": [
+      "match ${1:value} {",
+      "    ${2:Shape}::${3:Circle}(${4:r}) => ${5:expr},",
+      "    ${2:Shape}::${6:Rect}(${7:w}, ${8:h}) => ${9:expr},",
+      "}"
+    ],
+    "description": "match on tuple enum variants"
+  },
+  "Match guard": {
+    "scope": "arukellt",
+    "prefix": [
+      "matchguard",
+      "ark.matchguard"
+    ],
+    "body": [
+      "match ${1:value} {",
+      "    ${2:pattern} if ${3:condition} => ${4:expr},",
+      "    _ => ${5:default},",
+      "}"
+    ],
+    "description": "match guard"
+  },
+  "Match or-pattern": {
+    "scope": "arukellt",
+    "prefix": [
+      "matchor",
+      "ark.matchor"
+    ],
+    "body": [
+      "match ${1:value} {",
+      "    ${2:Color}::${3:Red} | ${2:Color}::${4:Blue} => ${5:expr},",
+      "    _ => ${6:default},",
+      "}"
+    ],
+    "description": "match or-pattern"
+  },
+  "Struct pattern match": {
+    "scope": "arukellt",
+    "prefix": [
+      "matchstruct",
+      "ark.matchstruct"
+    ],
+    "body": [
+      "match ${1:value} {",
+      "    ${2:Point} { ${3:x}, ${4:y} } => ${5:expr},",
+      "}"
+    ],
+    "description": "struct pattern match"
+  },
+  "Question operator": {
+    "scope": "arukellt",
+    "prefix": [
+      "try",
+      "ark.try"
+    ],
+    "body": [
+      "let ${1:value} = ${2:call()}?"
+    ],
+    "description": "Result propagation with ?"
+  },
+  "Result function": {
+    "scope": "arukellt",
+    "prefix": [
+      "fnres",
+      "ark.fnres"
+    ],
+    "body": [
+      "fn ${1:name}(${2}) -> Result<${3:i32}, ${4:String}> {",
+      "    $0",
+      "}"
+    ],
+    "description": "function returning Result"
+  },
+  "Option function": {
+    "scope": "arukellt",
+    "prefix": [
+      "fnopt",
+      "ark.fnopt"
+    ],
+    "body": [
+      "fn ${1:name}(${2}) -> Option<${3:i32}> {",
+      "    $0",
+      "}"
+    ],
+    "description": "function returning Option"
+  },
+  "Ok": {
+    "scope": "arukellt",
+    "prefix": [
+      "ok",
+      "ark.ok"
+    ],
+    "body": [
+      "Ok(${1:value})"
+    ],
+    "description": "Ok result constructor"
+  },
+  "Err": {
+    "scope": "arukellt",
+    "prefix": [
+      "err",
+      "ark.err"
+    ],
+    "body": [
+      "Err(${1:String_from(\"error\")})"
+    ],
+    "description": "Err result constructor"
+  },
+  "Some": {
+    "scope": "arukellt",
+    "prefix": [
+      "some",
+      "ark.some"
+    ],
+    "body": [
+      "Some(${1:value})"
+    ],
+    "description": "Some option constructor"
+  },
+  "None": {
+    "scope": "arukellt",
+    "prefix": [
+      "none",
+      "ark.none"
+    ],
+    "body": [
+      "None"
+    ],
+    "description": "None option constructor"
+  },
+  "Parse positive": {
+    "scope": "arukellt",
+    "prefix": [
+      "parsepos",
+      "ark.parsepos"
+    ],
+    "body": [
+      "fn ${1:parse_positive}(s: String) -> Result<i32, String> {",
+      "    let ${2:n} = parse_i32(s)?",
+      "    if ${2:n} < 0 {",
+      "        return Err(String_from(${3:\"negative\"}))",
+      "    }",
+      "    Ok(${2:n})",
+      "}"
+    ],
+    "description": "parse positive integer with Result and ?"
+  },
+  "Unwrap or": {
+    "scope": "arukellt",
+    "prefix": [
+      "unwrapor",
+      "ark.unwrapor"
+    ],
+    "body": [
+      "unwrap_or(${1:opt}, ${2:default_value})"
+    ],
+    "description": "unwrap_or helper"
+  },
+  "Ok or": {
+    "scope": "arukellt",
+    "prefix": [
+      "okor",
+      "ark.okor"
+    ],
+    "body": [
+      "ok_or(${1:opt}, ${2:String_from(\"missing\")})"
+    ],
+    "description": "convert Option to Result with ok_or"
+  },
+  "String_from": {
+    "scope": "arukellt",
+    "prefix": [
+      "str",
+      "strfrom",
+      "ark.str"
+    ],
+    "body": [
+      "String_from(${1:\"text\"})"
+    ],
+    "description": "construct String from a string literal"
+  },
+  "F-string": {
+    "scope": "arukellt",
+    "prefix": [
+      "fstr",
+      "ark.fstr"
+    ],
+    "body": [
+      "f\"${1:hello} {${2:name}}\""
+    ],
+    "description": "formatted string literal"
+  },
+  "Char literal": {
+    "scope": "arukellt",
+    "prefix": [
+      "char",
+      "ark.char"
+    ],
+    "body": [
+      "'${1:a}'"
+    ],
+    "description": "character literal"
+  },
+  "Bool true": {
+    "scope": "arukellt",
+    "prefix": [
+      "true",
+      "ark.true"
+    ],
+    "body": [
+      "true"
+    ],
+    "description": "true literal"
+  },
+  "Bool false": {
+    "scope": "arukellt",
+    "prefix": [
+      "false",
+      "ark.false"
+    ],
+    "body": [
+      "false"
+    ],
+    "description": "false literal"
+  },
+  "Tuple type": {
+    "scope": "arukellt",
+    "prefix": [
+      "tuplety",
+      "ark.tuplety"
+    ],
+    "body": [
+      "(${1:i32}, ${2:String})"
+    ],
+    "description": "tuple type"
+  },
+  "Tuple value": {
+    "scope": "arukellt",
+    "prefix": [
+      "tuple",
+      "ark.tuple"
+    ],
+    "body": [
+      "(${1:1}, ${2:2})"
+    ],
+    "description": "tuple value"
+  },
+  "Array type": {
+    "scope": "arukellt",
+    "prefix": [
+      "arrayty",
+      "ark.arrayty"
+    ],
+    "body": [
+      "[${1:i32}; ${2:4}]"
+    ],
+    "description": "array type"
+  },
+  "Array literal": {
+    "scope": "arukellt",
+    "prefix": [
+      "array",
+      "ark.array"
+    ],
+    "body": [
+      "[${1:1}, ${2:2}, ${3:3}]"
+    ],
+    "description": "array literal"
+  },
+  "Line comment": {
+    "scope": "arukellt",
+    "prefix": [
+      "//",
+      "ark.linecomment"
+    ],
+    "body": [
+      "// ${1:comment}"
+    ],
+    "description": "line comment"
+  },
+  "Block comment": {
+    "scope": "arukellt",
+    "prefix": [
+      "/*",
+      "ark.blockcomment"
+    ],
+    "body": [
+      "/* ${1:comment} */"
+    ],
+    "description": "block comment"
+  },
+  "Doc comment outer": {
+    "scope": "arukellt",
+    "prefix": [
+      "doc",
+      "ark.doc"
+    ],
+    "body": [
+      "/// ${1:description}"
+    ],
+    "description": "outer doc comment"
+  },
+  "Doc comment inner": {
+    "scope": "arukellt",
+    "prefix": [
+      "moddoc",
+      "ark.moddoc"
+    ],
+    "body": [
+      "//! ${1:module description}"
+    ],
+    "description": "inner doc comment"
+  },
+  "Println": {
+    "scope": "arukellt",
+    "prefix": [
+      "print",
+      "println",
+      "ark.println"
+    ],
+    "body": [
+      "stdio::println(${1:\"text\"})"
+    ],
+    "description": "print line with stdio"
+  },
+  "Print i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "printi32",
+      "ark.printi32"
+    ],
+    "body": [
+      "stdio::println(i32_to_string(${1:value}))"
+    ],
+    "description": "print i32 value"
+  },
+  "Print i64": {
+    "scope": "arukellt",
+    "prefix": [
+      "printi64",
+      "ark.printi64"
+    ],
+    "body": [
+      "stdio::println(i64_to_string(${1:value}))"
+    ],
+    "description": "print i64 value"
+  },
+  "Print f64": {
+    "scope": "arukellt",
+    "prefix": [
+      "printf64",
+      "ark.printf64"
+    ],
+    "body": [
+      "stdio::println(f64_to_string(${1:value}))"
+    ],
+    "description": "print f64 value"
+  },
+  "To string": {
+    "scope": "arukellt",
+    "prefix": [
+      "tostr",
+      "ark.tostr"
+    ],
+    "body": [
+      "to_string(${1:value})"
+    ],
+    "description": "convert value to string"
+  },
+  "Struct literal": {
+    "scope": "arukellt",
+    "prefix": [
+      "structlit",
+      "ark.structlit"
+    ],
+    "body": [
+      "${1:Point} { ${2:x}: ${3:1}, ${4:y}: ${5:2} }"
+    ],
+    "description": "struct literal"
+  },
+  "Field access": {
+    "scope": "arukellt",
+    "prefix": [
+      "field",
+      "ark.field"
+    ],
+    "body": [
+      "${1:value}.${2:field}"
+    ],
+    "description": "field access"
+  },
+  "Enum variant": {
+    "scope": "arukellt",
+    "prefix": [
+      "variant",
+      "ark.variant"
+    ],
+    "body": [
+      "${1:Color}::${2:Red}"
+    ],
+    "description": "enum variant value"
+  },
+  "Enum tuple variant": {
+    "scope": "arukellt",
+    "prefix": [
+      "variantt",
+      "ark.variantt"
+    ],
+    "body": [
+      "${1:Shape}::${2:Rect}(${3:10}, ${4:20})"
+    ],
+    "description": "enum tuple variant value"
+  },
+  "Vec new i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "veci32",
+      "ark.veci32"
+    ],
+    "body": [
+      "let ${1:v} = Vec_new_i32()"
+    ],
+    "description": "create Vec<i32>"
+  },
+  "Vec new String": {
+    "scope": "arukellt",
+    "prefix": [
+      "vecstr",
+      "ark.vecstr"
+    ],
+    "body": [
+      "let ${1:v} = Vec_new_String()"
+    ],
+    "description": "create Vec<String>"
+  },
+  "Vec new i64": {
+    "scope": "arukellt",
+    "prefix": [
+      "veci64",
+      "ark.veci64"
+    ],
+    "body": [
+      "let ${1:v} = Vec_new_i64()"
+    ],
+    "description": "create Vec<i64>"
+  },
+  "Vec with capacity i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "veccapi32",
+      "ark.veccapi32"
+    ],
+    "body": [
+      "let ${1:v} = Vec_new_i32_with_cap(${2:16})"
+    ],
+    "description": "create Vec<i32> with capacity"
+  },
+  "Vec with capacity f64": {
+    "scope": "arukellt",
+    "prefix": [
+      "veccapf64",
+      "ark.veccapf64"
+    ],
+    "body": [
+      "let ${1:v} = Vec_new_f64_with_cap(${2:16})"
+    ],
+    "description": "create Vec<f64> with capacity"
+  },
+  "Push": {
+    "scope": "arukellt",
+    "prefix": [
+      "push",
+      "ark.push"
+    ],
+    "body": [
+      "push(${1:v}, ${2:value})"
+    ],
+    "description": "push into Vec"
+  },
+  "Pop": {
+    "scope": "arukellt",
+    "prefix": [
+      "pop",
+      "ark.pop"
+    ],
+    "body": [
+      "pop(${1:v})"
+    ],
+    "description": "pop from Vec"
+  },
+  "Len": {
+    "scope": "arukellt",
+    "prefix": [
+      "len",
+      "ark.len"
+    ],
+    "body": [
+      "len(${1:v})"
+    ],
+    "description": "collection length"
+  },
+  "Get": {
+    "scope": "arukellt",
+    "prefix": [
+      "get",
+      "ark.get"
+    ],
+    "body": [
+      "get(${1:v}, ${2:index})"
+    ],
+    "description": "indexed get returning Option"
+  },
+  "Set": {
+    "scope": "arukellt",
+    "prefix": [
+      "set",
+      "ark.set"
+    ],
+    "body": [
+      "set(${1:v}, ${2:index}, ${3:value})"
+    ],
+    "description": "indexed set returning Result"
+  },
+  "Insert": {
+    "scope": "arukellt",
+    "prefix": [
+      "insert",
+      "ark.insert"
+    ],
+    "body": [
+      "insert(${1:v}, ${2:index}, ${3:value})"
+    ],
+    "description": "insert into Vec"
+  },
+  "Remove": {
+    "scope": "arukellt",
+    "prefix": [
+      "remove",
+      "ark.remove"
+    ],
+    "body": [
+      "remove(${1:v}, ${2:index})"
+    ],
+    "description": "remove from Vec"
+  },
+  "Clear": {
+    "scope": "arukellt",
+    "prefix": [
+      "clear",
+      "ark.clear"
+    ],
+    "body": [
+      "clear(${1:v})"
+    ],
+    "description": "clear collection"
+  },
+  "Find i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "findi32",
+      "ark.findi32"
+    ],
+    "body": [
+      "find_i32(${1:v}, |${2:x}: i32| -> bool { ${3:x == 0} })"
+    ],
+    "description": "find_i32 with predicate closure"
+  },
+  "Map option i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "mapopti32",
+      "ark.mapopti32"
+    ],
+    "body": [
+      "map_option_i32_i32(${1:opt}, |${2:x}: i32| -> i32 { ${3:x * 2} })"
+    ],
+    "description": "map Option<i32>"
+  },
+  "Map result i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "mapresi32",
+      "ark.mapresi32"
+    ],
+    "body": [
+      "map_result_i32_i32(${1:res}, |${2:x}: i32| -> i32 { ${3:x * 2} })"
+    ],
+    "description": "map Result<i32, E>"
+  },
+  "HashMap new": {
+    "scope": "arukellt",
+    "prefix": [
+      "hashmap",
+      "ark.hashmap"
+    ],
+    "body": [
+      "let ${1:m} = HashMap_new_${2:String}_${3:i32}()"
+    ],
+    "description": "create monomorphic HashMap"
+  },
+  "HashMap insert": {
+    "scope": "arukellt",
+    "prefix": [
+      "hminsert",
+      "ark.hminsert"
+    ],
+    "body": [
+      "hashmap_insert(${1:m}, ${2:key}, ${3:value})"
+    ],
+    "description": "insert into HashMap"
+  },
+  "HashMap get": {
+    "scope": "arukellt",
+    "prefix": [
+      "hmget",
+      "ark.hmget"
+    ],
+    "body": [
+      "hashmap_get(${1:m}, ${2:key})"
+    ],
+    "description": "get from HashMap"
+  },
+  "HashMap contains key": {
+    "scope": "arukellt",
+    "prefix": [
+      "hmhas",
+      "ark.hmhas"
+    ],
+    "body": [
+      "hashmap_contains_key(${1:m}, ${2:key})"
+    ],
+    "description": "check HashMap key"
+  },
+  "HashMap len": {
+    "scope": "arukellt",
+    "prefix": [
+      "hmlen",
+      "ark.hmlen"
+    ],
+    "body": [
+      "hashmap_len(${1:m})"
+    ],
+    "description": "HashMap length"
+  },
+  "Bytes new": {
+    "scope": "arukellt",
+    "prefix": [
+      "bytes",
+      "ark.bytes"
+    ],
+    "body": [
+      "let ${1:b} = bytes_new()"
+    ],
+    "description": "create Bytes"
+  },
+  "Bytes len": {
+    "scope": "arukellt",
+    "prefix": [
+      "byteslen",
+      "ark.byteslen"
+    ],
+    "body": [
+      "bytes_len(${1:b})"
+    ],
+    "description": "bytes length"
+  },
+  "Bytes concat": {
+    "scope": "arukellt",
+    "prefix": [
+      "bytescat",
+      "ark.bytescat"
+    ],
+    "body": [
+      "bytes_concat(${1:left}, ${2:right})"
+    ],
+    "description": "concat bytes"
+  },
+  "Bytes slice": {
+    "scope": "arukellt",
+    "prefix": [
+      "bytesslice",
+      "ark.bytesslice"
+    ],
+    "body": [
+      "bytes_slice(${1:b}, ${2:start}, ${3:end})"
+    ],
+    "description": "slice bytes returning Result"
+  },
+  "ByteBuf new": {
+    "scope": "arukellt",
+    "prefix": [
+      "bytebuf",
+      "ark.bytebuf"
+    ],
+    "body": [
+      "let ${1:buf} = buf_new()"
+    ],
+    "description": "create ByteBuf"
+  },
+  "ByteBuf with capacity": {
+    "scope": "arukellt",
+    "prefix": [
+      "bytebufcap",
+      "ark.bytebufcap"
+    ],
+    "body": [
+      "let ${1:buf} = buf_with_capacity(${2:64})"
+    ],
+    "description": "create ByteBuf with capacity"
+  },
+  "ByteBuf push u8": {
+    "scope": "arukellt",
+    "prefix": [
+      "bufpush",
+      "ark.bufpush"
+    ],
+    "body": [
+      "buf_push_u8(${1:buf}, ${2:0_u8})"
+    ],
+    "description": "push u8 into ByteBuf"
+  },
+  "ByteBuf extend": {
+    "scope": "arukellt",
+    "prefix": [
+      "bufext",
+      "ark.bufext"
+    ],
+    "body": [
+      "buf_extend(${1:buf}, ${2:bytes})"
+    ],
+    "description": "extend ByteBuf with Bytes"
+  },
+  "ByteBuf freeze": {
+    "scope": "arukellt",
+    "prefix": [
+      "buffreeze",
+      "ark.buffreeze"
+    ],
+    "body": [
+      "buf_freeze(${1:buf})"
+    ],
+    "description": "freeze ByteBuf into Bytes"
+  },
+  "Read file": {
+    "scope": "arukellt",
+    "prefix": [
+      "readfile",
+      "ark.readfile"
+    ],
+    "body": [
+      "fs::read_to_string(${1:String_from(\"input.txt\")})"
+    ],
+    "description": "read file to string"
+  },
+  "Write string": {
+    "scope": "arukellt",
+    "prefix": [
+      "writestr",
+      "ark.writestr"
+    ],
+    "body": [
+      "fs::write_string(${1:String_from(\"output.txt\")}, ${2:String_from(\"text\")})"
+    ],
+    "description": "write string to file"
+  },
+  "Write bytes": {
+    "scope": "arukellt",
+    "prefix": [
+      "writebytes",
+      "ark.writebytes"
+    ],
+    "body": [
+      "fs::write_bytes(${1:String_from(\"output.bin\")}, ${2:bytes})"
+    ],
+    "description": "write bytes to file"
+  },
+  "Env var": {
+    "scope": "arukellt",
+    "prefix": [
+      "envvar",
+      "ark.envvar"
+    ],
+    "body": [
+      "env::var(${1:String_from(\"HOME\")})"
+    ],
+    "description": "read environment variable"
+  },
+  "Arg at": {
+    "scope": "arukellt",
+    "prefix": [
+      "argat",
+      "ark.argat"
+    ],
+    "body": [
+      "env::arg_at(${1:0})"
+    ],
+    "description": "read process argument at index"
+  },
+  "Clock now": {
+    "scope": "arukellt",
+    "prefix": [
+      "nowms",
+      "ark.nowms"
+    ],
+    "body": [
+      "clock::now_millis()"
+    ],
+    "description": "current time in milliseconds"
+  },
+  "Random i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "randi32",
+      "ark.randi32"
+    ],
+    "body": [
+      "${1:host_random}::random_i32()"
+    ],
+    "description": "random i32 from host random module"
+  },
+  "Parse i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "parsei32",
+      "ark.parsei32"
+    ],
+    "body": [
+      "parse_i32(${1:s})"
+    ],
+    "description": "parse i32 from string"
+  },
+  "Parse i64": {
+    "scope": "arukellt",
+    "prefix": [
+      "parsei64",
+      "ark.parsei64"
+    ],
+    "body": [
+      "parse_i64(${1:s})"
+    ],
+    "description": "parse i64 from string"
+  },
+  "Parse f64": {
+    "scope": "arukellt",
+    "prefix": [
+      "parsef64",
+      "ark.parsef64"
+    ],
+    "body": [
+      "parse_f64(${1:s})"
+    ],
+    "description": "parse f64 from string"
+  },
+  "Concat strings": {
+    "scope": "arukellt",
+    "prefix": [
+      "concat",
+      "ark.concat"
+    ],
+    "body": [
+      "concat(${1:left}, ${2:right})"
+    ],
+    "description": "concat strings"
+  },
+  "Uppercase": {
+    "scope": "arukellt",
+    "prefix": [
+      "upper",
+      "ark.upper"
+    ],
+    "body": [
+      "text::to_uppercase(${1:\"hello\"})"
+    ],
+    "description": "uppercase string using std::text"
+  },
+  "Trim string": {
+    "scope": "arukellt",
+    "prefix": [
+      "trim",
+      "ark.trim"
+    ],
+    "body": [
+      "text::trim(${1:\"  hi  \"})"
+    ],
+    "description": "trim string using std::text"
+  },
+  "Contains string": {
+    "scope": "arukellt",
+    "prefix": [
+      "contains",
+      "ark.contains"
+    ],
+    "body": [
+      "text::contains(${1:\"hello world\"}, ${2:\"world\"})"
+    ],
+    "description": "substring containment check"
+  },
+  "Starts with": {
+    "scope": "arukellt",
+    "prefix": [
+      "startswith",
+      "ark.startswith"
+    ],
+    "body": [
+      "text::starts_with(${1:\"hello\"}, ${2:\"hel\"})"
+    ],
+    "description": "prefix check"
+  },
+  "Assert": {
+    "scope": "arukellt",
+    "prefix": [
+      "assert",
+      "ark.assert"
+    ],
+    "body": [
+      "assert(${1:condition})"
+    ],
+    "description": "boolean assertion"
+  },
+  "Assert eq": {
+    "scope": "arukellt",
+    "prefix": [
+      "asserteq",
+      "ark.asserteq"
+    ],
+    "body": [
+      "assert_eq(${1:left}, ${2:right})"
+    ],
+    "description": "generic equality assertion"
+  },
+  "Assert ne": {
+    "scope": "arukellt",
+    "prefix": [
+      "assertne",
+      "ark.assertne"
+    ],
+    "body": [
+      "assert_ne(${1:left}, ${2:right})"
+    ],
+    "description": "generic inequality assertion"
+  },
+  "Assert true": {
+    "scope": "arukellt",
+    "prefix": [
+      "asserttrue",
+      "ark.asserttrue"
+    ],
+    "body": [
+      "assert_true(${1:condition})"
+    ],
+    "description": "assert true helper"
+  },
+  "Assert false": {
+    "scope": "arukellt",
+    "prefix": [
+      "assertfalse",
+      "ark.assertfalse"
+    ],
+    "body": [
+      "assert_false(${1:condition})"
+    ],
+    "description": "assert false helper"
+  },
+  "Assert eq i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "asserteqi32",
+      "ark.asserteqi32"
+    ],
+    "body": [
+      "assert_eq_i32(${1:left}, ${2:right})"
+    ],
+    "description": "i32 equality assertion"
+  },
+  "Assert eq i64": {
+    "scope": "arukellt",
+    "prefix": [
+      "asserteqi64",
+      "ark.asserteqi64"
+    ],
+    "body": [
+      "assert_eq_i64(${1:left}, ${2:right})"
+    ],
+    "description": "i64 equality assertion"
+  },
+  "Assert eq string": {
+    "scope": "arukellt",
+    "prefix": [
+      "asserteqstr",
+      "ark.asserteqstr"
+    ],
+    "body": [
+      "assert_eq_string(${1:left}, ${2:right})"
+    ],
+    "description": "string equality assertion"
+  },
+  "Expect ok i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "expectok",
+      "ark.expectok"
+    ],
+    "body": [
+      "expect_ok_i32(${1:res})"
+    ],
+    "description": "expect Result<i32, String> to be Ok"
+  },
+  "Expect err string": {
+    "scope": "arukellt",
+    "prefix": [
+      "expecterr",
+      "ark.expecterr"
+    ],
+    "body": [
+      "expect_err_string(${1:res})"
+    ],
+    "description": "expect Result<i32, String> to be Err"
+  },
+  "Expect some i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "expectsome",
+      "ark.expectsome"
+    ],
+    "body": [
+      "expect_some_i32(${1:opt})"
+    ],
+    "description": "expect Option<i32> to be Some"
+  },
+  "Expect none i32": {
+    "scope": "arukellt",
+    "prefix": [
+      "expectnone",
+      "ark.expectnone"
+    ],
+    "body": [
+      "expect_none_i32(${1:opt})"
+    ],
+    "description": "expect Option<i32> to be None"
+  },
+  "Test file main": {
+    "scope": "arukellt",
+    "prefix": [
+      "testmain",
+      "ark.testmain"
+    ],
+    "body": [
+      "use std::host::stdio",
+      "",
+      "fn main() {",
+      "    ${1:// assertions}",
+      "    stdio::println(${2:\"all tests passed\"})",
+      "}"
+    ],
+    "description": "simple test fixture main"
+  },
+  "Hello world": {
+    "scope": "arukellt",
+    "prefix": [
+      "hello",
+      "ark.hello"
+    ],
+    "body": [
+      "use std::host::stdio",
+      "",
+      "fn main() {",
+      "    stdio::println(${1:\"Hello, Arukellt!\"})",
+      "}"
+    ],
+    "description": "hello world program"
+  },
+  "Divide Result example": {
+    "scope": "arukellt",
+    "prefix": [
+      "divide",
+      "ark.divide"
+    ],
+    "body": [
+      "fn ${1:divide}(a: i32, b: i32) -> Result<i32, String> {",
+      "    if b == 0 {",
+      "        Err(String_from(${2:\"division by zero\"}))",
+      "    } else {",
+      "        Ok(a / b)",
+      "    }",
+      "}"
+    ],
+    "description": "divide function returning Result"
+  },
+  "Apply closure example": {
+    "scope": "arukellt",
+    "prefix": [
+      "apply",
+      "ark.apply"
+    ],
+    "body": [
+      "fn ${1:apply}(f: fn(i32) -> i32, x: i32) -> i32 {",
+      "    f(x)",
+      "}"
+    ],
+    "description": "apply function example"
+  },
+  "Struct + enum demo": {
+    "scope": "arukellt",
+    "prefix": [
+      "structenum",
+      "ark.structenum"
+    ],
+    "body": [
+      "struct ${1:Point} {",
+      "    ${2:x}: i32,",
+      "    ${3:y}: i32,",
+      "}",
+      "",
+      "enum ${4:Color} {",
+      "    ${5:Red},",
+      "    ${6:Green},",
+      "    ${7:Blue},",
+      "}"
+    ],
+    "description": "struct and enum demo block"
+  },
+  "File processing main": {
+    "scope": "arukellt",
+    "prefix": [
+      "filemain",
+      "ark.filemain"
+    ],
+    "body": [
+      "use std::host::fs",
+      "use std::host::stdio",
+      "",
+      "fn main() {",
+      "    let ${1:result} = fs::read_to_string(${2:String_from(\"input.txt\")})",
+      "    match ${1:result} {",
+      "        Ok(${3:text}) => stdio::println(${3:text}),",
+      "        Err(${4:e}) => stdio::println(${4:e}),",
+      "    }",
+      "}"
+    ],
+    "description": "read a file and print its contents"
+  },
+  "Option match print": {
+    "scope": "arukellt",
+    "prefix": [
+      "optprint",
+      "ark.optprint"
+    ],
+    "body": [
+      "match ${1:opt} {",
+      "    Some(${2:value}) => stdio::println(to_string(${2:value})),",
+      "    None => stdio::println(${3:String_from(\"none\")}),",
+      "}"
+    ],
+    "description": "print Option contents"
+  },
+  "Result match print": {
+    "scope": "arukellt",
+    "prefix": [
+      "resprint",
+      "ark.resprint"
+    ],
+    "body": [
+      "match ${1:res} {",
+      "    Ok(${2:value}) => stdio::println(to_string(${2:value})),",
+      "    Err(${3:e}) => stdio::println(${3:e}),",
+      "}"
+    ],
+    "description": "print Result contents"
+  },
+  "Path test file": {
+    "scope": "arukellt",
+    "prefix": [
+      "pathtest",
+      "ark.pathtest"
+    ],
+    "body": [
+      "use std::path",
+      "use std::host::stdio",
+      "",
+      "fn main() {",
+      "    assert_eq_string(path::join(${1:\"a\"}, ${2:\"b\"}), ${3:\"a/b\"})",
+      "    stdio::println(${4:\"all path tests passed\"})",
+      "}"
+    ],
+    "description": "test fixture for std::path"
+  },
+  "Reserved async fn": {
+    "scope": "arukellt",
+    "prefix": [
+      "asyncfn",
+      "ark.asyncfn"
+    ],
+    "body": [
+      "async fn ${1:name}(${2}) -> ${3:i32} {",
+      "    $0",
+      "}"
+    ],
+    "description": "reserved keyword template: async fn (future-facing, may not compile on current branch)"
+  },
+  "Reserved where clause": {
+    "scope": "arukellt",
+    "prefix": [
+      "where",
+      "ark.where"
+    ],
+    "body": [
+      "fn ${1:name}<${2:T}: ${3:Display}>(${4:value}: ${2:T}) -> ${5:String} {",
+      "    $0",
+      "}"
+    ],
+    "description": "future-facing generic bound template"
+  },
+  "Reserved const item": {
+    "scope": "arukellt",
+    "prefix": [
+      "const",
+      "ark.const"
+    ],
+    "body": [
+      "const ${1:NAME}: ${2:i32} = ${3:42}"
+    ],
+    "description": "reserved keyword template: const item"
+  },
+  "Reserved extern fn": {
+    "scope": "arukellt",
+    "prefix": [
+      "externfn",
+      "ark.externfn"
+    ],
+    "body": [
+      "extern \"${1:C}\" fn ${2:name}(${3}) -> ${4:i32}"
+    ],
+    "description": "reserved keyword template: extern function"
   }
 }
