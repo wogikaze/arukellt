@@ -20,6 +20,7 @@ ark-target = { workspace = true }
 ark-stdlib = { workspace = true }
 ark-manifest = { workspace = true }
 ark-dap = { workspace = true }
+toml = { workspace = true }
 clap = { workspace = true }
 wasmtime = { workspace = true }
 wasmparser = { workspace = true }

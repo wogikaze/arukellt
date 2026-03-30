@@ -80,6 +80,30 @@ enum Commands {
         #[arg(long)]
         json: bool,
     },
+    /// Initialize a new Arukellt project in the specified directory
+    Init {
+        /// Project directory
+        #[arg(default_value = ".")]
+        path: PathBuf,
+    },
+    /// Build the project in the current directory (requires ark.toml)
+    Build {
+        /// Compile target
+        #[arg(long, default_value = "wasm32-wasi-p1")]
+        target: TargetId,
+        /// Optimization level (0=none, 1=safe, 2=all). Default: 1
+        #[arg(long, default_value = "1")]
+        opt_level: u8,
+        /// MIR lowering path: legacy (default) or corehir
+        #[arg(long = "mir-select", value_name = "PATH", default_value = "legacy")]
+        mir_select: String,
+        /// Show memory profiling info
+        #[arg(long)]
+        profile_mem: bool,
+        /// Show per-phase compilation time
+        #[arg(long)]
+        time: bool,
+    },
     /// Compile and run an .ark file
     Run {
         /// Input .ark file
@@ -190,6 +214,18 @@ fn main() {
                 &mir_select,
                 json,
             );
+        }
+        Commands::Init { path } => {
+            commands::cmd_init(path);
+        }
+        Commands::Build {
+            target,
+            opt_level,
+            mir_select,
+            profile_mem,
+            time,
+        } => {
+            commands::cmd_build(target, opt_level, &mir_select, profile_mem, time);
         }
         Commands::Run {
             file,

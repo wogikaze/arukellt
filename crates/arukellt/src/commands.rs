@@ -1,6 +1,7 @@
 //! Subcommand handlers for the Arukellt CLI.
 
-use std::path::PathBuf;
+use serde::Deserialize;
+use std::path::{Path, PathBuf};
 use std::process;
 
 use ark_driver::{MirSelection, OptLevel, Session};
@@ -10,6 +11,127 @@ use serde::Serialize;
 
 use crate::native;
 use crate::runtime::{RuntimeCaps, run_wasm_gc, run_wasm_p1};
+
+#[derive(Deserialize)]
+pub(crate) struct ArkManifest {
+    pub package: PackageMetadata,
+    pub bin: Option<BinMetadata>,
+}
+
+#[derive(Deserialize)]
+pub(crate) struct PackageMetadata {
+    pub name: String,
+}
+
+#[derive(Deserialize)]
+pub(crate) struct BinMetadata {
+    pub name: String,
+    pub path: PathBuf,
+}
+
+pub(crate) fn cmd_init(path: PathBuf) {
+    let manifest_path = path.join("ark.toml");
+    if manifest_path.exists() {
+        eprintln!("error: ark.toml already exists in {}", path.display());
+        process::exit(1);
+    }
+
+    let project_name = path
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("hello-ark");
+
+    let manifest_content = format!(
+        r#"[package]
+name = "{}"
+version = "0.1.0"
+
+[bin]
+name = "{}"
+path = "src/main.ark"
+"#,
+        project_name, project_name
+    );
+
+    let src_dir = path.join("src");
+    std::fs::create_dir_all(&src_dir).unwrap_or_else(|e| {
+        eprintln!("error: failed to create src directory: {}", e);
+        process::exit(1);
+    });
+
+    let main_ark_path = src_dir.join("main.ark");
+    let main_ark_content = r#"use std::host::stdio
+
+fn main() {
+    stdio::println("Hello, Arukellt!")
+}
+"#;
+
+    std::fs::write(&manifest_path, manifest_content).unwrap_or_else(|e| {
+        eprintln!("error: failed to write ark.toml: {}", e);
+        process::exit(1);
+    });
+
+    if !main_ark_path.exists() {
+        std::fs::write(&main_ark_path, main_ark_content).unwrap_or_else(|e| {
+            eprintln!("error: failed to write src/main.ark: {}", e);
+            process::exit(1);
+        });
+    }
+
+    eprintln!("Initialized Arukellt project in {}", path.display());
+}
+
+pub(crate) fn cmd_build(
+    target: TargetId,
+    opt_level_raw: u8,
+    mir_select: &str,
+    profile_mem: bool,
+    time: bool,
+) {
+    let manifest_path = Path::new("ark.toml");
+    if !manifest_path.exists() {
+        eprintln!("error: could not find ark.toml in current directory");
+        process::exit(1);
+    }
+
+    let manifest_str = std::fs::read_to_string(manifest_path).unwrap_or_else(|e| {
+        eprintln!("error: failed to read ark.toml: {}", e);
+        process::exit(1);
+    });
+
+    let manifest: ArkManifest = toml::from_str(&manifest_str).unwrap_or_else(|e| {
+        eprintln!("error: failed to parse ark.toml: {}", e);
+        process::exit(1);
+    });
+
+    let bin = manifest.bin.unwrap_or_else(|| {
+        eprintln!("error: ark.toml must contain a [bin] section");
+        process::exit(1);
+    });
+
+    let input_file = bin.path;
+    let output_file = PathBuf::from(format!("{}.wasm", bin.name));
+
+    let profile = target.profile();
+    let emit_kind = profile.default_emit_kind;
+
+    cmd_compile(
+        input_file,
+        Some(output_file),
+        target,
+        emit_kind,
+        vec![],
+        None,
+        false,
+        profile_mem,
+        time,
+        opt_level_raw,
+        vec![],
+        mir_select,
+        false,
+    );
+}
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn cmd_compile(

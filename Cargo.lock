@@ -290,6 +290,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "toml",
  "wasmparser 0.225.0",
  "wasmtime",
  "wasmtime-wasi",
