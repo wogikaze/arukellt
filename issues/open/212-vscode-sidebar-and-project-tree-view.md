@@ -24,17 +24,20 @@ symbols / modules / scripts / tests をまとめた tree view、context menu か
 ## Scope
 
 ### Sidebar view
+
 - `arukellt` container view の登録
 - project overview tree（modules / scripts / tests / targets）
 - tree item クリックでファイルを開く導線
 - refresh ボタン
 
 ### Context menus
+
 - explorer context: `Run File` / `Check File` / `Compile File`
 - editor title: `Run` / `Check` / `Compile` ボタン
 - editor context: `Run Selection` / `Explain Code`（#205 連携）
 
 ### Quick pick execution
+
 - `Arukellt: Run…` — ファイル / スクリプト / テストを quick pick で選択して実行
 - `Arukellt: Test…` — テスト quick pick
 - `Arukellt: Script…` — script quick pick（#203 連携）

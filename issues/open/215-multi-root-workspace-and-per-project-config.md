@@ -23,21 +23,25 @@ multi-root workspace 対応、workspace folder ごとの target / emit / adapter
 ## Scope
 
 ### Multi-root workspace
+
 - workspace folder ごとの project root 自動検出
 - `ark.toml` の有無による project 識別
 - folder 追加 / 削除時の動的再認識
 
 ### Per-project configuration
+
 - `settings.json` での folder-scoped 設定（target / emit / adapter / binary path）
 - workspace defaults vs. folder overrides の優先順位
 - `.vscode/settings.json` による per-project オーバーライド
 
 ### Compile / run / test 導線
+
 - アクティブファイルの所属 project を自動判定
 - project 単位での compile / run / test task 生成
 - project 選択 quick pick（multi-root 時）
 
 ### Manifest 分岐
+
 - `ark.toml` 不在: 単一ファイルモード、minimum 設定
 - `ark.toml` あり: package / workspace / tool defaults 読み取り
 - `ark.toml` 形式エラー時の診断表示

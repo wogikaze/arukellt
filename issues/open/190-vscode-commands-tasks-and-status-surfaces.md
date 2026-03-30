@@ -24,12 +24,14 @@ command graph / environment diff の本実装、task の build / test group と 
 ## Scope
 
 ### Commands
+
 - `Arukellt: Command Graph` — 実体実装
 - `Arukellt: Show Environment Diff` — 実体実装
 - editor title / editor context / explorer context への command 追加
 - quick pick ベースの run / test / script 実行
 
 ### Task provider
+
 - workspace folder ごとの task 生成
 - build group / test group の付与
 - problem matcher の定義と適用
@@ -39,6 +41,7 @@ command graph / environment diff の本実装、task の build / test group と 
 - task 実行前 validation
 
 ### Status bar
+
 - active target / emit / project の表示
 - クリックで quick pick に遷移する導線
 - compiling / testing などの状態表示との連携

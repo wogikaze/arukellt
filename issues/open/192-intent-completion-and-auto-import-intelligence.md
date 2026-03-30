@@ -22,21 +22,25 @@ LSP completion の品質向上と auto import、missing / unused import の quic
 ## Scope
 
 ### Auto import completion
+
 - 補完候補選択時に `import` 文を自動挿入
 - 同名シンボルが複数モジュールに存在する場合の候補表示
 - stdlib / 外部モジュール / ローカルモジュール別の候補順
 
 ### Import quick fixes
+
 - missing import: `E` code で import quick fix を提示
 - unused import: `W` code + quick fix で import を除去
 - ambiguous import: 候補リストから選択する quick pick
 
 ### Organize imports
+
 - `source.organizeImports` code action
 - on save format と連携するオプション
 - import 並び替えルール（stdlib → external → local）
 
 ### Navigation 連携
+
 - go to definition から未 import シンボルへの対応
 - workspace symbol search からの auto import
 

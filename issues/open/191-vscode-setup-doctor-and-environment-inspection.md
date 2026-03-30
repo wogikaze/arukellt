@@ -23,21 +23,25 @@
 ## Scope
 
 ### Binary discovery
+
 - PATH / absolute path / relative path の安全診断
 - 外部依存ツールの検出（wasm-tools, wasmtime 等）
 - version mismatch 検知と案内
 - one-click で docs を開く導線
 
 ### Setup walkthrough
+
 - 初回有効化時の walkthrough 自動表示
 - 必要ツールのインストール案内（actionable ボタン付き）
 - target ごとの必要ランタイム診断
 
 ### Workspace trust
+
 - trust 未付与時の機能制限フロー
 - trust 付与後の自動再起動 / 再診断
 
 ### Doctor command
+
 - `Arukellt: Setup Doctor` の詳細化
 - PATH / version / target / missing tool を一覧表示
 - 各診断項目に fix / docs リンクを付与

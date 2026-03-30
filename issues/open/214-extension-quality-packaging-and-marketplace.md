@@ -23,23 +23,27 @@ extension integration tests・smoke tests・fixture project 群・packaging chec
 ## Scope
 
 ### Tests
+
 - extension integration tests（VS Code test runner 使用）
 - smoke tests（拡張を起動して最低限の動作確認）
 - fixture project 群（ark.toml あり / なし、multi-root、stdlib のみ等）
 - packaging check（`vsce package` が警告なく通る）
 
 ### Marketplace metadata
+
 - icon / banner 画像
 - categories: `Programming Languages`, `Linters`, `Debuggers`, `Testing`
 - keywords, repository, bugs, homepage 各フィールド
 - `engines.vscode` の適切なバージョン指定
 
 ### Branding / docs
+
 - README に screenshot / gif、セットアップ手順、対応 target 一覧、既知の制約、troubleshooting
 - CHANGELOG.md の初期エントリ
 - sample `tasks.json` / `launch.json` / `ark.toml` の同梱
 
 ### Compatibility
+
 - web extension 対応可否の調査と判断
 - remote / dev container / GitHub Codespaces での動作確認
 - release 手順（semver, tag, publish workflow）の文書化
