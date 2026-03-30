@@ -23,3 +23,6 @@ docs/spec/spec-*/
 # bootstrap verification scratch directories
 .bootstrap-build/
 .compare-outputs-scratch/
+
+# Node.js
+**/node_modules/
