@@ -1439,8 +1439,8 @@ impl Ctx {
             functions.function(ty_idx);
         }
 
-        // Memory section — BRIDGE COMPAT: keep 4-10 pages until fully GC-native.
-        // Target: 1 page fixed (WASI I/O only) once all allocations use GC heap.
+        // Linear memory: kept at 4-10 pages for WASI fd_write/fd_read I/O buffer.
+        // GC-native codegen is complete; linear memory is only used for I/O syscalls.
         let mut memories = MemorySection::new();
         memories.memory(MemoryType {
             minimum: 4,

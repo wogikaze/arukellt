@@ -1,6 +1,6 @@
 # GC-native builtins: to_string, parse, math, I/O
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
 **Updated**: 2026-03-27
 **ID**: 026

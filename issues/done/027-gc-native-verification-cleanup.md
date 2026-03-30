@@ -1,6 +1,6 @@
 # GC-native full verification, cleanup, and ADR update
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
 **Updated**: 2026-03-27
 **ID**: 027

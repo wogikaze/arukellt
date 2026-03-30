@@ -227,8 +227,16 @@ pure arena と pure RC の二者択一より、これが最も実用的。
 
 ## Implementation Status (2026-03-27)
 
-GC-native codegen is **complete** in the T3 emitter (`t3_wasm_gc.rs`).
-All 346 fixture tests pass. `verify-harness.sh` exits 0 (16/16 checks).
+GC-native codegen is **complete** in the T3 emitter (`crates/ark-wasm/src/emit/t3/`).
+542 fixture tests pass (124 t3-run, 161 t3-compile). `verify-harness.sh` exits 0.
+
+### Builtins fully ported to GC-native
+
+- **to_string**: i32, i64, f64, bool, char — all produce `(ref $string)` GC arrays
+- **println/print/eprintln**: all types, including stderr via `__eprint_str_ln` helper
+- **parse**: parse_i32, parse_i64, parse_f64 — return `(ref $Result)` GC enum
+- **math**: sqrt, abs, min, max, pow, floor, ceil, round, clamp — Wasm native ops
+- **I/O**: fs_read_file, fs_write_file, fs_write_bytes, clock, random, process_exit
 
 ### Key design decisions implemented
 
