@@ -405,28 +405,53 @@ impl TypeChecker {
         for name in &resolved.private_imported_names {
             self.private_imported_fns.insert(name.clone());
         }
-        // Register user-defined structs and enums
+        // Register user-defined structs and enums in two passes to support
+        // self-referential and mutually-recursive type definitions.
+        // Pass 1: allocate type_ids for all structs/enums with empty fields
+        // so forward references resolve correctly in pass 2.
         for item in &resolved.module.items {
             match item {
                 ast::Item::StructDef(s) => {
                     let type_id = self.fresh_type_id();
-                    let fields: Vec<(String, Type)> = s
-                        .fields
-                        .iter()
-                        .map(|f| (f.name.clone(), self.resolve_type_expr(&f.ty)))
-                        .collect();
                     self.struct_defs.insert(
                         s.name.clone(),
                         StructInfo {
                             name: s.name.clone(),
                             type_params: s.type_params.clone(),
-                            fields,
+                            fields: vec![],
                             type_id,
                         },
                     );
                 }
                 ast::Item::EnumDef(e) => {
                     let type_id = self.fresh_type_id();
+                    self.enum_defs.insert(
+                        e.name.clone(),
+                        EnumInfo {
+                            name: e.name.clone(),
+                            variants: vec![],
+                            type_params: e.type_params.clone(),
+                            type_id,
+                        },
+                    );
+                }
+                _ => {}
+            }
+        }
+        // Pass 2: resolve field types (all struct/enum names are now registered)
+        for item in &resolved.module.items {
+            match item {
+                ast::Item::StructDef(s) => {
+                    let fields: Vec<(String, Type)> = s
+                        .fields
+                        .iter()
+                        .map(|f| (f.name.clone(), self.resolve_type_expr(&f.ty)))
+                        .collect();
+                    if let Some(info) = self.struct_defs.get_mut(&s.name) {
+                        info.fields = fields;
+                    }
+                }
+                ast::Item::EnumDef(e) => {
                     let variants: Vec<VariantInfo> = e
                         .variants
                         .iter()
@@ -451,15 +476,9 @@ impl TypeChecker {
                             },
                         })
                         .collect();
-                    self.enum_defs.insert(
-                        e.name.clone(),
-                        EnumInfo {
-                            name: e.name.clone(),
-                            variants,
-                            type_params: e.type_params.clone(),
-                            type_id,
-                        },
-                    );
+                    if let Some(info) = self.enum_defs.get_mut(&e.name) {
+                        info.variants = variants;
+                    }
                 }
                 ast::Item::FnDef(f) => {
                     let params: Vec<Type> = f

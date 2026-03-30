@@ -12,15 +12,18 @@ graph TD
   I196["196 `arukellt test` discovery / runner / JSON reporter"]
   I199["199 Debug metadata + DAP adapter foundation"]
   I202["202 `ark.toml` schema + project/workspace discovery"]
+  I209["209 selfhost: connect CLI main.ark to driver pipeline"]
   I184["184 VS Code: `arukellt-all-in-one` 拡張の基盤整備"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
   I197["197 VS Code Test Explorer + inline test execution"]
   I200["200 Runtime inspection / stepping / evaluate surface"]
   I203["203 `script run` / `script list` CLI surface"]
+  I210["210 selfhost: typechecker builds real typed_fns from resolved AST"]
   I185["185 IDE surface: rename / code actions / workspace symbols / formatting"]
   I198["198 Advanced test UX: impact analysis / snapshot diff / fuzz UI"]
   I201["201 Advanced debug intelligence"]
   I204["204 Project explain / build explain / script sandbox surface"]
+  I211["211 selfhost: MIR lowering lowers function bodies from typed HIR"]
   I186["186 Test UX: `arukellt test` と VS Code Test Explorer surface"]
   I187["187 Debug UX: source-level debugging と DAP surface"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
@@ -34,6 +37,7 @@ graph TD
   I196 --> I197
   I199 --> I200
   I202 --> I203
+  I209 --> I210
   I193 --> I185
   I194 --> I185
   I195 --> I185
@@ -42,6 +46,7 @@ graph TD
   I200 --> I201
   I202 --> I204
   I203 --> I204
+  I210 --> I211
   I196 --> I186
   I197 --> I186
   I198 --> I186
@@ -76,15 +81,18 @@ graph TD
 - **196** depends on: none; blocks: 186, 197, 198
 - **199** depends on: none; blocks: 187, 200
 - **202** depends on: 124; blocks: 188, 203, 204
+- **209** depends on: 208; blocks: 210
 - **184** depends on: 189, 190, 191; blocks: 183, 206, 207
 - **194** depends on: 193; blocks: 185
 - **197** depends on: 196; blocks: 186, 198
 - **200** depends on: 199; blocks: 187, 201
 - **203** depends on: 202; blocks: 188, 204
+- **210** depends on: 209; blocks: 211
 - **185** depends on: 192, 193, 194, 195; blocks: 183, 205, 206
 - **198** depends on: 196, 197; blocks: 186
 - **201** depends on: 200; blocks: 187
 - **204** depends on: 202, 203; blocks: 188
+- **211** depends on: 210; blocks: none
 - **186** depends on: 196, 197, 198; blocks: 183
 - **187** depends on: 199, 200, 201; blocks: 183, 206
 - **188** depends on: 202, 203, 204; blocks: 183, 205, 207
