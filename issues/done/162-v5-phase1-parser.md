@@ -1,6 +1,7 @@
 # v5 Phase 1: Parser epic
 
-**Status**: open
+**Status**: done
+**Updated**: 2026-03-30
 **ID**: 162
 **Depends on**: 172, 173, 174
 **Track**: main
@@ -14,9 +15,9 @@ v5 の parser 作業は、AST surface 定義・構文解析本体・fixture pari
 
 ## Acceptance
 
-- [ ] #172, #173, #174 が完了している
-- [ ] v5 parser の残課題が child issue に分解され、親 issue 本文に未整理の実装責務が残っていない
-- [ ] selfhost parser の完了条件が issue queue 上で追跡できる
+- [x] #172, #173, #174 が完了している
+- [x] v5 parser の残課題が child issue に分解され、親 issue 本文に未整理の実装責務が残っていない
+- [x] selfhost parser の完了条件が issue queue 上で追跡できる
 
 ## References
 

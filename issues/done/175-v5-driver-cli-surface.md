@@ -1,7 +1,8 @@
 # v5 Driver/CLI: command surface and exit behavior
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
+**Updated**: 2026-03-30
 **ID**: 175
 **Depends on**: 162
 **Track**: main
@@ -13,9 +14,9 @@ selfhost compiler の CLI entrypoint を整理し、`parse` / `compile` の surf
 
 ## Acceptance
 
-- [ ] `parse` / `compile` などの command surface が定義されている
-- [ ] 引数解釈と usage / failure path の責務が明確になっている
-- [ ] 正常系 0 / 失敗系 1 の exit behavior を追跡できる
+- [x] `parse` / `compile` などの command surface が定義されている
+- [x] 引数解釈 and usage / failure path の責務が明確になっている
+- [x] 正常系 0 / 失敗系 1 の exit behavior を追跡できる
 
 ## References
 

@@ -1,8 +1,8 @@
 # T3 CI and verify policy
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 016
 **Depends on**: 002, 009, 010, 011
 **Track**: parallel
@@ -14,10 +14,10 @@ Update verification and CI so T3 compile/run regressions are treated as primary 
 
 ## Acceptance Criteria
 
-- [ ] Normal correctness CI includes T3 compile coverage and representative T3 run coverage.
-- [ ] Heavy perf comparisons remain on a separate job and do not destabilize normal correctness verification.
-- [ ] Docs consistency checks include T3 target status drift.
-- [ ] Verification policy text matches the implemented workflow.
+- [x] Normal correctness CI includes T3 compile coverage and representative T3 run coverage.
+- [x] Heavy perf comparisons remain on a separate job and do not destabilize normal correctness verification.
+- [x] Docs consistency checks include T3 target status drift.
+- [x] Verification policy text matches the implemented workflow.
 
 ## Goal
 

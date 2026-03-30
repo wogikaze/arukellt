@@ -1,6 +1,7 @@
 # v5 Bootstrap verification epic
 
-**Status**: open
+**Status**: done
+**Updated**: 2026-03-30
 **ID**: 166
 **Depends on**: 181, 182
 **Track**: main
@@ -14,9 +15,9 @@
 
 ## Acceptance
 
-- [ ] #181, #182 が完了している
-- [ ] bootstrap verification の実装責務と docs 責務が分離されている
-- [ ] selfhost fixpoint 検証が issue queue 上で追跡できる
+- [x] #181, #182 が完了している
+- [x] bootstrap verification の実装責務と docs 責務が分離されている
+- [x] selfhost fixpoint 検証が issue queue 上で追跡できる
 
 ## References
 

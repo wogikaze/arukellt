@@ -1,8 +1,8 @@
 # V1 exit review and completion report
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 012
 **Depends on**: 001, 002, 003, 004, 005, 006, 007, 008, 009, 010, 011
 **Track**: main
@@ -14,10 +14,10 @@ Perform the final branch-wide verification, documentation sync, and completion r
 
 ## Acceptance Criteria
 
-- [ ] A single completion report shows T3 compile/run/validation gates all passing.
-- [ ] All current-first docs and policy pages agree on T3 status.
-- [ ] Representative benchmarks/baselines are attached or referenced.
-- [ ] Remaining post-v1 work is explicitly separated from v1-complete work.
+- [x] A single completion report shows T3 compile/run/validation gates all passing.
+- [x] All current-first docs and policy pages agree on T3 status.
+- [x] Representative benchmarks/baselines are attached or referenced.
+- [x] Remaining post-v1 work is explicitly separated from v1-complete work.
 
 ## Goal
 

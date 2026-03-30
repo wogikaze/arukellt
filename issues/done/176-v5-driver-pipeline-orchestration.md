@@ -1,7 +1,8 @@
 # v5 Driver: file loading and pipeline orchestration
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
+**Updated**: 2026-03-30
 **ID**: 176
 **Depends on**: 162, 175
 **Track**: main
@@ -13,9 +14,9 @@
 
 ## Acceptance
 
-- [ ] ファイル読み込みから parser 実行までの orchestration が追跡できる
-- [ ] pipeline entry / exit での error propagation が整理されている
-- [ ] 後続の resolver / typechecker / backend が接続される位置が明確
+- [x] ファイル読み込みから parser 実行までの orchestration が追跡できる
+- [x] pipeline entry / exit での error propagation が整理されている
+- [x] 後続の resolver / typechecker / backend が接続される位置が明確
 
 ## References
 

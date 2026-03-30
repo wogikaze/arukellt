@@ -1,8 +1,8 @@
 # Align target profile and backend plan
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 003
 **Depends on**: 001
 **Track**: main
@@ -14,10 +14,10 @@ Resolve the semantic drift between `TargetProfile` and `BackendPlan` for T3 so c
 
 ## Acceptance Criteria
 
-- [ ] `TargetId::Wasm32WasiP2` profile, target help text, and docs no longer contradict the current fallback implementation.
-- [ ] `crates/ark-target/src/plan.rs` distinguishes current fallback runtime from the true completed T3 runtime model.
-- [ ] Plan/profile matching logic does not claim full T3 completion when the runtime model is still fallback-based.
-- [ ] Docs and code use the same terms for fallback, experimental, primary, and canonical.
+- [x] `TargetId::Wasm32WasiP2` profile, target help text, and docs no longer contradict the current fallback implementation.
+- [x] `crates/ark-target/src/plan.rs` distinguishes current fallback runtime from the true completed T3 runtime model.
+- [x] Plan/profile matching logic does not claim full T3 completion when the runtime model is still fallback-based.
+- [x] Docs and code use the same terms for fallback, experimental, primary, and canonical.
 
 ## Goal
 

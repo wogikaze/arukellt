@@ -1,8 +1,8 @@
 # GC-native enums: subtype hierarchy + br_on_cast
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 022
 **Depends on**: 021
 **Track**: gc-native
@@ -87,22 +87,22 @@ But prefer rewriting match emission to use br_on_cast directly.
 
 ## Acceptance Criteria
 
-- [ ] GcTypeRegistry creates subtype hierarchies for every enum in enum_defs:
+- [x] GcTypeRegistry creates subtype hierarchies for every enum in enum_defs:
       one non-final base type + one final subtype per variant.
-- [ ] `EnumInit` emits `struct.new $Enum.Variant` with payload fields.
-- [ ] `EnumPayload` emits `ref.cast (ref $Enum.Variant)` then `struct.get`.
-- [ ] `EnumTag` either works via ref.test chain or match emission is rewritten
+- [x] `EnumInit` emits `struct.new $Enum.Variant` with payload fields.
+- [x] `EnumPayload` emits `ref.cast (ref $Enum.Variant)` then `struct.get`.
+- [x] `EnumTag` either works via ref.test chain or match emission is rewritten
       to use `br_on_cast` chains.
-- [ ] Match expressions on enums work correctly with exhaustive checking.
-- [ ] Nullary variants (None, unit variants) use empty struct subtypes.
-- [ ] Option<i32>, Option<String>, Result<i32, String>, Result<i64, String>
+- [x] Match expressions on enums work correctly with exhaustive checking.
+- [x] Nullary variants (None, unit variants) use empty struct subtypes.
+- [x] Option<i32>, Option<String>, Result<i32, String>, Result<i64, String>
       all work as enum subtype hierarchies.
-- [ ] All `t3-compile:enums/*` fixtures compile successfully.
-- [ ] All `run:enums/*` fixtures pass execution with correct output.
-- [ ] All `t3-compile:stdlib_option_result/*` fixtures compile.
-- [ ] All `run:stdlib_option_result/*` fixtures pass execution.
-- [ ] All `t3-compile:match_extensions/*` fixtures compile.
-- [ ] All `run:match_extensions/*` fixtures pass execution.
+- [x] All `t3-compile:enums/*` fixtures compile successfully.
+- [x] All `run:enums/*` fixtures pass execution with correct output.
+- [x] All `t3-compile:stdlib_option_result/*` fixtures compile.
+- [x] All `run:stdlib_option_result/*` fixtures pass execution.
+- [x] All `t3-compile:match_extensions/*` fixtures compile.
+- [x] All `run:match_extensions/*` fixtures pass execution.
 
 ## Key Files
 

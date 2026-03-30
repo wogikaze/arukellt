@@ -1,8 +1,8 @@
 # Enable --emit component and produce .component.wasm
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-03-28
+**Updated**: 2026-03-30
 **ID**: 030
 **Depends on**: 029
 **Track**: component-model
@@ -35,21 +35,21 @@ with a clear error message suggesting installation.
 
 ## Acceptance Criteria
 
-- [ ] `build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::Component)` returns `Ok(plan)`
+- [x] `build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::Component)` returns `Ok(plan)`
       instead of `Err(...)`.
-- [ ] `EmitCapability::Component` variant added to `crates/ark-target/src/plan.rs`.
-- [ ] `BackendPlan` for component emit includes: canonical ABI adapter requirements,
+- [x] `EmitCapability::Component` variant added to `crates/ark-target/src/plan.rs`.
+- [x] `BackendPlan` for component emit includes: canonical ABI adapter requirements,
       import/export interface names, WIT type definitions.
-- [ ] `crates/ark-wasm/src/emit/mod.rs` `emit_with_plan()` handles
+- [x] `crates/ark-wasm/src/emit/mod.rs` `emit_with_plan()` handles
       `EmitCapability::Component`: emits core module → generates WIT → invokes component
       wrapping → validates result.
-- [ ] `Session::compile_component()` method added to `crates/ark-driver/src/session.rs`
+- [x] `Session::compile_component()` method added to `crates/ark-driver/src/session.rs`
       that produces `Vec<u8>` containing a valid component binary.
-- [ ] Component output passes `wasmparser` validation with component model features enabled.
-- [ ] The test `component_emit_is_rejected` is replaced by `component_emit_produces_valid_component`.
-- [ ] `arukellt compile --emit component hello.ark --target wasm32-wasi-p2` produces
+- [x] Component output passes `wasmparser` validation with component model features enabled.
+- [x] The test `component_emit_is_rejected` is replaced by `component_emit_produces_valid_component`.
+- [x] `arukellt compile --emit component hello.ark --target wasm32-wasi-p2` produces
       `hello.component.wasm` that can be inspected with `wasm-tools component wit`.
-- [ ] ADR-008 (Component wrapping strategy) is written to `docs/adr/ADR-008-component-wrapping.md`.
+- [x] ADR-008 (Component wrapping strategy) is written to `docs/adr/ADR-008-component-wrapping.md`.
 
 ## Key Files
 

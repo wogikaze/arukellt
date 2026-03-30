@@ -1,7 +1,8 @@
 # v5 TypeChecker: inference and typed HIR
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
+**Updated**: 2026-03-30
 **ID**: 178
 **Depends on**: 177
 **Track**: main
@@ -13,9 +14,9 @@
 
 ## Acceptance
 
-- [ ] type inference / unification の責務が明確
-- [ ] 型エラー diagnostics を追跡できる
-- [ ] backend へ渡す typed HIR surface が定義されている
+- [x] type inference / unification の責務が明確
+- [x] 型エラー diagnostics を追跡できる
+- [x] backend へ渡す typed HIR surface が定義されている
 
 ## References
 

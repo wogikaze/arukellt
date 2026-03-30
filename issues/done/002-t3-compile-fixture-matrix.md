@@ -1,8 +1,8 @@
 # T3 compile fixture matrix
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 002
 **Depends on**: 001
 **Track**: main
@@ -14,10 +14,10 @@ Create a dedicated T3 compile verification matrix so `wasm32-wasi-p2` compile co
 
 ## Acceptance Criteria
 
-- [ ] Fixture harness can run T3 compile-only cases independently from T1 run cases.
-- [ ] T3 compile fixtures cover modules, traits, methods, operators, generics, `?`, loops, strings, vecs, closures, structs, enums, and match.
-- [ ] Representative large samples such as `docs/sample/parser.ark` are included in the T3 compile smoke path.
-- [ ] Baseline output clearly separates compile failures from runtime failures for T3.
+- [x] Fixture harness can run T3 compile-only cases independently from T1 run cases.
+- [x] T3 compile fixtures cover modules, traits, methods, operators, generics, `?`, loops, strings, vecs, closures, structs, enums, and match.
+- [x] Representative large samples such as `docs/sample/parser.ark` are included in the T3 compile smoke path.
+- [x] Baseline output clearly separates compile failures from runtime failures for T3.
 
 ## Goal
 

@@ -1,8 +1,8 @@
 # WIT resource type support (own/borrow)
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-03-28
+**Updated**: 2026-03-30
 **ID**: 032
 **Depends on**: 030
 **Track**: component-model
@@ -32,18 +32,18 @@ canonical ABI boundary they must be represented as `i32` handle table indices.
 
 ## Acceptance Criteria
 
-- [ ] WIT `resource` declarations are parsed by the WIT parser (#028).
-- [ ] `WitType::Resource(String)` variant added to `crates/ark-wasm/src/component/wit.rs`.
-- [ ] `WitType::Own(Box<WitType>)` and `WitType::Borrow(Box<WitType>)` variants added.
-- [ ] A handle table implementation exists in the T3 emitter: `$__handle_table` as a
+- [x] WIT `resource` declarations are parsed by the WIT parser (#028).
+- [x] `WitType::Resource(String)` variant added to `crates/ark-wasm/src/component/wit.rs`.
+- [x] `WitType::Own(Box<WitType>)` and `WitType::Borrow(Box<WitType>)` variants added.
+- [x] A handle table implementation exists in the T3 emitter: `$__handle_table` as a
       `(global (mut i32))` counter + `(table funcref)` repurposed or a GC array of `anyref`.
-- [ ] `own<T>` export: GC ref → insert into handle table → return i32 index.
-- [ ] `own<T>` import: receive i32 index → look up in handle table → return GC ref → remove entry.
-- [ ] `borrow<T>` import: receive i32 index → look up in handle table → return GC ref (no removal).
-- [ ] `resource.drop` canonical built-in is emitted for owned resources.
-- [ ] At least 2 test cases: (a) export a resource constructor + method, (b) import a host
+- [x] `own<T>` export: GC ref → insert into handle table → return i32 index.
+- [x] `own<T>` import: receive i32 index → look up in handle table → return GC ref → remove entry.
+- [x] `borrow<T>` import: receive i32 index → look up in handle table → return GC ref (no removal).
+- [x] `resource.drop` canonical built-in is emitted for owned resources.
+- [x] At least 2 test cases: (a) export a resource constructor + method, (b) import a host
       resource and call a borrow method on it.
-- [ ] Arukellt source syntax for declaring a resource is defined. Proposal: `struct` with a
+- [x] Arukellt source syntax for declaring a resource is defined. Proposal: `struct` with a
       `#[resource]` marker or a dedicated `resource` keyword. For v2, use `struct` + naming
       convention (`ResourceFoo` → WIT `resource foo`).
 

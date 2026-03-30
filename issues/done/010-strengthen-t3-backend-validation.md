@@ -1,8 +1,8 @@
 # Strengthen T3 backend validation
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 010
 **Depends on**: 004, 005, 006, 007, 008, 009
 **Track**: main
@@ -14,10 +14,10 @@ Make backend validation for WasmGC artifacts strong and deterministic enough tha
 
 ## Acceptance Criteria
 
-- [ ] Malformed T3/WasmGC modules fail the build reliably.
-- [ ] Validation diagnostics for T3 backend failures are stable and attributed to backend validation rather than generic typecheck errors.
-- [ ] T3 backend validation is enforced in the same hard-error way current policy describes for `W0004`.
-- [ ] Negative tests exist for broken GC type/layout/import scenarios.
+- [x] Malformed T3/WasmGC modules fail the build reliably.
+- [x] Validation diagnostics for T3 backend failures are stable and attributed to backend validation rather than generic typecheck errors.
+- [x] T3 backend validation is enforced in the same hard-error way current policy describes for `W0004`.
+- [x] Negative tests exist for broken GC type/layout/import scenarios.
 
 ## Goal
 

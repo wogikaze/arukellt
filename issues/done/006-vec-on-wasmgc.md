@@ -1,8 +1,8 @@
 # Vec on WasmGC for T3
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 006
 **Depends on**: 004, 005
 **Track**: main
@@ -14,10 +14,10 @@ Replace the current T3 Vec fallback/bridge behavior with a real WasmGC-native re
 
 ## Acceptance Criteria
 
-- [ ] `docs/current-state.md` no longer needs the limitation that T3 Vec is linear-memory-backed.
-- [ ] T3 compile/run works for Vec creation, growth, indexing, mutation, and higher-order stdlib operations used by current fixtures.
-- [ ] Vec element types `i32`, `i64`, `f64`, `String`, and representative aggregate types compile correctly in T3.
-- [ ] T3 Vec implementation is independent of the T1 bump-allocator model.
+- [x] `docs/current-state.md` no longer needs the limitation that T3 Vec is linear-memory-backed.
+- [x] T3 compile/run works for Vec creation, growth, indexing, mutation, and higher-order stdlib operations used by current fixtures.
+- [x] Vec element types `i32`, `i64`, `f64`, `String`, and representative aggregate types compile correctly in T3.
+- [x] T3 Vec implementation is independent of the T1 bump-allocator model.
 
 ## Goal
 

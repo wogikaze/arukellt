@@ -1,8 +1,8 @@
 # T3 runtime and ABI completion
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 009
 **Depends on**: 003, 004, 005, 006, 007, 008
 **Track**: main
@@ -14,10 +14,10 @@ Replace the current GC-enabled but Preview-1-backed T3 run path with a runtime/A
 
 ## Acceptance Criteria
 
-- [ ] `run --target wasm32-wasi-p2` no longer uses the P1 internal fallback path documented today.
-- [ ] `RuntimeModel::T3FallbackToT1` is no longer the runtime model used for completed T3 execution.
-- [ ] Compile artifact import/export expectations match the runtime implementation.
-- [ ] Current-first docs no longer describe T3 runtime as Preview 1 internally.
+- [x] `run --target wasm32-wasi-p2` no longer uses the P1 internal fallback path documented today.
+- [x] `RuntimeModel::T3FallbackToT1` is no longer the runtime model used for completed T3 execution.
+- [x] Compile artifact import/export expectations match the runtime implementation.
+- [x] Current-first docs no longer describe T3 runtime as Preview 1 internally.
 
 ## Goal
 

@@ -2,7 +2,7 @@
 
 **Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-03-29
+**Updated**: 2026-03-30
 **ID**: 036
 **Depends on**: 033
 **Track**: component-model
@@ -40,9 +40,9 @@ toolchain (Rust + wasmtime). Separating the issue allows:
 
 ## Acceptance Criteria
 
-- [ ] `jco` is listed as an optional CI dependency in `README.md` (or `docs/contributing.md`)
+- [x] `jco` is listed as an optional CI dependency in `README.md` (or `docs/contributing.md`)
       with installation instructions (`npm install -g @bytecodealliance/jco`).
-- [ ] A test fixture exists at `tests/component-interop/jco/calculator/` containing:
+- [x] A test fixture exists at `tests/component-interop/jco/calculator/` containing:
       - `calculator.ark` — Arukellt source exporting `pub fn add(a: i32, b: i32) -> i32`
         and `pub fn greet(name: String) -> String`
       - `test.mjs` — Node.js ES module that:
@@ -53,11 +53,11 @@ toolchain (Rust + wasmtime). Separating the issue allows:
         5. Exits with code 0 on success, 1 on failure
       - `run.sh` — shell script that compiles `calculator.ark` to `calculator.component.wasm`
         then runs `node test.mjs`
-- [ ] `scripts/verify-harness.sh` gains an optional check:
+- [x] `scripts/verify-harness.sh` gains an optional check:
       - Skipped silently when `ARUKELLT_TEST_JCO=1` is not set
       - When set: runs `tests/component-interop/jco/calculator/run.sh` and reports
         pass/fail as check 18 (jco-interop)
-- [ ] `docs/process/roadmap-v2.md` watchpoint #5 is satisfied: the `--with-jco` / env var
+- [x] `docs/process/roadmap-v2.md` watchpoint #5 is satisfied: the `--with-jco` / env var
       opt-in mechanism is documented in `docs/platform/wasm-features.md`.
 
 ## Key Files

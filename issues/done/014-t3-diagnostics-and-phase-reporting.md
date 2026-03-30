@@ -1,8 +1,8 @@
 # T3 diagnostics and phase reporting
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 014
 **Depends on**: 004, 005, 006, 007, 008, 009, 010
 **Track**: parallel
@@ -14,10 +14,10 @@ Make T3-specific failures diagnosable by giving them stable codes/messages and a
 
 ## Acceptance Criteria
 
-- [ ] T3 backend/runtime failures are distinguishable from typecheck or generic target errors.
-- [ ] Negative tests snapshot T3-specific diagnostics.
-- [ ] Phase-aware reporting covers at least compile, backend validation, and runtime bridge failures for T3.
-- [ ] Current-first diagnostics docs mention the relevant T3 failure categories.
+- [x] T3 backend/runtime failures are distinguishable from typecheck or generic target errors.
+- [x] Negative tests snapshot T3-specific diagnostics.
+- [x] Phase-aware reporting covers at least compile, backend validation, and runtime bridge failures for T3.
+- [x] Current-first diagnostics docs mention the relevant T3 failure categories.
 
 ## Goal
 

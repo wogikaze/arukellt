@@ -1,8 +1,8 @@
 # Component Model test fixtures & interop validation
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-03-28
+**Updated**: 2026-03-30
 **ID**: 033
 **Depends on**: 030, 031
 **Track**: component-model
@@ -27,12 +27,12 @@ Component Model testing requires new test kinds:
 
 ## Acceptance Criteria
 
-- [ ] New test kind `component-compile:` added to `crates/arukellt/tests/harness.rs`.
+- [x] New test kind `component-compile:` added to `crates/arukellt/tests/harness.rs`.
       Compiles with `--emit component --target wasm32-wasi-p2`, validates output with
       `wasmparser` component validation.
-- [ ] New test kind `component-run:` added to harness. Compiles to component, runs via
+- [x] New test kind `component-run:` added to harness. Compiles to component, runs via
       wasmtime with `--wasm component-model` flag, checks stdout.
-- [ ] At least 10 component fixture files created under `tests/fixtures/component/`:
+- [x] At least 10 component fixture files created under `tests/fixtures/component/`:
       - `hello.ark` — minimal component with no exports (just _start)
       - `export_add.ark` — exports `pub fn add(a: i32, b: i32) -> i32`
       - `export_string.ark` — exports `pub fn greet(name: String) -> String`
@@ -43,16 +43,16 @@ Component Model testing requires new test kinds:
       - `export_option.ark` — exports function with `Option<String>` param
       - `import_host.ark` + `host.wit` — imports a host function, calls it
       - `multi_export.ark` — multiple exported functions
-- [ ] All component fixtures are registered in `tests/fixtures/manifest.txt`.
-- [ ] At least 1 cross-language interop test:
+- [x] All component fixtures are registered in `tests/fixtures/manifest.txt`.
+- [x] At least 1 cross-language interop test:
       - An Arukellt component exporting `add(s32, s32) -> s32` composed with a Rust
         component that imports and calls it. Validated via `wasm-tools compose` or
         wasmtime component linking.
       - Test script in `tests/component-interop/` with build + run + validate steps.
-- [ ] WIT extraction test: for each component fixture, `wasm-tools component wit` on the
+- [x] WIT extraction test: for each component fixture, `wasm-tools component wit` on the
       output matches the expected WIT text (snapshot test).
-- [ ] `scripts/verify-harness.sh` extended with a component test gate (check 17).
-- [ ] Fixture count in `docs/current-state.md` updated.
+- [x] `scripts/verify-harness.sh` extended with a component test gate (check 17).
+- [x] Fixture count in `docs/current-state.md` updated.
 
 ## Key Files
 

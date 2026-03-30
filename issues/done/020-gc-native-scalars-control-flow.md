@@ -1,8 +1,8 @@
 # GC-native scalars, control flow, and direct calls
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 020
 **Depends on**: 019
 **Track**: gc-native
@@ -18,15 +18,15 @@ function calls all emit correctly.
 
 ## Acceptance Criteria
 
-- [ ] All `t3-compile:control/*` fixtures compile successfully.
-- [ ] All `t3-compile:operators/*` fixtures compile successfully.
-- [ ] All `t3-compile:functions/*` fixtures compile successfully (scalar-only paths).
-- [ ] All `t3-compile:variables/*` fixtures compile successfully.
-- [ ] All `run:control/*` fixtures pass execution with correct output.
-- [ ] All `run:operators/*` fixtures pass execution with correct output.
-- [ ] All `run:functions/*` fixtures pass execution with correct output (scalar-only).
-- [ ] All `run:variables/*` fixtures pass execution with correct output.
-- [ ] `verify-harness.sh --quick` passes for the above fixture categories.
+- [x] All `t3-compile:control/*` fixtures compile successfully.
+- [x] All `t3-compile:operators/*` fixtures compile successfully.
+- [x] All `t3-compile:functions/*` fixtures compile successfully (scalar-only paths).
+- [x] All `t3-compile:variables/*` fixtures compile successfully.
+- [x] All `run:control/*` fixtures pass execution with correct output.
+- [x] All `run:operators/*` fixtures pass execution with correct output.
+- [x] All `run:functions/*` fixtures pass execution with correct output (scalar-only).
+- [x] All `run:variables/*` fixtures pass execution with correct output.
+- [x] `verify-harness.sh --quick` passes for the above fixture categories.
 
 ## Key Files
 

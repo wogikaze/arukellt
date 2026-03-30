@@ -1,8 +1,8 @@
 # GC-native strings: array i8 + array.new_data
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 023
 **Depends on**: 021
 **Track**: gc-native
@@ -62,23 +62,23 @@ for WASI fd_write.
 
 ## Acceptance Criteria
 
-- [ ] `$string = (array (mut i8))` registered in GcTypeRegistry.
-- [ ] String literals emit `array.new_data $string $data_idx (offset) (len)`.
-- [ ] Data segments hold raw UTF-8 bytes (passive segments with dataidx).
-- [ ] `string_len` → `array.len`.
-- [ ] `char_at` → `array.get_u $string`.
-- [ ] String concatenation (`+` operator) → allocate + `array.copy` × 2.
-- [ ] `substring` → allocate + `array.copy`.
-- [ ] String equality comparison → element-wise `array.get_u` loop.
-- [ ] `contains`, `starts_with`, `ends_with` → appropriate loop patterns.
-- [ ] `to_uppercase`, `to_lowercase` → element-wise transform if supported.
-- [ ] Print helper (`__print_str_ln`) copies GC array to linear memory[12..],
+- [x] `$string = (array (mut i8))` registered in GcTypeRegistry.
+- [x] String literals emit `array.new_data $string $data_idx (offset) (len)`.
+- [x] Data segments hold raw UTF-8 bytes (passive segments with dataidx).
+- [x] `string_len` → `array.len`.
+- [x] `char_at` → `array.get_u $string`.
+- [x] String concatenation (`+` operator) → allocate + `array.copy` × 2.
+- [x] `substring` → allocate + `array.copy`.
+- [x] String equality comparison → element-wise `array.get_u` loop.
+- [x] `contains`, `starts_with`, `ends_with` → appropriate loop patterns.
+- [x] `to_uppercase`, `to_lowercase` → element-wise transform if supported.
+- [x] Print helper (`__print_str_ln`) copies GC array to linear memory[12..],
       sets up IOV at [0..8], calls fd_write.
-- [ ] Empty string `""` works correctly (zero-length array).
-- [ ] All `t3-compile:stdlib_string/*` fixtures compile.
-- [ ] All `run:stdlib_string/*` fixtures pass execution.
-- [ ] All `t3-compile:hello/*` fixtures compile.
-- [ ] All `run:hello/*` fixtures pass execution.
+- [x] Empty string `""` works correctly (zero-length array).
+- [x] All `t3-compile:stdlib_string/*` fixtures compile.
+- [x] All `run:stdlib_string/*` fixtures pass execution.
+- [x] All `t3-compile:hello/*` fixtures compile.
+- [x] All `run:hello/*` fixtures pass execution.
 
 ## Key Files
 

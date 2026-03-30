@@ -1,8 +1,8 @@
 # String on WasmGC for T3
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 005
 **Depends on**: 004
 **Track**: main
@@ -14,10 +14,10 @@ Move T3 String handling to a consistently GC-native representation and remove re
 
 ## Acceptance Criteria
 
-- [ ] T3 String values compile through a stable GC-native representation rather than a T1-oriented pointer model.
-- [ ] Concat, interpolation, slice, casing, equality, and conversion paths compile correctly for T3.
-- [ ] String-related T3 fixtures pass without relying on hidden T1 semantics.
-- [ ] T3 String implementation details are documented accurately in current-first docs.
+- [x] T3 String values compile through a stable GC-native representation rather than a T1-oriented pointer model.
+- [x] Concat, interpolation, slice, casing, equality, and conversion paths compile correctly for T3.
+- [x] String-related T3 fixtures pass without relying on hidden T1 semantics.
+- [x] T3 String implementation details are documented accurately in current-first docs.
 
 ## Goal
 

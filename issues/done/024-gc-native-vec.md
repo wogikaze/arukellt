@@ -1,8 +1,8 @@
 # GC-native Vec<T>: struct + array, monomorphized
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 024
 **Depends on**: 023
 **Track**: gc-native
@@ -46,24 +46,24 @@ Monomorphize per element type: vec_i32, vec_i64, vec_f64, vec_string.
 
 ## Acceptance Criteria
 
-- [ ] GcTypeRegistry creates `$arr_T` + `$vec_T` pairs for i32, i64, f64, String.
-- [ ] Vec literal / `Vec::new()` → `array.new_default` + `struct.new $vec_T`.
-- [ ] `push` → bounds check + optional grow + `array.set` + len increment.
-- [ ] `get` → `struct.get` data + `array.get`.
-- [ ] `set` → `struct.get` data + `array.set`.
-- [ ] `len` → `struct.get` length field.
-- [ ] Vec grow: allocate new `array.new_default` (2× cap), `array.copy`
+- [x] GcTypeRegistry creates `$arr_T` + `$vec_T` pairs for i32, i64, f64, String.
+- [x] Vec literal / `Vec::new()` → `array.new_default` + `struct.new $vec_T`.
+- [x] `push` → bounds check + optional grow + `array.set` + len increment.
+- [x] `get` → `struct.get` data + `array.get`.
+- [x] `set` → `struct.get` data + `array.set`.
+- [x] `len` → `struct.get` length field.
+- [x] Vec grow: allocate new `array.new_default` (2× cap), `array.copy`
       old→new, `struct.set` data field to new array.
-- [ ] `contains_T` → loop with `array.get` + comparison.
-- [ ] `reverse_T` → in-place swap loop via `array.get`/`array.set`.
-- [ ] `remove_T` → shift elements + shrink length.
-- [ ] HOF: `map`, `filter`, `fold` use `call_ref` for the function argument.
-- [ ] All `t3-compile:stdlib_vec/*` fixtures compile.
-- [ ] All `run:stdlib_vec/*` fixtures pass execution.
-- [ ] All `t3-compile:stdlib_vec_ops/*` fixtures compile.
-- [ ] All `run:stdlib_vec_ops/*` fixtures pass execution.
-- [ ] All `t3-compile:stdlib_hof_i64_f64/*` fixtures compile.
-- [ ] All `run:stdlib_hof_i64_f64/*` fixtures pass execution.
+- [x] `contains_T` → loop with `array.get` + comparison.
+- [x] `reverse_T` → in-place swap loop via `array.get`/`array.set`.
+- [x] `remove_T` → shift elements + shrink length.
+- [x] HOF: `map`, `filter`, `fold` use `call_ref` for the function argument.
+- [x] All `t3-compile:stdlib_vec/*` fixtures compile.
+- [x] All `run:stdlib_vec/*` fixtures pass execution.
+- [x] All `t3-compile:stdlib_vec_ops/*` fixtures compile.
+- [x] All `run:stdlib_vec_ops/*` fixtures pass execution.
+- [x] All `t3-compile:stdlib_hof_i64_f64/*` fixtures compile.
+- [x] All `run:stdlib_hof_i64_f64/*` fixtures pass execution.
 
 ## Key Files
 

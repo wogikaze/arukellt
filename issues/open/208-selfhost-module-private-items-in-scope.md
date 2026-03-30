@@ -19,12 +19,15 @@ This breaks any `pub` function whose body references a private helper, because t
 ## Root cause
 
 `crates/ark-resolve/src/analyze.rs`:
+
 ```rust
 for loaded in graph.loaded.values() {
     bind_public_module(&loaded.ast, &mut symbols, global_scope, sink);
 }
 ```
+
 `crates/ark-resolve/src/resolve.rs` (`resolved_program_to_module`):
+
 ```rust
 if is_pub { module.items.push(item.clone()); }
 ```

@@ -1,6 +1,7 @@
 # v5 Phase 2: Resolver + TypeChecker epic
 
-**Status**: open
+**Status**: done
+**Updated**: 2026-03-30
 **ID**: 164
 **Depends on**: 177, 178
 **Track**: main
@@ -14,9 +15,9 @@
 
 ## Acceptance
 
-- [ ] #177, #178 が完了している
-- [ ] semantic analysis の責務が resolver/import binding と type inference / typed HIR に分離されている
-- [ ] HIR→MIR lowering は #165 側で追跡されている
+- [x] #177, #178 が完了している
+- [x] semantic analysis の責務が resolver/import binding と type inference / typed HIR に分離されている
+- [x] HIR→MIR lowering は #165 側で追跡されている
 
 ## References
 

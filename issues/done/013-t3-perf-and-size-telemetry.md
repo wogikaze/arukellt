@@ -1,8 +1,8 @@
 # T3 perf and size telemetry
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 013
 **Depends on**: 002, 004, 005, 006, 007, 008, 009, 010
 **Track**: parallel
@@ -14,10 +14,10 @@ Add dedicated T3 compile-time, binary-size, and runtime telemetry so WasmGC comp
 
 ## Acceptance Criteria
 
-- [ ] T3 compile-time baselines exist for representative sources.
-- [ ] T3 binary-size telemetry is recorded and comparable over time.
-- [ ] Representative T1/T3 runtime comparisons are available without destabilizing normal CI.
-- [ ] Telemetry output is machine-readable and version-controlled where policy requires.
+- [x] T3 compile-time baselines exist for representative sources.
+- [x] T3 binary-size telemetry is recorded and comparable over time.
+- [x] Representative T1/T3 runtime comparisons are available without destabilizing normal CI.
+- [x] Telemetry output is machine-readable and version-controlled where policy requires.
 
 ## Goal
 

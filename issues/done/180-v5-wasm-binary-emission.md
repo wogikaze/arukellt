@@ -1,7 +1,8 @@
 # v5 Backend: deterministic Wasm binary emission
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
+**Updated**: 2026-03-30
 **ID**: 180
 **Depends on**: 179
 **Track**: main
@@ -13,9 +14,9 @@ MIR から決定的な Wasm バイナリを生成する。section writer、LEB12
 
 ## Acceptance
 
-- [ ] section writer / LEB128 / binary output の責務が明確
-- [ ] T1 / T3 backend split が追跡できる
-- [ ] validation と deterministic output requirements が完了条件に含まれている
+- [x] section writer / LEB128 / binary output の責務が明确
+- [x] T1 / T3 backend split が追跡できる
+- [x] validation と deterministic output requirements が完了条件に含まれている
 
 ## References
 

@@ -1,8 +1,8 @@
 # GC-native user structs: struct.new / struct.get / struct.set
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 021
 **Depends on**: 020
 **Track**: gc-native
@@ -50,17 +50,17 @@ Operand::FieldAccess { object, struct_name: "Point", field: "y" }
 
 ## Acceptance Criteria
 
-- [ ] GcTypeRegistry creates a `(type $Name (struct ...))` for every entry
+- [x] GcTypeRegistry creates a `(type $Name (struct ...))` for every entry
       in `type_table.struct_defs`, with correctly typed fields (i32/i64/f64
       for scalars, `(ref $T)` for reference-typed fields like String/Struct).
-- [ ] `Operand::StructInit` emits `Instruction::StructNew(type_idx)` with
+- [x] `Operand::StructInit` emits `Instruction::StructNew(type_idx)` with
       fields pushed in declaration order.
-- [ ] `Operand::FieldAccess` emits `Instruction::StructGet { struct_type_index, field_index }`.
-- [ ] Field mutation emits `Instruction::StructSet { struct_type_index, field_index }`.
-- [ ] Functions accepting/returning structs use `(ref null $StructName)` in signatures.
-- [ ] All `t3-compile:structs/*` fixtures compile successfully.
-- [ ] All `run:structs/*` fixtures pass execution with correct output.
-- [ ] Nested structs (struct containing struct fields) work correctly.
+- [x] `Operand::FieldAccess` emits `Instruction::StructGet { struct_type_index, field_index }`.
+- [x] Field mutation emits `Instruction::StructSet { struct_type_index, field_index }`.
+- [x] Functions accepting/returning structs use `(ref null $StructName)` in signatures.
+- [x] All `t3-compile:structs/*` fixtures compile successfully.
+- [x] All `run:structs/*` fixtures pass execution with correct output.
+- [x] Nested structs (struct containing struct fields) work correctly.
 
 ## Key Files
 

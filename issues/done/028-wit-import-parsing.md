@@ -1,8 +1,8 @@
 # WIT import parsing & host function binding
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-03-28
+**Updated**: 2026-03-30
 **ID**: 028
 **Depends on**: none
 **Track**: component-model
@@ -27,23 +27,23 @@ the import pipeline that all subsequent component work depends on.
 
 ## Acceptance Criteria
 
-- [ ] A WIT parser module exists at `crates/ark-wasm/src/component/wit_parse.rs` that can parse
+- [x] A WIT parser module exists at `crates/ark-wasm/src/component/wit_parse.rs` that can parse
       a minimal WIT file containing `interface` blocks with `func` declarations, `record` types,
       `enum` types, `variant` types, and `resource` types (resource parsing only — binding is #032).
-- [ ] WIT primitive types (`u8`, `u16`, `u32`, `u64`, `s8`, `s16`, `s32`, `s64`, `f32`, `f64`,
+- [x] WIT primitive types (`u8`, `u16`, `u32`, `u64`, `s8`, `s16`, `s32`, `s64`, `f32`, `f64`,
       `bool`, `char`, `string`) are parsed and mapped to `WitType` variants.
-- [ ] WIT container types (`list<T>`, `option<T>`, `result<T, E>`, `tuple<...>`) are parsed.
-- [ ] WIT `flags` type is parsed. At codegen time, any function whose signature includes a
+- [x] WIT container types (`list<T>`, `option<T>`, `result<T, E>`, `tuple<...>`) are parsed.
+- [x] WIT `flags` type is parsed. At codegen time, any function whose signature includes a
       `flags` type emits a `E0090` diagnostic ("WIT flags type is not supported in v2; use
       individual bool parameters instead") and the compilation fails gracefully — no panic.
-- [ ] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
+- [x] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
       `--wit <path>` is supplied, the resolver injects WIT-imported function signatures into
       the symbol table as externally-provided functions.
-- [ ] `MirModule` gains an `imports` field (`Vec<MirImport>`) that records module/name/signature
+- [x] `MirModule` gains an `imports` field (`Vec<MirImport>`) that records module/name/signature
       triples for WIT-derived imports, distinct from the existing WASI `fd_write` import.
-- [ ] A round-trip test exists: parse a WIT file → resolve extern bindings → lower to MIR →
+- [x] A round-trip test exists: parse a WIT file → resolve extern bindings → lower to MIR →
       verify `MirModule.imports` contains expected entries.
-- [ ] Existing WIT generation (`generate_wit()`, `mir_to_wit_world()`) continues to work
+- [x] Existing WIT generation (`generate_wit()`, `mir_to_wit_world()`) continues to work
       without regression.
 
 ## Key Files

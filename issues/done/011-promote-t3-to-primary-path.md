@@ -1,8 +1,8 @@
 # Promote T3 to primary path
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 011
 **Depends on**: 009, 010
 **Track**: main
@@ -14,10 +14,10 @@ Once T3 compile/run/validation are complete, update the target tables, help text
 
 ## Acceptance Criteria
 
-- [ ] Current-first docs no longer describe T3 as experimental fallback.
-- [ ] Verification policy treats T3 as a primary correctness gate.
-- [ ] CLI help and target tables describe T1 as compatibility/stable legacy path and T3 as canonical v1 path.
-- [ ] The branch can explain clearly whether the default CLI target remains T1 for compatibility or changes to T3, with docs and code aligned.
+- [x] Current-first docs no longer describe T3 as experimental fallback.
+- [x] Verification policy treats T3 as a primary correctness gate.
+- [x] CLI help and target tables describe T1 as compatibility/stable legacy path and T3 as canonical v1 path.
+- [x] The branch can explain clearly whether the default CLI target remains T1 for compatibility or changes to T3, with docs and code aligned.
 
 ## Goal
 

@@ -1,8 +1,8 @@
 # T3 aggregate layouts: struct enum match
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 007
 **Depends on**: 004, 006
 **Track**: main
@@ -14,10 +14,10 @@ Stabilize GC-native layout and match behavior for user structs, enums, Option/Re
 
 ## Acceptance Criteria
 
-- [ ] Struct initialization and field access compile/run correctly under T3.
-- [ ] Enum construction, payload access, and match lowering work under T3 for both builtin and user-defined enums.
-- [ ] Option/Result behavior in T3 is consistent with the frontend type system and MIR lowering rules.
-- [ ] Layout comments, type-table usage, and docs all describe the same T3 aggregate model.
+- [x] Struct initialization and field access compile/run correctly under T3.
+- [x] Enum construction, payload access, and match lowering work under T3 for both builtin and user-defined enums.
+- [x] Option/Result behavior in T3 is consistent with the frontend type system and MIR lowering rules.
+- [x] Layout comments, type-table usage, and docs all describe the same T3 aggregate model.
 
 ## Goal
 

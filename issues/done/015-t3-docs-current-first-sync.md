@@ -1,8 +1,8 @@
 # T3 docs current-first sync
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 015
 **Depends on**: 003, 009, 010, 011
 **Track**: parallel
@@ -14,10 +14,10 @@ Synchronize all current-first docs with the actual completed T3 implementation a
 
 ## Acceptance Criteria
 
-- [ ] No current-first doc still claims T3 is an experimental fallback once the implementation has graduated.
-- [ ] No current-first doc claims component emit is implemented unless it actually is.
-- [ ] Target status, fixture count, validation policy, and runtime model are consistent across docs.
-- [ ] Archive/disclaimer notes remain on older aspirational documents instead of silently deleting historical context.
+- [x] No current-first doc still claims T3 is an experimental fallback once the implementation has graduated.
+- [x] No current-first doc claims component emit is implemented unless it actually is.
+- [x] Target status, fixture count, validation policy, and runtime model are consistent across docs.
+- [x] Archive/disclaimer notes remain on older aspirational documents instead of silently deleting historical context.
 
 ## Goal
 

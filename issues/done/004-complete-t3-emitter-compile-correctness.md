@@ -1,8 +1,8 @@
 # Complete T3 emitter compile correctness
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 004
 **Depends on**: 002, 003
 **Track**: main
@@ -14,10 +14,10 @@ Finish `crates/ark-wasm/src/emit/t3_wasm_gc.rs` so T3 compile succeeds across th
 
 ## Acceptance Criteria
 
-- [ ] `arukellt compile --target wasm32-wasi-p2` succeeds for the full T3 fixture matrix defined in issue 002.
-- [ ] T3 compile no longer depends on hidden delegation to T1 behavior for major frontend constructs.
-- [ ] Unsupported or malformed T3 output fails with backend diagnostics instead of silently succeeding.
-- [ ] Emitter comments and docs no longer overstate T3 completeness.
+- [x] `arukellt compile --target wasm32-wasi-p2` succeeds for the full T3 fixture matrix defined in issue 002.
+- [x] T3 compile no longer depends on hidden delegation to T1 behavior for major frontend constructs.
+- [x] Unsupported or malformed T3 output fails with backend diagnostics instead of silently succeeding.
+- [x] Emitter comments and docs no longer overstate T3 completeness.
 
 ## Goal
 

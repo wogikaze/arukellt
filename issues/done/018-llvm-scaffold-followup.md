@@ -1,8 +1,8 @@
 # LLVM scaffold follow-up after T3 completion
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 018
 **Depends on**: none
 **Track**: parallel
@@ -14,10 +14,10 @@ Bring `ark-llvm` and related optional paths back into structural compatibility a
 
 ## Acceptance Criteria
 
-- [ ] Optional LLVM feature builds are structurally compatible with the final MIR/backend contracts.
-- [ ] T4 remains subordinate to Wasm semantics and does not add native-only semantic divergence.
-- [ ] Workspace checks do not fail purely because the optional LLVM scaffold has drifted away from current MIR shape.
-- [ ] This work does not expand T4 into a v1 exit dependency.
+- [x] Optional LLVM feature builds are structurally compatible with the final MIR/backend contracts.
+- [x] T4 remains subordinate to Wasm semantics and does not add native-only semantic divergence.
+- [x] Workspace checks do not fail purely because the optional LLVM scaffold has drifted away from current MIR shape.
+- [x] This work does not expand T4 into a v1 exit dependency.
 
 ## Goal
 

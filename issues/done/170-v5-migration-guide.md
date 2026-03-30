@@ -1,6 +1,8 @@
 # v5 Migration guide
 
-**Status**: open
+**Status**: done
+**Created**: 2026-03-30
+**Updated**: 2026-03-30
 **ID**: 170
 **Depends on**: 165, 166, 169
 **Track**: main
@@ -12,9 +14,9 @@
 
 ## Acceptance
 
-- [ ] v5 で追加された selfhost compiler / bootstrap workflow の説明がある
-- [ ] デフォルトコンパイラ切り替えの有無が曖昧さなく記述されている
-- [ ] 開発者向けに Rust 版と selfhost 版の併走方針が記述されている
+- [x] v5 で追加された selfhost compiler / bootstrap workflow の説明がある
+- [x] デフォルトコンパイラ切り替えの有無が曖昧さなく記述されている
+- [x] 開発者向けに Rust 版と selfhost 版の併走方針が記述されている
 
 ## References
 

@@ -1,7 +1,8 @@
 # v5 Parser: expression / declaration parsing
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
+**Updated**: 2026-03-30
 **ID**: 173
 **Depends on**: 172
 **Track**: main
@@ -13,9 +14,9 @@ Pratt parsing を中心に、式・宣言・文・型注釈の構文解析本体
 
 ## Acceptance
 
-- [ ] 二項演算、前置演算、呼び出し、フィールドアクセスなど主要 expression parser が揃う
-- [ ] let / fn / struct / enum / if / while / return / import など主要 declaration / statement parser が揃う
-- [ ] 型注釈と generic-looking surface を parser が解釈できる
+- [x] 二項演算、前置演算、呼び出し、フィールドアクセスなど主要 expression parser が揃う
+- [x] let / fn / struct / enum / if / while / return / import など主要 declaration / statement parser が揃う
+- [x] 型注釈と generic-looking surface を parser が解釈できる
 
 ## References
 

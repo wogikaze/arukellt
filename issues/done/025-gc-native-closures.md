@@ -1,8 +1,8 @@
 # GC-native closures: call_ref + ref.func
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 025
 **Depends on**: 022
 **Track**: gc-native
@@ -46,17 +46,17 @@ Operand::CallIndirect { callee, args, .. }
 
 ## Acceptance Criteria
 
-- [ ] `TableSection` is not emitted in GC-native mode.
-- [ ] `ElementSection` is not emitted in GC-native mode.
-- [ ] `Operand::FnRef(name)` emits `Instruction::RefFunc(func_idx)`.
-- [ ] `Operand::CallIndirect { callee, args }` emits args + callee ref
+- [x] `TableSection` is not emitted in GC-native mode.
+- [x] `ElementSection` is not emitted in GC-native mode.
+- [x] `Operand::FnRef(name)` emits `Instruction::RefFunc(func_idx)`.
+- [x] `Operand::CallIndirect { callee, args }` emits args + callee ref
       then `Instruction::CallRef(type_idx)`.
-- [ ] Closure captures still work via extra parameters to synthetic functions.
-- [ ] All `t3-compile:closure_capture/*` fixtures compile.
-- [ ] All `run:closure_capture/*` fixtures pass execution.
-- [ ] All `t3-compile:integration/*` fixtures compile (those using closures).
-- [ ] All `run:integration/*` fixtures pass execution.
-- [ ] HOF (map/filter/fold in Vec) work with call_ref (coordinates with 024).
+- [x] Closure captures still work via extra parameters to synthetic functions.
+- [x] All `t3-compile:closure_capture/*` fixtures compile.
+- [x] All `run:closure_capture/*` fixtures pass execution.
+- [x] All `t3-compile:integration/*` fixtures compile (those using closures).
+- [x] All `run:integration/*` fixtures pass execution.
+- [x] HOF (map/filter/fold in Vec) work with call_ref (coordinates with 024).
 
 ## Key Files
 

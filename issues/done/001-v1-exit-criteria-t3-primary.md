@@ -1,8 +1,8 @@
 # V1 exit criteria: T3 primary path
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 001
 **Depends on**: none
 **Track**: main
@@ -14,10 +14,10 @@ Fix the branch-wide definition of v1 completion around `--target wasm32-wasi-p2`
 
 ## Acceptance Criteria
 
-- [ ] `docs/current-state.md` defines v1 completion in terms of T3 compile/run correctness, WasmGC-native data model completion, and fallback removal.
-- [ ] `docs/process/policy.md` states that `--emit component` is not required for v1 exit and remains out of scope for this milestone.
-- [ ] The exit criteria distinguish current shipped behavior from target ideal behavior so future docs do not regress into ambiguity.
-- [ ] Every later T3 issue in `./issues/open` can reference this issue as the canonical completion gate.
+- [x] `docs/current-state.md` defines v1 completion in terms of T3 compile/run correctness, WasmGC-native data model completion, and fallback removal.
+- [x] `docs/process/policy.md` states that `--emit component` is not required for v1 exit and remains out of scope for this milestone.
+- [x] The exit criteria distinguish current shipped behavior from target ideal behavior so future docs do not regress into ambiguity.
+- [x] Every later T3 issue in `./issues/open` can reference this issue as the canonical completion gate.
 
 ## Goal
 

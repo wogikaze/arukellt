@@ -1,8 +1,8 @@
 # T3 migration and compatibility notes
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 017
 **Depends on**: 011, 015
 **Track**: parallel
@@ -14,10 +14,10 @@ Document how users and internal maintainers move from the T1-first world to the 
 
 ## Acceptance Criteria
 
-- [ ] Migration docs explain what changed, what did not change, and what remains out of scope for v1.
-- [ ] Internal notes map old assumptions (T1 default, T3 fallback) to the new T3-primary reality.
-- [ ] Component emit remains explicitly out of scope unless later implemented.
-- [ ] No migration doc contradicts current-first status pages.
+- [x] Migration docs explain what changed, what did not change, and what remains out of scope for v1.
+- [x] Internal notes map old assumptions (T1 default, T3 fallback) to the new T3-primary reality.
+- [x] Component emit remains explicitly out of scope unless later implemented.
+- [x] No migration doc contradicts current-first status pages.
 
 ## Goal
 

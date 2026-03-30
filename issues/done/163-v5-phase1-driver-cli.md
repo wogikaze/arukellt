@@ -1,6 +1,7 @@
 # v5 Phase 1: Driver + CLI epic
 
-**Status**: open
+**Status**: done
+**Updated**: 2026-03-30
 **ID**: 163
 **Depends on**: 175, 176
 **Track**: main
@@ -14,9 +15,9 @@ Phase 1 の driver/CLI は、コマンド surface とコンパイルパイプラ
 
 ## Acceptance
 
-- [ ] #175, #176 が完了している
-- [ ] `parse` / `compile` / exit code / file loading の責務が child issue に分解されている
-- [ ] debug dump の責務が #167 にのみ存在し、本文間で重複していない
+- [x] #175, #176 が完了している
+- [x] `parse` / `compile` / exit code / file loading の責務が child issue に分解されている
+- [x] debug dump の責務が #167 にのみ存在し、本文間で重複していない
 
 ## References
 

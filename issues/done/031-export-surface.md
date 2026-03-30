@@ -1,8 +1,8 @@
 # pub fn export surface & WIT export generation
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-03-28
+**Updated**: 2026-03-30
 **ID**: 031
 **Depends on**: 029
 **Track**: component-model
@@ -31,22 +31,22 @@ export adapters to work with.
 
 ## Acceptance Criteria
 
-- [ ] `pub fn` in the source module are exported by default (no annotation needed for v2).
+- [x] `pub fn` in the source module are exported by default (no annotation needed for v2).
       `main` and `_start` are excluded. Internal functions (`__*`) are excluded.
-- [ ] For each WIT-exportable function, a canonical ABI export adapter is generated in the
+- [x] For each WIT-exportable function, a canonical ABI export adapter is generated in the
       core Wasm module. The adapter:
       - Lifts canonical ABI parameters (linear memory → GC refs) using the lift functions from #029.
       - Calls the real Arukellt function.
       - Lowers GC-native return values (GC refs → canonical ABI flat values) using lower functions from #029.
-- [ ] `WitWorld` struct extended with `imports: Vec<WitFunction>` to hold import declarations
+- [x] `WitWorld` struct extended with `imports: Vec<WitFunction>` to hold import declarations
       from #028.
-- [ ] `mir_to_wit_world()` populates both `functions` (exports) and `imports`.
-- [ ] `generate_wit()` emits `import` declarations in addition to `export` declarations.
-- [ ] Functions with non-exportable parameter or return types (closures, TypeVar) produce a
+- [x] `mir_to_wit_world()` populates both `functions` (exports) and `imports`.
+- [x] `generate_wit()` emits `import` declarations in addition to `export` declarations.
+- [x] Functions with non-exportable parameter or return types (closures, TypeVar) produce a
       clear compile-time warning (new diagnostic code) instead of silently being skipped.
-- [ ] Struct and enum names in WIT output use stable kebab-case names derived from the
+- [x] Struct and enum names in WIT output use stable kebab-case names derived from the
       Arukellt source name (not internal `struct-{id}` / `enum-{id}` format).
-- [ ] At least 3 test cases: (a) simple scalar export, (b) struct parameter + string return,
+- [x] At least 3 test cases: (a) simple scalar export, (b) struct parameter + string return,
       (c) function with closure param is correctly excluded with warning.
 
 ## Key Files

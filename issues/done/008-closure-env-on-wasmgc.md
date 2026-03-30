@@ -1,8 +1,8 @@
 # Closure environment on WasmGC
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-27
-**Updated**: 2026-03-27
+**Updated**: 2026-03-30
 **ID**: 008
 **Depends on**: 004, 007
 **Track**: main
@@ -14,10 +14,10 @@ Complete closure/function-value support for T3 by representing capture environme
 
 ## Acceptance Criteria
 
-- [ ] T3 compile/run works for representative closure fixtures.
-- [ ] Closure environments use a stable T3 representation rather than a T1 pointer assumption.
-- [ ] `SharedRef` vs `ValueCopy` capture semantics remain intact through backend lowering.
-- [ ] Closure implementation details are documented for downstream MIR/backend maintainers.
+- [x] T3 compile/run works for representative closure fixtures.
+- [x] Closure environments use a stable T3 representation rather than a T1 pointer assumption.
+- [x] `SharedRef` vs `ValueCopy` capture semantics remain intact through backend lowering.
+- [x] Closure implementation details are documented for downstream MIR/backend maintainers.
 
 ## Goal
 
