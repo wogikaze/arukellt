@@ -131,9 +131,9 @@
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
 |------|-----------|--------|-----------|------|---------|-----------|
-| `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | - |
-| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | - |
-| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | - |
+| `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` |
+| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` |
+| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` |
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - |
 | `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | - |
 

@@ -2588,6 +2588,12 @@ impl EmitCtx {
                             memory_index: 0,
                         }));
                     }
+                    "arg_count" => {
+                        self.call_fn(f, FN_ARG_COUNT);
+                    }
+                    "args" => {
+                        self.call_fn(f, FN_ARGS_VEC);
+                    }
                     "parse_f64" => {
                         // parse_f64(s: String) -> Result<f64, String>
                         // Returns enum ptr: tag=0 (Ok) + f64 payload, or tag=1 (Err) + string payload

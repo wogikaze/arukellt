@@ -1583,4 +1583,399 @@ impl EmitCtx {
         f.instruction(&Instruction::End);
         f
     }
+
+    /// Build arg_count() → i32: calls args_sizes_get, returns argc-1 (skip argv[0]).
+    pub(super) fn build_arg_count(&self) -> Function {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let mut f = Function::new(vec![]);
+        // args_sizes_get(SCRATCH, SCRATCH+4)
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+        self.call_fn(&mut f, FN_ARGS_SIZES_GET);
+        f.instruction(&Instruction::Drop);
+        // return argc - 1
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::End);
+        f
+    }
+
+    /// Build arg_at(i: i32) → i32 (T1 string ptr): returns the i-th user arg (0-based, skip argv[0]).
+    /// Uses WASI args_sizes_get + args_get, then builds a length-prefixed string on the heap.
+    pub(super) fn build_arg_at(&self) -> Function {
+        // Param 0: i (user 0-based index)
+        // Locals 1..8: argc, buf_size, argv_ptrs_start, argv_buf_start, raw_ptr, str_len, byte_j, str_data_ptr
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+        let mut f = Function::new(vec![(8, ValType::I32)]);
+
+        // argc = args_sizes_get(SCRATCH, SCRATCH+4) → SCRATCH
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+        self.call_fn(&mut f, FN_ARGS_SIZES_GET);
+        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(1)); // argc
+        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(2)); // buf_size
+
+        // argv_ptrs_start = heap_ptr; heap_ptr += argc * 4
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(3));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // argv_buf_start = heap_ptr; heap_ptr += buf_size
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(4));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // Align heap_ptr to 4 bytes after variable-length buf
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(3));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(-4i32));
+        f.instruction(&Instruction::I32And);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // args_get(argv_ptrs_start, argv_buf_start)
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::LocalGet(4));
+        self.call_fn(&mut f, FN_ARGS_GET);
+        f.instruction(&Instruction::Drop);
+
+        // raw_ptr = *(argv_ptrs_start + (i+1)*4)
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(5)); // raw_ptr
+
+        // strlen loop: str_len = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(6));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::BrIf(1)); // exit block (found null)
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(6)); // str_len++
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Align heap_ptr to 4 bytes before string allocation
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(3));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(-4i32));
+        f.instruction(&Instruction::I32And);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // str_data_ptr = heap_ptr + 4
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(8));
+
+        // Write length prefix at heap_ptr
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // Copy bytes: byte_j = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(7));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1)); // exit block
+        // *(str_data_ptr + byte_j) = *(raw_ptr + byte_j)
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Store8(ma0));
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(7));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // heap_ptr += 4 + str_len
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        f.instruction(&Instruction::LocalGet(8)); // return str_data_ptr
+        f.instruction(&Instruction::End);
+        f
+    }
+
+    /// Build args() → i32 (Vec<String> ptr): builds a Vec<String> of all user args (skip argv[0]).
+    /// Layout: Vec header {len, cap, data_ptr}, then string ptrs, then length-prefixed string data.
+    pub(super) fn build_args_vec(&self) -> Function {
+        // Locals 0..10: argc, buf_size, argv_ptrs_start, argv_buf_start, vec_ptr, vec_data_ptr,
+        //               i, raw_ptr, str_len, byte_j, str_data_ptr
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+        let mut f = Function::new(vec![(11, ValType::I32)]);
+
+        // args_sizes_get(SCRATCH, SCRATCH+4)
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+        self.call_fn(&mut f, FN_ARGS_SIZES_GET);
+        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(0)); // argc
+        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(1)); // buf_size
+
+        // argv_ptrs_start = heap_ptr; heap_ptr += argc * 4
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // argv_buf_start = heap_ptr; heap_ptr += buf_size
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(3));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // Align heap_ptr to 4 bytes after variable-length buf
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(3));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(-4i32));
+        f.instruction(&Instruction::I32And);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // args_get(argv_ptrs_start, argv_buf_start)
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::LocalGet(3));
+        self.call_fn(&mut f, FN_ARGS_GET);
+        f.instruction(&Instruction::Drop);
+
+        // vec_ptr = heap_ptr; heap_ptr += 12 (Vec header)
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(4));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(12));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // vec_data_ptr = heap_ptr; heap_ptr += (argc-1) * 4
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(5));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // Write Vec header: {len=argc-1, cap=argc-1, data_ptr=vec_data_ptr}
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Store(ma)); // len
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Store(ma)); // cap
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Store(ma)); // data_ptr
+
+        // Loop i = 1..argc (skip argv[0])
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::LocalSet(6)); // i = 1
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        // if i >= argc, break
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // raw_ptr = *(argv_ptrs_start + i*4)
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(7));
+
+        // Align heap_ptr to 4 bytes before string allocation
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(3));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(-4i32));
+        f.instruction(&Instruction::I32And);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // strlen: str_len = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(8));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(8));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // str_data_ptr = heap_ptr + 4
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(10));
+
+        // Write length prefix at heap_ptr
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // Copy bytes: byte_j = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(9));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(10));
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Store8(ma0));
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(9));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // heap_ptr += 4 + str_len
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        // vec_data_ptr[(i-1)*4] = str_data_ptr
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(10));
+        f.instruction(&Instruction::I32Store(ma));
+
+        // i++
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(6));
+        f.instruction(&Instruction::Br(0)); // continue loop
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Align heap_ptr to 4 bytes after all string allocations
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(3));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(-4i32));
+        f.instruction(&Instruction::I32And);
+        f.instruction(&Instruction::GlobalSet(0));
+
+        f.instruction(&Instruction::LocalGet(4)); // return vec_ptr
+        f.instruction(&Instruction::End);
+        f
+    }
 }

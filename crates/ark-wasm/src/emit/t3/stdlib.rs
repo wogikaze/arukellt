@@ -2462,10 +2462,16 @@ impl Ctx {
 
         let vec_ty = self.infer_vec_type_idx(&args[0]);
         let arr_ty = self.infer_arr_type_idx(&args[0]);
+        let is_str_vec = self.is_string_vec_operand(&args[0]);
 
-        // get() returns Option<T>
-        if let Some(&base_ty) = self.enum_base_types.get("Option") {
-            let variants = self.enum_variant_types.get("Option");
+        // get() returns Option<T>; use Option_String for string vecs
+        let option_key = if is_str_vec && self.enum_base_types.contains_key("Option_String") {
+            "Option_String"
+        } else {
+            "Option"
+        };
+        if let Some(&base_ty) = self.enum_base_types.get(option_key) {
+            let variants = self.enum_variant_types.get(option_key);
             let some_ty = variants.and_then(|v| v.get("Some").copied()).unwrap_or(0);
             let none_ty = variants.and_then(|v| v.get("None").copied()).unwrap_or(0);
 
@@ -2538,10 +2544,16 @@ impl Ctx {
 
         let vec_ty = self.infer_vec_type_idx(&args[0]);
         let arr_ty = self.infer_arr_type_idx(&args[0]);
+        let is_str_vec = self.is_string_vec_operand(&args[0]);
 
-        // pop() returns Option<T>
-        if let Some(&base_ty) = self.enum_base_types.get("Option") {
-            let variants = self.enum_variant_types.get("Option");
+        // pop() returns Option<T>; use Option_String for string vecs
+        let option_key = if is_str_vec && self.enum_base_types.contains_key("Option_String") {
+            "Option_String"
+        } else {
+            "Option"
+        };
+        if let Some(&base_ty) = self.enum_base_types.get(option_key) {
+            let variants = self.enum_variant_types.get(option_key);
             let some_ty = variants.and_then(|v| v.get("Some").copied()).unwrap_or(0);
             let none_ty = variants.and_then(|v| v.get("None").copied()).unwrap_or(0);
             let option_ref = ref_nullable(base_ty);

@@ -1912,10 +1912,22 @@ impl Ctx {
                                     "get_unchecked" | "get" => {
                                         if let Some(first_arg) = args.first()
                                             && let Operand::Place(Place::Local(src)) = first_arg
-                                            && let Some(sname) =
-                                                self.struct_vec_locals.get(&src.0).cloned()
                                         {
-                                            extra_struct.entry(dst.0).or_insert(sname);
+                                            if let Some(sname) =
+                                                self.struct_vec_locals.get(&src.0).cloned()
+                                            {
+                                                extra_struct.entry(dst.0).or_insert(sname);
+                                            } else if canonical == "get"
+                                                && (extra_vec_string.contains(&src.0)
+                                                    || self.string_vec_locals.contains(&src.0))
+                                                && self
+                                                    .enum_base_types
+                                                    .contains_key("Option_String")
+                                            {
+                                                extra_enum
+                                                    .entry(dst.0)
+                                                    .or_insert_with(|| "Option_String".to_string());
+                                            }
                                         }
                                     }
                                     _ => {}
@@ -2036,13 +2048,23 @@ impl Ctx {
                                     .entry(dst.0)
                                     .or_insert_with(|| "Option".to_string());
                             }
-                            // get_unchecked on Vec<Struct> → result is a struct
+                            // get_unchecked on Vec<Struct> → result is a struct; get on Vec<String> → Option_String
                             "get_unchecked" | "get" => {
                                 if let Some(first_arg) = args.first()
                                     && let Operand::Place(Place::Local(src)) = first_arg
-                                    && let Some(sname) = self.struct_vec_locals.get(&src.0).cloned()
                                 {
-                                    extra_struct.entry(dst.0).or_insert(sname);
+                                    if let Some(sname) = self.struct_vec_locals.get(&src.0).cloned()
+                                    {
+                                        extra_struct.entry(dst.0).or_insert(sname);
+                                    } else if canonical == "get"
+                                        && (extra_vec_string.contains(&src.0)
+                                            || self.string_vec_locals.contains(&src.0))
+                                        && self.enum_base_types.contains_key("Option_String")
+                                    {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Option_String".to_string());
+                                    }
                                 }
                             }
                             _ => {}

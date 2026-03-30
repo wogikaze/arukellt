@@ -150,6 +150,13 @@ pub fn lower_to_mir(
             ("Err".to_string(), vec!["String".to_string()]),
         ],
     );
+    enum_defs.insert(
+        "Option_String".to_string(),
+        vec![
+            ("Some".to_string(), vec!["String".to_string()]),
+            ("None".to_string(), vec![]),
+        ],
+    );
 
     for item in &module.items {
         if let ast::Item::EnumDef(e) = item {

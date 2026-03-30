@@ -474,9 +474,6 @@ impl Ctx {
                 | "memory_copy"
                 | "memory_fill"
                 | "arg_count"
-                | "arg_at"
-                | "has_flag"
-                | "var"
         ) || (name.starts_with("Vec_new_") && self.custom_vec_types.contains_key(&name[8..]))
     }
 

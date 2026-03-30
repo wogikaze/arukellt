@@ -86,7 +86,14 @@ const FN_FOLD_I64: u32 = 27;
 const FN_MAP_F64: u32 = 28;
 const FN_FILTER_F64: u32 = 29;
 const FN_GET_BYTE: u32 = 30; // buffered stdin helper
-const FN_USER_BASE: u32 = 31;
+// WASI args imports (conditional)
+const FN_ARGS_SIZES_GET: u32 = 31;
+const FN_ARGS_GET: u32 = 32;
+// Stdlib args helpers
+const FN_ARG_COUNT: u32 = 33;
+const FN_ARG_AT: u32 = 34;
+const FN_ARGS_VEC: u32 = 35;
+const FN_USER_BASE: u32 = 36;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
@@ -166,6 +173,9 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_reverse_i32" => "reverse_i32",
         "__intrinsic_reverse_String" => "reverse_String",
         "__intrinsic_remove_i32" => "remove_i32",
+        "__intrinsic_args" => "args",
+        "__intrinsic_arg_count" => "arg_count",
+        "__intrinsic_arg_at" => "arg_at",
         other => other,
     }
 }
@@ -619,6 +629,18 @@ impl EmitCtx {
                 {
                     return true;
                 }
+                // Check if function returns Option<String>: the result local is used
+                // as the object in EnumPayload extraction, so tracking it here lets the
+                // EnumPayload fallback (string_locals check) recognise the extracted String.
+                if self.fn_return_types.get(name).is_some_and(|t| {
+                    matches!(
+                        t,
+                        ark_typecheck::types::Type::Option(inner)
+                        if matches!(inner.as_ref(), ark_typecheck::types::Type::String)
+                    )
+                }) {
+                    return true;
+                }
                 // Heuristic: if any arg is a string, generic function might return string
                 // Exclude functions known to NOT return String
                 if matches!(
@@ -1010,6 +1032,15 @@ fn cfn_handle_builtin(
         }
         "panic" | "assert" | "assert_eq" | "assert_ne" | "assert_eq_str" | "assert_eq_i64" => {
             needed.insert(FN_FD_WRITE);
+        }
+        "arg_count" => {
+            needed.insert(FN_ARGS_SIZES_GET);
+            needed.insert(FN_ARG_COUNT);
+        }
+        "args" => {
+            needed.insert(FN_ARGS_SIZES_GET);
+            needed.insert(FN_ARGS_GET);
+            needed.insert(FN_ARGS_VEC);
         }
         other
             if (other.contains("HashMap") || other.contains("hashmap"))

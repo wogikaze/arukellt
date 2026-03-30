@@ -64,6 +64,7 @@ pub(crate) fn run_wasm_p1(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
 
     let mut builder = WasiCtxBuilder::new();
     builder.inherit_stdio();
+    builder.arg("arukellt-run");
 
     // deny_clock and deny_random are accepted but not yet enforced;
     // callers reject these flags before reaching this function.
@@ -121,6 +122,7 @@ pub(crate) fn run_wasm_gc(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
 
     let mut builder = WasiCtxBuilder::new();
     builder.inherit_stdio();
+    builder.arg("arukellt-run");
 
     let _ = caps.deny_clock;
     let _ = caps.deny_random;

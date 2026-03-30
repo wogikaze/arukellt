@@ -23,8 +23,10 @@ impl EmitCtx {
             (FN_FD_CLOSE, "fd_close"),
             (FN_CLOCK_TIME_GET, "clock_time_get"),
             (FN_RANDOM_GET, "random_get"),
+            (FN_ARGS_SIZES_GET, "args_sizes_get"),
+            (FN_ARGS_GET, "args_get"),
         ];
-        // Stdlib helpers in canonical order (indices 6..29)
+        // Stdlib helpers in canonical order (indices 6..35)
         const STDLIB_ORDER: &[u32] = &[
             FN_I32_TO_STR,
             FN_PRINT_I32_LN,
@@ -51,6 +53,9 @@ impl EmitCtx {
             FN_MAP_F64,
             FN_FILTER_F64,
             FN_GET_BYTE,
+            FN_ARG_COUNT,
+            FN_ARG_AT,
+            FN_ARGS_VEC,
         ];
 
         // Build fn_map: canonical index -> actual Wasm function index
@@ -156,6 +161,8 @@ impl EmitCtx {
                     x if x == FN_FD_CLOSE => ty_i32_i32,
                     x if x == FN_CLOCK_TIME_GET => ty_clock_time_get,
                     x if x == FN_RANDOM_GET => ty_i32_i32_i32,
+                    x if x == FN_ARGS_SIZES_GET => ty_i32_i32_i32,
+                    x if x == FN_ARGS_GET => ty_i32_i32_i32,
                     _ => ty_fd_write,
                 };
                 imports.import(
@@ -197,6 +204,9 @@ impl EmitCtx {
                     x if x == FN_MAP_F64 => ty_i32_i32_i32,
                     x if x == FN_FILTER_F64 => ty_i32_i32_i32,
                     x if x == FN_GET_BYTE => ty_void_i32,
+                    x if x == FN_ARG_COUNT => ty_void_i32,
+                    x if x == FN_ARG_AT => ty_i32_i32,
+                    x if x == FN_ARGS_VEC => ty_void_i32,
                     _ => ty_i32_void,
                 };
                 functions.function(ty);
@@ -383,6 +393,18 @@ impl EmitCtx {
                 }
                 x if x == FN_GET_BYTE => {
                     let f = self.build_get_byte();
+                    code.function(&f);
+                }
+                x if x == FN_ARG_COUNT => {
+                    let f = self.build_arg_count();
+                    code.function(&f);
+                }
+                x if x == FN_ARG_AT => {
+                    let f = self.build_arg_at();
+                    code.function(&f);
+                }
+                x if x == FN_ARGS_VEC => {
+                    let f = self.build_args_vec();
                     code.function(&f);
                 }
                 _ => {}

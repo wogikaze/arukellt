@@ -348,6 +348,11 @@ impl Ctx {
                         return true;
                     }
                 }
+                if let Terminator::Return(Some(op)) = &block.terminator
+                    && Self::operand_uses_args(op)
+                {
+                    return true;
+                }
             }
         }
         false

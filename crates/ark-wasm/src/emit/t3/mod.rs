@@ -539,6 +539,20 @@ impl Ctx {
                 Type::String => ref_nullable(self.vec_string_ty),
                 _ => ref_nullable(self.vec_i32_ty),
             },
+            Type::Option(inner) => {
+                let key = if matches!(inner.as_ref(), Type::String) {
+                    "Option_String"
+                } else {
+                    "Option"
+                };
+                if let Some(&base_idx) = self.enum_base_types.get(key) {
+                    ref_nullable(base_idx)
+                } else if let Some(&base_idx) = self.enum_base_types.get("Option") {
+                    ref_nullable(base_idx)
+                } else {
+                    ValType::I32
+                }
+            }
             _ => ValType::I32,
         }
     }
