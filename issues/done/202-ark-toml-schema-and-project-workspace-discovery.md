@@ -1,6 +1,6 @@
 # `ark.toml` schema + project/workspace discovery
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 202
@@ -14,9 +14,9 @@
 
 ## Acceptance
 
-- [ ] `ark.toml` schema の責務が追跡できる
-- [ ] project/workspace root discovery が定義されている
-- [ ] single-file と manifest-aware project の境界を issue queue 上で追跡できる
+- [x] `ark.toml` schema の責務が追跡できる
+- [x] project/workspace root discovery が定義されている
+- [x] single-file と manifest-aware project の境界を issue queue 上で追跡できる
 
 ## References
 

@@ -1,6 +1,6 @@
 # Advanced test UX: impact analysis / snapshot diff / fuzz UI
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 198
@@ -14,9 +14,9 @@
 
 ## Acceptance
 
-- [ ] test impact analysis の責務が追跡できる
-- [ ] snapshot visual diff / approve 導線が定義されている
-- [ ] fuzz/property/failure clustering UX を issue queue 上で追跡できる
+- [x] test impact analysis の責務が追跡できる
+- [x] snapshot visual diff / approve 導線が定義されている
+- [x] fuzz/property/failure clustering UX を issue queue 上で追跡できる
 
 ## References
 

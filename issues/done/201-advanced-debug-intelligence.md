@@ -1,6 +1,6 @@
 # Advanced debug intelligence
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 201
@@ -14,9 +14,9 @@ time-travel debug、value history graph、`why panic?` explain、cross-module st
 
 ## Acceptance
 
-- [ ] history/time-travel 系 UX の責務が追跡できる
-- [ ] value history / panic explanation / cross-module visualization が定義されている
-- [ ] advanced debug DX の残課題を issue queue 上で追跡できる
+- [x] history/time-travel 系 UX の責務が追跡できる
+- [x] value history / panic explanation / cross-module visualization が定義されている
+- [x] advanced debug DX の残課題を issue queue 上で追跡できる
 
 ## References
 

@@ -1,6 +1,6 @@
 # `script run` / `script list` CLI surface
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 203
@@ -14,9 +14,9 @@
 
 ## Acceptance
 
-- [ ] `script run` / `script list` の command surface が追跡できる
-- [ ] args / env / cwd / exit behavior の責務が定義されている
-- [ ] machine-readable script listing を issue queue 上で追跡できる
+- [x] `script run` / `script list` の command surface が追跡できる
+- [x] args / env / cwd / exit behavior の責務が定義されている
+- [x] machine-readable script listing を issue queue 上で追跡できる
 
 ## References
 

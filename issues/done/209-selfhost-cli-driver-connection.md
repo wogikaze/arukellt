@@ -1,6 +1,6 @@
 # selfhost: connect CLI main.ark to driver pipeline
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 209
@@ -21,10 +21,10 @@ Output handling:
 
 ## Acceptance
 
-- [ ] `arukellt compile src/compiler/main.ark -o /tmp/compiler.wasm` succeeds (no build errors)
-- [ ] `wasmtime --dir=. /tmp/compiler.wasm -- compile tests/fixtures/stdlib_cli/cli_basic.ark` runs (even if compilation is partial/stub)
-- [ ] `wasmtime --dir=. /tmp/compiler.wasm -- --help` prints usage
-- [ ] All existing harness tests still pass
+- [x] `arukellt compile src/compiler/main.ark -o /tmp/compiler.wasm` succeeds (no build errors)
+- [x] `wasmtime --dir=. /tmp/compiler.wasm -- compile tests/fixtures/stdlib_cli/cli_basic.ark` runs (even if compilation is partial/stub)
+- [x] `wasmtime --dir=. /tmp/compiler.wasm -- --help` prints usage
+- [x] All existing harness tests still pass
 
 ## References
 
@@ -33,3 +33,7 @@ Output handling:
 - `std/host/fs.ark` (`write_bytes`)
 - `crates/ark-typecheck/src/checker/builtins.rs` (`__intrinsic_fs_write_bytes` signature)
 - `crates/ark-wasm/src/emit/t1/operands.rs` (T1 implementation)
+
+## Resolution
+
+main.ark is wired to driver.ark pipeline. --help prints usage. Build succeeds. cli_basic.ark runs (4 resolve errors expected at this stage). All harness tests pass.

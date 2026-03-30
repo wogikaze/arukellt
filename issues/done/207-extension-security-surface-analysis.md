@@ -1,6 +1,6 @@
 # Extension security surface analysis
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 207
@@ -14,9 +14,9 @@ external tool 実行、env 受け渡し、script 実行、manifest 利用、他 
 
 ## Acceptance
 
-- [ ] extension の data exposure / command execution surface が追跡できる
-- [ ] 危険な workflow / setting warning の責務が定義されている
-- [ ] security review 系の残課題を issue queue 上で追跡できる
+- [x] extension の data exposure / command execution surface が追跡できる
+- [x] 危険な workflow / setting warning の責務が定義されている
+- [x] security review 系の残課題を issue queue 上で追跡できる
 
 ## References
 

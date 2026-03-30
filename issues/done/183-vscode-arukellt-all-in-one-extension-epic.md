@@ -1,6 +1,6 @@
 # VS Code: `arukellt-all-in-one` 拡張機能 epic
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 183
@@ -17,9 +17,9 @@
 
 ## Acceptance
 
-- [ ] #184, #185, #186, #187, #188, #205, #206, #207 が完了している
-- [ ] VS Code 体験の責務が foundation / authoring / test / debug / project / cross-cutting DX に分離されている
-- [ ] all-in-one 拡張の残課題が issue queue 上で追跡できる
+- [x] #184, #185, #186, #187, #188, #205, #206, #207 が完了している
+- [x] VS Code 体験の責務が foundation / authoring / test / debug / project / cross-cutting DX に分離されている
+- [x] all-in-one 拡張の残課題が issue queue 上で追跡できる
 
 ## References
 

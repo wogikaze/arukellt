@@ -1,6 +1,6 @@
 # Project explain / build explain / script sandbox surface
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 204
@@ -14,9 +14,9 @@ workspace knowledge graph、`why is this compiled?`、build/target explain、scr
 
 ## Acceptance
 
-- [ ] project/build/script explain 系 UX の責務が追跡できる
-- [ ] sandbox preview / environment diff の責務が整理されている
-- [ ] reachability / dead-code / project graph の責務を issue queue 上で追跡できる
+- [x] project/build/script explain 系 UX の責務が追跡できる
+- [x] sandbox preview / environment diff の責務が整理されている
+- [x] reachability / dead-code / project graph の責務を issue queue 上で追跡できる
 
 ## References
 
