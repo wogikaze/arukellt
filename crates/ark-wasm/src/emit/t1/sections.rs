@@ -215,10 +215,14 @@ impl EmitCtx {
         let mut needs_start_wrapper = false;
         for (i, func) in mir.functions.iter().enumerate() {
             functions.function(user_func_type_indices[i]);
-            if func.name == "main" && !matches!(func.return_ty, ark_typecheck::types::Type::Unit) {
+            if let Some(entry_id) = mir.entry_fn
+                && func.id == entry_id
+                && !matches!(func.return_ty, ark_typecheck::types::Type::Unit)
+            {
                 needs_start_wrapper = true;
             }
         }
+
         let start_wrapper_actual_idx = if needs_start_wrapper {
             let idx = next_idx;
             next_idx += 1;
@@ -269,9 +273,9 @@ impl EmitCtx {
         exports.export("memory", ExportKind::Memory, 0);
         if let Some(wrapper_idx) = start_wrapper_actual_idx {
             exports.export("_start", ExportKind::Func, wrapper_idx);
-        } else {
+        } else if let Some(entry_id) = mir.entry_fn {
             for (idx, func) in mir.functions.iter().enumerate() {
-                if func.name == "main" {
+                if func.id == entry_id {
                     exports.export("_start", ExportKind::Func, user_base_actual + idx as u32);
                 }
             }
@@ -415,14 +419,15 @@ impl EmitCtx {
             code.function(&f);
         }
         if needs_start_wrapper {
-            let main_idx = mir
+            let entry_id = mir.entry_fn.unwrap();
+            let entry_idx = mir
                 .functions
                 .iter()
-                .position(|f| f.name == "main")
+                .position(|f| f.id == entry_id)
                 .map(|i| user_base_actual + i as u32)
                 .unwrap();
             let mut wrapper = Function::new(vec![]);
-            wrapper.instruction(&Instruction::Call(main_idx));
+            wrapper.instruction(&Instruction::Call(entry_idx));
             wrapper.instruction(&Instruction::Drop);
             wrapper.instruction(&Instruction::End);
             code.function(&wrapper);

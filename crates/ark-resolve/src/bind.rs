@@ -21,6 +21,15 @@ pub(crate) fn bind_public_module(
     bind_module_impl(module, symbols, global_scope, sink, true, true);
 }
 
+pub(crate) fn bind_module_skip_dup(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    global_scope: ScopeId,
+    sink: &mut DiagnosticSink,
+) {
+    bind_module_impl(module, symbols, global_scope, sink, false, true);
+}
+
 fn bind_module_impl(
     module: &ast::Module,
     symbols: &mut SymbolTable,

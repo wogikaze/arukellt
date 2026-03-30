@@ -942,7 +942,16 @@ impl LanguageServer for ArukellBackend {
                 }),
                 definition_provider: Some(OneOf::Left(true)),
                 references_provider: Some(OneOf::Left(true)),
+                rename_provider: Some(OneOf::Right(RenameOptions {
+                    prepare_provider: Some(true),
+                    work_done_progress_options: Default::default(),
+                })),
+                code_action_provider: Some(CodeActionProviderCapability::Simple(true)),
+                document_formatting_provider: Some(OneOf::Left(true)),
                 document_symbol_provider: Some(OneOf::Left(true)),
+                code_lens_provider: Some(CodeLensOptions {
+                    resolve_provider: Some(false),
+                }),
                 semantic_tokens_provider: Some(
                     SemanticTokensServerCapabilities::SemanticTokensOptions(
                         SemanticTokensOptions {
@@ -1156,6 +1165,229 @@ impl LanguageServer for ArukellBackend {
         } else {
             Ok(Some(locations))
         }
+    }
+
+    async fn rename(&self, params: RenameParams) -> Result<Option<WorkspaceEdit>> {
+        let uri = params.text_document_position.text_document.uri;
+        let pos = params.text_document_position.position;
+        let new_name = params.new_name;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let target_offset = Self::position_to_offset(&source, pos);
+
+        let old_name = match Self::find_ident_at_offset(&source, &analysis.tokens, target_offset) {
+            Some(n) => n,
+            None => return Ok(None),
+        };
+
+        let mut edits = Vec::new();
+        for tok in &analysis.tokens {
+            if let TokenKind::Ident(_) = &tok.kind {
+                let start = tok.span.start as usize;
+                let end = tok.span.end as usize;
+                if end <= source.len() && &source[start..end] == old_name {
+                    edits.push(TextEdit {
+                        range: Self::span_to_range(&source, tok.span),
+                        new_text: new_name.clone(),
+                    });
+                }
+            }
+        }
+
+        let mut changes = HashMap::new();
+        changes.insert(uri, edits);
+
+        Ok(Some(WorkspaceEdit {
+            changes: Some(changes),
+            ..Default::default()
+        }))
+    }
+
+    async fn prepare_rename(
+        &self,
+        params: TextDocumentPositionParams,
+    ) -> Result<Option<PrepareRenameResponse>> {
+        let uri = params.text_document.uri;
+        let pos = params.position;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri)
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let target_offset = Self::position_to_offset(&source, pos);
+
+        for tok in &analysis.tokens {
+            let start = tok.span.start as usize;
+            let end = tok.span.end as usize;
+            if start <= target_offset && target_offset <= end && end <= source.len() {
+                if let TokenKind::Ident(_) = &tok.kind {
+                    return Ok(Some(PrepareRenameResponse::Range(Self::span_to_range(
+                        &source, tok.span,
+                    ))));
+                }
+            }
+        }
+
+        Ok(None)
+    }
+
+    async fn code_action(&self, params: CodeActionParams) -> Result<Option<CodeActionResponse>> {
+        let uri = params.text_document.uri;
+        let mut actions = Vec::new();
+
+        // Auto-import code action for E0100 unresolved name
+        for diag in params.context.diagnostics {
+            if let Some(NumberOrString::String(ref code)) = diag.code {
+                if code == "E0100" {
+                    // Try to suggest an import
+                    let name = &diag.message; // Heuristic: diag message might contain the name
+                    let import_candidates = [
+                        ("stdio", "std::host::stdio"),
+                        ("fs", "std::host::fs"),
+                        ("env", "std::host::env"),
+                        ("Path", "std::path"),
+                        ("Time", "std::time"),
+                        ("Test", "std::test"),
+                    ];
+                    for (alias, module) in import_candidates {
+                        if name.contains(alias) {
+                            let mut changes = HashMap::new();
+                            changes.insert(
+                                uri.clone(),
+                                vec![TextEdit {
+                                    range: Range {
+                                        start: Position {
+                                            line: 0,
+                                            character: 0,
+                                        },
+                                        end: Position {
+                                            line: 0,
+                                            character: 0,
+                                        },
+                                    },
+                                    new_text: format!("use {}\n", module),
+                                }],
+                            );
+                            actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                                title: format!("Import {}", module),
+                                kind: Some(CodeActionKind::QUICKFIX),
+                                edit: Some(WorkspaceEdit {
+                                    changes: Some(changes),
+                                    ..Default::default()
+                                }),
+                                is_preferred: Some(true),
+                                ..Default::default()
+                            }));
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(Some(actions))
+    }
+
+    async fn formatting(&self, params: DocumentFormattingParams) -> Result<Option<Vec<TextEdit>>> {
+        let uri = params.text_document.uri;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        // Very basic formatter: trim trailing whitespace and ensure newline at EOF
+        let lines: Vec<String> = source.lines().map(|l| l.trim_end().to_string()).collect();
+        let formatted = if lines.is_empty() {
+            "".to_string()
+        } else {
+            lines.join("\n") + "\n"
+        };
+
+        if formatted == source {
+            return Ok(None);
+        }
+
+        let full_range = Range {
+            start: Position {
+                line: 0,
+                character: 0,
+            },
+            end: Self::offset_to_position(&source, source.len() as u32),
+        };
+
+        Ok(Some(vec![TextEdit {
+            range: full_range,
+            new_text: formatted,
+        }]))
+    }
+
+    async fn code_lens(&self, params: CodeLensParams) -> Result<Option<Vec<CodeLens>>> {
+        let uri = params.text_document.uri;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri)
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let mut lenses = Vec::new();
+
+        for item in &analysis.module.items {
+            if let ast::Item::FnDef(f) = item {
+                let range = Self::span_to_range(&source, f.span);
+                lenses.push(CodeLens {
+                    range,
+                    command: Some(Command {
+                        title: "Open Docs".to_string(),
+                        command: "arukellt.openDocs".to_string(),
+                        arguments: Some(vec![serde_json::json!(f.name)]),
+                    }),
+                    data: None,
+                });
+                lenses.push(CodeLens {
+                    range,
+                    command: Some(Command {
+                        title: "Explain Function".to_string(),
+                        command: "arukellt.explainCode".to_string(),
+                        arguments: Some(vec![serde_json::json!(f.name)]),
+                    }),
+                    data: None,
+                });
+            }
+        }
+
+        Ok(Some(lenses))
     }
 
     async fn document_symbol(

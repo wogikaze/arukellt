@@ -101,6 +101,13 @@ pub fn resolve_module(module: ast::Module, sink: &mut DiagnosticSink) -> Resolve
 #[deprecated(note = "use ResolvedProgram directly; flatten merge loses module identity")]
 pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
     let mut module = program.entry_module.clone();
+    let mut seen_names = std::collections::HashSet::new();
+    for item in &module.items {
+        if let Some(name) = item_name(item) {
+            seen_names.insert(name);
+        }
+    }
+
     for loaded in &program.modules {
         let is_stdlib = loaded.path.to_str().is_some_and(|p| p.starts_with('<'));
         for item in &loaded.ast.items {
@@ -111,10 +118,18 @@ pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
                 ast::Item::TraitDef(t) => t.is_pub,
                 ast::Item::ImplBlock(_) => false,
             };
-            if is_pub {
-                // Strip is_pub on stdlib items so they are not treated as
-                // user-exported in the MIR lowerer (component export surface).
-                if is_stdlib {
+
+            // Issue 208: include ALL items from user-local modules (not just pub),
+            // skipping duplicates. This ensures private helpers are visible.
+            if is_pub || !is_stdlib {
+                if let Some(name) = item_name(item) {
+                    if seen_names.contains(&name) {
+                        continue;
+                    }
+                    seen_names.insert(name);
+                }
+
+                if is_stdlib && is_pub {
                     let mut item = item.clone();
                     match &mut item {
                         ast::Item::FnDef(f) => f.is_pub = false,
@@ -131,6 +146,16 @@ pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
         }
     }
     module
+}
+
+fn item_name(item: &ast::Item) -> Option<String> {
+    match item {
+        ast::Item::FnDef(f) => Some(f.name.clone()),
+        ast::Item::StructDef(s) => Some(s.name.clone()),
+        ast::Item::EnumDef(e) => Some(e.name.clone()),
+        ast::Item::TraitDef(t) => Some(t.name.clone()),
+        ast::Item::ImplBlock(_) => None,
+    }
 }
 
 #[allow(deprecated)]

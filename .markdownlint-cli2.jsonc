@@ -1,3 +1,7 @@
 {
-  "ignores": ["docs/spec/**", "target/**"]
+  "ignores": [
+    "docs/spec/**",
+    "target/**",
+    "extensions/arukellt-all-in-one/node_modules/**"
+  ]
 }

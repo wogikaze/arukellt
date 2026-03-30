@@ -1,7 +1,7 @@
 use ark_diagnostics::DiagnosticSink;
 use ark_parser::ast;
 
-use crate::bind::{bind_module, bind_public_module, inject_prelude_symbols};
+use crate::bind::{bind_module, bind_module_skip_dup, inject_prelude_symbols};
 use crate::module_graph::ModuleGraph;
 use crate::resolve::{ResolvedModule, ResolvedProgram};
 use crate::scope::SymbolTable;
@@ -12,7 +12,10 @@ pub(crate) fn analyze_program(graph: ModuleGraph, sink: &mut DiagnosticSink) -> 
     inject_prelude_symbols(&mut symbols, global_scope);
     bind_module(&graph.entry_module, &mut symbols, global_scope, sink);
     for loaded in graph.loaded.values() {
-        bind_public_module(&loaded.ast, &mut symbols, global_scope, sink);
+        // Issue 208: include ALL items (not just pub) from user-local modules,
+        // skipping duplicates. This ensures private helpers called by pub fns
+        // are visible in the merged module scope.
+        bind_module_skip_dup(&loaded.ast, &mut symbols, global_scope, sink);
     }
     ResolvedProgram {
         entry_module: graph.entry_module,

@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
@@ -78,7 +79,7 @@ pub struct RuntimeParityReport {
 }
 
 /// Compilation timing report for `--time`.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct CompileTiming {
     pub lex_ms: f64,
     pub parse_ms: f64,
@@ -608,6 +609,16 @@ impl Session {
         target: TargetId,
         selection: MirSelection,
     ) -> Result<CompiledModule, String> {
+        self.compile_with_entry(path, target, selection, None)
+    }
+
+    pub fn compile_with_entry(
+        &mut self,
+        path: &Path,
+        target: TargetId,
+        selection: MirSelection,
+        entry_override: Option<&str>,
+    ) -> Result<CompiledModule, String> {
         let t_total = std::time::Instant::now();
         if target == TargetId::Native {
             return Err("error: native target uses the dedicated LLVM compile path".to_string());
@@ -619,6 +630,15 @@ impl Session {
             MirSelection::Legacy | MirSelection::OptimizedLegacy => frontend.legacy_mir,
             MirSelection::CoreHir | MirSelection::OptimizedCoreHir => frontend.corehir_mir,
         };
+
+        if let Some(entry_name) = entry_override {
+            if let Some(id) = ark_mir::mir::function_id_by_name(&mir, entry_name) {
+                mir.entry_fn = Some(id);
+            } else {
+                return Err(format!("error: entry function `{}` not found", entry_name));
+            }
+        }
+
         let t_opt = std::time::Instant::now();
         let opt_detail = if matches!(
             selection,
@@ -840,6 +860,20 @@ impl Session {
             core_hir: frontend.core_hir,
             mir: frontend.corehir_mir,
         })
+    }
+
+    pub fn find_tests(&mut self, path: &Path) -> Result<Vec<String>, String> {
+        let parsed = self.parse(path)?;
+        let mut tests = Vec::new();
+        for item in &parsed.items {
+            if let ast::Item::FnDef(f) = item
+                && f.name.starts_with("test_")
+                && f.params.is_empty()
+            {
+                tests.push(f.name.clone());
+            }
+        }
+        Ok(tests)
     }
 
     pub fn profile_memory(&mut self, path: &Path) -> Result<String, String> {
