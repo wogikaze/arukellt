@@ -20,6 +20,24 @@ struct Cli {
 }
 
 #[derive(Subcommand)]
+enum ScriptCommands {
+    /// List all scripts in ark.toml
+    List {
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
+    },
+    /// Run a script from ark.toml
+    Run {
+        /// Script name
+        name: String,
+        /// Additional arguments passed to the script
+        #[arg(trailing_var_arg = true)]
+        args: Vec<String>,
+    },
+}
+
+#[derive(Subcommand)]
 enum Commands {
     /// Compile an .ark file to Wasm
     Compile {
@@ -58,6 +76,9 @@ enum Commands {
         /// Generate P2-native component (skip P1 adapter, ~100KB smaller)
         #[arg(long)]
         p2_native: bool,
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
     },
     /// Compile and run an .ark file
     Run {
@@ -96,10 +117,31 @@ enum Commands {
         #[arg(long, default_value = "wasm32-wasi-p1")]
         target: TargetId,
     },
+    /// Discover and run tests
+    Test {
+        /// Input .ark file or directory
+        file: PathBuf,
+        /// Compile target
+        #[arg(long, default_value = "wasm32-wasi-p1")]
+        target: TargetId,
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
+        /// List tests without running them
+        #[arg(long)]
+        list: bool,
+    },
     /// List available compile targets
     Targets,
+    /// Manage and run project scripts
+    Script {
+        #[command(subcommand)]
+        subcommand: ScriptCommands,
+    },
     /// Start the LSP server (stdio transport)
     Lsp,
+    /// Start the DAP debug adapter (stdio transport)
+    DebugAdapter,
     /// Analyze a compiled Wasm binary
     Analyze {
         /// Analysis to perform
@@ -129,6 +171,7 @@ fn main() {
             mir_select,
             world,
             p2_native,
+            json,
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
@@ -145,6 +188,7 @@ fn main() {
                 opt_level,
                 no_pass,
                 &mir_select,
+                json,
             );
         }
         Commands::Run {
@@ -173,11 +217,30 @@ fn main() {
         Commands::Check { file, target } => {
             commands::cmd_check(file, target);
         }
+        Commands::Test {
+            file,
+            target,
+            json,
+            list,
+        } => {
+            commands::cmd_test(file, target, json, list);
+        }
         Commands::Targets => {
             commands::cmd_targets();
         }
+        Commands::Script { subcommand } => match subcommand {
+            ScriptCommands::List { json } => {
+                commands::cmd_script_list(json);
+            }
+            ScriptCommands::Run { name, args } => {
+                commands::cmd_script_run(name, args);
+            }
+        },
         Commands::Lsp => {
             commands::cmd_lsp();
+        }
+        Commands::DebugAdapter => {
+            commands::cmd_debug_adapter();
         }
         Commands::Analyze { wasm_size } => {
             commands::cmd_analyze_wasm_size(&wasm_size);

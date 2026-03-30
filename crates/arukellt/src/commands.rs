@@ -4,7 +4,9 @@ use std::path::PathBuf;
 use std::process;
 
 use ark_driver::{MirSelection, OptLevel, Session};
+use ark_manifest::Manifest;
 use ark_target::{EmitKind, TargetId};
+use serde::Serialize;
 
 use crate::native;
 use crate::runtime::{RuntimeCaps, run_wasm_gc, run_wasm_p1};
@@ -23,6 +25,7 @@ pub(crate) fn cmd_compile(
     opt_level_raw: u8,
     no_pass: Vec<String>,
     mir_select: &str,
+    json: bool,
 ) {
     // Native target: handled separately via LLVM backend
     if target == TargetId::Native {
@@ -160,10 +163,36 @@ pub(crate) fn cmd_compile(
 
     let output = output.unwrap_or_else(|| file.with_extension("wasm"));
     let mut session = Session::new();
-    session.timing_enabled = time;
+    session.timing_enabled = time || json;
     session.opt_level = opt_level;
     session.disabled_passes = no_pass;
     let selection = parse_mir_select(mir_select);
+
+    if json {
+        let result = session.compile_selected(&file, target, selection);
+        match result {
+            Ok(compiled) => {
+                let timing = session.last_timing.clone();
+                let output_json = serde_json::json!({
+                    "status": "success",
+                    "file": file.display().to_string(),
+                    "wasm_size": compiled.wasm.len(),
+                    "timing": timing,
+                });
+                println!("{}", output_json);
+            }
+            Err(errors) => {
+                let output_json = serde_json::json!({
+                    "status": "error",
+                    "errors": errors,
+                });
+                println!("{}", output_json);
+                process::exit(1);
+            }
+        }
+        return;
+    }
+
     match session
         .compile_selected(&file, target, selection)
         .map(|c| c.wasm)
@@ -384,6 +413,219 @@ pub(crate) fn cmd_check(file: PathBuf, target: TargetId) {
     }
 }
 
+#[derive(Serialize)]
+struct TestResult {
+    name: String,
+    status: String,
+    message: Option<String>,
+    duration_ms: f64,
+}
+
+#[derive(Serialize)]
+struct TestSuiteResult {
+    file: String,
+    tests: Vec<TestResult>,
+    passed: usize,
+    failed: usize,
+    total_duration_ms: f64,
+}
+
+pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) {
+    let mut session = Session::new();
+    let tests = match session.find_tests(&file) {
+        Ok(t) => t,
+        Err(e) => {
+            eprintln!("error discovering tests: {}", e);
+            process::exit(1);
+        }
+    };
+
+    if list {
+        if json {
+            println!("{}", serde_json::to_string(&tests).unwrap());
+        } else {
+            for t in tests {
+                println!("{}", t);
+            }
+        }
+        return;
+    }
+
+    if tests.is_empty() {
+        if json {
+            println!(
+                "{}",
+                serde_json::to_string(&TestSuiteResult {
+                    file: file.display().to_string(),
+                    tests: vec![],
+                    passed: 0,
+                    failed: 0,
+                    total_duration_ms: 0.0,
+                })
+                .unwrap()
+            );
+        } else {
+            println!("no tests found in {}", file.display());
+        }
+        return;
+    }
+
+    let mut results = Vec::new();
+    let mut passed = 0;
+    let mut failed = 0;
+    let t_suite_start = std::time::Instant::now();
+
+    let selection = if std::env::var("ARK_USE_COREHIR").is_ok() {
+        MirSelection::OptimizedCoreHir
+    } else {
+        MirSelection::OptimizedLegacy
+    };
+
+    for test_name in tests {
+        if !json {
+            print!("test {} ... ", test_name);
+            use std::io::Write;
+            std::io::stdout().flush().unwrap();
+        }
+        let t_start = std::time::Instant::now();
+        let compile_result = session.compile_with_entry(&file, target, selection, Some(&test_name));
+        let duration = t_start.elapsed().as_secs_f64() * 1000.0;
+
+        let result = match compile_result {
+            Ok(compiled) => {
+                let caps = RuntimeCaps::from_cli(&[], false, false, false);
+                let run_result = if target == TargetId::Wasm32WasiP1 {
+                    crate::runtime::run_wasm_p1(&compiled.wasm, &caps)
+                } else {
+                    crate::runtime::run_wasm_gc(&compiled.wasm, &caps)
+                };
+                match run_result {
+                    Ok(_) => {
+                        passed += 1;
+                        if !json {
+                            println!("ok");
+                        }
+                        TestResult {
+                            name: test_name,
+                            status: "pass".to_string(),
+                            message: None,
+                            duration_ms: duration,
+                        }
+                    }
+                    Err(e) => {
+                        failed += 1;
+                        if !json {
+                            println!("FAILED");
+                            println!("  runtime error: {}", e);
+                        }
+                        TestResult {
+                            name: test_name,
+                            status: "fail".to_string(),
+                            message: Some(format!("runtime error: {}", e)),
+                            duration_ms: duration,
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                failed += 1;
+                if !json {
+                    println!("FAILED");
+                    println!("  compile error: {}", e);
+                }
+                TestResult {
+                    name: test_name,
+                    status: "fail".to_string(),
+                    message: Some(format!("compile error: {}", e)),
+                    duration_ms: duration,
+                }
+            }
+        };
+        results.push(result);
+    }
+
+    let suite_duration = t_suite_start.elapsed().as_secs_f64() * 1000.0;
+    if json {
+        let suite = TestSuiteResult {
+            file: file.display().to_string(),
+            tests: results,
+            passed,
+            failed,
+            total_duration_ms: suite_duration,
+        };
+        println!("{}", serde_json::to_string(&suite).unwrap());
+    } else {
+        println!();
+        println!(
+            "test result: {}. {} passed; {} failed; finished in {:.2}ms",
+            if failed == 0 { "ok" } else { "FAILED" },
+            passed,
+            failed,
+            suite_duration
+        );
+        if failed > 0 {
+            process::exit(1);
+        }
+    }
+}
+
+pub(crate) fn cmd_script_list(json: bool) {
+    let root = Manifest::find_root(&std::env::current_dir().unwrap()).unwrap_or_else(|| {
+        eprintln!("error: ark.toml not found in current directory or any parent");
+        process::exit(1);
+    });
+    let manifest = Manifest::load_from_dir(&root).unwrap();
+
+    if json {
+        println!("{}", serde_json::to_string(&manifest.scripts).unwrap());
+    } else {
+        println!("Scripts in {}:", root.display());
+        let mut names: Vec<_> = manifest.scripts.keys().collect();
+        names.sort();
+        for name in names {
+            println!("  {:10}  {}", name, manifest.scripts.get(name).unwrap());
+        }
+    }
+}
+
+pub(crate) fn cmd_script_run(name: String, extra_args: Vec<String>) {
+    let root = Manifest::find_root(&std::env::current_dir().unwrap()).unwrap_or_else(|| {
+        eprintln!("error: ark.toml not found in current directory or any parent");
+        process::exit(1);
+    });
+    let manifest = Manifest::load_from_dir(&root).unwrap();
+
+    let script = manifest.scripts.get(&name).unwrap_or_else(|| {
+        eprintln!("error: script `{}` not found in ark.toml", name);
+        process::exit(1);
+    });
+
+    let full_command = if extra_args.is_empty() {
+        script.clone()
+    } else {
+        format!("{} {}", script, extra_args.join(" "))
+    };
+
+    let mut child = if cfg!(target_os = "windows") {
+        process::Command::new("cmd")
+            .arg("/C")
+            .arg(&full_command)
+            .current_dir(&root)
+            .spawn()
+            .unwrap()
+    } else {
+        process::Command::new("sh")
+            .arg("-c")
+            .arg(&full_command)
+            .current_dir(&root)
+            .spawn()
+            .unwrap()
+    };
+
+    let status = child.wait().unwrap();
+    process::exit(status.code().unwrap_or(1));
+}
+
 pub(crate) fn cmd_targets() {
     print!("{}", ark_target::targets_help());
 }
@@ -391,6 +633,14 @@ pub(crate) fn cmd_targets() {
 pub(crate) fn cmd_lsp() {
     let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(ark_lsp::run_lsp());
+}
+
+pub(crate) fn cmd_debug_adapter() {
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    if let Err(e) = rt.block_on(ark_dap::run_dap()) {
+        eprintln!("error: debug adapter: {}", e);
+        process::exit(1);
+    }
 }
 
 pub(crate) fn cmd_analyze_wasm_size(path: &std::path::Path) {

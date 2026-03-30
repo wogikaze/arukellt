@@ -110,5 +110,11 @@
   },
   "scripts": {
     "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\""
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.110.0"
   }
 }
