@@ -204,7 +204,8 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
 // ── Compile File ─────────────────────────────────────────────────────────────
 
 pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
-    let source_result = load_source(clone(path))
+    let cloned_path = clone(path)
+    let source_result = load_source(cloned_path)
     match source_result {
         Ok(source) => {
             compile_source(source, config)
