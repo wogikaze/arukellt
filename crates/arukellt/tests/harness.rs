@@ -14,6 +14,13 @@
 //! Self-check: verifies every `.ark` entry point on disk is listed in the manifest.
 //!
 //! Fixtures run in parallel using a work-stealing channel over all available CPU cores.
+//!
+//! ## Target filtering
+//!
+//! Set `ARUKELLT_TARGET` to restrict which fixture kinds run:
+//! - `wasm32-wasi-p1`  → only `run`, `module-run`, `diag`, `module-diag`
+//! - `wasm32-wasi-p2`  → only `t3-run`, `t3-compile`, `component-compile`, `compile-error`
+//! - unset / empty     → all fixture kinds (default)
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -103,6 +110,22 @@ fn arukellt_binary() -> PathBuf {
         }
     }
     path
+}
+
+/// Check whether a fixture kind should run under the current target filter.
+///
+/// Returns `true` if the kind is relevant to the active `ARUKELLT_TARGET`.
+fn is_kind_included(kind: &str, target_filter: Option<&str>) -> bool {
+    match target_filter {
+        Some("wasm32-wasi-p1") => matches!(kind, "run" | "module-run" | "diag" | "module-diag"),
+        Some("wasm32-wasi-p2") => {
+            matches!(
+                kind,
+                "t3-run" | "t3-compile" | "component-compile" | "compile-error"
+            )
+        }
+        _ => true,
+    }
 }
 
 /// Run a single manifest entry. Safe to call from multiple threads.
@@ -396,26 +419,37 @@ fn fixture_harness() {
         );
     }
 
+    // --- Target filtering ---
+    let target_filter = std::env::var("ARUKELLT_TARGET").ok();
+    if let Some(ref target) = target_filter {
+        eprintln!("Target filter: ARUKELLT_TARGET={}", target);
+    }
+
     // --- Run fixtures in parallel (work-stealing) ---
     let bin = arukellt_binary();
     eprintln!("Using binary: {:?}", bin);
-
-    let num_threads = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(4)
-        .min(entries.len().max(1));
 
     // Feed tasks via a channel; workers pull until the sender is closed.
     let (task_tx, task_rx) = mpsc::channel::<(usize, String, String)>();
     let task_rx = Arc::new(Mutex::new(task_rx));
     let (res_tx, res_rx) = mpsc::channel::<(usize, FixtureOutcome)>();
 
+    let mut scheduled = 0usize;
     for (i, entry) in entries.iter().enumerate() {
+        if !is_kind_included(&entry.kind, target_filter.as_deref()) {
+            continue;
+        }
         task_tx
             .send((i, entry.kind.clone(), entry.path.clone()))
             .unwrap();
+        scheduled += 1;
     }
     drop(task_tx);
+
+    let num_threads = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4)
+        .min(scheduled.max(1));
 
     std::thread::scope(|scope| {
         for _ in 0..num_threads {
@@ -464,7 +498,13 @@ fn fixture_harness() {
     }
 
     eprintln!("\n--- Fixture Results ---");
-    eprintln!("PASS: {} FAIL: {} SKIP: {}", passed, failed, skipped);
+    eprintln!(
+        "PASS: {} FAIL: {} SKIP: {} (scheduled: {}, total manifest: {})",
+        passed, failed, skipped, scheduled, entries.len()
+    );
+    if let Some(ref target) = target_filter {
+        eprintln!("Target: {}", target);
+    }
 
     if !failures.is_empty() {
         for f in &failures {

@@ -64,6 +64,8 @@ jobs:
         run: cargo build --release -p arukellt
 
       - name: Run manifest-driven fixture suite (target=${{ matrix.target }})
+        env:
+          ARUKELLT_TARGET: ${{ matrix.target }}
         run: cargo test -p arukellt --test harness -- --nocapture
 
   perf-baseline:
