@@ -6,6 +6,13 @@
 
 use std::host::stdio
 use std::host::fs
+use lexer
+use parser
+use resolver
+use typechecker
+use mir
+use emitter
+use std::host::process
 
 // ── Pipeline Phase Tags ──────────────────────────────────────────────────────
 
@@ -84,9 +91,9 @@ fn load_source(path: String) -> Result<String, String> {
 
 // ── Pipeline Orchestration ───────────────────────────────────────────────────
 
-fn compile_source(source: String, config: DriverConfig) -> CompileResult {
+pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     // Phase 1: Lex
-    let tokens = tokenize(clone(source))
+    let tokens = lexer::tokenize(clone(source))
     let token_count = len(tokens)
 
     if config.dump_tokens {
@@ -94,7 +101,7 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         let mut i = 0
         while i < token_count {
             let tok = get_unchecked(tokens, i)
-            stdio::eprintln(concat(token_kind_name(tok.kind), concat(String_from(" "), clone(tok.text))))
+            stdio::eprintln(concat(lexer::token_kind_name(tok.kind), concat(String_from(" "), clone(tok.text))))
             i = i + 1
         }
     }
@@ -114,8 +121,8 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
 
     // Phase 2: Parse
-    let parser = Parser_new(tokens)
-    let decls = parse_module(parser)
+    let parser = parser::Parser_new(tokens)
+    let decls = parser::parse_module(parser)
 
     if config.dump_ast {
         stdio::eprintln(String_from("=== AST ==="))
@@ -123,7 +130,7 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
         let mut j = 0
         while j < decl_count {
             let d = get_unchecked(decls, j)
-            print_ast_stderr(d, 0)
+            parser::print_ast(d, 0)
             j = j + 1
         }
     }
@@ -146,11 +153,11 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
 
     // Phase 3: Resolve (name binding)
-    let resolve_ctx = resolve_module(decls)
+    let resolve_ctx = resolver::resolve_module(decls)
 
     if config.dump_hir {
         stdio::eprintln(String_from("=== HIR (post-resolve) ==="))
-        dump_scope(resolve_ctx)
+        resolver::dump_scope(resolve_ctx)
     }
 
     if resolve_ctx.error_count > 0 {
@@ -158,11 +165,11 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
 
     // Phase 4: Type check
-    let check_result = typecheck_module(resolve_ctx)
+    let check_result = typechecker::typecheck_module(resolve_ctx)
 
     if config.dump_hir {
         stdio::eprintln(String_from("=== TYPED HIR ==="))
-        dump_typed_hir(check_result)
+        typechecker::dump_typed_hir(check_result)
     }
 
     if check_result.error_count > 0 {
@@ -174,15 +181,15 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
 
     // Phase 5: Lower to MIR
-    let mir_module = lower_to_mir(check_result)
+    let mir_module = mir::lower_to_mir(check_result)
 
     if config.dump_mir {
         stdio::eprintln(String_from("=== MIR ==="))
-        dump_mir(mir_module)
+        mir::dump_mir(mir_module)
     }
 
     // Phase 6: Emit Wasm
-    let wasm_bytes = emit_wasm(mir_module, clone(config.target), config.opt_level)
+    let wasm_bytes = emitter::emit_wasm(mir_module, clone(config.target), config.opt_level)
 
     if config.dump_wasm {
         stdio::eprintln(String_from("=== WASM ==="))
@@ -196,7 +203,7 @@ fn compile_source(source: String, config: DriverConfig) -> CompileResult {
 
 // ── Compile File ─────────────────────────────────────────────────────────────
 
-fn compile_file(path: String, config: DriverConfig) -> CompileResult {
+pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
     let source_result = load_source(clone(path))
     match source_result {
         Ok(source) => {
@@ -206,63 +213,6 @@ fn compile_file(path: String, config: DriverConfig) -> CompileResult {
             CompileResult_err(0, concat(String_from("failed to read file: "), e))
         },
     }
-}
-
-// ── Stub Functions (filled in by later phases) ──────────────────────────────
-// These forward-declare the signatures that parser/resolver/typechecker/
-// emitter modules will provide. In the final selfhost binary, all modules
-// are compiled together and these stubs are replaced by real implementations.
-
-// Tokenizer (from lexer.ark — duplicated for standalone compilation)
-fn TK_ERROR_TAG() -> i32 { 7 }
-
-fn token_kind_name(kind: i32) -> String {
-    if kind == 0 { return String_from("EOF") }
-    if kind == 1 { return String_from("IDENT") }
-    if kind == 2 { return String_from("INT") }
-    if kind == 3 { return String_from("FLOAT") }
-    if kind == 4 { return String_from("STRING") }
-    if kind == 5 { return String_from("BOOL") }
-    if kind == 6 { return String_from("NEWLINE") }
-    if kind == 7 { return String_from("ERROR") }
-    if kind == 10 { return String_from("FN") }
-    if kind == 11 { return String_from("STRUCT") }
-    if kind == 12 { return String_from("ENUM") }
-    if kind == 13 { return String_from("LET") }
-    String_from("OTHER")
-}
-
-// Stub: print AST to stderr
-fn print_ast_stderr(node: AstNode, depth: i32) {
-    let mut indent = String_new()
-    let mut d = 0
-    while d < depth {
-        indent = concat(indent, String_from("  "))
-        d = d + 1
-    }
-    stdio::eprintln(concat(indent, node_kind_name(node.kind)))
-    let child_count = len(node.children)
-    let mut i = 0
-    while i < child_count {
-        let child = get_unchecked(node.children, i)
-        print_ast_stderr(child, depth + 1)
-        i = i + 1
-    }
-}
-
-fn node_kind_name(kind: i32) -> String {
-    if kind == 1 { return String_from("IntLit") }
-    if kind == 5 { return String_from("Ident") }
-    if kind == 6 { return String_from("Binary") }
-    if kind == 8 { return String_from("Call") }
-    if kind == 20 { return String_from("Block") }
-    if kind == 30 { return String_from("Let") }
-    if kind == 37 { return String_from("ExprStmt") }
-    if kind == 50 { return String_from("FnDecl") }
-    if kind == 51 { return String_from("StructDecl") }
-    if kind == 52 { return String_from("EnumDecl") }
-    if kind == 54 { return String_from("Use") }
-    String_from("Node")
 }
 
 // ── Entry Point ──────────────────────────────────────────────────────────────
@@ -286,6 +236,6 @@ fn main() {
             stdio::println(concat(String_from("  error: "), clone(msg)))
             i = i + 1
         }
-        exit(1)
+        process::exit(1)
     }
 }

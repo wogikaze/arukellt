@@ -132,6 +132,7 @@ impl EmitCtx {
                     | "get_unchecked"
                     | "fs_read_file"
                     | "fs_write_file"
+                    | "fs_write_bytes"
                     | "any_i32"
                     | "find_i32"
                     | "clock_now"

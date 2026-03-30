@@ -324,6 +324,16 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
+            "__intrinsic_fs_write_bytes".into(),
+            FnSig {
+                name: "__intrinsic_fs_write_bytes".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::Vec(Box::new(Type::I32))],
+                ret: Type::Result(Box::new(Type::Unit), Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
             "__intrinsic_memory_copy".into(),
             FnSig {
                 name: "__intrinsic_memory_copy".into(),

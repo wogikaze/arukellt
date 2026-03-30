@@ -6,6 +6,9 @@
 
 use std::host::stdio
 use std::host::env
+use std::host::fs
+use std::host::process
+use driver
 
 // ── Command Tags ─────────────────────────────────────────────────────────────
 
@@ -215,27 +218,44 @@ fn main() {
         return
     }
 
-    // Dispatch to driver
-    stdio::println(concat(String_from("compiling: "), clone(opts.input_file)))
-    stdio::println(concat(String_from("target: "), clone(opts.target)))
-    stdio::println(concat(String_from("command: "), to_string(opts.command)))
+    // Build DriverConfig from CLI options
+    let config = driver::DriverConfig_default()
+    config.target = clone(opts.target)
+    config.opt_level = opts.opt_level
+    config.dump_tokens = should_dump(opts, String_from("tokens"))
+    config.dump_ast = should_dump(opts, String_from("ast"))
+    config.dump_hir = should_dump(opts, String_from("hir"))
+    config.dump_mir = should_dump(opts, String_from("mir"))
+    config.dump_wasm = should_dump(opts, String_from("wasm"))
+    config.parse_only = opts.command == CMD_PARSE()
+    config.check_only = opts.command == CMD_CHECK()
 
-    // Phase dump demo
-    if should_dump(opts, String_from("tokens")) {
-        stdio::println(String_from("[dump] tokens phase requested"))
-    }
-    if should_dump(opts, String_from("ast")) {
-        stdio::println(String_from("[dump] ast phase requested"))
-    }
-    if should_dump(opts, String_from("hir")) {
-        stdio::println(String_from("[dump] hir phase requested"))
-    }
-    if should_dump(opts, String_from("mir")) {
-        stdio::println(String_from("[dump] mir phase requested"))
-    }
-    if should_dump(opts, String_from("wasm")) {
-        stdio::println(String_from("[dump] wasm phase requested"))
-    }
+    let result = driver::compile_file(clone(opts.input_file), config)
 
-    stdio::println(String_from("Done."))
+    if result.success {
+        stdio::eprintln(concat(String_from("compilation succeeded (phase "), concat(to_string(result.phase_reached), String_from(")"))))
+        if len(opts.output_file) > 0 {
+            let write_result = fs::write_bytes(clone(opts.output_file), result.output_bytes)
+            match write_result {
+                Ok(_) => {
+                    stdio::eprintln(concat(String_from("wrote "), concat(to_string(len(result.output_bytes)), concat(String_from(" bytes to "), clone(opts.output_file)))))
+                },
+                Err(e) => {
+                    stdio::eprintln(concat(String_from("error writing output: "), e))
+                    process::exit(1)
+                },
+            }
+        } else {
+            stdio::println(concat(String_from("ok: "), concat(to_string(len(result.output_bytes)), String_from(" bytes"))))
+        }
+    } else {
+        let err_count = len(result.error_messages)
+        let mut i = 0
+        while i < err_count {
+            let msg = get_unchecked(result.error_messages, i)
+            stdio::eprintln(concat(String_from("error: "), clone(msg)))
+            i = i + 1
+        }
+        process::exit(1)
+    }
 }

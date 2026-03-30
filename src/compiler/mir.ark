@@ -221,7 +221,7 @@ struct TypeInfo {
     type_args: Vec<TypeInfo>,
 }
 
-fn lower_to_mir(check_result: TypeCheckResult) -> MirModule {
+pub fn lower_to_mir(check_result: TypeCheckResult) -> MirModule {
     let m = MirModule_new()
     // For each typed function, create a MIR function skeleton
     let fn_count = len(check_result.typed_fns)
@@ -238,7 +238,7 @@ fn lower_to_mir(check_result: TypeCheckResult) -> MirModule {
 
 // ── MIR Dump ─────────────────────────────────────────────────────────────────
 
-fn dump_mir(m: MirModule) {
+pub fn dump_mir(m: MirModule) {
     let fn_count = len(m.functions)
     stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
     let mut i = 0

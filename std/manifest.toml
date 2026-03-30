@@ -1594,6 +1594,15 @@ returns = "Result<(), String>"
 intrinsic = "__intrinsic_fs_write_file"
 doc_category = "host_fs"
 
+[[functions]]
+name = "write_bytes"
+module = "std::host::fs"
+stability = "stable"
+params = ["String", "Vec<i32>"]
+returns = "Result<(), String>"
+intrinsic = "__intrinsic_fs_write_bytes"
+doc_category = "host_fs"
+
 # === std::host::stdio ===
 
 [[functions]]

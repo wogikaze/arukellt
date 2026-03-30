@@ -1990,6 +1990,176 @@ impl Ctx {
         )));
     }
 
+    pub(super) fn emit_fs_write_bytes_gc(&mut self, f: &mut PeepholeWriter<'_>, args: &[Operand]) {
+        if args.len() < 2 {
+            return;
+        }
+
+        let result_base = *self.enum_base_types.get("Result").unwrap();
+        let ok_variant = result_base + 1;
+        let err_variant = result_base + 2;
+        let ma = wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma8 = wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+
+        let err_write_seg =
+            self.data_segs.len() as u32 + self.alloc_string_data(b"file write error");
+
+        // Step 1: Copy path bytes to linear memory at FS_SCRATCH+32
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(self.si(10))); // path ref
+
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(self.si(0))); // path_len
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma8));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Step 2: path_open for writing
+        f.instruction(&Instruction::I32Const(3)); // dirfd
+        f.instruction(&Instruction::I32Const(0)); // dirflags
+        f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
+        f.instruction(&Instruction::LocalGet(self.si(0))); // path_len
+        f.instruction(&Instruction::I32Const(9)); // O_CREAT | O_TRUNC
+        f.instruction(&Instruction::I64Const(64)); // FD_WRITE
+        f.instruction(&Instruction::I64Const(0));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32)); // &fd
+        f.instruction(&Instruction::Call(self.wasi_path_open));
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // Err("file write error")
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Const(16)); // len
+        f.instruction(&Instruction::ArrayNewData {
+            array_type_index: self.string_ty,
+            array_data_index: err_write_seg,
+        });
+        f.instruction(&Instruction::StructNew(err_variant));
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+        f.instruction(&Instruction::Else);
+
+        // Step 3: Copy Vec<i32> bytes to linear memory at FS_SCRATCH+32
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(self.si(11))); // bytes vec ref
+
+        // vec_len = StructGet(vec_i32_ty, field 1)
+        f.instruction(&Instruction::LocalGet(self.si(11)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.vec_i32_ty,
+        )));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: self.vec_i32_ty,
+            field_index: 1,
+        });
+        f.instruction(&Instruction::LocalSet(self.si(2))); // vec_len
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        // dst = FS_SCRATCH+32 + i
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
+        f.instruction(&Instruction::I32Add);
+        // value = backing_array[i]
+        f.instruction(&Instruction::LocalGet(self.si(11)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.vec_i32_ty,
+        )));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: self.vec_i32_ty,
+            field_index: 0,
+        });
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGet(self.arr_i32_ty));
+        f.instruction(&Instruction::I32Store8(ma8));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Step 4: fd_write
+        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(self.si(3))); // fd
+
+        // iov: [base=FS_SCRATCH+32, len=vec_len]
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Store(ma));
+
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::Call(self.wasi_fd_write));
+        f.instruction(&Instruction::Drop);
+
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::Call(self.wasi_fd_close));
+        f.instruction(&Instruction::Drop);
+
+        // Build Ok(()) result
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::StructNew(ok_variant));
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        f.instruction(&Instruction::End); // end if/else
+
+        // Push result
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            result_base,
+        )));
+    }
+
     pub(super) fn emit_vec_new(
         &mut self,
         f: &mut PeepholeWriter<'_>,

@@ -152,6 +152,7 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_replace" => "replace",
         "__intrinsic_fs_read_file" => "fs_read_file",
         "__intrinsic_fs_write_file" => "fs_write_file",
+        "__intrinsic_fs_write_bytes" => "fs_write_bytes",
         "__intrinsic_clock_now" => "clock_now",
         "__intrinsic_random_i32" => "random_i32",
         "__intrinsic_sort_i64" => "sort_i64",
@@ -672,6 +673,7 @@ impl EmitCtx {
                         | "parse_f64"
                         | "fs_read_file"
                         | "fs_write_file"
+                        | "fs_write_bytes"
                         | "map_i32_i32"
                         | "filter_i32"
                         | "map_String_String"
@@ -1002,7 +1004,7 @@ fn cfn_handle_builtin(
             needed.insert(FN_FD_READ);
             needed.insert(FN_FD_CLOSE);
         }
-        "fs_write_file" => {
+        "fs_write_file" | "fs_write_bytes" => {
             needed.insert(FN_PATH_OPEN);
             needed.insert(FN_FD_WRITE);
             needed.insert(FN_FD_CLOSE);

@@ -50,8 +50,10 @@ impl Ctx {
             MirStmt::CallBuiltin { name, .. } => {
                 name == "fs_read_file"
                     || name == "fs_write_file"
+                    || name == "fs_write_bytes"
                     || name == "__intrinsic_fs_read_file"
                     || name == "__intrinsic_fs_write_file"
+                    || name == "__intrinsic_fs_write_bytes"
             }
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_fs(rvalue),
             MirStmt::IfStmt {
@@ -85,8 +87,10 @@ impl Ctx {
             Operand::Call(name, args) => {
                 if name == "fs_read_file"
                     || name == "fs_write_file"
+                    || name == "fs_write_bytes"
                     || name == "__intrinsic_fs_read_file"
                     || name == "__intrinsic_fs_write_file"
+                    || name == "__intrinsic_fs_write_bytes"
                 {
                     return true;
                 }

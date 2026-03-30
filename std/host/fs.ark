@@ -11,3 +11,8 @@ pub fn read_to_string(path: String) -> Result<String, String> {
 pub fn write_string(path: String, contents: String) -> Result<(), String> {
     __intrinsic_fs_write_file(path, contents)
 }
+
+/// Writes a byte array to a file, replacing any existing contents.
+pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
+    __intrinsic_fs_write_bytes(path, bytes)
+}

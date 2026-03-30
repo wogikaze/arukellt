@@ -265,7 +265,7 @@ struct Parser {
     errors: Vec<ParseError>,
 }
 
-fn Parser_new(tokens: Vec<Token>) -> Parser {
+pub fn Parser_new(tokens: Vec<Token>) -> Parser {
     let count = len(tokens)
     Parser { tokens: tokens, pos: 0, token_count: count, errors: Vec_new_ParseError() }
 }
@@ -1273,7 +1273,7 @@ fn parse_import_decl(p: Parser) -> AstNode {
 
 // ── Top-level Module ─────────────────────────────────────────────────────────
 
-fn parse_module(p: Parser) -> Vec<AstNode> {
+pub fn parse_module(p: Parser) -> Vec<AstNode> {
     let mut decls: Vec<AstNode> = Vec_new_AstNode()
     skip_newlines(p)
     while !at_eof(p) {
@@ -1334,7 +1334,7 @@ fn node_kind_name(kind: i32) -> String {
     String_from("Unknown")
 }
 
-fn print_ast(node: AstNode, depth: i32) {
+pub fn print_ast(node: AstNode, depth: i32) {
     let mut indent = String_new()
     let mut d = 0
     while d < depth {

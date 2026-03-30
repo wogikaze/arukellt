@@ -134,6 +134,9 @@ fn normalize_intrinsic(name: &str) -> &str {
             "args" => "args",
             "arg_count" => "arg_count",
             "arg_at" => "arg_at",
+            "fs_read_file" => "fs_read_file",
+            "fs_write_file" => "fs_write_file",
+            "fs_write_bytes" => "fs_write_bytes",
             other => other,
         }
     } else {
@@ -213,6 +216,7 @@ pub(super) fn is_component_export_candidate(name: &str) -> bool {
             | "eprintln"
             | "read_to_string"
             | "write_string"
+            | "write_bytes"
             | "args"
             | "arg_count"
             | "arg_at"

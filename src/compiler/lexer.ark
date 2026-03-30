@@ -519,7 +519,7 @@ fn next_token(lex: Lexer) -> Token {
     Token_new(TK_ERROR(), substring(lex.src, start, lex.pos), start, lex.pos)
 }
 
-fn tokenize(source: String) -> Vec<Token> {
+pub fn tokenize(source: String) -> Vec<Token> {
     let mut lex = Lexer_new(source)
     let mut tokens: Vec<Token> = Vec_new_Token()
     let mut done = false
@@ -537,7 +537,7 @@ fn tokenize(source: String) -> Vec<Token> {
 
 // ── Token Display Helpers ────────────────────────────────────────────────────
 
-fn token_kind_name(kind: i32) -> String {
+pub fn token_kind_name(kind: i32) -> String {
     if kind == TK_EOF() { return String_from("EOF") }
     if kind == TK_IDENT() { return String_from("IDENT") }
     if kind == TK_INT() { return String_from("INT") }

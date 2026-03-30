@@ -202,7 +202,7 @@ struct AstNode {
 
 // ── Resolve Module ───────────────────────────────────────────────────────────
 
-fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
+pub fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
     let ctx = ResolveCtx_new()
     let count = len(decls)
 
@@ -334,7 +334,7 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
 
 // ── Dump ─────────────────────────────────────────────────────────────────────
 
-fn dump_scope(ctx: ResolveCtx) {
+pub fn dump_scope(ctx: ResolveCtx) {
     let scope_count = len(ctx.scopes)
     let mut i = 0
     while i < scope_count {

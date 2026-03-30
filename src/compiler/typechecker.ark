@@ -219,7 +219,7 @@ struct TypedFn {
     return_type: TypeInfo,
 }
 
-fn typecheck_module(resolve_ctx: ResolveCtx) -> TypeCheckResult {
+pub fn typecheck_module(resolve_ctx: ResolveCtx) -> TypeCheckResult {
     let result = TypeCheckResult {
         error_count: 0,
         errors: Vec_new_String(),
@@ -232,7 +232,7 @@ fn typecheck_module(resolve_ctx: ResolveCtx) -> TypeCheckResult {
     result
 }
 
-fn dump_typed_hir(result: TypeCheckResult) {
+pub fn dump_typed_hir(result: TypeCheckResult) {
     let fn_count = len(result.typed_fns)
     stdio::eprintln(concat(String_from("typed functions: "), to_string(fn_count)))
     if result.error_count > 0 {
