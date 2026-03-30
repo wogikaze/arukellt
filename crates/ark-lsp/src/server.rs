@@ -1167,6 +1167,136 @@ impl LanguageServer for ArukellBackend {
         }
     }
 
+    async fn document_highlight(
+        &self,
+        params: DocumentHighlightParams,
+    ) -> Result<Option<Vec<DocumentHighlight>>> {
+        let uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let target_offset = Self::position_to_offset(&source, pos);
+
+        let name = match Self::find_ident_at_offset(&source, &analysis.tokens, target_offset) {
+            Some(n) => n,
+            None => return Ok(None),
+        };
+
+        let mut highlights = Vec::new();
+        for tok in &analysis.tokens {
+            if let TokenKind::Ident(_) = &tok.kind {
+                let start = tok.span.start as usize;
+                let end = tok.span.end as usize;
+                if end <= source.len() && &source[start..end] == name {
+                    highlights.push(DocumentHighlight {
+                        range: Self::span_to_range(&source, tok.span),
+                        kind: Some(DocumentHighlightKind::TEXT),
+                    });
+                }
+            }
+        }
+
+        Ok(Some(highlights))
+    }
+
+    async fn signature_help(&self, params: SignatureHelpParams) -> Result<Option<SignatureHelp>> {
+        let uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let offset = Self::position_to_offset(&source, pos);
+        let before = &source[..offset];
+        if let Some(open_paren) = before.rfind('(') {
+            let func_name_part = &before[..open_paren].trim_end();
+            let name = func_name_part
+                .split(|c: char| !c.is_alphanumeric() && c != '_')
+                .last()
+                .unwrap_or("");
+
+            if let Some(checker) = &analysis.checker {
+                if let Some(sig) = checker.fn_sig(name) {
+                    let param_infos: Vec<ParameterInformation> = sig
+                        .params
+                        .iter()
+                        .map(|p| ParameterInformation {
+                            label: ParameterLabel::Simple(p.to_string()),
+                            documentation: None,
+                        })
+                        .collect();
+
+                    let active_parameter =
+                        before[open_paren + 1..].chars().filter(|&c| c == ',').count() as u32;
+
+                    return Ok(Some(SignatureHelp {
+                        signatures: vec![SignatureInformation {
+                            label: format!(
+                                "fn {}({}) -> {}",
+                                sig.name,
+                                sig.params
+                                    .iter()
+                                    .map(|p| p.to_string())
+                                    .collect::<Vec<_>>()
+                                    .join(", "),
+                                sig.ret
+                            ),
+                            documentation: None,
+                            parameters: Some(param_infos),
+                            active_parameter: Some(active_parameter),
+                        }],
+                        active_signature: Some(0),
+                        active_parameter: Some(active_parameter),
+                    }));
+                }
+            }
+        }
+
+        Ok(None)
+    }
+
+    async fn symbol(
+        &self,
+        params: WorkspaceSymbolParams,
+    ) -> Result<Option<Vec<SymbolInformation>>> {
+        let query = params.query.to_lowercase();
+        let mut all_symbols = Vec::new();
+
+        let cache = self.analysis_cache.lock().unwrap();
+        for (uri, analysis) in cache.iter() {
+            let doc_symbols = Self::document_symbols(uri, "", &analysis.module);
+            for sym in doc_symbols {
+                if sym.name.to_lowercase().contains(&query) {
+                    all_symbols.push(sym);
+                }
+            }
+        }
+
+        Ok(Some(all_symbols))
+    }
+
     async fn rename(&self, params: RenameParams) -> Result<Option<WorkspaceEdit>> {
         let uri = params.text_document_position.text_document.uri;
         let pos = params.text_document_position.position;
