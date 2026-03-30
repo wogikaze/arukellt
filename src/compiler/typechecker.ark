@@ -8,6 +8,13 @@ use std::host::stdio
 // ── Type Tags (from hir.ark) ─────────────────────────────────────────────────
 
 fn TY_UNKNOWN() -> i32 { 0 }
+
+// ── Node Kind Tags (from resolver.ark) ───────────────────────────────────────
+
+fn NK_FN_DECL() -> i32 { 50 }
+
+// ── Type Tags (continued) ────────────────────────────────────────────────────
+
 fn TY_I32() -> i32 { 1 }
 fn TY_I64() -> i32 { 2 }
 fn TY_F64() -> i32 { 3 }
