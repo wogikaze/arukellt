@@ -638,8 +638,7 @@ impl EmitCtx {
                 if self.fn_return_types.get(name).is_some_and(|t| {
                     !matches!(
                         t,
-                        ark_typecheck::types::Type::String
-                            | ark_typecheck::types::Type::Option(_)
+                        ark_typecheck::types::Type::String | ark_typecheck::types::Type::Option(_)
                     )
                 }) {
                     return false;
@@ -976,7 +975,7 @@ fn cfn_handle_builtin(
             needed.insert(FN_FD_WRITE);
             needed.insert(FN_EPRINT_STR_LN);
             if let Some(arg) = args.first() {
-                cfn_add_needed_for_eprint(arg, func, mir, needed);
+                cfn_add_needed_for_eprint(arg, func, needed);
             }
         }
         "print_i32_ln" => {
@@ -1240,7 +1239,6 @@ fn cfn_add_needed_for_print(
 fn cfn_add_needed_for_eprint(
     arg: &Operand,
     func: &MirFunction,
-    mir: &MirModule,
     needed: &mut std::collections::HashSet<u32>,
 ) {
     // Same as cfn_add_needed_for_print but uses FN_EPRINT_STR_LN instead of FN_PRINT_STR_LN
@@ -1289,7 +1287,7 @@ fn cfn_add_needed_for_eprint(
                     needed.insert(FN_CONCAT);
                     needed.insert(FN_EPRINT_STR_LN);
                     for a in inner_args {
-                        cfn_add_needed_for_eprint(a, func, mir, needed);
+                        cfn_add_needed_for_eprint(a, func, needed);
                     }
                 }
                 "String_from" | "String_new" | "char_to_string" | "clone" => {

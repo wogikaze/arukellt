@@ -330,8 +330,8 @@ pub fn lower_to_mir(
             // Handle tail expression: lower as a statement (void) when the
             // function declares no return type (unit), or when the expression
             // is a known void call. Otherwise treat it as the return value.
-            let fn_returns_unit = f.return_type.is_none()
-                || matches!(&f.return_type, Some(ast::TypeExpr::Unit(_)));
+            let fn_returns_unit =
+                f.return_type.is_none() || matches!(&f.return_type, Some(ast::TypeExpr::Unit(_)));
             let tail_op = if let Some(tail) = &f.body.tail_expr {
                 if fn_returns_unit || is_void_expr(tail) {
                     ctx.lower_expr_stmt(tail, &mut stmts);

@@ -24,10 +24,10 @@ fn validate_wasm(bytes: &[u8]) -> Result<(), String> {
         .validate_all(bytes)
         .map(|_| ())
         .map_err(|e| format!("internal error: generated invalid Wasm module: {e}"));
-    if result.is_err() {
-        if let Ok(path) = std::env::var("ARUKELLT_DUMP_INVALID_WASM") {
-            let _ = std::fs::write(&path, bytes);
-        }
+    if result.is_err()
+        && let Ok(path) = std::env::var("ARUKELLT_DUMP_INVALID_WASM")
+    {
+        let _ = std::fs::write(&path, bytes);
     }
     result
 }
