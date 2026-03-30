@@ -32,6 +32,7 @@ NC='\033[0m'
 
 ONLY_STAGE=""
 STAGE1_ONLY=false
+CHECK_MODE=false
 
 usage() {
     cat <<'EOF'
@@ -47,6 +48,7 @@ Stages:
 Options:
   --stage1-only   Only run Stage 0 (Rust compiles selfhost → s1)
   --stage N       Run single stage N
+  --check         Machine-readable exit: 0 = fixpoint reached, 1 = not reached
   --help, -h      Show this help
 EOF
 }
@@ -54,6 +56,7 @@ EOF
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --stage1-only) STAGE1_ONLY=true ;;
+        --check)       CHECK_MODE=true ;;
         --stage=*)     ONLY_STAGE="${1#--stage=}" ;;
         --stage)       shift; ONLY_STAGE="${1:-}" ;;
         --help|-h)     usage; exit 0 ;;
@@ -261,6 +264,25 @@ else
 fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
+
+if [[ "$CHECK_MODE" = true ]]; then
+    # Machine-readable: just report achieved/not-achieved per criteria
+    echo "selfhost-check:"
+    echo "  stage0-compile: $([ -f "$S1_WASM" ] && echo reached || echo not-reached)"
+    echo "  stage1-compile: $([ -f "$S2_WASM" ] && echo reached || echo not-reached)"
+    if [[ -f "$S1_WASM" && -f "$S2_WASM" ]]; then
+        h1="$(sha256sum "$S1_WASM" | awk '{print $1}')"
+        h2="$(sha256sum "$S2_WASM" | awk '{print $1}')"
+        echo "  fixpoint: $([ "$h1" = "$h2" ] && echo reached || echo not-reached)"
+    else
+        echo "  fixpoint: not-reached"
+    fi
+    echo "  fixture-parity: not-verified"
+    echo "  cli-parity: not-verified"
+    echo "  diagnostic-parity: not-verified"
+    echo "  determinism: not-verified"
+    exit "$FAILURES"
+fi
 
 if [[ "$FAILURES" -gt 0 ]]; then
     echo -e "${RED}Bootstrap verification FAILED (${FAILURES} stage(s))${NC}"
