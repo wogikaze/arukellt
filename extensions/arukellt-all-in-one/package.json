@@ -135,6 +135,7 @@
   },
   "scripts": {
     "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\"",
+    "test": "vscode-test",
     "package": "vsce package",
     "build": "npm run package"
   },
@@ -143,6 +144,8 @@
   },
   "devDependencies": {
     "@types/vscode": "^1.110.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.0.0"
   }
 }
