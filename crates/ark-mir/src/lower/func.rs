@@ -98,6 +98,8 @@ pub fn lower_to_mir(
     let mut bare_variant_tags: HashMap<String, (String, i32, usize)> = HashMap::new();
     // Collect struct definitions: "StructName" -> field names (ordered)
     let mut struct_defs: HashMap<String, Vec<(String, String)>> = HashMap::new();
+    // (struct_name, field_name) -> inner element struct type for Vec<Struct> fields
+    let mut vec_struct_fields: HashMap<(String, String), String> = HashMap::new();
     // Collect enum definitions: "EnumName" -> [(variant_name, [payload_type_names])]
     let mut enum_defs: HashMap<String, Vec<(String, Vec<String>)>> = HashMap::new();
     // Collect enum struct variant field names: "EnumName::VariantName" -> [field_names]
@@ -198,6 +200,15 @@ pub fn lower_to_mir(
                     (f.name.clone(), type_name)
                 })
                 .collect();
+            // Track Vec<Struct> fields for get_unchecked inference
+            for field in &s.fields {
+                if let ast::TypeExpr::Generic { name: gname, args, .. } = &field.ty
+                    && gname == "Vec"
+                    && let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first()
+                {
+                    vec_struct_fields.insert((s.name.clone(), field.name.clone()), inner.clone());
+                }
+            }
             struct_defs.insert(s.name.clone(), fields);
         }
     }
@@ -292,6 +303,7 @@ pub fn lower_to_mir(
                 method_resolutions.clone(),
                 f.type_params.clone(),
                 generic_fn_names.clone(),
+                vec_struct_fields.clone(),
             );
 
             for param in &f.params {
@@ -321,6 +333,14 @@ pub fn lower_to_mir(
                     && ctx.enum_variants.contains_key(tname.as_str())
                 {
                     ctx.enum_typed_locals.insert(pid.0, tname.clone());
+                }
+                // Track Vec<Struct> parameters so get_unchecked can infer element struct type
+                if let ast::TypeExpr::Generic { name: tname, args, .. } = &param.ty
+                    && tname == "Vec"
+                    && let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first()
+                    && ctx.struct_defs.contains_key(inner.as_str())
+                {
+                    ctx.vec_struct_locals.insert(pid.0, inner.clone());
                 }
             }
 
@@ -486,6 +506,7 @@ pub fn lower_to_mir(
                     method_resolutions.clone(),
                     method.type_params.clone(),
                     generic_fn_names.clone(),
+                    vec_struct_fields.clone(),
                 );
 
                 for param in &method.params {

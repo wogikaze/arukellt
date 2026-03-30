@@ -219,16 +219,41 @@ struct TypedFn {
     return_type: TypeInfo,
 }
 
-pub fn typecheck_module(resolve_ctx: ResolveCtx) -> TypeCheckResult {
+pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
     let result = TypeCheckResult {
         error_count: 0,
         errors: Vec_new_String(),
         typed_fns: Vec_new_TypedFn(),
     }
-    // In the real implementation, we'd walk the resolved AST
-    // and check types. For now, pass through resolve errors.
     result.error_count = resolve_ctx.error_count
     result.errors = resolve_ctx.errors
+
+    // Walk decls and build TypedFn entries for each NK_FN_DECL
+    let decl_count = len(decls)
+    let mut i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
+        if node.kind == NK_FN_DECL() {
+            let fn_name = clone(node.text)
+            let mut return_type = TypeInfo_simple(TY_UNIT())
+            // Search type_ann for the __return marker
+            let ann_count = len(node.type_ann)
+            let mut j = 0
+            while j < ann_count {
+                let ann = get_unchecked(node.type_ann, j)
+                if eq(clone(ann.text), "__return") {
+                    if len(ann.children) > 0 {
+                        let ret_node = get_unchecked(ann.children, 0)
+                        return_type = resolve_type_name(clone(ret_node.text))
+                    }
+                }
+                j = j + 1
+            }
+            push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type })
+        }
+        i = i + 1
+    }
+
     result
 }
 

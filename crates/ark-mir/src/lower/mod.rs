@@ -876,6 +876,8 @@ pub(crate) struct LowerCtx {
     pub(super) vec_i32_locals: HashSet<u32>,
     /// Locals known to hold Vec<StructName> values: local_id -> struct_name.
     pub(super) vec_struct_locals: HashMap<u32, String>,
+    /// (struct_name, field_name) -> inner element struct type for Vec<Struct> fields.
+    pub(super) vec_struct_fields: HashMap<(String, String), String>,
     /// Local to assign break values to (for loop-as-expression).
     pub(super) loop_result_local: Option<LocalId>,
     /// Function name -> return type expression (for resolving generic enum payloads in match).
@@ -913,6 +915,7 @@ impl LowerCtx {
         method_resolutions: HashMap<u32, (String, String)>,
         type_params: Vec<String>,
         generic_fn_names: HashSet<String>,
+        vec_struct_fields: HashMap<(String, String), String>,
     ) -> Self {
         Self {
             locals: Vec::new(),
@@ -938,6 +941,7 @@ impl LowerCtx {
             vec_f64_locals: HashSet::new(),
             vec_i32_locals: HashSet::new(),
             vec_struct_locals: HashMap::new(),
+            vec_struct_fields,
             loop_result_local: None,
             fn_return_types,
             user_fn_names,

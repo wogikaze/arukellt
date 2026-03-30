@@ -223,6 +223,7 @@ impl LowerCtx {
                     }
                 }
                 // Infer struct type from get_unchecked(vec, i) where vec is a Vec<Struct>
+                // Case 1: vec is a local variable tracked in vec_struct_locals
                 if !self.struct_typed_locals.contains_key(&local_id.0)
                     && let ast::Expr::Call {
                         callee,
@@ -237,6 +238,27 @@ impl LowerCtx {
                     && let ast::Expr::Ident { name: arg_name, .. } = first_arg
                     && let Some(vec_local_id) = self.lookup_local(arg_name)
                     && let Some(sname) = self.vec_struct_locals.get(&vec_local_id.0).cloned()
+                {
+                    self.struct_typed_locals.insert(local_id.0, sname);
+                }
+                // Case 2: vec is a struct field access (e.g. get_unchecked(mir.functions, i))
+                if !self.struct_typed_locals.contains_key(&local_id.0)
+                    && let ast::Expr::Call {
+                        callee,
+                        args: call_args,
+                        ..
+                    } = init
+                    && let ast::Expr::Ident {
+                        name: callee_name, ..
+                    } = callee.as_ref()
+                    && (callee_name == "get_unchecked" || callee_name == "get")
+                    && let Some(first_arg) = call_args.first()
+                    && let ast::Expr::FieldAccess { object, field, .. } = first_arg
+                    && let Some(parent_struct) = self.infer_struct_type(object)
+                    && let Some(sname) = self
+                        .vec_struct_fields
+                        .get(&(parent_struct, field.clone()))
+                        .cloned()
                 {
                     self.struct_typed_locals.insert(local_id.0, sname);
                 }

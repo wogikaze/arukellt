@@ -593,6 +593,7 @@ impl LowerCtx {
                     self.method_resolutions.clone(),
                     vec![], // closures don't have type params
                     self.generic_fn_names.clone(),
+                    self.vec_struct_fields.clone(),
                 );
                 for p in &mir_params {
                     let lid = sub_ctx.declare_local(p.name.as_deref().unwrap_or("_"));
