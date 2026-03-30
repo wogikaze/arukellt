@@ -132,9 +132,15 @@ fn validate_expr(program: &Program, expr: &Expr, errors: &mut Vec<ValidationErro
         )));
     }
     if matches!(expr.ty, Ty::Error) {
+        let span_info = program
+            .source_map
+            .expr_spans
+            .get(&expr.id)
+            .map(|s| format!(" at {:?}", s))
+            .unwrap_or_default();
         errors.push(ValidationError::new(format!(
-            "expr {:?} has error type",
-            expr.id
+            "expr {:?} has error type{}",
+            expr.id, span_info
         )));
     }
 

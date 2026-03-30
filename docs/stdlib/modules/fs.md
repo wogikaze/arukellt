@@ -6,8 +6,8 @@ Source-backed docs for explicit host filesystem operations.
 ## `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
-- Manifest-backed functions: 2
-- Stability: stable 2
+- Manifest-backed functions: 3
+- Stability: stable 3
 
 Host filesystem helpers backed by the current WASI filesystem intrinsics.
 
@@ -19,3 +19,4 @@ These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 |------|-----------|-----------|---------|
 | `read_to_string` | `(String) -> Result<String, String>` | `stable` | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, replacing any existing contents. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | Writes a byte array to a file, replacing any existing contents. |

@@ -11,7 +11,7 @@
 - Component emit: available on `wasm32-wasi-p2` (requires external `wasm-tools` binary and WASI adapter module)
 - Fixture harness: 434 passed / 434 entries
 - Verification: `bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)` — 16/16 checks pass
-- Stdlib manifest-backed public API: 265 functions
+- Stdlib manifest-backed public API: 266 functions
 
 ## First Reads
 

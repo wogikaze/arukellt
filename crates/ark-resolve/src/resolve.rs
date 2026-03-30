@@ -43,6 +43,9 @@ pub struct ResolvedModule {
     pub module: ast::Module,
     pub symbols: SymbolTable,
     pub global_scope: ScopeId,
+    /// Names of private (non-pub) functions/types from imported (non-entry) modules.
+    /// Used by the type checker to enforce cross-module privacy in qualified name lookups.
+    pub private_imported_names: std::collections::HashSet<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -101,44 +104,101 @@ pub fn resolve_module(module: ast::Module, sink: &mut DiagnosticSink) -> Resolve
 #[deprecated(note = "use ResolvedProgram directly; flatten merge loses module identity")]
 pub fn resolved_program_to_module(program: &ResolvedProgram) -> ast::Module {
     let mut module = program.entry_module.clone();
+    // Track names already present (from entry module or earlier loaded modules)
+    // so we can skip duplicate definitions (e.g. `Token` defined in both
+    // lexer.ark and parser.ark).
+    let mut seen_names: std::collections::HashSet<String> = std::collections::HashSet::new();
+    for item in &module.items {
+        let name = item_name(item);
+        if let Some(n) = name {
+            seen_names.insert(n.to_string());
+        }
+    }
     for loaded in &program.modules {
         let is_stdlib = loaded.path.to_str().is_some_and(|p| p.starts_with('<'));
         for item in &loaded.ast.items {
-            let is_pub = match item {
-                ast::Item::FnDef(f) => f.is_pub,
-                ast::Item::StructDef(s) => s.is_pub,
-                ast::Item::EnumDef(e) => e.is_pub,
-                ast::Item::TraitDef(t) => t.is_pub,
-                ast::Item::ImplBlock(_) => false,
-            };
-            if is_pub {
-                // Strip is_pub on stdlib items so they are not treated as
-                // user-exported in the MIR lowerer (component export surface).
-                if is_stdlib {
-                    let mut item = item.clone();
-                    match &mut item {
-                        ast::Item::FnDef(f) => f.is_pub = false,
-                        ast::Item::StructDef(s) => s.is_pub = false,
-                        ast::Item::EnumDef(e) => e.is_pub = false,
-                        ast::Item::TraitDef(t) => t.is_pub = false,
-                        ast::Item::ImplBlock(_) => {}
-                    }
-                    module.items.push(item);
-                } else {
-                    module.items.push(item.clone());
+            // For stdlib: only include pub items (strip is_pub flag).
+            // For user-local: include ALL items so private helpers are available.
+            if is_stdlib {
+                let is_pub = match item {
+                    ast::Item::FnDef(f) => f.is_pub,
+                    ast::Item::StructDef(s) => s.is_pub,
+                    ast::Item::EnumDef(e) => e.is_pub,
+                    ast::Item::TraitDef(t) => t.is_pub,
+                    ast::Item::ImplBlock(_) => false,
+                };
+                if !is_pub {
+                    continue;
                 }
+                let name = item_name(item);
+                if let Some(n) = name {
+                    if seen_names.contains(n) {
+                        continue;
+                    }
+                    seen_names.insert(n.to_string());
+                }
+                // Strip is_pub so stdlib items are not treated as user exports.
+                let mut item = item.clone();
+                match &mut item {
+                    ast::Item::FnDef(f) => f.is_pub = false,
+                    ast::Item::StructDef(s) => s.is_pub = false,
+                    ast::Item::EnumDef(e) => e.is_pub = false,
+                    ast::Item::TraitDef(t) => t.is_pub = false,
+                    ast::Item::ImplBlock(_) => {}
+                }
+                module.items.push(item);
+            } else {
+                // User-local module: include all items, skip duplicates by name.
+                let name = item_name(item);
+                if let Some(n) = name {
+                    if seen_names.contains(n) {
+                        continue;
+                    }
+                    seen_names.insert(n.to_string());
+                }
+                module.items.push(item.clone());
             }
         }
     }
     module
 }
 
+fn item_name(item: &ast::Item) -> Option<&str> {
+    match item {
+        ast::Item::FnDef(f) => Some(&f.name),
+        ast::Item::StructDef(s) => Some(&s.name),
+        ast::Item::EnumDef(e) => Some(&e.name),
+        ast::Item::TraitDef(t) => Some(&t.name),
+        ast::Item::ImplBlock(_) => None,
+    }
+}
+
 #[allow(deprecated)]
 pub fn resolved_program_entry(program: ResolvedProgram) -> ResolvedModule {
+    let mut private_imported_names = std::collections::HashSet::new();
+    for loaded in &program.modules {
+        let is_stdlib = loaded.path.to_str().is_some_and(|p| p.starts_with('<'));
+        if is_stdlib {
+            continue;
+        }
+        for item in &loaded.ast.items {
+            let (name, is_pub) = match item {
+                ast::Item::FnDef(f) => (f.name.as_str(), f.is_pub),
+                ast::Item::StructDef(s) => (s.name.as_str(), s.is_pub),
+                ast::Item::EnumDef(e) => (e.name.as_str(), e.is_pub),
+                ast::Item::TraitDef(t) => (t.name.as_str(), t.is_pub),
+                ast::Item::ImplBlock(_) => continue,
+            };
+            if !is_pub {
+                private_imported_names.insert(name.to_string());
+            }
+        }
+    }
     ResolvedModule {
         module: resolved_program_to_module(&program),
         symbols: program.symbols,
         global_scope: program.global_scope,
+        private_imported_names,
     }
 }
 

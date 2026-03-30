@@ -149,6 +149,9 @@ pub struct TypeChecker {
     next_type_id: u32,
     next_type_var: u32,
     pub(crate) current_fn_return_type: Option<Type>,
+    /// Names of private functions from imported (non-entry) modules.
+    /// Used to block the `QualifiedIdent` fallback lookup for these names.
+    pub(crate) private_imported_fns: HashSet<String>,
 }
 
 /// Immutable semantic model produced by type checking.
@@ -307,6 +310,7 @@ impl TypeChecker {
             next_type_id: 0,
             next_type_var: 0,
             current_fn_return_type: None,
+            private_imported_fns: HashSet::new(),
         }
     }
 
@@ -344,6 +348,7 @@ impl TypeChecker {
             module: flat,
             symbols: program.symbols.clone(),
             global_scope: program.global_scope,
+            private_imported_names: self.private_imported_fns.clone(),
         };
         self.check_module(&resolved, sink);
     }
@@ -395,6 +400,11 @@ impl TypeChecker {
 
     /// Type check a module.
     pub fn check_module(&mut self, resolved: &ResolvedModule, sink: &mut DiagnosticSink) {
+        // Propagate private imported names from the resolved module so that
+        // QualifiedIdent fallback lookups respect cross-module privacy.
+        for name in &resolved.private_imported_names {
+            self.private_imported_fns.insert(name.clone());
+        }
         // Register user-defined structs and enums
         for item in &resolved.module.items {
             match item {

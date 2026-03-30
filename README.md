@@ -14,7 +14,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 - Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
 - Fixture harness: 434 passed / 434 entries
 - Verification: `bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)` — 16/16 checks pass
-- Stdlib manifest-backed public API: 265 functions
+- Stdlib manifest-backed public API: 266 functions
 <!-- END GENERATED:README_STATUS -->
 
 ## Start here

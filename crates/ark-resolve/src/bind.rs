@@ -21,6 +21,7 @@ pub(crate) fn bind_public_module(
     bind_module_impl(module, symbols, global_scope, sink, true, true);
 }
 
+/// Bind all items (pub + private) from an imported user module, skipping
 fn bind_module_impl(
     module: &ast::Module,
     symbols: &mut SymbolTable,
