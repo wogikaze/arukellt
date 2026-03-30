@@ -149,6 +149,9 @@ pub struct TypeChecker {
     next_type_id: u32,
     next_type_var: u32,
     pub(crate) current_fn_return_type: Option<Type>,
+    /// Names of private functions from imported (non-entry) modules.
+    /// Used to block the `QualifiedIdent` fallback lookup for these names.
+    pub(crate) private_imported_fns: HashSet<String>,
 }
 
 /// Immutable semantic model produced by type checking.
@@ -307,6 +310,7 @@ impl TypeChecker {
             next_type_id: 0,
             next_type_var: 0,
             current_fn_return_type: None,
+            private_imported_fns: HashSet::new(),
         }
     }
 
@@ -344,6 +348,7 @@ impl TypeChecker {
             module: flat,
             symbols: program.symbols.clone(),
             global_scope: program.global_scope,
+            private_imported_names: self.private_imported_fns.clone(),
         };
         self.check_module(&resolved, sink);
     }
@@ -395,28 +400,58 @@ impl TypeChecker {
 
     /// Type check a module.
     pub fn check_module(&mut self, resolved: &ResolvedModule, sink: &mut DiagnosticSink) {
-        // Register user-defined structs and enums
+        // Propagate private imported names from the resolved module so that
+        // QualifiedIdent fallback lookups respect cross-module privacy.
+        for name in &resolved.private_imported_names {
+            self.private_imported_fns.insert(name.clone());
+        }
+        // Register user-defined structs and enums in two passes to support
+        // self-referential and mutually-recursive type definitions.
+        // Pass 1: allocate type_ids for all structs/enums with empty fields
+        // so forward references resolve correctly in pass 2.
         for item in &resolved.module.items {
             match item {
                 ast::Item::StructDef(s) => {
                     let type_id = self.fresh_type_id();
-                    let fields: Vec<(String, Type)> = s
-                        .fields
-                        .iter()
-                        .map(|f| (f.name.clone(), self.resolve_type_expr(&f.ty)))
-                        .collect();
                     self.struct_defs.insert(
                         s.name.clone(),
                         StructInfo {
                             name: s.name.clone(),
                             type_params: s.type_params.clone(),
-                            fields,
+                            fields: vec![],
                             type_id,
                         },
                     );
                 }
                 ast::Item::EnumDef(e) => {
                     let type_id = self.fresh_type_id();
+                    self.enum_defs.insert(
+                        e.name.clone(),
+                        EnumInfo {
+                            name: e.name.clone(),
+                            variants: vec![],
+                            type_params: e.type_params.clone(),
+                            type_id,
+                        },
+                    );
+                }
+                _ => {}
+            }
+        }
+        // Pass 2: resolve field types (all struct/enum names are now registered)
+        for item in &resolved.module.items {
+            match item {
+                ast::Item::StructDef(s) => {
+                    let fields: Vec<(String, Type)> = s
+                        .fields
+                        .iter()
+                        .map(|f| (f.name.clone(), self.resolve_type_expr(&f.ty)))
+                        .collect();
+                    if let Some(info) = self.struct_defs.get_mut(&s.name) {
+                        info.fields = fields;
+                    }
+                }
+                ast::Item::EnumDef(e) => {
                     let variants: Vec<VariantInfo> = e
                         .variants
                         .iter()
@@ -441,15 +476,9 @@ impl TypeChecker {
                             },
                         })
                         .collect();
-                    self.enum_defs.insert(
-                        e.name.clone(),
-                        EnumInfo {
-                            name: e.name.clone(),
-                            variants,
-                            type_params: e.type_params.clone(),
-                            type_id,
-                        },
-                    );
+                    if let Some(info) = self.enum_defs.get_mut(&e.name) {
+                        info.variants = variants;
+                    }
                 }
                 ast::Item::FnDef(f) => {
                     let params: Vec<Type> = f

@@ -14,7 +14,7 @@ use ark_mir::{
 };
 use ark_parser::{ast, parse};
 #[allow(deprecated)]
-use ark_resolve::resolved_program_to_module;
+use ark_resolve::resolved_program_entry;
 use ark_resolve::{ResolvedModule, ResolvedProgram};
 use ark_target::{EmitKind, TargetId, build_backend_plan};
 use ark_typecheck::{CheckOutput, TypeChecker};
@@ -356,11 +356,7 @@ impl Session {
         let resolved = if let Some(program) = self.analyze(path)?.program {
             #[allow(deprecated)]
             ResolveArtifact {
-                resolved: ResolvedModule {
-                    module: resolved_program_to_module(&program),
-                    symbols: program.symbols,
-                    global_scope: program.global_scope,
-                },
+                resolved: resolved_program_entry(program),
             }
         } else {
             let module = self.bind(path)?.module;

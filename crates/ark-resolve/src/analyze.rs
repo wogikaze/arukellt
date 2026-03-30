@@ -34,6 +34,7 @@ pub(crate) fn analyze_module(module: ast::Module, sink: &mut DiagnosticSink) -> 
         module,
         symbols,
         global_scope,
+        private_imported_names: std::collections::HashSet::new(),
     }
 }
 

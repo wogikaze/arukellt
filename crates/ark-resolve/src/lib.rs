@@ -17,7 +17,7 @@ pub use resolve::{
     bind_program, merge_prelude, resolve_module, resolve_module_default, resolve_module_for_tests,
     resolve_module_legacy, resolve_module_public, resolve_module_stdlib,
     resolve_module_with_intrinsic_prelude, resolve_program, resolve_program_entry,
-    resolved_program_to_module,
+    resolved_program_entry, resolved_program_to_module,
 };
 pub use scope::{Scope, ScopeId, Symbol, SymbolKind, SymbolTable};
 pub use symbols::{Scope as SymbolScope, ScopeId as SymbolScopeId, Symbol as ResolvedSymbol};

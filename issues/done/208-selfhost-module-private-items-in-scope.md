@@ -1,8 +1,8 @@
 # selfhost: module private items must be visible within module scope
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Updated**: 2026-07-16
 **ID**: 208
 **Depends on**: —
 **Track**: compiler/selfhost

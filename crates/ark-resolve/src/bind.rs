@@ -30,6 +30,8 @@ pub(crate) fn bind_module_skip_dup(
     bind_module_impl(module, symbols, global_scope, sink, false, true);
 }
 
+/// Bind all items (pub + private) from an imported user module, skipping
+/// duplicate definitions when `skip_duplicates` is true.
 fn bind_module_impl(
     module: &ast::Module,
     symbols: &mut SymbolTable,

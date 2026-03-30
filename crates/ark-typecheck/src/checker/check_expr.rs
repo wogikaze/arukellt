@@ -813,7 +813,9 @@ impl TypeChecker {
                         params: sig.params,
                         ret: Box::new(sig.ret),
                     }
-                } else if let Some(sig) = self.fn_sigs.get(name).cloned() {
+                } else if let Some(sig) = self.fn_sigs.get(name).cloned()
+                    && !self.private_imported_fns.contains(name.as_str())
+                {
                     Type::Function {
                         params: sig.params,
                         ret: Box::new(sig.ret),

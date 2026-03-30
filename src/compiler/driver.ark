@@ -69,7 +69,7 @@ struct DriverConfig {
     check_only: bool,
 }
 
-fn DriverConfig_default() -> DriverConfig {
+pub fn DriverConfig_default() -> DriverConfig {
     DriverConfig {
         target: String_from("wasm32-wasi-p2"),
         opt_level: 0,
