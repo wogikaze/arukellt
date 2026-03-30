@@ -1234,7 +1234,7 @@ impl LanguageServer for ArukellBackend {
             let func_name_part = &before[..open_paren].trim_end();
             let name = func_name_part
                 .split(|c: char| !c.is_alphanumeric() && c != '_')
-                .last()
+                .next_back()
                 .unwrap_or("");
 
             if let Some(checker) = &analysis.checker {
@@ -1248,8 +1248,10 @@ impl LanguageServer for ArukellBackend {
                         })
                         .collect();
 
-                    let active_parameter =
-                        before[open_paren + 1..].chars().filter(|&c| c == ',').count() as u32;
+                    let active_parameter = before[open_paren + 1..]
+                        .chars()
+                        .filter(|&c| c == ',')
+                        .count() as u32;
 
                     return Ok(Some(SignatureHelp {
                         signatures: vec![SignatureInformation {
