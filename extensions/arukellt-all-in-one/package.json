@@ -131,7 +131,56 @@
           "description": "Default emit kind passed by extension compile commands."
         }
       }
-    }
+    },
+    "debuggers": [
+      {
+        "type": "arukellt",
+        "label": "Arukellt Debug",
+        "languages": ["arukellt"],
+        "configurationAttributes": {
+          "launch": {
+            "required": ["program"],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Path to the .ark file to debug.",
+                "default": "${file}"
+              },
+              "target": {
+                "type": "string",
+                "description": "Compilation target.",
+                "default": "wasm32-wasi-p1"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Pause on the first statement.",
+                "default": false
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "arukellt",
+            "request": "launch",
+            "name": "Debug Arukellt Program",
+            "program": "${file}"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Arukellt: Launch",
+            "description": "Launch and debug an Arukellt (.ark) file.",
+            "body": {
+              "type": "arukellt",
+              "request": "launch",
+              "name": "Debug Arukellt Program",
+              "program": "^\"\\${file}\""
+            }
+          }
+        ]
+      }
+    ]
   },
   "scripts": {
     "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\"",

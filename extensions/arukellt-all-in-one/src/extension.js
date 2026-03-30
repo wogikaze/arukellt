@@ -21,6 +21,7 @@ function activate(context) {
   registerCommands(context)
   registerTaskProvider(context)
   setupTestController(context)
+  registerDebugAdapter(context)
 
   startLanguageServer(context)
 }
@@ -449,6 +450,16 @@ function verifyBootstrap() {
     extraArgs,
     probe: probeServerBinary(command),
   }
+}
+
+function registerDebugAdapter(context) {
+  const factory = vscode.debug.registerDebugAdapterDescriptorFactory('arukellt', {
+    createDebugAdapterDescriptor(_session) {
+      const { command } = resolveServerCommand()
+      return new vscode.DebugAdapterExecutable(command, ['debug-adapter'])
+    },
+  })
+  context.subscriptions.push(factory)
 }
 
 module.exports = {
