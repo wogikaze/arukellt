@@ -202,7 +202,9 @@ pub fn lower_to_mir(
                 .collect();
             // Track Vec<Struct> fields for get_unchecked inference
             for field in &s.fields {
-                if let ast::TypeExpr::Generic { name: gname, args, .. } = &field.ty
+                if let ast::TypeExpr::Generic {
+                    name: gname, args, ..
+                } = &field.ty
                     && gname == "Vec"
                     && let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first()
                 {
@@ -335,7 +337,9 @@ pub fn lower_to_mir(
                     ctx.enum_typed_locals.insert(pid.0, tname.clone());
                 }
                 // Track Vec<Struct> parameters so get_unchecked can infer element struct type
-                if let ast::TypeExpr::Generic { name: tname, args, .. } = &param.ty
+                if let ast::TypeExpr::Generic {
+                    name: tname, args, ..
+                } = &param.ty
                     && tname == "Vec"
                     && let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first()
                     && ctx.struct_defs.contains_key(inner.as_str())

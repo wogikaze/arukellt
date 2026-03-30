@@ -11,7 +11,6 @@ graph TD
 
 ## Adjacency list
 
-
 ### Blocked
 
 - **037** ⛔ blocked — depends on: 036; blocked by: jco upstream (<https://github.com/bytecodealliance/jco>)
