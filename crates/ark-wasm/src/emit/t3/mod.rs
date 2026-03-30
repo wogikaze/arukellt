@@ -474,6 +474,7 @@ struct Ctx {
     helper_print_bool_ln: Option<u32>,
     helper_print_str_ln: Option<u32>,
     helper_print_newline: Option<u32>,
+    helper_eprint_str_ln: Option<u32>,
     helper_parse_i32: Option<u32>,
     helper_parse_i64: Option<u32>,
     helper_parse_f64: Option<u32>,
@@ -916,6 +917,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         helper_print_bool_ln: None,
         helper_print_str_ln: None,
         helper_print_newline: None,
+            helper_eprint_str_ln: None,
         helper_parse_i32: None,
         helper_parse_i64: None,
         helper_parse_f64: None,
@@ -1084,13 +1086,16 @@ impl Ctx {
         let mut print_newline_pos: Option<usize> = None;
         let mut i64_to_str_pos: Option<usize> = None;
         let mut f64_to_str_pos: Option<usize> = None;
+        let mut p2_get_stderr_pos: Option<usize> = None;
+        let mut eprint_str_ln_pos: Option<usize> = None;
         let needs_p2_stdio_shims = needed.print_str
             || needed.print_i32
             || needed.print_bool
             || needed.print_str_ln
             || needed.print_i32_ln
             || needed.print_bool_ln
-            || needed.print_newline;
+            || needed.print_newline
+            || needed.eprint_str_ln;
 
         if needs_p2_stdio_shims {
             p2_get_stdout_pos = Some(helper_fns.len());
@@ -1141,6 +1146,12 @@ impl Ctx {
         if needed.print_newline {
             print_newline_pos = Some(helper_fns.len());
             helper_fns.push(("__print_newline".into(), vec![], vec![]));
+        }
+        if needed.eprint_str_ln {
+            p2_get_stderr_pos = Some(helper_fns.len());
+            helper_fns.push(("__wasi_p2_get_stderr".into(), vec![], vec![ValType::I32]));
+            eprint_str_ln_pos = Some(helper_fns.len());
+            helper_fns.push(("__eprint_str_ln".into(), vec![str_ref], vec![]));
         }
         if needed.i64_to_str {
             i64_to_str_pos = Some(helper_fns.len());
@@ -1322,6 +1333,8 @@ impl Ctx {
         self.helper_print_bool_ln = print_bool_ln_pos.map(|p| helper_base + p as u32);
         self.helper_i32_to_str = i32_to_str_pos.map(|p| helper_base + p as u32);
         self.helper_print_newline = print_newline_pos.map(|p| helper_base + p as u32);
+        self.helper_eprint_str_ln = eprint_str_ln_pos.map(|p| helper_base + p as u32);
+        let wasi_p2_get_stderr = p2_get_stderr_pos.map_or(0, |p| helper_base + p as u32);
         self.helper_i64_to_str = i64_to_str_pos.map(|p| helper_base + p as u32);
         self.helper_f64_to_str = f64_to_str_pos.map(|p| helper_base + p as u32);
         if let Some(idx) = parse_i32_helper_idx {
@@ -1499,6 +1512,10 @@ impl Ctx {
         }
         if print_newline_pos.is_some() {
             self.emit_print_newline_helper(&mut codes, newline_offset);
+        }
+        if eprint_str_ln_pos.is_some() {
+            self.emit_wasi_p2_get_stderr_shim(&mut codes);
+            self.emit_eprint_str_ln_helper(&mut codes, newline_offset, wasi_p2_get_stderr);
         }
         if i64_to_str_pos.is_some() {
             self.emit_i64_to_str_helper(&mut codes);

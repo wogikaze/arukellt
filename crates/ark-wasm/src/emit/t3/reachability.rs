@@ -26,6 +26,7 @@ pub(super) struct NeededHelpers {
     pub parse_i32: bool,
     pub parse_i64: bool,
     pub parse_f64: bool,
+    pub eprint_str_ln: bool,
 }
 
 impl Ctx {
@@ -932,6 +933,23 @@ impl Ctx {
             "i32_to_string" | "bool_to_string" | "char_to_string" => needed.i32_to_str = true,
             "i64_to_string" => needed.i64_to_str = true,
             "f64_to_string" => needed.f64_to_str = true,
+            "eprintln" => {
+                needed.eprint_str_ln = true;
+                // eprintln may need to_str conversion for non-string args
+                if let Some(arg) = args.first() {
+                    match Self::infer_arg_category(arg, func) {
+                        ArgCategory::String => {}
+                        ArgCategory::I32 | ArgCategory::Bool => needed.i32_to_str = true,
+                        ArgCategory::I64 => needed.i64_to_str = true,
+                        ArgCategory::F64 => needed.f64_to_str = true,
+                        ArgCategory::Unknown => {
+                            needed.i32_to_str = true;
+                            needed.i64_to_str = true;
+                            needed.f64_to_str = true;
+                        }
+                    }
+                }
+            }
             // String interpolation (concat with non-string args) needs to_str helpers
             "concat" | "join" | "string_interpolation" => {
                 for arg in args {

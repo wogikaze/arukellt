@@ -469,6 +469,16 @@ impl Ctx {
                 | "map_String_String"
                 | "map_i64_String"
                 | "map_f64_String"
+                | "eprintln"
+                | "sqrt"
+                | "abs"
+                | "min"
+                | "max"
+                | "pow"
+                | "floor"
+                | "ceil"
+                | "round"
+                | "clamp"
                 | "fs_read_file"
                 | "fs_write_file"
                 | "memory_copy"
@@ -493,6 +503,225 @@ impl Ctx {
             "print" => {
                 if let Some(arg) = args.first() {
                     self.emit_print(f, arg);
+                }
+            }
+            "eprintln" => {
+                if let Some(arg) = args.first() {
+                    self.emit_eprintln(f, arg);
+                }
+            }
+            "sqrt" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::F64Sqrt);
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
+            "floor" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::F64Floor);
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
+            "ceil" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::F64Ceil);
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
+            "round" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::F64Nearest);
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
+            "abs" => {
+                if let Some(arg) = args.first() {
+                    if self.is_f64_like_operand(arg) {
+                        self.emit_operand_coerced(f, arg, false, true);
+                        f.instruction(&Instruction::F64Abs);
+                    } else {
+                        self.emit_operand(f, arg);
+                        // i32 abs: (x < 0) ? (0 - x) : x
+                        let scratch = self.si(0);
+                        f.instruction(&Instruction::LocalSet(scratch));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::LocalGet(scratch));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::LocalGet(scratch));
+                        f.instruction(&Instruction::LocalGet(scratch));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32LtS);
+                        f.instruction(&Instruction::Select);
+                    }
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
+            "min" => {
+                if args.len() >= 2 {
+                    let is_f64 =
+                        self.is_f64_like_operand(&args[0]) || self.is_f64_like_operand(&args[1]);
+                    if is_f64 {
+                        self.emit_operand_coerced(f, &args[0], false, true);
+                        self.emit_operand_coerced(f, &args[1], false, true);
+                        f.instruction(&Instruction::F64Min);
+                    } else {
+                        self.emit_operand(f, &args[0]);
+                        self.emit_operand(f, &args[1]);
+                        // i32 min: select(a, b, a <= b)
+                        let s0 = self.si(0);
+                        let s1 = self.si(1);
+                        f.instruction(&Instruction::LocalSet(s1));
+                        f.instruction(&Instruction::LocalSet(s0));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::I32LeS);
+                        f.instruction(&Instruction::Select);
+                    }
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
+            "max" => {
+                if args.len() >= 2 {
+                    let is_f64 =
+                        self.is_f64_like_operand(&args[0]) || self.is_f64_like_operand(&args[1]);
+                    if is_f64 {
+                        self.emit_operand_coerced(f, &args[0], false, true);
+                        self.emit_operand_coerced(f, &args[1], false, true);
+                        f.instruction(&Instruction::F64Max);
+                    } else {
+                        self.emit_operand(f, &args[0]);
+                        self.emit_operand(f, &args[1]);
+                        // i32 max: select(a, b, a >= b)
+                        let s0 = self.si(0);
+                        let s1 = self.si(1);
+                        f.instruction(&Instruction::LocalSet(s1));
+                        f.instruction(&Instruction::LocalSet(s0));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::I32GeS);
+                        f.instruction(&Instruction::Select);
+                    }
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
+            "pow" => {
+                // pow(base, exp) — f64 only. No native Wasm instruction.
+                // Emit inline: result = 1.0; loop exp times: result *= base
+                if args.len() >= 2 {
+                    let s_base = self.si(0);
+                    let s_exp = self.si(1);
+                    let s_result = self.si(2);
+                    // We need the operands evaluated to i32 scratch locals.
+                    // base → f64 local, exp → i32 counter
+                    self.emit_operand(f, &args[0]);
+                    f.instruction(&Instruction::I32TruncF64S);
+                    f.instruction(&Instruction::LocalSet(s_base));
+                    self.emit_operand(f, &args[1]);
+                    if self.is_f64_like_operand(&args[1]) {
+                        f.instruction(&Instruction::I32TruncF64S);
+                    }
+                    f.instruction(&Instruction::LocalSet(s_exp));
+                    f.instruction(&Instruction::I32Const(1));
+                    f.instruction(&Instruction::LocalSet(s_result));
+                    // loop
+                    f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+                    f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+                    f.instruction(&Instruction::LocalGet(s_exp));
+                    f.instruction(&Instruction::I32Eqz);
+                    f.instruction(&Instruction::BrIf(1));
+                    f.instruction(&Instruction::LocalGet(s_result));
+                    f.instruction(&Instruction::LocalGet(s_base));
+                    f.instruction(&Instruction::I32Mul);
+                    f.instruction(&Instruction::LocalSet(s_result));
+                    f.instruction(&Instruction::LocalGet(s_exp));
+                    f.instruction(&Instruction::I32Const(1));
+                    f.instruction(&Instruction::I32Sub);
+                    f.instruction(&Instruction::LocalSet(s_exp));
+                    f.instruction(&Instruction::Br(0));
+                    f.instruction(&Instruction::End);
+                    f.instruction(&Instruction::End);
+                    f.instruction(&Instruction::LocalGet(s_result));
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
+            "clamp" => {
+                // clamp(value, lo, hi) — uses min/max pattern
+                if args.len() >= 3 {
+                    self.emit_operand(f, &args[0]);
+                    self.emit_operand(f, &args[1]);
+                    if self.is_f64_like_operand(&args[0]) {
+                        f.instruction(&Instruction::F64Max); // max(value, lo)
+                        self.emit_operand(f, &args[2]);
+                        f.instruction(&Instruction::F64Min); // min(result, hi)
+                    } else {
+                        // i32: max(value, lo) then min(result, hi)
+                        let s0 = self.si(0);
+                        let s1 = self.si(1);
+                        f.instruction(&Instruction::LocalSet(s1)); // lo
+                        f.instruction(&Instruction::LocalSet(s0)); // value
+                        // max(value, lo)
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::I32GeS);
+                        f.instruction(&Instruction::Select);
+                        // min(result, hi)
+                        f.instruction(&Instruction::LocalSet(s0));
+                        self.emit_operand(f, &args[2]);
+                        f.instruction(&Instruction::LocalSet(s1));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::I32LeS);
+                        f.instruction(&Instruction::Select);
+                    }
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
                 }
             }
             "assert" => {
@@ -1463,6 +1692,98 @@ impl Ctx {
             "args" => {
                 self.emit_args_builtin(f);
             }
+            "sqrt" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::F64Sqrt);
+                }
+            }
+            "floor" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::F64Floor);
+                }
+            }
+            "ceil" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::F64Ceil);
+                }
+            }
+            "round" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::F64Nearest);
+                }
+            }
+            "abs" => {
+                if let Some(arg) = args.first() {
+                    if self.is_f64_like_operand(arg) {
+                        self.emit_operand_coerced(f, arg, false, true);
+                        f.instruction(&Instruction::F64Abs);
+                    } else {
+                        self.emit_operand(f, arg);
+                        let scratch = self.si(0);
+                        f.instruction(&Instruction::LocalSet(scratch));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::LocalGet(scratch));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::LocalGet(scratch));
+                        f.instruction(&Instruction::LocalGet(scratch));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32LtS);
+                        f.instruction(&Instruction::Select);
+                    }
+                }
+            }
+            "min" => {
+                if args.len() >= 2 {
+                    let is_f64 =
+                        self.is_f64_like_operand(&args[0]) || self.is_f64_like_operand(&args[1]);
+                    if is_f64 {
+                        self.emit_operand_coerced(f, &args[0], false, true);
+                        self.emit_operand_coerced(f, &args[1], false, true);
+                        f.instruction(&Instruction::F64Min);
+                    } else {
+                        self.emit_operand(f, &args[0]);
+                        self.emit_operand(f, &args[1]);
+                        let s0 = self.si(0);
+                        let s1 = self.si(1);
+                        f.instruction(&Instruction::LocalSet(s1));
+                        f.instruction(&Instruction::LocalSet(s0));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::I32LeS);
+                        f.instruction(&Instruction::Select);
+                    }
+                }
+            }
+            "max" => {
+                if args.len() >= 2 {
+                    let is_f64 =
+                        self.is_f64_like_operand(&args[0]) || self.is_f64_like_operand(&args[1]);
+                    if is_f64 {
+                        self.emit_operand_coerced(f, &args[0], false, true);
+                        self.emit_operand_coerced(f, &args[1], false, true);
+                        f.instruction(&Instruction::F64Max);
+                    } else {
+                        self.emit_operand(f, &args[0]);
+                        self.emit_operand(f, &args[1]);
+                        let s0 = self.si(0);
+                        let s1 = self.si(1);
+                        f.instruction(&Instruction::LocalSet(s1));
+                        f.instruction(&Instruction::LocalSet(s0));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::LocalGet(s0));
+                        f.instruction(&Instruction::LocalGet(s1));
+                        f.instruction(&Instruction::I32GeS);
+                        f.instruction(&Instruction::Select);
+                    }
+                }
+            }
             _ => {
                 // Unimplemented builtin as operand — push null ref for string types
                 // or zero for scalars
@@ -1619,6 +1940,19 @@ impl Ctx {
                 f.instruction(&Instruction::Call(idx));
             }
         } else if let Some(idx) = self.helper_print_i32 {
+            f.instruction(&Instruction::Call(idx));
+        }
+    }
+
+    pub(super) fn emit_eprintln(&mut self, f: &mut PeepholeWriter<'_>, arg: &Operand) {
+        self.emit_operand(f, arg);
+        // eprintln always uses the string version — convert if needed
+        if !self.is_string_like_operand(arg) {
+            if let Some(to_str) = self.helper_i32_to_str {
+                f.instruction(&Instruction::Call(to_str));
+            }
+        }
+        if let Some(idx) = self.helper_eprint_str_ln {
             f.instruction(&Instruction::Call(idx));
         }
     }

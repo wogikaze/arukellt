@@ -24,6 +24,73 @@ impl Ctx {
         codes.function(&f);
     }
 
+    pub(super) fn emit_wasi_p2_get_stderr_shim(&self, codes: &mut CodeSection) {
+        let mut f = Function::new([]);
+        f.instruction(&Instruction::I32Const(2)); // fd 2 = stderr
+        f.instruction(&Instruction::End);
+        codes.function(&f);
+    }
+
+    /// Emit eprint_str_ln: write GC string + newline to stderr (fd 2)
+    pub(super) fn emit_eprint_str_ln_helper(
+        &self,
+        codes: &mut CodeSection,
+        newline_off: u32,
+        get_stderr_idx: u32,
+    ) {
+        let ma1 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+        // Param 0 = (ref null $string). Locals 1=len, 2=i, 3=handle.
+        let mut f = Function::new([(3, ValType::I32)]);
+
+        f.instruction(&Instruction::Call(get_stderr_idx));
+        f.instruction(&Instruction::LocalSet(3));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(1));
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma1));
+        f.instruction(&Instruction::LocalGet(2));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(2));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::I32Const(newline_off as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(P2_RETPTR as i32));
+        f.instruction(&Instruction::Call(self.wasi_p2_write_and_flush));
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::Call(self.wasi_p2_drop_output_stream));
+        f.instruction(&Instruction::End);
+        codes.function(&f);
+    }
+
     pub(super) fn emit_wasi_p2_write_and_flush_shim(&self, codes: &mut CodeSection) {
         let ma = MemArg {
             offset: 0,

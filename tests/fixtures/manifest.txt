@@ -418,6 +418,10 @@ t3-run:stdlib_io2/io_basic.ark
 t3-run:stdlib_random/random_seed.ark
 t3-run:stdlib_random/random_range.ark
 t3-run:stdlib_time/monotonic.ark
+t3-run:stdlib_math/sqrt.ark
+t3-run:stdlib_math/abs_min_max.ark
+t3-run:stdlib_math/clamp_i32.ark
+t3-run:stdlib_io/eprintln.ark
 module-run:stdlib_test/assert_eq.ark
 module-run:stdlib_test/assert_ne.ark
 module-run:stdlib_test/expect_result.ark
