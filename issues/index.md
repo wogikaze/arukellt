@@ -19,8 +19,6 @@ Each issue is a markdown file with machine-readable header fields plus human-rea
 **Updated**: YYYY-MM-DD
 **ID**: 001
 **Depends on**: none | 001, 002
-**Track**: main | parallel
-**Blocks v1 exit**: yes | no
 
 ## Summary
 Brief description of what needs to be done.
