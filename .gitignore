@@ -30,3 +30,6 @@ docs/spec/spec-*/
 
 # Node.js
 **/node_modules/
+
+# VS Code test downloads
+**/.vscode-test/
