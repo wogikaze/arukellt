@@ -15,8 +15,13 @@ graph TD
   I209["209 selfhost: connect CLI main.ark to driver pipeline"]
   I212["212 Extension sidebar + project UI tree view"]
   I213["213 Language status item + observability surface"]
+  I216["216 Formatter surface"]
+  I219["219 LSP standard feature completeness"]
+  I220["220 Task provider improvements"]
   I184["184 VS Code: `arukellt-all-in-one` 拡張の基盤整備"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
+  I217["217 Code actions + refactor code actions"]
+  I218["218 Navigation completeness"]
   I197["197 VS Code Test Explorer + inline test execution"]
   I200["200 Runtime inspection / stepping / evaluate surface"]
   I203["203 `script run` / `script list` CLI surface"]
@@ -38,6 +43,8 @@ graph TD
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I189 --> I184
   I193 --> I194
+  I193 --> I217
+  I193 --> I218
   I196 --> I197
   I199 --> I200
   I202 --> I203
@@ -46,6 +53,10 @@ graph TD
   I193 --> I185
   I194 --> I185
   I195 --> I185
+  I216 --> I185
+  I217 --> I185
+  I218 --> I185
+  I219 --> I185
   I196 --> I198
   I197 --> I198
   I200 --> I201
@@ -86,7 +97,7 @@ graph TD
 ## Adjacency list
 
 - **189** depends on: none; blocks: 184
-- **193** depends on: none; blocks: 185, 194
+- **193** depends on: none; blocks: 185, 194, 217, 218
 - **195** depends on: none; blocks: 185
 - **196** depends on: none; blocks: 186, 197, 198
 - **199** depends on: none; blocks: 187, 200
@@ -94,14 +105,19 @@ graph TD
 - **209** depends on: 208; blocks: 210
 - **212** depends on: 190; blocks: none
 - **213** depends on: 190; blocks: none
+- **216** depends on: none; blocks: 185
+- **219** depends on: none; blocks: 185
+- **220** depends on: none; blocks: none
 - **184** depends on: 189, 190, 191; blocks: 183, 206, 207, 214
 - **194** depends on: 193; blocks: 185
+- **217** depends on: 193; blocks: 185
+- **218** depends on: 193; blocks: 185
 - **197** depends on: 196; blocks: 186, 198
 - **200** depends on: 199; blocks: 187, 201
 - **203** depends on: 202; blocks: 188, 204
 - **215** depends on: 202; blocks: none
 - **210** depends on: 209; blocks: 211
-- **185** depends on: 192, 193, 194, 195; blocks: 183, 205, 206, 214
+- **185** depends on: 192, 193, 194, 195, 216, 217, 218, 219; blocks: 183, 205, 206, 214
 - **198** depends on: 196, 197; blocks: 186
 - **201** depends on: 200; blocks: 187
 - **204** depends on: 202, 203; blocks: 188
