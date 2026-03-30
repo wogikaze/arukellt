@@ -1,7 +1,7 @@
 [project]
 name = "Arukellt"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
-updated = "2026-03-28"
+updated = "2026-03-31"
 verification_command = "bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)"
 current_state_doc = "docs/current-state.md"
 
@@ -70,7 +70,10 @@ run_supported = false
 role = "Future"
 
 [verification]
+fixture_passed = 423
+fixture_skipped = 11
 fixture_failures = 0
+fixture_manifest_count = 434
 checks_passed = 16
 checks_total = 16
 unit_tests_note = "current count is verified by `cargo test --workspace --exclude ark-llvm`"

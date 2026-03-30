@@ -5,7 +5,7 @@
 
 ## Current Snapshot
 
-- Updated: 2026-03-28
+- Updated: 2026-03-31
 - CLI default target: `wasm32-wasi-p1`
 - Canonical target: `wasm32-wasi-p2`
 - Component emit: available on `wasm32-wasi-p2` (requires external `wasm-tools` binary and WASI adapter module)

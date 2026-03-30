@@ -475,13 +475,16 @@ def render_current_state_targets(state: dict) -> str:
 
 def render_current_state_test_health(state: dict, fixture_total: int) -> str:
     verification = state["verification"]
+    passed = verification.get("fixture_passed", fixture_total)
+    skipped = verification.get("fixture_skipped", 0)
+    manifest_count = verification.get("fixture_manifest_count", fixture_total)
     return "\n".join(
         [
             "## Test Health",
             "",
             f"- Unit tests: {verification['unit_tests_note']}",
-            f"- Fixture harness: {fixture_total} passed, {verification['fixture_failures']} failed (manifest-driven)",
-            f"- Fixture manifest: {fixture_total} entries",
+            f"- Fixture harness: {passed} passed, {verification['fixture_failures']} failed, {skipped} skipped (manifest-driven)",
+            f"- Fixture manifest: {manifest_count} entries",
             "- Wasm validation is a hard error (W0004)",
             f"- Verification entry point: `{state['project']['verification_command']}` — **{verification['checks_passed']}/{verification['checks_total']} checks pass**",
         ]

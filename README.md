@@ -7,7 +7,7 @@ Wasm-first、LLM-friendly を目指す静的型付け言語。
 <!-- BEGIN GENERATED:README_STATUS -->
 ## Status
 
-- Updated: 2026-03-28
+- Updated: 2026-03-31
 - CLI default target: `wasm32-wasi-p1`
 - Canonical target: `wasm32-wasi-p2`
 - Component/WIT target: `wasm32-wasi-p2`
