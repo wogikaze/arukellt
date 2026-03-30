@@ -1,0 +1,4 @@
+.vscode/**
+.github/**
+.markdownlintignore
+**/node_modules/**

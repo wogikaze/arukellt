@@ -142,6 +142,7 @@
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
 |------|-----------|--------|-----------|------|---------|-----------|
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` |
 
 ## Host Http
