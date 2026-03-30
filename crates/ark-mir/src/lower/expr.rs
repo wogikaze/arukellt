@@ -330,10 +330,30 @@ impl LowerCtx {
                 }
             }
             ast::Expr::Block(block) => {
-                if let Some(tail) = &block.tail_expr {
-                    self.lower_expr(tail)
+                if block.stmts.is_empty() {
+                    if let Some(tail) = &block.tail_expr {
+                        self.lower_expr(tail)
+                    } else {
+                        Operand::Unit
+                    }
                 } else {
-                    Operand::Unit
+                    // Lower statements as side effects, then produce the tail value.
+                    let mut then_body = Vec::new();
+                    for stmt in &block.stmts {
+                        self.lower_stmt(stmt, &mut then_body);
+                    }
+                    let then_result = if let Some(tail) = &block.tail_expr {
+                        self.lower_expr(tail)
+                    } else {
+                        Operand::Unit
+                    };
+                    Operand::IfExpr {
+                        cond: Box::new(Operand::ConstBool(true)),
+                        then_body,
+                        then_result: Some(Box::new(then_result)),
+                        else_body: vec![],
+                        else_result: Some(Box::new(Operand::Unit)),
+                    }
                 }
             }
             ast::Expr::Match {
