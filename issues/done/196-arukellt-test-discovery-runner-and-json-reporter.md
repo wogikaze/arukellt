@@ -1,8 +1,8 @@
 # `arukellt test` discovery / runner / JSON reporter
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-03-29
+**Updated**: 2026-03-30
 **ID**: 196
 **Depends on**: none
 **Track**: parallel
@@ -14,9 +14,9 @@
 
 ## Acceptance
 
-- [ ] test discovery / execution ルールが追跡できる
-- [ ] `arukellt test` command surface と JSON reporter が定義されている
-- [ ] test result / location / duration reporting の責務が issue queue 上で追跡できる
+- [x] test discovery / execution ルールが追跡できる
+- [x] `arukellt test` command surface と JSON reporter が定義されている
+- [x] test result / location / duration reporting の責務が issue queue 上で追跡できる
 
 ## References
 

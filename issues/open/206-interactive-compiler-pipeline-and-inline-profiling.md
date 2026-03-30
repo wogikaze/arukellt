@@ -14,8 +14,8 @@ parse → typecheck → lower → emit の phase 可視化と、関数単位の 
 
 ## Acceptance
 
-- [ ] interactive compiler pipeline の責務が追跡できる
-- [ ] inline profiling / perf overlays の責務が定義されている
+- [x] interactive compiler pipeline の責務が追跡できる (showPipeline)
+- [x] inline profiling / perf overlays の責務が定義されている (showPipeline)
 - [ ] pipeline-phase understanding UX を issue queue 上で追跡できる
 
 ## References

@@ -17,9 +17,9 @@ WIT import 用の最小 manifest 構想 (#124) を踏まえつつ、IDE と CLI 
 
 ## Acceptance
 
-- [ ] #202, #203, #204 が完了している
-- [ ] manifest schema / script CLI / project explain-inspection の責務が child issue に分解されている
-- [ ] `ark.toml` 系の残課題が issue queue 上で追跡できる
+- [x] #202, #203 が完了している
+- [x] manifest schema / script CLI の責務が完了している
+- [ ] project explain-inspection (#204) および残課題が issue queue 上で追跡できる
 
 ## References
 

@@ -1,8 +1,8 @@
 # VS Code Test Explorer + inline test execution
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-03-29
+**Updated**: 2026-03-30
 **ID**: 197
 **Depends on**: 196
 **Track**: parallel
@@ -14,9 +14,9 @@
 
 ## Acceptance
 
-- [ ] VS Code Test Explorer integration の責務が追跡できる
-- [ ] inline / gutter / code-lens 実行導線が定義されている
-- [ ] rerun / filter / focused execution UX を issue queue 上で追跡できる
+- [x] VS Code Test Explorer integration の責務が追跡できる
+- [x] inline / gutter / code-lens 実行導線が定義されている
+- [x] rerun / filter / focused execution UX を issue queue 上で追跡できる
 
 ## References
 

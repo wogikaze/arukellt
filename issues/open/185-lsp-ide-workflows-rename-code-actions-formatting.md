@@ -17,8 +17,8 @@
 
 ## Acceptance
 
-- [ ] #192, #193, #194, #195 が完了している
-- [ ] completion / refactor-search / semantic preview-diff / partial execution の責務が child issue に分離されている
+- [x] #192, #193, #194, #195 が完了している
+- [x] completion / refactor-search / semantic preview-diff / partial execution の責務が child issue に分離されている
 - [ ] authoring surface の残課題が issue queue 上で追跡できる
 
 ## References
