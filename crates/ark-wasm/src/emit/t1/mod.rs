@@ -93,7 +93,8 @@ const FN_ARGS_GET: u32 = 32;
 const FN_ARG_COUNT: u32 = 33;
 const FN_ARG_AT: u32 = 34;
 const FN_ARGS_VEC: u32 = 35;
-const FN_USER_BASE: u32 = 36;
+const FN_EPRINT_STR_LN: u32 = 36; // stderr (fd=2) string + newline printer
+const FN_USER_BASE: u32 = 37;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
@@ -630,6 +631,19 @@ impl EmitCtx {
                 {
                     return true;
                 }
+                // If the function has a known return type that is NOT String (and not
+                // Option<String>), return false early to prevent the arg-heuristic below
+                // from misclassifying it.  E.g. tokenize(String)->Vec<Token> must NOT be
+                // treated as a String-returning function just because its argument is String.
+                if self.fn_return_types.get(name).is_some_and(|t| {
+                    !matches!(
+                        t,
+                        ark_typecheck::types::Type::String
+                            | ark_typecheck::types::Type::Option(_)
+                    )
+                }) {
+                    return false;
+                }
                 // Check if function returns Option<String>: the result local is used
                 // as the object in EnumPayload extraction, so tracking it here lets the
                 // EnumPayload fallback (string_locals check) recognise the extracted String.
@@ -795,6 +809,10 @@ fn cfn_add_transitive_deps(needed: &mut std::collections::HashSet<u32>) {
         if needed.contains(&FN_PRINT_STR_LN) {
             needed.insert(FN_FD_WRITE);
         }
+        // FN_EPRINT_STR_LN calls FN_FD_WRITE
+        if needed.contains(&FN_EPRINT_STR_LN) {
+            needed.insert(FN_FD_WRITE);
+        }
         // FN_GET_BYTE (buffered stdin) calls FN_FD_READ
         if needed.contains(&FN_GET_BYTE) {
             needed.insert(FN_FD_READ);
@@ -948,10 +966,17 @@ fn cfn_handle_builtin(
     needed: &mut std::collections::HashSet<u32>,
 ) {
     match n {
-        "println" | "print" | "eprintln" | "eprint" => {
+        "println" | "print" => {
             needed.insert(FN_FD_WRITE);
             if let Some(arg) = args.first() {
                 cfn_add_needed_for_print(arg, func, mir, needed);
+            }
+        }
+        "eprintln" | "eprint" => {
+            needed.insert(FN_FD_WRITE);
+            needed.insert(FN_EPRINT_STR_LN);
+            if let Some(arg) = args.first() {
+                cfn_add_needed_for_eprint(arg, func, mir, needed);
             }
         }
         "print_i32_ln" => {
@@ -1207,6 +1232,105 @@ fn cfn_add_needed_for_print(
             needed.insert(FN_I32_TO_STR);
             needed.insert(FN_F64_TO_STR);
             needed.insert(FN_I64_TO_STR);
+            needed.insert(FN_CONCAT);
+        }
+    }
+}
+
+fn cfn_add_needed_for_eprint(
+    arg: &Operand,
+    func: &MirFunction,
+    mir: &MirModule,
+    needed: &mut std::collections::HashSet<u32>,
+) {
+    // Same as cfn_add_needed_for_print but uses FN_EPRINT_STR_LN instead of FN_PRINT_STR_LN
+    match arg {
+        Operand::ConstString(_) => {}
+        Operand::ConstBool(_) => {
+            needed.insert(FN_EPRINT_STR_LN);
+        }
+        Operand::ConstI32(_)
+        | Operand::ConstI8(_)
+        | Operand::ConstI16(_)
+        | Operand::ConstU8(_)
+        | Operand::ConstU16(_)
+        | Operand::ConstU32(_)
+        | Operand::ConstChar(_) => {
+            needed.insert(FN_I32_TO_STR);
+            needed.insert(FN_EPRINT_STR_LN);
+        }
+        Operand::ConstF64(_) | Operand::ConstF32(_) => {
+            needed.insert(FN_F64_TO_STR);
+            needed.insert(FN_EPRINT_STR_LN);
+        }
+        Operand::ConstI64(_) | Operand::ConstU64(_) => {
+            needed.insert(FN_I64_TO_STR);
+            needed.insert(FN_EPRINT_STR_LN);
+        }
+        Operand::Call(name, inner_args) => {
+            let n = normalize_intrinsic_name(name.as_str());
+            match n {
+                "i32_to_string" | "int_to_string" => {
+                    needed.insert(FN_I32_TO_STR);
+                    needed.insert(FN_EPRINT_STR_LN);
+                }
+                "bool_to_string" => {
+                    needed.insert(FN_EPRINT_STR_LN);
+                }
+                "f64_to_string" => {
+                    needed.insert(FN_F64_TO_STR);
+                    needed.insert(FN_EPRINT_STR_LN);
+                }
+                "i64_to_string" => {
+                    needed.insert(FN_I64_TO_STR);
+                    needed.insert(FN_EPRINT_STR_LN);
+                }
+                "concat" => {
+                    needed.insert(FN_CONCAT);
+                    needed.insert(FN_EPRINT_STR_LN);
+                    for a in inner_args {
+                        cfn_add_needed_for_eprint(a, func, mir, needed);
+                    }
+                }
+                "String_from" | "String_new" | "char_to_string" | "clone" => {
+                    needed.insert(FN_EPRINT_STR_LN);
+                }
+                _ => {
+                    needed.insert(FN_EPRINT_STR_LN);
+                    needed.insert(FN_I32_TO_STR);
+                    needed.insert(FN_CONCAT);
+                }
+            }
+        }
+        Operand::Place(Place::Local(lid)) => {
+            let params_and_locals: Vec<_> = func.params.iter().chain(func.locals.iter()).collect();
+            if let Some(local) = params_and_locals.iter().find(|l| l.id.0 == lid.0) {
+                match &local.ty {
+                    ark_typecheck::types::Type::String => {
+                        needed.insert(FN_EPRINT_STR_LN);
+                    }
+                    ark_typecheck::types::Type::F64 | ark_typecheck::types::Type::F32 => {
+                        needed.insert(FN_F64_TO_STR);
+                        needed.insert(FN_EPRINT_STR_LN);
+                    }
+                    ark_typecheck::types::Type::I64 | ark_typecheck::types::Type::U64 => {
+                        needed.insert(FN_I64_TO_STR);
+                        needed.insert(FN_EPRINT_STR_LN);
+                    }
+                    _ => {
+                        needed.insert(FN_I32_TO_STR);
+                        needed.insert(FN_EPRINT_STR_LN);
+                    }
+                }
+            } else {
+                needed.insert(FN_EPRINT_STR_LN);
+                needed.insert(FN_I32_TO_STR);
+                needed.insert(FN_CONCAT);
+            }
+        }
+        _ => {
+            needed.insert(FN_EPRINT_STR_LN);
+            needed.insert(FN_I32_TO_STR);
             needed.insert(FN_CONCAT);
         }
     }

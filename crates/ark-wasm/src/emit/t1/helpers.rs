@@ -250,6 +250,54 @@ impl EmitCtx {
         f
     }
 
+    /// Build `eprint_str_ln(ptr: i32)` — prints to stderr (fd=2) with newline.
+    pub(super) fn build_eprint_str_ln(&self) -> Function {
+        let ma2 = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let mut f = Function::new(vec![]);
+
+        // iov.base = ptr
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Store(ma2));
+
+        // iov.len = i32.load(ptr - 4)
+        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma2));
+        f.instruction(&Instruction::I32Store(ma2));
+
+        // fd_write(2, iov, 1, nwritten)
+        f.instruction(&Instruction::I32Const(2));
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+        self.call_fn(&mut f, FN_FD_WRITE);
+        f.instruction(&Instruction::Drop);
+
+        // Print newline to stderr
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(NEWLINE as i32));
+        f.instruction(&Instruction::I32Store(ma2));
+        f.instruction(&Instruction::I32Const((IOV_BASE + 4) as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Store(ma2));
+        f.instruction(&Instruction::I32Const(2));
+        f.instruction(&Instruction::I32Const(IOV_BASE as i32));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+        self.call_fn(&mut f, FN_FD_WRITE);
+        f.instruction(&Instruction::Drop);
+
+        f.instruction(&Instruction::End);
+        f
+    }
+
     /// Emit fd_write for a static data segment at known offset/length.
     pub(super) fn emit_static_print(&self, f: &mut Function, offset: u32, len: u32) {
         let ma2 = MemArg {
