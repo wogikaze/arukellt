@@ -1,0 +1,48 @@
+# current-state.md を唯一の現行状態ソースとして再構築する
+
+**Status**: open
+**Created**: 2026-03-30
+**Updated**: 2026-03-30
+**ID**: 221
+**Depends on**: none
+**Track**: main
+**Blocks v1 exit**: yes
+
+## Summary
+
+`docs/current-state.md` が現行実装の唯一の正規ソースになっていない。
+設計意図・理想状態・現行実装が同じ文書に混在しており、利用者が「今使えるもの」を判断できない。
+この issue では current-state.md を書き直し、実装状態を正確に反映した唯一のソースに再構築する。
+
+## Acceptance
+
+- [ ] `docs/current-state.md` が「現行実装」のみを記述し、設計意図・将来構想を含まない
+- [ ] 各機能に「stable / provisional / experimental / unimplemented」のどれかが明記されている
+- [ ] 他文書から current-state.md を参照する形式になっており、重複記述がない
+- [ ] 初見の開発者が 10 分以内に「今何が使えるか」を読み取れる構成になっている
+
+## Scope
+
+### 現行状態の棚卸し
+
+- 実装済み機能のリストアップ（コンパイラ・runtime・stdlib・CLI・LSP・拡張）
+- 「動く」と「使える」を区別した記述基準の確立
+- 既知制約・バグ・未実装ショートカットの明示
+
+### ドキュメント再構成
+
+- current-state.md の構造設計（機能別セクション）
+- 各セクションに実装ステータスのバッジ/ラベルを追加
+- README・仕様書・ADR からの参照リンクに変換
+
+### 整合性検証
+
+- コードベースとの照合（実際に動くかを確認）
+- 記述と実装の乖離箇所の洗い出し
+
+## References
+
+- `docs/current-state.md`
+- `docs/adr/`
+- `issues/open/222-readme-as-accurate-entry-point.md`
+- `issues/open/223-unified-terminology-for-implementation-status.md`
