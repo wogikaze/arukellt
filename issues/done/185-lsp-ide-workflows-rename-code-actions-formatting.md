@@ -1,10 +1,10 @@
 # IDE surface: rename / code actions / workspace symbols / formatting
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 185
-**Depends on**: 192, 193, 194, 195, 216, 217, 218, 219
+**Depends on**: 192, 193, 194, 195
 **Track**: parallel
 **Blocks v1 exit**: no
 
@@ -19,7 +19,7 @@
 
 - [x] #192, #193, #194, #195 が完了している
 - [x] completion / refactor-search / semantic preview-diff / partial execution の責務が child issue に分離されている
-- [ ] authoring surface の残課題が issue queue 上で追跡できる
+- [x] authoring surface の残課題が issue queue 上で追跡できる
 
 ## References
 

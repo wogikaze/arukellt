@@ -71,8 +71,19 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
         return opts
     }
 
-    // First positional arg is the command
+    // First positional arg is the command (or a flag like --help/--version)
     let cmd_str = get_unchecked(argv, 1)
+
+    // Check for flags at position 1 before treating as command
+    if eq(clone(cmd_str), "--help") || eq(clone(cmd_str), "-h") {
+        opts.show_help = true
+        return opts
+    }
+    if eq(clone(cmd_str), "--version") || eq(clone(cmd_str), "-V") {
+        opts.show_version = true
+        return opts
+    }
+
     opts.command = parse_command(clone(cmd_str))
 
     if opts.command == CMD_HELP() {

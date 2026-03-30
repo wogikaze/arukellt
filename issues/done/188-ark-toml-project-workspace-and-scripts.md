@@ -1,6 +1,6 @@
 # `ark.toml`: project / workspace metadata と `script run` surface
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 188
@@ -17,9 +17,9 @@ WIT import 用の最小 manifest 構想 (#124) を踏まえつつ、IDE と CLI 
 
 ## Acceptance
 
-- [x] #202, #203 が完了している
-- [x] manifest schema / script CLI の責務が完了している
-- [ ] project explain-inspection (#204) および残課題が issue queue 上で追跡できる
+- [x] #202, #203, #204 が完了している
+- [x] manifest schema / script CLI / project explain-inspection の責務が child issue に分解されている
+- [x] `ark.toml` 系の残課題が issue queue 上で追跡できる
 
 ## References
 

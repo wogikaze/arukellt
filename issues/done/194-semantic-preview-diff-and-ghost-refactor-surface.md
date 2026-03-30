@@ -1,6 +1,6 @@
 # Semantic preview / diff / ghost refactor surface
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 194
@@ -14,9 +14,9 @@ text diff を超えて AST / symbol / behavior diff を提示し、rename / form
 
 ## Acceptance
 
-- [ ] semantic diff と behavior-aware diff の責務が追跡できる
-- [ ] ghost refactor / preview-only apply の導線が定義されている
-- [ ] refactor 前後の見える化 UX を issue queue 上で追跡できる
+- [x] semantic diff と behavior-aware diff の責務が追跡できる
+- [x] ghost refactor / preview-only apply の導線が定義されている
+- [x] refactor 前後の見える化 UX を issue queue 上で追跡できる
 
 ## References
 

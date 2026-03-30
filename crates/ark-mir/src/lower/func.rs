@@ -98,6 +98,8 @@ pub fn lower_to_mir(
     let mut bare_variant_tags: HashMap<String, (String, i32, usize)> = HashMap::new();
     // Collect struct definitions: "StructName" -> field names (ordered)
     let mut struct_defs: HashMap<String, Vec<(String, String)>> = HashMap::new();
+    // (struct_name, field_name) -> inner element struct type for Vec<Struct> fields
+    let mut vec_struct_fields: HashMap<(String, String), String> = HashMap::new();
     // Collect enum definitions: "EnumName" -> [(variant_name, [payload_type_names])]
     let mut enum_defs: HashMap<String, Vec<(String, Vec<String>)>> = HashMap::new();
     // Collect enum struct variant field names: "EnumName::VariantName" -> [field_names]
@@ -198,6 +200,17 @@ pub fn lower_to_mir(
                     (f.name.clone(), type_name)
                 })
                 .collect();
+            // Track Vec<Struct> fields for get_unchecked inference
+            for field in &s.fields {
+                if let ast::TypeExpr::Generic {
+                    name: gname, args, ..
+                } = &field.ty
+                    && gname == "Vec"
+                    && let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first()
+                {
+                    vec_struct_fields.insert((s.name.clone(), field.name.clone()), inner.clone());
+                }
+            }
             struct_defs.insert(s.name.clone(), fields);
         }
     }
@@ -292,6 +305,7 @@ pub fn lower_to_mir(
                 method_resolutions.clone(),
                 f.type_params.clone(),
                 generic_fn_names.clone(),
+                vec_struct_fields.clone(),
             );
 
             for param in &f.params {
@@ -322,15 +336,28 @@ pub fn lower_to_mir(
                 {
                     ctx.enum_typed_locals.insert(pid.0, tname.clone());
                 }
+                // Track Vec<Struct> parameters so get_unchecked can infer element struct type
+                if let ast::TypeExpr::Generic {
+                    name: tname, args, ..
+                } = &param.ty
+                    && tname == "Vec"
+                    && let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first()
+                    && ctx.struct_defs.contains_key(inner.as_str())
+                {
+                    ctx.vec_struct_locals.insert(pid.0, inner.clone());
+                }
             }
 
             let entry = BlockId(0);
             let mut stmts = ctx.lower_block(&f.body);
 
-            // Handle tail expression: if it's a void call (println etc.),
-            // lower it as a statement. Otherwise, it's the return value.
+            // Handle tail expression: lower as a statement (void) when the
+            // function declares no return type (unit), or when the expression
+            // is a known void call. Otherwise treat it as the return value.
+            let fn_returns_unit =
+                f.return_type.is_none() || matches!(&f.return_type, Some(ast::TypeExpr::Unit(_)));
             let tail_op = if let Some(tail) = &f.body.tail_expr {
-                if is_void_expr(tail) {
+                if fn_returns_unit || is_void_expr(tail) {
                     ctx.lower_expr_stmt(tail, &mut stmts);
                     None
                 } else {
@@ -483,6 +510,7 @@ pub fn lower_to_mir(
                     method_resolutions.clone(),
                     method.type_params.clone(),
                     generic_fn_names.clone(),
+                    vec_struct_fields.clone(),
                 );
 
                 for param in &method.params {
@@ -511,8 +539,10 @@ pub fn lower_to_mir(
                 let entry = BlockId(0);
                 let mut stmts = ctx.lower_block(&method.body);
 
+                let method_returns_unit = method.return_type.is_none()
+                    || matches!(&method.return_type, Some(ast::TypeExpr::Unit(_)));
                 let tail_op = if let Some(tail) = &method.body.tail_expr {
-                    if is_void_expr(tail) {
+                    if method_returns_unit || is_void_expr(tail) {
                         ctx.lower_expr_stmt(tail, &mut stmts);
                         None
                     } else {

@@ -1,6 +1,6 @@
 # Runtime inspection / stepping / evaluate surface
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 200
@@ -14,9 +14,9 @@ breakpoint、continue、step、stack frames、locals、evaluate、panic/trap sou
 
 ## Acceptance
 
-- [ ] breakpoint / stepping / evaluate の責務が追跡できる
-- [ ] stack frame / locals / runtime inspection の責務が整理されている
-- [ ] panic / trap / assertion failure との接続を issue queue 上で追跡できる
+- [x] breakpoint / stepping / evaluate の責務が追跡できる
+- [x] stack frame / locals / runtime inspection の責務が整理されている
+- [x] panic / trap / assertion failure との接続を issue queue 上で追跡できる
 
 ## References
 

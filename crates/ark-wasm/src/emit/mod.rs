@@ -20,10 +20,16 @@ use ark_target::{
 /// validation failure.
 fn validate_wasm(bytes: &[u8]) -> Result<(), String> {
     let mut validator = wasmparser::Validator::new();
-    validator
+    let result = validator
         .validate_all(bytes)
         .map(|_| ())
-        .map_err(|e| format!("internal error: generated invalid Wasm module: {e}"))
+        .map_err(|e| format!("internal error: generated invalid Wasm module: {e}"));
+    if result.is_err()
+        && let Ok(path) = std::env::var("ARUKELLT_DUMP_INVALID_WASM")
+    {
+        let _ = std::fs::write(&path, bytes);
+    }
+    result
 }
 
 /// Emit a Wasm module from MIR for the given target.

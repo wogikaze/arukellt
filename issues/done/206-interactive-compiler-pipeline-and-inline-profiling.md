@@ -1,6 +1,6 @@
 # Interactive compiler pipeline + inline profiling
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 206
@@ -14,9 +14,9 @@ parse → typecheck → lower → emit の phase 可視化と、関数単位の 
 
 ## Acceptance
 
-- [x] interactive compiler pipeline の責務が追跡できる (showPipeline)
-- [x] inline profiling / perf overlays の責務が定義されている (showPipeline)
-- [ ] pipeline-phase understanding UX を issue queue 上で追跡できる
+- [x] interactive compiler pipeline の責務が追跡できる
+- [x] inline profiling / perf overlays の責務が定義されている
+- [x] pipeline-phase understanding UX を issue queue 上で追跡できる
 
 ## References
 

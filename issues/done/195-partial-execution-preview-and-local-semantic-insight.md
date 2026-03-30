@@ -1,6 +1,6 @@
 # Partial execution preview + local semantic insight
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 195
@@ -14,9 +14,9 @@
 
 ## Acceptance
 
-- [ ] 関数 / 式単位 preview の責務が追跡できる
-- [ ] hover / code lens での local semantic insight 導線が定義されている
-- [ ] 推論と sandbox 実行の境界を issue queue 上で追跡できる
+- [x] 関数 / 式単位 preview の責務が追跡できる
+- [x] hover / code lens での local semantic insight 導線が定義されている
+- [x] 推論と sandbox 実行の境界を issue queue 上で追跡できる
 
 ## References
 

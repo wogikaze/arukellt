@@ -221,15 +221,15 @@ struct TypeInfo {
     type_args: Vec<TypeInfo>,
 }
 
-pub fn lower_to_mir(check_result: TypeCheckResult) -> MirModule {
+pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
     let m = MirModule_new()
-    // For each typed function, create a MIR function skeleton
     let fn_count = len(check_result.typed_fns)
     let mut i = 0
     while i < fn_count {
         let tf = get_unchecked(check_result.typed_fns, i)
         let mf = MirFunction_new(clone(tf.name))
         let entry = alloc_block(mf)
+        emit_inst(mf, entry, MirInst_new(MIR_NOP()))
         push(m.functions, mf)
         i = i + 1
     }

@@ -185,13 +185,22 @@ impl LowerCtx {
                 }
             }
             ast::Expr::Call { callee, .. } => {
-                // Check if function returns a struct type
+                // Check if function returns a struct type (unqualified call)
                 if let ast::Expr::Ident { name, .. } = callee.as_ref()
                     && let Some(ast::TypeExpr::Named { name: tname, .. }) =
                         self.fn_return_types.get(name)
                     && self.struct_defs.contains_key(tname.as_str())
                 {
                     return Some(tname.clone());
+                }
+                // Check qualified call (module::FnName) — look up by plain name
+                if let ast::Expr::QualifiedIdent { name, .. } = callee.as_ref() {
+                    let lookup = self.fn_return_types.get(name.as_str());
+                    if let Some(ast::TypeExpr::Named { name: tname, .. }) = lookup
+                        && self.struct_defs.contains_key(tname.as_str())
+                    {
+                        return Some(tname.clone());
+                    }
                 }
                 // Check method call returning struct
                 if let ast::Expr::FieldAccess { object, field, .. } = callee.as_ref()

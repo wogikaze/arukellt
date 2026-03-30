@@ -1,6 +1,6 @@
 # Debug UX: source-level debugging と DAP surface
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-03-29
 **ID**: 187
@@ -17,10 +17,9 @@ Arukellt の debug UX は、metadata / DAP foundation、通常の inspect/step/e
 
 ## Acceptance
 
-- [x] #199 が完了し、DAP の最小基盤が整っている
-- [ ] #200, #201 が完了している
-- [ ] DAP foundation / runtime inspection / advanced debug intelligence の責務が child issue に分解されている
-- [ ] debug UX の残課題が issue queue 上で追跡できる
+- [x] #199, #200, #201 が完了している
+- [x] DAP foundation / runtime inspection / advanced debug intelligence の責務が child issue に分解されている
+- [x] debug UX の残課題が issue queue 上で追跡できる
 
 ## References
 

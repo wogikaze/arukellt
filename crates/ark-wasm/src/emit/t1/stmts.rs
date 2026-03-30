@@ -435,10 +435,122 @@ impl EmitCtx {
                     let (offset, len) = self.alloc_string(&msg);
                     self.emit_fd_write(f, 2, offset, len);
                 }
+                Operand::Call(name, inner_args) => match normalize_intrinsic_name(name.as_str()) {
+                    "i32_to_string" => {
+                        if let Some(inner) = inner_args.first() {
+                            self.emit_operand(f, inner);
+                            self.call_fn(f, FN_I32_TO_STR);
+                            self.call_fn(f, FN_EPRINT_STR_LN);
+                        }
+                    }
+                    "bool_to_string" => {
+                        if let Some(inner) = inner_args.first() {
+                            self.emit_operand(f, inner);
+                            self.call_fn(f, FN_EPRINT_STR_LN);
+                        }
+                    }
+                    "f64_to_string" => {
+                        if let Some(inner) = inner_args.first() {
+                            self.emit_operand(f, inner);
+                            self.call_fn(f, FN_F64_TO_STR);
+                            self.call_fn(f, FN_EPRINT_STR_LN);
+                        }
+                    }
+                    "i64_to_string" => {
+                        if let Some(inner) = inner_args.first() {
+                            self.emit_operand(f, inner);
+                            self.call_fn(f, FN_I64_TO_STR);
+                            self.call_fn(f, FN_EPRINT_STR_LN);
+                        }
+                    }
+                    "concat" => {
+                        for a in inner_args {
+                            self.emit_operand(f, a);
+                        }
+                        self.call_fn(f, FN_CONCAT);
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    }
+                    "char_to_string" => {
+                        if let Some(inner) = inner_args.first() {
+                            let converted =
+                                Operand::Call("char_to_string".to_string(), vec![inner.clone()]);
+                            self.emit_operand(f, &converted);
+                            self.call_fn(f, FN_EPRINT_STR_LN);
+                        }
+                    }
+                    "String_from" => {
+                        if let Some(Operand::ConstString(s)) = inner_args.first() {
+                            let msg = format!("{}\n", s);
+                            let (offset, len) = self.alloc_string(&msg);
+                            self.emit_fd_write(f, 2, offset, len);
+                        } else if let Some(inner) = inner_args.first() {
+                            self.emit_operand(f, inner);
+                            self.call_fn(f, FN_EPRINT_STR_LN);
+                        }
+                    }
+                    other => {
+                        if self.resolve_fn(other).is_some() {
+                            for a in inner_args {
+                                self.emit_operand(f, a);
+                            }
+                            let idx = self.resolve_fn(other).unwrap();
+                            f.instruction(&Instruction::Call(idx));
+                            let is_str = self
+                                .fn_return_types
+                                .get(other)
+                                .is_some_and(|t| matches!(t, ark_typecheck::types::Type::String));
+                            let args_suggest_str =
+                                inner_args.iter().any(|a| self.is_string_operand(a));
+                            if is_str || args_suggest_str {
+                                self.call_fn(f, FN_EPRINT_STR_LN);
+                            } else {
+                                self.call_fn(f, FN_I32_TO_STR);
+                                self.call_fn(f, FN_EPRINT_STR_LN);
+                            }
+                        } else {
+                            self.emit_operand(f, arg);
+                            if self.is_string_operand(arg) {
+                                self.call_fn(f, FN_EPRINT_STR_LN);
+                            } else {
+                                self.call_fn(f, FN_I32_TO_STR);
+                                self.call_fn(f, FN_EPRINT_STR_LN);
+                            }
+                        }
+                    }
+                },
+                Operand::Place(Place::Local(id)) => {
+                    f.instruction(&Instruction::LocalGet(id.0));
+                    if self.string_locals.contains(&id.0) {
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    } else if self.i64_locals.contains(&id.0) {
+                        self.call_fn(f, FN_I64_TO_STR);
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    } else if self.f64_locals.contains(&id.0) {
+                        self.call_fn(f, FN_F64_TO_STR);
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    } else if self.bool_locals.contains(&id.0) {
+                        // bool: convert to "true"/"false" string
+                        self.call_fn(f, FN_I32_TO_STR);
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    } else {
+                        self.call_fn(f, FN_I32_TO_STR);
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    }
+                }
                 _ => {
-                    // For now, print as string literal to stderr
                     self.emit_operand(f, arg);
-                    f.instruction(&Instruction::Drop);
+                    if self.is_string_operand(arg) {
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    } else if self.is_i64_operand(arg) {
+                        self.call_fn(f, FN_I64_TO_STR);
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    } else if self.is_f64_operand(arg) {
+                        self.call_fn(f, FN_F64_TO_STR);
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    } else {
+                        self.call_fn(f, FN_I32_TO_STR);
+                        self.call_fn(f, FN_EPRINT_STR_LN);
+                    }
                 }
             }
         }

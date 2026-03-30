@@ -165,7 +165,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
 
     // Phase 4: Type check
-    let check_result = typechecker::typecheck_module(resolve_ctx)
+    let check_result = typechecker::typecheck_module(decls, resolve_ctx)
 
     if config.dump_hir {
         stdio::eprintln(String_from("=== TYPED HIR ==="))
@@ -181,7 +181,7 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
 
     // Phase 5: Lower to MIR
-    let mir_module = mir::lower_to_mir(check_result)
+    let mir_module = mir::lower_to_mir(decls, check_result)
 
     if config.dump_mir {
         stdio::eprintln(String_from("=== MIR ==="))
@@ -204,7 +204,8 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
 // ── Compile File ─────────────────────────────────────────────────────────────
 
 pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
-    let source_result = load_source(clone(path))
+    let cloned_path = clone(path)
+    let source_result = load_source(cloned_path)
     match source_result {
         Ok(source) => {
             compile_source(source, config)

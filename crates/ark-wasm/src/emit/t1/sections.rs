@@ -56,6 +56,7 @@ impl EmitCtx {
             FN_ARG_COUNT,
             FN_ARG_AT,
             FN_ARGS_VEC,
+            FN_EPRINT_STR_LN,
         ];
 
         // Build fn_map: canonical index -> actual Wasm function index
@@ -207,6 +208,7 @@ impl EmitCtx {
                     x if x == FN_ARG_COUNT => ty_void_i32,
                     x if x == FN_ARG_AT => ty_i32_i32,
                     x if x == FN_ARGS_VEC => ty_void_i32,
+                    x if x == FN_EPRINT_STR_LN => ty_i32_void,
                     _ => ty_i32_void,
                 };
                 functions.function(ty);
@@ -409,6 +411,10 @@ impl EmitCtx {
                 }
                 x if x == FN_ARGS_VEC => {
                     let f = self.build_args_vec();
+                    code.function(&f);
+                }
+                x if x == FN_EPRINT_STR_LN => {
+                    let f = self.build_eprint_str_ln();
                     code.function(&f);
                 }
                 _ => {}
