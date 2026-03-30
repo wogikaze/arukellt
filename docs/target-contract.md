@@ -1,0 +1,115 @@
+# Target Verification Contract
+
+This document defines, for each compilation target, exactly which
+verification surfaces are **guaranteed**, which are **smoke-tested**,
+which exist only as **scaffold**, and which are **not started**.
+
+CI enforces this contract via `ARUKELLT_TARGET` in the `target-behavior`
+matrix job.  See `.github/workflows/ci.yml`.
+
+## Status labels
+
+| Label | Meaning |
+|-------|---------|
+| **guaranteed** | Runs in CI on every push/PR.  Failure blocks merge. |
+| **smoke** | Runs in CI but failure is non-blocking, or opt-in flag. |
+| **scaffold** | Code exists but is not wired into any automated check. |
+| **none** | No implementation or test infrastructure exists. |
+
+## Target × Verification Surface
+
+### T1 — `wasm32-wasi-p1` (CLI default)
+
+| Surface | Status | Detail |
+|---------|--------|--------|
+| parse | guaranteed | 209 `run` + 18 `module-run` + 17 `diag` + 3 `module-diag` fixtures |
+| typecheck | guaranteed | same fixture set; type errors covered by `diag` entries |
+| compile (core Wasm) | guaranteed | all `run`/`module-run` fixtures compile before execution |
+| run (wasmtime) | guaranteed | stdout compared against `.expected` files |
+| emit component | n/a | component output is T3-only (`wasm32-wasi-p2`) |
+| emit WIT | n/a | WIT generation is T3-only |
+| host capabilities | guaranteed | `--deny-clock`, `--deny-random` hard-error placeholders |
+| determinism | smoke | `tests/baselines/fixture-baseline.json` spot-checked |
+| validator pass | guaranteed | `wasmparser` validation runs post-emit in debug builds |
+
+### T3 — `wasm32-wasi-p2` (GC-native, canonical target)
+
+| Surface | Status | Detail |
+|---------|--------|--------|
+| parse | guaranteed | shared frontend; same parser as T1 |
+| typecheck | guaranteed | shared frontend; same typechecker as T1 |
+| compile (core Wasm) | guaranteed | 5 `t3-run` + 161 `t3-compile` fixtures |
+| run (wasmtime) | guaranteed | 5 `t3-run` fixtures with stdout comparison |
+| emit component | smoke | 6 `component-compile` fixtures; skipped if `wasm-tools` absent |
+| emit WIT | smoke | `--emit wit` tested in component-compile fixtures |
+| host capabilities | guaranteed | WASI P2 imports conditionally emitted per reachability |
+| determinism | smoke | spot-checked via baselines |
+| validator pass | guaranteed | `wasmparser` validation runs post-emit |
+| compile-error | guaranteed | 10 `compile-error` fixtures verify expected failures |
+
+### T2 — `wasm32-wasi-p1` (linear memory, alternative)
+
+| Surface | Status | Detail |
+|---------|--------|--------|
+| all | none | T2 is not implemented.  No codegen, no tests, no scaffold. |
+
+### T4 — native (LLVM backend)
+
+| Surface | Status | Detail |
+|---------|--------|--------|
+| parse / typecheck | guaranteed | shared frontend |
+| compile | scaffold | `crates/ark-llvm` exists, excluded from default build (requires LLVM 18) |
+| run | none | no test infrastructure |
+| emit | scaffold | basic LLVM IR emission exists |
+| determinism | none | not applicable until compile is functional |
+
+### T5 — interpreter
+
+| Surface | Status | Detail |
+|---------|--------|--------|
+| all | none | T5 is not implemented.  No code, no tests, no scaffold. |
+
+## CI job mapping
+
+| CI job | Target | What runs |
+|--------|--------|-----------|
+| `correctness` | all | `verify-harness.sh --cargo --size --wat --docs` |
+| `target-behavior (wasm32-wasi-p1)` | T1 | `ARUKELLT_TARGET=wasm32-wasi-p1 cargo test -p arukellt --test harness` |
+| `target-behavior (wasm32-wasi-p2)` | T3 | `ARUKELLT_TARGET=wasm32-wasi-p2 cargo test -p arukellt --test harness` |
+| `perf-baseline` | T1 | `scripts/collect-baseline.py` (push-only) |
+
+## Component output: separate guarantee tier
+
+`--emit component` requires external `wasm-tools` and a WASI adapter
+module.  These are not bundled with the Arukellt binary.  Therefore:
+
+- Core Wasm output (`--emit core-wasm`) is **guaranteed** for T1 and T3.
+- Component output (`--emit component`) is **smoke** tier for T3.
+- If `wasm-tools` is not installed, component-compile fixtures are
+  skipped, not failed.
+- The CI environment does not currently install `wasm-tools`, so
+  component-compile is effectively skip-on-CI.
+
+## Updating this document
+
+This document should only be updated when:
+
+1. A new target is implemented or reaches a new verification tier.
+2. CI jobs are added or restructured.
+3. Fixture counts change significantly (regenerate via manifest counts).
+
+Current fixture counts (as of this commit):
+
+```text
+run:              209
+module-run:        18
+diag:              17
+module-diag:        3
+t3-run:             5
+t3-compile:       161
+component-compile:  6
+compile-error:     10
+bench:              5
+────────────────────
+total:            434
+```
