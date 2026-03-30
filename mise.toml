@@ -29,6 +29,11 @@ description = "Run clippy lints"
 run = "cargo fmt --all"
 description = "Format all code"
 
+[tasks."fmt:docs"]
+run = "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json"
+description = "Formatting for documentation"
+
+
 [tasks."fmt:check"]
 run = "cargo fmt --all --check"
 description = "Check formatting"

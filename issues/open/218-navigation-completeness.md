@@ -1,4 +1,4 @@
-# Navigation completeness
+# 193（rename / workspace symbols / structural search）とは別に、定義ジャンプ系と階層探索系の navigation 完成度を追う
 
 **Status**: open
 **Created**: 2026-03-30
@@ -11,7 +11,6 @@
 ## Summary
 
 go to implementation、go to type definition、call hierarchy、type hierarchy、module dependency navigation を実装する。
-# 193（rename / workspace symbols / structural search）とは別に、定義ジャンプ系と階層探索系の navigation 完成度を追う。
 
 ## Acceptance
 

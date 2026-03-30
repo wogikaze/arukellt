@@ -1,4 +1,4 @@
-# Task provider improvements
+# 190（done）で基本 task provider は実装済みだが、background task と事前 validation が未実装
 
 **Status**: open
 **Created**: 2026-03-30
@@ -11,7 +11,6 @@
 ## Summary
 
 background task 対応と task 実行前 validation を task provider に追加する。
-# 190（done）で基本 task provider は実装済みだが、background task と事前 validation が未実装。
 
 ## Acceptance
 
