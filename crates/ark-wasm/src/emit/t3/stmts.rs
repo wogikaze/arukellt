@@ -484,6 +484,8 @@ impl Ctx {
                 | "memory_copy"
                 | "memory_fill"
                 | "arg_count"
+                | "eq"
+                | "ne"
         ) || (name.starts_with("Vec_new_") && self.custom_vec_types.contains_key(&name[8..]))
     }
 
@@ -868,7 +870,9 @@ impl Ctx {
             | "starts_with"
             | "ends_with"
             | "__intrinsic_replace"
-            | "split" => {
+            | "split"
+            | "eq"
+            | "ne" => {
                 // Delegate to operand version then store/drop
                 self.emit_call_builtin_operand(f, canonical, args);
                 if let Some(Place::Local(id)) = dest {
@@ -1483,8 +1487,12 @@ impl Ctx {
                 }
             }
             "split" => {
-                // Stub: return empty Vec<String>
-                self.emit_vec_new_gc(f, self.vec_string_ty, self.arr_string_ty);
+                if args.len() >= 2 {
+                    self.emit_split_gc(f, args);
+                } else {
+                    // Stub: return empty Vec<String>
+                    self.emit_vec_new_gc(f, self.vec_string_ty, self.arr_string_ty);
+                }
             }
             "filter_i64" | "filter_f64" | "filter_i32" | "filter_String" => {
                 self.emit_filter_hof_gc(f, canonical, args);
@@ -1530,6 +1538,59 @@ impl Ctx {
                     f.instruction(&Instruction::I32Eqz);
                 } else {
                     f.instruction(&Instruction::I32Const(1));
+                }
+            }
+            "eq" => {
+                // eq(a, b) → type-dispatched equality
+                if args.len() >= 2 {
+                    let lhs = &args[0];
+                    let rhs = &args[1];
+                    if self.is_string_like_operand(lhs) || self.is_string_like_operand(rhs) {
+                        self.emit_operand(f, lhs);
+                        self.emit_operand(f, rhs);
+                        self.emit_string_eq_gc(f);
+                    } else if self.is_f64_like_operand(lhs) || self.is_f64_like_operand(rhs) {
+                        self.emit_operand_coerced(f, lhs, false, true);
+                        self.emit_operand_coerced(f, rhs, false, true);
+                        f.instruction(&Instruction::F64Eq);
+                    } else if self.is_i64_like_operand(lhs) || self.is_i64_like_operand(rhs) {
+                        self.emit_operand_coerced(f, lhs, true, false);
+                        self.emit_operand_coerced(f, rhs, true, false);
+                        f.instruction(&Instruction::I64Eq);
+                    } else {
+                        self.emit_operand(f, lhs);
+                        self.emit_operand(f, rhs);
+                        f.instruction(&Instruction::I32Eq);
+                    }
+                } else {
+                    f.instruction(&Instruction::I32Const(1)); // zero-arg eq = true
+                }
+            }
+            "ne" => {
+                // ne(a, b) → !eq(a, b)
+                if args.len() >= 2 {
+                    let lhs = &args[0];
+                    let rhs = &args[1];
+                    if self.is_string_like_operand(lhs) || self.is_string_like_operand(rhs) {
+                        self.emit_operand(f, lhs);
+                        self.emit_operand(f, rhs);
+                        self.emit_string_eq_gc(f);
+                        f.instruction(&Instruction::I32Eqz);
+                    } else if self.is_f64_like_operand(lhs) || self.is_f64_like_operand(rhs) {
+                        self.emit_operand_coerced(f, lhs, false, true);
+                        self.emit_operand_coerced(f, rhs, false, true);
+                        f.instruction(&Instruction::F64Ne);
+                    } else if self.is_i64_like_operand(lhs) || self.is_i64_like_operand(rhs) {
+                        self.emit_operand_coerced(f, lhs, true, false);
+                        self.emit_operand_coerced(f, rhs, true, false);
+                        f.instruction(&Instruction::I64Ne);
+                    } else {
+                        self.emit_operand(f, lhs);
+                        self.emit_operand(f, rhs);
+                        f.instruction(&Instruction::I32Ne);
+                    }
+                } else {
+                    f.instruction(&Instruction::I32Const(0)); // zero-arg ne = false
                 }
             }
             _ if canonical.starts_with("Vec_new_") => {

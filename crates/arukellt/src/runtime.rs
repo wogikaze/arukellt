@@ -110,6 +110,12 @@ pub(crate) fn run_wasm_gc(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
 
     let mut config = Config::new();
     config.wasm_gc(true);
+    // Use the null (non-collecting) GC to work around a wasmtime 29.x DRC bug
+    // where `struct.get` results pushed onto the Wasm value stack are not
+    // registered in the VMGcRefActivationsTable, causing a panic on the next
+    // GC cycle.  The null collector never frees objects; this is acceptable for
+    // short-lived program runs.  Track: upgrade wasmtime once ≥30 is tested.
+    config.collector(Collector::Null);
 
     let engine =
         Engine::new(&config).map_err(|e| format!("engine creation error (GC): {:?}", e))?;

@@ -2338,9 +2338,37 @@ impl Ctx {
 
         let mut f = Function::new(local_types);
 
+        // Build the set of Wasm local indices that hold GC references.
+        // The local.tee peephole optimization is suppressed for these to avoid
+        // a wasmtime DRC GC issue where the stack copy left by local.tee is not
+        // registered in the VMGcRefActivationsTable.
+        let gc_ref_locals: std::collections::HashSet<u32> = self
+            .string_locals
+            .iter()
+            .copied()
+            .chain(self.local_struct.keys().copied())
+            .chain(self.local_enum.keys().copied())
+            .chain(self.any_locals.iter().copied())
+            .chain(self.i32_vec_locals.iter().copied())
+            .chain(self.i64_vec_locals.iter().copied())
+            .chain(self.f64_vec_locals.iter().copied())
+            .chain(self.string_vec_locals.iter().copied())
+            .chain(self.struct_vec_locals.keys().copied())
+            // Scratch string/anyref locals
+            .chain([
+                self.scratch_base + 4,
+                self.scratch_base + 5,
+                self.scratch_base + 8,
+                self.scratch_base + 10,
+                self.scratch_base + 11,
+                self.scratch_base + 12,
+            ])
+            .collect();
+
         // Wrap in PeepholeWriter for local.set/get → local.tee optimization
         let tee_count = {
-            let mut w = PeepholeWriter::new(&mut f, self.opt_level);
+            let mut w =
+                PeepholeWriter::with_gc_ref_locals(&mut f, self.opt_level, gc_ref_locals);
 
             // Emit statements from entry block
             if let Some(block) = func.blocks.first() {

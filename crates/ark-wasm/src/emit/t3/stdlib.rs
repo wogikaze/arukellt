@@ -28,11 +28,13 @@ impl Ctx {
         let len_b = self.si(1);
         let sty = self.string_ty;
 
-        // Evaluate operands into scratch ref locals
-        self.emit_operand(f, &args[0]);
-        f.instruction(&Instruction::LocalSet(s0));
-        self.emit_operand(f, &args[1]);
-        f.instruction(&Instruction::LocalSet(s1));
+        // Evaluate both operands onto the Wasm stack first, then pop into scratch
+        // locals. This prevents inner (nested) concat calls from clobbering s0/s1
+        // before the outer call has a chance to read them.
+        self.emit_operand(f, &args[0]); // stack: [ref_a]
+        self.emit_operand(f, &args[1]); // stack: [ref_a, ref_b]
+        f.instruction(&Instruction::LocalSet(s1)); // pop ref_b
+        f.instruction(&Instruction::LocalSet(s0)); // pop ref_a
 
         // Get lengths
         f.instruction(&Instruction::LocalGet(s0));
@@ -76,7 +78,200 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(s_result));
     }
 
-    /// clone(s) → new GC string copy
+    /// split(s, delim) → Vec<String>
+    /// Splits `s` on occurrences of `delim`.  Empty delimiter pushes `s` as
+    /// the sole element.  Scratch locals: si(4)=s, si(5)=delim, si(12)=result
+    /// vec, si(8)=segment, si(0)=s_len, si(1)=delim_len, si(2)=i, si(3)=j/tmp,
+    /// si(9)=start.
+    pub(super) fn emit_split_gc(&mut self, f: &mut PeepholeWriter<'_>, args: &[Operand]) {
+        let s0 = self.si(4);
+        let s1 = self.si(5);
+        let s_len = self.si(0);
+        let delim_len = self.si(1);
+        let i = self.si(2);
+        let j = self.si(3);
+        let start = self.si(9);
+        let seg_ref = self.si(8);
+        let vec_ref = self.si(12);
+        let sty = self.string_ty;
+        let vty = self.vec_string_ty;
+        let aty = self.arr_string_ty;
+
+        // Load s and delim
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(s0));
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(s1));
+
+        // Compute lengths
+        f.instruction(&Instruction::LocalGet(s0));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(s_len));
+        f.instruction(&Instruction::LocalGet(s1));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(delim_len));
+
+        // Allocate result vec
+        f.instruction(&Instruction::RefNull(HeapType::Concrete(sty)));
+        f.instruction(&Instruction::I32Const(16384));
+        f.instruction(&Instruction::ArrayNew(aty));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::StructNew(vty));
+        f.instruction(&Instruction::LocalSet(vec_ref));
+
+        // Init loop state
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(start));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(i));
+
+        // if delim_len == 0: push s as sole element; else: run loop
+        f.instruction(&Instruction::LocalGet(delim_len));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // empty delimiter → push s as sole element
+        f.instruction(&Instruction::LocalGet(vec_ref));
+        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 0 });
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalGet(s0));
+        f.instruction(&Instruction::ArraySet(aty));
+        f.instruction(&Instruction::LocalGet(vec_ref));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::StructSet { struct_type_index: vty, field_index: 1 });
+        f.instruction(&Instruction::Else);
+
+        // Main loop: while i + delim_len <= s_len
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // break if i + delim_len > s_len
+        f.instruction(&Instruction::LocalGet(i));
+        f.instruction(&Instruction::LocalGet(delim_len));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(s_len));
+        f.instruction(&Instruction::I32GtU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // Inner: try to match delim at position i; j counts matched bytes
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(j));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::LocalGet(delim_len));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1)); // all bytes matched
+        f.instruction(&Instruction::LocalGet(s0));
+        f.instruction(&Instruction::LocalGet(i));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::ArrayGetU(sty));
+        f.instruction(&Instruction::LocalGet(s1));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::ArrayGetU(sty));
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::BrIf(1)); // mismatch
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(j));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end inner loop
+        f.instruction(&Instruction::End); // end inner block
+
+        // if j == delim_len: full match
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::LocalGet(delim_len));
+        f.instruction(&Instruction::I32Eq);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+
+        // Extract segment s[start..i]
+        // seg_len = i - start (reuse j for this)
+        f.instruction(&Instruction::LocalGet(i));
+        f.instruction(&Instruction::LocalGet(start));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::LocalSet(j)); // j = seg_len
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::ArrayNew(sty));
+        f.instruction(&Instruction::LocalSet(seg_ref));
+        f.instruction(&Instruction::LocalGet(seg_ref));
+        f.instruction(&Instruction::I32Const(0)); // dst_off
+        f.instruction(&Instruction::LocalGet(s0)); // src
+        f.instruction(&Instruction::LocalGet(start)); // src_off
+        f.instruction(&Instruction::LocalGet(j)); // len
+        f.instruction(&Instruction::ArrayCopy { array_type_index_dst: sty, array_type_index_src: sty });
+
+        // Inline push: backing[vec_len] = seg_ref; vec_len += 1
+        f.instruction(&Instruction::LocalGet(vec_ref));
+        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 1 });
+        f.instruction(&Instruction::LocalSet(j)); // j = vec_len (reuse)
+        f.instruction(&Instruction::LocalGet(vec_ref));
+        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 0 });
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::LocalGet(seg_ref));
+        f.instruction(&Instruction::ArraySet(aty));
+        f.instruction(&Instruction::LocalGet(vec_ref));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::StructSet { struct_type_index: vty, field_index: 1 });
+
+        // Advance: start = i + delim_len; i = start
+        f.instruction(&Instruction::LocalGet(i));
+        f.instruction(&Instruction::LocalGet(delim_len));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(start));
+        f.instruction(&Instruction::LocalGet(start));
+        f.instruction(&Instruction::LocalSet(i));
+
+        f.instruction(&Instruction::Else);
+        // No match: i++
+        f.instruction(&Instruction::LocalGet(i));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(i));
+        f.instruction(&Instruction::End); // end if match
+
+        f.instruction(&Instruction::Br(0)); // continue outer loop
+        f.instruction(&Instruction::End); // end outer loop
+        f.instruction(&Instruction::End); // end outer block
+
+        // Final segment: s[start..s_len]
+        f.instruction(&Instruction::LocalGet(s_len));
+        f.instruction(&Instruction::LocalGet(start));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::LocalSet(j)); // j = seg_len
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::ArrayNew(sty));
+        f.instruction(&Instruction::LocalSet(seg_ref));
+        f.instruction(&Instruction::LocalGet(seg_ref));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalGet(s0));
+        f.instruction(&Instruction::LocalGet(start));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::ArrayCopy { array_type_index_dst: sty, array_type_index_src: sty });
+        // Inline push final segment
+        f.instruction(&Instruction::LocalGet(vec_ref));
+        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 1 });
+        f.instruction(&Instruction::LocalSet(j));
+        f.instruction(&Instruction::LocalGet(vec_ref));
+        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 0 });
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::LocalGet(seg_ref));
+        f.instruction(&Instruction::ArraySet(aty));
+        f.instruction(&Instruction::LocalGet(vec_ref));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::StructSet { struct_type_index: vty, field_index: 1 });
+
+        f.instruction(&Instruction::End); // end else branch
+
+        // Leave result vec on stack
+        f.instruction(&Instruction::LocalGet(vec_ref));
+    }
     pub(super) fn emit_string_clone_gc(&mut self, f: &mut PeepholeWriter<'_>, arg: &Operand) {
         let s0 = self.si(4);
         let len = self.si(0);

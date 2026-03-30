@@ -8,6 +8,16 @@
 //!
 //! This avoids the redundant store-then-load by keeping the value on the stack
 //! while also writing it to the local.
+//!
+//! **GC ref exemption**: This optimization is intentionally skipped for locals
+//! that hold GC references (structs, strings, enums, vecs, any). Wasmtime's
+//! deferred reference-counting (DRC) GC does not re-register the stack copy
+//! produced by `local.tee` in its `VMGcRefActivationsTable`, which causes a
+//! panic when subsequent instructions (e.g. `struct.get`) try to read through
+//! that untracked GC ref.  For GC-ref locals we emit the canonical
+//! `local.set` / `local.get` pair so wasmtime always sees a tracked ref.
+
+use std::collections::HashSet;
 
 use wasm_encoder::{Function, Instruction};
 
@@ -16,12 +26,17 @@ use wasm_encoder::{Function, Instruction};
 ///
 /// When `enabled` (opt_level >= 1), it buffers a pending `local.set X` and,
 /// if the very next instruction is `local.get X` for the same index, emits
-/// `local.tee X` instead of the set+get pair.
+/// `local.tee X` instead of the set+get pair — **except** for locals whose
+/// index appears in `gc_ref_locals`, where the optimization is suppressed to
+/// avoid a wasmtime DRC GC tracking issue.
 pub(super) struct PeepholeWriter<'a> {
     func: &'a mut Function,
     pending_set: Option<u32>,
     enabled: bool,
     tee_count: usize,
+    /// Local indices that hold GC references; the tee optimization is
+    /// suppressed for these to avoid wasmtime DRC activation-table issues.
+    gc_ref_locals: HashSet<u32>,
 }
 
 impl<'a> PeepholeWriter<'a> {
@@ -31,6 +46,23 @@ impl<'a> PeepholeWriter<'a> {
             pending_set: None,
             enabled: opt_level >= 1,
             tee_count: 0,
+            gc_ref_locals: HashSet::new(),
+        }
+    }
+
+    /// Create a PeepholeWriter with a known set of GC-ref local indices.
+    /// The `local.tee` optimization is suppressed for any local in this set.
+    pub fn with_gc_ref_locals(
+        func: &'a mut Function,
+        opt_level: u8,
+        gc_ref_locals: HashSet<u32>,
+    ) -> Self {
+        Self {
+            func,
+            pending_set: None,
+            enabled: opt_level >= 1,
+            tee_count: 0,
+            gc_ref_locals,
         }
     }
 
@@ -45,7 +77,13 @@ impl<'a> PeepholeWriter<'a> {
             Instruction::LocalSet(x) => {
                 // Flush any previous pending set before buffering the new one.
                 self.flush_pending();
-                self.pending_set = Some(*x);
+                // Don't buffer GC-ref locals — emit immediately to avoid the
+                // tee optimization that confuses wasmtime DRC tracking.
+                if self.gc_ref_locals.contains(x) {
+                    self.func.instruction(inst);
+                } else {
+                    self.pending_set = Some(*x);
+                }
             }
             Instruction::LocalGet(x) if self.pending_set == Some(*x) => {
                 // local.set X ; local.get X  →  local.tee X

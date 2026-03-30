@@ -88,7 +88,12 @@ impl Ctx {
                             array_data_index: abs_seg,
                         });
                         let scratch = self.si(8); // ref scratch local
-                        f.instruction(&Instruction::LocalTee(scratch));
+                        // Use local.set + local.get instead of local.tee to avoid
+                        // a wasmtime DRC GC tracking issue: local.tee on a newly
+                        // allocated GC ref doesn't register the stack residual in
+                        // the VMGcRefActivationsTable, causing a GC panic.
+                        f.instruction(&Instruction::LocalSet(scratch));
+                        f.instruction(&Instruction::LocalGet(scratch));
                         f.instruction(&Instruction::GlobalSet(global_idx));
                         f.instruction(&Instruction::LocalGet(scratch));
                     }
