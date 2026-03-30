@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `target-behavior` job の matrix 値が harness 実行時の `--target` / `--emit` 引数に注入されている
-- [ ] `wasm32-wasi-p1` と `wasm32-wasi-p2` のジョブが異なる CLI 引数で実行される
-- [ ] emit-core と emit-component が target ごとに分離した step として実行される
-- [ ] CI ログで「どの target の、どの emit 種別のテスト」かが判別できる
+- [x] `target-behavior` job の matrix 値が harness 実行時の `--target` / `--emit` 引数に注入されている
+- [x] `wasm32-wasi-p1` と `wasm32-wasi-p2` のジョブが異なる CLI 引数で実行される
+- [x] emit-core と emit-component が target ごとに分離した step として実行される
+- [x] CI ログで「どの target の、どの emit 種別のテスト」かが判別できる
 
 ## Scope
 

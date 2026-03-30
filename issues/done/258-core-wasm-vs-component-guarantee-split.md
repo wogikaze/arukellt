@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `docs/target-contract.md` で `emit-core` と `emit-component` が別行として定義されている
-- [ ] CI で core Wasm 検証と component 検証が独立した step として実行される
-- [ ] `wasm-tools` / adapter 依存の有無が target contract に明記されている
-- [ ] component 出力が optional smoke tier であることが CI のジョブ名・docs の両方で明確になっている
+- [x] `docs/target-contract.md` で `emit-core` と `emit-component` が別行として定義されている
+- [x] CI で core Wasm 検証と component 検証が独立した step として実行される
+- [x] `wasm-tools` / adapter 依存の有無が target contract に明記されている
+- [x] component 出力が optional smoke tier であることが CI のジョブ名・docs の両方で明確になっている
 
 ## Scope
 

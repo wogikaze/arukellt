@@ -1,3 +1,4 @@
 docs/spec/
 target/
 extensions/arukellt-all-in-one/node_modules/
+extensions/arukellt-all-in-one/.vscode-test/

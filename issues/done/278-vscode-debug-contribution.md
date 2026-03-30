@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `package.json` に `contributes.debuggers` エントリが追加されている
-- [ ] `.ark` ファイルのデフォルト launch configuration template が提供されている
-- [ ] `type: "arukellt"` の launch configuration で `arukellt debug-adapter` が起動する
-- [ ] F5 キーで `.ark` ファイルのデバッグを開始できる
+- [x] `package.json` に `contributes.debuggers` エントリが追加されている
+- [x] `.ark` ファイルのデフォルト launch configuration template が提供されている
+- [x] `type: "arukellt"` の launch configuration で `arukellt debug-adapter` が起動する
+- [x] F5 キーで `.ark` ファイルのデバッグを開始できる
 
 ## Scope
 

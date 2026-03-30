@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `scripts/verify-bootstrap.sh` が Stage 0/1/2 を条件なしで逐次実行する
-- [ ] Stage 0 の失敗時に具体的なエラーメッセージとデバッグヒントを出力して終了する（skip しない）
-- [ ] Stage 2 で byte-exact fixpoint を確認するステップが有効になっている
-- [ ] スクリプトが `--check` モードで「達成済みか否か」を exit code で返せる
+- [x] `scripts/verify-bootstrap.sh` が Stage 0/1/2 を条件なしで逐次実行する
+- [x] Stage 0 の失敗時に具体的なエラーメッセージとデバッグヒントを出力して終了する（skip しない）
+- [x] Stage 2 で byte-exact fixpoint を確認するステップが有効になっている
+- [x] スクリプトが `--check` モードで「達成済みか否か」を exit code で返せる
 
 ## Scope
 

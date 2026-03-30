@@ -72,11 +72,8 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
                     "event": "initialized",
                 });
                 let event_json = serde_json::to_string(&initialized_event)?;
-                let event_msg = format!(
-                    "Content-Length: {}\r\n\r\n{}",
-                    event_json.len(),
-                    event_json
-                );
+                let event_msg =
+                    format!("Content-Length: {}\r\n\r\n{}", event_json.len(), event_json);
                 // event will be sent after the response below
                 send_after_response = Some(event_msg);
             }
@@ -89,11 +86,8 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
                     "event": "terminated",
                 });
                 let event_json = serde_json::to_string(&terminated_event)?;
-                let event_msg = format!(
-                    "Content-Length: {}\r\n\r\n{}",
-                    event_json.len(),
-                    event_json
-                );
+                let event_msg =
+                    format!("Content-Length: {}\r\n\r\n{}", event_json.len(), event_json);
                 send_after_response = Some(event_msg);
             }
             "threads" => {

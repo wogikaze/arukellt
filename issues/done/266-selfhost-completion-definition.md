@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `docs/compiler/bootstrap.md` に selfhost 完了条件が「checklist」として明記されている
-- [ ] 完了条件が `Stage0→Stage1→Stage2 fixpoint` / `Stage1 fixture parity` / `CLI parity` / `diagnostic parity` / `determinism` の 5 項目で構成されている
-- [ ] 各項目の「達成 / 未達」を判定するコマンドまたは CI ジョブが対応付けられている
-- [ ] `docs/current-state.md` の selfhost セクションがこの checklist を参照している
+- [x] `docs/compiler/bootstrap.md` に selfhost 完了条件が「checklist」として明記されている
+- [x] 完了条件が `Stage0→Stage1→Stage2 fixpoint` / `Stage1 fixture parity` / `CLI parity` / `diagnostic parity` / `determinism` の 5 項目で構成されている
+- [x] 各項目の「達成 / 未達」を判定するコマンドまたは CI ジョブが対応付けられている
+- [x] `docs/current-state.md` の selfhost セクションがこの checklist を参照している
 
 ## Scope
 

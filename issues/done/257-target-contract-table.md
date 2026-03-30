@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `docs/target-contract.md` が作成されている
-- [ ] target × 検証面（parse / check / compile / run / emit-core / emit-component / wit / host-capability / determinism / validator-pass）のマトリクスが定義されている
-- [ ] 各セルに保証レベル（guaranteed / smoke / scaffold / none）が明記されている
-- [ ] T1/T3（実装済み）と T2/T4/T5（未実装）がそれぞれ異なる保証レベルで記載されている
+- [x] `docs/target-contract.md` が作成されている
+- [x] target × 検証面（parse / check / compile / run / emit-core / emit-component / wit / host-capability / determinism / validator-pass）のマトリクスが定義されている
+- [x] 各セルに保証レベル（guaranteed / smoke / scaffold / none）が明記されている
+- [x] T1/T3（実装済み）と T2/T4/T5（未実装）がそれぞれ異なる保証レベルで記載されている
 
 ## Scope
 

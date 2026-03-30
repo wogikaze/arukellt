@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `@vscode/test-cli` または `@vscode/test-electron` が devDependency に追加されている
-- [ ] `package.json` の `test` スクリプトで `vscode-test` が実行される
-- [ ] CI ジョブ（headless Linux、Xvfb 等）で extension テストが実行される
-- [ ] テスト実行結果が CI ログに出力される（合否・件数）
+- [x] `@vscode/test-cli` または `@vscode/test-electron` が devDependency に追加されている
+- [x] `package.json` の `test` スクリプトで `vscode-test` が実行される
+- [x] CI ジョブ（headless Linux、Xvfb 等）で extension テストが実行される
+- [x] テスト実行結果が CI ログに出力される（合否・件数）
 
 ## Scope
 

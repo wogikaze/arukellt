@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `docs/test-strategy.md` が作成されている
-- [ ] `unit / fixture / integration / target-contract / component-interop / package-workspace / bootstrap / editor-tooling / perf / determinism` の各カテゴリの定義・対象・合否基準が記載されている
-- [ ] 各カテゴリが「language / backend / tooling」のどの regression 層に対応するかがマップされている
-- [ ] 新機能追加時にどのカテゴリのテストが必要かを決める判断フローが記載されている
+- [x] `docs/test-strategy.md` が作成されている
+- [x] `unit / fixture / integration / target-contract / component-interop / package-workspace / bootstrap / editor-tooling / perf / determinism` の各カテゴリの定義・対象・合否基準が記載されている
+- [x] 各カテゴリが「language / backend / tooling」のどの regression 層に対応するかがマップされている
+- [x] 新機能追加時にどのカテゴリのテストが必要かを決める判断フローが記載されている
 
 ## Scope
 

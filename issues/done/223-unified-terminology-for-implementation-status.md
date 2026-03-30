@@ -16,10 +16,10 @@
 
 ## Acceptance
 
-- [ ] 実装状態を表す用語セット（stable / provisional / experimental / unimplemented / blocked / removed）が ADR として文書化されている
-- [ ] 各用語の定義・使い分け基準・表記方法が明確になっている
-- [ ] 主要文書（README・current-state.md・issues・ADR・仕様書）への適用が完了している
-- [ ] 新しい文書を書く際の用語選択ガイドが存在する
+- [x] 実装状態を表す用語セット（stable / provisional / experimental / unimplemented / blocked / removed）が ADR として文書化されている
+- [x] 各用語の定義・使い分け基準・表記方法が明確になっている
+- [x] 主要文書（README・current-state.md・issues・ADR・仕様書）への適用が完了している
+- [x] 新しい文書を書く際の用語選択ガイドが存在する
 
 ## Scope
 

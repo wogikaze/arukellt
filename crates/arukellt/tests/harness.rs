@@ -500,7 +500,11 @@ fn fixture_harness() {
     eprintln!("\n--- Fixture Results ---");
     eprintln!(
         "PASS: {} FAIL: {} SKIP: {} (scheduled: {}, total manifest: {})",
-        passed, failed, skipped, scheduled, entries.len()
+        passed,
+        failed,
+        skipped,
+        scheduled,
+        entries.len()
     );
     if let Some(ref target) = target_filter {
         eprintln!("Target: {}", target);
