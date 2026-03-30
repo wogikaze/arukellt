@@ -566,7 +566,7 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) 
 
     if list {
         if json {
-            println!("{}", serde_json::to_string(&tests).unwrap());
+            println!("{}", serde_json::to_string(&tests).expect("test list serialization"));
         } else {
             for t in tests {
                 println!("{}", t);
@@ -586,7 +586,7 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) 
                     failed: 0,
                     total_duration_ms: 0.0,
                 })
-                .unwrap()
+                .expect("empty suite serialization")
             );
         } else {
             println!("no tests found in {}", file.display());
@@ -609,7 +609,7 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) 
         if !json {
             print!("test {} ... ", test_name);
             use std::io::Write;
-            std::io::stdout().flush().unwrap();
+            std::io::stdout().flush().ok();
         }
         let t_start = std::time::Instant::now();
         let compile_result = session.compile_with_entry(&file, target, selection, Some(&test_name));
@@ -677,7 +677,7 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) 
             failed,
             total_duration_ms: suite_duration,
         };
-        println!("{}", serde_json::to_string(&suite).unwrap());
+        println!("{}", serde_json::to_string(&suite).expect("test suite serialization"));
     } else {
         println!();
         println!(
@@ -694,30 +694,58 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) 
 }
 
 pub(crate) fn cmd_script_list(json: bool) {
-    let root = Manifest::find_root(&std::env::current_dir().unwrap()).unwrap_or_else(|| {
+    let cwd = match std::env::current_dir() {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("error: cannot determine current directory: {}", e);
+            process::exit(1);
+        }
+    };
+    let root = Manifest::find_root(&cwd).unwrap_or_else(|| {
         eprintln!("error: ark.toml not found in current directory or any parent");
         process::exit(1);
     });
-    let manifest = Manifest::load_from_dir(&root).unwrap();
+    let manifest = match Manifest::load_from_dir(&root) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("error: failed to load ark.toml in {}: {}", root.display(), e);
+            process::exit(1);
+        }
+    };
 
     if json {
-        println!("{}", serde_json::to_string(&manifest.scripts).unwrap());
+        println!("{}", serde_json::to_string(&manifest.scripts).expect("scripts serialization"));
     } else {
         println!("Scripts in {}:", root.display());
         let mut names: Vec<_> = manifest.scripts.keys().collect();
         names.sort();
         for name in names {
-            println!("  {:10}  {}", name, manifest.scripts.get(name).unwrap());
+            if let Some(cmd) = manifest.scripts.get(name) {
+                println!("  {:10}  {}", name, cmd);
+            }
         }
     }
 }
 
 pub(crate) fn cmd_script_run(name: String, extra_args: Vec<String>) {
-    let root = Manifest::find_root(&std::env::current_dir().unwrap()).unwrap_or_else(|| {
+    let cwd = match std::env::current_dir() {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("error: cannot determine current directory: {}", e);
+            process::exit(1);
+        }
+    };
+    let root = Manifest::find_root(&cwd).unwrap_or_else(|| {
         eprintln!("error: ark.toml not found in current directory or any parent");
         process::exit(1);
     });
-    let manifest = Manifest::load_from_dir(&root).unwrap();
+    let manifest = match Manifest::load_from_dir(&root) {
+        Ok(m) => m,
+        Err(e) => {
+            eprintln!("error: failed to load ark.toml in {}: {}", root.display(), e);
+            process::exit(1);
+        }
+    };
 
     let script = manifest.scripts.get(&name).unwrap_or_else(|| {
         eprintln!("error: script `{}` not found in ark.toml", name);
@@ -730,24 +758,35 @@ pub(crate) fn cmd_script_run(name: String, extra_args: Vec<String>) {
         format!("{} {}", script, extra_args.join(" "))
     };
 
-    let mut child = if cfg!(target_os = "windows") {
+    let child = if cfg!(target_os = "windows") {
         process::Command::new("cmd")
             .arg("/C")
             .arg(&full_command)
             .current_dir(&root)
             .spawn()
-            .unwrap()
     } else {
         process::Command::new("sh")
             .arg("-c")
             .arg(&full_command)
             .current_dir(&root)
             .spawn()
-            .unwrap()
     };
 
-    let status = child.wait().unwrap();
-    process::exit(status.code().unwrap_or(1));
+    let mut child = match child {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("error: failed to run script `{}`: {}", name, e);
+            process::exit(1);
+        }
+    };
+
+    match child.wait() {
+        Ok(status) => process::exit(status.code().unwrap_or(1)),
+        Err(e) => {
+            eprintln!("error: script `{}` failed: {}", name, e);
+            process::exit(1);
+        }
+    }
 }
 
 pub(crate) fn cmd_targets() {
@@ -755,12 +794,24 @@ pub(crate) fn cmd_targets() {
 }
 
 pub(crate) fn cmd_lsp() {
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            eprintln!("error: failed to start async runtime for LSP: {}", e);
+            process::exit(1);
+        }
+    };
     rt.block_on(ark_lsp::run_lsp());
 }
 
 pub(crate) fn cmd_debug_adapter() {
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            eprintln!("error: failed to start async runtime for debug adapter: {}", e);
+            process::exit(1);
+        }
+    };
     if let Err(e) = rt.block_on(ark_dap::run_dap()) {
         eprintln!("error: debug adapter: {}", e);
         process::exit(1);
