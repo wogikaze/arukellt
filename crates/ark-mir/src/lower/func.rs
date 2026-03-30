@@ -327,10 +327,13 @@ pub fn lower_to_mir(
             let entry = BlockId(0);
             let mut stmts = ctx.lower_block(&f.body);
 
-            // Handle tail expression: if it's a void call (println etc.),
-            // lower it as a statement. Otherwise, it's the return value.
+            // Handle tail expression: lower as a statement (void) when the
+            // function declares no return type (unit), or when the expression
+            // is a known void call. Otherwise treat it as the return value.
+            let fn_returns_unit = f.return_type.is_none()
+                || matches!(&f.return_type, Some(ast::TypeExpr::Unit(_)));
             let tail_op = if let Some(tail) = &f.body.tail_expr {
-                if is_void_expr(tail) {
+                if fn_returns_unit || is_void_expr(tail) {
                     ctx.lower_expr_stmt(tail, &mut stmts);
                     None
                 } else {
@@ -511,8 +514,10 @@ pub fn lower_to_mir(
                 let entry = BlockId(0);
                 let mut stmts = ctx.lower_block(&method.body);
 
+                let method_returns_unit = method.return_type.is_none()
+                    || matches!(&method.return_type, Some(ast::TypeExpr::Unit(_)));
                 let tail_op = if let Some(tail) = &method.body.tail_expr {
-                    if is_void_expr(tail) {
+                    if method_returns_unit || is_void_expr(tail) {
                         ctx.lower_expr_stmt(tail, &mut stmts);
                         None
                     } else {
