@@ -163,7 +163,11 @@ enum Commands {
         subcommand: ScriptCommands,
     },
     /// Start the LSP server (stdio transport)
-    Lsp,
+    Lsp {
+        /// Use stdio transport (default and only supported transport; accepted for compatibility)
+        #[arg(long)]
+        stdio: bool,
+    },
     /// Start the DAP debug adapter (stdio transport)
     DebugAdapter,
     /// Analyze a compiled Wasm binary
@@ -272,7 +276,7 @@ fn main() {
                 commands::cmd_script_run(name, args);
             }
         },
-        Commands::Lsp => {
+        Commands::Lsp { .. } => {
             commands::cmd_lsp();
         }
         Commands::DebugAdapter => {
