@@ -13,3 +13,4 @@ ark-mir = { workspace = true }
 ark-wasm = { workspace = true }
 ark-diagnostics = { workspace = true }
 ark-target = { workspace = true }
+serde = { workspace = true }
