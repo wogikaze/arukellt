@@ -25,6 +25,11 @@ graph TD
   I236["236 CLI 起動契約を明確化する（LSP 起動方法・バージョン検出・stdio 扱い）"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I250["250 benchmark measurement plan: GC vs linear memory decision data"]
+  I251["251 ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする"]
+  I252["252 テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する"]
+  I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
+  I254["254 VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる"]
+  I255["255 デバッグ体験を「DAP の箱がある」状態から、実際に使える end-to-end workflow にする"]
   I027["027 GC-native full verification, cleanup, and ADR update"]
   I239["239 日常利用に必要な LSP 基本機能を完成させる"]
   I222["222 README を現在の利用可能面を正確に示す入口に更新する"]
@@ -36,6 +41,12 @@ graph TD
   I233["233 module / package / workspace / dependency の解決規則を仕様として固定する"]
   I237["237 バイナリ探索・server.path・起動引数の統合と自動設定を実装する"]
   I238["238 project root・target・emit・manifest・scripts の CLI/LSP/Tasks 解決を統一する"]
+  I256["256 CI の target matrix に実際の CLI 引数・emit 種別を注入する"]
+  I257["257 target ごとの検証面テーブルを定義する"]
+  I261["261 テストカテゴリ分類スキームを定義する"]
+  I266["266 selfhost 完了条件を定義し文書に固定する"]
+  I271["271 VS Code extension test runner を配線する"]
+  I276["276 DAP 基本動詞を実装する（launch/threads/stackTrace/scopes/variables）"]
   I242["242 CI を unit/fixture/integration/packaging/editor smoke/determinism の各層で構成する"]
   I227["227 構文・型システム・import・visibility・error model の契約を文書化する"]
   I228["228 stdlib 全公開 API に安定性ラベルと互換ポリシーを付与する"]
@@ -43,10 +54,29 @@ graph TD
   I234["234 visibility・public API・internal API を言語機能として確立する"]
   I235["235 コンパイラ/CLI/LSP ツール層: multi-root workspace・script 実行・target 設定の解決統一"]
   I240["240 エラー時の診断案内（何が足りないか・どこを直すか）を実装する"]
+  I258["258 core Wasm と component 出力の保証レベルを分離する"]
+  I259["259 未実装 target (T2/T4/T5) の検証配線状況を文書化する"]
+  I260["260 current-state.md の target 表を CI 結果からのみ更新する仕組みを作る"]
+  I262["262 component interop テストを回帰面として整備する"]
+  I263["263 package/workspace/manifest resolution テストを第一級化する"]
+  I267["267 verify-bootstrap.sh を達成判定本体へ昇格させる"]
+  I270["270 current-state.md の selfhost 記述を verified ベースに更新する"]
+  I272["272 install/activate/binary discovery の E2E を実装する"]
+  I277["277 setBreakpoints/continue/next/disconnect を実装する"]
+  I278["278 VS Code 拡張に debug contribution を追加する"]
   I243["243 ユーザー到達経路での panic/unwrap/起動失敗の即時 issue 化品質基準を確立する"]
   I244["244 最適化・backend の「無効でも使える/有効でも壊さない」検証体制を構築する"]
   I229["229 Quickstart を「今後も基準になる書き方」に更新する"]
+  I264["264 CI 上でテストカテゴリ別ジョブを構成する"]
+  I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
+  I273["273 LSP handshake・command execution・task execution の E2E を実装する"]
+  I275["275 失敗ログの検証面（output channel・status bar・user message）を確立する"]
+  I279["279 T1/T3 debug 対象範囲を定義し canonical path で end-to-end 確認する"]
+  I280["280 DAP smoke test と E2E test を配線する"]
   I245["245 配布物・統合面・失敗時の回復性の出荷品質基準を策定する"]
+  I265["265 失敗時の層別特定（language/backend/tooling regression）を可能にする"]
+  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
+  I274["274 test controller discovery と restart の E2E を実装する"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I026 --> I027
   I219 --> I239
@@ -61,6 +91,12 @@ graph TD
   I236 --> I237
   I231 --> I238
   I236 --> I238
+  I251 --> I256
+  I251 --> I257
+  I252 --> I261
+  I253 --> I266
+  I254 --> I271
+  I255 --> I276
   I241 --> I242
   I226 --> I227
   I226 --> I228
@@ -70,14 +106,39 @@ graph TD
   I233 --> I235
   I237 --> I240
   I239 --> I240
+  I257 --> I258
+  I257 --> I259
+  I256 --> I260
+  I257 --> I260
+  I261 --> I262
+  I261 --> I263
+  I266 --> I267
+  I266 --> I270
+  I271 --> I272
+  I276 --> I277
+  I276 --> I278
   I242 --> I243
   I241 --> I244
   I242 --> I244
   I226 --> I229
   I227 --> I229
+  I261 --> I264
+  I262 --> I264
+  I263 --> I264
+  I267 --> I268
+  I272 --> I273
+  I272 --> I275
+  I277 --> I279
+  I278 --> I279
+  I277 --> I280
+  I278 --> I280
   I241 --> I245
   I242 --> I245
   I243 --> I245
+  I264 --> I265
+  I266 --> I269
+  I268 --> I269
+  I273 --> I274
 ```
 
 ## Adjacency list
@@ -101,6 +162,11 @@ graph TD
 - **236** depends on: none; blocks: 237, 238
 - **249** depends on: none; blocks: none
 - **250** depends on: none; blocks: none
+- **251** depends on: none; blocks: 256, 257
+- **252** depends on: none; blocks: 261
+- **253** depends on: none; blocks: 266
+- **254** depends on: none; blocks: 271
+- **255** depends on: none; blocks: 276
 - **027** depends on: 026; blocks: none
 - **239** depends on: 219; blocks: 240
 - **222** depends on: 221; blocks: none
@@ -112,6 +178,12 @@ graph TD
 - **233** depends on: 231; blocks: 234, 235
 - **237** depends on: 236; blocks: 240
 - **238** depends on: 231, 236; blocks: none
+- **256** depends on: 251; blocks: 260
+- **257** depends on: 251; blocks: 258, 259, 260
+- **261** depends on: 252; blocks: 262, 263, 264
+- **266** depends on: 253; blocks: 267, 269, 270
+- **271** depends on: 254; blocks: 272
+- **276** depends on: 255; blocks: 277, 278
 - **242** depends on: 241; blocks: 243, 244, 245
 - **227** depends on: 226; blocks: 229
 - **228** depends on: 226; blocks: none
@@ -119,10 +191,29 @@ graph TD
 - **234** depends on: 233; blocks: none
 - **235** depends on: 232, 233; blocks: none
 - **240** depends on: 237, 239; blocks: none
+- **258** depends on: 257; blocks: none
+- **259** depends on: 257; blocks: none
+- **260** depends on: 256, 257; blocks: none
+- **262** depends on: 261; blocks: 264
+- **263** depends on: 261; blocks: 264
+- **267** depends on: 266; blocks: 268
+- **270** depends on: 266; blocks: none
+- **272** depends on: 271; blocks: 273, 275
+- **277** depends on: 276; blocks: 279, 280
+- **278** depends on: 276; blocks: 279, 280
 - **243** depends on: 242; blocks: 245
 - **244** depends on: 241, 242; blocks: none
 - **229** depends on: 226, 227; blocks: none
+- **264** depends on: 261, 262, 263; blocks: 265
+- **268** depends on: 267; blocks: 269
+- **273** depends on: 272; blocks: 274
+- **275** depends on: 272; blocks: none
+- **279** depends on: 277, 278; blocks: none
+- **280** depends on: 277, 278; blocks: none
 - **245** depends on: 241, 242, 243; blocks: none
+- **265** depends on: 264; blocks: none
+- **269** depends on: 266, 268; blocks: none
+- **274** depends on: 273; blocks: none
 
 ### Blocked
 
