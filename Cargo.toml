@@ -14,6 +14,8 @@ members = [
     "crates/ark-stdlib",
     "crates/ark-target",
     "crates/ark-driver",
+    "crates/ark-manifest",
+    "crates/ark-dap",
     "crates/arukellt",
 ]
 # ark-llvm requires LLVM 18 native libraries; exclude from default build
@@ -30,6 +32,8 @@ default-members = [
     "crates/ark-stdlib",
     "crates/ark-target",
     "crates/ark-driver",
+    "crates/ark-manifest",
+    "crates/ark-dap",
     "crates/arukellt",
 ]
 
@@ -52,6 +56,8 @@ ark-target = { path = "crates/ark-target" }
 ark-llvm = { path = "crates/ark-llvm" }
 ark-stdlib = { path = "crates/ark-stdlib" }
 ark-driver = { path = "crates/ark-driver" }
+ark-manifest = { path = "crates/ark-manifest" }
+ark-dap = { path = "crates/ark-dap" }
 
 # Shared dependencies
 wasm-encoder = "0.225"
@@ -63,3 +69,6 @@ thiserror = "2"
 inkwell = { version = "0.8", features = ["llvm18-1"] }
 tower-lsp = "0.20"
 tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"

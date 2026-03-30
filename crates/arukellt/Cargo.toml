@@ -18,10 +18,14 @@ ark-wasm = { workspace = true }
 ark-diagnostics = { workspace = true }
 ark-target = { workspace = true }
 ark-stdlib = { workspace = true }
+ark-manifest = { workspace = true }
+ark-dap = { workspace = true }
 clap = { workspace = true }
 wasmtime = { workspace = true }
 wasmparser = { workspace = true }
 wasmtime-wasi = "29"
+serde = { workspace = true }
+serde_json = { workspace = true }
 ark-lsp = { path = "../ark-lsp" }
 tokio = { version = "1", features = ["full"] }
 

@@ -126,6 +126,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ark-dap"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+]
+
+[[package]]
 name = "ark-diagnostics"
 version = "0.1.0"
 dependencies = [
@@ -145,6 +155,7 @@ dependencies = [
  "ark-target",
  "ark-typecheck",
  "ark-wasm",
+ "serde",
 ]
 
 [[package]]
@@ -185,6 +196,15 @@ dependencies = [
  "serde_json",
  "tokio",
  "tower-lsp",
+]
+
+[[package]]
+name = "ark-manifest"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "thiserror 2.0.18",
+ "toml",
 ]
 
 [[package]]
@@ -252,11 +272,13 @@ dependencies = [
 name = "arukellt"
 version = "0.1.0"
 dependencies = [
+ "ark-dap",
  "ark-diagnostics",
  "ark-driver",
  "ark-lexer",
  "ark-llvm",
  "ark-lsp",
+ "ark-manifest",
  "ark-mir",
  "ark-parser",
  "ark-resolve",
@@ -265,6 +287,8 @@ dependencies = [
  "ark-typecheck",
  "ark-wasm",
  "clap",
+ "serde",
+ "serde_json",
  "tokio",
  "wasmparser 0.225.0",
  "wasmtime",
