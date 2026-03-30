@@ -6,7 +6,7 @@
 **ID**: 219
 **Depends on**: none
 **Track**: parallel
-**Blocks v1 exit**: no
+**Blocks v1 exit**: yes
 
 ## Summary
 

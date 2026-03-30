@@ -1,4 +1,4 @@
-# Multi-root workspace + per-project configuration
+# VS Code extension: multi-root workspace + per-project configuration UI
 
 **Status**: open
 **Created**: 2026-03-30
@@ -10,25 +10,27 @@
 
 ## Summary
 
-multi-root workspace 対応、workspace folder ごとの target / emit / adapter 設定、project 単位 compile / run / test 導線、manifest 不在時と有り時の挙動分離、unknown script エラー整備を実装する。
+VS Code 拡張機能の multi-root workspace 対応と、workspace folder ごとの設定 UI を実装する。
+manifest 不在時と有り時の挙動分離、unknown script エラー整備を含む。
 
-現状は単一 workspace folder を想定した実装で、multi-root workspace や複数 `ark.toml` を持つプロジェクトへの対応が不十分。
+コンパイラ/CLI/LSP ツール層の project root 解決統一は #238 で扱う。
+この issue は**拡張機能 UI 側**（VS Code の workspaceFolder API・設定・task 生成）に限定する。
 
 ## Acceptance
 
 - [ ] multi-root workspace で各 folder を独立した project として認識できる
-- [ ] workspace folder ごとに target / emit / adapter を設定できる
-- [ ] manifest（ark.toml）不在時と有り時で挙動が適切に分離されている
+- [ ] workspace folder ごとに target / emit / adapter を VS Code 設定から上書きできる
+- [ ] manifest（ark.toml）不在時と有り時で拡張機能の挙動が適切に分離されている
 
 ## Scope
 
-### Multi-root workspace
+### Multi-root workspace（拡張機能 UI 層）
 
-- workspace folder ごとの project root 自動検出
+- workspace folder ごとの project root 自動検出（VS Code workspaceFolder API）
 - `ark.toml` の有無による project 識別
 - folder 追加 / 削除時の動的再認識
 
-### Per-project configuration
+### Per-project configuration（VS Code 設定）
 
 - `settings.json` での folder-scoped 設定（target / emit / adapter / binary path）
 - workspace defaults vs. folder overrides の優先順位
@@ -40,7 +42,7 @@ multi-root workspace 対応、workspace folder ごとの target / emit / adapter
 - project 単位での compile / run / test task 生成
 - project 選択 quick pick（multi-root 時）
 
-### Manifest 分岐
+### Manifest 分岐（拡張機能の表示・診断）
 
 - `ark.toml` 不在: 単一ファイルモード、minimum 設定
 - `ark.toml` あり: package / workspace / tool defaults 読み取り
@@ -49,6 +51,6 @@ multi-root workspace 対応、workspace folder ごとの target / emit / adapter
 ## References
 
 - `issues/open/202-ark-toml-schema-and-project-workspace-discovery.md`
+- `issues/open/238-unify-project-root-resolution-cli-lsp-tasks.md` （ツール層の統一は 238）
 - `issues/open/188-ark-toml-project-workspace-and-scripts.md`
-- `issues/open/203-script-run-and-script-list-cli-surface.md`
 - `extensions/arukellt-all-in-one/src/`
