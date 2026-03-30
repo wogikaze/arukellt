@@ -179,6 +179,8 @@ _bg_run docs_consistency "docs consistency (${FIXTURE_COUNT} fixtures)" \
     "python3 scripts/check-docs-consistency.py" &
 _bg_run stdlib_manifest "stdlib manifest check" \
     "bash scripts/check-stdlib-manifest.sh" &
+_bg_run done_issues_checkboxes "issues/done/ has no unchecked checkboxes" \
+    "files=\$(grep -rl '\\- \\[ \\]' issues/done/ 2>/dev/null | grep '\\.md\$' || true); if [ -n \"\$files\" ]; then echo 'Files in done/ with unchecked items:'; printf '%s\n' \"\$files\"; exit 1; fi" &
 if [ "$RUN_DOCS" = true ]; then
     _bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
         "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
@@ -286,6 +288,7 @@ _bg_collect platform_spec
 _bg_collect stdlib_spec
 _bg_collect docs_consistency
 _bg_collect stdlib_manifest
+_bg_collect done_issues_checkboxes
 if [ "$RUN_DOCS" = true ]; then
     _bg_collect markdownlint
 fi

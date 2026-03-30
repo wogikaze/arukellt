@@ -43,9 +43,9 @@ Standalone `main()` functions in each module must be renamed or removed to avoid
 
 ## Acceptance
 
-- [ ] `arukellt check src/compiler/driver.ark` produces no unresolved-name errors related to cross-module private helpers
-- [ ] All existing harness tests still pass (421 PASS)
-- [ ] `src/compiler/lexer.ark` can still be run standalone: `arukellt run src/compiler/lexer.ark`
+- [x] `arukellt check src/compiler/driver.ark` produces no unresolved-name errors related to cross-module private helpers
+- [x] All existing harness tests still pass (421 PASS)
+- [x] `src/compiler/lexer.ark` can still be run standalone: `arukellt run src/compiler/lexer.ark`
 
 ## References
 
