@@ -1,20 +1,213 @@
 {
   "name": "Arukellt",
   "scopeName": "source.arukellt",
+  "fileTypes": [
+    "ark",
+    "arukellt"
+  ],
   "patterns": [
-    { "include": "#comments" },
-    { "include": "#keywords" },
-    { "include": "#strings" },
-    { "include": "#numbers" },
-    { "include": "#types" },
-    { "include": "#functions" }
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#chars"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#imports"
+    },
+    {
+      "include": "#declarations"
+    },
+    {
+      "include": "#constructors"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#fields"
+    },
+    {
+      "include": "#operators"
+    }
   ],
   "repository": {
     "comments": {
       "patterns": [
         {
+          "include": "#doc-comments"
+        },
+        {
+          "include": "#block-comments"
+        },
+        {
+          "include": "#line-comments"
+        }
+      ]
+    },
+    "doc-comments": {
+      "patterns": [
+        {
+          "name": "comment.line.documentation.outer.arukellt",
+          "match": "^\\s*///.*$"
+        },
+        {
+          "name": "comment.line.documentation.inner.arukellt",
+          "match": "^\\s*//!.*$"
+        }
+      ]
+    },
+    "line-comments": {
+      "patterns": [
+        {
           "name": "comment.line.double-slash.arukellt",
-          "match": "//.*$"
+          "match": "//(?![/!]).*$"
+        }
+      ]
+    },
+    "block-comments": {
+      "name": "comment.block.arukellt",
+      "begin": "/\\*",
+      "end": "\\*/",
+      "patterns": [
+        {
+          "include": "#block-comments"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "include": "#fstrings"
+        },
+        {
+          "include": "#plain-strings"
+        }
+      ]
+    },
+    "fstrings": {
+      "name": "string.quoted.double.interpolated.arukellt",
+      "begin": "\\bf\"",
+      "beginCaptures": {
+        "0": {
+          "name": "storage.type.string.interpolated.arukellt"
+        }
+      },
+      "end": "(?<!\\\\)\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.arukellt"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#string-escapes"
+        },
+        {
+          "include": "#interpolation"
+        }
+      ]
+    },
+    "interpolation": {
+      "name": "meta.interpolation.arukellt",
+      "begin": "\\{",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.section.interpolation.begin.arukellt"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.interpolation.end.arukellt"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#chars"
+        },
+        {
+          "include": "#numbers"
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "include": "#constructors"
+        },
+        {
+          "include": "#types"
+        },
+        {
+          "include": "#functions"
+        },
+        {
+          "include": "#fields"
+        },
+        {
+          "include": "#operators"
+        }
+      ]
+    },
+    "plain-strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.arukellt",
+          "match": "\"(?:\\\\(?:[\\\\\\\"nrt0]|x[0-9A-Fa-f]{2}|u\\{[0-9A-Fa-f]{1,6}\\})|[^\"\\\\])*\""
+        }
+      ]
+    },
+    "string-escapes": {
+      "patterns": [
+        {
+          "name": "constant.character.escape.arukellt",
+          "match": "\\\\(?:[\\\\\\\"nrt0]|x[0-9A-Fa-f]{2}|u\\{[0-9A-Fa-f]{1,6}\\})"
+        }
+      ]
+    },
+    "chars": {
+      "patterns": [
+        {
+          "name": "string.quoted.single.arukellt",
+          "match": "'(?:\\\\(?:[\\\\'nrt0]|x[0-9A-Fa-f]{2}|u\\{[0-9A-Fa-f]{1,6}\\})|[^\\\\'])'"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.float.arukellt",
+          "match": "\\b\\d[\\d_]*\\.\\d[\\d_]*(?:[eE][+\\-]?\\d[\\d_]*)?(?:f32|f64)?\\b"
+        },
+        {
+          "name": "constant.numeric.hex.arukellt",
+          "match": "\\b0x[0-9A-Fa-f][0-9A-Fa-f_]*(?:i8|i16|i32|i64|u8|u16|u32|u64)?\\b"
+        },
+        {
+          "name": "constant.numeric.binary.arukellt",
+          "match": "\\b0b[01][01_]*(?:i8|i16|i32|i64|u8|u16|u32|u64)?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.arukellt",
+          "match": "\\b\\d[\\d_]*(?:i8|i16|i32|i64|u8|u16|u32|u64)?\\b"
         }
       ]
     },
@@ -22,40 +215,247 @@
       "patterns": [
         {
           "name": "keyword.control.arukellt",
-          "match": "\\b(fn|let|mut|if|else|match|while|loop|for|in|return|break|continue|struct|enum|trait|impl|use|import|pub|as)\\b"
+          "match": "\\b(?:if|else|match|while|loop|for|in|break|continue|return)\\b"
+        },
+        {
+          "name": "keyword.declaration.arukellt",
+          "match": "\\b(?:fn|struct|enum|trait|impl|let|use|import)\\b"
+        },
+        {
+          "name": "storage.modifier.arukellt",
+          "match": "\\b(?:mut|pub|as)\\b"
+        },
+        {
+          "name": "keyword.other.reserved.arukellt",
+          "match": "\\b(?:async|await|dyn|where|type|const|unsafe|extern|mod|super|Self)\\b"
+        },
+        {
+          "name": "constant.language.boolean.arukellt",
+          "match": "\\b(?:true|false)\\b"
+        },
+        {
+          "name": "keyword.control.pattern.wildcard.arukellt",
+          "match": "(?<![A-Za-z0-9_])_(?![A-Za-z0-9_])"
+        },
+        {
+          "name": "constant.language.unit.arukellt",
+          "match": "\\(\\)"
         }
       ]
     },
-    "strings": {
+    "imports": {
       "patterns": [
         {
-          "name": "string.quoted.double.arukellt",
-          "begin": "\"",
-          "end": "\""
+          "name": "meta.import.arukellt",
+          "begin": "\\b(use|import)\\b",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.declaration.arukellt"
+            }
+          },
+          "end": "(?=$|\\n)",
+          "patterns": [
+            {
+              "name": "entity.name.namespace.arukellt",
+              "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*(?:::[a-zA-Z_][a-zA-Z0-9_]*)*\\b"
+            },
+            {
+              "name": "storage.modifier.arukellt",
+              "match": "\\bas\\b"
+            }
+          ]
         }
       ]
     },
-    "numbers": {
+    "declarations": {
       "patterns": [
         {
-          "name": "constant.numeric.arukellt",
-          "match": "\\b\\d+(?:\\.\\d+)?\\b"
+          "name": "meta.function.definition.arukellt",
+          "match": "\\b(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.function.arukellt"
+            },
+            "2": {
+              "name": "entity.name.function.definition.arukellt"
+            }
+          }
+        },
+        {
+          "name": "meta.struct.definition.arukellt",
+          "match": "\\b(struct)\\s+([A-Z][A-Za-z0-9_]*)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.struct.arukellt"
+            },
+            "2": {
+              "name": "entity.name.type.struct.arukellt"
+            }
+          }
+        },
+        {
+          "name": "meta.enum.definition.arukellt",
+          "match": "\\b(enum)\\s+([A-Z][A-Za-z0-9_]*)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.enum.arukellt"
+            },
+            "2": {
+              "name": "entity.name.type.enum.arukellt"
+            }
+          }
+        },
+        {
+          "name": "meta.trait.definition.arukellt",
+          "match": "\\b(trait)\\s+([A-Z][A-Za-z0-9_]*)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.trait.arukellt"
+            },
+            "2": {
+              "name": "entity.name.type.trait.arukellt"
+            }
+          }
+        },
+        {
+          "name": "meta.impl.definition.arukellt",
+          "match": "\\b(impl)\\s+([A-Z][A-Za-z0-9_]*)(?=\\s*(?:<|\\{|for\\b))",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.impl.arukellt"
+            },
+            "2": {
+              "name": "entity.name.type.impl.arukellt"
+            }
+          }
+        },
+        {
+          "name": "entity.name.type.parameter.arukellt",
+          "match": "(?<=<)\\s*[A-Z][A-Za-z0-9_]*(?=\\s*(?:,|>|:))|(?<=,\\s*)[A-Z][A-Za-z0-9_]*(?=\\s*(?:,|>|:))"
+        }
+      ]
+    },
+    "constructors": {
+      "patterns": [
+        {
+          "name": "constant.language.constructor.arukellt",
+          "match": "\\b(?:Some|None|Ok|Err)\\b"
+        },
+        {
+          "name": "variable.other.enummember.arukellt",
+          "match": "(?<=::)[A-Z][A-Za-z0-9_]*\\b"
         }
       ]
     },
     "types": {
       "patterns": [
         {
-          "name": "support.type.arukellt",
-          "match": "\\b(i32|i64|f32|f64|bool|char|String|Vec|Option|Result)\\b"
+          "name": "support.type.builtin.arukellt",
+          "match": "\\b(?:i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|bool|char|String|Never|Error|Any)\\b"
+        },
+        {
+          "name": "support.type.container.arukellt",
+          "match": "\\b(?:Vec|Option|Result|HashMap|Box)\\b"
+        },
+        {
+          "name": "entity.name.type.qualified.arukellt",
+          "match": "\\b(?:[A-Z][A-Za-z0-9_]*::)+[A-Z][A-Za-z0-9_]*\\b"
+        },
+        {
+          "name": "entity.name.type.arukellt",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
         }
       ]
     },
     "functions": {
       "patterns": [
         {
-          "name": "entity.name.function.arukellt",
-          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*(?=\\s*\\()"
+          "name": "support.function.qualified.arukellt",
+          "match": "\\b[a-z_][a-zA-Z0-9_]*(?:::[a-z_][a-zA-Z0-9_]*)+(?=\\s*\\()"
+        },
+        {
+          "name": "support.function.method.arukellt",
+          "match": "(?<=\\.)[a-z_][a-zA-Z0-9_]*(?=\\s*\\()"
+        },
+        {
+          "name": "support.function.call.arukellt",
+          "match": "\\b[a-z_][a-zA-Z0-9_]*(?=\\s*\\()"
+        }
+      ]
+    },
+    "fields": {
+      "patterns": [
+        {
+          "name": "variable.other.member.arukellt",
+          "match": "(?<=\\.)[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        },
+        {
+          "name": "variable.other.field.arukellt",
+          "match": "(?<=[{,]\\s*)[a-zA-Z_][a-zA-Z0-9_]*(?=\\s*:)"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.other.arukellt",
+          "match": "::|->|=>|\\.\\.|[?:]"
+        },
+        {
+          "name": "keyword.operator.comparison.arukellt",
+          "match": "==|!=|<=|>=|<|>"
+        },
+        {
+          "name": "keyword.operator.logical.arukellt",
+          "match": "&&|\\|\\||!"
+        },
+        {
+          "name": "keyword.operator.bitwise.arukellt",
+          "match": "<<|>>|&|\\||\\^|~"
+        },
+        {
+          "name": "keyword.operator.assignment.arukellt",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.arithmetic.arukellt",
+          "match": "\\+|-|\\*|/|%"
+        },
+        {
+          "name": "punctuation.separator.comma.arukellt",
+          "match": ","
+        },
+        {
+          "name": "punctuation.separator.colon.arukellt",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.terminator.statement.arukellt",
+          "match": ";"
+        },
+        {
+          "name": "punctuation.section.parens.begin.arukellt",
+          "match": "\\("
+        },
+        {
+          "name": "punctuation.section.parens.end.arukellt",
+          "match": "\\)"
+        },
+        {
+          "name": "punctuation.section.braces.begin.arukellt",
+          "match": "\\{"
+        },
+        {
+          "name": "punctuation.section.braces.end.arukellt",
+          "match": "\\}"
+        },
+        {
+          "name": "punctuation.section.brackets.begin.arukellt",
+          "match": "\\["
+        },
+        {
+          "name": "punctuation.section.brackets.end.arukellt",
+          "match": "\\]"
         }
       ]
     }
