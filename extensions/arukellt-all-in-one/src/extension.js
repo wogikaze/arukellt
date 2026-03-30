@@ -47,6 +47,9 @@ function probeServerBinary(command) {
   try {
     const result = cp.spawnSync(command, ['--version'], { encoding: 'utf8' })
     if (result.error) {
+      if (result.error.code === 'ENOENT') {
+        return { ok: false, message: `binary not found: '${command}'. Set arukellt.server.path to an absolute path.` }
+      }
       return { ok: false, message: result.error.message }
     }
     if (result.status !== 0) {
@@ -307,13 +310,14 @@ function registerTaskProvider(context) {
     provideTasks() {
       const workspaceFolder = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
       const scope = workspaceFolder || vscode.TaskScope.Workspace
+      const { command } = resolveServerCommand()
       const definitions = [
         { task: 'check', command: 'check' },
         { task: 'compile', command: 'compile' },
         { task: 'run', command: 'run' },
       ]
       return definitions.map((definition) => {
-        const shellExecution = new vscode.ShellExecution(`arukellt ${definition.command}`)
+        const shellExecution = new vscode.ShellExecution(`${command} ${definition.command}`)
         return new vscode.Task(definition, scope, `arukellt:${definition.task}`, 'arukellt', shellExecution)
       })
     },
