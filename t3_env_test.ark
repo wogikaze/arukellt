@@ -1,7 +1,0 @@
-use std::host::stdio
-use std::host::env
-
-fn main() {
-    let n = env::arg_count()
-    stdio::println(i32_to_string(n))
-}
