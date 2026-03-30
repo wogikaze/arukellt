@@ -19,11 +19,11 @@
 
 | Target | Tier | Status | Run | Notes |
 |--------|------|--------|-----|-------|
-| `wasm32-wasi-p1` | T1 | Implemented | Yes | CLI default compatibility path for non-GC environments |
-| `wasm32-freestanding` | T2 | Not implemented | No | Registry only |
-| `wasm32-wasi-p2` | T3 | Implemented | Yes | Canonical GC-native path |
-| `native` | T4 | Not implemented | No | LLVM scaffold only |
-| `wasm32-wasi-p3` | T5 | Not implemented | No | Future |
+| `wasm32-wasi-p1` | T1 | stable | Yes | CLI default compatibility path for non-GC environments |
+| `wasm32-freestanding` | T2 | unimplemented | No | Registry only |
+| `wasm32-wasi-p2` | T3 | stable | Yes | Canonical GC-native path |
+| `native` | T4 | scaffold | No | LLVM scaffold only |
+| `wasm32-wasi-p3` | T5 | unimplemented | No | Future |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->

@@ -451,7 +451,7 @@ def render_target_table(state: dict) -> str:
             "| `{}` | {} | {} | {} | {} |".format(
                 profile["id"],
                 profile["tier"],
-                "Implemented" if profile["implemented"] else "Not implemented",
+                profile.get("status", "Implemented" if profile.get("implemented") else "Not implemented"),
                 "Yes" if profile["run_supported"] else "No",
                 escape_table(profile["role"]),
             )

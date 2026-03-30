@@ -37,35 +37,35 @@ component_note = "requires external `wasm-tools` binary and WASI adapter module"
 [[target_profiles]]
 id = "wasm32-wasi-p1"
 tier = "T1"
-implemented = true
+status = "stable"
 run_supported = true
 role = "CLI default compatibility path for non-GC environments"
 
 [[target_profiles]]
 id = "wasm32-freestanding"
 tier = "T2"
-implemented = false
+status = "unimplemented"
 run_supported = false
 role = "Registry only"
 
 [[target_profiles]]
 id = "wasm32-wasi-p2"
 tier = "T3"
-implemented = true
+status = "stable"
 run_supported = true
 role = "Canonical GC-native path"
 
 [[target_profiles]]
 id = "native"
 tier = "T4"
-implemented = false
+status = "scaffold"
 run_supported = false
 role = "LLVM scaffold only"
 
 [[target_profiles]]
 id = "wasm32-wasi-p3"
 tier = "T5"
-implemented = false
+status = "unimplemented"
 run_supported = false
 role = "Future"
 
@@ -113,3 +113,14 @@ summary = "non-exportable function skipped from component exports"
 [component]
 status = "Implemented in v2 on `wasm32-wasi-p2` for supported WIT-compatible exports"
 summary = "Only user `pub fn` with WIT-compatible types are exported"
+
+# Lifecycle status labels used across docs, issues, and target-contract.md.
+# Every feature / target surface should use one of these labels.
+[lifecycle]
+labels = [
+  "stable",        # CI-verified, regression-protected, safe for production use
+  "provisional",   # Implemented and passing tests but API may change
+  "experimental",  # Functional but incomplete; may break between releases
+  "scaffold",      # Code structure exists but not yet functional end-to-end
+  "unimplemented", # Planned but no working code
+]
