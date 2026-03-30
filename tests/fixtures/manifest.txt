@@ -536,6 +536,8 @@ t3-run:struct_mutation/field_assign.ark
 t3-run:v0_constraints/no_impl.ark
 t3-run:v0_constraints/no_nested_generics.ark
 t3-run:variables/char_lit.ark
+t3-run:operators/logical.ark
+t3-run:operators/unary.ark
 t3-run:variables/tuple.ark
 module-run:stdlib_test/assert_eq.ark
 module-run:stdlib_test/assert_ne.ark

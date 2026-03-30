@@ -156,7 +156,10 @@ impl Ctx {
                             f.instruction(&Instruction::I32Mul);
                         }
                     }
-                    UnaryOp::Not | UnaryOp::BitNot => {
+                    UnaryOp::Not => {
+                        f.instruction(&Instruction::I32Eqz);
+                    }
+                    UnaryOp::BitNot => {
                         f.instruction(&Instruction::I32Const(-1));
                         f.instruction(&Instruction::I32Xor);
                     }
@@ -736,7 +739,10 @@ impl Ctx {
                     f.instruction(&Instruction::I32Mul);
                 }
             }
-            UnaryOp::Not | UnaryOp::BitNot => {
+            UnaryOp::Not => {
+                f.instruction(&Instruction::I32Eqz);
+            }
+            UnaryOp::BitNot => {
                 f.instruction(&Instruction::I32Const(-1));
                 f.instruction(&Instruction::I32Xor);
             }
