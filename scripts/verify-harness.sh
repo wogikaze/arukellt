@@ -182,7 +182,7 @@ _bg_run stdlib_manifest "stdlib manifest check" \
 _bg_run done_issues_checkboxes "issues/done/ has no unchecked checkboxes" \
     "files=\$(grep -rl '\\- \\[ \\]' issues/done/ 2>/dev/null | grep '\\.md\$' || true); if [ -n \"\$files\" ]; then echo 'Files in done/ with unchecked items:'; printf '%s\n' \"\$files\"; exit 1; fi" &
 _bg_run no_panic_audit "no panic/unwrap in user-facing crates" \
-    "hits=\$(grep -rn '\\.unwrap()\\|panic!\\|todo!()\\|unimplemented!()' crates/arukellt/src/ crates/ark-lsp/src/ crates/ark-manifest/src/ crates/ark-driver/src/ 2>/dev/null | grep -v 'lock().unwrap\\|#\\[test\\]\\|//\\|expect(' || true); if [ -n \"\$hits\" ]; then echo 'Potential panic in user-facing crate:'; printf '%s\n' \"\$hits\"; exit 1; fi" &
+    "bash scripts/check-panic-audit.sh" &
 if [ "$RUN_DOCS" = true ]; then
     _bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
         "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
