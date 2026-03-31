@@ -1,8 +1,8 @@
 # package/workspace/manifest resolution テストを第一級化する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Updated**: 2026-03-31
 **ID**: 263
 **Depends on**: 261
 **Track**: main
@@ -14,11 +14,11 @@
 
 ## Acceptance
 
-- [ ] `tests/package-workspace/` 以下にテスト fixture が整備されている
-- [ ] `ark.toml` の基本フィールド（name / version / target / dependencies）のバリデーションがテストされている
-- [ ] workspace（複数 package）の解決がテストされている
-- [ ] manifest resolution 失敗時の診断メッセージがスナップショットテストで保護されている
-- [ ] CI でこれらが独立した step として実行される
+- [x] `tests/package-workspace/` 以下にテスト fixture が整備されている
+- [x] `ark.toml` の基本フィールド（name / version / target / dependencies）のバリデーションがテストされている
+- [x] workspace（複数 package）の解決がテストされている
+- [x] manifest resolution 失敗時の診断メッセージがスナップショットテストで保護されている
+- [x] CI でこれらが独立した step として実行される
 
 ## Scope
 
