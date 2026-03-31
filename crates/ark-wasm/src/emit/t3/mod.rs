@@ -14,6 +14,7 @@
 
 #![allow(dead_code)]
 
+pub(super) mod cabi_adapters;
 mod const_expr;
 mod helpers;
 mod layout_opt;
@@ -244,7 +245,7 @@ pub(super) fn is_component_export_candidate(name: &str) -> bool {
     ) && !name.starts_with("__")
 }
 
-struct TypeAlloc {
+pub(super) struct TypeAlloc {
     next_idx: u32,
     names: HashMap<String, u32>,
     func_cache: HashMap<(Vec<ValType>, Vec<ValType>), u32>,
@@ -408,8 +409,8 @@ impl TypeAlloc {
 
 // ── Emit context ─────────────────────────────────────────────────
 
-struct Ctx {
-    types: TypeAlloc,
+pub(super) struct Ctx {
+    pub(super) types: TypeAlloc,
     /// Active data segments (loaded into linear memory) for I/O scratch only.
     data_segs: Vec<(u32, Vec<u8>)>,
     data_offset: u32,
@@ -417,7 +418,7 @@ struct Ctx {
     string_data_segs: Vec<Vec<u8>>,
     /// Deduplication cache: maps string bytes → segment index.
     string_seg_cache: HashMap<Vec<u8>, u32>,
-    fn_map: HashMap<String, u32>,
+    pub(super) fn_map: HashMap<String, u32>,
     fn_names: Vec<String>,
     next_fn: u32,
     // Well-known GC type indices
@@ -435,11 +436,11 @@ struct Ctx {
     // Well-known function type indices
     fd_write_ty: u32,
     // User struct GC type indices
-    struct_gc_types: HashMap<String, u32>,
+    pub(super) struct_gc_types: HashMap<String, u32>,
     struct_layouts: HashMap<String, Vec<(String, String)>>,
     // Enum GC type indices: subtype hierarchy
-    enum_base_types: HashMap<String, u32>,
-    enum_variant_types: HashMap<String, HashMap<String, u32>>,
+    pub(super) enum_base_types: HashMap<String, u32>,
+    pub(super) enum_variant_types: HashMap<String, HashMap<String, u32>>,
     enum_variant_field_types: HashMap<(String, String), Vec<String>>,
     enum_defs: HashMap<String, Vec<(String, Vec<String>)>>,
     fn_ret_types: HashMap<String, Type>,
@@ -1370,6 +1371,11 @@ impl Ctx {
             self.fn_map.insert(func.name.clone(), user_base + i as u32);
         }
 
+        // Compute canonical ABI adapters for component-exported functions
+        // that use GC reference types (enums, structs).
+        let adapter_base = user_base + reachable_user_indices.len() as u32;
+        let cabi_adapters = self.compute_cabi_adapters(mir, adapter_base);
+
         // Pre-register indirect call type signatures for HOF operations
         {
             let sigs: Vec<(Vec<ValType>, Vec<ValType>)> = vec![
@@ -1457,6 +1463,10 @@ impl Ctx {
         for &ty_idx in &user_fn_type_indices {
             functions.function(ty_idx);
         }
+        // Add canonical ABI adapter functions
+        for adapter in &cabi_adapters {
+            functions.function(adapter.adapter_type_idx);
+        }
 
         // Linear memory: kept at 4-10 pages for WASI fd_write/fd_read I/O buffer.
         // GC-native codegen is complete; linear memory is only used for I/O syscalls.
@@ -1479,13 +1489,19 @@ impl Ctx {
         }
 
         // Export user pub functions for Component Model (kebab-case names for WIT)
+        // If a canonical ABI adapter exists for a function, export the adapter instead.
+        let adapter_export_map: std::collections::HashMap<String, u32> = cabi_adapters
+            .iter()
+            .map(|a| (a.export_name.clone(), a.adapter_fn_idx))
+            .collect();
         for func in &mir.functions {
             if func.is_exported
                 && is_component_export_candidate(&func.name)
                 && let Some(&idx) = self.fn_map.get(func.name.as_str())
             {
                 let export_name = func.name.replace('_', "-");
-                exports.export(&export_name, ExportKind::Func, idx);
+                let export_idx = adapter_export_map.get(&export_name).copied().unwrap_or(idx);
+                exports.export(&export_name, ExportKind::Func, export_idx);
             }
         }
 
@@ -1569,6 +1585,11 @@ impl Ctx {
             }
         }
 
+        // Emit canonical ABI adapter function bodies
+        for adapter in &cabi_adapters {
+            self.emit_cabi_adapter_code(&mut codes, adapter);
+        }
+
         // Global: heap_ptr for legacy I/O buffer allocation and VecLiteral fallback.
         // Retained for backward compatibility with call_indirect-based HOF dispatch.
         // At opt_level >= 2, uses extended const: (i32.add (i32.const DATA_START) (i32.const size))
@@ -1615,8 +1636,10 @@ impl Ctx {
         }
 
         // Table section — for indirect calls (higher-order functions)
-        let total_funcs =
-            num_imports + helper_fns.len() as u32 + reachable_user_indices.len() as u32;
+        let total_funcs = num_imports
+            + helper_fns.len() as u32
+            + reachable_user_indices.len() as u32
+            + cabi_adapters.len() as u32;
         let mut tables = wasm_encoder::TableSection::new();
         tables.table(wasm_encoder::TableType {
             element_type: wasm_encoder::RefType::FUNCREF,

@@ -17,9 +17,9 @@ symbols / modules / scripts / tests をまとめた tree view、context menu か
 
 ## Acceptance
 
-- [ ] サイドバーに専用 view があり、modules / scripts / tests を tree 表示できる
-- [ ] context menu からの run / check / test 実行導線がある
-- [ ] editor title / editor context / explorer context に主要 command が追加されている
+- [x] サイドバーに専用 view があり、modules / scripts / tests を tree 表示できる
+- [x] context menu からの run / check / test 実行導線がある
+- [x] editor title / editor context / explorer context に主要 command が追加されている
 
 ## Scope
 

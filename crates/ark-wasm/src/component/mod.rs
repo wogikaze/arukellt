@@ -68,7 +68,9 @@ pub fn mir_to_wit_world_with_warnings(
         });
     }
 
-    // First pass: collect exported functions and the type names they reference
+    // First pass: collect exported functions and the type names they reference.
+    // Use type_table.fn_sigs for accurate type names (MIR lowering loses struct/enum
+    // type info, converting them to I32 — fn_sigs preserves the original names).
     let mut exported_fns = Vec::new();
     for func in &mir.functions {
         let name = &func.name;
@@ -79,16 +81,48 @@ pub fn mir_to_wit_world_with_warnings(
             continue;
         }
 
-        let params: Vec<(String, WitType)> = func
-            .params
-            .iter()
-            .filter_map(|p| {
-                let pname = p.name.clone().unwrap_or_else(|| format!("p{}", p.id.0));
-                type_to_wit(&p.ty).map(|wt| (pname, wt))
-            })
-            .collect();
+        // Prefer type_table.fn_sigs for param/return types (accurate for struct/enum)
+        let (params, result) = if let Some(sig) = mir.type_table.fn_sigs.get(name.as_str()) {
+            let params: Vec<(String, WitType)> = sig
+                .params
+                .iter()
+                .enumerate()
+                .filter_map(|(i, type_name)| {
+                    let pname = func
+                        .params
+                        .get(i)
+                        .and_then(|p| p.name.clone())
+                        .unwrap_or_else(|| format!("p{}", i));
+                    type_name_to_wit_full(type_name, &mir.struct_defs, &mir.enum_defs)
+                        .map(|wt| (pname, wt))
+                })
+                .collect();
+            let ret_type_name = &sig.ret;
+            let result = if ret_type_name == "()" || ret_type_name == "unit" {
+                None
+            } else {
+                type_name_to_wit_full(ret_type_name, &mir.struct_defs, &mir.enum_defs)
+            };
+            (params, result)
+        } else {
+            // Fallback: use Type enum (lossy for struct/enum)
+            let params: Vec<(String, WitType)> = func
+                .params
+                .iter()
+                .filter_map(|p| {
+                    let pname = p.name.clone().unwrap_or_else(|| format!("p{}", p.id.0));
+                    type_to_wit(&p.ty).map(|wt| (pname, wt))
+                })
+                .collect();
+            let result = match &func.return_ty {
+                Type::Unit => None,
+                _ => type_to_wit(&func.return_ty),
+            };
+            (params, result)
+        };
 
-        if params.len() != func.params.len() {
+        let expected_param_count = func.params.len();
+        if params.len() != expected_param_count {
             let non_exportable: Vec<_> = func
                 .params
                 .iter()
@@ -103,20 +137,13 @@ pub fn mir_to_wit_world_with_warnings(
             continue;
         }
 
-        let result = type_to_wit(&func.return_ty);
-        let result = match &func.return_ty {
-            Type::Unit => None,
-            _ => {
-                if result.is_none() && func.return_ty != Type::Unit {
-                    warnings.push(format!(
-                        "function `{}` has non-exportable return type: {:?}",
-                        name, func.return_ty
-                    ));
-                    continue;
-                }
-                result
-            }
-        };
+        if func.return_ty != Type::Unit && result.is_none() {
+            warnings.push(format!(
+                "function `{}` has non-exportable return type: {:?}",
+                name, func.return_ty
+            ));
+            continue;
+        }
 
         exported_fns.push(WitFunction {
             name: name.clone(),
@@ -363,6 +390,72 @@ fn type_name_to_wit_ctx(
     type_name_to_wit(name)
 }
 
+/// Full context type name resolver: uses struct_defs and enum_defs to correctly
+/// distinguish records from enums/variants.
+fn type_name_to_wit_full(
+    name: &str,
+    struct_defs: &std::collections::HashMap<String, Vec<(String, String)>>,
+    enum_defs: &std::collections::HashMap<String, Vec<(String, Vec<String>)>>,
+) -> Option<WitType> {
+    // Scalar types
+    match name {
+        "i32" => return Some(WitType::S32),
+        "i64" => return Some(WitType::S64),
+        "f32" => return Some(WitType::F32),
+        "f64" => return Some(WitType::F64),
+        "u8" => return Some(WitType::U8),
+        "u16" => return Some(WitType::U16),
+        "u32" => return Some(WitType::U32),
+        "u64" => return Some(WitType::U64),
+        "bool" => return Some(WitType::Bool),
+        "char" => return Some(WitType::Char),
+        "String" => return Some(WitType::StringType),
+        _ => {}
+    }
+    // Generic wrappers
+    if let Some(inner) = name.strip_prefix("Vec<").and_then(|s| s.strip_suffix('>')) {
+        return type_name_to_wit_full(inner, struct_defs, enum_defs)
+            .map(|t| WitType::List(Box::new(t)));
+    }
+    if let Some(inner) = name
+        .strip_prefix("Option<")
+        .and_then(|s| s.strip_suffix('>'))
+    {
+        return type_name_to_wit_full(inner, struct_defs, enum_defs)
+            .map(|t| WitType::Option(Box::new(t)));
+    }
+    if let Some(inner) = name
+        .strip_prefix("Result<")
+        .and_then(|s| s.strip_suffix('>'))
+    {
+        if let Some((ok_str, err_str)) = split_generic_args(inner) {
+            let ok_wt = type_name_to_wit_full(ok_str, struct_defs, enum_defs).map(Box::new);
+            let err_wt = type_name_to_wit_full(err_str, struct_defs, enum_defs).map(Box::new);
+            return Some(WitType::Result {
+                ok: ok_wt,
+                err: err_wt,
+            });
+        }
+        return type_name_to_wit_full(inner, struct_defs, enum_defs).map(|t| WitType::Result {
+            ok: Some(Box::new(t)),
+            err: None,
+        });
+    }
+    // Named types: check struct_defs then enum_defs
+    if struct_defs.contains_key(name) {
+        return Some(WitType::Record(name.to_string()));
+    }
+    if let Some(variants) = enum_defs.get(name) {
+        let all_unit = variants.iter().all(|(_, payloads)| payloads.is_empty());
+        if all_unit {
+            return Some(WitType::Enum(name.to_string()));
+        }
+        return Some(WitType::Variant(name.to_string()));
+    }
+    // Unknown named type — assume record
+    Some(WitType::Record(name.to_string()))
+}
+
 /// Split two comma-separated generic arguments, respecting nested angle brackets.
 fn split_generic_args(s: &str) -> Option<(&str, &str)> {
     let mut depth = 0;
@@ -414,7 +507,7 @@ fn is_result_enum(variants: &[(String, Vec<String>)]) -> Option<(&str, &str)> {
 /// Collect type names referenced by a WitType (records, variants, enums).
 fn collect_wit_type_refs(wt: &WitType, out: &mut std::collections::HashSet<String>) {
     match wt {
-        WitType::Record(name) | WitType::Variant(name) => {
+        WitType::Record(name) | WitType::Variant(name) | WitType::Enum(name) => {
             out.insert(name.clone());
         }
         WitType::List(inner) | WitType::Option(inner) => {

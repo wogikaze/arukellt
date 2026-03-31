@@ -14,10 +14,10 @@ binary missing・LSP クラッシュ・task 失敗などのエラー時に、ユ
 
 ## Acceptance
 
-- [ ] binary missing 時に output channel にエラーが記録されることをテストで確認できる
-- [ ] binary missing 時に status bar にエラー表示が出ることをテストで確認できる
-- [ ] LSP 起動失敗時に user message notification が表示されることをテストで確認できる
-- [ ] 各面のメッセージ内容が「何が足りないか・どこを直すか」を案内する内容になっていることを確認できる
+- [x] binary missing 時に output channel にエラーが記録されることをテストで確認できる
+- [x] binary missing 時に status bar にエラー表示が出ることをテストで確認できる
+- [x] LSP 起動失敗時に user message notification が表示されることをテストで確認できる
+- [x] 各面のメッセージ内容が「何が足りないか・どこを直すか」を案内する内容になっていることを確認できる
 
 ## Scope
 

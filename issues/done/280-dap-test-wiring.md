@@ -14,10 +14,10 @@ DAP 実装と VS Code debug contribution が整っても、テストがなけれ
 
 ## Acceptance
 
-- [ ] DAP プロトコルレベルの smoke test（initialize → launch → disconnect）が実装されている
-- [ ] `setBreakpoints → continue → stopped event` のシーケンスをテストするユニットテストが実装されている
-- [ ] VS Code 拡張側で launch が成功することを確認する E2E テストが実装されている
-- [ ] これらのテストが CI ジョブとして配線されている
+- [x] DAP プロトコルレベルの smoke test（initialize → launch → disconnect）が実装されている
+- [x] `setBreakpoints → continue → stopped event` のシーケンスをテストするユニットテストが実装されている
+- [x] VS Code 拡張側で launch が成功することを確認する E2E テストが実装されている
+- [x] これらのテストが CI ジョブとして配線されている
 
 ## Scope
 

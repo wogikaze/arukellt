@@ -16,9 +16,9 @@ extension integration tests・smoke tests・fixture project 群・packaging chec
 
 ## Acceptance
 
-- [ ] smoke tests / integration tests が CI で実行される
-- [ ] marketplace 配布に必要な metadata (icon, categories, keywords, publisher) が整っている
-- [ ] changelog と release 手順が文書化されている
+- [x] smoke tests / integration tests が CI で実行される
+- [x] marketplace 配布に必要な metadata (icon, categories, keywords, publisher) が整っている
+- [x] changelog と release 手順が文書化されている
 
 ## Scope
 

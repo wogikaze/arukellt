@@ -389,15 +389,15 @@ component-compile:component/export_char.ark
 
 # Component Model type-error tests (canonical ABI not yet implemented)
 compile-error:component/export_tuple.ark
-compile-error:component/export_enum_wit.ark
+component-compile:component/export_enum_wit.ark
 compile-error:component/export_option.ark
 compile-error:component/export_result.ark
-compile-error:component/export_record.ark
+component-compile:component/export_record.ark
 compile-error:component/export_variant.ark
 compile-error:component/export_string.ark
 compile-error:component/export_list.ark
-compile-error:component/export_flags.ark
-compile-error:component/export_resource.ark
+component-compile:component/export_flags.ark
+component-compile:component/export_resource.ark
 run:scalar/suffix_literals.ark
 run:scalar/u8_basic.ark
 run:scalar/u32_arithmetic.ark

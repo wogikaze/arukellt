@@ -14,9 +14,9 @@ test controller discovery（`.ark` ファイルのテストが VS Code テスト
 
 ## Acceptance
 
-- [ ] test controller が `.ark` ソース内の test 関数を発見することをテストで確認できる
-- [ ] `arukellt.restartServer` コマンドが LSP を再起動することをテストで確認できる
-- [ ] restart 後に LSP handshake が再度成功することをテストで確認できる
+- [x] test controller が `.ark` ソース内の test 関数を発見することをテストで確認できる
+- [x] `arukellt.restartServer` コマンドが LSP を再起動することをテストで確認できる
+- [x] restart 後に LSP handshake が再度成功することをテストで確認できる
 
 ## Scope
 

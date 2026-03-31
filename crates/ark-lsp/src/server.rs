@@ -3353,9 +3353,11 @@ impl LanguageServer for ArukellBackend {
         if locations.is_empty() {
             Ok(None)
         } else if locations.len() == 1 {
-            Ok(Some(GotoDefinitionResponse::Scalar(
-                locations.into_iter().next().unwrap(),
-            )))
+            // SAFETY: len() == 1 guarantees next() returns Some
+            match locations.into_iter().next() {
+                Some(loc) => Ok(Some(GotoDefinitionResponse::Scalar(loc))),
+                None => Ok(None),
+            }
         } else {
             Ok(Some(GotoDefinitionResponse::Array(locations)))
         }

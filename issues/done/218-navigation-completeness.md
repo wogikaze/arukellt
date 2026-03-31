@@ -17,7 +17,7 @@ rename・workspace symbols（#193）とは独立した navigation 機能群。
 
 - [x] `textDocument/implementation` と `textDocument/typeDefinition` が動作する
 - [x] call hierarchy（`callHierarchy/incomingCalls` / `outgoingCalls`）が動作する
-- [ ] module dependency 間のナビゲーション導線がある
+- [x] module dependency 間のナビゲーション導線がある
 
 ## Scope
 

@@ -87,9 +87,15 @@ pub fn classify_wit_type(ty: &WitType) -> CanonicalAbiClass {
                 .collect();
             CanonicalAbiClass::Record(fields)
         }
-        WitType::Record(_) | WitType::Enum(_) | WitType::Variant(_) => {
-            // Named types — classified as i32 handle for now; full flattening
-            // requires looking up the type definition in the type table.
+        WitType::Record(_) | WitType::Variant(_) => {
+            // Named record/variant types — the component adapter pass handles the
+            // canonical ABI lift/lower.  Classification here uses Scalar(I32) as a
+            // conservative stand-in (the actual flat representation depends on the
+            // field types, which require a world-level lookup).
+            CanonicalAbiClass::Scalar(ScalarKind::I32)
+        }
+        WitType::Enum(_) => {
+            // WIT enum (all unit variants) → i32 discriminant pass-through.
             CanonicalAbiClass::Scalar(ScalarKind::I32)
         }
         WitType::Resource(_) | WitType::Own(_) | WitType::Borrow(_) => CanonicalAbiClass::Handle,

@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `docs/debug-support.md`（または `docs/current-state.md` のデバッグセクション）に T1/T3 それぞれの debug 対象範囲が記載されている
-- [ ] 少なくとも 1 つの canonical target で `.ark` ファイルにブレークポイントを置いて実際に停止できる
-- [ ] どの target が "supported" で どれが "best-effort" かが明記されている
-- [ ] compiler の source location 情報と DAP の line/column が正しく対応している
+- [x] `docs/debug-support.md`（または `docs/current-state.md` のデバッグセクション）に T1/T3 それぞれの debug 対象範囲が記載されている
+- [x] 少なくとも 1 つの canonical target で `.ark` ファイルにブレークポイントを置いて実際に停止できる
+- [x] どの target が "supported" で どれが "best-effort" かが明記されている
+- [x] compiler の source location 情報と DAP の line/column が正しく対応している
 
 ## Scope
 

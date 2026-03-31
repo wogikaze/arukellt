@@ -1,6 +1,6 @@
 # visibility・public API・internal API を言語機能として確立する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 234
@@ -16,10 +16,10 @@
 
 ## Acceptance
 
-- [ ] `pub` / `priv` / `pub(crate)` 相当の visibility 修飾子が仕様として定義されている
-- [ ] module 境界での public API と internal API の区別が言語機能として動作する
-- [ ] visibility 違反がコンパイルエラーになる
-- [ ] visibility ルールが仕様書・コンパイラ実装・LSP 診断で一致している
+- [x] `pub` / `priv` / `pub(crate)` 相当の visibility 修飾子が仕様として定義されている
+- [x] module 境界での public API と internal API の区別が言語機能として動作する
+- [x] visibility 違反がコンパイルエラーになる
+- [x] visibility ルールが仕様書・コンパイラ実装・LSP 診断で一致している
 
 ## Scope
 

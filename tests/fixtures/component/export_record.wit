@@ -1,0 +1,10 @@
+package arukellt:app;
+
+world export-record {
+    record point {
+        x: s32,
+        y: s32
+    }
+
+    export distance-sq: func(p: point) -> s32;
+}
