@@ -152,6 +152,10 @@ pub struct Session {
     pub disabled_passes: Vec<String>,
     /// When true, component wrapping skips the P1 adapter (~100 KB savings).
     pub p2_native: bool,
+    /// Lint rules to suppress (allow) — diagnostics with these codes are dropped.
+    pub lint_allow: Vec<String>,
+    /// Lint rules to escalate to errors (deny).
+    pub lint_deny: Vec<String>,
 }
 
 impl Default for Session {
@@ -218,6 +222,8 @@ impl Session {
             opt_level: OptLevel::O1,
             disabled_passes: Vec::new(),
             p2_native: false,
+            lint_allow: Vec::new(),
+            lint_deny: Vec::new(),
         }
     }
 
@@ -572,12 +578,30 @@ impl Session {
 
     pub fn check(&mut self, path: &Path) -> Result<(), String> {
         let result = self.check_core_hir(path);
-        // Print any warnings (including unused imports) even on success
+        // Print any warnings (including unused imports) even on success,
+        // filtering by lint_allow/lint_deny configuration
         if self.sink.has_warnings() {
-            eprint!(
-                "{}",
-                render_diagnostics(self.sink.diagnostics(), &self.source_map)
-            );
+            let filtered: Vec<_> = self
+                .sink
+                .diagnostics()
+                .iter()
+                .filter(|d| !self.lint_allow.iter().any(|code| d.code.as_str() == code))
+                .cloned()
+                .collect();
+            // Check for denied lint rules escalated to errors
+            let has_denied = filtered.iter().any(|d| {
+                d.severity() == ark_diagnostics::Severity::Warning
+                    && self.lint_deny.iter().any(|code| d.code.as_str() == code)
+            });
+            if !filtered.is_empty() {
+                eprint!(
+                    "{}",
+                    render_diagnostics(&filtered, &self.source_map)
+                );
+            }
+            if has_denied {
+                return Err("lint rules denied by configuration".to_string());
+            }
         }
         result.map(|_| ())
     }

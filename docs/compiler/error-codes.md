@@ -579,6 +579,46 @@ canonical ABI and is therefore omitted from the component's export list.
 
 ---
 
+### W0006 — unused import
+
+| | |
+|---|---|
+| **Severity** | warning |
+| **Phase** | resolve |
+| **Message** | unused import `<module>` |
+
+An imported module is never referenced via qualified identifiers in the
+current file. Remove the import or prefix the alias with `_` to suppress
+this warning.
+
+```ark
+use std::host::fs       // W0006 if no fs:: usage
+use std::math as _math  // suppressed by _ prefix
+```
+
+**Fix-it**: available as a quick-fix code action in the editor.
+
+---
+
+### W0007 — unused binding
+
+| | |
+|---|---|
+| **Severity** | warning |
+| **Phase** | typecheck |
+| **Message** | unused binding `<name>` |
+
+A `let` binding introduces a name that is never referenced in the enclosing
+function. Remove the binding or prefix the name with `_` to suppress this
+warning.
+
+```ark
+let _unused = expensive()  // suppressed by _ prefix
+let x = 1                  // W0007 if x is never used
+```
+
+---
+
 ## Internal Compiler Errors — `ICE-*`
 
 These are not language errors but signals of compiler bugs. If you encounter
@@ -631,6 +671,8 @@ one, please file a bug report.
 | W0003 | warning | resolve | ambiguous import |
 | W0004 | **error** | backend-validate | generated Wasm module failed validation |
 | W0005 | warning | backend-validate | non-exportable function skipped |
+| W0006 | warning | resolve | unused import |
+| W0007 | warning | typecheck | unused binding |
 
 ---
 

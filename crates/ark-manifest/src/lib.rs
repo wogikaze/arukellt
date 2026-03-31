@@ -16,6 +16,8 @@ pub struct Manifest {
     pub scripts: HashMap<String, String>,
     #[serde(default)]
     pub world: Option<WorldSection>,
+    #[serde(default)]
+    pub lint: Option<LintConfig>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -54,6 +56,46 @@ pub enum DependencySpec {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WorldSection {
     pub name: String,
+}
+
+/// [lint] section — per-project lint rule severity overrides.
+///
+/// Rules are identified by their diagnostic code (e.g. "W0006") or a
+/// human-readable alias (e.g. "unused-import").
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct LintConfig {
+    /// Rules to suppress (no diagnostic emitted).
+    #[serde(default)]
+    pub allow: Vec<String>,
+    /// Rules to report as warnings (default for most lint rules).
+    #[serde(default)]
+    pub warn: Vec<String>,
+    /// Rules to report as hard errors (compilation fails).
+    #[serde(default)]
+    pub deny: Vec<String>,
+}
+
+impl LintConfig {
+    /// Returns the configured severity for a rule, or None if not configured.
+    pub fn severity_for(&self, rule: &str) -> Option<LintLevel> {
+        if self.allow.iter().any(|r| r == rule) {
+            Some(LintLevel::Allow)
+        } else if self.warn.iter().any(|r| r == rule) {
+            Some(LintLevel::Warn)
+        } else if self.deny.iter().any(|r| r == rule) {
+            Some(LintLevel::Deny)
+        } else {
+            None
+        }
+    }
+}
+
+/// Lint severity levels configurable via ark.toml.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LintLevel {
+    Allow,
+    Warn,
+    Deny,
 }
 
 #[derive(Error, Debug)]
@@ -327,5 +369,48 @@ lint = "arukellt lint ."
             m.scripts.get("lint").map(|s| s.as_str()),
             Some("arukellt lint .")
         );
+    }
+
+    #[test]
+    fn test_lint_section_parsed() {
+        let toml = r#"
+[package]
+name = "linted"
+version = "0.1.0"
+
+[lint]
+allow = ["W0006"]
+warn = ["W0007"]
+deny = ["W0001"]
+"#;
+        let m = Manifest::from_toml(toml).expect("should parse");
+        let lint = m.lint.expect("should have [lint]");
+        assert_eq!(lint.allow, vec!["W0006"]);
+        assert_eq!(lint.warn, vec!["W0007"]);
+        assert_eq!(lint.deny, vec!["W0001"]);
+    }
+
+    #[test]
+    fn test_lint_section_defaults_to_empty() {
+        let toml = r#"
+[package]
+name = "nolint"
+version = "0.1.0"
+"#;
+        let m = Manifest::from_toml(toml).expect("should parse");
+        assert!(m.lint.is_none());
+    }
+
+    #[test]
+    fn test_lint_severity_for() {
+        let config = super::LintConfig {
+            allow: vec!["W0006".to_string()],
+            warn: vec!["W0007".to_string()],
+            deny: vec!["W0001".to_string()],
+        };
+        assert_eq!(config.severity_for("W0006"), Some(super::LintLevel::Allow));
+        assert_eq!(config.severity_for("W0007"), Some(super::LintLevel::Warn));
+        assert_eq!(config.severity_for("W0001"), Some(super::LintLevel::Deny));
+        assert_eq!(config.severity_for("W9999"), None);
     }
 }

@@ -614,6 +614,15 @@ pub(crate) fn cmd_check(file: PathBuf, target: TargetId) {
         process::exit(1);
     }
     let mut session = Session::new();
+    // Load lint config from ark.toml if available
+    if let Some(root) = Manifest::find_root(&std::env::current_dir().unwrap_or_default()) {
+        if let Ok(manifest) = Manifest::load_from_dir(&root) {
+            if let Some(lint) = &manifest.lint {
+                session.lint_allow = lint.allow.clone();
+                session.lint_deny = lint.deny.clone();
+            }
+        }
+    }
     match session.check(&file) {
         Ok(()) => {
             eprintln!("OK: {}", file.display());
@@ -669,6 +678,15 @@ pub(crate) fn cmd_lint(file: Option<PathBuf>, target: TargetId, list: bool) {
         process::exit(1);
     }
     let mut session = Session::new();
+    // Load lint config from ark.toml if available
+    if let Some(root) = Manifest::find_root(&std::env::current_dir().unwrap_or_default()) {
+        if let Ok(manifest) = Manifest::load_from_dir(&root) {
+            if let Some(lint) = &manifest.lint {
+                session.lint_allow = lint.allow.clone();
+                session.lint_deny = lint.deny.clone();
+            }
+        }
+    }
     match session.check(&file) {
         Ok(()) => {
             eprintln!("lint OK: {}", file.display());

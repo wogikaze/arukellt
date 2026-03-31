@@ -70,6 +70,28 @@ WIT world binding for component output with `--emit component`.
 name = "wasi:cli/command"
 ```
 
+### `[lint]` *(optional)*
+
+Per-project lint rule severity overrides. Rules are identified by their
+diagnostic code (e.g. `W0006`) or a human-readable alias.
+
+```toml
+[lint]
+allow = ["W0006"]   # suppress unused import warnings
+warn  = ["W0007"]   # unused bindings as warnings (default)
+deny  = ["W0001"]   # escalate to hard error
+```
+
+Three severity levels are supported:
+
+| Level | Effect |
+|-------|--------|
+| `allow` | Diagnostic is suppressed entirely |
+| `warn` | Diagnostic is reported as a warning (default for most lint rules) |
+| `deny` | Diagnostic is escalated to a hard error; compilation fails |
+
+Use `arukellt lint --list` to see all available lint rule codes.
+
 ## Validation
 
 Schema violations produce actionable error messages:
