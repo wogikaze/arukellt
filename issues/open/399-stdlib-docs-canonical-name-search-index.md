@@ -1,0 +1,34 @@
+# Stdlib Docs: canonical name / alias / historical name を横断検索できるようにする
+
+**Status**: open
+**Created**: 2026-03-31
+**Updated**: 2026-03-31
+**ID**: 399
+**Depends on**: 395
+**Track**: stdlib-docs
+**Blocks v1 exit**: no
+**Priority**: 5
+
+## Summary
+
+deprecated や alias を含む stdlib 名称の揺れを docs 側で吸収する。canonical name、historical name、alias を検索索引として持ち、ユーザーが古い名前で検索しても新しいページへ辿り着ける状態にする。
+
+## Current state
+
+- monomorphic/historical name と canonical name の対応は reference を読まないと追いにくい。
+- 検索導線が page title 依存になりやすく、古い名前で辿りにくい。
+- deprecated docs と migration guide の接続が弱い。
+
+## Acceptance
+
+- [ ] canonical / alias / historical name を持つ検索索引が生成される。
+- [ ] 古い名前から current page へ遷移できる。
+- [ ] deprecated ページまたは reference 行に migration guide リンクが出る。
+- [ ] 索引生成のテストがある。
+
+## References
+
+- ``docs/stdlib/reference.md``
+- ``std/manifest.toml``
+- ``docs/stdlib/prelude-migration.md``
+- ``scripts/generate-docs.py``
