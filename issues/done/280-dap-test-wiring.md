@@ -1,6 +1,6 @@
 # DAP smoke test と E2E test を配線する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 280

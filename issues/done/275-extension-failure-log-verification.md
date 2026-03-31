@@ -1,6 +1,6 @@
 # 失敗ログの検証面（output channel・status bar・user message）を確立する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 275

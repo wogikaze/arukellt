@@ -1,6 +1,6 @@
 # LSP handshake・command execution・task execution の E2E を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 273
