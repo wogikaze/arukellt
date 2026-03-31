@@ -182,6 +182,8 @@ _bg_run stdlib_spec "Stdlib specification OK" \
     "test -f docs/stdlib/README.md && test -f docs/stdlib/core.md && test -f docs/stdlib/io.md" &
 _bg_run docs_consistency "docs consistency (${FIXTURE_COUNT} fixtures)" \
     "python3 scripts/check-docs-consistency.py" &
+_bg_run docs_freshness "docs freshness (project-state.toml vs manifest.txt)" \
+    "python3 scripts/check-docs-freshness.py" &
 _bg_run stdlib_manifest "stdlib manifest check" \
     "bash scripts/check-stdlib-manifest.sh" &
 _bg_run done_issues_checkboxes "issues/done/ has no unchecked checkboxes" \
@@ -294,6 +296,7 @@ _bg_collect lang_spec
 _bg_collect platform_spec
 _bg_collect stdlib_spec
 _bg_collect docs_consistency
+_bg_collect docs_freshness
 _bg_collect stdlib_manifest
 _bg_collect done_issues_checkboxes
 _bg_collect no_panic_audit

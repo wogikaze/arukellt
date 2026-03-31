@@ -1,7 +1,7 @@
 [project]
 name = "Arukellt"
 tagline = "Wasm-first、LLM-friendly を目指す静的型付け言語。"
-updated = "2026-04-08"
+updated = "2026-03-31"
 verification_command = "bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)"
 current_state_doc = "docs/current-state.md"
 
@@ -75,10 +75,10 @@ run_supported = false
 role = "Not started: WASI p3 spec not finalized"
 
 [verification]
-fixture_passed = 575
-fixture_skipped = 11
+fixture_passed = 590
+fixture_skipped = 5
 fixture_failures = 0
-fixture_manifest_count = 586
+fixture_manifest_count = 595
 checks_passed = 13
 checks_total = 13
 unit_tests_note = "current count is verified by `cargo test --workspace --exclude ark-llvm`"

@@ -21,9 +21,9 @@
 
 ## Acceptance
 
-- [ ] `verify-harness.sh` に `--docs-fresh` チェックが追加される
-- [ ] project-state.toml の `updated` 日付と current-state.md の実態が整合しない場合 fail
-- [ ] pre-push hook で docs freshness が検証される
+- [x] `verify-harness.sh` に `--docs-fresh` チェックが追加される
+- [x] project-state.toml の `updated` 日付と current-state.md の実態が整合しない場合 fail
+- [x] pre-push hook で docs freshness が検証される
 
 ## References
 

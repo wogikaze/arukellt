@@ -3,7 +3,7 @@
 > This document reflects the actual, verified state of the project.
 > Current-first source of truth for user-visible behavior and verification gates.
 <!-- BEGIN GENERATED:CURRENT_STATE_UPDATED -->
-> Updated: 2026-04-08.
+> Updated: 2026-03-31.
 <!-- END GENERATED:CURRENT_STATE_UPDATED -->
 
 ## Pipeline
@@ -32,8 +32,8 @@ Two lowering paths are available, selected via `--mir-select`:
 ## Test Health
 
 - Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
-- Fixture harness: 575 passed, 0 failed, 11 skipped (manifest-driven)
-- Fixture manifest: 586 entries
+- Fixture harness: 590 passed, 0 failed, 5 skipped (manifest-driven)
+- Fixture manifest: 595 entries
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)` — **13/13 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
