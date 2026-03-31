@@ -7,7 +7,15 @@ use thiserror::Error;
 pub struct Manifest {
     pub package: Package,
     #[serde(default)]
+    pub bin: Option<BinSection>,
+    #[serde(default)]
+    pub targets: HashMap<String, TargetConfig>,
+    #[serde(default)]
+    pub dependencies: HashMap<String, DependencySpec>,
+    #[serde(default)]
     pub scripts: HashMap<String, String>,
+    #[serde(default)]
+    pub world: Option<WorldSection>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -19,6 +27,35 @@ pub struct Package {
     pub description: Option<String>,
 }
 
+/// [bin] section — identifies the entry-point source file for `ark build`.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct BinSection {
+    pub name: String,
+    pub path: PathBuf,
+}
+
+/// Per-target overrides under [[targets]].
+/// Keys match TargetId values (e.g. "wasm32-wasi-p2").
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct TargetConfig {
+    pub opt_level: Option<u8>,
+    pub output: Option<PathBuf>,
+}
+
+/// Dependency specification. Currently only path-based local dependencies are supported.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum DependencySpec {
+    Version(String),
+    Path { path: PathBuf },
+}
+
+/// [world] section — WIT world binding for component output.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct WorldSection {
+    pub name: String,
+}
+
 #[derive(Error, Debug)]
 pub enum ManifestError {
     #[error("io error: {0}")]
@@ -27,6 +64,8 @@ pub enum ManifestError {
     Toml(#[from] toml::de::Error),
     #[error("manifest not found")]
     NotFound,
+    #[error("ark.toml is missing required field: {0}")]
+    MissingField(String),
 }
 
 impl Manifest {
@@ -60,5 +99,17 @@ impl Manifest {
             return Err(ManifestError::NotFound);
         }
         Self::load(&manifest_path)
+    }
+
+    /// Load from the nearest ancestor directory that contains an ark.toml.
+    pub fn find_and_load(start_dir: &Path) -> Result<(PathBuf, Self), ManifestError> {
+        let root = Self::find_root(start_dir).ok_or(ManifestError::NotFound)?;
+        let manifest = Self::load_from_dir(&root)?;
+        Ok((root, manifest))
+    }
+
+    /// Return the [bin] section, or a clear error if missing.
+    pub fn require_bin(&self) -> Result<&BinSection, ManifestError> {
+        self.bin.as_ref().ok_or_else(|| ManifestError::MissingField("[bin]".to_string()))
     }
 }

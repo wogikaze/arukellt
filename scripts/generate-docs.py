@@ -531,6 +531,9 @@ def render_current_state_diagnostics(state: dict) -> str:
 def render_readme_status(state: dict, fixture_total: int, manifest_stats: dict) -> str:
     verification = state["verification"]
     targets = state["targets"]
+    passed = verification.get("fixture_passed", fixture_total)
+    skipped = verification.get("fixture_skipped", 0)
+    harness_str = f"{passed} passed, {skipped} skipped / {fixture_total} entries" if skipped else f"{passed} passed / {fixture_total} entries"
     return "\n".join(
         [
             "## Status",
@@ -540,7 +543,7 @@ def render_readme_status(state: dict, fixture_total: int, manifest_stats: dict) 
             f"- Canonical target: `{targets['canonical']}`",
             f"- Component/WIT target: `{targets['component_target']}`",
             f"- Unit tests: {verification['unit_tests_note']}",
-            f"- Fixture harness: {fixture_total} passed / {fixture_total} entries",
+            f"- Fixture harness: {harness_str}",
             f"- Verification: `{state['project']['verification_command']}` — {verification['checks_passed']}/{verification['checks_total']} checks pass",
             f"- Stdlib manifest-backed public API: {len(manifest_stats['public_functions'])} functions",
         ]
@@ -548,6 +551,9 @@ def render_readme_status(state: dict, fixture_total: int, manifest_stats: dict) 
 
 
 def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: int, manifest_stats: dict) -> str:
+    _passed = state["verification"].get("fixture_passed", fixture_total)
+    _skipped = state["verification"].get("fixture_skipped", 0)
+    _harness = f"{_passed} passed, {_skipped} skipped / {fixture_total} entries" if _skipped else f"{_passed} passed / {fixture_total} entries"
     lines = [
         "# Arukellt Documentation",
         "",
@@ -560,11 +566,9 @@ def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: in
         f"- CLI default target: `{state['targets']['cli_default']}`",
         f"- Canonical target: `{state['targets']['canonical']}`",
         f"- Component emit: {'available' if state['targets']['component_emit'] else 'not available'} on `{state['targets']['component_target']}` ({state['targets']['component_note']})",
-        f"- Fixture harness: {fixture_total} passed / {fixture_total} entries",
+        f"- Fixture harness: {_harness}",
         f"- Verification: `{state['project']['verification_command']}` — {state['verification']['checks_passed']}/{state['verification']['checks_total']} checks pass",
         f"- Stdlib manifest-backed public API: {len(manifest_stats['public_functions'])} functions",
-        "",
-        "## First Reads",
         "",
         "- [Current state](current-state.md)",
         "- [Quickstart](quickstart.md)",

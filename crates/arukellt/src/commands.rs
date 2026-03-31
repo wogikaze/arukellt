@@ -1,7 +1,6 @@
 //! Subcommand handlers for the Arukellt CLI.
 
-use serde::Deserialize;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process;
 
 use ark_driver::{MirSelection, OptLevel, Session};
@@ -11,25 +10,6 @@ use serde::Serialize;
 
 use crate::native;
 use crate::runtime::{RuntimeCaps, run_wasm_gc, run_wasm_p1};
-
-#[derive(Deserialize)]
-pub(crate) struct ArkManifest {
-    #[allow(dead_code)]
-    pub package: PackageMetadata,
-    pub bin: Option<BinMetadata>,
-}
-
-#[derive(Deserialize)]
-pub(crate) struct PackageMetadata {
-    #[allow(dead_code)]
-    pub name: String,
-}
-
-#[derive(Deserialize)]
-pub(crate) struct BinMetadata {
-    pub name: String,
-    pub path: PathBuf,
-}
 
 pub(crate) fn cmd_init(path: PathBuf) {
     let manifest_path = path.join("ark.toml");
@@ -91,32 +71,40 @@ pub(crate) fn cmd_build(
     profile_mem: bool,
     time: bool,
 ) {
-    let manifest_path = Path::new("ark.toml");
-    if !manifest_path.exists() {
-        eprintln!("error: could not find ark.toml in current directory");
-        process::exit(1);
-    }
-
-    let manifest_str = std::fs::read_to_string(manifest_path).unwrap_or_else(|e| {
-        eprintln!("error: failed to read ark.toml: {}", e);
+    let cwd = std::env::current_dir().unwrap_or_else(|e| {
+        eprintln!("error: cannot determine current directory: {}", e);
         process::exit(1);
     });
 
-    let manifest: ArkManifest = toml::from_str(&manifest_str).unwrap_or_else(|e| {
-        eprintln!("error: failed to parse ark.toml: {}", e);
+    let (project_root, manifest) = Manifest::find_and_load(&cwd).unwrap_or_else(|e| {
+        match e {
+            ark_manifest::ManifestError::NotFound => {
+                eprintln!("error: ark.toml not found in current directory or any parent");
+                eprintln!("hint: run `arukellt init` to create a new project, or `arukellt compile <file>` to compile a single file");
+            }
+            ark_manifest::ManifestError::Toml(ref te) => {
+                eprintln!("error: failed to parse ark.toml: {te}");
+            }
+            _ => {
+                eprintln!("error: failed to load ark.toml: {e}");
+            }
+        }
         process::exit(1);
     });
 
-    let bin = manifest.bin.unwrap_or_else(|| {
-        eprintln!("error: ark.toml must contain a [bin] section");
+    let bin = manifest.require_bin().unwrap_or_else(|_| {
+        eprintln!("error: ark.toml must contain a [bin] section with `name` and `path` fields");
+        eprintln!("hint: add the following to your ark.toml:\n\n[bin]\nname = \"my-app\"\npath = \"src/main.ark\"");
         process::exit(1);
     });
 
-    let input_file = bin.path;
-    let output_file = PathBuf::from(format!("{}.wasm", bin.name));
+    let input_file = project_root.join(&bin.path);
+    let output_file = project_root.join(format!("{}.wasm", bin.name));
 
     let profile = target.profile();
     let emit_kind = profile.default_emit_kind;
+
+    let world = manifest.world.as_ref().map(|w| w.name.clone());
 
     cmd_compile(
         input_file,
@@ -124,7 +112,7 @@ pub(crate) fn cmd_build(
         target,
         emit_kind,
         vec![],
-        None,
+        world,
         false,
         profile_mem,
         time,

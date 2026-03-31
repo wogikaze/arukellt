@@ -8,11 +8,13 @@
 
 ## Pipeline
 
-- Current implementation path: `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm`
+Two lowering paths are available, selected via `--mir-select`:
+
+- **legacy** (default for `compile`): `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm`
+- **corehir** (default for `check`): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
 - Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed/new`
-- Refactor target owned by this branch: `Lex → Parse → Bind → Load → Analyze → Resolve → Check+BuildCoreHIR → LowerToMIR → MIRValidate → MIROptimize → BackendPlan → WasmEmit / LLVMEmit → BackendValidate`
 - Shared orchestration entry point: `ark-driver::Session`
-- Hidden developer dump support exists via `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
+- Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
