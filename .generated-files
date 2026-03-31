@@ -1,0 +1,54 @@
+# Generated Files Manifest
+#
+# Lists all auto-generated files in this repository.
+# Each entry has: path | generator | regenerate command
+#
+# Do NOT edit generated files by hand — changes will be overwritten.
+# Run the listed regenerate command instead.
+#
+# Format: path | generator-script | regenerate-command
+
+# docs landing pages (generate-docs.py)
+docs/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/adr/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/compiler/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/design/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/examples/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/language/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/migration/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/platform/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/process/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/sample/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/spec/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/README.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/_sidebar.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+
+# stdlib reference and module pages (generate-docs.py)
+docs/stdlib/reference.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/core.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/io.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/bytes.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/collections.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/component.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/core.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/csv.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/fs.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/io.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/json.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/path.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/process.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/random.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/seq.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/test.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/text.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/time.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/toml.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/wasm.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+docs/stdlib/modules/wit.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+
+# process docs (generate-docs.py)
+docs/process/benchmark-results.md | scripts/generate-docs.py | python3 scripts/generate-docs.py
+
+# issue indexes (generate-issue-index.sh)
+issues/open/index.md | scripts/generate-issue-index.sh | bash scripts/generate-issue-index.sh
+issues/open/dependency-graph.md | scripts/generate-issue-index.sh | bash scripts/generate-issue-index.sh

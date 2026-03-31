@@ -192,6 +192,8 @@ _bg_run no_panic_audit "no panic/unwrap in user-facing crates" \
     "bash scripts/check-panic-audit.sh" &
 _bg_run asset_naming "asset naming convention (snake_case)" \
     "bash scripts/check-asset-naming.sh" &
+_bg_run generated_boundary "generated file boundary check" \
+    "bash scripts/check-generated-files.sh" &
 if [ "$RUN_DOCS" = true ]; then
     _bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
         "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
@@ -303,6 +305,7 @@ _bg_collect stdlib_manifest
 _bg_collect done_issues_checkboxes
 _bg_collect no_panic_audit
 _bg_collect asset_naming
+_bg_collect generated_boundary
 if [ "$RUN_DOCS" = true ]; then
     _bg_collect markdownlint
 fi
