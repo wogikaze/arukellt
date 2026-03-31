@@ -17,22 +17,47 @@ graph LR
   I303["303 生成 docs と手書き docs の境界を明文化する"]
   I305["305 blocked issue の upstream 状態を確認・更新する"]
   I307["307 --deny-fs の実施と --dir の検証テスト"]
+  I308["308 Selfhost parser の構文 surface を拡張する"]
+  I319["319 Selfhost CLI のフラグ semantics を driver に接続する"]
+  I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
   I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
   I287["287 セルフホスト fixture parity テストを構築する"]
   I296["296 string 型の canonical ABI lift-lower を実装する"]
   I301["301 current-state.md と README.md の整合を取る"]
   I294["294 capability surface の公式リストを文書化する"]
+  I309["309 Selfhost resolver に module/import resolution を実装する"]
+  I311["311 Selfhost typechecker に型推論エンジンを構築する"]
+  I313["313 Selfhost MIR lowering: 式のコンパイルを実装する"]
+  I318["318 Selfhost CLI にコマンド surface を追加する"]
+  I321["321 Selfhost compiler の出力契約を統一する"]
   I306["306 Backend-illegal operand の棚卸し"]
   I288["288 セルフホスト CLI parity を確認する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
   I297["297 list 型の canonical ABI lift-lower を実装する"]
   I298["298 option / result 型の canonical ABI lift-lower を実装する"]
   I302["302 check-docs-consistency の検証範囲を拡張する"]
+  I310["310 Selfhost resolver に visibility enforcement を実装する"]
+  I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
+  I314["314 Selfhost MIR lowering: 制御フローを構築する"]
+  I315["315 Selfhost MIR lowering: 集合体操作を実装する"]
+  I320["320 Selfhost CLI に package/workspace 統合を実装する"]
   I284["284 CoreHIR path をデフォルトに昇格する"]
   I300["300 multi-export world と他言語ホストの相互運用テストを拡充する"]
   I304["304 verify-harness.sh に docs freshness check を追加する"]
+  I316["316 Selfhost Wasm emitter: 構造化ブロック出力を実装する"]
+  I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
   I285["285 Legacy lowering path を隔離・撤去する"]
+  I317["317 Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する"]
+  I323["323 Selfhost の統一バイナリを生成する"]
+  I324["324 verify-bootstrap.sh の scaffold を解除する"]
+  I325["325 check-selfhost-parity.sh を作成する"]
+  I326["326 CI の selfhost gate を full fixpoint check に昇格する"]
+  I328["328 コンパイラパスを抽象化して compiler-agnostic にする"]
+  I329["329 Dual-period governance を確定する"]
+  I330["330 Fixture harness を selfhost binary 対応にする"]
+  I332["332 Workspace 構造を selfhost primary に備えて再編する"]
+  I331["331 Perf baseline を selfhost binary 対応にする"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I281 --> I282
   I281 --> I283
@@ -43,6 +68,11 @@ graph LR
   I292 --> I294
   I293 --> I294
   I307 --> I294
+  I308 --> I309
+  I308 --> I311
+  I308 --> I313
+  I319 --> I318
+  I319 --> I321
   I281 --> I306
   I282 --> I306
   I283 --> I306
@@ -51,6 +81,11 @@ graph LR
   I296 --> I297
   I296 --> I298
   I301 --> I302
+  I309 --> I310
+  I311 --> I312
+  I313 --> I314
+  I313 --> I315
+  I318 --> I320
   I281 --> I284
   I282 --> I284
   I283 --> I284
@@ -58,7 +93,21 @@ graph LR
   I297 --> I300
   I298 --> I300
   I302 --> I304
+  I314 --> I316
+  I315 --> I316
+  I320 --> I322
+  I321 --> I322
   I284 --> I285
+  I316 --> I317
+  I317 --> I323
+  I323 --> I324
+  I324 --> I325
+  I325 --> I326
+  I326 --> I328
+  I328 --> I329
+  I328 --> I330
+  I329 --> I332
+  I330 --> I331
 ```
 
 ## Adjacency list
@@ -74,22 +123,47 @@ graph LR
 - **303** depends on: none; blocks: 301
 - **305** depends on: none; blocks: none
 - **307** depends on: none; blocks: 294
+- **308** depends on: none; blocks: 309, 311, 313
+- **319** depends on: none; blocks: 318, 321
+- **327** depends on: none; blocks: none
 - **282** depends on: 281; blocks: 284, 306
 - **283** depends on: 281; blocks: 284, 306
 - **287** depends on: 290; blocks: 288, 289
 - **296** depends on: 299; blocks: 297, 298
 - **301** depends on: 303; blocks: 302
 - **294** depends on: 291, 292, 293, 307; blocks: none
+- **309** depends on: 308; blocks: 310
+- **311** depends on: 308; blocks: 312
+- **313** depends on: 308; blocks: 314, 315
+- **318** depends on: 319; blocks: 320
+- **321** depends on: 319; blocks: 322
 - **306** depends on: 281, 282, 283; blocks: 284
 - **288** depends on: 287; blocks: none
 - **289** depends on: 287; blocks: none
 - **297** depends on: 296; blocks: 300
 - **298** depends on: 296; blocks: 300
 - **302** depends on: 301; blocks: 304
+- **310** depends on: 309; blocks: none
+- **312** depends on: 311; blocks: none
+- **314** depends on: 313; blocks: 316
+- **315** depends on: 313; blocks: 316
+- **320** depends on: 318; blocks: 322
 - **284** depends on: 281, 282, 283, 306; blocks: 285
 - **300** depends on: 297, 298; blocks: none
 - **304** depends on: 302; blocks: none
+- **316** depends on: 314, 315; blocks: 317
+- **322** depends on: 320, 321; blocks: none
 - **285** depends on: 284; blocks: none
+- **317** depends on: 316; blocks: 323
+- **323** depends on: 317; blocks: 324
+- **324** depends on: 323; blocks: 325
+- **325** depends on: 324; blocks: 326
+- **326** depends on: 325; blocks: 328
+- **328** depends on: 326; blocks: 329, 330
+- **329** depends on: 328; blocks: 332
+- **330** depends on: 328; blocks: 331
+- **332** depends on: 329; blocks: none
+- **331** depends on: 330; blocks: none
 
 ### Blocked
 
