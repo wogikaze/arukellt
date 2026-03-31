@@ -190,6 +190,8 @@ _bg_run done_issues_checkboxes "issues/done/ has no unchecked checkboxes" \
     "files=\$(grep -rl '\\- \\[ \\]' issues/done/ 2>/dev/null | grep '\\.md\$' || true); if [ -n \"\$files\" ]; then echo 'Files in done/ with unchecked items:'; printf '%s\n' \"\$files\"; exit 1; fi" &
 _bg_run no_panic_audit "no panic/unwrap in user-facing crates" \
     "bash scripts/check-panic-audit.sh" &
+_bg_run asset_naming "asset naming convention (snake_case)" \
+    "bash scripts/check-asset-naming.sh" &
 if [ "$RUN_DOCS" = true ]; then
     _bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
         "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
@@ -300,6 +302,7 @@ _bg_collect docs_freshness
 _bg_collect stdlib_manifest
 _bg_collect done_issues_checkboxes
 _bg_collect no_panic_audit
+_bg_collect asset_naming
 if [ "$RUN_DOCS" = true ]; then
     _bg_collect markdownlint
 fi
