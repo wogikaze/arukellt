@@ -8,6 +8,18 @@ language as implemented on the `feature-arukellt-v1` branch. It is intended
 to contain enough detail to re-implement the parser, type checker, and code
 generator from scratch.
 
+### Stability Labels
+
+Each section and feature carries one of the following stability labels (ADR-013 §
+Stability):
+
+| Label | Meaning |
+|-------|---------|
+| **stable** | Feature is finalized. Breaking changes require a new major version. |
+| **provisional** | Feature is implemented and tested, but the interface may change before v1 exit. |
+| **experimental** | Feature exists in the codebase but is not tested or guaranteed on every build. |
+| **unimplemented** | Feature is specified but not yet implemented. |
+
 ---
 
 ## Table of Contents
@@ -25,7 +37,7 @@ generator from scratch.
 
 ---
 
-## 1. Lexical Structure
+## 1. Lexical Structure <!-- stability: stable -->
 
 ### 1.1 Source Encoding
 
@@ -149,7 +161,7 @@ Semicolons are optional.
 
 ---
 
-## 2. Type System
+## 2. Type System <!-- stability: stable -->
 
 ### 2.1 Primitive Types
 
@@ -273,7 +285,7 @@ impl Display for Point {
 
 ---
 
-## 3. Expressions
+## 3. Expressions <!-- stability: stable -->
 
 ### 3.1 Literal Expressions
 
@@ -471,7 +483,7 @@ expression. Assignment returns `()`.
 
 ---
 
-## 4. Statements
+## 4. Statements <!-- stability: stable -->
 
 ### 4.1 Let Binding
 
@@ -539,7 +551,7 @@ tail expression (return value).
 
 ---
 
-## 5. Pattern Matching
+## 5. Pattern Matching <!-- stability: stable -->
 
 Patterns appear in `match` arms, `let` bindings, and `for` targets.
 
@@ -604,7 +616,7 @@ x if x > 0 => …
 
 ---
 
-## 6. Items
+## 6. Items <!-- stability: stable -->
 
 Items are top-level declarations within a module.
 
@@ -682,7 +694,7 @@ impl Trait for Name {
 
 ---
 
-## 7. Module System
+## 7. Module System <!-- stability: provisional -->
 
 ### 7.1 Import Syntax
 
@@ -737,7 +749,7 @@ an explicit import:
 
 ---
 
-## 8. Operator Precedence
+## 8. Operator Precedence <!-- stability: stable -->
 
 From highest to lowest. All binary operators are **left-associative**
 unless noted.
@@ -760,7 +772,7 @@ unless noted.
 
 ---
 
-## 9. Standard Library API
+## 9. Standard Library API <!-- stability: see individual entries -->
 
 Authoritative source: `std/manifest.toml` (263 entries).
 
@@ -1168,7 +1180,7 @@ These functions are available via stdlib modules, not auto-imported.
 
 ---
 
-## 10. Error Codes
+## 10. Error Codes <!-- stability: stable -->
 
 The type checker emits diagnostics with the following error codes:
 

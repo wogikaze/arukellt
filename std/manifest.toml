@@ -352,6 +352,7 @@ kind = "builtin"
 params = ["f32"]
 returns = "String"
 prelude = false
+stability = "provisional"
 doc_category = "conversion"
 
 # ── Conversion: from string (parsing) ────────
