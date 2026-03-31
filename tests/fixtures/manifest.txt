@@ -317,6 +317,7 @@ run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
 run:stdlib_cli/cli_basic.ark
 run:stdlib_compiler/compiler_basic.ark
+run:stdlib_component/component_helpers.ark
 run:stdlib_core/convert.ark
 run:stdlib_core/error_basic.ark
 run:stdlib_core/error_match.ark
@@ -538,6 +539,7 @@ t3-run:stdlib_vec_ops/sum_i32.ark
 run:stdlib_wasm/memory_ops.ark
 run:stdlib_wasm/wasm_basic.ark
 run:stdlib_wit/wit_basic.ark
+run:stdlib_wit/wit_types.ark
 run:string_interp/fstring_basic.ark
 t3-compile:string_interp/fstring_basic.ark
 t3-run:string_interp/fstring_basic.ark

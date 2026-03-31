@@ -30,7 +30,6 @@ graph LR
   I377["377 Repo Hygiene: scaffold / internal コンポーネントの露出 tier を定める"]
   I378["378 Playground: execution model を選定し v1 scope を確定する"]
   I384["384 Stdlib: API 追加時の admission gate と family coverage チェックを導入する"]
-  I391["391 Stdlib: component / WIT helper の実用性を見直す"]
   I393["393 Stdlib: module family ごとの maturity scoreboard を生成する"]
   I408["408 Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する"]
   I411["411 Language Docs: diagnostics / error code 文書を実装と揃える"]
@@ -269,7 +268,6 @@ graph LR
 - **377** depends on: none; blocks: 423
 - **378** depends on: none; blocks: 379, 382, 428
 - **384** depends on: 383; blocks: none
-- **391** depends on: none; blocks: none
 - **393** depends on: 383; blocks: none
 - **408** depends on: none; blocks: 409
 - **411** depends on: none; blocks: none
