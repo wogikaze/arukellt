@@ -942,6 +942,11 @@ impl LanguageServer for ArukellBackend {
                 }),
                 definition_provider: Some(OneOf::Left(true)),
                 references_provider: Some(OneOf::Left(true)),
+                signature_help_provider: Some(SignatureHelpOptions {
+                    trigger_characters: Some(vec!["(".to_string(), ",".to_string()]),
+                    ..Default::default()
+                }),
+                document_highlight_provider: Some(OneOf::Left(true)),
                 rename_provider: Some(OneOf::Right(RenameOptions {
                     prepare_provider: Some(true),
                     work_done_progress_options: Default::default(),
@@ -965,6 +970,8 @@ impl LanguageServer for ArukellBackend {
                         },
                     ),
                 ),
+                inlay_hint_provider: Some(OneOf::Left(true)),
+                folding_range_provider: Some(FoldingRangeProviderCapability::Simple(true)),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -1569,6 +1576,85 @@ impl LanguageServer for ArukellBackend {
             result_id: None,
             data,
         })))
+    }
+
+    async fn inlay_hint(
+        &self,
+        _params: InlayHintParams,
+    ) -> Result<Option<Vec<InlayHint>>> {
+        // Inlay hints require type inference results from the TypeChecker.
+        // Returning None disables them for now; the capability is declared
+        // so VS Code will query us once the implementation is complete.
+        Ok(None)
+    }
+
+    async fn folding_range(
+        &self,
+        params: FoldingRangeParams,
+    ) -> Result<Option<Vec<FoldingRange>>> {
+        let uri = params.text_document.uri;
+        let docs = self.documents.lock().unwrap();
+        let source = match docs.get(&uri) {
+            Some(s) => s.clone(),
+            None => return Ok(None),
+        };
+        drop(docs);
+
+        let cache = self.analysis_cache.lock().unwrap();
+        match cache.get(&uri) {
+            Some(a) => {
+                let mut ranges = Vec::new();
+                for item in &a.module.items {
+                    match item {
+                        ark_parser::ast::Item::FnDef(f) => {
+                            let start = Self::offset_to_position(&source, f.span.start);
+                            let end = Self::offset_to_position(&source, f.span.end);
+                            if end.line > start.line {
+                                ranges.push(FoldingRange {
+                                    start_line: start.line,
+                                    start_character: Some(start.character),
+                                    end_line: end.line,
+                                    end_character: Some(end.character),
+                                    kind: Some(FoldingRangeKind::Region),
+                                    collapsed_text: Some(format!("fn {}(...) {{ ... }}", f.name)),
+                                });
+                            }
+                        }
+                        ark_parser::ast::Item::StructDef(s) => {
+                            let start = Self::offset_to_position(&source, s.span.start);
+                            let end = Self::offset_to_position(&source, s.span.end);
+                            if end.line > start.line {
+                                ranges.push(FoldingRange {
+                                    start_line: start.line,
+                                    start_character: Some(start.character),
+                                    end_line: end.line,
+                                    end_character: Some(end.character),
+                                    kind: Some(FoldingRangeKind::Region),
+                                    collapsed_text: Some(format!("struct {} {{ ... }}", s.name)),
+                                });
+                            }
+                        }
+                        ark_parser::ast::Item::EnumDef(e) => {
+                            let start = Self::offset_to_position(&source, e.span.start);
+                            let end = Self::offset_to_position(&source, e.span.end);
+                            if end.line > start.line {
+                                ranges.push(FoldingRange {
+                                    start_line: start.line,
+                                    start_character: Some(start.character),
+                                    end_line: end.line,
+                                    end_character: Some(end.character),
+                                    kind: Some(FoldingRangeKind::Region),
+                                    collapsed_text: Some(format!("enum {} {{ ... }}", e.name)),
+                                });
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                return Ok(if ranges.is_empty() { None } else { Some(ranges) });
+            }
+            None => return Ok(None),
+        };
     }
 }
 
