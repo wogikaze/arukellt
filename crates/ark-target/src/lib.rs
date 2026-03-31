@@ -20,12 +20,18 @@ pub enum TargetId {
     #[default]
     Wasm32WasiP1,
     /// T2: Wasm GC, no WASI (browser/embedded)
+    /// STATUS: not-started — no codegen backend, no tests, no scaffold.
+    /// See docs/target-contract.md § T2 for what is needed to start this target.
     Wasm32Freestanding,
     /// T3: Wasm GC + WASI Preview 2 + Component Model (canonical target)
     Wasm32WasiP2,
     /// T4: Native via LLVM (subordinate to Wasm semantics)
+    /// STATUS: scaffold — `crates/ark-llvm` exists but is excluded from the default build
+    /// (requires LLVM 18) and has no test infrastructure.
     Native,
     /// T5: Wasm GC + WASI Preview 3 (future, async-first)
+    /// STATUS: not-started — no code, no tests, no scaffold.
+    /// See docs/target-contract.md § T5 for the intended scope.
     Wasm32WasiP3,
 }
 

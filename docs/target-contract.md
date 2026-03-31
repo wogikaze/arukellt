@@ -38,8 +38,8 @@ matrix job.  See `.github/workflows/ci.yml`.
 |---------|--------|--------|
 | parse | guaranteed | shared frontend; same parser as T1 |
 | typecheck | guaranteed | shared frontend; same typechecker as T1 |
-| compile (core Wasm) | guaranteed | 5 `t3-run` + 161 `t3-compile` fixtures |
-| run (wasmtime) | guaranteed | 5 `t3-run` fixtures with stdout comparison |
+| compile (core Wasm) | guaranteed | 157 `t3-run` + 161 `t3-compile` fixtures |
+| run (wasmtime) | guaranteed | 157 `t3-run` fixtures with stdout comparison (uses null GC collector) |
 | emit component | smoke | 6 `component-compile` fixtures; skipped if `wasm-tools` absent |
 | emit WIT | smoke | `--emit wit` tested in component-compile fixtures |
 | host capabilities | guaranteed | WASI P2 imports conditionally emitted per reachability |
@@ -49,11 +49,26 @@ matrix job.  See `.github/workflows/ci.yml`.
 
 ### T2 — `wasm32-wasi-p1` (linear memory, alternative)
 
+**Status: not-started**
+
+T2 is not implemented.  No codegen backend, no tests, no scaffold.  The target
+identifier `wasm32-freestanding` is registered in `ark-target` but nothing downstream
+handles it.  To start T2: add a new codegen backend in `crates/ark-wasm` that emits
+linear-memory Wasm without GC instructions, wire it into the backend plan in
+`crates/ark-driver`, and add fixture entries.
+
 | Surface | Status | Detail |
 |---------|--------|--------|
 | all | none | T2 is not implemented.  No codegen, no tests, no scaffold. |
 
 ### T4 — native (LLVM backend)
+
+**Status: scaffold**
+
+The `crates/ark-llvm` crate exists and can emit basic LLVM IR for simple programs,
+but it is excluded from the default build (`--exclude ark-llvm`) because it requires
+LLVM 18.  No test infrastructure is wired up; correctness is unknown.  The crate is
+kept for future native-target work but should not be advertised as functional.
 
 | Surface | Status | Detail |
 |---------|--------|--------|
@@ -63,7 +78,13 @@ matrix job.  See `.github/workflows/ci.yml`.
 | emit | scaffold | basic LLVM IR emission exists |
 | determinism | none | not applicable until compile is functional |
 
-### T5 — interpreter
+### T5 — interpreter / WASI P3
+
+**Status: not-started**
+
+T5 (interpreter or WASI P3 async) is not started.  The `wasm32-wasi-p3` target
+identifier exists in `ark-target` but no codegen backend or runtime handles it.
+There is no scaffold code.
 
 | Surface | Status | Detail |
 |---------|--------|--------|

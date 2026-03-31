@@ -3,6 +3,13 @@
 //! This crate implements the T4 `native` target backend by lowering MIR
 //! to LLVM IR via the `inkwell` safe wrapper around the LLVM C API.
 //!
+//! # T4 scaffold status
+//!
+//! **This crate is scaffold.**  It is excluded from the default workspace build
+//! because it requires LLVM 18 (`--exclude ark-llvm`).  There is no automated
+//! test infrastructure wired up.  Correctness beyond Phase 1 scalar operations
+//! is not verified.  See `docs/target-contract.md § T4` for the full status.
+//!
 //! The native backend follows Wasm semantics — it does not introduce
 //! LLVM-specific type features or native-only language constructs.
 //! Its purpose is to provide fast local execution and debugging.
