@@ -1,6 +1,6 @@
 # Extension quality / packaging / marketplace readiness
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 214
