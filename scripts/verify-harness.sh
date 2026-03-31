@@ -325,13 +325,17 @@ fi
 
 if [ "$RUN_COMPONENT" = true ]; then
     printf '\n%s\n' "${YELLOW}[component] Component interop smoke test...${NC}"
-    INTEROP_SCRIPT="tests/component-interop/jco/calculator/run.sh"
-    if [ ! -f "$INTEROP_SCRIPT" ]; then
-        check_skip "component interop script not found"
-    elif ! command -v wasmtime >/dev/null 2>&1; then
+    if ! command -v wasmtime >/dev/null 2>&1; then
         check_skip "component interop (wasmtime not found)"
     else
-        run_check "component interop (wasmtime)" "bash $INTEROP_SCRIPT"
+        for INTEROP_SCRIPT in tests/component-interop/jco/*/run.sh; do
+            if [ ! -f "$INTEROP_SCRIPT" ]; then
+                check_skip "component interop scripts not found"
+                break
+            fi
+            fixture_name=$(basename "$(dirname "$INTEROP_SCRIPT")")
+            run_check "component interop: $fixture_name (wasmtime)" "bash $INTEROP_SCRIPT"
+        done
     fi
 fi
 
