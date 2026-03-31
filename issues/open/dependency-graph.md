@@ -29,8 +29,9 @@ graph LR
   I375["375 Repo Hygiene: archive / retention policy を定め、情報の鮮度を維持する"]
   I377["377 Repo Hygiene: scaffold / internal コンポーネントの露出 tier を定める"]
   I378["378 Playground: execution model を選定し v1 scope を確定する"]
-  I383["383 Stdlib: manifest metadata を resolver / typechecker / LSP / docs に伝搬する"]
+  I384["384 Stdlib: API 追加時の admission gate と family coverage チェックを導入する"]
   I391["391 Stdlib: component / WIT helper の実用性を見直す"]
+  I393["393 Stdlib: module family ごとの maturity scoreboard を生成する"]
   I408["408 Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する"]
   I411["411 Language Docs: diagnostics / error code 文書を実装と揃える"]
   I412["412 Language Docs: 安定した anchor / permalink 体系を整える"]
@@ -70,8 +71,6 @@ graph LR
   I379["379 Playground: parser / formatter を Wasm に build しブラウザで動かす"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I428["428 Playground: v1 の product contract と execution ADR を固定する"]
-  I384["384 Stdlib: API 追加時の admission gate と family coverage チェックを導入する"]
-  I393["393 Stdlib: module family ごとの maturity scoreboard を生成する"]
   I443["443 Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する"]
   I284["284 CoreHIR path をデフォルトに昇格する"]
   I288["288 セルフホスト CLI parity を確認する"]
@@ -165,8 +164,6 @@ graph LR
   I378 --> I379
   I378 --> I382
   I378 --> I428
-  I383 --> I384
-  I383 --> I393
   I442 --> I443
   I281 --> I284
   I282 --> I284
@@ -271,8 +268,9 @@ graph LR
 - **375** depends on: none; blocks: 419
 - **377** depends on: none; blocks: 423
 - **378** depends on: none; blocks: 379, 382, 428
-- **383** depends on: none; blocks: 384, 393
+- **384** depends on: 383; blocks: none
 - **391** depends on: none; blocks: none
+- **393** depends on: 383; blocks: none
 - **408** depends on: none; blocks: 409
 - **411** depends on: none; blocks: none
 - **412** depends on: none; blocks: none
@@ -312,8 +310,6 @@ graph LR
 - **379** depends on: 378; blocks: 380, 429
 - **382** depends on: 378; blocks: none
 - **428** depends on: 378; blocks: 433, 435
-- **384** depends on: 383; blocks: none
-- **393** depends on: 383; blocks: none
 - **443** depends on: 442; blocks: 444
 - **284** depends on: 281, 282, 283, 306; blocks: 285
 - **288** depends on: 287; blocks: none

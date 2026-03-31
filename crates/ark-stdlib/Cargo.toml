@@ -5,3 +5,5 @@ edition.workspace = true
 
 [dependencies]
 ark-wasm = { workspace = true }
+serde = { workspace = true }
+toml = { workspace = true }

@@ -241,6 +241,8 @@ name = "ark-stdlib"
 version = "0.1.0"
 dependencies = [
  "ark-wasm",
+ "serde",
+ "toml",
 ]
 
 [[package]]
