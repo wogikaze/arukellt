@@ -159,7 +159,7 @@ index_out.write_text('\n'.join(lines) + '\n')
 
 # graph markdown
 all_for_graph = {**issues, **blocked_issues}
-mermaid = ['graph TD']
+mermaid = ['graph LR']
 for iid in order:
     mermaid.append(f'  I{iid}["{iid} {issues[iid]["title"]}"]')
 for iid in sorted(blocked_issues):
