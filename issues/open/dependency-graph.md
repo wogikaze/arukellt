@@ -20,6 +20,11 @@ graph LR
   I308["308 Selfhost parser の構文 surface を拡張する"]
   I319["319 Selfhost CLI のフラグ semantics を driver に接続する"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
+  I333["333 LSP: project-wide symbol index を構築する"]
+  I343["343 Formatter: コメントと trivia の保存を実装する"]
+  I344["344 Formatter: parse error 時の動作契約を定義する"]
+  I348["348 Linter: lint rule registry を作る"]
+  I353["353 Tooling Contract: ark-lsp を CI merge gate に含める"]
   I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
   I287["287 セルフホスト fixture parity テストを構築する"]
@@ -31,6 +36,15 @@ graph LR
   I313["313 Selfhost MIR lowering: 式のコンパイルを実装する"]
   I318["318 Selfhost CLI にコマンド surface を追加する"]
   I321["321 Selfhost compiler の出力契約を統一する"]
+  I334["334 LSP: 標準ライブラリの定義解決を実装する"]
+  I335["335 LSP: cross-file go to definition を実装する"]
+  I338["338 LSP: references を semantic symbol ID ベースに置き換える"]
+  I345["345 Formatter: 現行構文全域のスナップショットテストを追加する"]
+  I346["346 Formatter: import sort を formatter から分離する"]
+  I349["349 Linter: unused import / unused binding の検出を実装する"]
+  I350["350 Linter: `arukellt lint` CLI サブコマンドを追加する"]
+  I354["354 Tooling Contract: VS Code extension テストを CI に接続する"]
+  I355["355 Tooling Contract: LSP protocol E2E テストを追加する"]
   I306["306 Backend-illegal operand の棚卸し"]
   I288["288 セルフホスト CLI parity を確認する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
@@ -42,11 +56,22 @@ graph LR
   I314["314 Selfhost MIR lowering: 制御フローを構築する"]
   I315["315 Selfhost MIR lowering: 集合体操作を実装する"]
   I320["320 Selfhost CLI に package/workspace 統合を実装する"]
+  I336["336 LSP: hover の型情報を resolver/typechecker 連携で精密化する"]
+  I337["337 LSP: signature help を stdlib 連携で完成させる"]
+  I340["340 LSP: auto-import 候補を manifest / module graph 駆動にする"]
+  I339["339 LSP: rename を semantic-aware に置き換える"]
+  I342["342 LSP: completion をコンテキスト対応にする"]
+  I347["347 Formatter: range formatting を実装する"]
+  I352["352 Linter: lint 結果を LSP diagnostics / code action として配信する"]
+  I351["351 Linter: ark.toml で lint 設定を管理する"]
+  I356["356 Tooling Contract: CLI / LSP / Extension の機能契約を文書化する"]
   I284["284 CoreHIR path をデフォルトに昇格する"]
   I300["300 multi-export world と他言語ホストの相互運用テストを拡充する"]
   I304["304 verify-harness.sh に docs freshness check を追加する"]
   I316["316 Selfhost Wasm emitter: 構造化ブロック出力を実装する"]
   I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
+  I341["341 LSP: organize imports を formatter 副作用から独立した semantic 操作にする"]
+  I357["357 Tooling Contract: release gate を手動チェックリストから自動検証に移行する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I317["317 Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する"]
   I323["323 Selfhost の統一バイナリを生成する"]
@@ -73,6 +98,15 @@ graph LR
   I308 --> I313
   I319 --> I318
   I319 --> I321
+  I333 --> I334
+  I333 --> I335
+  I333 --> I338
+  I343 --> I345
+  I344 --> I346
+  I348 --> I349
+  I348 --> I350
+  I353 --> I354
+  I353 --> I355
   I281 --> I306
   I282 --> I306
   I283 --> I306
@@ -86,6 +120,15 @@ graph LR
   I313 --> I314
   I313 --> I315
   I318 --> I320
+  I334 --> I336
+  I334 --> I337
+  I334 --> I340
+  I338 --> I339
+  I338 --> I342
+  I345 --> I347
+  I349 --> I352
+  I350 --> I351
+  I355 --> I356
   I281 --> I284
   I282 --> I284
   I283 --> I284
@@ -97,6 +140,10 @@ graph LR
   I315 --> I316
   I320 --> I322
   I321 --> I322
+  I340 --> I341
+  I354 --> I357
+  I355 --> I357
+  I356 --> I357
   I284 --> I285
   I316 --> I317
   I317 --> I323
@@ -126,6 +173,11 @@ graph LR
 - **308** depends on: none; blocks: 309, 311, 313
 - **319** depends on: none; blocks: 318, 321
 - **327** depends on: none; blocks: none
+- **333** depends on: none; blocks: 334, 335, 338
+- **343** depends on: none; blocks: 345
+- **344** depends on: none; blocks: 346
+- **348** depends on: none; blocks: 349, 350
+- **353** depends on: none; blocks: 354, 355
 - **282** depends on: 281; blocks: 284, 306
 - **283** depends on: 281; blocks: 284, 306
 - **287** depends on: 290; blocks: 288, 289
@@ -137,6 +189,15 @@ graph LR
 - **313** depends on: 308; blocks: 314, 315
 - **318** depends on: 319; blocks: 320
 - **321** depends on: 319; blocks: 322
+- **334** depends on: 333; blocks: 336, 337, 340
+- **335** depends on: 333; blocks: none
+- **338** depends on: 333; blocks: 339, 342
+- **345** depends on: 343; blocks: 347
+- **346** depends on: 344; blocks: none
+- **349** depends on: 348; blocks: 352
+- **350** depends on: 348; blocks: 351
+- **354** depends on: 353; blocks: 357
+- **355** depends on: 353; blocks: 356, 357
 - **306** depends on: 281, 282, 283; blocks: 284
 - **288** depends on: 287; blocks: none
 - **289** depends on: 287; blocks: none
@@ -148,11 +209,22 @@ graph LR
 - **314** depends on: 313; blocks: 316
 - **315** depends on: 313; blocks: 316
 - **320** depends on: 318; blocks: 322
+- **336** depends on: 334; blocks: none
+- **337** depends on: 334; blocks: none
+- **340** depends on: 334; blocks: 341
+- **339** depends on: 338; blocks: none
+- **342** depends on: 338; blocks: none
+- **347** depends on: 345; blocks: none
+- **352** depends on: 349; blocks: none
+- **351** depends on: 350; blocks: none
+- **356** depends on: 355; blocks: 357
 - **284** depends on: 281, 282, 283, 306; blocks: 285
 - **300** depends on: 297, 298; blocks: none
 - **304** depends on: 302; blocks: none
 - **316** depends on: 314, 315; blocks: 317
 - **322** depends on: 320, 321; blocks: none
+- **341** depends on: 340; blocks: none
+- **357** depends on: 354, 355, 356; blocks: none
 - **285** depends on: 284; blocks: none
 - **317** depends on: 316; blocks: 323
 - **323** depends on: 317; blocks: 324
