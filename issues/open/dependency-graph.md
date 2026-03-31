@@ -19,9 +19,12 @@ graph TD
   I220["220 Task provider: background task support and pre-execution validation"]
   I221["221 current-state.md を唯一の現行状態ソースとして再構築する"]
   I224["224 issues/open・done・blocked と実装状態の同期確認・修正"]
-  I226["226 言語仕様に stable/provisional/experimental/removed の4段階ラベルを定義・適用する"]
+  I227["227 構文・型システム・import・visibility・error model の契約を文書化する"]
+  I230["230 破壊的変更の issue/changelog/migration guide 3点セット手順を確立する"]
   I231["231 ark.toml を project model の唯一の正規入口として仕様化する"]
   I237["237 バイナリ探索・server.path・起動引数の統合と自動設定を実装する"]
+  I243["243 ユーザー到達経路での panic/unwrap/起動失敗の即時 issue 化品質基準を確立する"]
+  I244["244 最適化・backend の「無効でも使える/有効でも壊さない」検証体制を構築する"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I250["250 benchmark measurement plan: GC vs linear memory decision data"]
   I251["251 ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする"]
@@ -38,42 +41,33 @@ graph TD
   I239["239 日常利用に必要な LSP 基本機能を完成させる"]
   I222["222 README を現在の利用可能面を正確に示す入口に更新する"]
   I225["225 リリース可否基準を「何を保証するか」ベースで文書化する"]
-  I241["241 本線 target を選定し、experimental/blocked target を明示的に区分する"]
-  I227["227 構文・型システム・import・visibility・error model の契約を文書化する"]
-  I228["228 stdlib 全公開 API に安定性ラベルと互換ポリシーを付与する"]
-  I230["230 破壊的変更の issue/changelog/migration guide 3点セット手順を確立する"]
+  I229["229 Quickstart を「今後も基準になる書き方」に更新する"]
   I232["232 単一ファイルモードと project モードの挙動差を明確化・ドキュメント化する"]
   I233["233 module / package / workspace / dependency の解決規則を仕様として固定する"]
   I238["238 project root・target・emit・manifest・scripts の CLI/LSP/Tasks 解決を統一する"]
+  I245["245 配布物・統合面・失敗時の回復性の出荷品質基準を策定する"]
   I276["276 DAP 基本動詞を実装する（launch/threads/stackTrace/scopes/variables）"]
   I264["264 CI 上でテストカテゴリ別ジョブを構成する"]
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I273["273 LSP handshake・command execution・task execution の E2E を実装する"]
   I275["275 失敗ログの検証面（output channel・status bar・user message）を確立する"]
   I240["240 エラー時の診断案内（何が足りないか・どこを直すか）を実装する"]
-  I242["242 CI を unit/fixture/integration/packaging/editor smoke/determinism の各層で構成する"]
-  I229["229 Quickstart を「今後も基準になる書き方」に更新する"]
   I234["234 visibility・public API・internal API を言語機能として確立する"]
   I235["235 コンパイラ/CLI/LSP ツール層: multi-root workspace・script 実行・target 設定の解決統一"]
   I277["277 setBreakpoints/continue/next/disconnect を実装する"]
   I265["265 失敗時の層別特定（language/backend/tooling regression）を可能にする"]
   I274["274 test controller discovery と restart の E2E を実装する"]
-  I243["243 ユーザー到達経路での panic/unwrap/起動失敗の即時 issue 化品質基準を確立する"]
-  I244["244 最適化・backend の「無効でも使える/有効でも壊さない」検証体制を構築する"]
   I279["279 T1/T3 debug 対象範囲を定義し canonical path で end-to-end 確認する"]
   I280["280 DAP smoke test と E2E test を配線する"]
-  I245["245 配布物・統合面・失敗時の回復性の出荷品質基準を策定する"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I219 --> I239
   I221 --> I222
   I221 --> I225
-  I221 --> I241
-  I226 --> I227
-  I226 --> I228
-  I226 --> I230
+  I227 --> I229
   I231 --> I232
   I231 --> I233
   I231 --> I238
+  I243 --> I245
   I255 --> I276
   I262 --> I264
   I263 --> I264
@@ -82,23 +76,14 @@ graph TD
   I272 --> I275
   I237 --> I240
   I239 --> I240
-  I241 --> I242
-  I226 --> I229
-  I227 --> I229
   I233 --> I234
   I232 --> I235
   I233 --> I235
   I276 --> I277
   I264 --> I265
   I273 --> I274
-  I242 --> I243
-  I241 --> I244
-  I242 --> I244
   I277 --> I279
   I277 --> I280
-  I241 --> I245
-  I242 --> I245
-  I243 --> I245
 ```
 
 ## Adjacency list
@@ -114,11 +99,14 @@ graph TD
 - **218** depends on: 193; blocks: none
 - **219** depends on: none; blocks: 239
 - **220** depends on: none; blocks: none
-- **221** depends on: none; blocks: 222, 225, 241
+- **221** depends on: none; blocks: 222, 225
 - **224** depends on: 223; blocks: none
-- **226** depends on: 223; blocks: 227, 228, 229, 230
+- **227** depends on: 226; blocks: 229
+- **230** depends on: 226; blocks: none
 - **231** depends on: none; blocks: 232, 233, 238
 - **237** depends on: 236; blocks: 240
+- **243** depends on: 242; blocks: 245
+- **244** depends on: 241, 242; blocks: none
 - **249** depends on: none; blocks: none
 - **250** depends on: none; blocks: none
 - **251** depends on: none; blocks: none
@@ -135,31 +123,24 @@ graph TD
 - **239** depends on: 219; blocks: 240
 - **222** depends on: 221; blocks: none
 - **225** depends on: 221, 223; blocks: none
-- **241** depends on: 221; blocks: 242, 244, 245
-- **227** depends on: 226; blocks: 229
-- **228** depends on: 226; blocks: none
-- **230** depends on: 226; blocks: none
+- **229** depends on: 226, 227; blocks: none
 - **232** depends on: 231; blocks: 235
 - **233** depends on: 231; blocks: 234, 235
 - **238** depends on: 231, 236; blocks: none
+- **245** depends on: 241, 242, 243; blocks: none
 - **276** depends on: 255; blocks: 277
 - **264** depends on: 261, 262, 263; blocks: 265
 - **269** depends on: 266, 268; blocks: none
 - **273** depends on: 272; blocks: 274
 - **275** depends on: 272; blocks: none
 - **240** depends on: 237, 239; blocks: none
-- **242** depends on: 241; blocks: 243, 244, 245
-- **229** depends on: 226, 227; blocks: none
 - **234** depends on: 233; blocks: none
 - **235** depends on: 232, 233; blocks: none
 - **277** depends on: 276; blocks: 279, 280
 - **265** depends on: 264; blocks: none
 - **274** depends on: 273; blocks: none
-- **243** depends on: 242; blocks: 245
-- **244** depends on: 241, 242; blocks: none
 - **279** depends on: 277, 278; blocks: none
 - **280** depends on: 277, 278; blocks: none
-- **245** depends on: 241, 242, 243; blocks: none
 
 ### Blocked
 

@@ -1,8 +1,8 @@
 # 本線 target を選定し、experimental/blocked target を明示的に区分する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Updated**: 2026-04-01
 **ID**: 241
 **Depends on**: 221
 **Track**: main

@@ -1,6 +1,6 @@
 # 言語仕様に stable/provisional/experimental/removed の4段階ラベルを定義・適用する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 226
