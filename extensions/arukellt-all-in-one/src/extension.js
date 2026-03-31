@@ -10,6 +10,7 @@ let outputChannel = null
 let compilerChannel = null
 let testChannel = null
 let statusBarItem = null
+let restartCount = 0
 let languageStatusItem = null
 let testController = null
 let projectTreeProvider = null
@@ -170,6 +171,26 @@ function startLanguageServer(context) {
       fileEvents: vscode.workspace.createFileSystemWatcher('**/*.ark'),
     },
     outputChannel,
+    errorHandler: {
+      error(error, message, count) {
+        if (count && count <= 3) {
+          return { action: 1 /* Continue */ }
+        }
+        return { action: 2 /* Shutdown */ }
+      },
+      closed() {
+        if (restartCount < 5) {
+          restartCount++
+          updateLanguageStatus('warning', `Restarting (attempt ${restartCount})…`)
+          return { action: 1 /* Restart */ }
+        }
+        updateLanguageStatus('error', 'Server crashed repeatedly')
+        vscode.window.showErrorMessage(
+          'Arukellt language server crashed 5 times. Use "Arukellt: Restart Language Server" to try again.',
+        )
+        return { action: 2 /* DoNotRestart */ }
+      },
+    },
   }
 
   updateLanguageStatus('starting')
@@ -177,6 +198,7 @@ function startLanguageServer(context) {
   client = new LanguageClient('arukellt', 'Arukellt Language Server', serverOptions, clientOptions)
 
   client.start().then(() => {
+    restartCount = 0
     updateStatus('Arukellt: $(check) LSP running', probe.version || command)
     updateLanguageStatus('ready', probe.version || command)
   }).catch((err) => {
@@ -187,6 +209,7 @@ function startLanguageServer(context) {
 }
 
 function restartLanguageServer(context) {
+  restartCount = 0
   if (client) {
     client.stop().then(() => {
       client = null
