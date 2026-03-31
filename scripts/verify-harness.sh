@@ -181,6 +181,8 @@ _bg_run stdlib_manifest "stdlib manifest check" \
     "bash scripts/check-stdlib-manifest.sh" &
 _bg_run done_issues_checkboxes "issues/done/ has no unchecked checkboxes" \
     "files=\$(grep -rl '\\- \\[ \\]' issues/done/ 2>/dev/null | grep '\\.md\$' || true); if [ -n \"\$files\" ]; then echo 'Files in done/ with unchecked items:'; printf '%s\n' \"\$files\"; exit 1; fi" &
+_bg_run no_panic_audit "no panic/unwrap in user-facing crates" \
+    "hits=\$(grep -rn '\\.unwrap()\\|panic!\\|todo!()\\|unimplemented!()' crates/arukellt/src/ crates/ark-lsp/src/ crates/ark-manifest/src/ crates/ark-driver/src/ 2>/dev/null | grep -v 'lock().unwrap\\|#\\[test\\]\\|//\\|expect(' || true); if [ -n \"\$hits\" ]; then echo 'Potential panic in user-facing crate:'; printf '%s\n' \"\$hits\"; exit 1; fi" &
 if [ "$RUN_DOCS" = true ]; then
     _bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
         "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
@@ -289,6 +291,7 @@ _bg_collect stdlib_spec
 _bg_collect docs_consistency
 _bg_collect stdlib_manifest
 _bg_collect done_issues_checkboxes
+_bg_collect no_panic_audit
 if [ "$RUN_DOCS" = true ]; then
     _bg_collect markdownlint
 fi

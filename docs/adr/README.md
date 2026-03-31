@@ -25,3 +25,5 @@
 | [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | ステータス: DECIDED |
 | [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | ステータス: DECIDED |
 | [ADR-012-stringification-surface.md](ADR-012-stringification-surface.md) | ADR-012: stringification surface は to_string(x) を canonical にする | ステータス: DECIDED |
+| [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: T3 (wasm32-wasi-p2) をプライマリターゲットとして選定する | ステータス: DECIDED |
+| [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: Stability Labels for Language Spec and Stdlib API | Status: accepted |

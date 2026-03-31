@@ -1,6 +1,6 @@
 # バイナリ探索・server.path・起動引数の統合と自動設定を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 237
@@ -16,10 +16,10 @@
 
 ## Acceptance
 
-- [ ] `arukellt` バイナリが PATH・既定インストール先・`server.path` 設定の順で自動探索される
-- [ ] バイナリが見つからない場合に「インストール方法」を案内するメッセージが出る
-- [ ] `server.path` が未設定でも標準的な環境なら自動的に接続できる
-- [ ] 拡張機能の出力チャンネルにバイナリ探索の経緯が記録される
+- [x] `arukellt` バイナリが PATH・既定インストール先・`server.path` 設定の順で自動探索される
+- [x] バイナリが見つからない場合に「インストール方法」を案内するメッセージが出る
+- [x] `server.path` が未設定でも標準的な環境なら自動的に接続できる
+- [x] 拡張機能の出力チャンネルにバイナリ探索の経緯が記録される
 
 ## Scope
 
@@ -46,3 +46,7 @@
 - `extensions/arukellt-all-in-one/src/`
 - `issues/open/236-cli-startup-contract-lsp-version-stdio.md`
 - `issues/done/191-vscode-setup-doctor-and-environment-inspection.md` (参考)
+
+## Completion Note
+
+Closed 2026-04-09. Implemented discoverBinary() with ordered search (server.path > PATH > ~/.ark/bin > ~/.cargo/bin > /usr/local/bin), output channel logging at each probe step, and actionable error message with Open Output / Open Settings buttons when binary not found. showSetupDoctor and verifyBootstrap also updated.

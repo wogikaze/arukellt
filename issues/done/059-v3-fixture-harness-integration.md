@@ -1,6 +1,6 @@
 # v3 fixture 統合 + verify-harness.sh v3 ゲート
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-03-28
 **ID**: 059
@@ -71,9 +71,9 @@ v3 の全受け入れ条件を自動検証できるようにする。
 
 ### verify-harness.sh v3 ゲート追加
 
-- [ ] Check 18: `stdlib_core/`, `stdlib_text/`, `stdlib_bytes/` の全 fixture が `manifest.txt` に登録されているか確認
-- [ ] Check 19: deprecated API 使用禁止ゲート (`grep -r "Vec_new_i32\|filter_i32\|map_i32" tests/fixtures/ → 0件`)
-- [ ] Check 20: v3 stdlib fixture 一括実行 (`cargo test -p arukellt --test harness -- stdlib_`)
+- [x] Check 18: `stdlib_core/`, `stdlib_text/`, `stdlib_bytes/` の全 fixture が `manifest.txt` に登録されているか確認
+- [x] Check 19: deprecated API 使用禁止ゲート (`grep -r "Vec_new_i32\|filter_i32\|map_i32" tests/fixtures/ → 0件`)
+- [x] Check 20: v3 stdlib fixture 一括実行 (`cargo test -p arukellt --test harness -- stdlib_`)
 
 ### manifest.txt 更新
 
@@ -102,3 +102,7 @@ v3 の全受け入れ条件を自動検証できるようにする。
 ## ドキュメント
 
 - `docs/stdlib/testing-guide.md`: v3 stdlib fixture 追加方法のガイド
+
+## Completion Note
+
+Closed 2026-04-09. All acceptance criteria met.

@@ -16,10 +16,10 @@ Arukellt は Wasm T1/T3・component model・LLVM scaffold・各種 runtime surfa
 
 ## Acceptance
 
-- [ ] 本線 target（primary target）が 1 本、ADR として明記されている
-- [ ] 本線 target 以外がそれぞれ `experimental` か `blocked` としてラベル付けされている
-- [ ] 本線 target は CI のすべての品質ゲートを通過している
-- [ ] experimental target は日常の品質ゲートから切り離されている（CI が別途）
+- [x] 本線 target（primary target）が 1 本、ADR として明記されている
+- [x] 本線 target 以外がそれぞれ `experimental` か `blocked` としてラベル付けされている
+- [x] 本線 target は CI のすべての品質ゲートを通過している
+- [x] experimental target は日常の品質ゲートから切り離されている（CI が別途）
 
 ## Scope
 

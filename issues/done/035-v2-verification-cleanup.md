@@ -1,6 +1,6 @@
 # V2 exit verification & cleanup
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-03-28
 **ID**: 035
@@ -23,31 +23,31 @@ performs the integration verification and cleanup that confirms v2 exit readines
 
 ### Correctness
 
-- [ ] `scripts/verify-harness.sh` passes all checks including the new component gate (17/17).
-- [ ] All existing 346+ fixture tests continue to pass (no regressions in T1 or T3 core Wasm).
-- [ ] All new component fixture tests pass (`component-compile:` and `component-run:`).
-- [ ] `arukellt compile --emit component` produces valid `.component.wasm` for at least
+- [x] `scripts/verify-harness.sh` passes all checks including the new component gate (17/17).
+- [x] All existing 346+ fixture tests continue to pass (no regressions in T1 or T3 core Wasm).
+- [x] All new component fixture tests pass (`component-compile:` and `component-run:`).
+- [x] `arukellt compile --emit component` produces valid `.component.wasm` for at least
       10 different source files.
-- [ ] `wasm-tools component wit <output.component.wasm>` extracts correct WIT for each
+- [x] `wasm-tools component wit <output.component.wasm>` extracts correct WIT for each
       component fixture.
 
 ### Documentation
 
-- [ ] `docs/current-state.md` updated with V2 exit status: COMPLETE.
-- [ ] `docs/adr/ADR-008-component-wrapping.md` exists and is marked DECIDED.
-- [ ] `docs/migration/v1-to-v2.md` exists with complete migration guidance.
-- [ ] `docs/platform/abi.md` includes Layer 2B (canonical ABI) documentation.
-- [ ] `docs/platform/wasm-features.md` updated to reflect component model support.
+- [x] `docs/current-state.md` updated with V2 exit status: COMPLETE.
+- [x] `docs/adr/ADR-008-component-wrapping.md` exists and is marked DECIDED.
+- [x] `docs/migration/v1-to-v2.md` exists with complete migration guidance.
+- [x] `docs/platform/abi.md` includes Layer 2B (canonical ABI) documentation.
+- [x] `docs/platform/wasm-features.md` updated to reflect component model support.
 
 ### Cleanup
 
-- [ ] No `TODO(v2)` or `FIXME(v2)` comments remain in source code.
-- [ ] All v2 issues (#028–#034) moved to `issues/done/`.
-- [ ] `issues/open/index.md` and `issues/open/dependency-graph.md` regenerated via
+- [x] No `TODO(v2)` or `FIXME(v2)` comments remain in source code.
+- [x] All v2 issues (#028–#034) moved to `issues/done/`.
+- [x] `issues/open/index.md` and `issues/open/dependency-graph.md` regenerated via
       `scripts/generate-issue-index.sh`.
-- [ ] Cargo.toml dependencies updated if new crates were added (e.g., component
+- [x] Cargo.toml dependencies updated if new crates were added (e.g., component
       validation features for wasmparser).
-- [ ] `std/manifest.toml` updated if any stdlib changes were made for component support.
+- [x] `std/manifest.toml` updated if any stdlib changes were made for component support.
 
 ### V2 Exit Criteria (definitive)
 
@@ -90,3 +90,7 @@ V2 is complete when all of the following are satisfied:
   in `docs/current-state.md`.
 - Performance note: component call overhead (canonical ABI lift/lower) should be measured
   for at least one benchmark (string passing) and documented as a known cost.
+
+## Completion Note
+
+Closed 2026-04-09. All acceptance criteria met.

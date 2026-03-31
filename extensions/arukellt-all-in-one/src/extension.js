@@ -1,5 +1,8 @@
 const vscode = require('vscode')
 const cp = require('child_process')
+const os = require('os')
+const path = require('path')
+const fs = require('fs')
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node')
 
 let client = null
@@ -37,11 +40,33 @@ function getConfiguration() {
   return vscode.workspace.getConfiguration('arukellt')
 }
 
+/** Returns ordered list of candidate binary paths for arukellt. */
+function getCandidatePaths(configuredPath) {
+  const candidates = []
+  // 1. Explicitly configured server.path (if not the default placeholder)
+  if (configuredPath && configuredPath !== 'arukellt') {
+    candidates.push({ path: configuredPath, source: 'arukellt.server.path setting' })
+  }
+  // 2. PATH lookup (default name)
+  candidates.push({ path: 'arukellt', source: 'PATH' })
+  // 3. Default install locations
+  const homeDir = os.homedir()
+  const defaultPaths = [
+    path.join(homeDir, '.ark', 'bin', 'arukellt'),
+    path.join(homeDir, '.cargo', 'bin', 'arukellt'),
+    '/usr/local/bin/arukellt',
+  ]
+  for (const p of defaultPaths) {
+    candidates.push({ path: p, source: `default install: ${p}` })
+  }
+  return candidates
+}
+
 function resolveServerCommand() {
   const config = getConfiguration()
-  const command = config.get('server.path', 'arukellt')
+  const configuredPath = config.get('server.path', 'arukellt')
   const extraArgs = config.get('server.args', [])
-  return { command, extraArgs }
+  return { command: configuredPath, extraArgs }
 }
 
 function probeServerBinary(command) {
@@ -49,7 +74,7 @@ function probeServerBinary(command) {
     const result = cp.spawnSync(command, ['--version'], { encoding: 'utf8' })
     if (result.error) {
       if (result.error.code === 'ENOENT') {
-        return { ok: false, message: `binary not found: '${command}'. Set arukellt.server.path to an absolute path.` }
+        return { ok: false, message: `binary not found: '${command}'. Set arukellt.server.path to an absolute path.`, notFound: true }
       }
       return { ok: false, message: result.error.message }
     }
@@ -62,13 +87,52 @@ function probeServerBinary(command) {
   }
 }
 
+/**
+ * Search all candidate paths for a working arukellt binary.
+ * Logs each probe attempt to the output channel.
+ * Returns { command, probe } where probe has ok/version/message.
+ */
+function discoverBinary(configuredPath) {
+  const candidates = getCandidatePaths(configuredPath)
+  if (outputChannel) {
+    outputChannel.appendLine('[binary discovery] searching for arukellt binary...')
+  }
+  for (const candidate of candidates) {
+    const probe = probeServerBinary(candidate.path)
+    if (outputChannel) {
+      if (probe.ok) {
+        outputChannel.appendLine(`[binary discovery] found via ${candidate.source}: ${candidate.path} (${probe.version})`)
+      } else {
+        outputChannel.appendLine(`[binary discovery] not found via ${candidate.source}: ${probe.message}`)
+      }
+    }
+    if (probe.ok) {
+      return { command: candidate.path, probe }
+    }
+  }
+  if (outputChannel) {
+    outputChannel.appendLine('[binary discovery] arukellt binary not found in any location')
+    outputChannel.appendLine('[binary discovery] install guide: https://github.com/arukellt/arukellt#installation')
+  }
+  return { command: configuredPath, probe: { ok: false, message: 'arukellt binary not found. Install via cargo or set arukellt.server.path.' } }
+}
+
 function startLanguageServer(context) {
-  const { command, extraArgs } = resolveServerCommand()
-  const probe = probeServerBinary(command)
+  const config = getConfiguration()
+  const configuredPath = config.get('server.path', 'arukellt')
+  const extraArgs = config.get('server.args', [])
+  const { command, probe } = discoverBinary(configuredPath)
 
   if (!probe.ok) {
-    updateStatus('$(error) Arukellt: binary missing', 'Failed to probe arukellt server binary')
-    vscode.window.showErrorMessage(`Arukellt: failed to start language server (${probe.message}). Set arukellt.server.path if needed.`)
+    updateStatus('$(error) Arukellt: binary missing', 'Failed to find arukellt binary')
+    vscode.window.showErrorMessage(
+      `Arukellt: arukellt binary not found. ${probe.message} ` +
+      'See the output channel for details, or set arukellt.server.path in settings.',
+      'Open Output', 'Open Settings'
+    ).then(sel => {
+      if (sel === 'Open Output' && outputChannel) outputChannel.show()
+      if (sel === 'Open Settings') vscode.commands.executeCommand('workbench.action.openSettings', 'arukellt.server.path')
+    })
     return
   }
 
@@ -161,13 +225,14 @@ function runCliCommand(kind) {
 
 function showSetupDoctor() {
   const config = getConfiguration()
-  const { command, extraArgs } = resolveServerCommand()
-  const probe = probeServerBinary(command)
+  const { command: configuredPath, extraArgs } = resolveServerCommand()
+  const { command, probe } = discoverBinary(configuredPath)
 
   const lines = [
     '# Arukellt Setup Doctor',
     '',
-    `- CLI command: ${command}`,
+    `- Configured path: ${configuredPath}`,
+    `- Resolved binary: ${command}`,
     `- CLI args before lsp: ${extraArgs.join(' ') || '(none)'}`,
     `- CLI probe: ${probe.ok ? `ok (${probe.version || 'version unknown'})` : `failed (${probe.message})`}`,
     `- Default target: ${config.get('target', 'wasm32-wasi-p1')}`,
@@ -444,11 +509,14 @@ async function runSingleTest(run, test, token) {
 }
 
 function verifyBootstrap() {
-  const { command, extraArgs } = resolveServerCommand()
+  const config = getConfiguration()
+  const configuredPath = config.get('server.path', 'arukellt')
+  const { extraArgs } = resolveServerCommand()
+  const { command, probe } = discoverBinary(configuredPath)
   return {
     command,
     extraArgs,
-    probe: probeServerBinary(command),
+    probe,
   }
 }
 

@@ -1,6 +1,6 @@
 # リリース可否基準を「何を保証するか」ベースで文書化する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 225
@@ -16,10 +16,10 @@
 
 ## Acceptance
 
-- [ ] v1 リリースに必要な保証事項のリストが文書化されている
-- [ ] 各保証事項に対応する検証方法（テスト・CI・手動確認など）が明記されている
-- [ ] 「保証しない（experimental）」面の明示的な列挙がある
-- [ ] リリースチェックリストが存在し、実行可能である
+- [x] v1 リリースに必要な保証事項のリストが文書化されている
+- [x] 各保証事項に対応する検証方法（テスト・CI・手動確認など）が明記されている
+- [x] 「保証しない（experimental）」面の明示的な列挙がある
+- [x] リリースチェックリストが存在し、実行可能である
 
 ## Scope
 
@@ -46,3 +46,7 @@
 - `docs/adr/`
 - `issues/open/221-rebuild-current-state-as-single-source.md`
 - `issues/open/241-define-primary-target-and-tier-others.md`
+
+## Completion Note
+
+Closed 2026-04-09. docs/release-criteria.md created with V1/V2 satisfaction records, pre-release checklist, guarantee tiers, and stability policy.

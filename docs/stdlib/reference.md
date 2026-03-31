@@ -112,7 +112,7 @@
 |------|-----------|--------|-----------|------|---------|-----------|
 | `bool_to_string` | `(bool) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_bool_to_string` |
 | `char_to_string` | `(char) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` |
-| `f32_to_string` | `(f32) -> String` | `prelude` | `unknown` | `builtin` | no | - |
+| `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - |
 | `f64_to_string` | `(f64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_string` |
 | `i32_to_string` | `(i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_string` |
 | `i64_to_string` | `(i64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_string` |

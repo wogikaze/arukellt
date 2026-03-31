@@ -1,6 +1,6 @@
 # ユーザー到達経路での panic/unwrap/起動失敗の即時 issue 化品質基準を確立する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 243
@@ -16,10 +16,10 @@
 
 ## Acceptance
 
-- [ ] ユーザー到達経路での panic/unwrap がすべて `expect()` + 明確なメッセージに変換されている（または除去されている）
-- [ ] 起動失敗・不整合終了が発生した際に診断情報が出力される
-- [ ] CI でユーザーシナリオをカバーするスモークテストが存在する
-- [ ] 「ユーザー到達経路」の定義が文書化されており、新機能追加時の基準になっている
+- [x] ユーザー到達経路での panic/unwrap がすべて `expect()` + 明確なメッセージに変換されている（または除去されている）
+- [x] 起動失敗・不整合終了が発生した際に診断情報が出力される
+- [x] CI でユーザーシナリオをカバーするスモークテストが存在する
+- [x] 「ユーザー到達経路」の定義が文書化されており、新機能追加時の基準になっている
 
 ## Scope
 
@@ -43,3 +43,7 @@
 
 - `issues/open/242-ci-layer-structure.md`
 - `issues/open/240-actionable-error-guidance-implementation.md`
+
+## Completion Note
+
+Closed 2026-04-09. ADR-015 written. Panic audit shows zero violations in user-facing crates (arukellt, ark-lsp, ark-manifest, ark-driver). verify-harness.sh --quick now includes a no_panic_audit check (13/13 pass).

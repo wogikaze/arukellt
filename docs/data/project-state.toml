@@ -79,8 +79,8 @@ fixture_passed = 575
 fixture_skipped = 11
 fixture_failures = 0
 fixture_manifest_count = 586
-checks_passed = 16
-checks_total = 16
+checks_passed = 13
+checks_total = 13
 unit_tests_note = "current count is verified by `cargo test --workspace --exclude ark-llvm`"
 
 [perf]
