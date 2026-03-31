@@ -1,5 +1,21 @@
 name: CI
 
+# CI layer structure (ADR-013, issue #242):
+#
+#  Layer        Job name            Merge gate?   Description
+#  ──────────── ─────────────────── ───────────── ────────────────────────────
+#  unit         unit-tests          yes           cargo test (no harness)
+#  fixture/T3   fixture-primary     yes           T3 wasm32-wasi-p2 fixtures (primary target)
+#  fixture/T1   fixture-supported   no            T1 wasm32-wasi-p1 fixtures (supported target)
+#  integration  integration         yes           CLI smoke: compile + run a known file
+#  packaging    packaging           yes           binary help/version output smoke test
+#  determinism  determinism         yes           same input → same output
+#  perf         perf-baseline       push only     baseline snapshot for drift detection
+#  heavy        heavy-checks        push only     size, WAT dump, docs generation
+#
+# All jobs except perf-baseline and heavy-checks are merge gates.
+# T1 (supported) fixture failures alert but do not block.
+
 on:
   push:
     branches: [master, "feature/**"]
@@ -10,9 +26,14 @@ env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -D warnings
 
+# ─── Shared setup step (re-used by every job via YAML anchors) ───────────────
+# (GitHub Actions does not support YAML anchors natively; steps are inlined.)
+
 jobs:
-  correctness:
-    name: Correctness
+
+  # ── Layer 1: Unit tests (cargo test, no fixture harness) ─────────────────
+  unit-tests:
+    name: "Unit tests"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,19 +51,25 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+          restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Verify harness (explicit heavy groups)
-        run: bash scripts/verify-harness.sh --cargo --size --wat --docs
+      - name: Clippy
+        run: cargo clippy --workspace --exclude ark-llvm --exclude ark-lsp -- -D warnings
 
-  target-behavior:
-    name: Target behavior (${{ matrix.target }})
-    needs: correctness
+      - name: rustfmt check
+        run: cargo fmt --all -- --check
+
+      - name: Unit tests (lib + bin, no harness)
+        run: >
+          cargo test --workspace --exclude ark-llvm --exclude ark-lsp
+          --lib --bins
+          -- --nocapture
+
+  # ── Layer 2: Fixture suite — T3 primary (merge gate) ────────────────────
+  fixture-primary:
+    name: "Fixture suite — T3 primary (wasm32-wasi-p2)"
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        target: [wasm32-wasi-p1, wasm32-wasi-p2]
+    needs: unit-tests
     steps:
       - uses: actions/checkout@v4
 
@@ -57,22 +84,23 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+          restore-keys: ${{ runner.os }}-cargo-
 
       - name: Build release arukellt
         run: cargo build --release -p arukellt
 
-      - name: Run manifest-driven fixture suite (target=${{ matrix.target }})
+      - name: T3 fixtures (t3-run + t3-compile)
         env:
-          ARUKELLT_TARGET: ${{ matrix.target }}
+          ARUKELLT_TARGET: wasm32-wasi-p2
         run: cargo test -p arukellt --test harness -- --nocapture
 
-  perf-baseline:
-    name: Perf baseline snapshot
-    needs: correctness
+  # ── Layer 3: Fixture suite — T1 supported (non-blocking) ────────────────
+  fixture-supported:
+    name: "Fixture suite — T1 supported (wasm32-wasi-p1)"
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    needs: unit-tests
+    # Failure here alerts but does not block merge (T1 is "supported", not "primary")
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -87,8 +115,169 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: T1 fixtures (run + module-run + diag + module-diag)
+        env:
+          ARUKELLT_TARGET: wasm32-wasi-p1
+        run: cargo test -p arukellt --test harness -- --nocapture
+
+  # ── Layer 4: Integration — CLI smoke (merge gate) ────────────────────────
+  integration:
+    name: "Integration — CLI smoke"
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: CLI smoke — help and version
+        run: |
+          ./target/release/arukellt --help
+          ./target/release/arukellt --version
+
+      - name: CLI smoke — compile + run hello.ark (T3 primary)
+        run: |
+          ./target/release/arukellt run --target wasm32-wasi-p2 docs/examples/hello.ark
+
+      - name: CLI smoke — compile + run hello.ark (T1 supported)
+        run: |
+          ./target/release/arukellt run docs/examples/hello.ark
+
+  # ── Layer 5: Packaging — binary artifact smoke (merge gate) ─────────────
+  packaging:
+    name: "Packaging — binary smoke"
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: Packaging smoke — binary size and entrypoints
+        run: |
+          ls -la target/release/arukellt
+          ./target/release/arukellt --help | head -5
+          ./target/release/arukellt --version
+
+  # ── Layer 6: Determinism (merge gate) ───────────────────────────────────
+  determinism:
+    name: "Determinism — same input same output"
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build release arukellt
+        run: cargo build --release -p arukellt
+
+      - name: Determinism check — T3 compile same output twice
+        run: |
+          ./target/release/arukellt compile --target wasm32-wasi-p2 --output /tmp/det_a.wasm docs/examples/hello.ark
+          ./target/release/arukellt compile --target wasm32-wasi-p2 --output /tmp/det_b.wasm docs/examples/hello.ark
+          sha256sum /tmp/det_a.wasm /tmp/det_b.wasm
+          diff /tmp/det_a.wasm /tmp/det_b.wasm && echo "PASS: deterministic output"
+
+      - name: Determinism check — T1 compile same output twice
+        run: |
+          ./target/release/arukellt compile --output /tmp/det1_a.wasm docs/examples/hello.ark
+          ./target/release/arukellt compile --output /tmp/det1_b.wasm docs/examples/hello.ark
+          sha256sum /tmp/det1_a.wasm /tmp/det1_b.wasm
+          diff /tmp/det1_a.wasm /tmp/det1_b.wasm && echo "PASS: deterministic output"
+
+  # ── Layer 7: Heavy checks (push only, non-blocking) ─────────────────────
+  heavy-checks:
+    name: "Heavy checks (size, WAT, docs)"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [fixture-primary, fixture-supported, integration, packaging, determinism]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Verify harness (size + WAT + docs)
+        run: bash scripts/verify-harness.sh --size --wat --docs
+
+  # ── Layer 8: Perf baseline snapshot (push only) ─────────────────────────
+  perf-baseline:
+    name: "Perf baseline snapshot"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: [fixture-primary]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
 
       - name: Build release arukellt
         run: cargo build --release -p arukellt
@@ -102,9 +291,10 @@ jobs:
           name: baselines
           path: tests/baselines/*.json
 
+  # ── Final gate ───────────────────────────────────────────────────────────
   verify:
-    name: Final Gate
-    needs: [correctness, target-behavior]
+    name: "Final Gate"
+    needs: [unit-tests, fixture-primary, integration, packaging, determinism]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All required correctness checks passed"
+      - run: echo "All required CI layers passed (unit + fixture/T3 + integration + packaging + determinism)"
