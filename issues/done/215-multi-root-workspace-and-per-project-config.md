@@ -1,6 +1,6 @@
 # VS Code extension: multi-root workspace + per-project configuration UI
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 215
