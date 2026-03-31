@@ -208,7 +208,7 @@ if [[ -f "$S1_WASM" ]]; then
             local base
             base="$(basename "$src" .ark)"
             echo -e "  Compiling ${base}.ark (via s1)..."
-            if wasmtime run "$S1_WASM" -- compile "$src" 2>/dev/null; then
+            if wasmtime run --dir=. "$S1_WASM" -- compile "$src" 2>/dev/null; then
                 compiled=$((compiled + 1))
             else
                 echo -e "  ${RED}FAIL${NC}  ${base}.ark did not compile with s1" >&2
