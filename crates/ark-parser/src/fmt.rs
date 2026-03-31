@@ -914,4 +914,184 @@ mod tests {
         assert!(formatted.contains("    x: f64,"));
         assert!(formatted.contains("    y: f64,"));
     }
+
+    #[test]
+    fn format_enum_def() {
+        let source = "enum Color {\n  Red,\n  Green(i32),\n  Blue(String, i32),\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("enum Color {"));
+        assert!(formatted.contains("Red"));
+        assert!(formatted.contains("Green(i32)"));
+        assert!(formatted.contains("Blue(String, i32)"));
+        // idempotent
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_trait_def() {
+        let source = "trait Displayable {\n  fn show() -> String\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("trait Displayable {"));
+        assert!(formatted.contains("fn show() -> String"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_impl_block() {
+        let source = "impl Display for Point {\n  fn show() -> String {\n    \"point\"\n  }\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("impl Display for Point {"));
+        assert!(formatted.contains("fn show() -> String {"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_match_expr() {
+        let source = "fn f() {\n  match x {\n    1 => a,\n    2 => b,\n    _ => c,\n  }\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("match x {"));
+        assert!(formatted.contains("1 => a"));
+        assert!(formatted.contains("_ => c"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_generic_function() {
+        let source = "fn identity<T>(x: T) -> T {\n  x\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("fn identity<T>(x: T) -> T {"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_while_loop() {
+        let source = "fn f() {\n  while x < 10 {\n    x = x + 1\n  }\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("while x < 10 {"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_for_loop() {
+        let source = "fn f() {\n  for item in items {\n    print(item)\n  }\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("for item in items {"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_if_else() {
+        let source = "fn f() {\n  if x > 0 {\n    a\n  } else {\n    b\n  }\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("if x > 0 {"));
+        assert!(formatted.contains("} else {"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_let_with_type() {
+        let source = "fn f() {\n  let x: i32 = 42\n  let y: String = \"hello\"\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("let x: i32 = 42"));
+        assert!(formatted.contains("let y: String = \"hello\""));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_multiple_imports_grouped() {
+        let source =
+            "use mylib\nuse std::host::stdio\nuse std::host::fs\nuse another\n\nfn main() {\n}\n";
+        let formatted = format_source(source);
+        // stdlib should be sorted and come first
+        let fs_pos = formatted.find("use std::host::fs").unwrap();
+        let stdio_pos = formatted.find("use std::host::stdio").unwrap();
+        let mylib_pos = formatted.find("use mylib").unwrap();
+        let another_pos = formatted.find("use another").unwrap();
+        assert!(fs_pos < stdio_pos, "std imports should be sorted");
+        assert!(stdio_pos < mylib_pos, "std imports before others");
+        assert!(another_pos < mylib_pos, "non-std imports should be sorted");
+    }
+
+    #[test]
+    fn format_method_call_chain() {
+        let source = "fn f() {\n  obj.method1().method2()\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("obj.method1().method2()"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_array_literal() {
+        let source = "fn f() {\n  let a = [1, 2, 3]\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("[1, 2, 3]"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_tuple_type() {
+        let source = "fn f(x: (i32, String)) -> (bool, i32) {\n  (true, 0)\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("(i32, String)"));
+        assert!(formatted.contains("(bool, i32)"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_result_type() {
+        let source = "fn f() -> Result<String, String> {\n  Ok(\"hi\")\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("Result<String, String>"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_doc_comment() {
+        let source = "/// A documented function.\nfn documented() {\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("/// A documented function."));
+        assert!(formatted.contains("fn documented()"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_pub_function() {
+        let source = "pub fn public_fn(x: i32) -> i32 {\n  x\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("pub fn public_fn(x: i32) -> i32 {"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_closure_expr() {
+        let source = "fn f() {\n  let add = |a: i32, b: i32| -> i32 { a + b }\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("|a: i32, b: i32|"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_return_stmt() {
+        let source = "fn f() -> i32 {\n  return 42\n}\n";
+        let formatted = format_source(source);
+        assert!(formatted.contains("return 42"));
+        let second = format_source(&formatted);
+        assert_eq!(formatted, second);
+    }
 }
