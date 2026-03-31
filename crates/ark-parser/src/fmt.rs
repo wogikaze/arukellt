@@ -2,10 +2,120 @@
 //!
 //! Parses source text into AST, then pretty-prints it back with canonical
 //! formatting (consistent indentation, brace placement, import ordering).
+//! Comments (line and block) are preserved by collecting them from the
+//! source text and re-inserting them at the appropriate positions.
 
 use crate::ast;
 
 const INDENT: &str = "    ";
+
+/// A comment extracted from source text for preservation during formatting.
+#[derive(Debug, Clone)]
+struct Comment {
+    /// 0-based line number in the original source
+    line: usize,
+    /// The raw comment text including `//` or `/* */` delimiters
+    text: String,
+    /// Whether this is a trailing comment (appears after code on the same line)
+    trailing: bool,
+}
+
+/// Extract all non-doc comments from source text.
+///
+/// Doc comments (`///`, `//!`) are handled by the AST, so we only collect
+/// regular line comments (`//`) and block comments (`/* */`).
+fn collect_comments(source: &str) -> Vec<Comment> {
+    let mut comments = Vec::new();
+    let lines: Vec<&str> = source.lines().collect();
+
+    for (line_idx, line) in lines.iter().enumerate() {
+        let trimmed = line.trim();
+
+        // Skip doc comments — the AST already preserves these
+        if trimmed.starts_with("///") || trimmed.starts_with("//!") {
+            continue;
+        }
+
+        // Standalone line comment (entire line is a comment)
+        if trimmed.starts_with("//") {
+            comments.push(Comment {
+                line: line_idx,
+                text: trimmed.to_string(),
+                trailing: false,
+            });
+            continue;
+        }
+
+        // Trailing line comment (code followed by //)
+        if let Some(pos) = find_line_comment_start(line) {
+            let comment_text = line[pos..].trim().to_string();
+            // Skip doc comments in trailing position
+            if !comment_text.starts_with("///") && !comment_text.starts_with("//!") {
+                comments.push(Comment {
+                    line: line_idx,
+                    text: comment_text,
+                    trailing: true,
+                });
+            }
+        }
+
+        // Standalone block comment on a single line
+        if trimmed.starts_with("/*") && trimmed.ends_with("*/") && !trimmed.starts_with("/**") {
+            comments.push(Comment {
+                line: line_idx,
+                text: trimmed.to_string(),
+                trailing: false,
+            });
+        }
+    }
+
+    comments
+}
+
+/// Find the start of a `//` comment in a line, skipping string literals.
+fn find_line_comment_start(line: &str) -> Option<usize> {
+    let bytes = line.as_bytes();
+    let mut i = 0;
+    let mut in_string = false;
+    let mut in_char = false;
+
+    while i < bytes.len() {
+        match bytes[i] {
+            b'"' if !in_char => {
+                if in_string {
+                    in_string = false;
+                } else {
+                    in_string = true;
+                }
+            }
+            b'\'' if !in_string => {
+                in_char = !in_char;
+            }
+            b'\\' if in_string || in_char => {
+                i += 1; // skip escaped char
+            }
+            b'/' if !in_string && !in_char && i + 1 < bytes.len() && bytes[i + 1] == b'/' => {
+                // Check it's not a doc comment
+                let rest = &line[i..];
+                if rest.starts_with("///") || rest.starts_with("//!") {
+                    return None;
+                }
+                return Some(i);
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+    None
+}
+
+/// Compute the 0-based line number for a byte offset in source text.
+fn byte_offset_to_line(source: &str, offset: u32) -> usize {
+    source[..offset as usize]
+        .bytes()
+        .filter(|&b| b == b'\n')
+        .count()
+}
 
 /// Sort imports in Arukellt source code without re-formatting the rest.
 ///
@@ -109,7 +219,7 @@ fn write_import(out: &mut String, imp: &ast::Import) {
 /// Format Arukellt source code to canonical form.
 ///
 /// Returns `None` if the source contains lex or parse errors, preventing
-/// the formatter from corrupting invalid code.
+/// the formatter from corrupting invalid code. Comments are preserved.
 pub fn format_source(source: &str) -> Option<String> {
     let (tokens, lex_errors) = ark_lexer::Lexer::new(0, source).tokenize();
     if !lex_errors.is_empty() {
@@ -120,7 +230,8 @@ pub fn format_source(source: &str) -> Option<String> {
     if sink.has_errors() {
         return None;
     }
-    Some(format_module(&module))
+    let comments = collect_comments(source);
+    Some(format_module_with_comments(&module, source, &comments))
 }
 
 /// Format a parsed AST module back to source text.
@@ -129,9 +240,36 @@ pub fn format_module(module: &ast::Module) -> String {
     let mut printer = Printer {
         out: &mut out,
         indent: 0,
+        comments: &[],
+        source: "",
+        emitted_comment_lines: std::collections::HashSet::new(),
     };
     printer.print_module(module);
-    // Ensure trailing newline
+    if !out.ends_with('\n') {
+        out.push('\n');
+    }
+    out
+}
+
+/// Format a parsed AST module back to source text, preserving comments.
+fn format_module_with_comments(
+    module: &ast::Module,
+    source: &str,
+    comments: &[Comment],
+) -> String {
+    let mut out = String::new();
+    let mut printer = Printer {
+        out: &mut out,
+        indent: 0,
+        comments,
+        source,
+        emitted_comment_lines: std::collections::HashSet::new(),
+    };
+    printer.print_module(module);
+
+    // Emit any trailing comments that appear after all items
+    printer.emit_trailing_comments();
+
     if !out.ends_with('\n') {
         out.push('\n');
     }
@@ -141,6 +279,9 @@ pub fn format_module(module: &ast::Module) -> String {
 struct Printer<'a> {
     out: &'a mut String,
     indent: usize,
+    comments: &'a [Comment],
+    source: &'a str,
+    emitted_comment_lines: std::collections::HashSet<usize>,
 }
 
 impl<'a> Printer<'a> {
@@ -150,12 +291,124 @@ impl<'a> Printer<'a> {
         }
     }
 
+    /// Emit non-trailing comments that appear before a given source line.
+    fn emit_leading_comments_before(&mut self, before_line: usize) {
+        for comment in self.comments {
+            if comment.trailing || comment.line >= before_line {
+                continue;
+            }
+            if self.emitted_comment_lines.contains(&comment.line) {
+                continue;
+            }
+            self.emitted_comment_lines.insert(comment.line);
+            self.push_indent();
+            self.out.push_str(&comment.text);
+            self.out.push('\n');
+        }
+    }
+
+    /// Emit non-trailing comments between two source lines (exclusive start, exclusive end).
+    fn emit_comments_between(&mut self, after_line: usize, before_line: usize) {
+        for comment in self.comments {
+            if comment.trailing {
+                continue;
+            }
+            if comment.line <= after_line || comment.line >= before_line {
+                continue;
+            }
+            if self.emitted_comment_lines.contains(&comment.line) {
+                continue;
+            }
+            self.emitted_comment_lines.insert(comment.line);
+            self.push_indent();
+            self.out.push_str(&comment.text);
+            self.out.push('\n');
+        }
+    }
+
+    /// Check if there are unemitted non-trailing comments between two source lines.
+    fn has_comments_between(&self, after_line: usize, before_line: usize) -> bool {
+        self.comments.iter().any(|c| {
+            !c.trailing
+                && c.line > after_line
+                && c.line < before_line
+                && !self.emitted_comment_lines.contains(&c.line)
+        })
+    }
+
+    /// Emit any comments not yet emitted (typically at end of file).
+    fn emit_trailing_comments(&mut self) {
+        for comment in self.comments {
+            if self.emitted_comment_lines.contains(&comment.line) {
+                continue;
+            }
+            self.emitted_comment_lines.insert(comment.line);
+            if comment.trailing {
+                // Trailing comments at end of file — emit as standalone
+                self.push_indent();
+                self.out.push_str(&comment.text);
+                self.out.push('\n');
+            } else {
+                self.push_indent();
+                self.out.push_str(&comment.text);
+                self.out.push('\n');
+            }
+        }
+    }
+
+    /// Get the source line for an AST item's span.
+    fn item_start_line(&self, item: &ast::Item) -> usize {
+        let span = match item {
+            ast::Item::FnDef(f) => f.span,
+            ast::Item::StructDef(s) => s.span,
+            ast::Item::EnumDef(e) => e.span,
+            ast::Item::TraitDef(t) => t.span,
+            ast::Item::ImplBlock(ib) => ib.span,
+        };
+        if self.source.is_empty() {
+            return 0;
+        }
+        byte_offset_to_line(self.source, span.start)
+    }
+
+    /// Get the end line for an AST item's span.
+    fn item_end_line(&self, item: &ast::Item) -> usize {
+        let span = match item {
+            ast::Item::FnDef(f) => f.span,
+            ast::Item::StructDef(s) => s.span,
+            ast::Item::EnumDef(e) => e.span,
+            ast::Item::TraitDef(t) => t.span,
+            ast::Item::ImplBlock(ib) => ib.span,
+        };
+        if self.source.is_empty() {
+            return 0;
+        }
+        byte_offset_to_line(self.source, span.end)
+    }
+
     fn print_module(&mut self, module: &ast::Module) {
         // Module-level doc comments
         for doc in &module.docs {
             self.out.push_str("/// ");
             self.out.push_str(doc.trim());
             self.out.push('\n');
+        }
+
+        // Emit leading comments before imports
+        let first_import_line = module
+            .imports
+            .first()
+            .map(|imp| byte_offset_to_line(self.source, imp.span.start));
+        let first_item_line = module
+            .items
+            .first()
+            .map(|item| self.item_start_line(item));
+        let first_code_line = first_import_line
+            .or(first_item_line)
+            .unwrap_or(usize::MAX);
+
+        if !self.source.is_empty() {
+            self.emit_leading_comments_before(first_code_line);
         }
 
         // Imports — sorted: stdlib (std::) first, then others
@@ -185,12 +438,38 @@ impl<'a> Printer<'a> {
             self.out.push('\n');
         }
 
-        // Items — separated by blank lines
+        // Determine the end line of the import region
+        let last_import_end_line = module
+            .imports
+            .last()
+            .map(|imp| byte_offset_to_line(self.source, imp.span.end))
+            .unwrap_or(0);
+
+        // Items — separated by blank lines, with comments preserved
+        let mut prev_item_end_line = last_import_end_line;
         for (i, item) in module.items.iter().enumerate() {
-            if i > 0 {
+            let item_start = if !self.source.is_empty() {
+                self.item_start_line(item)
+            } else {
+                0
+            };
+
+            // Emit comments between previous item and this item
+            if !self.source.is_empty() && (i > 0 || !module.imports.is_empty()) {
+                let has_interleaved = self.has_comments_between(prev_item_end_line, item_start);
+                if i > 0 || has_interleaved {
+                    self.out.push('\n');
+                }
+                self.emit_comments_between(prev_item_end_line, item_start);
+            } else if i > 0 {
                 self.out.push('\n');
             }
+
             self.print_item(item);
+
+            if !self.source.is_empty() {
+                prev_item_end_line = self.item_end_line(item);
+            }
         }
     }
 
@@ -1261,5 +1540,46 @@ mod tests {
         assert!(sorted.find("use std::math").unwrap() < sorted.find("use std::string").unwrap());
         // Body should be preserved exactly as-is
         assert!(sorted.contains("fn   main()  {\n  let   x=1\n}"));
+    }
+
+    #[test]
+    fn format_preserves_line_comments_between_items() {
+        let source = "fn foo() -> i32 {\n    1\n}\n\n// helper function\nfn bar() -> i32 {\n    2\n}\n";
+        let formatted = format_source(source).unwrap();
+        assert!(
+            formatted.contains("// helper function"),
+            "line comment between items should be preserved: {}",
+            formatted
+        );
+    }
+
+    #[test]
+    fn format_preserves_leading_comments() {
+        let source = "// This is a top-level comment\nfn main() {\n    let x = 1\n}\n";
+        let formatted = format_source(source).unwrap();
+        assert!(
+            formatted.contains("// This is a top-level comment"),
+            "leading comment should be preserved: {}",
+            formatted
+        );
+    }
+
+    #[test]
+    fn format_preserves_block_comments() {
+        let source = "/* block comment */\nfn main() {\n    let x = 1\n}\n";
+        let formatted = format_source(source).unwrap();
+        assert!(
+            formatted.contains("/* block comment */"),
+            "block comment should be preserved: {}",
+            formatted
+        );
+    }
+
+    #[test]
+    fn format_comment_idempotent() {
+        let source = "// helper\nfn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\n// another helper\nfn sub(a: i32, b: i32) -> i32 {\n    a - b\n}\n";
+        let first = format_source(source).unwrap();
+        let second = format_source(&first).unwrap();
+        assert_eq!(first, second, "formatting with comments should be idempotent");
     }
 }
