@@ -2604,9 +2604,9 @@ impl LanguageServer for ArukellBackend {
                     k == &CodeActionKind::SOURCE || k.as_str().starts_with("source.organizeImports")
                 })
             }) {
-                let formatted = ark_parser::fmt::format_source(src);
-                if let Some(formatted) = formatted {
-                    if formatted != *src {
+                let sorted = ark_parser::fmt::sort_imports(src);
+                if let Some(sorted) = sorted {
+                    if sorted != *src {
                         let full_range = Range {
                             start: Position {
                                 line: 0,
@@ -2619,7 +2619,7 @@ impl LanguageServer for ArukellBackend {
                             uri.clone(),
                             vec![TextEdit {
                                 range: full_range,
-                                new_text: formatted,
+                                new_text: sorted,
                             }],
                         );
                         actions.push(CodeActionOrCommand::CodeAction(CodeAction {

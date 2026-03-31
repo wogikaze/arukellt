@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] `format_source()` が parse error 時に `None` を返す (fail-fast)
-- [ ] CLI `arukellt fmt` が parse error 時に diagnostics を stderr に出力し、ファイルを変更しない
-- [ ] LSP `formatting()` が parse error 時に edit を返さない
-- [ ] テストが parse error 入力で formatter が入力を変更しないことを検証する
+- [x] `format_source()` が parse error 時に `None` を返す (fail-fast)
+- [x] CLI `arukellt fmt` が parse error 時に diagnostics を stderr に出力し、ファイルを変更しない
+- [x] LSP `formatting()` が parse error 時に edit を返さない
+- [x] テストが parse error 入力で formatter が入力を変更しないことを検証する
 
 ## References
 

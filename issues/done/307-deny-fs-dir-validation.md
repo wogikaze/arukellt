@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] `--deny-fs` 指定時に FS アクセスが WASI レベルで拒否されることをテストする fixture
-- [ ] `--dir path:ro` で書き込みが拒否されることをテストする fixture
-- [ ] `--deny-fs` が `--dir` を上書きすることをテストする fixture
-- [ ] 上記テストが harness に登録される
+- [x] `--deny-fs` 指定時に FS アクセスが WASI レベルで拒否されることをテストする fixture
+- [x] `--dir path:ro` で書き込みが拒否されることをテストする fixture
+- [x] `--deny-fs` が `--dir` を上書きすることをテストする fixture
+- [x] 上記テストが harness に登録される
 
 ## References
 

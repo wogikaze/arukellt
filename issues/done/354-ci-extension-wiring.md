@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] CI に extension test job が追加される
-- [ ] 35 件の既存テストが CI で pass する
-- [ ] extension test の失敗が merge-blocking になる
-- [ ] `docs/test-strategy.md` の editor-tooling status が更新される
+- [x] CI に extension test job が追加される
+- [x] 35 件の既存テストが CI で pass する
+- [x] extension test の失敗が merge-blocking になる
+- [x] `docs/test-strategy.md` の editor-tooling status が更新される
 
 ## References
 

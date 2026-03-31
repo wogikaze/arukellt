@@ -22,11 +22,11 @@
 
 ## Acceptance
 
-- [ ] CI の clippy step から `--exclude ark-lsp` が除去される
-- [ ] CI の test step から `--exclude ark-lsp` が除去される
-- [ ] ark-lsp が clippy warning なしで pass する
-- [ ] ark-lsp の既存テストが CI で pass する
-- [ ] `docs/release-checklist.md` の除外リストから `ark-lsp` が除去される
+- [x] CI の clippy step から `--exclude ark-lsp` が除去される
+- [x] CI の test step から `--exclude ark-lsp` が除去される
+- [x] ark-lsp が clippy warning なしで pass する
+- [x] ark-lsp の既存テストが CI で pass する
+- [x] `docs/release-checklist.md` の除外リストから `ark-lsp` が除去される
 
 ## References
 

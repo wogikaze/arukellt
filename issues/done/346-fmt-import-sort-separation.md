@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] `sort_imports()` が独立関数として export される
-- [ ] `format_module()` が `sort_imports()` を呼ぶ (既存動作は維持)
-- [ ] LSP の `source.organizeImports` が `sort_imports()` のみを呼ぶ
-- [ ] テストで sort_imports の単独動作を検証する
+- [x] `sort_imports()` が独立関数として export される
+- [x] `format_module()` が `sort_imports()` を呼ぶ (既存動作は維持)
+- [x] LSP の `source.organizeImports` が `sort_imports()` のみを呼ぶ
+- [x] テストで sort_imports の単独動作を検証する
 
 ## References
 

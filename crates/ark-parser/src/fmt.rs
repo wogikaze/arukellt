@@ -7,6 +7,105 @@ use crate::ast;
 
 const INDENT: &str = "    ";
 
+/// Sort imports in Arukellt source code without re-formatting the rest.
+///
+/// Returns `None` if the source has lex/parse errors.
+/// Stdlib (`std::`) imports come first (sorted), then others (sorted),
+/// with a blank line separating the groups.
+pub fn sort_imports(source: &str) -> Option<String> {
+    let (tokens, lex_errors) = ark_lexer::Lexer::new(0, source).tokenize();
+    if !lex_errors.is_empty() {
+        return None;
+    }
+    let mut sink = ark_diagnostics::DiagnosticSink::new();
+    let module = crate::parse(&tokens, &mut sink);
+    if sink.has_errors() {
+        return None;
+    }
+    sort_imports_in_module(source, &module)
+}
+
+/// Given the original source and parsed module, rewrite just the import
+/// block with canonical ordering while preserving everything else verbatim.
+fn sort_imports_in_module(source: &str, module: &ast::Module) -> Option<String> {
+    if module.imports.is_empty() {
+        return Some(source.to_string());
+    }
+
+    // Find the line range covering all imports
+    // We search for the first "use " from the top and the last "use " line
+    let lines: Vec<&str> = source.lines().collect();
+    let mut first_import_line = None;
+    let mut last_import_line = None;
+    for (i, line) in lines.iter().enumerate() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("use ") {
+            if first_import_line.is_none() {
+                first_import_line = Some(i);
+            }
+            last_import_line = Some(i);
+        }
+    }
+
+    let first_import_line = first_import_line?;
+    let last_import_line = last_import_line?;
+
+    // Build sorted import text
+    let mut std_imports: Vec<&ast::Import> = Vec::new();
+    let mut other_imports: Vec<&ast::Import> = Vec::new();
+    for imp in &module.imports {
+        if imp.module_name.starts_with("std::") || imp.module_name == "std" {
+            std_imports.push(imp);
+        } else {
+            other_imports.push(imp);
+        }
+    }
+    std_imports.sort_by(|a, b| a.module_name.cmp(&b.module_name));
+    other_imports.sort_by(|a, b| a.module_name.cmp(&b.module_name));
+
+    let mut sorted_block = String::new();
+    for imp in &std_imports {
+        write_import(&mut sorted_block, imp);
+    }
+    if !std_imports.is_empty() && !other_imports.is_empty() {
+        sorted_block.push('\n');
+    }
+    for imp in &other_imports {
+        write_import(&mut sorted_block, imp);
+    }
+
+    // Reconstruct: lines before imports + sorted imports + lines after imports
+    let mut result = String::with_capacity(source.len());
+    for line in &lines[..first_import_line] {
+        result.push_str(line);
+        result.push('\n');
+    }
+    result.push_str(&sorted_block);
+    // Skip blank lines immediately after the import block (we'll reconstruct them)
+    let mut rest_start = last_import_line + 1;
+    // Keep blank lines that were after imports as-is
+    for line in &lines[rest_start..] {
+        result.push_str(line);
+        result.push('\n');
+        rest_start += 1;
+    }
+    // The original source might not end with a newline
+    if !source.ends_with('\n') && result.ends_with('\n') {
+        result.pop();
+    }
+    Some(result)
+}
+
+fn write_import(out: &mut String, imp: &ast::Import) {
+    out.push_str("use ");
+    out.push_str(&imp.module_name);
+    if let Some(ref alias) = imp.alias {
+        out.push_str(" as ");
+        out.push_str(alias);
+    }
+    out.push('\n');
+}
+
 /// Format Arukellt source code to canonical form.
 ///
 /// Returns `None` if the source contains lex or parse errors, preventing
@@ -1120,5 +1219,47 @@ mod tests {
             format_source(source).is_none(),
             "formatter should return None for lex errors"
         );
+    }
+
+    #[test]
+    fn sort_imports_standalone_reorders() {
+        let source =
+            "use mylib\nuse std::math\nuse std::host::stdio\n\nfn main() {\n    let x = 1\n}\n";
+        let sorted = sort_imports(source).unwrap();
+        let math_pos = sorted.find("use std::math").unwrap();
+        let stdio_pos = sorted.find("use std::host::stdio").unwrap();
+        let mylib_pos = sorted.find("use mylib").unwrap();
+        assert!(
+            stdio_pos < math_pos,
+            "std imports should be sorted alphabetically"
+        );
+        assert!(math_pos < mylib_pos, "std imports before non-std");
+        // Body must be preserved verbatim
+        assert!(sorted.contains("fn main()"));
+        assert!(sorted.contains("let x = 1"));
+    }
+
+    #[test]
+    fn sort_imports_no_imports_unchanged() {
+        let source = "fn main() {\n    let x = 1\n}\n";
+        let sorted = sort_imports(source).unwrap();
+        assert_eq!(sorted, source);
+    }
+
+    #[test]
+    fn sort_imports_returns_none_on_parse_error() {
+        let source = "use std::math\nfn broken( {\n";
+        assert!(sort_imports(source).is_none());
+    }
+
+    #[test]
+    fn sort_imports_preserves_body_formatting() {
+        // Body has weird indentation that should NOT be changed by sort_imports
+        let source = "use std::string\nuse std::math\n\nfn   main()  {\n  let   x=1\n}\n";
+        let sorted = sort_imports(source).unwrap();
+        // Imports should be sorted
+        assert!(sorted.find("use std::math").unwrap() < sorted.find("use std::string").unwrap());
+        // Body should be preserved exactly as-is
+        assert!(sorted.contains("fn   main()  {\n  let   x=1\n}"));
     }
 }

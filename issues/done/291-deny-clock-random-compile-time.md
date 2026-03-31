@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] `--deny-clock` 指定時、clock 関連 intrinsic を使うコードが compile error になる
-- [ ] `--deny-random` 指定時、random 関連 intrinsic を使うコードが compile error になる
-- [ ] reachability scan (`crates/ark-wasm/src/emit/t3/reachability.rs`) の結果を deny チェックに利用
-- [ ] テスト: clock 使用コードが `--deny-clock` で compile fail する fixture
+- [x] `--deny-clock` 指定時、clock 関連 intrinsic を使うコードが compile error になる
+- [x] `--deny-random` 指定時、random 関連 intrinsic を使うコードが compile error になる
+- [x] reachability scan (`crates/ark-wasm/src/emit/t3/reachability.rs`) の結果を deny チェックに利用
+- [x] テスト: clock 使用コードが `--deny-clock` で compile fail する fixture
 
 ## References
 

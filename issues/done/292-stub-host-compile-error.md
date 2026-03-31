@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] `kind = "host_stub"` の関数を呼び出すコードが compile error (E レベル) を出す
-- [ ] error メッセージに「この API は未実装です (host_stub)」と表示される
-- [ ] `std/manifest.toml` の `kind` 情報がコンパイラに伝搬する経路がある
-- [ ] テスト: http::get を呼ぶコードが compile error を出す fixture
+- [x] `kind = "host_stub"` の関数を呼び出すコードが compile error (E レベル) を出す
+- [x] error メッセージに「この API は未実装です (host_stub)」と表示される
+- [x] `std/manifest.toml` の `kind` 情報がコンパイラに伝搬する経路がある
+- [x] テスト: http::get を呼ぶコードが compile error を出す fixture
 
 ## References
 
