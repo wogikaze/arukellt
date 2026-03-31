@@ -1,6 +1,6 @@
 # Language status item + observability surface
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 213
