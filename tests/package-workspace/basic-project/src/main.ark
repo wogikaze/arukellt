@@ -1,0 +1,3 @@
+use std::host::stdio
+
+fn main() { stdio::println("ok") }

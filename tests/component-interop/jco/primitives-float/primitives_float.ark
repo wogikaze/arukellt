@@ -1,0 +1,18 @@
+// Component interop test fixture: f64 scalar exports.
+//
+// Tests that floating-point values are correctly passed through the
+// Component Model ABI. This complements the calculator fixture (i32 only).
+
+pub fn square_f64(x: f64) -> f64 {
+    x * x
+}
+
+pub fn average(a: f64, b: f64) -> f64 {
+    (a + b) / 2.0
+}
+
+pub fn negate_f64(x: f64) -> f64 {
+    -x
+}
+
+fn main() {}
