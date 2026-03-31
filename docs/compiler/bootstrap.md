@@ -242,3 +242,74 @@ fixpoint verification runs on merge to main.
 - [Compiler Pipeline](pipeline.md)
 - [IR Specification](ir-spec.md)
 - [ADR-0001: Harness Bootstrap](../adr/ADR-0001-harness-bootstrap.md)
+
+## Selfhost Completion Criteria
+
+The selfhost compiler is **complete** when **all** of the following conditions
+are satisfied simultaneously and verified by CI on every merge to `master`:
+
+| Criterion | Description | Verification script/command |
+|-----------|-------------|----------------------------|
+| **Stage 0 compile** | Rust compiler compiles all `src/compiler/*.ark` files with zero errors | `scripts/verify-bootstrap.sh --stage1-only` |
+| **Stage 1 compile** | `arukellt-s1.wasm` compiles all `src/compiler/*.ark` files with zero errors | `scripts/verify-bootstrap.sh` Stage 1 |
+| **Stage 2 fixpoint** | `sha256(s1) == sha256(s2)` — compiler reproduces itself byte-for-byte | `scripts/verify-bootstrap.sh` Stage 2 |
+| **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `scripts/check-selfhost-parity.sh` (to be written when Stage 1 passes) |
+| **CLI parity** | `arukellt-s1.wasm compile <file>` stdout/stderr matches `arukellt compile <file>` for all fixture inputs | `scripts/check-selfhost-parity.sh --cli` |
+| **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `scripts/check-selfhost-parity.sh --diag` |
+| **Determinism** | Running Stage 0 twice on the same input produces identical bytes | part of `verify-bootstrap.sh` Stage 2 |
+
+**One-line definition:** The selfhost compiler is complete when
+`scripts/verify-bootstrap.sh` exits 0 with all stages passing (no SKIP),
+**and** `scripts/check-selfhost-parity.sh` exits 0.
+
+### Current Status (Updated Automatically)
+
+See [docs/current-state.md — Self-Hosting Bootstrap Status](../current-state.md#self-hosting-bootstrap-status)
+for the latest stage-by-stage status. That section is the authoritative source.
+
+### What is *not* required for "complete"
+
+- Performance parity with the Rust compiler (acceptable to be slower)
+- LLVM backend support in the selfhost compiler
+- LSP support in the selfhost compiler
+- Identical binary output for *all possible* inputs (only the fixture set)
+
+## Dual-Period End Condition
+
+During the dual period, **both** the Rust compiler (`crates/`) and the selfhost
+sources (`src/compiler/`) are maintained in parallel. Every bug fix applied to
+the Rust compiler must also be applied to the selfhost sources.
+
+### When the dual period ends
+
+The dual period ends when **all** of the following are true:
+
+1. All selfhost completion criteria above are satisfied
+2. The CI `selfhost-parity` job has passed on every merge for at least **4
+   consecutive weeks** (28 days of green CI)
+3. A PR titled "chore(selfhost): promote selfhost compiler to primary" is
+   approved and merged by a maintainer
+4. `docs/current-state.md` is updated to reflect the Rust compiler's removal
+
+### Rust compiler deletion procedure
+
+When the dual period ends:
+
+1. Open issue: "chore: remove Rust compiler backend after selfhost promotion"
+2. Delete `crates/ark-driver/src/`, `crates/ark-wasm/src/`, and the compiler
+   pipeline crates (keep `ark-manifest`, `ark-diagnostics`, `ark-lexer`,
+   `ark-parser` for IDE tooling)
+3. Update `Cargo.toml` workspace members
+4. Update CI: replace `cargo build` with `wasmtime run arukellt.wasm`
+5. Update `scripts/verify-harness.sh` to use selfhost binary
+6. Archive `issues/done/` for all selfhost-related issues
+7. Update `docs/current-state.md` to remove the Rust/selfhost dual sections
+
+### Exclusions
+
+The following are **never** deleted during the dual period transition:
+
+- `ark-lsp` (used for editor integration; Rust stays)
+- `ark-manifest` (used by both CLI and LSP)
+- `ark-diagnostics`, `ark-lexer`, `ark-parser` (used by LSP)
+- Test infrastructure in `tests/` and `scripts/`

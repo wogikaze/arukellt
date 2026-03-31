@@ -159,3 +159,38 @@ The v4 optimization pipeline is fully implemented and active. See [docs/compiler
 - `parse_i64` baseline shape: `Result<i64, String>`
 - `parse_f64` baseline shape: `Result<f64, String>`
 - The observed outputs are frozen in `tests/baselines/api-baseline.json`
+
+## Self-Hosting Bootstrap Status
+
+> See [docs/compiler/bootstrap.md](docs/compiler/bootstrap.md) for the full
+> criteria checklist and bootstrap procedure.
+
+The selfhost compiler lives in `src/compiler/*.ark`.
+Each stage below represents a concrete, CI-verified milestone.
+
+| Stage | Description | Status |
+|-------|-------------|--------|
+| **Stage 0** | Rust compiler compiles all `src/compiler/*.ark` files individually | ✅ **Verified** (CI + `verify-bootstrap.sh --stage1-only`) |
+| **Stage 1** | `arukellt-s1.wasm` (selfhost compiler) compiles its own sources | 🔴 **Blocked** — selfhost parser has 19 parse errors on `lexer.ark` |
+| **Stage 2** | `sha256(s1) == sha256(s2)` fixpoint | 🔴 **Blocked** — depends on Stage 1 |
+| **Fixture parity** | Selfhost compiler passes all 575 harness fixtures | 🔴 **Not started** — depends on Stage 1 |
+| **CLI parity** | Selfhost CLI output matches Rust output for identical inputs | 🔴 **Not started** — depends on Stage 1 |
+| **Diagnostic parity** | Error messages are identical between Rust and selfhost | 🔴 **Not started** — depends on Stage 1 |
+
+### What the Stage 1 blocker is
+
+The selfhost parser (`src/compiler/main.ark`) fails to parse `lexer.ark` with
+19 parse errors ("expected token kind 1, got 73"). Token kind 73 is `RBRACE`
+(`}`). This means the selfhost parser does not yet handle some syntax that
+lexer.ark uses — most likely certain struct field initializers or expressions
+that the Rust parser handles correctly.
+
+This is a parser feature gap in the selfhost compiler, not a bug in the
+language definition. Tracked in issues #249 and #253.
+
+### Dual-period policy
+
+Until Stage 1 passes, both the Rust compiler and the selfhost sources are
+maintained in parallel. See
+[Dual-Period End Condition](docs/compiler/bootstrap.md#dual-period-end-condition)
+in bootstrap.md for the exact criteria that close this period.

@@ -1,6 +1,6 @@
 # current-state.md の selfhost 記述を verified ベースに更新する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 270
@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] `docs/current-state.md` の selfhost セクションが「達成済み項目 / 未達項目」のリスト形式になっている
-- [ ] 各項目が「CI で継続検証中」か「手動確認のみ」かを明記している
-- [ ] `docs/compiler/bootstrap.md` の完了条件 checklist への参照リンクが張られている
-- [ ] 「selfhost 用の部品がある」という記述が除去されている
+- [x] `docs/current-state.md` の selfhost セクションが「達成済み項目 / 未達項目」のリスト形式になっている
+- [x] 各項目が「CI で継続検証中」か「手動確認のみ」かを明記している
+- [x] `docs/compiler/bootstrap.md` の完了条件 checklist への参照リンクが張られている
+- [x] 「selfhost 用の部品がある」という記述が除去されている
 
 ## Scope
 

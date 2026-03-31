@@ -1,6 +1,6 @@
 # Rust 実装と selfhost 実装の dual period 終了条件を定義する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 269
@@ -14,10 +14,10 @@ selfhost が進んでも、Rust 実装をいつ削除するかの条件が定義
 
 ## Acceptance
 
-- [ ] `docs/compiler/bootstrap.md` に dual period 終了条件が記載されている
-- [ ] 終了条件が「268 の全 parity 条件を N 週間連続で達成」等の客観的な基準で定義されている
-- [ ] Rust 実装削除の移行手順（削除対象・削除手順・検証方法）が記載されている
-- [ ] 終了条件達成時に何をするかが issue template 等で追跡できる形になっている
+- [x] `docs/compiler/bootstrap.md` に dual period 終了条件が記載されている
+- [x] 終了条件が「268 の全 parity 条件を N 週間連続で達成」等の客観的な基準で定義されている
+- [x] Rust 実装削除の移行手順（削除対象・削除手順・検証方法）が記載されている
+- [x] 終了条件達成時に何をするかが issue template 等で追跡できる形になっている
 
 ## Scope
 

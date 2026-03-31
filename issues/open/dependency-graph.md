@@ -15,52 +15,29 @@ graph TD
   I218["218 Navigation completeness: go to implementation / call hierarchy / type hierarchy"]
   I219["219 LSP standard feature completeness"]
   I220["220 Task provider: background task support and pre-execution validation"]
-  I224["224 issues/open・done・blocked と実装状態の同期確認・修正"]
-  I227["227 構文・型システム・import・visibility・error model の契約を文書化する"]
-  I233["233 module / package / workspace / dependency の解決規則を仕様として固定する"]
-  I238["238 project root・target・emit・manifest・scripts の CLI/LSP/Tasks 解決を統一する"]
-  I240["240 エラー時の診断案内（何が足りないか・どこを直すか）を実装する"]
+  I234["234 visibility・public API・internal API を言語機能として確立する"]
+  I235["235 コンパイラ/CLI/LSP ツール層: multi-root workspace・script 実行・target 設定の解決統一"]
   I244["244 最適化・backend の「無効でも使える/有効でも壊さない」検証体制を構築する"]
   I245["245 配布物・統合面・失敗時の回復性の出荷品質基準を策定する"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I250["250 benchmark measurement plan: GC vs linear memory decision data"]
-  I251["251 ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする"]
-  I252["252 テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する"]
-  I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
   I254["254 VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる"]
   I255["255 デバッグ体験を「DAP の箱がある」状態から、実際に使える end-to-end workflow にする"]
-  I260["260 current-state.md の target 表を CI 結果からのみ更新する仕組みを作る"]
   I262["262 component interop テストを回帰面として整備する"]
   I263["263 package/workspace/manifest resolution テストを第一級化する"]
-  I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
-  I270["270 current-state.md の selfhost 記述を verified ベースに更新する"]
   I272["272 install/activate/binary discovery の E2E を実装する"]
-  I234["234 visibility・public API・internal API を言語機能として確立する"]
-  I235["235 コンパイラ/CLI/LSP ツール層: multi-root workspace・script 実行・target 設定の解決統一"]
-  I276["276 DAP 基本動詞を実装する（launch/threads/stackTrace/scopes/variables）"]
-  I264["264 CI 上でテストカテゴリ別ジョブを構成する"]
-  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
+  I277["277 setBreakpoints/continue/next/disconnect を実装する"]
   I273["273 LSP handshake・command execution・task execution の E2E を実装する"]
   I275["275 失敗ログの検証面（output channel・status bar・user message）を確立する"]
-  I277["277 setBreakpoints/continue/next/disconnect を実装する"]
-  I265["265 失敗時の層別特定（language/backend/tooling regression）を可能にする"]
-  I274["274 test controller discovery と restart の E2E を実装する"]
   I279["279 T1/T3 debug 対象範囲を定義し canonical path で end-to-end 確認する"]
   I280["280 DAP smoke test と E2E test を配線する"]
+  I274["274 test controller discovery と restart の E2E を実装する"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
-  I233 --> I234
-  I233 --> I235
-  I255 --> I276
-  I262 --> I264
-  I263 --> I264
-  I268 --> I269
   I272 --> I273
   I272 --> I275
-  I276 --> I277
-  I264 --> I265
-  I273 --> I274
   I277 --> I279
   I277 --> I280
+  I273 --> I274
 ```
 
 ## Adjacency list
@@ -74,38 +51,23 @@ graph TD
 - **218** depends on: 193; blocks: none
 - **219** depends on: none; blocks: none
 - **220** depends on: none; blocks: none
-- **224** depends on: 223; blocks: none
-- **227** depends on: 226; blocks: none
-- **233** depends on: 231; blocks: 234, 235
-- **238** depends on: 231, 236; blocks: none
-- **240** depends on: 237, 239; blocks: none
+- **234** depends on: 233; blocks: none
+- **235** depends on: 232, 233; blocks: none
 - **244** depends on: 241, 242; blocks: none
 - **245** depends on: 241, 242, 243; blocks: none
 - **249** depends on: none; blocks: none
 - **250** depends on: none; blocks: none
-- **251** depends on: none; blocks: none
-- **252** depends on: none; blocks: none
-- **253** depends on: none; blocks: none
 - **254** depends on: none; blocks: none
-- **255** depends on: none; blocks: 276
-- **260** depends on: 256, 257; blocks: none
-- **262** depends on: 261; blocks: 264
-- **263** depends on: 261; blocks: 264
-- **268** depends on: 267; blocks: 269
-- **270** depends on: 266; blocks: none
+- **255** depends on: none; blocks: none
+- **262** depends on: 261; blocks: none
+- **263** depends on: 261; blocks: none
 - **272** depends on: 271; blocks: 273, 275
-- **234** depends on: 233; blocks: none
-- **235** depends on: 232, 233; blocks: none
-- **276** depends on: 255; blocks: 277
-- **264** depends on: 261, 262, 263; blocks: 265
-- **269** depends on: 266, 268; blocks: none
+- **277** depends on: 276; blocks: 279, 280
 - **273** depends on: 272; blocks: 274
 - **275** depends on: 272; blocks: none
-- **277** depends on: 276; blocks: 279, 280
-- **265** depends on: 264; blocks: none
-- **274** depends on: 273; blocks: none
 - **279** depends on: 277, 278; blocks: none
 - **280** depends on: 277, 278; blocks: none
+- **274** depends on: 273; blocks: none
 
 ### Blocked
 
