@@ -39,6 +39,7 @@ diag:diagnostics/type_mismatch.ark
 diag:diagnostics/unexpected_token.ark
 diag:diagnostics/unresolved_name.ark
 diag:diagnostics/unused_import.ark
+diag:diagnostics/unused_binding.ark
 diag:diagnostics/wrong_arg_count.ark
 run:display_trait/display_struct.ark
 run:enums/enum_struct_variant.ark

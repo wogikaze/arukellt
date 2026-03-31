@@ -356,6 +356,7 @@ impl Session {
         let resolved = if let Some(program) = self.analyze(path)?.program {
             // Check unused imports on the entry module
             ark_resolve::check_unused_imports(&program.entry_module, &mut self.sink);
+            ark_resolve::check_unused_bindings(&program.entry_module, &mut self.sink);
             #[allow(deprecated)]
             ResolveArtifact {
                 resolved: resolved_program_entry(program),
@@ -366,6 +367,7 @@ impl Session {
             let resolved = ark_resolve::resolve_module(module, &mut self.sink);
             // Check unused imports
             ark_resolve::check_unused_imports(&resolved.module, &mut self.sink);
+            ark_resolve::check_unused_bindings(&resolved.module, &mut self.sink);
             if self.sink.has_errors() {
                 return Err(render_diagnostics(
                     self.sink.diagnostics(),

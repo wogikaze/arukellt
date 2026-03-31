@@ -1,10 +1,8 @@
-//! Unused import detection.
+//! Unused import and binding detection.
 //!
-//! Walks the AST to find which import module names are actually referenced
-//! via `QualifiedIdent` expressions or `TypeExpr::Qualified` types, then
-//! reports unused imports as W0006 warnings.
+//! Walks the AST to find unused imports (W0006) and unused let bindings (W0007).
 
-use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink};
+use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
 use ark_parser::ast;
 use std::collections::HashSet;
 
@@ -322,6 +320,265 @@ fn collect_used_modules_in_pattern(pattern: &ast::Pattern, used: &mut HashSet<St
     }
 }
 
+// ── Unused binding detection ───────────────────────────────────────────
+
+/// Check for unused let bindings in the given module and emit W0007 warnings.
+///
+/// For each function, collects let binding names and scans the body for Ident
+/// references. Bindings whose name never appears as an Ident are reported.
+/// Names prefixed with `_` are suppressed.
+pub fn check_unused_bindings(module: &ast::Module, sink: &mut DiagnosticSink) {
+    for item in &module.items {
+        match item {
+            ast::Item::FnDef(f) => check_unused_bindings_in_fn(f, sink),
+            ast::Item::ImplBlock(i) => {
+                for method in &i.methods {
+                    check_unused_bindings_in_fn(method, sink);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+fn check_unused_bindings_in_fn(f: &ast::FnDef, sink: &mut DiagnosticSink) {
+    // Collect all let binding names and spans in this function
+    let mut bindings: Vec<(String, Span)> = Vec::new();
+    collect_bindings_in_block(&f.body, &mut bindings);
+
+    if bindings.is_empty() {
+        return;
+    }
+
+    // Collect all identifier references in the function body
+    let mut used_names = HashSet::new();
+    collect_ident_refs_in_block(&f.body, &mut used_names);
+
+    // Also count parameter names as "defined" so they don't shadow let bindings
+    // (params are not checked for unused here, only let bindings)
+
+    for (name, span) in &bindings {
+        if name.starts_with('_') {
+            continue;
+        }
+        if !used_names.contains(name.as_str()) {
+            sink.emit(
+                Diagnostic::new(DiagnosticCode::W0007)
+                    .with_message(format!("unused binding `{}`", name))
+                    .with_label(*span, "this binding is never used"),
+            );
+        }
+    }
+}
+
+fn collect_bindings_in_block(block: &ast::Block, bindings: &mut Vec<(String, Span)>) {
+    for stmt in &block.stmts {
+        collect_bindings_in_stmt(stmt, bindings);
+    }
+    if let Some(tail) = &block.tail_expr {
+        collect_bindings_in_expr(tail, bindings);
+    }
+}
+
+fn collect_bindings_in_stmt(stmt: &ast::Stmt, bindings: &mut Vec<(String, Span)>) {
+    match stmt {
+        ast::Stmt::Let { name, init, span, .. } => {
+            bindings.push((name.clone(), *span));
+            collect_bindings_in_expr(init, bindings);
+        }
+        ast::Stmt::Expr(expr) => collect_bindings_in_expr(expr, bindings),
+        ast::Stmt::While { body, cond, .. } => {
+            collect_bindings_in_expr(cond, bindings);
+            collect_bindings_in_block(body, bindings);
+        }
+        ast::Stmt::Loop { body, .. } => collect_bindings_in_block(body, bindings),
+        ast::Stmt::For { iter, body, .. } => {
+            match iter {
+                ast::ForIter::Range { start, end } => {
+                    collect_bindings_in_expr(start, bindings);
+                    collect_bindings_in_expr(end, bindings);
+                }
+                ast::ForIter::Values(e) | ast::ForIter::Iter(e) => {
+                    collect_bindings_in_expr(e, bindings);
+                }
+            }
+            collect_bindings_in_block(body, bindings);
+        }
+    }
+}
+
+fn collect_bindings_in_expr(expr: &ast::Expr, bindings: &mut Vec<(String, Span)>) {
+    match expr {
+        ast::Expr::If { then_block, else_block, .. } => {
+            collect_bindings_in_block(then_block, bindings);
+            if let Some(eb) = else_block {
+                collect_bindings_in_block(eb, bindings);
+            }
+        }
+        ast::Expr::Block(block) => collect_bindings_in_block(block, bindings),
+        ast::Expr::Match { arms, .. } => {
+            for arm in arms {
+                collect_bindings_in_expr(&arm.body, bindings);
+            }
+        }
+        ast::Expr::Closure { body, .. } => collect_bindings_in_expr(body, bindings),
+        ast::Expr::Loop { body, .. } => collect_bindings_in_block(body, bindings),
+        _ => {}
+    }
+}
+
+fn collect_ident_refs_in_block(block: &ast::Block, used: &mut HashSet<String>) {
+    for stmt in &block.stmts {
+        collect_ident_refs_in_stmt(stmt, used);
+    }
+    if let Some(tail) = &block.tail_expr {
+        collect_ident_refs_in_expr(tail, used);
+    }
+}
+
+fn collect_ident_refs_in_stmt(stmt: &ast::Stmt, used: &mut HashSet<String>) {
+    match stmt {
+        ast::Stmt::Let { init, .. } => {
+            collect_ident_refs_in_expr(init, used);
+        }
+        ast::Stmt::Expr(expr) => collect_ident_refs_in_expr(expr, used),
+        ast::Stmt::While { cond, body, .. } => {
+            collect_ident_refs_in_expr(cond, used);
+            collect_ident_refs_in_block(body, used);
+        }
+        ast::Stmt::Loop { body, .. } => collect_ident_refs_in_block(body, used),
+        ast::Stmt::For { iter, body, target, .. } => {
+            // The for-loop target is used inside the body
+            used.insert(target.clone());
+            match iter {
+                ast::ForIter::Range { start, end } => {
+                    collect_ident_refs_in_expr(start, used);
+                    collect_ident_refs_in_expr(end, used);
+                }
+                ast::ForIter::Values(e) | ast::ForIter::Iter(e) => {
+                    collect_ident_refs_in_expr(e, used);
+                }
+            }
+            collect_ident_refs_in_block(body, used);
+        }
+    }
+}
+
+fn collect_ident_refs_in_expr(expr: &ast::Expr, used: &mut HashSet<String>) {
+    match expr {
+        ast::Expr::Ident { name, .. } => {
+            used.insert(name.clone());
+        }
+        ast::Expr::QualifiedIdent { .. } => {}
+        ast::Expr::Call { callee, args, .. } => {
+            collect_ident_refs_in_expr(callee, used);
+            for arg in args {
+                collect_ident_refs_in_expr(arg, used);
+            }
+        }
+        ast::Expr::Binary { left, right, .. } => {
+            collect_ident_refs_in_expr(left, used);
+            collect_ident_refs_in_expr(right, used);
+        }
+        ast::Expr::Unary { operand, .. } => {
+            collect_ident_refs_in_expr(operand, used);
+        }
+        ast::Expr::FieldAccess { object, .. } => {
+            collect_ident_refs_in_expr(object, used);
+        }
+        ast::Expr::Index { object, index, .. } => {
+            collect_ident_refs_in_expr(object, used);
+            collect_ident_refs_in_expr(index, used);
+        }
+        ast::Expr::If { cond, then_block, else_block, .. } => {
+            collect_ident_refs_in_expr(cond, used);
+            collect_ident_refs_in_block(then_block, used);
+            if let Some(eb) = else_block {
+                collect_ident_refs_in_block(eb, used);
+            }
+        }
+        ast::Expr::Match { scrutinee, arms, .. } => {
+            collect_ident_refs_in_expr(scrutinee, used);
+            for arm in arms {
+                collect_ident_refs_in_pattern(&arm.pattern, used);
+                if let Some(guard) = &arm.guard {
+                    collect_ident_refs_in_expr(guard, used);
+                }
+                collect_ident_refs_in_expr(&arm.body, used);
+            }
+        }
+        ast::Expr::Block(block) => collect_ident_refs_in_block(block, used),
+        ast::Expr::Tuple { elements, .. } | ast::Expr::Array { elements, .. } => {
+            for e in elements {
+                collect_ident_refs_in_expr(e, used);
+            }
+        }
+        ast::Expr::ArrayRepeat { value, count, .. } => {
+            collect_ident_refs_in_expr(value, used);
+            collect_ident_refs_in_expr(count, used);
+        }
+        ast::Expr::StructInit { fields, base, .. } => {
+            for (_name, val) in fields {
+                collect_ident_refs_in_expr(val, used);
+            }
+            if let Some(b) = base {
+                collect_ident_refs_in_expr(b, used);
+            }
+        }
+        ast::Expr::Closure { body, .. } => {
+            collect_ident_refs_in_expr(body, used);
+        }
+        ast::Expr::Return { value, .. } | ast::Expr::Break { value, .. } => {
+            if let Some(v) = value {
+                collect_ident_refs_in_expr(v, used);
+            }
+        }
+        ast::Expr::Try { expr, .. } => collect_ident_refs_in_expr(expr, used),
+        ast::Expr::Assign { target, value, .. } => {
+            collect_ident_refs_in_expr(target, used);
+            collect_ident_refs_in_expr(value, used);
+        }
+        ast::Expr::Loop { body, .. } => collect_ident_refs_in_block(body, used),
+        ast::Expr::IntLit { .. }
+        | ast::Expr::FloatLit { .. }
+        | ast::Expr::StringLit { .. }
+        | ast::Expr::CharLit { .. }
+        | ast::Expr::BoolLit { .. }
+        | ast::Expr::Continue { .. } => {}
+    }
+}
+
+fn collect_ident_refs_in_pattern(pattern: &ast::Pattern, used: &mut HashSet<String>) {
+    match pattern {
+        ast::Pattern::Ident { .. } => {
+            // Pattern bindings introduce names, they don't "use" them
+        }
+        ast::Pattern::Enum { fields, .. } => {
+            for f in fields {
+                collect_ident_refs_in_pattern(f, used);
+            }
+        }
+        ast::Pattern::Tuple { elements, .. } => {
+            for p in elements {
+                collect_ident_refs_in_pattern(p, used);
+            }
+        }
+        ast::Pattern::Or { patterns, .. } => {
+            for p in patterns {
+                collect_ident_refs_in_pattern(p, used);
+            }
+        }
+        ast::Pattern::Struct { fields, .. } => {
+            for (_name, pat) in fields {
+                if let Some(p) = pat {
+                    collect_ident_refs_in_pattern(p, used);
+                }
+            }
+        }
+        _ => {}
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -395,5 +652,62 @@ mod tests {
             "use std::math as _m\nfn main() {\n    println(42)\n}",
         );
         assert!(warnings.is_empty(), "_ prefix should suppress: {:?}", warnings);
+    }
+
+    // ── Unused binding tests ───────────────────────────────────────────
+
+    fn parse_and_check_bindings(source: &str) -> Vec<String> {
+        let (tokens, _) = ark_lexer::Lexer::new(0, source).tokenize();
+        let mut sink = DiagnosticSink::new();
+        let module = ark_parser::parse(&tokens, &mut sink);
+        let mut warn_sink = DiagnosticSink::new();
+        check_unused_bindings(&module, &mut warn_sink);
+        warn_sink
+            .diagnostics()
+            .iter()
+            .map(|d| d.message.clone())
+            .collect()
+    }
+
+    #[test]
+    fn no_bindings_no_warnings() {
+        let warnings = parse_and_check_bindings("fn main() { println(42) }");
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn used_binding_no_warning() {
+        let warnings = parse_and_check_bindings("fn main() { let x = 1\n println(x) }");
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn unused_binding_warns() {
+        let warnings = parse_and_check_bindings("fn main() { let x = 1\n println(42) }");
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].contains("unused binding `x`"), "{:?}", warnings);
+    }
+
+    #[test]
+    fn underscore_binding_suppressed() {
+        let warnings = parse_and_check_bindings("fn main() { let _x = 1\n println(42) }");
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn binding_used_in_condition() {
+        let warnings = parse_and_check_bindings(
+            "fn main() {\n  let flag = true\n  if flag { println(1) }\n}",
+        );
+        assert!(warnings.is_empty());
+    }
+
+    #[test]
+    fn multiple_bindings_partial_use() {
+        let warnings = parse_and_check_bindings(
+            "fn main() {\n  let a = 1\n  let b = 2\n  println(a)\n}",
+        );
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].contains("unused binding `b`"), "{:?}", warnings);
     }
 }
