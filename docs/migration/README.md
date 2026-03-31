@@ -15,3 +15,4 @@
 |------|-------|---------|
 | [t1-to-t3.md](t1-to-t3.md) | Migration Guide: T1 → T3 | Current-first: this page explains migration from the T1 compatibility path to the canonical T3 path. |
 | [v1-to-v2.md](v1-to-v2.md) | Migration Guide: v1 → v2 (Component Model) | Updated: 2026-03-28 |
+| [v4-to-v5.md](v4-to-v5.md) | Migration Guide: v4 → v5 | This migration guide covers the transition from Arukellt v4 to v5. |

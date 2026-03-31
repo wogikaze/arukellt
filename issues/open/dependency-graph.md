@@ -72,7 +72,6 @@ graph LR
   I428["428 Playground: v1 の product contract と execution ADR を固定する"]
   I384["384 Stdlib: API 追加時の admission gate と family coverage チェックを導入する"]
   I393["393 Stdlib: module family ごとの maturity scoreboard を生成する"]
-  I427["427 Repo Hygiene: broken link / missing file reference checker を追加する"]
   I443["443 Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する"]
   I284["284 CoreHIR path をデフォルトに昇格する"]
   I288["288 セルフホスト CLI parity を確認する"]
@@ -168,7 +167,6 @@ graph LR
   I378 --> I428
   I383 --> I384
   I383 --> I393
-  I426 --> I427
   I442 --> I443
   I281 --> I284
   I282 --> I284
@@ -281,7 +279,7 @@ graph LR
 - **420** depends on: none; blocks: none
 - **422** depends on: none; blocks: none
 - **425** depends on: none; blocks: none
-- **426** depends on: 376; blocks: 427
+- **426** depends on: 376; blocks: none
 - **442** depends on: 299, 300; blocks: 443
 - **282** depends on: 281; blocks: 284
 - **283** depends on: 281; blocks: 284
@@ -316,7 +314,6 @@ graph LR
 - **428** depends on: 378; blocks: 433, 435
 - **384** depends on: 383; blocks: none
 - **393** depends on: 383; blocks: none
-- **427** depends on: 426; blocks: none
 - **443** depends on: 442; blocks: 444
 - **284** depends on: 281, 282, 283, 306; blocks: 285
 - **288** depends on: 287; blocks: none
