@@ -202,8 +202,20 @@ fn run_fixture_entry(bin: &Path, fixture_dir: &Path, entry: &ManifestEntry) -> F
             let diag_text = std::fs::read_to_string(&diag_path).unwrap();
             let first_line = diag_text.lines().next().unwrap_or("").trim().to_string();
 
+            let flags_path = fixture.with_extension("flags");
+            let extra_args: Vec<String> = if flags_path.exists() {
+                std::fs::read_to_string(&flags_path)
+                    .unwrap()
+                    .split_whitespace()
+                    .map(String::from)
+                    .collect()
+            } else {
+                vec![]
+            };
+
             let output = Command::new(bin)
                 .arg("run")
+                .args(&extra_args)
                 .arg(&fixture)
                 .output()
                 .expect("failed to run arukellt");

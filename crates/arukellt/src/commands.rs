@@ -5,6 +5,7 @@ use std::process;
 
 use ark_driver::{MirSelection, OptLevel, Session};
 use ark_manifest::Manifest;
+use ark_mir::mir::{MirModule, MirStmt, Operand, Rvalue};
 use ark_target::{EmitKind, TargetId};
 use serde::Serialize;
 
@@ -504,21 +505,7 @@ pub(crate) fn cmd_run(
         process::exit(1);
     }
 
-    // deny_clock and deny_random are not yet enforced
-    if deny_clock {
-        eprintln!(
-            "error: --deny-clock is not yet implemented. The Wasm runtime always \
-             provides clock access. This flag will be supported in a future version."
-        );
-        process::exit(1);
-    }
-    if deny_random {
-        eprintln!(
-            "error: --deny-random is not yet implemented. The Wasm runtime always \
-             provides random access. This flag will be supported in a future version."
-        );
-        process::exit(1);
-    }
+    // deny_clock and deny_random are enforced at compile time (below)
 
     if profile.experimental {
         eprintln!(
@@ -531,18 +518,31 @@ pub(crate) fn cmd_run(
     let selection = parse_mir_select(mir_select);
 
     let run_once = |session: &mut Session| -> bool {
-        match session
-            .compile_selected(&file, target, selection)
-            .map(|c| c.wasm)
-        {
-            Ok(wasm) => {
+        match session.compile_selected(&file, target, selection) {
+            Ok(compiled) => {
+                // Enforce --deny-clock / --deny-random at compile time
+                if deny_clock && mir_uses_capability(&compiled.mir, &CLOCK_BUILTINS) {
+                    eprintln!(
+                        "error: --deny-clock: this program uses clock intrinsics, \
+                         which are denied by the current capability policy"
+                    );
+                    return false;
+                }
+                if deny_random && mir_uses_capability(&compiled.mir, &RANDOM_BUILTINS) {
+                    eprintln!(
+                        "error: --deny-random: this program uses random intrinsics, \
+                         which are denied by the current capability policy"
+                    );
+                    return false;
+                }
+
                 if profile_mem && let Ok(info) = session.profile_memory(&file) {
                     eprintln!("{}", info);
                 }
                 let caps = RuntimeCaps::from_cli(&dirs, deny_fs, deny_clock, deny_random);
                 let result = match target {
-                    TargetId::Wasm32WasiP2 => run_wasm_gc(&wasm, &caps),
-                    _ => run_wasm_p1(&wasm, &caps),
+                    TargetId::Wasm32WasiP2 => run_wasm_gc(&compiled.wasm, &caps),
+                    _ => run_wasm_p1(&compiled.wasm, &caps),
                 };
                 if let Err(e) = result {
                     eprintln!("error: runtime: {}", e);
@@ -1041,5 +1041,96 @@ fn parse_mir_select(s: &str) -> MirSelection {
             );
             process::exit(1);
         }
+    }
+}
+
+// ── Capability scanning ────────────────────────────────────────────
+
+const CLOCK_BUILTINS: &[&str] = &[
+    "clock_now",
+    "clock_now_ms",
+    "monotonic_now",
+    "__intrinsic_clock_now",
+    "__intrinsic_clock_now_ms",
+];
+
+const RANDOM_BUILTINS: &[&str] = &[
+    "random_i32",
+    "random_f64",
+    "__intrinsic_random_i32",
+    "__intrinsic_random_f64",
+];
+
+/// Scan MIR for calls to any of the given builtin names.
+fn mir_uses_capability(mir: &MirModule, builtins: &[&str]) -> bool {
+    for func in &mir.functions {
+        // Check function name itself (stdlib wrappers like monotonic_now)
+        if builtins.contains(&func.name.as_str()) {
+            return true;
+        }
+        for block in &func.blocks {
+            for stmt in &block.stmts {
+                if stmt_uses_capability(stmt, mir, builtins) {
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
+
+fn stmt_uses_capability(stmt: &MirStmt, mir: &MirModule, builtins: &[&str]) -> bool {
+    match stmt {
+        MirStmt::CallBuiltin { name, .. } => builtins.contains(&name.as_str()),
+        MirStmt::Call { func, .. } => {
+            if let Some(f) = mir.functions.iter().find(|f| f.id == *func) {
+                builtins.contains(&f.name.as_str())
+            } else {
+                false
+            }
+        }
+        MirStmt::Assign(_, rvalue) => rvalue_uses_capability(rvalue, builtins),
+        MirStmt::IfStmt {
+            cond,
+            then_body,
+            else_body,
+        } => {
+            operand_uses_capability(cond, builtins)
+                || then_body
+                    .iter()
+                    .any(|s| stmt_uses_capability(s, mir, builtins))
+                || else_body
+                    .iter()
+                    .any(|s| stmt_uses_capability(s, mir, builtins))
+        }
+        MirStmt::WhileStmt { cond, body } => {
+            operand_uses_capability(cond, builtins)
+                || body.iter().any(|s| stmt_uses_capability(s, mir, builtins))
+        }
+        MirStmt::Return(Some(op)) => operand_uses_capability(op, builtins),
+        _ => false,
+    }
+}
+
+fn rvalue_uses_capability(rvalue: &Rvalue, builtins: &[&str]) -> bool {
+    match rvalue {
+        Rvalue::Use(op) => operand_uses_capability(op, builtins),
+        Rvalue::BinaryOp(_, l, r) => {
+            operand_uses_capability(l, builtins) || operand_uses_capability(r, builtins)
+        }
+        Rvalue::UnaryOp(_, op) => operand_uses_capability(op, builtins),
+        _ => false,
+    }
+}
+
+fn operand_uses_capability(op: &Operand, builtins: &[&str]) -> bool {
+    match op {
+        Operand::Call(name, args) => {
+            if builtins.contains(&name.as_str()) {
+                return true;
+            }
+            args.iter().any(|a| operand_uses_capability(a, builtins))
+        }
+        _ => false,
     }
 }

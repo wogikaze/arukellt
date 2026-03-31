@@ -1,0 +1,7 @@
+use std::host::stdio
+use std::host::random
+
+fn main() {
+    let r = random::random_i32()
+    stdio::println(i32_to_string(r))
+}

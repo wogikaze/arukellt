@@ -1,0 +1,1 @@
+--deny-clock: this program uses clock intrinsics

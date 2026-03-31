@@ -121,9 +121,13 @@ run:stdlib_hof_i64_f64/map_f64.ark
 run:stdlib_hof_i64_f64/map_i64.ark
 run:stdlib_io/clock_random.ark
 run:stdlib_io/eprintln.ark
+diag:stdlib_io/deny_clock.ark
+diag:stdlib_io/deny_random.ark
 run:stdlib_io/f64_to_string.ark
+run:stdlib_io/fs_deny_access.ark
 run:stdlib_io/fs_read_error.ark
 run:stdlib_io/fs_read_write.ark
+run:stdlib_io/fs_readonly_write.ark
 run:stdlib_io/i32_to_string.ark
 run:stdlib_io/to_string.ark
 run:stdlib_io/to_string_char_local.ark

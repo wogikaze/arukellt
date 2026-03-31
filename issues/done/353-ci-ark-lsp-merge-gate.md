@@ -1,6 +1,6 @@
 # Tooling Contract: ark-lsp を CI merge gate に含める
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 353

@@ -1,0 +1,9 @@
+use std::host::fs
+use std::host::stdio
+fn main() {
+    let w: Result<(), String> = fs::write_string("test_readonly.txt", "should fail")
+    match w {
+        Ok(_) => stdio::println(String_from("write ok")),
+        Err(e) => stdio::println(String_from("write denied")),
+    }
+}
