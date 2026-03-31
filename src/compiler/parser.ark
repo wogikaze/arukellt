@@ -301,7 +301,7 @@ fn bump(p: Parser) -> Token {
 }
 
 fn skip_newlines(p: Parser) {
-    while peek_kind(p) == TK_NEWLINE() {
+    while peek_kind(p) == TK_NEWLINE() || peek_kind(p) == TK_SEMI() {
         p.pos = p.pos + 1
     }
 }
@@ -742,7 +742,11 @@ fn parse_prefix(p: Parser) -> AstNode {
                 while !at(p, TK_RBRACE()) && !at_eof(p) {
                     skip_newlines(p)
                     if at(p, TK_RBRACE()) { break }
-                    if !first { expect_token(p, TK_COMMA()) }
+                    if !first {
+                        expect_token(p, TK_COMMA())
+                        skip_newlines(p)
+                        if at(p, TK_RBRACE()) { break }
+                    }
                     first = false
                     skip_newlines(p)
                     let fname = expect_token(p, TK_IDENT())
@@ -972,7 +976,7 @@ fn parse_return(p: Parser) -> AstNode {
     let node = AstNode_new(NK_RETURN(), tok_span(t))
     skip_newlines(p)
     let k = peek_kind(p)
-    if k != TK_NEWLINE() && k != TK_RBRACE() && k != TK_EOF() {
+    if k != TK_NEWLINE() && k != TK_RBRACE() && k != TK_EOF() && k != TK_SEMI() {
         let val = parse_expr(p)
         push(node.children, val)
     }
@@ -1138,7 +1142,11 @@ fn parse_struct_decl(p: Parser) -> AstNode {
     while !at(p, TK_RBRACE()) && !at_eof(p) {
         skip_newlines(p)
         if at(p, TK_RBRACE()) { break }
-        if !first { expect_token(p, TK_COMMA()) }
+        if !first {
+            expect_token(p, TK_COMMA())
+            skip_newlines(p)
+            if at(p, TK_RBRACE()) { break }
+        }
         first = false
         skip_newlines(p)
         let fname = expect_token(p, TK_IDENT())

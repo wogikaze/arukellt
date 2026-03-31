@@ -207,8 +207,10 @@ if [[ -f "$S1_WASM" ]]; then
         for src in "${SELFHOST_SOURCES[@]}"; do
             local base
             base="$(basename "$src" .ark)"
+            # Convert to relative path for WASI sandbox
+            local rel_src="${src#$REPO_ROOT/}"
             echo -e "  Compiling ${base}.ark (via s1)..."
-            if wasmtime run --dir=. "$S1_WASM" -- compile "$src" 2>/dev/null; then
+            if wasmtime run --wasm gc --dir=. "$S1_WASM" -- compile "$rel_src" 2>/dev/null; then
                 compiled=$((compiled + 1))
             else
                 echo -e "  ${RED}FAIL${NC}  ${base}.ark did not compile with s1" >&2

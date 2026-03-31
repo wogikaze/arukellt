@@ -161,7 +161,14 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
 
     if resolve_ctx.error_count > 0 {
-        return CompileResult_err(PHASE_RESOLVE(), concat(to_string(resolve_ctx.error_count), String_from(" resolve error(s)")))
+        let mut result = CompileResult_err(PHASE_RESOLVE(), concat(to_string(resolve_ctx.error_count), String_from(" resolve error(s)")))
+        let mut ei = 0
+        while ei < len(resolve_ctx.errors) {
+            push(result.error_messages, clone(get_unchecked(resolve_ctx.errors, ei)))
+            ei = ei + 1
+        }
+        result.error_count = resolve_ctx.error_count
+        return result
     }
 
     // Phase 4: Type check

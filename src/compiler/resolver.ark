@@ -69,7 +69,13 @@ fn ResolveCtx_new() -> ResolveCtx {
 
 fn push_scope(ctx: ResolveCtx) {
     ctx.current_depth = ctx.current_depth + 1
-    push(ctx.scopes, Scope_new(ctx.current_depth - 1))
+    if ctx.current_depth < len(ctx.scopes) {
+        // Reuse existing scope at this depth — clear old symbols
+        let scope = get_unchecked(ctx.scopes, ctx.current_depth)
+        scope.symbols = Vec_new_Symbol()
+    } else {
+        push(ctx.scopes, Scope_new(ctx.current_depth - 1))
+    }
 }
 
 fn pop_scope(ctx: ResolveCtx) {
@@ -151,6 +157,8 @@ fn register_builtins(ctx: ResolveCtx) {
     // Modules
     define(ctx, String_from("stdio"), SYM_MODULE())
     define(ctx, String_from("fs"), SYM_MODULE())
+    define(ctx, String_from("process"), SYM_MODULE())
+    define(ctx, String_from("env"), SYM_MODULE())
 }
 
 // ── AST Node Kind Constants (from parser) ────────────────────────────────────
@@ -179,6 +187,10 @@ fn NK_ENUM_DECL() -> i32 { 52 }
 fn NK_USE() -> i32 { 54 }
 fn NK_TRAIT_DECL() -> i32 { 55 }
 fn NK_IMPL_DECL() -> i32 { 56 }
+fn NK_TUPLE() -> i32 { 17 }
+fn NK_PAT_IDENT() -> i32 { 70 }
+fn NK_PAT_WILDCARD() -> i32 { 71 }
+fn NK_PAT_VARIANT() -> i32 { 73 }
 
 // ── AST Node (duplicated from parser for standalone compilation) ─────────────
 
@@ -271,11 +283,87 @@ fn resolve_enum(ctx: ResolveCtx, node: AstNode) {
     }
 }
 
+fn collect_pattern_bindings(ctx: ResolveCtx, pat: AstNode) {
+    if pat.kind == NK_PAT_IDENT() {
+        define(ctx, clone(pat.text), SYM_LOCAL())
+        return
+    }
+    if pat.kind == NK_PAT_VARIANT() {
+        // Recurse into sub-patterns (e.g. Ok(x) has x as a child)
+        let child_count = len(pat.children)
+        let mut i = 0
+        while i < child_count {
+            let sub = get_unchecked(pat.children, i)
+            collect_pattern_bindings(ctx, sub)
+            i = i + 1
+        }
+        return
+    }
+    // NK_PAT_WILDCARD, NK_PAT_LITERAL: no bindings
+}
+
 fn resolve_node(ctx: ResolveCtx, node: AstNode) {
     if node.kind == NK_IDENT() {
         let idx = lookup(ctx, clone(node.text))
         if idx < 0 {
-            resolve_error(ctx, concat(String_from("undefined name: "), clone(node.text)))
+            // Allow Vec_new_* as implicit builtins
+            let name = clone(node.text)
+            let name_len = len(name)
+            let mut is_builtin = false
+            if name_len >= 8 {
+                if eq(substring(name, 0, 8), String_from("Vec_new_")) {
+                    is_builtin = true
+                }
+            }
+            if !is_builtin {
+                resolve_error(ctx, concat(String_from("undefined name: "), clone(node.text)))
+            }
+        }
+        return
+    }
+
+    if node.kind == NK_FIELD_ACCESS() {
+        // Resolve the receiver (children[0]) but NOT the field name (node.text)
+        if len(node.children) > 0 {
+            let receiver = get_unchecked(node.children, 0)
+            resolve_node(ctx, receiver)
+        }
+        return
+    }
+
+    if node.kind == NK_STRUCT_LIT() {
+        // Verify struct name exists, resolve field values but not field names
+        let idx = lookup(ctx, clone(node.text))
+        if idx < 0 {
+            resolve_error(ctx, concat(String_from("undefined struct: "), clone(node.text)))
+        }
+        let field_count = len(node.children)
+        let mut i = 0
+        while i < field_count {
+            let field = get_unchecked(node.children, i)
+            // field.text = field name (don't resolve)
+            // field.children[0] = field value (resolve)
+            if len(field.children) > 0 {
+                let val = get_unchecked(field.children, 0)
+                resolve_node(ctx, val)
+            }
+            i = i + 1
+        }
+        return
+    }
+
+    if node.kind == NK_METHOD_CALL() {
+        // Resolve receiver (children[0]) and arguments, but not method name (node.text)
+        let child_count = len(node.children)
+        if child_count > 0 {
+            let receiver = get_unchecked(node.children, 0)
+            resolve_node(ctx, receiver)
+        }
+        let mut i = 1
+        while i < child_count {
+            let arg = get_unchecked(node.children, i)
+            resolve_node(ctx, arg)
+            i = i + 1
         }
         return
     }
@@ -322,6 +410,32 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
         return
     }
 
+    if node.kind == NK_MATCH_EXPR() {
+        // children[0] = scrutinee, rest are arms
+        let child_count = len(node.children)
+        if child_count > 0 {
+            let scrutinee = get_unchecked(node.children, 0)
+            resolve_node(ctx, scrutinee)
+        }
+        let mut arm_idx = 1
+        while arm_idx < child_count {
+            let arm = get_unchecked(node.children, arm_idx)
+            // arm is NK_TUPLE with children[0]=pattern, children[1]=body
+            push_scope(ctx)
+            if len(arm.children) > 0 {
+                let pat = get_unchecked(arm.children, 0)
+                collect_pattern_bindings(ctx, pat)
+            }
+            if len(arm.children) > 1 {
+                let body = get_unchecked(arm.children, 1)
+                resolve_node(ctx, body)
+            }
+            pop_scope(ctx)
+            arm_idx = arm_idx + 1
+        }
+        return
+    }
+
     // Default: recurse into children
     let child_count = len(node.children)
     let mut i = 0
@@ -351,6 +465,11 @@ pub fn dump_scope(ctx: ResolveCtx) {
         i = i + 1
     }
     if ctx.error_count > 0 {
+        let mut ei = 0
+        while ei < len(ctx.errors) {
+            stdio::eprintln(concat(String_from("error: "), clone(get_unchecked(ctx.errors, ei))))
+            ei = ei + 1
+        }
         stdio::eprintln(concat(to_string(ctx.error_count), String_from(" resolve error(s)")))
     }
 }
