@@ -1,6 +1,6 @@
 # Formatter surface
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 216
@@ -16,9 +16,9 @@ Arukellt の stable formatter を実装し、VS Code の format on save / format
 
 ## Acceptance
 
-- [ ] `arukellt fmt` または LSP `textDocument/formatting` で安定した整形が動作する
-- [ ] VS Code で format on save / format selection が使える
-- [ ] formatter と compiler の surface 整合性（canonical 表現）が文書化されている
+- [x] `arukellt fmt` または LSP `textDocument/formatting` で安定した整形が動作する
+- [x] VS Code で format on save / format selection が使える
+- [x] formatter と compiler の surface 整合性（canonical 表現）が文書化されている
 
 ## Scope
 

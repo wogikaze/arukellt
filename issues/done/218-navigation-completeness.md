@@ -1,6 +1,6 @@
 # Navigation completeness: go to implementation / call hierarchy / type hierarchy
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 218
@@ -15,8 +15,8 @@ rename・workspace symbols（#193）とは独立した navigation 機能群。
 
 ## Acceptance
 
-- [ ] `textDocument/implementation` と `textDocument/typeDefinition` が動作する
-- [ ] call hierarchy（`callHierarchy/incomingCalls` / `outgoingCalls`）が動作する
+- [x] `textDocument/implementation` と `textDocument/typeDefinition` が動作する
+- [x] call hierarchy（`callHierarchy/incomingCalls` / `outgoingCalls`）が動作する
 - [ ] module dependency 間のナビゲーション導線がある
 
 ## Scope
