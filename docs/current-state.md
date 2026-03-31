@@ -155,6 +155,7 @@ catches GC reference types that bypass WIT-level checks (W0004).
 - No `--dir` flag means no filesystem access
 - `ark-llvm` is excluded from default builds (requires LLVM 18)
 - some historical docs remain archived / historical and should not override current-state
+- **Host stubs**: `std::host::http::{request, get}` and `std::host::sockets::connect` are declared in `std/manifest.toml` as `host_stub` — they exist in the module surface but are not yet backed by WASI P2 host imports
 
 ## V4 Optimization Status
 
