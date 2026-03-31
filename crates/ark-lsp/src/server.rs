@@ -2013,7 +2013,18 @@ impl LanguageServer for ArukellBackend {
                     prepare_provider: Some(true),
                     work_done_progress_options: Default::default(),
                 })),
-                code_action_provider: Some(CodeActionProviderCapability::Simple(true)),
+                code_action_provider: Some(CodeActionProviderCapability::Options(
+                    CodeActionOptions {
+                        code_action_kinds: Some(vec![
+                            CodeActionKind::QUICKFIX,
+                            CodeActionKind::SOURCE,
+                            CodeActionKind::new("source.organizeImports"),
+                            CodeActionKind::new("source.fixAll"),
+                            CodeActionKind::REFACTOR_EXTRACT,
+                        ]),
+                        ..Default::default()
+                    },
+                )),
                 document_formatting_provider: Some(OneOf::Left(true)),
                 document_symbol_provider: Some(OneOf::Left(true)),
                 code_lens_provider: Some(CodeLensOptions {
@@ -2507,50 +2518,198 @@ impl LanguageServer for ArukellBackend {
         let uri = params.text_document.uri;
         let mut actions = Vec::new();
 
-        // Auto-import code action for E0100 unresolved name
-        for diag in params.context.diagnostics {
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            docs.get(&uri).cloned()
+        };
+
+        // --- Quick fix code actions (diagnostic-driven) ---
+        for diag in &params.context.diagnostics {
             if let Some(NumberOrString::String(ref code)) = diag.code {
-                if code == "E0100" {
-                    // Try to suggest an import
-                    let name = &diag.message; // Heuristic: diag message might contain the name
-                    let import_candidates = [
-                        ("stdio", "std::host::stdio"),
-                        ("fs", "std::host::fs"),
-                        ("env", "std::host::env"),
-                        ("Path", "std::path"),
-                        ("Time", "std::time"),
-                        ("Test", "std::test"),
-                    ];
-                    for (alias, module) in import_candidates {
-                        if name.contains(alias) {
-                            let mut changes = HashMap::new();
-                            changes.insert(
-                                uri.clone(),
-                                vec![TextEdit {
-                                    range: Range {
-                                        start: Position {
-                                            line: 0,
-                                            character: 0,
+                match code.as_str() {
+                    "E0100" => {
+                        // Auto-import for unresolved name
+                        let name = &diag.message;
+                        let import_candidates = [
+                            ("stdio", "std::host::stdio"),
+                            ("fs", "std::host::fs"),
+                            ("env", "std::host::env"),
+                            ("Path", "std::path"),
+                            ("Time", "std::time"),
+                            ("Test", "std::test"),
+                            ("math", "std::math"),
+                            ("string", "std::string"),
+                            ("collections", "std::collections"),
+                            ("process", "std::host::process"),
+                            ("clock", "std::host::clock"),
+                            ("random", "std::host::random"),
+                        ];
+                        for (alias, module) in import_candidates {
+                            if name.contains(alias) {
+                                let mut changes = HashMap::new();
+                                changes.insert(
+                                    uri.clone(),
+                                    vec![TextEdit {
+                                        range: Range {
+                                            start: Position {
+                                                line: 0,
+                                                character: 0,
+                                            },
+                                            end: Position {
+                                                line: 0,
+                                                character: 0,
+                                            },
                                         },
-                                        end: Position {
-                                            line: 0,
-                                            character: 0,
-                                        },
-                                    },
-                                    new_text: format!("use {}\n", module),
-                                }],
-                            );
-                            actions.push(CodeActionOrCommand::CodeAction(CodeAction {
-                                title: format!("Import {}", module),
-                                kind: Some(CodeActionKind::QUICKFIX),
-                                edit: Some(WorkspaceEdit {
-                                    changes: Some(changes),
+                                        new_text: format!("use {}\n", module),
+                                    }],
+                                );
+                                actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                                    title: format!("Import {}", module),
+                                    kind: Some(CodeActionKind::QUICKFIX),
+                                    diagnostics: Some(vec![diag.clone()]),
+                                    edit: Some(WorkspaceEdit {
+                                        changes: Some(changes),
+                                        ..Default::default()
+                                    }),
+                                    is_preferred: Some(true),
                                     ..Default::default()
-                                }),
-                                is_preferred: Some(true),
-                                ..Default::default()
-                            }));
+                                }));
+                            }
                         }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        // --- Source actions ---
+
+        // source.organizeImports — sort imports (stdlib first, then external)
+        if let Some(ref src) = source {
+            if params.context.only.as_ref().is_none_or(|kinds| {
+                kinds.iter().any(|k| {
+                    k == &CodeActionKind::SOURCE || k.as_str().starts_with("source.organizeImports")
+                })
+            }) {
+                let formatted = ark_parser::fmt::format_source(src);
+                if formatted != *src {
+                    let full_range = Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Self::offset_to_position(src, src.len() as u32),
+                    };
+                    let mut changes = HashMap::new();
+                    changes.insert(
+                        uri.clone(),
+                        vec![TextEdit {
+                            range: full_range,
+                            new_text: formatted,
+                        }],
+                    );
+                    actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                        title: "Organize Imports".to_string(),
+                        kind: Some(CodeActionKind::new("source.organizeImports")),
+                        edit: Some(WorkspaceEdit {
+                            changes: Some(changes),
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    }));
+                }
+            }
+
+            // source.fixAll — apply formatter as a fix-all
+            if params.context.only.as_ref().is_none_or(|kinds| {
+                kinds
+                    .iter()
+                    .any(|k| k == &CodeActionKind::SOURCE || k.as_str() == "source.fixAll")
+            }) {
+                let formatted = ark_parser::fmt::format_source(src);
+                if formatted != *src {
+                    let full_range = Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Self::offset_to_position(src, src.len() as u32),
+                    };
+                    let mut changes = HashMap::new();
+                    changes.insert(
+                        uri.clone(),
+                        vec![TextEdit {
+                            range: full_range,
+                            new_text: formatted,
+                        }],
+                    );
+                    actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                        title: "Fix All".to_string(),
+                        kind: Some(CodeActionKind::new("source.fixAll")),
+                        edit: Some(WorkspaceEdit {
+                            changes: Some(changes),
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    }));
+                }
+            }
+        }
+
+        // --- Refactor: extract variable ---
+        if let Some(ref src) = source {
+            let sel = params.range;
+            // Only offer extract variable if there's a non-empty selection
+            if sel.start != sel.end {
+                let start_off = Self::position_to_offset(src, sel.start);
+                let end_off = Self::position_to_offset(src, sel.end);
+                if end_off > start_off {
+                    let selected_text = &src[start_off as usize..(end_off as usize).min(src.len())];
+                    let trimmed = selected_text.trim();
+                    // Only offer if the selection looks like an expression (not empty, no newlines)
+                    if !trimmed.is_empty() && !trimmed.contains('\n') {
+                        let var_name = "extracted";
+                        let let_text = format!("let {} = {}\n", var_name, trimmed);
+                        // Find the line start of the selection
+                        let line_start = src[..start_off as usize]
+                            .rfind('\n')
+                            .map(|p| p + 1)
+                            .unwrap_or(0);
+                        let indent_str: String = src[line_start..start_off as usize]
+                            .chars()
+                            .take_while(|c| c.is_whitespace())
+                            .collect();
+
+                        let insert_pos = Self::offset_to_position(src, line_start as u32);
+
+                        let mut changes = HashMap::new();
+                        changes.insert(
+                            uri.clone(),
+                            vec![
+                                // Insert let binding before the current line
+                                TextEdit {
+                                    range: Range {
+                                        start: insert_pos,
+                                        end: insert_pos,
+                                    },
+                                    new_text: format!("{}{}", indent_str, let_text),
+                                },
+                                // Replace selected expression with variable name
+                                TextEdit {
+                                    range: sel,
+                                    new_text: var_name.to_string(),
+                                },
+                            ],
+                        );
+                        actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                            title: format!("Extract to variable '{}'", var_name),
+                            kind: Some(CodeActionKind::REFACTOR_EXTRACT),
+                            edit: Some(WorkspaceEdit {
+                                changes: Some(changes),
+                                ..Default::default()
+                            }),
+                            ..Default::default()
+                        }));
                     }
                 }
             }
