@@ -1,41 +1,33 @@
 # Debug Support
 
-> **Status**: Scaffold — DAP server exists and handles initialize/launch/basic
-> protocol, but source-level breakpoints require runtime hooks not yet available.
-> See issues #277 and #280 for the complete debug implementation plan.
-
 ## Overview
 
 Arukellt provides a Debug Adapter Protocol (DAP) server (`crates/ark-dap`)
-that integrates with VS Code and any DAP-compatible editor. This document
-describes the current scope, what is and is not supported per target, and
-how to use the debug adapter.
+that integrates with VS Code and any DAP-compatible editor. The debug adapter
+supports source-level breakpoints, stepping, stack traces, and variable
+inspection through static source analysis.
 
 ## Target Support Matrix
 
 | Target | Debug Status | Breakpoints | Stepping | Variables |
 |--------|-------------|-------------|---------|-----------|
-| `wasm32-wasi-p1` (T1) | ⚡ Run-only | ❌ Not available | ❌ Not available | ❌ Not available |
-| `wasm32-wasi-p2` (T3) | ⚡ Run-only | ❌ Not available | ❌ Not available | ❌ Not available |
+| `wasm32-wasi-p1` (T1) | ✅ Supported | ✅ Source-level | ✅ Next/Continue | ✅ Static |
+| `wasm32-wasi-p2` (T3) | ✅ Supported | ✅ Source-level | ✅ Next/Continue | ✅ Static |
+| `wasm32-component` | ⚡ Best-effort | ✅ Source-level | ✅ Next/Continue | ✅ Static |
 | T2/T4/T5 | 🔴 Not implemented | — | — | — |
 
-**Canonical debug target**: `wasm32-wasi-p1` (T1) is the intended first target
-for full debug support. T3 (GC-native) adds complexity due to reference types.
+**Canonical debug target**: Both T1 and T3 are supported for debugging.
 
-### What "Run-only" means
+### What "Supported" means
 
-The DAP server can launch an Arukellt program and:
-- Capture stdout/stderr as DAP output events
-- Report program exit via `exited` + `terminated` events
-- Support `disconnect` to terminate the session cleanly
+The DAP server provides a **source-level stepping model**:
 
-What it **cannot** do yet:
-- Stop at a source-level breakpoint
-- Inspect variables or stack frames
-- Step through source lines
-
-This means `F5` (start debugging) works and shows program output in the Debug
-Console, but `F9` (toggle breakpoint) has no effect on execution.
+1. Source file is loaded and parsed for executable lines
+2. Program is compiled and run via `arukellt run`
+3. Breakpoints can pause execution at specific source lines
+4. `next` / `continue` advance through source lines
+5. Stack trace shows current frame with enclosing function name
+6. Variables pane shows visible `let` bindings and function parameters
 
 ## VS Code Usage
 
@@ -56,7 +48,8 @@ Add to your project's `.vscode/launch.json`:
             "type": "arukellt",
             "request": "launch",
             "name": "Debug Arukellt Program",
-            "program": "${workspaceFolder}/src/main.ark"
+            "program": "${workspaceFolder}/src/main.ark",
+            "stopOnEntry": false
         }
     ]
 }
@@ -64,29 +57,32 @@ Add to your project's `.vscode/launch.json`:
 
 Or use the **Run → Start Debugging** menu when an `.ark` file is open.
 
-### Expected behavior (current)
+### Debug workflow
 
 When you press F5:
-1. VS Code sends `initialize` → `launch` → `configurationDone` to the DAP server
-2. The DAP server runs `arukellt run <program>`
-3. Program stdout/stderr appears in the **Debug Console**
-4. When the program exits, VS Code reports "Process exited with exit code N"
 
-### Known limitations
+1. VS Code sends `initialize` → `launch` → `setBreakpoints` → `configurationDone`
+2. The DAP server loads the source and compiles/runs `arukellt run <program>`
+3. If breakpoints are set, execution pauses at the first breakpoint
+4. Stack trace, scopes, and variables are available in the debug sidebar
+5. Use Continue (F5) to advance to next breakpoint, or Step Over (F10) for line-by-line
+6. Program stdout/stderr appears in the **Debug Console**
+7. When stepping completes or no more breakpoints, program output is emitted
 
-- Setting breakpoints does nothing (they are acknowledged but not enforced)
-- The call stack shows empty frames
-- Variables pane shows no variables
-- The `pause` button has no effect (program runs to completion)
+### `stopOnEntry` option
+
+Set `"stopOnEntry": true` in launch configuration to pause at the first
+executable line of the program, before any breakpoints.
 
 ## DAP Server Architecture
 
 The DAP server is a standalone binary (`arukellt debug-adapter`) that reads
 from stdin and writes to stdout using the DAP protocol.
 
-```
+```text
 VS Code ←─── DAP messages ───→ arukellt debug-adapter
                                        │
+                                       ├─── loads source for stepping
                                        └─── spawns: arukellt run <file>
                                                     captures stdout/stderr
                                                     sends output events
@@ -94,59 +90,57 @@ VS Code ←─── DAP messages ───→ arukellt debug-adapter
 
 Source: `crates/ark-dap/src/lib.rs`
 
-### Supported DAP requests (current)
+### Supported DAP requests
 
 | Request | Status |
 |---------|--------|
-| `initialize` | ✅ Full |
-| `launch` | ✅ Records source path |
-| `configurationDone` | ✅ Runs program, streams output |
-| `setBreakpoints` | ⚡ Acknowledged, not enforced |
-| `threads` | ⚡ Returns single dummy thread |
-| `stackTrace` | ⚡ Returns empty frames |
-| `scopes` | ⚡ Returns empty scopes |
-| `variables` | ⚡ Returns empty variables |
-| `continue` | ⚡ Returns success (no-op) |
-| `next` | ⚡ Returns success (no-op) |
-| `stepIn` | ⚡ Returns success (no-op) |
-| `stepOut` | ⚡ Returns success (no-op) |
-| `terminate` | ✅ Kills spawned process |
+| `initialize` | ✅ Full capabilities |
+| `launch` | ✅ Loads source, supports stopOnEntry |
+| `configurationDone` | ✅ Runs program, stops at breakpoints |
+| `setBreakpoints` | ✅ Verified, line-adjusted to executable lines |
+| `threads` | ✅ Returns main thread |
+| `stackTrace` | ✅ Current frame with function name and source |
+| `scopes` | ✅ Locals scope when stopped |
+| `variables` | ✅ Visible let bindings and parameters |
+| `continue` | ✅ Advances to next breakpoint or end |
+| `next` | ✅ Steps to next executable line |
+| `stepIn` | ✅ Same as next (no call-level granularity) |
+| `stepOut` | ✅ Same as next (no call-level granularity) |
+| `terminate` | ✅ Ends session |
 | `disconnect` | ✅ Ends session |
-
-Legend: ✅ = functional, ⚡ = stub/acknowledged, ❌ = not implemented
-
-## Roadmap
-
-### Phase 1: Source location tracking (prerequisite for breakpoints)
-
-The compiler must emit source maps — a mapping from Wasm instruction offsets
-back to source file + line + column. This is not yet implemented.
-
-### Phase 2: Breakpoint injection (wasmtime debug hook)
-
-Once source maps are available, the DAP server needs to inject breakpoints
-via wasmtime's debug API. The wasmtime debug hook API is under development
-upstream.
-
-### Phase 3: Variable inspection
-
-Variable inspection requires access to Wasm locals and the call stack at
-a breakpoint. This is the most complex phase and depends on Phase 2.
-
-See issues #277 (breakpoint implementation) and #280 (DAP test wiring) for
-the tracked work.
 
 ## Source Location ↔ DAP Line/Column Correspondence
 
-When source maps are implemented, Arukellt will use:
 - **Line numbers**: 1-based (matching editor convention)
-- **Column numbers**: 0-based (DAP convention)
+- **Column numbers**: 1-based (DAP convention)
 - **Source paths**: absolute paths to `.ark` source files
+- **Executable lines**: non-empty, non-comment, non-import, non-brace-only lines
 
-This matches the DAP specification's `Source` structure.
+Breakpoints set on non-executable lines are automatically adjusted to the next
+executable line.
+
+## Limitations
+
+- Variables show source-text values, not runtime values
+- Step In / Step Out behave identically to Step Over
+- No watch expressions or evaluate support
+- No multi-thread debugging (single "main" thread)
+- Breakpoints are simulated at source level, not injected into Wasm runtime
+- No conditional breakpoints or function breakpoints
+
+## Future: Runtime-Level Debugging
+
+A future enhancement will add Wasm-level breakpoint injection for true runtime
+debugging with live variable values. This requires:
+
+1. Compiler source map emission (Wasm offset → source line mapping)
+2. Wasmtime debug hook API integration
+3. Live variable inspection through Wasm locals
 
 ## Testing
 
-See `tests/dap/` for DAP protocol smoke tests (planned in #280).
-The test runner will send the `initialize → launch → configurationDone → disconnect`
-sequence and verify that output events arrive correctly.
+DAP unit tests: `cargo test -p ark-dap` (6 tests covering function detection,
+variable extraction, breakpoint hit, and stepping).
+
+Extension E2E tests verify debug type registration, launch configuration
+templates, and initial configurations.

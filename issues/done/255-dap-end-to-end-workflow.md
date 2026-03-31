@@ -1,6 +1,6 @@
 # デバッグ体験を「DAP の箱がある」状態から、実際に使える end-to-end workflow にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 255

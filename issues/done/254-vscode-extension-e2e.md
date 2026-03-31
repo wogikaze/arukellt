@@ -1,6 +1,6 @@
 # VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 254

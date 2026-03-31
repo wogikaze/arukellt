@@ -1,6 +1,6 @@
 # T1/T3 debug 対象範囲を定義し canonical path で end-to-end 確認する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 279
