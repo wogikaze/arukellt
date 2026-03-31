@@ -32,6 +32,7 @@ enum ExecState {
     /// Paused at a breakpoint or step.
     Stopped { line: i64, reason: String },
     /// Running (between continue/next and next stop).
+    #[allow(dead_code)]
     Running,
     /// Program finished execution.
     Terminated,
@@ -117,6 +118,7 @@ impl DapSession {
     }
 
     /// Check if any breakpoint is set at the given line.
+    #[allow(clippy::collapsible_if)]
     fn has_breakpoint_at(&self, line: i64) -> bool {
         if let Some(path) = &self.source_path {
             if let Some(bps) = self.breakpoints.get(path) {
@@ -130,14 +132,9 @@ impl DapSession {
     fn advance_to_next_stop(&self, mode: StepMode) -> Option<(i64, String)> {
         let start = self.current_line + 1;
         match mode {
-            StepMode::Next => {
-                // Step one executable line
-                if let Some(next) = self.next_executable_line(start) {
-                    Some((next, "step".to_string()))
-                } else {
-                    None // end of file
-                }
-            }
+            StepMode::Next => self
+                .next_executable_line(start)
+                .map(|next| (next, "step".to_string())),
             StepMode::Continue => {
                 // Run until next breakpoint or end
                 for line in start..=self.total_lines {
@@ -704,22 +701,20 @@ fn extract_visible_variables(lines: &[String], target_line: i64) -> Vec<serde_js
         // Stop at function boundary
         if trimmed.starts_with("fn ") || trimmed.starts_with("pub fn ") {
             // Extract parameters
-            if let Some(paren_start) = trimmed.find('(') {
-                if let Some(paren_end) = trimmed.find(')') {
-                    let params = &trimmed[paren_start + 1..paren_end];
-                    for param in params.split(',') {
-                        let param = param.trim();
-                        if let Some(colon) = param.find(':') {
-                            let name = param[..colon].trim().to_string();
-                            let ty = param[colon + 1..].trim().to_string();
-                            if !name.is_empty() && seen.insert(name.clone()) {
-                                vars.push(serde_json::json!({
-                                    "name": name,
-                                    "value": format!("<{ty}>"),
-                                    "type": ty,
-                                    "variablesReference": 0,
-                                }));
-                            }
+            if let (Some(paren_start), Some(paren_end)) = (trimmed.find('('), trimmed.find(')')) {
+                let params = &trimmed[paren_start + 1..paren_end];
+                for param in params.split(',') {
+                    let param = param.trim();
+                    if let Some(colon) = param.find(':') {
+                        let name = param[..colon].trim().to_string();
+                        let ty = param[colon + 1..].trim().to_string();
+                        if !name.is_empty() && seen.insert(name.clone()) {
+                            vars.push(serde_json::json!({
+                                "name": name,
+                                "value": format!("<{ty}>"),
+                                "type": ty,
+                                "variablesReference": 0,
+                            }));
                         }
                     }
                 }
@@ -729,10 +724,12 @@ fn extract_visible_variables(lines: &[String], target_line: i64) -> Vec<serde_js
 
         // Parse let bindings
         if trimmed.starts_with("let ") || trimmed.starts_with("let mut ") {
-            let rest = if trimmed.starts_with("let mut ") {
-                &trimmed["let mut ".len()..]
+            let rest = if let Some(r) = trimmed.strip_prefix("let mut ") {
+                r
+            } else if let Some(r) = trimmed.strip_prefix("let ") {
+                r
             } else {
-                &trimmed["let ".len()..]
+                continue;
             };
 
             // Extract name (before : or =)

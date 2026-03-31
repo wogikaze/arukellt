@@ -1256,18 +1256,16 @@ impl ArukellBackend {
                     hints,
                 );
             }
-            ast::Expr::Return { value, .. } => {
-                if let Some(v) = value {
-                    Self::collect_hints_from_expr(
-                        source,
-                        v,
-                        checker,
-                        fn_param_names,
-                        range_start,
-                        range_end,
-                        hints,
-                    );
-                }
+            ast::Expr::Return { value: Some(v), .. } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    v,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
             }
             ast::Expr::Closure { body, .. } => {
                 Self::collect_hints_from_expr(
@@ -1420,6 +1418,7 @@ impl ArukellBackend {
 
     /// Try to infer a simple type string from an expression without full
     /// type-checking env. Covers the common cases that produce useful hints.
+    #[allow(clippy::only_used_in_recursion)]
     fn infer_expr_type_simple(
         expr: &ast::Expr,
         checker: &ark_typecheck::TypeChecker,
@@ -1665,10 +1664,8 @@ impl ArukellBackend {
             ast::Expr::Block(block) => {
                 Self::collect_containing_spans_block(block, offset, spans);
             }
-            ast::Expr::Return { value, .. } => {
-                if let Some(v) = value {
-                    Self::collect_containing_spans_expr(v, offset, spans);
-                }
+            ast::Expr::Return { value: Some(v), .. } => {
+                Self::collect_containing_spans_expr(v, offset, spans);
             }
             ast::Expr::FieldAccess { object, .. } => {
                 Self::collect_containing_spans_expr(object, offset, spans);
@@ -2545,58 +2542,55 @@ impl LanguageServer for ArukellBackend {
         // --- Quick fix code actions (diagnostic-driven) ---
         for diag in &params.context.diagnostics {
             if let Some(NumberOrString::String(ref code)) = diag.code {
-                match code.as_str() {
-                    "E0100" => {
-                        // Auto-import for unresolved name
-                        let name = &diag.message;
-                        let import_candidates = [
-                            ("stdio", "std::host::stdio"),
-                            ("fs", "std::host::fs"),
-                            ("env", "std::host::env"),
-                            ("Path", "std::path"),
-                            ("Time", "std::time"),
-                            ("Test", "std::test"),
-                            ("math", "std::math"),
-                            ("string", "std::string"),
-                            ("collections", "std::collections"),
-                            ("process", "std::host::process"),
-                            ("clock", "std::host::clock"),
-                            ("random", "std::host::random"),
-                        ];
-                        for (alias, module) in import_candidates {
-                            if name.contains(alias) {
-                                let mut changes = HashMap::new();
-                                changes.insert(
-                                    uri.clone(),
-                                    vec![TextEdit {
-                                        range: Range {
-                                            start: Position {
-                                                line: 0,
-                                                character: 0,
-                                            },
-                                            end: Position {
-                                                line: 0,
-                                                character: 0,
-                                            },
+                if code == "E0100" {
+                    // Auto-import for unresolved name
+                    let name = &diag.message;
+                    let import_candidates = [
+                        ("stdio", "std::host::stdio"),
+                        ("fs", "std::host::fs"),
+                        ("env", "std::host::env"),
+                        ("Path", "std::path"),
+                        ("Time", "std::time"),
+                        ("Test", "std::test"),
+                        ("math", "std::math"),
+                        ("string", "std::string"),
+                        ("collections", "std::collections"),
+                        ("process", "std::host::process"),
+                        ("clock", "std::host::clock"),
+                        ("random", "std::host::random"),
+                    ];
+                    for (alias, module) in import_candidates {
+                        if name.contains(alias) {
+                            let mut changes = HashMap::new();
+                            changes.insert(
+                                uri.clone(),
+                                vec![TextEdit {
+                                    range: Range {
+                                        start: Position {
+                                            line: 0,
+                                            character: 0,
                                         },
-                                        new_text: format!("use {}\n", module),
-                                    }],
-                                );
-                                actions.push(CodeActionOrCommand::CodeAction(CodeAction {
-                                    title: format!("Import {}", module),
-                                    kind: Some(CodeActionKind::QUICKFIX),
-                                    diagnostics: Some(vec![diag.clone()]),
-                                    edit: Some(WorkspaceEdit {
-                                        changes: Some(changes),
-                                        ..Default::default()
-                                    }),
-                                    is_preferred: Some(true),
+                                        end: Position {
+                                            line: 0,
+                                            character: 0,
+                                        },
+                                    },
+                                    new_text: format!("use {}\n", module),
+                                }],
+                            );
+                            actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                                title: format!("Import {}", module),
+                                kind: Some(CodeActionKind::QUICKFIX),
+                                diagnostics: Some(vec![diag.clone()]),
+                                edit: Some(WorkspaceEdit {
+                                    changes: Some(changes),
                                     ..Default::default()
-                                }));
-                            }
+                                }),
+                                is_preferred: Some(true),
+                                ..Default::default()
+                            }));
                         }
                     }
-                    _ => {}
                 }
             }
         }
@@ -2683,18 +2677,15 @@ impl LanguageServer for ArukellBackend {
                 let start_off = Self::position_to_offset(src, sel.start);
                 let end_off = Self::position_to_offset(src, sel.end);
                 if end_off > start_off {
-                    let selected_text = &src[start_off as usize..(end_off as usize).min(src.len())];
+                    let selected_text = &src[start_off..end_off.min(src.len())];
                     let trimmed = selected_text.trim();
                     // Only offer if the selection looks like an expression (not empty, no newlines)
                     if !trimmed.is_empty() && !trimmed.contains('\n') {
                         let var_name = "extracted";
                         let let_text = format!("let {} = {}\n", var_name, trimmed);
                         // Find the line start of the selection
-                        let line_start = src[..start_off as usize]
-                            .rfind('\n')
-                            .map(|p| p + 1)
-                            .unwrap_or(0);
-                        let indent_str: String = src[line_start..start_off as usize]
+                        let line_start = src[..start_off].rfind('\n').map(|p| p + 1).unwrap_or(0);
+                        let indent_str: String = src[line_start..start_off]
                             .chars()
                             .take_while(|c| c.is_whitespace())
                             .collect();

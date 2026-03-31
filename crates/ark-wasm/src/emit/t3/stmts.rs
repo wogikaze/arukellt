@@ -2008,10 +2008,10 @@ impl Ctx {
     pub(super) fn emit_eprintln(&mut self, f: &mut PeepholeWriter<'_>, arg: &Operand) {
         self.emit_operand(f, arg);
         // eprintln always uses the string version — convert if needed
-        if !self.is_string_like_operand(arg) {
-            if let Some(to_str) = self.helper_i32_to_str {
-                f.instruction(&Instruction::Call(to_str));
-            }
+        if !self.is_string_like_operand(arg)
+            && let Some(to_str) = self.helper_i32_to_str
+        {
+            f.instruction(&Instruction::Call(to_str));
         }
         if let Some(idx) = self.helper_eprint_str_ln {
             f.instruction(&Instruction::Call(idx));
