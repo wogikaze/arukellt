@@ -502,6 +502,7 @@ struct Ctx {
     wasi_path_open: u32,
     wasi_fd_read: u32,
     wasi_fd_close: u32,
+    wasi_needs_fd_write: bool,
     wasi_needs_fs: bool,
     wasi_clock_time_get: u32,
     wasi_needs_clock: bool,
@@ -938,6 +939,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         wasi_path_open: 0,
         wasi_fd_read: 0,
         wasi_fd_close: 0,
+        wasi_needs_fd_write: false,
         wasi_needs_fs: false,
         wasi_clock_time_get: 0,
         wasi_needs_clock: false,
@@ -1035,10 +1037,27 @@ impl Ctx {
         // args_get: (i32, i32) -> i32
         let args_get_ty = args_sizes_get_ty; // same signature
 
-        // Count helper functions we'll need
-        // Dynamic WASI import count: fd_write is always needed; others conditional
-        let mut num_imports = 1u32; // fd_write always
-        self.wasi_fd_write = 0;
+        // Scan MIR to determine which stdlib helpers are actually needed
+        // (must happen before import counting so we know if fd_write is needed)
+        let needed = Self::scan_needed_helpers(mir, &reachable_user_indices);
+
+        // fd_write is only needed when any print/eprint helper is used
+        let needs_fd_write = needed.print_str
+            || needed.print_i32
+            || needed.print_bool
+            || needed.print_str_ln
+            || needed.print_i32_ln
+            || needed.print_bool_ln
+            || needed.print_newline
+            || needed.eprint_str_ln;
+        self.wasi_needs_fd_write = needs_fd_write;
+
+        // Dynamic WASI import count: fd_write only when print is used; others conditional
+        let mut num_imports = 0u32;
+        if needs_fd_write {
+            self.wasi_fd_write = num_imports;
+            num_imports += 1;
+        }
         if needs_fs {
             self.wasi_path_open = num_imports;
             num_imports += 1;
@@ -1065,9 +1084,6 @@ impl Ctx {
             self.wasi_args_get = num_imports;
             num_imports += 1;
         }
-
-        // Scan MIR to determine which stdlib helpers are actually needed
-        let needed = Self::scan_needed_helpers(mir, &reachable_user_indices);
 
         // GC-native helper function signatures — only include needed ones
         let str_ref = ref_nullable(self.string_ty);
@@ -1375,11 +1391,13 @@ impl Ctx {
 
         // Import section: WASI functions (only those actually used)
         let mut imports = ImportSection::new();
-        imports.import(
-            "wasi_snapshot_preview1",
-            "fd_write",
-            wasm_encoder::EntityType::Function(fd_write_ty),
-        );
+        if needs_fd_write {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "fd_write",
+                wasm_encoder::EntityType::Function(fd_write_ty),
+            );
+        }
         if needs_fs {
             imports.import(
                 "wasi_snapshot_preview1",
@@ -1640,7 +1658,9 @@ impl Ctx {
         name_section.module("arukellt");
         let mut func_names = wasm_encoder::NameMap::new();
         // Import names (dynamically assigned)
-        func_names.append(self.wasi_fd_write, "wasi:fd_write");
+        if needs_fd_write {
+            func_names.append(self.wasi_fd_write, "wasi:fd_write");
+        }
         if needs_fs {
             func_names.append(self.wasi_path_open, "wasi:path_open");
             func_names.append(self.wasi_fd_read, "wasi:fd_read");
