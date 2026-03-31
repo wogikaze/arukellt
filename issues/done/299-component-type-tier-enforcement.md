@@ -1,6 +1,6 @@
 # Component Model の対応型 tier を宣言し、未対応型 export を compile error にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 299
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] 対応型 tier が文書化される (Tier 1: scalar+enum+record, Tier 2: string+list+option+result, Tier 3: resource+stream)
-- [ ] Tier 外の型を export しようとした場合に compile error (E レベル) が出る
-- [ ] error メッセージに「この型は component export で未対応です」と表示される
-- [ ] `docs/current-state.md` §V2 の carry-over limitations が更新される
+- [x] 対応型 tier が文書化される (Tier 1: scalar+enum+record, Tier 2: string+list+option+result, Tier 3: resource+stream)
+- [x] Tier 外の型を export しようとした場合に compile error (E レベル) が出る
+- [x] error メッセージに「この型は component export で未対応です」と表示される
+- [x] `docs/current-state.md` §V2 の carry-over limitations が更新される
 
 ## References
 

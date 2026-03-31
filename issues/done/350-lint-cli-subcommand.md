@@ -1,6 +1,6 @@
 # Linter: `arukellt lint` CLI サブコマンドを追加する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 350
@@ -21,11 +21,11 @@
 
 ## Acceptance
 
-- [ ] `arukellt lint <path>` が lint rule のみを走らせ、結果を報告する
-- [ ] `arukellt lint --list` が利用可能な lint rule を一覧表示する
-- [ ] `arukellt lint --allow <rule>` / `--deny <rule>` で CLI から severity を override できる
-- [ ] `ark.toml` の default lint script が `arukellt lint .` に更新される
-- [ ] `arukellt check` は引き続き semantic error + lint の両方を報告する
+- [x] `arukellt lint <path>` が lint rule のみを走らせ、結果を報告する
+- [x] `arukellt lint --list` が利用可能な lint rule を一覧表示する
+- [x] `arukellt lint --allow <rule>` / `--deny <rule>` で CLI から severity を override できる
+- [x] `ark.toml` の default lint script が `arukellt lint .` に更新される
+- [x] `arukellt check` は引き続き semantic error + lint の両方を報告する
 
 ## References
 

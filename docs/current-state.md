@@ -134,6 +134,21 @@ v2 (Component Model) implementation is complete as of 2026-03-28.
 - async Component Model features are not supported
 - jco browser-facing flow remains blocked upstream (`issues/blocked/037`)
 
+### Component export type tiers
+
+The compiler enforces type-tier restrictions on component exports at compile time:
+
+| Tier | Types | Status | Error |
+|------|-------|--------|-------|
+| Tier 1 | i32, i64, f32, f64, bool, char, unit enum, scalar record | Supported | — |
+| Tier 2 | string, list, option, result | Blocked (canonical ABI lift/lower) | E0401 |
+| Tier 3 | resource, stream, future, flags (complex) | Not implemented | E0400/E0402 |
+
+Functions using Tier 2/3 types in exports produce compile errors. Functions with non-exportable
+types are excluded from component exports with W0005 warning. Core Wasm binary validation
+catches GC reference types that bypass WIT-level checks (W0004).
+
+
 ## Known Limitations
 
 - `--deny-clock` and `--deny-random` are not enforced as full capability filters yet (they are hard-error placeholders)
