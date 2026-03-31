@@ -217,11 +217,14 @@
 | `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - |
 | `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - |
 | `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
+| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
 | `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `builtin` | no | - |
+| `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
 | `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
 | `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
 | `bytes_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
 | `bytes_push` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - |
+| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
 | `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - |
 | `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - |
 | `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - |
@@ -310,6 +313,7 @@
 | `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - |
 | `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - |
 | `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - |
+| `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
 | `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - |
 | `trim` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - |

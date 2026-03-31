@@ -10,6 +10,32 @@ pub fn bytes_new() -> Vec<i32> {
     b
 }
 
+/// Create a byte buffer from the raw bytes of a UTF-8 string.
+pub fn bytes_from_string(s: String) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        let ch = slice(s, i, i + 1)
+        push(result, char_at(s, i))
+        i = i + 1
+    }
+    result
+}
+
+/// Interpret a byte buffer as a UTF-8 string (best-effort, one byte = one char).
+pub fn string_from_bytes(b: Vec<i32>) -> String {
+    let mut result = ""
+    let n = len(b)
+    let mut i = 0
+    while i < n {
+        let byte_val = get_unchecked(b, i) & 255
+        result = concat(result, char_to_string(byte_val))
+        i = i + 1
+    }
+    result
+}
+
 pub fn bytes_len(b: Vec<i32>) -> i32 {
     len(b)
 }
@@ -38,6 +64,35 @@ pub fn bytes_eq(a: Vec<i32>, b: Vec<i32>) -> bool {
         }
         same
     }
+}
+
+/// Concatenate two byte buffers into a new one.
+pub fn bytes_concat(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let an = len(a)
+    let bn = len(b)
+    let mut i = 0
+    while i < an {
+        push(result, get_unchecked(a, i))
+        i = i + 1
+    }
+    i = 0
+    while i < bn {
+        push(result, get_unchecked(b, i))
+        i = i + 1
+    }
+    result
+}
+
+/// Extract a sub-range of bytes as a new buffer.
+pub fn bytes_slice(b: Vec<i32>, start: i32, end: i32) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i = start
+    while i < end {
+        push(result, get_unchecked(b, i))
+        i = i + 1
+    }
+    result
 }
 
 pub fn byte_length(s: String) -> i32 {

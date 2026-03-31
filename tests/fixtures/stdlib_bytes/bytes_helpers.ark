@@ -1,0 +1,46 @@
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    // bytes_from_string / string_from_bytes roundtrip
+    let b = bytes::bytes_from_string("hi")
+    stdio::println(i32_to_string(bytes::bytes_len(b)))
+    let s = bytes::string_from_bytes(b)
+    stdio::println(s)
+
+    // bytes_concat
+    let a = bytes::bytes_new()
+    bytes::bytes_push(a, 1)
+    bytes::bytes_push(a, 2)
+    let c = bytes::bytes_new()
+    bytes::bytes_push(c, 3)
+    bytes::bytes_push(c, 4)
+    let merged = bytes::bytes_concat(a, c)
+    stdio::println(i32_to_string(bytes::bytes_len(merged)))
+    stdio::println(i32_to_string(bytes::bytes_get(merged, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(merged, 2)))
+    stdio::println(i32_to_string(bytes::bytes_get(merged, 3)))
+
+    // bytes_slice
+    let sub = bytes::bytes_slice(merged, 1, 3)
+    stdio::println(i32_to_string(bytes::bytes_len(sub)))
+    stdio::println(i32_to_string(bytes::bytes_get(sub, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(sub, 1)))
+
+    // empty operations
+    let empty = bytes::bytes_new()
+    let from_empty = bytes::bytes_from_string("")
+    stdio::println(i32_to_string(bytes::bytes_len(from_empty)))
+    let s2 = bytes::string_from_bytes(empty)
+    stdio::println(i32_to_string(len(s2)))
+
+    // hex roundtrip
+    let hb = bytes::bytes_new()
+    bytes::bytes_push(hb, 0)
+    bytes::bytes_push(hb, 255)
+    bytes::bytes_push(hb, 127)
+    let hex = bytes::hex_encode(hb)
+    stdio::println(hex)
+    let decoded = bytes::hex_decode(hex)
+    stdio::println(bool_to_string(bytes::bytes_eq(hb, decoded)))
+}

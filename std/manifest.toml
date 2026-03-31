@@ -1779,6 +1779,34 @@ params = ["Vec<i32>", "Vec<i32>"]
 returns = "bool"
 
 [[functions]]
+name = "bytes_from_string"
+module = "std::bytes"
+stability = "stable"
+params = ["String"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "string_from_bytes"
+module = "std::bytes"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "String"
+
+[[functions]]
+name = "bytes_concat"
+module = "std::bytes"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "bytes_slice"
+module = "std::bytes"
+stability = "stable"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
 name = "byte_length"
 module = "std::bytes"
 stability = "stable"

@@ -148,7 +148,6 @@ Functions using Tier 2/3 types in exports produce compile errors. Functions with
 types are excluded from component exports with W0005 warning. Core Wasm binary validation
 catches GC reference types that bypass WIT-level checks (W0004).
 
-
 ## Known Limitations
 
 - `--deny-clock` and `--deny-random` are not enforced as full capability filters yet (they are hard-error placeholders)

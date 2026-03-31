@@ -31,7 +31,6 @@ graph LR
   I377["377 Repo Hygiene: scaffold / internal コンポーネントの露出 tier を定める"]
   I378["378 Playground: execution model を選定し v1 scope を確定する"]
   I383["383 Stdlib: manifest metadata を resolver / typechecker / LSP / docs に伝搬する"]
-  I387["387 Stdlib: bytes / I/O helper の実用 surface を埋める"]
   I391["391 Stdlib: component / WIT helper の実用性を見直す"]
   I392["392 Stdlib: error / Result の命名・変換・伝播慣習を正規化する"]
   I408["408 Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する"]
@@ -280,7 +279,6 @@ graph LR
 - **377** depends on: none; blocks: 423
 - **378** depends on: none; blocks: 379, 382, 428
 - **383** depends on: none; blocks: 384, 393
-- **387** depends on: none; blocks: none
 - **391** depends on: none; blocks: none
 - **392** depends on: none; blocks: none
 - **408** depends on: none; blocks: 409

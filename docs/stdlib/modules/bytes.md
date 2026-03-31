@@ -6,8 +6,8 @@ Source-backed docs for binary data helpers.
 ## `std::bytes`
 
 - Source: [`../../../std/bytes/mod.ark`](../../../std/bytes/mod.ark)
-- Manifest-backed functions: 16
-- Stability: stable 16
+- Manifest-backed functions: 20
+- Stability: stable 20
 
 Binary data helpers built on `Vec<i32>`.
 
@@ -19,10 +19,14 @@ module focuses on buffer helpers plus hex and LEB128 encoding.
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `bytes_new` | `() -> Vec<i32>` | `stable` | - |
+| `bytes_from_string` | `(String) -> Vec<i32>` | `stable` | Create a byte buffer from the raw bytes of a UTF-8 string. |
+| `string_from_bytes` | `(Vec<i32>) -> String` | `stable` | Interpret a byte buffer as a UTF-8 string (best-effort, one byte = one char). |
 | `bytes_len` | `(Vec<i32>) -> i32` | `stable` | - |
 | `bytes_get` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 | `bytes_push` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `stable` | - |
+| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Concatenate two byte buffers into a new one. |
+| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `stable` | Extract a sub-range of bytes as a new buffer. |
 | `byte_length` | `(String) -> i32` | `stable` | - |
 
 ### Hex encoding
