@@ -1,6 +1,6 @@
 # --deny-fs の実施と --dir の検証テスト
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **ID**: 307
 **Depends on**: —

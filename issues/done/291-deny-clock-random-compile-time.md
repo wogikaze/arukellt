@@ -1,6 +1,6 @@
 # --deny-clock / --deny-random を compile-time 検証に引き上げる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 291

@@ -125,6 +125,7 @@ diag:stdlib_io/deny_clock.ark
 diag:stdlib_io/deny_random.ark
 run:stdlib_io/f64_to_string.ark
 run:stdlib_io/fs_deny_access.ark
+run:stdlib_io/fs_deny_overrides_dir.ark
 run:stdlib_io/fs_read_error.ark
 run:stdlib_io/fs_read_write.ark
 run:stdlib_io/fs_readonly_write.ark
