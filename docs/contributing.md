@@ -127,11 +127,11 @@ bash scripts/verify-harness.sh --fixtures
 bash scripts/verify-harness.sh --full
 ```
 
-Heavy checks also belong in CI and can be installed locally as a pre-commit hook via:
+Heavy checks also belong in CI and can be installed locally as a pre-push hook via:
 
 ```bash
 bash scripts/install-git-hooks.sh
-bash scripts/pre-commit-verify.sh
+bash scripts/pre-push-verify.sh
 ```
 
 ## Perf Policy

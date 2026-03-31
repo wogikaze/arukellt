@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT=$(git rev-parse --show-toplevel)
 HOOKS_DIR=$(git rev-parse --git-path hooks)
-HOOK_PATH="$HOOKS_DIR/pre-commit"
-MANAGED_BEGIN="# arukellt-managed-pre-commit-begin"
-MANAGED_END="# arukellt-managed-pre-commit-end"
+HOOK_PATH="$HOOKS_DIR/pre-push"
+MANAGED_BEGIN="# arukellt-managed-pre-push-begin"
+MANAGED_END="# arukellt-managed-pre-push-end"
 SNIPPET=$(cat <<'EOF'
-# arukellt-managed-pre-commit-begin
+# arukellt-managed-pre-push-begin
 repo_root=$(git rev-parse --show-toplevel)
-"$repo_root/scripts/pre-commit-verify.sh"
-# arukellt-managed-pre-commit-end
+"$repo_root/scripts/pre-push-verify.sh"
+# arukellt-managed-pre-push-end
 EOF
 )
 
@@ -46,7 +45,7 @@ PY
 
 if [ "${1:-}" = "--remove" ]; then
     remove_managed_block
-    echo "Removed repository-managed pre-commit hook block from $HOOK_PATH"
+    echo "Removed repository-managed pre-push hook block from $HOOK_PATH"
     exit 0
 fi
 
@@ -62,5 +61,5 @@ remove_managed_block
 printf '\n%s\n' "$SNIPPET" >> "$HOOK_PATH"
 chmod +x "$HOOK_PATH"
 
-echo "Installed repository-managed pre-commit hook in $HOOK_PATH"
-echo "It runs scripts/pre-commit-verify.sh before commit."
+echo "Installed repository-managed pre-push hook in $HOOK_PATH"
+echo "It runs scripts/pre-push-verify.sh before push."
