@@ -179,6 +179,17 @@ enum Commands {
     },
     /// Start the DAP debug adapter (stdio transport)
     DebugAdapter,
+    /// Run lint rules on .ark source files
+    Lint {
+        /// Input .ark file
+        file: Option<PathBuf>,
+        /// Compile target
+        #[arg(long, default_value = "wasm32-wasi-p1")]
+        target: TargetId,
+        /// List available lint rules
+        #[arg(long)]
+        list: bool,
+    },
     /// Analyze a compiled Wasm binary
     Analyze {
         /// Analysis to perform
@@ -296,6 +307,13 @@ fn main() {
         }
         Commands::Analyze { wasm_size } => {
             commands::cmd_analyze_wasm_size(&wasm_size);
+        }
+        Commands::Lint {
+            file,
+            target,
+            list,
+        } => {
+            commands::cmd_lint(file, target, list);
         }
     }
 }

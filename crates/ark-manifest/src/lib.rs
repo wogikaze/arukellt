@@ -316,7 +316,7 @@ path = "main.ark"
 
 [scripts]
 test = "arukellt run tests.ark"
-lint = "arukellt check ."
+lint = "arukellt lint ."
 "#;
         let m = Manifest::from_toml(toml).expect("should parse");
         assert_eq!(
@@ -325,7 +325,7 @@ lint = "arukellt check ."
         );
         assert_eq!(
             m.scripts.get("lint").map(|s| s.as_str()),
-            Some("arukellt check .")
+            Some("arukellt lint .")
         );
     }
 }

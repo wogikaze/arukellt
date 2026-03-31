@@ -1,6 +1,6 @@
 # Linter: lint rule registry を作る
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 348
@@ -22,11 +22,11 @@ compiler の hard error / semantic warning とは独立した lint rule registry
 
 ## Acceptance
 
-- [ ] `LintRule` trait/struct が定義され、id / severity / category / description を持つ
-- [ ] rule registry が存在し、全 rule を列挙できる
-- [ ] 既存 W0001-W0005 が registry 上の rule として登録される
-- [ ] severity が Warning / Allow / Deny の 3 段階で設定可能
-- [ ] `arukellt check` が registry の rule を走らせる (既存動作は維持)
+- [x] `LintRule` trait/struct が定義され、id / severity / category / description を持つ
+- [x] rule registry が存在し、全 rule を列挙できる
+- [x] 既存 W0001-W0005 が registry 上の rule として登録される
+- [x] severity が Warning / Allow / Deny の 3 段階で設定可能
+- [x] `arukellt check` が registry の rule を走らせる (既存動作は維持)
 
 ## References
 

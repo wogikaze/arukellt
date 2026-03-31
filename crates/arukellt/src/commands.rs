@@ -625,6 +625,61 @@ pub(crate) fn cmd_check(file: PathBuf, target: TargetId) {
     }
 }
 
+pub(crate) fn cmd_lint(file: Option<PathBuf>, target: TargetId, list: bool) {
+    use ark_diagnostics::LintRegistry;
+
+    let registry = LintRegistry::new();
+
+    if list {
+        println!("Available lint rules ({}):\n", registry.len());
+        println!("{:<8} {:<14} {:<7} {}", "ID", "Category", "Level", "Description");
+        println!("{}", "-".repeat(70));
+        for rule in registry.rules() {
+            let level = match rule.default_level {
+                ark_diagnostics::LintLevel::Allow => "allow",
+                ark_diagnostics::LintLevel::Warn => "warn",
+                ark_diagnostics::LintLevel::Deny => "deny",
+            };
+            println!(
+                "{:<8} {:<14} {:<7} {}",
+                rule.id,
+                rule.category.as_str(),
+                level,
+                rule.description
+            );
+        }
+        return;
+    }
+
+    let file = match file {
+        Some(f) => f,
+        None => {
+            eprintln!("error: <FILE> is required when not using --list");
+            process::exit(1);
+        }
+    };
+
+    let profile = target.profile();
+    if !profile.implemented {
+        eprintln!(
+            "error: target `{}` ({}) is not yet implemented",
+            target,
+            target.tier()
+        );
+        process::exit(1);
+    }
+    let mut session = Session::new();
+    match session.check(&file) {
+        Ok(()) => {
+            eprintln!("lint OK: {}", file.display());
+        }
+        Err(errors) => {
+            eprint!("{}", errors);
+            process::exit(1);
+        }
+    }
+}
+
 #[derive(Serialize)]
 struct TestResult {
     name: String,
