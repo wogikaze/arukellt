@@ -24,6 +24,7 @@ RUN_SIZE=false
 RUN_WAT=false
 RUN_DOCS=false
 RUN_COMPONENT=false
+RUN_OPT_EQUIV=false
 PERF_GATE=false
 
 usage() {
@@ -42,6 +43,7 @@ Options:
   --wat        Run the WAT roundtrip gate
   --docs       Run markdownlint in addition to default docs checks
   --component  Run the optional component interop smoke test
+  --opt-equiv  Run optimization equivalence tests (O0 vs O1)
   --full       Run all heavy local verification groups
   --perf-gate  Run the perf regression gate (still opt-in)
   --help       Show this help message
@@ -58,6 +60,7 @@ for arg in "$@"; do
         --wat) RUN_WAT=true ;;
         --docs) RUN_DOCS=true ;;
         --component) RUN_COMPONENT=true ;;
+        --opt-equiv) RUN_OPT_EQUIV=true ;;
         --full)
             RUN_CARGO=true
             RUN_FIXTURES=true
@@ -66,6 +69,7 @@ for arg in "$@"; do
             RUN_WAT=true
             RUN_DOCS=true
             RUN_COMPONENT=true
+            RUN_OPT_EQUIV=true
             ;;
         --perf-gate) PERF_GATE=true ;;
         --help|-h)
@@ -81,7 +85,7 @@ for arg in "$@"; do
 done
 
 echo -e "${YELLOW}Running harness verification...${NC}"
-if [ "$RUN_CARGO" = false ] && [ "$RUN_FIXTURES" = false ] && [ "$RUN_BASELINE" = false ] && [ "$RUN_SIZE" = false ] && [ "$RUN_WAT" = false ] && [ "$RUN_DOCS" = false ] && [ "$RUN_COMPONENT" = false ] && [ "$PERF_GATE" = false ]; then
+if [ "$RUN_CARGO" = false ] && [ "$RUN_FIXTURES" = false ] && [ "$RUN_BASELINE" = false ] && [ "$RUN_SIZE" = false ] && [ "$RUN_WAT" = false ] && [ "$RUN_DOCS" = false ] && [ "$RUN_COMPONENT" = false ] && [ "$RUN_OPT_EQUIV" = false ] && [ "$PERF_GATE" = false ]; then
     echo -e "${YELLOW}Mode: fast local gate${NC}"
 else
     selected=()
@@ -92,6 +96,7 @@ else
     [ "$RUN_WAT" = true ] && selected+=(wat)
     [ "$RUN_DOCS" = true ] && selected+=(docs)
     [ "$RUN_COMPONENT" = true ] && selected+=(component)
+    [ "$RUN_OPT_EQUIV" = true ] && selected+=(opt-equiv)
     [ "$PERF_GATE" = true ] && selected+=(perf-gate)
     echo -e "${YELLOW}Mode: fast local gate + ${selected[*]}${NC}"
 fi
@@ -347,6 +352,11 @@ fi
 if [ "$PERF_GATE" = true ]; then
     printf '\n%s\n' "${YELLOW}[perf] Running performance regression gate...${NC}"
     run_check "perf gate (compile time / binary size / run time)" "bash scripts/perf-gate.sh"
+fi
+
+if [ "$RUN_OPT_EQUIV" = true ]; then
+    printf '\n%s\n' "${YELLOW}[opt-equiv] Running optimization equivalence tests (O0 vs O1)...${NC}"
+    run_check "optimization equivalence (O0 vs O1)" "bash scripts/test-opt-equivalence.sh --quick"
 fi
 
 printf '\n%s\n' "${YELLOW}========================================${NC}"
