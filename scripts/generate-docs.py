@@ -443,14 +443,16 @@ def join_pipeline(parts: list[str]) -> str:
 
 def render_target_table(state: dict) -> str:
     rows = [
-        "| Target | Tier | Status | Run | Notes |",
-        "|--------|------|--------|-----|-------|",
+        "| Target | Tier | ADR-013 Tier | Status | Run | Notes |",
+        "|--------|------|--------------|--------|-----|-------|",
     ]
     for profile in state["target_profiles"]:
+        adr_tier = profile.get("adr_tier", "—")
         rows.append(
-            "| `{}` | {} | {} | {} | {} |".format(
+            "| `{}` | {} | {} | {} | {} | {} |".format(
                 profile["id"],
                 profile["tier"],
+                adr_tier,
                 profile.get("status", "Implemented" if profile.get("implemented") else "Not implemented"),
                 "Yes" if profile["run_supported"] else "No",
                 escape_table(profile["role"]),

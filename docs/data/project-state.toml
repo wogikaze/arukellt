@@ -37,37 +37,42 @@ component_note = "requires external `wasm-tools` binary and WASI adapter module"
 [[target_profiles]]
 id = "wasm32-wasi-p1"
 tier = "T1"
+adr_tier = "supported"
 status = "stable"
 run_supported = true
-role = "CLI default compatibility path for non-GC environments"
+role = "Supported: full fixture coverage, AtCoder/competition target"
 
 [[target_profiles]]
 id = "wasm32-freestanding"
 tier = "T2"
+adr_tier = "not-started"
 status = "unimplemented"
 run_supported = false
-role = "Registry only"
+role = "Not started: no codegen, no tests"
 
 [[target_profiles]]
 id = "wasm32-wasi-p2"
 tier = "T3"
+adr_tier = "primary"
 status = "stable"
 run_supported = true
-role = "Canonical GC-native path"
+role = "Primary (ADR-013): canonical GC-native path, all CI gates apply"
 
 [[target_profiles]]
 id = "native"
 tier = "T4"
+adr_tier = "scaffold"
 status = "scaffold"
 run_supported = false
-role = "LLVM scaffold only"
+role = "Scaffold: ark-llvm exists, requires LLVM 18, no tests"
 
 [[target_profiles]]
 id = "wasm32-wasi-p3"
 tier = "T5"
+adr_tier = "not-started"
 status = "unimplemented"
 run_supported = false
-role = "Future"
+role = "Not started: WASI p3 spec not finalized"
 
 [verification]
 fixture_passed = 575
