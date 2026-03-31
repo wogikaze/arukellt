@@ -54,14 +54,14 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Clippy
-        run: cargo clippy --workspace --exclude ark-llvm --exclude ark-lsp -- -D warnings
+        run: cargo clippy --workspace --exclude ark-llvm -- -D warnings
 
       - name: rustfmt check
         run: cargo fmt --all -- --check
 
       - name: Unit tests (lib + bin, no harness)
         run: >
-          cargo test --workspace --exclude ark-llvm --exclude ark-lsp
+          cargo test --workspace --exclude ark-llvm
           --lib --bins
           -- --nocapture
 

@@ -5,9 +5,9 @@ Items marked **CI** are automated; items marked **Manual** require human verific
 
 ## Pre-release
 
-- [ ] **CI** — `cargo test --workspace --exclude ark-llvm --exclude ark-lsp` passes
+- [ ] **CI** — `cargo test --workspace --exclude ark-llvm` passes
 - [ ] **CI** — `cargo test -p arukellt --test harness` passes (all fixtures green)
-- [ ] **CI** — `cargo clippy --workspace --exclude ark-llvm --exclude ark-lsp -- -D warnings` clean
+- [ ] **CI** — `cargo clippy --workspace --exclude ark-llvm -- -D warnings` clean
 - [ ] **CI** — `cargo fmt --all -- --check` clean
 - [ ] **CI** — `bash scripts/verify-harness.sh --quick` passes
 - [ ] **CI** — `bash scripts/verify-harness.sh --component` passes (component interop)
