@@ -1,0 +1,17 @@
+use std::toml
+use std::host::stdio
+
+fn main() {
+    // Basic key-value lines pass through
+    stdio::println(toml::toml_parse_line("name = \"arukellt\""))
+    stdio::println(toml::toml_parse_line("version = \"0.1.0\""))
+
+    // Comment lines return empty
+    stdio::println(toml::toml_parse_line("# this is a comment"))
+
+    // Empty lines return empty
+    stdio::println(toml::toml_parse_line(""))
+
+    // Normal lines pass through
+    stdio::println(toml::toml_parse_line("enabled = true"))
+}
