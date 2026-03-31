@@ -94,6 +94,8 @@ module-run:modules/module_alias/main.ark
 module-run:modules/multi_import/main.ark
 module-run:modules/prelude_via_import/main.ark
 module-diag:modules/pub_private/main.ark
+module-diag:modules/visibility_enforce/main.ark
+module-run:modules/visibility_pub_access/main.ark
 module-run:modules/use_std_basic/main.ark
 module-run:modules/use_std_alias/main.ark
 module-run:modules/use_qualified_call/main.ark

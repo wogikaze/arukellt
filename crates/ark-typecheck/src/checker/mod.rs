@@ -152,6 +152,12 @@ pub struct TypeChecker {
     /// Names of private functions from imported (non-entry) modules.
     /// Used to block the `QualifiedIdent` fallback lookup for these names.
     pub(crate) private_imported_fns: HashSet<String>,
+    /// True when checking a function body from the entry module (not an imported module).
+    /// Used to scope visibility enforcement: private imports are only blocked for entry code.
+    pub(crate) checking_entry_module: bool,
+    /// Function names defined in the entry module (not imported). Used to determine
+    /// when to enforce cross-module visibility.
+    pub(crate) entry_fn_names: HashSet<String>,
 }
 
 /// Immutable semantic model produced by type checking.
@@ -311,6 +317,8 @@ impl TypeChecker {
             next_type_var: 0,
             current_fn_return_type: None,
             private_imported_fns: HashSet::new(),
+            checking_entry_module: false,
+            entry_fn_names: HashSet::new(),
         }
     }
 
@@ -337,9 +345,21 @@ impl TypeChecker {
         program: &ark_resolve::ResolvedProgram,
         sink: &mut DiagnosticSink,
     ) {
+        // Collect entry-module function names so visibility checks only apply
+        // to code in the user's entry module, not inside imported modules.
+        for item in &program.entry_module.items {
+            if let ast::Item::FnDef(f) = item {
+                self.entry_fn_names.insert(f.name.clone());
+            }
+            if let ast::Item::ImplBlock(ib) = item {
+                for method in &ib.methods {
+                    self.entry_fn_names.insert(method.name.clone());
+                }
+            }
+        }
+
         // Visibility diagnostic: detect references to private symbols across
-        // module boundaries.  Everything is currently Public (scaffolding),
-        // so this loop is a no-op until the resolver populates Visibility.
+        // module boundaries.
         self.check_cross_module_visibility(program, sink);
 
         #[allow(deprecated)]
@@ -349,6 +369,7 @@ impl TypeChecker {
             symbols: program.symbols.clone(),
             global_scope: program.global_scope,
             private_imported_names: self.private_imported_fns.clone(),
+            entry_fn_names: self.entry_fn_names.clone(),
         };
         self.check_module(&resolved, sink);
     }
@@ -404,6 +425,10 @@ impl TypeChecker {
         // QualifiedIdent fallback lookups respect cross-module privacy.
         for name in &resolved.private_imported_names {
             self.private_imported_fns.insert(name.clone());
+        }
+        // Propagate entry-module function names for visibility scoping.
+        for name in &resolved.entry_fn_names {
+            self.entry_fn_names.insert(name.clone());
         }
         // Register user-defined structs and enums in two passes to support
         // self-referential and mutually-recursive type definitions.

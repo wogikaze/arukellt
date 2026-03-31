@@ -99,6 +99,17 @@ impl TypeChecker {
                 if let Some(ty) = env.lookup(name) {
                     ty.clone()
                 } else if self.fn_sigs.contains_key(name) {
+                    // Block access to private functions from imported modules,
+                    // but only when we are checking entry-module code.
+                    if self.checking_entry_module
+                        && self.private_imported_fns.contains(name.as_str())
+                    {
+                        sink.emit(Diagnostic::new(DiagnosticCode::E0102).with_label(
+                            *span,
+                            format!("cannot access private function `{}`", name),
+                        ));
+                        return Type::Error;
+                    }
                     // Function reference
                     let sig = self.fn_sigs[name].clone();
                     Type::Function {
@@ -766,7 +777,20 @@ impl TypeChecker {
                 // Struct field access at Wasm level is always i32 (pointer)
                 Type::I32
             }
-            ast::Expr::StructInit { name, fields, .. } => {
+            ast::Expr::StructInit {
+                name, fields, span, ..
+            } => {
+                // Block access to private structs/enums from imported modules.
+                if self.checking_entry_module {
+                    let base_name = name.split_once("::").map_or(name.as_str(), |(e, _)| e);
+                    if self.private_imported_fns.contains(base_name) {
+                        sink.emit(Diagnostic::new(DiagnosticCode::E0102).with_label(
+                            *span,
+                            format!("cannot access private type `{}`", base_name),
+                        ));
+                        return Type::Error;
+                    }
+                }
                 // Check if this is an enum struct variant: "EnumName::VariantName"
                 if let Some((enum_name, _variant_name)) = name.split_once("::") {
                     let enum_tid = self.enum_defs.get(enum_name).map(|e| e.type_id);
@@ -814,7 +838,8 @@ impl TypeChecker {
                         ret: Box::new(sig.ret),
                     }
                 } else if let Some(sig) = self.fn_sigs.get(name).cloned()
-                    && !self.private_imported_fns.contains(name.as_str())
+                    && !(self.checking_entry_module
+                        && self.private_imported_fns.contains(name.as_str()))
                 {
                     Type::Function {
                         params: sig.params,

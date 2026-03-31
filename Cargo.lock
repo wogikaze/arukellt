@@ -291,6 +291,7 @@ dependencies = [
  "clap",
  "serde",
  "serde_json",
+ "tempfile",
  "tokio",
  "toml",
  "wasmparser 0.225.0",

@@ -1,0 +1,8 @@
+use std::host::stdio
+import api
+
+fn main() {
+    let x = api::greet()
+    let y = api::compute(x)
+    stdio::println(i32_to_string(y))
+}

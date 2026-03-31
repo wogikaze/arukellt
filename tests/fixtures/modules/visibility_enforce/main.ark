@@ -1,0 +1,5 @@
+import helpers
+
+fn main() {
+    let x = internal_double(5)
+}

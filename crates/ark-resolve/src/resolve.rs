@@ -46,6 +46,9 @@ pub struct ResolvedModule {
     /// Names of private (non-pub) functions/types from imported (non-entry) modules.
     /// Used by the type checker to enforce cross-module privacy in qualified name lookups.
     pub private_imported_names: std::collections::HashSet<String>,
+    /// Function/method names defined in the entry module (not imported).
+    /// Used to scope visibility enforcement to only entry-module code.
+    pub entry_fn_names: std::collections::HashSet<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -194,11 +197,29 @@ pub fn resolved_program_entry(program: ResolvedProgram) -> ResolvedModule {
             }
         }
     }
+
+    // Collect entry-module function names for visibility scoping.
+    let mut entry_fn_names = std::collections::HashSet::new();
+    for item in &program.entry_module.items {
+        match item {
+            ast::Item::FnDef(f) => {
+                entry_fn_names.insert(f.name.clone());
+            }
+            ast::Item::ImplBlock(ib) => {
+                for method in &ib.methods {
+                    entry_fn_names.insert(method.name.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+
     ResolvedModule {
         module: resolved_program_to_module(&program),
         symbols: program.symbols,
         global_scope: program.global_scope,
         private_imported_names,
+        entry_fn_names,
     }
 }
 

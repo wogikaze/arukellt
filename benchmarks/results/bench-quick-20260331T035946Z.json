@@ -1,0 +1,135 @@
+{
+  "schema_version": "arukellt-bench-v1",
+  "generated_at": "2026-03-31T03:59:46Z",
+  "mode": "quick",
+  "mode_description": "single-sample local smoke benchmark",
+  "target": "wasm32-wasi-p1",
+  "thresholds": {
+    "compile_ms": 20,
+    "run_ms": 10,
+    "binary_bytes": 15
+  },
+  "compiler": {
+    "path": "target/release/arukellt"
+  },
+  "environment": {
+    "platform": "Linux",
+    "machine": "x86_64",
+    "kernel": "6.6.87.2-microsoft-standard-WSL2"
+  },
+  "tooling": {
+    "wasmtime": { "name": "wasmtime", "available": true, "path": "/home/wogikaze/.wasmtime/bin/wasmtime" },
+    "hyperfine": { "name": "hyperfine", "available": false, "path": null }
+  },
+  "benchmarks": [
+    {
+  "name": "fib",
+  "source": "benchmarks/fib.ark",
+  "expected": "benchmarks/fib.expected",
+  "description": "Iterative Fibonacci(35)",
+  "tags": ["cpu-bound","loop","scalar"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [11],
+    "median_ms": 11.0,
+    "max_rss_kb": null,
+    "binary_bytes": 826,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/fib.ark -o /home/wogikaze/arukellt/benchmarks/results/fib.wasm --target wasm32-wasi-p1"
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [36],
+    "median_ms": 36.0,
+    "max_rss_kb": null,
+    "stdout": "9227465",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/fib.wasm"
+  }
+},{
+  "name": "binary_tree",
+  "source": "benchmarks/binary_tree.ark",
+  "expected": "benchmarks/binary_tree.expected",
+  "description": "Recursive node counting (depth 20)",
+  "tags": ["recursion-heavy","allocation-light","call-heavy"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [14],
+    "median_ms": 14.0,
+    "max_rss_kb": null,
+    "binary_bytes": 802,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/binary_tree.ark -o /home/wogikaze/arukellt/benchmarks/results/binary_tree.wasm --target wasm32-wasi-p1"
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [43],
+    "median_ms": 43.0,
+    "max_rss_kb": null,
+    "stdout": "2097151",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/binary_tree.wasm"
+  }
+},{
+  "name": "vec_ops",
+  "source": "benchmarks/vec_ops.ark",
+  "expected": "benchmarks/vec_ops.expected",
+  "description": "Vec push/sum/contains (1k elements)",
+  "tags": ["allocation-heavy","container","iteration"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [52],
+    "median_ms": 52.0,
+    "max_rss_kb": null,
+    "binary_bytes": 1595,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/vec_ops.ark -o /home/wogikaze/arukellt/benchmarks/results/vec_ops.wasm --target wasm32-wasi-p1"
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [41],
+    "median_ms": 41.0,
+    "max_rss_kb": null,
+    "stdout": "1000\n499500\nfound 500\nnot found 9999",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/vec_ops.wasm"
+  }
+},{
+  "name": "string_concat",
+  "source": "benchmarks/string_concat.ark",
+  "expected": "benchmarks/string_concat.expected",
+  "description": "String concat in loop (100 iterations)",
+  "tags": ["string-heavy","allocation-heavy","gc-pressure"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [19],
+    "median_ms": 19.0,
+    "max_rss_kb": null,
+    "binary_bytes": 993,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/string_concat.ark -o /home/wogikaze/arukellt/benchmarks/results/string_concat.wasm --target wasm32-wasi-p1"
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [31],
+    "median_ms": 31.0,
+    "max_rss_kb": null,
+    "stdout": "100",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/string_concat.wasm"
+  }
+}
+  ]
+}
