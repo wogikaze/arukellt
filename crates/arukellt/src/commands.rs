@@ -64,6 +64,90 @@ fn main() {
     eprintln!("Initialized Arukellt project in {}", path.display());
 }
 
+pub(crate) fn cmd_fmt(files: Vec<PathBuf>, check: bool) {
+    let targets = if files.is_empty() {
+        // Find all .ark files in the project
+        collect_ark_files(&std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")))
+    } else {
+        files
+    };
+
+    if targets.is_empty() {
+        eprintln!("No .ark files found");
+        process::exit(1);
+    }
+
+    let mut unformatted = 0;
+    let mut formatted_count = 0;
+
+    for path in &targets {
+        let source = match std::fs::read_to_string(path) {
+            Ok(s) => s,
+            Err(e) => {
+                eprintln!("error reading {}: {}", path.display(), e);
+                continue;
+            }
+        };
+
+        let result = ark_parser::fmt::format_source(&source);
+
+        if result != source {
+            if check {
+                eprintln!("would reformat {}", path.display());
+                unformatted += 1;
+            } else {
+                if let Err(e) = std::fs::write(path, &result) {
+                    eprintln!("error writing {}: {}", path.display(), e);
+                    continue;
+                }
+                eprintln!("formatted {}", path.display());
+                formatted_count += 1;
+            }
+        }
+    }
+
+    if check {
+        if unformatted > 0 {
+            eprintln!(
+                "{} file(s) would be reformatted ({} checked)",
+                unformatted,
+                targets.len()
+            );
+            process::exit(1);
+        } else {
+            eprintln!("All {} file(s) are formatted", targets.len());
+        }
+    } else if formatted_count > 0 {
+        eprintln!(
+            "Formatted {} file(s) ({} checked)",
+            formatted_count,
+            targets.len()
+        );
+    }
+}
+
+/// Recursively collect all .ark files under a directory.
+fn collect_ark_files(dir: &std::path::Path) -> Vec<PathBuf> {
+    let mut result = Vec::new();
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                // Skip common non-source directories
+                let name = path.file_name().unwrap_or_default().to_str().unwrap_or("");
+                if name == "target" || name == ".git" || name == "node_modules" {
+                    continue;
+                }
+                result.extend(collect_ark_files(&path));
+            } else if path.extension().is_some_and(|ext| ext == "ark") {
+                result.push(path);
+            }
+        }
+    }
+    result.sort();
+    result
+}
+
 pub(crate) fn cmd_build(
     target: TargetId,
     opt_level_raw: u8,

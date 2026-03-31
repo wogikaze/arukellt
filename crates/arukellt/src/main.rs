@@ -104,6 +104,15 @@ enum Commands {
         #[arg(long)]
         time: bool,
     },
+    /// Format .ark source files
+    Fmt {
+        /// Input .ark file(s). If omitted, formats all .ark files in the project.
+        #[arg(value_name = "FILE")]
+        files: Vec<PathBuf>,
+        /// Check formatting without modifying files (exit 1 if not formatted)
+        #[arg(long)]
+        check: bool,
+    },
     /// Compile and run an .ark file
     Run {
         /// Input .ark file
@@ -221,6 +230,9 @@ fn main() {
         }
         Commands::Init { path } => {
             commands::cmd_init(path);
+        }
+        Commands::Fmt { files, check } => {
+            commands::cmd_fmt(files, check);
         }
         Commands::Build {
             target,

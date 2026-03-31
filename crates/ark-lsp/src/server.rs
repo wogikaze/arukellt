@@ -2569,13 +2569,8 @@ impl LanguageServer for ArukellBackend {
             }
         };
 
-        // Very basic formatter: trim trailing whitespace and ensure newline at EOF
-        let lines: Vec<String> = source.lines().map(|l| l.trim_end().to_string()).collect();
-        let formatted = if lines.is_empty() {
-            "".to_string()
-        } else {
-            lines.join("\n") + "\n"
-        };
+        // AST-based formatter
+        let formatted = ark_parser::fmt::format_source(&source);
 
         if formatted == source {
             return Ok(None);
