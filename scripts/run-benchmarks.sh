@@ -25,6 +25,7 @@ for arg in "$@"; do
   case "$arg" in
     --quick) MODE="quick";  COMPILE_ITERS=1;  RUNTIME_ITERS=1;  WARMUPS=0 ;;
     --full)  MODE="full";   COMPILE_ITERS=10; RUNTIME_ITERS=10; WARMUPS=1 ;;
+    --target=*) TARGET="${arg#--target=}" ;;
     *) echo "Unknown flag: $arg" >&2; exit 1 ;;
   esac
 done
@@ -151,7 +152,11 @@ print('[' + ','.join(vals) + ']')
   RUN_CMD=""
 
   if [[ -n "$WASMTIME" && -f "$WASM_OUT" ]]; then
-    RUN_CMD="wasmtime run $WASM_OUT"
+    if [[ "$TARGET" == "wasm32-wasi-p2" ]]; then
+      RUN_CMD="wasmtime run --wasm gc $WASM_OUT"
+    else
+      RUN_CMD="wasmtime run $WASM_OUT"
+    fi
     RUNTIME_STATUS="ok"
 
     # warmups
@@ -233,7 +238,8 @@ PLATFORM=$(uname -s)
 MACHINE=$(uname -m)
 KERNEL=$(uname -r)
 
-RESULT_FILE="$RESULTS_DIR/bench-${MODE}-$(date -u +%Y%m%dT%H%M%SZ).json"
+TARGET_SHORT="${TARGET##*-}"
+RESULT_FILE="$RESULTS_DIR/bench-${MODE}-${TARGET_SHORT}-$(date -u +%Y%m%dT%H%M%SZ).json"
 
 cat > "$RESULT_FILE" <<TOPJSON
 {
