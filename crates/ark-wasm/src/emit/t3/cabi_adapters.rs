@@ -52,13 +52,12 @@ pub(super) enum ReturnAdaptation {
         base_type_idx: u32,
     },
     /// All-scalar-field record → flat scalars.
-    /// If `use_retptr` is true, an extra i32 param (retptr) is added and the
-    /// adapter writes fields to linear memory.  Otherwise the single field
-    /// is returned directly.
+    /// For single-field records, the field is returned directly.
+    /// For multi-field records, fields are written to linear memory
+    /// and an i32 pointer is returned (canonical ABI export convention).
     ScalarRecord {
         type_idx: u32,
         fields: Vec<(String, ValType)>,
-        use_retptr: bool,
     },
 }
 
@@ -240,12 +239,10 @@ impl Ctx {
                         .get(ret_name.as_str())
                         .copied()
                         .unwrap_or(0);
-                    let use_retptr = wasm_fields.len() > 1;
                     needs_adapter = true;
                     Some(ReturnAdaptation::ScalarRecord {
                         type_idx,
                         fields: wasm_fields,
-                        use_retptr,
                     })
                 } else {
                     Some(ReturnAdaptation::Scalar)
@@ -258,24 +255,23 @@ impl Ctx {
                 continue;
             }
 
-            // Compute adapter function type: flat params + optional retptr → flat results
-            let mut adapter_params = flat_params.clone();
+            // Compute adapter function type: flat params → flat results
+            // For multi-field record returns, canonical ABI for exports requires
+            // returning an i32 pointer (not an extra retptr param).
+            let adapter_params = flat_params.clone();
             let adapter_results: Vec<ValType> = match &return_adaptation {
                 None => vec![],
                 Some(ReturnAdaptation::Scalar) => {
                     vec![type_name_to_valtype(ret_name)]
                 }
                 Some(ReturnAdaptation::UnitEnum { .. }) => vec![ValType::I32],
-                Some(ReturnAdaptation::ScalarRecord {
-                    use_retptr, fields, ..
-                }) => {
-                    if *use_retptr {
-                        // Extra retptr param, no return values
-                        adapter_params.push(ValType::I32);
-                        vec![]
-                    } else {
+                Some(ReturnAdaptation::ScalarRecord { fields, .. }) => {
+                    if fields.len() == 1 {
                         // Single-field record: return the field directly
                         vec![fields[0].1]
+                    } else {
+                        // Multi-field record: return i32 pointer to linear memory
+                        vec![ValType::I32]
                     }
                 }
             };
@@ -313,11 +309,8 @@ impl Ctx {
             Some(ReturnAdaptation::UnitEnum { base_type_idx, .. }) => {
                 locals.push((1, super::ref_nullable(*base_type_idx)));
             }
-            Some(ReturnAdaptation::ScalarRecord {
-                type_idx,
-                use_retptr: true,
-                ..
-            }) => {
+            Some(ReturnAdaptation::ScalarRecord { type_idx, .. }) => {
+                // Need a local to store the GC struct ref
                 locals.push((1, super::ref_nullable(*type_idx)));
             }
             _ => {}
@@ -371,72 +364,90 @@ impl Ctx {
                 emit_enum_ref_to_i32_via_ref_test(&mut f, ref_local, variant_type_indices);
             }
             Some(ReturnAdaptation::ScalarRecord {
-                type_idx,
-                fields,
-                use_retptr,
+                type_idx, fields, ..
             }) => {
-                if *use_retptr {
-                    let retptr_idx = flat_param_idx;
-                    let ref_local = flat_param_count;
-                    f.instruction(&Instruction::LocalSet(ref_local));
-                    let mut offset: u64 = 0;
+                let ref_local = flat_param_count;
+                f.instruction(&Instruction::LocalSet(ref_local));
+
+                if fields.len() == 1 {
+                    // Single-field record: return the field directly
+                    f.instruction(&Instruction::LocalGet(ref_local));
+                    f.instruction(&Instruction::StructGet {
+                        struct_type_index: *type_idx,
+                        field_index: 0,
+                    });
+                } else {
+                    // Multi-field record: write fields to linear memory, return pointer.
+                    // Use heap_ptr global (global 0) as allocation point.
+                    // global.get 0 → start pointer
+                    // Write fields at start + offset
+                    // Advance heap_ptr
+                    // Return start pointer
+                    f.instruction(&Instruction::GlobalGet(0)); // heap_ptr = start
+                    let mut total_size: u64 = 0;
                     for (i, (_, vt)) in fields.iter().enumerate() {
-                        f.instruction(&Instruction::LocalGet(retptr_idx));
+                        // stack: [start_ptr]
+                        // Duplicate start_ptr for the store address
+                        f.instruction(&Instruction::GlobalGet(0));
+                        if total_size > 0 {
+                            f.instruction(&Instruction::I32Const(total_size as i32));
+                            f.instruction(&Instruction::I32Add);
+                        }
                         f.instruction(&Instruction::LocalGet(ref_local));
                         f.instruction(&Instruction::StructGet {
                             struct_type_index: *type_idx,
                             field_index: i as u32,
                         });
-                        let (store_instr, size) = match vt {
-                            ValType::I32 => (
-                                Instruction::I32Store(wasm_encoder::MemArg {
-                                    offset,
+                        let size = match vt {
+                            ValType::I32 => {
+                                f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
+                                    offset: 0,
                                     align: 2,
                                     memory_index: 0,
-                                }),
-                                4u64,
-                            ),
-                            ValType::I64 => (
-                                Instruction::I64Store(wasm_encoder::MemArg {
-                                    offset,
+                                }));
+                                4u64
+                            }
+                            ValType::I64 => {
+                                f.instruction(&Instruction::I64Store(wasm_encoder::MemArg {
+                                    offset: 0,
                                     align: 3,
                                     memory_index: 0,
-                                }),
-                                8,
-                            ),
-                            ValType::F32 => (
-                                Instruction::F32Store(wasm_encoder::MemArg {
-                                    offset,
+                                }));
+                                8
+                            }
+                            ValType::F32 => {
+                                f.instruction(&Instruction::F32Store(wasm_encoder::MemArg {
+                                    offset: 0,
                                     align: 2,
                                     memory_index: 0,
-                                }),
-                                4,
-                            ),
-                            ValType::F64 => (
-                                Instruction::F64Store(wasm_encoder::MemArg {
-                                    offset,
+                                }));
+                                4
+                            }
+                            ValType::F64 => {
+                                f.instruction(&Instruction::F64Store(wasm_encoder::MemArg {
+                                    offset: 0,
                                     align: 3,
                                     memory_index: 0,
-                                }),
-                                8,
-                            ),
-                            _ => (
-                                Instruction::I32Store(wasm_encoder::MemArg {
-                                    offset,
+                                }));
+                                8
+                            }
+                            _ => {
+                                f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
+                                    offset: 0,
                                     align: 2,
                                     memory_index: 0,
-                                }),
-                                4,
-                            ),
+                                }));
+                                4
+                            }
                         };
-                        f.instruction(&store_instr);
-                        offset += size;
+                        total_size += size;
                     }
-                } else {
-                    f.instruction(&Instruction::StructGet {
-                        struct_type_index: *type_idx,
-                        field_index: 0,
-                    });
+                    // Advance heap_ptr: global.set 0 (global.get 0 + total_size)
+                    f.instruction(&Instruction::GlobalGet(0));
+                    f.instruction(&Instruction::I32Const(total_size as i32));
+                    f.instruction(&Instruction::I32Add);
+                    f.instruction(&Instruction::GlobalSet(0));
+                    // start_ptr is still on the stack from the initial global.get 0
                 }
             }
         }
@@ -454,13 +465,6 @@ impl Ctx {
                 ParamAdaptation::UnitEnum { .. } => count += 1,
                 ParamAdaptation::ScalarRecord { fields, .. } => count += fields.len() as u32,
             }
-        }
-        // retptr adds one more i32 param
-        if let Some(ReturnAdaptation::ScalarRecord {
-            use_retptr: true, ..
-        }) = &adapter.return_adaptation
-        {
-            count += 1;
         }
         count
     }
