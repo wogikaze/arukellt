@@ -929,6 +929,562 @@ impl ArukellBackend {
 
         symbols
     }
+
+    /// Collect inlay hints from a block (recursive).
+    fn collect_hints_from_block(
+        source: &str,
+        block: &ast::Block,
+        checker: &ark_typecheck::TypeChecker,
+        fn_param_names: &HashMap<String, Vec<String>>,
+        range_start: u32,
+        range_end: u32,
+        hints: &mut Vec<InlayHint>,
+    ) {
+        for stmt in &block.stmts {
+            Self::collect_hints_from_stmt(
+                source,
+                stmt,
+                checker,
+                fn_param_names,
+                range_start,
+                range_end,
+                hints,
+            );
+        }
+    }
+
+    /// Collect inlay hints from a single statement.
+    fn collect_hints_from_stmt(
+        source: &str,
+        stmt: &ast::Stmt,
+        checker: &ark_typecheck::TypeChecker,
+        fn_param_names: &HashMap<String, Vec<String>>,
+        range_start: u32,
+        range_end: u32,
+        hints: &mut Vec<InlayHint>,
+    ) {
+        match stmt {
+            ast::Stmt::Let {
+                name,
+                ty,
+                init,
+                span,
+                ..
+            } => {
+                // Type hint for let bindings without explicit annotation.
+                if ty.is_none() && span.start >= range_start && span.start <= range_end {
+                    if let Some(inferred) =
+                        Self::infer_expr_type_simple(init, checker, fn_param_names)
+                    {
+                        // Position hint right after the binding name.
+                        // Find name end: span.start + "let " + name.len()
+                        // More robust: search for the name in the source around the span.
+                        let name_end = Self::find_let_name_end(source, span.start, name);
+                        let pos = Self::offset_to_position(source, name_end);
+                        hints.push(InlayHint {
+                            position: pos,
+                            label: InlayHintLabel::String(format!(": {inferred}")),
+                            kind: Some(InlayHintKind::TYPE),
+                            text_edits: None,
+                            tooltip: None,
+                            padding_left: None,
+                            padding_right: Some(true),
+                            data: None,
+                        });
+                    }
+                }
+                // Also recurse into the init expression for call-site param hints.
+                Self::collect_hints_from_expr(
+                    source,
+                    init,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Stmt::Expr(expr) => {
+                Self::collect_hints_from_expr(
+                    source,
+                    expr,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Stmt::While { body, cond, .. } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    cond,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+                Self::collect_hints_from_block(
+                    source,
+                    body,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Stmt::Loop { body, .. } => {
+                Self::collect_hints_from_block(
+                    source,
+                    body,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Stmt::For { body, .. } => {
+                Self::collect_hints_from_block(
+                    source,
+                    body,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+        }
+    }
+
+    /// Collect parameter-name inlay hints from expressions (recursive).
+    fn collect_hints_from_expr(
+        source: &str,
+        expr: &ast::Expr,
+        checker: &ark_typecheck::TypeChecker,
+        fn_param_names: &HashMap<String, Vec<String>>,
+        range_start: u32,
+        range_end: u32,
+        hints: &mut Vec<InlayHint>,
+    ) {
+        let span = expr.span();
+        // Skip expressions entirely outside the visible range.
+        if span.end < range_start || span.start > range_end {
+            return;
+        }
+
+        match expr {
+            ast::Expr::Call { callee, args, .. } => {
+                // Resolve callee name.
+                let callee_name = match callee.as_ref() {
+                    ast::Expr::Ident { name, .. } => Some(name.clone()),
+                    ast::Expr::FieldAccess { field, object, .. } => {
+                        // Method call: try struct_name::method via method_resolution.
+                        if let ast::Expr::Ident { name: obj_name, .. } = object.as_ref() {
+                            // Check if this is a method on a known type.
+                            checker
+                                .method_resolution(object.span().start)
+                                .map(|(struct_name, _)| format!("{struct_name}::{field}"))
+                                .or_else(|| Some(format!("{obj_name}::{field}")))
+                        } else {
+                            None
+                        }
+                    }
+                    ast::Expr::QualifiedIdent { name, .. } => Some(name.clone()),
+                    _ => None,
+                };
+
+                if let Some(ref name) = callee_name {
+                    if let Some(param_names) = fn_param_names.get(name) {
+                        // Skip single-param functions and skip if arg is already named
+                        // or is a simple identifier matching the param name.
+                        for (i, arg) in args.iter().enumerate() {
+                            if i >= param_names.len() {
+                                break;
+                            }
+                            let pname = &param_names[i];
+                            // Don't show hint if the argument is already the same name.
+                            if Self::arg_matches_param_name(arg, pname) {
+                                continue;
+                            }
+                            // Don't show hints for "self" parameters.
+                            if pname == "self" {
+                                continue;
+                            }
+                            let pos = Self::offset_to_position(source, arg.span().start);
+                            hints.push(InlayHint {
+                                position: pos,
+                                label: InlayHintLabel::String(format!("{pname}:")),
+                                kind: Some(InlayHintKind::PARAMETER),
+                                text_edits: None,
+                                tooltip: None,
+                                padding_left: None,
+                                padding_right: Some(true),
+                                data: None,
+                            });
+                        }
+                    }
+                }
+
+                // Recurse into callee and args.
+                Self::collect_hints_from_expr(
+                    source,
+                    callee,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+                for arg in args {
+                    Self::collect_hints_from_expr(
+                        source,
+                        arg,
+                        checker,
+                        fn_param_names,
+                        range_start,
+                        range_end,
+                        hints,
+                    );
+                }
+            }
+            ast::Expr::If {
+                cond,
+                then_block,
+                else_block,
+                ..
+            } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    cond,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+                Self::collect_hints_from_block(
+                    source,
+                    then_block,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+                if let Some(eb) = else_block {
+                    Self::collect_hints_from_block(
+                        source,
+                        eb,
+                        checker,
+                        fn_param_names,
+                        range_start,
+                        range_end,
+                        hints,
+                    );
+                }
+            }
+            ast::Expr::Match {
+                scrutinee, arms, ..
+            } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    scrutinee,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+                for arm in arms {
+                    Self::collect_hints_from_expr(
+                        source,
+                        &arm.body,
+                        checker,
+                        fn_param_names,
+                        range_start,
+                        range_end,
+                        hints,
+                    );
+                }
+            }
+            ast::Expr::Binary { left, right, .. } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    left,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+                Self::collect_hints_from_expr(
+                    source,
+                    right,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Expr::Unary { operand, .. } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    operand,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Expr::Block(block) => {
+                Self::collect_hints_from_block(
+                    source,
+                    block,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Expr::Return { value, .. } => {
+                if let Some(v) = value {
+                    Self::collect_hints_from_expr(
+                        source,
+                        v,
+                        checker,
+                        fn_param_names,
+                        range_start,
+                        range_end,
+                        hints,
+                    );
+                }
+            }
+            ast::Expr::Closure { body, .. } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    body,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Expr::Index { object, index, .. } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    object,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+                Self::collect_hints_from_expr(
+                    source,
+                    index,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Expr::FieldAccess { object, .. } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    object,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Expr::Assign { target, value, .. } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    target,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+                Self::collect_hints_from_expr(
+                    source,
+                    value,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Expr::Tuple { elements, .. } | ast::Expr::Array { elements, .. } => {
+                for e in elements {
+                    Self::collect_hints_from_expr(
+                        source,
+                        e,
+                        checker,
+                        fn_param_names,
+                        range_start,
+                        range_end,
+                        hints,
+                    );
+                }
+            }
+            ast::Expr::StructInit { fields, base, .. } => {
+                for (_, val) in fields {
+                    Self::collect_hints_from_expr(
+                        source,
+                        val,
+                        checker,
+                        fn_param_names,
+                        range_start,
+                        range_end,
+                        hints,
+                    );
+                }
+                if let Some(b) = base {
+                    Self::collect_hints_from_expr(
+                        source,
+                        b,
+                        checker,
+                        fn_param_names,
+                        range_start,
+                        range_end,
+                        hints,
+                    );
+                }
+            }
+            ast::Expr::Try { expr: inner, .. }
+            | ast::Expr::Break {
+                value: Some(inner), ..
+            } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    inner,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Expr::Loop { body, .. } => {
+                Self::collect_hints_from_block(
+                    source,
+                    body,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            ast::Expr::ArrayRepeat { value, count, .. } => {
+                Self::collect_hints_from_expr(
+                    source,
+                    value,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+                Self::collect_hints_from_expr(
+                    source,
+                    count,
+                    checker,
+                    fn_param_names,
+                    range_start,
+                    range_end,
+                    hints,
+                );
+            }
+            // Leaf expressions: no sub-expressions to recurse into.
+            _ => {}
+        }
+    }
+
+    /// Try to infer a simple type string from an expression without full
+    /// type-checking env. Covers the common cases that produce useful hints.
+    fn infer_expr_type_simple(
+        expr: &ast::Expr,
+        checker: &ark_typecheck::TypeChecker,
+        fn_param_names: &HashMap<String, Vec<String>>,
+    ) -> Option<String> {
+        match expr {
+            ast::Expr::IntLit { suffix, .. } => {
+                let ty = suffix.as_deref().unwrap_or("i32");
+                Some(ty.to_string())
+            }
+            ast::Expr::FloatLit { suffix, .. } => {
+                let ty = suffix.as_deref().unwrap_or("f64");
+                Some(ty.to_string())
+            }
+            ast::Expr::StringLit { .. } => Some("String".to_string()),
+            ast::Expr::CharLit { .. } => Some("char".to_string()),
+            ast::Expr::BoolLit { .. } => Some("bool".to_string()),
+            ast::Expr::Call { callee, .. } => {
+                let callee_name = match callee.as_ref() {
+                    ast::Expr::Ident { name, .. } => Some(name.clone()),
+                    ast::Expr::QualifiedIdent { name, .. } => Some(name.clone()),
+                    _ => None,
+                };
+                callee_name.and_then(|name| checker.fn_sig(&name).map(|sig| format!("{}", sig.ret)))
+            }
+            ast::Expr::StructInit { name, .. } => Some(name.clone()),
+            ast::Expr::Array { elements, .. } => {
+                if let Some(first) = elements.first() {
+                    let elem_ty = Self::infer_expr_type_simple(first, checker, fn_param_names)
+                        .unwrap_or_else(|| "?".to_string());
+                    Some(format!("[{}; {}]", elem_ty, elements.len()))
+                } else {
+                    Some("[?; 0]".to_string())
+                }
+            }
+            ast::Expr::Tuple { elements, .. } => {
+                let types: Vec<String> = elements
+                    .iter()
+                    .map(|e| {
+                        Self::infer_expr_type_simple(e, checker, fn_param_names)
+                            .unwrap_or_else(|| "?".to_string())
+                    })
+                    .collect();
+                Some(format!("({})", types.join(", ")))
+            }
+            _ => None,
+        }
+    }
+
+    /// Find the byte offset right after the binding name in a `let` statement.
+    fn find_let_name_end(source: &str, span_start: u32, name: &str) -> u32 {
+        let start = span_start as usize;
+        // Search for the binding name after "let" / "let mut".
+        if let Some(slice) = source.get(start..) {
+            // Skip "let " or "let mut ".
+            if let Some(name_pos) = slice.find(name) {
+                return (start + name_pos + name.len()) as u32;
+            }
+        }
+        // Fallback: just after span_start + reasonable offset.
+        span_start + 4 + name.len() as u32
+    }
+
+    /// Check if an argument expression is a simple identifier matching the
+    /// parameter name (in which case showing the hint would be redundant).
+    fn arg_matches_param_name(arg: &ast::Expr, param_name: &str) -> bool {
+        matches!(arg, ast::Expr::Ident { name, .. } if name == param_name)
+    }
 }
 
 #[tower_lsp::async_trait]
@@ -1656,11 +2212,88 @@ impl LanguageServer for ArukellBackend {
         })))
     }
 
-    async fn inlay_hint(&self, _params: InlayHintParams) -> Result<Option<Vec<InlayHint>>> {
-        // Inlay hints require type inference results from the TypeChecker.
-        // Returning None disables them for now; the capability is declared
-        // so VS Code will query us once the implementation is complete.
-        Ok(None)
+    async fn inlay_hint(&self, params: InlayHintParams) -> Result<Option<Vec<InlayHint>>> {
+        let uri = params.text_document.uri;
+        let docs = self.documents.lock().unwrap();
+        let source = match docs.get(&uri) {
+            Some(s) => s.clone(),
+            None => return Ok(None),
+        };
+        drop(docs);
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri)
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let checker = match &analysis.checker {
+            Some(c) => c,
+            None => return Ok(None),
+        };
+
+        // Build fn-name → param-names map from AST (FnSig only has types).
+        let mut fn_param_names: HashMap<String, Vec<String>> = HashMap::new();
+        for item in &analysis.module.items {
+            match item {
+                ast::Item::FnDef(f) => {
+                    fn_param_names.insert(
+                        f.name.clone(),
+                        f.params.iter().map(|p| p.name.clone()).collect(),
+                    );
+                }
+                ast::Item::ImplBlock(ib) => {
+                    for m in &ib.methods {
+                        // Methods are stored with mangled names in TypeChecker.
+                        let mangled = format!("{}::{}", ib.target_type, m.name);
+                        fn_param_names
+                            .insert(mangled, m.params.iter().map(|p| p.name.clone()).collect());
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        let range_start = Self::position_to_offset(&source, params.range.start) as u32;
+        let range_end = Self::position_to_offset(&source, params.range.end) as u32;
+
+        let mut hints = Vec::new();
+
+        // Walk all items and collect hints within the requested range.
+        for item in &analysis.module.items {
+            match item {
+                ast::Item::FnDef(f) => {
+                    Self::collect_hints_from_block(
+                        &source,
+                        &f.body,
+                        checker,
+                        &fn_param_names,
+                        range_start,
+                        range_end,
+                        &mut hints,
+                    );
+                }
+                ast::Item::ImplBlock(ib) => {
+                    for m in &ib.methods {
+                        Self::collect_hints_from_block(
+                            &source,
+                            &m.body,
+                            checker,
+                            &fn_param_names,
+                            range_start,
+                            range_end,
+                            &mut hints,
+                        );
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        if hints.is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(hints))
+        }
     }
 
     async fn folding_range(&self, params: FoldingRangeParams) -> Result<Option<Vec<FoldingRange>>> {
