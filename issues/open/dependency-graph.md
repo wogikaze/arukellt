@@ -14,6 +14,7 @@ graph LR
   I319["319 Selfhost CLI のフラグ semantics を driver に接続する"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
   I333["333 LSP: project-wide symbol index を構築する"]
+  I341["341 LSP: organize imports を formatter 副作用から独立した semantic 操作にする"]
   I355["355 Tooling Contract: LSP protocol E2E テストを追加する"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I363["363 Stdlib Docs: module family ごとの curated overview page を作る"]
@@ -40,6 +41,7 @@ graph LR
   I334["334 LSP: 標準ライブラリの定義解決を実装する"]
   I335["335 LSP: cross-file go to definition を実装する"]
   I338["338 LSP: references を semantic symbol ID ベースに置き換える"]
+  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
   I356["356 Tooling Contract: CLI / LSP / Extension の機能契約を文書化する"]
   I362["362 Stdlib: stability tier を実行時・CI で検証する"]
   I365["365 Stdlib Docs: source-backed な cookbook / recipe 集を拡充する"]
@@ -65,7 +67,7 @@ graph LR
   I320["320 Selfhost CLI に package/workspace 統合を実装する"]
   I336["336 LSP: hover の型情報を resolver/typechecker 連携で精密化する"]
   I337["337 LSP: signature help を stdlib 連携で完成させる"]
-  I340["340 LSP: auto-import 候補を manifest / module graph 駆動にする"]
+  I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I339["339 LSP: rename を semantic-aware に置き換える"]
   I342["342 LSP: completion をコンテキスト対応にする"]
   I357["357 Tooling Contract: release gate を手動チェックリストから自動検証に移行する"]
@@ -82,8 +84,6 @@ graph LR
   I285["285 Legacy lowering path を隔離・撤去する"]
   I316["316 Selfhost Wasm emitter: 構造化ブロック出力を実装する"]
   I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
-  I341["341 LSP: organize imports を formatter 副作用から独立した semantic 操作にする"]
-  I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I439["439 VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する"]
   I401["401 Stdlib Docs: examples を compile-check して docs drift を防ぐ"]
   I404["404 Stdlib Docs: legacy ページの整理と redirect / archive 方針を実装する"]
@@ -93,13 +93,12 @@ graph LR
   I431["431 Playground: editor shell と syntax highlighting を実装する"]
   I434["434 Playground: shared link の version pinning と再現性を確保する"]
   I317["317 Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する"]
-  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
+  I444["444 VSCode Extension × Component: Playground / Editor から component を直接生成・実行できる導線を作る"]
   I405["405 Stdlib Docs: ownership map と release gate を整備する"]
   I432["432 Playground: examples catalog を docs / fixtures と共有する"]
   I436["436 Playground: docs site への統合と navigation を実装する"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
   I323["323 Selfhost の統一バイナリを生成する"]
-  I444["444 VSCode Extension × Component: Playground / Editor から component を直接生成・実行できる導線を作る"]
   I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I324["324 verify-bootstrap.sh の scaffold を解除する"]
   I325["325 check-selfhost-parity.sh を作成する"]
@@ -123,6 +122,7 @@ graph LR
   I333 --> I334
   I333 --> I335
   I333 --> I338
+  I341 --> I440
   I355 --> I356
   I358 --> I362
   I363 --> I365
@@ -151,7 +151,8 @@ graph LR
   I318 --> I320
   I334 --> I336
   I334 --> I337
-  I334 --> I340
+  I333 --> I441
+  I335 --> I441
   I338 --> I339
   I338 --> I342
   I355 --> I357
@@ -173,10 +174,6 @@ graph LR
   I315 --> I316
   I320 --> I322
   I321 --> I322
-  I340 --> I341
-  I333 --> I441
-  I335 --> I441
-  I340 --> I441
   I333 --> I439
   I334 --> I439
   I335 --> I439
@@ -191,17 +188,16 @@ graph LR
   I429 --> I431
   I433 --> I434
   I316 --> I317
-  I341 --> I440
+  I439 --> I444
+  I440 --> I444
+  I441 --> I444
+  I443 --> I444
   I401 --> I405
   I403 --> I405
   I381 --> I432
   I431 --> I436
   I431 --> I437
   I317 --> I323
-  I439 --> I444
-  I440 --> I444
-  I441 --> I444
-  I443 --> I444
   I437 --> I438
   I323 --> I324
   I324 --> I325
@@ -223,6 +219,7 @@ graph LR
 - **319** depends on: none; blocks: 318, 321
 - **327** depends on: none; blocks: none
 - **333** depends on: none; blocks: 334, 335, 338, 439, 441
+- **341** depends on: 340; blocks: 440
 - **355** depends on: 353; blocks: 356, 357
 - **358** depends on: none; blocks: 362
 - **363** depends on: none; blocks: 365, 396
@@ -246,9 +243,10 @@ graph LR
 - **313** depends on: 308; blocks: 314, 315
 - **318** depends on: 319; blocks: 320
 - **321** depends on: 319; blocks: 322
-- **334** depends on: 333; blocks: 336, 337, 340, 439
+- **334** depends on: 333; blocks: 336, 337, 439
 - **335** depends on: 333; blocks: 439, 441
 - **338** depends on: 333; blocks: 339, 342, 439
+- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: 444
 - **356** depends on: 355; blocks: 357
 - **362** depends on: 358, 360; blocks: none
 - **365** depends on: 363; blocks: 398
@@ -274,7 +272,7 @@ graph LR
 - **320** depends on: 318; blocks: 322
 - **336** depends on: 334; blocks: none
 - **337** depends on: 334; blocks: none
-- **340** depends on: 334; blocks: 341, 441
+- **441** depends on: 333, 335, 340; blocks: 444
 - **339** depends on: 338; blocks: 439
 - **342** depends on: 338; blocks: none
 - **357** depends on: 354, 355, 356; blocks: none
@@ -291,8 +289,6 @@ graph LR
 - **285** depends on: 284; blocks: none
 - **316** depends on: 314, 315; blocks: 317
 - **322** depends on: 320, 321; blocks: none
-- **341** depends on: 340; blocks: 440
-- **441** depends on: 333, 335, 340; blocks: 444
 - **439** depends on: 333, 334, 335, 338, 339; blocks: 444
 - **401** depends on: 398; blocks: 405
 - **404** depends on: 402; blocks: none
@@ -302,13 +298,12 @@ graph LR
 - **431** depends on: 429; blocks: 436, 437
 - **434** depends on: 433; blocks: none
 - **317** depends on: 316; blocks: 323
-- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: 444
+- **444** depends on: 439, 440, 441, 443; blocks: none
 - **405** depends on: 401, 403; blocks: none
 - **432** depends on: 381; blocks: none
 - **436** depends on: 431; blocks: none
 - **437** depends on: 431; blocks: 438
 - **323** depends on: 317; blocks: 324
-- **444** depends on: 439, 440, 441, 443; blocks: none
 - **438** depends on: 437; blocks: none
 - **324** depends on: 323; blocks: 325
 - **325** depends on: 324; blocks: 326

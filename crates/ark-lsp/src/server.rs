@@ -720,6 +720,19 @@ impl ArukellBackend {
         Some(hover)
     }
 
+    /// Extract doc comments for a named item from the AST.
+    fn find_item_docs(module: &ast::Module, name: &str) -> Vec<String> {
+        for item in &module.items {
+            match item {
+                ast::Item::FnDef(f) if f.name == name => return f.docs.clone(),
+                ast::Item::StructDef(s) if s.name == name => return s.docs.clone(),
+                ast::Item::EnumDef(e) if e.name == name => return e.docs.clone(),
+                _ => {}
+            }
+        }
+        Vec::new()
+    }
+
     /// Build type-aware hover information for an identifier using cached
     /// analysis results.
     fn type_hover_info(
@@ -731,15 +744,18 @@ impl ArukellBackend {
         let resolved = resolved?;
         let checker = checker?;
 
-        // Collect AST param names so we can pair them with inferred types.
-        let ast_param_names: Option<Vec<String>> = module.items.iter().find_map(|item| {
+        // Collect AST param names and doc comments for functions.
+        let mut ast_param_names: Option<Vec<String>> = None;
+        let mut fn_docs: Vec<String> = Vec::new();
+        for item in &module.items {
             if let ast::Item::FnDef(f) = item {
                 if f.name == name {
-                    return Some(f.params.iter().map(|p| p.name.clone()).collect());
+                    ast_param_names = Some(f.params.iter().map(|p| p.name.clone()).collect());
+                    fn_docs = f.docs.clone();
+                    break;
                 }
             }
-            None
-        });
+        }
 
         // Check function signatures
         if let Some(sig) = checker.fn_sig(name) {
@@ -752,12 +768,17 @@ impl ArukellBackend {
             } else {
                 sig.params.iter().map(|t| format!("{t}")).collect()
             };
-            return Some(format!(
-                "fn {}({}) -> {}",
+            let mut hover = format!(
+                "```arukellt\nfn {}({}) -> {}\n```",
                 sig.name,
                 params.join(", "),
                 sig.ret
-            ));
+            );
+            if !fn_docs.is_empty() {
+                hover.push_str("\n\n");
+                hover.push_str(&fn_docs.join("\n"));
+            }
+            return Some(hover);
         }
 
         // Check struct definitions
@@ -765,15 +786,27 @@ impl ArukellBackend {
             let fields: Vec<String> = info
                 .fields
                 .iter()
-                .map(|(n, t)| format!("{n}: {t}"))
+                .map(|(n, t)| format!("    {n}: {t},"))
                 .collect();
-            return Some(format!("struct {} {{ {} }}", info.name, fields.join(", ")));
+            let docs = Self::find_item_docs(module, name);
+            let mut hover = format!("```arukellt\nstruct {} {{\n{}\n}}\n```", info.name, fields.join("\n"));
+            if !docs.is_empty() {
+                hover.push_str("\n\n");
+                hover.push_str(&docs.join("\n"));
+            }
+            return Some(hover);
         }
 
         // Check enum definitions
         if let Some(info) = checker.enum_info(name) {
             let variants: Vec<String> = info.variants.iter().map(|v| v.name.clone()).collect();
-            return Some(format!("enum {} {{ {} }}", info.name, variants.join(", ")));
+            let docs = Self::find_item_docs(module, name);
+            let mut hover = format!("```arukellt\nenum {} {{ {} }}\n```", info.name, variants.join(", "));
+            if !docs.is_empty() {
+                hover.push_str("\n\n");
+                hover.push_str(&docs.join("\n"));
+            }
+            return Some(hover);
         }
 
         // Check let-bound variables via resolved symbol table
@@ -787,7 +820,7 @@ impl ArukellBackend {
                 ark_resolve::SymbolKind::Struct { .. } => "struct",
                 ark_resolve::SymbolKind::Enum { .. } => "enum",
                 ark_resolve::SymbolKind::EnumVariant { enum_name } => {
-                    return Some(format!("variant {enum_name}::{name}"));
+                    return Some(format!("```arukellt\nvariant {enum_name}::{name}\n```"));
                 }
                 ark_resolve::SymbolKind::TypeParam => "type param",
                 ark_resolve::SymbolKind::Module => "module",
@@ -799,11 +832,11 @@ impl ArukellBackend {
             if matches!(sym.kind, ark_resolve::SymbolKind::Variable { .. }) {
                 let ty_ann = Self::find_let_type_annotation(module, name);
                 if let Some(ty_str) = ty_ann {
-                    return Some(format!("{kind_str} {name}: {ty_str}"));
+                    return Some(format!("```arukellt\n{kind_str} {name}: {ty_str}\n```"));
                 }
             }
 
-            return Some(format!("{kind_str} {name}"));
+            return Some(format!("```arukellt\n{kind_str} {name}\n```"));
         }
 
         None

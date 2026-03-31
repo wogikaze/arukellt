@@ -1,6 +1,6 @@
 # LSP: auto-import 候補を manifest / module graph 駆動にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 340
@@ -22,10 +22,10 @@ auto-import の候補を `server.rs` 内の固定配列 (6 module) から、`std
 
 ## Acceptance
 
-- [ ] auto-import 候補が `std/manifest.toml` の全公開 module を含む
-- [ ] project 内の他 `.ark` ファイルの公開 symbol も import 候補に出る
-- [ ] hardcoded module list が廃止され、manifest / index 駆動になる
-- [ ] import 追加の code action が正しい `use` 文を生成する
+- [x] auto-import 候補が `std/manifest.toml` の全公開 module を含む
+- [x] project 内の他 `.ark` ファイルの公開 symbol も import 候補に出る
+- [x] hardcoded module list が廃止され、manifest / index 駆動になる
+- [x] import 追加の code action が正しい `use` 文を生成する
 
 ## References
 
