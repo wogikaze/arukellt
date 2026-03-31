@@ -2605,31 +2605,33 @@ impl LanguageServer for ArukellBackend {
                 })
             }) {
                 let formatted = ark_parser::fmt::format_source(src);
-                if formatted != *src {
-                    let full_range = Range {
-                        start: Position {
-                            line: 0,
-                            character: 0,
-                        },
-                        end: Self::offset_to_position(src, src.len() as u32),
-                    };
-                    let mut changes = HashMap::new();
-                    changes.insert(
-                        uri.clone(),
-                        vec![TextEdit {
-                            range: full_range,
-                            new_text: formatted,
-                        }],
-                    );
-                    actions.push(CodeActionOrCommand::CodeAction(CodeAction {
-                        title: "Organize Imports".to_string(),
-                        kind: Some(CodeActionKind::new("source.organizeImports")),
-                        edit: Some(WorkspaceEdit {
-                            changes: Some(changes),
+                if let Some(formatted) = formatted {
+                    if formatted != *src {
+                        let full_range = Range {
+                            start: Position {
+                                line: 0,
+                                character: 0,
+                            },
+                            end: Self::offset_to_position(src, src.len() as u32),
+                        };
+                        let mut changes = HashMap::new();
+                        changes.insert(
+                            uri.clone(),
+                            vec![TextEdit {
+                                range: full_range,
+                                new_text: formatted,
+                            }],
+                        );
+                        actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                            title: "Organize Imports".to_string(),
+                            kind: Some(CodeActionKind::new("source.organizeImports")),
+                            edit: Some(WorkspaceEdit {
+                                changes: Some(changes),
+                                ..Default::default()
+                            }),
                             ..Default::default()
-                        }),
-                        ..Default::default()
-                    }));
+                        }));
+                    }
                 }
             }
 
@@ -2640,31 +2642,33 @@ impl LanguageServer for ArukellBackend {
                     .any(|k| k == &CodeActionKind::SOURCE || k.as_str() == "source.fixAll")
             }) {
                 let formatted = ark_parser::fmt::format_source(src);
-                if formatted != *src {
-                    let full_range = Range {
-                        start: Position {
-                            line: 0,
-                            character: 0,
-                        },
-                        end: Self::offset_to_position(src, src.len() as u32),
-                    };
-                    let mut changes = HashMap::new();
-                    changes.insert(
-                        uri.clone(),
-                        vec![TextEdit {
-                            range: full_range,
-                            new_text: formatted,
-                        }],
-                    );
-                    actions.push(CodeActionOrCommand::CodeAction(CodeAction {
-                        title: "Fix All".to_string(),
-                        kind: Some(CodeActionKind::new("source.fixAll")),
-                        edit: Some(WorkspaceEdit {
-                            changes: Some(changes),
+                if let Some(formatted) = formatted {
+                    if formatted != *src {
+                        let full_range = Range {
+                            start: Position {
+                                line: 0,
+                                character: 0,
+                            },
+                            end: Self::offset_to_position(src, src.len() as u32),
+                        };
+                        let mut changes = HashMap::new();
+                        changes.insert(
+                            uri.clone(),
+                            vec![TextEdit {
+                                range: full_range,
+                                new_text: formatted,
+                            }],
+                        );
+                        actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                            title: "Fix All".to_string(),
+                            kind: Some(CodeActionKind::new("source.fixAll")),
+                            edit: Some(WorkspaceEdit {
+                                changes: Some(changes),
+                                ..Default::default()
+                            }),
                             ..Default::default()
-                        }),
-                        ..Default::default()
-                    }));
+                        }));
+                    }
                 }
             }
         }
@@ -2739,8 +2743,11 @@ impl LanguageServer for ArukellBackend {
             }
         };
 
-        // AST-based formatter
-        let formatted = ark_parser::fmt::format_source(&source);
+        // AST-based formatter — skip if source has parse errors
+        let formatted = match ark_parser::fmt::format_source(&source) {
+            Some(f) => f,
+            None => return Ok(None),
+        };
 
         if formatted == source {
             return Ok(None);

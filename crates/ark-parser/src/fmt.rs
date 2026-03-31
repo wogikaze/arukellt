@@ -8,11 +8,20 @@ use crate::ast;
 const INDENT: &str = "    ";
 
 /// Format Arukellt source code to canonical form.
-pub fn format_source(source: &str) -> String {
-    let (tokens, _lex_errors) = ark_lexer::Lexer::new(0, source).tokenize();
+///
+/// Returns `None` if the source contains lex or parse errors, preventing
+/// the formatter from corrupting invalid code.
+pub fn format_source(source: &str) -> Option<String> {
+    let (tokens, lex_errors) = ark_lexer::Lexer::new(0, source).tokenize();
+    if !lex_errors.is_empty() {
+        return None;
+    }
     let mut sink = ark_diagnostics::DiagnosticSink::new();
     let module = crate::parse(&tokens, &mut sink);
-    format_module(&module)
+    if sink.has_errors() {
+        return None;
+    }
+    Some(format_module(&module))
 }
 
 /// Format a parsed AST module back to source text.
@@ -879,7 +888,7 @@ mod tests {
     #[test]
     fn format_simple_function() {
         let source = "fn main() {\n  let x = 42\n  print(x)\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("fn main()"));
         assert!(formatted.contains("let x = 42"));
         assert!(formatted.contains("print(x)"));
@@ -888,7 +897,7 @@ mod tests {
     #[test]
     fn format_imports_sorted() {
         let source = "use mylib\nuse std::io\n\nfn main() {\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         // stdlib should come first
         let std_pos = formatted.find("use std::io").unwrap();
         let lib_pos = formatted.find("use mylib").unwrap();
@@ -901,15 +910,15 @@ mod tests {
     #[test]
     fn format_idempotent() {
         let source = "fn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n";
-        let first = format_source(source);
-        let second = format_source(&first);
+        let first = format_source(source).unwrap();
+        let second = format_source(&first).unwrap();
         assert_eq!(first, second, "formatting should be idempotent");
     }
 
     #[test]
     fn format_struct_def() {
         let source = "struct Point {\n  x: f64,\n  y: f64,\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("struct Point {"));
         assert!(formatted.contains("    x: f64,"));
         assert!(formatted.contains("    y: f64,"));
@@ -918,91 +927,91 @@ mod tests {
     #[test]
     fn format_enum_def() {
         let source = "enum Color {\n  Red,\n  Green(i32),\n  Blue(String, i32),\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("enum Color {"));
         assert!(formatted.contains("Red"));
         assert!(formatted.contains("Green(i32)"));
         assert!(formatted.contains("Blue(String, i32)"));
         // idempotent
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_trait_def() {
         let source = "trait Displayable {\n  fn show() -> String\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("trait Displayable {"));
         assert!(formatted.contains("fn show() -> String"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_impl_block() {
         let source = "impl Display for Point {\n  fn show() -> String {\n    \"point\"\n  }\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("impl Display for Point {"));
         assert!(formatted.contains("fn show() -> String {"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_match_expr() {
         let source = "fn f() {\n  match x {\n    1 => a,\n    2 => b,\n    _ => c,\n  }\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("match x {"));
         assert!(formatted.contains("1 => a"));
         assert!(formatted.contains("_ => c"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_generic_function() {
         let source = "fn identity<T>(x: T) -> T {\n  x\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("fn identity<T>(x: T) -> T {"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_while_loop() {
         let source = "fn f() {\n  while x < 10 {\n    x = x + 1\n  }\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("while x < 10 {"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_for_loop() {
         let source = "fn f() {\n  for item in items {\n    print(item)\n  }\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("for item in items {"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_if_else() {
         let source = "fn f() {\n  if x > 0 {\n    a\n  } else {\n    b\n  }\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("if x > 0 {"));
         assert!(formatted.contains("} else {"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_let_with_type() {
         let source = "fn f() {\n  let x: i32 = 42\n  let y: String = \"hello\"\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("let x: i32 = 42"));
         assert!(formatted.contains("let y: String = \"hello\""));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
@@ -1010,7 +1019,7 @@ mod tests {
     fn format_multiple_imports_grouped() {
         let source =
             "use mylib\nuse std::host::stdio\nuse std::host::fs\nuse another\n\nfn main() {\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         // stdlib should be sorted and come first
         let fs_pos = formatted.find("use std::host::fs").unwrap();
         let stdio_pos = formatted.find("use std::host::stdio").unwrap();
@@ -1024,74 +1033,92 @@ mod tests {
     #[test]
     fn format_method_call_chain() {
         let source = "fn f() {\n  obj.method1().method2()\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("obj.method1().method2()"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_array_literal() {
         let source = "fn f() {\n  let a = [1, 2, 3]\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("[1, 2, 3]"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_tuple_type() {
         let source = "fn f(x: (i32, String)) -> (bool, i32) {\n  (true, 0)\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("(i32, String)"));
         assert!(formatted.contains("(bool, i32)"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_result_type() {
         let source = "fn f() -> Result<String, String> {\n  Ok(\"hi\")\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("Result<String, String>"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_doc_comment() {
         let source = "/// A documented function.\nfn documented() {\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("/// A documented function."));
         assert!(formatted.contains("fn documented()"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_pub_function() {
         let source = "pub fn public_fn(x: i32) -> i32 {\n  x\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("pub fn public_fn(x: i32) -> i32 {"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_closure_expr() {
         let source = "fn f() {\n  let add = |a: i32, b: i32| -> i32 { a + b }\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("|a: i32, b: i32|"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
     }
 
     #[test]
     fn format_return_stmt() {
         let source = "fn f() -> i32 {\n  return 42\n}\n";
-        let formatted = format_source(source);
+        let formatted = format_source(source).unwrap();
         assert!(formatted.contains("return 42"));
-        let second = format_source(&formatted);
+        let second = format_source(&formatted).unwrap();
         assert_eq!(formatted, second);
+    }
+
+    #[test]
+    fn format_returns_none_on_parse_error() {
+        let source = "fn broken( { let x = }\n";
+        assert!(
+            format_source(source).is_none(),
+            "formatter should return None for invalid input"
+        );
+    }
+
+    #[test]
+    fn format_returns_none_on_unterminated_string() {
+        let source = "fn f() {\n  let s = \"unterminated\n}\n";
+        assert!(
+            format_source(source).is_none(),
+            "formatter should return None for lex errors"
+        );
     }
 }

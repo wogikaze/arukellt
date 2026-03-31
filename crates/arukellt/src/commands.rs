@@ -90,7 +90,13 @@ pub(crate) fn cmd_fmt(files: Vec<PathBuf>, check: bool) {
             }
         };
 
-        let result = ark_parser::fmt::format_source(&source);
+        let result = match ark_parser::fmt::format_source(&source) {
+            Some(formatted) => formatted,
+            None => {
+                eprintln!("skipping {} (parse errors)", path.display());
+                continue;
+            }
+        };
 
         if result != source {
             if check {
