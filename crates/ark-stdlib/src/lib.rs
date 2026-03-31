@@ -85,6 +85,8 @@ pub struct ManifestModule {
     #[serde(default)]
     pub stability: Option<String>,
     #[serde(default)]
+    pub family: Option<String>,
+    #[serde(default)]
     pub doc: Option<String>,
 }
 
@@ -190,6 +192,14 @@ impl StdlibManifest {
             .map(|f| f.name.clone())
             .collect()
     }
+
+    /// Get the expansion family label for a module.
+    pub fn family_for_module(&self, module_name: &str) -> Option<String> {
+        self.modules
+            .iter()
+            .find(|m| m.name == module_name)
+            .and_then(|m| m.family.clone())
+    }
 }
 
 #[cfg(test)]
@@ -269,6 +279,22 @@ mod tests {
                 manifest_modules
             );
         }
+    }
+
+    #[test]
+    fn family_field_parsed() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+        // http and sockets have family = "expansion"
+        assert_eq!(
+            manifest.family_for_module("std::host::http"),
+            Some("expansion".to_string()),
+            "http should have expansion family"
+        );
+        assert_eq!(
+            manifest.family_for_module("std::host::sockets"),
+            Some("expansion".to_string()),
+            "sockets should have expansion family"
+        );
     }
 }
 

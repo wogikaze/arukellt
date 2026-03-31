@@ -460,6 +460,7 @@ params = []
 returns = "Vec<i32>"
 prelude = true
 stability = "stable"
+deprecated_by = "Vec::new<i32>"
 doc_category = "collections"
 
 [[functions]]
@@ -470,6 +471,7 @@ params = []
 returns = "Vec<i64>"
 prelude = true
 stability = "stable"
+deprecated_by = "Vec::new<i64>"
 doc_category = "collections"
 
 [[functions]]
@@ -680,6 +682,7 @@ returns = "Vec<i32>"
 prelude = true
 stability = "stable"
 doc_category = "collections"
+deprecated_by = "filter<i32>"
 
 [[functions]]
 name = "fold_i32_i32"
@@ -1183,6 +1186,7 @@ prelude = false
 [[functions]]
 name = "range_new"
 module = "std::core"
+doc_category = "core"
 stability = "stable"
 params = ["i32", "i32"]
 returns = "Range"
@@ -1190,6 +1194,7 @@ returns = "Range"
 [[functions]]
 name = "range_contains"
 module = "std::core"
+doc_category = "core"
 stability = "stable"
 params = ["Range", "i32"]
 returns = "bool"
@@ -1197,6 +1202,7 @@ returns = "bool"
 [[functions]]
 name = "range_len"
 module = "std::core"
+doc_category = "core"
 stability = "stable"
 params = ["Range"]
 returns = "i32"
@@ -1204,6 +1210,7 @@ returns = "i32"
 [[functions]]
 name = "error_message"
 module = "std::core::error"
+doc_category = "core"
 stability = "stable"
 params = ["Error"]
 returns = "String"
@@ -1211,6 +1218,7 @@ returns = "String"
 [[functions]]
 name = "hash_i32"
 module = "std::core::hash"
+doc_category = "core"
 stability = "stable"
 params = ["i32"]
 returns = "i32"
@@ -1218,6 +1226,7 @@ returns = "i32"
 [[functions]]
 name = "hash_combine"
 module = "std::core::hash"
+doc_category = "core"
 stability = "stable"
 params = ["i32", "i32"]
 returns = "i32"
@@ -1227,6 +1236,7 @@ returns = "i32"
 [[functions]]
 name = "duration_ms"
 module = "std::time"
+doc_category = "time"
 stability = "stable"
 params = ["i64", "i64"]
 returns = "i64"
@@ -1234,6 +1244,7 @@ returns = "i64"
 [[functions]]
 name = "duration_us"
 module = "std::time"
+doc_category = "time"
 stability = "stable"
 params = ["i64", "i64"]
 returns = "i64"
@@ -1241,6 +1252,7 @@ returns = "i64"
 [[functions]]
 name = "duration_ns"
 module = "std::time"
+doc_category = "time"
 stability = "stable"
 params = ["i64", "i64"]
 returns = "i64"
@@ -1250,6 +1262,7 @@ returns = "i64"
 [[functions]]
 name = "seeded_random"
 module = "std::random"
+doc_category = "random"
 stability = "stable"
 params = ["i32"]
 returns = "i32"
@@ -1257,6 +1270,7 @@ returns = "i32"
 [[functions]]
 name = "seeded_range"
 module = "std::random"
+doc_category = "random"
 stability = "stable"
 params = ["i32", "i32", "i32"]
 returns = "i32"
@@ -1264,6 +1278,7 @@ returns = "i32"
 [[functions]]
 name = "shuffle_i32"
 module = "std::random"
+doc_category = "random"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
@@ -1273,6 +1288,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "assert_true"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["bool"]
 returns = "()"
@@ -1280,6 +1296,7 @@ returns = "()"
 [[functions]]
 name = "assert_false"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["bool"]
 returns = "()"
@@ -1287,6 +1304,7 @@ returns = "()"
 [[functions]]
 name = "assert_eq_i32"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["i32", "i32"]
 returns = "()"
@@ -1294,6 +1312,7 @@ returns = "()"
 [[functions]]
 name = "assert_eq_i64"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["i64", "i64"]
 returns = "()"
@@ -1301,6 +1320,7 @@ returns = "()"
 [[functions]]
 name = "assert_eq_f64"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["f64", "f64"]
 returns = "()"
@@ -1308,6 +1328,7 @@ returns = "()"
 [[functions]]
 name = "assert_eq_string"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["String", "String"]
 returns = "()"
@@ -1315,6 +1336,7 @@ returns = "()"
 [[functions]]
 name = "assert_eq_bool"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["bool", "bool"]
 returns = "()"
@@ -1322,6 +1344,7 @@ returns = "()"
 [[functions]]
 name = "assert_ne_i32"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["i32", "i32"]
 returns = "()"
@@ -1329,6 +1352,7 @@ returns = "()"
 [[functions]]
 name = "assert_ne_string"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["String", "String"]
 returns = "()"
@@ -1336,6 +1360,7 @@ returns = "()"
 [[functions]]
 name = "expect_ok_i32"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["Result<i32, String>"]
 returns = "i32"
@@ -1343,6 +1368,7 @@ returns = "i32"
 [[functions]]
 name = "expect_err_string"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["Result<i32, String>"]
 returns = "String"
@@ -1350,6 +1376,7 @@ returns = "String"
 [[functions]]
 name = "expect_some_i32"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["Option<i32>"]
 returns = "i32"
@@ -1357,6 +1384,7 @@ returns = "i32"
 [[functions]]
 name = "expect_none_i32"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["Option<i32>"]
 returns = "()"
@@ -1364,6 +1392,7 @@ returns = "()"
 [[functions]]
 name = "assert_contains"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["String", "String"]
 returns = "()"
@@ -1371,6 +1400,7 @@ returns = "()"
 [[functions]]
 name = "assert_eq_snapshot"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["String", "String"]
 returns = "()"
@@ -1378,6 +1408,7 @@ returns = "()"
 [[functions]]
 name = "assert_msg"
 module = "std::test"
+doc_category = "test"
 stability = "stable"
 params = ["bool", "String"]
 returns = "()"
@@ -1387,6 +1418,7 @@ returns = "()"
 [[functions]]
 name = "len_bytes"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String"]
 returns = "i32"
@@ -1394,6 +1426,7 @@ returns = "i32"
 [[functions]]
 name = "is_empty"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String"]
 returns = "bool"
@@ -1401,6 +1434,7 @@ returns = "bool"
 [[functions]]
 name = "index_of"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String", "String"]
 returns = "i32"
@@ -1408,6 +1442,7 @@ returns = "i32"
 [[functions]]
 name = "trim"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String"]
 returns = "String"
@@ -1415,6 +1450,7 @@ returns = "String"
 [[functions]]
 name = "trim_start"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String"]
 returns = "String"
@@ -1422,6 +1458,7 @@ returns = "String"
 [[functions]]
 name = "trim_end"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String"]
 returns = "String"
@@ -1429,6 +1466,7 @@ returns = "String"
 [[functions]]
 name = "replace"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String", "String", "String"]
 returns = "String"
@@ -1436,6 +1474,7 @@ returns = "String"
 [[functions]]
 name = "lines"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String"]
 returns = "Vec<String>"
@@ -1443,6 +1482,7 @@ returns = "Vec<String>"
 [[functions]]
 name = "chars"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String"]
 returns = "Vec<String>"
@@ -1450,6 +1490,7 @@ returns = "Vec<String>"
 [[functions]]
 name = "pad_left"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String", "i32", "String"]
 returns = "String"
@@ -1457,6 +1498,7 @@ returns = "String"
 [[functions]]
 name = "pad_right"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["String", "i32", "String"]
 returns = "String"
@@ -1464,6 +1506,7 @@ returns = "String"
 [[functions]]
 name = "format_i32"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["i32"]
 returns = "String"
@@ -1471,6 +1514,7 @@ returns = "String"
 [[functions]]
 name = "format_i64"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["i64"]
 returns = "String"
@@ -1478,6 +1522,7 @@ returns = "String"
 [[functions]]
 name = "format_f64"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["f64"]
 returns = "String"
@@ -1485,6 +1530,7 @@ returns = "String"
 [[functions]]
 name = "format_bool"
 module = "std::text"
+doc_category = "text"
 stability = "stable"
 params = ["bool"]
 returns = "String"
@@ -1558,6 +1604,7 @@ doc_category = "host_env"
 [[functions]]
 name = "join"
 module = "std::path"
+doc_category = "path"
 stability = "stable"
 params = ["String", "String"]
 returns = "String"
@@ -1565,6 +1612,7 @@ returns = "String"
 [[functions]]
 name = "parent"
 module = "std::path"
+doc_category = "path"
 stability = "stable"
 params = ["String"]
 returns = "String"
@@ -1572,6 +1620,7 @@ returns = "String"
 [[functions]]
 name = "file_name"
 module = "std::path"
+doc_category = "path"
 stability = "stable"
 params = ["String"]
 returns = "String"
@@ -1579,6 +1628,7 @@ returns = "String"
 [[functions]]
 name = "extension"
 module = "std::path"
+doc_category = "path"
 stability = "stable"
 params = ["String"]
 returns = "String"
@@ -1586,6 +1636,7 @@ returns = "String"
 [[functions]]
 name = "with_extension"
 module = "std::path"
+doc_category = "path"
 stability = "stable"
 params = ["String", "String"]
 returns = "String"
@@ -1593,6 +1644,7 @@ returns = "String"
 [[functions]]
 name = "is_absolute"
 module = "std::path"
+doc_category = "path"
 stability = "stable"
 params = ["String"]
 returns = "bool"
@@ -1701,6 +1753,7 @@ doc_category = "host_random"
 name = "std::host::http"
 target = ["wasm32-wasi-p2"]
 stability = "experimental"
+family = "expansion"
 doc = "HTTP client and server via WASI Preview 2 wasi:http interfaces"
 
 [[functions]]
@@ -1729,6 +1782,7 @@ doc_category = "host_http"
 name = "std::host::sockets"
 target = ["wasm32-wasi-p2"]
 stability = "experimental"
+family = "expansion"
 doc = "TCP/UDP sockets via WASI Preview 2 wasi:sockets interfaces"
 
 [[functions]]
@@ -1746,6 +1800,7 @@ doc_category = "host_sockets"
 [[functions]]
 name = "bytes_new"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = []
 returns = "Vec<i32>"
@@ -1753,6 +1808,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "bytes_len"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -1760,6 +1816,7 @@ returns = "i32"
 [[functions]]
 name = "bytes_get"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
@@ -1767,6 +1824,7 @@ returns = "i32"
 [[functions]]
 name = "bytes_push"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "()"
@@ -1774,6 +1832,7 @@ returns = "()"
 [[functions]]
 name = "bytes_eq"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "bool"
@@ -1781,6 +1840,7 @@ returns = "bool"
 [[functions]]
 name = "bytes_from_string"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["String"]
 returns = "Vec<i32>"
@@ -1788,6 +1848,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "string_from_bytes"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "String"
@@ -1795,6 +1856,7 @@ returns = "String"
 [[functions]]
 name = "bytes_concat"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Vec<i32>"
@@ -1802,6 +1864,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "bytes_slice"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>", "i32", "i32"]
 returns = "Vec<i32>"
@@ -1809,6 +1872,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "byte_length"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["String"]
 returns = "i32"
@@ -1816,6 +1880,7 @@ returns = "i32"
 [[functions]]
 name = "hex_encode"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "String"
@@ -1823,6 +1888,7 @@ returns = "String"
 [[functions]]
 name = "hex_decode"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["String"]
 returns = "Vec<i32>"
@@ -1830,6 +1896,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "leb128_encode_u32"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["i32"]
 returns = "Vec<i32>"
@@ -1837,6 +1904,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "leb128_encode_i32"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["i32"]
 returns = "Vec<i32>"
@@ -1844,6 +1912,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "u16_to_le_bytes"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["i32"]
 returns = "Vec<i32>"
@@ -1851,6 +1920,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "u16_from_le_bytes"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -1858,6 +1928,7 @@ returns = "i32"
 [[functions]]
 name = "u32_to_le_bytes"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["i32"]
 returns = "Vec<i32>"
@@ -1865,6 +1936,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "u32_from_le_bytes"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -1872,6 +1944,7 @@ returns = "i32"
 [[functions]]
 name = "u32_to_be_bytes"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["i32"]
 returns = "Vec<i32>"
@@ -1879,6 +1952,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "u32_from_be_bytes"
 module = "std::bytes"
+doc_category = "bytes"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -1888,6 +1962,7 @@ returns = "i32"
 [[functions]]
 name = "hashmap_new"
 module = "std::collections::hash"
+doc_category = "collections"
 stability = "stable"
 params = []
 returns = "Vec<i32>"
@@ -1895,6 +1970,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "hashmap_get"
 module = "std::collections::hash"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
@@ -1902,6 +1978,7 @@ returns = "i32"
 [[functions]]
 name = "hashmap_contains"
 module = "std::collections::hash"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
@@ -1909,6 +1986,7 @@ returns = "bool"
 [[functions]]
 name = "hashmap_set"
 module = "std::collections::hash"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32", "i32"]
 returns = "()"
@@ -1916,6 +1994,7 @@ returns = "()"
 [[functions]]
 name = "hashmap_size"
 module = "std::collections::hash"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -1925,6 +2004,7 @@ returns = "i32"
 [[functions]]
 name = "deque_new"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = []
 returns = "Vec<i32>"
@@ -1932,6 +2012,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "deque_push_back"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "()"
@@ -1939,6 +2020,7 @@ returns = "()"
 [[functions]]
 name = "deque_push_front"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "()"
@@ -1946,6 +2028,7 @@ returns = "()"
 [[functions]]
 name = "deque_pop_front"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -1953,6 +2036,7 @@ returns = "i32"
 [[functions]]
 name = "deque_pop_back"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -1960,6 +2044,7 @@ returns = "i32"
 [[functions]]
 name = "deque_len"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -1967,6 +2052,7 @@ returns = "i32"
 [[functions]]
 name = "deque_is_empty"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "bool"
@@ -1974,6 +2060,7 @@ returns = "bool"
 [[functions]]
 name = "pq_new"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = []
 returns = "Vec<i32>"
@@ -1981,6 +2068,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "pq_push"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "()"
@@ -1988,6 +2076,7 @@ returns = "()"
 [[functions]]
 name = "pq_pop"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -1995,6 +2084,7 @@ returns = "i32"
 [[functions]]
 name = "pq_peek"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -2002,6 +2092,7 @@ returns = "i32"
 [[functions]]
 name = "pq_len"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -2009,6 +2100,7 @@ returns = "i32"
 [[functions]]
 name = "pq_is_empty"
 module = "std::collections::linear"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "bool"
@@ -2018,6 +2110,7 @@ returns = "bool"
 [[functions]]
 name = "sorted_map_new"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = []
 returns = "Vec<i32>"
@@ -2025,6 +2118,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "sorted_map_len"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -2032,6 +2126,7 @@ returns = "i32"
 [[functions]]
 name = "sorted_map_find_idx"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
@@ -2039,6 +2134,7 @@ returns = "i32"
 [[functions]]
 name = "sorted_map_get"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
@@ -2046,6 +2142,7 @@ returns = "i32"
 [[functions]]
 name = "sorted_map_contains"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
@@ -2053,6 +2150,7 @@ returns = "bool"
 [[functions]]
 name = "sorted_map_insert"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32", "i32"]
 returns = "()"
@@ -2060,6 +2158,7 @@ returns = "()"
 [[functions]]
 name = "bitset_new"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = []
 returns = "Vec<i32>"
@@ -2067,6 +2166,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "bitset_mark"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "()"
@@ -2074,6 +2174,7 @@ returns = "()"
 [[functions]]
 name = "bitset_unmark"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "()"
@@ -2081,6 +2182,7 @@ returns = "()"
 [[functions]]
 name = "bitset_test"
 module = "std::collections::ordered"
+doc_category = "collections"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
@@ -2090,6 +2192,7 @@ returns = "bool"
 [[functions]]
 name = "arena_new"
 module = "std::collections::compiler"
+doc_category = "collections"
 stability = "experimental"
 params = []
 returns = "Vec<i32>"
@@ -2097,6 +2200,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "arena_alloc"
 module = "std::collections::compiler"
+doc_category = "collections"
 stability = "experimental"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
@@ -2104,6 +2208,7 @@ returns = "i32"
 [[functions]]
 name = "arena_get"
 module = "std::collections::compiler"
+doc_category = "collections"
 stability = "experimental"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
@@ -2111,6 +2216,7 @@ returns = "i32"
 [[functions]]
 name = "arena_len"
 module = "std::collections::compiler"
+doc_category = "collections"
 stability = "experimental"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -2120,6 +2226,7 @@ returns = "i32"
 [[functions]]
 name = "binary_search"
 module = "std::seq"
+doc_category = "seq"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
@@ -2127,6 +2234,7 @@ returns = "i32"
 [[functions]]
 name = "min_i32"
 module = "std::seq"
+doc_category = "seq"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -2134,6 +2242,7 @@ returns = "i32"
 [[functions]]
 name = "max_i32"
 module = "std::seq"
+doc_category = "seq"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -2141,6 +2250,7 @@ returns = "i32"
 [[functions]]
 name = "sum_i32"
 module = "std::seq"
+doc_category = "seq"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
@@ -2148,6 +2258,7 @@ returns = "i32"
 [[functions]]
 name = "seq_reverse"
 module = "std::seq"
+doc_category = "seq"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
@@ -2155,6 +2266,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "seq_contains"
 module = "std::seq"
+doc_category = "seq"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "bool"
@@ -2162,6 +2274,7 @@ returns = "bool"
 [[functions]]
 name = "unique"
 module = "std::seq"
+doc_category = "seq"
 stability = "stable"
 params = ["Vec<i32>"]
 returns = "Vec<i32>"
@@ -2169,6 +2282,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "count_eq"
 module = "std::seq"
+doc_category = "seq"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "i32"
@@ -2178,6 +2292,7 @@ returns = "i32"
 [[functions]]
 name = "wasm_magic"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "Vec<i32>"
@@ -2185,6 +2300,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "wasm_version"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "Vec<i32>"
@@ -2192,6 +2308,7 @@ returns = "Vec<i32>"
 [[functions]]
 name = "section_type"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2199,6 +2316,7 @@ returns = "i32"
 [[functions]]
 name = "section_import"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2206,6 +2324,7 @@ returns = "i32"
 [[functions]]
 name = "section_function"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2213,6 +2332,7 @@ returns = "i32"
 [[functions]]
 name = "section_table"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2220,6 +2340,7 @@ returns = "i32"
 [[functions]]
 name = "section_memory"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2227,6 +2348,7 @@ returns = "i32"
 [[functions]]
 name = "section_global"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2234,6 +2356,7 @@ returns = "i32"
 [[functions]]
 name = "section_export"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2241,6 +2364,7 @@ returns = "i32"
 [[functions]]
 name = "section_start"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2248,6 +2372,7 @@ returns = "i32"
 [[functions]]
 name = "section_element"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2255,6 +2380,7 @@ returns = "i32"
 [[functions]]
 name = "section_code"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2262,6 +2388,7 @@ returns = "i32"
 [[functions]]
 name = "section_data"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2269,6 +2396,7 @@ returns = "i32"
 [[functions]]
 name = "valtype_i32"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2276,6 +2404,7 @@ returns = "i32"
 [[functions]]
 name = "valtype_i64"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2283,6 +2412,7 @@ returns = "i32"
 [[functions]]
 name = "valtype_f32"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2290,6 +2420,7 @@ returns = "i32"
 [[functions]]
 name = "valtype_f64"
 module = "std::wasm"
+doc_category = "wasm"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2297,6 +2428,7 @@ returns = "i32"
 [[functions]]
 name = "memory_copy"
 module = "std::wasm"
+doc_category = "wasm"
 kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_memory_copy"
 stability = "experimental"
@@ -2306,6 +2438,7 @@ returns = "()"
 [[functions]]
 name = "memory_fill"
 module = "std::wasm"
+doc_category = "wasm"
 kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_memory_fill"
 stability = "experimental"
@@ -2317,6 +2450,7 @@ returns = "()"
 [[functions]]
 name = "wit_type_bool"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2324,6 +2458,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_u8"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2331,6 +2466,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_u16"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2338,6 +2474,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_u32"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2345,6 +2482,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_u64"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2352,6 +2490,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_s8"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2359,6 +2498,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_s16"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2366,6 +2506,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_s32"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2373,6 +2514,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_s64"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2380,6 +2522,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_f32"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2387,6 +2530,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_f64"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2394,6 +2538,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_char"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2401,6 +2546,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_string"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2408,6 +2554,7 @@ returns = "i32"
 [[functions]]
 name = "wit_type_name"
 module = "std::wit"
+doc_category = "wit"
 stability = "experimental"
 params = ["i32"]
 returns = "String"
@@ -2417,6 +2564,7 @@ returns = "String"
 [[functions]]
 name = "canonical_abi_version"
 module = "std::component"
+doc_category = "component"
 stability = "experimental"
 params = []
 returns = "i32"
@@ -2424,6 +2572,7 @@ returns = "i32"
 [[functions]]
 name = "component_model_version"
 module = "std::component"
+doc_category = "component"
 stability = "experimental"
 params = []
 returns = "String"
@@ -2433,6 +2582,7 @@ returns = "String"
 [[functions]]
 name = "json_stringify_i32"
 module = "std::json"
+doc_category = "json"
 stability = "experimental"
 params = ["i32"]
 returns = "String"
@@ -2440,6 +2590,7 @@ returns = "String"
 [[functions]]
 name = "json_stringify_bool"
 module = "std::json"
+doc_category = "json"
 stability = "experimental"
 params = ["bool"]
 returns = "String"
@@ -2447,6 +2598,7 @@ returns = "String"
 [[functions]]
 name = "json_stringify_string"
 module = "std::json"
+doc_category = "json"
 stability = "experimental"
 params = ["String"]
 returns = "String"
@@ -2454,6 +2606,7 @@ returns = "String"
 [[functions]]
 name = "json_null"
 module = "std::json"
+doc_category = "json"
 stability = "experimental"
 params = []
 returns = "String"
@@ -2461,6 +2614,7 @@ returns = "String"
 [[functions]]
 name = "json_parse_i32"
 module = "std::json"
+doc_category = "json"
 stability = "experimental"
 params = ["String"]
 returns = "i32"
@@ -2468,6 +2622,7 @@ returns = "i32"
 [[functions]]
 name = "json_parse_bool"
 module = "std::json"
+doc_category = "json"
 stability = "experimental"
 params = ["String"]
 returns = "bool"
@@ -2477,6 +2632,7 @@ returns = "bool"
 [[functions]]
 name = "toml_parse_line"
 module = "std::toml"
+doc_category = "toml"
 stability = "experimental"
 params = ["String"]
 returns = "String"
@@ -2486,6 +2642,7 @@ returns = "String"
 [[functions]]
 name = "csv_split_line"
 module = "std::csv"
+doc_category = "csv"
 stability = "experimental"
 params = ["String"]
 returns = "Vec<String>"

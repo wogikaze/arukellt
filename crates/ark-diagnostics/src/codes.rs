@@ -73,6 +73,8 @@ pub enum DiagnosticCode {
     W0006,
     /// Unused binding
     W0007,
+    /// Deprecated API usage
+    W0008,
 }
 
 pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
@@ -114,6 +116,7 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::W0005,
     DiagnosticCode::W0006,
     DiagnosticCode::W0007,
+    DiagnosticCode::W0008,
 ];
 
 pub const INTERNAL_DIAGNOSTIC_IDS: &[&str] = &["ICE-PIPELINE", "ICE-MIR", "ICE-BACKEND"];
@@ -397,6 +400,13 @@ impl DiagnosticCode {
                 message: "unused binding",
                 severity: Severity::Warning,
                 phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::W0008 => DiagnosticSpec {
+                code: self,
+                id: "W0008",
+                message: "deprecated API",
+                severity: Severity::Warning,
+                phase: DiagnosticPhase::Resolve,
             },
         }
     }

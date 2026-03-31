@@ -1,6 +1,8 @@
 # v1 構文メモ
 
-> **Current-first**: 実装の現在地は [../current-state.md](../current-state.md) を参照してください。
+> **Status: Transitional** — This document describes planned v1 syntax changes.
+> For current behavior, see [../current-state.md](../current-state.md).
+> For the normative specification, see [spec.md](spec.md).
 
 このページは、v0 の関数呼び出し中心スタイルに対して、
 このブランチで入っている **v1 系の追加構文** をざっくり把握するためのメモです。

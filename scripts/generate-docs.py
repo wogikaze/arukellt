@@ -1011,13 +1011,23 @@ def render_stdlib_reference(manifest: dict) -> str:
         for entry in sorted(grouped[category], key=lambda item: item["name"]):
             intrinsic = f"`{entry['intrinsic']}`" if entry.get("intrinsic") else "-"
             module_name = f"`{entry['module']}`" if entry.get("module") else "`prelude`"
+            name_display = f"~~`{entry['name']}`~~" if entry.get("deprecated_by") else f"`{entry['name']}`"
+            deprecated_note = f" → `{entry['deprecated_by']}`" if entry.get("deprecated_by") else ""
+            # Add target/capability annotation for host functions
+            kind_display = entry.get("kind", "builtin")
+            target_list = entry.get("target", [])
+            if kind_display == "host_stub":
+                kind_display = "host_stub ⚠️"
+            if target_list:
+                kind_display += f" ({', '.join(target_list)})"
             lines.append(
-                "| `{name}` | `{signature}` | {module_name} | `{stability}` | `{kind}` | {prelude} | {intrinsic} |".format(
-                    name=entry["name"],
+                "| {name}{deprecated} | `{signature}` | {module_name} | `{stability}` | `{kind}` | {prelude} | {intrinsic} |".format(
+                    name=name_display,
+                    deprecated=deprecated_note,
                     signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
                     module_name=module_name,
                     stability=entry.get("stability", "unknown"),
-                    kind=entry.get("kind", "builtin"),
+                    kind=kind_display,
                     prelude="yes" if entry.get("prelude") else "no",
                     intrinsic=intrinsic,
                 )

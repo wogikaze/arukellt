@@ -1,6 +1,6 @@
 # Language Docs: diagnostics / error code 文書を実装と揃える
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 411
@@ -21,10 +21,10 @@ error code、diagnostic severity、出力形式の文書を実装に寄せて整
 
 ## Acceptance
 
-- [ ] diagnostics と error codes の対応表が更新される。
-- [ ] compiler / lint / LSP の出力区分が docs に反映される。
-- [ ] 関連 docs が相互リンクで整理される。
-- [ ] 少なくとも主要 error code 系 docs に整合チェックが入る。
+- [x] diagnostics と error codes の対応表が更新される。
+- [x] compiler / lint / LSP の出力区分が docs に反映される。
+- [x] 関連 docs が相互リンクで整理される。
+- [x] 少なくとも主要 error code 系 docs に整合チェックが入る。
 
 ## References
 

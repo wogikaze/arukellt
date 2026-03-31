@@ -16,6 +16,6 @@
 | [error-handling.md](error-handling.md) | エラー処理 | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [memory-model.md](memory-model.md) | メモリモデル | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
 | [spec.md](spec.md) | Arukellt Language Specification | Status: Frozen for v5 (self-hosting). |
-| [syntax-v1-preview.md](syntax-v1-preview.md) | v1 構文メモ | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
+| [syntax-v1-preview.md](syntax-v1-preview.md) | v1 構文メモ | Status: Transitional — This document describes planned v1 syntax changes. |
 | [syntax.md](syntax.md) | 構文仕様 | Current-first: いま動く構文の確認は ../current-state.md を基準にしてください。 |
 | [type-system.md](type-system.md) | 型システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |

@@ -351,6 +351,21 @@ fn main() {
 
 ---
 
+### E0211 — module contains only unimplemented host stubs
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | resolve |
+| **Message** | module contains only unimplemented host stubs |
+
+Importing a host module that is entirely composed of unimplemented stubs
+(e.g., `std::host::http` on a target that does not support WASI Preview 2)
+produces this error. The module exists in the manifest but has no callable
+implementations for the current target.
+
+---
+
 ## v0 Version Constraints & Target Errors — `E03xx`
 
 These errors enforce the v0 language subset and target compatibility.
@@ -619,6 +634,24 @@ let x = 1                  // W0007 if x is never used
 
 ---
 
+### W0008 — deprecated API
+
+| | |
+|---|---|
+| **Severity** | warning |
+| **Phase** | resolve |
+| **Message** | deprecated API: use `<replacement>` instead |
+
+A function marked as deprecated in `std/manifest.toml` is being used.
+The `deprecated_by` field indicates the recommended replacement.
+
+```ark
+// Vec_new_i32() is deprecated — use Vec::new() with type annotation
+let v = Vec_new_i32()  // W0008: deprecated API
+```
+
+---
+
 ## Internal Compiler Errors — `ICE-*`
 
 These are not language errors but signals of compiler bugs. If you encounter
@@ -655,6 +688,7 @@ one, please file a bug report.
 | E0208 | error | typecheck | missing return value |
 | E0209 | error | typecheck | unreachable pattern |
 | E0210 | error | typecheck | incompatible error type for `?` operator |
+| E0211 | error | resolve | module contains only unimplemented host stubs |
 | E0300 | error | typecheck | traits are not available in v0 |
 | E0301 | error | typecheck | method call syntax is not available in v0 |
 | E0302 | error | typecheck | nested generics are not allowed in v0 |
@@ -673,6 +707,7 @@ one, please file a bug report.
 | W0005 | warning | backend-validate | non-exportable function skipped |
 | W0006 | warning | resolve | unused import |
 | W0007 | warning | typecheck | unused binding |
+| W0008 | warning | resolve | deprecated API |
 
 ---
 

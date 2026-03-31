@@ -337,6 +337,23 @@ else
     check_fail "v3 stdlib fixtures insufficient ($stdlib_fixture_count < 5)"
 fi
 
+# Hygiene checks
+if [ -f scripts/check-links.sh ]; then
+    if bash scripts/check-links.sh >/dev/null 2>&1; then
+        check_pass "internal link integrity"
+    else
+        check_fail "broken internal links detected (run scripts/check-links.sh)"
+    fi
+fi
+
+if [ -f scripts/check-diagnostic-codes.sh ]; then
+    if bash scripts/check-diagnostic-codes.sh >/dev/null 2>&1; then
+        check_pass "diagnostic codes aligned"
+    else
+        check_fail "diagnostic codes out of sync (run scripts/check-diagnostic-codes.sh)"
+    fi
+fi
+
 if [ "$RUN_COMPONENT" = true ]; then
     printf '\n%s\n' "${YELLOW}[component] Component interop smoke test...${NC}"
     if ! command -v wasmtime >/dev/null 2>&1; then
