@@ -75,10 +75,10 @@ run_supported = false
 role = "Not started: WASI p3 spec not finalized"
 
 [verification]
-fixture_passed = 590
+fixture_passed = 592
 fixture_skipped = 5
 fixture_failures = 0
-fixture_manifest_count = 595
+fixture_manifest_count = 597
 checks_passed = 13
 checks_total = 13
 unit_tests_note = "current count is verified by `cargo test --workspace --exclude ark-llvm`"

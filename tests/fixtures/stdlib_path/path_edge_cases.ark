@@ -1,0 +1,58 @@
+use std::path
+use std::host::stdio
+
+fn main() {
+    // === join edge cases ===
+    // join with empty base
+    stdio::println(path::join("", "child"))
+    // join with empty child
+    stdio::println(path::join("base", ""))
+    // join both empty
+    stdio::println(path::join("", ""))
+    // join with trailing slash on base
+    stdio::println(path::join("dir/", "file"))
+    // nested path
+    stdio::println(path::join("a/b", "c/d"))
+
+    // === parent edge cases ===
+    // parent of simple file
+    stdio::println(path::parent("dir/file.txt"))
+    // parent of nested
+    stdio::println(path::parent("a/b/c"))
+    // parent of root
+    stdio::println(path::parent("/"))
+    // parent of single component
+    stdio::println(path::parent("file.txt"))
+
+    // === file_name edge cases ===
+    // trailing slash
+    stdio::println(path::file_name("dir/"))
+    // nested with extension
+    stdio::println(path::file_name("a/b/c.txt"))
+    // no directory
+    stdio::println(path::file_name("standalone"))
+
+    // === extension edge cases ===
+    // multiple dots
+    stdio::println(path::extension("file.tar.gz"))
+    // hidden file
+    stdio::println(path::extension(".gitignore"))
+    // no extension
+    stdio::println(path::extension("Makefile"))
+    // path with extension
+    stdio::println(path::extension("dir/file.rs"))
+
+    // === with_extension edge cases ===
+    // replace existing
+    stdio::println(path::with_extension("main.rs", "ark"))
+    // add to no extension
+    stdio::println(path::with_extension("Makefile", "bak"))
+    // empty extension (remove)
+    stdio::println(path::with_extension("file.txt", ""))
+
+    // === is_absolute edge cases ===
+    stdio::println(bool_to_string(path::is_absolute("/")))
+    stdio::println(bool_to_string(path::is_absolute("/usr/bin")))
+    stdio::println(bool_to_string(path::is_absolute("relative/path")))
+    stdio::println(bool_to_string(path::is_absolute("")))
+}

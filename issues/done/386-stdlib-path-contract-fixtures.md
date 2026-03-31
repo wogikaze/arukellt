@@ -21,10 +21,10 @@ path family の API を platform-neutral な Wasm 環境でどう定義するか
 
 ## Acceptance
 
-- [ ] path 結合・分解・正規化の fixture が追加される。
-- [ ] host OS に依存しない契約が docs に明記される。
-- [ ] `..` や `.` を含む入力の期待値が固定される。
-- [ ] 関連 recipe または examples が追加される。
+- [x] path 結合・分解・正規化の fixture が追加される。
+- [x] host OS に依存しない契約が docs に明記される。
+- [x] `..` や `.` を含む入力の期待値が固定される。
+- [x] 関連 recipe または examples が追加される。
 
 ## References
 

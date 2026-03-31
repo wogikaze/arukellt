@@ -32,8 +32,8 @@ Two lowering paths are available, selected via `--mir-select`:
 ## Test Health
 
 - Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
-- Fixture harness: 590 passed, 0 failed, 5 skipped (manifest-driven)
-- Fixture manifest: 595 entries
+- Fixture harness: 592 passed, 0 failed, 5 skipped (manifest-driven)
+- Fixture manifest: 597 entries
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)` — **13/13 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->
