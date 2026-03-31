@@ -1,8 +1,8 @@
 # LSP standard feature completeness
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
-**Updated**: 2026-03-30
+**Updated**: 2026-03-31
 **ID**: 219
 **Depends on**: none
 **Track**: parallel
@@ -16,9 +16,9 @@ signature help、document highlights、inlay hints、inline values、folding ran
 
 ## Acceptance
 
-- [ ] signature help / document highlights / inlay hints が動作する
-- [ ] folding ranges / selection ranges が動作する
-- [ ] large file（>5000 行）で LSP が応答不能にならない
+- [x] signature help / document highlights / inlay hints が動作する
+- [x] folding ranges / selection ranges が動作する
+- [x] large file（>5000 行）で LSP が応答不能にならない
 
 ## Scope
 
