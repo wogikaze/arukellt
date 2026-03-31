@@ -17,13 +17,13 @@
 <!-- BEGIN GENERATED:CURRENT_STATE_TARGETS -->
 ## Targets
 
-| Target | Tier | Status | Run | Notes |
-|--------|------|--------|-----|-------|
-| `wasm32-wasi-p1` | T1 | stable | Yes | CLI default compatibility path for non-GC environments |
-| `wasm32-freestanding` | T2 | unimplemented | No | Registry only |
-| `wasm32-wasi-p2` | T3 | stable | Yes | Canonical GC-native path |
-| `native` | T4 | scaffold | No | LLVM scaffold only |
-| `wasm32-wasi-p3` | T5 | unimplemented | No | Future |
+| Target | Tier | ADR-013 Tier | Status | Run | Notes |
+|--------|------|--------------|--------|-----|-------|
+| `wasm32-wasi-p1` | T1 | supported | stable | Yes | Supported: full fixture coverage, AtCoder/competition target |
+| `wasm32-freestanding` | T2 | not-started | unimplemented | No | Not started: no codegen, no tests |
+| `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): canonical GC-native path, all CI gates apply |
+| `native` | T4 | scaffold | scaffold | No | Scaffold: ark-llvm exists, requires LLVM 18, no tests |
+| `wasm32-wasi-p3` | T5 | not-started | unimplemented | No | Not started: WASI p3 spec not finalized |
 <!-- END GENERATED:CURRENT_STATE_TARGETS -->
 
 <!-- BEGIN GENERATED:CURRENT_STATE_TEST_HEALTH -->

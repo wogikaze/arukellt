@@ -4,6 +4,9 @@ This document defines, for each compilation target, exactly which
 verification surfaces are **guaranteed**, which are **smoke-tested**,
 which exist only as **scaffold**, and which are **not started**.
 
+**Primary target (ADR-013): T3 (wasm32-wasi-p2)** — all CI quality gates
+apply to T3 first.  T1 is `supported`.  T2, T4, T5 are `scaffold` or `not-started`.
+
 CI enforces this contract via `ARUKELLT_TARGET` in the `target-behavior`
 matrix job.  See `.github/workflows/ci.yml`.
 
