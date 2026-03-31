@@ -193,6 +193,7 @@ dependencies = [
  "ark-manifest",
  "ark-parser",
  "ark-resolve",
+ "ark-stdlib",
  "ark-typecheck",
  "serde_json",
  "tokio",

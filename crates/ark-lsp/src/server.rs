@@ -8,6 +8,7 @@ use ark_diagnostics::{DiagnosticSink, Severity};
 use ark_lexer::{Lexer, TokenKind};
 use ark_parser::ast;
 use ark_parser::parse;
+use ark_stdlib::StdlibManifest;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -42,6 +43,8 @@ struct ArukellBackend {
     project_root: Mutex<Option<PathBuf>>,
     /// All workspace folder roots provided by the editor (multi-root support).
     workspace_roots: Mutex<Vec<PathBuf>>,
+    /// Parsed stdlib manifest for completions, hover, signature help.
+    stdlib_manifest: Mutex<Option<StdlibManifest>>,
 }
 
 impl ArukellBackend {
@@ -52,6 +55,7 @@ impl ArukellBackend {
             analysis_cache: Mutex::new(HashMap::new()),
             project_root: Mutex::new(None),
             workspace_roots: Mutex::new(Vec::new()),
+            stdlib_manifest: Mutex::new(None),
         }
     }
 
@@ -256,6 +260,7 @@ impl ArukellBackend {
         tokens: &[ark_lexer::Token],
         module: &ast::Module,
         offset: usize,
+        manifest: Option<&StdlibManifest>,
     ) -> Vec<CompletionItem> {
         let mut items = Vec::new();
         let mut seen = HashSet::new();
@@ -264,162 +269,203 @@ impl ArukellBackend {
         let imported_aliases = Self::imported_aliases(module);
         let expected_type = Self::expected_type_from_context(source, offset);
 
-        // Built-in functions with simple relevance ordering.
-        let builtins = [
-            (
-                "println",
-                "Print a value followed by newline",
-                Some("String"),
-                "010",
-            ),
-            ("print", "Print a value", Some("String"), "011"),
-            (
-                "len",
-                "Get length of a Vec or String",
-                Some("collection"),
-                "020",
-            ),
-            ("push", "Push element to Vec", Some("collection"), "030"),
-            (
-                "get",
-                "Get element from Vec by index",
-                Some("collection"),
-                "031",
-            ),
-            (
-                "set",
-                "Set element in Vec at index",
-                Some("collection"),
-                "032",
-            ),
-            (
-                "pop",
-                "Remove last element from Vec",
-                Some("collection"),
-                "033",
-            ),
-            (
-                "to_string",
-                "Convert a value to String",
-                Some("String"),
-                "012",
-            ),
-            (
-                "i32_to_string",
-                "Convert i32 to String",
-                Some("String"),
-                "013",
-            ),
-            (
-                "i64_to_string",
-                "Convert i64 to String",
-                Some("String"),
-                "014",
-            ),
-            (
-                "f64_to_string",
-                "Convert f64 to String",
-                Some("String"),
-                "015",
-            ),
-            (
-                "bool_to_string",
-                "Convert bool to String",
-                Some("String"),
-                "016",
-            ),
-            ("concat", "Concatenate two strings", Some("String"), "017"),
-            (
-                "Vec_new_i32",
-                "Create new Vec<i32>",
-                Some("collection"),
-                "040",
-            ),
-            (
-                "Vec_new_String",
-                "Create new Vec<String>",
-                Some("collection"),
-                "041",
-            ),
-            (
-                "sort_i32",
-                "Sort Vec<i32> in place",
-                Some("collection"),
-                "042",
-            ),
-            ("assert", "Assert a boolean condition", None, "050"),
-            ("assert_eq", "Assert two values are equal", None, "051"),
-            ("parse_i32", "Parse string to i32", None, "052"),
-        ];
-
-        for (name, detail, expected, base_rank) in &builtins {
-            if !prefix.is_empty() && !name.starts_with(&prefix) {
-                continue;
+        // Prelude functions from manifest (replaces hardcoded builtins).
+        if let Some(m) = manifest {
+            for func in &m.functions {
+                if func.prelude {
+                    if !prefix.is_empty() && !func.name.starts_with(&prefix) {
+                        continue;
+                    }
+                    let doc = func.doc_category.as_deref().or(func.module.as_deref());
+                    let rank = if expected_type.is_some() && doc == expected_type.as_deref() {
+                        format!("0-{}", func.name)
+                    } else {
+                        format!("1-{}", func.name)
+                    };
+                    let detail = if let Some(ret) = &func.returns {
+                        let params_str = func.params.join(", ");
+                        format!("fn {}({}) -> {}", func.name, params_str, ret)
+                    } else {
+                        let params_str = func.params.join(", ");
+                        format!("fn {}({})", func.name, params_str)
+                    };
+                    let deprecated = func.deprecated_by.is_some();
+                    Self::push_completion(
+                        &mut items,
+                        &mut seen,
+                        CompletionItem {
+                            label: func.name.clone(),
+                            kind: Some(CompletionItemKind::FUNCTION),
+                            detail: Some(detail),
+                            sort_text: Some(rank),
+                            filter_text: Some(func.name.clone()),
+                            deprecated: if deprecated { Some(true) } else { None },
+                            ..Default::default()
+                        },
+                    );
+                }
             }
-            let rank = if expected_type.is_some() && expected_type == *expected {
-                format!("0-{base_rank}")
-            } else {
-                format!("1-{base_rank}")
-            };
-            Self::push_completion(
-                &mut items,
-                &mut seen,
-                CompletionItem {
-                    label: (*name).to_string(),
-                    kind: Some(CompletionItemKind::FUNCTION),
-                    detail: Some((*detail).to_string()),
-                    sort_text: Some(rank),
-                    filter_text: Some((*name).to_string()),
-                    ..Default::default()
-                },
-            );
+        } else {
+            // Fallback: minimal hardcoded builtins when manifest is not available.
+            let builtins: &[(&str, &str)] = &[
+                ("println", "Print a value followed by newline"),
+                ("print", "Print a value"),
+                ("len", "Get length of a Vec or String"),
+                ("push", "Push element to Vec"),
+                ("to_string", "Convert a value to String"),
+                ("assert", "Assert a boolean condition"),
+                ("assert_eq", "Assert two values are equal"),
+            ];
+            for (name, detail) in builtins {
+                if !prefix.is_empty() && !name.starts_with(&prefix) {
+                    continue;
+                }
+                Self::push_completion(
+                    &mut items,
+                    &mut seen,
+                    CompletionItem {
+                        label: (*name).to_string(),
+                        kind: Some(CompletionItemKind::FUNCTION),
+                        detail: Some((*detail).to_string()),
+                        sort_text: Some(format!("1-{name}")),
+                        ..Default::default()
+                    },
+                );
+            }
         }
 
-        // Importable std/host modules with auto-import hints.
-        let importable_modules = [
-            "std::host::stdio",
-            "std::host::fs",
-            "std::host::env",
-            "std::path",
-            "std::time",
-            "std::test",
-        ];
-        for module_name in &importable_modules {
-            let alias = module_name.rsplit("::").next().unwrap_or(module_name);
-            if !prefix.is_empty()
-                && !alias.starts_with(&prefix)
-                && !module_name.starts_with(&prefix)
-            {
-                continue;
-            }
-            let detail =
-                if imported_modules.contains(*module_name) || imported_aliases.contains(alias) {
+        // Importable std modules from manifest (replaces hardcoded list).
+        if let Some(m) = manifest {
+            let candidates = m.import_candidates();
+            for (alias, module_name) in &candidates {
+                if !prefix.is_empty()
+                    && !alias.starts_with(&prefix)
+                    && !module_name.starts_with(&prefix)
+                {
+                    continue;
+                }
+                let detail = if imported_modules.contains(module_name.as_str())
+                    || imported_aliases.contains(alias.as_str())
+                {
                     format!("module {module_name}")
                 } else {
                     format!("module {module_name} (auto import candidate)")
                 };
-            let documentation =
-                if imported_modules.contains(*module_name) || imported_aliases.contains(alias) {
+                let documentation = if imported_modules.contains(module_name.as_str())
+                    || imported_aliases.contains(alias.as_str())
+                {
                     None
                 } else {
                     Some(Documentation::String(format!(
                         "Add `use {module_name}` to import this module alias."
                     )))
                 };
-            Self::push_completion(
-                &mut items,
-                &mut seen,
-                CompletionItem {
-                    label: alias.to_string(),
-                    kind: Some(CompletionItemKind::MODULE),
-                    detail: Some(detail),
-                    documentation,
-                    sort_text: Some(format!("2-{alias}")),
-                    filter_text: Some(module_name.to_string()),
-                    insert_text: Some(alias.to_string()),
-                    ..Default::default()
-                },
-            );
+                Self::push_completion(
+                    &mut items,
+                    &mut seen,
+                    CompletionItem {
+                        label: alias.clone(),
+                        kind: Some(CompletionItemKind::MODULE),
+                        detail: Some(detail),
+                        documentation,
+                        sort_text: Some(format!("2-{alias}")),
+                        filter_text: Some(module_name.clone()),
+                        insert_text: Some(alias.clone()),
+                        ..Default::default()
+                    },
+                );
+            }
+        } else {
+            let importable_modules = [
+                "std::host::stdio",
+                "std::host::fs",
+                "std::host::env",
+                "std::path",
+                "std::time",
+                "std::test",
+            ];
+            for module_name in &importable_modules {
+                let alias = module_name.rsplit("::").next().unwrap_or(module_name);
+                if !prefix.is_empty()
+                    && !alias.starts_with(&prefix)
+                    && !module_name.starts_with(&prefix)
+                {
+                    continue;
+                }
+                let detail = if imported_modules.contains(*module_name)
+                    || imported_aliases.contains(alias)
+                {
+                    format!("module {module_name}")
+                } else {
+                    format!("module {module_name} (auto import candidate)")
+                };
+                let documentation = if imported_modules.contains(*module_name)
+                    || imported_aliases.contains(alias)
+                {
+                    None
+                } else {
+                    Some(Documentation::String(format!(
+                        "Add `use {module_name}` to import this module alias."
+                    )))
+                };
+                Self::push_completion(
+                    &mut items,
+                    &mut seen,
+                    CompletionItem {
+                        label: alias.to_string(),
+                        kind: Some(CompletionItemKind::MODULE),
+                        detail: Some(detail),
+                        documentation,
+                        sort_text: Some(format!("2-{alias}")),
+                        filter_text: Some(module_name.to_string()),
+                        insert_text: Some(alias.to_string()),
+                        ..Default::default()
+                    },
+                );
+            }
+        }
+
+        // Non-prelude module functions (e.g. stdio::read_line, fs::read_to_string)
+        if let Some(m) = manifest {
+            let by_mod = m.functions_by_module();
+            for (mod_name, funcs) in &by_mod {
+                if mod_name == "prelude" {
+                    continue;
+                }
+                let alias = mod_name.rsplit("::").next().unwrap_or(mod_name);
+                if !imported_modules.contains(mod_name.as_str())
+                    && !imported_aliases.contains(alias)
+                {
+                    continue;
+                }
+                for func_name in funcs {
+                    let qualified = format!("{alias}::{func_name}");
+                    if !prefix.is_empty()
+                        && !func_name.starts_with(&prefix)
+                        && !qualified.starts_with(&prefix)
+                    {
+                        continue;
+                    }
+                    if let Some(func) = m.functions.iter().find(|f| &f.name == func_name) {
+                        let detail = if let Some(ret) = &func.returns {
+                            format!("fn {func_name}({}) -> {ret}", func.params.join(", "))
+                        } else {
+                            format!("fn {func_name}({})", func.params.join(", "))
+                        };
+                        Self::push_completion(
+                            &mut items,
+                            &mut seen,
+                            CompletionItem {
+                                label: func_name.clone(),
+                                kind: Some(CompletionItemKind::FUNCTION),
+                                detail: Some(detail),
+                                sort_text: Some(format!("1-{func_name}")),
+                                ..Default::default()
+                            },
+                        );
+                    }
+                }
+            }
         }
 
         // Keywords
@@ -612,6 +658,66 @@ impl ArukellBackend {
             }
             _ => None,
         }
+    }
+
+    /// Build hover information for a stdlib function from the manifest.
+    fn stdlib_hover_info(name: &str, manifest: &StdlibManifest) -> Option<String> {
+        let func = manifest.functions.iter().find(|f| f.name == name)?;
+        let params_str = func.params.join(", ");
+        let ret = func.returns.as_deref().unwrap_or("()");
+        let mut hover = format!("```arukellt\nfn {name}({params_str}) -> {ret}\n```");
+        if let Some(ref module) = func.module {
+            hover.push_str(&format!("\n\n*Module:* `{module}`"));
+        } else if func.prelude {
+            hover.push_str("\n\n*Prelude function* — available without import");
+        }
+        if let Some(ref stability) = func.stability {
+            hover.push_str(&format!("  \n*Stability:* {stability}"));
+        }
+        if let Some(ref deprecated) = func.deprecated_by {
+            hover.push_str(&format!("  \n⚠️ *Deprecated:* use `{deprecated}` instead"));
+        }
+        if let Some(ref cat) = func.doc_category {
+            hover.push_str(&format!("  \n*Category:* {cat}"));
+        }
+        Some(hover)
+    }
+
+    /// Build hover information for a stdlib module from the manifest.
+    fn stdlib_module_hover(name: &str, manifest: &StdlibManifest) -> Option<String> {
+        // Find the full module name by alias match
+        let full_name = manifest.modules.iter()
+            .find(|m| m.name == name || m.name.rsplit("::").next() == Some(name))
+            .map(|m| m.name.as_str());
+        
+        // If not in [[modules]], check function module references
+        let full_name = full_name.or_else(|| {
+            manifest.functions.iter()
+                .filter_map(|f| f.module.as_deref())
+                .find(|m| *m == name || m.rsplit("::").next() == Some(name))
+        })?;
+
+        let doc = manifest.modules.iter()
+            .find(|m| m.name == full_name)
+            .and_then(|m| m.doc.as_deref());
+        
+        let funcs: Vec<&str> = manifest.functions.iter()
+            .filter(|f| f.module.as_deref() == Some(full_name))
+            .map(|f| f.name.as_str())
+            .collect();
+        
+        let mut hover = format!("```\nmodule {full_name}\n```");
+        if let Some(d) = doc {
+            hover.push_str(&format!("\n\n{d}"));
+        }
+        if !funcs.is_empty() {
+            let preview: Vec<&str> = funcs.iter().take(10).copied().collect();
+            hover.push_str(&format!("\n\n**Functions:** {}", preview.join(", ")));
+            if funcs.len() > 10 {
+                hover.push_str(&format!(" … and {} more", funcs.len() - 10));
+            }
+        }
+        Some(hover)
     }
 
     /// Build type-aware hover information for an identifier using cached
@@ -2008,10 +2114,17 @@ impl LanguageServer for ArukellBackend {
         if let Some(dir) = ws_roots.first() {
             match ark_manifest::Manifest::find_root(dir) {
                 Some(root) => {
+                    // Try to load stdlib manifest from the project root
+                    if let Ok(manifest) = StdlibManifest::load_from_repo(&root) {
+                        *self.stdlib_manifest.lock().unwrap() = Some(manifest);
+                    }
                     *self.project_root.lock().unwrap() = Some(root);
                 }
                 None => {
-                    // Single-file mode: no ark.toml found, operate on individual files.
+                    // Single-file mode: try to load manifest from workspace dir
+                    if let Ok(manifest) = StdlibManifest::load_from_repo(dir) {
+                        *self.stdlib_manifest.lock().unwrap() = Some(manifest);
+                    }
                 }
             }
         }
@@ -2181,6 +2294,7 @@ impl LanguageServer for ArukellBackend {
             .or_insert_with(|| Self::analyze_source(&source));
 
         let target_offset = Self::position_to_offset(&source, pos);
+        let manifest = self.stdlib_manifest.lock().unwrap();
 
         for tok in &analysis.tokens {
             let start = tok.span.start as usize;
@@ -2196,6 +2310,14 @@ impl LanguageServer for ArukellBackend {
                             analysis.checker.as_ref(),
                         ) {
                             type_info
+                        } else if let Some(ref m) = *manifest {
+                            if let Some(stdlib_info) = Self::stdlib_hover_info(text, m) {
+                                stdlib_info
+                            } else if let Some(mod_info) = Self::stdlib_module_hover(text, m) {
+                                mod_info
+                            } else {
+                                format!("identifier `{}`", text)
+                            }
                         } else {
                             format!("identifier `{}`", text)
                         }
@@ -2210,7 +2332,10 @@ impl LanguageServer for ArukellBackend {
                     _ => format!("`{}`", text),
                 };
                 return Ok(Some(Hover {
-                    contents: HoverContents::Scalar(MarkedString::String(info)),
+                    contents: HoverContents::Markup(MarkupContent {
+                        kind: MarkupKind::Markdown,
+                        value: info,
+                    }),
                     range: Some(Self::span_to_range(&source, tok.span)),
                 }));
             }
@@ -2236,7 +2361,8 @@ impl LanguageServer for ArukellBackend {
             .or_insert_with(|| Self::analyze_source(&source));
 
         let offset = Self::position_to_offset(&source, params.text_document_position.position);
-        let items = Self::get_completions(&source, &analysis.tokens, &analysis.module, offset);
+        let manifest = self.stdlib_manifest.lock().unwrap();
+        let items = Self::get_completions(&source, &analysis.tokens, &analysis.module, offset, manifest.as_ref());
         Ok(Some(CompletionResponse::Array(items)))
     }
 
@@ -2431,6 +2557,43 @@ impl LanguageServer for ArukellBackend {
                     }));
                 }
             }
+
+            // Fallback: check stdlib manifest for function signatures
+            let manifest = self.stdlib_manifest.lock().unwrap();
+            if let Some(ref m) = *manifest {
+                if let Some(func) = m.functions.iter().find(|f| f.name == name) {
+                    let param_infos: Vec<ParameterInformation> = func
+                        .params
+                        .iter()
+                        .map(|p| ParameterInformation {
+                            label: ParameterLabel::Simple(p.to_string()),
+                            documentation: None,
+                        })
+                        .collect();
+
+                    let active_parameter = before[open_paren + 1..]
+                        .chars()
+                        .filter(|&c| c == ',')
+                        .count() as u32;
+
+                    let ret = func.returns.as_deref().unwrap_or("()");
+                    return Ok(Some(SignatureHelp {
+                        signatures: vec![SignatureInformation {
+                            label: format!(
+                                "fn {}({}) -> {}",
+                                func.name,
+                                func.params.join(", "),
+                                ret
+                            ),
+                            documentation: None,
+                            parameters: Some(param_infos),
+                            active_parameter: Some(active_parameter),
+                        }],
+                        active_signature: Some(0),
+                        active_parameter: Some(active_parameter),
+                    }));
+                }
+            }
         }
 
         Ok(None)
@@ -2551,27 +2714,17 @@ impl LanguageServer for ArukellBackend {
         };
 
         // --- Quick fix code actions (diagnostic-driven) ---
+        let manifest_candidates: Vec<(String, String)> = {
+            let m = self.stdlib_manifest.lock().unwrap();
+            m.as_ref().map(|m| m.import_candidates()).unwrap_or_default()
+        };
         for diag in &params.context.diagnostics {
             if let Some(NumberOrString::String(ref code)) = diag.code {
                 if code == "E0100" {
                     // Auto-import for unresolved name
                     let name = &diag.message;
-                    let import_candidates = [
-                        ("stdio", "std::host::stdio"),
-                        ("fs", "std::host::fs"),
-                        ("env", "std::host::env"),
-                        ("Path", "std::path"),
-                        ("Time", "std::time"),
-                        ("Test", "std::test"),
-                        ("math", "std::math"),
-                        ("string", "std::string"),
-                        ("collections", "std::collections"),
-                        ("process", "std::host::process"),
-                        ("clock", "std::host::clock"),
-                        ("random", "std::host::random"),
-                    ];
-                    for (alias, module) in import_candidates {
-                        if name.contains(alias) {
+                    for (alias, module) in &manifest_candidates {
+                        if name.contains(alias.as_str()) {
                             let mut changes = HashMap::new();
                             changes.insert(
                                 uri.clone(),
@@ -3554,7 +3707,7 @@ mod tests {
     fn completion_includes_auto_import_candidate_for_stdio() {
         let source = "std";
         let tokens = vec![];
-        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len());
+        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len(), None);
         let stdio = items
             .iter()
             .find(|item| item.label == "stdio")
@@ -3573,7 +3726,7 @@ mod tests {
     fn completion_prefers_string_helpers_in_print_context() {
         let source = "fn main() { println(to_";
         let tokens = vec![];
-        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len());
+        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len(), None);
         assert_eq!(
             items.first().map(|item| item.label.as_str()),
             Some("to_string")
@@ -3592,7 +3745,7 @@ mod tests {
             }],
             items: vec![],
         };
-        let items = ArukellBackend::get_completions(source, &[], &module, source.len());
+        let items = ArukellBackend::get_completions(source, &[], &module, source.len(), None);
         let stdio = items
             .iter()
             .find(|item| item.label == "stdio")
@@ -3652,5 +3805,81 @@ mod tests {
         // The formatter should normalize spacing
         assert!(fmt.contains("let x = 1") || fmt.contains("let x ="), 
             "formatter should clean up spacing in formatted output");
+    }
+
+    fn load_test_manifest() -> StdlibManifest {
+        let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent().unwrap().parent().unwrap().to_path_buf();
+        StdlibManifest::load_from_repo(&root).unwrap()
+    }
+
+    #[test]
+    fn manifest_driven_completions_include_prelude_functions() {
+        let manifest = load_test_manifest();
+        let source = "asse";
+        let items = ArukellBackend::get_completions(
+            source, &[], &empty_module(), source.len(), Some(&manifest),
+        );
+        let assert_item = items.iter().find(|i| i.label == "assert");
+        assert!(assert_item.is_some(), "manifest completions should include assert");
+        let item = assert_item.unwrap();
+        assert_eq!(item.kind, Some(CompletionItemKind::FUNCTION));
+        // Should show signature from manifest
+        assert!(item.detail.as_deref().unwrap_or("").contains("fn assert"));
+    }
+
+    #[test]
+    fn manifest_driven_completions_include_all_modules() {
+        let manifest = load_test_manifest();
+        let source = "";
+        let items = ArukellBackend::get_completions(
+            source, &[], &empty_module(), source.len(), Some(&manifest),
+        );
+        let module_items: Vec<&str> = items.iter()
+            .filter(|i| i.kind == Some(CompletionItemKind::MODULE))
+            .map(|i| i.label.as_str())
+            .collect();
+        assert!(module_items.contains(&"stdio"), "should have stdio from manifest");
+        assert!(module_items.contains(&"fs"), "should have fs from manifest");
+        assert!(module_items.contains(&"env"), "should have env from manifest");
+    }
+
+    #[test]
+    fn stdlib_hover_shows_signature_and_metadata() {
+        let manifest = load_test_manifest();
+        let info = ArukellBackend::stdlib_hover_info("println", &manifest);
+        assert!(info.is_some(), "println should have stdlib hover info");
+        let text = info.unwrap();
+        assert!(text.contains("fn println"), "should show function signature");
+        assert!(text.contains("std::host::stdio"), "should show module name");
+    }
+
+    #[test]
+    fn stdlib_module_hover_shows_functions() {
+        let manifest = load_test_manifest();
+        let info = ArukellBackend::stdlib_module_hover("stdio", &manifest);
+        assert!(info.is_some(), "stdio should have module hover info");
+        let text = info.unwrap();
+        assert!(text.contains("std::host::stdio"), "should show full module path");
+    }
+
+    #[test]
+    fn deprecated_functions_marked_in_completions() {
+        let manifest = load_test_manifest();
+        let source = "";
+        let items = ArukellBackend::get_completions(
+            source, &[], &empty_module(), source.len(), Some(&manifest),
+        );
+        // Check that deprecated functions have the deprecated flag
+        let deprecated_in_manifest: Vec<&str> = manifest.functions.iter()
+            .filter(|f| f.deprecated_by.is_some() && f.prelude)
+            .map(|f| f.name.as_str())
+            .collect();
+        for name in deprecated_in_manifest {
+            if let Some(item) = items.iter().find(|i| i.label == name) {
+                assert_eq!(item.deprecated, Some(true),
+                    "deprecated function '{}' should be marked deprecated", name);
+            }
+        }
     }
 }
