@@ -621,3 +621,4 @@ run:stdlib_seq/seq_edge_cases.ark
 run:stdlib_json/json_roundtrip.ark
 run:stdlib_toml/toml_basic.ark
 run:stdlib_csv/csv_basic.ark
+run:stdlib_test/test_helpers.ark

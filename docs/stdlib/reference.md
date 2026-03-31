@@ -199,12 +199,15 @@
 | `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
 | `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
 | `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
+| `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
 | `assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `stable` | `builtin` | no | - |
 | `assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `stable` | `builtin` | no | - |
 | `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - |
 | `assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `stable` | `builtin` | no | - |
+| `assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
 | `assert_eq_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
 | `assert_false` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - |
+| `assert_msg` | `(bool, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
 | `assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - |
 | `assert_ne_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
 | `assert_true` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - |

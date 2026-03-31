@@ -109,3 +109,28 @@ pub fn expect_none_i32(o: Option<i32>) {
         None => {}
     }
 }
+
+// === Snapshot / comparison helpers ===
+
+/// Assert that a string contains a given substring.
+pub fn assert_contains(haystack: String, needle: String) {
+    if !contains(haystack, needle) {
+        let msg = concat("assert_contains failed: \"", concat(haystack, concat("\" does not contain \"", concat(needle, "\""))))
+        panic(msg)
+    }
+}
+
+/// Assert that two strings are equal, showing a line-by-line comparison on failure.
+pub fn assert_eq_snapshot(actual: String, expected: String) {
+    if !eq(actual, expected) {
+        let msg = concat("snapshot mismatch:\n--- expected ---\n", concat(expected, concat("\n--- actual ---\n", actual)))
+        panic(msg)
+    }
+}
+
+/// Assert that a boolean condition holds, with a custom failure message.
+pub fn assert_msg(cond: bool, message: String) {
+    if !cond {
+        panic(concat("assertion failed: ", message))
+    }
+}

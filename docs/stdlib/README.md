@@ -6,11 +6,11 @@ manifest-backed な公開 API と利用ガイド。
 ## Current Snapshot
 
 - Current source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), and the `std/*.ark` source files that carry doc comments.
-- Manifest-backed public functions: 266
+- Manifest-backed public functions: 269
 - Prelude wrappers: 100
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
 - Prelude values: `Some`, `None`, `Ok`, `Err`, `true`, `false`
-- Categories: `assert` 5, `box` 2, `collections` 45, `control` 1, `conversion` 10, `host_clock` 1, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 3, `host_sockets` 1, `host_stdio` 3, `math` 5, `misc` 145, `option_result` 14, `string` 19
+- Categories: `assert` 5, `box` 2, `collections` 45, `control` 1, `conversion` 10, `host_clock` 1, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 3, `host_sockets` 1, `host_stdio` 3, `math` 5, `misc` 148, `option_result` 14, `string` 19
 - Source-backed modules: 26
 
 ## Recommended Reads

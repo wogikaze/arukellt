@@ -6,8 +6,8 @@ Source-backed docs for assertion and expectation helpers.
 ## `std::test`
 
 - Source: [`../../../std/test/mod.ark`](../../../std/test/mod.ark)
-- Manifest-backed functions: 13
-- Stability: stable 13
+- Manifest-backed functions: 16
+- Stability: stable 16
 
 Testing utilities for fixture and example code.
 
@@ -31,3 +31,6 @@ The current module provides typed assertions and expectation helpers for
 | `expect_err_string` | `(Result<i32, String>) -> String` | `stable` | - |
 | `expect_some_i32` | `(Option<i32>) -> i32` | `stable` | - |
 | `expect_none_i32` | `(Option<i32>) -> ()` | `stable` | - |
+| `assert_contains` | `(String, String) -> ()` | `stable` | Assert that a string contains a given substring. |
+| `assert_eq_snapshot` | `(String, String) -> ()` | `stable` | Assert that two strings are equal, showing a line-by-line comparison on failure. |
+| `assert_msg` | `(bool, String) -> ()` | `stable` | Assert that a boolean condition holds, with a custom failure message. |

@@ -1361,6 +1361,27 @@ stability = "stable"
 params = ["Option<i32>"]
 returns = "()"
 
+[[functions]]
+name = "assert_contains"
+module = "std::test"
+stability = "stable"
+params = ["String", "String"]
+returns = "()"
+
+[[functions]]
+name = "assert_eq_snapshot"
+module = "std::test"
+stability = "stable"
+params = ["String", "String"]
+returns = "()"
+
+[[functions]]
+name = "assert_msg"
+module = "std::test"
+stability = "stable"
+params = ["bool", "String"]
+returns = "()"
+
 # === std::text (extended) ===
 
 [[functions]]

@@ -1,0 +1,47 @@
+use std::test
+use std::host::stdio
+
+fn main() {
+    // assert_true / assert_false
+    test::assert_true(1 == 1)
+    test::assert_false(1 == 2)
+    stdio::println("assert_true/false OK")
+
+    // assert_eq_i32
+    test::assert_eq_i32(42, 42)
+    stdio::println("assert_eq_i32 OK")
+
+    // assert_eq_string
+    test::assert_eq_string("hello", "hello")
+    stdio::println("assert_eq_string OK")
+
+    // assert_ne_i32
+    test::assert_ne_i32(1, 2)
+    stdio::println("assert_ne_i32 OK")
+
+    // assert_contains
+    test::assert_contains("hello world", "world")
+    test::assert_contains("arukellt", "aru")
+    stdio::println("assert_contains OK")
+
+    // assert_eq_snapshot
+    test::assert_eq_snapshot("line1\nline2", "line1\nline2")
+    stdio::println("assert_eq_snapshot OK")
+
+    // assert_msg
+    test::assert_msg(true, "this should pass")
+    stdio::println("assert_msg OK")
+
+    // expect_some_i32
+    let opt: Option<i32> = Some(10)
+    let val = test::expect_some_i32(opt)
+    test::assert_eq_i32(val, 10)
+    stdio::println("expect_some OK")
+
+    // expect_none_i32
+    let none_opt: Option<i32> = None
+    test::expect_none_i32(none_opt)
+    stdio::println("expect_none OK")
+
+    stdio::println("all test helpers passed")
+}
