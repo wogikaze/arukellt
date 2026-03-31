@@ -2,9 +2,11 @@
 
 **Status**: open
 **Created**: 2026-03-31
+**Updated**: 2026-03-31
 **ID**: 289
 **Depends on**: 287
-**Track**: main
+**Track**: selfhost
+**Blocks v1 exit**: no
 **Priority**: 9
 
 ## Summary
@@ -20,8 +22,8 @@
 ## Acceptance
 
 - [ ] 代表的なエラーケース（未定義変数、型不一致、構文エラー）で両版の出力を比較
-- [ ] error code / position / message format の差分リストが作成される
-- [ ] 重要な差分に対する修正方針が記録される
+- [ ] 比較契約: error code / primary span (行番号) / severity の一致を求める。message 文言の完全一致は求めない
+- [ ] 差分リストが作成される
 
 ## References
 

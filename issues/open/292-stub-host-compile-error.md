@@ -2,9 +2,11 @@
 
 **Status**: open
 **Created**: 2026-03-31
+**Updated**: 2026-03-31
 **ID**: 292
 **Depends on**: —
-**Track**: main
+**Track**: capability
+**Blocks v1 exit**: no
 **Priority**: 12
 
 ## Summary
@@ -19,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] `kind = "host_stub"` の関数を呼び出すコードが compile warning または error を出す
-- [ ] warning/error メッセージに「この API は未実装です」と表示される
+- [ ] `kind = "host_stub"` の関数を呼び出すコードが compile error (E レベル) を出す
+- [ ] error メッセージに「この API は未実装です (host_stub)」と表示される
 - [ ] `std/manifest.toml` の `kind` 情報がコンパイラに伝搬する経路がある
-- [ ] テスト: http::get を呼ぶコードが warning を出す fixture
+- [ ] テスト: http::get を呼ぶコードが compile error を出す fixture
 
 ## References
 

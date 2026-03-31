@@ -2,9 +2,11 @@
 
 **Status**: open
 **Created**: 2026-03-31
+**Updated**: 2026-03-31
 **ID**: 293
 **Depends on**: —
-**Track**: main
+**Track**: capability
+**Blocks v1 exit**: no
 **Priority**: 13
 
 ## Summary

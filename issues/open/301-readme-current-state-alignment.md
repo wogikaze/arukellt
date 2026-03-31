@@ -2,9 +2,11 @@
 
 **Status**: open
 **Created**: 2026-03-31
+**Updated**: 2026-03-31
 **ID**: 301
-**Depends on**: 286
-**Track**: main
+**Depends on**: 303
+**Track**: docs/ops
+**Blocks v1 exit**: no
 **Priority**: 21
 
 ## Summary

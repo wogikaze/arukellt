@@ -2,9 +2,11 @@
 
 **Status**: open
 **Created**: 2026-03-31
+**Updated**: 2026-03-31
 **ID**: 284
-**Depends on**: 281, 282, 283
-**Track**: main
+**Depends on**: 281, 282, 283, 306
+**Track**: corehir
+**Blocks v1 exit**: no
 **Priority**: 4
 
 ## Summary

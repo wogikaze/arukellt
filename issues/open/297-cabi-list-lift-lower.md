@@ -2,9 +2,11 @@
 
 **Status**: open
 **Created**: 2026-03-31
+**Updated**: 2026-03-31
 **ID**: 297
 **Depends on**: 296
-**Track**: main
+**Track**: component-model
+**Blocks v1 exit**: no
 **Priority**: 17
 
 ## Summary

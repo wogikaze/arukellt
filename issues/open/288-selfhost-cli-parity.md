@@ -2,9 +2,11 @@
 
 **Status**: open
 **Created**: 2026-03-31
+**Updated**: 2026-03-31
 **ID**: 288
 **Depends on**: 287
-**Track**: main
+**Track**: selfhost
+**Blocks v1 exit**: no
 **Priority**: 8
 
 ## Summary
@@ -19,7 +21,7 @@
 
 ## Acceptance
 
-- [ ] selfhost CLI で `compile` コマンドが動作し、Rust 版と同じ wasm を出力する
+- [ ] selfhost CLI で `compile` コマンドが動作し、生成 wasm の実行結果が Rust 版と一致する（バイナリ同一性は求めない）
 - [ ] selfhost CLI で `check` コマンドが動作し、エラー有無が Rust 版と一致する
 - [ ] `--target`, `--opt-level`, `--emit-mode` フラグが selfhost で動作する
 - [ ] 差分リストが文書化される

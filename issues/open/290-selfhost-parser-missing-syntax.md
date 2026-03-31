@@ -2,9 +2,11 @@
 
 **Status**: open
 **Created**: 2026-03-31
+**Updated**: 2026-03-31
 **ID**: 290
-**Depends on**: 287
-**Track**: main
+**Depends on**: —
+**Track**: selfhost
+**Blocks v1 exit**: no
 **Priority**: 10
 
 ## Summary

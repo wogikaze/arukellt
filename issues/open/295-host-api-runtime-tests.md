@@ -2,9 +2,11 @@
 
 **Status**: open
 **Created**: 2026-03-31
+**Updated**: 2026-03-31
 **ID**: 295
 **Depends on**: —
-**Track**: main
+**Track**: capability
+**Blocks v1 exit**: no
 **Priority**: 15
 
 ## Summary
@@ -21,7 +23,7 @@
 ## Acceptance
 
 - [ ] clock: 2回呼び出しで単調増加を確認する fixture
-- [ ] random: 複数回呼び出しで全同値でないことを確認する fixture
+- [ ] random: API 呼び出しが成功し、返り値が i32 範囲内であることを確認する fixture（非決定性に依存しない）
 - [ ] fs: 存在しないファイルの読み取りエラーを確認する fixture（既存 `fs_read_error.ark` で可）
 - [ ] env: arg_count / args の引数受け渡しを確認する fixture
 - [ ] process: exit(0) の正常終了を確認する fixture
