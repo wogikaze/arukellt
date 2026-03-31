@@ -1703,6 +1703,262 @@ impl ArukellBackend {
             _ => {}
         }
     }
+
+    // --- go-to-type-definition helpers ---
+
+    /// Resolve the type name for the identifier at `name` by examining let bindings and params.
+    fn resolve_type_name_for_ident(module: &ast::Module, name: &str) -> Option<String> {
+        for item in &module.items {
+            if let ast::Item::FnDef(f) = item {
+                // Check params
+                for p in &f.params {
+                    if p.name == name {
+                        return Self::type_expr_root_name(&p.ty);
+                    }
+                }
+                // Check let bindings in body
+                if let Some(ty_name) = Self::find_let_type_name_in_block(&f.body, name) {
+                    return Some(ty_name);
+                }
+            }
+        }
+        None
+    }
+
+    /// Extract the root type name from a TypeExpr (e.g. `Vec<i32>` → `Vec`, `MyStruct` → `MyStruct`).
+    fn type_expr_root_name(ty: &ast::TypeExpr) -> Option<String> {
+        match ty {
+            ast::TypeExpr::Named { name, .. } => Some(name.clone()),
+            ast::TypeExpr::Generic { name, .. } => Some(name.clone()),
+            ast::TypeExpr::Qualified { name, .. } => Some(name.clone()),
+            _ => None,
+        }
+    }
+
+    /// Search a block for a let binding with `name` and return the root type name.
+    fn find_let_type_name_in_block(block: &ast::Block, name: &str) -> Option<String> {
+        for stmt in &block.stmts {
+            match stmt {
+                ast::Stmt::Let {
+                    name: n, ty, init, ..
+                } if n == name => {
+                    if let Some(ty_expr) = ty {
+                        return Self::type_expr_root_name(ty_expr);
+                    }
+                    return Self::infer_type_name_from_expr(init);
+                }
+                ast::Stmt::While { body, .. }
+                | ast::Stmt::Loop { body, .. }
+                | ast::Stmt::For { body, .. } => {
+                    if let Some(t) = Self::find_let_type_name_in_block(body, name) {
+                        return Some(t);
+                    }
+                }
+                _ => {}
+            }
+        }
+        None
+    }
+
+    /// Infer a type name from an expression (e.g. StructInit name, Call callee name).
+    fn infer_type_name_from_expr(expr: &ast::Expr) -> Option<String> {
+        match expr {
+            ast::Expr::StructInit { name, .. } => Some(name.clone()),
+            ast::Expr::Call { callee, .. } => {
+                if let ast::Expr::Ident { name, .. } = callee.as_ref() {
+                    // Constructor-style: `MyType(...)` or `MyType::new(...)`
+                    Some(name.clone())
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    /// Find the definition span of a type by name (struct, enum, trait).
+    fn find_type_definition_span(
+        module: &ast::Module,
+        type_name: &str,
+    ) -> Option<ark_diagnostics::Span> {
+        for item in &module.items {
+            match item {
+                ast::Item::StructDef(s) if s.name == type_name => return Some(s.span),
+                ast::Item::EnumDef(e) if e.name == type_name => return Some(e.span),
+                ast::Item::TraitDef(t) if t.name == type_name => return Some(t.span),
+                _ => {}
+            }
+        }
+        None
+    }
+
+    // --- call hierarchy helpers ---
+
+    /// Find the function definition that contains the given offset.
+    fn find_fn_at_offset(module: &ast::Module, offset: u32) -> Option<&ast::FnDef> {
+        for item in &module.items {
+            match item {
+                ast::Item::FnDef(f) => {
+                    if offset >= f.span.start && offset < f.span.end {
+                        return Some(f);
+                    }
+                }
+                ast::Item::ImplBlock(ib) => {
+                    for m in &ib.methods {
+                        if offset >= m.span.start && offset < m.span.end {
+                            return Some(m);
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        None
+    }
+
+    /// Collect all call expressions in a block, returning (callee_name, call_span).
+    fn collect_calls_in_block(block: &ast::Block) -> Vec<(String, ark_diagnostics::Span)> {
+        let mut calls = Vec::new();
+        for stmt in &block.stmts {
+            Self::collect_calls_in_stmt(stmt, &mut calls);
+        }
+        if let Some(tail) = &block.tail_expr {
+            Self::collect_calls_in_expr(tail, &mut calls);
+        }
+        calls
+    }
+
+    fn collect_calls_in_stmt(stmt: &ast::Stmt, calls: &mut Vec<(String, ark_diagnostics::Span)>) {
+        match stmt {
+            ast::Stmt::Let { init, .. } => Self::collect_calls_in_expr(init, calls),
+            ast::Stmt::Expr(e) => Self::collect_calls_in_expr(e, calls),
+            ast::Stmt::While { cond, body, .. } => {
+                Self::collect_calls_in_expr(cond, calls);
+                calls.extend(Self::collect_calls_in_block(body));
+            }
+            ast::Stmt::Loop { body, .. } => {
+                calls.extend(Self::collect_calls_in_block(body));
+            }
+            ast::Stmt::For { body, .. } => {
+                calls.extend(Self::collect_calls_in_block(body));
+            }
+        }
+    }
+
+    fn collect_calls_in_expr(expr: &ast::Expr, calls: &mut Vec<(String, ark_diagnostics::Span)>) {
+        match expr {
+            ast::Expr::Call {
+                callee, args, span, ..
+            } => {
+                if let ast::Expr::Ident { name, .. } = callee.as_ref() {
+                    calls.push((name.clone(), *span));
+                } else if let ast::Expr::FieldAccess { field, .. } = callee.as_ref() {
+                    calls.push((field.clone(), *span));
+                }
+                Self::collect_calls_in_expr(callee, calls);
+                for arg in args {
+                    Self::collect_calls_in_expr(arg, calls);
+                }
+            }
+            ast::Expr::Binary { left, right, .. } => {
+                Self::collect_calls_in_expr(left, calls);
+                Self::collect_calls_in_expr(right, calls);
+            }
+            ast::Expr::Unary { operand, .. } => {
+                Self::collect_calls_in_expr(operand, calls);
+            }
+            ast::Expr::If {
+                cond,
+                then_block,
+                else_block,
+                ..
+            } => {
+                Self::collect_calls_in_expr(cond, calls);
+                calls.extend(Self::collect_calls_in_block(then_block));
+                if let Some(eb) = else_block {
+                    calls.extend(Self::collect_calls_in_block(eb));
+                }
+            }
+            ast::Expr::Match {
+                scrutinee, arms, ..
+            } => {
+                Self::collect_calls_in_expr(scrutinee, calls);
+                for arm in arms {
+                    Self::collect_calls_in_expr(&arm.body, calls);
+                }
+            }
+            ast::Expr::Block(block) => {
+                calls.extend(Self::collect_calls_in_block(block));
+            }
+            ast::Expr::FieldAccess { object, .. } => {
+                Self::collect_calls_in_expr(object, calls);
+            }
+            ast::Expr::Index { object, index, .. } => {
+                Self::collect_calls_in_expr(object, calls);
+                Self::collect_calls_in_expr(index, calls);
+            }
+            ast::Expr::StructInit { fields, base, .. } => {
+                for (_, val) in fields {
+                    Self::collect_calls_in_expr(val, calls);
+                }
+                if let Some(b) = base {
+                    Self::collect_calls_in_expr(b, calls);
+                }
+            }
+            ast::Expr::Array { elements, .. } | ast::Expr::Tuple { elements, .. } => {
+                for e in elements {
+                    Self::collect_calls_in_expr(e, calls);
+                }
+            }
+            ast::Expr::Return { value, .. } | ast::Expr::Break { value, .. } => {
+                if let Some(v) = value {
+                    Self::collect_calls_in_expr(v, calls);
+                }
+            }
+            ast::Expr::Assign { target, value, .. } => {
+                Self::collect_calls_in_expr(target, calls);
+                Self::collect_calls_in_expr(value, calls);
+            }
+            ast::Expr::Closure { body, .. } => {
+                Self::collect_calls_in_expr(body, calls);
+            }
+            ast::Expr::Try { expr, .. } => {
+                Self::collect_calls_in_expr(expr, calls);
+            }
+            ast::Expr::ArrayRepeat { value, count, .. } => {
+                Self::collect_calls_in_expr(value, calls);
+                Self::collect_calls_in_expr(count, calls);
+            }
+            ast::Expr::Loop { body, .. } => {
+                calls.extend(Self::collect_calls_in_block(body));
+            }
+            _ => {}
+        }
+    }
+
+    /// Build a CallHierarchyItem for a function definition.
+    fn fn_to_call_hierarchy_item(source: &str, uri: &Url, f: &ast::FnDef) -> CallHierarchyItem {
+        let range = Self::span_to_range(source, f.span);
+        let name_end = f.span.start + f.name.len() as u32 + 3; // "fn " prefix
+        let selection_range = Self::span_to_range(
+            source,
+            ark_diagnostics::Span {
+                file_id: 0,
+                start: f.span.start,
+                end: name_end.min(f.span.end),
+            },
+        );
+        CallHierarchyItem {
+            name: f.name.clone(),
+            kind: SymbolKind::FUNCTION,
+            tags: None,
+            detail: None,
+            uri: uri.clone(),
+            range,
+            selection_range,
+            data: None,
+        }
+    }
 }
 
 #[tower_lsp::async_trait]
@@ -1779,6 +2035,8 @@ impl LanguageServer for ArukellBackend {
                 inlay_hint_provider: Some(OneOf::Left(true)),
                 folding_range_provider: Some(FoldingRangeProviderCapability::Simple(true)),
                 selection_range_provider: Some(SelectionRangeProviderCapability::Simple(true)),
+                type_definition_provider: Some(TypeDefinitionProviderCapability::Simple(true)),
+                call_hierarchy_provider: Some(CallHierarchyServerCapability::Simple(true)),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -2608,6 +2866,243 @@ impl LanguageServer for ArukellBackend {
             let ranges = Self::collect_selection_ranges(&source, &analysis.module, offset);
             results.push(ranges);
         }
+        Ok(Some(results))
+    }
+
+    async fn goto_type_definition(
+        &self,
+        params: GotoDefinitionParams,
+    ) -> Result<Option<GotoDefinitionResponse>> {
+        let uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let target_offset = Self::position_to_offset(&source, pos);
+        let name = match Self::find_ident_at_offset(&source, &analysis.tokens, target_offset) {
+            Some(n) => n.to_string(),
+            None => return Ok(None),
+        };
+
+        // Resolve the type name for this identifier
+        let type_name = match Self::resolve_type_name_for_ident(&analysis.module, &name) {
+            Some(t) => t,
+            None => return Ok(None),
+        };
+
+        // Find the type definition
+        let span = match Self::find_type_definition_span(&analysis.module, &type_name) {
+            Some(s) => s,
+            None => return Ok(None),
+        };
+
+        let range = Self::span_to_range(&source, span);
+        Ok(Some(GotoDefinitionResponse::Scalar(Location {
+            uri,
+            range,
+        })))
+    }
+
+    async fn prepare_call_hierarchy(
+        &self,
+        params: CallHierarchyPrepareParams,
+    ) -> Result<Option<Vec<CallHierarchyItem>>> {
+        let uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let offset = Self::position_to_offset(&source, pos) as u32;
+
+        // Find the function at cursor position
+        let f = match Self::find_fn_at_offset(&analysis.module, offset) {
+            Some(f) => f.clone(),
+            None => return Ok(None),
+        };
+
+        Ok(Some(vec![Self::fn_to_call_hierarchy_item(
+            &source, &uri, &f,
+        )]))
+    }
+
+    async fn incoming_calls(
+        &self,
+        params: CallHierarchyIncomingCallsParams,
+    ) -> Result<Option<Vec<CallHierarchyIncomingCall>>> {
+        let target_name = &params.item.name;
+        let uri = &params.item.uri;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let mut results = Vec::new();
+
+        // Search all functions for calls to target_name
+        let all_fns: Vec<ast::FnDef> = analysis
+            .module
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                ast::Item::FnDef(f) => Some(f.clone()),
+                ast::Item::ImplBlock(_) => None,
+                _ => None,
+            })
+            .collect();
+
+        // Also collect methods from impl blocks
+        let mut all_methods: Vec<ast::FnDef> = Vec::new();
+        for item in &analysis.module.items {
+            if let ast::Item::ImplBlock(ib) = item {
+                all_methods.extend(ib.methods.iter().cloned());
+            }
+        }
+
+        for f in all_fns.iter().chain(all_methods.iter()) {
+            let calls = Self::collect_calls_in_block(&f.body);
+            let matching: Vec<_> = calls
+                .iter()
+                .filter(|(name, _)| name == target_name)
+                .collect();
+
+            if !matching.is_empty() {
+                let from_item = Self::fn_to_call_hierarchy_item(&source, uri, f);
+                let from_ranges: Vec<Range> = matching
+                    .iter()
+                    .map(|(_, span)| Self::span_to_range(&source, *span))
+                    .collect();
+
+                results.push(CallHierarchyIncomingCall {
+                    from: from_item,
+                    from_ranges,
+                });
+            }
+        }
+
+        Ok(Some(results))
+    }
+
+    async fn outgoing_calls(
+        &self,
+        params: CallHierarchyOutgoingCallsParams,
+    ) -> Result<Option<Vec<CallHierarchyOutgoingCall>>> {
+        let uri = &params.item.uri;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        // Find the function definition matching the item name
+        let target_name = &params.item.name;
+        let f = {
+            let mut found: Option<ast::FnDef> = None;
+            for item in &analysis.module.items {
+                match item {
+                    ast::Item::FnDef(f) if f.name == *target_name => {
+                        found = Some(f.clone());
+                        break;
+                    }
+                    ast::Item::ImplBlock(ib) => {
+                        for m in &ib.methods {
+                            if m.name == *target_name {
+                                found = Some(m.clone());
+                                break;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            match found {
+                Some(f) => f,
+                None => return Ok(None),
+            }
+        };
+
+        let calls = Self::collect_calls_in_block(&f.body);
+
+        // Group by callee name, deduplicate
+        let mut call_map: HashMap<String, Vec<ark_diagnostics::Span>> = HashMap::new();
+        for (name, span) in &calls {
+            call_map.entry(name.clone()).or_default().push(*span);
+        }
+
+        let mut results = Vec::new();
+        for (callee_name, spans) in &call_map {
+            // Try to find the callee's definition for a proper CallHierarchyItem
+            let to_item = if let Some(callee_fn) =
+                analysis.module.items.iter().find_map(|item| match item {
+                    ast::Item::FnDef(f) if f.name == *callee_name => Some(f),
+                    _ => None,
+                }) {
+                Self::fn_to_call_hierarchy_item(&source, uri, callee_fn)
+            } else {
+                // External/unknown function — create minimal item
+                let first_span = spans[0];
+                let range = Self::span_to_range(&source, first_span);
+                CallHierarchyItem {
+                    name: callee_name.clone(),
+                    kind: SymbolKind::FUNCTION,
+                    tags: None,
+                    detail: Some("(external)".to_string()),
+                    uri: uri.clone(),
+                    range,
+                    selection_range: range,
+                    data: None,
+                }
+            };
+
+            let from_ranges: Vec<Range> = spans
+                .iter()
+                .map(|s| Self::span_to_range(&source, *s))
+                .collect();
+
+            results.push(CallHierarchyOutgoingCall {
+                to: to_item,
+                from_ranges,
+            });
+        }
+
         Ok(Some(results))
     }
 }
