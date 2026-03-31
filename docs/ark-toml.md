@@ -114,3 +114,74 @@ opt_level = 2
 - `docs/cli-startup-contract.md` — CLI / LSP binary interface
 - `docs/current-state.md` — current implementation state
 - `crates/ark-manifest/src/lib.rs` — schema implementation
+
+---
+
+## Single-file mode vs project mode
+
+Arukellt supports two operating modes:
+
+### Single-file mode
+
+Run `arukellt compile <file.ark>` or `arukellt run <file.ark>` with an explicit source file path.
+No `ark.toml` is needed. The compiler processes only the specified file.
+
+**Characteristics:**
+- No `ark.toml` required
+- Output defaults to `<file>.wasm` in the current directory (or `-o <output>` override)
+- Target defaults to `wasm32-wasi-p1` unless `--target` is specified
+- Import resolution is relative to the source file's directory
+- `arukellt run` compiles in memory and executes immediately
+- Suitable for scripts, experiments, and single-file programs
+
+```bash
+# single-file mode examples
+arukellt compile hello.ark
+arukellt compile hello.ark --target wasm32-wasi-p2 -o hello.wasm
+arukellt run hello.ark
+```
+
+### Project mode
+
+Run `arukellt build` from a directory that contains (or is a child of a directory containing) an `ark.toml`.
+The manifest drives the build: entry point, target, emit kind, and world are all taken from `ark.toml`.
+
+**Characteristics:**
+- Requires `ark.toml` with a `[package]` and `[bin]` section
+- Project root is determined by upward directory search from cwd
+- Output is placed at `<project_root>/<bin.name>.wasm`
+- Target is determined by `[target]` section (or `--target` override)
+- `[world]` section passes the WIT world name for component builds
+- LSP and task provider also resolve settings through `ark.toml`
+
+```bash
+# project mode examples
+arukellt build              # reads ark.toml from cwd or parent
+arukellt build --opt-level 2
+```
+
+### Mode detection
+
+The CLI detects the mode by the subcommand used:
+- `arukellt compile <file>` or `arukellt run <file>` → single-file mode
+- `arukellt build` → project mode (requires `ark.toml`)
+
+The LSP always operates in project mode if an `ark.toml` is found; otherwise it falls back to single-file mode for each open document.
+
+### Upgrading from single-file to project mode
+
+```bash
+mkdir myproject && cd myproject
+cat > ark.toml <<'EOF'
+[package]
+name = "myproject"
+version = "0.1.0"
+
+[bin]
+name = "myproject"
+path = "src/main.ark"
+EOF
+mkdir src
+# move your .ark file to src/main.ark
+arukellt build
+```

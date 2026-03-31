@@ -27,3 +27,5 @@
 | [ADR-012-stringification-surface.md](ADR-012-stringification-surface.md) | ADR-012: stringification surface は to_string(x) を canonical にする | ステータス: DECIDED |
 | [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: T3 (wasm32-wasi-p2) をプライマリターゲットとして選定する | ステータス: DECIDED |
 | [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: Stability Labels for Language Spec and Stdlib API | Status: accepted |
+| [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: No-Panic Quality Standard for User-Facing Paths | Status: DECIDED |
+| [ADR-016-breaking-change-process.md](ADR-016-breaking-change-process.md) | ADR-016: Breaking Change Process — Three-Piece Set | Status: DECIDED |

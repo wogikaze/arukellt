@@ -110,6 +110,8 @@ impl Manifest {
 
     /// Return the [bin] section, or a clear error if missing.
     pub fn require_bin(&self) -> Result<&BinSection, ManifestError> {
-        self.bin.as_ref().ok_or_else(|| ManifestError::MissingField("[bin]".to_string()))
+        self.bin
+            .as_ref()
+            .ok_or_else(|| ManifestError::MissingField("[bin]".to_string()))
     }
 }

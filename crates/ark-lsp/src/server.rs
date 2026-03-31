@@ -1578,20 +1578,14 @@ impl LanguageServer for ArukellBackend {
         })))
     }
 
-    async fn inlay_hint(
-        &self,
-        _params: InlayHintParams,
-    ) -> Result<Option<Vec<InlayHint>>> {
+    async fn inlay_hint(&self, _params: InlayHintParams) -> Result<Option<Vec<InlayHint>>> {
         // Inlay hints require type inference results from the TypeChecker.
         // Returning None disables them for now; the capability is declared
         // so VS Code will query us once the implementation is complete.
         Ok(None)
     }
 
-    async fn folding_range(
-        &self,
-        params: FoldingRangeParams,
-    ) -> Result<Option<Vec<FoldingRange>>> {
+    async fn folding_range(&self, params: FoldingRangeParams) -> Result<Option<Vec<FoldingRange>>> {
         let uri = params.text_document.uri;
         let docs = self.documents.lock().unwrap();
         let source = match docs.get(&uri) {
@@ -1651,7 +1645,11 @@ impl LanguageServer for ArukellBackend {
                         _ => {}
                     }
                 }
-                return Ok(if ranges.is_empty() { None } else { Some(ranges) });
+                return Ok(if ranges.is_empty() {
+                    None
+                } else {
+                    Some(ranges)
+                });
             }
             None => return Ok(None),
         };

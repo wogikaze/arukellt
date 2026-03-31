@@ -2367,8 +2367,7 @@ impl Ctx {
 
         // Wrap in PeepholeWriter for local.set/get → local.tee optimization
         let tee_count = {
-            let mut w =
-                PeepholeWriter::with_gc_ref_locals(&mut f, self.opt_level, gc_ref_locals);
+            let mut w = PeepholeWriter::with_gc_ref_locals(&mut f, self.opt_level, gc_ref_locals);
 
             // Emit statements from entry block
             if let Some(block) = func.blocks.first() {

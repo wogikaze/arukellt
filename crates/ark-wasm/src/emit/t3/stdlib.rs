@@ -131,13 +131,19 @@ impl Ctx {
         f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
         // empty delimiter → push s as sole element
         f.instruction(&Instruction::LocalGet(vec_ref));
-        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::LocalGet(s0));
         f.instruction(&Instruction::ArraySet(aty));
         f.instruction(&Instruction::LocalGet(vec_ref));
         f.instruction(&Instruction::I32Const(1));
-        f.instruction(&Instruction::StructSet { struct_type_index: vty, field_index: 1 });
+        f.instruction(&Instruction::StructSet {
+            struct_type_index: vty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::Else);
 
         // Main loop: while i + delim_len <= s_len
@@ -200,14 +206,23 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(s0)); // src
         f.instruction(&Instruction::LocalGet(start)); // src_off
         f.instruction(&Instruction::LocalGet(j)); // len
-        f.instruction(&Instruction::ArrayCopy { array_type_index_dst: sty, array_type_index_src: sty });
+        f.instruction(&Instruction::ArrayCopy {
+            array_type_index_dst: sty,
+            array_type_index_src: sty,
+        });
 
         // Inline push: backing[vec_len] = seg_ref; vec_len += 1
         f.instruction(&Instruction::LocalGet(vec_ref));
-        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(j)); // j = vec_len (reuse)
         f.instruction(&Instruction::LocalGet(vec_ref));
-        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(j));
         f.instruction(&Instruction::LocalGet(seg_ref));
         f.instruction(&Instruction::ArraySet(aty));
@@ -215,7 +230,10 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(j));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::StructSet { struct_type_index: vty, field_index: 1 });
+        f.instruction(&Instruction::StructSet {
+            struct_type_index: vty,
+            field_index: 1,
+        });
 
         // Advance: start = i + delim_len; i = start
         f.instruction(&Instruction::LocalGet(i));
@@ -251,13 +269,22 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(s0));
         f.instruction(&Instruction::LocalGet(start));
         f.instruction(&Instruction::LocalGet(j));
-        f.instruction(&Instruction::ArrayCopy { array_type_index_dst: sty, array_type_index_src: sty });
+        f.instruction(&Instruction::ArrayCopy {
+            array_type_index_dst: sty,
+            array_type_index_src: sty,
+        });
         // Inline push final segment
         f.instruction(&Instruction::LocalGet(vec_ref));
-        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 1 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vty,
+            field_index: 1,
+        });
         f.instruction(&Instruction::LocalSet(j));
         f.instruction(&Instruction::LocalGet(vec_ref));
-        f.instruction(&Instruction::StructGet { struct_type_index: vty, field_index: 0 });
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: vty,
+            field_index: 0,
+        });
         f.instruction(&Instruction::LocalGet(j));
         f.instruction(&Instruction::LocalGet(seg_ref));
         f.instruction(&Instruction::ArraySet(aty));
@@ -265,7 +292,10 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(j));
         f.instruction(&Instruction::I32Const(1));
         f.instruction(&Instruction::I32Add);
-        f.instruction(&Instruction::StructSet { struct_type_index: vty, field_index: 1 });
+        f.instruction(&Instruction::StructSet {
+            struct_type_index: vty,
+            field_index: 1,
+        });
 
         f.instruction(&Instruction::End); // end else branch
 

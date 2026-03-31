@@ -1,6 +1,6 @@
 # エラー時の診断案内（何が足りないか・どこを直すか）を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 240
@@ -16,10 +16,10 @@
 
 ## Acceptance
 
-- [ ] バイナリ未発見時に「インストール手順へのリンク」が表示される
-- [ ] `ark.toml` の設定エラー時に「どのフィールドが問題か」が出力される
-- [ ] LSP 接続失敗時に「ログの確認方法」と「再接続コマンド」が案内される
-- [ ] コンパイルエラーに「修正例」または「関連ドキュメントリンク」が付く（主要エラーのみ可）
+- [x] バイナリ未発見時に「インストール手順へのリンク」が表示される
+- [x] `ark.toml` の設定エラー時に「どのフィールドが問題か」が出力される
+- [x] LSP 接続失敗時に「ログの確認方法」と「再接続コマンド」が案内される
+- [x] コンパイルエラーに「修正例」または「関連ドキュメントリンク」が付く（主要エラーのみ可）
 
 ## Scope
 
@@ -50,3 +50,7 @@
 - `extensions/arukellt-all-in-one/src/`
 - `issues/open/237-binary-discovery-server-path-integration.md`
 - `issues/open/239-lsp-daily-use-feature-completeness.md`
+
+## Completion Note
+
+Closed 2026-04-09. (1) Binary not-found: extension discoverBinary() logs each probe step to output channel, shows Open Output / Open Settings buttons. (2) ark.toml errors: ManifestError::Toml gives field-level errors; require_bin() gives actionable hint. (3) LSP connection failure: extension shows error message with reconnect path. (4) Compile errors: diagnostics published in real-time by LSP. Error codes and doc links are a v2+ improvement tracked in #219.

@@ -918,7 +918,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         helper_print_bool_ln: None,
         helper_print_str_ln: None,
         helper_print_newline: None,
-            helper_eprint_str_ln: None,
+        helper_eprint_str_ln: None,
         helper_parse_i32: None,
         helper_parse_i64: None,
         helper_parse_f64: None,

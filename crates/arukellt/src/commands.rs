@@ -554,7 +554,10 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) 
 
     if list {
         if json {
-            println!("{}", serde_json::to_string(&tests).expect("test list serialization"));
+            println!(
+                "{}",
+                serde_json::to_string(&tests).expect("test list serialization")
+            );
         } else {
             for t in tests {
                 println!("{}", t);
@@ -665,7 +668,10 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) 
             failed,
             total_duration_ms: suite_duration,
         };
-        println!("{}", serde_json::to_string(&suite).expect("test suite serialization"));
+        println!(
+            "{}",
+            serde_json::to_string(&suite).expect("test suite serialization")
+        );
     } else {
         println!();
         println!(
@@ -696,13 +702,20 @@ pub(crate) fn cmd_script_list(json: bool) {
     let manifest = match Manifest::load_from_dir(&root) {
         Ok(m) => m,
         Err(e) => {
-            eprintln!("error: failed to load ark.toml in {}: {}", root.display(), e);
+            eprintln!(
+                "error: failed to load ark.toml in {}: {}",
+                root.display(),
+                e
+            );
             process::exit(1);
         }
     };
 
     if json {
-        println!("{}", serde_json::to_string(&manifest.scripts).expect("scripts serialization"));
+        println!(
+            "{}",
+            serde_json::to_string(&manifest.scripts).expect("scripts serialization")
+        );
     } else {
         println!("Scripts in {}:", root.display());
         let mut names: Vec<_> = manifest.scripts.keys().collect();
@@ -730,7 +743,11 @@ pub(crate) fn cmd_script_run(name: String, extra_args: Vec<String>) {
     let manifest = match Manifest::load_from_dir(&root) {
         Ok(m) => m,
         Err(e) => {
-            eprintln!("error: failed to load ark.toml in {}: {}", root.display(), e);
+            eprintln!(
+                "error: failed to load ark.toml in {}: {}",
+                root.display(),
+                e
+            );
             process::exit(1);
         }
     };
@@ -796,7 +813,10 @@ pub(crate) fn cmd_debug_adapter() {
     let rt = match tokio::runtime::Runtime::new() {
         Ok(rt) => rt,
         Err(e) => {
-            eprintln!("error: failed to start async runtime for debug adapter: {}", e);
+            eprintln!(
+                "error: failed to start async runtime for debug adapter: {}",
+                e
+            );
             process::exit(1);
         }
     };
