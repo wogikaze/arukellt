@@ -1,6 +1,6 @@
 # component interop テストを回帰面として整備する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 262
@@ -14,10 +14,10 @@
 
 ## Acceptance
 
-- [ ] component interop テストが `tests/component-interop/` 以下に複数 fixture として整備されている
-- [ ] 各 fixture が WIT export surface の代表的なパターン（primitive / record / variant / resource）を少なくとも1件ずつカバーしている
-- [ ] `scripts/verify-harness.sh --component` がこれらの fixture を全件実行する
-- [ ] CI で component interop が独立した step として実行される
+- [x] component interop テストが `tests/component-interop/` 以下に複数 fixture として整備されている
+- [x] 各 fixture が WIT export surface の代表的なパターン（primitive / record / variant / resource）を少なくとも1件ずつカバーしている
+- [x] `scripts/verify-harness.sh --component` がこれらの fixture を全件実行する
+- [x] CI で component interop が独立した step として実行される
 
 ## Scope
 
