@@ -142,6 +142,10 @@ impl ArukellBackend {
         checker.register_builtins();
         checker.check_module(&resolved, &mut sink);
 
+        // Run lint checks (unused imports and bindings)
+        ark_resolve::check_unused_imports(&resolved.module, &mut sink);
+        ark_resolve::check_unused_bindings(&resolved.module, &mut sink);
+
         let diagnostics = Self::collect_lsp_diagnostics(source, &sink);
 
         CachedAnalysis {
@@ -170,11 +174,17 @@ impl ArukellBackend {
                     Severity::Warning => DiagnosticSeverity::WARNING,
                     Severity::Help => DiagnosticSeverity::INFORMATION,
                 };
+                // Use "arukellt-lint" source for lint rules (W0006+)
+                let source_name = if diag.code.as_str().starts_with('W') {
+                    "arukellt-lint"
+                } else {
+                    "arukellt"
+                };
                 Diagnostic {
                     range,
                     severity: Some(severity),
                     code: Some(NumberOrString::String(diag.code.as_str().to_string())),
-                    source: Some("arukellt".to_string()),
+                    source: Some(source_name.to_string()),
                     message: diag.message.clone(),
                     ..Default::default()
                 }
@@ -2595,6 +2605,60 @@ impl LanguageServer for ArukellBackend {
             }
         }
 
+        // Quick fix for unused imports (W0006): remove the import line
+        for diag in &params.context.diagnostics {
+            if let Some(NumberOrString::String(ref code)) = diag.code {
+                if code == "W0006" {
+                    if let Some(ref src) = source {
+                        // Find the full line range of the unused import
+                        let start_line = diag.range.start.line;
+                        let end_line = diag.range.end.line;
+                        let lines: Vec<&str> = src.lines().collect();
+                        let delete_end = if (end_line as usize + 1) < lines.len() {
+                            Position {
+                                line: end_line + 1,
+                                character: 0,
+                            }
+                        } else {
+                            // Last line — delete to end
+                            Position {
+                                line: end_line,
+                                character: lines
+                                    .get(end_line as usize)
+                                    .map(|l| l.len() as u32)
+                                    .unwrap_or(0),
+                            }
+                        };
+                        let mut changes = HashMap::new();
+                        changes.insert(
+                            uri.clone(),
+                            vec![TextEdit {
+                                range: Range {
+                                    start: Position {
+                                        line: start_line,
+                                        character: 0,
+                                    },
+                                    end: delete_end,
+                                },
+                                new_text: String::new(),
+                            }],
+                        );
+                        actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                            title: "Remove unused import".to_string(),
+                            kind: Some(CodeActionKind::QUICKFIX),
+                            diagnostics: Some(vec![diag.clone()]),
+                            edit: Some(WorkspaceEdit {
+                                changes: Some(changes),
+                                ..Default::default()
+                            }),
+                            is_preferred: Some(true),
+                            ..Default::default()
+                        }));
+                    }
+                }
+            }
+        }
+
         // --- Source actions ---
 
         // source.organizeImports — sort imports (stdlib first, then external)
@@ -3432,5 +3496,45 @@ mod tests {
             .find(|item| item.label == "stdio")
             .expect("stdio completion");
         assert_eq!(stdio.detail.as_deref(), Some("module std::host::stdio"));
+    }
+
+    #[test]
+    fn lint_diagnostics_have_arukellt_lint_source() {
+        let source = "use std::host::stdio\nfn main() { let x = 1 }";
+        let analysis = ArukellBackend::analyze_source(source);
+        let lint_diags: Vec<_> = analysis
+            .diagnostics
+            .iter()
+            .filter(|d| d.source.as_deref() == Some("arukellt-lint"))
+            .collect();
+        assert!(!lint_diags.is_empty(), "should have lint diagnostics");
+        let codes: Vec<_> = lint_diags
+            .iter()
+            .filter_map(|d| d.code.as_ref())
+            .map(|c| match c {
+                NumberOrString::String(s) => s.as_str(),
+                NumberOrString::Number(n) => unreachable!("expected string code, got {}", n),
+            })
+            .collect();
+        // W0006 for unused import, W0007 for unused binding
+        assert!(codes.contains(&"W0006"), "missing W0006: {:?}", codes);
+        assert!(codes.contains(&"W0007"), "missing W0007: {:?}", codes);
+    }
+
+    #[test]
+    fn compiler_diagnostics_have_arukellt_source() {
+        let source = "fn main() { let x: UnknownType = 1 }";
+        let analysis = ArukellBackend::analyze_source(source);
+        let compiler_diags: Vec<_> = analysis
+            .diagnostics
+            .iter()
+            .filter(|d| d.source.as_deref() == Some("arukellt"))
+            .collect();
+        // Compiler errors should use "arukellt" source, not "arukellt-lint"
+        for diag in &compiler_diags {
+            if let Some(NumberOrString::String(code)) = &diag.code {
+                assert!(!code.starts_with('W'), "W-codes should use arukellt-lint source");
+            }
+        }
     }
 }
