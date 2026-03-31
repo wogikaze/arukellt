@@ -69,6 +69,10 @@ pub enum DiagnosticCode {
     W0004,
     /// Non-exportable function skipped from component exports
     W0005,
+    /// Unused import
+    W0006,
+    /// Unused binding
+    W0007,
 }
 
 pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
@@ -108,6 +112,8 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::W0003,
     DiagnosticCode::W0004,
     DiagnosticCode::W0005,
+    DiagnosticCode::W0006,
+    DiagnosticCode::W0007,
 ];
 
 pub const INTERNAL_DIAGNOSTIC_IDS: &[&str] = &["ICE-PIPELINE", "ICE-MIR", "ICE-BACKEND"];
@@ -377,6 +383,20 @@ impl DiagnosticCode {
                 message: "function has non-exportable parameter type, skipped from component exports",
                 severity: Severity::Warning,
                 phase: DiagnosticPhase::BackendValidate,
+            },
+            Self::W0006 => DiagnosticSpec {
+                code: self,
+                id: "W0006",
+                message: "unused import",
+                severity: Severity::Warning,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::W0007 => DiagnosticSpec {
+                code: self,
+                id: "W0007",
+                message: "unused binding",
+                severity: Severity::Warning,
+                phase: DiagnosticPhase::TypeCheck,
             },
         }
     }

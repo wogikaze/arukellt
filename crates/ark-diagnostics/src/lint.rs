@@ -113,6 +113,22 @@ impl LintRegistry {
                 default_level: LintLevel::Warn,
                 has_fix: false,
             },
+            LintRule {
+                code: DiagnosticCode::W0006,
+                id: "W0006",
+                description: "unused import",
+                category: LintCategory::Correctness,
+                default_level: LintLevel::Warn,
+                has_fix: true,
+            },
+            LintRule {
+                code: DiagnosticCode::W0007,
+                id: "W0007",
+                description: "unused binding",
+                category: LintCategory::Correctness,
+                default_level: LintLevel::Warn,
+                has_fix: true,
+            },
         ];
         Self { rules }
     }
@@ -164,7 +180,7 @@ mod tests {
     #[test]
     fn registry_has_all_builtin_rules() {
         let reg = LintRegistry::new();
-        assert_eq!(reg.len(), 5);
+        assert_eq!(reg.len(), 7);
     }
 
     #[test]

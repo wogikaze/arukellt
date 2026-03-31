@@ -354,6 +354,8 @@ impl Session {
         }
 
         let resolved = if let Some(program) = self.analyze(path)?.program {
+            // Check unused imports on the entry module
+            ark_resolve::check_unused_imports(&program.entry_module, &mut self.sink);
             #[allow(deprecated)]
             ResolveArtifact {
                 resolved: resolved_program_entry(program),
@@ -362,6 +364,8 @@ impl Session {
             let module = self.bind(path)?.module;
             self.sink = DiagnosticSink::new();
             let resolved = ark_resolve::resolve_module(module, &mut self.sink);
+            // Check unused imports
+            ark_resolve::check_unused_imports(&resolved.module, &mut self.sink);
             if self.sink.has_errors() {
                 return Err(render_diagnostics(
                     self.sink.diagnostics(),
@@ -382,7 +386,18 @@ impl Session {
         }
 
         let resolved = self.resolve(path)?.resolved;
+        // Preserve warnings from resolution (e.g., unused imports)
+        let resolve_warnings: Vec<ark_diagnostics::Diagnostic> = self
+            .sink
+            .diagnostics()
+            .iter()
+            .filter(|d| d.severity() == ark_diagnostics::Severity::Warning)
+            .cloned()
+            .collect();
         self.sink = DiagnosticSink::new();
+        for w in resolve_warnings {
+            self.sink.emit(w);
+        }
         let mut checker = TypeChecker::new();
         checker.register_builtins();
         let output = checker.check_core_hir_module(&resolved, &mut self.sink);
@@ -413,7 +428,18 @@ impl Session {
     ) -> Result<FrontendResult, String> {
         let t_total = std::time::Instant::now();
         let resolved = self.resolve(path)?.resolved;
+        // Preserve warnings from resolution (e.g., unused imports)
+        let resolve_warnings: Vec<ark_diagnostics::Diagnostic> = self
+            .sink
+            .diagnostics()
+            .iter()
+            .filter(|d| d.severity() == ark_diagnostics::Severity::Warning)
+            .cloned()
+            .collect();
         self.sink = DiagnosticSink::new();
+        for w in resolve_warnings {
+            self.sink.emit(w);
+        }
 
         let t_tc = std::time::Instant::now();
         let mut checker = TypeChecker::new();
@@ -543,7 +569,15 @@ impl Session {
     }
 
     pub fn check(&mut self, path: &Path) -> Result<(), String> {
-        self.check_core_hir(path).map(|_| ())
+        let result = self.check_core_hir(path);
+        // Print any warnings (including unused imports) even on success
+        if self.sink.has_warnings() {
+            eprint!(
+                "{}",
+                render_diagnostics(self.sink.diagnostics(), &self.source_map)
+            );
+        }
+        result.map(|_| ())
     }
 
     pub fn compare_mir_paths(&mut self, path: &Path) -> Result<MirComparison, String> {
