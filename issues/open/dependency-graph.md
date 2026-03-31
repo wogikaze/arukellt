@@ -27,7 +27,6 @@ graph LR
   I369["369 Language Docs: feature maturity matrix を作成する"]
   I372["372 Language Docs: historical / archive 文書の境界を明確化する"]
   I375["375 Repo Hygiene: archive / retention policy を定め、情報の鮮度を維持する"]
-  I376["376 Repo Hygiene: stale state を CI / pre-push で自動検出する"]
   I377["377 Repo Hygiene: scaffold / internal コンポーネントの露出 tier を定める"]
   I378["378 Playground: execution model を選定し v1 scope を確定する"]
   I383["383 Stdlib: manifest metadata を resolver / typechecker / LSP / docs に伝搬する"]
@@ -40,6 +39,7 @@ graph LR
   I420["420 Repo Hygiene: examples / fixtures / samples の source-of-truth map を作る"]
   I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
   I425["425 Repo Hygiene: ディレクトリごとの ownership / maintenance map を作る"]
+  I426["426 Repo Hygiene: pre-commit / pre-push の検証項目を cleanup 観点で拡張する"]
   I442["442 Component Model: WIT / Component 生成を「出力できる」から「相互運用可能」に引き上げる"]
   I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
@@ -68,13 +68,13 @@ graph LR
   I407["407 Language Docs: feature maturity matrix の生成元と更新フローを実装する"]
   I414["414 Language Docs: transitional / archive banner を一括適用する"]
   I419["419 Repo Hygiene: done issues / archive docs の retention workflow を実装する"]
-  I426["426 Repo Hygiene: pre-commit / pre-push の検証項目を cleanup 観点で拡張する"]
   I423["423 Repo Hygiene: scaffold / internal コンポーネントの露出 tier を README と docs に反映する"]
   I379["379 Playground: parser / formatter を Wasm に build しブラウザで動かす"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I428["428 Playground: v1 の product contract と execution ADR を固定する"]
   I384["384 Stdlib: API 追加時の admission gate と family coverage チェックを導入する"]
   I393["393 Stdlib: module family ごとの maturity scoreboard を生成する"]
+  I427["427 Repo Hygiene: broken link / missing file reference checker を追加する"]
   I443["443 Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する"]
   I284["284 CoreHIR path をデフォルトに昇格する"]
   I288["288 セルフホスト CLI parity を確認する"]
@@ -100,7 +100,6 @@ graph LR
   I410["410 Language Docs: guide / reference の例コードを fixture 連動にする"]
   I413["413 Language Docs: entry page に目的別 reading order を実装する"]
   I415["415 Language Docs: spec と guide の drift checker を CI に入れる"]
-  I427["427 Repo Hygiene: broken link / missing file reference checker を追加する"]
   I380["380 Playground: editor / diagnostics UI を実装する"]
   I429["429 Playground: parser / formatter / diagnostics の Wasm package と JS wrapper を作る"]
   I433["433 Playground: permalink / share format と圧縮方式を定義する"]
@@ -165,13 +164,13 @@ graph LR
   I369 --> I407
   I372 --> I414
   I375 --> I419
-  I376 --> I426
   I377 --> I423
   I378 --> I379
   I378 --> I382
   I378 --> I428
   I383 --> I384
   I383 --> I393
+  I426 --> I427
   I442 --> I443
   I281 --> I284
   I282 --> I284
@@ -202,7 +201,6 @@ graph LR
   I406 --> I413
   I406 --> I415
   I407 --> I415
-  I426 --> I427
   I379 --> I380
   I379 --> I429
   I428 --> I433
@@ -275,7 +273,6 @@ graph LR
 - **369** depends on: none; blocks: 370, 407
 - **372** depends on: none; blocks: 414
 - **375** depends on: none; blocks: 419
-- **376** depends on: 373; blocks: 426
 - **377** depends on: none; blocks: 423
 - **378** depends on: none; blocks: 379, 382, 428
 - **383** depends on: none; blocks: 384, 393
@@ -288,6 +285,7 @@ graph LR
 - **420** depends on: none; blocks: none
 - **422** depends on: none; blocks: none
 - **425** depends on: none; blocks: none
+- **426** depends on: 376; blocks: 427
 - **442** depends on: 299, 300; blocks: 443
 - **282** depends on: 281; blocks: 284
 - **283** depends on: 281; blocks: 284
@@ -316,13 +314,13 @@ graph LR
 - **407** depends on: 369; blocks: 415
 - **414** depends on: 372; blocks: none
 - **419** depends on: 375; blocks: none
-- **426** depends on: 376; blocks: 427
 - **423** depends on: 377; blocks: none
 - **379** depends on: 378; blocks: 380, 429
 - **382** depends on: 378; blocks: none
 - **428** depends on: 378; blocks: 433, 435
 - **384** depends on: 383; blocks: none
 - **393** depends on: 383; blocks: none
+- **427** depends on: 426; blocks: none
 - **443** depends on: 442; blocks: 444
 - **284** depends on: 281, 282, 283, 306; blocks: 285
 - **288** depends on: 287; blocks: none
@@ -348,7 +346,6 @@ graph LR
 - **410** depends on: 406; blocks: none
 - **413** depends on: 406; blocks: 416
 - **415** depends on: 406, 407; blocks: 416
-- **427** depends on: 426; blocks: none
 - **380** depends on: 379; blocks: 381
 - **429** depends on: 379; blocks: 430, 431
 - **433** depends on: 428; blocks: 434
