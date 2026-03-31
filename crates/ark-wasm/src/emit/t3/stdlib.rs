@@ -3725,4 +3725,263 @@ impl Ctx {
         // Leave str_ref on stack
         f.instruction(&Instruction::LocalGet(self.si(4)));
     }
+
+    /// Emit `env_var(name: String) -> Option<String>`:
+    /// Scan WASI environ for a variable matching `name`, return Some(value) or None.
+    ///
+    /// Scratch local usage:
+    ///   si(0) = env_count (i32)
+    ///   si(1) = reused: buf_size / eq_pos / byte / key_eq_idx / byte_copy_j (i32)
+    ///   si(2) = i (outer loop counter) (i32)
+    ///   si(3) = entry_ptr (i32)
+    ///   si(4) = value string ref (ref null $string)
+    ///   si(9) = name_len / entry total len / value_len (i32)
+    ///   si(10) = name ref (anyref)
+    pub(super) fn emit_env_var_builtin(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        name_op: &Operand,
+    ) {
+        let ma = wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma1 = wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+
+        let option_key = "Option_String";
+        let option_some_ty = self
+            .enum_base_types
+            .get(option_key)
+            .map(|b| b + 1)
+            .unwrap_or(0);
+        let option_none_ty = self
+            .enum_base_types
+            .get(option_key)
+            .map(|b| b + 2)
+            .unwrap_or(0);
+
+        // Step 1: Store name ref in si(10), get name_len in si(9)
+        self.emit_operand(f, name_op);
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(self.si(9))); // name_len
+
+        // Step 2: Copy name bytes to linear memory at SCRATCH+16 for comparison
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1))); // j = 0
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        // mem[SCRATCH+16 + j] = name[j]
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma1));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Step 3: environ_sizes_get → env_count at SCRATCH, buf_size at SCRATCH+4
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Const(SCRATCH as i32 + 4));
+        f.instruction(&Instruction::Call(self.wasi_environ_sizes_get));
+        f.instruction(&Instruction::Drop);
+
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(self.si(0))); // env_count
+
+        // Step 4: environ_get — use safe base past all data segments
+        // Pointer table at env_base, buffer at env_base + env_count*4
+        let env_base = ((self.data_offset + 255) / 256) * 256; // align to 256
+        f.instruction(&Instruction::I32Const(env_base as i32));
+        f.instruction(&Instruction::I32Const(env_base as i32));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::Call(self.wasi_environ_get));
+        f.instruction(&Instruction::Drop);
+
+        // Step 5: Loop i = 0..env_count, search for matching key
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(2))); // i = 0
+
+        // Outer block (break target for match found)
+        // Block structure: block $found { block $not_found { loop $search { ... } } }
+        // BrIf(2) from inside loop → $found (match), BrIf(1) from loop → $not_found (i>=count)
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::FunctionType(
+            self.types.add_func(&[], &[ref_nullable(option_some_ty - 1)]),
+        )));
+        // Inner block (break target for no match / loop exit)
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // if i >= env_count, break to $not_found
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1)); // → $not_found block
+
+        // entry_ptr = mem32[env_base + i*4]
+        f.instruction(&Instruction::I32Const(env_base as i32));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(self.si(3))); // entry_ptr
+
+        // Compare first name_len bytes of entry against name in SCRATCH+16
+        // Then check that entry[name_len] == '='
+        // Use si(1) as j for comparison
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1))); // j = 0
+
+        // Block structure: block $match { block $mismatch { loop $cmp { ... } } }
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // $match
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // $mismatch
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty)); // $cmp
+
+        // if j >= name_len → all name bytes matched, break to check '='
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(2)); // → $match (will check '=' next)
+
+        // Compare entry_ptr[j] vs mem[SCRATCH+16 + j]
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma1));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma1));
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::BrIf(1)); // → $mismatch
+
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0)); // → $cmp loop
+        f.instruction(&Instruction::End); // $cmp loop
+        f.instruction(&Instruction::End); // $mismatch block
+
+        // Mismatch path: skip to next entry
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+        f.instruction(&Instruction::Br(1)); // → search loop continue
+        f.instruction(&Instruction::End); // $match block
+
+        // All name_len bytes matched. Now check entry[name_len] == '='
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::LocalGet(self.si(9))); // name_len
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma1));
+        f.instruction(&Instruction::I32Const(0x3D)); // '='
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // Not '=' after key → skip to next entry
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+        f.instruction(&Instruction::Br(1)); // → search loop continue
+        f.instruction(&Instruction::End);
+
+        // MATCH FOUND: Extract value (starts at entry_ptr + name_len + 1, ends at null)
+        // value_start = entry_ptr + name_len + 1
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::LocalGet(self.si(9))); // name_len
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(3))); // si(3) = value_start
+
+        // Scan for null terminator to get value length → si(9)
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(9))); // len = 0
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma1));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Allocate GC string for value → si(4)
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::ArrayNew(self.string_ty));
+        f.instruction(&Instruction::LocalSet(self.si(4)));
+
+        // Copy value bytes: j = 0..value_len
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(self.si(4)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma1));
+        f.instruction(&Instruction::ArraySet(self.string_ty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Return Some(value_str)
+        f.instruction(&Instruction::LocalGet(self.si(4)));
+        f.instruction(&Instruction::StructNew(option_some_ty));
+        f.instruction(&Instruction::Br(2)); // → $found typed block
+
+        f.instruction(&Instruction::End); // search loop End
+        f.instruction(&Instruction::End); // $not_found block End
+
+        // Not found path: return None
+        f.instruction(&Instruction::StructNew(option_none_ty));
+
+        f.instruction(&Instruction::End); // outermost typed block
+    }
 }

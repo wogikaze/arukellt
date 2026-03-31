@@ -135,7 +135,7 @@
 | `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` |
 | `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` |
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - |
-| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | - |
+| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` |
 
 ## Host Fs
 

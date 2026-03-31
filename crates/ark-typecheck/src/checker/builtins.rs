@@ -1153,5 +1153,15 @@ impl TypeChecker {
                 ret: Type::String,
             },
         );
+        self.fn_sigs.insert(
+            "__intrinsic_env_var".into(),
+            FnSig {
+                name: "__intrinsic_env_var".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String],
+                ret: Type::Option(Box::new(Type::String)),
+            },
+        );
     }
 }

@@ -1504,6 +1504,7 @@ stability = "stable"
 params = ["String"]
 returns = "Option<String>"
 doc_category = "host_env"
+intrinsic = "__intrinsic_env_var"
 
 [[functions]]
 name = "arg_count"

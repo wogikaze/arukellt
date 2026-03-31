@@ -2594,6 +2594,29 @@ impl EmitCtx {
                     "args" => {
                         self.call_fn(f, FN_ARGS_VEC);
                     }
+                    "env_var" => {
+                        // env_var(name: String) -> Option<String>
+                        // T1 stub: always returns None (tag=1, no payload)
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        // Emit and discard the argument (name string)
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                            f.instruction(&Instruction::Drop);
+                        }
+                        // Allocate None: heap[ptr] = tag 1, bump by 4
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(1)); // tag = None
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::GlobalGet(0)); // result ptr
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                    }
                     "parse_f64" => {
                         // parse_f64(s: String) -> Result<f64, String>
                         // Returns enum ptr: tag=0 (Ok) + f64 payload, or tag=1 (Err) + string payload

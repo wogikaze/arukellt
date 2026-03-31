@@ -253,6 +253,7 @@ pub(crate) fn inject_prelude_symbols(symbols: &mut SymbolTable, scope: ScopeId) 
         "__intrinsic_args",
         "__intrinsic_arg_count",
         "__intrinsic_arg_at",
+        "__intrinsic_env_var",
         "HashMap_i32_i32_new",
         "HashMap_i32_i32_insert",
         "HashMap_i32_i32_get",

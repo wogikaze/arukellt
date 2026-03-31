@@ -484,6 +484,7 @@ impl Ctx {
                 | "memory_copy"
                 | "memory_fill"
                 | "arg_count"
+                | "env_var"
                 | "eq"
                 | "ne"
         ) || (name.starts_with("Vec_new_") && self.custom_vec_types.contains_key(&name[8..]))
@@ -1174,6 +1175,15 @@ impl Ctx {
                     f.instruction(&Instruction::Drop);
                 }
             }
+            "env_var" => {
+                let name_op = args.first().cloned().unwrap_or(Operand::ConstString(String::new()));
+                self.emit_env_var_builtin(f, &name_op);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
             _ if canonical.starts_with("Vec_new_") => {
                 let sname = &canonical[8..];
                 if let Some(&(arr_ty, vec_ty)) = self.custom_vec_types.get(sname) {
@@ -1752,6 +1762,10 @@ impl Ctx {
             }
             "args" => {
                 self.emit_args_builtin(f);
+            }
+            "env_var" => {
+                let name_op = args.first().cloned().unwrap_or(Operand::ConstString(String::new()));
+                self.emit_env_var_builtin(f, &name_op);
             }
             "sqrt" => {
                 if let Some(arg) = args.first() {

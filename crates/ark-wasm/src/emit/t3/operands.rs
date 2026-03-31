@@ -478,7 +478,10 @@ impl Ctx {
                     enum_name.clone()
                 };
                 let effective_variant_name =
-                    if enum_name == "Option" && effective_enum_name != *enum_name {
+                    if enum_name == "Option"
+                        && effective_enum_name != *enum_name
+                        && effective_enum_name.starts_with("Result")
+                    {
                         match variant_name.as_str() {
                             "Some" => "Ok",
                             "None" => "Err",

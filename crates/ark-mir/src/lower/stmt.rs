@@ -137,7 +137,15 @@ impl LowerCtx {
                             }
                         }
                         if self.enum_variants.contains_key(tname.as_str()) {
-                            self.enum_typed_locals.insert(local_id.0, tname.clone());
+                            // Specialize Option<String> → Option_String
+                            let effective_name =
+                                if tname == "Option" && args.first().is_some_and(is_string_type) {
+                                    "Option_String".to_string()
+                                } else {
+                                    tname.clone()
+                                };
+                            self.enum_typed_locals
+                                .insert(local_id.0, effective_name.clone());
                             // Map generic args to variant payload types
                             // For Option<T>: Some has payload 0 = T
                             // For Result<T, E>: Ok has payload 0 = T, Err has payload 0 = E
@@ -272,13 +280,25 @@ impl LowerCtx {
                     let is_option =
                         matches!(&ret_te, ast::TypeExpr::Generic { name, .. } if name == "Option");
                     if is_result || is_option {
-                        let enum_name = if is_result { "Result" } else { "Option" };
+                        let mut enum_name = if is_result {
+                            "Result".to_string()
+                        } else {
+                            "Option".to_string()
+                        };
+                        // Specialize Option<String> → Option_String
+                        if is_option {
+                            if let ast::TypeExpr::Generic { args, .. } = &ret_te {
+                                if args.first().is_some_and(is_string_type) {
+                                    enum_name = "Option_String".to_string();
+                                }
+                            }
+                        }
                         self.enum_typed_locals
-                            .insert(local_id.0, enum_name.to_string());
+                            .insert(local_id.0, enum_name.clone());
                         // Compute payload strings for the inferred type
                         let mut payload_strings = HashSet::new();
                         if let ast::TypeExpr::Generic { args, .. } = &ret_te {
-                            if enum_name == "Option" {
+                            if enum_name == "Option" || enum_name == "Option_String" {
                                 if args.first().is_some_and(is_string_type) {
                                     payload_strings.insert(("Some".to_string(), 0u32));
                                 }

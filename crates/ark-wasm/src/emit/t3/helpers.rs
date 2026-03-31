@@ -1965,6 +1965,11 @@ impl Ctx {
                                             .entry(dst.0)
                                             .or_insert_with(|| "Option".to_string());
                                     }
+                                    "env_var" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Option_String".to_string());
+                                    }
                                     "HashMap_i32_i32_new" => {
                                         extra_struct
                                             .entry(dst.0)

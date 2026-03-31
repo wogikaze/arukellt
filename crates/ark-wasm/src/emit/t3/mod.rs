@@ -135,6 +135,7 @@ fn normalize_intrinsic(name: &str) -> &str {
             "args" => "args",
             "arg_count" => "arg_count",
             "arg_at" => "arg_at",
+            "env_var" => "env_var",
             "fs_read_file" => "fs_read_file",
             "fs_write_file" => "fs_write_file",
             "fs_write_bytes" => "fs_write_bytes",
@@ -514,6 +515,9 @@ pub(super) struct Ctx {
     wasi_args_sizes_get: u32,
     wasi_args_get: u32,
     wasi_needs_args: bool,
+    wasi_environ_sizes_get: u32,
+    wasi_environ_get: u32,
+    wasi_needs_environ: bool,
     /// Optimization level (0 = O0, 1 = O1, 2 = O2).
     /// Tail-call emission (`return_call`) is enabled at opt_level >= 1.
     opt_level: u8,
@@ -951,6 +955,9 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         wasi_args_sizes_get: 0,
         wasi_args_get: 0,
         wasi_needs_args: false,
+        wasi_environ_sizes_get: 0,
+        wasi_environ_get: 0,
+        wasi_needs_environ: false,
         opt_level,
         string_intern_globals: HashMap::new(),
         string_intern_count: 0,
@@ -993,6 +1000,8 @@ impl Ctx {
         self.wasi_needs_proc_exit = needs_proc_exit;
         let needs_args = Self::mir_uses_args(mir, &reachable_user_indices);
         self.wasi_needs_args = needs_args;
+        let needs_environ = Self::mir_uses_environ(mir, &reachable_user_indices);
+        self.wasi_needs_environ = needs_environ;
 
         self.ensure_specialized_result_enums();
 
@@ -1083,6 +1092,12 @@ impl Ctx {
             self.wasi_args_sizes_get = num_imports;
             num_imports += 1;
             self.wasi_args_get = num_imports;
+            num_imports += 1;
+        }
+        if needs_environ {
+            self.wasi_environ_sizes_get = num_imports;
+            num_imports += 1;
+            self.wasi_environ_get = num_imports;
             num_imports += 1;
         }
 
@@ -1454,6 +1469,18 @@ impl Ctx {
                 wasm_encoder::EntityType::Function(args_get_ty),
             );
         }
+        if needs_environ {
+            imports.import(
+                "wasi_snapshot_preview1",
+                "environ_sizes_get",
+                wasm_encoder::EntityType::Function(args_sizes_get_ty),
+            );
+            imports.import(
+                "wasi_snapshot_preview1",
+                "environ_get",
+                wasm_encoder::EntityType::Function(args_get_ty),
+            );
+        }
 
         // Function section
         let mut functions = FunctionSection::new();
@@ -1701,6 +1728,10 @@ impl Ctx {
         if needs_args {
             func_names.append(self.wasi_args_sizes_get, "wasi:args_sizes_get");
             func_names.append(self.wasi_args_get, "wasi:args_get");
+        }
+        if needs_environ {
+            func_names.append(self.wasi_environ_sizes_get, "wasi:environ_sizes_get");
+            func_names.append(self.wasi_environ_get, "wasi:environ_get");
         }
         // Helper function names (sorted by index for NameMap)
         let mut helpers: Vec<(u32, &str)> = self

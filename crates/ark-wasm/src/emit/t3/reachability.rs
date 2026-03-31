@@ -416,6 +416,71 @@ impl Ctx {
         }
     }
 
+    pub(super) fn mir_uses_environ(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    if Self::stmt_uses_environ(stmt) {
+                        return true;
+                    }
+                }
+                if let Terminator::Return(Some(op)) = &block.terminator
+                    && Self::operand_uses_environ(op)
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_environ(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "env_var" || name == "__intrinsic_env_var"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_environ(rvalue),
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
+                Self::operand_uses_environ(cond)
+                    || then_body.iter().any(Self::stmt_uses_environ)
+                    || else_body.iter().any(Self::stmt_uses_environ)
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_environ(cond) || body.iter().any(Self::stmt_uses_environ)
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_environ(op),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_environ(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_environ(op),
+            Rvalue::BinaryOp(_, l, r) => {
+                Self::operand_uses_environ(l) || Self::operand_uses_environ(r)
+            }
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_environ(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_environ(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "env_var" || name == "__intrinsic_env_var" {
+                    return true;
+                }
+                args.iter().any(Self::operand_uses_environ)
+            }
+            _ => false,
+        }
+    }
+
     pub(super) fn reachable_function_indices(&self, mir: &MirModule) -> Vec<usize> {
         let mut name_to_idx = HashMap::new();
         for (idx, func) in mir.functions.iter().enumerate() {

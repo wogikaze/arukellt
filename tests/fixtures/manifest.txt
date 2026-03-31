@@ -422,6 +422,7 @@ module-run:stdlib_random/random_range.ark
 module-run:stdlib_random/shuffle.ark
 t3-run:stdlib_io/clock_random.ark
 t3-run:stdlib_io2/io_basic.ark
+t3-run:stdlib_env/env_var_lookup.ark
 t3-run:stdlib_random/random_seed.ark
 t3-run:stdlib_random/random_range.ark
 t3-run:stdlib_time/monotonic.ark
