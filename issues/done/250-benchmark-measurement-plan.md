@@ -1,8 +1,8 @@
 # benchmark measurement plan: GC vs linear memory decision data
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-03-30
+**Updated**: 2026-03-31
 **ID**: 250
 **Depends on**: none
 **Track**: parallel
@@ -18,10 +18,10 @@ GC 版と linear memory 版を比較する。
 
 ## Acceptance
 
-- [ ] 6 ケース全てのベンチマーク実装が `benchmarks/` に存在する
-- [ ] `mise bench` で GC 版と linear memory 版の比較が実行できる
-- [ ] 計測結果が `benchmarks/results/` に保存されている
-- [ ] ADR-002 の判定基準に照らして決定が下せる状態になっている
+- [x] 6 ケース全てのベンチマーク実装が `benchmarks/` に存在する
+- [x] `mise bench` で GC 版と linear memory 版の比較が実行できる
+- [x] 計測結果が `benchmarks/results/` に保存されている
+- [x] ADR-002 の判定基準に照らして決定が下せる状態になっている
 
 ## Scope
 
