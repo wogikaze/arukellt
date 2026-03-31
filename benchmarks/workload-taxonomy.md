@@ -22,7 +22,7 @@ Workloads dominated by heap allocation and container operations.
 | Benchmark | Tags | What it measures |
 |-----------|------|-----------------|
 | `vec_ops.ark` | `allocation-heavy`, `container`, `iteration` | Vec push (1k), sequential read, `contains` search; allocation throughput and linear scan cost |
-| `vec-ops.ark` (legacy) | `container`, `match` | Vec push (100), indexed get via `Option` match; basic container + pattern matching |
+| `vec-ops.ark` (removed) | `container`, `match` | Vec push (100), indexed get via `Option` match; basic container + pattern matching |
 
 **Characteristics**: allocation-pressure sensitive, exercises GC or allocator, measures container API overhead.
 
@@ -33,7 +33,7 @@ Workloads focused on string construction and manipulation.
 | Benchmark | Tags | What it measures |
 |-----------|------|-----------------|
 | `string_concat.ark` | `string-heavy`, `allocation-heavy`, `gc-pressure` | Repeated concat (100 iterations); string buffer growth; allocation churn |
-| `string-ops.ark` (legacy) | `string`, `basic` | Single concat + len; baseline string API cost |
+| `string_ops.ark` | `string`, `basic` | Single concat + len; baseline string API cost |
 
 **Characteristics**: allocation-heavy, GC-sensitive, measures string representation efficiency.
 
@@ -53,7 +53,7 @@ Small fixtures used for correctness validation rather than performance measureme
 
 | Benchmark | Tags | What it measures |
 |-----------|------|-----------------|
-| `struct-create.ark` (legacy) | `struct`, `basic` | Single struct creation + field access; minimal allocation |
+| `struct_create.ark` | `struct`, `basic` | Single struct creation + field access; minimal allocation |
 
 **Characteristics**: too simple for meaningful perf measurement; useful for correctness parity checks.
 

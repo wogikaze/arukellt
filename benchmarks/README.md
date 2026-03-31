@@ -72,9 +72,9 @@ and serves as a real-world stress test for the compiler and runtime.
 
 | Fixture | File | Description |
 |---------|------|-------------|
-| vec-ops | `vec-ops.ark` | Basic Vec push/get/len |
-| string-ops | `string-ops.ark` | Basic string concat |
-| struct-create | `struct-create.ark` | Struct field creation |
+
+| string_ops | `string_ops.ark` | Basic string concat |
+| struct_create | `struct_create.ark` | Struct field creation |
 
 ## Tooling Notes
 

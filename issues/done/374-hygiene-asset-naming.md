@@ -1,6 +1,6 @@
 # Repo Hygiene: benchmark / test asset の命名規約を統一する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 374
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] benchmark / test asset の命名規約 (kebab-case or snake_case) が文書化される
-- [ ] 既存 asset が規約に準拠するようリネームされる
-- [ ] CI が命名規約違反を検出する (or pre-commit check)
-- [ ] `tests/fixtures/manifest.txt` が命名規約に準拠する
+- [x] benchmark / test asset の命名規約 (kebab-case or snake_case) が文書化される
+- [x] 既存 asset が規約に準拠するようリネームされる
+- [x] CI が命名規約違反を検出する (or pre-commit check)
+- [x] `tests/fixtures/manifest.txt` が命名規約に準拠する
 
 ## References
 
