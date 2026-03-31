@@ -1485,6 +1485,224 @@ impl ArukellBackend {
     fn arg_matches_param_name(arg: &ast::Expr, param_name: &str) -> bool {
         matches!(arg, ast::Expr::Ident { name, .. } if name == param_name)
     }
+
+    /// Build nested selection ranges for a cursor offset, from innermost to
+    /// outermost AST node.
+    fn collect_selection_ranges(source: &str, module: &ast::Module, offset: u32) -> SelectionRange {
+        // Collect all spans that contain the offset (from outermost to innermost).
+        let mut containing_spans: Vec<ark_diagnostics::Span> = Vec::new();
+
+        for item in &module.items {
+            match item {
+                ast::Item::FnDef(f) => {
+                    if f.span.start <= offset && offset <= f.span.end {
+                        containing_spans.push(f.span);
+                        Self::collect_containing_spans_block(
+                            &f.body,
+                            offset,
+                            &mut containing_spans,
+                        );
+                    }
+                }
+                ast::Item::StructDef(s) => {
+                    if s.span.start <= offset && offset <= s.span.end {
+                        containing_spans.push(s.span);
+                    }
+                }
+                ast::Item::EnumDef(e) => {
+                    if e.span.start <= offset && offset <= e.span.end {
+                        containing_spans.push(e.span);
+                    }
+                }
+                ast::Item::ImplBlock(ib) => {
+                    if ib.span.start <= offset && offset <= ib.span.end {
+                        containing_spans.push(ib.span);
+                        for m in &ib.methods {
+                            if m.span.start <= offset && offset <= m.span.end {
+                                containing_spans.push(m.span);
+                                Self::collect_containing_spans_block(
+                                    &m.body,
+                                    offset,
+                                    &mut containing_spans,
+                                );
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        // Always add the whole-file range as outermost.
+        let file_end = source.len() as u32;
+        let file_range = Self::span_to_range(
+            source,
+            ark_diagnostics::Span {
+                file_id: 0,
+                start: 0,
+                end: file_end,
+            },
+        );
+
+        // Build the chain from outermost to innermost.
+        let mut current = SelectionRange {
+            range: file_range,
+            parent: None,
+        };
+
+        for span in &containing_spans {
+            let range = Self::span_to_range(source, *span);
+            current = SelectionRange {
+                range,
+                parent: Some(Box::new(current)),
+            };
+        }
+
+        current
+    }
+
+    /// Recursively collect spans of AST nodes containing the offset.
+    fn collect_containing_spans_block(
+        block: &ast::Block,
+        offset: u32,
+        spans: &mut Vec<ark_diagnostics::Span>,
+    ) {
+        if block.span.start <= offset && offset <= block.span.end {
+            spans.push(block.span);
+        }
+        for stmt in &block.stmts {
+            Self::collect_containing_spans_stmt(stmt, offset, spans);
+        }
+    }
+
+    fn collect_containing_spans_stmt(
+        stmt: &ast::Stmt,
+        offset: u32,
+        spans: &mut Vec<ark_diagnostics::Span>,
+    ) {
+        match stmt {
+            ast::Stmt::Let { init, span, .. } => {
+                if span.start <= offset && offset <= span.end {
+                    spans.push(*span);
+                    Self::collect_containing_spans_expr(init, offset, spans);
+                }
+            }
+            ast::Stmt::Expr(expr) => {
+                Self::collect_containing_spans_expr(expr, offset, spans);
+            }
+            ast::Stmt::While {
+                cond, body, span, ..
+            } => {
+                if span.start <= offset && offset <= span.end {
+                    spans.push(*span);
+                    Self::collect_containing_spans_expr(cond, offset, spans);
+                    Self::collect_containing_spans_block(body, offset, spans);
+                }
+            }
+            ast::Stmt::Loop { body, span, .. } => {
+                if span.start <= offset && offset <= span.end {
+                    spans.push(*span);
+                    Self::collect_containing_spans_block(body, offset, spans);
+                }
+            }
+            ast::Stmt::For { body, span, .. } => {
+                if span.start <= offset && offset <= span.end {
+                    spans.push(*span);
+                    Self::collect_containing_spans_block(body, offset, spans);
+                }
+            }
+        }
+    }
+
+    fn collect_containing_spans_expr(
+        expr: &ast::Expr,
+        offset: u32,
+        spans: &mut Vec<ark_diagnostics::Span>,
+    ) {
+        let span = expr.span();
+        if span.start > offset || offset > span.end {
+            return;
+        }
+        spans.push(span);
+
+        match expr {
+            ast::Expr::Call { callee, args, .. } => {
+                Self::collect_containing_spans_expr(callee, offset, spans);
+                for arg in args {
+                    Self::collect_containing_spans_expr(arg, offset, spans);
+                }
+            }
+            ast::Expr::If {
+                cond,
+                then_block,
+                else_block,
+                ..
+            } => {
+                Self::collect_containing_spans_expr(cond, offset, spans);
+                Self::collect_containing_spans_block(then_block, offset, spans);
+                if let Some(eb) = else_block {
+                    Self::collect_containing_spans_block(eb, offset, spans);
+                }
+            }
+            ast::Expr::Match {
+                scrutinee, arms, ..
+            } => {
+                Self::collect_containing_spans_expr(scrutinee, offset, spans);
+                for arm in arms {
+                    Self::collect_containing_spans_expr(&arm.body, offset, spans);
+                }
+            }
+            ast::Expr::Binary { left, right, .. } => {
+                Self::collect_containing_spans_expr(left, offset, spans);
+                Self::collect_containing_spans_expr(right, offset, spans);
+            }
+            ast::Expr::Unary { operand, .. } => {
+                Self::collect_containing_spans_expr(operand, offset, spans);
+            }
+            ast::Expr::Block(block) => {
+                Self::collect_containing_spans_block(block, offset, spans);
+            }
+            ast::Expr::Return { value, .. } => {
+                if let Some(v) = value {
+                    Self::collect_containing_spans_expr(v, offset, spans);
+                }
+            }
+            ast::Expr::FieldAccess { object, .. } => {
+                Self::collect_containing_spans_expr(object, offset, spans);
+            }
+            ast::Expr::Index { object, index, .. } => {
+                Self::collect_containing_spans_expr(object, offset, spans);
+                Self::collect_containing_spans_expr(index, offset, spans);
+            }
+            ast::Expr::Closure { body, .. } => {
+                Self::collect_containing_spans_expr(body, offset, spans);
+            }
+            ast::Expr::Tuple { elements, .. } | ast::Expr::Array { elements, .. } => {
+                for e in elements {
+                    Self::collect_containing_spans_expr(e, offset, spans);
+                }
+            }
+            ast::Expr::StructInit { fields, base, .. } => {
+                for (_, val) in fields {
+                    Self::collect_containing_spans_expr(val, offset, spans);
+                }
+                if let Some(b) = base {
+                    Self::collect_containing_spans_expr(b, offset, spans);
+                }
+            }
+            ast::Expr::Assign { target, value, .. } => {
+                Self::collect_containing_spans_expr(target, offset, spans);
+                Self::collect_containing_spans_expr(value, offset, spans);
+            }
+            ast::Expr::Try { expr: inner, .. } => {
+                Self::collect_containing_spans_expr(inner, offset, spans);
+            }
+            ast::Expr::Loop { body, .. } => {
+                Self::collect_containing_spans_block(body, offset, spans);
+            }
+            _ => {}
+        }
+    }
 }
 
 #[tower_lsp::async_trait]
@@ -1560,6 +1778,7 @@ impl LanguageServer for ArukellBackend {
                 ),
                 inlay_hint_provider: Some(OneOf::Left(true)),
                 folding_range_provider: Some(FoldingRangeProviderCapability::Simple(true)),
+                selection_range_provider: Some(SelectionRangeProviderCapability::Simple(true)),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -2364,6 +2583,32 @@ impl LanguageServer for ArukellBackend {
             }
             None => return Ok(None),
         };
+    }
+
+    async fn selection_range(
+        &self,
+        params: SelectionRangeParams,
+    ) -> Result<Option<Vec<SelectionRange>>> {
+        let uri = params.text_document.uri;
+        let docs = self.documents.lock().unwrap();
+        let source = match docs.get(&uri) {
+            Some(s) => s.clone(),
+            None => return Ok(None),
+        };
+        drop(docs);
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri)
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let mut results = Vec::new();
+        for pos in &params.positions {
+            let offset = Self::position_to_offset(&source, *pos) as u32;
+            let ranges = Self::collect_selection_ranges(&source, &analysis.module, offset);
+            results.push(ranges);
+        }
+        Ok(Some(results))
     }
 }
 
