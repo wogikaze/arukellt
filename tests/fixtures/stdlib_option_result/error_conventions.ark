@@ -1,0 +1,63 @@
+use std::host::stdio
+
+// Tests error/Result conventions: is_ok, is_err, unwrap, unwrap_or, match
+fn try_parse(s: String) -> Result<i32, String> {
+    if eq(s, "42") {
+        Ok(42)
+    } else {
+        if eq(s, "0") {
+            Ok(0)
+        } else {
+            Err(concat("parse error: ", s))
+        }
+    }
+}
+
+fn main() {
+    // Ok path: is_ok, is_err, unwrap
+    let r1 = try_parse("42")
+    stdio::println(bool_to_string(is_ok(r1)))
+    stdio::println(bool_to_string(is_err(r1)))
+    stdio::println(i32_to_string(unwrap(r1)))
+
+    // Err path: is_ok, is_err, match to extract error
+    let r2 = try_parse("bad")
+    stdio::println(bool_to_string(is_ok(r2)))
+    stdio::println(bool_to_string(is_err(r2)))
+    match r2 {
+        Ok(v) => stdio::println(i32_to_string(v)),
+        Err(e) => stdio::println(e),
+    }
+
+    // unwrap_or on Err returns default
+    let r3 = try_parse("bad")
+    stdio::println(i32_to_string(unwrap_or(r3, 99)))
+
+    // unwrap_or on Ok returns value
+    let r4 = try_parse("0")
+    stdio::println(i32_to_string(unwrap_or(r4, 99)))
+
+    // Option: is_some, is_none, unwrap, unwrap_or
+    let s1: Option<i32> = Some(10)
+    stdio::println(bool_to_string(is_some(s1)))
+    stdio::println(i32_to_string(unwrap(s1)))
+
+    let n1: Option<i32> = None
+    stdio::println(bool_to_string(is_none(n1)))
+    stdio::println(i32_to_string(unwrap_or(n1, 77)))
+
+    // Nested Result in match
+    let r5 = try_parse("42")
+    let msg = match r5 {
+        Ok(v) => concat("got: ", i32_to_string(v)),
+        Err(e) => concat("fail: ", e),
+    }
+    stdio::println(msg)
+
+    let r6 = try_parse("xyz")
+    let msg2 = match r6 {
+        Ok(v) => concat("got: ", i32_to_string(v)),
+        Err(e) => concat("fail: ", e),
+    }
+    stdio::println(msg2)
+}

@@ -392,6 +392,7 @@ t3-run:stdlib_math/clamp_i32.ark
 run:stdlib_math/sqrt.ark
 t3-compile:stdlib_math/sqrt.ark
 t3-run:stdlib_math/sqrt.ark
+run:stdlib_option_result/error_conventions.ark
 run:stdlib_option_result/is_some_none.ark
 t3-compile:stdlib_option_result/is_some_none.ark
 t3-run:stdlib_option_result/is_some_none.ark

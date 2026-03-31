@@ -31,7 +31,6 @@ graph LR
   I378["378 Playground: execution model を選定し v1 scope を確定する"]
   I383["383 Stdlib: manifest metadata を resolver / typechecker / LSP / docs に伝搬する"]
   I391["391 Stdlib: component / WIT helper の実用性を見直す"]
-  I392["392 Stdlib: error / Result の命名・変換・伝播慣習を正規化する"]
   I408["408 Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する"]
   I411["411 Language Docs: diagnostics / error code 文書を実装と揃える"]
   I412["412 Language Docs: 安定した anchor / permalink 体系を整える"]
@@ -277,7 +276,6 @@ graph LR
 - **378** depends on: none; blocks: 379, 382, 428
 - **383** depends on: none; blocks: 384, 393
 - **391** depends on: none; blocks: none
-- **392** depends on: none; blocks: none
 - **408** depends on: none; blocks: 409
 - **411** depends on: none; blocks: none
 - **412** depends on: none; blocks: none
