@@ -28,7 +28,8 @@
     "onCommand:arukellt.openDocs",
     "onCommand:arukellt.explainCode",
     "onCommand:arukellt.showPipeline",
-    "onCommand:arukellt.securityReview"
+    "onCommand:arukellt.securityReview",
+    "onView:arukellt-project"
   ],
   "main": "./src/extension.js",
   "contributes": {
@@ -102,6 +103,27 @@
       {
         "command": "arukellt.securityReview",
         "title": "Arukellt: Extension Security Review"
+      },
+      {
+        "command": "arukellt.showOutput",
+        "title": "Show Language Server Output",
+        "category": "Arukellt"
+      },
+      {
+        "command": "arukellt.refreshProjectTree",
+        "title": "Refresh Project Tree",
+        "category": "Arukellt",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "arukellt.toggleVerboseLogging",
+        "title": "Toggle Verbose Logging",
+        "category": "Arukellt"
+      },
+      {
+        "command": "arukellt.runScript",
+        "title": "Run Script",
+        "category": "Arukellt"
       }
     ],
     "configuration": {
@@ -136,10 +158,14 @@
       {
         "type": "arukellt",
         "label": "Arukellt Debug",
-        "languages": ["arukellt"],
+        "languages": [
+          "arukellt"
+        ],
         "configurationAttributes": {
           "launch": {
-            "required": ["program"],
+            "required": [
+              "program"
+            ],
             "properties": {
               "program": {
                 "type": "string",
@@ -180,7 +206,71 @@
           }
         ]
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "arukellt",
+          "title": "Arukellt",
+          "icon": "$(code)"
+        }
+      ]
+    },
+    "views": {
+      "arukellt": [
+        {
+          "id": "arukellt-project",
+          "name": "Project",
+          "icon": "$(folder)"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "arukellt-project",
+        "contents": "No Arukellt project found.\n[Initialize Project](command:arukellt.initProject)\nOpen a folder containing ark.toml to get started."
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "arukellt.refreshProjectTree",
+          "when": "view == arukellt-project",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "arukellt.runCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt"
+        },
+        {
+          "command": "arukellt.checkCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt"
+        },
+        {
+          "command": "arukellt.compileCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "arukellt.runCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "arukellt.runCurrentFile",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt"
+        }
+      ]
+    }
   },
   "scripts": {
     "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\"",

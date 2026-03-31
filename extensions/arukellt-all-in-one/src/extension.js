@@ -7,24 +7,38 @@ const { LanguageClient, TransportKind } = require('vscode-languageclient/node')
 
 let client = null
 let outputChannel = null
+let compilerChannel = null
+let testChannel = null
 let statusBarItem = null
+let languageStatusItem = null
 let testController = null
+let projectTreeProvider = null
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-  outputChannel = vscode.window.createOutputChannel('Arukellt')
+  // Output channels — categorized by purpose
+  outputChannel = vscode.window.createOutputChannel('Arukellt Language Server')
+  compilerChannel = vscode.window.createOutputChannel('Arukellt Compiler')
+  testChannel = vscode.window.createOutputChannel('Arukellt Tests')
+
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100)
   statusBarItem.name = 'Arukellt'
 
   context.subscriptions.push(outputChannel)
+  context.subscriptions.push(compilerChannel)
+  context.subscriptions.push(testChannel)
   context.subscriptions.push(statusBarItem)
+
+  // Language status item — shows LSP server state
+  setupLanguageStatus(context)
 
   registerCommands(context)
   registerTaskProvider(context)
   setupTestController(context)
   registerDebugAdapter(context)
+  setupProjectTreeView(context)
 
   startLanguageServer(context)
 }
@@ -125,6 +139,7 @@ function startLanguageServer(context) {
 
   if (!probe.ok) {
     updateStatus('$(error) Arukellt: binary missing', 'Failed to find arukellt binary')
+    updateLanguageStatus('error', 'Binary not found')
     vscode.window.showErrorMessage(
       `Arukellt: arukellt binary not found. ${probe.message} ` +
       'See the output channel for details, or set arukellt.server.path in settings.',
@@ -157,12 +172,16 @@ function startLanguageServer(context) {
     outputChannel,
   }
 
+  updateLanguageStatus('starting')
+
   client = new LanguageClient('arukellt', 'Arukellt Language Server', serverOptions, clientOptions)
 
   client.start().then(() => {
     updateStatus('Arukellt: $(check) LSP running', probe.version || command)
+    updateLanguageStatus('ready', probe.version || command)
   }).catch((err) => {
     updateStatus('$(error) Arukellt: start failed', err.message)
+    updateLanguageStatus('error', err.message)
     vscode.window.showErrorMessage(`Arukellt: failed to start language server: ${err.message}`)
   })
 }
@@ -212,14 +231,14 @@ function runCliCommand(kind) {
     args = ['run', file, '--target', target]
   }
 
-  outputChannel.appendLine(`$ ${command} ${args.join(' ')}`)
-  outputChannel.show()
+  compilerChannel.appendLine(`$ ${command} ${args.join(' ')}`)
+  compilerChannel.show()
 
   const child = cp.spawn(command, args)
-  child.stdout.on('data', (data) => outputChannel.append(data.toString()))
-  child.stderr.on('data', (data) => outputChannel.append(data.toString()))
+  child.stdout.on('data', (data) => compilerChannel.append(data.toString()))
+  child.stderr.on('data', (data) => compilerChannel.append(data.toString()))
   child.on('close', (code) => {
-    outputChannel.appendLine(`Arukellt ${kind} exited with code ${code}`)
+    compilerChannel.appendLine(`Arukellt ${kind} exited with code ${code}`)
   })
 }
 
@@ -296,6 +315,25 @@ function registerCommands(context) {
   }))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.showPipeline', showPipeline))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.securityReview', showSecurityReview))
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.showOutput', () => {
+    if (outputChannel) outputChannel.show()
+  }))
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.refreshProjectTree', () => {
+    if (projectTreeProvider) projectTreeProvider.refresh()
+  }))
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.toggleVerboseLogging', () => {
+    const config = getConfiguration()
+    const current = config.get('trace.server', 'off')
+    const next = current === 'verbose' ? 'off' : 'verbose'
+    config.update('trace.server', next, vscode.ConfigurationTarget.Workspace)
+    vscode.window.showInformationMessage(`Arukellt: server trace set to '${next}'`)
+  }))
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.runScript', (name) => {
+    const { command } = resolveServerCommand()
+    const terminal = vscode.window.createTerminal(`Arukellt: ${name}`)
+    terminal.sendText(`${command} script run ${name}`)
+    terminal.show()
+  }))
 }
 
 function showSecurityReview() {
@@ -528,6 +566,191 @@ function registerDebugAdapter(context) {
     },
   })
   context.subscriptions.push(factory)
+}
+
+// --- Language Status Item (#213) ---
+
+function setupLanguageStatus(context) {
+  languageStatusItem = vscode.languages.createLanguageStatusItem('arukellt-server', { language: 'arukellt' })
+  languageStatusItem.name = 'Arukellt'
+  languageStatusItem.text = '$(loading~spin) Starting…'
+  languageStatusItem.severity = vscode.LanguageStatusSeverity.Information
+  languageStatusItem.command = { title: 'Show Output', command: 'arukellt.showOutput' }
+  context.subscriptions.push(languageStatusItem)
+}
+
+function updateLanguageStatus(state, detail) {
+  if (!languageStatusItem) return
+  switch (state) {
+    case 'starting':
+      languageStatusItem.text = '$(loading~spin) Starting…'
+      languageStatusItem.severity = vscode.LanguageStatusSeverity.Information
+      languageStatusItem.detail = detail || 'Language server is starting'
+      break
+    case 'ready':
+      languageStatusItem.text = '$(check) Ready'
+      languageStatusItem.severity = vscode.LanguageStatusSeverity.Information
+      languageStatusItem.detail = detail || 'Language server is running'
+      break
+    case 'error':
+      languageStatusItem.text = '$(error) Error'
+      languageStatusItem.severity = vscode.LanguageStatusSeverity.Error
+      languageStatusItem.detail = detail || 'Language server encountered an error'
+      break
+    case 'indexing':
+      languageStatusItem.text = '$(sync~spin) Indexing…'
+      languageStatusItem.severity = vscode.LanguageStatusSeverity.Information
+      languageStatusItem.detail = detail || 'Indexing workspace'
+      break
+  }
+}
+
+// --- Project Tree View (#212) ---
+
+class ProjectTreeProvider {
+  constructor() {
+    this._onDidChangeTreeData = new vscode.EventEmitter()
+    this.onDidChangeTreeData = this._onDidChangeTreeData.event
+    this._modules = []
+    this._scripts = []
+    this._targets = []
+  }
+
+  refresh() {
+    this._loadProjectData()
+    this._onDidChangeTreeData.fire()
+  }
+
+  _loadProjectData() {
+    this._modules = []
+    this._scripts = []
+    this._targets = ['wasm32-wasi-p1', 'wasm32-wasi-p2']
+
+    const folders = vscode.workspace.workspaceFolders
+    if (!folders) return
+
+    const rootPath = folders[0].uri.fsPath
+    const manifestPath = path.join(rootPath, 'ark.toml')
+
+    // Read manifest for scripts
+    if (fs.existsSync(manifestPath)) {
+      try {
+        const content = fs.readFileSync(manifestPath, 'utf8')
+        const scriptMatch = content.match(/\[scripts\]([\s\S]*?)(?=\n\[|$)/m)
+        if (scriptMatch) {
+          const lines = scriptMatch[1].split('\n')
+          for (const line of lines) {
+            const m = line.match(/^(\w+)\s*=/)
+            if (m) this._scripts.push(m[1])
+          }
+        }
+      } catch (_) { /* ignore */ }
+    }
+
+    // Discover .ark source files
+    const srcDir = path.join(rootPath, 'src')
+    if (fs.existsSync(srcDir)) {
+      this._scanDir(srcDir, this._modules, rootPath)
+    }
+  }
+
+  _scanDir(dir, modules, rootPath) {
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true })
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name)
+        if (entry.isDirectory()) {
+          this._scanDir(fullPath, modules, rootPath)
+        } else if (entry.name.endsWith('.ark')) {
+          modules.push({
+            name: path.relative(rootPath, fullPath),
+            uri: vscode.Uri.file(fullPath),
+          })
+        }
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  getTreeItem(element) {
+    return element
+  }
+
+  getChildren(element) {
+    if (!element) {
+      // Root — return category nodes
+      const items = []
+      if (this._modules.length > 0) {
+        const modulesItem = new vscode.TreeItem('Modules', vscode.TreeItemCollapsibleState.Expanded)
+        modulesItem.iconPath = new vscode.ThemeIcon('symbol-module')
+        modulesItem.contextValue = 'category-modules'
+        items.push(modulesItem)
+      }
+      if (this._scripts.length > 0) {
+        const scriptsItem = new vscode.TreeItem('Scripts', vscode.TreeItemCollapsibleState.Collapsed)
+        scriptsItem.iconPath = new vscode.ThemeIcon('terminal')
+        scriptsItem.contextValue = 'category-scripts'
+        items.push(scriptsItem)
+      }
+      const targetsItem = new vscode.TreeItem('Targets', vscode.TreeItemCollapsibleState.Collapsed)
+      targetsItem.iconPath = new vscode.ThemeIcon('package')
+      targetsItem.contextValue = 'category-targets'
+      items.push(targetsItem)
+      return items
+    }
+
+    if (element.contextValue === 'category-modules') {
+      return this._modules.map(m => {
+        const item = new vscode.TreeItem(m.name, vscode.TreeItemCollapsibleState.None)
+        item.iconPath = new vscode.ThemeIcon('file-code')
+        item.resourceUri = m.uri
+        item.command = { command: 'vscode.open', arguments: [m.uri], title: 'Open' }
+        item.contextValue = 'module'
+        return item
+      })
+    }
+
+    if (element.contextValue === 'category-scripts') {
+      return this._scripts.map(name => {
+        const item = new vscode.TreeItem(name, vscode.TreeItemCollapsibleState.None)
+        item.iconPath = new vscode.ThemeIcon('play')
+        item.contextValue = 'script'
+        item.command = { command: 'arukellt.runScript', arguments: [name], title: `Run ${name}` }
+        return item
+      })
+    }
+
+    if (element.contextValue === 'category-targets') {
+      return this._targets.map(name => {
+        const item = new vscode.TreeItem(name, vscode.TreeItemCollapsibleState.None)
+        item.iconPath = new vscode.ThemeIcon('circuit-board')
+        item.contextValue = 'target'
+        return item
+      })
+    }
+
+    return []
+  }
+}
+
+function setupProjectTreeView(context) {
+  projectTreeProvider = new ProjectTreeProvider()
+  projectTreeProvider.refresh()
+  const treeView = vscode.window.createTreeView('arukellt-project', {
+    treeDataProvider: projectTreeProvider,
+    showCollapseAll: true,
+  })
+  context.subscriptions.push(treeView)
+
+  // Refresh when files change
+  const watcher = vscode.workspace.createFileSystemWatcher('**/*.ark')
+  watcher.onDidCreate(() => projectTreeProvider.refresh())
+  watcher.onDidDelete(() => projectTreeProvider.refresh())
+  context.subscriptions.push(watcher)
+
+  const manifestWatcher = vscode.workspace.createFileSystemWatcher('**/ark.toml')
+  manifestWatcher.onDidChange(() => projectTreeProvider.refresh())
+  manifestWatcher.onDidCreate(() => projectTreeProvider.refresh())
+  context.subscriptions.push(manifestWatcher)
 }
 
 module.exports = {
