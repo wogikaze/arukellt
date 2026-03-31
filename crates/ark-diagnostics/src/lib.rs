@@ -5,10 +5,12 @@
 
 pub mod codes;
 pub mod helpers;
+pub mod lint;
 pub mod render;
 pub mod sink;
 
 pub use codes::*;
 pub use helpers::*;
+pub use lint::*;
 pub use render::*;
 pub use sink::*;
