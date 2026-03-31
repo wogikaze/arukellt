@@ -415,17 +415,63 @@ function registerTaskProvider(context) {
       const workspaceFolder = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
       const scope = workspaceFolder || vscode.TaskScope.Workspace
       const { command } = resolveServerCommand()
+      const tasks = []
+
+      // Standard tasks
       const definitions = [
-        { task: 'check', command: 'check' },
-        { task: 'compile', command: 'compile' },
-        { task: 'run', command: 'run' },
+        { task: 'check', command: 'check', group: vscode.TaskGroup.Build },
+        { task: 'compile', command: 'compile', group: vscode.TaskGroup.Build },
+        { task: 'run', command: 'run', group: undefined },
+        { task: 'test', command: 'test', group: vscode.TaskGroup.Test },
+        { task: 'fmt', command: 'fmt', group: undefined },
+        { task: 'fmt-check', command: 'fmt --check', group: undefined },
       ]
-      return definitions.map((definition) => {
-        const shellExecution = new vscode.ShellExecution(`${command} ${definition.command}`)
-        return new vscode.Task(definition, scope, `arukellt:${definition.task}`, 'arukellt', shellExecution)
-      })
+      for (const def of definitions) {
+        const shellExec = new vscode.ShellExecution(`${command} ${def.command}`)
+        const t = new vscode.Task(def, scope, `arukellt:${def.task}`, 'arukellt', shellExec)
+        if (def.group) t.group = def.group
+        t.problemMatchers = ['$arukellt']
+        tasks.push(t)
+      }
+
+      // Background watch task
+      const watchDef = { task: 'watch', command: 'check --watch', isBackground: true }
+      const watchExec = new vscode.ShellExecution(`${command} check --watch`)
+      const watchTask = new vscode.Task(watchDef, scope, 'arukellt:watch', 'arukellt', watchExec)
+      watchTask.isBackground = true
+      watchTask.problemMatchers = ['$arukellt-watch']
+      tasks.push(watchTask)
+
+      return tasks
     },
     resolveTask(task) {
+      // Pre-execution validation
+      const { command, probe } = discoverBinary(
+        getConfiguration().get('server.path', 'arukellt')
+      )
+      if (!probe.ok) {
+        vscode.window.showErrorMessage(
+          'Arukellt: binary not found. Run "Arukellt: Setup Doctor" for details.',
+          'Run Doctor'
+        ).then(sel => {
+          if (sel === 'Run Doctor') vscode.commands.executeCommand('arukellt.showSetupDoctor')
+        })
+        return undefined
+      }
+
+      // Validate ark.toml if workspace has one
+      const workspaceFolder = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
+      if (workspaceFolder) {
+        const tomlPath = path.join(workspaceFolder.uri.fsPath, 'ark.toml')
+        try {
+          if (fs.existsSync(tomlPath)) {
+            fs.readFileSync(tomlPath, 'utf8')
+          }
+        } catch (e) {
+          vscode.window.showWarningMessage(`Arukellt: failed to read ark.toml: ${e.message}`)
+        }
+      }
+
       return task
     },
   })

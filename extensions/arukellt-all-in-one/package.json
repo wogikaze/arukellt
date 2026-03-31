@@ -270,7 +270,70 @@
           "group": "arukellt"
         }
       ]
-    }
+    },
+    "problemMatchers": [
+      {
+        "name": "arukellt",
+        "owner": "arukellt",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^(error|warning|info)\\[([A-Z]\\d+)\\]: (.+) at (.+):(\\d+):(\\d+)$",
+          "severity": 1,
+          "code": 2,
+          "message": 3,
+          "file": 4,
+          "line": 5,
+          "column": 6
+        }
+      },
+      {
+        "name": "arukellt-watch",
+        "owner": "arukellt",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^(error|warning|info)\\[([A-Z]\\d+)\\]: (.+) at (.+):(\\d+):(\\d+)$",
+          "severity": 1,
+          "code": 2,
+          "message": 3,
+          "file": 4,
+          "line": 5,
+          "column": 6
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\[watch\\] file change detected",
+          "endsPattern": "^\\[watch\\] compilation (finished|failed)"
+        }
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "arukellt",
+        "required": [
+          "task"
+        ],
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "The Arukellt task to execute (check, compile, run, test, fmt, watch)"
+          },
+          "command": {
+            "type": "string",
+            "description": "The arukellt CLI command to run"
+          },
+          "isBackground": {
+            "type": "boolean",
+            "description": "Whether this is a background (watch) task"
+          }
+        }
+      }
+    ]
   },
   "scripts": {
     "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\"",
