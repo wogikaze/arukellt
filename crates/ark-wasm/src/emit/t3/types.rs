@@ -411,7 +411,9 @@ impl Ctx {
             }
             sorted.push(name);
         }
-        for sname in struct_defs.keys() {
+        let mut struct_names_sorted: Vec<&String> = struct_defs.keys().collect();
+        struct_names_sorted.sort();
+        for sname in struct_names_sorted {
             topo_visit(sname, struct_defs, &mut visited, &mut sorted_structs);
         }
         for sname in &sorted_structs {
@@ -449,7 +451,9 @@ impl Ctx {
                     }
                 }
             }
-            for sname in &vec_struct_names {
+            let mut vec_struct_sorted: Vec<String> = vec_struct_names.into_iter().collect();
+            vec_struct_sorted.sort();
+            for sname in &vec_struct_sorted {
                 if let Some(&struct_ty_idx) = self.struct_gc_types.get(sname) {
                     let arr_ty = self.types.add_array(
                         &format!("$arr_{}", sname),
@@ -472,7 +476,8 @@ impl Ctx {
         // Each enum is emitted as one rec group so that structurally
         // identical variants (e.g., unit variants) are type-distinct.
         // Topological sort: enums whose variant fields reference other enums must be processed after them.
-        let enum_names: Vec<String> = self.enum_defs.keys().cloned().collect();
+        let mut enum_names: Vec<String> = self.enum_defs.keys().cloned().collect();
+        enum_names.sort();
         let mut enum_order: Vec<String> = Vec::new();
         let mut enum_visited: HashSet<String> = HashSet::new();
         fn enum_topo_visit(

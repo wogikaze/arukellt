@@ -650,6 +650,7 @@ impl Ctx {
                 .values()
                 .flat_map(|params| params.iter().cloned()),
         );
+        type_names.sort();
 
         for type_name in type_names {
             let Some((base, args)) = split_generic_type_args(type_name.as_str()) else {
