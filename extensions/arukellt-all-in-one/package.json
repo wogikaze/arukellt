@@ -14,7 +14,11 @@
     "vscode": "^1.113.0"
   },
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Linters",
+    "Debuggers",
+    "Testing",
+    "Formatters"
   ],
   "activationEvents": [
     "onLanguage:arukellt",
@@ -349,5 +353,17 @@
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.0.0"
-  }
+  },
+  "keywords": [
+    "arukellt",
+    "ark",
+    "wasm",
+    "webassembly",
+    "programming-language",
+    "compiler"
+  ],
+  "bugs": {
+    "url": "https://github.com/wogikaze/arukellt/issues"
+  },
+  "homepage": "https://github.com/wogikaze/arukellt"
 }
