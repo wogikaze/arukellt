@@ -1,4 +1,23 @@
 #!/usr/bin/env python3
+"""Generate documentation from std/manifest.toml and project metadata.
+
+Generated files (fully generated — do not edit manually):
+  - docs/README.md
+  - docs/_sidebar.md
+  - docs/stdlib/reference.md
+  - docs/stdlib/modules/*.md  (one per stdlib module)
+  - docs/stdlib/README.md
+  - docs/compiler/README.md
+  - docs/language/README.md
+  - docs/benchmarks/README.md
+
+Marker-updated files (inline blocks replaced, rest is hand-written):
+  - README.md
+  - docs/current-state.md
+
+Regenerate: python3 scripts/generate-docs.py
+Check:      python3 scripts/generate-docs.py --check
+"""
 from __future__ import annotations
 
 import argparse
@@ -595,6 +614,27 @@ def render_root_docs_readme(sections: list[dict], state: dict, fixture_total: in
                     escape_table(section["description"]),
                 )
             )
+    lines.extend([
+        "",
+        "## Generated vs Hand-Written Files",
+        "",
+        "Files marked *generated* are fully produced by `python3 scripts/generate-docs.py`.",
+        "Files marked *marker-updated* have inline `<!-- GENERATED:xxx -->` blocks replaced but are otherwise hand-written.",
+        "Do not edit generated files manually — changes will be overwritten on the next regeneration.",
+        "",
+        "| File | Status |",
+        "|------|--------|",
+        "| `docs/README.md` | generated |",
+        "| `docs/_sidebar.md` | generated |",
+        "| `docs/stdlib/reference.md` | generated |",
+        "| `docs/stdlib/modules/*.md` | generated |",
+        "| `docs/compiler/README.md` | generated |",
+        "| `docs/language/README.md` | generated |",
+        "| `docs/stdlib/README.md` | generated |",
+        "| `README.md` (repo root) | marker-updated |",
+        "| `docs/current-state.md` | marker-updated |",
+        "| all other `docs/*.md` | hand-written |",
+    ])
     return "\n".join(lines) + "\n"
 
 

@@ -44,3 +44,22 @@
 | ADR | [adr](adr/README.md) | 設計判断の記録。現行 reality の正本ではない。 |
 | 設計メモ | [design](design/README.md) | 将来設計や比較検討。現行 reality の正本ではない。 |
 | アーカイブ仕様 | [spec](spec/README.md) | 過去版仕様と履歴参照。現行 reality の正本ではない。 |
+
+## Generated vs Hand-Written Files
+
+Files marked *generated* are fully produced by `python3 scripts/generate-docs.py`.
+Files marked *marker-updated* have inline `<!-- GENERATED:xxx -->` blocks replaced but are otherwise hand-written.
+Do not edit generated files manually — changes will be overwritten on the next regeneration.
+
+| File | Status |
+|------|--------|
+| `docs/README.md` | generated |
+| `docs/_sidebar.md` | generated |
+| `docs/stdlib/reference.md` | generated |
+| `docs/stdlib/modules/*.md` | generated |
+| `docs/compiler/README.md` | generated |
+| `docs/language/README.md` | generated |
+| `docs/stdlib/README.md` | generated |
+| `README.md` (repo root) | marker-updated |
+| `docs/current-state.md` | marker-updated |
+| all other `docs/*.md` | hand-written |

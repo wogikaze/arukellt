@@ -1,6 +1,6 @@
 # 生成 docs と手書き docs の境界を明文化する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 303
@@ -21,9 +21,9 @@
 
 ## Acceptance
 
-- [ ] `scripts/generate-docs.py` の冒頭コメントに生成ファイル一覧がある
-- [ ] 各生成ファイルの先頭に `<!-- This file is auto-generated. Do not edit manually. -->` バナーがある
-- [ ] docs の README に「生成 vs 手書き」の分類表がある
+- [x] `scripts/generate-docs.py` の冒頭コメントに生成ファイル一覧がある
+- [x] 各生成ファイルの先頭に `<!-- This file is auto-generated. Do not edit manually. -->` バナーがある
+- [x] docs の README に「生成 vs 手書き」の分類表がある
 
 ## References
 
