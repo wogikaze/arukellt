@@ -79,12 +79,28 @@ pub(crate) fn parse_module_file(
     Ok(parse(&tokens, sink))
 }
 
+/// Modules whose functions are all `host_stub` — always return errors at
+/// runtime.  We reject imports of these at resolve time so the user gets a
+/// clear compile-time error instead of a surprising runtime failure.
+const HOST_STUB_MODULES: &[&str] = &["std::host::http", "std::host::sockets"];
+
 pub(crate) fn resolve_import_path(
     current_path: &Path,
     module_name: &str,
     std_root: &Path,
     sink: &mut DiagnosticSink,
 ) -> PathBuf {
+    // Reject host_stub modules at import time
+    if HOST_STUB_MODULES.contains(&module_name) {
+        sink.emit(Diagnostic::new(DiagnosticCode::E0211).with_message(format!(
+            "module `{}` is not yet implemented (host_stub); \
+                 its functions always return errors at runtime",
+            module_name,
+        )));
+        // Return a dummy path – the error above will prevent codegen
+        return PathBuf::from("<host_stub>");
+    }
+
     if module_name.starts_with("std") {
         let rel = module_name.replace("::", "/");
         let file_path = std_root.join(format!("{}.ark", rel));
@@ -158,6 +174,10 @@ fn load_module_recursive(
     visiting: &mut HashSet<PathBuf>,
     loaded: &mut HashMap<PathBuf, LoadedModule>,
 ) {
+    // Skip host_stub sentinel path (error already emitted by resolve_import_path)
+    if path.as_os_str() == "<host_stub>" {
+        return;
+    }
     if loaded.contains_key(&path) {
         return;
     }

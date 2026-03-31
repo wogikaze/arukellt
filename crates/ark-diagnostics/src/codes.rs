@@ -42,6 +42,7 @@ pub enum DiagnosticCode {
     E0208,
     E0209,
     E0210,
+    E0211,
 
     // E03xx: Historical v0 constraints + target constraints
     E0300,
@@ -90,6 +91,7 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::E0208,
     DiagnosticCode::E0209,
     DiagnosticCode::E0210,
+    DiagnosticCode::E0211,
     DiagnosticCode::E0300,
     DiagnosticCode::E0301,
     DiagnosticCode::E0302,
@@ -255,6 +257,13 @@ impl DiagnosticCode {
                 message: "incompatible error type for `?` operator",
                 severity: Severity::Error,
                 phase: DiagnosticPhase::TypeCheck,
+            },
+            Self::E0211 => DiagnosticSpec {
+                code: self,
+                id: "E0211",
+                message: "module contains only unimplemented host stubs",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
             },
             Self::E0300 => DiagnosticSpec {
                 code: self,

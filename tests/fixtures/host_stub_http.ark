@@ -1,0 +1,7 @@
+use std::host::http
+use std::host::stdio
+
+fn main() {
+    let result = http::get("https://example.com")
+    stdio::println("done")
+}

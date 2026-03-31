@@ -542,6 +542,16 @@ pub(crate) fn cmd_run(
                     return false;
                 }
 
+                // Reject calls to host_stub functions (always-unimplemented)
+                if mir_uses_capability(&compiled.mir, &HOST_STUB_BUILTINS) {
+                    eprintln!(
+                        "error: this program calls an unimplemented host API (host_stub). \
+                         Functions marked host_stub (e.g. http::request, http::get, \
+                         sockets::connect) are not yet available."
+                    );
+                    return false;
+                }
+
                 if profile_mem && let Ok(info) = session.profile_memory(&file) {
                     eprintln!("{}", info);
                 }
@@ -1065,6 +1075,18 @@ const RANDOM_BUILTINS: &[&str] = &[
     "random_f64",
     "__intrinsic_random_i32",
     "__intrinsic_random_f64",
+];
+
+/// Functions marked `kind = "host_stub"` in std/manifest.toml.
+/// These always return Err("not implemented") and should be rejected at
+/// compile time rather than letting users discover the failure at runtime.
+const HOST_STUB_BUILTINS: &[&str] = &[
+    "http_request",
+    "http_get",
+    "sockets_connect",
+    "__intrinsic_http_request",
+    "__intrinsic_http_get",
+    "__intrinsic_sockets_connect",
 ];
 
 /// Scan MIR for calls to any of the given builtin names.

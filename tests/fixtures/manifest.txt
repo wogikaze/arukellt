@@ -611,3 +611,5 @@ t3-run:stdlib_vec_ops/remove_i32.ark
 t3-run:stdlib_vec_ops/reverse_i32.ark
 t3-run:stdlib_vec_ops/reverse_string.ark
 t3-run:stdlib_vec_ops/sum_i32.ark
+diag:host_stub_http.ark
+diag:host_stub_sockets.ark
