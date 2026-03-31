@@ -7,6 +7,18 @@
 //! - `module-run:path` → same as run, for multi-file modules
 //! - `module-diag:path`→ same as diag, for multi-file modules
 //! - `t3-run:path`     → compile + run on wasm32-wasi-p2, compare stdout against `.expected`
+//! - `t3-compile:path` → compile-only on wasm32-wasi-p2, no run check
+//!
+//! ## Kind filtering
+//!
+//! Set `HARNESS_KIND_FILTER` to a comma-separated list of kinds to run only those:
+//!
+//! ```
+//! HARNESS_KIND_FILTER=run,module-run,diag,module-diag   # T1 only
+//! HARNESS_KIND_FILTER=t3-run,t3-compile                 # T3 only
+//! ```
+//!
+//! When unset, all kinds run (default full suite).
 //!
 //! Self-check: verifies every `.ark` entry point on disk is listed in the manifest.
 
@@ -158,6 +170,18 @@ fn fixture_harness() {
     let bin = arukellt_binary();
     eprintln!("Using binary: {:?}", bin);
 
+    // Optional kind filter: HARNESS_KIND_FILTER=run,t3-run
+    let kind_filter: Option<HashSet<String>> =
+        std::env::var("HARNESS_KIND_FILTER").ok().map(|v| {
+            v.split(',')
+                .map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .collect()
+        });
+    if let Some(ref kf) = kind_filter {
+        eprintln!("Kind filter active: {:?}", kf);
+    }
+
     let mut passed = 0;
     let mut failed = 0;
     let mut skipped = 0;
@@ -166,6 +190,14 @@ fn fixture_harness() {
     for entry in &entries {
         let fixture = fixture_dir.join(&entry.path);
         let name = &entry.path;
+
+        // Kind filter: skip entries not in the allowed set
+        if let Some(ref kf) = kind_filter {
+            if !kf.contains(&entry.kind) {
+                skipped += 1;
+                continue;
+            }
+        }
 
         match entry.kind.as_str() {
             "run" | "module-run" => {
