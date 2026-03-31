@@ -40,6 +40,8 @@ struct ArukellBackend {
     analysis_cache: Mutex<HashMap<Url, CachedAnalysis>>,
     /// Project root discovered from ark.toml; None in single-file mode.
     project_root: Mutex<Option<PathBuf>>,
+    /// All workspace folder roots provided by the editor (multi-root support).
+    workspace_roots: Mutex<Vec<PathBuf>>,
 }
 
 impl ArukellBackend {
@@ -49,6 +51,7 @@ impl ArukellBackend {
             documents: Mutex::new(HashMap::new()),
             analysis_cache: Mutex::new(HashMap::new()),
             project_root: Mutex::new(None),
+            workspace_roots: Mutex::new(Vec::new()),
         }
     }
 
@@ -1964,25 +1967,39 @@ impl ArukellBackend {
 #[tower_lsp::async_trait]
 impl LanguageServer for ArukellBackend {
     async fn initialize(&self, params: InitializeParams) -> Result<InitializeResult> {
-        // Resolve the project root from the workspace folder or root_uri provided
-        // by the editor. This mirrors exactly what `arukellt build` does via
-        // `Manifest::find_and_load`, so CLI and LSP agree on which ark.toml governs.
-        let start_dir: Option<PathBuf> = params
-            .workspace_folders
-            .as_deref()
-            .and_then(|wf| wf.first())
-            .and_then(|wf| wf.uri.to_file_path().ok())
-            .or_else(|| {
+        // Resolve workspace roots from all workspace folders (multi-root support).
+        // Store all workspace folders so per-file project resolution can find
+        // the best matching root, mirroring what `arukellt build` does via
+        // `Manifest::find_and_load`.
+        let mut ws_roots = Vec::new();
+        if let Some(folders) = params.workspace_folders.as_deref() {
+            for wf in folders {
+                if let Ok(path) = wf.uri.to_file_path() {
+                    ws_roots.push(path);
+                }
+            }
+        }
+        if ws_roots.is_empty() {
+            // Fallback to deprecated root_uri / root_path
+            let start_dir: Option<PathBuf> = {
                 #[allow(deprecated)]
-                params.root_uri.as_ref().and_then(|u| u.to_file_path().ok())
-            })
-            .or_else(|| {
-                #[allow(deprecated)]
-                params.root_path.as_deref().map(PathBuf::from)
-            });
+                params
+                    .root_uri
+                    .as_ref()
+                    .and_then(|u| u.to_file_path().ok())
+                    .or_else(|| {
+                        #[allow(deprecated)]
+                        params.root_path.as_deref().map(PathBuf::from)
+                    })
+            };
+            if let Some(dir) = start_dir {
+                ws_roots.push(dir);
+            }
+        }
 
-        if let Some(dir) = start_dir {
-            match ark_manifest::Manifest::find_root(&dir) {
+        // Set primary project root from first workspace folder
+        if let Some(dir) = ws_roots.first() {
+            match ark_manifest::Manifest::find_root(dir) {
                 Some(root) => {
                     *self.project_root.lock().unwrap() = Some(root);
                 }
@@ -1991,6 +2008,8 @@ impl LanguageServer for ArukellBackend {
                 }
             }
         }
+
+        *self.workspace_roots.lock().unwrap() = ws_roots;
 
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
