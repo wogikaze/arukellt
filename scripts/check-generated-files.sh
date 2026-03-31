@@ -36,8 +36,7 @@ for f in "${declared_files[@]}"; do
     full="$ROOT/$f"
     [[ ! -f "$full" ]] && continue
     # Check first 5 lines for "generated" or "do not edit"
-    head_content=$(head -5 "$full" 2>/dev/null || true)
-    if ! echo "$head_content" | grep -qi "generated\|do not edit\|auto-generated"; then
+    if ! head -5 "$full" 2>/dev/null | grep -qi "generated\|do not edit\|auto-generated"; then
         echo "  NO BANNER: $f (listed in .generated-files but lacks generation banner)"
         ((ERRORS++)) || true
     fi

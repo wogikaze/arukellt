@@ -9,22 +9,14 @@ graph LR
   I281["281 CoreHIR lowering: IfExpr を制御フローに desugar する"]
   I286["286 current-state.md の bootstrap 節を fixpoint 達成に合わせて更新する"]
   I290["290 セルフホスト parser に不足構文を追加する"]
-  I291["291 --deny-clock / --deny-random を compile-time 検証に引き上げる"]
-  I292["292 stub host module (http, sockets) の使用を compile error にする"]
-  I293["293 env::var() の実装を完成させる"]
-  I295["295 host API の run-time テストを拡充する"]
-  I299["299 Component Model の対応型 tier を宣言し、未対応型 export を compile error にする"]
-  I303["303 生成 docs と手書き docs の境界を明文化する"]
+  I294["294 capability surface の公式リストを文書化する"]
+  I296["296 string 型の canonical ABI lift-lower を実装する"]
   I305["305 blocked issue の upstream 状態を確認・更新する"]
-  I307["307 --deny-fs の実施と --dir の検証テスト"]
   I308["308 Selfhost parser の構文 surface を拡張する"]
   I319["319 Selfhost CLI のフラグ semantics を driver に接続する"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
   I333["333 LSP: project-wide symbol index を構築する"]
-  I343["343 Formatter: コメントと trivia の保存を実装する"]
-  I344["344 Formatter: parse error 時の動作契約を定義する"]
-  I348["348 Linter: lint rule registry を作る"]
-  I353["353 Tooling Contract: ark-lsp を CI merge gate に含める"]
+  I355["355 Tooling Contract: LSP protocol E2E テストを追加する"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I359["359 Stdlib: monomorphic API 群の整理と canonical naming への移行"]
   I360["360 Stdlib: module family ごとの拡張原則を定義する"]
@@ -34,18 +26,12 @@ graph LR
   I368["368 Language Docs: current-first な言語ガイドを spec から分離して作る"]
   I369["369 Language Docs: feature maturity matrix を作成する"]
   I372["372 Language Docs: historical / archive 文書の境界を明確化する"]
-  I373["373 Repo Hygiene: generated と hand-written の境界を明確化し ownership を付与する"]
-  I374["374 Repo Hygiene: benchmark / test asset の命名規約を統一する"]
   I375["375 Repo Hygiene: archive / retention policy を定め、情報の鮮度を維持する"]
+  I376["376 Repo Hygiene: stale state を CI / pre-push で自動検出する"]
   I377["377 Repo Hygiene: scaffold / internal コンポーネントの露出 tier を定める"]
   I378["378 Playground: execution model を選定し v1 scope を確定する"]
   I383["383 Stdlib: manifest metadata を resolver / typechecker / LSP / docs に伝搬する"]
-  I385["385 Stdlib: text モジュールの Unicode / UTF-8 契約を fixture で固定する"]
-  I386["386 Stdlib: path モジュールの正規化・結合・表示契約を固定する"]
   I387["387 Stdlib: bytes / I/O helper の実用 surface を埋める"]
-  I388["388 Stdlib: collections / seq family の algorithm parity と回帰検証を強化する"]
-  I389["389 Stdlib: JSON / TOML / CSV の round-trip baseline を整備する"]
-  I390["390 Stdlib: test モジュールの assertion / snapshot helper を拡充する"]
   I391["391 Stdlib: component / WIT helper の実用性を見直す"]
   I392["392 Stdlib: error / Result の命名・変換・伝播慣習を正規化する"]
   I408["408 Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する"]
@@ -55,12 +41,12 @@ graph LR
   I420["420 Repo Hygiene: examples / fixtures / samples の source-of-truth map を作る"]
   I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
   I425["425 Repo Hygiene: ディレクトリごとの ownership / maintenance map を作る"]
+  I442["442 Component Model: WIT / Component 生成を「出力できる」から「相互運用可能」に引き上げる"]
   I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
   I287["287 セルフホスト fixture parity テストを構築する"]
-  I296["296 string 型の canonical ABI lift-lower を実装する"]
-  I301["301 current-state.md と README.md の整合を取る"]
-  I294["294 capability surface の公式リストを文書化する"]
+  I297["297 list 型の canonical ABI lift-lower を実装する"]
+  I298["298 option / result 型の canonical ABI lift-lower を実装する"]
   I309["309 Selfhost resolver に module/import resolution を実装する"]
   I311["311 Selfhost typechecker に型推論エンジンを構築する"]
   I313["313 Selfhost MIR lowering: 式のコンパイルを実装する"]
@@ -69,12 +55,7 @@ graph LR
   I334["334 LSP: 標準ライブラリの定義解決を実装する"]
   I335["335 LSP: cross-file go to definition を実装する"]
   I338["338 LSP: references を semantic symbol ID ベースに置き換える"]
-  I345["345 Formatter: 現行構文全域のスナップショットテストを追加する"]
-  I346["346 Formatter: import sort を formatter から分離する"]
-  I349["349 Linter: unused import / unused binding の検出を実装する"]
-  I350["350 Linter: `arukellt lint` CLI サブコマンドを追加する"]
-  I354["354 Tooling Contract: VS Code extension テストを CI に接続する"]
-  I355["355 Tooling Contract: LSP protocol E2E テストを追加する"]
+  I356["356 Tooling Contract: CLI / LSP / Extension の機能契約を文書化する"]
   I367["367 Stdlib Docs: deprecated API の移行ガイドを整備する"]
   I361["361 Stdlib: prelude と module import の二重露出を整理する"]
   I362["362 Stdlib: stability tier を実行時・CI で検証する"]
@@ -87,22 +68,18 @@ graph LR
   I370["370 Language Docs: spec と guide の同期ポイントを CI で検証する"]
   I407["407 Language Docs: feature maturity matrix の生成元と更新フローを実装する"]
   I414["414 Language Docs: transitional / archive banner を一括適用する"]
-  I376["376 Repo Hygiene: stale state を CI / pre-push で自動検出する"]
-  I417["417 Repo Hygiene: generated file manifest と ownership banner を実装する"]
-  I421["421 Repo Hygiene: benchmark / test asset の naming linter を入れる"]
   I419["419 Repo Hygiene: done issues / archive docs の retention workflow を実装する"]
+  I426["426 Repo Hygiene: pre-commit / pre-push の検証項目を cleanup 観点で拡張する"]
   I423["423 Repo Hygiene: scaffold / internal コンポーネントの露出 tier を README と docs に反映する"]
   I379["379 Playground: parser / formatter を Wasm に build しブラウザで動かす"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I428["428 Playground: v1 の product contract と execution ADR を固定する"]
   I384["384 Stdlib: API 追加時の admission gate と family coverage チェックを導入する"]
   I393["393 Stdlib: module family ごとの maturity scoreboard を生成する"]
-  I306["306 Backend-illegal operand の棚卸し"]
+  I443["443 Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する"]
+  I284["284 CoreHIR path をデフォルトに昇格する"]
   I288["288 セルフホスト CLI parity を確認する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
-  I297["297 list 型の canonical ABI lift-lower を実装する"]
-  I298["298 option / result 型の canonical ABI lift-lower を実装する"]
-  I302["302 check-docs-consistency の検証範囲を拡張する"]
   I310["310 Selfhost resolver に visibility enforcement を実装する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I314["314 Selfhost MIR lowering: 制御フローを構築する"]
@@ -113,10 +90,7 @@ graph LR
   I340["340 LSP: auto-import 候補を manifest / module graph 駆動にする"]
   I339["339 LSP: rename を semantic-aware に置き換える"]
   I342["342 LSP: completion をコンテキスト対応にする"]
-  I347["347 Formatter: range formatting を実装する"]
-  I352["352 Linter: lint 結果を LSP diagnostics / code action として配信する"]
-  I351["351 Linter: ark.toml で lint 設定を管理する"]
-  I356["356 Tooling Contract: CLI / LSP / Extension の機能契約を文書化する"]
+  I357["357 Tooling Contract: release gate を手動チェックリストから自動検証に移行する"]
   I400["400 Stdlib Docs: deprecated API の表示と migration cross-link を自動化する"]
   I394["394 Stdlib: prelude 露出面を監査し completion / lint / docs と揃える"]
   I398["398 Stdlib Docs: recipe と fixtures / examples を結ぶ manifest を作る"]
@@ -127,41 +101,33 @@ graph LR
   I410["410 Language Docs: guide / reference の例コードを fixture 連動にする"]
   I413["413 Language Docs: entry page に目的別 reading order を実装する"]
   I415["415 Language Docs: spec と guide の drift checker を CI に入れる"]
-  I426["426 Repo Hygiene: pre-commit / pre-push の検証項目を cleanup 観点で拡張する"]
-  I424["424 Repo Hygiene: generated index の stale 検出を追加する"]
+  I427["427 Repo Hygiene: broken link / missing file reference checker を追加する"]
   I380["380 Playground: editor / diagnostics UI を実装する"]
   I429["429 Playground: parser / formatter / diagnostics の Wasm package と JS wrapper を作る"]
   I433["433 Playground: permalink / share format と圧縮方式を定義する"]
   I435["435 Playground: unsupported target / host capability を明示する UX を入れる"]
-  I284["284 CoreHIR path をデフォルトに昇格する"]
-  I300["300 multi-export world と他言語ホストの相互運用テストを拡充する"]
-  I304["304 verify-harness.sh に docs freshness check を追加する"]
+  I285["285 Legacy lowering path を隔離・撤去する"]
   I316["316 Selfhost Wasm emitter: 構造化ブロック出力を実装する"]
   I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
   I341["341 LSP: organize imports を formatter 副作用から独立した semantic 操作にする"]
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I439["439 VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する"]
-  I357["357 Tooling Contract: release gate を手動チェックリストから自動検証に移行する"]
   I401["401 Stdlib Docs: examples を compile-check して docs drift を防ぐ"]
   I404["404 Stdlib Docs: legacy ページの整理と redirect / archive 方針を実装する"]
   I416["416 Language Docs: ownership map と release gate を定義する"]
-  I427["427 Repo Hygiene: broken link / missing file reference checker を追加する"]
   I381["381 Playground: examples loader と share link を実装する"]
   I430["430 Playground: diagnostics worker と incremental parse loop の性能予算を作る"]
   I431["431 Playground: editor shell と syntax highlighting を実装する"]
   I434["434 Playground: shared link の version pinning と再現性を確保する"]
-  I285["285 Legacy lowering path を隔離・撤去する"]
-  I442["442 Component Model: WIT / Component 生成を「出力できる」から「相互運用可能」に引き上げる"]
   I317["317 Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する"]
   I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
   I405["405 Stdlib Docs: ownership map と release gate を整備する"]
   I432["432 Playground: examples catalog を docs / fixtures と共有する"]
   I436["436 Playground: docs site への統合と navigation を実装する"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
-  I443["443 Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する"]
   I323["323 Selfhost の統一バイナリを生成する"]
-  I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I444["444 VSCode Extension × Component: Playground / Editor から component を直接生成・実行できる導線を作る"]
+  I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I324["324 verify-bootstrap.sh の scaffold を解除する"]
   I325["325 check-selfhost-parity.sh を作成する"]
   I326["326 CI の selfhost gate を full fixpoint check に昇格する"]
@@ -174,12 +140,8 @@ graph LR
   I281 --> I282
   I281 --> I283
   I290 --> I287
-  I299 --> I296
-  I303 --> I301
-  I291 --> I294
-  I292 --> I294
-  I293 --> I294
-  I307 --> I294
+  I296 --> I297
+  I296 --> I298
   I308 --> I309
   I308 --> I311
   I308 --> I313
@@ -188,12 +150,7 @@ graph LR
   I333 --> I334
   I333 --> I335
   I333 --> I338
-  I343 --> I345
-  I344 --> I346
-  I348 --> I349
-  I348 --> I350
-  I353 --> I354
-  I353 --> I355
+  I355 --> I356
   I359 --> I367
   I360 --> I361
   I358 --> I362
@@ -208,24 +165,20 @@ graph LR
   I369 --> I370
   I369 --> I407
   I372 --> I414
-  I373 --> I376
-  I373 --> I417
-  I374 --> I421
   I375 --> I419
+  I376 --> I426
   I377 --> I423
   I378 --> I379
   I378 --> I382
   I378 --> I428
   I383 --> I384
   I383 --> I393
-  I281 --> I306
-  I282 --> I306
-  I283 --> I306
+  I442 --> I443
+  I281 --> I284
+  I282 --> I284
+  I283 --> I284
   I287 --> I288
   I287 --> I289
-  I296 --> I297
-  I296 --> I298
-  I301 --> I302
   I309 --> I310
   I311 --> I312
   I313 --> I314
@@ -236,10 +189,8 @@ graph LR
   I334 --> I340
   I338 --> I339
   I338 --> I342
-  I345 --> I347
-  I349 --> I352
-  I350 --> I351
-  I355 --> I356
+  I355 --> I357
+  I356 --> I357
   I367 --> I400
   I361 --> I394
   I365 --> I398
@@ -252,19 +203,12 @@ graph LR
   I406 --> I413
   I406 --> I415
   I407 --> I415
-  I376 --> I426
-  I417 --> I424
+  I426 --> I427
   I379 --> I380
   I379 --> I429
   I428 --> I433
   I428 --> I435
-  I281 --> I284
-  I282 --> I284
-  I283 --> I284
-  I306 --> I284
-  I297 --> I300
-  I298 --> I300
-  I302 --> I304
+  I284 --> I285
   I314 --> I316
   I315 --> I316
   I320 --> I322
@@ -278,40 +222,27 @@ graph LR
   I335 --> I439
   I338 --> I439
   I339 --> I439
-  I354 --> I357
-  I355 --> I357
-  I356 --> I357
   I398 --> I401
   I402 --> I404
   I413 --> I416
   I415 --> I416
-  I426 --> I427
   I380 --> I381
   I429 --> I430
   I429 --> I431
   I433 --> I434
-  I284 --> I285
-  I299 --> I442
-  I300 --> I442
   I316 --> I317
   I341 --> I440
-  I346 --> I440
-  I348 --> I440
-  I349 --> I440
-  I350 --> I440
-  I352 --> I440
   I401 --> I405
   I403 --> I405
   I381 --> I432
   I431 --> I436
   I431 --> I437
-  I442 --> I443
   I317 --> I323
-  I437 --> I438
   I439 --> I444
   I440 --> I444
   I441 --> I444
   I443 --> I444
+  I437 --> I438
   I323 --> I324
   I324 --> I325
   I325 --> I326
@@ -324,25 +255,17 @@ graph LR
 
 ## Adjacency list
 
-- **281** depends on: none; blocks: 282, 283, 284, 306
+- **281** depends on: none; blocks: 282, 283, 284
 - **286** depends on: none; blocks: none
 - **290** depends on: none; blocks: 287
-- **291** depends on: none; blocks: 294
-- **292** depends on: none; blocks: 294
-- **293** depends on: none; blocks: 294
-- **295** depends on: none; blocks: none
-- **299** depends on: none; blocks: 296, 442
-- **303** depends on: none; blocks: 301
+- **294** depends on: 291, 292, 293, 307; blocks: none
+- **296** depends on: 299; blocks: 297, 298
 - **305** depends on: none; blocks: none
-- **307** depends on: none; blocks: 294
 - **308** depends on: none; blocks: 309, 311, 313
 - **319** depends on: none; blocks: 318, 321
 - **327** depends on: none; blocks: none
 - **333** depends on: none; blocks: 334, 335, 338, 439, 441
-- **343** depends on: none; blocks: 345
-- **344** depends on: none; blocks: 346
-- **348** depends on: none; blocks: 349, 350, 440
-- **353** depends on: none; blocks: 354, 355
+- **355** depends on: 353; blocks: 356, 357
 - **358** depends on: none; blocks: 362
 - **359** depends on: none; blocks: 367
 - **360** depends on: none; blocks: 361, 362
@@ -352,18 +275,12 @@ graph LR
 - **368** depends on: none; blocks: 370, 371, 406
 - **369** depends on: none; blocks: 370, 407
 - **372** depends on: none; blocks: 414
-- **373** depends on: none; blocks: 376, 417
-- **374** depends on: none; blocks: 421
 - **375** depends on: none; blocks: 419
+- **376** depends on: 373; blocks: 426
 - **377** depends on: none; blocks: 423
 - **378** depends on: none; blocks: 379, 382, 428
 - **383** depends on: none; blocks: 384, 393
-- **385** depends on: none; blocks: none
-- **386** depends on: none; blocks: none
 - **387** depends on: none; blocks: none
-- **388** depends on: none; blocks: none
-- **389** depends on: none; blocks: none
-- **390** depends on: none; blocks: none
 - **391** depends on: none; blocks: none
 - **392** depends on: none; blocks: none
 - **408** depends on: none; blocks: 409
@@ -373,12 +290,12 @@ graph LR
 - **420** depends on: none; blocks: none
 - **422** depends on: none; blocks: none
 - **425** depends on: none; blocks: none
-- **282** depends on: 281; blocks: 284, 306
-- **283** depends on: 281; blocks: 284, 306
+- **442** depends on: 299, 300; blocks: 443
+- **282** depends on: 281; blocks: 284
+- **283** depends on: 281; blocks: 284
 - **287** depends on: 290; blocks: 288, 289
-- **296** depends on: 299; blocks: 297, 298
-- **301** depends on: 303; blocks: 302
-- **294** depends on: 291, 292, 293, 307; blocks: none
+- **297** depends on: 296; blocks: none
+- **298** depends on: 296; blocks: none
 - **309** depends on: 308; blocks: 310
 - **311** depends on: 308; blocks: 312
 - **313** depends on: 308; blocks: 314, 315
@@ -387,12 +304,7 @@ graph LR
 - **334** depends on: 333; blocks: 336, 337, 340, 439
 - **335** depends on: 333; blocks: 439, 441
 - **338** depends on: 333; blocks: 339, 342, 439
-- **345** depends on: 343; blocks: 347
-- **346** depends on: 344; blocks: 440
-- **349** depends on: 348; blocks: 352, 440
-- **350** depends on: 348; blocks: 351, 440
-- **354** depends on: 353; blocks: 357
-- **355** depends on: 353; blocks: 356, 357
+- **356** depends on: 355; blocks: 357
 - **367** depends on: 359; blocks: 400
 - **361** depends on: 360; blocks: 394
 - **362** depends on: 358, 360; blocks: none
@@ -405,22 +317,18 @@ graph LR
 - **370** depends on: 368, 369; blocks: none
 - **407** depends on: 369; blocks: 415
 - **414** depends on: 372; blocks: none
-- **376** depends on: 373; blocks: 426
-- **417** depends on: 373; blocks: 424
-- **421** depends on: 374; blocks: none
 - **419** depends on: 375; blocks: none
+- **426** depends on: 376; blocks: 427
 - **423** depends on: 377; blocks: none
 - **379** depends on: 378; blocks: 380, 429
 - **382** depends on: 378; blocks: none
 - **428** depends on: 378; blocks: 433, 435
 - **384** depends on: 383; blocks: none
 - **393** depends on: 383; blocks: none
-- **306** depends on: 281, 282, 283; blocks: 284
+- **443** depends on: 442; blocks: 444
+- **284** depends on: 281, 282, 283, 306; blocks: 285
 - **288** depends on: 287; blocks: none
 - **289** depends on: 287; blocks: none
-- **297** depends on: 296; blocks: 300
-- **298** depends on: 296; blocks: 300
-- **302** depends on: 301; blocks: 304
 - **310** depends on: 309; blocks: none
 - **312** depends on: 311; blocks: none
 - **314** depends on: 313; blocks: 316
@@ -431,10 +339,7 @@ graph LR
 - **340** depends on: 334; blocks: 341, 441
 - **339** depends on: 338; blocks: 439
 - **342** depends on: 338; blocks: none
-- **347** depends on: 345; blocks: none
-- **352** depends on: 349; blocks: 440
-- **351** depends on: 350; blocks: none
-- **356** depends on: 355; blocks: 357
+- **357** depends on: 354, 355, 356; blocks: none
 - **400** depends on: 367; blocks: none
 - **394** depends on: 361; blocks: none
 - **398** depends on: 365; blocks: 401
@@ -445,41 +350,33 @@ graph LR
 - **410** depends on: 406; blocks: none
 - **413** depends on: 406; blocks: 416
 - **415** depends on: 406, 407; blocks: 416
-- **426** depends on: 376; blocks: 427
-- **424** depends on: 417; blocks: none
+- **427** depends on: 426; blocks: none
 - **380** depends on: 379; blocks: 381
 - **429** depends on: 379; blocks: 430, 431
 - **433** depends on: 428; blocks: 434
 - **435** depends on: 428; blocks: none
-- **284** depends on: 281, 282, 283, 306; blocks: 285
-- **300** depends on: 297, 298; blocks: 442
-- **304** depends on: 302; blocks: none
+- **285** depends on: 284; blocks: none
 - **316** depends on: 314, 315; blocks: 317
 - **322** depends on: 320, 321; blocks: none
 - **341** depends on: 340; blocks: 440
 - **441** depends on: 333, 335, 340; blocks: 444
 - **439** depends on: 333, 334, 335, 338, 339; blocks: 444
-- **357** depends on: 354, 355, 356; blocks: none
 - **401** depends on: 398; blocks: 405
 - **404** depends on: 402; blocks: none
 - **416** depends on: 413, 415; blocks: none
-- **427** depends on: 426; blocks: none
 - **381** depends on: 380; blocks: 432
 - **430** depends on: 429; blocks: none
 - **431** depends on: 429; blocks: 436, 437
 - **434** depends on: 433; blocks: none
-- **285** depends on: 284; blocks: none
-- **442** depends on: 299, 300; blocks: 443
 - **317** depends on: 316; blocks: 323
 - **440** depends on: 341, 346, 348, 349, 350, 352; blocks: 444
 - **405** depends on: 401, 403; blocks: none
 - **432** depends on: 381; blocks: none
 - **436** depends on: 431; blocks: none
 - **437** depends on: 431; blocks: 438
-- **443** depends on: 442; blocks: 444
 - **323** depends on: 317; blocks: 324
-- **438** depends on: 437; blocks: none
 - **444** depends on: 439, 440, 441, 443; blocks: none
+- **438** depends on: 437; blocks: none
 - **324** depends on: 323; blocks: 325
 - **325** depends on: 324; blocks: 326
 - **326** depends on: 325; blocks: 328

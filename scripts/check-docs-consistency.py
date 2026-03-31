@@ -101,11 +101,58 @@ def check_fixture_count_freshness() -> int:
     return 0
 
 
+def check_issue_index_freshness() -> int:
+    """Validate that issue indexes are up to date by comparing with regeneration."""
+    index_path = ROOT / "issues" / "open" / "index.md"
+    graph_path = ROOT / "issues" / "open" / "dependency-graph.md"
+    generator = ROOT / "scripts" / "generate-issue-index.sh"
+
+    if not generator.exists():
+        return 0
+    if not index_path.exists() or not graph_path.exists():
+        return 0
+
+    # Capture current content
+    old_index = index_path.read_text()
+    old_graph = graph_path.read_text()
+
+    # Regenerate
+    result = subprocess.run(
+        ["bash", str(generator)],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        errors.append("issue index regeneration failed")
+        return 1
+
+    new_index = index_path.read_text()
+    new_graph = graph_path.read_text()
+
+    stale = 0
+    if new_index != old_index:
+        errors.append(
+            "issue index stale: issues/open/index.md differs after regeneration; "
+            "run `bash scripts/generate-issue-index.sh`"
+        )
+        stale = 1
+    if new_graph != old_graph:
+        errors.append(
+            "dependency graph stale: issues/open/dependency-graph.md differs after regeneration; "
+            "run `bash scripts/generate-issue-index.sh`"
+        )
+        stale = 1
+
+    return stale
+
+
 def main() -> int:
     failed = 0
     failed += check_generated_docs()
     failed += check_capability_state()
     failed += check_fixture_count_freshness()
+    failed += check_issue_index_freshness()
 
     if errors:
         print("docs consistency check FAILED:", file=sys.stderr)
