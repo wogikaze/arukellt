@@ -136,7 +136,8 @@
         "arukellt.server.path": {
           "type": "string",
           "default": "arukellt",
-          "description": "Path to the arukellt CLI used to launch the language server."
+          "description": "Path to the arukellt CLI used to launch the language server.",
+          "scope": "machine"
         },
         "arukellt.server.args": {
           "type": "array",
@@ -149,12 +150,14 @@
         "arukellt.target": {
           "type": "string",
           "default": "wasm32-wasi-p1",
-          "description": "Default target passed by extension commands such as check, compile, and run."
+          "description": "Default target passed by extension commands such as check, compile, and run.",
+          "scope": "resource"
         },
         "arukellt.emit": {
           "type": "string",
           "default": "core-wasm",
-          "description": "Default emit kind passed by extension compile commands."
+          "description": "Default emit kind passed by extension compile commands.",
+          "scope": "resource"
         }
       }
     },

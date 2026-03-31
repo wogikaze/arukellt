@@ -217,7 +217,7 @@ function runCliCommand(kind) {
     return
   }
 
-  const config = getConfiguration()
+  const config = vscode.workspace.getConfiguration('arukellt', editor.document.uri)
   const target = config.get('target', 'wasm32-wasi-p1')
   const emit = config.get('emit', 'core-wasm')
 
@@ -412,12 +412,10 @@ async function showPipeline() {
 function registerTaskProvider(context) {
   const provider = vscode.tasks.registerTaskProvider('arukellt', {
     provideTasks() {
-      const workspaceFolder = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
-      const scope = workspaceFolder || vscode.TaskScope.Workspace
+      const folders = vscode.workspace.workspaceFolders || []
       const { command } = resolveServerCommand()
       const tasks = []
 
-      // Standard tasks
       const definitions = [
         { task: 'check', command: 'check', group: vscode.TaskGroup.Build },
         { task: 'compile', command: 'compile', group: vscode.TaskGroup.Build },
@@ -426,21 +424,39 @@ function registerTaskProvider(context) {
         { task: 'fmt', command: 'fmt', group: undefined },
         { task: 'fmt-check', command: 'fmt --check', group: undefined },
       ]
-      for (const def of definitions) {
-        const shellExec = new vscode.ShellExecution(`${command} ${def.command}`)
-        const t = new vscode.Task(def, scope, `arukellt:${def.task}`, 'arukellt', shellExec)
-        if (def.group) t.group = def.group
-        t.problemMatchers = ['$arukellt']
-        tasks.push(t)
-      }
 
-      // Background watch task
-      const watchDef = { task: 'watch', command: 'check --watch', isBackground: true }
-      const watchExec = new vscode.ShellExecution(`${command} check --watch`)
-      const watchTask = new vscode.Task(watchDef, scope, 'arukellt:watch', 'arukellt', watchExec)
-      watchTask.isBackground = true
-      watchTask.problemMatchers = ['$arukellt-watch']
-      tasks.push(watchTask)
+      // Generate tasks per workspace folder for multi-root support
+      const scopes = folders.length > 0 ? folders : [vscode.TaskScope.Workspace]
+      for (const scope of scopes) {
+        const folderConfig = scope.uri
+          ? vscode.workspace.getConfiguration('arukellt', scope.uri)
+          : getConfiguration()
+        const target = folderConfig.get('target', 'wasm32-wasi-p1')
+        const prefix = scope.name ? `${scope.name}: ` : ''
+
+        for (const def of definitions) {
+          const fullCmd = def.command.includes('--target')
+            ? `${command} ${def.command}`
+            : `${command} ${def.command}`
+          const shellExec = new vscode.ShellExecution(fullCmd, {
+            cwd: scope.uri ? scope.uri.fsPath : undefined,
+          })
+          const t = new vscode.Task(def, scope, `${prefix}arukellt:${def.task}`, 'arukellt', shellExec)
+          if (def.group) t.group = def.group
+          t.problemMatchers = ['$arukellt']
+          tasks.push(t)
+        }
+
+        // Background watch task
+        const watchDef = { task: 'watch', command: 'check --watch', isBackground: true }
+        const watchExec = new vscode.ShellExecution(`${command} check --watch`, {
+          cwd: scope.uri ? scope.uri.fsPath : undefined,
+        })
+        const watchTask = new vscode.Task(watchDef, scope, `${prefix}arukellt:watch`, 'arukellt', watchExec)
+        watchTask.isBackground = true
+        watchTask.problemMatchers = ['$arukellt-watch']
+        tasks.push(watchTask)
+      }
 
       return tasks
     },
@@ -459,16 +475,18 @@ function registerTaskProvider(context) {
         return undefined
       }
 
-      // Validate ark.toml if workspace has one
-      const workspaceFolder = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
-      if (workspaceFolder) {
-        const tomlPath = path.join(workspaceFolder.uri.fsPath, 'ark.toml')
+      // Validate ark.toml for the task's scope folder
+      const folder = task.scope && task.scope.uri
+        ? task.scope
+        : (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0])
+      if (folder && folder.uri) {
+        const tomlPath = path.join(folder.uri.fsPath, 'ark.toml')
         try {
           if (fs.existsSync(tomlPath)) {
             fs.readFileSync(tomlPath, 'utf8')
           }
         } catch (e) {
-          vscode.window.showWarningMessage(`Arukellt: failed to read ark.toml: ${e.message}`)
+          vscode.window.showWarningMessage(`Arukellt: failed to read ark.toml in ${folder.name}: ${e.message}`)
         }
       }
 
@@ -476,6 +494,24 @@ function registerTaskProvider(context) {
     },
   })
   context.subscriptions.push(provider)
+}
+
+/** Detect which workspace folders have ark.toml and return project info. */
+function detectProjects() {
+  const folders = vscode.workspace.workspaceFolders || []
+  const projects = []
+  for (const folder of folders) {
+    const tomlPath = path.join(folder.uri.fsPath, 'ark.toml')
+    const hasManifest = fs.existsSync(tomlPath)
+    const config = vscode.workspace.getConfiguration('arukellt', folder.uri)
+    projects.push({
+      folder,
+      hasManifest,
+      target: config.get('target', 'wasm32-wasi-p1'),
+      emit: config.get('emit', 'core-wasm'),
+    })
+  }
+  return projects
 }
 
 function setupTestController(context) {
@@ -671,45 +707,65 @@ class ProjectTreeProvider {
     this._modules = []
     this._scripts = []
     this._targets = ['wasm32-wasi-p1', 'wasm32-wasi-p2']
+    this._projects = []
 
     const folders = vscode.workspace.workspaceFolders
     if (!folders) return
 
-    const rootPath = folders[0].uri.fsPath
-    const manifestPath = path.join(rootPath, 'ark.toml')
+    // Multi-root: detect projects in each folder
+    for (const folder of folders) {
+      const rootPath = folder.uri.fsPath
+      const manifestPath = path.join(rootPath, 'ark.toml')
+      const hasManifest = fs.existsSync(manifestPath)
+      const prefix = folders.length > 1 ? `${folder.name}/` : ''
 
-    // Read manifest for scripts
-    if (fs.existsSync(manifestPath)) {
-      try {
-        const content = fs.readFileSync(manifestPath, 'utf8')
-        const scriptMatch = content.match(/\[scripts\]([\s\S]*?)(?=\n\[|$)/m)
-        if (scriptMatch) {
-          const lines = scriptMatch[1].split('\n')
-          for (const line of lines) {
-            const m = line.match(/^(\w+)\s*=/)
-            if (m) this._scripts.push(m[1])
+      if (hasManifest) {
+        this._projects.push({ name: folder.name, hasManifest: true })
+        try {
+          const content = fs.readFileSync(manifestPath, 'utf8')
+          const scriptMatch = content.match(/\[scripts\]([\s\S]*?)(?=\n\[|$)/m)
+          if (scriptMatch) {
+            const lines = scriptMatch[1].split('\n')
+            for (const line of lines) {
+              const m = line.match(/^(\w+)\s*=/)
+              if (m) this._scripts.push(prefix + m[1])
+            }
           }
-        }
-      } catch (_) { /* ignore */ }
-    }
+        } catch (_) { /* ignore */ }
+      }
 
-    // Discover .ark source files
-    const srcDir = path.join(rootPath, 'src')
-    if (fs.existsSync(srcDir)) {
-      this._scanDir(srcDir, this._modules, rootPath)
+      // Discover .ark source files
+      const srcDir = path.join(rootPath, 'src')
+      if (fs.existsSync(srcDir)) {
+        this._scanDir(srcDir, this._modules, rootPath, prefix)
+      }
+      // Also scan root-level .ark files (single-file mode)
+      if (!hasManifest) {
+        try {
+          const entries = fs.readdirSync(rootPath, { withFileTypes: true })
+          for (const entry of entries) {
+            if (entry.isFile() && entry.name.endsWith('.ark')) {
+              this._modules.push({
+                name: prefix + entry.name,
+                uri: vscode.Uri.file(path.join(rootPath, entry.name)),
+              })
+            }
+          }
+        } catch (_) { /* ignore */ }
+      }
     }
   }
 
-  _scanDir(dir, modules, rootPath) {
+  _scanDir(dir, modules, rootPath, prefix) {
     try {
       const entries = fs.readdirSync(dir, { withFileTypes: true })
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name)
         if (entry.isDirectory()) {
-          this._scanDir(fullPath, modules, rootPath)
+          this._scanDir(fullPath, modules, rootPath, prefix)
         } else if (entry.name.endsWith('.ark')) {
           modules.push({
-            name: path.relative(rootPath, fullPath),
+            name: prefix + path.relative(rootPath, fullPath),
             uri: vscode.Uri.file(fullPath),
           })
         }
@@ -796,7 +852,15 @@ function setupProjectTreeView(context) {
   const manifestWatcher = vscode.workspace.createFileSystemWatcher('**/ark.toml')
   manifestWatcher.onDidChange(() => projectTreeProvider.refresh())
   manifestWatcher.onDidCreate(() => projectTreeProvider.refresh())
+  manifestWatcher.onDidDelete(() => projectTreeProvider.refresh())
   context.subscriptions.push(manifestWatcher)
+
+  // Re-detect on workspace folder add/remove (multi-root)
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      projectTreeProvider.refresh()
+    })
+  )
 }
 
 module.exports = {
