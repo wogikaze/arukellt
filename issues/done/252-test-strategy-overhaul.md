@@ -1,6 +1,6 @@
 # テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 252
@@ -60,3 +60,7 @@
 * `issues/open/263-package-workspace-manifest-test-first-class.md`
 * `issues/open/264-ci-category-jobs.md`
 * `issues/open/265-failure-layer-identification.md`
+
+## Completion Note
+
+Closed 2026-04-09. test-strategy.md exists in docs/. CI structured into 8 named layers (unit/fixture-primary/fixture-supported/integration/packaging/determinism/heavy/perf). Each layer has documented responsibility. #261 done. verify-harness.sh has 13 checks. docs/test-strategy.md covers all 10 categories from the issue.

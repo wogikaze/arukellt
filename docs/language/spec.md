@@ -8,7 +8,7 @@ language as implemented on the `feature-arukellt-v1` branch. It is intended
 to contain enough detail to re-implement the parser, type checker, and code
 generator from scratch.
 
-### Stability Labels
+## Stability Labels
 
 Each section and feature carries one of the following stability labels (ADR-013 §
 Stability):

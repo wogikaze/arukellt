@@ -9,6 +9,7 @@ use ark_lexer::{Lexer, TokenKind};
 use ark_parser::ast;
 use ark_parser::parse;
 use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
 use std::sync::Mutex;
 
 // Semantic token types registered with the client.
@@ -37,6 +38,8 @@ struct ArukellBackend {
     client: Client,
     documents: Mutex<HashMap<Url, String>>,
     analysis_cache: Mutex<HashMap<Url, CachedAnalysis>>,
+    /// Project root discovered from ark.toml; None in single-file mode.
+    project_root: Mutex<Option<PathBuf>>,
 }
 
 impl ArukellBackend {
@@ -45,6 +48,7 @@ impl ArukellBackend {
             client,
             documents: Mutex::new(HashMap::new()),
             analysis_cache: Mutex::new(HashMap::new()),
+            project_root: Mutex::new(None),
         }
     }
 
@@ -929,7 +933,35 @@ impl ArukellBackend {
 
 #[tower_lsp::async_trait]
 impl LanguageServer for ArukellBackend {
-    async fn initialize(&self, _: InitializeParams) -> Result<InitializeResult> {
+    async fn initialize(&self, params: InitializeParams) -> Result<InitializeResult> {
+        // Resolve the project root from the workspace folder or root_uri provided
+        // by the editor. This mirrors exactly what `arukellt build` does via
+        // `Manifest::find_and_load`, so CLI and LSP agree on which ark.toml governs.
+        let start_dir: Option<PathBuf> = params
+            .workspace_folders
+            .as_deref()
+            .and_then(|wf| wf.first())
+            .and_then(|wf| wf.uri.to_file_path().ok())
+            .or_else(|| {
+                #[allow(deprecated)]
+                params.root_uri.as_ref().and_then(|u| u.to_file_path().ok())
+            })
+            .or_else(|| {
+                #[allow(deprecated)]
+                params.root_path.as_deref().map(PathBuf::from)
+            });
+
+        if let Some(dir) = start_dir {
+            match ark_manifest::Manifest::find_root(&dir) {
+                Some(root) => {
+                    *self.project_root.lock().unwrap() = Some(root);
+                }
+                None => {
+                    // Single-file mode: no ark.toml found, operate on individual files.
+                }
+            }
+        }
+
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
@@ -982,13 +1014,59 @@ impl LanguageServer for ArukellBackend {
     }
 
     async fn initialized(&self, _: InitializedParams) {
+        let root_msg = match self.project_root.lock().unwrap().as_deref() {
+            Some(root) => format!("project root: {}", root.display()),
+            None => "single-file mode (no ark.toml found)".to_string(),
+        };
         self.client
-            .log_message(MessageType::INFO, "arukellt LSP server initialized")
+            .log_message(
+                MessageType::INFO,
+                format!("arukellt LSP server initialized — {root_msg}"),
+            )
             .await;
     }
 
     async fn shutdown(&self) -> Result<()> {
         Ok(())
+    }
+
+    /// Re-resolve the project root when ark.toml changes on disk so that
+    /// the LSP stays aligned with the CLI (which re-reads ark.toml on each
+    /// invocation via `Manifest::find_and_load`).
+    async fn did_change_watched_files(&self, params: DidChangeWatchedFilesParams) {
+        let manifest_changed = params
+            .changes
+            .iter()
+            .any(|c| c.uri.path().ends_with("ark.toml"));
+        if manifest_changed {
+            let current_root = self.project_root.lock().unwrap().clone();
+            if let Some(root) = current_root {
+                // Re-resolve from the same root to pick up changes.
+                match ark_manifest::Manifest::find_root(&root) {
+                    Some(new_root) => {
+                        *self.project_root.lock().unwrap() = Some(new_root.clone());
+                        self.client
+                            .log_message(
+                                MessageType::INFO,
+                                format!(
+                                    "ark.toml changed — project root reloaded: {}",
+                                    new_root.display()
+                                ),
+                            )
+                            .await;
+                    }
+                    None => {
+                        *self.project_root.lock().unwrap() = None;
+                        self.client
+                            .log_message(
+                                MessageType::INFO,
+                                "ark.toml removed — switched to single-file mode",
+                            )
+                            .await;
+                    }
+                }
+            }
+        }
     }
 
     async fn did_open(&self, params: DidOpenTextDocumentParams) {

@@ -1,6 +1,6 @@
 # ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 251
@@ -62,3 +62,7 @@ Arukellt は `docs/current-state.md` と `docs/data/project-state.toml` で T1/T
 * `issues/open/258-core-wasm-vs-component-guarantee-split.md`
 * `issues/open/259-unimplemented-target-verification-status.md`
 * `issues/open/260-current-state-target-table-from-ci.md`
+
+## Completion Note
+
+Closed 2026-04-09. CI now has ARUKELLT_TARGET injection (fixture-primary=wasm32-wasi-p2, fixture-supported=wasm32-wasi-p1). docs/target-contract.md exists with full target×verification-face matrix. T2/T4/T5 scaffold status documented. Component vs core-wasm guarantee levels split in ADR-013 (#258 done). Sub-issues #256 #257 #258 #259 all closed.

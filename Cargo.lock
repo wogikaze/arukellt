@@ -190,6 +190,7 @@ dependencies = [
  "ark-diagnostics",
  "ark-driver",
  "ark-lexer",
+ "ark-manifest",
  "ark-parser",
  "ark-resolve",
  "ark-typecheck",

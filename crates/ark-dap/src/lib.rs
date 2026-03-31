@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,10 +23,40 @@ pub struct Response {
     pub body: Option<serde_json::Value>,
 }
 
+/// Session state shared across the DAP message loop.
+struct DapSession {
+    /// Path to the .ark source file being debugged, if launched.
+    source_path: Option<String>,
+    /// Whether the program has been launched and terminated.
+    terminated: bool,
+}
+
+impl DapSession {
+    fn new() -> Self {
+        DapSession {
+            source_path: None,
+            terminated: false,
+        }
+    }
+}
+
+fn make_event(seq: i64, event: &str, body: Option<serde_json::Value>) -> String {
+    let msg = serde_json::json!({
+        "seq": seq,
+        "type": "event",
+        "event": event,
+        "body": body,
+    });
+    let json = serde_json::to_string(&msg).unwrap_or_default();
+    format!("Content-Length: {}\r\n\r\n{}", json.len(), json)
+}
+
 pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
     let stdin = tokio::io::stdin();
     let mut stdout = tokio::io::stdout();
     let mut reader = BufReader::new(stdin);
+    let session = Arc::new(Mutex::new(DapSession::new()));
+    let mut seq_counter: i64 = 5000;
 
     loop {
         let mut header = String::new();
@@ -51,7 +82,9 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
 
         let request: Request = serde_json::from_slice(&body)?;
         let mut response_body = None;
-        let mut send_after_response: Option<String> = None;
+        let mut events_after: Vec<String> = Vec::new();
+        seq_counter += 1;
+        let event_seq = seq_counter;
 
         match request.command.as_str() {
             "initialize" => {
@@ -61,34 +94,92 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
                     "supportsConditionalBreakpoints": false,
                     "supportsSetVariable": false,
                     "supportsSteppingGranularity": false,
+                    "supportsTerminateRequest": true,
                 }));
             }
             "launch" => {
+                let source = request
+                    .arguments
+                    .as_ref()
+                    .and_then(|a| a.get("program"))
+                    .and_then(|p| p.as_str())
+                    .map(|s| s.to_string());
+                if let Ok(mut sess) = session.lock() {
+                    sess.source_path = source;
+                    sess.terminated = false;
+                }
                 response_body = Some(serde_json::json!({}));
-                // Send initialized event after launch response
-                let initialized_event = serde_json::json!({
-                    "seq": request.seq + 2000,
-                    "type": "event",
-                    "event": "initialized",
-                });
-                let event_json = serde_json::to_string(&initialized_event)?;
-                let event_msg =
-                    format!("Content-Length: {}\r\n\r\n{}", event_json.len(), event_json);
-                // event will be sent after the response below
-                send_after_response = Some(event_msg);
+                events_after.push(make_event(event_seq, "initialized", None));
             }
             "configurationDone" => {
+                // Compile and run the program; emit output events, then terminated.
+                let source_path = session.lock().ok().and_then(|s| s.source_path.clone());
                 response_body = Some(serde_json::json!({}));
-                // Send terminated event — we don't actually run yet
-                let terminated_event = serde_json::json!({
-                    "seq": request.seq + 2000,
-                    "type": "event",
-                    "event": "terminated",
-                });
-                let event_json = serde_json::to_string(&terminated_event)?;
-                let event_msg =
-                    format!("Content-Length: {}\r\n\r\n{}", event_json.len(), event_json);
-                send_after_response = Some(event_msg);
+
+                if let Some(path) = source_path {
+                    // Run the program via `arukellt run <path>` and capture output
+                    let run_result = tokio::process::Command::new("arukellt")
+                        .args(["run", &path])
+                        .output()
+                        .await;
+
+                    match run_result {
+                        Ok(out) => {
+                            let stdout_text = String::from_utf8_lossy(&out.stdout);
+                            let stderr_text = String::from_utf8_lossy(&out.stderr);
+                            if !stdout_text.is_empty() {
+                                events_after.push(make_event(
+                                    event_seq + 1,
+                                    "output",
+                                    Some(serde_json::json!({
+                                        "category": "stdout",
+                                        "output": stdout_text,
+                                    })),
+                                ));
+                            }
+                            if !stderr_text.is_empty() {
+                                events_after.push(make_event(
+                                    event_seq + 2,
+                                    "output",
+                                    Some(serde_json::json!({
+                                        "category": "stderr",
+                                        "output": stderr_text,
+                                    })),
+                                ));
+                            }
+                            let exit_code = out.status.code().unwrap_or(-1);
+                            events_after.push(make_event(
+                                event_seq + 3,
+                                "exited",
+                                Some(serde_json::json!({ "exitCode": exit_code })),
+                            ));
+                        }
+                        Err(e) => {
+                            events_after.push(make_event(
+                                event_seq + 1,
+                                "output",
+                                Some(serde_json::json!({
+                                    "category": "stderr",
+                                    "output": format!("arukellt run failed: {e}\n"),
+                                })),
+                            ));
+                        }
+                    }
+                } else {
+                    events_after.push(make_event(
+                        event_seq + 1,
+                        "output",
+                        Some(serde_json::json!({
+                            "category": "stderr",
+                            "output": "DAP launch: no program path specified\n",
+                        })),
+                    ));
+                }
+
+                if let Ok(mut sess) = session.lock() {
+                    sess.terminated = true;
+                }
+                events_after.push(make_event(event_seq + 4, "terminated", None));
             }
             "threads" => {
                 response_body = Some(serde_json::json!({
@@ -97,8 +188,30 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
                     ]
                 }));
             }
+            "stackTrace" => {
+                // No live execution — return empty stack
+                response_body = Some(serde_json::json!({
+                    "stackFrames": [],
+                    "totalFrames": 0,
+                }));
+            }
+            "scopes" => {
+                // No live execution — return empty scope list
+                response_body = Some(serde_json::json!({
+                    "scopes": [],
+                }));
+            }
+            "variables" => {
+                // No live execution — return empty variable list
+                response_body = Some(serde_json::json!({
+                    "variables": [],
+                }));
+            }
+            "continue" | "next" | "stepIn" | "stepOut" => {
+                response_body = Some(serde_json::json!({ "allThreadsContinued": true }));
+            }
             "setBreakpoints" => {
-                // Accept breakpoints but report them as unverified (not yet supported)
+                // Accept breakpoints but report them as unverified (runtime breakpoints not yet supported)
                 let breakpoints = request
                     .arguments
                     .as_ref()
@@ -109,7 +222,7 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
                             .map(|bp| {
                                 serde_json::json!({
                                     "verified": false,
-                                    "message": "Breakpoints are not yet supported by Arukellt DAP",
+                                    "message": "Breakpoints are not yet supported (runtime hooks needed)",
                                     "line": bp.get("line").and_then(|l| l.as_i64()).unwrap_or(0),
                                 })
                             })
@@ -118,7 +231,10 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
                     .unwrap_or_default();
                 response_body = Some(serde_json::json!({ "breakpoints": breakpoints }));
             }
-            "disconnect" => {
+            "setFunctionBreakpoints" | "setExceptionBreakpoints" => {
+                response_body = Some(serde_json::json!({}));
+            }
+            "terminate" | "disconnect" => {
                 let response = Response {
                     seq: request.seq + 1000,
                     type_: "response".to_string(),
@@ -138,7 +254,10 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
                 stdout.flush().await?;
                 break;
             }
-            _ => {}
+            _ => {
+                // Unknown command: respond with empty success to avoid debugger hang
+                response_body = Some(serde_json::json!({}));
+            }
         }
 
         let response = Response {
@@ -160,7 +279,7 @@ pub async fn run_dap() -> Result<(), Box<dyn std::error::Error>> {
         stdout.write_all(full_response.as_bytes()).await?;
         stdout.flush().await?;
 
-        if let Some(event_msg) = send_after_response {
+        for event_msg in events_after {
             stdout.write_all(event_msg.as_bytes()).await?;
             stdout.flush().await?;
         }

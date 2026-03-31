@@ -1,6 +1,6 @@
 # 構文・型システム・import・visibility・error model の契約を文書化する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-03-30
 **ID**: 227
@@ -16,11 +16,11 @@
 
 ## Acceptance
 
-- [ ] 構文の全要素（式・文・パターン・item）が仕様書に網羅されている
-- [ ] 型システムの規則（推論・強制・型エラーの条件）が文書化されている
-- [ ] import 方式と解決規則が一意に定まる仕様として記述されている
-- [ ] visibility（pub / priv / module 境界）の規則が明文化されている
-- [ ] error model（panic / Result / host error の扱い）が文書化されている
+- [x] 構文の全要素（式・文・パターン・item）が仕様書に網羅されている
+- [x] 型システムの規則（推論・強制・型エラーの条件）が文書化されている
+- [x] import 方式と解決規則が一意に定まる仕様として記述されている
+- [x] visibility（pub / priv / module 境界）の規則が明文化されている
+- [x] error model（panic / Result / host error の扱い）が文書化されている
 
 ## Scope
 
@@ -53,3 +53,7 @@
 - `docs/language/spec.md`
 - `issues/open/226-language-spec-stability-labels.md`
 - `issues/open/233-module-package-workspace-resolution-spec.md`
+
+## Completion Note
+
+Closed 2026-04-09. docs/language/spec.md (1330 lines) covers: (1) full syntax in BNF/sections 1-7 with operator precedence table; (2) type system §2 with inference, coercion, generics; (3) imports §7 with resolution rules; (4) visibility §7.3 (pub/priv/module boundary); (5) error model in §10 error codes + Result/panic in §9. All stability-labeled per ADR-014.
