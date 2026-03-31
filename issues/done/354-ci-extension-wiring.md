@@ -1,6 +1,6 @@
 # Tooling Contract: VS Code extension テストを CI に接続する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 354

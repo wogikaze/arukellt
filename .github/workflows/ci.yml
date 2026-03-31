@@ -12,6 +12,7 @@ name: CI
 #  determinism  determinism         yes           same input → same output
 #  perf         perf-baseline       push only     baseline snapshot for drift detection
 #  heavy        heavy-checks        push only     size, WAT dump, docs generation
+#  extension    extension-tests     yes           VS Code extension activation + feature tests
 #
 # All jobs except perf-baseline and heavy-checks are merge gates.
 # T1 (supported) fixture failures alert but do not block.
@@ -351,10 +352,29 @@ jobs:
       - name: Run bootstrap Stage 0
         run: bash scripts/verify-bootstrap.sh --stage1-only
 
+  # ── Layer 10: VS Code extension tests (merge gate) ─────────────────────
+  extension-tests:
+    name: "VS Code extension tests"
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install extension dependencies
+        run: cd extensions/arukellt-all-in-one && npm install
+
+      - name: Run extension tests
+        run: cd extensions/arukellt-all-in-one && xvfb-run -a npm test
+
   # ── Final gate ───────────────────────────────────────────────────────────
   verify:
     name: "Final Gate"
-    needs: [unit-tests, fixture-primary, integration, packaging, determinism, selfhost-stage0]
+    needs: [unit-tests, fixture-primary, integration, packaging, determinism, selfhost-stage0, extension-tests]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All required CI layers passed (unit + fixture/T3 + integration + packaging + determinism + selfhost-stage0)"
+      - run: echo "All required CI layers passed (unit + fixture/T3 + integration + packaging + determinism + selfhost-stage0 + extension-tests)"

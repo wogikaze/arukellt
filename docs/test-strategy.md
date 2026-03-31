@@ -13,7 +13,7 @@ their responsibilities, and how they map to the CI pipeline.
 | **component-interop** | Component Model emit + host interop | smoke (opt-in) | `verify-harness.sh --component` |
 | **package-workspace** | `ark.toml`, workspace resolution, manifest | merge-blocking | unit tests in `ark-manifest` / `ark-resolve` |
 | **bootstrap** | Selfhost Stage 0→1→2 fixpoint | informational | `scripts/verify-bootstrap.sh` |
-| **editor-tooling** | VS Code extension activate / LSP handshake | smoke (planned) | `@vscode/test-cli` (not yet wired) |
+| **editor-tooling** | VS Code extension activate / LSP handshake | smoke (CI-gated) | `@vscode/test-cli` via `xvfb-run` |
 | **determinism** | Same input → same output | smoke | `tests/baselines/` comparison |
 | **perf** | Compile/run time regression | non-blocking | `scripts/benchmark_runner.py` |
 | **diagnostics-snapshot** | Error message stability | informational | `tests/snapshots/diagnostics/` |
@@ -52,7 +52,7 @@ bench                   → perf
 ### Non-blocking / optional jobs
 
 1. **perf-baseline** — push-only baseline collection
-2. *(planned)* **editor-smoke** — VS Code extension tests
+2. **editor-smoke** — VS Code extension tests (CI-gated, `xvfb-run npm test`)
 3. *(planned)* **bootstrap-check** — selfhost fixpoint verification
 4. *(planned)* **determinism-check** — binary reproducibility
 
@@ -76,7 +76,7 @@ When adding a feature:
 | component-interop | 6 component-compile + 1 jco smoke | partial |
 | package-workspace | ark-manifest unit tests | partial |
 | bootstrap | Stage 0 compiles, Stage 1/2 conditional | scaffold |
-| editor-tooling | 0 automated tests | not started |
+| editor-tooling | 25 automated tests | CI-gated (extension-tests job) |
 | determinism | baseline JSON comparison | partial |
 | perf | 5 benchmark fixtures | active |
 | diagnostics-snapshot | MIR + diagnostics snapshots | partial |
