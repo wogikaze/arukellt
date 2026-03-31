@@ -2037,6 +2037,7 @@ impl LanguageServer for ArukellBackend {
                 selection_range_provider: Some(SelectionRangeProviderCapability::Simple(true)),
                 type_definition_provider: Some(TypeDefinitionProviderCapability::Simple(true)),
                 call_hierarchy_provider: Some(CallHierarchyServerCapability::Simple(true)),
+                implementation_provider: Some(ImplementationProviderCapability::Simple(true)),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -3099,6 +3100,87 @@ impl LanguageServer for ArukellBackend {
         }
 
         Ok(Some(results))
+    }
+
+    async fn goto_implementation(
+        &self,
+        params: GotoDefinitionParams,
+    ) -> Result<Option<GotoDefinitionResponse>> {
+        let uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+
+        let source = {
+            let docs = self.documents.lock().unwrap();
+            match docs.get(&uri) {
+                Some(s) => s.clone(),
+                None => return Ok(None),
+            }
+        };
+
+        let mut cache = self.analysis_cache.lock().unwrap();
+        let analysis = cache
+            .entry(uri.clone())
+            .or_insert_with(|| Self::analyze_source(&source));
+
+        let target_offset = Self::position_to_offset(&source, pos);
+        let name = match Self::find_ident_at_offset(&source, &analysis.tokens, target_offset) {
+            Some(n) => n.to_string(),
+            None => return Ok(None),
+        };
+
+        // Find impl blocks and trait method implementations for this name
+        let mut locations = Vec::new();
+
+        for item in &analysis.module.items {
+            match item {
+                // If the name is a type, find its impl blocks
+                ast::Item::ImplBlock(ib) if ib.target_type == name => {
+                    let range = Self::span_to_range(&source, ib.span);
+                    locations.push(Location {
+                        uri: uri.clone(),
+                        range,
+                    });
+                }
+                // If the name is a method, find its implementation in impl blocks
+                ast::Item::ImplBlock(ib) => {
+                    for method in &ib.methods {
+                        if method.name == name {
+                            let range = Self::span_to_range(&source, method.span);
+                            locations.push(Location {
+                                uri: uri.clone(),
+                                range,
+                            });
+                        }
+                    }
+                }
+                // If the name is a trait, find all impl blocks for it
+                ast::Item::TraitDef(t) if t.name == name => {
+                    // Find all impl blocks that implement this trait
+                    for other in &analysis.module.items {
+                        if let ast::Item::ImplBlock(ib) = other {
+                            if ib.trait_name.as_deref() == Some(&name) {
+                                let range = Self::span_to_range(&source, ib.span);
+                                locations.push(Location {
+                                    uri: uri.clone(),
+                                    range,
+                                });
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        if locations.is_empty() {
+            Ok(None)
+        } else if locations.len() == 1 {
+            Ok(Some(GotoDefinitionResponse::Scalar(
+                locations.into_iter().next().unwrap(),
+            )))
+        } else {
+            Ok(Some(GotoDefinitionResponse::Array(locations)))
+        }
     }
 }
 
