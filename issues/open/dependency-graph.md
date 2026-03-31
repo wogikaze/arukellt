@@ -34,7 +34,6 @@ graph LR
   I408["408 Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する"]
   I411["411 Language Docs: diagnostics / error code 文書を実装と揃える"]
   I412["412 Language Docs: 安定した anchor / permalink 体系を整える"]
-  I418["418 Repo Hygiene: orphan / stale file inventory を作るスクリプトを追加する"]
   I420["420 Repo Hygiene: examples / fixtures / samples の source-of-truth map を作る"]
   I422["422 Repo Hygiene: 大きな artifact と baseline の size budget / pruning ルールを作る"]
   I425["425 Repo Hygiene: ディレクトリごとの ownership / maintenance map を作る"]
@@ -279,7 +278,6 @@ graph LR
 - **408** depends on: none; blocks: 409
 - **411** depends on: none; blocks: none
 - **412** depends on: none; blocks: none
-- **418** depends on: none; blocks: none
 - **420** depends on: none; blocks: none
 - **422** depends on: none; blocks: none
 - **425** depends on: none; blocks: none
