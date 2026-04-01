@@ -866,12 +866,12 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         let call_callee = get_unchecked(arg.children, 0)
                         let cn = clone(call_callee.text)
                         // Bool-returning functions
-                        if eq(clone(cn), "contains_i32") || eq(clone(cn), "contains_string") || eq(clone(cn), "contains") || eq(clone(cn), "is_empty") {
+                        if eq(clone(cn), "contains_i32") || eq(clone(cn), "contains_string") || eq(clone(cn), "contains_String") || eq(clone(cn), "contains") || eq(clone(cn), "is_empty") || eq(clone(cn), "is_some") || eq(clone(cn), "is_none") || eq(clone(cn), "starts_with") || eq(clone(cn), "ends_with") {
                             needs_convert = true
                             ctx_set_local_type(ctx, arg_idx, String_from("bool"))
                         }
                         // i32-returning functions
-                        if eq(clone(cn), "len") || eq(clone(cn), "parse_i32") {
+                        if eq(clone(cn), "len") || eq(clone(cn), "parse_i32") || eq(clone(cn), "abs") || eq(clone(cn), "min") || eq(clone(cn), "max") || eq(clone(cn), "sum_i32") || eq(clone(cn), "product_i32") || eq(clone(cn), "index_of") || eq(clone(cn), "clamp_i32") {
                             needs_convert = true
                             ctx_set_local_type(ctx, arg_idx, String_from("i32"))
                         }
