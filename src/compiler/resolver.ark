@@ -192,6 +192,18 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("index_of"), SYM_BUILTIN())
     define(ctx, String_from("replace"), SYM_BUILTIN())
     define(ctx, String_from("clamp_i32"), SYM_BUILTIN())
+    define(ctx, String_from("to_lower"), SYM_BUILTIN())
+    define(ctx, String_from("to_upper"), SYM_BUILTIN())
+    define(ctx, String_from("sort_i32"), SYM_BUILTIN())
+    define(ctx, String_from("lines"), SYM_BUILTIN())
+    define(ctx, String_from("byte_len"), SYM_BUILTIN())
+    define(ctx, String_from("byte_at"), SYM_BUILTIN())
+    define(ctx, String_from("trim_start"), SYM_BUILTIN())
+    define(ctx, String_from("trim_end"), SYM_BUILTIN())
+    define(ctx, String_from("pad_left"), SYM_BUILTIN())
+    define(ctx, String_from("pad_right"), SYM_BUILTIN())
+    define(ctx, String_from("format_i32"), SYM_BUILTIN())
+    define(ctx, String_from("format_bool"), SYM_BUILTIN())
     // Built-in enum variant constructors
     define(ctx, String_from("Some"), SYM_BUILTIN())
     define(ctx, String_from("None"), SYM_BUILTIN())
@@ -202,6 +214,7 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("fs"), SYM_MODULE())
     define(ctx, String_from("process"), SYM_MODULE())
     define(ctx, String_from("env"), SYM_MODULE())
+    define(ctx, String_from("text"), SYM_MODULE())
 }
 
 // ── AST Node Kind Constants (from parser) ────────────────────────────────────
