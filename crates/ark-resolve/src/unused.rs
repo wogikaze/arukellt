@@ -6,6 +6,41 @@ use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
 use ark_parser::ast;
 use std::collections::HashSet;
 
+/// Return the set of unused import module names in the given module.
+pub fn find_unused_imports(module: &ast::Module) -> HashSet<String> {
+    let mut unused = HashSet::new();
+    if module.imports.is_empty() {
+        return unused;
+    }
+
+    let mut used_modules = HashSet::new();
+    for item in &module.items {
+        collect_used_modules_in_item(item, &mut used_modules);
+    }
+
+    for import in &module.imports {
+        let effective_name = import
+            .alias
+            .as_deref()
+            .unwrap_or_else(|| {
+                import
+                    .module_name
+                    .rsplit("::")
+                    .next()
+                    .unwrap_or(&import.module_name)
+            });
+
+        if effective_name.starts_with('_') {
+            continue;
+        }
+
+        if !used_modules.contains(effective_name) {
+            unused.insert(import.module_name.clone());
+        }
+    }
+    unused
+}
+
 /// Check for unused imports in the given module and emit W0006 warnings.
 pub fn check_unused_imports(module: &ast::Module, sink: &mut DiagnosticSink) {
     if module.imports.is_empty() {

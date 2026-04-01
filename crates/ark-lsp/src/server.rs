@@ -1006,6 +1006,99 @@ impl ArukellBackend {
         }
     }
 
+    /// Organize imports: remove unused imports and sort the rest.
+    /// This is a separate code path from the formatter — it operates only on
+    /// import lines, preserving all other code verbatim.
+    fn organize_imports_text(
+        source: &str,
+        unused_modules: &std::collections::HashSet<String>,
+    ) -> Option<String> {
+        let (tokens, lex_errors) = ark_lexer::Lexer::new(0, source).tokenize();
+        if !lex_errors.is_empty() {
+            return None;
+        }
+        let mut sink = ark_diagnostics::DiagnosticSink::new();
+        let module = ark_parser::parse(&tokens, &mut sink);
+        if sink.has_errors() {
+            return None;
+        }
+        if module.imports.is_empty() {
+            return Some(source.to_string());
+        }
+
+        let lines: Vec<&str> = source.lines().collect();
+        let mut first_import_line = None;
+        let mut last_import_line = None;
+        for (i, line) in lines.iter().enumerate() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("use ") {
+                if first_import_line.is_none() {
+                    first_import_line = Some(i);
+                }
+                last_import_line = Some(i);
+            }
+        }
+
+        let first_import_line = first_import_line?;
+        let last_import_line = last_import_line?;
+
+        // Filter out unused imports, then sort
+        let kept_imports: Vec<&ast::Import> = module
+            .imports
+            .iter()
+            .filter(|imp| !unused_modules.contains(&imp.module_name))
+            .collect();
+
+        let mut std_imports: Vec<&&ast::Import> = Vec::new();
+        let mut other_imports: Vec<&&ast::Import> = Vec::new();
+        for imp in &kept_imports {
+            if imp.module_name.starts_with("std::") || imp.module_name == "std" {
+                std_imports.push(imp);
+            } else {
+                other_imports.push(imp);
+            }
+        }
+        std_imports.sort_by(|a, b| a.module_name.cmp(&b.module_name));
+        other_imports.sort_by(|a, b| a.module_name.cmp(&b.module_name));
+
+        let mut sorted_block = String::new();
+        for imp in &std_imports {
+            if let Some(alias) = &imp.alias {
+                sorted_block.push_str(&format!("use {} as {}\n", imp.module_name, alias));
+            } else {
+                sorted_block.push_str(&format!("use {}\n", imp.module_name));
+            }
+        }
+        if !std_imports.is_empty() && !other_imports.is_empty() {
+            sorted_block.push('\n');
+        }
+        for imp in &other_imports {
+            if let Some(alias) = &imp.alias {
+                sorted_block.push_str(&format!("use {} as {}\n", imp.module_name, alias));
+            } else {
+                sorted_block.push_str(&format!("use {}\n", imp.module_name));
+            }
+        }
+
+        let mut result = String::with_capacity(source.len());
+        for line in &lines[..first_import_line] {
+            result.push_str(line);
+            result.push('\n');
+        }
+        result.push_str(&sorted_block);
+        for line in &lines[last_import_line + 1..] {
+            result.push_str(line);
+            result.push('\n');
+        }
+
+        // Remove trailing newline added by iteration
+        if result.ends_with('\n') && !source.ends_with('\n') {
+            result.pop();
+        }
+
+        Some(result)
+    }
+
     /// Classify a token kind into a semantic token type index.
     fn semantic_token_type_index(kind: &TokenKind) -> Option<u32> {
         if kind.is_keyword() {
@@ -2949,16 +3042,24 @@ impl LanguageServer for ArukellBackend {
 
         // --- Source actions ---
 
-        // source.organizeImports — sort imports (stdlib first, then external)
+        // source.organizeImports — sort imports and remove unused ones
         if let Some(ref src) = source {
             if params.context.only.as_ref().is_none_or(|kinds| {
                 kinds.iter().any(|k| {
                     k == &CodeActionKind::SOURCE || k.as_str().starts_with("source.organizeImports")
                 })
             }) {
-                let sorted = ark_parser::fmt::sort_imports(src);
-                if let Some(sorted) = sorted {
-                    if sorted != *src {
+                // Determine unused imports from the analysis cache
+                let unused_modules = {
+                    let cache = self.analysis_cache.lock().unwrap();
+                    cache.get(&uri).map(|a| {
+                        ark_resolve::find_unused_imports(&a.module)
+                    }).unwrap_or_default()
+                };
+
+                let organized = Self::organize_imports_text(src, &unused_modules);
+                if let Some(organized) = organized {
+                    if organized != *src {
                         let full_range = Range {
                             start: Position {
                                 line: 0,
@@ -2971,7 +3072,7 @@ impl LanguageServer for ArukellBackend {
                             uri.clone(),
                             vec![TextEdit {
                                 range: full_range,
-                                new_text: sorted,
+                                new_text: organized,
                             }],
                         );
                         actions.push(CodeActionOrCommand::CodeAction(CodeAction {
@@ -4093,5 +4194,34 @@ fn add(a: i32, b: i32) -> i32 {
         assert!(info.is_some(), "hover should work for fn add");
         let hover = info.unwrap();
         assert!(hover.contains("Adds two numbers"), "hover should show doc comment, got: {hover}");
+    }
+
+    #[test]
+    fn organize_imports_removes_unused_and_sorts() {
+        let source = "use std::host::fs\nuse std::host::stdio\nuse std::host::env\n\nfn main() {\n    stdio::println(\"hello\")\n}\n";
+        let unused = {
+            let mut set = std::collections::HashSet::new();
+            set.insert("std::host::fs".to_string());
+            set.insert("std::host::env".to_string());
+            set
+        };
+        let result = ArukellBackend::organize_imports_text(source, &unused);
+        assert!(result.is_some());
+        let organized = result.unwrap();
+        assert!(!organized.contains("use std::host::fs"), "unused fs import should be removed");
+        assert!(!organized.contains("use std::host::env"), "unused env import should be removed");
+        assert!(organized.contains("use std::host::stdio"), "used stdio import should remain");
+    }
+
+    #[test]
+    fn organize_imports_sorts_stdlib_first() {
+        let source = "use mymod\nuse std::host::stdio\n\nfn main() {\n    stdio::println(\"hello\")\n    mymod::foo()\n}\n";
+        let unused = std::collections::HashSet::new();
+        let result = ArukellBackend::organize_imports_text(source, &unused);
+        assert!(result.is_some());
+        let organized = result.unwrap();
+        let stdio_pos = organized.find("use std::host::stdio").unwrap();
+        let mymod_pos = organized.find("use mymod").unwrap();
+        assert!(stdio_pos < mymod_pos, "stdlib imports should come before project imports");
     }
 }

@@ -14,7 +14,6 @@ graph LR
   I319["319 Selfhost CLI のフラグ semantics を driver に接続する"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
   I333["333 LSP: project-wide symbol index を構築する"]
-  I341["341 LSP: organize imports を formatter 副作用から独立した semantic 操作にする"]
   I355["355 Tooling Contract: LSP protocol E2E テストを追加する"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I363["363 Stdlib Docs: module family ごとの curated overview page を作る"]
@@ -27,6 +26,7 @@ graph LR
   I408["408 Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する"]
   I412["412 Language Docs: 安定した anchor / permalink 体系を整える"]
   I414["414 Language Docs: transitional / archive banner を一括適用する"]
+  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
   I442["442 Component Model: WIT / Component 生成を「出力できる」から「相互運用可能」に引き上げる"]
   I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
@@ -41,7 +41,6 @@ graph LR
   I334["334 LSP: 標準ライブラリの定義解決を実装する"]
   I335["335 LSP: cross-file go to definition を実装する"]
   I338["338 LSP: references を semantic symbol ID ベースに置き換える"]
-  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
   I356["356 Tooling Contract: CLI / LSP / Extension の機能契約を文書化する"]
   I362["362 Stdlib: stability tier を実行時・CI で検証する"]
   I365["365 Stdlib Docs: source-backed な cookbook / recipe 集を拡充する"]
@@ -121,7 +120,6 @@ graph LR
   I333 --> I334
   I333 --> I335
   I333 --> I338
-  I341 --> I440
   I355 --> I356
   I358 --> I362
   I363 --> I365
@@ -217,7 +215,6 @@ graph LR
 - **319** depends on: none; blocks: 318, 321
 - **327** depends on: none; blocks: none
 - **333** depends on: none; blocks: 334, 335, 338, 439, 441
-- **341** depends on: 340; blocks: 440
 - **355** depends on: 353; blocks: 356, 357
 - **358** depends on: none; blocks: 362
 - **363** depends on: none; blocks: 365, 396
@@ -230,6 +227,7 @@ graph LR
 - **408** depends on: none; blocks: 409
 - **412** depends on: none; blocks: none
 - **414** depends on: 372; blocks: none
+- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: 444
 - **442** depends on: 299, 300; blocks: 443
 - **282** depends on: 281; blocks: 284
 - **283** depends on: 281; blocks: 284
@@ -244,7 +242,6 @@ graph LR
 - **334** depends on: 333; blocks: 337, 439
 - **335** depends on: 333; blocks: 439, 441
 - **338** depends on: 333; blocks: 339, 342, 439
-- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: 444
 - **356** depends on: 355; blocks: 357
 - **362** depends on: 358, 360; blocks: none
 - **365** depends on: 363; blocks: 398

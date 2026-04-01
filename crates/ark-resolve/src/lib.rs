@@ -24,3 +24,4 @@ pub use scope::{Scope, ScopeId, Symbol, SymbolKind, SymbolTable};
 pub use symbols::{Scope as SymbolScope, ScopeId as SymbolScopeId, Symbol as ResolvedSymbol};
 pub use unused::check_unused_imports;
 pub use unused::check_unused_bindings;
+pub use unused::find_unused_imports;

@@ -1,6 +1,6 @@
 # LSP: organize imports を formatter 副作用から独立した semantic 操作にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 341
@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] `source.organizeImports` が import 文のみを操作し、他のコードを変更しない
-- [ ] unused import が検出され、削除候補として提案される
-- [ ] import 順の正規化 (stdlib → project → alias) が独立操作として動作する
-- [ ] formatter とは別の code path で実行される
+- [x] `source.organizeImports` が import 文のみを操作し、他のコードを変更しない
+- [x] unused import が検出され、削除候補として提案される
+- [x] import 順の正規化 (stdlib → project → alias) が独立操作として動作する
+- [x] formatter とは別の code path で実行される
 
 ## References
 
