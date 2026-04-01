@@ -1,6 +1,6 @@
 # check-selfhost-parity.sh を作成する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 325
@@ -22,11 +22,11 @@
 
 ## Acceptance
 
-- [ ] `check-selfhost-parity.sh --fixture` が代表 fixture の run 結果 (stdout) を比較する
-- [ ] `check-selfhost-parity.sh --cli` が compile / check のフラグ挙動を比較する
-- [ ] `check-selfhost-parity.sh --diag` がエラーメッセージの severity / span / error code を比較する
-- [ ] 比較基準: run 結果一致 (fixture)、フラグ応答一致 (cli)、severity+span 一致 (diag) — 文言完全一致は求めない
-- [ ] CI から呼び出し可能
+- [x] `check-selfhost-parity.sh --fixture` が代表 fixture の run 結果 (stdout) を比較する
+- [x] `check-selfhost-parity.sh --cli` が compile / check のフラグ挙動を比較する
+- [x] `check-selfhost-parity.sh --diag` がエラーメッセージの severity / span / error code を比較する
+- [x] 比較基準: run 結果一致 (fixture)、フラグ応答一致 (cli)、severity+span 一致 (diag) — 文言完全一致は求めない
+- [x] CI から呼び出し可能
 
 ## References
 
