@@ -261,6 +261,7 @@ fn NK_PAT_IDENT() -> i32 { 70 }
 fn NK_PAT_VARIANT() -> i32 { 73 }
 fn NK_PATH() -> i32 { 16 }
 fn NK_RANGE() -> i32 { 19 }
+fn NK_TRY() -> i32 { 25 }
 
 // Binary operator tags
 fn OP_ADD() -> i32 { 1 }
@@ -1496,6 +1497,59 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             get_inst.arg1 = index_idx
             ctx_emit(ctx, get_inst)
             return dest
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_TRY() {
+        // expr? → if Ok, unwrap; if Err, return Err early
+        // children[0] = inner expression (should return Result<T, E>)
+        let child_count = len(node.children)
+        if child_count >= 1 {
+            let inner = get_unchecked(node.children, 0)
+            let inner_idx = lower_expr(ctx, inner)
+            // Save the result ptr
+            let res_ptr = ctx_fresh_local(ctx, VT_I32())
+            let save_res = MirInst_new(MIR_LOCAL_SET())
+            save_res.arg0 = res_ptr
+            ctx_emit(ctx, save_res)
+            // Load tag
+            let tag_local = ctx_fresh_local(ctx, VT_I32())
+            let get_ptr = MirInst_new(MIR_LOCAL_GET())
+            get_ptr.arg0 = res_ptr
+            ctx_emit(ctx, get_ptr)
+            let sget_tag = MirInst_new(MIR_STRUCT_GET())
+            sget_tag.int_val = 0
+            ctx_emit(ctx, sget_tag)
+            let set_tag = MirInst_new(MIR_LOCAL_SET())
+            set_tag.arg0 = tag_local
+            ctx_emit(ctx, set_tag)
+            // Check if Err (tag != 0): return the Result as-is
+            let get_tag = MirInst_new(MIR_LOCAL_GET())
+            get_tag.arg0 = tag_local
+            ctx_emit(ctx, get_tag)
+            ctx_emit(ctx, MirInst_new(MIR_IF()))
+            let get_ret = MirInst_new(MIR_LOCAL_GET())
+            get_ret.arg0 = res_ptr
+            ctx_emit(ctx, get_ret)
+            let ret_inst = MirInst_new(MIR_RETURN())
+            ctx_emit(ctx, ret_inst)
+            ctx_emit(ctx, MirInst_new(MIR_END()))
+            // Ok path: extract payload (field 1)
+            let result = ctx_fresh_local(ctx, VT_I32())
+            let get_ok = MirInst_new(MIR_LOCAL_GET())
+            get_ok.arg0 = res_ptr
+            ctx_emit(ctx, get_ok)
+            let sget_payload = MirInst_new(MIR_STRUCT_GET())
+            sget_payload.int_val = 1
+            ctx_emit(ctx, sget_payload)
+            let set_result = MirInst_new(MIR_LOCAL_SET())
+            set_result.arg0 = result
+            ctx_emit(ctx, set_result)
+            let get_result = MirInst_new(MIR_LOCAL_GET())
+            get_result.arg0 = result
+            ctx_emit(ctx, get_result)
+            return result
         }
         return 0 - 1
     }
