@@ -1648,12 +1648,44 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         emit_byte(w, OP_I32_STORE())
         emit_byte(w, 0x02)  // align = 4
         emit_byte(w, 0x00)  // offset = 0
-    } else if inst.op == 63 {  // ARRAY_NEW
-        emit_byte(w, OP_NOP())  // placeholder
-    } else if inst.op == 64 {  // ARRAY_GET
-        emit_byte(w, OP_NOP())  // placeholder
-    } else if inst.op == 65 {  // ARRAY_SET
-        emit_byte(w, OP_NOP())  // placeholder
+    } else if inst.op == 63 {  // ARRAY_NEW — heap allocate int_val elements
+        // Same as STRUCT_NEW: allocate int_val * 4 bytes on heap
+        emit_byte(w, OP_GLOBAL_GET())
+        emit_leb128_u(w, 0)
+        emit_byte(w, OP_LOCAL_SET())
+        emit_leb128_u(w, inst.dest)
+        emit_byte(w, OP_GLOBAL_GET())
+        emit_leb128_u(w, 0)
+        emit_byte(w, OP_I32_CONST())
+        emit_leb128_s(w, inst.int_val * 4)
+        emit_byte(w, OP_I32_ADD())
+        emit_byte(w, OP_GLOBAL_SET())
+        emit_leb128_u(w, 0)
+    } else if inst.op == 64 {  // ARRAY_GET — load from base + index*4
+        // Stack has [base, index] from two preceding lower_expr calls
+        emit_byte(w, OP_I32_CONST())
+        emit_leb128_s(w, 4)
+        emit_byte(w, OP_I32_MUL())
+        emit_byte(w, OP_I32_ADD())
+        emit_byte(w, OP_I32_LOAD())
+        emit_byte(w, 0x02)  // align = 4
+        emit_byte(w, 0x00)  // offset = 0
+    } else if inst.op == 65 {  // ARRAY_SET — store value at base + int_val*4
+        // Stack has [value] from preceding lower_expr. arg0=base local, int_val=static index
+        emit_byte(w, OP_LOCAL_SET())
+        emit_leb128_u(w, inst.arg1)  // save value from stack
+        emit_byte(w, OP_LOCAL_GET())
+        emit_leb128_u(w, inst.arg0)  // base ptr
+        if inst.int_val > 0 {
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, inst.int_val * 4)
+            emit_byte(w, OP_I32_ADD())
+        }
+        emit_byte(w, OP_LOCAL_GET())
+        emit_leb128_u(w, inst.arg1)  // restore value
+        emit_byte(w, OP_I32_STORE())
+        emit_byte(w, 0x02)  // align = 4
+        emit_byte(w, 0x00)  // offset = 0
     }
 }
 

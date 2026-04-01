@@ -1201,6 +1201,12 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             ctx_emit(ctx, set_inst)
             e = e + 1
         }
+
+        // Push array base pointer onto Wasm stack for caller
+        let get_inst = MirInst_new(MIR_LOCAL_GET())
+        get_inst.arg0 = dest
+        get_inst.dest = dest
+        ctx_emit(ctx, get_inst)
         return dest
     }
 
@@ -1213,6 +1219,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let base_idx = lower_expr(ctx, base)
             let index_idx = lower_expr(ctx, idx_expr)
             let dest = ctx_fresh_local(ctx, VT_I32())
+            ctx_set_local_type(ctx, dest, String_from("i32"))
             let get_inst = MirInst_new(MIR_ARRAY_GET())
             get_inst.dest = dest
             get_inst.arg0 = base_idx
