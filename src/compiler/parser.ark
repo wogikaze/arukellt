@@ -243,6 +243,7 @@ fn TK_QUESTION() -> i32 { 82 }
 fn TK_COLON() -> i32 { 83 }
 fn TK_COLONCOLON() -> i32 { 84 }
 fn TK_UNDERSCORE() -> i32 { 85 }
+fn TK_CHAR() -> i32 { 86 }
 
 // ── Token (duplicated from lexer) ────────────────────────────────────────────
 
@@ -718,6 +719,10 @@ fn parse_prefix(p: Parser) -> AstNode {
     if t.kind == TK_BOOL() {
         p.pos = p.pos + 1
         return AstNode_leaf(NK_BOOL_LIT(), clone(t.text), tok_span(t))
+    }
+    if t.kind == TK_CHAR() {
+        p.pos = p.pos + 1
+        return AstNode_int(t.int_val, tok_span(t))
     }
 
     // Identifier

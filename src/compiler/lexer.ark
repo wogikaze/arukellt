@@ -82,6 +82,7 @@ fn TK_QUESTION() -> i32 { 82 }
 fn TK_COLON() -> i32 { 83 }
 fn TK_COLONCOLON() -> i32 { 84 }
 fn TK_UNDERSCORE() -> i32 { 85 }
+fn TK_CHAR() -> i32 { 86 }
 
 // ── Token ────────────────────────────────────────────────────────────────────
 
@@ -455,6 +456,47 @@ fn next_token(lex: Lexer) -> Token {
         return lex_string(lex)
     }
 
+    // Char literal: 'X' or '\n' etc
+    if c == 39 {
+        let char_start = lex.pos
+        lex.pos = lex.pos + 1  // skip opening '
+        // Check for escape sequence
+        if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 92 {
+            lex.pos = lex.pos + 1  // skip backslash
+            if lex.pos < lex.src_len {
+                let esc = char_at(lex.src, lex.pos)
+                lex.pos = lex.pos + 1  // skip escape char
+                let mut cv = 0
+                if esc == 110 { cv = 10 }       // \n
+                else if esc == 116 { cv = 9 }   // \t
+                else if esc == 114 { cv = 13 }   // \r
+                else if esc == 48 { cv = 0 }     // \0
+                else if esc == 92 { cv = 92 }    // \\
+                else if esc == 39 { cv = 39 }    // \'
+                else { cv = esc }
+                if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 39 {
+                    lex.pos = lex.pos + 1  // skip closing '
+                    let t = Token_new(TK_CHAR(), substring(lex.src, char_start, lex.pos), char_start, lex.pos)
+                    t.int_val = cv
+                    return t
+                }
+            }
+            return Token_new(TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
+        }
+        // Simple char: 'X'
+        if lex.pos < lex.src_len {
+            let cv = char_at(lex.src, lex.pos)
+            lex.pos = lex.pos + 1
+            if lex.pos < lex.src_len && char_at(lex.src, lex.pos) == 39 {
+                lex.pos = lex.pos + 1  // skip closing '
+                let t = Token_new(TK_CHAR(), substring(lex.src, char_start, lex.pos), char_start, lex.pos)
+                t.int_val = cv
+                return t
+            }
+        }
+        return Token_new(TK_ERROR(), String_from("unterminated char literal"), char_start, lex.pos)
+    }
+
     // Two-character operators
     lex.pos = lex.pos + 1
 
@@ -584,6 +626,7 @@ pub fn token_kind_name(kind: i32) -> String {
     if kind == TK_RBRACE() { return String_from("RBRACE") }
     if kind == TK_COMMA() { return String_from("COMMA") }
     if kind == TK_DOT() { return String_from("DOT") }
+    if kind == TK_CHAR() { return String_from("CHAR") }
     String_from("UNKNOWN")
 }
 
