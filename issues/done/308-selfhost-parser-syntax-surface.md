@@ -1,8 +1,8 @@
 # Selfhost parser の構文 surface を拡張する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2025-07-15
 **ID**: 308
 **Depends on**: —
 **Track**: selfhost-frontend
@@ -27,13 +27,13 @@ selfhost parser (`src/compiler/parser.ark`) に不足している構文 surface 
 
 ## Acceptance
 
-- [ ] `fn foo<T>(x: T) -> T` が parse される (generic type parameter on fn)
-- [ ] `struct Foo<T> { x: T }` が parse される (generic type parameter on struct)
-- [ ] `match x { v if v > 0 => ... }` が parse される (match guard)
-- [ ] `Struct { x: 1, ..base }` が parse される (struct base syntax)
-- [ ] `[0; 10]` が parse される (array repeat)
-- [ ] postfix `?` が式として parse される (try operator)
-- [ ] selfhost parser で selfhost 自身の全 `.ark` ファイルが parse error なく通る
+- [x] `fn foo<T>(x: T) -> T` が parse される (generic type parameter on fn)
+- [x] `struct Foo<T> { x: T }` が parse される (generic type parameter on struct)
+- [x] `match x { v if v > 0 => ... }` が parse される (match guard)
+- [x] `Struct { x: 1, ..base }` が parse される (struct base syntax)
+- [x] `[0; 10]` が parse される (array repeat)
+- [x] postfix `?` が式として parse される (try operator)
+- [x] selfhost parser で selfhost 自身の全 `.ark` ファイルが parse error なく通る
 
 ## References
 
