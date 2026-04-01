@@ -312,6 +312,7 @@ struct LowerCtx {
     struct_names: Vec<String>,
     struct_field_counts: Vec<i32>,
     struct_all_fields: Vec<String>,
+    struct_field_types: Vec<String>,
     // Local variable struct type tracking (parallel arrays)
     local_types: Vec<String>,
     local_type_indices: Vec<i32>,
@@ -337,6 +338,7 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         struct_names: Vec_new_String(),
         struct_field_counts: Vec_new_i32(),
         struct_all_fields: Vec_new_String(),
+        struct_field_types: Vec_new_String(),
         local_types: Vec_new_String(),
         local_type_indices: Vec_new_i32(),
         variant_names: Vec_new_String(),
@@ -414,6 +416,31 @@ fn ctx_struct_field_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> 
         let fc = get_unchecked(ctx.struct_field_counts, si)
         if eq(clone(sn), clone(struct_name)) {
             return clone(get_unchecked(ctx.struct_all_fields, offset + field_idx))
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    String_from("")
+}
+
+// Get the type of a field (e.g., "vec:i32", "Inner", or "")
+fn ctx_get_field_type(ctx: LowerCtx, struct_name: String, field_name: String) -> String {
+    let sc = len(ctx.struct_names)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = get_unchecked(ctx.struct_names, si)
+        let fc = get_unchecked(ctx.struct_field_counts, si)
+        if eq(clone(sn), clone(struct_name)) {
+            let mut fi = 0
+            while fi < fc {
+                let fn_name = get_unchecked(ctx.struct_all_fields, offset + fi)
+                if eq(clone(fn_name), clone(field_name)) {
+                    return clone(get_unchecked(ctx.struct_field_types, offset + fi))
+                }
+                fi = fi + 1
+            }
+            return String_from("")
         }
         offset = offset + fc
         si = si + 1
@@ -705,7 +732,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             if eq(clone(call_inst.str_val), "len") {
                 if first_arg_idx >= 0 {
                     let arg_type_len = ctx_get_local_type(ctx, first_arg_idx)
-                    if eq(clone(arg_type_len), "vec:i32") || eq(clone(arg_type_len), "vec:String") || eq(clone(arg_type_len), "vec:Point") || eq(clone(arg_type_len), "vec:u8") || eq(clone(arg_type_len), "vec:f64") || eq(clone(arg_type_len), "vec:bool") || eq(clone(arg_type_len), "vec:MirInst") || eq(clone(arg_type_len), "vec:MirLocal") || eq(clone(arg_type_len), "vec:MirBlock") || eq(clone(arg_type_len), "vec:MirFunction") || eq(clone(arg_type_len), "vec:AstNode") {
+                    if eq(clone(arg_type_len), "vec:i32") || eq(clone(arg_type_len), "vec:String") || eq(clone(arg_type_len), "vec:Point") || eq(clone(arg_type_len), "vec:u8") || eq(clone(arg_type_len), "vec:f64") || eq(clone(arg_type_len), "vec:bool") || eq(clone(arg_type_len), "vec:MirInst") || eq(clone(arg_type_len), "vec:MirLocal") || eq(clone(arg_type_len), "vec:MirBlock") || eq(clone(arg_type_len), "vec:MirFunction") || eq(clone(arg_type_len), "vec:AstNode") || eq(clone(arg_type_len), "vec:Item") || eq(clone(arg_type_len), "vec:Container") || eq(clone(arg_type_len), "vec:Context") || eq(clone(arg_type_len), "vec:Holder") || eq(clone(arg_type_len), "vec:Inner") || eq(clone(arg_type_len), "vec:Outer") || eq(clone(arg_type_len), "vec:Token") || eq(clone(arg_type_len), "vec:Span") || eq(clone(arg_type_len), "vec:Diagnostic") || eq(clone(arg_type_len), "vec:TypedFn") || eq(clone(arg_type_len), "vec:WasmLocal") || eq(clone(arg_type_len), "vec:Pair") || eq(clone(arg_type_len), "vec:Node") {
                         call_inst.str_val = String_from("vec_len")
                     }
                 }
@@ -713,7 +740,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             if eq(clone(call_inst.str_val), "push") {
                 if first_arg_idx >= 0 {
                     let arg_type_push = ctx_get_local_type(ctx, first_arg_idx)
-                    if eq(clone(arg_type_push), "vec:i32") || eq(clone(arg_type_push), "vec:String") || eq(clone(arg_type_push), "vec:Point") || eq(clone(arg_type_push), "vec:u8") || eq(clone(arg_type_push), "vec:f64") || eq(clone(arg_type_push), "vec:bool") || eq(clone(arg_type_push), "vec:MirInst") || eq(clone(arg_type_push), "vec:MirLocal") || eq(clone(arg_type_push), "vec:MirBlock") || eq(clone(arg_type_push), "vec:MirFunction") || eq(clone(arg_type_push), "vec:AstNode") {
+                    if eq(clone(arg_type_push), "vec:i32") || eq(clone(arg_type_push), "vec:String") || eq(clone(arg_type_push), "vec:Point") || eq(clone(arg_type_push), "vec:u8") || eq(clone(arg_type_push), "vec:f64") || eq(clone(arg_type_push), "vec:bool") || eq(clone(arg_type_push), "vec:MirInst") || eq(clone(arg_type_push), "vec:MirLocal") || eq(clone(arg_type_push), "vec:MirBlock") || eq(clone(arg_type_push), "vec:MirFunction") || eq(clone(arg_type_push), "vec:AstNode") || eq(clone(arg_type_push), "vec:Item") || eq(clone(arg_type_push), "vec:Container") || eq(clone(arg_type_push), "vec:Context") || eq(clone(arg_type_push), "vec:Holder") || eq(clone(arg_type_push), "vec:Inner") || eq(clone(arg_type_push), "vec:Outer") || eq(clone(arg_type_push), "vec:Token") || eq(clone(arg_type_push), "vec:Span") || eq(clone(arg_type_push), "vec:Diagnostic") || eq(clone(arg_type_push), "vec:TypedFn") || eq(clone(arg_type_push), "vec:WasmLocal") || eq(clone(arg_type_push), "vec:Pair") || eq(clone(arg_type_push), "vec:Node") {
                         call_inst.str_val = String_from("vec_push")
                     }
                 }
@@ -721,7 +748,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             if eq(clone(call_inst.str_val), "get_unchecked") {
                 if first_arg_idx >= 0 {
                     let arg_type_get = ctx_get_local_type(ctx, first_arg_idx)
-                    if eq(clone(arg_type_get), "vec:i32") || eq(clone(arg_type_get), "vec:String") || eq(clone(arg_type_get), "vec:Point") || eq(clone(arg_type_get), "vec:u8") || eq(clone(arg_type_get), "vec:f64") || eq(clone(arg_type_get), "vec:bool") || eq(clone(arg_type_get), "vec:MirInst") || eq(clone(arg_type_get), "vec:MirLocal") || eq(clone(arg_type_get), "vec:MirBlock") || eq(clone(arg_type_get), "vec:MirFunction") || eq(clone(arg_type_get), "vec:AstNode") {
+                    if eq(clone(arg_type_get), "vec:i32") || eq(clone(arg_type_get), "vec:String") || eq(clone(arg_type_get), "vec:Point") || eq(clone(arg_type_get), "vec:u8") || eq(clone(arg_type_get), "vec:f64") || eq(clone(arg_type_get), "vec:bool") || eq(clone(arg_type_get), "vec:MirInst") || eq(clone(arg_type_get), "vec:MirLocal") || eq(clone(arg_type_get), "vec:MirBlock") || eq(clone(arg_type_get), "vec:MirFunction") || eq(clone(arg_type_get), "vec:AstNode") || eq(clone(arg_type_get), "vec:Item") || eq(clone(arg_type_get), "vec:Container") || eq(clone(arg_type_get), "vec:Context") || eq(clone(arg_type_get), "vec:Holder") || eq(clone(arg_type_get), "vec:Inner") || eq(clone(arg_type_get), "vec:Outer") || eq(clone(arg_type_get), "vec:Token") || eq(clone(arg_type_get), "vec:Span") || eq(clone(arg_type_get), "vec:Diagnostic") || eq(clone(arg_type_get), "vec:TypedFn") || eq(clone(arg_type_get), "vec:WasmLocal") || eq(clone(arg_type_get), "vec:Pair") || eq(clone(arg_type_get), "vec:Node") {
                         call_inst.str_val = String_from("vec_get_unchecked")
                     }
                 }
@@ -753,12 +780,37 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 ctx_set_local_type(ctx, dest, String_from("vec:f64"))
             } else if eq(clone(callee_name), "Vec_new_bool") {
                 ctx_set_local_type(ctx, dest, String_from("vec:bool"))
+            } else if eq(clone(callee_name), "Vec_new_Item") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Item"))
+            } else if eq(clone(callee_name), "Vec_new_Container") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Container"))
+            } else if eq(clone(callee_name), "Vec_new_Context") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Context"))
+            } else if eq(clone(callee_name), "Vec_new_Holder") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Holder"))
+            } else if eq(clone(callee_name), "Vec_new_Inner") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Inner"))
+            } else if eq(clone(callee_name), "Vec_new_Outer") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Outer"))
+            } else if eq(clone(callee_name), "Vec_new_Token") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Token"))
+            } else if eq(clone(callee_name), "Vec_new_Span") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Span"))
+            } else if eq(clone(callee_name), "Vec_new_Diagnostic") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Diagnostic"))
+            } else if eq(clone(callee_name), "Vec_new_TypedFn") {
+                ctx_set_local_type(ctx, dest, String_from("vec:TypedFn"))
+            } else if eq(clone(callee_name), "Vec_new_WasmLocal") {
+                ctx_set_local_type(ctx, dest, String_from("vec:WasmLocal"))
+            } else if eq(clone(callee_name), "Vec_new_Pair") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Pair"))
+            } else if eq(clone(callee_name), "Vec_new_Node") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Node"))
             }
             // Propagate element type from vec_get_unchecked result
             if eq(clone(callee_name), "vec_get_unchecked") {
                 if first_arg_idx >= 0 {
                     let vec_type = ctx_get_local_type(ctx, first_arg_idx)
-                    // Extract element type from "vec:X" using explicit mapping
                     if eq(clone(vec_type), "vec:Point") {
                         ctx_set_local_type(ctx, dest, String_from("Point"))
                     } else if eq(clone(vec_type), "vec:MirInst") {
@@ -781,6 +833,32 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         ctx_set_local_type(ctx, dest, String_from("f64"))
                     } else if eq(clone(vec_type), "vec:bool") {
                         ctx_set_local_type(ctx, dest, String_from("bool"))
+                    } else if eq(clone(vec_type), "vec:Item") {
+                        ctx_set_local_type(ctx, dest, String_from("Item"))
+                    } else if eq(clone(vec_type), "vec:Container") {
+                        ctx_set_local_type(ctx, dest, String_from("Container"))
+                    } else if eq(clone(vec_type), "vec:Context") {
+                        ctx_set_local_type(ctx, dest, String_from("Context"))
+                    } else if eq(clone(vec_type), "vec:Holder") {
+                        ctx_set_local_type(ctx, dest, String_from("Holder"))
+                    } else if eq(clone(vec_type), "vec:Inner") {
+                        ctx_set_local_type(ctx, dest, String_from("Inner"))
+                    } else if eq(clone(vec_type), "vec:Outer") {
+                        ctx_set_local_type(ctx, dest, String_from("Outer"))
+                    } else if eq(clone(vec_type), "vec:Token") {
+                        ctx_set_local_type(ctx, dest, String_from("Token"))
+                    } else if eq(clone(vec_type), "vec:Span") {
+                        ctx_set_local_type(ctx, dest, String_from("Span"))
+                    } else if eq(clone(vec_type), "vec:Diagnostic") {
+                        ctx_set_local_type(ctx, dest, String_from("Diagnostic"))
+                    } else if eq(clone(vec_type), "vec:TypedFn") {
+                        ctx_set_local_type(ctx, dest, String_from("TypedFn"))
+                    } else if eq(clone(vec_type), "vec:WasmLocal") {
+                        ctx_set_local_type(ctx, dest, String_from("WasmLocal"))
+                    } else if eq(clone(vec_type), "vec:Pair") {
+                        ctx_set_local_type(ctx, dest, String_from("Pair"))
+                    } else if eq(clone(vec_type), "vec:Node") {
+                        ctx_set_local_type(ctx, dest, String_from("Node"))
                     }
                 }
             }
@@ -1088,7 +1166,12 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             // Resolve field index from struct type
             let base_type = ctx_get_local_type(ctx, base_idx)
             if len(base_type) > 0 {
-                get_inst.int_val = ctx_field_index(ctx, base_type, clone(node.text))
+                get_inst.int_val = ctx_field_index(ctx, clone(base_type), clone(node.text))
+                // Propagate field type to dest for chained access / vec dispatch
+                let ft = ctx_get_field_type(ctx, clone(base_type), clone(node.text))
+                if len(ft) > 0 {
+                    ctx_set_local_type(ctx, dest, ft)
+                }
             } else {
                 get_inst.int_val = ctx_field_index_any(ctx, clone(node.text))
             }
@@ -1162,7 +1245,17 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             if eq(clone(ta_name), "char") || eq(clone(ta_name), "u8") || eq(clone(ta_name), "u16") || eq(clone(ta_name), "u32") || eq(clone(ta_name), "i16") || eq(clone(ta_name), "i32") || eq(clone(ta_name), "i64") || eq(clone(ta_name), "bool") {
                 ctx_set_local_type(ctx, local_idx, ta_name)
             }
-            if eq(clone(ta_name), "Vec") {
+            // NK_TYPE_GENERIC = 91: Vec<T> annotation
+            if ta.kind == 91 {
+                if eq(clone(ta_name), "Vec") {
+                    if len(ta.children) >= 2 {
+                        let elem_ty = get_unchecked(ta.children, 1)
+                        ctx_set_local_type(ctx, local_idx, concat(String_from("vec:"), clone(elem_ty.text)))
+                    } else {
+                        ctx_set_local_type(ctx, local_idx, String_from("vec"))
+                    }
+                }
+            } else if eq(clone(ta_name), "Vec") {
                 ctx_set_local_type(ctx, local_idx, String_from("vec"))
             }
         }
@@ -1456,6 +1549,27 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             while fi < fc {
                 let field = get_unchecked(decl.children, fi)
                 push(ctx.struct_all_fields, clone(field.text))
+                // Track field types for type propagation through field access
+                let mut field_type_str = String_from("")
+                if len(field.type_ann) > 0 {
+                    let fty = get_unchecked(field.type_ann, 0)
+                    // NK_TYPE_GENERIC = 91 → Vec<X>, NK_TYPE_NAMED = 90
+                    if fty.kind == 91 {
+                        if eq(clone(fty.text), "Vec") {
+                            if len(fty.children) >= 2 {
+                                let elem_ty = get_unchecked(fty.children, 1)
+                                field_type_str = concat(String_from("vec:"), clone(elem_ty.text))
+                            }
+                        }
+                    } else if fty.kind == 90 {
+                        let ty_text = clone(fty.text)
+                        // Check if it's a struct type (not a primitive)
+                        if !eq(clone(ty_text), "i32") && !eq(clone(ty_text), "i64") && !eq(clone(ty_text), "f64") && !eq(clone(ty_text), "bool") && !eq(clone(ty_text), "String") && !eq(clone(ty_text), "u8") {
+                            field_type_str = ty_text
+                        }
+                    }
+                }
+                push(ctx.struct_field_types, field_type_str)
                 fi = fi + 1
             }
         }
