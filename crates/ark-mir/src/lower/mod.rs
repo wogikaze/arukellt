@@ -47,6 +47,7 @@ pub(crate) fn type_to_sig_name(
             type_to_sig_name(ok, struct_id_to_name, enum_id_to_name),
             type_to_sig_name(err, struct_id_to_name, enum_id_to_name),
         ),
+        Type::Tuple(elems) => format!("__tuple{}", elems.len()),
         _ => format!("{}", ty),
     }
 }

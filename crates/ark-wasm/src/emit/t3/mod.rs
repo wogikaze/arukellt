@@ -617,6 +617,15 @@ impl Ctx {
                 {
                     return ref_nullable(base_idx);
                 }
+                // Tuple type names: "(i32, i32)" etc — map to __tupleN struct
+                if name.starts_with('(') && name.ends_with(')') {
+                    let inner = &name[1..name.len() - 1];
+                    let arity = inner.split(',').count();
+                    let tuple_name = format!("__tuple{}", arity);
+                    if let Some(&ty_idx) = self.struct_gc_types.get(&tuple_name) {
+                        return ref_nullable(ty_idx);
+                    }
+                }
                 ValType::I32
             }
         }

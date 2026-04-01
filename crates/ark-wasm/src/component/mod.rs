@@ -441,7 +441,26 @@ fn type_name_to_wit_full(
             err: None,
         });
     }
-    // Named types: check struct_defs then enum_defs
+    // Named types: check for __tuple structs first
+    if let Some(rest) = name.strip_prefix("__tuple") {
+        let arity_str = rest.trim_end_matches("_any");
+        if let Ok(arity) = arity_str.parse::<usize>() {
+            if let Some(fields) = struct_defs.get(name) {
+                let wit_fields: Vec<WitType> = fields
+                    .iter()
+                    .map(|(_, ty)| {
+                        type_name_to_wit_full(ty, struct_defs, enum_defs)
+                            .unwrap_or(WitType::S32)
+                    })
+                    .collect();
+                return Some(WitType::Tuple(wit_fields));
+            }
+            // Fallback: assume all i32
+            let wit_fields: Vec<WitType> = (0..arity).map(|_| WitType::S32).collect();
+            return Some(WitType::Tuple(wit_fields));
+        }
+    }
+    // Check struct_defs then enum_defs
     if struct_defs.contains_key(name) {
         return Some(WitType::Record(name.to_string()));
     }
@@ -617,6 +636,23 @@ pub fn validate_component_export_types(
                         ark_diagnostics::component_resource_diagnostic(&func.name),
                     ));
                     break;
+                }
+                CanonicalAbiClass::Record(fields) => {
+                    // Only all-scalar records (including tuples) are supported
+                    let all_ok = fields
+                        .iter()
+                        .all(|(_, c)| matches!(c, CanonicalAbiClass::Scalar(_)));
+                    if !all_ok {
+                        let type_desc = ty.to_wit();
+                        errors.push((
+                            func.name.clone(),
+                            ark_diagnostics::component_compound_type_diagnostic(
+                                &func.name,
+                                &type_desc,
+                            ),
+                        ));
+                        break;
+                    }
                 }
                 _ => {
                     let type_desc = ty.to_wit();
