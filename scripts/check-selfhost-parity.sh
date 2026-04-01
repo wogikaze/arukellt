@@ -86,20 +86,26 @@ check_wasmtime() {
 # Compile and run a .ark file with the Rust compiler
 rust_run() {
     local ark_file="$1"
-    local wasm_out="${WORK_DIR}/rust_out.wasm"
     local run_out
-    run_out=$("${RUST_BIN}" run "$ark_file" 2>/dev/null) || true
+    run_out=$(timeout 15 "${RUST_BIN}" run "$ark_file" 2>/dev/null) || true
     echo "$run_out"
 }
 
 # Compile a .ark file with the selfhost compiler and run the output
 selfhost_run() {
     local ark_file="$1"
-    local wasm_out="${WORK_DIR}/self_out.wasm"
-    # selfhost needs relative paths from the preopened directory
+    # selfhost uses WASI P1 path_open with dirfd=3 (first --dir).
+    # All paths must be relative to that preopened directory.
+    local rel_out="_selfhost_parity_out.wasm"
+    local wasm_out="${REPO_ROOT}/${rel_out}"
+    rm -f "$wasm_out"
+
+    # Convert absolute ark_file to relative path from REPO_ROOT
+    local rel_input="${ark_file#${REPO_ROOT}/}"
+
     local compile_out
-    compile_out=$(wasmtime run --dir="${REPO_ROOT}" --dir="${WORK_DIR}" \
-        "$SELFHOST_WASM" -- compile "$ark_file" -o "$wasm_out" 2>&1) || true
+    compile_out=$(timeout 10 wasmtime run --dir="${REPO_ROOT}" \
+        "$SELFHOST_WASM" -- compile "$rel_input" -o "$rel_out" 2>&1) || true
 
     if [[ ! -f "$wasm_out" ]]; then
         echo "SELFHOST_COMPILE_ERROR: ${compile_out}"
@@ -107,7 +113,8 @@ selfhost_run() {
     fi
 
     local run_out
-    run_out=$(wasmtime run "$wasm_out" 2>&1) || true
+    run_out=$(timeout 10 wasmtime run "$wasm_out" 2>&1) || true
+    rm -f "$wasm_out"
     echo "$run_out"
 }
 
