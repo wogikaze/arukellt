@@ -1750,7 +1750,123 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
 
             // Get range bounds
             let range_child_count = len(range.children)
-            if range_child_count >= 2 {
+            // Check for values(vec) form: for x in values(v)
+            // NK_CALL children: [0]=callee, [1..]=args
+            let mut is_values_call = range.kind == NK_CALL() && range_child_count >= 2
+            let mut values_callee_match = false
+            if is_values_call {
+                let range_callee = get_unchecked(range.children, 0)
+                values_callee_match = eq(clone(range_callee.text), "values")
+            }
+            if values_callee_match {
+                // for x in values(v) => for _i in 0..len(v), x = get_unchecked(v, _i)
+                let vec_arg = get_unchecked(range.children, 1)
+                let vec_idx = lower_expr(ctx, vec_arg)
+
+                // Store vec ptr in a local (value is on stack from lower_expr)
+                let vec_local = ctx_fresh_local(ctx, VT_I32())
+                let set_vec = MirInst_new(MIR_LOCAL_SET())
+                set_vec.arg0 = vec_local
+                ctx_emit(ctx, set_vec)
+
+                // Compute len(vec) via vec_len builtin: push vec, call vec_len, store result
+                let get_vec_len = MirInst_new(MIR_LOCAL_GET())
+                get_vec_len.arg0 = vec_local
+                ctx_emit(ctx, get_vec_len)
+                let len_call = MirInst_new(MIR_CALL())
+                len_call.str_val = String_from("vec_len")
+                len_call.int_val = 1
+                let end_local = ctx_fresh_local(ctx, VT_I32())
+                len_call.dest = end_local
+                ctx_emit(ctx, len_call)
+                // Store len result from stack
+                let set_end = MirInst_new(MIR_LOCAL_SET())
+                set_end.arg0 = end_local
+                ctx_emit(ctx, set_end)
+
+                // Hidden index variable starting at 0
+                let idx_var = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_const_i32(0, idx_var))
+                let set_idx_init = MirInst_new(MIR_LOCAL_SET())
+                set_idx_init.arg0 = idx_var
+                ctx_emit(ctx, set_idx_init)
+
+                // User-visible loop variable
+                let iter_var = ctx_alloc_local(ctx, clone(node.text), VT_I32())
+
+                let prev_break = ctx.loop_break_depth
+                let prev_continue = ctx.loop_continue_depth
+
+                // BLOCK (break target)
+                ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
+                ctx.nesting_depth = ctx.nesting_depth + 1
+                ctx.loop_break_depth = ctx.nesting_depth
+
+                // LOOP (continue target)
+                ctx_emit(ctx, MirInst_new(MIR_LOOP()))
+                ctx.nesting_depth = ctx.nesting_depth + 1
+                ctx.loop_continue_depth = ctx.nesting_depth
+
+                // Check: if idx >= len, break
+                let get_idx_cmp = MirInst_new(MIR_LOCAL_GET())
+                get_idx_cmp.arg0 = idx_var
+                ctx_emit(ctx, get_idx_cmp)
+                let get_end_cmp = MirInst_new(MIR_LOCAL_GET())
+                get_end_cmp.arg0 = end_local
+                ctx_emit(ctx, get_end_cmp)
+                let cmp_dest = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_binop(MIR_GTEQ(), cmp_dest, idx_var, end_local))
+                let br_break = MirInst_new(MIR_BR_IF())
+                br_break.int_val = 1
+                ctx_emit(ctx, br_break)
+
+                // x = get_unchecked(vec, idx): push vec, push idx, call, store to iter_var
+                let get_vec_gu = MirInst_new(MIR_LOCAL_GET())
+                get_vec_gu.arg0 = vec_local
+                ctx_emit(ctx, get_vec_gu)
+                let get_idx_gu = MirInst_new(MIR_LOCAL_GET())
+                get_idx_gu.arg0 = idx_var
+                ctx_emit(ctx, get_idx_gu)
+                let gu_call = MirInst_new(MIR_CALL())
+                gu_call.str_val = String_from("vec_get_unchecked")
+                gu_call.int_val = 2
+                gu_call.dest = iter_var
+                ctx_emit(ctx, gu_call)
+                let set_elem = MirInst_new(MIR_LOCAL_SET())
+                set_elem.arg0 = iter_var
+                ctx_emit(ctx, set_elem)
+
+                // Body
+                let _body_result = lower_expr(ctx, body)
+
+                // Increment: idx = idx + 1
+                let get_idx_inc = MirInst_new(MIR_LOCAL_GET())
+                get_idx_inc.arg0 = idx_var
+                ctx_emit(ctx, get_idx_inc)
+                let one_dest = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_const_i32(1, one_dest))
+                let add_dest = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_binop(MIR_ADD(), add_dest, idx_var, one_dest))
+                let set_idx = MirInst_new(MIR_LOCAL_SET())
+                set_idx.arg0 = idx_var
+                ctx_emit(ctx, set_idx)
+
+                // br 0 (loop back)
+                let br_loop = MirInst_new(MIR_BR())
+                br_loop.int_val = 0
+                ctx_emit(ctx, br_loop)
+
+                // END loop
+                ctx_emit(ctx, MirInst_new(MIR_END()))
+                ctx.nesting_depth = ctx.nesting_depth - 1
+
+                // END block
+                ctx_emit(ctx, MirInst_new(MIR_END()))
+                ctx.nesting_depth = ctx.nesting_depth - 1
+
+                ctx.loop_break_depth = prev_break
+                ctx.loop_continue_depth = prev_continue
+            } else if range_child_count >= 2 {
                 let start_node = get_unchecked(range.children, 0)
                 let end_node = get_unchecked(range.children, 1)
 

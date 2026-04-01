@@ -156,6 +156,7 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("starts_with"), SYM_BUILTIN())
     define(ctx, String_from("args"), SYM_BUILTIN())
     define(ctx, String_from("exit"), SYM_BUILTIN())
+    define(ctx, String_from("values"), SYM_BUILTIN())
     // Built-in enum variant constructors
     define(ctx, String_from("Some"), SYM_BUILTIN())
     define(ctx, String_from("None"), SYM_BUILTIN())
@@ -382,7 +383,10 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
             let init = get_unchecked(node.children, 0)
             resolve_node(ctx, init)
         }
-        define(ctx, clone(node.text), SYM_LOCAL())
+        // Skip defining wildcard `_` bindings (they are intentionally unused)
+        if !eq(clone(node.text), "_") {
+            define(ctx, clone(node.text), SYM_LOCAL())
+        }
         return
     }
 

@@ -1045,7 +1045,14 @@ fn parse_return(p: Parser) -> AstNode {
 
 fn parse_break(p: Parser) -> AstNode {
     let t = expect_token(p, TK_BREAK())
-    AstNode_new(NK_BREAK(), tok_span(t))
+    let node = AstNode_new(NK_BREAK(), tok_span(t))
+    // Check if break has a value expression
+    let next = peek_kind(p)
+    if next != TK_NEWLINE() && next != TK_RBRACE() && next != TK_SEMI() && next != TK_EOF() {
+        let val = parse_expr(p)
+        push(node.children, val)
+    }
+    node
 }
 
 fn parse_continue(p: Parser) -> AstNode {
