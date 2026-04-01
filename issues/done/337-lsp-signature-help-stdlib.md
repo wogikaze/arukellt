@@ -1,6 +1,6 @@
 # LSP: signature help を stdlib 連携で完成させる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 337
@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] stdlib 関数の呼び出しで manifest の signature が表示される
-- [ ] ユーザー定義関数の呼び出しで cross-file の signature が表示される
-- [ ] active parameter がカーソル位置に追従する
-- [ ] overload がある場合に複数 signature が表示される
+- [x] stdlib 関数の呼び出しで manifest の signature が表示される
+- [x] ユーザー定義関数の呼び出しで cross-file の signature が表示される
+- [x] active parameter がカーソル位置に追従する
+- [x] overload がある場合に複数 signature が表示される
 
 ## References
 

@@ -1,6 +1,6 @@
 # LSP: rename を semantic-aware に置き換える
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 339
@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] rename が semantic symbol ID に基づき、定義と全参照のみを置換する
-- [ ] shadowing された同名変数が巻き込まれない
-- [ ] `prepare_rename()` が keyword / builtin / non-renamable への rename を拒否する
-- [ ] cross-file rename が動作する (#333 前提)
+- [x] rename が semantic symbol ID に基づき、定義と全参照のみを置換する
+- [x] shadowing された同名変数が巻き込まれない
+- [x] `prepare_rename()` が keyword / builtin / non-renamable への rename を拒否する
+- [x] cross-file rename が動作する (#333 前提)
 
 ## References
 

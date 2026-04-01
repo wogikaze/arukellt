@@ -1,6 +1,6 @@
 # LSP: references を semantic symbol ID ベースに置き換える
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 338
@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] 同名別 symbol が区別される (shadowing の内外で別 reference set)
-- [ ] resolver の binding 情報に基づいて reference を返す
-- [ ] project-wide の cross-file references が動作する (#333 前提)
-- [ ] `document_highlight` も同様に semantic 化する
+- [x] 同名別 symbol が区別される (shadowing の内外で別 reference set)
+- [x] resolver の binding 情報に基づいて reference を返す
+- [x] project-wide の cross-file references が動作する (#333 前提)
+- [x] `document_highlight` も同様に semantic 化する
 
 ## References
 
