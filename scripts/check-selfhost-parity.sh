@@ -113,7 +113,7 @@ selfhost_run() {
     fi
 
     local run_out
-    run_out=$(timeout 10 wasmtime run "$wasm_out" 2>&1) || true
+    run_out=$(timeout 10 wasmtime run "$wasm_out" 2>/dev/null) || true
     rm -f "$wasm_out"
     echo "$run_out"
 }

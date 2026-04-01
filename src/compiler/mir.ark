@@ -782,11 +782,30 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 let tc = len(target.children)
                 if tc >= 1 {
                     let struct_node = get_unchecked(target.children, 0)
-                    let struct_idx = lower_expr(ctx, struct_node)
+                    let mut struct_idx = 0
+                    if struct_node.kind == NK_IDENT() {
+                        // Simple base: look up local directly, no stack push
+                        struct_idx = ctx_lookup_local(ctx, clone(struct_node.text))
+                    } else {
+                        // Complex base (chained field access): evaluate and save to temp
+                        let raw_idx = lower_expr(ctx, struct_node)
+                        let temp = ctx_fresh_local(ctx, VT_REF())
+                        let save_inst = MirInst_new(MIR_LOCAL_SET())
+                        save_inst.arg0 = temp
+                        ctx_emit(ctx, save_inst)
+                        struct_idx = temp
+                    }
                     let set_inst = MirInst_new(MIR_STRUCT_SET())
                     set_inst.arg0 = struct_idx
                     set_inst.arg1 = val_idx
                     set_inst.str_val = clone(target.text)
+                    // Resolve field index from struct type
+                    let base_type = ctx_get_local_type(ctx, struct_idx)
+                    if len(base_type) > 0 {
+                        set_inst.int_val = ctx_field_index(ctx, base_type, clone(target.text))
+                    } else {
+                        set_inst.int_val = ctx_field_index_any(ctx, clone(target.text))
+                    }
                     ctx_emit(ctx, set_inst)
                 }
             }
