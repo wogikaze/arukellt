@@ -887,6 +887,14 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     }
                 }
             }
+            if eq(clone(call_inst.str_val), "get") {
+                if first_arg_idx >= 0 {
+                    let arg_type_get2 = ctx_get_local_type(ctx, first_arg_idx)
+                    if eq(clone(arg_type_get2), "vec:i32") || eq(clone(arg_type_get2), "vec:String") || eq(clone(arg_type_get2), "vec:Point") || eq(clone(arg_type_get2), "vec:u8") || eq(clone(arg_type_get2), "vec:f64") || eq(clone(arg_type_get2), "vec:bool") || eq(clone(arg_type_get2), "vec:MirInst") || eq(clone(arg_type_get2), "vec:MirLocal") || eq(clone(arg_type_get2), "vec:MirBlock") || eq(clone(arg_type_get2), "vec:MirFunction") || eq(clone(arg_type_get2), "vec:AstNode") || eq(clone(arg_type_get2), "vec:Item") || eq(clone(arg_type_get2), "vec:Container") || eq(clone(arg_type_get2), "vec:Context") || eq(clone(arg_type_get2), "vec:Holder") || eq(clone(arg_type_get2), "vec:Inner") || eq(clone(arg_type_get2), "vec:Outer") || eq(clone(arg_type_get2), "vec:Token") || eq(clone(arg_type_get2), "vec:Span") || eq(clone(arg_type_get2), "vec:Diagnostic") || eq(clone(arg_type_get2), "vec:TypedFn") || eq(clone(arg_type_get2), "vec:WasmLocal") || eq(clone(arg_type_get2), "vec:Pair") || eq(clone(arg_type_get2), "vec:Node") {
+                        call_inst.str_val = String_from("vec_get")
+                    }
+                }
+            }
             // Mark dest as vec type when calling Vec_new_*
             let dest = ctx_fresh_local(ctx, VT_I32())
             call_inst.dest = dest
@@ -1059,8 +1067,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         if child_count >= 2 {
             let scrutinee = get_unchecked(node.children, 0)
             let scrut_idx = lower_expr(ctx, scrutinee)
-            // lower_expr pushes value on stack; drop it since we'll LOCAL_GET per arm
-            ctx_emit(ctx, MirInst_new(MIR_DROP()))
+            // Save scrutinee value to its local (lower_expr pushes on stack;
+            // we need it captured so LOCAL_GET works in arms)
+            let save_scrut = MirInst_new(MIR_LOCAL_SET())
+            save_scrut.arg0 = scrut_idx
+            ctx_emit(ctx, save_scrut)
             let result = ctx_fresh_local(ctx, VT_I32())
 
             // Detect if this is a payload enum match (any arm has PAT_VARIANT with children)
