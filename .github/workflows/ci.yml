@@ -353,6 +353,45 @@ jobs:
       - name: Run bootstrap Stage 0
         run: bash scripts/verify-bootstrap.sh --stage1-only
 
+  # ── Layer 9b: Selfhost fixture parity (informational, non-blocking) ────
+  selfhost-parity:
+    name: "Selfhost fixture parity"
+    runs-on: ubuntu-latest
+    needs: [selfhost-stage0]
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Install wasmtime
+        run: |
+          curl https://wasmtime.dev/install.sh -sSf | bash
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Build arukellt
+        run: cargo build --release -p arukellt
+
+      - name: Run selfhost fixture parity
+        run: bash scripts/check-selfhost-parity.sh --fixture 2>&1 | tee parity-results.txt
+
+      - name: Upload parity results
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfhost-parity
+          path: parity-results.txt
+
   # ── Layer 10: VS Code extension tests (merge gate) ─────────────────────
   extension-tests:
     name: "VS Code extension tests"
