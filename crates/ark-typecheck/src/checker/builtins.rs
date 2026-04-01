@@ -1163,5 +1163,25 @@ impl TypeChecker {
                 ret: Type::Option(Box::new(Type::String)),
             },
         );
+        self.fn_sigs.insert(
+            "__intrinsic_f64_bits_lo".into(),
+            FnSig {
+                name: "__intrinsic_f64_bits_lo".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::F64],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_f64_bits_hi".into(),
+            FnSig {
+                name: "__intrinsic_f64_bits_hi".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::F64],
+                ret: Type::I32,
+            },
+        );
     }
 }

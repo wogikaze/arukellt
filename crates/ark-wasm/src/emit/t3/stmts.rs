@@ -485,6 +485,8 @@ impl Ctx {
                 | "memory_fill"
                 | "arg_count"
                 | "env_var"
+                | "f64_bits_lo"
+                | "f64_bits_hi"
                 | "eq"
                 | "ne"
         ) || (name.starts_with("Vec_new_") && self.custom_vec_types.contains_key(&name[8..]))
@@ -1175,6 +1177,32 @@ impl Ctx {
                     f.instruction(&Instruction::Drop);
                 }
             }
+            "f64_bits_lo" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::I64ReinterpretF64);
+                    f.instruction(&Instruction::I32WrapI64);
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
+            "f64_bits_hi" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::I64ReinterpretF64);
+                    f.instruction(&Instruction::I64Const(32));
+                    f.instruction(&Instruction::I64ShrU);
+                    f.instruction(&Instruction::I32WrapI64);
+                    if let Some(Place::Local(id)) = dest {
+                        f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                    } else {
+                        f.instruction(&Instruction::Drop);
+                    }
+                }
+            }
             "env_var" => {
                 let name_op = args.first().cloned().unwrap_or(Operand::ConstString(String::new()));
                 self.emit_env_var_builtin(f, &name_op);
@@ -1771,6 +1799,22 @@ impl Ctx {
                 if let Some(arg) = args.first() {
                     self.emit_operand_coerced(f, arg, false, true);
                     f.instruction(&Instruction::F64Sqrt);
+                }
+            }
+            "f64_bits_lo" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::I64ReinterpretF64);
+                    f.instruction(&Instruction::I32WrapI64);
+                }
+            }
+            "f64_bits_hi" => {
+                if let Some(arg) = args.first() {
+                    self.emit_operand_coerced(f, arg, false, true);
+                    f.instruction(&Instruction::I64ReinterpretF64);
+                    f.instruction(&Instruction::I64Const(32));
+                    f.instruction(&Instruction::I64ShrU);
+                    f.instruction(&Instruction::I32WrapI64);
                 }
             }
             "floor" => {

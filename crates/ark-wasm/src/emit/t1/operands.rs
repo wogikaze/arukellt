@@ -3855,6 +3855,34 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::End);
                     }
+                    "f64_bits_lo" => {
+                        // f64_bits_lo(val: f64) -> i32: low 32 bits of IEEE 754
+                        let ma8 = MemArg { offset: 0, align: 3, memory_index: 0 };
+                        let ma4 = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        // Store f64 to scratch
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::F64Store(ma8));
+                        // Load low 4 bytes as i32
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma4));
+                    }
+                    "f64_bits_hi" => {
+                        // f64_bits_hi(val: f64) -> i32: high 32 bits of IEEE 754
+                        let ma8 = MemArg { offset: 0, align: 3, memory_index: 0 };
+                        let ma4 = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        // Store f64 to scratch
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::F64Store(ma8));
+                        // Load high 4 bytes as i32
+                        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Load(ma4));
+                    }
                     "panic" => {
                         // panic(msg: String) -> !: print to stderr, then unreachable
                         let ma = MemArg {

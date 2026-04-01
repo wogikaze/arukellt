@@ -185,6 +185,8 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_arg_count" => "arg_count",
         "__intrinsic_arg_at" => "arg_at",
         "__intrinsic_env_var" => "env_var",
+        "__intrinsic_f64_bits_lo" => "f64_bits_lo",
+        "__intrinsic_f64_bits_hi" => "f64_bits_hi",
         other => other,
     }
 }

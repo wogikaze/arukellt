@@ -100,6 +100,14 @@ pub fn sqrt(x: f64) -> f64 {
     __intrinsic_sqrt(x)
 }
 
+pub fn f64_bits_lo(x: f64) -> i32 {
+    __intrinsic_f64_bits_lo(x)
+}
+
+pub fn f64_bits_hi(x: f64) -> i32 {
+    __intrinsic_f64_bits_hi(x)
+}
+
 pub fn abs(x: i32) -> i32 {
     if x < 0 { 0 - x } else { x }
 }

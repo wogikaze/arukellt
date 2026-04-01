@@ -136,6 +136,8 @@ fn normalize_intrinsic(name: &str) -> &str {
             "arg_count" => "arg_count",
             "arg_at" => "arg_at",
             "env_var" => "env_var",
+            "f64_bits_lo" => "f64_bits_lo",
+            "f64_bits_hi" => "f64_bits_hi",
             "fs_read_file" => "fs_read_file",
             "fs_write_file" => "fs_write_file",
             "fs_write_bytes" => "fs_write_bytes",
