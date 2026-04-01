@@ -35,10 +35,10 @@ component-compile:component/export_f64.ark
 component-compile:component/export_flags.ark
 component-compile:component/export_i64.ark
 component-compile:component/export_list.ark
-compile-error:component/export_option.ark
+component-compile:component/export_option.ark
 component-compile:component/export_record.ark
 component-compile:component/export_resource.ark
-compile-error:component/export_result.ark
+component-compile:component/export_result.ark
 component-compile:component/export_string.ark
 compile-error:component/export_tuple.ark
 compile-error:component/export_variant.ark

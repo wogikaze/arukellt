@@ -569,6 +569,48 @@ pub fn validate_component_export_types(
                         }
                     }
                 }
+                CanonicalAbiClass::OptionType(inner) => {
+                    // Only scalar-payload options are supported for now
+                    match inner.as_ref() {
+                        CanonicalAbiClass::Scalar(_) => {}
+                        _ => {
+                            let type_desc = ty.to_wit();
+                            errors.push((
+                                func.name.clone(),
+                                ark_diagnostics::component_compound_type_diagnostic(
+                                    &func.name,
+                                    &type_desc,
+                                ),
+                            ));
+                            break;
+                        }
+                    }
+                }
+                CanonicalAbiClass::ResultType { ok, err } => {
+                    // Scalar ok and scalar-or-string err are supported
+                    let ok_ok = match ok {
+                        Some(inner) => matches!(inner.as_ref(), CanonicalAbiClass::Scalar(_)),
+                        None => true,
+                    };
+                    let err_ok = match err {
+                        Some(inner) => matches!(
+                            inner.as_ref(),
+                            CanonicalAbiClass::Scalar(_) | CanonicalAbiClass::String
+                        ),
+                        None => true,
+                    };
+                    if !ok_ok || !err_ok {
+                        let type_desc = ty.to_wit();
+                        errors.push((
+                            func.name.clone(),
+                            ark_diagnostics::component_compound_type_diagnostic(
+                                &func.name,
+                                &type_desc,
+                            ),
+                        ));
+                        break;
+                    }
+                }
                 CanonicalAbiClass::Handle => {
                     errors.push((
                         func.name.clone(),
