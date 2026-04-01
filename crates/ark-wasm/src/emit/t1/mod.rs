@@ -95,7 +95,12 @@ const FN_ARG_AT: u32 = 34;
 const FN_ARGS_VEC: u32 = 35;
 const FN_EPRINT_STR_LN: u32 = 36; // stderr (fd=2) string + newline printer
 const FN_ENSURE_HEAP: u32 = 37; // grow memory when bump allocator exceeds current pages
-const FN_USER_BASE: u32 = 38;
+// WASI environ imports (conditional)
+const FN_ENVIRON_SIZES_GET: u32 = 38;
+const FN_ENVIRON_GET: u32 = 39;
+// Stdlib environ helper
+const FN_ENV_VAR: u32 = 40;
+const FN_USER_BASE: u32 = 41;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
@@ -1304,6 +1309,12 @@ fn cfn_handle_builtin(
             needed.insert(FN_ARGS_SIZES_GET);
             needed.insert(FN_ARGS_GET);
             needed.insert(FN_ARGS_VEC);
+        }
+        "env_var" => {
+            needed.insert(FN_ENVIRON_SIZES_GET);
+            needed.insert(FN_ENVIRON_GET);
+            needed.insert(FN_ENV_VAR);
+            needed.insert(FN_ENSURE_HEAP);
         }
         other
             if (other.contains("HashMap") || other.contains("hashmap"))

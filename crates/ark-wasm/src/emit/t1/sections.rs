@@ -25,6 +25,8 @@ impl EmitCtx {
             (FN_RANDOM_GET, "random_get"),
             (FN_ARGS_SIZES_GET, "args_sizes_get"),
             (FN_ARGS_GET, "args_get"),
+            (FN_ENVIRON_SIZES_GET, "environ_sizes_get"),
+            (FN_ENVIRON_GET, "environ_get"),
         ];
         // Stdlib helpers in canonical order (indices 6..35)
         const STDLIB_ORDER: &[u32] = &[
@@ -58,6 +60,7 @@ impl EmitCtx {
             FN_ARGS_VEC,
             FN_EPRINT_STR_LN,
             FN_ENSURE_HEAP,
+            FN_ENV_VAR,
         ];
 
         // Build fn_map: canonical index -> actual Wasm function index
@@ -165,6 +168,8 @@ impl EmitCtx {
                     x if x == FN_RANDOM_GET => ty_i32_i32_i32,
                     x if x == FN_ARGS_SIZES_GET => ty_i32_i32_i32,
                     x if x == FN_ARGS_GET => ty_i32_i32_i32,
+                    x if x == FN_ENVIRON_SIZES_GET => ty_i32_i32_i32,
+                    x if x == FN_ENVIRON_GET => ty_i32_i32_i32,
                     _ => ty_fd_write,
                 };
                 imports.import(
@@ -211,6 +216,7 @@ impl EmitCtx {
                     x if x == FN_ARGS_VEC => ty_void_i32,
                     x if x == FN_EPRINT_STR_LN => ty_i32_void,
                     x if x == FN_ENSURE_HEAP => ty_void_void,
+                    x if x == FN_ENV_VAR => ty_i32_i32, // (name: str_ptr) -> option_ptr
                     _ => ty_i32_void,
                 };
                 functions.function(ty);
@@ -421,6 +427,10 @@ impl EmitCtx {
                 }
                 x if x == FN_ENSURE_HEAP => {
                     let f = self.build_ensure_heap();
+                    code.function(&f);
+                }
+                x if x == FN_ENV_VAR => {
+                    let f = self.build_env_var();
                     code.function(&f);
                 }
                 _ => {}

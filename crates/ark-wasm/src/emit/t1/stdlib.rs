@@ -2005,4 +2005,287 @@ impl EmitCtx {
         f.instruction(&Instruction::End);
         f
     }
+
+    /// Build env_var(name: i32) -> i32 (Option<String> ptr):
+    /// Calls WASI environ_sizes_get + environ_get, scans entries for matching key,
+    /// returns Some(value_str) or None.
+    pub(super) fn build_env_var(&self) -> Function {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        let ma0 = MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+        // Param 0: name_ptr (length-prefixed string)
+        // Locals: 1=env_count, 2=buf_size, 3=ptrs_base, 4=buf_base,
+        //         5=i (loop counter), 6=entry_ptr, 7=name_len,
+        //         8=j (comparison counter), 9=value_start, 10=value_len,
+        //         11=str_data_ptr, 12=byte_j
+        let mut f = Function::new(vec![(12, ValType::I32)]);
+
+        // name_len = mem32[name_ptr - 4]
+        f.instruction(&Instruction::LocalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(7)); // name_len
+
+        // environ_sizes_get(SCRATCH, SCRATCH+4)
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+        self.call_fn(&mut f, FN_ENVIRON_SIZES_GET);
+        f.instruction(&Instruction::Drop);
+
+        // env_count = mem32[SCRATCH]
+        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(1)); // env_count
+
+        // buf_size = mem32[SCRATCH+4]
+        f.instruction(&Instruction::I32Const((SCRATCH + 4) as i32));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(2)); // buf_size
+
+        // Allocate pointer table and buffer on the heap
+        // ptrs_base = heap_ptr; heap_ptr += env_count * 4
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(3)); // ptrs_base
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(1)); // env_count
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
+
+        // buf_base = heap_ptr; heap_ptr += buf_size
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalSet(4)); // buf_base
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(2)); // buf_size
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
+
+        // Align heap_ptr to 4 bytes
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(3));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(-4i32));
+        f.instruction(&Instruction::I32And);
+        f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
+
+        // environ_get(ptrs_base, buf_base)
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::LocalGet(4));
+        self.call_fn(&mut f, FN_ENVIRON_GET);
+        f.instruction(&Instruction::Drop);
+
+        // i = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(5)); // i
+
+        // Block structure: block $done { loop $search { ... } }
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // $done
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty)); // $search
+
+        // if i >= env_count, break to $done (return None)
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::LocalGet(1));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1)); // → $done
+
+        // entry_ptr = mem32[ptrs_base + i*4]
+        f.instruction(&Instruction::LocalGet(3));
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Mul);
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::LocalSet(6)); // entry_ptr
+
+        // Compare first name_len bytes of entry against name
+        // j = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(8));
+
+        // block $matched { block $mismatch { loop $cmp { ... } } }
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // $matched
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // $mismatch
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty)); // $cmp
+
+        // if j >= name_len → all name bytes matched, break to $matched
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(2)); // → $matched
+
+        // Compare entry_ptr[j] vs name_ptr[j]
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0)); // entry byte
+
+        f.instruction(&Instruction::LocalGet(0)); // name_ptr
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0)); // name byte
+
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::BrIf(1)); // → $mismatch
+
+        // j++
+        f.instruction(&Instruction::LocalGet(8));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(8));
+        f.instruction(&Instruction::Br(0)); // → $cmp loop
+        f.instruction(&Instruction::End); // end $cmp loop
+        f.instruction(&Instruction::End); // end $mismatch
+
+        // Mismatch path: i++, continue search
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(5));
+        f.instruction(&Instruction::Br(1)); // → $search loop
+        f.instruction(&Instruction::End); // end $matched
+
+        // Matched! Check that entry[name_len] == '='
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Const(0x3D)); // '='
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // Not '=': skip to next entry
+        f.instruction(&Instruction::LocalGet(5));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(5));
+        f.instruction(&Instruction::Br(1)); // → $search loop
+        f.instruction(&Instruction::End);
+
+        // Match found! Extract value (starts at entry_ptr + name_len + 1, ends at null)
+        // value_start = entry_ptr + name_len + 1
+        f.instruction(&Instruction::LocalGet(6));
+        f.instruction(&Instruction::LocalGet(7));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(9)); // value_start
+
+        // Scan for null terminator → value_len
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(10)); // value_len = 0
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::LocalGet(10));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::BrIf(1)); // null → done
+        f.instruction(&Instruction::LocalGet(10));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(10));
+        f.instruction(&Instruction::Br(0)); // continue
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Build length-prefixed string on heap: [len:i32][data...]
+        // Write length at heap_ptr
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(10)); // value_len
+        f.instruction(&Instruction::I32Store(ma));
+
+        // str_data_ptr = heap_ptr + 4
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(11)); // str_data_ptr
+
+        // Copy value bytes: j = 0..value_len
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(12)); // byte_j = 0
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::LocalGet(10));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        // str_data_ptr[byte_j] = value_start[byte_j]
+        f.instruction(&Instruction::LocalGet(11));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(9));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma0));
+        f.instruction(&Instruction::I32Store8(ma0));
+        f.instruction(&Instruction::LocalGet(12));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(12));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // Bump heap past length prefix + data, align to 4
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(10)); // value_len
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(3));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(-4i32));
+        f.instruction(&Instruction::I32And);
+        f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
+
+        // Construct Some(str_data_ptr): [tag=0][payload=str_data_ptr]
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(0)); // tag = Some
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(11)); // str_data_ptr
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0)); // result ptr (Some)
+        // Bump heap by 8 (tag + payload)
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(8));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
+        // Return Some ptr
+        f.instruction(&Instruction::Return);
+
+        f.instruction(&Instruction::End); // end $search loop
+        f.instruction(&Instruction::End); // end $done block
+
+        // No match found: return None
+        // Construct None: [tag=1]
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(1)); // tag = None
+        f.instruction(&Instruction::I32Store(ma));
+        f.instruction(&Instruction::GlobalGet(0)); // result ptr (None)
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
+
+        f.instruction(&Instruction::End);
+        f
+    }
 }
