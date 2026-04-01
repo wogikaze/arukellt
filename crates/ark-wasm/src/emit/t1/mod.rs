@@ -486,37 +486,92 @@ impl EmitCtx {
         // stack: [ptr]
     }
 
-    /// Emit a call to __ensure_heap to grow memory if the bump pointer
-    /// has reached or exceeded the current memory boundary.
+    /// Emit an inline memory grow check after each heap bump.
+    /// Ensures at least 2 pages of headroom beyond the current heap pointer.
     pub(super) fn emit_heap_grow_check(&self, f: &mut Function) {
-        let idx = self.fn_map[FN_ENSURE_HEAP as usize];
-        if idx != u32::MAX {
-            f.instruction(&Instruction::Call(idx));
-        }
-    }
-
-    /// Build the __ensure_heap runtime function.
-    /// Checks if global 0 (heap_ptr) >= memory.size * 65536, and if so
-    /// grows memory by enough pages to accommodate.
-    pub(super) fn build_ensure_heap(&self) -> Function {
-        let mut f = Function::new(vec![]);
-        // if heap_ptr >= memory_size_in_bytes
+        // needed_pages = (heap_ptr >> 16) + 2
+        // if needed_pages > memory.size: grow(needed_pages - memory.size)
         f.instruction(&Instruction::GlobalGet(0));
-        f.instruction(&Instruction::MemorySize(0));
-        f.instruction(&Instruction::I32Const(16));
-        f.instruction(&Instruction::I32Shl);
-        f.instruction(&Instruction::I32GeU);
-        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
-        // pages_needed = ((heap_ptr - mem_bytes) >> 16) + 2
-        f.instruction(&Instruction::GlobalGet(0));
-        f.instruction(&Instruction::MemorySize(0));
-        f.instruction(&Instruction::I32Const(16));
-        f.instruction(&Instruction::I32Shl);
-        f.instruction(&Instruction::I32Sub);
         f.instruction(&Instruction::I32Const(16));
         f.instruction(&Instruction::I32ShrU);
         f.instruction(&Instruction::I32Const(2));
         f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32GtU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32ShrU);
+        f.instruction(&Instruction::I32Const(2));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::MemoryGrow(0));
+        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::End);
+    }
+
+    /// Emit a conditional pre-allocation grow check with the extra_bytes stored at scratch_addr.
+    /// Loads extra_bytes from scratch_addr, then ensures memory covers heap_ptr + extra_bytes + 4.
+    pub(super) fn emit_pre_alloc_grow_from_scratch(&self, f: &mut Function, scratch_addr: i32) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        // needed_end = global.get 0 + *(scratch_addr) + 4
+        // needed_pages = (needed_end >> 16) + 1
+        // if needed_pages > memory.size: grow(needed_pages - memory.size)
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(scratch_addr));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32ShrU);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32GtU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // Re-compute delta and grow
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(scratch_addr));
+        f.instruction(&Instruction::I32Load(ma));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32ShrU);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::MemoryGrow(0));
+        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::End);
+    }
+
+    /// Build the __ensure_heap runtime function (void → void).
+    /// Ensures memory is large enough for the current heap pointer.
+    pub(super) fn build_ensure_heap(&self) -> Function {
+        let mut f = Function::new(vec![]);
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32ShrU);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32GtU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32ShrU);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32Sub);
         f.instruction(&Instruction::MemoryGrow(0));
         f.instruction(&Instruction::Drop);
         f.instruction(&Instruction::End);

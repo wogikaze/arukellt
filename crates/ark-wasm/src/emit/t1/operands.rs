@@ -452,6 +452,44 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                             f.instruction(&Instruction::I32Const(0));
                             f.instruction(&Instruction::I32Store(ma)); // i = 0
+
+                            // Pre-copy grow: ensure memory covers entire copy range
+                            // needed_end = new_data_ptr + len * elem_size
+                            f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                            f.instruction(&Instruction::I32Load(ma)); // new_data_ptr
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
+                            f.instruction(&Instruction::I32Load(ma)); // len
+                            f.instruction(&Instruction::I32Const(elem_size));
+                            f.instruction(&Instruction::I32Mul); // len * elem_size
+                            f.instruction(&Instruction::I32Add); // new_data_ptr + len*elem_size
+                            f.instruction(&Instruction::I32Const(16));
+                            f.instruction(&Instruction::I32ShrU);
+                            f.instruction(&Instruction::I32Const(1));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::MemorySize(0));
+                            f.instruction(&Instruction::I32GtU);
+                            f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                            f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                            f.instruction(&Instruction::I32Load(ma));
+                            if let Some(v) = args.first() {
+                                self.emit_operand(f, v);
+                            }
+                            f.instruction(&Instruction::I32Load(ma));
+                            f.instruction(&Instruction::I32Const(elem_size));
+                            f.instruction(&Instruction::I32Mul);
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const(16));
+                            f.instruction(&Instruction::I32ShrU);
+                            f.instruction(&Instruction::I32Const(1));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::MemorySize(0));
+                            f.instruction(&Instruction::I32Sub);
+                            f.instruction(&Instruction::MemoryGrow(0));
+                            f.instruction(&Instruction::Drop);
+                            f.instruction(&Instruction::End);
+
                             f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
                             f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
                             // if i >= len*elem_size, break
@@ -1321,9 +1359,8 @@ impl EmitCtx {
                             align: 0,
                             memory_index: 0,
                         };
-                        // new_len = end - start
-                        // Write new_len at heap[0]
-                        f.instruction(&Instruction::GlobalGet(0));
+                        // Compute new_len = end - start, save to SCRATCH+16
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
                         if let Some(end_arg) = args.get(2) {
                             self.emit_operand(f, end_arg);
                         }
@@ -1331,6 +1368,13 @@ impl EmitCtx {
                             self.emit_operand(f, start_arg);
                         }
                         f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Pre-grow: ensure memory for 4 + new_len bytes
+                        self.emit_pre_alloc_grow_from_scratch(f, (SCRATCH + 16) as i32);
+                        // Write new_len at heap_ptr
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Store(ma));
                         // Copy bytes: mem[heap+4+i] = mem[s+start+i] for i in 0..new_len
                         // Use NWRITTEN as loop counter
@@ -3956,6 +4000,8 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma)); // len
                         f.instruction(&Instruction::I32Store(ma));
+                        // Pre-grow: ensure memory can hold heap_ptr + 4 + len
+                        self.emit_pre_alloc_grow_from_scratch(f, (SCRATCH + 12) as i32);
                         // Write len at heap_ptr
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
@@ -4044,6 +4090,8 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Sub);
                         f.instruction(&Instruction::I32Load(ma)); // old_len
                         f.instruction(&Instruction::I32Store(ma));
+                        // Pre-grow: ensure memory for old_len + 5 (4 + old_len + 1)
+                        self.emit_pre_alloc_grow_from_scratch(f, (SCRATCH + 16) as i32);
                         // Write new_len = old_len + 1 at heap_ptr
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
@@ -4343,8 +4391,8 @@ impl EmitCtx {
                             align: 0,
                             memory_index: 0,
                         };
-                        // new_len = end - start
-                        f.instruction(&Instruction::GlobalGet(0));
+                        // Compute new_len = end - start, save to SCRATCH+16
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
                         if let Some(end_arg) = args.get(2) {
                             self.emit_operand(f, end_arg);
                         }
@@ -4352,6 +4400,13 @@ impl EmitCtx {
                             self.emit_operand(f, start_arg);
                         }
                         f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Store(ma));
+                        // Pre-grow
+                        self.emit_pre_alloc_grow_from_scratch(f, (SCRATCH + 16) as i32);
+                        // Write new_len at heap_ptr
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Store(ma));
                         // Use NWRITTEN as loop counter i = 0
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));

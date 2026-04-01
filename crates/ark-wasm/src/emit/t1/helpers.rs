@@ -442,6 +442,36 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalSet(4));
 
+        // Pre-grow: ensure memory for 4 + total_len bytes (conditional)
+        // needed_pages = ((global.get 0 + total_len + 4) >> 16) + 1
+        // if needed_pages > memory.size: grow(needed_pages - memory.size)
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32ShrU);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32GtU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::LocalGet(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(4));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32ShrU);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::MemoryGrow(0));
+        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::End);
+
         // Write total_len at heap_ptr (length prefix)
         f.instruction(&Instruction::GlobalGet(0));
         f.instruction(&Instruction::LocalGet(4));
