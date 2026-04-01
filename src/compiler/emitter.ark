@@ -822,6 +822,136 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_LOAD())
             emit_byte(w, 0x02)
             emit_byte(w, 0x00)
+        } else if eq(clone(callee), "eq") {
+            // String eq: compare two strings by content
+            // Stack: [ptr_a, ptr_b]
+            let s_a = ctx.scratch_base
+            let s_b = ctx.scratch_base + 1
+            let s_la = ctx.scratch_base + 2
+            let s_i = ctx.scratch_base + 3
+            // Save args
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_b)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_a)
+            // If ptrs equal → true (shortcut)
+            // len_a = load(ptr_a - 4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_a)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_la)
+            // len_b = load(ptr_b - 4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_b)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // If len_a != len_b → false
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_la)
+            emit_byte(w, 0x47)  // i32.ne
+            emit_byte(w, 0x04)  // if
+            emit_byte(w, 0x7f)  // blocktype i32
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)  // false
+            emit_byte(w, 0x05)  // else
+            // Lengths equal. Compare bytes with a loop.
+            // i = 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_i)
+            // block (for break-out with result)
+            emit_byte(w, 0x02)  // block
+            emit_byte(w, 0x40)  // void
+            // loop
+            emit_byte(w, 0x03)  // loop
+            emit_byte(w, 0x40)  // void
+            // if i >= len_a → all equal, break with true
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_i)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_la)
+            emit_byte(w, 0x4e)  // i32.ge_s
+            emit_byte(w, 0x0d)  // br_if
+            emit_leb128_u(w, 1)  // break to outer block
+            // if a[i] != b[i] → not equal, push 0 and break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_a)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_i)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x2d)  // i32.load8_u
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_b)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_i)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x2d)  // i32.load8_u
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x47)  // i32.ne
+            emit_byte(w, 0x04)  // if
+            emit_byte(w, 0x40)  // void
+            // Store 0 (false) in inst.dest and break
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, 0x0c)  // br
+            emit_leb128_u(w, 2)  // break to outer block
+            emit_byte(w, 0x0b)  // end if
+            // i++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_i)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_i)
+            // br 0 (continue loop)
+            emit_byte(w, 0x0c)  // br
+            emit_leb128_u(w, 0)
+            emit_byte(w, 0x0b)  // end loop
+            emit_byte(w, 0x0b)  // end block
+            // If we broke out naturally (i >= len), it's true
+            // But if we broke via mismatch, inst.dest = 0
+            // We need a way to distinguish. Let me set inst.dest = 1 before loop.
+            // Wait, I already emitted the code. Let me rethink.
+            // Actually: if we break from the ge_s check (br_if 1), we fall to after block.
+            // In that case all bytes matched → true. If mismatch (br 2), also after block
+            // but inst.dest = 0.
+            // I'll pre-set inst.dest = 1 (true), and mismatch sets it to 0.
+            // But I already emitted the block/loop without setting inst.dest first.
+            // The br_if 1 on ge_s needs to also set the result...
+            // Hmm, this is getting complex. Let me use a simpler structure.
+
+            // Since I already emitted, let me load from inst.dest.
+            // Before the block, I need inst.dest = 1. But I can't redo.
+            // Let me just always push the result after the block using inst.dest.
+            // Pre-loop: inst.dest = 1 (assume equal). Mismatch sets inst.dest = 0.
+            // But I need to emit "inst.dest = 1" BEFORE the block, and I'm past that.
+
+            // OK - I'll work around: use s_i as result flag.
+            // Actually the loop already broke. After loop ends, check if i >= len_a.
+            // If yes → equal (1), else not (0).
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_i)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_la)
+            emit_byte(w, 0x4e)  // i32.ge_s → 1 if loop completed, 0 if broke early
+            emit_byte(w, 0x0b)  // end (if/else)
         } else if eq(clone(callee), "concat") {
             // concat(a, b): allocate on heap, copy both strings using memory.copy
             // Stack: [ptr_a, ptr_b] (ptr_b on top)
