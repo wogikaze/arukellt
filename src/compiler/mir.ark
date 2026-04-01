@@ -701,9 +701,89 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     }
                 }
             }
+            // Dispatch len/push/get_unchecked to vec variants when arg is vec type
+            if eq(clone(call_inst.str_val), "len") {
+                if first_arg_idx >= 0 {
+                    let arg_type_len = ctx_get_local_type(ctx, first_arg_idx)
+                    if eq(clone(arg_type_len), "vec:i32") || eq(clone(arg_type_len), "vec:String") || eq(clone(arg_type_len), "vec:Point") || eq(clone(arg_type_len), "vec:u8") || eq(clone(arg_type_len), "vec:f64") || eq(clone(arg_type_len), "vec:bool") || eq(clone(arg_type_len), "vec:MirInst") || eq(clone(arg_type_len), "vec:MirLocal") || eq(clone(arg_type_len), "vec:MirBlock") || eq(clone(arg_type_len), "vec:MirFunction") || eq(clone(arg_type_len), "vec:AstNode") {
+                        call_inst.str_val = String_from("vec_len")
+                    }
+                }
+            }
+            if eq(clone(call_inst.str_val), "push") {
+                if first_arg_idx >= 0 {
+                    let arg_type_push = ctx_get_local_type(ctx, first_arg_idx)
+                    if eq(clone(arg_type_push), "vec:i32") || eq(clone(arg_type_push), "vec:String") || eq(clone(arg_type_push), "vec:Point") || eq(clone(arg_type_push), "vec:u8") || eq(clone(arg_type_push), "vec:f64") || eq(clone(arg_type_push), "vec:bool") || eq(clone(arg_type_push), "vec:MirInst") || eq(clone(arg_type_push), "vec:MirLocal") || eq(clone(arg_type_push), "vec:MirBlock") || eq(clone(arg_type_push), "vec:MirFunction") || eq(clone(arg_type_push), "vec:AstNode") {
+                        call_inst.str_val = String_from("vec_push")
+                    }
+                }
+            }
+            if eq(clone(call_inst.str_val), "get_unchecked") {
+                if first_arg_idx >= 0 {
+                    let arg_type_get = ctx_get_local_type(ctx, first_arg_idx)
+                    if eq(clone(arg_type_get), "vec:i32") || eq(clone(arg_type_get), "vec:String") || eq(clone(arg_type_get), "vec:Point") || eq(clone(arg_type_get), "vec:u8") || eq(clone(arg_type_get), "vec:f64") || eq(clone(arg_type_get), "vec:bool") || eq(clone(arg_type_get), "vec:MirInst") || eq(clone(arg_type_get), "vec:MirLocal") || eq(clone(arg_type_get), "vec:MirBlock") || eq(clone(arg_type_get), "vec:MirFunction") || eq(clone(arg_type_get), "vec:AstNode") {
+                        call_inst.str_val = String_from("vec_get_unchecked")
+                    }
+                }
+            }
+            // Mark dest as vec type when calling Vec_new_*
             let dest = ctx_fresh_local(ctx, VT_I32())
             call_inst.dest = dest
             call_inst.int_val = child_count - 1
+            let callee_name = clone(call_inst.str_val)
+            if eq(clone(callee_name), "Vec_new_i32") {
+                ctx_set_local_type(ctx, dest, String_from("vec:i32"))
+            } else if eq(clone(callee_name), "Vec_new_String") {
+                ctx_set_local_type(ctx, dest, String_from("vec:String"))
+            } else if eq(clone(callee_name), "Vec_new_Point") {
+                ctx_set_local_type(ctx, dest, String_from("vec:Point"))
+            } else if eq(clone(callee_name), "Vec_new_MirInst") {
+                ctx_set_local_type(ctx, dest, String_from("vec:MirInst"))
+            } else if eq(clone(callee_name), "Vec_new_MirLocal") {
+                ctx_set_local_type(ctx, dest, String_from("vec:MirLocal"))
+            } else if eq(clone(callee_name), "Vec_new_MirBlock") {
+                ctx_set_local_type(ctx, dest, String_from("vec:MirBlock"))
+            } else if eq(clone(callee_name), "Vec_new_MirFunction") {
+                ctx_set_local_type(ctx, dest, String_from("vec:MirFunction"))
+            } else if eq(clone(callee_name), "Vec_new_AstNode") {
+                ctx_set_local_type(ctx, dest, String_from("vec:AstNode"))
+            } else if eq(clone(callee_name), "Vec_new_u8") {
+                ctx_set_local_type(ctx, dest, String_from("vec:u8"))
+            } else if eq(clone(callee_name), "Vec_new_f64") {
+                ctx_set_local_type(ctx, dest, String_from("vec:f64"))
+            } else if eq(clone(callee_name), "Vec_new_bool") {
+                ctx_set_local_type(ctx, dest, String_from("vec:bool"))
+            }
+            // Propagate element type from vec_get_unchecked result
+            if eq(clone(callee_name), "vec_get_unchecked") {
+                if first_arg_idx >= 0 {
+                    let vec_type = ctx_get_local_type(ctx, first_arg_idx)
+                    // Extract element type from "vec:X" using explicit mapping
+                    if eq(clone(vec_type), "vec:Point") {
+                        ctx_set_local_type(ctx, dest, String_from("Point"))
+                    } else if eq(clone(vec_type), "vec:MirInst") {
+                        ctx_set_local_type(ctx, dest, String_from("MirInst"))
+                    } else if eq(clone(vec_type), "vec:MirLocal") {
+                        ctx_set_local_type(ctx, dest, String_from("MirLocal"))
+                    } else if eq(clone(vec_type), "vec:MirBlock") {
+                        ctx_set_local_type(ctx, dest, String_from("MirBlock"))
+                    } else if eq(clone(vec_type), "vec:MirFunction") {
+                        ctx_set_local_type(ctx, dest, String_from("MirFunction"))
+                    } else if eq(clone(vec_type), "vec:AstNode") {
+                        ctx_set_local_type(ctx, dest, String_from("AstNode"))
+                    } else if eq(clone(vec_type), "vec:i32") {
+                        ctx_set_local_type(ctx, dest, String_from("i32"))
+                    } else if eq(clone(vec_type), "vec:String") {
+                        ctx_set_local_type(ctx, dest, String_from("String"))
+                    } else if eq(clone(vec_type), "vec:u8") {
+                        ctx_set_local_type(ctx, dest, String_from("u8"))
+                    } else if eq(clone(vec_type), "vec:f64") {
+                        ctx_set_local_type(ctx, dest, String_from("f64"))
+                    } else if eq(clone(vec_type), "vec:bool") {
+                        ctx_set_local_type(ctx, dest, String_from("bool"))
+                    }
+                }
+            }
             ctx_emit(ctx, call_inst)
             return dest
         }
@@ -1081,6 +1161,9 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             let ta_name = clone(ta.text)
             if eq(clone(ta_name), "char") || eq(clone(ta_name), "u8") || eq(clone(ta_name), "u16") || eq(clone(ta_name), "u32") || eq(clone(ta_name), "i16") || eq(clone(ta_name), "i32") || eq(clone(ta_name), "i64") || eq(clone(ta_name), "bool") {
                 ctx_set_local_type(ctx, local_idx, ta_name)
+            }
+            if eq(clone(ta_name), "Vec") {
+                ctx_set_local_type(ctx, local_idx, String_from("vec"))
             }
         }
 

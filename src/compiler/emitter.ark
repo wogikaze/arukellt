@@ -233,6 +233,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         scratch_base: 0,
         true_str_idx: true_idx,
         false_str_idx: false_idx,
+        vec_locals: Vec_new_i32(),
     }
 
     // Determine if main needs a start wrapper (non-void return type)
@@ -395,6 +396,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
 
         // Instructions (simplified: emit MIR ops → Wasm ops)
         ctx.scratch_base = local_count
+        ctx.vec_locals = Vec_new_i32()
         let block_count = len(f.blocks)
         let mut bi = 0
         while bi < block_count {
@@ -490,6 +492,31 @@ struct SelfEmitCtx {
     scratch_base: i32,
     true_str_idx: i32,
     false_str_idx: i32,
+    vec_locals: Vec<i32>,
+}
+
+fn ctx_mark_vec_local(ctx: SelfEmitCtx, local_idx: i32) {
+    let count = len(ctx.vec_locals)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(ctx.vec_locals, i) == local_idx {
+            return
+        }
+        i = i + 1
+    }
+    push(ctx.vec_locals, local_idx)
+}
+
+fn ctx_is_vec_local(ctx: SelfEmitCtx, local_idx: i32) -> bool {
+    let count = len(ctx.vec_locals)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(ctx.vec_locals, i) == local_idx {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
@@ -1327,6 +1354,174 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             // Push dummy result
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 0)
+        } else if eq(clone(callee), "Vec_new_i32") || eq(clone(callee), "Vec_new_String") || eq(clone(callee), "Vec_new_Point") || eq(clone(callee), "Vec_new_MirInst") || eq(clone(callee), "Vec_new_MirLocal") || eq(clone(callee), "Vec_new_MirBlock") || eq(clone(callee), "Vec_new_MirFunction") || eq(clone(callee), "Vec_new_AstNode") || eq(clone(callee), "Vec_new_u8") || eq(clone(callee), "Vec_new_f64") || eq(clone(callee), "Vec_new_bool") {
+            // Vec_new_*: allocate Vec header {len:0, cap:8, data_ptr} + data (8*4=32 bytes)
+            // Memory layout: [len(4) | cap(4) | data_ptr(4)] then [data(32)]
+            // Total: 12 + 32 = 44 bytes
+            // Result: pointer to header start
+
+            // len = 0 at heap[0]
+            emit_byte(w, 0x23)  // global.get 0 (heap ptr)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // cap = 8 at heap[4]
+            emit_byte(w, 0x23)  // global.get 0
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // Bump heap past header (12 bytes)
+            emit_byte(w, 0x23)  // global.get 0
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)  // global.set 0
+            emit_leb128_u(w, 0)
+
+            // Store data_ptr = current heap at header+8
+            emit_byte(w, 0x23)  // global.get 0
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x23)  // global.get 0 (data_ptr = current heap)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // Bump heap past data (8 * 4 = 32 bytes)
+            emit_byte(w, 0x23)  // global.get 0
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 32)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x24)  // global.set 0
+            emit_leb128_u(w, 0)
+
+            // Result: header ptr = heap - 44
+            emit_byte(w, 0x23)  // global.get 0
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 44)
+            emit_byte(w, OP_I32_SUB())
+
+            // Mark dest local as vec
+            ctx_mark_vec_local(ctx, inst.dest)
+
+        } else if eq(clone(callee), "vec_len") {
+            // Vec len: load from v+0 (first field is len)
+            // Stack: [vec_ptr]
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+        } else if eq(clone(callee), "vec_push") {
+            // vec_push(v, x): store x at data[len*4], increment len
+            // Stack: [vec_ptr, value]
+            let s_val = ctx.scratch_base
+            let s_vec = ctx.scratch_base + 1
+            // Save value and vec_ptr from stack
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_val)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_vec)
+
+            // data_ptr = load(vec + 8)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // data_ptr + len * 4
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+            emit_byte(w, OP_I32_LOAD())  // len
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+
+            // Store value at data[len*4]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_val)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // Increment len: store(vec, load(vec) + 1)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+            emit_byte(w, OP_I32_LOAD())  // len
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_STORE())  // store len+1
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // Push vec_ptr as result
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+
+        } else if eq(clone(callee), "vec_get_unchecked") {
+            // vec_get_unchecked(v, i): load data[i*4]
+            // Stack: [vec_ptr, index]
+            let s_idx = ctx.scratch_base
+            let s_vec2 = ctx.scratch_base + 1
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_idx)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_vec2)
+
+            // data_ptr = load(vec + 8)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec2)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+            // data_ptr + i * 4
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_idx)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+
+            // Load value
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
         } else {
             // User-defined function call
             let fn_idx = resolve_fn_index(ctx, clone(callee))
