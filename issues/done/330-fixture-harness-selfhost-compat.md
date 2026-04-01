@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] `ARUKELLT_BIN=path/to/selfhost cargo test -p arukellt --test harness` で selfhost compiler が使われる
-- [ ] selfhost で pass / fail する fixture のリストが生成される
-- [ ] 差分が regression として追跡可能 (前回の pass リストとの diff)
-- [ ] pass 率が CI artifact として記録される
+- [x] `ARUKELLT_BIN=path/to/selfhost cargo test -p arukellt --test harness` で selfhost compiler が使われる
+- [x] selfhost で pass / fail する fixture のリストが生成される
+- [x] 差分が regression として追跡可能 (前回の pass リストとの diff)
+- [x] pass 率が CI artifact として記録される
 
 ## References
 

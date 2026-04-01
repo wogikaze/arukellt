@@ -189,10 +189,19 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
     let mut struct_layouts: std::collections::HashMap<String, Vec<(String, String)>> =
         std::collections::HashMap::new();
     let mut struct_string_fields = HashSet::new();
+    let mut struct_vec_string_fields = HashSet::new();
+    let mut struct_vec_i64_fields = HashSet::new();
+    let mut struct_vec_f64_fields = HashSet::new();
     for (sname, fields) in &mir.type_table.struct_defs {
         for (fname, ftype) in fields {
             if ftype == "String" {
                 struct_string_fields.insert((sname.clone(), fname.clone()));
+            } else if ftype == "Vec<String>" {
+                struct_vec_string_fields.insert((sname.clone(), fname.clone()));
+            } else if ftype == "Vec<i64>" {
+                struct_vec_i64_fields.insert((sname.clone(), fname.clone()));
+            } else if ftype == "Vec<f64>" {
+                struct_vec_f64_fields.insert((sname.clone(), fname.clone()));
             }
         }
         struct_layouts.insert(sname.clone(), fields.clone());
@@ -230,6 +239,9 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
             .collect(),
         struct_layouts,
         struct_string_fields,
+        struct_vec_string_fields,
+        struct_vec_i64_fields,
+        struct_vec_f64_fields,
         enum_payload_types: mir.type_table.enum_defs.clone(),
         type_registry: std::collections::HashMap::new(),
         next_type_idx: 0,
@@ -273,6 +285,12 @@ struct EmitCtx {
     struct_layouts: std::collections::HashMap<String, Vec<(String, String)>>,
     /// Set of (struct_name, field_name) pairs where field is a String
     struct_string_fields: HashSet<(String, String)>,
+    /// Set of (struct_name, field_name) pairs where field is a Vec<String>
+    struct_vec_string_fields: HashSet<(String, String)>,
+    /// Set of (struct_name, field_name) pairs where field is a Vec<i64>
+    struct_vec_i64_fields: HashSet<(String, String)>,
+    /// Set of (struct_name, field_name) pairs where field is a Vec<f64>
+    struct_vec_f64_fields: HashSet<(String, String)>,
     /// Enum variant payload types: enum_name -> [(variant_name, [type_name])]
     enum_payload_types: std::collections::HashMap<String, Vec<(String, Vec<String>)>>,
     /// Dynamic type registry: signature -> type index
@@ -662,6 +680,9 @@ impl EmitCtx {
                     if self.is_string_operand(op) {
                         self.string_locals.insert(id.0);
                     }
+                    if self.is_vec_string_operand(op) {
+                        self.vec_string_locals.insert(id.0);
+                    }
                 }
                 MirStmt::IfStmt {
                     then_body,
@@ -676,6 +697,29 @@ impl EmitCtx {
                 }
                 _ => {}
             }
+        }
+    }
+
+    /// Check if an operand is known to produce a Vec<String> value.
+    fn is_vec_string_operand(&self, op: &Operand) -> bool {
+        match op {
+            Operand::Place(Place::Local(id)) => self.vec_string_locals.contains(&id.0),
+            Operand::FieldAccess {
+                struct_name, field, ..
+            } => self
+                .struct_vec_string_fields
+                .contains(&(struct_name.clone(), field.clone())),
+            Operand::Call(name, _) => {
+                let name = normalize_intrinsic_name(name.as_str());
+                matches!(name, "Vec_new_String" | "clone")
+                    || self
+                        .fn_return_types
+                        .get(name)
+                        .is_some_and(|t| {
+                            matches!(t, ark_typecheck::types::Type::Vec(inner) if matches!(inner.as_ref(), ark_typecheck::types::Type::String))
+                        })
+            }
+            _ => false,
         }
     }
 
@@ -713,11 +757,24 @@ impl EmitCtx {
                     return true;
                 }
                 // get/get_unchecked on Vec<String> returns String
-                if matches!(name, "get" | "get_unchecked")
-                    && let Some(Operand::Place(Place::Local(id))) = args.first()
-                    && self.vec_string_locals.contains(&id.0)
-                {
-                    return true;
+                if matches!(name, "get" | "get_unchecked") {
+                    if let Some(Operand::Place(Place::Local(id))) = args.first() {
+                        if self.vec_string_locals.contains(&id.0) {
+                            return true;
+                        }
+                    }
+                    // Also handle struct field access: get_unchecked(s.field, i)
+                    if let Some(Operand::FieldAccess {
+                        struct_name, field, ..
+                    }) = args.first()
+                    {
+                        if self
+                            .struct_vec_string_fields
+                            .contains(&(struct_name.clone(), field.clone()))
+                        {
+                            return true;
+                        }
+                    }
                 }
                 // Check if function returns String
                 if self

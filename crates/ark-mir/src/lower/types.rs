@@ -122,7 +122,14 @@ pub(crate) fn lower_type_expr_to_type(ty: &ast::TypeExpr) -> ark_typecheck::type
 pub(crate) fn type_expr_name(ty: &ast::TypeExpr) -> String {
     match ty {
         ast::TypeExpr::Named { name, .. } => name.clone(),
-        ast::TypeExpr::Generic { name, .. } => name.clone(),
+        ast::TypeExpr::Generic { name, args, .. } => {
+            if args.is_empty() {
+                name.clone()
+            } else {
+                let arg_names: Vec<String> = args.iter().map(type_expr_name).collect();
+                format!("{}<{}>", name, arg_names.join(", "))
+            }
+        }
         ast::TypeExpr::Unit(_) => "()".to_string(),
         _ => "unknown".to_string(),
     }

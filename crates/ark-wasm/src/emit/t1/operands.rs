@@ -6643,6 +6643,18 @@ impl EmitCtx {
         {
             return 8;
         }
+        // Also handle struct field access
+        if let Operand::FieldAccess {
+            struct_name, field, ..
+        } = vec_op
+        {
+            let key = (struct_name.clone(), field.clone());
+            if self.struct_vec_i64_fields.contains(&key)
+                || self.struct_vec_f64_fields.contains(&key)
+            {
+                return 8;
+            }
+        }
         4
     }
 
@@ -6651,6 +6663,14 @@ impl EmitCtx {
         if let Operand::Place(Place::Local(id)) = vec_op {
             return self.vec_i64_locals.contains(&id.0);
         }
+        if let Operand::FieldAccess {
+            struct_name, field, ..
+        } = vec_op
+        {
+            return self
+                .struct_vec_i64_fields
+                .contains(&(struct_name.clone(), field.clone()));
+        }
         false
     }
 
@@ -6658,6 +6678,14 @@ impl EmitCtx {
     pub(super) fn is_vec_f64(&self, vec_op: &Operand) -> bool {
         if let Operand::Place(Place::Local(id)) = vec_op {
             return self.vec_f64_locals.contains(&id.0);
+        }
+        if let Operand::FieldAccess {
+            struct_name, field, ..
+        } = vec_op
+        {
+            return self
+                .struct_vec_f64_fields
+                .contains(&(struct_name.clone(), field.clone()));
         }
         false
     }

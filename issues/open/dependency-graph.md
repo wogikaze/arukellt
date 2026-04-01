@@ -12,6 +12,8 @@ graph LR
   I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
   I323["323 Selfhost の統一バイナリを生成する"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
+  I329["329 Dual-period governance を確定する"]
+  I331["331 Perf baseline を selfhost binary 対応にする"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I363["363 Stdlib Docs: module family ごとの curated overview page を作る"]
   I367["367 Stdlib Docs: deprecated API の移行ガイドを整備する"]
@@ -29,6 +31,7 @@ graph LR
   I310["310 Selfhost resolver に visibility enforcement を実装する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I324["324 verify-bootstrap.sh の scaffold を解除する"]
+  I332["332 Workspace 構造を selfhost primary に備えて再編する"]
   I362["362 Stdlib: stability tier を実行時・CI で検証する"]
   I365["365 Stdlib Docs: source-backed な cookbook / recipe 集を拡充する"]
   I396["396 Stdlib Docs: family overview ページを実装し learning path を作る"]
@@ -63,22 +66,18 @@ graph LR
   I430["430 Playground: diagnostics worker と incremental parse loop の性能予算を作る"]
   I431["431 Playground: editor shell と syntax highlighting を実装する"]
   I434["434 Playground: shared link の version pinning と再現性を確保する"]
-  I328["328 コンパイラパスを抽象化して compiler-agnostic にする"]
   I405["405 Stdlib Docs: ownership map と release gate を整備する"]
   I432["432 Playground: examples catalog を docs / fixtures と共有する"]
   I436["436 Playground: docs site への統合と navigation を実装する"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
-  I329["329 Dual-period governance を確定する"]
-  I330["330 Fixture harness を selfhost binary 対応にする"]
   I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
-  I332["332 Workspace 構造を selfhost primary に備えて再編する"]
-  I331["331 Perf baseline を selfhost binary 対応にする"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I287 --> I288
   I287 --> I289
   I309 --> I310
   I311 --> I312
   I323 --> I324
+  I329 --> I332
   I358 --> I362
   I363 --> I365
   I363 --> I396
@@ -117,17 +116,12 @@ graph LR
   I429 --> I430
   I429 --> I431
   I433 --> I434
-  I326 --> I328
   I401 --> I405
   I403 --> I405
   I381 --> I432
   I431 --> I436
   I431 --> I437
-  I328 --> I329
-  I328 --> I330
   I437 --> I438
-  I329 --> I332
-  I330 --> I331
 ```
 
 ## Adjacency list
@@ -138,6 +132,8 @@ graph LR
 - **322** depends on: 320, 321; blocks: none
 - **323** depends on: 317; blocks: 324
 - **327** depends on: none; blocks: none
+- **329** depends on: 328; blocks: 332
+- **331** depends on: 330; blocks: none
 - **358** depends on: none; blocks: 362
 - **363** depends on: none; blocks: 365, 396
 - **367** depends on: 359; blocks: 400
@@ -155,6 +151,7 @@ graph LR
 - **310** depends on: 309; blocks: none
 - **312** depends on: 311; blocks: none
 - **324** depends on: 323; blocks: 325
+- **332** depends on: 329; blocks: none
 - **362** depends on: 358, 360; blocks: none
 - **365** depends on: 363; blocks: 398
 - **396** depends on: 363; blocks: 402
@@ -181,7 +178,7 @@ graph LR
 - **433** depends on: 428; blocks: 434
 - **435** depends on: 428; blocks: none
 - **444** depends on: 439, 440, 441, 443; blocks: none
-- **326** depends on: 325; blocks: 328
+- **326** depends on: 325; blocks: none
 - **401** depends on: 398; blocks: 405
 - **404** depends on: 402; blocks: none
 - **416** depends on: 413, 415; blocks: none
@@ -189,16 +186,11 @@ graph LR
 - **430** depends on: 429; blocks: none
 - **431** depends on: 429; blocks: 436, 437
 - **434** depends on: 433; blocks: none
-- **328** depends on: 326; blocks: 329, 330
 - **405** depends on: 401, 403; blocks: none
 - **432** depends on: 381; blocks: none
 - **436** depends on: 431; blocks: none
 - **437** depends on: 431; blocks: 438
-- **329** depends on: 328; blocks: 332
-- **330** depends on: 328; blocks: 331
 - **438** depends on: 437; blocks: none
-- **332** depends on: 329; blocks: none
-- **331** depends on: 330; blocks: none
 
 ### Blocked
 
