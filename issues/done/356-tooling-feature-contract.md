@@ -1,6 +1,6 @@
 # Tooling Contract: CLI / LSP / Extension の機能契約を文書化する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 356
@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] tooling feature matrix (機能 × CLI / LSP / Extension の対応表) が `docs/` に存在する
-- [ ] 各機能の source of truth (shared code path / LSP-only / CLI-only) が明記される
-- [ ] matrix 内の各機能に対応するテスト ID が参照される
-- [ ] CLI `fmt` と LSP `formatting` の出力一致がテストで保証される
+- [x] tooling feature matrix (機能 × CLI / LSP / Extension の対応表) が `docs/` に存在する
+- [x] 各機能の source of truth (shared code path / LSP-only / CLI-only) が明記される
+- [x] matrix 内の各機能に対応するテスト ID が参照される
+- [x] CLI `fmt` と LSP `formatting` の出力一致がテストで保証される
 
 ## References
 

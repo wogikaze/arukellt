@@ -2,7 +2,7 @@
 
 **Status**: blocked
 **Created**: 2026-03-28
-**Updated**: 2026-03-28
+**Updated**: 2025-07-15
 **ID**: 037
 **Depends on**: 036
 **Track**: component-model
@@ -49,9 +49,13 @@ array indexed types not supported without the gc feature
 
 ## jco 側の現状
 
-- jco 1.17.5 時点で GC 型は非対応
-- jco は内部で `wasm-tools` を使用。wasm-tools の GC 対応状況に依存
-- 関連 PR/issue: jco upstream で "gc" をキーワードに検索して追跡すること
+- jco 1.13.2 (July 2025) で Wasm GC transpile に対応済み（transpiler として）
+- Wasmtime 35.0+ LTS で Wasm GC 完全サポート
+- Chrome / Firefox / Edge の安定版が Wasm GC 対応済み
+- Node.js v20+ で段階的サポート中
+- **確認日: 2025-07-15** — unblock 条件 #1 が満たされている可能性が高い
+- jco は内部で `wasm-tools` を使用。wasm-tools も GC 対応済み
+- ローカルで Arukellt コンポーネント出力に対する jco transpile テストが必要
 
 ---
 

@@ -9,11 +9,9 @@ graph LR
   I281["281 CoreHIR lowering: IfExpr を制御フローに desugar する"]
   I290["290 セルフホスト parser に不足構文を追加する"]
   I296["296 string 型の canonical ABI lift-lower を実装する"]
-  I305["305 blocked issue の upstream 状態を確認・更新する"]
   I308["308 Selfhost parser の構文 surface を拡張する"]
   I319["319 Selfhost CLI のフラグ semantics を driver に接続する"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
-  I356["356 Tooling Contract: CLI / LSP / Extension の機能契約を文書化する"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I363["363 Stdlib Docs: module family ごとの curated overview page を作る"]
   I367["367 Stdlib Docs: deprecated API の移行ガイドを整備する"]
@@ -36,7 +34,6 @@ graph LR
   I313["313 Selfhost MIR lowering: 式のコンパイルを実装する"]
   I318["318 Selfhost CLI にコマンド surface を追加する"]
   I321["321 Selfhost compiler の出力契約を統一する"]
-  I357["357 Tooling Contract: release gate を手動チェックリストから自動検証に移行する"]
   I362["362 Stdlib: stability tier を実行時・CI で検証する"]
   I365["365 Stdlib Docs: source-backed な cookbook / recipe 集を拡充する"]
   I396["396 Stdlib Docs: family overview ページを実装し learning path を作る"]
@@ -106,7 +103,6 @@ graph LR
   I308 --> I313
   I319 --> I318
   I319 --> I321
-  I356 --> I357
   I358 --> I362
   I363 --> I365
   I363 --> I396
@@ -181,11 +177,9 @@ graph LR
 - **281** depends on: none; blocks: 282, 283, 284
 - **290** depends on: none; blocks: 287
 - **296** depends on: 299; blocks: 297, 298
-- **305** depends on: none; blocks: none
 - **308** depends on: none; blocks: 309, 311, 313
 - **319** depends on: none; blocks: 318, 321
 - **327** depends on: none; blocks: none
-- **356** depends on: 355; blocks: 357
 - **358** depends on: none; blocks: 362
 - **363** depends on: none; blocks: 365, 396
 - **367** depends on: 359; blocks: 400
@@ -208,7 +202,6 @@ graph LR
 - **313** depends on: 308; blocks: 314, 315
 - **318** depends on: 319; blocks: 320
 - **321** depends on: 319; blocks: 322
-- **357** depends on: 354, 355, 356; blocks: none
 - **362** depends on: 358, 360; blocks: none
 - **365** depends on: 363; blocks: 398
 - **396** depends on: 363; blocks: 402

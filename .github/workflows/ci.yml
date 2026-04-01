@@ -13,6 +13,7 @@ name: CI
 #  perf         perf-baseline       push only     baseline snapshot for drift detection
 #  heavy        heavy-checks        push only     size, WAT dump, docs generation
 #  extension    extension-tests     yes           VS Code extension activation + feature tests
+#  lsp-e2e      lsp-e2e             yes           LSP protocol E2E + unit tests
 #
 # All jobs except perf-baseline and heavy-checks are merge gates.
 # T1 (supported) fixture failures alert but do not block.
@@ -371,10 +372,40 @@ jobs:
       - name: Run extension tests
         run: cd extensions/arukellt-all-in-one && xvfb-run -a npm test
 
+  # ── Layer 11: LSP protocol E2E tests (merge gate) ──────────────────────
+  lsp-e2e:
+    name: "LSP E2E tests"
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build CLI binary (needed for E2E tests)
+        run: cargo build -p arukellt
+
+      - name: LSP unit tests
+        run: cargo test -p ark-lsp --lib
+
+      - name: LSP E2E tests
+        run: cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1
+
   # ── Final gate ───────────────────────────────────────────────────────────
   verify:
     name: "Final Gate"
-    needs: [unit-tests, fixture-primary, integration, packaging, determinism, selfhost-stage0, extension-tests]
+    needs: [unit-tests, fixture-primary, integration, packaging, determinism, selfhost-stage0, extension-tests, lsp-e2e]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All required CI layers passed (unit + fixture/T3 + integration + packaging + determinism + selfhost-stage0 + extension-tests)"
+      - run: echo "All required CI layers passed (unit + fixture/T3 + integration + packaging + determinism + selfhost-stage0 + extension-tests + lsp-e2e)"
