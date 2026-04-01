@@ -48,7 +48,9 @@ fn OP_LOCAL_TEE() -> i32 { 0x22 }
 fn OP_GLOBAL_GET() -> i32 { 0x23 }
 fn OP_GLOBAL_SET() -> i32 { 0x24 }
 fn OP_I32_LOAD() -> i32 { 0x28 }
+fn OP_I32_LOAD8_U() -> i32 { 0x2d }
 fn OP_I32_STORE() -> i32 { 0x36 }
+fn OP_I32_STORE8() -> i32 { 0x3a }
 fn OP_I32_CONST() -> i32 { 0x41 }
 fn OP_I64_CONST() -> i32 { 0x42 }
 fn OP_F64_CONST() -> i32 { 0x44 }
@@ -251,8 +253,9 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
 
     // Type section
     // Type 0: fd_write type (i32, i32, i32, i32) -> (i32)
+    // Type 1: wasi_args type (i32, i32) -> (i32) [args_sizes_get, args_get]
     let type_sec = WasmWriter_new()
-    emit_leb128_u(type_sec, fn_count + 1 + needs_wrapper)  // +1 for fd_write, +1 for wrapper if needed
+    emit_leb128_u(type_sec, fn_count + 2 + needs_wrapper)  // +2 for wasi types, +1 for wrapper if needed
     // fd_write: (fd, iovs_ptr, iovs_len, nwritten_ptr) -> errno
     emit_byte(type_sec, 0x60)
     emit_leb128_u(type_sec, 4)  // 4 params
@@ -262,7 +265,14 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_byte(type_sec, WASM_I32())
     emit_leb128_u(type_sec, 1)  // 1 result
     emit_byte(type_sec, WASM_I32())
-    // User function types (indices 1..fn_count)
+    // args_sizes_get / args_get: (i32, i32) -> (i32)
+    emit_byte(type_sec, 0x60)
+    emit_leb128_u(type_sec, 2)  // 2 params
+    emit_byte(type_sec, WASM_I32())
+    emit_byte(type_sec, WASM_I32())
+    emit_leb128_u(type_sec, 1)  // 1 result
+    emit_byte(type_sec, WASM_I32())
+    // User function types (indices 2..fn_count+1)
     let mut i = 0
     while i < fn_count {
         let f = get_unchecked(mir.functions, i)
@@ -283,7 +293,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         }
         i = i + 1
     }
-    // Wrapper type: void → void (type index = fn_count + 1)
+    // Wrapper type: void → void (type index = fn_count + 2)
     if needs_wrapper == 1 {
         emit_byte(type_sec, 0x60)
         emit_leb128_u(type_sec, 0)  // 0 params
@@ -294,23 +304,31 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     // Import section (for WASI)
     let import_sec = WasmWriter_new()
     let wasi_module = String_from("wasi_snapshot_preview1")
-    emit_leb128_u(import_sec, 1)
+    emit_leb128_u(import_sec, 3)  // fd_write + args_sizes_get + args_get
     emit_string(import_sec, clone(wasi_module))
     emit_string(import_sec, String_from("fd_write"))
     emit_byte(import_sec, 0x00)  // func import
-    emit_leb128_u(import_sec, 0) // type index 0 (placeholder)
+    emit_leb128_u(import_sec, 0) // type index 0
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("args_sizes_get"))
+    emit_byte(import_sec, 0x00)
+    emit_leb128_u(import_sec, 1) // type index 1
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("args_get"))
+    emit_byte(import_sec, 0x00)
+    emit_leb128_u(import_sec, 1) // type index 1
     emit_section(out, SEC_IMPORT(), import_sec)
 
-    // Function section (type indices offset by 1 for fd_write at type 0)
+    // Function section (type indices offset by 2 for wasi types)
     let func_sec = WasmWriter_new()
     emit_leb128_u(func_sec, fn_count + needs_wrapper)
     let mut fi = 0
     while fi < fn_count {
-        emit_leb128_u(func_sec, fi + 1)  // type index = fi+1 (0 is fd_write)
+        emit_leb128_u(func_sec, fi + 2)  // type index = fi+2 (0=fd_write, 1=args)
         fi = fi + 1
     }
     if needs_wrapper == 1 {
-        emit_leb128_u(func_sec, fn_count + 1)  // wrapper type index
+        emit_leb128_u(func_sec, fn_count + 2)  // wrapper type index
     }
     emit_section(out, SEC_FUNCTION(), func_sec)
 
@@ -357,10 +375,10 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         emit_string(export_sec, String_from("_start"))
         emit_byte(export_sec, 0x00)
         if needs_wrapper == 1 {
-            // Export the wrapper function (index fn_count + 1: imports + fn_count)
-            emit_leb128_u(export_sec, fn_count + 1)
+            // Export the wrapper function (index fn_count + 3: 3 imports + fn_count)
+            emit_leb128_u(export_sec, fn_count + 3)
         } else {
-            emit_leb128_u(export_sec, main_idx + 1)  // offset by imports
+            emit_leb128_u(export_sec, main_idx + 3)  // offset by 3 imports
         }
     }
     emit_section(out, SEC_EXPORT(), export_sec)
@@ -423,7 +441,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         let wrapper_body = WasmWriter_new()
         emit_leb128_u(wrapper_body, 0)  // 0 locals
         emit_byte(wrapper_body, OP_CALL())
-        emit_leb128_u(wrapper_body, main_idx + 1)  // call main (offset by imports)
+        emit_leb128_u(wrapper_body, main_idx + 3)  // call main (offset by 3 imports)
         emit_byte(wrapper_body, OP_DROP())
         emit_byte(wrapper_body, OP_END())
         emit_leb128_u(code_sec, writer_size(wrapper_body))
@@ -489,6 +507,9 @@ fn SCRATCH_P_NEG() -> i32 { 60 }
 fn SCRATCH_P_RES() -> i32 { 64 }
 fn SCRATCH_P_ERR() -> i32 { 68 }
 fn SCRATCH_P_BYTE() -> i32 { 72 }
+// WASI args scratch
+fn SCRATCH_ARGC() -> i32 { 76 }       // 4 bytes: argc result
+fn SCRATCH_ARGV_SIZE() -> i32 { 80 }   // 4 bytes: argv_buf_size result
 fn DATA_START() -> i32 { 128 }      // string data starts here (scratch uses 0-127)
 
 // Emit context for passing module info to instruction emitter
@@ -2053,12 +2074,338 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             // end if/else
             emit_byte(w, 0x0B)
 
+        } else if eq(clone(callee), "env::arg_count") {
+            // env::arg_count() -> i32: call args_sizes_get, return argc
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_ARGC())       // ptr for argc
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_ARGV_SIZE())   // ptr for buf_size
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 1)  // args_sizes_get = import 1
+            emit_byte(w, OP_DROP())  // drop errno
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_ARGC())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)  // align=4
+            emit_leb128_u(w, 0)  // offset=0
+            // subtract 1 to skip argv[0] (program name)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+
+        } else if eq(clone(callee), "env::args") {
+            // env::args() -> Vec<String>: returns heap-allocated vec of strings from WASI args
+            // Step 1: get arg count and buf size
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_ARGC())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_ARGV_SIZE())
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 1)  // args_sizes_get
+            emit_byte(w, OP_DROP())
+            // Load argc
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_ARGC())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 0)
+            let s_argc = ctx.scratch_base + 0
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_argc)
+            // Allocate Vec: [len=0, cap=8, data_ptr]
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            let s_vec = ctx.scratch_base + 1
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_vec)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 12)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Store len=0
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 0)
+            // Store cap=8
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 4)
+            // Allocate data area
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            let s_data = ctx.scratch_base + 2
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_data)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 32)  // 8 slots * 4 bytes
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Store data ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_data)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 8)
+            // If argc > 0, populate vec from WASI args
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_argc)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_GT_S())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40) // void block
+            // Allocate argv ptrs and buf
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_ARGV_SIZE())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 0)
+            let s_bufsize = ctx.scratch_base + 3
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_bufsize)
+            // argv ptrs
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            let s_argv = ctx.scratch_base + 4
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_argv)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_argc)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // argv buf
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            let s_argv_buf = ctx.scratch_base + 5
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_argv_buf)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_bufsize)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Call args_get
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_argv)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_argv_buf)
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 2)  // args_get = import 2
+            emit_byte(w, OP_DROP())
+            // Update vec len = argc - 1 (skip argv[0])
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_argc)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 0)
+            // Build String objects from null-terminated C strings
+            // Loop: for i in 1..argc (skip argv[0])
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            let s_li = ctx.scratch_base + 3  // reuse bufsize
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_li)
+            emit_byte(w, OP_BLOCK())  // outer block for break
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())   // loop
+            emit_byte(w, 0x40)
+            // Check i < argc
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_li)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_argc)
+            emit_byte(w, OP_I32_GE_S())
+            emit_byte(w, 0x0D)  // br_if
+            emit_leb128_u(w, 1) // break outer
+            // Get C string ptr: argv[i]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_argv)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_li)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 0)
+            // C string ptr on stack; compute strlen
+            let s_cstr = ctx.scratch_base + 4  // reuse argv
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_cstr)
+            // Strlen: scan for null byte
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            let s_slen = ctx.scratch_base + 5  // reuse argv_buf
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_slen)
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_cstr)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_slen)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD8_U())
+            emit_byte(w, 0)  // align
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_EQZ())
+            emit_byte(w, 0x0D)  // br_if
+            emit_leb128_u(w, 1)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_slen)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_slen)
+            emit_byte(w, 0x0C)  // br
+            emit_leb128_u(w, 0)
+            emit_byte(w, 0x0B)  // end loop
+            emit_byte(w, 0x0B)  // end block
+            // Allocate Arukellt string: [len_i32, data...]
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            let s_str = ctx.scratch_base + 4  // reuse
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s_str)
+            // Store length
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_slen)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 0)
+            // Copy string data
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_str)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())  // dest = str+4
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_cstr)    // src = cstr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_slen)    // len
+            emit_byte(w, 0xFC)  // memory.copy prefix
+            emit_leb128_u(w, 10) // memory.copy opcode
+            emit_leb128_u(w, 0) // src mem
+            emit_leb128_u(w, 0) // dst mem
+            // Bump heap
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_slen)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Store string ptr+4 in vec data[i-1] (i starts at 1)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_data)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_li)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())  // i-1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_str)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())  // ptr to string data (past len)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 0)
+            // i++
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_li)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_li)
+            emit_byte(w, 0x0C)  // br loop
+            emit_leb128_u(w, 0)
+            emit_byte(w, 0x0B)  // end loop
+            emit_byte(w, 0x0B)  // end block
+            emit_byte(w, 0x0B)  // end if
+            // Push vec ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec)
+
+        } else if eq(clone(callee), "env::has_flag") {
+            // env::has_flag(flag: String) -> bool
+            // Simple: always false for now (args check would need iteration)
+            emit_byte(w, OP_DROP()) // drop the flag string arg
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)  // false
+
+        } else if eq(clone(callee), "env::arg_at") {
+            // env::arg_at(n: i32) -> Option<String>
+            // Returns None (tag=1, heap alloc) since we don't iterate args here
+            emit_byte(w, OP_DROP()) // drop index arg
+            // Alloc [tag=1] for None
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            let s_none = ctx.scratch_base + 0
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s_none)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)  // None tag = 1
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 2)
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_none)
+
         } else {
             // User-defined function call
             let fn_idx = resolve_fn_index(ctx, clone(callee))
             if fn_idx >= 0 {
                 emit_byte(w, OP_CALL())
-                emit_leb128_u(w, fn_idx + 1)  // +1 for fd_write import
+                emit_leb128_u(w, fn_idx + 3)  // +3 for wasi imports
             } else {
                 // Unknown function — emit unreachable
                 emit_byte(w, OP_UNREACHABLE())
