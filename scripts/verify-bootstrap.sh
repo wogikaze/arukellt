@@ -17,7 +17,16 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-COMPILER="${ARUKELLT_BIN:-${REPO_ROOT}/target/release/arukellt}"
+if [[ -n "${ARUKELLT_BIN:-}" ]]; then
+    COMPILER="$ARUKELLT_BIN"
+elif [[ -f "${REPO_ROOT}/target/debug/arukellt" ]]; then
+    COMPILER="${REPO_ROOT}/target/debug/arukellt"
+elif [[ -f "${REPO_ROOT}/target/release/arukellt" ]]; then
+    COMPILER="${REPO_ROOT}/target/release/arukellt"
+else
+    echo "error: no arukellt binary found. Run cargo build -p arukellt." >&2
+    exit 1
+fi
 SELFHOST_DIR="${REPO_ROOT}/src/compiler"
 
 # ── Colours ───────────────────────────────────────────────────────────────────
@@ -33,6 +42,7 @@ NC='\033[0m'
 ONLY_STAGE=""
 STAGE1_ONLY=false
 CHECK_MODE=false
+FIXTURE_PARITY=false
 
 usage() {
     cat <<'EOF'
@@ -46,17 +56,19 @@ Stages:
   2  Compare sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)
 
 Options:
-  --stage1-only   Only run Stage 0 (Rust compiles selfhost → s1)
-  --stage N       Run single stage N
-  --check         Machine-readable exit: 0 = fixpoint reached, 1 = not reached
-  --help, -h      Show this help
+  --stage1-only      Only run Stage 0 (Rust compiles selfhost → s1)
+  --stage N          Run single stage N
+  --fixture-parity   Run fixture parity check after Stage 0
+  --check            Machine-readable exit: 0 = fixpoint reached, 1 = not reached
+  --help, -h         Show this help
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --stage1-only) STAGE1_ONLY=true ;;
-        --check)       CHECK_MODE=true ;;
+        --stage1-only)     STAGE1_ONLY=true ;;
+        --fixture-parity)  FIXTURE_PARITY=true ;;
+        --check)           CHECK_MODE=true ;;
         --stage=*)     ONLY_STAGE="${1#--stage=}" ;;
         --stage)       shift; ONLY_STAGE="${1:-}" ;;
         --help|-h)     usage; exit 0 ;;
@@ -164,12 +176,25 @@ stage0() {
 
 run_stage 0 "Compile selfhost sources (Rust compiler)" stage0
 
-if [[ "$STAGE1_ONLY" = true ]]; then
+# ── Fixture parity (optional, after Stage 0) ──────────────────────────────────
+
+if [[ "$FIXTURE_PARITY" = true && -f "$S1_WASM" ]]; then
+    PARITY_SCRIPT="${REPO_ROOT}/scripts/check-selfhost-parity.sh"
+    if [[ -x "$PARITY_SCRIPT" ]]; then
+        echo -e "${CYAN}── Fixture Parity ──${NC}"
+        SELFHOST_WASM="$S1_WASM" REPO_ROOT="$REPO_ROOT" bash "$PARITY_SCRIPT" --fixture
+    else
+        echo -e "${YELLOW}SKIP${NC}  check-selfhost-parity.sh not found"
+    fi
+    echo
+fi
+
+if [[ "$STAGE1_ONLY" = true || "$FIXTURE_PARITY" = true ]]; then
     if [[ "$FAILURES" -gt 0 ]]; then
         echo -e "${RED}Bootstrap verification FAILED (${FAILURES} stage(s))${NC}"
         exit 1
     else
-        echo -e "${GREEN}Bootstrap verification PASSED (stage1-only)${NC}"
+        echo -e "${GREEN}Bootstrap verification PASSED${NC}"
         exit 0
     fi
 fi

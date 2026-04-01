@@ -51,12 +51,12 @@ find_rust_bin() {
     if [[ -n "$RUST_BIN" && -f "$RUST_BIN" ]]; then
         return 0
     fi
-    if [[ -f "${REPO_ROOT}/target/release/arukellt" ]]; then
-        RUST_BIN="${REPO_ROOT}/target/release/arukellt"
-        return 0
-    fi
     if [[ -f "${REPO_ROOT}/target/debug/arukellt" ]]; then
         RUST_BIN="${REPO_ROOT}/target/debug/arukellt"
+        return 0
+    fi
+    if [[ -f "${REPO_ROOT}/target/release/arukellt" ]]; then
+        RUST_BIN="${REPO_ROOT}/target/release/arukellt"
         return 0
     fi
     echo -e "${RED}error: Rust compiler binary not found. Build with cargo build -p arukellt or set ARUKELLT_BIN.${NC}" >&2
