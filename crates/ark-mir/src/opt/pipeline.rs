@@ -272,6 +272,23 @@ fn optimize_module_with_passes(
         crate::mir::dump_mir_phase(module, "pre-opt");
     }
 
+    // ── Desugar backend-illegal operands (IfExpr, LoopExpr, TryExpr) ──
+    // This converts expression-form control flow into statement form
+    // so the backend can emit structured Wasm control flow.
+    let mut desugar_count = 0;
+    for func in &mut module.functions {
+        desugar_count += super::desugar::desugar_exprs(func);
+    }
+    if desugar_count > 0 {
+        push_optimization_trace(
+            module,
+            format!("desugar: lowered {} backend-illegal operands", desugar_count),
+        );
+        if should_dump {
+            crate::mir::dump_mir_phase(module, "after-desugar");
+        }
+    }
+
     // ── Module-level inter-function inline (#087) ──
     // Inline small leaf functions (≤ 20 stmts, called ≤ 3 times) into callers.
     if passes.contains(&OptimizationPass::InlineSmallLeaf) {
