@@ -39,6 +39,11 @@ pub(super) enum ParamAdaptation {
         /// Fields: (field_name, wasm ValType).
         fields: Vec<(String, ValType)>,
     },
+    /// String: (i32 ptr, i32 len) in linear memory → GC (array (mut i8)).
+    String {
+        /// GC array type index for the string type.
+        string_type_idx: u32,
+    },
 }
 
 /// Describes how the return value needs to be adapted.
@@ -58,6 +63,13 @@ pub(super) enum ReturnAdaptation {
     ScalarRecord {
         type_idx: u32,
         fields: Vec<(String, ValType)>,
+    },
+    /// String: GC (array (mut i8)) → (i32 ptr, i32 len) in linear memory.
+    /// Uses retptr convention (canonical ABI MAX_FLAT_RESULTS=1 for exports):
+    /// an extra i32 param is appended, and (ptr, len) is written to retptr.
+    String {
+        /// GC array type index for the string type.
+        string_type_idx: u32,
     },
 }
 
@@ -134,6 +146,13 @@ impl Ctx {
                 if is_scalar_type_name(type_name) {
                     param_adaptations.push(ParamAdaptation::Scalar);
                     flat_params.push(type_name_to_valtype(type_name));
+                } else if type_name == "String" {
+                    param_adaptations.push(ParamAdaptation::String {
+                        string_type_idx: self.string_ty,
+                    });
+                    flat_params.push(ValType::I32); // ptr
+                    flat_params.push(ValType::I32); // len
+                    needs_adapter = true;
                 } else if let Some(variants) = mir.enum_defs.get(type_name.as_str()) {
                     let all_unit = variants.iter().all(|(_, p)| p.is_empty());
                     if all_unit {
@@ -201,6 +220,11 @@ impl Ctx {
                 None
             } else if is_scalar_type_name(ret_name) {
                 Some(ReturnAdaptation::Scalar)
+            } else if ret_name == "String" {
+                needs_adapter = true;
+                Some(ReturnAdaptation::String {
+                    string_type_idx: self.string_ty,
+                })
             } else if let Some(variants) = mir.enum_defs.get(ret_name.as_str()) {
                 let all_unit = variants.iter().all(|(_, p)| p.is_empty());
                 if all_unit {
@@ -256,8 +280,7 @@ impl Ctx {
             }
 
             // Compute adapter function type: flat params → flat results
-            // For multi-field record returns, canonical ABI for exports requires
-            // returning an i32 pointer (not an extra retptr param).
+            // String return uses retptr convention (flat_count=2 > MAX_FLAT_RESULTS=1).
             let adapter_params = flat_params.clone();
             let adapter_results: Vec<ValType> = match &return_adaptation {
                 None => vec![],
@@ -273,6 +296,12 @@ impl Ctx {
                         // Multi-field record: return i32 pointer to linear memory
                         vec![ValType::I32]
                     }
+                }
+                Some(ReturnAdaptation::String { .. }) => {
+                    // Canonical ABI: string return uses a single i32 pointer
+                    // to a (ptr, len) pair in linear memory.
+                    // wasm-tools expects: params → i32 (pointer to result)
+                    vec![ValType::I32]
                 }
             };
 
@@ -302,8 +331,25 @@ impl Ctx {
         // Pre-compute locals needed.
         // For UnitEnum return: one anyref local (to store call result for ref.test)
         // For ScalarRecord return with retptr: one struct ref local
+        // For String return: one string array ref local + one i32 local (len) + one i32 local (i)
         let mut locals: Vec<(u32, ValType)> = Vec::new();
         let flat_param_count = self.count_flat_params(adapter);
+
+        // Count extra locals for String params (each needs: arr ref, i32 loop counter)
+        let mut string_param_local_start = flat_param_count;
+        let mut string_param_locals: Vec<(u32, u32)> = Vec::new(); // (arr_local, i_local)
+        for adaptation in &adapter.param_adaptations {
+            if let ParamAdaptation::String { string_type_idx } = adaptation {
+                let arr_local = string_param_local_start;
+                let i_local = string_param_local_start + 1;
+                string_param_locals.push((arr_local, i_local));
+                locals.push((1, super::ref_nullable(*string_type_idx)));
+                locals.push((1, ValType::I32));
+                string_param_local_start += 2;
+            }
+        }
+
+        let ret_local_start = string_param_local_start;
 
         match &adapter.return_adaptation {
             Some(ReturnAdaptation::UnitEnum { base_type_idx, .. }) => {
@@ -313,11 +359,18 @@ impl Ctx {
                 // Need a local to store the GC struct ref
                 locals.push((1, super::ref_nullable(*type_idx)));
             }
+            Some(ReturnAdaptation::String { string_type_idx }) => {
+                // Need: arr ref local, len local, loop counter local
+                locals.push((1, super::ref_nullable(*string_type_idx)));
+                locals.push((1, ValType::I32)); // len
+                locals.push((1, ValType::I32)); // loop counter i
+            }
             _ => {}
         }
 
         let mut f = Function::new(locals);
         let mut flat_param_idx: u32 = 0;
+        let mut string_param_idx: usize = 0;
 
         // Phase 1: Push adapted parameters onto the stack for the call
         for adaptation in &adapter.param_adaptations {
@@ -344,6 +397,21 @@ impl Ctx {
                         flat_param_idx += 1;
                     }
                     f.instruction(&Instruction::StructNew(*type_idx));
+                }
+                ParamAdaptation::String { string_type_idx } => {
+                    let ptr_local = flat_param_idx;
+                    let len_local = flat_param_idx + 1;
+                    let (arr_local, i_local) = string_param_locals[string_param_idx];
+                    string_param_idx += 1;
+                    emit_linear_to_gc_string(
+                        &mut f,
+                        ptr_local,
+                        len_local,
+                        arr_local,
+                        i_local,
+                        *string_type_idx,
+                    );
+                    flat_param_idx += 2;
                 }
             }
         }
@@ -450,6 +518,22 @@ impl Ctx {
                     // start_ptr is still on the stack from the initial global.get 0
                 }
             }
+            Some(ReturnAdaptation::String { string_type_idx }) => {
+                // String return: copy GC array bytes to linear memory,
+                // write (ptr, len) pair to a fresh allocation, return pointer to it.
+                let arr_local = ret_local_start;
+                let len_local = ret_local_start + 1;
+                let i_local = ret_local_start + 2;
+                f.instruction(&Instruction::LocalSet(arr_local));
+
+                emit_gc_string_to_linear_return(
+                    &mut f,
+                    arr_local,
+                    len_local,
+                    i_local,
+                    *string_type_idx,
+                );
+            }
         }
 
         f.instruction(&Instruction::End);
@@ -464,10 +548,219 @@ impl Ctx {
                 ParamAdaptation::Scalar => count += 1,
                 ParamAdaptation::UnitEnum { .. } => count += 1,
                 ParamAdaptation::ScalarRecord { fields, .. } => count += fields.len() as u32,
+                ParamAdaptation::String { .. } => count += 2, // ptr + len
             }
         }
+        // String return uses i32 result pointer, no extra param needed
         count
     }
+}
+
+/// Emit instructions to lift a string from linear memory (ptr, len) into a GC array.
+///
+/// Creates a new `(array (mut i8))` of the given length, then copies bytes
+/// from linear memory one at a time:
+/// ```text
+/// local.get $len
+/// i32.const 0           ;; fill value
+/// array.new $string     ;; arr = new i8[len]
+/// local.set $arr
+/// i32.const 0
+/// local.set $i
+/// block $break
+///   loop $loop
+///     local.get $i
+///     local.get $len
+///     i32.ge_u
+///     br_if $break
+///     local.get $arr      ;; target array
+///     local.get $i        ;; index
+///     local.get $ptr
+///     local.get $i
+///     i32.add
+///     i32.load8_u         ;; byte from linear memory
+///     array.set $string
+///     local.get $i
+///     i32.const 1
+///     i32.add
+///     local.set $i
+///     br $loop
+///   end
+/// end
+/// local.get $arr          ;; leave arr ref on stack
+/// ```
+fn emit_linear_to_gc_string(
+    f: &mut Function,
+    ptr_local: u32,
+    len_local: u32,
+    arr_local: u32,
+    i_local: u32,
+    string_type_idx: u32,
+) {
+    // arr = array.new $string (fill=0, len)
+    f.instruction(&Instruction::LocalGet(len_local));
+    f.instruction(&Instruction::I32Const(0)); // fill value
+    f.instruction(&Instruction::ArrayNew(string_type_idx));
+    f.instruction(&Instruction::LocalSet(arr_local));
+
+    // i = 0
+    f.instruction(&Instruction::I32Const(0));
+    f.instruction(&Instruction::LocalSet(i_local));
+
+    // block $break
+    f.instruction(&Instruction::Block(BlockType::Empty));
+    // loop $loop
+    f.instruction(&Instruction::Loop(BlockType::Empty));
+
+    // if i >= len, break
+    f.instruction(&Instruction::LocalGet(i_local));
+    f.instruction(&Instruction::LocalGet(len_local));
+    f.instruction(&Instruction::I32GeU);
+    f.instruction(&Instruction::BrIf(1)); // br $break
+
+    // arr[i] = memory[ptr + i]
+    f.instruction(&Instruction::LocalGet(arr_local));
+    f.instruction(&Instruction::LocalGet(i_local));
+    // load byte: i32.load8_u (ptr + i)
+    f.instruction(&Instruction::LocalGet(ptr_local));
+    f.instruction(&Instruction::LocalGet(i_local));
+    f.instruction(&Instruction::I32Add);
+    f.instruction(&Instruction::I32Load8U(wasm_encoder::MemArg {
+        offset: 0,
+        align: 0,
+        memory_index: 0,
+    }));
+    f.instruction(&Instruction::ArraySet(string_type_idx));
+
+    // i++
+    f.instruction(&Instruction::LocalGet(i_local));
+    f.instruction(&Instruction::I32Const(1));
+    f.instruction(&Instruction::I32Add);
+    f.instruction(&Instruction::LocalSet(i_local));
+
+    f.instruction(&Instruction::Br(0)); // br $loop
+    f.instruction(&Instruction::End); // end loop
+    f.instruction(&Instruction::End); // end block
+
+    // Leave arr ref on stack for the call
+    f.instruction(&Instruction::LocalGet(arr_local));
+}
+
+/// Emit instructions to lower a GC string array to linear memory and return
+/// an i32 pointer to a (ptr, len) pair.
+///
+/// The GC array ref is already in `arr_local`. This function:
+/// 1. Gets the array length
+/// 2. Copies bytes from GC array to linear memory (from heap_ptr)
+/// 3. Allocates 8 more bytes for the (ptr, len) result pair
+/// 4. Writes ptr and len to the pair
+/// 5. Returns the pair pointer
+fn emit_gc_string_to_linear_return(
+    f: &mut Function,
+    arr_local: u32,
+    len_local: u32,
+    i_local: u32,
+    string_type_idx: u32,
+) {
+    // len = array.len(arr)
+    f.instruction(&Instruction::LocalGet(arr_local));
+    f.instruction(&Instruction::ArrayLen);
+    f.instruction(&Instruction::LocalSet(len_local));
+
+    // string_data_ptr = heap_ptr (saved in i_local temporarily)
+    f.instruction(&Instruction::GlobalGet(0));
+    f.instruction(&Instruction::LocalSet(i_local));
+
+    // Copy loop: memory[string_data_ptr + idx] = arr[idx]
+    // We'll reuse len_local as loop bound and manage a counter on the stack.
+    // Actually, let's use a separate approach: loop with i_local as counter
+    // after saving string_data_ptr. We need i_local for two purposes, so
+    // let's save string_data_ptr, then reset i_local for the loop.
+
+    // Save string_data_ptr on the stack, use i_local for loop
+    // Actually, we can derive string_data_ptr from (global.get 0 - len) after the loop.
+    // Simpler: save it, loop, then restore.
+
+    // Reset i_local to 0 for loop counter
+    f.instruction(&Instruction::I32Const(0));
+    f.instruction(&Instruction::LocalSet(i_local));
+
+    f.instruction(&Instruction::Block(BlockType::Empty));
+    f.instruction(&Instruction::Loop(BlockType::Empty));
+
+    f.instruction(&Instruction::LocalGet(i_local));
+    f.instruction(&Instruction::LocalGet(len_local));
+    f.instruction(&Instruction::I32GeU);
+    f.instruction(&Instruction::BrIf(1)); // break
+
+    // memory[heap_ptr + i] = arr[i]
+    f.instruction(&Instruction::GlobalGet(0)); // heap_ptr
+    f.instruction(&Instruction::LocalGet(i_local));
+    f.instruction(&Instruction::I32Add);
+    f.instruction(&Instruction::LocalGet(arr_local));
+    f.instruction(&Instruction::LocalGet(i_local));
+    f.instruction(&Instruction::ArrayGetU(string_type_idx));
+    f.instruction(&Instruction::I32Store8(wasm_encoder::MemArg {
+        offset: 0,
+        align: 0,
+        memory_index: 0,
+    }));
+
+    f.instruction(&Instruction::LocalGet(i_local));
+    f.instruction(&Instruction::I32Const(1));
+    f.instruction(&Instruction::I32Add);
+    f.instruction(&Instruction::LocalSet(i_local));
+
+    f.instruction(&Instruction::Br(0));
+    f.instruction(&Instruction::End); // end loop
+    f.instruction(&Instruction::End); // end block
+
+    // string_data_ptr was saved before loop, but we used i_local for loop.
+    // Recalculate: string_data_ptr = heap_ptr (unchanged during loop)
+    // Actually heap_ptr hasn't changed — we only wrote TO linear memory,
+    // we didn't advance heap_ptr yet. So global.get 0 still = string_data_ptr.
+
+    // Advance heap_ptr past string bytes
+    f.instruction(&Instruction::GlobalGet(0));
+    f.instruction(&Instruction::LocalGet(len_local));
+    f.instruction(&Instruction::I32Add);
+    f.instruction(&Instruction::GlobalSet(0));
+
+    // result_ptr = new heap_ptr (where we'll write the pair)
+    f.instruction(&Instruction::GlobalGet(0));
+    f.instruction(&Instruction::LocalSet(i_local)); // i_local = result_ptr
+
+    // Write string_data_ptr at result_ptr+0
+    // string_data_ptr = result_ptr - len = global.get(0) - len
+    // But simpler: result_ptr - len = old heap_ptr before advance
+    // old_heap_ptr = result_ptr - len
+    f.instruction(&Instruction::LocalGet(i_local)); // addr = result_ptr
+    f.instruction(&Instruction::LocalGet(i_local)); // value = result_ptr
+    f.instruction(&Instruction::LocalGet(len_local));
+    f.instruction(&Instruction::I32Sub); // value = result_ptr - len = string_data_ptr
+    f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
+        offset: 0,
+        align: 2,
+        memory_index: 0,
+    }));
+
+    // Write len at result_ptr+4
+    f.instruction(&Instruction::LocalGet(i_local));
+    f.instruction(&Instruction::LocalGet(len_local));
+    f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
+        offset: 4,
+        align: 2,
+        memory_index: 0,
+    }));
+
+    // Advance heap_ptr by 8
+    f.instruction(&Instruction::GlobalGet(0));
+    f.instruction(&Instruction::I32Const(8));
+    f.instruction(&Instruction::I32Add);
+    f.instruction(&Instruction::GlobalSet(0));
+
+    // Return result_ptr
+    f.instruction(&Instruction::LocalGet(i_local));
 }
 
 /// Emit instructions to convert i32 discriminant to a GC enum variant ref.

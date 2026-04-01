@@ -551,6 +551,7 @@ pub fn validate_component_export_types(
             let class = classify_wit_type(ty);
             match &class {
                 CanonicalAbiClass::Scalar(_) => {} // pass-through, OK
+                CanonicalAbiClass::String => {}    // CABI adapter handles string lift/lower
                 CanonicalAbiClass::Handle => {
                     errors.push((
                         func.name.clone(),

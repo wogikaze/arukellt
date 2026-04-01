@@ -1,5 +1,5 @@
 // Export with String type — maps to WIT string
-// Requires canonical ABI string lift/lower (not yet implemented)
+// Tests canonical ABI string lift/lower (GC array ↔ linear memory)
 pub fn greet(name: String) -> String {
     name
 }

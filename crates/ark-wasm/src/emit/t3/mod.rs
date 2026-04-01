@@ -1495,6 +1495,30 @@ impl Ctx {
             functions.function(adapter.adapter_type_idx);
         }
 
+        // Add cabi_realloc if any string adapter exists (required by canonical ABI)
+        let has_string_adapter = cabi_adapters.iter().any(|a| {
+            a.param_adaptations.iter().any(|p| {
+                matches!(
+                    p,
+                    cabi_adapters::ParamAdaptation::String { .. }
+                )
+            }) || matches!(
+                &a.return_adaptation,
+                Some(cabi_adapters::ReturnAdaptation::String { .. })
+            )
+        });
+        let cabi_realloc_idx = if has_string_adapter {
+            let realloc_type = self.types.add_func(
+                &[ValType::I32, ValType::I32, ValType::I32, ValType::I32],
+                &[ValType::I32],
+            );
+            let idx = adapter_base + cabi_adapters.len() as u32;
+            functions.function(realloc_type);
+            Some(idx)
+        } else {
+            None
+        };
+
         // Linear memory: kept at 4-10 pages for WASI fd_write/fd_read I/O buffer.
         // GC-native codegen is complete; linear memory is only used for I/O syscalls.
         let mut memories = MemorySection::new();
@@ -1530,6 +1554,11 @@ impl Ctx {
                 let export_idx = adapter_export_map.get(&export_name).copied().unwrap_or(idx);
                 exports.export(&export_name, ExportKind::Func, export_idx);
             }
+        }
+
+        // Export cabi_realloc for canonical ABI string/list support
+        if let Some(realloc_idx) = cabi_realloc_idx {
+            exports.export("cabi_realloc", ExportKind::Func, realloc_idx);
         }
 
         // Data section: static string literals and constants
@@ -1617,6 +1646,20 @@ impl Ctx {
             self.emit_cabi_adapter_code(&mut codes, adapter);
         }
 
+        // Emit cabi_realloc body: bump allocator
+        // cabi_realloc(old_ptr, old_size, align, new_size) -> new_ptr
+        // Simply returns global 0 (heap_ptr) and advances it by new_size.
+        if cabi_realloc_idx.is_some() {
+            let mut f = wasm_encoder::Function::new(vec![]);
+            f.instruction(&wasm_encoder::Instruction::GlobalGet(0));
+            f.instruction(&wasm_encoder::Instruction::GlobalGet(0));
+            f.instruction(&wasm_encoder::Instruction::LocalGet(3));
+            f.instruction(&wasm_encoder::Instruction::I32Add);
+            f.instruction(&wasm_encoder::Instruction::GlobalSet(0));
+            f.instruction(&wasm_encoder::Instruction::End);
+            codes.function(&f);
+        }
+
         // Global: heap_ptr for legacy I/O buffer allocation and VecLiteral fallback.
         // Retained for backward compatibility with call_indirect-based HOF dispatch.
         // At opt_level >= 2, uses extended const: (i32.add (i32.const DATA_START) (i32.const size))
@@ -1663,10 +1706,12 @@ impl Ctx {
         }
 
         // Table section — for indirect calls (higher-order functions)
+        let realloc_count = if cabi_realloc_idx.is_some() { 1u32 } else { 0 };
         let total_funcs = num_imports
             + helper_fns.len() as u32
             + reachable_user_indices.len() as u32
-            + cabi_adapters.len() as u32;
+            + cabi_adapters.len() as u32
+            + realloc_count;
         let mut tables = wasm_encoder::TableSection::new();
         tables.table(wasm_encoder::TableType {
             element_type: wasm_encoder::RefType::FUNCREF,

@@ -2,12 +2,14 @@
 //!
 //! Reads `tests/fixtures/manifest.txt` for the fixture list.
 //! For each entry:
-//! - `run:path`        → compile + run, compare stdout against `.expected`
-//! - `diag:path`       → compile-fail, check first line of `.diag` in output
-//! - `module-run:path` → same as run, for multi-file modules
-//! - `module-diag:path`→ same as diag, for multi-file modules
-//! - `t3-run:path`     → compile + run on wasm32-wasi-p2, compare stdout against `.expected`
-//! - `t3-compile:path` → compile-only on wasm32-wasi-p2, no run check
+//! - `run:path`              → compile + run, compare stdout against `.expected`
+//! - `diag:path`             → compile-fail, check first line of `.diag` in output
+//! - `module-run:path`       → same as run, for multi-file modules
+//! - `module-diag:path`      → same as diag, for multi-file modules
+//! - `t3-run:path`           → compile + run on wasm32-wasi-p2, compare stdout against `.expected`
+//! - `t3-compile:path`       → compile-only on wasm32-wasi-p2, expect success
+//! - `component-compile:path`→ compile --emit component on wasm32-wasi-p2, expect success
+//! - `compile-error:path`    → compile --emit component on wasm32-wasi-p2, expect failure + `.diag`
 //!
 //! ## Kind filtering
 //!
@@ -301,6 +303,86 @@ fn fixture_harness() {
                         name,
                         expected.lines().next().unwrap_or(""),
                         stdout.lines().next().unwrap_or("")
+                    ));
+                }
+            }
+            "t3-compile" => {
+                let output = Command::new(&bin)
+                    .arg("compile")
+                    .arg("--target")
+                    .arg("wasm32-wasi-p2")
+                    .arg(&fixture)
+                    .output()
+                    .expect("failed to run arukellt");
+
+                if output.status.success() {
+                    passed += 1;
+                } else {
+                    failed += 1;
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    failures.push(format!(
+                        "FAIL [{}] {}\n  stderr: {:?}",
+                        entry.kind,
+                        name,
+                        stderr.lines().next().unwrap_or("")
+                    ));
+                }
+            }
+            "component-compile" => {
+                let output = Command::new(&bin)
+                    .arg("compile")
+                    .arg("--target")
+                    .arg("wasm32-wasi-p2")
+                    .arg("--emit")
+                    .arg("component")
+                    .arg(&fixture)
+                    .output()
+                    .expect("failed to run arukellt");
+
+                if output.status.success() {
+                    passed += 1;
+                } else {
+                    failed += 1;
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    failures.push(format!(
+                        "FAIL [{}] {}\n  stderr: {:?}",
+                        entry.kind,
+                        name,
+                        stderr.lines().next().unwrap_or("")
+                    ));
+                }
+            }
+            "compile-error" => {
+                let diag_path = fixture.with_extension("diag");
+                if !diag_path.exists() {
+                    skipped += 1;
+                    eprintln!("  [skip] {} (no .diag file)", name);
+                    continue;
+                }
+                let diag_text = std::fs::read_to_string(&diag_path).unwrap();
+                let first_line = diag_text.lines().next().unwrap_or("").trim();
+
+                let output = Command::new(&bin)
+                    .arg("compile")
+                    .arg("--target")
+                    .arg("wasm32-wasi-p2")
+                    .arg("--emit")
+                    .arg("component")
+                    .arg(&fixture)
+                    .output()
+                    .expect("failed to run arukellt");
+
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                if !output.status.success() && stderr.contains(first_line) {
+                    passed += 1;
+                } else {
+                    failed += 1;
+                    failures.push(format!(
+                        "FAIL [{}] {}\n  expected error containing: {:?}\n  got:      {:?}",
+                        entry.kind,
+                        name,
+                        first_line,
+                        stderr.lines().next().unwrap_or("")
                     ));
                 }
             }
