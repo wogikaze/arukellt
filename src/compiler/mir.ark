@@ -474,7 +474,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
 
     if kind == NK_BOOL_LIT() {
         let dest = ctx_fresh_local(ctx, VT_I32())
-        ctx_emit(ctx, MirInst_const_i32(node.int_val, dest))
+        let mut bval = 0
+        if eq(clone(node.text), "true") {
+            bval = 1
+        }
+        ctx_emit(ctx, MirInst_const_i32(bval, dest))
         return dest
     }
 

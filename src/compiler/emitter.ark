@@ -195,11 +195,44 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     }
 
     // Build emit context
+        // Find or add "true" and "false" string indices for bool_to_string
+    let mut true_idx = 0 - 1
+    let mut false_idx = 0 - 1
+    let mut bi = 0
+    while bi < str_count {
+        let bs = get_unchecked(mir.string_constants, bi)
+        if eq(clone(bs), "true") {
+            true_idx = bi
+        }
+        if eq(clone(bs), "false") {
+            false_idx = bi
+        }
+        bi = bi + 1
+    }
+    // If not found, append them
+    if true_idx < 0 {
+        true_idx = len(mir.string_constants)
+        push(mir.string_constants, String_from("true"))
+        push(string_offsets, data_offset + 4)
+        push(string_lengths, 4)
+        data_offset = data_offset + 4 + 4
+    }
+    if false_idx < 0 {
+        false_idx = len(mir.string_constants)
+        push(mir.string_constants, String_from("false"))
+        push(string_offsets, data_offset + 4)
+        push(string_lengths, 5)
+        data_offset = data_offset + 4 + 5
+    }
+
     let mut ctx = SelfEmitCtx {
         functions: mir.functions,
         string_offsets: string_offsets,
         string_lengths: string_lengths,
+        string_values: mir.string_constants,
         scratch_base: 0,
+        true_str_idx: true_idx,
+        false_str_idx: false_idx,
     }
 
     // Type section
@@ -359,7 +392,8 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_section(out, SEC_CODE(), code_sec)
 
     // Data section (length-prefixed string constants)
-    if str_count > 0 {
+    let final_str_count = len(mir.string_constants)
+    if final_str_count > 0 {
         let data_sec = WasmWriter_new()
         emit_leb128_u(data_sec, 1)  // single data segment
         emit_byte(data_sec, 0x00)   // active, memory 0
@@ -369,7 +403,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         // Compute total data size
         let mut total_data = 0
         let mut ds = 0
-        while ds < str_count {
+        while ds < final_str_count {
             let s = get_unchecked(mir.string_constants, ds)
             total_data = total_data + 4 + len(s)  // 4 bytes length + data
             ds = ds + 1
@@ -377,7 +411,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         emit_leb128_u(data_sec, total_data)
         // Write strings: [len_le32][data_bytes...]
         let mut ds2 = 0
-        while ds2 < str_count {
+        while ds2 < final_str_count {
             let s = get_unchecked(mir.string_constants, ds2)
             let slen = len(s)
             // Write length as little-endian i32
@@ -413,7 +447,10 @@ struct SelfEmitCtx {
     functions: Vec<MirFunction>,
     string_offsets: Vec<i32>,
     string_lengths: Vec<i32>,
+    string_values: Vec<String>,
     scratch_base: i32,
+    true_str_idx: i32,
+    false_str_idx: i32,
 }
 
 fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
@@ -645,6 +682,25 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         } else if eq(clone(callee), "String_from") {
             // String_from is a no-op identity: string literal ptr is already on stack
             let _nop = 0
+        } else if eq(clone(callee), "bool_to_string") {
+            // Inline bool_to_string: if value != 0 → "true" ptr, else → "false" ptr
+            let s_tmp = ctx.scratch_base + 2
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_tmp)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_tmp)
+            emit_byte(w, 0x04)  // if
+            emit_byte(w, 0x7f)  // blocktype i32
+            // true branch
+            let true_offset = get_unchecked(ctx.string_offsets, ctx.true_str_idx)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, true_offset)
+            emit_byte(w, 0x05)  // else
+            // false branch
+            let false_offset = get_unchecked(ctx.string_offsets, ctx.false_str_idx)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, false_offset)
+            emit_byte(w, 0x0b)  // end
         } else if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") {
             // Inline to_string(i32): convert integer on stack to string
             // Stack has: [i32_value]
