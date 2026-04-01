@@ -861,6 +861,21 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                             needs_convert = true
                         }
                     }
+                    if !needs_convert && arg.kind == NK_CALL() && len(arg.children) > 0 {
+                        // Check if callee is a known i32/bool-returning function
+                        let call_callee = get_unchecked(arg.children, 0)
+                        let cn = clone(call_callee.text)
+                        // Bool-returning functions
+                        if eq(clone(cn), "contains_i32") || eq(clone(cn), "contains_string") || eq(clone(cn), "contains") || eq(clone(cn), "is_empty") {
+                            needs_convert = true
+                            ctx_set_local_type(ctx, arg_idx, String_from("bool"))
+                        }
+                        // i32-returning functions
+                        if eq(clone(cn), "len") || eq(clone(cn), "parse_i32") {
+                            needs_convert = true
+                            ctx_set_local_type(ctx, arg_idx, String_from("i32"))
+                        }
+                    }
                     if !needs_convert && arg.kind == NK_IDENT() {
                         // Check if the identifier has no struct type (likely an integer)
                         let lt2 = ctx_get_local_type(ctx, arg_idx)

@@ -1880,13 +1880,13 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_EQ())
             emit_byte(w, OP_IF())
             emit_byte(w, 0x40)
-            // found = 1; br 3 (break outer block)
+            // found = 1; br 2 (break outer block)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 1)
             emit_byte(w, OP_LOCAL_SET())
             emit_leb128_u(w, s_ci_found)
             emit_byte(w, OP_BR())
-            emit_leb128_u(w, 3)
+            emit_leb128_u(w, 2)
             emit_byte(w, 0x0B)  // end if
             // i++
             emit_byte(w, OP_LOCAL_GET())
