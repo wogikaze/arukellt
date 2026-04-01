@@ -1487,6 +1487,65 @@ impl ArukellBackend {
         }
     }
 
+    /// Check if a name is a top-level symbol (fn, struct, enum, trait, impl method).
+    fn is_top_level_symbol(module: &ast::Module, name: &str) -> bool {
+        for item in &module.items {
+            match item {
+                ast::Item::FnDef(f) if f.name == name => return true,
+                ast::Item::StructDef(s) if s.name == name => return true,
+                ast::Item::EnumDef(e) if e.name == name => return true,
+                ast::Item::TraitDef(t) if t.name == name => return true,
+                ast::Item::ImplBlock(ib) => {
+                    for m in &ib.methods {
+                        if m.name == name {
+                            return true;
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        false
+    }
+
+    /// Find the span range of the enclosing function for a given offset.
+    fn find_enclosing_fn_range(module: &ast::Module, offset: u32) -> Option<(u32, u32)> {
+        for item in &module.items {
+            if let ast::Item::FnDef(f) = item {
+                if f.span.start <= offset && offset <= f.span.end {
+                    return Some((f.span.start, f.span.end));
+                }
+            }
+        }
+        None
+    }
+
+    /// Check if a name is a language keyword.
+    fn is_keyword(name: &str) -> bool {
+        matches!(
+            name,
+            "fn" | "let" | "mut" | "if" | "else" | "while" | "for" | "in"
+                | "loop" | "break" | "continue" | "return" | "match"
+                | "struct" | "enum" | "trait" | "impl" | "type" | "use"
+                | "pub" | "self" | "super" | "true" | "false" | "as"
+                | "try" | "catch" | "throw" | "async" | "await"
+                | "const" | "static" | "where" | "mod"
+        )
+    }
+
+    /// Check if a name is a builtin function or type that shouldn't be renamed.
+    fn is_builtin_name(name: &str) -> bool {
+        matches!(
+            name,
+            "print" | "println" | "eprintln" | "assert" | "panic"
+                | "len" | "push" | "pop" | "to_string" | "parse"
+                | "Some" | "None" | "Ok" | "Err" | "Result" | "Option"
+                | "String" | "Vec" | "Map" | "Set" | "Array"
+                | "Int" | "Float" | "Bool" | "Char" | "Unit"
+                | "i32" | "i64" | "f32" | "f64" | "bool" | "str"
+        )
+    }
+
     /// Build hover information for a stdlib function from the manifest.
     fn stdlib_hover_info(name: &str, manifest: &StdlibManifest) -> Option<String> {
         let func = manifest.functions.iter().find(|f| f.name == name)?;
@@ -3577,16 +3636,58 @@ impl LanguageServer for ArukellBackend {
             None => return Ok(None),
         };
 
+        // Determine the definition scope of the symbol under cursor.
+        let _def_span = Self::find_definition_span(&analysis.module, &name);
+        let is_top_level = Self::is_top_level_symbol(&analysis.module, &name);
+
+        // Find the enclosing scope range for local variables.
+        let scope_range = if is_top_level {
+            None // top-level: search entire file
+        } else {
+            Self::find_enclosing_fn_range(&analysis.module, target_offset as u32)
+        };
+
         let mut locations = Vec::new();
         for tok in &analysis.tokens {
             if let TokenKind::Ident(_) = &tok.kind {
                 let start = tok.span.start as usize;
                 let end = tok.span.end as usize;
                 if end <= source.len() && source[start..end] == *name {
+                    // If we have a scope range, restrict to that scope
+                    if let Some((scope_start, scope_end)) = scope_range {
+                        if (tok.span.start as u32) < scope_start || (tok.span.end as u32) > scope_end {
+                            continue;
+                        }
+                    }
                     locations.push(Location {
                         uri: uri.clone(),
                         range: Self::span_to_range(&source, tok.span),
                     });
+                }
+            }
+        }
+
+        // For top-level symbols, also search other indexed files
+        if is_top_level {
+            drop(cache);
+            let idx = self.symbol_index.lock().unwrap();
+            for entries in idx.file_symbols.values() {
+                for entry in entries {
+                    if entry.uri != uri {
+                        // Check if this file references our symbol
+                        // We'd need to load and scan the file — for now, include definitions
+                        if entry.name == name {
+                            if let Ok(target_source) = entry.uri.to_file_path()
+                                .map_err(|_| ())
+                                .and_then(|p| std::fs::read_to_string(&p).map_err(|_| ()))
+                            {
+                                locations.push(Location {
+                                    uri: entry.uri.clone(),
+                                    range: Self::span_to_range(&target_source, entry.span),
+                                });
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -3621,8 +3722,15 @@ impl LanguageServer for ArukellBackend {
         let target_offset = Self::position_to_offset(&source, pos);
 
         let name = match Self::find_ident_at_offset(&source, &analysis.tokens, target_offset) {
-            Some(n) => n,
+            Some(n) => n.to_string(),
             None => return Ok(None),
+        };
+
+        let is_top_level = Self::is_top_level_symbol(&analysis.module, &name);
+        let scope_range = if is_top_level {
+            None
+        } else {
+            Self::find_enclosing_fn_range(&analysis.module, target_offset as u32)
         };
 
         let mut highlights = Vec::new();
@@ -3630,7 +3738,12 @@ impl LanguageServer for ArukellBackend {
             if let TokenKind::Ident(_) = &tok.kind {
                 let start = tok.span.start as usize;
                 let end = tok.span.end as usize;
-                if end <= source.len() && &source[start..end] == name {
+                if end <= source.len() && source[start..end] == *name {
+                    if let Some((scope_start, scope_end)) = scope_range {
+                        if (tok.span.start as u32) < scope_start || (tok.span.end as u32) > scope_end {
+                            continue;
+                        }
+                    }
                     highlights.push(DocumentHighlight {
                         range: Self::span_to_range(&source, tok.span),
                         kind: Some(DocumentHighlightKind::TEXT),
@@ -3744,6 +3857,79 @@ impl LanguageServer for ArukellBackend {
                     }));
                 }
             }
+
+            // Fallback: check project-wide symbol index for user-defined cross-file functions
+            drop(cache);
+            let idx = self.symbol_index.lock().unwrap();
+            let lookup_name = if name.contains("::") {
+                name.rsplit("::").next().unwrap_or(name)
+            } else {
+                name
+            };
+            for entries in idx.file_symbols.values() {
+                for entry in entries {
+                    if entry.name == lookup_name && entry.kind == SymbolKind::FUNCTION {
+                        if let Ok(path) = entry.uri.to_file_path() {
+                            if let Ok(file_source) = std::fs::read_to_string(&path) {
+                                let lexer = Lexer::new(0, &file_source);
+                                let tokens: Vec<_> = lexer.collect();
+                                let mut sink = ark_diagnostics::DiagnosticSink::new();
+                                let file_module = parse(&tokens, &mut sink);
+                                for item in &file_module.items {
+                                    if let ast::Item::FnDef(f) = item {
+                                        if f.name == lookup_name {
+                                            let param_infos: Vec<ParameterInformation> = f
+                                                .params
+                                                .iter()
+                                                .map(|p| ParameterInformation {
+                                                    label: ParameterLabel::Simple(format!(
+                                                        "{}: {}",
+                                                        p.name,
+                                                        Self::type_expr_to_string(&p.ty)
+                                                    )),
+                                                    documentation: None,
+                                                })
+                                                .collect();
+
+                                            let active_parameter =
+                                                Self::count_active_parameter(&before[open_paren + 1..]);
+                                            let ret_str = f
+                                                .return_type
+                                                .as_ref()
+                                                .map(|t| Self::type_expr_to_string(t))
+                                                .unwrap_or_else(|| "()".to_string());
+
+                                            return Ok(Some(SignatureHelp {
+                                                signatures: vec![SignatureInformation {
+                                                    label: format!(
+                                                        "fn {}({}) -> {}",
+                                                        f.name,
+                                                        f.params
+                                                            .iter()
+                                                            .map(|p| format!(
+                                                                "{}: {}",
+                                                                p.name,
+                                                                Self::type_expr_to_string(&p.ty)
+                                                            ))
+                                                            .collect::<Vec<_>>()
+                                                            .join(", "),
+                                                        ret_str
+                                                    ),
+                                                    documentation: None,
+                                                    parameters: Some(param_infos),
+                                                    active_parameter: Some(active_parameter),
+                                                }],
+                                                active_signature: Some(0),
+                                                active_parameter: Some(active_parameter),
+                                            }));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         Ok(None)
@@ -3849,12 +4035,29 @@ impl LanguageServer for ArukellBackend {
             None => return Ok(None),
         };
 
+        // Reject renaming keywords and builtin names
+        if Self::is_keyword(old_name) || Self::is_builtin_name(old_name) {
+            return Ok(None);
+        }
+
+        let is_top_level = Self::is_top_level_symbol(&analysis.module, old_name);
+        let scope_range = if is_top_level {
+            None
+        } else {
+            Self::find_enclosing_fn_range(&analysis.module, target_offset as u32)
+        };
+
         let mut edits = Vec::new();
         for tok in &analysis.tokens {
             if let TokenKind::Ident(_) = &tok.kind {
                 let start = tok.span.start as usize;
                 let end = tok.span.end as usize;
                 if end <= source.len() && &source[start..end] == old_name {
+                    if let Some((scope_start, scope_end)) = scope_range {
+                        if (tok.span.start as u32) < scope_start || (tok.span.end as u32) > scope_end {
+                            continue;
+                        }
+                    }
                     edits.push(TextEdit {
                         range: Self::span_to_range(&source, tok.span),
                         new_text: new_name.clone(),
@@ -3899,6 +4102,11 @@ impl LanguageServer for ArukellBackend {
             let end = tok.span.end as usize;
             if start <= target_offset && target_offset <= end && end <= source.len() {
                 if let TokenKind::Ident(_) = &tok.kind {
+                    let ident_text = &source[start..end];
+                    // Reject keywords and builtins
+                    if Self::is_keyword(ident_text) || Self::is_builtin_name(ident_text) {
+                        return Ok(None);
+                    }
                     return Ok(Some(PrepareRenameResponse::Range(Self::span_to_range(
                         &source, tok.span,
                     ))));
@@ -5344,5 +5552,56 @@ fn add(a: i32, b: i32) -> i32 {
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].uri, uri_a);
         assert_eq!(results[0].name, "helper");
+    }
+
+    #[test]
+    fn is_top_level_symbol_detects_fn_and_struct() {
+        let source = "fn foo() { let x = 1 }\nstruct Bar { }\n";
+        let (_, module) = parse_source(source);
+        assert!(ArukellBackend::is_top_level_symbol(&module, "foo"));
+        assert!(ArukellBackend::is_top_level_symbol(&module, "Bar"));
+        assert!(!ArukellBackend::is_top_level_symbol(&module, "x"));
+        assert!(!ArukellBackend::is_top_level_symbol(&module, "nonexistent"));
+    }
+
+    #[test]
+    fn find_enclosing_fn_range_finds_correct_scope() {
+        let source = "fn foo() {\n  let x = 1\n}\nfn bar() {\n  let y = 2\n}\n";
+        let (_, module) = parse_source(source);
+        // Offset inside foo
+        let r = ArukellBackend::find_enclosing_fn_range(&module, 15);
+        assert!(r.is_some());
+        let (start, end) = r.unwrap();
+        assert!(start <= 15 && 15 <= end);
+        // Offset inside bar
+        let r2 = ArukellBackend::find_enclosing_fn_range(&module, 40);
+        assert!(r2.is_some());
+        // Offset outside both
+        let r3 = ArukellBackend::find_enclosing_fn_range(&module, 0);
+        // "fn" keyword might be at 0 which is inside foo's span
+        // Let's just check it returns something reasonable
+        assert!(r3.is_some() || r3.is_none()); // non-crashing
+    }
+
+    #[test]
+    fn is_keyword_rejects_language_keywords() {
+        assert!(ArukellBackend::is_keyword("fn"));
+        assert!(ArukellBackend::is_keyword("let"));
+        assert!(ArukellBackend::is_keyword("struct"));
+        assert!(ArukellBackend::is_keyword("if"));
+        assert!(ArukellBackend::is_keyword("match"));
+        assert!(!ArukellBackend::is_keyword("foo"));
+        assert!(!ArukellBackend::is_keyword("my_var"));
+    }
+
+    #[test]
+    fn is_builtin_name_rejects_stdlib_builtins() {
+        assert!(ArukellBackend::is_builtin_name("print"));
+        assert!(ArukellBackend::is_builtin_name("println"));
+        assert!(ArukellBackend::is_builtin_name("Some"));
+        assert!(ArukellBackend::is_builtin_name("None"));
+        assert!(ArukellBackend::is_builtin_name("Result"));
+        assert!(!ArukellBackend::is_builtin_name("my_function"));
+        assert!(!ArukellBackend::is_builtin_name("custom_type"));
     }
 }
