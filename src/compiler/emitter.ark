@@ -642,6 +642,9 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 0)
             
+        } else if eq(clone(callee), "String_from") {
+            // String_from is a no-op identity: string literal ptr is already on stack
+            let _nop = 0
         } else if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") {
             // Inline to_string(i32): convert integer on stack to string
             // Stack has: [i32_value]

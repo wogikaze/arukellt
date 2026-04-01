@@ -692,6 +692,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 if_depth = if_depth - 1
             }
 
+            // Push the match result onto the Wasm stack for the caller
+            let get_result = MirInst_new(MIR_LOCAL_GET())
+            get_result.arg0 = result
+            ctx_emit(ctx, get_result)
+
             return result
         }
         return 0 - 1
