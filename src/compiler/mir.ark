@@ -1123,6 +1123,16 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
 
                 if is_last {
                     // Last arm: default case
+                    // Bind pattern variable if PAT_IDENT
+                    if pat.kind == NK_PAT_IDENT() {
+                        let bind_last = ctx_alloc_local(ctx, clone(pat.text), VT_I32())
+                        let get_sl = MirInst_new(MIR_LOCAL_GET())
+                        get_sl.arg0 = scrut_idx
+                        ctx_emit(ctx, get_sl)
+                        let set_sl = MirInst_new(MIR_LOCAL_SET())
+                        set_sl.arg0 = bind_last
+                        ctx_emit(ctx, set_sl)
+                    }
                     // Bind payload variables if this arm has bindings
                     if is_payload_match && pat.kind == NK_PAT_VARIANT() && len(pat.children) > 0 {
                         let mut bi = 0
@@ -1141,6 +1151,14 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                             bi = bi + 1
                         }
                     }
+                    // Check for guard (arm_child_count == 3)
+                    if arm_child_count == 3 {
+                        let guard_last = get_unchecked(arm_node.children, 1)
+                        lower_expr(ctx, guard_last)
+                        ctx_emit(ctx, MirInst_new(MIR_IF()))
+                        ctx.nesting_depth = ctx.nesting_depth + 1
+                        if_depth = if_depth + 1
+                    }
                     let arm_result = lower_expr(ctx, body)
                     if arm_result >= 0 {
                         let set_inst = MirInst_new(MIR_LOCAL_SET())
@@ -1148,37 +1166,74 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         set_inst.arg1 = arm_result
                         ctx_emit(ctx, set_inst)
                     }
+                    if arm_child_count == 3 {
+                        ctx_emit(ctx, MirInst_new(MIR_END()))
+                        ctx.nesting_depth = ctx.nesting_depth - 1
+                        if_depth = if_depth - 1
+                    }
                 } else {
-                    // Push tag/scrutinee value onto stack for comparison
-                    let get_inst = MirInst_new(MIR_LOCAL_GET())
-                    get_inst.arg0 = compare_idx
-                    ctx_emit(ctx, get_inst)
-                    // Compare against pattern tag
-                    let pat_idx = lower_expr(ctx, pat)
-                    let cmp_dest = ctx_fresh_local(ctx, VT_I32())
-                    ctx_emit(ctx, MirInst_binop(MIR_EQ(), cmp_dest, compare_idx, pat_idx))
+                    let is_catchall = pat.kind == NK_PAT_IDENT() || pat.kind == NK_PAT_WILDCARD()
+                    let has_guard = arm_child_count == 3
 
-                    // IF (match)
-                    ctx_emit(ctx, MirInst_new(MIR_IF()))
-                    ctx.nesting_depth = ctx.nesting_depth + 1
-                    if_depth = if_depth + 1
+                    if is_catchall {
+                        // Catch-all pattern: bind variable and check guard
+                        if pat.kind == NK_PAT_IDENT() {
+                            let bind_ca = ctx_alloc_local(ctx, clone(pat.text), VT_I32())
+                            let get_ca = MirInst_new(MIR_LOCAL_GET())
+                            get_ca.arg0 = scrut_idx
+                            ctx_emit(ctx, get_ca)
+                            let set_ca = MirInst_new(MIR_LOCAL_SET())
+                            set_ca.arg0 = bind_ca
+                            ctx_emit(ctx, set_ca)
+                        }
+                        if has_guard {
+                            let guard = get_unchecked(arm_node.children, 1)
+                            lower_expr(ctx, guard)
+                            ctx_emit(ctx, MirInst_new(MIR_IF()))
+                            ctx.nesting_depth = ctx.nesting_depth + 1
+                            if_depth = if_depth + 1
+                        }
+                    } else {
+                        // Push tag/scrutinee value onto stack for comparison
+                        let get_inst = MirInst_new(MIR_LOCAL_GET())
+                        get_inst.arg0 = compare_idx
+                        ctx_emit(ctx, get_inst)
+                        // Compare against pattern tag
+                        let pat_idx = lower_expr(ctx, pat)
+                        let cmp_dest = ctx_fresh_local(ctx, VT_I32())
+                        ctx_emit(ctx, MirInst_binop(MIR_EQ(), cmp_dest, compare_idx, pat_idx))
 
-                    // Bind payload variables if this arm has bindings
-                    if is_payload_match && pat.kind == NK_PAT_VARIANT() && len(pat.children) > 0 {
-                        let mut bi2 = 0
-                        while bi2 < len(pat.children) {
-                            let bind_pat2 = get_unchecked(pat.children, bi2)
-                            let bind_local2 = ctx_alloc_local(ctx, clone(bind_pat2.text), VT_I32())
-                            let get_s3 = MirInst_new(MIR_LOCAL_GET())
-                            get_s3.arg0 = scrut_idx
-                            ctx_emit(ctx, get_s3)
-                            let sget3 = MirInst_new(MIR_STRUCT_GET())
-                            sget3.int_val = bi2 + 1
-                            ctx_emit(ctx, sget3)
-                            let set_b2 = MirInst_new(MIR_LOCAL_SET())
-                            set_b2.arg0 = bind_local2
-                            ctx_emit(ctx, set_b2)
-                            bi2 = bi2 + 1
+                        // IF (match)
+                        ctx_emit(ctx, MirInst_new(MIR_IF()))
+                        ctx.nesting_depth = ctx.nesting_depth + 1
+                        if_depth = if_depth + 1
+
+                        // Bind payload variables BEFORE guard (guard may reference them)
+                        if is_payload_match && pat.kind == NK_PAT_VARIANT() && len(pat.children) > 0 {
+                            let mut bi2 = 0
+                            while bi2 < len(pat.children) {
+                                let bind_pat2 = get_unchecked(pat.children, bi2)
+                                let bind_local2 = ctx_alloc_local(ctx, clone(bind_pat2.text), VT_I32())
+                                let get_s3 = MirInst_new(MIR_LOCAL_GET())
+                                get_s3.arg0 = scrut_idx
+                                ctx_emit(ctx, get_s3)
+                                let sget3 = MirInst_new(MIR_STRUCT_GET())
+                                sget3.int_val = bi2 + 1
+                                ctx_emit(ctx, sget3)
+                                let set_b2 = MirInst_new(MIR_LOCAL_SET())
+                                set_b2.arg0 = bind_local2
+                                ctx_emit(ctx, set_b2)
+                                bi2 = bi2 + 1
+                            }
+                        }
+
+                        // Check guard if present
+                        if has_guard {
+                            let guard2 = get_unchecked(arm_node.children, 1)
+                            lower_expr(ctx, guard2)
+                            ctx_emit(ctx, MirInst_new(MIR_IF()))
+                            ctx.nesting_depth = ctx.nesting_depth + 1
+                            if_depth = if_depth + 1
                         }
                     }
 
