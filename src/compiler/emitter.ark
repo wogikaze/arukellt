@@ -171,12 +171,22 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     let fn_count = len(mir.functions)
 
     // Type section
+    // Type 0: fd_write type (i32, i32, i32, i32) -> (i32)
     let type_sec = WasmWriter_new()
-    emit_leb128_u(type_sec, fn_count)
+    emit_leb128_u(type_sec, fn_count + 1)  // +1 for fd_write type
+    // fd_write: (fd, iovs_ptr, iovs_len, nwritten_ptr) -> errno
+    emit_byte(type_sec, 0x60)
+    emit_leb128_u(type_sec, 4)  // 4 params
+    emit_byte(type_sec, WASM_I32())
+    emit_byte(type_sec, WASM_I32())
+    emit_byte(type_sec, WASM_I32())
+    emit_byte(type_sec, WASM_I32())
+    emit_leb128_u(type_sec, 1)  // 1 result
+    emit_byte(type_sec, WASM_I32())
+    // User function types (indices 1..fn_count)
     let mut i = 0
     while i < fn_count {
         let f = get_unchecked(mir.functions, i)
-        // func type: (params) -> (results)
         emit_byte(type_sec, 0x60)
         let param_count = len(f.params)
         emit_leb128_u(type_sec, param_count)
@@ -206,12 +216,12 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_leb128_u(import_sec, 0) // type index 0 (placeholder)
     emit_section(out, SEC_IMPORT(), import_sec)
 
-    // Function section
+    // Function section (type indices offset by 1 for fd_write at type 0)
     let func_sec = WasmWriter_new()
     emit_leb128_u(func_sec, fn_count)
     let mut fi = 0
     while fi < fn_count {
-        emit_leb128_u(func_sec, fi)
+        emit_leb128_u(func_sec, fi + 1)  // type index = fi+1 (0 is fd_write)
         fi = fi + 1
     }
     emit_section(out, SEC_FUNCTION(), func_sec)

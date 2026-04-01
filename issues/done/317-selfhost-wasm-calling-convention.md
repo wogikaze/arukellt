@@ -1,6 +1,6 @@
 # Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 317
@@ -23,11 +23,11 @@
 
 ## Acceptance
 
-- [ ] function call が正しい type index で `call` 命令を出す
-- [ ] fd_write import が import section に正しく登録される
-- [ ] string 引数が linear memory 上のポインタ+長さペアで渡される
-- [ ] proc_exit(0) による正常終了が動作する
-- [ ] selfhost compiler で hello.ark を compile し wasmtime で "Hello" が出力される
+- [x] function call が正しい type index で `call` 命令を出す
+- [x] fd_write import が import section に正しく登録される
+- [x] string 引数が linear memory 上のポインタ+長さペアで渡される
+- [x] proc_exit(0) による正常終了が動作する
+- [x] selfhost compiler で hello.ark を compile し wasmtime で "Hello" が出力される
 
 ## References
 
