@@ -552,6 +552,23 @@ pub fn validate_component_export_types(
             match &class {
                 CanonicalAbiClass::Scalar(_) => {} // pass-through, OK
                 CanonicalAbiClass::String => {}    // CABI adapter handles string lift/lower
+                CanonicalAbiClass::List(inner) => {
+                    // Only scalar-element lists are supported for now
+                    match inner.as_ref() {
+                        CanonicalAbiClass::Scalar(_) => {}
+                        _ => {
+                            let type_desc = ty.to_wit();
+                            errors.push((
+                                func.name.clone(),
+                                ark_diagnostics::component_compound_type_diagnostic(
+                                    &func.name,
+                                    &type_desc,
+                                ),
+                            ));
+                            break;
+                        }
+                    }
+                }
                 CanonicalAbiClass::Handle => {
                     errors.push((
                         func.name.clone(),

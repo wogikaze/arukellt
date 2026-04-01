@@ -94,6 +94,31 @@ pub(crate) fn is_string_type(ty: &ast::TypeExpr) -> bool {
     matches!(ty, ast::TypeExpr::Named { name, .. } if name == "String")
 }
 
+/// Convert an AST TypeExpr to the corresponding checker Type.
+pub(crate) fn lower_type_expr_to_type(ty: &ast::TypeExpr) -> ark_typecheck::types::Type {
+    match ty {
+        ast::TypeExpr::Named { name, .. } => match name.as_str() {
+            "i32" | "u32" | "i16" | "u16" | "i8" | "u8" => ark_typecheck::types::Type::I32,
+            "i64" | "u64" => ark_typecheck::types::Type::I64,
+            "f64" => ark_typecheck::types::Type::F64,
+            "f32" => ark_typecheck::types::Type::F32,
+            "bool" => ark_typecheck::types::Type::Bool,
+            "char" => ark_typecheck::types::Type::Char,
+            "String" => ark_typecheck::types::Type::String,
+            _ => ark_typecheck::types::Type::I32,
+        },
+        ast::TypeExpr::Generic { name, args, .. } if name == "Vec" => {
+            let elem = args
+                .first()
+                .map(|a| lower_type_expr_to_type(a))
+                .unwrap_or(ark_typecheck::types::Type::I32);
+            ark_typecheck::types::Type::Vec(Box::new(elem))
+        }
+        ast::TypeExpr::Unit(_) => ark_typecheck::types::Type::Unit,
+        _ => ark_typecheck::types::Type::I32,
+    }
+}
+
 pub(crate) fn type_expr_name(ty: &ast::TypeExpr) -> String {
     match ty {
         ast::TypeExpr::Named { name, .. } => name.clone(),

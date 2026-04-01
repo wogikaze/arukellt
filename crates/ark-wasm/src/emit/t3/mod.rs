@@ -1495,19 +1495,21 @@ impl Ctx {
             functions.function(adapter.adapter_type_idx);
         }
 
-        // Add cabi_realloc if any string adapter exists (required by canonical ABI)
-        let has_string_adapter = cabi_adapters.iter().any(|a| {
+        // Add cabi_realloc if any string or list adapter exists (required by canonical ABI)
+        let has_realloc_adapter = cabi_adapters.iter().any(|a| {
             a.param_adaptations.iter().any(|p| {
                 matches!(
                     p,
                     cabi_adapters::ParamAdaptation::String { .. }
+                        | cabi_adapters::ParamAdaptation::List { .. }
                 )
             }) || matches!(
                 &a.return_adaptation,
                 Some(cabi_adapters::ReturnAdaptation::String { .. })
+                    | Some(cabi_adapters::ReturnAdaptation::List { .. })
             )
         });
-        let cabi_realloc_idx = if has_string_adapter {
+        let cabi_realloc_idx = if has_realloc_adapter {
             let realloc_type = self.types.add_func(
                 &[ValType::I32, ValType::I32, ValType::I32, ValType::I32],
                 &[ValType::I32],
