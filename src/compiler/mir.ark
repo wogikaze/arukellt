@@ -230,6 +230,8 @@ fn NK_UNARY() -> i32 { 7 }
 fn NK_CALL() -> i32 { 8 }
 fn NK_FIELD_ACCESS() -> i32 { 9 }
 fn NK_INDEX() -> i32 { 10 }
+fn NK_STRUCT_LIT() -> i32 { 11 }
+fn NK_ARRAY_LIT() -> i32 { 12 }
 fn NK_IF_EXPR() -> i32 { 13 }
 fn NK_BLOCK() -> i32 { 20 }
 fn NK_ASSIGN() -> i32 { 18 }
@@ -600,6 +602,108 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     ctx_emit(ctx, set_inst)
                 }
             }
+            if target.kind == NK_FIELD_ACCESS() {
+                // struct field assignment: target.children[0] = struct, target.text = field
+                let tc = len(target.children)
+                if tc >= 1 {
+                    let struct_node = get_unchecked(target.children, 0)
+                    let struct_idx = lower_expr(ctx, struct_node)
+                    let set_inst = MirInst_new(MIR_STRUCT_SET())
+                    set_inst.arg0 = struct_idx
+                    set_inst.arg1 = val_idx
+                    set_inst.str_val = clone(target.text)
+                    ctx_emit(ctx, set_inst)
+                }
+            }
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_STRUCT_LIT() {
+        // text = struct name, children = field initializers
+        // Each child: NK_IDENT with text=field_name, children[0]=value
+        let child_count = len(node.children)
+        let dest = ctx_fresh_local(ctx, VT_REF())
+        let new_inst = MirInst_new(MIR_STRUCT_NEW())
+        new_inst.dest = dest
+        new_inst.str_val = clone(node.text)
+        new_inst.int_val = child_count
+        ctx_emit(ctx, new_inst)
+
+        let mut f = 0
+        while f < child_count {
+            let field = get_unchecked(node.children, f)
+            let fc = len(field.children)
+            if fc >= 1 {
+                let init = get_unchecked(field.children, 0)
+                let val_idx = lower_expr(ctx, init)
+                let set_inst = MirInst_new(MIR_STRUCT_SET())
+                set_inst.arg0 = dest
+                set_inst.arg1 = val_idx
+                set_inst.str_val = clone(field.text)
+                set_inst.int_val = f
+                ctx_emit(ctx, set_inst)
+            }
+            f = f + 1
+        }
+        return dest
+    }
+
+    if kind == NK_FIELD_ACCESS() {
+        // children[0] = base struct expression, text = field name
+        let child_count = len(node.children)
+        if child_count >= 1 {
+            let base = get_unchecked(node.children, 0)
+            let base_idx = lower_expr(ctx, base)
+            let dest = ctx_fresh_local(ctx, VT_I32())
+            let get_inst = MirInst_new(MIR_STRUCT_GET())
+            get_inst.dest = dest
+            get_inst.arg0 = base_idx
+            get_inst.str_val = clone(node.text)
+            ctx_emit(ctx, get_inst)
+            return dest
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_ARRAY_LIT() {
+        // children = element expressions
+        let child_count = len(node.children)
+        let dest = ctx_fresh_local(ctx, VT_REF())
+        let new_inst = MirInst_new(MIR_ARRAY_NEW())
+        new_inst.dest = dest
+        new_inst.int_val = child_count
+        ctx_emit(ctx, new_inst)
+
+        let mut e = 0
+        while e < child_count {
+            let elem = get_unchecked(node.children, e)
+            let val_idx = lower_expr(ctx, elem)
+            let set_inst = MirInst_new(MIR_ARRAY_SET())
+            set_inst.arg0 = dest
+            set_inst.arg1 = val_idx
+            set_inst.int_val = e
+            ctx_emit(ctx, set_inst)
+            e = e + 1
+        }
+        return dest
+    }
+
+    if kind == NK_INDEX() {
+        // children[0] = base array, children[1] = index expression
+        let child_count = len(node.children)
+        if child_count >= 2 {
+            let base = get_unchecked(node.children, 0)
+            let idx_expr = get_unchecked(node.children, 1)
+            let base_idx = lower_expr(ctx, base)
+            let index_idx = lower_expr(ctx, idx_expr)
+            let dest = ctx_fresh_local(ctx, VT_I32())
+            let get_inst = MirInst_new(MIR_ARRAY_GET())
+            get_inst.dest = dest
+            get_inst.arg0 = base_idx
+            get_inst.arg1 = index_idx
+            ctx_emit(ctx, get_inst)
+            return dest
         }
         return 0 - 1
     }
