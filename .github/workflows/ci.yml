@@ -326,39 +326,11 @@ jobs:
           name: baselines
           path: tests/baselines/*.json
 
-  # ── Layer 9: Selfhost Stage 0 — Rust compiler compiles selfhost sources ─
-  selfhost-stage0:
-    name: "Selfhost Stage 0 (Rust → s1)"
+  # ── Layer 9: Selfhost bootstrap — full Stage 0+1+2 with parity ──────────
+  selfhost-bootstrap:
+    name: "Selfhost bootstrap (full)"
     runs-on: ubuntu-latest
     needs: [unit-tests]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-
-      - name: Build release arukellt
-        run: cargo build --release -p arukellt
-
-      - name: Run bootstrap Stage 0
-        run: bash scripts/verify-bootstrap.sh --stage1-only
-
-  # ── Layer 9b: Selfhost fixture parity (informational, non-blocking) ────
-  selfhost-parity:
-    name: "Selfhost fixture parity"
-    runs-on: ubuntu-latest
-    needs: [selfhost-stage0]
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -380,17 +352,28 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
-      - name: Build arukellt
+      - name: Build release arukellt
         run: cargo build --release -p arukellt
 
-      - name: Run selfhost fixture parity
-        run: bash scripts/check-selfhost-parity.sh --fixture 2>&1 | tee parity-results.txt
+      - name: Run full bootstrap (Stage 0 + Stage 1 + Stage 2)
+        run: |
+          # Run full bootstrap — Stage 2 fixpoint may fail (expected until selfhost reaches parity)
+          bash scripts/verify-bootstrap.sh --check 2>&1 | tee bootstrap-results.txt || true
+          # Stage 0 and Stage 1 must pass (merge-blocking)
+          grep -q 'stage0-compile: reached' bootstrap-results.txt
+          grep -q 'stage1-compile: reached' bootstrap-results.txt
 
-      - name: Upload parity results
+      - name: Run selfhost fixture parity
+        run: bash scripts/check-selfhost-parity.sh --fixture 2>&1 | tee parity-results.txt || true
+
+      - name: Upload results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: selfhost-parity
-          path: parity-results.txt
+          name: selfhost-bootstrap
+          path: |
+            bootstrap-results.txt
+            parity-results.txt
 
   # ── Layer 10: VS Code extension tests (merge gate) ─────────────────────
   extension-tests:
@@ -444,7 +427,7 @@ jobs:
   # ── Final gate ───────────────────────────────────────────────────────────
   verify:
     name: "Final Gate"
-    needs: [unit-tests, fixture-primary, integration, packaging, determinism, selfhost-stage0, extension-tests, lsp-e2e]
+    needs: [unit-tests, fixture-primary, integration, packaging, determinism, selfhost-bootstrap, extension-tests, lsp-e2e]
     runs-on: ubuntu-latest
     steps:
-      - run: echo "All required CI layers passed (unit + fixture/T3 + integration + packaging + determinism + selfhost-stage0 + extension-tests + lsp-e2e)"
+      - run: echo "All required CI layers passed (unit + fixture/T3 + integration + packaging + determinism + selfhost-bootstrap + extension-tests + lsp-e2e)"

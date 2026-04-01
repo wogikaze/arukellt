@@ -276,11 +276,10 @@ if [[ "$CHECK_MODE" = true ]]; then
     fi
     # Run parity checks if check-selfhost-parity.sh exists
     if [[ -x "${REPO_ROOT}/scripts/check-selfhost-parity.sh" && -f "$S1_WASM" ]]; then
-        local parity_out
         parity_out=$(SELFHOST_WASM="$S1_WASM" "${REPO_ROOT}/scripts/check-selfhost-parity.sh" 2>&1 || true)
-        echo "  fixture-parity: $(echo "$parity_out" | grep 'fixture-parity:' | head -1 || echo 'not-verified')"
-        echo "  cli-parity: $(echo "$parity_out" | grep 'cli-parity:' | head -1 || echo 'not-verified')"
-        echo "  diagnostic-parity: $(echo "$parity_out" | grep 'diag-parity:' | head -1 || echo 'not-verified')"
+        echo "  $(echo "$parity_out" | grep 'fixture-parity:' | head -1 || echo 'fixture-parity: not-verified')"
+        echo "  $(echo "$parity_out" | grep 'cli-parity:' | head -1 || echo 'cli-parity: not-verified')"
+        echo "  $(echo "$parity_out" | grep 'diag-parity:' | head -1 || echo 'diag-parity: not-verified')"
     else
         echo "  fixture-parity: not-verified"
         echo "  cli-parity: not-verified"
