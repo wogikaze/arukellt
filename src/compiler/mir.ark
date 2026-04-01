@@ -309,6 +309,7 @@ struct LowerCtx {
     nesting_depth: i32,
     loop_break_depth: i32,
     loop_continue_depth: i32,
+    loop_break_local: i32,
     // Struct definitions: parallel arrays
     struct_names: Vec<String>,
     struct_field_counts: Vec<i32>,
@@ -338,6 +339,7 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         nesting_depth: 0,
         loop_break_depth: 0 - 1,
         loop_continue_depth: 0 - 1,
+        loop_break_local: 0 - 1,
         struct_names: Vec_new_String(),
         struct_field_counts: Vec_new_i32(),
         struct_all_fields: Vec_new_String(),
@@ -1601,6 +1603,21 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return 0 - 1
     }
 
+    // Loop expression: delegate to stmt handler which has full loop logic
+    if kind == NK_LOOP() {
+        return lower_stmt(ctx, node)
+    }
+
+    // While expression: delegate to stmt handler
+    if kind == NK_WHILE() {
+        return lower_stmt(ctx, node)
+    }
+
+    // For expression: delegate to stmt handler  
+    if kind == NK_FOR() {
+        return lower_stmt(ctx, node)
+    }
+
     // Unknown expression: emit NOP
     ctx_emit(ctx, MirInst_new(MIR_NOP()))
     0 - 1
@@ -1734,6 +1751,11 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
         if child_count >= 1 {
             let prev_break = ctx.loop_break_depth
             let prev_continue = ctx.loop_continue_depth
+            let prev_break_local = ctx.loop_break_local
+
+            // Allocate a local for break value
+            let break_result = ctx_fresh_local(ctx, VT_I32())
+            ctx.loop_break_local = break_result
 
             // BLOCK (break target)
             ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
@@ -1763,12 +1785,28 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
 
             ctx.loop_break_depth = prev_break
             ctx.loop_continue_depth = prev_continue
+            ctx.loop_break_local = prev_break_local
+
+            // Push the break result local
+            let get_result = MirInst_new(MIR_LOCAL_GET())
+            get_result.int_val = break_result
+            ctx_emit(ctx, get_result)
+            return break_result
         }
         return 0 - 1
     }
 
     if kind == NK_BREAK() {
         if ctx.loop_break_depth >= 0 {
+            // If break has a value expression, store it in the break-result local
+            let break_children = len(node.children)
+            if break_children > 0 && ctx.loop_break_local >= 0 {
+                let break_val = get_unchecked(node.children, 0)
+                let _bv = lower_expr(ctx, break_val)
+                let set_inst = MirInst_new(MIR_LOCAL_SET())
+                set_inst.int_val = ctx.loop_break_local
+                ctx_emit(ctx, set_inst)
+            }
             let br_inst = MirInst_new(MIR_BR())
             br_inst.int_val = ctx.nesting_depth - ctx.loop_break_depth
             ctx_emit(ctx, br_inst)

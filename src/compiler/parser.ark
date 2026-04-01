@@ -876,6 +876,21 @@ fn parse_prefix(p: Parser) -> AstNode {
         return parse_match_expr(p)
     }
 
+    // Loop expression (loop { ... } used as value)
+    if t.kind == TK_LOOP() {
+        return parse_loop(p)
+    }
+
+    // While expression
+    if t.kind == TK_WHILE() {
+        return parse_while(p)
+    }
+
+    // For expression
+    if t.kind == TK_FOR() {
+        return parse_for(p)
+    }
+
     // Block expression
     if t.kind == TK_LBRACE() {
         return parse_block(p)
