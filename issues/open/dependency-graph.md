@@ -10,7 +10,7 @@ graph LR
   I290["290 セルフホスト parser に不足構文を追加する"]
   I296["296 string 型の canonical ABI lift-lower を実装する"]
   I308["308 Selfhost parser の構文 surface を拡張する"]
-  I318["318 Selfhost CLI にコマンド surface を追加する"]
+  I320["320 Selfhost CLI に package/workspace 統合を実装する"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I363["363 Stdlib Docs: module family ごとの curated overview page を作る"]
@@ -32,7 +32,7 @@ graph LR
   I309["309 Selfhost resolver に module/import resolution を実装する"]
   I311["311 Selfhost typechecker に型推論エンジンを構築する"]
   I313["313 Selfhost MIR lowering: 式のコンパイルを実装する"]
-  I320["320 Selfhost CLI に package/workspace 統合を実装する"]
+  I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
   I362["362 Stdlib: stability tier を実行時・CI で検証する"]
   I365["365 Stdlib Docs: source-backed な cookbook / recipe 集を拡充する"]
   I396["396 Stdlib Docs: family overview ページを実装し learning path を作る"]
@@ -54,7 +54,6 @@ graph LR
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I314["314 Selfhost MIR lowering: 制御フローを構築する"]
   I315["315 Selfhost MIR lowering: 集合体操作を実装する"]
-  I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
   I398["398 Stdlib Docs: recipe と fixtures / examples を結ぶ manifest を作る"]
   I402["402 Stdlib Docs: landing page と読む順番を family 単位で再設計する"]
   I409["409 Language Docs: syntax / type / error / memory の重複記述を統合する"]
@@ -99,7 +98,7 @@ graph LR
   I308 --> I309
   I308 --> I311
   I308 --> I313
-  I318 --> I320
+  I320 --> I322
   I358 --> I362
   I363 --> I365
   I363 --> I396
@@ -124,7 +123,6 @@ graph LR
   I311 --> I312
   I313 --> I314
   I313 --> I315
-  I320 --> I322
   I365 --> I398
   I396 --> I402
   I406 --> I409
@@ -173,7 +171,7 @@ graph LR
 - **290** depends on: none; blocks: 287
 - **296** depends on: 299; blocks: 297, 298
 - **308** depends on: none; blocks: 309, 311, 313
-- **318** depends on: 319; blocks: 320
+- **320** depends on: 318; blocks: 322
 - **327** depends on: none; blocks: none
 - **358** depends on: none; blocks: 362
 - **363** depends on: none; blocks: 365, 396
@@ -195,7 +193,7 @@ graph LR
 - **309** depends on: 308; blocks: 310
 - **311** depends on: 308; blocks: 312
 - **313** depends on: 308; blocks: 314, 315
-- **320** depends on: 318; blocks: 322
+- **322** depends on: 320, 321; blocks: none
 - **362** depends on: 358, 360; blocks: none
 - **365** depends on: 363; blocks: 398
 - **396** depends on: 363; blocks: 402
@@ -217,7 +215,6 @@ graph LR
 - **312** depends on: 311; blocks: none
 - **314** depends on: 313; blocks: 316
 - **315** depends on: 313; blocks: 316
-- **322** depends on: 320, 321; blocks: none
 - **398** depends on: 365; blocks: 401
 - **402** depends on: 396; blocks: 404
 - **409** depends on: 406, 408; blocks: none

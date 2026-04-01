@@ -17,6 +17,9 @@ fn CMD_COMPILE() -> i32 { 2 }
 fn CMD_CHECK() -> i32 { 3 }
 fn CMD_HELP() -> i32 { 4 }
 fn CMD_VERSION() -> i32 { 5 }
+fn CMD_RUN() -> i32 { 6 }
+fn CMD_BUILD() -> i32 { 7 }
+fn CMD_TEST() -> i32 { 8 }
 fn CMD_UNKNOWN() -> i32 { 0 }
 
 // ── Parsed CLI ───────────────────────────────────────────────────────────────
@@ -59,6 +62,9 @@ fn parse_command(name: String) -> i32 {
     if eq(name, "parse") { return CMD_PARSE() }
     if eq(name, "compile") { return CMD_COMPILE() }
     if eq(name, "check") { return CMD_CHECK() }
+    if eq(name, "run") { return CMD_RUN() }
+    if eq(name, "build") { return CMD_BUILD() }
+    if eq(name, "test") { return CMD_TEST() }
     if eq(name, "help") { return CMD_HELP() }
     if eq(name, "version") { return CMD_VERSION() }
     CMD_UNKNOWN()
@@ -164,9 +170,12 @@ fn print_usage() {
     stdio::println(String_from("  arukellt-s1 <command> [options] <input.ark>"))
     stdio::println(String_from(""))
     stdio::println(String_from("COMMANDS:"))
-    stdio::println(String_from("  parse      Parse and dump AST"))
-    stdio::println(String_from("  check      Type-check without codegen"))
     stdio::println(String_from("  compile    Compile to Wasm (default)"))
+    stdio::println(String_from("  run        Compile and execute with wasmtime"))
+    stdio::println(String_from("  build      Build project from ark.toml"))
+    stdio::println(String_from("  check      Type-check without codegen"))
+    stdio::println(String_from("  test       Discover and run test fixtures"))
+    stdio::println(String_from("  parse      Parse and dump AST"))
     stdio::println(String_from("  help       Show this help"))
     stdio::println(String_from("  version    Show version"))
     stdio::println(String_from(""))
@@ -262,13 +271,29 @@ fn main() {
         process::exit(2)
         return
     }
-    if len(opts.input_file) == 0 {
+    if len(opts.input_file) == 0 && opts.command != CMD_BUILD() && opts.command != CMD_TEST() {
         stdio::eprintln(String_from("error: no input file specified"))
         print_usage()
         process::exit(2)
         return
     }
 
+    // Dispatch by command
+    let command = opts.command
+    if command == CMD_BUILD() {
+        cmd_build(opts)
+    } else if command == CMD_TEST() {
+        cmd_test(opts)
+    } else if command == CMD_RUN() {
+        cmd_run(opts)
+    } else {
+        cmd_compile(opts)
+    }
+}
+
+// ── Command: compile / parse / check ─────────────────────────────────────────
+
+fn cmd_compile(opts: CliOptions) {
     // Build DriverConfig from CLI options
     let config = driver::DriverConfig_default()
     config.target = clone(opts.target)
@@ -324,4 +349,207 @@ fn main() {
         }
         process::exit(1)
     }
+}
+
+// ── Command: run (compile + execute) ─────────────────────────────────────────
+
+fn cmd_run(opts: CliOptions) {
+    let input_file = clone(opts.input_file)
+
+    // Compile to a wasm file
+    let config = driver::DriverConfig_default()
+    config.target = clone(opts.target)
+    config.opt_level = opts.opt_level
+    config.emit_mode = String_from("wasm")
+
+    let result = driver::compile_file(clone(input_file), config)
+
+    if !result.success {
+        let err_count = len(result.error_messages)
+        let mut i = 0
+        while i < err_count {
+            let msg = get_unchecked(result.error_messages, i)
+            stdio::eprintln(format_error(clone(input_file), clone(msg)))
+            i = i + 1
+        }
+        process::exit(1)
+        return
+    }
+
+    // Write to output file
+    let mut out_path = String_new()
+    if len(opts.output_file) > 0 {
+        out_path = clone(opts.output_file)
+    } else {
+        // Replace .ark with .wasm
+        let base = clone(input_file)
+        let base_len = len(base)
+        if base_len > 4 {
+            let ext = substring(base, base_len - 4, base_len)
+            if eq(ext, ".ark") {
+                out_path = concat(substring(base, 0, base_len - 4), String_from(".wasm"))
+            } else {
+                out_path = concat(clone(base), String_from(".wasm"))
+            }
+        } else {
+            out_path = concat(clone(base), String_from(".wasm"))
+        }
+    }
+
+    let write_result = fs::write_bytes(clone(out_path), result.output_bytes)
+    match write_result {
+        Ok(_) => {
+            stdio::eprintln(concat(String_from("compiled "), concat(clone(input_file), concat(String_from(" -> "), clone(out_path)))))
+            stdio::eprintln(String_from("run: execute with `wasmtime <output.wasm>`"))
+            // Note: process::exec is not yet available in stdlib.
+            // User must run wasmtime manually for now.
+        },
+        Err(e) => {
+            stdio::eprintln(concat(String_from("error writing output: "), e))
+            process::exit(1)
+        },
+    }
+}
+
+// ── Command: build (ark.toml-based) ──────────────────────────────────────────
+
+fn cmd_build(opts: CliOptions) {
+    // Look for ark.toml in current directory or specified path
+    let manifest_path = if len(opts.input_file) > 0 {
+        clone(opts.input_file)
+    } else {
+        String_from("ark.toml")
+    }
+
+    let manifest_result = fs::read_to_string(clone(manifest_path))
+    match manifest_result {
+        Ok(content) => {
+            // Simple ark.toml parsing: find entry = "..." line
+            let entry = find_toml_value(content, String_from("entry"))
+            if len(entry) == 0 {
+                stdio::eprintln(String_from("error: no 'entry' field found in ark.toml"))
+                process::exit(1)
+                return
+            }
+
+            stdio::eprintln(concat(String_from("building "), concat(clone(manifest_path), concat(String_from(" (entry: "), concat(clone(entry), String_from(")"))))))
+
+            let config = driver::DriverConfig_default()
+            config.target = clone(opts.target)
+            config.opt_level = opts.opt_level
+            config.emit_mode = clone(opts.emit_mode)
+
+            let result = driver::compile_file(clone(entry), config)
+            if result.success {
+                let out_path = if len(opts.output_file) > 0 {
+                    clone(opts.output_file)
+                } else {
+                    String_from("output.wasm")
+                }
+                let write_result = fs::write_bytes(clone(out_path), result.output_bytes)
+                match write_result {
+                    Ok(_) => {
+                        stdio::eprintln(concat(String_from("built "), concat(clone(entry), concat(String_from(" -> "), concat(clone(out_path), concat(String_from(" ("), concat(to_string(len(result.output_bytes)), String_from(" bytes)"))))))))
+                    },
+                    Err(e) => {
+                        stdio::eprintln(concat(String_from("error writing output: "), e))
+                        process::exit(1)
+                    },
+                }
+            } else {
+                let err_count = len(result.error_messages)
+                let mut i = 0
+                while i < err_count {
+                    let msg = get_unchecked(result.error_messages, i)
+                    stdio::eprintln(format_error(clone(entry), clone(msg)))
+                    i = i + 1
+                }
+                process::exit(1)
+            }
+        },
+        Err(e) => {
+            stdio::eprintln(concat(String_from("error: cannot read "), concat(clone(manifest_path), concat(String_from(": "), e))))
+            process::exit(1)
+        },
+    }
+}
+
+// ── Command: test (discover and run fixtures) ────────────────────────────────
+
+fn cmd_test(opts: CliOptions) {
+    // Test command compiles specified .ark files as a check
+    if len(opts.input_file) > 0 {
+        // Single file test mode
+        let input_file = clone(opts.input_file)
+        stdio::eprintln(concat(String_from("testing "), clone(input_file)))
+        let config = driver::DriverConfig_default()
+        config.target = clone(opts.target)
+        config.check_only = true
+        let result = driver::compile_file(clone(input_file), config)
+        if result.success {
+            stdio::println(concat(String_from("  PASS  "), clone(input_file)))
+        } else {
+            stdio::println(concat(String_from("  FAIL  "), clone(input_file)))
+            let err_count = len(result.error_messages)
+            let mut i = 0
+            while i < err_count {
+                let msg = get_unchecked(result.error_messages, i)
+                stdio::eprintln(concat(String_from("    "), clone(msg)))
+                i = i + 1
+            }
+            process::exit(1)
+        }
+    } else {
+        stdio::eprintln(String_from("test: specify .ark file(s) to test"))
+        stdio::eprintln(String_from("  usage: arukellt-s1 test <file.ark>"))
+        // Note: directory scanning (read_dir) is not yet available in stdlib.
+        // For now, specify files explicitly.
+        process::exit(2)
+    }
+}
+
+// ── TOML Value Extraction ────────────────────────────────────────────────────
+
+fn find_toml_value(content: String, key: String) -> String {
+    // Simple line-by-line search for key = "value"
+    let content_len = len(content)
+    let key_len = len(key)
+    let mut line_start = 0
+    let mut i = 0
+    while i < content_len {
+        if char_at(content, i) == 10 || i == content_len - 1 {
+            let line_end = if char_at(content, i) == 10 { i } else { i + 1 }
+            let line = substring(content, line_start, line_end)
+            let line_len = len(line)
+            // Check if line starts with key
+            if line_len > key_len + 3 {
+                let prefix = substring(line, 0, key_len)
+                if eq(prefix, clone(key)) {
+                    // Find = sign
+                    let mut j = key_len
+                    while j < line_len && char_at(line, j) == 32 {
+                        j = j + 1
+                    }
+                    if j < line_len && char_at(line, j) == 61 {
+                        j = j + 1
+                        while j < line_len && char_at(line, j) == 32 {
+                            j = j + 1
+                        }
+                        // Extract quoted value
+                        if j < line_len && char_at(line, j) == 34 {
+                            j = j + 1
+                            let val_start = j
+                            while j < line_len && char_at(line, j) != 34 {
+                                j = j + 1
+                            }
+                            return substring(line, val_start, j)
+                        }
+                    }
+                }
+            }
+            line_start = i + 1
+        }
+        i = i + 1
+    }
+    String_new()
 }

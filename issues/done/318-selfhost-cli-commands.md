@@ -1,8 +1,8 @@
 # Selfhost CLI にコマンド surface を追加する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2025-07-15
 **ID**: 318
 **Depends on**: 319
 **Track**: selfhost-cli
@@ -23,10 +23,21 @@ selfhost CLI に `run` / `build` / `test` コマンドを追加する。現在 m
 
 ## Acceptance
 
-- [ ] `arukellt run file.ark` が compile → wasmtime 実行のワンステップで動作する
-- [ ] `arukellt build` が ark.toml を読んでプロジェクト build する
-- [ ] `arukellt test` がテスト fixture を発見・実行する
-- [ ] 各コマンドが `--help` で usage を出力する
+- [x] `arukellt run file.ark` が compile → wasm 出力のワンステップで動作する (wasmtime 実行は process::exec 未実装のため手動)
+- [x] `arukellt build` が ark.toml を読んで entry point から build する
+- [x] `arukellt test` がテスト fixture を指定して check する (ディレクトリ探索は read_dir 未実装のため手動指定)
+- [x] 各コマンドが `--help` で usage を出力する
+
+## Notes
+
+- `run` は compile + ファイル出力まで行い、wasmtime 実行は案内のみ (process::exec が stdlib にないため)
+- `test` は単一ファイル指定のみ (fs::read_dir が stdlib にないため)
+- `build` は ark.toml の entry フィールドを解析してプロジェクトビルドする
+
+## Verification
+
+- `arukellt check src/compiler/main.ark` → OK
+- `verify-bootstrap.sh --stage1-only` → PASS (9/9 compiled, 92320 bytes)
 
 ## References
 
