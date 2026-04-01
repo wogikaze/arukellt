@@ -1121,7 +1121,15 @@ pub(crate) fn cmd_analyze_wasm_size(path: &std::path::Path) {
 
 fn parse_mir_select(s: &str) -> MirSelection {
     match s {
-        "legacy" => MirSelection::Legacy,
+        "legacy" => {
+            eprintln!(
+                "warning: --mir-select legacy is deprecated and will be removed in a future release"
+            );
+            #[allow(deprecated)]
+            {
+                MirSelection::Legacy
+            }
+        }
         "corehir" => MirSelection::CoreHir,
         other => {
             eprintln!(

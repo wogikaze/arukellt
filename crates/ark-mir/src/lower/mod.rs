@@ -178,6 +178,7 @@ pub(crate) fn finalize_lowered_module(mir: &mut MirModule) {
     finalize_module_metadata(mir);
 }
 
+#[allow(deprecated)]
 fn lower_hir_fallback(
     module: &ast::Module,
     checker: &TypeChecker,
@@ -188,6 +189,7 @@ fn lower_hir_fallback(
     mir
 }
 
+#[allow(deprecated)]
 pub fn lower_to_mir_optimized(
     module: &ast::Module,
     checker: &TypeChecker,
@@ -346,6 +348,7 @@ pub fn lower_corehir_with_fallback(
     }
 }
 
+#[allow(deprecated)]
 pub fn lower_legacy_and_corehir(
     core_hir: &Program,
     module: &ast::Module,
@@ -691,6 +694,7 @@ pub fn lowering_probe_full(
     ))
 }
 
+#[allow(deprecated)]
 pub fn lower_legacy_only(
     module: &ast::Module,
     checker: &TypeChecker,
@@ -988,5 +992,6 @@ impl LowerCtx {
     }
 }
 
-// Re-export the main lowering function from func submodule
+// Re-export the main lowering function from func submodule (deprecated, use CoreHIR path)
+#[allow(deprecated)]
 pub use func::lower_to_mir;

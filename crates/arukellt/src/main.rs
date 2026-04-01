@@ -67,8 +67,8 @@ enum Commands {
         /// Disable specific optimization pass by name
         #[arg(long = "no-pass", value_name = "NAME")]
         no_pass: Vec<String>,
-        /// MIR lowering path: legacy (default) or corehir
-        #[arg(long = "mir-select", value_name = "PATH", default_value = "legacy")]
+        /// MIR lowering path: legacy or corehir (default)
+        #[arg(long = "mir-select", value_name = "PATH", default_value = "corehir")]
         mir_select: String,
         /// WASI world to target (e.g., wasi:cli/command, wasi:http/proxy)
         #[arg(long)]
@@ -94,8 +94,8 @@ enum Commands {
         /// Optimization level (0=none, 1=safe, 2=all). Default: 1
         #[arg(long, default_value = "1")]
         opt_level: u8,
-        /// MIR lowering path: legacy (default) or corehir
-        #[arg(long = "mir-select", value_name = "PATH", default_value = "legacy")]
+        /// MIR lowering path: legacy or corehir (default)
+        #[arg(long = "mir-select", value_name = "PATH", default_value = "corehir")]
         mir_select: String,
         /// Show memory profiling info
         #[arg(long)]

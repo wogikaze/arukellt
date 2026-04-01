@@ -1,8 +1,8 @@
 # Legacy lowering path を隔離・撤去する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2025-07-15
 **ID**: 285
 **Depends on**: 284
 **Track**: corehir
@@ -21,10 +21,10 @@ CoreHIR がデフォルトになった後、legacy path (`lower_to_mir` in `func
 
 ## Acceptance
 
-- [ ] `lower_to_mir()` に `#[deprecated]` マークを付与
-- [ ] `lower_corehir_with_fallback` のフォールバック経路を除去
-- [ ] `--mir-select legacy` 使用時に deprecation warning を出す（1 リリース後に除去）
-- [ ] 全 fixture が legacy なしで pass する
+- [x] `lower_to_mir()` に `#[deprecated]` マークを付与
+- [x] `lower_corehir_with_fallback` のフォールバック経路を除去
+- [x] `--mir-select legacy` 使用時に deprecation warning を出す（1 リリース後に除去）
+- [x] 全 fixture が legacy なしで pass する
 
 ## References
 

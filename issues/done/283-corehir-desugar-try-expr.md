@@ -1,8 +1,8 @@
 # CoreHIR lowering: TryExpr を制御フローに desugar する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2025-07-15
 **ID**: 283
 **Depends on**: 281
 **Track**: corehir
@@ -21,9 +21,9 @@
 
 ## Acceptance
 
-- [ ] `Operand::TryExpr` が match-on-Result + early-return 形式の MirStmt 列に変換される
-- [ ] `?` 演算子を含む fixture が CoreHIR path 単独で compile & run 成功
-- [ ] `validate_backend_legal_module` が try 含む MIR で pass する
+- [x] `Operand::TryExpr` が match-on-Result + early-return 形式の MirStmt 列に変換される
+- [x] `?` 演算子を含む fixture が CoreHIR path 単独で compile & run 成功
+- [x] `validate_backend_legal_module` が try 含む MIR で pass する
 
 ## References
 

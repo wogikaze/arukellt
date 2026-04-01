@@ -80,6 +80,10 @@ fn type_to_type_expr(ty: &CheckerType) -> Option<ast::TypeExpr> {
 }
 
 /// Lower a type-checked module to MIR.
+#[deprecated(
+    since = "0.1.0",
+    note = "Use CoreHIR path (lower_check_output_to_mir) instead. Legacy path will be removed."
+)]
 pub fn lower_to_mir(
     module: &ast::Module,
     checker: &TypeChecker,

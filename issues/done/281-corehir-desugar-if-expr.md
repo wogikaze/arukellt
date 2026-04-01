@@ -1,8 +1,8 @@
 # CoreHIR lowering: IfExpr を制御フローに desugar する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2025-07-15
 **ID**: 281
 **Depends on**: —
 **Track**: corehir
@@ -21,9 +21,9 @@
 
 ## Acceptance
 
-- [ ] `Operand::IfExpr` が branch + basic-block 形式の `MirStmt` 列に変換される
-- [ ] 変換後の MIR が `validate_backend_legal_module` を pass する
-- [ ] `if` を含む fixture（少なくとも 50 個）が CoreHIR path 単独で compile & run 成功
+- [x] `Operand::IfExpr` が branch + basic-block 形式の `MirStmt` 列に変換される
+- [x] 変換後の MIR が `validate_backend_legal_module` を pass する
+- [x] `if` を含む fixture（少なくとも 50 個）が CoreHIR path 単独で compile & run 成功
 
 ## References
 
