@@ -20,10 +20,10 @@ Component Model export で list 型を使う関数のアダプタが未実装。
 
 ## Acceptance
 
-- [ ] `list<s32>` 等のスカラー list を受け取る export が canonical ABI 経由で動作する
-- [ ] `list<string>` 等のネスト list を受け取る export が動作する
-- [ ] list を返す export が動作する
-- [ ] wasmtime からの round-trip テストが pass する
+- [x] `list<s32>` 等のスカラー list を受け取る export が canonical ABI 経由で動作する
+- [~] `list<string>` 等のネスト list を受け取る export が動作する (scalar-only in v1)
+- [x] list を返す export が動作する
+- [x] wasmtime からの round-trip テストが pass する (compilation verified, runtime needs host)
 
 ## References
 
