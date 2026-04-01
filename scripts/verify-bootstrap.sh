@@ -124,7 +124,7 @@ MAIN_SRC="${SELFHOST_DIR}/main.ark"
 
 # ── Pre-flight ────────────────────────────────────────────────────────────────
 
-echo -e "${YELLOW}Bootstrap verification — fixpoint scaffold${NC}"
+echo -e "${YELLOW}Bootstrap verification${NC}"
 echo
 
 if [[ ! -d "$SELFHOST_DIR" ]]; then
@@ -150,33 +150,15 @@ echo
 # ── Stage 0: Compile selfhost sources with Rust compiler → s1 ────────────────
 
 stage0() {
-    local compiled=0
-    local failed=0
-
-    for src in "${SELFHOST_SOURCES[@]}"; do
-        local base
-        base="$(basename "$src" .ark)"
-        echo -e "  Compiling ${base}.ark..."
-        if "$COMPILER" compile "$src" 2>/dev/null; then
-            compiled=$((compiled + 1))
-        else
-            echo -e "  ${RED}FAIL${NC}  ${base}.ark did not compile" >&2
-            failed=$((failed + 1))
-        fi
-    done
-
-    echo -e "  Compiled: ${compiled}  Failed: ${failed}"
-
-    if [[ "$failed" -gt 0 ]]; then
-        return 1
-    fi
-
-    # If main.ark produces an output wasm, copy it as s1
-    if [[ -f "${SELFHOST_DIR}/main.wasm" ]]; then
-        cp "${SELFHOST_DIR}/main.wasm" "$S1_WASM"
-        echo -e "  Stage 1 artifact: $(wc -c < "$S1_WASM") bytes → arukellt-s1.wasm"
+    echo -e "  Compiling main.ark → arukellt-s1.wasm (unified binary)..."
+    if "$COMPILER" compile "${MAIN_SRC}" --target wasm32-wasi-p1 -o "$S1_WASM" 2>/dev/null; then
+        local size
+        size=$(wc -c < "$S1_WASM")
+        echo -e "  ${GREEN}OK${NC}  arukellt-s1.wasm (${size} bytes)"
+        return 0
     else
-        echo -e "  ${YELLOW}NOTE${NC}: main.wasm not produced (individual components compiled)"
+        echo -e "  ${RED}FAIL${NC}  main.ark did not compile" >&2
+        return 1
     fi
 }
 
@@ -201,32 +183,20 @@ if [[ -f "$S1_WASM" ]]; then
             return 1
         fi
 
-        local compiled=0
-        local failed=0
-
-        for src in "${SELFHOST_SOURCES[@]}"; do
-            local base
-            base="$(basename "$src" .ark)"
-            # Convert to relative path for WASI sandbox
-            local rel_src="${src#$REPO_ROOT/}"
-            echo -e "  Compiling ${base}.ark (via s1)..."
-            if wasmtime run --wasm gc --dir=. "$S1_WASM" -- compile "$rel_src" 2>/dev/null; then
-                compiled=$((compiled + 1))
-            else
-                echo -e "  ${RED}FAIL${NC}  ${base}.ark did not compile with s1" >&2
-                failed=$((failed + 1))
-            fi
-        done
-
-        echo -e "  Compiled: ${compiled}  Failed: ${failed}"
-
-        if [[ "$failed" -gt 0 ]]; then
+        local rel_src="${MAIN_SRC#$REPO_ROOT/}"
+        local rel_out="${S2_WASM#$REPO_ROOT/}"
+        echo -e "  Compiling main.ark → arukellt-s2.wasm (via s1)..."
+        if timeout 120 wasmtime run --dir="${REPO_ROOT}" \
+            "$S1_WASM" -- compile "$rel_src" --target wasm32-wasi-p1 \
+            -o "$rel_out" 2>/dev/null; then
+            local size
+            size=$(wc -c < "$S2_WASM")
+            echo -e "  ${GREEN}OK${NC}  arukellt-s2.wasm (${size} bytes)"
+            return 0
+        else
+            echo -e "  ${RED}FAIL${NC}  main.ark did not compile with s1" >&2
+            echo -e "  ${YELLOW}NOTE${NC}  Self-compilation requires features the selfhost may not yet support."
             return 1
-        fi
-
-        if [[ -f "${SELFHOST_DIR}/main.wasm" ]]; then
-            cp "${SELFHOST_DIR}/main.wasm" "$S2_WASM"
-            echo -e "  Stage 2 artifact: $(wc -c < "$S2_WASM") bytes → arukellt-s2.wasm"
         fi
     }
     run_stage 1 "Compile selfhost sources (arukellt-s1.wasm)" stage1
