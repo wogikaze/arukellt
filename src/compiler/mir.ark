@@ -257,6 +257,8 @@ fn NK_MATCH_ARM() -> i32 { 26 }
 fn NK_PAT_LITERAL() -> i32 { 72 }
 fn NK_PAT_WILDCARD() -> i32 { 71 }
 fn NK_PAT_IDENT() -> i32 { 70 }
+fn NK_PAT_VARIANT() -> i32 { 73 }
+fn NK_PATH() -> i32 { 16 }
 fn NK_RANGE() -> i32 { 19 }
 
 // Binary operator tags
@@ -312,6 +314,9 @@ struct LowerCtx {
     // Local variable struct type tracking (parallel arrays)
     local_types: Vec<String>,
     local_type_indices: Vec<i32>,
+    // Enum variant→tag mapping (parallel arrays)
+    variant_names: Vec<String>,
+    variant_tags: Vec<i32>,
 }
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
@@ -333,6 +338,8 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         struct_all_fields: Vec_new_String(),
         local_types: Vec_new_String(),
         local_type_indices: Vec_new_i32(),
+        variant_names: Vec_new_String(),
+        variant_tags: Vec_new_i32(),
     }
 }
 
@@ -400,6 +407,19 @@ fn ctx_get_local_type(ctx: LowerCtx, local_idx: i32) -> String {
         i = i - 1
     }
     String_new()
+}
+
+fn ctx_variant_tag(ctx: LowerCtx, name: String) -> i32 {
+    let count = len(ctx.variant_names)
+    let mut i = 0
+    while i < count {
+        let vn = get_unchecked(ctx.variant_names, i)
+        if eq(clone(vn), clone(name)) {
+            return get_unchecked(ctx.variant_tags, i)
+        }
+        i = i + 1
+    }
+    0 - 1
 }
 
 fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 {
@@ -496,6 +516,29 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
 
     // Pattern ident binding: treated as variable introduction (not needed for simple match)
     if kind == NK_PAT_IDENT() {
+        return 0 - 1
+    }
+
+    // Pattern variant: look up the discriminant tag from enum definitions
+    if kind == NK_PAT_VARIANT() {
+        let tag = ctx_variant_tag(ctx, clone(node.text))
+        if tag >= 0 {
+            let dest = ctx_fresh_local(ctx, VT_I32())
+            ctx_emit(ctx, MirInst_const_i32(tag, dest))
+            return dest
+        }
+        return 0 - 1
+    }
+
+    // Path expression: enum variant constructor (e.g. Color::Green)
+    if kind == NK_PATH() {
+        let tag = ctx_variant_tag(ctx, clone(node.text))
+        if tag >= 0 {
+            let dest = ctx_fresh_local(ctx, VT_I32())
+            ctx_emit(ctx, MirInst_const_i32(tag, dest))
+            return dest
+        }
+        // If not a variant, might be a qualified function call — handled by NK_CALL
         return 0 - 1
     }
 
@@ -1162,6 +1205,18 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                 let field = get_unchecked(decl.children, fi)
                 push(ctx.struct_all_fields, clone(field.text))
                 fi = fi + 1
+            }
+        }
+        // NK_ENUM_DECL = 52: collect variant→tag mapping
+        if decl.kind == 52 {
+            let vc = len(decl.children)
+            let mut vi = 0
+            while vi < vc {
+                let variant = get_unchecked(decl.children, vi)
+                let full_name = concat(clone(decl.text), concat(String_from("::"), clone(variant.text)))
+                push(ctx.variant_names, full_name)
+                push(ctx.variant_tags, vi)
+                vi = vi + 1
             }
         }
         sd = sd + 1
