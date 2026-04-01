@@ -291,6 +291,13 @@ struct LowerCtx {
     nesting_depth: i32,
     loop_break_depth: i32,
     loop_continue_depth: i32,
+    // Struct definitions: parallel arrays
+    struct_names: Vec<String>,
+    struct_field_counts: Vec<i32>,
+    struct_all_fields: Vec<String>,
+    // Local variable struct type tracking (parallel arrays)
+    local_types: Vec<String>,
+    local_type_indices: Vec<i32>,
 }
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
@@ -307,7 +314,78 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         nesting_depth: 0,
         loop_break_depth: 0 - 1,
         loop_continue_depth: 0 - 1,
+        struct_names: Vec_new_String(),
+        struct_field_counts: Vec_new_i32(),
+        struct_all_fields: Vec_new_String(),
+        local_types: Vec_new_String(),
+        local_type_indices: Vec_new_i32(),
     }
+}
+
+// Look up field index within a struct definition
+fn ctx_field_index(ctx: LowerCtx, struct_name: String, field_name: String) -> i32 {
+    let sc = len(ctx.struct_names)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = get_unchecked(ctx.struct_names, si)
+        let fc = get_unchecked(ctx.struct_field_counts, si)
+        if eq(clone(sn), clone(struct_name)) {
+            let mut fi = 0
+            while fi < fc {
+                let fn_name = get_unchecked(ctx.struct_all_fields, offset + fi)
+                if eq(clone(fn_name), clone(field_name)) {
+                    return fi
+                }
+                fi = fi + 1
+            }
+            return 0
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    0
+}
+
+// Find field index by name searching ALL struct definitions
+fn ctx_field_index_any(ctx: LowerCtx, field_name: String) -> i32 {
+    let sc = len(ctx.struct_names)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let fc = get_unchecked(ctx.struct_field_counts, si)
+        let mut fi = 0
+        while fi < fc {
+            let fn_name = get_unchecked(ctx.struct_all_fields, offset + fi)
+            if eq(clone(fn_name), clone(field_name)) {
+                return fi
+            }
+            fi = fi + 1
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    0
+}
+
+// Track struct type for a local variable
+fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
+    push(ctx.local_types, clone(type_name))
+    push(ctx.local_type_indices, local_idx)
+}
+
+fn ctx_get_local_type(ctx: LowerCtx, local_idx: i32) -> String {
+    let count = len(ctx.local_type_indices)
+    // Search backwards (latest assignment wins)
+    let mut i = count - 1
+    while i >= 0 {
+        let idx = get_unchecked(ctx.local_type_indices, i)
+        if idx == local_idx {
+            return clone(get_unchecked(ctx.local_types, i))
+        }
+        i = i - 1
+    }
+    String_new()
 }
 
 fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 {
@@ -628,12 +706,16 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         // text = struct name, children = field initializers
         // Each child: NK_IDENT with text=field_name, children[0]=value
         let child_count = len(node.children)
+        let struct_name = clone(node.text)
         let dest = ctx_fresh_local(ctx, VT_REF())
         let new_inst = MirInst_new(MIR_STRUCT_NEW())
         new_inst.dest = dest
-        new_inst.str_val = clone(node.text)
+        new_inst.str_val = clone(struct_name)
         new_inst.int_val = child_count
         ctx_emit(ctx, new_inst)
+
+        // Track struct type for this local
+        ctx_set_local_type(ctx, dest, clone(struct_name))
 
         let mut f = 0
         while f < child_count {
@@ -646,11 +728,19 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 set_inst.arg0 = dest
                 set_inst.arg1 = val_idx
                 set_inst.str_val = clone(field.text)
-                set_inst.int_val = f
+                // Use definition-order field index, not literal order
+                set_inst.int_val = ctx_field_index(ctx, clone(struct_name), clone(field.text))
                 ctx_emit(ctx, set_inst)
             }
             f = f + 1
         }
+
+        // Push struct base pointer onto Wasm stack for caller
+        let get_inst = MirInst_new(MIR_LOCAL_GET())
+        get_inst.arg0 = dest
+        get_inst.dest = dest
+        ctx_emit(ctx, get_inst)
+
         return dest
     }
 
@@ -665,6 +755,13 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             get_inst.dest = dest
             get_inst.arg0 = base_idx
             get_inst.str_val = clone(node.text)
+            // Resolve field index from struct type
+            let base_type = ctx_get_local_type(ctx, base_idx)
+            if len(base_type) > 0 {
+                get_inst.int_val = ctx_field_index(ctx, base_type, clone(node.text))
+            } else {
+                get_inst.int_val = ctx_field_index_any(ctx, clone(node.text))
+            }
             ctx_emit(ctx, get_inst)
             return dest
         }
@@ -735,6 +832,11 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 set_inst.arg0 = local_idx
                 set_inst.arg1 = val_idx
                 ctx_emit(ctx, set_inst)
+                // Propagate struct type from init expression to local
+                let init_type = ctx_get_local_type(ctx, val_idx)
+                if len(init_type) > 0 {
+                    ctx_set_local_type(ctx, local_idx, init_type)
+                }
             }
         }
         return 0 - 1
@@ -902,6 +1004,26 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
     // Lower each function
     let mut ctx = LowerCtx_new(m)
     ctx.fn_names = fn_names
+
+    // Collect struct definitions for field index resolution
+    // NK_STRUCT_DECL = 51 (from parser.ark)
+    let mut sd = 0
+    while sd < decl_count {
+        let decl = get_unchecked(decls, sd)
+        if decl.kind == 51 {
+            push(ctx.struct_names, clone(decl.text))
+            let fc = len(decl.children)
+            push(ctx.struct_field_counts, fc)
+            let mut fi = 0
+            while fi < fc {
+                let field = get_unchecked(decl.children, fi)
+                push(ctx.struct_all_fields, clone(field.text))
+                fi = fi + 1
+            }
+        }
+        sd = sd + 1
+    }
+
     let mut i = 0
     let mut fn_idx = 0
     while i < decl_count {
