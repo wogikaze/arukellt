@@ -1,6 +1,7 @@
-// Test: selfhost MIR expression lowering
+// Test: selfhost MIR expression lowering & control flow
 // Exercises: int literals, binary ops, variable access, function calls,
-//            let bindings, return, while loops, if expressions
+//            let bindings, return, while loops, if expressions,
+//            break, continue, nested control flow
 
 use std::host::stdio
 
@@ -33,6 +34,44 @@ fn max_val(a: i32, b: i32) -> i32 {
     }
 }
 
+fn find_first_ge(limit: i32) -> i32 {
+    let mut i = 0
+    while i < 100 {
+        if i >= limit {
+            break
+        }
+        i = i + 1
+    }
+    i
+}
+
+fn sum_skip_five(n: i32) -> i32 {
+    let mut total = 0
+    let mut i = 0
+    while i < n {
+        i = i + 1
+        if i == 5 {
+            continue
+        }
+        total = total + i
+    }
+    total
+}
+
+fn nested_loops() -> i32 {
+    let mut count = 0
+    let mut i = 0
+    while i < 3 {
+        let mut j = 0
+        while j < 4 {
+            count = count + 1
+            j = j + 1
+        }
+        i = i + 1
+    }
+    count
+}
+
 fn main() {
     // Basic arithmetic
     let sum = add(3, 4)
@@ -49,4 +88,16 @@ fn main() {
     // If expression
     let m = max_val(42, 17)
     stdio::println(to_string(m))
+
+    // Break
+    let found = find_first_ge(7)
+    stdio::println(to_string(found))
+
+    // Continue
+    let s = sum_skip_five(10)
+    stdio::println(to_string(s))
+
+    // Nested loops
+    let n = nested_loops()
+    stdio::println(to_string(n))
 }

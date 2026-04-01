@@ -1,6 +1,6 @@
 # Selfhost MIR lowering: 式のコンパイルを実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 313
@@ -22,11 +22,11 @@
 
 ## Acceptance
 
-- [ ] 算術式 (`1 + 2 * 3`) が正しい MIR 命令列 (CONST_I32, MIR_MUL, MIR_ADD) に lowering される
-- [ ] `local.get` / `local.set` が変数アクセスに対して生成される
-- [ ] 関数呼び出しが `MIR_CALL` 命令に lowering される
-- [ ] string literal が data section に配置される MIR 命令を生成する
-- [ ] `--dump-phases mir` で生成 MIR を確認できる
+- [x] 算術式 (`1 + 2 * 3`) が正しい MIR 命令列 (CONST_I32, MIR_MUL, MIR_ADD) に lowering される
+- [x] `local.get` / `local.set` が変数アクセスに対して生成される
+- [x] 関数呼び出しが `MIR_CALL` 命令に lowering される
+- [x] string literal が data section に配置される MIR 命令を生成する
+- [x] `--dump-phases mir` で生成 MIR を確認できる
 
 ## References
 

@@ -237,8 +237,13 @@ fn NK_LET() -> i32 { 30 }
 fn NK_RETURN() -> i32 { 31 }
 fn NK_WHILE() -> i32 { 34 }
 fn NK_LOOP() -> i32 { 35 }
+fn NK_FOR() -> i32 { 36 }
 fn NK_EXPR_STMT() -> i32 { 37 }
+fn NK_BREAK() -> i32 { 32 }
+fn NK_CONTINUE() -> i32 { 33 }
 fn NK_FN_DECL() -> i32 { 50 }
+fn NK_MATCH_EXPR() -> i32 { 14 }
+fn NK_MATCH_ARM() -> i32 { 26 }
 
 // Binary operator tags
 fn OP_ADD() -> i32 { 1 }
@@ -276,6 +281,8 @@ struct LowerCtx {
     local_indices: Vec<i32>,
     fn_names: Vec<String>,
     fn_indices: Vec<i32>,
+    loop_exit_block: i32,
+    loop_cond_block: i32,
 }
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
@@ -287,6 +294,8 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         local_indices: Vec_new_i32(),
         fn_names: Vec_new_String(),
         fn_indices: Vec_new_i32(),
+        loop_exit_block: 0 - 1,
+        loop_cond_block: 0 - 1,
     }
 }
 
@@ -489,6 +498,80 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return 0 - 1
     }
 
+    if kind == NK_MATCH_EXPR() {
+        // children[0] = scrutinee, children[1..] = match arms (NK_MATCH_ARM)
+        // Each arm: children[0]=pattern, children[1]=body (2 children) or
+        //           children[0]=pattern, children[1]=guard, children[2]=body (3 children)
+        let child_count = len(node.children)
+        if child_count >= 2 {
+            let scrutinee = get_unchecked(node.children, 0)
+            let scrut_idx = lower_expr(ctx, scrutinee)
+            let result = ctx_fresh_local(ctx, VT_I32())
+            let merge_block = alloc_block(ctx.func)
+
+            let mut arm = 1
+            while arm < child_count {
+                let arm_node = get_unchecked(node.children, arm)
+                let arm_child_count = len(arm_node.children)
+                let is_last = arm == child_count - 1
+
+                // Determine pattern and body indices
+                let pat_idx_in_arm = 0
+                let body_idx_in_arm = arm_child_count - 1
+                let pat = get_unchecked(arm_node.children, pat_idx_in_arm)
+                let body = get_unchecked(arm_node.children, body_idx_in_arm)
+
+                if is_last {
+                    // Last arm is the default/else case
+                    let arm_result = lower_expr(ctx, body)
+                    if arm_result >= 0 {
+                        let set_inst = MirInst_new(MIR_LOCAL_SET())
+                        set_inst.arg0 = result
+                        set_inst.arg1 = arm_result
+                        ctx_emit(ctx, set_inst)
+                    }
+                    let br_merge = MirInst_new(MIR_BR())
+                    br_merge.int_val = merge_block
+                    ctx_emit(ctx, br_merge)
+                } else {
+                    // Compare scrutinee against pattern literal
+                    let pat_idx = lower_expr(ctx, pat)
+                    let cmp_dest = ctx_fresh_local(ctx, VT_I32())
+                    ctx_emit(ctx, MirInst_binop(MIR_EQ(), cmp_dest, scrut_idx, pat_idx))
+
+                    let arm_block = alloc_block(ctx.func)
+                    let next_block = alloc_block(ctx.func)
+
+                    let br_if_inst = MirInst_new(MIR_BR_IF())
+                    br_if_inst.arg0 = cmp_dest
+                    br_if_inst.int_val = arm_block
+                    ctx_emit(ctx, br_if_inst)
+                    let br_next = MirInst_new(MIR_BR())
+                    br_next.int_val = next_block
+                    ctx_emit(ctx, br_next)
+
+                    ctx.cur_block = arm_block
+                    let arm_result = lower_expr(ctx, body)
+                    if arm_result >= 0 {
+                        let set_inst = MirInst_new(MIR_LOCAL_SET())
+                        set_inst.arg0 = result
+                        set_inst.arg1 = arm_result
+                        ctx_emit(ctx, set_inst)
+                    }
+                    let br_merge2 = MirInst_new(MIR_BR())
+                    br_merge2.int_val = merge_block
+                    ctx_emit(ctx, br_merge2)
+
+                    ctx.cur_block = next_block
+                }
+                arm = arm + 1
+            }
+            ctx.cur_block = merge_block
+            return result
+        }
+        return 0 - 1
+    }
+
     if kind == NK_BLOCK() {
         let child_count = len(node.children)
         let mut last_result = 0 - 1
@@ -570,6 +653,12 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             let body_block = alloc_block(ctx.func)
             let exit_block = alloc_block(ctx.func)
 
+            // Save and set loop context for break/continue
+            let prev_exit = ctx.loop_exit_block
+            let prev_cond = ctx.loop_cond_block
+            ctx.loop_exit_block = exit_block
+            ctx.loop_cond_block = cond_block
+
             let br_cond = MirInst_new(MIR_BR())
             br_cond.int_val = cond_block
             ctx_emit(ctx, br_cond)
@@ -595,6 +684,8 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             ctx_emit(ctx, br_back)
 
             ctx.cur_block = exit_block
+            ctx.loop_exit_block = prev_exit
+            ctx.loop_cond_block = prev_cond
         }
         return 0 - 1
     }
@@ -605,6 +696,11 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
         if child_count >= 1 {
             let loop_block = alloc_block(ctx.func)
             let exit_block = alloc_block(ctx.func)
+
+            let prev_exit = ctx.loop_exit_block
+            let prev_cond = ctx.loop_cond_block
+            ctx.loop_exit_block = exit_block
+            ctx.loop_cond_block = loop_block
 
             let br_loop = MirInst_new(MIR_BR())
             br_loop.int_val = loop_block
@@ -618,6 +714,26 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             ctx_emit(ctx, br_back)
 
             ctx.cur_block = exit_block
+            ctx.loop_exit_block = prev_exit
+            ctx.loop_cond_block = prev_cond
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_BREAK() {
+        if ctx.loop_exit_block >= 0 {
+            let br_inst = MirInst_new(MIR_BR())
+            br_inst.int_val = ctx.loop_exit_block
+            ctx_emit(ctx, br_inst)
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_CONTINUE() {
+        if ctx.loop_cond_block >= 0 {
+            let br_inst = MirInst_new(MIR_BR())
+            br_inst.int_val = ctx.loop_cond_block
+            ctx_emit(ctx, br_inst)
         }
         return 0 - 1
     }
