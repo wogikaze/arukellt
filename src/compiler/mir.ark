@@ -935,6 +935,15 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 }
             }
             // Mark dest as vec type when calling Vec_new_*
+            // Dispatch pop -> vec_pop
+            if eq(clone(call_inst.str_val), "pop") {
+                call_inst.str_val = String_from("vec_pop")
+            }
+            // Dispatch set -> vec_set
+            if eq(clone(call_inst.str_val), "set") {
+                call_inst.str_val = String_from("vec_set")
+            }
+            // unwrap, unwrap_or, is_empty pass through as-is (no rename needed)
             let dest = ctx_fresh_local(ctx, VT_I32())
             call_inst.dest = dest
             call_inst.int_val = child_count - 1
