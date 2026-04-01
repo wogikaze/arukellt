@@ -1,0 +1,52 @@
+// Test: selfhost MIR expression lowering
+// Exercises: int literals, binary ops, variable access, function calls,
+//            let bindings, return, while loops, if expressions
+
+use std::host::stdio
+
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn mul_sub(x: i32, y: i32, z: i32) -> i32 {
+    x * y - z
+}
+
+fn fib(n: i32) -> i32 {
+    let mut a = 0
+    let mut b = 1
+    let mut i = 0
+    while i < n {
+        let tmp = b
+        b = a + b
+        a = tmp
+        i = i + 1
+    }
+    a
+}
+
+fn max_val(a: i32, b: i32) -> i32 {
+    if a > b {
+        a
+    } else {
+        b
+    }
+}
+
+fn main() {
+    // Basic arithmetic
+    let sum = add(3, 4)
+    stdio::println(to_string(sum))
+
+    // Compound expression
+    let result = mul_sub(5, 6, 10)
+    stdio::println(to_string(result))
+
+    // While loop with fib
+    let f = fib(10)
+    stdio::println(to_string(f))
+
+    // If expression
+    let m = max_val(42, 17)
+    stdio::println(to_string(m))
+}

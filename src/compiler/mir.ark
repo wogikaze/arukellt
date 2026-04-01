@@ -201,8 +201,6 @@ fn intern_string(m: MirModule, s: String) -> i32 {
 }
 
 // ── HIR→MIR Lowering ────────────────────────────────────────────────────────
-// Takes TypeCheckResult and produces MirModule.
-// Currently a framework; full lowering will be expanded in Phase 3.
 
 struct TypeCheckResult {
     error_count: i32,
@@ -221,19 +219,491 @@ struct TypeInfo {
     type_args: Vec<TypeInfo>,
 }
 
+// AST node kinds (duplicated from parser — each file is compiled independently)
+fn NK_INT_LIT() -> i32 { 1 }
+fn NK_FLOAT_LIT() -> i32 { 2 }
+fn NK_STRING_LIT() -> i32 { 3 }
+fn NK_BOOL_LIT() -> i32 { 4 }
+fn NK_IDENT() -> i32 { 5 }
+fn NK_BINARY() -> i32 { 6 }
+fn NK_UNARY() -> i32 { 7 }
+fn NK_CALL() -> i32 { 8 }
+fn NK_FIELD_ACCESS() -> i32 { 9 }
+fn NK_INDEX() -> i32 { 10 }
+fn NK_IF_EXPR() -> i32 { 13 }
+fn NK_BLOCK() -> i32 { 20 }
+fn NK_ASSIGN() -> i32 { 18 }
+fn NK_LET() -> i32 { 30 }
+fn NK_RETURN() -> i32 { 31 }
+fn NK_WHILE() -> i32 { 34 }
+fn NK_LOOP() -> i32 { 35 }
+fn NK_EXPR_STMT() -> i32 { 37 }
+fn NK_FN_DECL() -> i32 { 50 }
+
+// Binary operator tags
+fn OP_ADD() -> i32 { 1 }
+fn OP_SUB() -> i32 { 2 }
+fn OP_MUL() -> i32 { 3 }
+fn OP_DIV() -> i32 { 4 }
+fn OP_MOD() -> i32 { 5 }
+fn OP_EQ() -> i32 { 6 }
+fn OP_NEQ() -> i32 { 7 }
+fn OP_LT() -> i32 { 8 }
+fn OP_LTEQ() -> i32 { 9 }
+fn OP_GT() -> i32 { 10 }
+fn OP_GTEQ() -> i32 { 11 }
+fn OP_AND() -> i32 { 12 }
+fn OP_OR() -> i32 { 13 }
+
+// Unary operator tags
+fn UOP_NEG() -> i32 { 1 }
+fn UOP_NOT() -> i32 { 2 }
+
+// Type tags
+fn TY_I32() -> i32 { 1 }
+fn TY_I64() -> i32 { 2 }
+fn TY_F64() -> i32 { 3 }
+fn TY_BOOL() -> i32 { 4 }
+fn TY_STRING() -> i32 { 5 }
+fn TY_UNIT() -> i32 { 7 }
+
+// Lowering context: tracks the current function, block, local name→index map
+struct LowerCtx {
+    module: MirModule,
+    func: MirFunction,
+    cur_block: i32,
+    local_names: Vec<String>,
+    local_indices: Vec<i32>,
+    fn_names: Vec<String>,
+    fn_indices: Vec<i32>,
+}
+
+fn LowerCtx_new(m: MirModule) -> LowerCtx {
+    LowerCtx {
+        module: m,
+        func: MirFunction_new(String_from("")),
+        cur_block: 0,
+        local_names: Vec_new_String(),
+        local_indices: Vec_new_i32(),
+        fn_names: Vec_new_String(),
+        fn_indices: Vec_new_i32(),
+    }
+}
+
+fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 {
+    let idx = alloc_local(ctx.func, clone(name), vt)
+    push(ctx.local_names, name)
+    push(ctx.local_indices, idx)
+    idx
+}
+
+fn ctx_lookup_local(ctx: LowerCtx, name: String) -> i32 {
+    let count = len(ctx.local_names)
+    let mut i = count - 1
+    while i >= 0 {
+        let n = get_unchecked(ctx.local_names, i)
+        if eq(clone(n), clone(name)) {
+            return get_unchecked(ctx.local_indices, i)
+        }
+        i = i - 1
+    }
+    0 - 1
+}
+
+fn ctx_emit(ctx: LowerCtx, inst: MirInst) {
+    emit_inst(ctx.func, ctx.cur_block, inst)
+}
+
+fn ctx_fresh_local(ctx: LowerCtx, vt: i32) -> i32 {
+    let idx = ctx.func.next_local
+    alloc_local(ctx.func, concat(String_from("_t"), to_string(idx)), vt)
+    idx
+}
+
+fn binop_to_mir(op: i32) -> i32 {
+    if op == OP_ADD() { return MIR_ADD() }
+    if op == OP_SUB() { return MIR_SUB() }
+    if op == OP_MUL() { return MIR_MUL() }
+    if op == OP_DIV() { return MIR_DIV() }
+    if op == OP_MOD() { return MIR_MOD() }
+    if op == OP_EQ() { return MIR_EQ() }
+    if op == OP_NEQ() { return MIR_NEQ() }
+    if op == OP_LT() { return MIR_LT() }
+    if op == OP_LTEQ() { return MIR_LTEQ() }
+    if op == OP_GT() { return MIR_GT() }
+    if op == OP_GTEQ() { return MIR_GTEQ() }
+    if op == OP_AND() { return MIR_AND() }
+    if op == OP_OR() { return MIR_OR() }
+    MIR_NOP()
+}
+
+// Lower an expression node, returns the local index holding the result.
+// Returns -1 for void / statement-like expressions.
+fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
+    let kind = node.kind
+
+    if kind == NK_INT_LIT() {
+        let dest = ctx_fresh_local(ctx, VT_I32())
+        ctx_emit(ctx, MirInst_const_i32(node.int_val, dest))
+        return dest
+    }
+
+    if kind == NK_FLOAT_LIT() {
+        // Workaround: encode f64 as i32 placeholder until T3 f64 struct field codegen is fixed
+        let dest = ctx_fresh_local(ctx, VT_I32())
+        ctx_emit(ctx, MirInst_const_i32(0, dest))
+        return dest
+    }
+
+    if kind == NK_BOOL_LIT() {
+        let dest = ctx_fresh_local(ctx, VT_I32())
+        ctx_emit(ctx, MirInst_const_i32(node.int_val, dest))
+        return dest
+    }
+
+    if kind == NK_STRING_LIT() {
+        let str_idx = intern_string(ctx.module, clone(node.text))
+        let dest = ctx_fresh_local(ctx, VT_REF())
+        ctx_emit(ctx, MirInst_const_string(clone(node.text), dest))
+        return dest
+    }
+
+    if kind == NK_IDENT() {
+        let idx = ctx_lookup_local(ctx, clone(node.text))
+        if idx >= 0 {
+            let inst = MirInst_new(MIR_LOCAL_GET())
+            inst.arg0 = idx
+            inst.dest = idx
+            ctx_emit(ctx, inst)
+            return idx
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_BINARY() {
+        let child_count = len(node.children)
+        if child_count >= 2 {
+            let lhs = get_unchecked(node.children, 0)
+            let rhs = get_unchecked(node.children, 1)
+            let l_idx = lower_expr(ctx, lhs)
+            let r_idx = lower_expr(ctx, rhs)
+            let dest = ctx_fresh_local(ctx, VT_I32())
+            let mir_op = binop_to_mir(node.op)
+            ctx_emit(ctx, MirInst_binop(mir_op, dest, l_idx, r_idx))
+            return dest
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_UNARY() {
+        let child_count = len(node.children)
+        if child_count >= 1 {
+            let operand = get_unchecked(node.children, 0)
+            let o_idx = lower_expr(ctx, operand)
+            let dest = ctx_fresh_local(ctx, VT_I32())
+            let mir_op = MIR_NOP()
+            if node.op == UOP_NEG() { let mir_op = MIR_NEG() }
+            if node.op == UOP_NOT() { let mir_op = MIR_NOT() }
+            let inst = MirInst_new(mir_op)
+            inst.dest = dest
+            inst.arg0 = o_idx
+            ctx_emit(ctx, inst)
+            return dest
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_CALL() {
+        // children[0] = callee, children[1..] = arguments
+        let child_count = len(node.children)
+        if child_count >= 1 {
+            let callee = get_unchecked(node.children, 0)
+            let call_inst = MirInst_new(MIR_CALL())
+            call_inst.str_val = clone(callee.text)
+            // Lower arguments
+            let mut a = 1
+            while a < child_count {
+                let arg = get_unchecked(node.children, a)
+                let _arg_idx = lower_expr(ctx, arg)
+                a = a + 1
+            }
+            let dest = ctx_fresh_local(ctx, VT_I32())
+            call_inst.dest = dest
+            call_inst.int_val = child_count - 1
+            ctx_emit(ctx, call_inst)
+            return dest
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_IF_EXPR() {
+        // children[0] = condition, children[1] = then-block, children[2] = else-block (optional)
+        let child_count = len(node.children)
+        if child_count >= 2 {
+            let cond = get_unchecked(node.children, 0)
+            let cond_idx = lower_expr(ctx, cond)
+            let result = ctx_fresh_local(ctx, VT_I32())
+
+            let then_block = alloc_block(ctx.func)
+            let merge_block = alloc_block(ctx.func)
+
+            let br_inst = MirInst_new(MIR_BR_IF())
+            br_inst.arg0 = cond_idx
+            br_inst.int_val = then_block
+            ctx_emit(ctx, br_inst)
+
+            // Then block
+            ctx.cur_block = then_block
+            let then_body = get_unchecked(node.children, 1)
+            let then_result = lower_expr(ctx, then_body)
+            if then_result >= 0 {
+                let set_inst = MirInst_new(MIR_LOCAL_SET())
+                set_inst.arg0 = result
+                set_inst.arg1 = then_result
+                ctx_emit(ctx, set_inst)
+            }
+            let br_merge = MirInst_new(MIR_BR())
+            br_merge.int_val = merge_block
+            ctx_emit(ctx, br_merge)
+
+            // Else block (optional)
+            if child_count >= 3 {
+                let else_block = alloc_block(ctx.func)
+                ctx.cur_block = else_block
+                let else_body = get_unchecked(node.children, 2)
+                let else_result = lower_expr(ctx, else_body)
+                if else_result >= 0 {
+                    let set_inst2 = MirInst_new(MIR_LOCAL_SET())
+                    set_inst2.arg0 = result
+                    set_inst2.arg1 = else_result
+                    ctx_emit(ctx, set_inst2)
+                }
+                let br_merge2 = MirInst_new(MIR_BR())
+                br_merge2.int_val = merge_block
+                ctx_emit(ctx, br_merge2)
+            }
+
+            ctx.cur_block = merge_block
+            return result
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_BLOCK() {
+        let child_count = len(node.children)
+        let mut last_result = 0 - 1
+        let mut s = 0
+        while s < child_count {
+            let stmt = get_unchecked(node.children, s)
+            last_result = lower_stmt(ctx, stmt)
+            s = s + 1
+        }
+        return last_result
+    }
+
+    if kind == NK_ASSIGN() {
+        // children[0] = target, children[1] = value
+        let child_count = len(node.children)
+        if child_count >= 2 {
+            let target = get_unchecked(node.children, 0)
+            let value = get_unchecked(node.children, 1)
+            let val_idx = lower_expr(ctx, value)
+            if target.kind == NK_IDENT() {
+                let local_idx = ctx_lookup_local(ctx, clone(target.text))
+                if local_idx >= 0 && val_idx >= 0 {
+                    let set_inst = MirInst_new(MIR_LOCAL_SET())
+                    set_inst.arg0 = local_idx
+                    set_inst.arg1 = val_idx
+                    ctx_emit(ctx, set_inst)
+                }
+            }
+        }
+        return 0 - 1
+    }
+
+    // Unknown expression: emit NOP
+    ctx_emit(ctx, MirInst_new(MIR_NOP()))
+    0 - 1
+}
+
+// Lower a statement node. Returns local index if it produces a value.
+fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
+    let kind = node.kind
+
+    if kind == NK_LET() {
+        // text = binding name, children[0] = init expr (if present)
+        let vt = VT_I32()
+        let local_idx = ctx_alloc_local(ctx, clone(node.text), vt)
+        let child_count = len(node.children)
+        if child_count >= 1 {
+            let init = get_unchecked(node.children, 0)
+            let val_idx = lower_expr(ctx, init)
+            if val_idx >= 0 {
+                let set_inst = MirInst_new(MIR_LOCAL_SET())
+                set_inst.arg0 = local_idx
+                set_inst.arg1 = val_idx
+                ctx_emit(ctx, set_inst)
+            }
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_RETURN() {
+        let child_count = len(node.children)
+        if child_count >= 1 {
+            let expr = get_unchecked(node.children, 0)
+            let val_idx = lower_expr(ctx, expr)
+            let ret_inst = MirInst_new(MIR_RETURN())
+            ret_inst.arg0 = val_idx
+            ctx_emit(ctx, ret_inst)
+        } else {
+            ctx_emit(ctx, MirInst_new(MIR_RETURN()))
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_WHILE() {
+        // children[0] = condition, children[1] = body
+        let child_count = len(node.children)
+        if child_count >= 2 {
+            let cond_block = alloc_block(ctx.func)
+            let body_block = alloc_block(ctx.func)
+            let exit_block = alloc_block(ctx.func)
+
+            let br_cond = MirInst_new(MIR_BR())
+            br_cond.int_val = cond_block
+            ctx_emit(ctx, br_cond)
+
+            // Condition block
+            ctx.cur_block = cond_block
+            let cond = get_unchecked(node.children, 0)
+            let cond_idx = lower_expr(ctx, cond)
+            let br_if_inst = MirInst_new(MIR_BR_IF())
+            br_if_inst.arg0 = cond_idx
+            br_if_inst.int_val = body_block
+            ctx_emit(ctx, br_if_inst)
+            let br_exit = MirInst_new(MIR_BR())
+            br_exit.int_val = exit_block
+            ctx_emit(ctx, br_exit)
+
+            // Body block
+            ctx.cur_block = body_block
+            let body = get_unchecked(node.children, 1)
+            let _body_result = lower_expr(ctx, body)
+            let br_back = MirInst_new(MIR_BR())
+            br_back.int_val = cond_block
+            ctx_emit(ctx, br_back)
+
+            ctx.cur_block = exit_block
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_LOOP() {
+        // children[0] = body
+        let child_count = len(node.children)
+        if child_count >= 1 {
+            let loop_block = alloc_block(ctx.func)
+            let exit_block = alloc_block(ctx.func)
+
+            let br_loop = MirInst_new(MIR_BR())
+            br_loop.int_val = loop_block
+            ctx_emit(ctx, br_loop)
+
+            ctx.cur_block = loop_block
+            let body = get_unchecked(node.children, 0)
+            let _body_result = lower_expr(ctx, body)
+            let br_back = MirInst_new(MIR_BR())
+            br_back.int_val = loop_block
+            ctx_emit(ctx, br_back)
+
+            ctx.cur_block = exit_block
+        }
+        return 0 - 1
+    }
+
+    if kind == NK_EXPR_STMT() {
+        let child_count = len(node.children)
+        if child_count >= 1 {
+            let expr = get_unchecked(node.children, 0)
+            let result = lower_expr(ctx, expr)
+            return result
+        }
+        return 0 - 1
+    }
+
+    // Expression in statement position
+    lower_expr(ctx, node)
+}
+
 pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirModule {
     let m = MirModule_new()
-    let fn_count = len(check_result.typed_fns)
+
+    // Build function name→index map from declarations
+    let decl_count = len(decls)
+    let mut fn_names = Vec_new_String()
+    let mut fn_index = 0
+    let mut d = 0
+    while d < decl_count {
+        let decl = get_unchecked(decls, d)
+        if decl.kind == NK_FN_DECL() {
+            push(fn_names, clone(decl.text))
+            fn_index = fn_index + 1
+        }
+        d = d + 1
+    }
+
+    // Lower each function
+    let mut ctx = LowerCtx_new(m)
+    ctx.fn_names = fn_names
     let mut i = 0
-    while i < fn_count {
-        let tf = get_unchecked(check_result.typed_fns, i)
-        let mf = MirFunction_new(clone(tf.name))
-        let entry = alloc_block(mf)
-        emit_inst(mf, entry, MirInst_new(MIR_NOP()))
-        push(m.functions, mf)
+    let mut fn_idx = 0
+    while i < decl_count {
+        let decl = get_unchecked(decls, i)
+        if decl.kind == NK_FN_DECL() {
+            let tf = get_unchecked(check_result.typed_fns, fn_idx)
+            let mf = MirFunction_new(clone(decl.text))
+            ctx.func = mf
+            ctx.local_names = Vec_new_String()
+            ctx.local_indices = Vec_new_i32()
+
+            // Allocate parameters as locals
+            let child_count = len(decl.children)
+            let body_idx = child_count - 1
+            let mut p = 0
+            while p < body_idx {
+                let param = get_unchecked(decl.children, p)
+                if param.kind == NK_IDENT() {
+                    ctx_alloc_local(ctx, clone(param.text), VT_I32())
+                }
+                p = p + 1
+            }
+
+            // Create entry block
+            let entry = alloc_block(ctx.func)
+            ctx.cur_block = entry
+
+            // Lower body (last child is the block)
+            if body_idx >= 0 {
+                let body = get_unchecked(decl.children, body_idx)
+                let result = lower_expr(ctx, body)
+                // Implicit return if function has return type
+                if result >= 0 {
+                    let ret_inst = MirInst_new(MIR_RETURN())
+                    ret_inst.arg0 = result
+                    ctx_emit(ctx, ret_inst)
+                } else {
+                    ctx_emit(ctx, MirInst_new(MIR_RETURN()))
+                }
+            }
+
+            push(ctx.module.functions, ctx.func)
+            fn_idx = fn_idx + 1
+        }
         i = i + 1
     }
-    m
+
+    ctx.module
 }
 
 // ── MIR Dump ─────────────────────────────────────────────────────────────────

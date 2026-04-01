@@ -625,3 +625,4 @@ run:variables/tuple.ark
 t3-compile:variables/tuple.ark
 t3-run:variables/tuple.ark
 run:selfhost/parser_new_syntax.ark
+run:selfhost/mir_lowering.ark
