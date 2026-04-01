@@ -230,6 +230,25 @@ impl LowerCtx {
                             .insert(local_id.0, inner_type.clone());
                     }
                 }
+                // Infer Vec<Struct> from field access (e.g. let items = outer.items)
+                if !self.vec_struct_locals.contains_key(&local_id.0)
+                    && let ast::Expr::FieldAccess { object, field, .. } = init
+                    && let Some(parent_struct) = self.infer_struct_type(object)
+                    && let Some(elem_struct) = self
+                        .vec_struct_fields
+                        .get(&(parent_struct, field.clone()))
+                        .cloned()
+                {
+                    self.vec_struct_locals.insert(local_id.0, elem_struct);
+                }
+                // Infer Vec<Struct> from another local (e.g. let items2 = items)
+                if !self.vec_struct_locals.contains_key(&local_id.0)
+                    && let ast::Expr::Ident { name: src_name, .. } = init
+                    && let Some(src_id) = self.lookup_local(src_name)
+                    && let Some(elem_struct) = self.vec_struct_locals.get(&src_id.0).cloned()
+                {
+                    self.vec_struct_locals.insert(local_id.0, elem_struct);
+                }
                 // Infer struct type from get_unchecked(vec, i) where vec is a Vec<Struct>
                 // Case 1: vec is a local variable tracked in vec_struct_locals
                 if !self.struct_typed_locals.contains_key(&local_id.0)
