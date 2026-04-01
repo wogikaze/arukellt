@@ -22,10 +22,10 @@ completion を「位置無関係の全候補フラット表示」から、カー
 
 ## Acceptance
 
-- [ ] `.` の後でレシーバ型に応じた method / field が提案される
-- [ ] `match` arm の pattern 位置で enum variant が提案される
-- [ ] 型注釈位置 (`:` の後) で型名が優先表示される
-- [ ] `use` 文の後で import 可能な module / symbol が提案される
+- [x] `.` の後でレシーバ型に応じた method / field が提案される
+- [x] `match` arm の pattern 位置で enum variant が提案される
+- [x] 型注釈位置 (`:` の後) で型名が優先表示される
+- [x] `use` 文の後で import 可能な module / symbol が提案される
 
 ## References
 

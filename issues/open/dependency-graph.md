@@ -67,7 +67,6 @@ graph LR
   I337["337 LSP: signature help を stdlib 連携で完成させる"]
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I339["339 LSP: rename を semantic-aware に置き換える"]
-  I342["342 LSP: completion をコンテキスト対応にする"]
   I357["357 Tooling Contract: release gate を手動チェックリストから自動検証に移行する"]
   I398["398 Stdlib Docs: recipe と fixtures / examples を結ぶ manifest を作る"]
   I402["402 Stdlib Docs: landing page と読む順番を family 単位で再設計する"]
@@ -150,7 +149,6 @@ graph LR
   I333 --> I441
   I335 --> I441
   I338 --> I339
-  I338 --> I342
   I355 --> I357
   I356 --> I357
   I365 --> I398
@@ -241,7 +239,7 @@ graph LR
 - **321** depends on: 319; blocks: 322
 - **334** depends on: 333; blocks: 337, 439
 - **335** depends on: 333; blocks: 439, 441
-- **338** depends on: 333; blocks: 339, 342, 439
+- **338** depends on: 333; blocks: 339, 439
 - **356** depends on: 355; blocks: 357
 - **362** depends on: 358, 360; blocks: none
 - **365** depends on: 363; blocks: 398
@@ -268,7 +266,6 @@ graph LR
 - **337** depends on: 334; blocks: none
 - **441** depends on: 333, 335, 340; blocks: 444
 - **339** depends on: 338; blocks: 439
-- **342** depends on: 338; blocks: none
 - **357** depends on: 354, 355, 356; blocks: none
 - **398** depends on: 365; blocks: 401
 - **402** depends on: 396; blocks: 404

@@ -255,12 +255,513 @@ impl ArukellBackend {
         }
     }
 
+    /// Detect if the cursor is in a type annotation context (after `:` or `->`).
+    fn is_type_annotation_context(before: &str) -> bool {
+        // Walk backwards past the identifier prefix to find `: ` or `-> `
+        let trimmed = before.trim_end();
+        let without_prefix = {
+            let mut s = trimmed;
+            while s.ends_with(|c: char| c.is_alphanumeric() || c == '_') {
+                s = &s[..s.len() - 1];
+            }
+            s.trim_end()
+        };
+        without_prefix.ends_with(':') || without_prefix.ends_with("->")
+    }
+
+    /// Detect if the cursor is inside a match arm pattern position.
+    fn is_match_arm_context(before: &str) -> bool {
+        let lines: Vec<&str> = before.lines().collect();
+        if lines.is_empty() {
+            return false;
+        }
+        let last_line = lines[lines.len() - 1];
+        let lt = last_line.trim();
+
+        // Cursor is on an empty/whitespace-only line, or after `{`, or after `=>,`
+        if lt.is_empty() || lt == "{" || lt.ends_with("=>") || lt.ends_with(',') {
+            for i in (0..lines.len()).rev() {
+                let l = lines[i].trim();
+                if l.starts_with("match ") || l.contains("match ") {
+                    return true;
+                }
+                if l.starts_with("fn ") || l.starts_with("struct ") || l.starts_with("enum ") {
+                    break;
+                }
+            }
+        }
+        false
+    }
+
+    /// Resolve the receiver type name from text before a `.`.
+    fn resolve_receiver_type<'a>(
+        before_dot: &str,
+        module: &ast::Module,
+        checker: Option<&'a ark_typecheck::TypeChecker>,
+    ) -> Option<String> {
+        // Extract the receiver identifier (rightmost ident before the dot)
+        let trimmed = before_dot.trim_end();
+        // Strip the trailing dot if present
+        let without_dot = trimmed.strip_suffix('.').unwrap_or(trimmed);
+        let receiver_name = {
+            let end = without_dot.len();
+            let bytes = without_dot.as_bytes();
+            let mut start = end;
+            while start > 0 {
+                let b = bytes[start - 1];
+                if b.is_ascii_alphanumeric() || b == b'_' {
+                    start -= 1;
+                } else {
+                    break;
+                }
+            }
+            if start == end {
+                return None;
+            }
+            &without_dot[start..end]
+        };
+
+        // Try to find the variable's type from let binding annotations
+        for item in &module.items {
+            if let ast::Item::FnDef(f) = item {
+                if let Some(ty) = Self::find_var_type_in_stmts(&f.body.stmts, receiver_name) {
+                    return Some(ty);
+                }
+            }
+        }
+
+        // Try checker's fn_sig for function return type if receiver is a call
+        if let Some(chk) = checker {
+            if let Some(sig) = chk.fn_sig(receiver_name) {
+                return Some(format!("{}", sig.ret));
+            }
+        }
+
+        None
+    }
+
+    /// Find a variable's type annotation from let statements in a block.
+    fn find_var_type_in_stmts(stmts: &[ast::Stmt], name: &str) -> Option<String> {
+        for stmt in stmts {
+            if let ast::Stmt::Let {
+                name: var_name,
+                ty,
+                ..
+            } = stmt
+            {
+                if var_name == name {
+                    if let Some(type_expr) = ty {
+                        return Some(Self::type_expr_to_string(type_expr));
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    /// Convert a TypeExpr to a string representation.
+    fn type_expr_to_string(ty: &ast::TypeExpr) -> String {
+        match ty {
+            ast::TypeExpr::Named { name, .. } => name.clone(),
+            ast::TypeExpr::Generic { name, args, .. } => {
+                let args_str: Vec<String> = args.iter().map(Self::type_expr_to_string).collect();
+                format!("{}<{}>", name, args_str.join(", "))
+            }
+            ast::TypeExpr::Tuple(elts, _) => {
+                let parts: Vec<String> = elts.iter().map(Self::type_expr_to_string).collect();
+                format!("({})", parts.join(", "))
+            }
+            ast::TypeExpr::Array { elem, size, .. } => {
+                format!("[{}; {}]", Self::type_expr_to_string(elem), size)
+            }
+            ast::TypeExpr::Slice { elem, .. } => {
+                format!("[{}]", Self::type_expr_to_string(elem))
+            }
+            ast::TypeExpr::Function { params, ret, .. } => {
+                let p: Vec<String> = params.iter().map(Self::type_expr_to_string).collect();
+                format!("fn({}) -> {}", p.join(", "), Self::type_expr_to_string(ret))
+            }
+            ast::TypeExpr::Unit(_) => "()".to_string(),
+            ast::TypeExpr::Qualified { module, name, .. } => format!("{module}::{name}"),
+        }
+    }
+
+    /// Provide completions after a `.` — struct fields and impl methods.
+    fn dot_completions(
+        before_dot: &str,
+        module: &ast::Module,
+        checker: Option<&ark_typecheck::TypeChecker>,
+        prefix: &str,
+    ) -> Vec<CompletionItem> {
+        let mut items = Vec::new();
+        let mut seen = HashSet::new();
+
+        let type_name = Self::resolve_receiver_type(before_dot, module, checker);
+
+        if let Some(ref tn) = type_name {
+            // Provide struct fields from AST
+            for item in &module.items {
+                if let ast::Item::StructDef(s) = item {
+                    if &s.name == tn {
+                        for field in &s.fields {
+                            if !prefix.is_empty() && !field.name.starts_with(prefix) {
+                                continue;
+                            }
+                            Self::push_completion(
+                                &mut items,
+                                &mut seen,
+                                CompletionItem {
+                                    label: field.name.clone(),
+                                    kind: Some(CompletionItemKind::FIELD),
+                                    detail: Some(format!(
+                                        "{}: {}",
+                                        field.name,
+                                        Self::type_expr_to_string(&field.ty)
+                                    )),
+                                    sort_text: Some(format!("0-{}", field.name)),
+                                    ..Default::default()
+                                },
+                            );
+                        }
+                    }
+                }
+            }
+
+            // Also check checker struct_defs for additional field info
+            if let Some(chk) = checker {
+                if let Some(info) = chk.struct_info(tn) {
+                    for (fname, ftype) in &info.fields {
+                        if !prefix.is_empty() && !fname.starts_with(prefix) {
+                            continue;
+                        }
+                        Self::push_completion(
+                            &mut items,
+                            &mut seen,
+                            CompletionItem {
+                                label: fname.clone(),
+                                kind: Some(CompletionItemKind::FIELD),
+                                detail: Some(format!("{}: {}", fname, ftype)),
+                                sort_text: Some(format!("0-{fname}")),
+                                ..Default::default()
+                            },
+                        );
+                    }
+                }
+            }
+
+            // Provide impl methods
+            for item in &module.items {
+                if let ast::Item::ImplBlock(ib) = item {
+                    if ib.target_type == *tn {
+                        for method in &ib.methods {
+                            if !prefix.is_empty() && !method.name.starts_with(prefix) {
+                                continue;
+                            }
+                            let params_str: Vec<String> = method
+                                .params
+                                .iter()
+                                .filter(|p| p.name != "self")
+                                .map(|p| {
+                                    format!("{}: {}", p.name, Self::type_expr_to_string(&p.ty))
+                                })
+                                .collect();
+                            let detail = if let Some(ret) = &method.return_type {
+                                format!(
+                                    "fn {}({}) -> {}",
+                                    method.name,
+                                    params_str.join(", "),
+                                    Self::type_expr_to_string(ret)
+                                )
+                            } else {
+                                format!("fn {}({})", method.name, params_str.join(", "))
+                            };
+                            Self::push_completion(
+                                &mut items,
+                                &mut seen,
+                                CompletionItem {
+                                    label: method.name.clone(),
+                                    kind: Some(CompletionItemKind::METHOD),
+                                    detail: Some(detail),
+                                    sort_text: Some(format!("0-{}", method.name)),
+                                    ..Default::default()
+                                },
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        // String/Vec builtin methods (always available since these are common)
+        let builtin_methods: &[(&str, &[(&str, &str)])] = &[
+            (
+                "String",
+                &[
+                    ("len", "fn len() -> i32"),
+                    ("is_empty", "fn is_empty() -> bool"),
+                    ("contains", "fn contains(s: String) -> bool"),
+                    ("starts_with", "fn starts_with(s: String) -> bool"),
+                    ("ends_with", "fn ends_with(s: String) -> bool"),
+                    ("trim", "fn trim() -> String"),
+                    ("to_uppercase", "fn to_uppercase() -> String"),
+                    ("to_lowercase", "fn to_lowercase() -> String"),
+                    ("split", "fn split(sep: String) -> Vec<String>"),
+                    ("replace", "fn replace(from: String, to: String) -> String"),
+                    ("chars", "fn chars() -> Vec<char>"),
+                ],
+            ),
+            (
+                "Vec",
+                &[
+                    ("len", "fn len() -> i32"),
+                    ("is_empty", "fn is_empty() -> bool"),
+                    ("push", "fn push(item: T)"),
+                    ("pop", "fn pop() -> Option<T>"),
+                    ("first", "fn first() -> Option<T>"),
+                    ("last", "fn last() -> Option<T>"),
+                    ("contains", "fn contains(item: T) -> bool"),
+                    ("reverse", "fn reverse()"),
+                    ("sort", "fn sort()"),
+                    ("map", "fn map(f: fn(T) -> U) -> Vec<U>"),
+                    ("filter", "fn filter(f: fn(T) -> bool) -> Vec<T>"),
+                ],
+            ),
+        ];
+
+        let show_builtins = type_name.as_deref() == Some("String")
+            || type_name.as_deref() == Some("Vec")
+            || type_name.is_none();
+
+        if show_builtins {
+            for (ty_name, methods) in builtin_methods {
+                if let Some(ref tn) = type_name {
+                    if tn != *ty_name && !tn.starts_with(&format!("{}<", ty_name)) {
+                        continue;
+                    }
+                }
+                for (name, detail) in *methods {
+                    if !prefix.is_empty() && !name.starts_with(prefix) {
+                        continue;
+                    }
+                    Self::push_completion(
+                        &mut items,
+                        &mut seen,
+                        CompletionItem {
+                            label: name.to_string(),
+                            kind: Some(CompletionItemKind::METHOD),
+                            detail: Some(detail.to_string()),
+                            sort_text: Some(format!("1-{name}")),
+                            ..Default::default()
+                        },
+                    );
+                }
+            }
+        }
+
+        items.sort_by(|a, b| a.sort_text.cmp(&b.sort_text).then(a.label.cmp(&b.label)));
+        items
+    }
+
+    /// Provide completions in `use` statement context — only module paths.
+    fn use_completions(
+        manifest: Option<&StdlibManifest>,
+        prefix: &str,
+        imported: &HashSet<String>,
+    ) -> Vec<CompletionItem> {
+        let mut items = Vec::new();
+        let mut seen = HashSet::new();
+
+        if let Some(m) = manifest {
+            let candidates = m.import_candidates();
+            for (alias, module_name) in &candidates {
+                if !prefix.is_empty()
+                    && !alias.starts_with(prefix)
+                    && !module_name.starts_with(prefix)
+                {
+                    continue;
+                }
+                let already = imported.contains(module_name.as_str());
+                let detail = if already {
+                    format!("{module_name} (already imported)")
+                } else {
+                    module_name.clone()
+                };
+                Self::push_completion(
+                    &mut items,
+                    &mut seen,
+                    CompletionItem {
+                        label: module_name.clone(),
+                        kind: Some(CompletionItemKind::MODULE),
+                        detail: Some(detail),
+                        sort_text: Some(format!("0-{module_name}")),
+                        insert_text: Some(module_name.clone()),
+                        ..Default::default()
+                    },
+                );
+            }
+        } else {
+            let modules = [
+                "std::host::stdio",
+                "std::host::fs",
+                "std::host::env",
+                "std::path",
+                "std::time",
+                "std::test",
+                "std::math",
+                "std::string",
+                "std::collections",
+            ];
+            for module_name in &modules {
+                if !prefix.is_empty() && !module_name.starts_with(prefix) {
+                    continue;
+                }
+                Self::push_completion(
+                    &mut items,
+                    &mut seen,
+                    CompletionItem {
+                        label: module_name.to_string(),
+                        kind: Some(CompletionItemKind::MODULE),
+                        sort_text: Some(format!("0-{module_name}")),
+                        ..Default::default()
+                    },
+                );
+            }
+        }
+
+        items.sort_by(|a, b| a.sort_text.cmp(&b.sort_text).then(a.label.cmp(&b.label)));
+        items
+    }
+
+    /// Provide completions inside match arm patterns — enum variants.
+    fn match_arm_completions(
+        module: &ast::Module,
+        checker: Option<&ark_typecheck::TypeChecker>,
+        prefix: &str,
+    ) -> Vec<CompletionItem> {
+        let mut items = Vec::new();
+        let mut seen = HashSet::new();
+
+        // From AST enum definitions
+        for item in &module.items {
+            if let ast::Item::EnumDef(e) = item {
+                for variant in &e.variants {
+                    let (vname, insert, detail) = match variant {
+                        ast::Variant::Unit { name, .. } => {
+                            let qualified = format!("{}::{}", e.name, name);
+                            (qualified.clone(), qualified, format!("{}::{}", e.name, name))
+                        }
+                        ast::Variant::Tuple { name, fields, .. } => {
+                            let qualified = format!("{}::{}", e.name, name);
+                            let placeholders: Vec<String> =
+                                fields.iter().enumerate().map(|(i, _)| format!("_{i}")).collect();
+                            let insert = format!("{}({})", qualified, placeholders.join(", "));
+                            let detail = format!(
+                                "{}::{}({})",
+                                e.name,
+                                name,
+                                fields
+                                    .iter()
+                                    .map(Self::type_expr_to_string)
+                                    .collect::<Vec<_>>()
+                                    .join(", ")
+                            );
+                            (qualified, insert, detail)
+                        }
+                        ast::Variant::Struct {
+                            name, fields, ..
+                        } => {
+                            let qualified = format!("{}::{}", e.name, name);
+                            let field_names: Vec<String> =
+                                fields.iter().map(|f| f.name.clone()).collect();
+                            let insert =
+                                format!("{} {{ {} }}", qualified, field_names.join(", "));
+                            (qualified, insert, format!("{}::{} {{ ... }}", e.name, name))
+                        }
+                    };
+                    if !prefix.is_empty() && !vname.starts_with(prefix) {
+                        // Also match on the unqualified variant name
+                        let unqualified = vname.rsplit("::").next().unwrap_or(&vname);
+                        if !unqualified.starts_with(prefix) {
+                            continue;
+                        }
+                    }
+                    Self::push_completion(
+                        &mut items,
+                        &mut seen,
+                        CompletionItem {
+                            label: vname,
+                            kind: Some(CompletionItemKind::ENUM_MEMBER),
+                            detail: Some(detail),
+                            insert_text: Some(insert),
+                            sort_text: Some(format!("0-{}", match variant {
+                                ast::Variant::Unit { name, .. }
+                                | ast::Variant::Tuple { name, .. }
+                                | ast::Variant::Struct { name, .. } => name.as_str(),
+                            })),
+                            ..Default::default()
+                        },
+                    );
+                }
+            }
+        }
+
+        // From checker enum_defs (may have additional type info)
+        if let Some(chk) = checker {
+            for (ename, info) in chk.enum_defs_iter() {
+                for v in &info.variants {
+                    let qualified = format!("{ename}::{}", v.name);
+                    if !prefix.is_empty() && !qualified.starts_with(prefix) && !v.name.starts_with(prefix) {
+                        continue;
+                    }
+                    let detail = if v.fields.is_empty() {
+                        qualified.clone()
+                    } else {
+                        format!(
+                            "{qualified}({})",
+                            v.fields.iter().map(|f| format!("{f}")).collect::<Vec<_>>().join(", ")
+                        )
+                    };
+                    Self::push_completion(
+                        &mut items,
+                        &mut seen,
+                        CompletionItem {
+                            label: qualified,
+                            kind: Some(CompletionItemKind::ENUM_MEMBER),
+                            detail: Some(detail),
+                            sort_text: Some(format!("0-{}", v.name)),
+                            ..Default::default()
+                        },
+                    );
+                }
+            }
+        }
+
+        // Also add wildcard `_` pattern
+        if prefix.is_empty() || "_".starts_with(prefix) {
+            Self::push_completion(
+                &mut items,
+                &mut seen,
+                CompletionItem {
+                    label: "_".to_string(),
+                    kind: Some(CompletionItemKind::KEYWORD),
+                    detail: Some("wildcard pattern".to_string()),
+                    sort_text: Some("9-_".to_string()),
+                    ..Default::default()
+                },
+            );
+        }
+
+        items.sort_by(|a, b| a.sort_text.cmp(&b.sort_text).then(a.label.cmp(&b.label)));
+        items
+    }
+
     fn get_completions(
         source: &str,
         tokens: &[ark_lexer::Token],
         module: &ast::Module,
         offset: usize,
         manifest: Option<&StdlibManifest>,
+        checker: Option<&ark_typecheck::TypeChecker>,
     ) -> Vec<CompletionItem> {
         let mut items = Vec::new();
         let mut seen = HashSet::new();
@@ -268,6 +769,36 @@ impl ArukellBackend {
         let imported_modules = Self::already_imported_modules(module);
         let imported_aliases = Self::imported_aliases(module);
         let expected_type = Self::expected_type_from_context(source, offset);
+
+        // --- Context detection ---
+        let capped = offset.min(source.len());
+        let before = &source[..capped];
+        let before_trimmed = before.trim_end();
+
+        // Dot completion: `expr.` → provide fields and methods for receiver type
+        if before_trimmed.ends_with('.') {
+            return Self::dot_completions(before_trimmed, module, checker, &prefix);
+        }
+
+        // Use statement: `use ` → provide only module paths
+        let last_line = before.lines().last().unwrap_or("");
+        let last_line_left_trimmed = last_line.trim_start();
+        if last_line_left_trimmed.starts_with("use ") || last_line_left_trimmed == "use" {
+            return Self::use_completions(manifest, &prefix, &imported_modules);
+        }
+
+        // Type annotation: `: ` or `-> ` → prioritize type names
+        let is_type_context = Self::is_type_annotation_context(before_trimmed);
+
+        // Match arm: inside `match expr { ... |` → provide enum variants
+        if Self::is_match_arm_context(before) {
+            let match_items =
+                Self::match_arm_completions(module, checker, &prefix);
+            if !match_items.is_empty() {
+                return match_items;
+            }
+            // Fallback to normal completions if no enum variants found
+        }
 
         // Prelude functions from manifest (replaces hardcoded builtins).
         if let Some(m) = manifest {
@@ -497,16 +1028,70 @@ impl ArukellBackend {
             if !prefix.is_empty() && !ty.starts_with(&prefix) {
                 continue;
             }
+            let rank = if is_type_context {
+                format!("0-{ty}")
+            } else {
+                format!("4-{ty}")
+            };
             Self::push_completion(
                 &mut items,
                 &mut seen,
                 CompletionItem {
                     label: ty.to_string(),
                     kind: Some(CompletionItemKind::CLASS),
-                    sort_text: Some(format!("4-{ty}")),
+                    sort_text: Some(rank),
                     ..Default::default()
                 },
             );
+        }
+
+        // User-defined struct/enum types (promoted in type annotation context)
+        for item in &module.items {
+            match item {
+                ast::Item::StructDef(s) => {
+                    if !prefix.is_empty() && !s.name.starts_with(&prefix) {
+                        continue;
+                    }
+                    let rank = if is_type_context {
+                        format!("0-{}", s.name)
+                    } else {
+                        format!("4-{}", s.name)
+                    };
+                    Self::push_completion(
+                        &mut items,
+                        &mut seen,
+                        CompletionItem {
+                            label: s.name.clone(),
+                            kind: Some(CompletionItemKind::STRUCT),
+                            detail: Some(format!("struct {}", s.name)),
+                            sort_text: Some(rank),
+                            ..Default::default()
+                        },
+                    );
+                }
+                ast::Item::EnumDef(e) => {
+                    if !prefix.is_empty() && !e.name.starts_with(&prefix) {
+                        continue;
+                    }
+                    let rank = if is_type_context {
+                        format!("0-{}", e.name)
+                    } else {
+                        format!("4-{}", e.name)
+                    };
+                    Self::push_completion(
+                        &mut items,
+                        &mut seen,
+                        CompletionItem {
+                            label: e.name.clone(),
+                            kind: Some(CompletionItemKind::ENUM),
+                            detail: Some(format!("enum {}", e.name)),
+                            sort_text: Some(rank),
+                            ..Default::default()
+                        },
+                    );
+                }
+                _ => {}
+            }
         }
 
         // Extract identifiers from cached tokens.
@@ -969,40 +1554,6 @@ impl ArukellBackend {
                 }
             }
             _ => None,
-        }
-    }
-
-    /// Format a `TypeExpr` as a human-readable string.
-    fn type_expr_to_string(ty: &ast::TypeExpr) -> String {
-        match ty {
-            ast::TypeExpr::Named { name, .. } => name.clone(),
-            ast::TypeExpr::Generic { name, args, .. } => {
-                let args_str: Vec<String> = args.iter().map(Self::type_expr_to_string).collect();
-                format!("{}<{}>", name, args_str.join(", "))
-            }
-            ast::TypeExpr::Tuple(elems, _) => {
-                let parts: Vec<String> = elems.iter().map(Self::type_expr_to_string).collect();
-                format!("({})", parts.join(", "))
-            }
-            ast::TypeExpr::Array { elem, size, .. } => {
-                format!("[{}; {}]", Self::type_expr_to_string(elem), size)
-            }
-            ast::TypeExpr::Slice { elem, .. } => {
-                format!("[{}]", Self::type_expr_to_string(elem))
-            }
-            ast::TypeExpr::Function { params, ret, .. } => {
-                let params_str: Vec<String> =
-                    params.iter().map(Self::type_expr_to_string).collect();
-                format!(
-                    "fn({}) -> {}",
-                    params_str.join(", "),
-                    Self::type_expr_to_string(ret)
-                )
-            }
-            ast::TypeExpr::Unit(_) => "()".to_string(),
-            ast::TypeExpr::Qualified { module, name, .. } => {
-                format!("{module}::{name}")
-            }
         }
     }
 
@@ -2646,7 +3197,7 @@ impl LanguageServer for ArukellBackend {
 
         let offset = Self::position_to_offset(&source, params.text_document_position.position);
         let manifest = self.stdlib_manifest.lock().unwrap();
-        let items = Self::get_completions(&source, &analysis.tokens, &analysis.module, offset, manifest.as_ref());
+        let items = Self::get_completions(&source, &analysis.tokens, &analysis.module, offset, manifest.as_ref(), analysis.checker.as_ref());
         Ok(Some(CompletionResponse::Array(items)))
     }
 
@@ -3997,11 +4548,19 @@ mod tests {
         }
     }
 
+    fn parse_source(source: &str) -> (Vec<ark_lexer::Token>, ast::Module) {
+        let mut sink = DiagnosticSink::new();
+        let lexer = Lexer::new(0, source);
+        let tokens: Vec<_> = lexer.collect();
+        let module = parse(&tokens, &mut sink);
+        (tokens, module)
+    }
+
     #[test]
     fn completion_includes_auto_import_candidate_for_stdio() {
         let source = "std";
         let tokens = vec![];
-        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len(), None);
+        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len(), None, None);
         let stdio = items
             .iter()
             .find(|item| item.label == "stdio")
@@ -4020,7 +4579,7 @@ mod tests {
     fn completion_prefers_string_helpers_in_print_context() {
         let source = "fn main() { println(to_";
         let tokens = vec![];
-        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len(), None);
+        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len(), None, None);
         assert_eq!(
             items.first().map(|item| item.label.as_str()),
             Some("to_string")
@@ -4039,7 +4598,7 @@ mod tests {
             }],
             items: vec![],
         };
-        let items = ArukellBackend::get_completions(source, &[], &module, source.len(), None);
+        let items = ArukellBackend::get_completions(source, &[], &module, source.len(), None, None);
         let stdio = items
             .iter()
             .find(|item| item.label == "stdio")
@@ -4112,7 +4671,7 @@ mod tests {
         let manifest = load_test_manifest();
         let source = "asse";
         let items = ArukellBackend::get_completions(
-            source, &[], &empty_module(), source.len(), Some(&manifest),
+            source, &[], &empty_module(), source.len(), Some(&manifest), None,
         );
         let assert_item = items.iter().find(|i| i.label == "assert");
         assert!(assert_item.is_some(), "manifest completions should include assert");
@@ -4127,7 +4686,7 @@ mod tests {
         let manifest = load_test_manifest();
         let source = "";
         let items = ArukellBackend::get_completions(
-            source, &[], &empty_module(), source.len(), Some(&manifest),
+            source, &[], &empty_module(), source.len(), Some(&manifest), None,
         );
         let module_items: Vec<&str> = items.iter()
             .filter(|i| i.kind == Some(CompletionItemKind::MODULE))
@@ -4162,7 +4721,7 @@ mod tests {
         let manifest = load_test_manifest();
         let source = "";
         let items = ArukellBackend::get_completions(
-            source, &[], &empty_module(), source.len(), Some(&manifest),
+            source, &[], &empty_module(), source.len(), Some(&manifest), None,
         );
         // Check that deprecated functions have the deprecated flag
         let deprecated_in_manifest: Vec<&str> = manifest.functions.iter()
@@ -4301,5 +4860,68 @@ fn add(a: i32, b: i32) -> i32 {
         assert_eq!(ArukellBackend::find_call_open_paren("foo("), Some(3));
         assert_eq!(ArukellBackend::find_call_open_paren("foo(bar(1), "), Some(3));
         assert_eq!(ArukellBackend::find_call_open_paren("outer(inner("), Some(11));
+    }
+
+    #[test]
+    fn dot_completion_provides_struct_fields() {
+        let source = "struct Point { x: i32, y: i32 }\nfn main() {\n    let p: Point = Point { x: 1, y: 2 }\n    p.\n}\n";
+        let (tokens, module) = parse_source(source);
+        // Cursor after `p.`
+        let dot_pos = source.find("p.\n").unwrap() + 2;
+        let items = ArukellBackend::get_completions(source, &tokens, &module, dot_pos, None, None);
+        let field_names: Vec<&str> = items.iter()
+            .filter(|i| i.kind == Some(CompletionItemKind::FIELD))
+            .map(|i| i.label.as_str())
+            .collect();
+        assert!(field_names.contains(&"x"), "dot completion should include field 'x'");
+        assert!(field_names.contains(&"y"), "dot completion should include field 'y'");
+    }
+
+    #[test]
+    fn type_annotation_context_prioritizes_types() {
+        let source = "struct MyStruct { val: i32 }\nfn foo(x: ) {\n}\n";
+        let (tokens, module) = parse_source(source);
+        // Cursor after `: ` in `x: `
+        let colon_pos = source.find("x: ").unwrap() + 3;
+        let items = ArukellBackend::get_completions(source, &tokens, &module, colon_pos, None, None);
+        // Types should be ranked higher (sort_text "0-") in type context
+        let type_items: Vec<&CompletionItem> = items.iter()
+            .filter(|i| i.kind == Some(CompletionItemKind::CLASS) || i.kind == Some(CompletionItemKind::STRUCT) || i.kind == Some(CompletionItemKind::ENUM))
+            .collect();
+        assert!(!type_items.is_empty(), "type annotation context should have type completions");
+        for item in &type_items {
+            assert!(item.sort_text.as_deref().unwrap_or("").starts_with("0-"),
+                "type '{}' should be top-ranked in type annotation context", item.label);
+        }
+    }
+
+    #[test]
+    fn use_statement_context_shows_modules() {
+        let source = "use ";
+        let (tokens, module) = parse_source(source);
+        let items = ArukellBackend::get_completions(source, &tokens, &module, source.len(), None, None);
+        // Should only return module items
+        assert!(!items.is_empty(), "use context should provide module completions");
+        for item in &items {
+            assert_eq!(item.kind, Some(CompletionItemKind::MODULE),
+                "use context should only show modules, got {:?} for '{}'", item.kind, item.label);
+        }
+    }
+
+    #[test]
+    fn match_arm_completion_provides_enum_variants() {
+        let source = "enum Color { Red, Green, Blue }\nfn main() {\n    let c = Color::Red\n    match c {\n        \n    }\n}\n";
+        let (tokens, module) = parse_source(source);
+        let match_pos = source.find("        \n    }").unwrap() + 8;
+        let items = ArukellBackend::get_completions(source, &tokens, &module, match_pos, None, None);
+        let variant_labels: Vec<&str> = items.iter()
+            .filter(|i| i.kind == Some(CompletionItemKind::ENUM_MEMBER))
+            .map(|i| i.label.as_str())
+            .collect();
+        assert!(variant_labels.iter().any(|l| l.contains("Red")), "match arm should suggest Color::Red");
+        assert!(variant_labels.iter().any(|l| l.contains("Green")), "match arm should suggest Color::Green");
+        assert!(variant_labels.iter().any(|l| l.contains("Blue")), "match arm should suggest Color::Blue");
+        let has_wildcard = items.iter().any(|i| i.label == "_");
+        assert!(has_wildcard, "match arm should suggest wildcard pattern");
     }
 }
