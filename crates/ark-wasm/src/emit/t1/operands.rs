@@ -6039,12 +6039,11 @@ impl EmitCtx {
                 };
                 let total_size = self.struct_total_size(name).max(fields.len() as u32 * 4);
                 let layout_fields = self.struct_layouts.get(name).cloned().unwrap_or_default();
-                let save_addr = STRUCT_BASE + self.struct_init_depth * 4;
+                let save_local = self.struct_init_local_base + self.struct_init_depth;
                 self.struct_init_depth += 1;
-                // Save base = current heap_ptr to scratch
-                f.instruction(&Instruction::I32Const(save_addr as i32));
+                // Save base = current heap_ptr to a Wasm local (not scratch memory)
                 f.instruction(&Instruction::GlobalGet(0));
-                f.instruction(&Instruction::I32Store(ma_i32));
+                f.instruction(&Instruction::LocalSet(save_local));
                 // Bump heap for this struct
                 f.instruction(&Instruction::GlobalGet(0));
                 f.instruction(&Instruction::I32Const(total_size as i32));
@@ -6058,9 +6057,8 @@ impl EmitCtx {
                         .get(i)
                         .map(|(_, ftype)| Self::field_type_info(ftype))
                         .unwrap_or((4, false, false));
-                    // Load saved base
-                    f.instruction(&Instruction::I32Const(save_addr as i32));
-                    f.instruction(&Instruction::I32Load(ma_i32));
+                    // Load saved base from Wasm local
+                    f.instruction(&Instruction::LocalGet(save_local));
                     if offset > 0 {
                         f.instruction(&Instruction::I32Const(offset as i32));
                         f.instruction(&Instruction::I32Add);
@@ -6081,8 +6079,7 @@ impl EmitCtx {
                 }
                 self.struct_init_depth -= 1;
                 // Push saved base as result
-                f.instruction(&Instruction::I32Const(save_addr as i32));
-                f.instruction(&Instruction::I32Load(ma_i32));
+                f.instruction(&Instruction::LocalGet(save_local));
             }
             Operand::FieldAccess {
                 object,
@@ -6136,11 +6133,10 @@ impl EmitCtx {
                 let total_size = self.enum_variant_total_size(enum_name, variant);
                 let depth = self.enum_init_depth;
                 self.enum_init_depth += 1;
-                // Pre-allocate: bump heap pointer and save base to scratch
-                // Save current heap_ptr as base for this enum
-                f.instruction(&Instruction::I32Const((ENUM_BASE + depth * 4) as i32));
+                let save_local = self.enum_init_local_base + depth;
+                // Pre-allocate: bump heap pointer and save base to Wasm local
                 f.instruction(&Instruction::GlobalGet(0));
-                f.instruction(&Instruction::I32Store(ma_i32));
+                f.instruction(&Instruction::LocalSet(save_local));
                 // Bump heap pointer past this enum's allocation
                 f.instruction(&Instruction::GlobalGet(0));
                 f.instruction(&Instruction::I32Const(total_size as i32));
@@ -6148,16 +6144,14 @@ impl EmitCtx {
                 f.instruction(&Instruction::GlobalSet(0));
                 self.emit_heap_grow_check(f);
                 // Store tag at base + 0
-                f.instruction(&Instruction::I32Const((ENUM_BASE + depth * 4) as i32));
-                f.instruction(&Instruction::I32Load(ma_i32));
+                f.instruction(&Instruction::LocalGet(save_local));
                 f.instruction(&Instruction::I32Const(*tag));
                 f.instruction(&Instruction::I32Store(ma_i32));
                 // Store each payload value with proper type
                 for (i, pval) in payload.iter().enumerate() {
                     let (offset, is_f64, is_i64) = self.enum_payload_info(enum_name, variant, i);
-                    // Load saved base pointer
-                    f.instruction(&Instruction::I32Const((ENUM_BASE + depth * 4) as i32));
-                    f.instruction(&Instruction::I32Load(ma_i32));
+                    // Load saved base pointer from Wasm local
+                    f.instruction(&Instruction::LocalGet(save_local));
                     f.instruction(&Instruction::I32Const(offset as i32));
                     f.instruction(&Instruction::I32Add);
                     self.emit_operand(f, pval);
@@ -6174,8 +6168,7 @@ impl EmitCtx {
                     }
                 }
                 // Push base pointer as result
-                f.instruction(&Instruction::I32Const((ENUM_BASE + depth * 4) as i32));
-                f.instruction(&Instruction::I32Load(ma_i32));
+                f.instruction(&Instruction::LocalGet(save_local));
                 self.enum_init_depth -= 1;
             }
             Operand::EnumTag(inner) => {

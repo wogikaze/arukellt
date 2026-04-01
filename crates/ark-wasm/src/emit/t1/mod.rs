@@ -213,7 +213,9 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         fn_names: mir.functions.iter().map(|f| f.name.clone()).collect(),
         loop_depths: Vec::new(),
         struct_init_depth: 0,
+        struct_init_local_base: 0,
         enum_init_depth: 0,
+        enum_init_local_base: 0,
         string_locals: HashSet::new(),
         vec_string_locals: HashSet::new(),
         vec_i64_locals: HashSet::new(),
@@ -259,8 +261,14 @@ struct EmitCtx {
     loop_depths: Vec<u32>,
     /// Nesting depth for struct init (for saving base pointers during nested allocations).
     struct_init_depth: u32,
+    /// Wasm local index where struct init temp locals start (one i32 per nesting level).
+    /// Using Wasm locals instead of scratch memory avoids cross-function corruption
+    /// when a struct field value is a function call that itself creates structs.
+    struct_init_local_base: u32,
     /// Nesting depth for enum init (for saving base pointers during nested allocations).
     enum_init_depth: u32,
+    /// Wasm local index where enum init temp locals start.
+    enum_init_local_base: u32,
     /// Locals known to hold string values (for println dispatch).
     string_locals: HashSet<u32>,
     /// Locals known to hold Vec<String> values (for get/get_unchecked dispatch).
@@ -611,6 +619,16 @@ impl EmitCtx {
                 locals.push((1, Self::type_to_valtype(&local.ty)));
             }
         }
+
+        // Add 8 extra i32 locals for struct init base pointers (avoids scratch memory
+        // corruption when function calls in struct field values create their own structs)
+        let struct_init_base = num_locals;
+        self.struct_init_local_base = struct_init_base;
+        locals.push((8, ValType::I32));
+        // Add 8 extra i32 locals for enum init base pointers
+        let enum_init_base = struct_init_base + 8;
+        self.enum_init_local_base = enum_init_base;
+        locals.push((8, ValType::I32));
 
         let mut f = Function::new(locals);
 
