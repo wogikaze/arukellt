@@ -9,7 +9,7 @@ use ark_lexer::{Lexer, TokenKind};
 use ark_parser::ast;
 use ark_parser::parse;
 use ark_stdlib::StdlibManifest;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
@@ -35,6 +35,45 @@ struct CachedAnalysis {
     diagnostics: Vec<Diagnostic>,
 }
 
+/// A symbol definition discovered during indexing.
+#[derive(Clone, Debug)]
+struct SymbolEntry {
+    /// The file containing this symbol.
+    uri: Url,
+    /// Human-readable name.
+    name: String,
+    /// LSP symbol kind.
+    kind: SymbolKind,
+    /// Source span (byte offsets within the file).
+    span: ark_diagnostics::Span,
+    /// Optional detail string (e.g. signature).
+    detail: Option<String>,
+    /// Module path (e.g. "std::host::env") for stdlib symbols.
+    module: Option<String>,
+}
+
+/// A symbol from the stdlib manifest (no file span — virtual).
+#[derive(Clone, Debug)]
+struct StdlibSymbol {
+    name: String,
+    kind: SymbolKind,
+    module: Option<String>,
+    detail: String,
+    /// Path to the .ark source file, if available.
+    source_file: Option<PathBuf>,
+}
+
+/// Project-wide symbol index.  Stores top-level definitions from all known
+/// files and from the stdlib manifest.
+struct SymbolIndex {
+    /// Map from symbol name to file-backed definitions.
+    file_symbols: HashMap<String, Vec<SymbolEntry>>,
+    /// Stdlib symbols derived from manifest.
+    stdlib_symbols: Vec<StdlibSymbol>,
+    /// Files that have been indexed.
+    indexed_files: HashSet<Url>,
+}
+
 struct ArukellBackend {
     client: Client,
     documents: Mutex<HashMap<Url, String>>,
@@ -45,6 +84,8 @@ struct ArukellBackend {
     workspace_roots: Mutex<Vec<PathBuf>>,
     /// Parsed stdlib manifest for completions, hover, signature help.
     stdlib_manifest: Mutex<Option<StdlibManifest>>,
+    /// Project-wide symbol index (file symbols + stdlib symbols).
+    symbol_index: Mutex<SymbolIndex>,
 }
 
 impl ArukellBackend {
@@ -56,12 +97,19 @@ impl ArukellBackend {
             project_root: Mutex::new(None),
             workspace_roots: Mutex::new(Vec::new()),
             stdlib_manifest: Mutex::new(None),
+            symbol_index: Mutex::new(SymbolIndex {
+                file_symbols: HashMap::new(),
+                stdlib_symbols: Vec::new(),
+                indexed_files: HashSet::new(),
+            }),
         }
     }
 
     async fn refresh_diagnostics(&self, uri: Url, text: &str) {
         let analysis = Self::analyze_source(text);
         let diagnostics = analysis.diagnostics.clone();
+        // Update symbol index from this file's analysis
+        Self::update_file_symbols(&self.symbol_index, &uri, &analysis.module);
         {
             let mut cache = self.analysis_cache.lock().unwrap();
             cache.insert(uri.clone(), analysis);
@@ -69,6 +117,200 @@ impl ArukellBackend {
         self.client
             .publish_diagnostics(uri, diagnostics, None)
             .await;
+    }
+
+    /// Extract top-level symbols from an AST module and update the index.
+    fn update_file_symbols(
+        index: &Mutex<SymbolIndex>,
+        uri: &Url,
+        module: &ast::Module,
+    ) {
+        let mut entries = Vec::new();
+        for item in &module.items {
+            match item {
+                ast::Item::FnDef(f) => {
+                    let params: Vec<String> = f.params.iter().map(|p| {
+                        format!("{}: {}", p.name, Self::type_expr_to_string(&p.ty))
+                    }).collect();
+                    let ret = f.return_type.as_ref()
+                        .map(|t| format!(" -> {}", Self::type_expr_to_string(t)))
+                        .unwrap_or_default();
+                    let sig = format!("fn {}({}){}", f.name, params.join(", "), ret);
+                    entries.push(SymbolEntry {
+                        uri: uri.clone(),
+                        name: f.name.clone(),
+                        kind: SymbolKind::FUNCTION,
+                        span: f.span,
+                        detail: Some(sig),
+                        module: None,
+                    });
+                }
+                ast::Item::StructDef(s) => {
+                    entries.push(SymbolEntry {
+                        uri: uri.clone(),
+                        name: s.name.clone(),
+                        kind: SymbolKind::STRUCT,
+                        span: s.span,
+                        detail: Some(format!("struct {}", s.name)),
+                        module: None,
+                    });
+                }
+                ast::Item::EnumDef(e) => {
+                    entries.push(SymbolEntry {
+                        uri: uri.clone(),
+                        name: e.name.clone(),
+                        kind: SymbolKind::ENUM,
+                        span: e.span,
+                        detail: Some(format!("enum {}", e.name)),
+                        module: None,
+                    });
+                }
+                ast::Item::TraitDef(t) => {
+                    entries.push(SymbolEntry {
+                        uri: uri.clone(),
+                        name: t.name.clone(),
+                        kind: SymbolKind::INTERFACE,
+                        span: t.span,
+                        detail: Some(format!("trait {}", t.name)),
+                        module: None,
+                    });
+                }
+                ast::Item::ImplBlock(ib) => {
+                    for m in &ib.methods {
+                        entries.push(SymbolEntry {
+                            uri: uri.clone(),
+                            name: m.name.clone(),
+                            kind: SymbolKind::METHOD,
+                            span: m.span,
+                            detail: Some(format!("fn {}", m.name)),
+                            module: None,
+                        });
+                    }
+                }
+            }
+        }
+
+        let mut idx = index.lock().unwrap();
+        // Remove old entries for this file
+        for list in idx.file_symbols.values_mut() {
+            list.retain(|e| e.uri != *uri);
+        }
+        // Insert new entries
+        for entry in entries {
+            idx.file_symbols
+                .entry(entry.name.clone())
+                .or_default()
+                .push(entry);
+        }
+        idx.indexed_files.insert(uri.clone());
+    }
+
+    /// Build stdlib symbols from the manifest.
+    fn index_stdlib_from_manifest(index: &Mutex<SymbolIndex>, manifest: &StdlibManifest, std_dir: Option<&PathBuf>) {
+        let mut stdlib_symbols = Vec::new();
+
+        for func in &manifest.functions {
+            let params_str = func.params.join(", ");
+            let ret_str = func.returns.as_deref().unwrap_or("()");
+            let sig = format!("fn {}({}) -> {}", func.name, params_str, ret_str);
+
+            // Try to find the source file for this function's module
+            let source_file = func.module.as_ref().and_then(|mod_path| {
+                std_dir.and_then(|root| {
+                    // Convert "std::host::env" to "std/host/env.ark"
+                    let rel = mod_path.replace("::", "/");
+                    let path = root.parent()?.join(format!("{}.ark", rel));
+                    if path.exists() { Some(path) } else { None }
+                })
+            });
+
+            stdlib_symbols.push(StdlibSymbol {
+                name: func.name.clone(),
+                kind: SymbolKind::FUNCTION,
+                module: func.module.clone(),
+                detail: sig,
+                source_file,
+            });
+        }
+
+        for ty in &manifest.types {
+            stdlib_symbols.push(StdlibSymbol {
+                name: ty.name.clone(),
+                kind: SymbolKind::STRUCT,
+                module: None,
+                detail: format!("type {}", ty.name),
+                source_file: None,
+            });
+        }
+
+        let mut idx = index.lock().unwrap();
+        idx.stdlib_symbols = stdlib_symbols;
+    }
+
+    /// Scan project directory for .ark files and index them.
+    fn index_project_files(index: &Mutex<SymbolIndex>, root: &PathBuf) {
+        let walker = Self::walk_ark_files(root);
+        for path in walker {
+            if let Ok(source) = std::fs::read_to_string(&path) {
+                if let Ok(uri) = Url::from_file_path(&path) {
+                    let mut sink = DiagnosticSink::new();
+                    let lexer = Lexer::new(0, &source);
+                    let tokens: Vec<_> = lexer.collect();
+                    let module = parse(&tokens, &mut sink);
+                    Self::update_file_symbols(index, &uri, &module);
+                }
+            }
+        }
+    }
+
+    /// Collect all .ark files under a directory.
+    fn walk_ark_files(dir: &PathBuf) -> Vec<PathBuf> {
+        let mut files = Vec::new();
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    // Skip target/, .git, node_modules, etc.
+                    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                    if !name.starts_with('.') && name != "target" && name != "node_modules" {
+                        files.extend(Self::walk_ark_files(&path));
+                    }
+                } else if path.extension().and_then(|e| e.to_str()) == Some("ark") {
+                    files.push(path);
+                }
+            }
+        }
+        files
+    }
+
+    /// Look up a symbol in the project-wide index (file symbols + stdlib).
+    fn lookup_symbol_in_index(index: &Mutex<SymbolIndex>, name: &str) -> Vec<SymbolEntry> {
+        let idx = index.lock().unwrap();
+        let mut results: Vec<SymbolEntry> = idx
+            .file_symbols
+            .get(name)
+            .cloned()
+            .unwrap_or_default();
+
+        // Also check stdlib
+        for sym in &idx.stdlib_symbols {
+            if sym.name == name {
+                if let Some(ref path) = sym.source_file {
+                    if let Ok(uri) = Url::from_file_path(path) {
+                        results.push(SymbolEntry {
+                            uri,
+                            name: sym.name.clone(),
+                            kind: sym.kind,
+                            span: ark_diagnostics::Span { file_id: 0, start: 0, end: 0 },
+                            detail: Some(sym.detail.clone()),
+                            module: sym.module.clone(),
+                        });
+                    }
+                }
+            }
+        }
+
+        results
     }
 
     fn offset_to_position(source: &str, offset: u32) -> Position {
@@ -3034,14 +3276,42 @@ impl LanguageServer for ArukellBackend {
     }
 
     async fn initialized(&self, _: InitializedParams) {
-        let root_msg = match self.project_root.lock().unwrap().as_deref() {
+        // Build symbol index from project files and stdlib manifest.
+        let project_root = self.project_root.lock().unwrap().clone();
+        if let Some(ref root) = project_root {
+            Self::index_project_files(&self.symbol_index, root);
+        }
+
+        // Index stdlib symbols from manifest
+        {
+            let manifest = self.stdlib_manifest.lock().unwrap();
+            if let Some(ref m) = *manifest {
+                Self::index_stdlib_from_manifest(
+                    &self.symbol_index,
+                    m,
+                    project_root.as_ref(),
+                );
+            }
+        }
+
+        let indexed_count = {
+            let idx = self.symbol_index.lock().unwrap();
+            let file_count = idx.indexed_files.len();
+            let stdlib_count = idx.stdlib_symbols.len();
+            (file_count, stdlib_count)
+        };
+
+        let root_msg = match project_root.as_deref() {
             Some(root) => format!("project root: {}", root.display()),
             None => "single-file mode (no ark.toml found)".to_string(),
         };
         self.client
             .log_message(
                 MessageType::INFO,
-                format!("arukellt LSP server initialized — {root_msg}"),
+                format!(
+                    "arukellt LSP server initialized — {} (indexed {} files, {} stdlib symbols)",
+                    root_msg, indexed_count.0, indexed_count.1
+                ),
             )
             .await;
     }
@@ -3228,16 +3498,59 @@ impl LanguageServer for ArukellBackend {
             None => return Ok(None),
         };
 
-        let span = match Self::find_definition_span(&analysis.module, &name) {
-            Some(s) => s,
-            None => return Ok(None),
-        };
+        // Try local definition first (same file)
+        if let Some(span) = Self::find_definition_span(&analysis.module, &name) {
+            let range = Self::span_to_range(&source, span);
+            return Ok(Some(GotoDefinitionResponse::Scalar(Location {
+                uri,
+                range,
+            })));
+        }
 
-        let range = Self::span_to_range(&source, span);
-        Ok(Some(GotoDefinitionResponse::Scalar(Location {
-            uri,
-            range,
-        })))
+        // Fall back to project-wide symbol index (cross-file + stdlib)
+        drop(cache); // Release lock before querying index
+        let entries = Self::lookup_symbol_in_index(&self.symbol_index, &name);
+        if let Some(entry) = entries.first() {
+            if entry.span.start == 0 && entry.span.end == 0 {
+                // Stdlib symbol without exact span — try to find in source file
+                if let Ok(target_source) = entry.uri.to_file_path()
+                    .map_err(|_| ())
+                    .and_then(|p| std::fs::read_to_string(&p).map_err(|_| ()))
+                {
+                    // Parse the file and find the definition
+                    let mut sink = DiagnosticSink::new();
+                    let lexer = Lexer::new(0, &target_source);
+                    let tokens: Vec<_> = lexer.collect();
+                    let target_module = parse(&tokens, &mut sink);
+                    if let Some(span) = Self::find_definition_span(&target_module, &name) {
+                        let range = Self::span_to_range(&target_source, span);
+                        return Ok(Some(GotoDefinitionResponse::Scalar(Location {
+                            uri: entry.uri.clone(),
+                            range,
+                        })));
+                    }
+                }
+                // Even without exact span, jump to the file start
+                return Ok(Some(GotoDefinitionResponse::Scalar(Location {
+                    uri: entry.uri.clone(),
+                    range: Range::new(Position::new(0, 0), Position::new(0, 0)),
+                })));
+            }
+
+            // Cross-file symbol with known span — load source and resolve
+            if let Ok(target_source) = entry.uri.to_file_path()
+                .map_err(|_| ())
+                .and_then(|p| std::fs::read_to_string(&p).map_err(|_| ()))
+            {
+                let range = Self::span_to_range(&target_source, entry.span);
+                return Ok(Some(GotoDefinitionResponse::Scalar(Location {
+                    uri: entry.uri.clone(),
+                    range,
+                })));
+            }
+        }
+
+        Ok(None)
     }
 
     async fn references(&self, params: ReferenceParams) -> Result<Option<Vec<Location>>> {
@@ -3443,12 +3756,67 @@ impl LanguageServer for ArukellBackend {
         let query = params.query.to_lowercase();
         let mut all_symbols = Vec::new();
 
-        let cache = self.analysis_cache.lock().unwrap();
-        for (uri, analysis) in cache.iter() {
-            let doc_symbols = Self::document_symbols(uri, "", &analysis.module);
-            for sym in doc_symbols {
+        // Search open files (from analysis cache)
+        {
+            let cache = self.analysis_cache.lock().unwrap();
+            for (uri, analysis) in cache.iter() {
+                let doc_symbols = Self::document_symbols(uri, "", &analysis.module);
+                for sym in doc_symbols {
+                    if sym.name.to_lowercase().contains(&query) {
+                        all_symbols.push(sym);
+                    }
+                }
+            }
+        }
+
+        // Search project-wide symbol index (includes unopened files)
+        {
+            let idx = self.symbol_index.lock().unwrap();
+            let seen: HashSet<String> = all_symbols.iter().map(|s| {
+                format!("{}:{}", s.location.uri, s.name)
+            }).collect();
+
+            for entries in idx.file_symbols.values() {
+                for entry in entries {
+                    if entry.name.to_lowercase().contains(&query) {
+                        let key = format!("{}:{}", entry.uri, entry.name);
+                        if !seen.contains(&key) {
+                            #[allow(deprecated)]
+                            all_symbols.push(SymbolInformation {
+                                name: entry.name.clone(),
+                                kind: entry.kind,
+                                tags: None,
+                                deprecated: None,
+                                location: Location {
+                                    uri: entry.uri.clone(),
+                                    range: Range::new(Position::new(0, 0), Position::new(0, 0)),
+                                },
+                                container_name: entry.module.clone(),
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Also include matching stdlib symbols
+            for sym in &idx.stdlib_symbols {
                 if sym.name.to_lowercase().contains(&query) {
-                    all_symbols.push(sym);
+                    if let Some(ref path) = sym.source_file {
+                        if let Ok(uri) = Url::from_file_path(path) {
+                            #[allow(deprecated)]
+                            all_symbols.push(SymbolInformation {
+                                name: sym.name.clone(),
+                                kind: sym.kind,
+                                tags: None,
+                                deprecated: None,
+                                location: Location {
+                                    uri,
+                                    range: Range::new(Position::new(0, 0), Position::new(0, 0)),
+                                },
+                                container_name: sym.module.clone(),
+                            });
+                        }
+                    }
                 }
             }
         }
@@ -4923,5 +5291,58 @@ fn add(a: i32, b: i32) -> i32 {
         assert!(variant_labels.iter().any(|l| l.contains("Blue")), "match arm should suggest Color::Blue");
         let has_wildcard = items.iter().any(|i| i.label == "_");
         assert!(has_wildcard, "match arm should suggest wildcard pattern");
+    }
+
+    #[test]
+    fn symbol_index_extracts_all_item_kinds() {
+        let source = "fn greet(name: String) -> String { name }\nstruct Point { x: Int, y: Int }\nenum Color { Red, Green, Blue }\ntrait Display { fn show(self) -> String { \"\" } }\n";
+        let (_, module) = parse_source(source);
+
+        let index = std::sync::Mutex::new(SymbolIndex {
+            file_symbols: HashMap::new(),
+            stdlib_symbols: Vec::new(),
+            indexed_files: HashSet::new(),
+        });
+        let uri = Url::parse("file:///test.ark").unwrap();
+        ArukellBackend::update_file_symbols(&index, &uri, &module);
+
+        let idx = index.lock().unwrap();
+        assert!(idx.file_symbols.contains_key("greet"), "should index fn greet");
+        assert!(idx.file_symbols.contains_key("Point"), "should index struct Point");
+        assert!(idx.file_symbols.contains_key("Color"), "should index enum Color");
+        assert!(idx.file_symbols.contains_key("Display"), "should index trait Display");
+        assert!(idx.indexed_files.contains(&uri), "should mark file as indexed");
+
+        // Check function detail includes signature
+        let greet = &idx.file_symbols["greet"][0];
+        assert_eq!(greet.kind, SymbolKind::FUNCTION);
+        assert!(greet.detail.as_ref().unwrap().contains("name: String"), "detail should include param types");
+    }
+
+    #[test]
+    fn symbol_index_cross_file_lookup() {
+        let index = std::sync::Mutex::new(SymbolIndex {
+            file_symbols: HashMap::new(),
+            stdlib_symbols: Vec::new(),
+            indexed_files: HashSet::new(),
+        });
+
+        // Index file A
+        let source_a = "fn helper() -> Int { 42 }\n";
+        let (_, module_a) = parse_source(source_a);
+        let uri_a = Url::parse("file:///a.ark").unwrap();
+        ArukellBackend::update_file_symbols(&index, &uri_a, &module_a);
+
+        // Index file B
+        let source_b = "fn main() { helper() }\n";
+        let (_, module_b) = parse_source(source_b);
+        let uri_b = Url::parse("file:///b.ark").unwrap();
+        ArukellBackend::update_file_symbols(&index, &uri_b, &module_b);
+
+        // Lookup "helper" should find it in file A
+        let results = ArukellBackend::lookup_symbol_in_index(&index, "helper");
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].uri, uri_a);
+        assert_eq!(results[0].name, "helper");
     }
 }
