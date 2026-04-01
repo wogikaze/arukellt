@@ -1,6 +1,6 @@
 # CI の selfhost gate を full fixpoint check に昇格する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 326

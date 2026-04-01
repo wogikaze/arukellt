@@ -1,8 +1,8 @@
 # セルフホスト CLI parity を確認する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2026-04-08
 **ID**: 288
 **Depends on**: 287
 **Track**: selfhost
