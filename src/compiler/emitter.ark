@@ -235,10 +235,23 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         false_str_idx: false_idx,
     }
 
+    // Determine if main needs a start wrapper (non-void return type)
+    let mut needs_wrapper = 0
+    let mut main_check_idx = 0
+    while main_check_idx < fn_count {
+        let mf = get_unchecked(mir.functions, main_check_idx)
+        if eq(clone(mf.name), "main") || eq(clone(mf.name), "_start") {
+            if mf.return_type != 0 {
+                needs_wrapper = 1
+            }
+        }
+        main_check_idx = main_check_idx + 1
+    }
+
     // Type section
     // Type 0: fd_write type (i32, i32, i32, i32) -> (i32)
     let type_sec = WasmWriter_new()
-    emit_leb128_u(type_sec, fn_count + 1)  // +1 for fd_write type
+    emit_leb128_u(type_sec, fn_count + 1 + needs_wrapper)  // +1 for fd_write, +1 for wrapper if needed
     // fd_write: (fd, iovs_ptr, iovs_len, nwritten_ptr) -> errno
     emit_byte(type_sec, 0x60)
     emit_leb128_u(type_sec, 4)  // 4 params
@@ -269,6 +282,12 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         }
         i = i + 1
     }
+    // Wrapper type: void → void (type index = fn_count + 1)
+    if needs_wrapper == 1 {
+        emit_byte(type_sec, 0x60)
+        emit_leb128_u(type_sec, 0)  // 0 params
+        emit_leb128_u(type_sec, 0)  // 0 results
+    }
     emit_section(out, SEC_TYPE(), type_sec)
 
     // Import section (for WASI)
@@ -283,11 +302,14 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
 
     // Function section (type indices offset by 1 for fd_write at type 0)
     let func_sec = WasmWriter_new()
-    emit_leb128_u(func_sec, fn_count)
+    emit_leb128_u(func_sec, fn_count + needs_wrapper)
     let mut fi = 0
     while fi < fn_count {
         emit_leb128_u(func_sec, fi + 1)  // type index = fi+1 (0 is fd_write)
         fi = fi + 1
+    }
+    if needs_wrapper == 1 {
+        emit_leb128_u(func_sec, fn_count + 1)  // wrapper type index
     }
     emit_section(out, SEC_FUNCTION(), func_sec)
 
@@ -333,13 +355,18 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     if main_idx >= 0 {
         emit_string(export_sec, String_from("_start"))
         emit_byte(export_sec, 0x00)
-        emit_leb128_u(export_sec, main_idx + 1)  // offset by imports
+        if needs_wrapper == 1 {
+            // Export the wrapper function (index fn_count + 1: imports + fn_count)
+            emit_leb128_u(export_sec, fn_count + 1)
+        } else {
+            emit_leb128_u(export_sec, main_idx + 1)  // offset by imports
+        }
     }
     emit_section(out, SEC_EXPORT(), export_sec)
 
     // Code section
     let code_sec = WasmWriter_new()
-    emit_leb128_u(code_sec, fn_count)
+    emit_leb128_u(code_sec, fn_count + needs_wrapper)
     let mut ci = 0
     while ci < fn_count {
         let f = get_unchecked(mir.functions, ci)
@@ -388,6 +415,17 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         emit_leb128_u(code_sec, writer_size(body))
         emit_bytes(code_sec, body.bytes)
         ci = ci + 1
+    }
+    // Add wrapper function: call main, drop return value, end
+    if needs_wrapper == 1 {
+        let wrapper_body = WasmWriter_new()
+        emit_leb128_u(wrapper_body, 0)  // 0 locals
+        emit_byte(wrapper_body, OP_CALL())
+        emit_leb128_u(wrapper_body, main_idx + 1)  // call main (offset by imports)
+        emit_byte(wrapper_body, OP_DROP())
+        emit_byte(wrapper_body, OP_END())
+        emit_leb128_u(code_sec, writer_size(wrapper_body))
+        emit_bytes(code_sec, wrapper_body.bytes)
     }
     emit_section(out, SEC_CODE(), code_sec)
 
