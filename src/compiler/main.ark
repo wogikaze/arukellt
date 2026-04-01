@@ -233,6 +233,7 @@ fn main() {
     let config = driver::DriverConfig_default()
     config.target = clone(opts.target)
     config.opt_level = opts.opt_level
+    config.emit_mode = clone(opts.emit_mode)
     config.dump_tokens = should_dump(opts, String_from("tokens"))
     config.dump_ast = should_dump(opts, String_from("ast"))
     config.dump_hir = should_dump(opts, String_from("hir"))

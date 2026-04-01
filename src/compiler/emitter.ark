@@ -420,6 +420,127 @@ pub fn emit_wasm(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> {
     emit_wasm_module(mir, target, opt_level)
 }
 
+// ── WAT Text Emitter ─────────────────────────────────────────────────────────
+
+fn wat_indent(depth: i32) -> String {
+    let mut s = String_new()
+    let mut i = 0
+    while i < depth {
+        s = concat(s, String_from("  "))
+        i = i + 1
+    }
+    s
+}
+
+fn val_type_name(vt: i32) -> String {
+    if vt == 1 { return String_from("i32") }
+    if vt == 2 { return String_from("i64") }
+    if vt == 3 { return String_from("f64") }
+    if vt == 4 { return String_from("i32") }
+    String_from("i32")
+}
+
+fn mir_op_to_wat(inst: MirInst) -> String {
+    if inst.op == 1 {
+        return concat(String_from("i32.const "), to_string(inst.int_val))
+    }
+    if inst.op == 2 {
+        return concat(String_from("i64.const "), to_string(inst.int_val))
+    }
+    if inst.op == 10 {
+        return concat(String_from("local.get "), to_string(inst.arg0))
+    }
+    if inst.op == 11 {
+        return concat(String_from("local.set "), to_string(inst.dest))
+    }
+    if inst.op == 20 { return String_from("i32.add") }
+    if inst.op == 21 { return String_from("i32.sub") }
+    if inst.op == 22 { return String_from("i32.mul") }
+    if inst.op == 23 { return String_from("i32.div_s") }
+    if inst.op == 24 { return String_from("i32.rem_s") }
+    if inst.op == 25 { return String_from("i32.eq") }
+    if inst.op == 26 { return String_from("i32.ne") }
+    if inst.op == 27 { return String_from("i32.lt_s") }
+    if inst.op == 29 { return String_from("i32.gt_s") }
+    if inst.op == 40 {
+        return concat(String_from("call "), to_string(inst.arg0))
+    }
+    if inst.op == 42 { return String_from("return") }
+    if inst.op == 70 { return String_from("drop") }
+    if inst.op == 71 { return String_from("nop") }
+    if inst.op == 72 { return String_from("unreachable") }
+    concat(String_from(";; unknown op "), to_string(inst.op))
+}
+
+pub fn emit_wat(mir: MirModule, target: String, opt_level: i32) -> String {
+    let mut out = String_from("(module\n")
+    let fn_count = len(mir.functions)
+
+    // Import: WASI fd_write
+    out = concat(out, String_from("  (import \"wasi_snapshot_preview1\" \"fd_write\" (func (param i32 i32 i32 i32) (result i32)))\n"))
+
+    // Memory
+    out = concat(out, String_from("  (memory (export \"memory\") 1)\n"))
+
+    // Functions
+    let mut fi = 0
+    while fi < fn_count {
+        let f = get_unchecked(mir.functions, fi)
+        out = concat(out, concat(String_from("  (func $"), clone(f.name)))
+
+        // Params
+        let param_count = len(f.params)
+        let mut pi = 0
+        while pi < param_count {
+            let param = get_unchecked(f.params, pi)
+            out = concat(out, concat(String_from(" (param "), concat(val_type_name(param.val_type), String_from(")"))))
+            pi = pi + 1
+        }
+
+        // Result
+        if f.return_type != 0 {
+            out = concat(out, concat(String_from(" (result "), concat(val_type_name(f.return_type), String_from(")"))))
+        }
+        out = concat(out, String_from("\n"))
+
+        // Locals
+        let local_count = len(f.locals)
+        let mut li = 0
+        while li < local_count {
+            let loc = get_unchecked(f.locals, li)
+            out = concat(out, concat(String_from("    (local "), concat(val_type_name(loc.val_type), String_from(")\n"))))
+            li = li + 1
+        }
+
+        // Instructions
+        let block_count = len(f.blocks)
+        let mut bi = 0
+        while bi < block_count {
+            let block = get_unchecked(f.blocks, bi)
+            let inst_count = len(block.instructions)
+            let mut ii = 0
+            while ii < inst_count {
+                let inst = get_unchecked(block.instructions, ii)
+                out = concat(out, concat(String_from("    "), concat(mir_op_to_wat(inst), String_from("\n"))))
+                ii = ii + 1
+            }
+            bi = bi + 1
+        }
+
+        out = concat(out, String_from("  )\n"))
+
+        // Export main/_start
+        if eq(clone(f.name), "main") || eq(clone(f.name), "_start") {
+            out = concat(out, concat(String_from("  (export \"_start\" (func $"), concat(clone(f.name), String_from("))\n"))))
+        }
+
+        fi = fi + 1
+    }
+
+    out = concat(out, String_from(")\n"))
+    out
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {

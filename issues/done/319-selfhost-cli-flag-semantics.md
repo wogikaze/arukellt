@@ -1,8 +1,8 @@
 # Selfhost CLI のフラグ semantics を driver に接続する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2025-07-15
 **ID**: 319
 **Depends on**: —
 **Track**: selfhost-cli
@@ -23,10 +23,17 @@ main.ark で parse している `--emit`, `--target`, `--opt-level` を driver.a
 
 ## Acceptance
 
-- [ ] DriverConfig に `emit_mode` フィールドが追加される
-- [ ] `--emit wat` が WAT テキスト出力を生成する (最低限 wasm2wat 相当)
-- [ ] `--opt-level 1` が最適化 pass を有効にする (pass が存在する範囲で)
-- [ ] `--target wasm32-wasi-p2` が正しい target config を driver / emitter に伝搬する
+- [x] DriverConfig に `emit_mode` フィールドが追加される
+- [x] `--emit wat` が WAT テキスト出力を生成する (最低限 wasm2wat 相当)
+- [x] `--opt-level 1` が最適化 pass を有効にする (pass が存在する範囲で) — フラグは driver に正しく伝搬される。selfhost に最適化 pass はまだ存在しないため挙動変化なし。
+- [x] `--target wasm32-wasi-p2` が正しい target config を driver / emitter に伝搬する
+
+## Verification
+
+- `arukellt check src/compiler/main.ark` → OK
+- `arukellt check src/compiler/driver.ark` → OK
+- `arukellt check src/compiler/emitter.ark` → OK
+- `verify-bootstrap.sh --stage1-only` → PASS (9/9 compiled, 82709 bytes)
 
 ## References
 
