@@ -1,0 +1,33 @@
+// Tests new parser constructs added by #290:
+// 1. ArrayRepeat [expr; count]
+// 2. Struct base ..base
+// 3. Match guards pattern if cond =>
+
+use std::host::stdio
+
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    // 1. ArrayRepeat
+    let zeros = [0; 5]
+    stdio::println(zeros[0])
+    stdio::println(zeros[4])
+
+    // 2. Struct base expression
+    let p1 = Point { x: 10, y: 20 }
+    let p2 = Point { x: 30, ..p1 }
+    stdio::println(p2.x)
+    stdio::println(p2.y)
+
+    // 3. Match guards
+    let val = 7
+    let msg = match val {
+        n if n > 10 => "big",
+        n if n > 0 => "positive",
+        _ => "other",
+    }
+    stdio::println(msg)
+}

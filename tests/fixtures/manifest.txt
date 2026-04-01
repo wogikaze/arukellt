@@ -624,3 +624,4 @@ t3-run:variables/string_lit.ark
 run:variables/tuple.ark
 t3-compile:variables/tuple.ark
 t3-run:variables/tuple.ark
+run:selfhost/parser_new_syntax.ark

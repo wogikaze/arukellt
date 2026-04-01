@@ -31,6 +31,9 @@ fn NK_BLOCK() -> i32 { 20 }
 fn NK_METHOD_CALL() -> i32 { 21 }
 fn NK_FSTRING() -> i32 { 22 }
 fn NK_CHAR_LIT() -> i32 { 23 }
+fn NK_ARRAY_REPEAT() -> i32 { 24 }
+fn NK_TRY() -> i32 { 25 }
+fn NK_MATCH_ARM() -> i32 { 26 }
 
 // Statements
 fn NK_LET() -> i32 { 30 }
@@ -629,6 +632,15 @@ fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
             continue
         }
 
+        // Try operator: expr?
+        if k == TK_QUESTION() {
+            p.pos = p.pos + 1
+            let node = AstNode_new(NK_TRY(), lhs.span)
+            push(node.children, lhs)
+            lhs = node
+            continue
+        }
+
         // Call: expr(args)
         if k == TK_LPAREN() {
             p.pos = p.pos + 1
@@ -749,6 +761,18 @@ fn parse_prefix(p: Parser) -> AstNode {
                     }
                     first = false
                     skip_newlines(p)
+                    // Struct base expression: ..base_expr
+                    if peek_kind(p) == TK_DOTDOT() {
+                        p.pos = p.pos + 1
+                        skip_newlines(p)
+                        let base_expr = parse_expr(p)
+                        // Store base as a RANGE node child (distinguished from field children)
+                        let base_node = AstNode_new(NK_RANGE(), base_expr.span)
+                        push(base_node.children, base_expr)
+                        push(node.children, base_node)
+                        skip_newlines(p)
+                        break
+                    }
                     let fname = expect_token(p, TK_IDENT())
                     expect_token(p, TK_COLON())
                     skip_newlines(p)
@@ -796,15 +820,37 @@ fn parse_prefix(p: Parser) -> AstNode {
         return first_expr
     }
 
-    // Array literal: [a, b, c]
+    // Array literal: [a, b, c] or array repeat: [expr; count]
     if t.kind == TK_LBRACKET() {
         p.pos = p.pos + 1
-        let node = AstNode_new(NK_ARRAY_LIT(), tok_span(t))
-        let mut first = true
-        while !at(p, TK_RBRACKET()) && !at_eof(p) {
-            if !first { expect_token(p, TK_COMMA()) }
-            first = false
+        if at(p, TK_RBRACKET()) {
+            // Empty array
+            let node = AstNode_new(NK_ARRAY_LIT(), tok_span(t))
+            expect_token(p, TK_RBRACKET())
+            return node
+        }
+        skip_newlines(p)
+        let first_elem = parse_expr(p)
+        skip_newlines(p)
+        // Array repeat: [expr; count]
+        if peek_kind(p) == TK_SEMI() {
+            p.pos = p.pos + 1
             skip_newlines(p)
+            let count = parse_expr(p)
+            skip_newlines(p)
+            expect_token(p, TK_RBRACKET())
+            let node = AstNode_new(NK_ARRAY_REPEAT(), tok_span(t))
+            push(node.children, first_elem)
+            push(node.children, count)
+            return node
+        }
+        // Regular array literal
+        let node = AstNode_new(NK_ARRAY_LIT(), tok_span(t))
+        push(node.children, first_elem)
+        while peek_kind(p) == TK_COMMA() {
+            p.pos = p.pos + 1
+            skip_newlines(p)
+            if at(p, TK_RBRACKET()) { break }
             let elem = parse_expr(p)
             push(node.children, elem)
             skip_newlines(p)
@@ -875,12 +921,19 @@ fn parse_match_expr(p: Parser) -> AstNode {
         if at(p, TK_RBRACE()) { break }
         let pat = parse_pattern(p)
         skip_newlines(p)
+        // Match guard: pattern if condition => body
+        let arm = AstNode_new(NK_MATCH_ARM(), pat.span)
+        push(arm.children, pat)
+        if peek_kind(p) == TK_IF() {
+            p.pos = p.pos + 1
+            skip_newlines(p)
+            let guard = parse_expr(p)
+            push(arm.children, guard)
+            skip_newlines(p)
+        }
         expect_token(p, TK_FATARROW())
         skip_newlines(p)
         let body = parse_expr_or_block(p)
-        // Match arm: pattern => body stored as pair in children
-        let arm = AstNode_new(NK_TUPLE(), pat.span)
-        push(arm.children, pat)
         push(arm.children, body)
         push(node.children, arm)
         skip_newlines(p)
