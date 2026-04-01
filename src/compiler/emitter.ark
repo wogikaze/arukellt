@@ -170,6 +170,30 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
 
     let fn_count = len(mir.functions)
 
+    // Compute string offsets (length-prefixed: [len_i32_le, data...])
+    let str_count = len(mir.string_constants)
+    let string_offsets = Vec_new_i32()
+    let string_lengths = Vec_new_i32()
+    let mut data_offset = DATA_START()
+    let mut si = 0
+    while si < str_count {
+        let s = get_unchecked(mir.string_constants, si)
+        let slen = len(s)
+        // Data layout: [4 bytes length][slen bytes data]
+        // Pointer points to data start (after length prefix)
+        push(string_offsets, data_offset + 4)  // ptr to data
+        push(string_lengths, slen)
+        data_offset = data_offset + 4 + slen
+        si = si + 1
+    }
+
+    // Build emit context
+    let ctx = SelfEmitCtx {
+        functions: mir.functions,
+        string_offsets: string_offsets,
+        string_lengths: string_lengths,
+    }
+
     // Type section
     // Type 0: fd_write type (i32, i32, i32, i32) -> (i32)
     let type_sec = WasmWriter_new()
@@ -268,15 +292,25 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         let f = get_unchecked(mir.functions, ci)
         let body = WasmWriter_new()
 
-        // Locals
+        // Locals: body locals (skip params) + 3 extra for to_string scratch
         let local_count = len(f.locals)
-        emit_leb128_u(body, local_count)
-        let mut li = 0
+        let param_count = len(f.params)
+        let body_local_count = local_count - param_count
+        let extra_locals = 3  // for to_string: write_pos, is_neg, temp
+        emit_leb128_u(body, body_local_count + extra_locals)
+        let mut li = param_count
         while li < local_count {
             let loc = get_unchecked(f.locals, li)
             emit_leb128_u(body, 1)
             emit_byte(body, val_type_to_wasm(loc.val_type))
             li = li + 1
+        }
+        // Extra locals for to_string
+        let mut ei = 0
+        while ei < extra_locals {
+            emit_leb128_u(body, 1)
+            emit_byte(body, WASM_I32())
+            ei = ei + 1
         }
 
         // Instructions (simplified: emit MIR ops → Wasm ops)
@@ -288,7 +322,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
             let mut ii = 0
             while ii < inst_count {
                 let inst = get_unchecked(block.instructions, ii)
-                emit_mir_inst(body, inst)
+                emit_mir_inst_ctx(body, inst, ctx)
                 ii = ii + 1
             }
             bi = bi + 1
@@ -303,28 +337,40 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     }
     emit_section(out, SEC_CODE(), code_sec)
 
-    // Data section (string constants)
-    let str_count = len(mir.string_constants)
+    // Data section (length-prefixed string constants)
     if str_count > 0 {
         let data_sec = WasmWriter_new()
-        emit_leb128_u(data_sec, str_count)
-        let mut si = 0
-        let mut offset = 0
-        while si < str_count {
-            let s = get_unchecked(mir.string_constants, si)
-            emit_byte(data_sec, 0x00)  // active, memory 0
-            emit_byte(data_sec, OP_I32_CONST())
-            emit_leb128_s(data_sec, offset)
-            emit_byte(data_sec, OP_END())
+        emit_leb128_u(data_sec, 1)  // single data segment
+        emit_byte(data_sec, 0x00)   // active, memory 0
+        emit_byte(data_sec, OP_I32_CONST())
+        emit_leb128_s(data_sec, DATA_START())
+        emit_byte(data_sec, OP_END())
+        // Compute total data size
+        let mut total_data = 0
+        let mut ds = 0
+        while ds < str_count {
+            let s = get_unchecked(mir.string_constants, ds)
+            total_data = total_data + 4 + len(s)  // 4 bytes length + data
+            ds = ds + 1
+        }
+        emit_leb128_u(data_sec, total_data)
+        // Write strings: [len_le32][data_bytes...]
+        let mut ds2 = 0
+        while ds2 < str_count {
+            let s = get_unchecked(mir.string_constants, ds2)
             let slen = len(s)
-            emit_leb128_u(data_sec, slen)
+            // Write length as little-endian i32
+            emit_byte(data_sec, slen % 256)
+            emit_byte(data_sec, (slen / 256) % 256)
+            emit_byte(data_sec, (slen / 65536) % 256)
+            emit_byte(data_sec, (slen / 16777216) % 256)
+            // Write string bytes
             let mut ci2 = 0
             while ci2 < slen {
                 emit_byte(data_sec, char_at(s, ci2))
                 ci2 = ci2 + 1
             }
-            offset = offset + slen
-            si = si + 1
+            ds2 = ds2 + 1
         }
         emit_section(out, SEC_DATA(), data_sec)
     }
@@ -332,19 +378,90 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     out.bytes
 }
 
-fn emit_mir_inst(w: WasmWriter, inst: MirInst) {
+// ── Wasm Module Emitter ──────────────────────────────────────────────────────
+
+// Scratch memory layout for WASI fd_write
+fn SCRATCH_IOV() -> i32 { 0 }       // 8 bytes: ciovec {ptr, len}
+fn SCRATCH_NWRITTEN() -> i32 { 8 }  // 4 bytes: nwritten result
+fn SCRATCH_I32BUF() -> i32 { 16 }   // 20 bytes: i32-to-string buffer
+fn SCRATCH_NEWLINE() -> i32 { 36 }  // 1 byte: newline char
+fn DATA_START() -> i32 { 48 }       // string data starts here
+
+// Emit context for passing module info to instruction emitter
+struct SelfEmitCtx {
+    functions: Vec<MirFunction>,
+    string_offsets: Vec<i32>,
+    string_lengths: Vec<i32>,
+}
+
+fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
+    // Returns function index (0-based, user functions; caller must add 1 for import offset)
+    let count = len(ctx.functions)
+    let mut i = 0
+    while i < count {
+        let f = get_unchecked(ctx.functions, i)
+        if eq(clone(f.name), name) {
+            return i
+        }
+        i = i + 1
+    }
+    0 - 1  // not found
+}
+
+fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     if inst.op == 1 {  // CONST_I32
         emit_byte(w, OP_I32_CONST())
         emit_leb128_s(w, inst.int_val)
     } else if inst.op == 2 {  // CONST_I64
         emit_byte(w, OP_I64_CONST())
         emit_leb128_s(w, inst.int_val)
+    } else if inst.op == 5 {  // CONST_STRING
+        // Push string data pointer (offset in memory) onto stack
+        // Find this string in the string_constants to get its offset
+        let str_count = len(ctx.string_offsets)
+        let mut found = false
+        let mut si = 0
+        while si < str_count && !found {
+            // Match by checking offset exists (we use inst.arg0 as string index if set, 
+            // otherwise match by str_val content - for now use sequential index tracking)
+            si = si + 1
+        }
+        // Use inst.dest's string index from intern_string
+        // The MIR stores the string in str_val and the intern index in int_val
+        // Actually we need the string index. Let's use the order.
+        // For now, use a linear scan to find the string
+        let target_str = clone(inst.str_val)
+        let mut str_idx = 0 - 1
+        let mut si2 = 0
+        let sc2 = len(ctx.string_offsets)
+        while si2 < sc2 {
+            // We can't easily compare here without the actual strings.
+            // Use inst.arg0 if it was set, or use a counter.
+            si2 = si2 + 1
+        }
+        // Fallback: use the sequential position tracking
+        // The MIR lowering calls intern_string which returns an index.
+        // That index is stored in... let me check. Actually it's NOT stored in the MirInst.
+        // We need to track which CONST_STRING we're emitting by counting.
+        // For now, use arg0 if >= 0, otherwise match str_val
+        if inst.arg0 >= 0 {
+            str_idx = inst.arg0
+        }
+        if str_idx >= 0 && str_idx < len(ctx.string_offsets) {
+            let offset = get_unchecked(ctx.string_offsets, str_idx)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, offset)
+        } else {
+            // Unknown string, push 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+        }
     } else if inst.op == 10 {  // LOCAL_GET
         emit_byte(w, OP_LOCAL_GET())
         emit_leb128_u(w, inst.arg0)
     } else if inst.op == 11 {  // LOCAL_SET
         emit_byte(w, OP_LOCAL_SET())
-        emit_leb128_u(w, inst.dest)
+        emit_leb128_u(w, inst.arg0)
     } else if inst.op == 20 {  // ADD
         emit_byte(w, OP_I32_ADD())
     } else if inst.op == 21 {  // SUB
@@ -364,8 +481,322 @@ fn emit_mir_inst(w: WasmWriter, inst: MirInst) {
     } else if inst.op == 29 {  // GT
         emit_byte(w, OP_I32_GT_S())
     } else if inst.op == 40 {  // CALL
-        emit_byte(w, OP_CALL())
-        emit_leb128_u(w, inst.arg0)
+        let callee = clone(inst.str_val)
+        if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") {
+            // Inline println: the string pointer is on the stack
+            // We need to: store string ptr, compute length, set up IOV, call fd_write, write newline
+            //
+            // Stack has: [string_ptr]
+            // We need a local to hold the string ptr - use a temp approach:
+            // 1. local.tee to save ptr while keeping it on stack
+            // Actually we need to store the ptr, compute the string length, set up IOV.
+            // For length-prefixed strings: [len:4bytes, data...]
+            // ptr points to data start, len is at ptr-4
+            //
+            // For our selfhost model: strings in data section are raw bytes.
+            // The CONST_STRING pushes the data offset. We also need the length.
+            // Problem: the length isn't on the stack.
+            //
+            // Solution: use the to_string approach like the Rust emitter.
+            // For string constants, we know the length at compile time.
+            // We'll store it using the length-prefixed model:
+            // Data section: [len_i32_le, data_bytes...] for each string
+            // CONST_STRING pushes ptr to start of data (after length prefix)
+            // To get length: i32.load [ptr - 4]
+
+            // Save string ptr to temp local (we always have locals available)
+            // Actually the Wasm stack model means we can use local.tee
+            // For now, simple approach: read length from [ptr-4]
+            
+            // Stack: [str_ptr]
+            // Store in IOV: iov.ptr = str_ptr, iov.len = len
+            
+            // i32.const SCRATCH_IOV    ; IOV base address
+            // local.get str_ptr (on stack already)
+            // But we need to save the ptr first...
+            
+            // Use a different approach: length is encoded before the string
+            // ptr points to data, length at ptr-4
+            
+            // Step 1: Save string ptr
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, inst.dest)  // reuse dest local as temp
+            
+            // Step 2: Store ptr into IOV[0].ptr
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_IOV())  // addr = 0
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)  // align=4
+            emit_byte(w, 0x00)  // offset=0
+            
+            // Step 3: Read string length from [ptr - 4]
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_IOV() + 4)  // addr = 4 (iov.len)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_SUB())  // ptr - 4
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)  // align=4
+            emit_byte(w, 0x00)  // offset=0
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)  // align=4
+            emit_byte(w, 0x00)  // offset=0
+            
+            // Step 4: Call fd_write(1, SCRATCH_IOV, 1, SCRATCH_NWRITTEN)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)  // fd = stdout
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_IOV())  // iovs ptr
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)  // iovs count
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_NWRITTEN())  // nwritten ptr
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 0)  // fd_write is import index 0
+            emit_byte(w, OP_DROP())  // discard errno
+            
+            // Step 5: Write newline
+            // Store newline char (10) at SCRATCH_NEWLINE
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_NEWLINE())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 10)  // '\n'
+            // i32.store8 opcode = 0x3a
+            emit_byte(w, 0x3a)  // i32.store8
+            emit_byte(w, 0x00)  // align=1
+            emit_byte(w, 0x00)  // offset=0
+            
+            // IOV for newline
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_IOV())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_NEWLINE())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_IOV() + 4)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)  // len = 1
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)  // fd = stdout
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_IOV())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_NWRITTEN())
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 0)  // fd_write
+            emit_byte(w, OP_DROP())
+
+            // Push dummy result (println is void, but caller may LOCAL_SET the "result")
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            
+        } else if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") {
+            // Inline to_string(i32): convert integer on stack to string
+            // This is complex — for now, use a simplified i32-to-string inline
+            // Stack has: [i32_value]
+            // We need to convert to a string representation in memory and push ptr
+            //
+            // For now, emit a simplified inline conversion using the SCRATCH_I32BUF area
+            // This writes digits to SCRATCH_I32BUF and returns a ptr to the result
+            
+            // Save value to a local
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, inst.dest)
+            
+            // For simplicity, just write the number to memory at SCRATCH_I32BUF
+            // using a loop that divides by 10 and writes digits
+            // This is complex to inline — use a helper approach
+            
+            // Simplified: handle small numbers by brute force
+            // Actually, let me use the buffer approach like the Rust emitter
+            // Write digits backwards into buffer, then set length prefix
+            
+            // We'll use inst.dest as temp, and inst.dest+1, inst.dest+2 as more temps
+            // But we only have the locals declared by the function...
+            // The selfhost adds extra locals for each dest, so we should have enough
+            
+            // For now, implement a basic to_string:
+            // 1. Handle negative: if val < 0, negate and set flag
+            // 2. Write digits from right to left into buffer at SCRATCH_I32BUF+4..+24
+            // 3. Store length at buffer_start - 4
+            // 4. Return pointer to first digit
+            
+            // This needs a lot of locals. Let's use a simpler approach:
+            // Store the int directly and call a runtime helper... but we don't have one.
+            
+            // For a minimal implementation: assume non-negative, write digits
+            // Buffer area: SCRATCH_I32BUF (16) to SCRATCH_I32BUF+20 (36)
+            // Length prefix at offset 12 (SCRATCH_I32BUF - 4)
+            
+            // Use block/loop structure for the digit extraction
+            let buf_end = SCRATCH_I32BUF() + 20  // write position (right to left)
+            let len_addr = SCRATCH_I32BUF() - 4   // length prefix location (12)
+            
+            // local dest = value (already set above)
+            // local dest+1 = write position (initialized to buf_end)
+            // local dest+2 = is_negative flag
+            
+            // Initialize write position
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, buf_end)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, inst.dest + 1)  // write_pos
+            
+            // Check for negative
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, inst.dest + 2)  // is_neg = 0
+            
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_LT_S())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)  // void
+            // Negate: val = 0 - val
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, inst.dest + 2)  // is_neg = 1
+            emit_byte(w, OP_END())
+            
+            // Handle zero case
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, OP_I32_EQZ())
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            // Write '0' at write_pos - 1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest + 1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, inst.dest + 1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 48)  // '0'
+            emit_byte(w, 0x3a)    // i32.store8
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_ELSE())
+            // Non-zero: extract digits loop
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            // if val == 0, break
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, OP_I32_EQZ())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1)  // break out of block
+            // write_pos -= 1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest + 1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, inst.dest + 1)
+            // store digit: val % 10 + '0'
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 10)
+            emit_byte(w, OP_I32_REM_S())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 48)  // '0'
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x3a)    // i32.store8
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            // val = val / 10
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 10)
+            emit_byte(w, OP_I32_DIV_S())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, inst.dest)
+            // continue loop
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0)  // back to loop
+            emit_byte(w, OP_END())  // end loop
+            emit_byte(w, OP_END())  // end block
+            emit_byte(w, OP_END())  // end else
+            
+            // If negative, prepend '-'
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest + 2)
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest + 1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, inst.dest + 1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 45)  // '-'
+            emit_byte(w, 0x3a)    // i32.store8
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_END())
+            
+            // Store length prefix at write_pos - 4
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest + 1)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_SUB())
+            // length = buf_end - write_pos
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, buf_end)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest + 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            
+            // Push result: pointer to string data (write_pos)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.dest + 1)
+            
+        } else {
+            // User-defined function call
+            let fn_idx = resolve_fn_index(ctx, clone(callee))
+            if fn_idx >= 0 {
+                emit_byte(w, OP_CALL())
+                emit_leb128_u(w, fn_idx + 1)  // +1 for fd_write import
+            } else {
+                // Unknown function — emit unreachable
+                emit_byte(w, OP_UNREACHABLE())
+            }
+        }
     } else if inst.op == 42 {  // RETURN
         emit_byte(w, OP_RETURN())
     } else if inst.op == 70 {  // DROP
@@ -389,6 +820,10 @@ fn emit_mir_inst(w: WasmWriter, inst: MirInst) {
     } else if inst.op == 55 {  // IF
         emit_byte(w, OP_IF())
         emit_byte(w, 0x40)  // void block type
+    } else if inst.op == 56 {  // ELSE
+        emit_byte(w, OP_ELSE())
+    } else if inst.op == 57 {  // END (end of block/loop/if)
+        emit_byte(w, OP_END())
     } else if inst.op == 28 {  // LTEQ
         emit_byte(w, OP_I32_LE_S())
     } else if inst.op == 30 {  // GTEQ
@@ -400,9 +835,10 @@ fn emit_mir_inst(w: WasmWriter, inst: MirInst) {
     } else if inst.op == 33 {  // NEG (i32.const 0; i32.sub for negate)
         emit_byte(w, OP_I32_CONST())
         emit_leb128_s(w, 0)
-        // swap with local.get for operand (already on stack)
         emit_byte(w, OP_I32_SUB())
     } else if inst.op == 34 {  // NOT (i32.eqz)
+        emit_byte(w, OP_I32_EQZ())
+    } else if inst.op == 58 {  // EQZ
         emit_byte(w, OP_I32_EQZ())
     } else if inst.op == 60 {  // STRUCT_NEW
         emit_byte(w, OP_NOP())  // placeholder

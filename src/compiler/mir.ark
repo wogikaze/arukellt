@@ -40,6 +40,9 @@ fn MIR_BR_TABLE() -> i32 { 52 }
 fn MIR_BLOCK() -> i32 { 53 }
 fn MIR_LOOP() -> i32 { 54 }
 fn MIR_IF() -> i32 { 55 }
+fn MIR_ELSE() -> i32 { 56 }
+fn MIR_END() -> i32 { 57 }
+fn MIR_EQZ() -> i32 { 58 }
 fn MIR_STRUCT_NEW() -> i32 { 60 }
 fn MIR_STRUCT_GET() -> i32 { 61 }
 fn MIR_STRUCT_SET() -> i32 { 62 }
@@ -285,6 +288,9 @@ struct LowerCtx {
     fn_indices: Vec<i32>,
     loop_exit_block: i32,
     loop_cond_block: i32,
+    nesting_depth: i32,
+    loop_break_depth: i32,
+    loop_continue_depth: i32,
 }
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
@@ -298,6 +304,9 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         fn_indices: Vec_new_i32(),
         loop_exit_block: 0 - 1,
         loop_cond_block: 0 - 1,
+        nesting_depth: 0,
+        loop_break_depth: 0 - 1,
+        loop_continue_depth: 0 - 1,
     }
 }
 
@@ -375,7 +384,9 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     if kind == NK_STRING_LIT() {
         let str_idx = intern_string(ctx.module, clone(node.text))
         let dest = ctx_fresh_local(ctx, VT_REF())
-        ctx_emit(ctx, MirInst_const_string(clone(node.text), dest))
+        let str_inst = MirInst_const_string(clone(node.text), dest)
+        str_inst.arg0 = str_idx  // store intern index for emitter
+        ctx_emit(ctx, str_inst)
         return dest
     }
 
@@ -455,16 +466,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let cond_idx = lower_expr(ctx, cond)
             let result = ctx_fresh_local(ctx, VT_I32())
 
-            let then_block = alloc_block(ctx.func)
-            let merge_block = alloc_block(ctx.func)
-
-            let br_inst = MirInst_new(MIR_BR_IF())
-            br_inst.arg0 = cond_idx
-            br_inst.int_val = then_block
-            ctx_emit(ctx, br_inst)
+            // Emit structured IF/ELSE/END (Wasm structured control flow)
+            ctx_emit(ctx, MirInst_new(MIR_IF()))
+            ctx.nesting_depth = ctx.nesting_depth + 1
 
             // Then block
-            ctx.cur_block = then_block
             let then_body = get_unchecked(node.children, 1)
             let then_result = lower_expr(ctx, then_body)
             if then_result >= 0 {
@@ -473,14 +479,10 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 set_inst.arg1 = then_result
                 ctx_emit(ctx, set_inst)
             }
-            let br_merge = MirInst_new(MIR_BR())
-            br_merge.int_val = merge_block
-            ctx_emit(ctx, br_merge)
 
             // Else block (optional)
             if child_count >= 3 {
-                let else_block = alloc_block(ctx.func)
-                ctx.cur_block = else_block
+                ctx_emit(ctx, MirInst_new(MIR_ELSE()))
                 let else_body = get_unchecked(node.children, 2)
                 let else_result = lower_expr(ctx, else_body)
                 if else_result >= 0 {
@@ -489,12 +491,17 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     set_inst2.arg1 = else_result
                     ctx_emit(ctx, set_inst2)
                 }
-                let br_merge2 = MirInst_new(MIR_BR())
-                br_merge2.int_val = merge_block
-                ctx_emit(ctx, br_merge2)
             }
 
-            ctx.cur_block = merge_block
+            ctx_emit(ctx, MirInst_new(MIR_END()))
+            ctx.nesting_depth = ctx.nesting_depth - 1
+
+            // Emit LOCAL_GET to put the result back on the Wasm stack
+            let get_inst = MirInst_new(MIR_LOCAL_GET())
+            get_inst.arg0 = result
+            get_inst.dest = result
+            ctx_emit(ctx, get_inst)
+
             return result
         }
         return 0 - 1
@@ -509,22 +516,25 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let scrutinee = get_unchecked(node.children, 0)
             let scrut_idx = lower_expr(ctx, scrutinee)
             let result = ctx_fresh_local(ctx, VT_I32())
-            let merge_block = alloc_block(ctx.func)
 
+            // Use nested if/else chain for match arms (structured control flow)
+            // match x { 1 => a, 2 => b, _ => c }
+            // becomes: if (x == 1) { result = a } else { if (x == 2) { result = b } else { result = c } }
+            let arm_count = child_count - 1
             let mut arm = 1
+            let mut if_depth = 0
             while arm < child_count {
                 let arm_node = get_unchecked(node.children, arm)
                 let arm_child_count = len(arm_node.children)
                 let is_last = arm == child_count - 1
 
-                // Determine pattern and body indices
                 let pat_idx_in_arm = 0
                 let body_idx_in_arm = arm_child_count - 1
                 let pat = get_unchecked(arm_node.children, pat_idx_in_arm)
                 let body = get_unchecked(arm_node.children, body_idx_in_arm)
 
                 if is_last {
-                    // Last arm is the default/else case
+                    // Last arm: default case (just emit the body)
                     let arm_result = lower_expr(ctx, body)
                     if arm_result >= 0 {
                         let set_inst = MirInst_new(MIR_LOCAL_SET())
@@ -532,27 +542,17 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         set_inst.arg1 = arm_result
                         ctx_emit(ctx, set_inst)
                     }
-                    let br_merge = MirInst_new(MIR_BR())
-                    br_merge.int_val = merge_block
-                    ctx_emit(ctx, br_merge)
                 } else {
-                    // Compare scrutinee against pattern literal
+                    // Compare scrutinee against pattern
                     let pat_idx = lower_expr(ctx, pat)
                     let cmp_dest = ctx_fresh_local(ctx, VT_I32())
                     ctx_emit(ctx, MirInst_binop(MIR_EQ(), cmp_dest, scrut_idx, pat_idx))
 
-                    let arm_block = alloc_block(ctx.func)
-                    let next_block = alloc_block(ctx.func)
+                    // IF (match)
+                    ctx_emit(ctx, MirInst_new(MIR_IF()))
+                    ctx.nesting_depth = ctx.nesting_depth + 1
+                    if_depth = if_depth + 1
 
-                    let br_if_inst = MirInst_new(MIR_BR_IF())
-                    br_if_inst.arg0 = cmp_dest
-                    br_if_inst.int_val = arm_block
-                    ctx_emit(ctx, br_if_inst)
-                    let br_next = MirInst_new(MIR_BR())
-                    br_next.int_val = next_block
-                    ctx_emit(ctx, br_next)
-
-                    ctx.cur_block = arm_block
                     let arm_result = lower_expr(ctx, body)
                     if arm_result >= 0 {
                         let set_inst = MirInst_new(MIR_LOCAL_SET())
@@ -560,15 +560,20 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         set_inst.arg1 = arm_result
                         ctx_emit(ctx, set_inst)
                     }
-                    let br_merge2 = MirInst_new(MIR_BR())
-                    br_merge2.int_val = merge_block
-                    ctx_emit(ctx, br_merge2)
 
-                    ctx.cur_block = next_block
+                    // ELSE (try next arm)
+                    ctx_emit(ctx, MirInst_new(MIR_ELSE()))
                 }
                 arm = arm + 1
             }
-            ctx.cur_block = merge_block
+
+            // Close all nested if/else
+            while if_depth > 0 {
+                ctx_emit(ctx, MirInst_new(MIR_END()))
+                ctx.nesting_depth = ctx.nesting_depth - 1
+                if_depth = if_depth - 1
+            }
+
             return result
         }
         return 0 - 1
@@ -753,43 +758,55 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
         // children[0] = condition, children[1] = body
         let child_count = len(node.children)
         if child_count >= 2 {
-            let cond_block = alloc_block(ctx.func)
-            let body_block = alloc_block(ctx.func)
-            let exit_block = alloc_block(ctx.func)
+            // Emit: block { loop { cond; i32.eqz; br_if 1; body; br 0; end; } end; }
+            let prev_break = ctx.loop_break_depth
+            let prev_continue = ctx.loop_continue_depth
 
-            // Save and set loop context for break/continue
-            let prev_exit = ctx.loop_exit_block
-            let prev_cond = ctx.loop_cond_block
-            ctx.loop_exit_block = exit_block
-            ctx.loop_cond_block = cond_block
+            // BLOCK (break target)
+            ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
+            ctx.nesting_depth = ctx.nesting_depth + 1
+            ctx.loop_break_depth = ctx.nesting_depth
 
-            let br_cond = MirInst_new(MIR_BR())
-            br_cond.int_val = cond_block
-            ctx_emit(ctx, br_cond)
+            // LOOP (continue target)
+            ctx_emit(ctx, MirInst_new(MIR_LOOP()))
+            ctx.nesting_depth = ctx.nesting_depth + 1
+            ctx.loop_continue_depth = ctx.nesting_depth
 
-            // Condition block
-            ctx.cur_block = cond_block
+            // Condition
             let cond = get_unchecked(node.children, 0)
             let cond_idx = lower_expr(ctx, cond)
-            let br_if_inst = MirInst_new(MIR_BR_IF())
-            br_if_inst.arg0 = cond_idx
-            br_if_inst.int_val = body_block
-            ctx_emit(ctx, br_if_inst)
-            let br_exit = MirInst_new(MIR_BR())
-            br_exit.int_val = exit_block
-            ctx_emit(ctx, br_exit)
 
-            // Body block
-            ctx.cur_block = body_block
+            // i32.eqz (negate condition: break when cond is false)
+            let eqz_dest = ctx_fresh_local(ctx, VT_I32())
+            let eqz_inst = MirInst_new(MIR_EQZ())
+            eqz_inst.dest = eqz_dest
+            eqz_inst.arg0 = cond_idx
+            ctx_emit(ctx, eqz_inst)
+
+            // br_if 1 (break to outer block if cond is false)
+            let br_break = MirInst_new(MIR_BR_IF())
+            br_break.int_val = 1
+            ctx_emit(ctx, br_break)
+
+            // Body
             let body = get_unchecked(node.children, 1)
             let _body_result = lower_expr(ctx, body)
-            let br_back = MirInst_new(MIR_BR())
-            br_back.int_val = cond_block
-            ctx_emit(ctx, br_back)
 
-            ctx.cur_block = exit_block
-            ctx.loop_exit_block = prev_exit
-            ctx.loop_cond_block = prev_cond
+            // br 0 (loop back)
+            let br_loop = MirInst_new(MIR_BR())
+            br_loop.int_val = 0
+            ctx_emit(ctx, br_loop)
+
+            // END loop
+            ctx_emit(ctx, MirInst_new(MIR_END()))
+            ctx.nesting_depth = ctx.nesting_depth - 1
+
+            // END block
+            ctx_emit(ctx, MirInst_new(MIR_END()))
+            ctx.nesting_depth = ctx.nesting_depth - 1
+
+            ctx.loop_break_depth = prev_break
+            ctx.loop_continue_depth = prev_continue
         }
         return 0 - 1
     }
@@ -798,45 +815,54 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
         // children[0] = body
         let child_count = len(node.children)
         if child_count >= 1 {
-            let loop_block = alloc_block(ctx.func)
-            let exit_block = alloc_block(ctx.func)
+            let prev_break = ctx.loop_break_depth
+            let prev_continue = ctx.loop_continue_depth
 
-            let prev_exit = ctx.loop_exit_block
-            let prev_cond = ctx.loop_cond_block
-            ctx.loop_exit_block = exit_block
-            ctx.loop_cond_block = loop_block
+            // BLOCK (break target)
+            ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
+            ctx.nesting_depth = ctx.nesting_depth + 1
+            ctx.loop_break_depth = ctx.nesting_depth
 
-            let br_loop = MirInst_new(MIR_BR())
-            br_loop.int_val = loop_block
-            ctx_emit(ctx, br_loop)
+            // LOOP (continue target)
+            ctx_emit(ctx, MirInst_new(MIR_LOOP()))
+            ctx.nesting_depth = ctx.nesting_depth + 1
+            ctx.loop_continue_depth = ctx.nesting_depth
 
-            ctx.cur_block = loop_block
             let body = get_unchecked(node.children, 0)
             let _body_result = lower_expr(ctx, body)
+
+            // br 0 (loop back)
             let br_back = MirInst_new(MIR_BR())
-            br_back.int_val = loop_block
+            br_back.int_val = 0
             ctx_emit(ctx, br_back)
 
-            ctx.cur_block = exit_block
-            ctx.loop_exit_block = prev_exit
-            ctx.loop_cond_block = prev_cond
+            // END loop
+            ctx_emit(ctx, MirInst_new(MIR_END()))
+            ctx.nesting_depth = ctx.nesting_depth - 1
+
+            // END block
+            ctx_emit(ctx, MirInst_new(MIR_END()))
+            ctx.nesting_depth = ctx.nesting_depth - 1
+
+            ctx.loop_break_depth = prev_break
+            ctx.loop_continue_depth = prev_continue
         }
         return 0 - 1
     }
 
     if kind == NK_BREAK() {
-        if ctx.loop_exit_block >= 0 {
+        if ctx.loop_break_depth >= 0 {
             let br_inst = MirInst_new(MIR_BR())
-            br_inst.int_val = ctx.loop_exit_block
+            br_inst.int_val = ctx.nesting_depth - ctx.loop_break_depth
             ctx_emit(ctx, br_inst)
         }
         return 0 - 1
     }
 
     if kind == NK_CONTINUE() {
-        if ctx.loop_cond_block >= 0 {
+        if ctx.loop_continue_depth >= 0 {
             let br_inst = MirInst_new(MIR_BR())
-            br_inst.int_val = ctx.loop_cond_block
+            br_inst.int_val = ctx.nesting_depth - ctx.loop_continue_depth
             ctx_emit(ctx, br_inst)
         }
         return 0 - 1
@@ -887,16 +913,25 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             ctx.local_names = Vec_new_String()
             ctx.local_indices = Vec_new_i32()
 
-            // Allocate parameters as locals
+            // Allocate parameters as locals AND register in f.params
             let child_count = len(decl.children)
             let body_idx = child_count - 1
             let mut p = 0
             while p < body_idx {
                 let param = get_unchecked(decl.children, p)
                 if param.kind == NK_IDENT() {
-                    ctx_alloc_local(ctx, clone(param.text), VT_I32())
+                    let param_local = ctx_alloc_local(ctx, clone(param.text), VT_I32())
+                    push(ctx.func.params, MirLocal { name: clone(param.text), val_type: VT_I32() })
                 }
                 p = p + 1
+            }
+
+            // Set return type from type-check result
+            // TY_I32=1, TY_I64=2, TY_F64=3, TY_BOOL=4, TY_STRING=5
+            // TY_UNIT=7 means void, TY_UNKNOWN=0 means unresolved
+            let rt_tag = tf.return_type.tag
+            if rt_tag >= 1 && rt_tag <= 5 {
+                ctx.func.return_type = VT_I32()
             }
 
             // Create entry block
