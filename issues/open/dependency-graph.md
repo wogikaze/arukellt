@@ -65,7 +65,6 @@ graph LR
   I314["314 Selfhost MIR lowering: 制御フローを構築する"]
   I315["315 Selfhost MIR lowering: 集合体操作を実装する"]
   I320["320 Selfhost CLI に package/workspace 統合を実装する"]
-  I336["336 LSP: hover の型情報を resolver/typechecker 連携で精密化する"]
   I337["337 LSP: signature help を stdlib 連携で完成させる"]
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I339["339 LSP: rename を semantic-aware に置き換える"]
@@ -149,7 +148,6 @@ graph LR
   I313 --> I314
   I313 --> I315
   I318 --> I320
-  I334 --> I336
   I334 --> I337
   I333 --> I441
   I335 --> I441
@@ -243,7 +241,7 @@ graph LR
 - **313** depends on: 308; blocks: 314, 315
 - **318** depends on: 319; blocks: 320
 - **321** depends on: 319; blocks: 322
-- **334** depends on: 333; blocks: 336, 337, 439
+- **334** depends on: 333; blocks: 337, 439
 - **335** depends on: 333; blocks: 439, 441
 - **338** depends on: 333; blocks: 339, 342, 439
 - **440** depends on: 341, 346, 348, 349, 350, 352; blocks: 444
@@ -270,7 +268,6 @@ graph LR
 - **314** depends on: 313; blocks: 316
 - **315** depends on: 313; blocks: 316
 - **320** depends on: 318; blocks: 322
-- **336** depends on: 334; blocks: none
 - **337** depends on: 334; blocks: none
 - **441** depends on: 333, 335, 340; blocks: 444
 - **339** depends on: 338; blocks: 439

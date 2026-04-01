@@ -1,6 +1,6 @@
 # LSP: hover の型情報を resolver/typechecker 連携で精密化する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 336
@@ -22,10 +22,10 @@ hover を「AST 上の type annotation 表示」から「resolver / typechecker 
 
 ## Acceptance
 
-- [ ] 変数上の hover が推論された型を表示する (`let x = 1 + 2` → `x: i32`)
-- [ ] 関数上の hover が full signature + return type を表示する
-- [ ] doc comment (`///`) が hover に含まれる
-- [ ] stdlib 関数の hover が manifest の description を表示する (#334 前提)
+- [x] 変数上の hover が推論された型を表示する (`let x = 1 + 2` → `x: i32`)
+- [x] 関数上の hover が full signature + return type を表示する
+- [x] doc comment (`///`) が hover に含まれる
+- [x] stdlib 関数の hover が manifest の description を表示する (#334 前提)
 
 ## References
 

@@ -828,9 +828,9 @@ impl ArukellBackend {
                 ark_resolve::SymbolKind::BuiltinType => "builtin type",
             };
 
-            // Try to find the type annotation from the AST let binding.
+            // Try to find the type annotation or infer type from initializer.
             if matches!(sym.kind, ark_resolve::SymbolKind::Variable { .. }) {
-                let ty_ann = Self::find_let_type_annotation(module, name);
+                let ty_ann = Self::find_let_type_annotation(module, name, Some(checker));
                 if let Some(ty_str) = ty_ann {
                     return Some(format!("```arukellt\n{kind_str} {name}: {ty_str}\n```"));
                 }
@@ -839,15 +839,29 @@ impl ArukellBackend {
             return Some(format!("```arukellt\n{kind_str} {name}\n```"));
         }
 
+        // Fallback: search function-local let bindings by AST walk.
+        // The global scope only contains top-level items; variables inside
+        // function bodies need direct AST inspection.
+        if let Some(ty_str) = Self::find_let_type_annotation(module, name, Some(checker)) {
+            let kind_str = Self::find_let_mutability(module, name)
+                .map(|m| if m { "let mut" } else { "let" })
+                .unwrap_or("let");
+            return Some(format!("```arukellt\n{kind_str} {name}: {ty_str}\n```"));
+        }
+
         None
     }
 
     /// Search the AST module for a `let` binding with `name` and return its
-    /// type annotation (if any) as a displayable string.
-    fn find_let_type_annotation(module: &ast::Module, name: &str) -> Option<String> {
+    /// type — from explicit annotation or inferred from the initializer.
+    fn find_let_type_annotation(
+        module: &ast::Module,
+        name: &str,
+        checker: Option<&ark_typecheck::TypeChecker>,
+    ) -> Option<String> {
         for item in &module.items {
             if let ast::Item::FnDef(f) = item {
-                if let Some(ty) = Self::find_let_type_in_block(&f.body, name) {
+                if let Some(ty) = Self::find_let_type_in_block(&f.body, name, checker) {
                     return Some(ty);
                 }
             }
@@ -855,20 +869,107 @@ impl ArukellBackend {
         None
     }
 
-    fn find_let_type_in_block(block: &ast::Block, name: &str) -> Option<String> {
-        for stmt in &block.stmts {
-            if let ast::Stmt::Let {
-                name: n,
-                ty: Some(ty),
-                ..
-            } = stmt
-            {
-                if n == name {
-                    return Some(Self::type_expr_to_string(ty));
+    /// Search the AST for a `let` binding and return whether it is mutable.
+    fn find_let_mutability(module: &ast::Module, name: &str) -> Option<bool> {
+        for item in &module.items {
+            if let ast::Item::FnDef(f) = item {
+                for stmt in &f.body.stmts {
+                    if let ast::Stmt::Let {
+                        name: n, is_mut, ..
+                    } = stmt
+                    {
+                        if n == name {
+                            return Some(*is_mut);
+                        }
+                    }
                 }
             }
         }
         None
+    }
+
+    fn find_let_type_in_block(
+        block: &ast::Block,
+        name: &str,
+        checker: Option<&ark_typecheck::TypeChecker>,
+    ) -> Option<String> {
+        for stmt in &block.stmts {
+            if let ast::Stmt::Let {
+                name: n,
+                ty,
+                init,
+                ..
+            } = stmt
+            {
+                if n == name {
+                    if let Some(ty_expr) = ty {
+                        return Some(Self::type_expr_to_string(ty_expr));
+                    }
+                    return Self::infer_expr_type(init, checker);
+                }
+            }
+        }
+        None
+    }
+
+    /// Infer a display type from an expression without full type inference.
+    fn infer_expr_type(
+        expr: &ast::Expr,
+        checker: Option<&ark_typecheck::TypeChecker>,
+    ) -> Option<String> {
+        match expr {
+            ast::Expr::IntLit { suffix: Some(s), .. } => Some(s.clone()),
+            ast::Expr::IntLit { suffix: None, .. } => Some("i32".into()),
+            ast::Expr::FloatLit { suffix: Some(s), .. } => Some(s.clone()),
+            ast::Expr::FloatLit { suffix: None, .. } => Some("f64".into()),
+            ast::Expr::StringLit { .. } => Some("String".into()),
+            ast::Expr::CharLit { .. } => Some("char".into()),
+            ast::Expr::BoolLit { .. } => Some("bool".into()),
+            ast::Expr::Tuple { elements, .. } => {
+                let parts: Vec<String> = elements
+                    .iter()
+                    .map(|e| Self::infer_expr_type(e, checker).unwrap_or_else(|| "_".into()))
+                    .collect();
+                Some(format!("({})", parts.join(", ")))
+            }
+            ast::Expr::Array { elements, .. } => {
+                let elem_ty = elements
+                    .first()
+                    .and_then(|e| Self::infer_expr_type(e, checker))
+                    .unwrap_or_else(|| "_".into());
+                Some(format!("[{elem_ty}]"))
+            }
+            ast::Expr::StructInit { name, .. } => Some(name.clone()),
+            ast::Expr::Call { callee, .. } => {
+                if let ast::Expr::Ident { name, .. } = callee.as_ref() {
+                    if let Some(chk) = checker {
+                        if let Some(sig) = chk.fn_sig(name) {
+                            return Some(sig.ret.to_string());
+                        }
+                    }
+                    if name == "Vec" || name == "vec" {
+                        return Some("Vec<_>".into());
+                    }
+                }
+                None
+            }
+            ast::Expr::Binary { op, left, .. } => {
+                use ark_parser::ast::BinOp;
+                match op {
+                    BinOp::Eq | BinOp::Ne | BinOp::Lt | BinOp::Le | BinOp::Gt | BinOp::Ge
+                    | BinOp::And | BinOp::Or => Some("bool".into()),
+                    _ => Self::infer_expr_type(left, checker),
+                }
+            }
+            ast::Expr::Unary { op, operand, .. } => {
+                use ark_parser::ast::UnaryOp;
+                match op {
+                    UnaryOp::Not => Some("bool".into()),
+                    UnaryOp::Neg | UnaryOp::BitNot => Self::infer_expr_type(operand, checker),
+                }
+            }
+            _ => None,
+        }
     }
 
     /// Format a `TypeExpr` as a human-readable string.
@@ -3914,5 +4015,83 @@ mod tests {
                     "deprecated function '{}' should be marked deprecated", name);
             }
         }
+    }
+
+    #[test]
+    fn hover_shows_inferred_variable_type() {
+        // Test that variable hover infers types from initializer expressions
+        let source = r#"fn main() {
+    let x = 42
+    let s = "hello"
+    let b = true
+    let f = 3.14
+    let c = 'a'
+}"#;
+        let analysis = ArukellBackend::analyze_source(source);
+        let info = ArukellBackend::type_hover_info(
+            "x",
+            &analysis.module,
+            analysis.resolved.as_ref(),
+            analysis.checker.as_ref(),
+        );
+        assert!(info.is_some(), "hover should work for variable x");
+        let hover = info.unwrap();
+        assert!(hover.contains("i32"), "hover should show i32 for integer literal, got: {hover}");
+
+        let info_s = ArukellBackend::type_hover_info(
+            "s",
+            &analysis.module,
+            analysis.resolved.as_ref(),
+            analysis.checker.as_ref(),
+        );
+        assert!(info_s.is_some());
+        assert!(info_s.unwrap().contains("String"), "hover should show String for string literal");
+
+        let info_b = ArukellBackend::type_hover_info(
+            "b",
+            &analysis.module,
+            analysis.resolved.as_ref(),
+            analysis.checker.as_ref(),
+        );
+        assert!(info_b.is_some());
+        assert!(info_b.unwrap().contains("bool"), "hover should show bool for bool literal");
+    }
+
+    #[test]
+    fn hover_shows_function_return_type() {
+        let source = r#"fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+fn main() {
+    let result = add(1, 2)
+}"#;
+        let analysis = ArukellBackend::analyze_source(source);
+        let info = ArukellBackend::type_hover_info(
+            "result",
+            &analysis.module,
+            analysis.resolved.as_ref(),
+            analysis.checker.as_ref(),
+        );
+        assert!(info.is_some(), "hover should work for variable result");
+        let hover = info.unwrap();
+        assert!(hover.contains("i32"), "hover should show return type i32, got: {hover}");
+    }
+
+    #[test]
+    fn hover_shows_doc_comments() {
+        let source = r#"/// Adds two numbers together.
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}"#;
+        let analysis = ArukellBackend::analyze_source(source);
+        let info = ArukellBackend::type_hover_info(
+            "add",
+            &analysis.module,
+            analysis.resolved.as_ref(),
+            analysis.checker.as_ref(),
+        );
+        assert!(info.is_some(), "hover should work for fn add");
+        let hover = info.unwrap();
+        assert!(hover.contains("Adds two numbers"), "hover should show doc comment, got: {hover}");
     }
 }
