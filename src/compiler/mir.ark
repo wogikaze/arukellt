@@ -1401,6 +1401,8 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             ctx.func = mf
             ctx.local_names = Vec_new_String()
             ctx.local_indices = Vec_new_i32()
+            ctx.local_types = Vec_new_String()
+            ctx.local_type_indices = Vec_new_i32()
 
             // Allocate parameters as locals AND register in f.params
             let child_count = len(decl.children)
