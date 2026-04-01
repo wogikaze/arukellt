@@ -730,10 +730,48 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         if child_count >= 2 {
             let lhs = get_unchecked(node.children, 0)
             let rhs = get_unchecked(node.children, 1)
+            let mir_op = binop_to_mir(node.op)
+
+            // Short-circuit evaluation for && and ||
+            if mir_op == MIR_AND() || mir_op == MIR_OR() {
+                let l_idx = lower_expr(ctx, lhs)
+                // Store lhs result in a temp local
+                let sc_result = ctx_fresh_local(ctx, VT_I32())
+                let set_sc = MirInst_new(MIR_LOCAL_SET())
+                set_sc.arg0 = sc_result
+                ctx_emit(ctx, set_sc)
+
+                // Push condition for if
+                let get_cond = MirInst_new(MIR_LOCAL_GET())
+                get_cond.arg0 = sc_result
+                ctx_emit(ctx, get_cond)
+
+                // For ||: enter if-block when lhs is FALSY (evaluate rhs)
+                if mir_op == MIR_OR() {
+                    let eqz_inst = MirInst_new(MIR_NOT())
+                    eqz_inst.dest = sc_result
+                    eqz_inst.arg0 = sc_result
+                    ctx_emit(ctx, eqz_inst)
+                }
+
+                // if (condition) { sc_result = rhs }
+                ctx_emit(ctx, MirInst_new(MIR_IF()))
+                let r_idx = lower_expr(ctx, rhs)
+                let set_sc2 = MirInst_new(MIR_LOCAL_SET())
+                set_sc2.arg0 = sc_result
+                ctx_emit(ctx, set_sc2)
+                ctx_emit(ctx, MirInst_new(MIR_END()))
+
+                // Push final result
+                let get_sc_final = MirInst_new(MIR_LOCAL_GET())
+                get_sc_final.arg0 = sc_result
+                ctx_emit(ctx, get_sc_final)
+                return sc_result
+            }
+
             let l_idx = lower_expr(ctx, lhs)
             let r_idx = lower_expr(ctx, rhs)
             let dest = ctx_fresh_local(ctx, VT_I32())
-            let mir_op = binop_to_mir(node.op)
             ctx_emit(ctx, MirInst_binop(mir_op, dest, l_idx, r_idx))
             return dest
         }
