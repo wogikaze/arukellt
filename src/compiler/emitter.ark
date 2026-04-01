@@ -481,7 +481,15 @@ fn SCRATCH_NWRITTEN() -> i32 { 8 }  // 4 bytes: nwritten result
 fn SCRATCH_I32BUF() -> i32 { 16 }   // 20 bytes: i32-to-string buffer
 fn SCRATCH_NEWLINE() -> i32 { 36 }  // 1 byte: newline char
 fn SCRATCH_CHARBUF() -> i32 { 40 }  // 5 bytes: [len=1 as i32, char_byte]
-fn DATA_START() -> i32 { 48 }       // string data starts here
+// parse_i32 scratch: str_ptr, len, i, is_neg, result, is_err, byte
+fn SCRATCH_P_STR() -> i32 { 48 }
+fn SCRATCH_P_LEN() -> i32 { 52 }
+fn SCRATCH_P_I() -> i32 { 56 }
+fn SCRATCH_P_NEG() -> i32 { 60 }
+fn SCRATCH_P_RES() -> i32 { 64 }
+fn SCRATCH_P_ERR() -> i32 { 68 }
+fn SCRATCH_P_BYTE() -> i32 { 72 }
+fn DATA_START() -> i32 { 128 }      // string data starts here (scratch uses 0-127)
 
 // Emit context for passing module info to instruction emitter
 struct SelfEmitCtx {
@@ -1629,6 +1637,420 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_u(w, s_res)
 
             // end if
+            emit_byte(w, 0x0B)
+
+        } else if eq(clone(callee), "parse_i32") {
+            // parse_i32(s: String) -> Result<i32, String>
+            // Stack: [str_ptr]
+            let s_tmp = ctx.scratch_base
+            // Save str_ptr from stack
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_tmp)
+            // Store str_ptr at SCRATCH_P_STR
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_STR())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_tmp)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Load string length from ptr-4
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_LEN())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_tmp)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Init i=0, is_neg=0, result=0, is_err=0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_I())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_NEG())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_RES())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_ERR())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Check empty string → is_err=1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_LEN())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x45)  // i32.eqz
+            emit_byte(w, 0x04)  // if
+            emit_byte(w, 0x40)  // void
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_ERR())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x0B)  // end if
+            // Check first char '-'
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_ERR())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x45)  // i32.eqz (!is_err)
+            emit_byte(w, 0x04)  // if
+            emit_byte(w, 0x40)  // void
+            // Load first byte
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_STR())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x2D)  // i32.load8_u align=0 offset=0
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 45)  // '-'
+            emit_byte(w, OP_I32_EQ())
+            emit_byte(w, 0x04)  // if
+            emit_byte(w, 0x40)  // void
+            // is_neg=1, i=1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_NEG())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_I())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Check len <= 1 (just "-") → is_err=1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_LEN())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, 0x4D)  // i32.le_u
+            emit_byte(w, 0x04)  // if
+            emit_byte(w, 0x40)  // void
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_ERR())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x0B)  // end if (len<=1)
+            emit_byte(w, 0x0B)  // end if (is '-')
+            emit_byte(w, 0x0B)  // end if (!is_err)
+            // Digit loop: block { loop { ... } }
+            emit_byte(w, 0x02)  // block
+            emit_byte(w, 0x40)  // void
+            emit_byte(w, 0x03)  // loop
+            emit_byte(w, 0x40)  // void
+            // if is_err → br 1 (break block)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_ERR())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x0D)  // br_if
+            emit_leb128_u(w, 1)
+            // if i >= len → br 1 (break block)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_I())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_LEN())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x4F)  // i32.ge_u
+            emit_byte(w, 0x0D)  // br_if
+            emit_leb128_u(w, 1)
+            // byte = str[i]
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_BYTE())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_STR())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_I())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, 0x2D)  // i32.load8_u
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Check byte < '0' || byte > '9'
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_BYTE())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 48)  // '0'
+            emit_byte(w, 0x49)  // i32.lt_u
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_BYTE())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 57)  // '9'
+            emit_byte(w, 0x4B)  // i32.gt_u
+            emit_byte(w, 0x72)  // i32.or
+            emit_byte(w, 0x04)  // if
+            emit_byte(w, 0x40)  // void
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_ERR())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x0C)  // br 2 (break outer block)
+            emit_leb128_u(w, 2)
+            emit_byte(w, 0x0B)  // end if
+            // result = result * 10 + (byte - '0')
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_RES())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_RES())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 10)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_BYTE())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 48)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // i += 1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_I())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_I())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // br 0 (continue loop)
+            emit_byte(w, 0x0C)  // br
+            emit_leb128_u(w, 0)
+            emit_byte(w, 0x0B)  // end loop
+            emit_byte(w, 0x0B)  // end block
+            // Check is_err: if err → build Err struct, else → build Ok struct
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_ERR())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x04)  // if (result i32)
+            emit_byte(w, 0x7F)
+            // Err path: build heap string "parse error: invalid integer"
+            // then build Result::Err [tag=1, str_ptr]
+            // Write error string on heap: [len:4, data:28]
+            let s_base = ctx.scratch_base + 1
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_base)
+            // Store len=28 at heap
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_base)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 28)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Write "parse error: invalid integer" byte-by-byte
+            let err_msg = "parse error: invalid integer"
+            let err_len = len(err_msg)
+            let mut ei = 0
+            while ei < err_len {
+                emit_byte(w, OP_LOCAL_GET())
+                emit_leb128_u(w, s_base)
+                emit_byte(w, OP_I32_CONST())
+                emit_leb128_s(w, 4 + ei)
+                emit_byte(w, OP_I32_ADD())
+                let ch = char_at(err_msg, ei)
+                emit_byte(w, OP_I32_CONST())
+                emit_leb128_s(w, ch)
+                emit_byte(w, 0x3A)  // i32.store8 align=0 offset=0
+                emit_byte(w, 0x00)
+                emit_byte(w, 0x00)
+                ei = ei + 1
+            }
+            // str_ptr = base + 4
+            let s_str_ptr = ctx.scratch_base + 2
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_base)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_str_ptr)
+            // Bump heap past string (4+28=32)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_base)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 32)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Build enum [tag=1, payload=str_ptr]
+            let s_enum = ctx.scratch_base + 3
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_enum)
+            // Store tag=1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_enum)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Store str_ptr at enum+4
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_enum)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_str_ptr)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Bump heap 8
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Push enum ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_enum)
+            // else: Ok path
+            emit_byte(w, 0x05)  // else
+            // Apply negation if is_neg
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_NEG())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x04)  // if
+            emit_byte(w, 0x40)  // void
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_RES())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_RES())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x0B)  // end if
+            // Build Result::Ok [tag=0, payload=result]
+            let s_ok = ctx.scratch_base + 3
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_ok)
+            // Store tag=0
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ok)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Store result at ok+4
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ok)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, SCRATCH_P_RES())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Bump heap 8
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Push enum ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_ok)
+            // end if/else
             emit_byte(w, 0x0B)
 
         } else {
