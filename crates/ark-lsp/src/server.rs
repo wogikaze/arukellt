@@ -9,7 +9,7 @@ use ark_lexer::{Lexer, TokenKind};
 use ark_parser::ast;
 use ark_parser::parse;
 use ark_stdlib::StdlibManifest;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
@@ -37,6 +37,7 @@ struct CachedAnalysis {
 
 /// A symbol definition discovered during indexing.
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct SymbolEntry {
     /// The file containing this symbol.
     uri: Url,

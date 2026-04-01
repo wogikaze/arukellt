@@ -12,41 +12,30 @@ impl EmitCtx {
             }
             MirStmt::Assign(Place::Field(base, field_name), Rvalue::Use(op)) => {
                 // Field store: struct_ptr.field = value
-                if let Place::Local(base_id) = base.as_ref() {
-                    let struct_name = self.local_struct_names.get(&base_id.0).cloned();
-                    let (offset, is_f64, is_i64) = if let Some(ref sname) = struct_name {
-                        self.struct_field_info(sname, field_name)
-                    } else {
-                        (0, false, false)
-                    };
-                    // Push object pointer (base address)
-                    f.instruction(&Instruction::LocalGet(base_id.0));
-                    if offset > 0 {
-                        f.instruction(&Instruction::I32Const(offset as i32));
-                        f.instruction(&Instruction::I32Add);
-                    }
-                    // Push value to store
-                    self.emit_operand(f, op);
-                    // Store at the field location
-                    if is_f64 {
-                        f.instruction(&Instruction::F64Store(MemArg {
-                            offset: 0,
-                            align: 3,
-                            memory_index: 0,
-                        }));
-                    } else if is_i64 {
-                        f.instruction(&Instruction::I64Store(MemArg {
-                            offset: 0,
-                            align: 3,
-                            memory_index: 0,
-                        }));
-                    } else {
-                        f.instruction(&Instruction::I32Store(MemArg {
-                            offset: 0,
-                            align: 2,
-                            memory_index: 0,
-                        }));
-                    }
+                // Handle arbitrary nesting: o.inner.count = val
+                self.emit_place_addr(f, base, field_name);
+                // Push value to store
+                let (_, is_f64, is_i64) = self.resolve_field_type(base, field_name);
+                self.emit_operand(f, op);
+                // Store at the field location
+                if is_f64 {
+                    f.instruction(&Instruction::F64Store(MemArg {
+                        offset: 0,
+                        align: 3,
+                        memory_index: 0,
+                    }));
+                } else if is_i64 {
+                    f.instruction(&Instruction::I64Store(MemArg {
+                        offset: 0,
+                        align: 3,
+                        memory_index: 0,
+                    }));
+                } else {
+                    f.instruction(&Instruction::I32Store(MemArg {
+                        offset: 0,
+                        align: 2,
+                        memory_index: 0,
+                    }));
                 }
             }
             MirStmt::CallBuiltin {
@@ -651,5 +640,97 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
         self.call_fn(f, FN_FD_WRITE);
         f.instruction(&Instruction::Drop);
+    }
+
+    /// Emit Wasm instructions to compute the memory address for a field assignment.
+    /// Handles nested field access like `o.inner.count` → address of `count` field.
+    fn emit_place_addr(&mut self, f: &mut Function, base: &Place, field_name: &str) {
+        let ma = MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        };
+        match base {
+            Place::Local(base_id) => {
+                let struct_name = self.local_struct_names.get(&base_id.0).cloned();
+                let (offset, _, _) = if let Some(ref sname) = struct_name {
+                    self.struct_field_info(sname, field_name)
+                } else {
+                    (0, false, false)
+                };
+                f.instruction(&Instruction::LocalGet(base_id.0));
+                if offset > 0 {
+                    f.instruction(&Instruction::I32Const(offset as i32));
+                    f.instruction(&Instruction::I32Add);
+                }
+            }
+            Place::Field(inner_base, inner_field) => {
+                // Resolve the struct type for the intermediate field
+                let inner_struct_name = self.resolve_place_struct_type(inner_base, inner_field);
+                // Emit address of the inner field (gets the pointer stored there)
+                self.emit_place_addr(f, inner_base, inner_field);
+                // Load the pointer to the intermediate struct
+                f.instruction(&Instruction::I32Load(ma));
+                // Now add the offset for the target field
+                let (offset, _, _) = if let Some(ref sname) = inner_struct_name {
+                    self.struct_field_info(sname, field_name)
+                } else {
+                    (0, false, false)
+                };
+                if offset > 0 {
+                    f.instruction(&Instruction::I32Const(offset as i32));
+                    f.instruction(&Instruction::I32Add);
+                }
+            }
+            Place::Index(_, _) => {
+                // Index-based assignment not yet supported in chained context
+            }
+        }
+    }
+
+    /// Resolve the struct type name for a Place's field, to look up the target
+    /// field's type info.
+    fn resolve_place_struct_type(&self, base: &Place, field_name: &str) -> Option<String> {
+        match base {
+            Place::Local(base_id) => {
+                let struct_name = self.local_struct_names.get(&base_id.0)?;
+                // Look up what type this field holds
+                let layout = self.struct_layouts.get(struct_name)?;
+                for (fname, ftype) in layout {
+                    if fname == field_name {
+                        return Some(ftype.clone());
+                    }
+                }
+                None
+            }
+            Place::Field(inner_base, inner_field) => {
+                // Recursively find the struct type for the intermediate field
+                let inner_type = self.resolve_place_struct_type(inner_base, inner_field)?;
+                let layout = self.struct_layouts.get(&inner_type)?;
+                for (fname, ftype) in layout {
+                    if fname == field_name {
+                        return Some(ftype.clone());
+                    }
+                }
+                None
+            }
+            Place::Index(_, _) => None,
+        }
+    }
+
+    /// Resolve the field type info (offset, is_f64, is_i64) for a nested field assignment.
+    fn resolve_field_type(&self, base: &Place, field_name: &str) -> (u32, bool, bool) {
+        let struct_name = match base {
+            Place::Local(base_id) => self.local_struct_names.get(&base_id.0).cloned(),
+            Place::Field(inner_base, inner_field) => {
+                self.resolve_place_struct_type(inner_base, inner_field)
+            }
+            Place::Index(_, _) => None,
+        };
+        if let Some(ref sname) = struct_name {
+            self.struct_field_info(sname, field_name)
+        } else {
+            (0, false, false)
+        }
     }
 }

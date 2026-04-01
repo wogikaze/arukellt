@@ -690,21 +690,10 @@ impl LowerCtx {
                         out.push(MirStmt::Assign(Place::Local(local_id), Rvalue::Use(op)));
                     }
                 } else if let ast::Expr::FieldAccess { object, field, .. } = target.as_ref() {
-                    // self.field = value → FieldStore
-                    if let ast::Expr::Ident { name, .. } = object.as_ref()
-                        && let Some(local_id) = self.lookup_local(name)
-                    {
-                        let struct_name = self.struct_typed_locals.get(&local_id.0).cloned();
+                    // Handle arbitrary nesting: a.b.c = value
+                    if let Some(place) = self.lower_field_place(object, field) {
                         let val_op = self.lower_expr(value);
-                        out.push(MirStmt::Assign(
-                            Place::Field(Box::new(Place::Local(local_id)), field.clone()),
-                            Rvalue::Use(val_op),
-                        ));
-                        // Track struct type for the field access
-                        if let Some(sname) = struct_name {
-                            // No-op: struct type already tracked
-                            let _ = sname;
-                        }
+                        out.push(MirStmt::Assign(place, Rvalue::Use(val_op)));
                     }
                 }
             }
@@ -754,6 +743,26 @@ impl LowerCtx {
                 }
             }
             _ => {}
+        }
+    }
+
+    /// Lower an AST field access chain into a MIR Place for assignment.
+    /// Handles arbitrary nesting: `a.b.c` → `Place::Field(Place::Field(Place::Local(a), "b"), "c")`
+    fn lower_field_place(&self, object: &ast::Expr, field: &str) -> Option<Place> {
+        match object {
+            ast::Expr::Ident { name, .. } => {
+                let local_id = self.lookup_local(name)?;
+                Some(Place::Field(Box::new(Place::Local(local_id)), field.to_string()))
+            }
+            ast::Expr::FieldAccess {
+                object: inner_object,
+                field: inner_field,
+                ..
+            } => {
+                let inner_place = self.lower_field_place(inner_object, inner_field)?;
+                Some(Place::Field(Box::new(inner_place), field.to_string()))
+            }
+            _ => None,
         }
     }
 }

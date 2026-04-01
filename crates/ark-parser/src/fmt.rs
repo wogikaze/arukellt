@@ -192,12 +192,11 @@ fn sort_imports_in_module(source: &str, module: &ast::Module) -> Option<String> 
     }
     result.push_str(&sorted_block);
     // Skip blank lines immediately after the import block (we'll reconstruct them)
-    let mut rest_start = last_import_line + 1;
+    let rest_start = last_import_line + 1;
     // Keep blank lines that were after imports as-is
     for line in &lines[rest_start..] {
         result.push_str(line);
         result.push('\n');
-        rest_start += 1;
     }
     // The original source might not end with a newline
     if !source.ends_with('\n') && result.ends_with('\n') {

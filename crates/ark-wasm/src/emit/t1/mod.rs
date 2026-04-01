@@ -18,8 +18,8 @@ const IOV_BASE: u32 = 0;
 const NWRITTEN: u32 = 8;
 const SCRATCH: u32 = 16; // temp for i32_to_string length
 const I32BUF: u32 = 48; // buffer for i32_to_string output (20 bytes max)
-const STRUCT_BASE: u32 = 96; // scratch area for struct init base pointers (8 slots × 4 bytes = 96..128)
-const ENUM_BASE: u32 = 128; // scratch area for enum init base pointers (8 slots × 4 bytes = 128..160)
+// NOTE: STRUCT_BASE (96) and ENUM_BASE (128) scratch areas are no longer used.
+// Struct/enum init base pointers now use Wasm locals (see build_user_fn).
 const FS_SCRATCH: u32 = 160; // scratch for fs operations (opened_fd: 4 bytes)
 const FS_NREAD: u32 = 164; // nread result from fd_read (4 bytes)
 const STDIN_BUF_POS: u32 = 168; // i32: current read position in stdin buffer

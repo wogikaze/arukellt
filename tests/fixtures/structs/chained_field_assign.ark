@@ -1,0 +1,38 @@
+// Regression test: chained field assignment o.inner.field = value
+use std::host::stdio
+
+struct Inner {
+    count: i32,
+    name: String,
+}
+
+struct Middle {
+    inner: Inner,
+    label: String,
+}
+
+struct Outer {
+    middle: Middle,
+    id: i32,
+}
+
+fn main() {
+    let o = Outer {
+        middle: Middle {
+            inner: Inner { count: 0, name: String_from("a") },
+            label: String_from("mid"),
+        },
+        id: 1,
+    }
+    // 1-level assignment
+    o.id = 99
+    stdio::println(i32_to_string(o.id))
+    // 2-level chained assignment
+    o.middle.label = String_from("updated")
+    stdio::println(o.middle.label)
+    o.middle.inner.count = 42
+    stdio::println(i32_to_string(o.middle.inner.count))
+    // 3-level chained assignment
+    o.middle.inner.name = String_from("deep")
+    stdio::println(o.middle.inner.name)
+}
