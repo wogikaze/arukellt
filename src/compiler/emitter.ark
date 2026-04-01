@@ -60,6 +60,7 @@ fn OP_I32_EQ() -> i32 { 0x46 }
 fn OP_I32_NE() -> i32 { 0x47 }
 fn OP_I32_LT_S() -> i32 { 0x48 }
 fn OP_I32_GT_S() -> i32 { 0x4a }
+fn OP_I32_GT_U() -> i32 { 0x4b }
 fn OP_I32_LE_S() -> i32 { 0x4c }
 fn OP_I32_GE_S() -> i32 { 0x4e }
 fn OP_I32_ADD() -> i32 { 0x6a }
@@ -2715,9 +2716,11 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, 0x0B)
 
         } else if eq(clone(callee), "vec_pop") {
-            // vec_pop(v): decrement len, return data[(len-1)*4]
-            // Stack: [vec_ptr]
+            // vec_pop(v) -> Option<i32>: [tag=0,payload] for Some, [tag=1] for None
+            // Option layout: 8 bytes on heap [tag:i32, payload:i32]
             let s_vec_pop = ctx.scratch_base
+            let s_newlen = ctx.scratch_base + 1
+            let s_optptr = ctx.scratch_base + 2
             emit_byte(w, OP_LOCAL_SET())
             emit_leb128_u(w, s_vec_pop)
             // Load current len
@@ -2726,14 +2729,25 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_LOAD())
             emit_byte(w, 0x02)
             emit_byte(w, 0x00)
-            // Decrement: new_len = len - 1
+            // if len > 0
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_GT_U())
+            // if (len > 0) → Some path
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x7F)  // result i32
+            // new_len = len - 1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_vec_pop)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 1)
             emit_byte(w, OP_I32_SUB())
-            let s_newlen = ctx.scratch_base + 1
-            emit_byte(w, OP_LOCAL_TEE())
+            emit_byte(w, OP_LOCAL_SET())
             emit_leb128_u(w, s_newlen)
-            // Store new len back
+            // Store new_len back
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s_vec_pop)
             emit_byte(w, OP_LOCAL_GET())
@@ -2741,7 +2755,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_STORE())
             emit_byte(w, 0x02)
             emit_byte(w, 0x00)
-            // Load data_ptr
+            // Load value = data_ptr[new_len * 4]
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s_vec_pop)
             emit_byte(w, OP_I32_CONST())
@@ -2750,7 +2764,6 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_LOAD())
             emit_byte(w, 0x02)
             emit_byte(w, 0x00)
-            // data_ptr + new_len * 4
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s_newlen)
             emit_byte(w, OP_I32_CONST())
@@ -2760,6 +2773,68 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_LOAD())
             emit_byte(w, 0x02)
             emit_byte(w, 0x00)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_newlen)  // reuse s_newlen for value
+            // Alloc 8 bytes for Option: [tag=0, payload=value]
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_optptr)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Store tag = 0 (Some)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_optptr)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Store payload = value
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_optptr)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_newlen)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Return option ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_optptr)
+            // else → None path
+            emit_byte(w, OP_ELSE())
+            // Alloc 8 bytes for Option: [tag=1]
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_optptr)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+            // Store tag = 1 (None)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_optptr)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            // Return option ptr
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_optptr)
+            emit_byte(w, OP_END())
 
         } else if eq(clone(callee), "vec_set") {
             // vec_set(v, i, val): store val at data[i*4]
