@@ -22,10 +22,10 @@ LSP server に対する protocol-level E2E テストを追加する。`initializ
 
 ## Acceptance
 
-- [ ] LSP server を subprocess で起動し JSON-RPC message を送受する test harness が存在する
-- [ ] initialize / didOpen / completion / definition / hover / shutdown の E2E テストが pass する
-- [ ] protocol error handling (不正リクエスト、存在しないファイル) のテストが pass する
-- [ ] CI で E2E テストが実行される
+- [x] LSP server を subprocess で起動し JSON-RPC message を送受する test harness が存在する
+- [x] initialize / didOpen / completion / definition / hover / shutdown の E2E テストが pass する
+- [x] protocol error handling (不正リクエスト、存在しないファイル) のテストが pass する
+- [x] CI で E2E テストが実行される
 
 ## References
 

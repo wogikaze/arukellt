@@ -14,7 +14,7 @@ graph LR
   I319["319 Selfhost CLI のフラグ semantics を driver に接続する"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
   I333["333 LSP: project-wide symbol index を構築する"]
-  I355["355 Tooling Contract: LSP protocol E2E テストを追加する"]
+  I356["356 Tooling Contract: CLI / LSP / Extension の機能契約を文書化する"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I363["363 Stdlib Docs: module family ごとの curated overview page を作る"]
   I367["367 Stdlib Docs: deprecated API の移行ガイドを整備する"]
@@ -41,7 +41,7 @@ graph LR
   I334["334 LSP: 標準ライブラリの定義解決を実装する"]
   I335["335 LSP: cross-file go to definition を実装する"]
   I338["338 LSP: references を semantic symbol ID ベースに置き換える"]
-  I356["356 Tooling Contract: CLI / LSP / Extension の機能契約を文書化する"]
+  I357["357 Tooling Contract: release gate を手動チェックリストから自動検証に移行する"]
   I362["362 Stdlib: stability tier を実行時・CI で検証する"]
   I365["365 Stdlib Docs: source-backed な cookbook / recipe 集を拡充する"]
   I396["396 Stdlib Docs: family overview ページを実装し learning path を作る"]
@@ -67,7 +67,6 @@ graph LR
   I337["337 LSP: signature help を stdlib 連携で完成させる"]
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I339["339 LSP: rename を semantic-aware に置き換える"]
-  I357["357 Tooling Contract: release gate を手動チェックリストから自動検証に移行する"]
   I398["398 Stdlib Docs: recipe と fixtures / examples を結ぶ manifest を作る"]
   I402["402 Stdlib Docs: landing page と読む順番を family 単位で再設計する"]
   I409["409 Language Docs: syntax / type / error / memory の重複記述を統合する"]
@@ -119,7 +118,7 @@ graph LR
   I333 --> I334
   I333 --> I335
   I333 --> I338
-  I355 --> I356
+  I356 --> I357
   I358 --> I362
   I363 --> I365
   I363 --> I396
@@ -149,8 +148,6 @@ graph LR
   I333 --> I441
   I335 --> I441
   I338 --> I339
-  I355 --> I357
-  I356 --> I357
   I365 --> I398
   I396 --> I402
   I406 --> I409
@@ -213,7 +210,7 @@ graph LR
 - **319** depends on: none; blocks: 318, 321
 - **327** depends on: none; blocks: none
 - **333** depends on: none; blocks: 334, 335, 338, 439, 441
-- **355** depends on: 353; blocks: 356, 357
+- **356** depends on: 355; blocks: 357
 - **358** depends on: none; blocks: 362
 - **363** depends on: none; blocks: 365, 396
 - **367** depends on: 359; blocks: 400
@@ -240,7 +237,7 @@ graph LR
 - **334** depends on: 333; blocks: 337, 439
 - **335** depends on: 333; blocks: 439, 441
 - **338** depends on: 333; blocks: 339, 439
-- **356** depends on: 355; blocks: 357
+- **357** depends on: 354, 355, 356; blocks: none
 - **362** depends on: 358, 360; blocks: none
 - **365** depends on: 363; blocks: 398
 - **396** depends on: 363; blocks: 402
@@ -266,7 +263,6 @@ graph LR
 - **337** depends on: 334; blocks: none
 - **441** depends on: 333, 335, 340; blocks: 444
 - **339** depends on: 338; blocks: 439
-- **357** depends on: 354, 355, 356; blocks: none
 - **398** depends on: 365; blocks: 401
 - **402** depends on: 396; blocks: 404
 - **409** depends on: 406, 408; blocks: none
