@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] 別ファイルで定義された関数に go to definition で飛べる
-- [ ] `use` 文で import した名前から定義元ファイルに飛べる
-- [ ] qualified name (`module::fn()`) の定義元に飛べる
-- [ ] `goto_type_definition` も cross-file で動作する
+- [x] 別ファイルで定義された関数に go to definition で飛べる
+- [x] `use` 文で import した名前から定義元ファイルに飛べる
+- [x] qualified name (`module::fn()`) の定義元に飛べる
+- [x] `goto_type_definition` も cross-file で動作する
 
 ## References
 

@@ -22,11 +22,11 @@ LSP の analysis_cache を単一ファイルの HashMap<Url, CachedAnalysis> か
 
 ## Acceptance
 
-- [ ] `project_root` 配下の全 `.ark` ファイルを起動時に index する仕組みが動作する
-- [ ] index が top-level symbol (fn, struct, enum, trait, impl) を file:span 付きで保持する
-- [ ] `did_open` / `did_change` / `did_change_watched_files` で index が差分更新される
-- [ ] index が stdlib module の公開 symbol も含む (#334 の前提)
-- [ ] `workspace/symbol` が index を検索し、open file 以外の結果も返す
+- [x] `project_root` 配下の全 `.ark` ファイルを起動時に index する仕組みが動作する
+- [x] index が top-level symbol (fn, struct, enum, trait, impl) を file:span 付きで保持する
+- [x] `did_open` / `did_change` / `did_change_watched_files` で index が差分更新される
+- [x] index が stdlib module の公開 symbol も含む (#334 の前提)
+- [x] `workspace/symbol` が index を検索し、open file 以外の結果も返す
 
 ## References
 

@@ -24,10 +24,10 @@
 
 ## Acceptance
 
-- [ ] `std/manifest.toml` から function signature / module / doc を LSP 起動時に読み込む
-- [ ] stdlib 関数への go to definition が `std/**/*.ark` 内の実装位置を返す
-- [ ] stdlib 関数への hover が signature + doc を表示する
-- [ ] completion の stdlib 候補が manifest 駆動になる (hardcoded 配列を廃止)
+- [x] `std/manifest.toml` から function signature / module / doc を LSP 起動時に読み込む
+- [x] stdlib 関数への go to definition が `std/**/*.ark` 内の実装位置を返す
+- [x] stdlib 関数への hover が signature + doc を表示する
+- [x] completion の stdlib 候補が manifest 駆動になる (hardcoded 配列を廃止)
 
 ## References
 
