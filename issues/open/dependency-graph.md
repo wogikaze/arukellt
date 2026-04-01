@@ -10,7 +10,7 @@ graph LR
   I296["296 string 型の canonical ABI lift-lower を実装する"]
   I309["309 Selfhost resolver に module/import resolution を実装する"]
   I311["311 Selfhost typechecker に型推論エンジンを構築する"]
-  I316["316 Selfhost Wasm emitter: 構造化ブロック出力を実装する"]
+  I317["317 Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する"]
   I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
@@ -31,7 +31,7 @@ graph LR
   I298["298 option / result 型の canonical ABI lift-lower を実装する"]
   I310["310 Selfhost resolver に visibility enforcement を実装する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
-  I317["317 Selfhost Wasm emitter: 呼び出し規約と WASI import を実装する"]
+  I323["323 Selfhost の統一バイナリを生成する"]
   I362["362 Stdlib: stability tier を実行時・CI で検証する"]
   I365["365 Stdlib Docs: source-backed な cookbook / recipe 集を拡充する"]
   I396["396 Stdlib Docs: family overview ページを実装し learning path を作る"]
@@ -46,7 +46,7 @@ graph LR
   I399["399 Stdlib Docs: canonical name / alias / historical name を横断検索できるようにする"]
   I403["403 Stdlib Docs: manifest metadata と生成 docs の整合チェックを拡張する"]
   I443["443 Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する"]
-  I323["323 Selfhost の統一バイナリを生成する"]
+  I324["324 verify-bootstrap.sh の scaffold を解除する"]
   I398["398 Stdlib Docs: recipe と fixtures / examples を結ぶ manifest を作る"]
   I402["402 Stdlib Docs: landing page と読む順番を family 単位で再設計する"]
   I409["409 Language Docs: syntax / type / error / memory の重複記述を統合する"]
@@ -58,7 +58,7 @@ graph LR
   I433["433 Playground: permalink / share format と圧縮方式を定義する"]
   I435["435 Playground: unsupported target / host capability を明示する UX を入れる"]
   I444["444 VSCode Extension × Component: Playground / Editor から component を直接生成・実行できる導線を作る"]
-  I324["324 verify-bootstrap.sh の scaffold を解除する"]
+  I325["325 check-selfhost-parity.sh を作成する"]
   I401["401 Stdlib Docs: examples を compile-check して docs drift を防ぐ"]
   I404["404 Stdlib Docs: legacy ページの整理と redirect / archive 方針を実装する"]
   I416["416 Language Docs: ownership map と release gate を定義する"]
@@ -66,14 +66,13 @@ graph LR
   I430["430 Playground: diagnostics worker と incremental parse loop の性能予算を作る"]
   I431["431 Playground: editor shell と syntax highlighting を実装する"]
   I434["434 Playground: shared link の version pinning と再現性を確保する"]
-  I325["325 check-selfhost-parity.sh を作成する"]
+  I326["326 CI の selfhost gate を full fixpoint check に昇格する"]
   I405["405 Stdlib Docs: ownership map と release gate を整備する"]
   I432["432 Playground: examples catalog を docs / fixtures と共有する"]
   I436["436 Playground: docs site への統合と navigation を実装する"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
-  I326["326 CI の selfhost gate を full fixpoint check に昇格する"]
-  I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I328["328 コンパイラパスを抽象化して compiler-agnostic にする"]
+  I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I329["329 Dual-period governance を確定する"]
   I330["330 Fixture harness を selfhost binary 対応にする"]
   I332["332 Workspace 構造を selfhost primary に備えて再編する"]
@@ -85,7 +84,7 @@ graph LR
   I296 --> I298
   I309 --> I310
   I311 --> I312
-  I316 --> I317
+  I317 --> I323
   I358 --> I362
   I363 --> I365
   I363 --> I396
@@ -101,7 +100,7 @@ graph LR
   I395 --> I399
   I395 --> I403
   I442 --> I443
-  I317 --> I323
+  I323 --> I324
   I365 --> I398
   I396 --> I402
   I406 --> I409
@@ -115,7 +114,7 @@ graph LR
   I428 --> I433
   I428 --> I435
   I443 --> I444
-  I323 --> I324
+  I324 --> I325
   I398 --> I401
   I402 --> I404
   I413 --> I416
@@ -124,15 +123,14 @@ graph LR
   I429 --> I430
   I429 --> I431
   I433 --> I434
-  I324 --> I325
+  I325 --> I326
   I401 --> I405
   I403 --> I405
   I381 --> I432
   I431 --> I436
   I431 --> I437
-  I325 --> I326
-  I437 --> I438
   I326 --> I328
+  I437 --> I438
   I328 --> I329
   I328 --> I330
   I329 --> I332
@@ -145,7 +143,7 @@ graph LR
 - **296** depends on: 299; blocks: 297, 298
 - **309** depends on: 308; blocks: 310
 - **311** depends on: 308; blocks: 312
-- **316** depends on: 314, 315; blocks: 317
+- **317** depends on: 316; blocks: 323
 - **322** depends on: 320, 321; blocks: none
 - **327** depends on: none; blocks: none
 - **358** depends on: none; blocks: 362
@@ -166,7 +164,7 @@ graph LR
 - **298** depends on: 296; blocks: none
 - **310** depends on: 309; blocks: none
 - **312** depends on: 311; blocks: none
-- **317** depends on: 316; blocks: 323
+- **323** depends on: 317; blocks: 324
 - **362** depends on: 358, 360; blocks: none
 - **365** depends on: 363; blocks: 398
 - **396** depends on: 363; blocks: 402
@@ -181,7 +179,7 @@ graph LR
 - **399** depends on: 395; blocks: none
 - **403** depends on: 395; blocks: 405
 - **443** depends on: 442; blocks: 444
-- **323** depends on: 317; blocks: 324
+- **324** depends on: 323; blocks: 325
 - **398** depends on: 365; blocks: 401
 - **402** depends on: 396; blocks: 404
 - **409** depends on: 406, 408; blocks: none
@@ -193,7 +191,7 @@ graph LR
 - **433** depends on: 428; blocks: 434
 - **435** depends on: 428; blocks: none
 - **444** depends on: 439, 440, 441, 443; blocks: none
-- **324** depends on: 323; blocks: 325
+- **325** depends on: 324; blocks: 326
 - **401** depends on: 398; blocks: 405
 - **404** depends on: 402; blocks: none
 - **416** depends on: 413, 415; blocks: none
@@ -201,14 +199,13 @@ graph LR
 - **430** depends on: 429; blocks: none
 - **431** depends on: 429; blocks: 436, 437
 - **434** depends on: 433; blocks: none
-- **325** depends on: 324; blocks: 326
+- **326** depends on: 325; blocks: 328
 - **405** depends on: 401, 403; blocks: none
 - **432** depends on: 381; blocks: none
 - **436** depends on: 431; blocks: none
 - **437** depends on: 431; blocks: 438
-- **326** depends on: 325; blocks: 328
-- **438** depends on: 437; blocks: none
 - **328** depends on: 326; blocks: 329, 330
+- **438** depends on: 437; blocks: none
 - **329** depends on: 328; blocks: 332
 - **330** depends on: 328; blocks: 331
 - **332** depends on: 329; blocks: none

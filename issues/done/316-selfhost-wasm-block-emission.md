@@ -1,6 +1,6 @@
 # Selfhost Wasm emitter: 構造化ブロック出力を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 316
@@ -24,11 +24,11 @@ MIR のブロックグラフを Wasm の構造化制御フロー (block / loop /
 
 ## Acceptance
 
-- [ ] MIR block graph が valid な Wasm 命令列に変換される
-- [ ] nested block / loop が正しい depth で br を出す
-- [ ] `local.get` / `local.set` が正しい index を使う
-- [ ] 生成 Wasm が `wasm-tools validate` を通る
-- [ ] 生成 Wasm が wasmtime で実行可能
+- [x] MIR block graph が valid な Wasm 命令列に変換される
+- [x] nested block / loop が正しい depth で br を出す
+- [x] `local.get` / `local.set` が正しい index を使う
+- [x] 生成 Wasm が `wasm-tools validate` を通る
+- [x] 生成 Wasm が wasmtime で実行可能
 
 ## References
 

@@ -364,6 +364,48 @@ fn emit_mir_inst(w: WasmWriter, inst: MirInst) {
         emit_byte(w, OP_NOP())
     } else if inst.op == 72 {  // UNREACHABLE
         emit_byte(w, OP_UNREACHABLE())
+    } else if inst.op == 50 {  // BR
+        emit_byte(w, OP_BR())
+        emit_leb128_u(w, inst.int_val)
+    } else if inst.op == 51 {  // BR_IF
+        emit_byte(w, OP_BR_IF())
+        emit_leb128_u(w, inst.int_val)
+    } else if inst.op == 53 {  // BLOCK
+        emit_byte(w, OP_BLOCK())
+        emit_byte(w, 0x40)  // void block type
+    } else if inst.op == 54 {  // LOOP
+        emit_byte(w, OP_LOOP())
+        emit_byte(w, 0x40)  // void block type
+    } else if inst.op == 55 {  // IF
+        emit_byte(w, OP_IF())
+        emit_byte(w, 0x40)  // void block type
+    } else if inst.op == 28 {  // LTEQ
+        emit_byte(w, OP_I32_LE_S())
+    } else if inst.op == 30 {  // GTEQ
+        emit_byte(w, OP_I32_GE_S())
+    } else if inst.op == 31 {  // AND
+        emit_byte(w, OP_I32_AND())
+    } else if inst.op == 32 {  // OR
+        emit_byte(w, OP_I32_OR())
+    } else if inst.op == 33 {  // NEG (i32.const 0; i32.sub for negate)
+        emit_byte(w, OP_I32_CONST())
+        emit_leb128_s(w, 0)
+        // swap with local.get for operand (already on stack)
+        emit_byte(w, OP_I32_SUB())
+    } else if inst.op == 34 {  // NOT (i32.eqz)
+        emit_byte(w, OP_I32_EQZ())
+    } else if inst.op == 60 {  // STRUCT_NEW
+        emit_byte(w, OP_NOP())  // placeholder
+    } else if inst.op == 61 {  // STRUCT_GET
+        emit_byte(w, OP_NOP())  // placeholder
+    } else if inst.op == 62 {  // STRUCT_SET
+        emit_byte(w, OP_NOP())  // placeholder
+    } else if inst.op == 63 {  // ARRAY_NEW
+        emit_byte(w, OP_NOP())  // placeholder
+    } else if inst.op == 64 {  // ARRAY_GET
+        emit_byte(w, OP_NOP())  // placeholder
+    } else if inst.op == 65 {  // ARRAY_SET
+        emit_byte(w, OP_NOP())  // placeholder
     }
 }
 
@@ -466,6 +508,23 @@ fn mir_op_to_wat(inst: MirInst) -> String {
         return concat(String_from("call "), to_string(inst.arg0))
     }
     if inst.op == 42 { return String_from("return") }
+    if inst.op == 50 { return concat(String_from("br "), to_string(inst.int_val)) }
+    if inst.op == 51 { return concat(String_from("br_if "), to_string(inst.int_val)) }
+    if inst.op == 53 { return String_from("block") }
+    if inst.op == 54 { return String_from("loop") }
+    if inst.op == 55 { return String_from("if") }
+    if inst.op == 28 { return String_from("i32.le_s") }
+    if inst.op == 30 { return String_from("i32.ge_s") }
+    if inst.op == 31 { return String_from("i32.and") }
+    if inst.op == 32 { return String_from("i32.or") }
+    if inst.op == 33 { return String_from("i32.neg ;; via sub") }
+    if inst.op == 34 { return String_from("i32.eqz") }
+    if inst.op == 60 { return String_from(";; struct.new") }
+    if inst.op == 61 { return String_from(";; struct.get") }
+    if inst.op == 62 { return String_from(";; struct.set") }
+    if inst.op == 63 { return String_from(";; array.new") }
+    if inst.op == 64 { return String_from(";; array.get") }
+    if inst.op == 65 { return String_from(";; array.set") }
     if inst.op == 70 { return String_from("drop") }
     if inst.op == 71 { return String_from("nop") }
     if inst.op == 72 { return String_from("unreachable") }

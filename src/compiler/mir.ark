@@ -969,14 +969,34 @@ fn mir_op_name(op: i32) -> String {
     if op == MIR_SUB() { return String_from("sub") }
     if op == MIR_MUL() { return String_from("mul") }
     if op == MIR_DIV() { return String_from("div") }
+    if op == MIR_MOD() { return String_from("mod") }
+    if op == MIR_EQ() { return String_from("eq") }
+    if op == MIR_NEQ() { return String_from("neq") }
+    if op == MIR_LT() { return String_from("lt") }
+    if op == MIR_LTEQ() { return String_from("le") }
+    if op == MIR_GT() { return String_from("gt") }
+    if op == MIR_GTEQ() { return String_from("ge") }
+    if op == MIR_AND() { return String_from("and") }
+    if op == MIR_OR() { return String_from("or") }
+    if op == MIR_NEG() { return String_from("neg") }
+    if op == MIR_NOT() { return String_from("not") }
     if op == MIR_CALL() { return String_from("call") }
     if op == MIR_RETURN() { return String_from("return") }
     if op == MIR_BR() { return String_from("br") }
     if op == MIR_BR_IF() { return String_from("br_if") }
+    if op == MIR_BLOCK() { return String_from("block") }
+    if op == MIR_LOOP() { return String_from("loop") }
+    if op == MIR_IF() { return String_from("if") }
     if op == MIR_STRUCT_NEW() { return String_from("struct.new") }
     if op == MIR_STRUCT_GET() { return String_from("struct.get") }
+    if op == MIR_STRUCT_SET() { return String_from("struct.set") }
+    if op == MIR_ARRAY_NEW() { return String_from("array.new") }
+    if op == MIR_ARRAY_GET() { return String_from("array.get") }
+    if op == MIR_ARRAY_SET() { return String_from("array.set") }
+    if op == MIR_ARRAY_LEN() { return String_from("array.len") }
     if op == MIR_DROP() { return String_from("drop") }
     if op == MIR_NOP() { return String_from("nop") }
+    if op == MIR_UNREACHABLE() { return String_from("unreachable") }
     String_from("?op")
 }
 
