@@ -156,6 +156,11 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("starts_with"), SYM_BUILTIN())
     define(ctx, String_from("args"), SYM_BUILTIN())
     define(ctx, String_from("exit"), SYM_BUILTIN())
+    // Built-in enum variant constructors
+    define(ctx, String_from("Some"), SYM_BUILTIN())
+    define(ctx, String_from("None"), SYM_BUILTIN())
+    define(ctx, String_from("Ok"), SYM_BUILTIN())
+    define(ctx, String_from("Err"), SYM_BUILTIN())
     // Modules
     define(ctx, String_from("stdio"), SYM_MODULE())
     define(ctx, String_from("fs"), SYM_MODULE())

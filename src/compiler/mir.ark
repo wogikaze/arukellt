@@ -319,6 +319,8 @@ struct LowerCtx {
     // Enum variant→tag mapping (parallel arrays)
     variant_names: Vec<String>,
     variant_tags: Vec<i32>,
+    // Variant names that belong to payload enums (for heap allocation)
+    payload_variants: Vec<String>,
 }
 
 fn LowerCtx_new(m: MirModule) -> LowerCtx {
@@ -343,6 +345,7 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         local_type_indices: Vec_new_i32(),
         variant_names: Vec_new_String(),
         variant_tags: Vec_new_i32(),
+        payload_variants: Vec_new_String(),
     }
 }
 
@@ -481,6 +484,48 @@ fn ctx_variant_tag(ctx: LowerCtx, name: String) -> i32 {
     0 - 1
 }
 
+fn ctx_is_payload_variant(ctx: LowerCtx, name: String) -> bool {
+    let count = len(ctx.payload_variants)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(ctx.payload_variants, i)), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn ctx_register_builtin_variants(ctx: LowerCtx) {
+    // Option variants
+    push(ctx.variant_names, String_from("Some"))
+    push(ctx.variant_tags, 0)
+    push(ctx.variant_names, String_from("None"))
+    push(ctx.variant_tags, 1)
+    push(ctx.variant_names, String_from("Option::Some"))
+    push(ctx.variant_tags, 0)
+    push(ctx.variant_names, String_from("Option::None"))
+    push(ctx.variant_tags, 1)
+    // Result variants
+    push(ctx.variant_names, String_from("Ok"))
+    push(ctx.variant_tags, 0)
+    push(ctx.variant_names, String_from("Err"))
+    push(ctx.variant_tags, 1)
+    push(ctx.variant_names, String_from("Result::Ok"))
+    push(ctx.variant_tags, 0)
+    push(ctx.variant_names, String_from("Result::Err"))
+    push(ctx.variant_tags, 1)
+    // All Option/Result variants are payload enum variants
+    push(ctx.payload_variants, String_from("Some"))
+    push(ctx.payload_variants, String_from("None"))
+    push(ctx.payload_variants, String_from("Ok"))
+    push(ctx.payload_variants, String_from("Err"))
+    push(ctx.payload_variants, String_from("Option::Some"))
+    push(ctx.payload_variants, String_from("Option::None"))
+    push(ctx.payload_variants, String_from("Result::Ok"))
+    push(ctx.payload_variants, String_from("Result::Err"))
+}
+
 fn ctx_alloc_local(ctx: LowerCtx, name: String, vt: i32) -> i32 {
     let idx = alloc_local(ctx.func, clone(name), vt)
     push(ctx.local_names, name)
@@ -600,9 +645,30 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     if kind == NK_PATH() {
         let tag = ctx_variant_tag(ctx, clone(node.text))
         if tag >= 0 {
-            let dest = ctx_fresh_local(ctx, VT_I32())
-            ctx_emit(ctx, MirInst_const_i32(tag, dest))
-            return dest
+            if ctx_is_payload_variant(ctx, clone(node.text)) {
+                // Payload enum: heap allocate [tag]
+                let dest = ctx_fresh_local(ctx, VT_I32())
+                let struct_inst = MirInst_new(MIR_STRUCT_NEW())
+                struct_inst.dest = dest
+                struct_inst.int_val = 1
+                ctx_emit(ctx, struct_inst)
+                let tag_tmp = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_const_i32(tag, tag_tmp))
+                let set_tag = MirInst_new(MIR_STRUCT_SET())
+                set_tag.arg0 = dest
+                set_tag.arg1 = tag_tmp
+                set_tag.int_val = 0
+                ctx_emit(ctx, set_tag)
+                let get_r = MirInst_new(MIR_LOCAL_GET())
+                get_r.arg0 = dest
+                ctx_emit(ctx, get_r)
+                return dest
+            } else {
+                // Simple enum: just push tag
+                let dest = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_const_i32(tag, dest))
+                return dest
+            }
         }
         // If not a variant, might be a qualified function call — handled by NK_CALL
         return 0 - 1
@@ -625,6 +691,35 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             inst.dest = idx
             ctx_emit(ctx, inst)
             return idx
+        }
+        // Check if this is an enum variant name (e.g. None, Ok, Err)
+        let ident_tag = ctx_variant_tag(ctx, clone(node.text))
+        if ident_tag >= 0 {
+            if ctx_is_payload_variant(ctx, clone(node.text)) {
+                // Payload enum: heap allocate [tag] (fieldless variant of payload enum)
+                let dest = ctx_fresh_local(ctx, VT_I32())
+                let struct_inst = MirInst_new(MIR_STRUCT_NEW())
+                struct_inst.dest = dest
+                struct_inst.int_val = 1
+                ctx_emit(ctx, struct_inst)
+                // Store tag
+                let tag_tmp = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_const_i32(ident_tag, tag_tmp))
+                let set_tag = MirInst_new(MIR_STRUCT_SET())
+                set_tag.arg0 = dest
+                set_tag.arg1 = tag_tmp
+                set_tag.int_val = 0
+                ctx_emit(ctx, set_tag)
+                let get_r = MirInst_new(MIR_LOCAL_GET())
+                get_r.arg0 = dest
+                ctx_emit(ctx, get_r)
+                return dest
+            } else {
+                // Simple enum: just push tag
+                let dest = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_const_i32(ident_tag, dest))
+                return dest
+            }
         }
         return 0 - 1
     }
@@ -667,6 +762,45 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         let child_count = len(node.children)
         if child_count >= 1 {
             let callee = get_unchecked(node.children, 0)
+
+            // Check if this is a payload variant constructor (e.g. Some(42), Ok(val))
+            let var_tag = ctx_variant_tag(ctx, clone(callee.text))
+            if var_tag >= 0 && child_count > 1 {
+                // Payload variant construction: allocate [tag, payload1, ...]
+                let field_count = child_count  // 1 tag + (child_count-1) payload fields
+                let dest = ctx_fresh_local(ctx, VT_I32())
+                let struct_inst = MirInst_new(MIR_STRUCT_NEW())
+                struct_inst.dest = dest
+                struct_inst.int_val = field_count
+                ctx_emit(ctx, struct_inst)
+                // Store tag (field 0)
+                let tag_tmp = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_const_i32(var_tag, tag_tmp))
+                let set_tag = MirInst_new(MIR_STRUCT_SET())
+                set_tag.arg0 = dest
+                set_tag.arg1 = tag_tmp
+                set_tag.int_val = 0
+                ctx_emit(ctx, set_tag)
+                // Store payload fields
+                let mut pa = 1
+                while pa < child_count {
+                    let parg = get_unchecked(node.children, pa)
+                    lower_expr(ctx, parg)
+                    let val_tmp = ctx_fresh_local(ctx, VT_I32())
+                    let set_p = MirInst_new(MIR_STRUCT_SET())
+                    set_p.arg0 = dest
+                    set_p.arg1 = val_tmp
+                    set_p.int_val = pa
+                    ctx_emit(ctx, set_p)
+                    pa = pa + 1
+                }
+                // Push result pointer on stack
+                let get_r = MirInst_new(MIR_LOCAL_GET())
+                get_r.arg0 = dest
+                ctx_emit(ctx, get_r)
+                return dest
+            }
+
             let call_inst = MirInst_new(MIR_CALL())
             call_inst.str_val = clone(callee.text)
             let is_println = eq(clone(callee.text), "stdio::println") || eq(clone(callee.text), "println") || eq(clone(callee.text), "stdio::print") || eq(clone(callee.text), "print") || eq(clone(callee.text), "stdio::eprintln") || eq(clone(callee.text), "eprintln")
@@ -929,6 +1063,39 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             ctx_emit(ctx, MirInst_new(MIR_DROP()))
             let result = ctx_fresh_local(ctx, VT_I32())
 
+            // Detect if this is a payload enum match (any arm has PAT_VARIANT with children)
+            let mut is_payload_match = false
+            let mut arm_scan = 1
+            while arm_scan < child_count {
+                let scan_arm = get_unchecked(node.children, arm_scan)
+                if len(scan_arm.children) > 0 {
+                    let scan_pat = get_unchecked(scan_arm.children, 0)
+                    if scan_pat.kind == NK_PAT_VARIANT() && len(scan_pat.children) > 0 {
+                        is_payload_match = true
+                    }
+                }
+                arm_scan = arm_scan + 1
+            }
+
+            // For payload enum match, extract the tag from the heap once
+            let mut compare_idx = scrut_idx
+            if is_payload_match {
+                let tag_local = ctx_fresh_local(ctx, VT_I32())
+                // LOCAL_GET scrut (push heap ptr)
+                let get_s = MirInst_new(MIR_LOCAL_GET())
+                get_s.arg0 = scrut_idx
+                ctx_emit(ctx, get_s)
+                // STRUCT_GET field=0 (load tag from ptr)
+                let sget = MirInst_new(MIR_STRUCT_GET())
+                sget.int_val = 0
+                ctx_emit(ctx, sget)
+                // LOCAL_SET tag_local (save tag)
+                let set_tl = MirInst_new(MIR_LOCAL_SET())
+                set_tl.arg0 = tag_local
+                ctx_emit(ctx, set_tl)
+                compare_idx = tag_local
+            }
+
             // Use nested if/else chain for match arms (structured control flow)
             let arm_count = child_count - 1
             let mut arm = 1
@@ -944,7 +1111,25 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 let body = get_unchecked(arm_node.children, body_idx_in_arm)
 
                 if is_last {
-                    // Last arm: default case (just emit the body)
+                    // Last arm: default case
+                    // Bind payload variables if this arm has bindings
+                    if is_payload_match && pat.kind == NK_PAT_VARIANT() && len(pat.children) > 0 {
+                        let mut bi = 0
+                        while bi < len(pat.children) {
+                            let bind_pat = get_unchecked(pat.children, bi)
+                            let bind_local = ctx_alloc_local(ctx, clone(bind_pat.text), VT_I32())
+                            let get_s2 = MirInst_new(MIR_LOCAL_GET())
+                            get_s2.arg0 = scrut_idx
+                            ctx_emit(ctx, get_s2)
+                            let sget2 = MirInst_new(MIR_STRUCT_GET())
+                            sget2.int_val = bi + 1
+                            ctx_emit(ctx, sget2)
+                            let set_b = MirInst_new(MIR_LOCAL_SET())
+                            set_b.arg0 = bind_local
+                            ctx_emit(ctx, set_b)
+                            bi = bi + 1
+                        }
+                    }
                     let arm_result = lower_expr(ctx, body)
                     if arm_result >= 0 {
                         let set_inst = MirInst_new(MIR_LOCAL_SET())
@@ -953,19 +1138,38 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         ctx_emit(ctx, set_inst)
                     }
                 } else {
-                    // Push scrutinee value onto stack for comparison
+                    // Push tag/scrutinee value onto stack for comparison
                     let get_inst = MirInst_new(MIR_LOCAL_GET())
-                    get_inst.arg0 = scrut_idx
+                    get_inst.arg0 = compare_idx
                     ctx_emit(ctx, get_inst)
-                    // Compare scrutinee against pattern
+                    // Compare against pattern tag
                     let pat_idx = lower_expr(ctx, pat)
                     let cmp_dest = ctx_fresh_local(ctx, VT_I32())
-                    ctx_emit(ctx, MirInst_binop(MIR_EQ(), cmp_dest, scrut_idx, pat_idx))
+                    ctx_emit(ctx, MirInst_binop(MIR_EQ(), cmp_dest, compare_idx, pat_idx))
 
                     // IF (match)
                     ctx_emit(ctx, MirInst_new(MIR_IF()))
                     ctx.nesting_depth = ctx.nesting_depth + 1
                     if_depth = if_depth + 1
+
+                    // Bind payload variables if this arm has bindings
+                    if is_payload_match && pat.kind == NK_PAT_VARIANT() && len(pat.children) > 0 {
+                        let mut bi2 = 0
+                        while bi2 < len(pat.children) {
+                            let bind_pat2 = get_unchecked(pat.children, bi2)
+                            let bind_local2 = ctx_alloc_local(ctx, clone(bind_pat2.text), VT_I32())
+                            let get_s3 = MirInst_new(MIR_LOCAL_GET())
+                            get_s3.arg0 = scrut_idx
+                            ctx_emit(ctx, get_s3)
+                            let sget3 = MirInst_new(MIR_STRUCT_GET())
+                            sget3.int_val = bi2 + 1
+                            ctx_emit(ctx, sget3)
+                            let set_b2 = MirInst_new(MIR_LOCAL_SET())
+                            set_b2.arg0 = bind_local2
+                            ctx_emit(ctx, set_b2)
+                            bi2 = bi2 + 1
+                        }
+                    }
 
                     let arm_result = lower_expr(ctx, body)
                     if arm_result >= 0 {
@@ -1542,6 +1746,7 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
     // Lower each function
     let mut ctx = LowerCtx_new(m)
     ctx.fn_names = fn_names
+    ctx_register_builtin_variants(ctx)
 
     // Collect struct definitions for field index resolution
     // NK_STRUCT_DECL = 51 (from parser.ark)
@@ -1583,12 +1788,25 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
         // NK_ENUM_DECL = 52: collect variant→tag mapping
         if decl.kind == 52 {
             let vc = len(decl.children)
+            // Check if any variant has fields (payload enum)
+            let mut has_payload = false
+            let mut vcheck = 0
+            while vcheck < vc {
+                let vc_node = get_unchecked(decl.children, vcheck)
+                if len(vc_node.children) > 0 {
+                    has_payload = true
+                }
+                vcheck = vcheck + 1
+            }
             let mut vi = 0
             while vi < vc {
                 let variant = get_unchecked(decl.children, vi)
                 let full_name = concat(clone(decl.text), concat(String_from("::"), clone(variant.text)))
                 push(ctx.variant_names, full_name)
                 push(ctx.variant_tags, vi)
+                if has_payload {
+                    push(ctx.payload_variants, clone(full_name))
+                }
                 vi = vi + 1
             }
         }
