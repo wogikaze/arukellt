@@ -520,6 +520,7 @@ impl EmitCtx {
         f.instruction(&Instruction::LocalGet(4));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // Return dst (data pointer)
         f.instruction(&Instruction::LocalGet(5));
@@ -843,6 +844,7 @@ impl EmitCtx {
         f.instruction(&Instruction::LocalGet(6));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // Return dst
         f.instruction(&Instruction::LocalGet(7));
@@ -1009,6 +1011,7 @@ impl EmitCtx {
         f.instruction(&Instruction::LocalGet(6));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // Return dst
         f.instruction(&Instruction::LocalGet(5));

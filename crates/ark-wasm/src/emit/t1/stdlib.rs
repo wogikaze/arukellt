@@ -59,6 +59,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         // i = 0
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::LocalSet(2));
@@ -158,6 +159,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         // new_len = 0
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::LocalSet(7));
@@ -347,6 +349,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::LocalSet(2));
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
@@ -438,6 +441,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::LocalSet(7));
         f.instruction(&Instruction::I32Const(0));
@@ -617,6 +621,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::LocalSet(2));
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
@@ -706,6 +711,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         f.instruction(&Instruction::I32Const(0));
         f.instruction(&Instruction::LocalSet(7));
         f.instruction(&Instruction::I32Const(0));
@@ -789,6 +795,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(8));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         // Read tag
         f.instruction(&Instruction::LocalGet(0));
         f.instruction(&Instruction::I32Load(ma)); // tag
@@ -978,6 +985,7 @@ impl EmitCtx {
             f.instruction(&Instruction::I32Const(8));
             f.instruction(&Instruction::I32Add);
             f.instruction(&Instruction::GlobalSet(0));
+            self.emit_heap_grow_check(&mut f);
             // return base ptr
             f.instruction(&Instruction::Return);
         }
@@ -1007,6 +1015,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(8));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         // base ptr on stack
         f.instruction(&Instruction::End);
         f
@@ -1034,6 +1043,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(12));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // header[0] = cap = 16
         f.instruction(&Instruction::LocalGet(0));
@@ -1054,6 +1064,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(128));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // header[8] = buckets_ptr
         f.instruction(&Instruction::LocalGet(0));
@@ -1233,6 +1244,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // Fill new buckets with i32::MIN
         f.instruction(&Instruction::I32Const(0));
@@ -1458,6 +1470,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(8));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         // return result
         f.instruction(&Instruction::LocalGet(7));
         f.instruction(&Instruction::Return);
@@ -1481,6 +1494,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(8));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
         f.instruction(&Instruction::LocalGet(7));
 
         f.instruction(&Instruction::End);
@@ -1644,6 +1658,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // argv_buf_start = heap_ptr; heap_ptr += buf_size
         f.instruction(&Instruction::GlobalGet(0));
@@ -1652,6 +1667,7 @@ impl EmitCtx {
         f.instruction(&Instruction::LocalGet(2));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // Align heap_ptr to 4 bytes after variable-length buf
         f.instruction(&Instruction::GlobalGet(0));
@@ -1660,6 +1676,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(-4i32));
         f.instruction(&Instruction::I32And);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // args_get(argv_ptrs_start, argv_buf_start)
         f.instruction(&Instruction::LocalGet(3));
@@ -1704,6 +1721,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(-4i32));
         f.instruction(&Instruction::I32And);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // str_data_ptr = heap_ptr + 4
         f.instruction(&Instruction::GlobalGet(0));
@@ -1749,6 +1767,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         f.instruction(&Instruction::LocalGet(8)); // return str_data_ptr
         f.instruction(&Instruction::End);
@@ -1793,6 +1812,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // argv_buf_start = heap_ptr; heap_ptr += buf_size
         f.instruction(&Instruction::GlobalGet(0));
@@ -1801,6 +1821,7 @@ impl EmitCtx {
         f.instruction(&Instruction::LocalGet(1));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // Align heap_ptr to 4 bytes after variable-length buf
         f.instruction(&Instruction::GlobalGet(0));
@@ -1809,6 +1830,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(-4i32));
         f.instruction(&Instruction::I32And);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // args_get(argv_ptrs_start, argv_buf_start)
         f.instruction(&Instruction::LocalGet(2));
@@ -1823,6 +1845,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(12));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // vec_data_ptr = heap_ptr; heap_ptr += (argc-1) * 4
         f.instruction(&Instruction::GlobalGet(0));
@@ -1835,6 +1858,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Mul);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // Write Vec header: {len=argc-1, cap=argc-1, data_ptr=vec_data_ptr}
         f.instruction(&Instruction::LocalGet(4));
@@ -1882,6 +1906,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(-4i32));
         f.instruction(&Instruction::I32And);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // strlen: str_len = 0
         f.instruction(&Instruction::I32Const(0));
@@ -1945,6 +1970,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         // vec_data_ptr[(i-1)*4] = str_data_ptr
         f.instruction(&Instruction::LocalGet(5));
@@ -1973,6 +1999,7 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(-4i32));
         f.instruction(&Instruction::I32And);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(&mut f);
 
         f.instruction(&Instruction::LocalGet(4)); // return vec_ptr
         f.instruction(&Instruction::End);

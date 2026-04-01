@@ -187,6 +187,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma2));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "bool_to_string" => {
                         // Convert bool (i32) to "true" or "false" string
@@ -235,6 +236,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(5));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "String_from" => {
                         // String_from("literal") → allocate length-prefixed string, return ptr
@@ -316,6 +318,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(12));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
 
                         // header[8] = data_ptr = current heap
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
@@ -332,6 +335,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Mul);
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
 
                         // result = start_ptr (saved at SCRATCH)
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
@@ -370,6 +374,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(12));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         // Store data_ptr at header+8
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(12));
@@ -383,6 +388,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(data_bytes));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         // result: header ptr
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(total_alloc));
@@ -440,6 +446,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Mul);
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
 
                             // Copy old data byte-by-byte: i=0..len*elem_size
                             f.instruction(&Instruction::I32Const(NWRITTEN as i32));
@@ -658,6 +665,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         f.instruction(&Instruction::Else);
                         // Out of bounds: construct None
                         f.instruction(&Instruction::GlobalGet(0));
@@ -668,6 +676,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         f.instruction(&Instruction::End);
                         if let Some(d) = self.loop_depths.last_mut() {
                             *d -= 1;
@@ -756,6 +765,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(8));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         f.instruction(&Instruction::Else);
                         // Empty: construct None
                         f.instruction(&Instruction::GlobalGet(0));
@@ -766,6 +776,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         f.instruction(&Instruction::End);
                         if let Some(d) = self.loop_depths.last_mut() {
                             *d -= 1;
@@ -1281,6 +1292,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "is_empty" => {
                         // is_empty(s): len(s) == 0
@@ -1376,6 +1388,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "starts_with" => {
                         // starts_with(s, prefix) -> bool
@@ -1818,6 +1831,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(s_out_pos as i32));
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "split" => {
                         // split(s: String, delim: String) -> Vec<String>
@@ -1863,6 +1877,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(44));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         // Init: slen = len(s), i = 0, seg_start = 0
                         f.instruction(&Instruction::I32Const(s_slen as i32));
                         if let Some(s) = args.first() {
@@ -1993,6 +2008,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Load(ma)); // seg_len
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                             // seg_start = i + 1
                             f.instruction(&Instruction::I32Const(s_seg as i32));
                             f.instruction(&Instruction::I32Const(s_i as i32));
@@ -2094,6 +2110,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         // Result: vec_ptr
                         f.instruction(&Instruction::I32Const(s_vec as i32));
                         f.instruction(&Instruction::I32Load(ma));
@@ -2277,6 +2294,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(4 + err_len));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                             // Build enum: [tag=1, payload=str_ptr]
                             f.instruction(&Instruction::GlobalGet(0)); // enum_base (save for result)
                             f.instruction(&Instruction::GlobalGet(0));
@@ -2293,6 +2311,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                             // enum_base is on stack — this will be left for the outer if/else
                         }
                         f.instruction(&Instruction::Else);
@@ -2324,6 +2343,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                             // enum_base on stack
                         }
                         f.instruction(&Instruction::End); // end if/else
@@ -2510,6 +2530,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(4 + err_len));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                             // Build enum: [tag=1][str_ptr:i32 at offset 4]
                             f.instruction(&Instruction::GlobalGet(0)); // enum_base (result on stack)
                             f.instruction(&Instruction::GlobalGet(0));
@@ -2526,6 +2547,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(12));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::Else);
                         {
@@ -2556,6 +2578,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(12));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::End); // end if/else
                     }
@@ -2616,6 +2639,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "parse_f64" => {
                         // parse_f64(s: String) -> Result<f64, String>
@@ -2846,6 +2870,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(4 + err_len));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                             // Build enum: [tag=1][str_ptr:i32 at offset 4]
                             f.instruction(&Instruction::GlobalGet(0)); // enum_base (result on stack)
                             f.instruction(&Instruction::GlobalGet(0));
@@ -2862,6 +2887,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(12));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::Else);
                         {
@@ -2933,6 +2959,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(12));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::End); // end if/else
                     }
@@ -3009,6 +3036,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(4 + err_len));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                             // Build Err enum: [tag=1][payload=str_ptr]
                             f.instruction(&Instruction::GlobalGet(0));
                             f.instruction(&Instruction::GlobalGet(0));
@@ -3024,6 +3052,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::Else);
                         {
@@ -3036,6 +3065,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(4));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
 
                             // Read loop
                             f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
@@ -3070,6 +3100,7 @@ impl EmitCtx {
                                 f.instruction(&Instruction::I32Load(ma));
                                 f.instruction(&Instruction::I32Add);
                                 f.instruction(&Instruction::GlobalSet(0));
+                                self.emit_heap_grow_check(f);
 
                                 f.instruction(&Instruction::Br(0)); // continue loop
                             }
@@ -3116,6 +3147,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::End); // end if/else
                     }
@@ -3194,6 +3226,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(4 + err_len));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                             // Err enum
                             f.instruction(&Instruction::GlobalGet(0));
                             f.instruction(&Instruction::GlobalGet(0));
@@ -3209,6 +3242,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::Else);
                         {
@@ -3252,6 +3286,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::End);
                     }
@@ -3404,6 +3439,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(4 + err_len));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                             // Err enum: [tag=1][payload=str_ptr]
                             f.instruction(&Instruction::GlobalGet(0));
                             f.instruction(&Instruction::GlobalGet(0));
@@ -3419,6 +3455,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::Else);
                         {
@@ -3432,6 +3469,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32And);
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
 
                             // Write content: IOV = [ptr=buf_start, len=byte_count]
                             f.instruction(&Instruction::I32Const(IOV_BASE as i32));
@@ -3469,6 +3507,7 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Const(8));
                             f.instruction(&Instruction::I32Add);
                             f.instruction(&Instruction::GlobalSet(0));
+                            self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::End);
                     }
@@ -3594,6 +3633,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "unbox" => {
                         // unbox(box_ptr): load the stored value (enum pointer) from box
@@ -3969,6 +4009,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "push_char" => {
                         // push_char(s: String, c: char) -> (): append byte to string
@@ -4071,6 +4112,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "to_lower" => {
                         // to_lower(s: String) -> String: ASCII lowercase
@@ -4174,6 +4216,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "to_upper" => {
                         // to_upper(s: String) -> String: ASCII uppercase
@@ -4268,6 +4311,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Load(ma));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "char_at" => {
                         // char_at(s: String, i: i32) -> i32
@@ -4364,6 +4408,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "trim" => {
                         // trim(s: String) -> String
@@ -4535,6 +4580,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                     }
                     "contains" => {
                         // contains(s: String, sub: String) -> bool
@@ -4738,6 +4784,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         // i = 0
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Const(0));
@@ -4771,6 +4818,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Load(ma));
@@ -4821,6 +4869,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         // k++
                         f.instruction(&Instruction::I32Const(FS_NREAD as i32));
                         f.instruction(&Instruction::I32Const(FS_NREAD as i32));
@@ -4891,6 +4940,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Load(ma));
@@ -5043,6 +5093,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         // Read loop
                         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block_exit
                         f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty)); // loop_read
@@ -5086,6 +5137,7 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
                         f.instruction(&Instruction::Br(0)); // continue loop_read
                         f.instruction(&Instruction::End); // end loop_read
                         f.instruction(&Instruction::End); // end block_exit
@@ -5938,6 +5990,7 @@ impl EmitCtx {
                 f.instruction(&Instruction::I32Const(total_size as i32));
                 f.instruction(&Instruction::I32Add);
                 f.instruction(&Instruction::GlobalSet(0));
+                self.emit_heap_grow_check(f);
                 // Store each field at saved_base + field_offset
                 let mut offset = 0u32;
                 for (i, (_fname, fval)) in fields.iter().enumerate() {
@@ -6033,6 +6086,7 @@ impl EmitCtx {
                 f.instruction(&Instruction::I32Const(total_size as i32));
                 f.instruction(&Instruction::I32Add);
                 f.instruction(&Instruction::GlobalSet(0));
+                self.emit_heap_grow_check(f);
                 // Store tag at base + 0
                 f.instruction(&Instruction::I32Const((ENUM_BASE + depth * 4) as i32));
                 f.instruction(&Instruction::I32Load(ma_i32));
@@ -6271,6 +6325,7 @@ impl EmitCtx {
                 f.instruction(&Instruction::I32Const(n * 4));
                 f.instruction(&Instruction::I32Add);
                 f.instruction(&Instruction::GlobalSet(0));
+                self.emit_heap_grow_check(f);
                 // Store each element: mem[base + i*4] = elem
                 for (i, elem) in elements.iter().enumerate() {
                     f.instruction(&Instruction::I32Const(SCRATCH as i32));

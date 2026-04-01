@@ -94,7 +94,8 @@ const FN_ARG_COUNT: u32 = 33;
 const FN_ARG_AT: u32 = 34;
 const FN_ARGS_VEC: u32 = 35;
 const FN_EPRINT_STR_LN: u32 = 36; // stderr (fd=2) string + newline printer
-const FN_USER_BASE: u32 = 37;
+const FN_ENSURE_HEAP: u32 = 37; // grow memory when bump allocator exceeds current pages
+const FN_USER_BASE: u32 = 38;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
@@ -481,7 +482,46 @@ impl EmitCtx {
         f.instruction(&Instruction::I32Const(size));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::GlobalSet(0));
+        self.emit_heap_grow_check(f);
         // stack: [ptr]
+    }
+
+    /// Emit a call to __ensure_heap to grow memory if the bump pointer
+    /// has reached or exceeded the current memory boundary.
+    pub(super) fn emit_heap_grow_check(&self, f: &mut Function) {
+        let idx = self.fn_map[FN_ENSURE_HEAP as usize];
+        if idx != u32::MAX {
+            f.instruction(&Instruction::Call(idx));
+        }
+    }
+
+    /// Build the __ensure_heap runtime function.
+    /// Checks if global 0 (heap_ptr) >= memory.size * 65536, and if so
+    /// grows memory by enough pages to accommodate.
+    pub(super) fn build_ensure_heap(&self) -> Function {
+        let mut f = Function::new(vec![]);
+        // if heap_ptr >= memory_size_in_bytes
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32Shl);
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // pages_needed = ((heap_ptr - mem_bytes) >> 16) + 2
+        f.instruction(&Instruction::GlobalGet(0));
+        f.instruction(&Instruction::MemorySize(0));
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32Shl);
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::I32ShrU);
+        f.instruction(&Instruction::I32Const(2));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::MemoryGrow(0));
+        f.instruction(&Instruction::Drop);
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+        f
     }
 
     pub(super) fn build_user_fn(&mut self, func: &MirFunction) -> Function {
@@ -769,6 +809,7 @@ impl EmitCtx {
 pub(super) fn collect_needed_fns(mir: &MirModule) -> std::collections::HashSet<u32> {
     let mut needed = std::collections::HashSet::new();
     needed.insert(FN_FD_WRITE);
+    needed.insert(FN_ENSURE_HEAP); // always needed — every allocation calls grow check
     for func in &mir.functions {
         for block in &func.blocks {
             for stmt in &block.stmts {
