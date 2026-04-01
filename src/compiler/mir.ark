@@ -254,6 +254,10 @@ fn NK_CONTINUE() -> i32 { 33 }
 fn NK_FN_DECL() -> i32 { 50 }
 fn NK_MATCH_EXPR() -> i32 { 14 }
 fn NK_MATCH_ARM() -> i32 { 26 }
+fn NK_PAT_LITERAL() -> i32 { 72 }
+fn NK_PAT_WILDCARD() -> i32 { 71 }
+fn NK_PAT_IDENT() -> i32 { 70 }
+fn NK_RANGE() -> i32 { 19 }
 
 // Binary operator tags
 fn OP_ADD() -> i32 { 1 }
@@ -474,6 +478,23 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return dest
     }
 
+    // Pattern literal (used in match arms): same as int/string/bool literal
+    if kind == NK_PAT_LITERAL() {
+        let dest = ctx_fresh_local(ctx, VT_I32())
+        ctx_emit(ctx, MirInst_const_i32(node.int_val, dest))
+        return dest
+    }
+
+    // Pattern wildcard: no value needed (used as default arm)
+    if kind == NK_PAT_WILDCARD() {
+        return 0 - 1
+    }
+
+    // Pattern ident binding: treated as variable introduction (not needed for simple match)
+    if kind == NK_PAT_IDENT() {
+        return 0 - 1
+    }
+
     if kind == NK_STRING_LIT() {
         let str_idx = intern_string(ctx.module, clone(node.text))
         let dest = ctx_fresh_local(ctx, VT_REF())
@@ -608,11 +629,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         if child_count >= 2 {
             let scrutinee = get_unchecked(node.children, 0)
             let scrut_idx = lower_expr(ctx, scrutinee)
+            // lower_expr pushes value on stack; drop it since we'll LOCAL_GET per arm
+            ctx_emit(ctx, MirInst_new(MIR_DROP()))
             let result = ctx_fresh_local(ctx, VT_I32())
 
             // Use nested if/else chain for match arms (structured control flow)
-            // match x { 1 => a, 2 => b, _ => c }
-            // becomes: if (x == 1) { result = a } else { if (x == 2) { result = b } else { result = c } }
             let arm_count = child_count - 1
             let mut arm = 1
             let mut if_depth = 0
@@ -636,6 +657,10 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         ctx_emit(ctx, set_inst)
                     }
                 } else {
+                    // Push scrutinee value onto stack for comparison
+                    let get_inst = MirInst_new(MIR_LOCAL_GET())
+                    get_inst.arg0 = scrut_idx
+                    ctx_emit(ctx, get_inst)
                     // Compare scrutinee against pattern
                     let pat_idx = lower_expr(ctx, pat)
                     let cmp_dest = ctx_fresh_local(ctx, VT_I32())
@@ -981,6 +1006,100 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             let br_inst = MirInst_new(MIR_BR())
             br_inst.int_val = ctx.nesting_depth - ctx.loop_continue_depth
             ctx_emit(ctx, br_inst)
+        }
+        return 0 - 1
+    }
+
+    // For loop: for i in start..end { body }
+    // children[0] = range expr (NK_RANGE with children[0]=start, children[1]=end)
+    // children[1] = body block
+    // node.text = loop variable name
+    if kind == NK_FOR() {
+        let child_count = len(node.children)
+        if child_count >= 2 {
+            let range = get_unchecked(node.children, 0)
+            let body = get_unchecked(node.children, 1)
+
+            // Get range bounds
+            let range_child_count = len(range.children)
+            if range_child_count >= 2 {
+                let start_node = get_unchecked(range.children, 0)
+                let end_node = get_unchecked(range.children, 1)
+
+                // Lower start — leaves value on stack
+                let start_idx = lower_expr(ctx, start_node)
+
+                // Create loop variable and store start value from stack
+                let iter_var = ctx_alloc_local(ctx, clone(node.text), VT_I32())
+                let set_init = MirInst_new(MIR_LOCAL_SET())
+                set_init.arg0 = iter_var
+                ctx_emit(ctx, set_init)
+
+                // Lower end — leaves value on stack
+                let end_idx = lower_expr(ctx, end_node)
+                // Store end value to its local so we can reference it in the loop
+                let end_local = ctx_fresh_local(ctx, VT_I32())
+                let set_end = MirInst_new(MIR_LOCAL_SET())
+                set_end.arg0 = end_local
+                ctx_emit(ctx, set_end)
+
+                let prev_break = ctx.loop_break_depth
+                let prev_continue = ctx.loop_continue_depth
+
+                // BLOCK (break target)
+                ctx_emit(ctx, MirInst_new(MIR_BLOCK()))
+                ctx.nesting_depth = ctx.nesting_depth + 1
+                ctx.loop_break_depth = ctx.nesting_depth
+
+                // LOOP (continue target)
+                ctx_emit(ctx, MirInst_new(MIR_LOOP()))
+                ctx.nesting_depth = ctx.nesting_depth + 1
+                ctx.loop_continue_depth = ctx.nesting_depth
+
+                // Check: if iter >= end, break
+                let get_iter = MirInst_new(MIR_LOCAL_GET())
+                get_iter.arg0 = iter_var
+                ctx_emit(ctx, get_iter)
+                let get_end = MirInst_new(MIR_LOCAL_GET())
+                get_end.arg0 = end_local
+                ctx_emit(ctx, get_end)
+                let cmp_dest = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_binop(MIR_GTEQ(), cmp_dest, iter_var, end_local))
+                let br_break = MirInst_new(MIR_BR_IF())
+                br_break.int_val = 1
+                ctx_emit(ctx, br_break)
+
+                // Body
+                let _body_result = lower_expr(ctx, body)
+
+                // Increment: iter = iter + 1
+                let get_iter2 = MirInst_new(MIR_LOCAL_GET())
+                get_iter2.arg0 = iter_var
+                ctx_emit(ctx, get_iter2)
+                let one_dest = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_const_i32(1, one_dest))
+                let add_dest = ctx_fresh_local(ctx, VT_I32())
+                ctx_emit(ctx, MirInst_binop(MIR_ADD(), add_dest, iter_var, one_dest))
+                let set_iter = MirInst_new(MIR_LOCAL_SET())
+                set_iter.arg0 = iter_var
+                ctx_emit(ctx, set_iter)
+
+                // br 0 (loop back)
+                let br_loop = MirInst_new(MIR_BR())
+                br_loop.int_val = 0
+                ctx_emit(ctx, br_loop)
+
+                // END loop
+                ctx_emit(ctx, MirInst_new(MIR_END()))
+                ctx.nesting_depth = ctx.nesting_depth - 1
+
+                // END block
+                ctx_emit(ctx, MirInst_new(MIR_END()))
+                ctx.nesting_depth = ctx.nesting_depth - 1
+
+                ctx.loop_break_depth = prev_break
+                ctx.loop_continue_depth = prev_continue
+            }
         }
         return 0 - 1
     }
