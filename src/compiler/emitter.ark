@@ -1239,6 +1239,11 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s_wpos)
             
+        } else if eq(clone(callee), "process::exit") {
+            // process::exit is a no-op stub — drop the argument
+            emit_byte(w, OP_DROP())
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
         } else {
             // User-defined function call
             let fn_idx = resolve_fn_index(ctx, clone(callee))

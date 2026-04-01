@@ -389,6 +389,37 @@ fn ctx_field_index_any(ctx: LowerCtx, field_name: String) -> i32 {
     0
 }
 
+// Get field count for a struct by name
+fn ctx_struct_field_count(ctx: LowerCtx, struct_name: String) -> i32 {
+    let sc = len(ctx.struct_names)
+    let mut si = 0
+    while si < sc {
+        let sn = get_unchecked(ctx.struct_names, si)
+        if eq(clone(sn), clone(struct_name)) {
+            return get_unchecked(ctx.struct_field_counts, si)
+        }
+        si = si + 1
+    }
+    0
+}
+
+// Get field name at index for a struct by name
+fn ctx_struct_field_name(ctx: LowerCtx, struct_name: String, field_idx: i32) -> String {
+    let sc = len(ctx.struct_names)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = get_unchecked(ctx.struct_names, si)
+        let fc = get_unchecked(ctx.struct_field_counts, si)
+        if eq(clone(sn), clone(struct_name)) {
+            return clone(get_unchecked(ctx.struct_all_fields, offset + field_idx))
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    String_from("")
+}
+
 // Track struct type for a local variable
 fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
     push(ctx.local_types, clone(type_name))
@@ -816,32 +847,80 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     if kind == NK_STRUCT_LIT() {
         // text = struct name, children = field initializers
         // Each child: NK_IDENT with text=field_name, children[0]=value
+        // If ..base is used, last child is NK_RANGE with children[0]=base expr
         let child_count = len(node.children)
         let struct_name = clone(node.text)
+        let total_fields = ctx_struct_field_count(ctx, clone(struct_name))
         let dest = ctx_fresh_local(ctx, VT_REF())
         let new_inst = MirInst_new(MIR_STRUCT_NEW())
         new_inst.dest = dest
         new_inst.str_val = clone(struct_name)
-        new_inst.int_val = child_count
+        new_inst.int_val = total_fields
         ctx_emit(ctx, new_inst)
 
         // Track struct type for this local
         ctx_set_local_type(ctx, dest, clone(struct_name))
 
+        // Check for spread base (NK_RANGE child)
+        let mut base_idx = 0 - 1
+        let mut has_base = false
         let mut f = 0
         while f < child_count {
             let field = get_unchecked(node.children, f)
-            let fc = len(field.children)
-            if fc >= 1 {
-                let init = get_unchecked(field.children, 0)
-                let val_idx = lower_expr(ctx, init)
-                let set_inst = MirInst_new(MIR_STRUCT_SET())
-                set_inst.arg0 = dest
-                set_inst.arg1 = val_idx
-                set_inst.str_val = clone(field.text)
-                // Use definition-order field index, not literal order
-                set_inst.int_val = ctx_field_index(ctx, clone(struct_name), clone(field.text))
-                ctx_emit(ctx, set_inst)
+            if field.kind == NK_RANGE() {
+                // Lower the base expression (children[0] of the NK_RANGE node)
+                let base_expr = get_unchecked(field.children, 0)
+                base_idx = lower_expr(ctx, base_expr)
+                has_base = true
+            }
+            f = f + 1
+        }
+
+        // If we have a spread base, first copy ALL fields from base
+        if has_base {
+            let mut fi = 0
+            while fi < total_fields {
+                let fname = ctx_struct_field_name(ctx, clone(struct_name), fi)
+                let tmp = ctx_fresh_local(ctx, VT_I32())
+                // Emit LOCAL_GET to push base ptr onto Wasm stack
+                let get_base = MirInst_new(MIR_LOCAL_GET())
+                get_base.arg0 = base_idx
+                get_base.dest = base_idx
+                ctx_emit(ctx, get_base)
+                // STRUCT_GET reads from stack (base + offset), leaves value on stack
+                let g = MirInst_new(MIR_STRUCT_GET())
+                g.dest = tmp
+                g.arg0 = base_idx
+                g.str_val = clone(fname)
+                g.int_val = fi
+                ctx_emit(ctx, g)
+                // STRUCT_SET consumes value from stack, stores into dest struct
+                let s = MirInst_new(MIR_STRUCT_SET())
+                s.arg0 = dest
+                s.arg1 = tmp
+                s.str_val = clone(fname)
+                s.int_val = fi
+                ctx_emit(ctx, s)
+                fi = fi + 1
+            }
+        }
+
+        // Then set explicitly provided fields (overwriting any base copies)
+        f = 0
+        while f < child_count {
+            let field = get_unchecked(node.children, f)
+            if field.kind != NK_RANGE() {
+                let fc = len(field.children)
+                if fc >= 1 {
+                    let init = get_unchecked(field.children, 0)
+                    let val_idx = lower_expr(ctx, init)
+                    let set_inst = MirInst_new(MIR_STRUCT_SET())
+                    set_inst.arg0 = dest
+                    set_inst.arg1 = val_idx
+                    set_inst.str_val = clone(field.text)
+                    set_inst.int_val = ctx_field_index(ctx, clone(struct_name), clone(field.text))
+                    ctx_emit(ctx, set_inst)
+                }
             }
             f = f + 1
         }
