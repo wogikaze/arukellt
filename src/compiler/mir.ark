@@ -1249,8 +1249,16 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             // Set return type from type-check result
             // TY_I32=1, TY_I64=2, TY_F64=3, TY_BOOL=4, TY_STRING=5
             // TY_UNIT=7 means void, TY_UNKNOWN=0 means unresolved
+            // TY_VEC=10, TY_OPTION=11, TY_RESULT=12, TY_STRUCT=21, TY_ENUM=22
             let rt_tag = tf.return_type.tag
             if rt_tag >= 1 && rt_tag <= 5 {
+                ctx.func.return_type = VT_I32()
+            }
+            // Struct/enum/vec/option/result return as i32 pointer
+            if rt_tag >= 10 && rt_tag <= 12 {
+                ctx.func.return_type = VT_I32()
+            }
+            if rt_tag >= 21 && rt_tag <= 23 {
                 ctx.func.return_type = VT_I32()
             }
 

@@ -1278,9 +1278,8 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         emit_byte(w, OP_GLOBAL_SET())
         emit_leb128_u(w, 0)
     } else if inst.op == 61 {  // STRUCT_GET — i32.load from base + field_idx*4
-        // local.get base → i32.const offset → i32.add → i32.load
-        emit_byte(w, OP_LOCAL_GET())
-        emit_leb128_u(w, inst.arg0)
+        // Base pointer is already on the Wasm stack from preceding lower_expr.
+        // Just compute the offset and load.
         if inst.int_val > 0 {
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, inst.int_val * 4)
