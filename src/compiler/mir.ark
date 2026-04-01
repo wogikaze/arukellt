@@ -232,6 +232,7 @@ fn NK_INT_LIT() -> i32 { 1 }
 fn NK_FLOAT_LIT() -> i32 { 2 }
 fn NK_STRING_LIT() -> i32 { 3 }
 fn NK_BOOL_LIT() -> i32 { 4 }
+fn NK_CHAR_LIT() -> i32 { 23 }
 fn NK_IDENT() -> i32 { 5 }
 fn NK_BINARY() -> i32 { 6 }
 fn NK_UNARY() -> i32 { 7 }
@@ -516,6 +517,13 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return dest
     }
 
+    if kind == NK_CHAR_LIT() {
+        let dest = ctx_fresh_local(ctx, VT_I32())
+        ctx_emit(ctx, MirInst_const_i32(node.int_val, dest))
+        ctx_set_local_type(ctx, dest, String_from("char"))
+        return dest
+    }
+
     if kind == NK_FLOAT_LIT() {
         // Workaround: encode f64 as i32 placeholder until T3 f64 struct field codegen is fixed
         let dest = ctx_fresh_local(ctx, VT_I32())
@@ -634,12 +642,64 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let callee = get_unchecked(node.children, 0)
             let call_inst = MirInst_new(MIR_CALL())
             call_inst.str_val = clone(callee.text)
-            // Lower arguments
+            let is_println = eq(clone(callee.text), "stdio::println") || eq(clone(callee.text), "println") || eq(clone(callee.text), "stdio::print") || eq(clone(callee.text), "print") || eq(clone(callee.text), "stdio::eprintln") || eq(clone(callee.text), "eprintln")
+            // Lower arguments and track first arg index for type dispatch
+            let mut first_arg_idx = 0 - 1
             let mut a = 1
             while a < child_count {
                 let arg = get_unchecked(node.children, a)
-                let _arg_idx = lower_expr(ctx, arg)
+                let mut arg_idx = lower_expr(ctx, arg)
+                // Auto-convert println(integer) to println(to_string(integer))
+                if is_println && a == 1 && arg_idx >= 0 {
+                    let mut needs_convert = arg.kind == NK_INT_LIT() || arg.kind == NK_BOOL_LIT() || arg.kind == NK_CHAR_LIT()
+                    if !needs_convert {
+                        // Check if variable has a numeric type annotation
+                        let lt = ctx_get_local_type(ctx, arg_idx)
+                        if eq(clone(lt), "char") || eq(clone(lt), "u8") || eq(clone(lt), "u16") || eq(clone(lt), "u32") || eq(clone(lt), "i16") || eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "bool") {
+                            needs_convert = true
+                        }
+                    }
+                    if !needs_convert && arg.kind == NK_IDENT() {
+                        // Check if the identifier has no struct type (likely an integer)
+                        let lt2 = ctx_get_local_type(ctx, arg_idx)
+                        if len(lt2) == 0 {
+                            // No type info — could be integer or string
+                            // Only auto-convert if the ident has a numeric type annotation in scope
+                            // For now, skip auto-conversion for plain identifiers without type info
+                            let _skip = 0
+                        }
+                    }
+                    if needs_convert {
+                        // Wrap with to_string / char_to_string / bool_to_string
+                        let wrap_inst = MirInst_new(MIR_CALL())
+                        let wrap_lt = ctx_get_local_type(ctx, arg_idx)
+                        if eq(clone(wrap_lt), "char") || arg.kind == NK_CHAR_LIT() {
+                            wrap_inst.str_val = String_from("char_to_string")
+                        } else if eq(clone(wrap_lt), "bool") || arg.kind == NK_BOOL_LIT() {
+                            wrap_inst.str_val = String_from("bool_to_string")
+                        } else {
+                            wrap_inst.str_val = String_from("to_string")
+                        }
+                        let wrap_dest = ctx_fresh_local(ctx, VT_I32())
+                        wrap_inst.dest = wrap_dest
+                        wrap_inst.int_val = 1
+                        ctx_emit(ctx, wrap_inst)
+                        arg_idx = wrap_dest
+                    }
+                }
+                if a == 1 {
+                    first_arg_idx = arg_idx
+                }
                 a = a + 1
+            }
+            // Dispatch to_string to char_to_string when arg is char type
+            if eq(clone(call_inst.str_val), "to_string") {
+                if first_arg_idx >= 0 {
+                    let arg_type = ctx_get_local_type(ctx, first_arg_idx)
+                    if eq(clone(arg_type), "char") {
+                        call_inst.str_val = String_from("char_to_string")
+                    }
+                }
             }
             let dest = ctx_fresh_local(ctx, VT_I32())
             call_inst.dest = dest
@@ -1013,6 +1073,17 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
         // text = binding name, children[0] = init expr (if present)
         let vt = VT_I32()
         let local_idx = ctx_alloc_local(ctx, clone(node.text), vt)
+
+        // Check type annotation for primitive types
+        let ta_count = len(node.type_ann)
+        if ta_count >= 1 {
+            let ta = get_unchecked(node.type_ann, 0)
+            let ta_name = clone(ta.text)
+            if eq(clone(ta_name), "char") || eq(clone(ta_name), "u8") || eq(clone(ta_name), "u16") || eq(clone(ta_name), "u32") || eq(clone(ta_name), "i16") || eq(clone(ta_name), "i32") || eq(clone(ta_name), "i64") || eq(clone(ta_name), "bool") {
+                ctx_set_local_type(ctx, local_idx, ta_name)
+            }
+        }
+
         let child_count = len(node.children)
         if child_count >= 1 {
             let init = get_unchecked(node.children, 0)

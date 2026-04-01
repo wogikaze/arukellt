@@ -722,7 +722,9 @@ fn parse_prefix(p: Parser) -> AstNode {
     }
     if t.kind == TK_CHAR() {
         p.pos = p.pos + 1
-        return AstNode_int(t.int_val, tok_span(t))
+        let char_node = AstNode_new(NK_CHAR_LIT(), tok_span(t))
+        char_node.int_val = t.int_val
+        return char_node
     }
 
     // Identifier

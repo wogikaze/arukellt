@@ -1272,9 +1272,59 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, SCRATCH_CHARBUF() + 4)
         } else if eq(clone(callee), "push_char") {
-            // push_char(str, char): no-op stub — just drop both args
-            emit_byte(w, OP_DROP())
-            emit_byte(w, OP_DROP())
+            // push_char(str, char): append char byte to string in place
+            // Stack: [str_ptr, char_value]
+            // String format: length at ptr-4, data at ptr
+            let s_char = ctx.scratch_base
+            let s_str = ctx.scratch_base + 1
+            let s_len = ctx.scratch_base + 2
+
+            // Save char and str_ptr
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_char)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_str)
+
+            // Read current length from [str_ptr - 4]
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_str)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)  // align=4
+            emit_byte(w, 0x00)  // offset=0
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_len)
+
+            // Write char byte at str_ptr + len
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_str)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_len)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_char)
+            emit_byte(w, 0x3a)  // i32.store8
+            emit_byte(w, 0x00)
+            emit_byte(w, 0x00)
+
+            // Update length: store len+1 at str_ptr - 4
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_str)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_len)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)  // align=4
+            emit_byte(w, 0x00)  // offset=0
+
+            // Push dummy result
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 0)
         } else {
