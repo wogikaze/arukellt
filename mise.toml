@@ -95,8 +95,12 @@ run = "bash scripts/run-benchmarks.sh --quick"
 description = "Run quick benchmark smoke workflow"
 
 [tasks."bench:compare"]
-run = "cargo build --release -p arukellt && python3 scripts/benchmark_runner.py --mode compare"
-description = "Compare current benchmark results against baseline"
+run = "bash scripts/run-benchmarks.sh --quick --compare"
+description = "Run benchmarks with Rust and selfhost compilers, show comparison"
+
+[tasks."bench:selfhost"]
+run = "bash scripts/run-benchmarks.sh --quick --selfhost"
+description = "Run benchmarks using selfhost compiler only"
 
 [tasks."bench:update-baseline"]
 run = "cargo build --release -p arukellt && python3 scripts/benchmark_runner.py --mode update-baseline"
