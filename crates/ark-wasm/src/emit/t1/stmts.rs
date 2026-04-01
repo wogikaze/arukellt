@@ -93,8 +93,13 @@ impl EmitCtx {
                             self.call_fn(f, FN_I32_TO_STR);
                         }
                     }
-                    "push"
-                    | "set"
+                    "push" => {
+                        // push is value-returning (returns vec ptr) — emit and drop in void context
+                        let call_op = Operand::Call(name.to_string(), args.clone());
+                        self.emit_operand(f, &call_op);
+                        f.instruction(&Instruction::Drop);
+                    }
+                    "set"
                     | "sort_i32"
                     | "sort_String"
                     | "sort_i64"

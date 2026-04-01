@@ -600,6 +600,11 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Store(ma));
+
+                        // Return the vec pointer for use as a value expression
+                        if let Some(v) = args.first() {
+                            self.emit_operand(f, v);
+                        }
                     }
                     "len" => {
                         let ma = MemArg {

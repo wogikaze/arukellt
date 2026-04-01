@@ -684,6 +684,64 @@ impl EmitCtx {
                         self.vec_string_locals.insert(id.0);
                     }
                 }
+                MirStmt::CallBuiltin {
+                    dest: Some(Place::Local(id)),
+                    name,
+                    args,
+                } => {
+                    let n = normalize_intrinsic_name(name.as_str());
+                    // String-producing builtins
+                    if matches!(
+                        n,
+                        "i32_to_string"
+                            | "i64_to_string"
+                            | "f64_to_string"
+                            | "bool_to_string"
+                            | "String_from"
+                            | "string_concat"
+                            | "concat"
+                            | "clone"
+                            | "to_string"
+                            | "string_slice"
+                            | "slice"
+                            | "substring"
+                            | "to_lowercase"
+                            | "to_uppercase"
+                            | "trim"
+                            | "char_to_string"
+                            | "fs_read_file"
+                    ) {
+                        self.string_locals.insert(id.0);
+                    }
+                    // get/get_unchecked on Vec<String> → String
+                    if matches!(n, "get_unchecked" | "get") {
+                        if let Some(vec_op) = args.first() {
+                            if self.is_vec_string_operand(vec_op) {
+                                self.string_locals.insert(id.0);
+                            }
+                        }
+                    }
+                    // push returns the vec — propagate Vec<String>
+                    if n == "push" {
+                        if let Some(vec_op) = args.first() {
+                            if self.is_vec_string_operand(vec_op) {
+                                self.vec_string_locals.insert(id.0);
+                            }
+                        }
+                    }
+                    // Vec_new_String
+                    if n == "Vec_new_String" {
+                        self.vec_string_locals.insert(id.0);
+                    }
+                    // clone of Vec<String>
+                    if n == "clone" {
+                        if let Some(vec_op) = args.first() {
+                            if self.is_vec_string_operand(vec_op) {
+                                self.vec_string_locals.insert(id.0);
+                            }
+                        }
+                    }
+                }
                 MirStmt::IfStmt {
                     then_body,
                     else_body,
@@ -709,15 +767,22 @@ impl EmitCtx {
             } => self
                 .struct_vec_string_fields
                 .contains(&(struct_name.clone(), field.clone())),
-            Operand::Call(name, _) => {
+            Operand::Call(name, args) => {
                 let name = normalize_intrinsic_name(name.as_str());
-                matches!(name, "Vec_new_String" | "clone")
-                    || self
-                        .fn_return_types
-                        .get(name)
-                        .is_some_and(|t| {
-                            matches!(t, ark_typecheck::types::Type::Vec(inner) if matches!(inner.as_ref(), ark_typecheck::types::Type::String))
-                        })
+                if matches!(name, "Vec_new_String" | "clone") {
+                    return true;
+                }
+                // push returns the same vec type as its first argument
+                if name == "push" {
+                    if let Some(vec_op) = args.first() {
+                        return self.is_vec_string_operand(vec_op);
+                    }
+                }
+                self.fn_return_types
+                    .get(name)
+                    .is_some_and(|t| {
+                        matches!(t, ark_typecheck::types::Type::Vec(inner) if matches!(inner.as_ref(), ark_typecheck::types::Type::String))
+                    })
             }
             _ => false,
         }
