@@ -11,7 +11,6 @@ graph LR
   I296["296 string 型の canonical ABI lift-lower を実装する"]
   I308["308 Selfhost parser の構文 surface を拡張する"]
   I318["318 Selfhost CLI にコマンド surface を追加する"]
-  I321["321 Selfhost compiler の出力契約を統一する"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I363["363 Stdlib Docs: module family ごとの curated overview page を作る"]
@@ -126,7 +125,6 @@ graph LR
   I313 --> I314
   I313 --> I315
   I320 --> I322
-  I321 --> I322
   I365 --> I398
   I396 --> I402
   I406 --> I409
@@ -176,7 +174,6 @@ graph LR
 - **296** depends on: 299; blocks: 297, 298
 - **308** depends on: none; blocks: 309, 311, 313
 - **318** depends on: 319; blocks: 320
-- **321** depends on: 319; blocks: 322
 - **327** depends on: none; blocks: none
 - **358** depends on: none; blocks: 362
 - **363** depends on: none; blocks: 365, 396

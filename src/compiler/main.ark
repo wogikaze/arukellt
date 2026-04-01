@@ -29,6 +29,7 @@ struct CliOptions {
     opt_level: i32,
     dump_phases: String,
     emit_mode: String,
+    json_output: bool,
     show_help: bool,
     show_version: bool,
     has_error: bool,
@@ -44,6 +45,7 @@ fn CliOptions_default() -> CliOptions {
         opt_level: 0,
         dump_phases: String_new(),
         emit_mode: String_from("wasm"),
+        json_output: false,
         show_help: false,
         show_version: false,
         has_error: false,
@@ -134,6 +136,8 @@ fn parse_args(argv: Vec<String>) -> CliOptions {
             }
         } else if eq(clone(arg), "--help") {
             opts.show_help = true
+        } else if eq(clone(arg), "--json") {
+            opts.json_output = true
         } else if eq(clone(arg), "--version") {
             opts.show_version = true
         } else {
@@ -170,6 +174,7 @@ fn print_usage() {
     stdio::println(String_from("  --target <target>      Target triple (default: wasm32-wasi-p2)"))
     stdio::println(String_from("  --opt-level <0|1|2>    Optimization level (default: 0)"))
     stdio::println(String_from("  --emit <wasm|wat|component|wit>  Emit mode"))
+    stdio::println(String_from("  --json                 JSON diagnostic output"))
     stdio::println(String_from("  --dump-phases <list>   Dump intermediate phases (tokens,ast,hir,mir,wasm)"))
     stdio::println(String_from("  -o <file>              Output file"))
 }
@@ -205,6 +210,39 @@ fn should_dump(opts: CliOptions, phase: String) -> bool {
     false
 }
 
+// ── Structured Error Formatting ──────────────────────────────────────────────
+
+fn format_error(file: String, msg: String) -> String {
+    // Format: file: error: message
+    concat(clone(file), concat(String_from(": error: "), msg))
+}
+
+fn format_error_json(file: String, phase: i32, messages: Vec<String>) -> String {
+    let mut out = String_from("{\"file\":\"")
+    out = concat(out, concat(clone(file), String_from("\",\"phase\":")))
+    out = concat(out, concat(to_string(phase), String_from(",\"diagnostics\":[")))
+    let count = len(messages)
+    let mut i = 0
+    while i < count {
+        if i > 0 {
+            out = concat(out, String_from(","))
+        }
+        let msg = get_unchecked(messages, i)
+        out = concat(out, concat(String_from("{\"severity\":\"error\",\"message\":\""), concat(clone(msg), String_from("\"}"))))
+        i = i + 1
+    }
+    out = concat(out, String_from("]}"))
+    out
+}
+
+fn format_success_json(file: String, phase: i32, size: i32) -> String {
+    let mut out = String_from("{\"file\":\"")
+    out = concat(out, concat(clone(file), String_from("\",\"phase\":")))
+    out = concat(out, concat(to_string(phase), String_from(",\"success\":true,\"output_size\":")))
+    out = concat(out, concat(to_string(size), String_from("}")))
+    out
+}
+
 // ── Main Entry ───────────────────────────────────────────────────────────────
 
 fn main() {
@@ -220,12 +258,14 @@ fn main() {
         return
     }
     if opts.has_error {
-        stdio::println(concat(String_from("error: "), clone(opts.error_msg)))
+        stdio::eprintln(concat(String_from("error: "), clone(opts.error_msg)))
+        process::exit(2)
         return
     }
     if len(opts.input_file) == 0 {
-        stdio::println(String_from("error: no input file specified"))
+        stdio::eprintln(String_from("error: no input file specified"))
         print_usage()
+        process::exit(2)
         return
     }
 
@@ -242,15 +282,23 @@ fn main() {
     config.parse_only = opts.command == CMD_PARSE()
     config.check_only = opts.command == CMD_CHECK()
 
-    let result = driver::compile_file(clone(opts.input_file), config)
+    let input_file = clone(opts.input_file)
+    let json_mode = opts.json_output
+    let result = driver::compile_file(clone(input_file), config)
 
     if result.success {
-        stdio::eprintln(concat(String_from("compilation succeeded (phase "), concat(to_string(result.phase_reached), String_from(")"))))
+        if json_mode {
+            stdio::println(format_success_json(clone(input_file), result.phase_reached, len(result.output_bytes)))
+        } else {
+            stdio::eprintln(concat(String_from("compilation succeeded (phase "), concat(to_string(result.phase_reached), String_from(")"))))
+        }
         if len(opts.output_file) > 0 {
             let write_result = fs::write_bytes(clone(opts.output_file), result.output_bytes)
             match write_result {
                 Ok(_) => {
-                    stdio::eprintln(concat(String_from("wrote "), concat(to_string(len(result.output_bytes)), concat(String_from(" bytes to "), clone(opts.output_file)))))
+                    if !json_mode {
+                        stdio::eprintln(concat(String_from("wrote "), concat(to_string(len(result.output_bytes)), concat(String_from(" bytes to "), clone(opts.output_file)))))
+                    }
                 },
                 Err(e) => {
                     stdio::eprintln(concat(String_from("error writing output: "), e))
@@ -258,15 +306,21 @@ fn main() {
                 },
             }
         } else {
-            stdio::println(concat(String_from("ok: "), concat(to_string(len(result.output_bytes)), String_from(" bytes"))))
+            if !json_mode {
+                stdio::println(concat(String_from("ok: "), concat(to_string(len(result.output_bytes)), String_from(" bytes"))))
+            }
         }
     } else {
-        let err_count = len(result.error_messages)
-        let mut i = 0
-        while i < err_count {
-            let msg = get_unchecked(result.error_messages, i)
-            stdio::eprintln(concat(String_from("error: "), clone(msg)))
-            i = i + 1
+        if json_mode {
+            stdio::println(format_error_json(clone(input_file), result.phase_reached, result.error_messages))
+        } else {
+            let err_count = len(result.error_messages)
+            let mut i = 0
+            while i < err_count {
+                let msg = get_unchecked(result.error_messages, i)
+                stdio::eprintln(format_error(clone(input_file), clone(msg)))
+                i = i + 1
+            }
         }
         process::exit(1)
     }
