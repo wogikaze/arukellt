@@ -41,7 +41,7 @@ component-compile:component/export_resource.ark
 component-compile:component/export_result.ark
 component-compile:component/export_string.ark
 compile-error:component/export_tuple.ark
-compile-error:component/export_variant.ark
+component-compile:component/export_variant.ark
 component-compile:component/multi_export.ark
 run:control/break_continue.ark
 t3-compile:control/break_continue.ark

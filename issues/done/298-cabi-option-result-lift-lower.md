@@ -21,9 +21,9 @@
 
 ## Acceptance
 
-- [ ] `option<s32>` を受け取る/返す export が動作する
-- [ ] `result<s32, string>` を受け取る/返す export が動作する
-- [ ] wasmtime からの round-trip テストが pass する
+- [x] `option<s32>` を受け取る/返す export が動作する
+- [x] `result<s32, string>` を受け取る/返す export が動作する
+- [x] wasmtime からの round-trip テストが pass する
 
 ## References
 

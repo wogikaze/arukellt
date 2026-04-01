@@ -2471,7 +2471,17 @@ impl Ctx {
                     ValType::I32
                 }
             }
-            Operand::BinOp { .. } | Operand::UnaryOp { .. } | Operand::EnumTag(_) => ValType::I32,
+            Operand::BinOp(op, lhs, _rhs) => {
+                match op {
+                    // Comparison ops always return bool (I32)
+                    BinOp::Eq | BinOp::Ne | BinOp::Lt | BinOp::Le | BinOp::Gt | BinOp::Ge
+                    | BinOp::And | BinOp::Or => ValType::I32,
+                    // Arithmetic ops return the type of their operands
+                    _ => self.infer_operand_type(lhs),
+                }
+            }
+            Operand::UnaryOp(_op, inner) => self.infer_operand_type(inner),
+            Operand::EnumTag(_) => ValType::I32,
             Operand::IfExpr {
                 then_result,
                 else_result,

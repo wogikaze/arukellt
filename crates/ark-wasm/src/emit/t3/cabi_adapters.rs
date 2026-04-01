@@ -83,6 +83,18 @@ pub(super) enum ParamAdaptation {
         /// True when the Err payload is a String (needs linear memory lifting).
         err_is_string: bool,
     },
+    /// Payload variant: (i32 discriminant, wider_payload) → GC variant ref.
+    /// Each variant carries exactly one scalar field; payload is wider of all.
+    PayloadVariant {
+        /// GC base enum type index.
+        base_type_idx: u32,
+        /// Ordered variant GC type indices.
+        variant_type_indices: Vec<u32>,
+        /// Wasm value type for each variant's payload.
+        variant_valtypes: Vec<ValType>,
+        /// The widened payload type used on the flat side.
+        payload_valtype: ValType,
+    },
 }
 
 /// Describes how the return value needs to be adapted.
@@ -144,6 +156,18 @@ pub(super) enum ReturnAdaptation {
         err_valtype: ValType,
         /// True when the Err payload is a String (needs linear memory lowering).
         err_is_string: bool,
+    },
+    /// Payload variant: GC variant ref → (i32 discriminant, wider_payload).
+    /// Written to linear memory via retptr when flat count > MAX_FLAT_RESULTS.
+    PayloadVariant {
+        /// GC base enum type index.
+        base_type_idx: u32,
+        /// Ordered variant GC type indices.
+        variant_type_indices: Vec<u32>,
+        /// Wasm value type for each variant's payload.
+        variant_valtypes: Vec<ValType>,
+        /// The widened payload type used on the flat side.
+        payload_valtype: ValType,
     },
 }
 
@@ -340,9 +364,46 @@ impl Ctx {
                         flat_params.push(ValType::I32);
                         needs_adapter = true;
                     } else {
-                        // Non-unit enum — not yet supported
-                        param_adaptations.push(ParamAdaptation::Scalar);
-                        flat_params.push(ValType::I32);
+                        // Payload enum: each variant has exactly one scalar field
+                        let all_single_scalar = variants.iter().all(|(_, p)| {
+                            p.len() == 1 && is_scalar_type_name(&p[0])
+                        });
+                        if all_single_scalar {
+                            let variant_type_indices: Vec<u32> = variants
+                                .iter()
+                                .map(|(vname, _)| {
+                                    self.enum_variant_types
+                                        .get(type_name.as_str())
+                                        .and_then(|vs| vs.get(vname.as_str()))
+                                        .copied()
+                                        .unwrap_or(0)
+                                })
+                                .collect();
+                            let variant_valtypes: Vec<ValType> = variants
+                                .iter()
+                                .map(|(_, p)| type_name_to_valtype(&p[0]))
+                                .collect();
+                            let base_type_idx = self
+                                .enum_base_types
+                                .get(type_name.as_str())
+                                .copied()
+                                .unwrap_or(0);
+                            let payload_vt = variant_valtypes.iter().copied()
+                                .reduce(wider_valtype)
+                                .unwrap_or(ValType::I32);
+                            param_adaptations.push(ParamAdaptation::PayloadVariant {
+                                base_type_idx,
+                                variant_type_indices,
+                                variant_valtypes,
+                                payload_valtype: payload_vt,
+                            });
+                            flat_params.push(ValType::I32); // discriminant
+                            flat_params.push(payload_vt);   // widened payload
+                            needs_adapter = true;
+                        } else {
+                            param_adaptations.push(ParamAdaptation::Scalar);
+                            flat_params.push(ValType::I32);
+                        }
                     }
                 } else if let Some(fields) = mir.struct_defs.get(type_name.as_str()) {
                     let all_scalar = fields.iter().all(|(_, ft)| is_scalar_type_name(ft));
@@ -467,7 +528,43 @@ impl Ctx {
                         base_type_idx,
                     })
                 } else {
-                    Some(ReturnAdaptation::Scalar)
+                    // Payload enum: each variant has exactly one scalar field
+                    let all_single_scalar = variants.iter().all(|(_, p)| {
+                        p.len() == 1 && is_scalar_type_name(&p[0])
+                    });
+                    if all_single_scalar {
+                        let variant_type_indices: Vec<u32> = variants
+                            .iter()
+                            .map(|(vname, _)| {
+                                self.enum_variant_types
+                                    .get(ret_name.as_str())
+                                    .and_then(|vs| vs.get(vname.as_str()))
+                                    .copied()
+                                    .unwrap_or(0)
+                            })
+                            .collect();
+                        let variant_valtypes: Vec<ValType> = variants
+                            .iter()
+                            .map(|(_, p)| type_name_to_valtype(&p[0]))
+                            .collect();
+                        let base_type_idx = self
+                            .enum_base_types
+                            .get(ret_name.as_str())
+                            .copied()
+                            .unwrap_or(0);
+                        let payload_vt = variant_valtypes.iter().copied()
+                            .reduce(wider_valtype)
+                            .unwrap_or(ValType::I32);
+                        needs_adapter = true;
+                        Some(ReturnAdaptation::PayloadVariant {
+                            base_type_idx,
+                            variant_type_indices,
+                            variant_valtypes,
+                            payload_valtype: payload_vt,
+                        })
+                    } else {
+                        Some(ReturnAdaptation::Scalar)
+                    }
                 }
             } else if let Some(fields) = mir.struct_defs.get(ret_name.as_str()) {
                 let all_scalar = fields.iter().all(|(_, ft)| is_scalar_type_name(ft));
@@ -534,6 +631,11 @@ impl Ctx {
                 }
                 Some(ReturnAdaptation::ResultType { .. }) => {
                     // result<T, E> flattens to 2 flat values (discriminant, payload)
+                    // Canonical ABI export MAX_FLAT_RESULTS=1, so use retptr convention
+                    vec![ValType::I32]
+                }
+                Some(ReturnAdaptation::PayloadVariant { .. }) => {
+                    // variant with payloads flattens to (disc, payload) = 2 flat values
                     // Canonical ABI export MAX_FLAT_RESULTS=1, so use retptr convention
                     vec![ValType::I32]
                 }
@@ -634,6 +736,10 @@ impl Ctx {
                     locals.push((1, ValType::I32));            // len
                     locals.push((1, ValType::I32));            // loop counter
                 }
+            }
+            Some(ReturnAdaptation::PayloadVariant { base_type_idx, .. }) => {
+                // Need a local to store the GC enum ref
+                locals.push((1, super::ref_nullable(*base_type_idx)));
             }
             _ => {}
         }
@@ -780,6 +886,51 @@ impl Ctx {
                     }
                     f.instruction(&Instruction::StructNew(*err_type_idx));
                     f.instruction(&Instruction::End);
+                    flat_param_idx += 2;
+                }
+                ParamAdaptation::PayloadVariant {
+                    base_type_idx,
+                    variant_type_indices,
+                    variant_valtypes,
+                    payload_valtype,
+                } => {
+                    let disc_local = flat_param_idx;
+                    let payload_local = flat_param_idx + 1;
+                    // Build cascading if/else chain for each variant:
+                    // if disc == 0 → construct variant[0], elif disc == 1 → variant[1], ...
+                    let n = variant_type_indices.len();
+                    for i in 0..n {
+                        if i < n - 1 {
+                            f.instruction(&Instruction::LocalGet(disc_local));
+                            f.instruction(&Instruction::I32Const(i as i32));
+                            f.instruction(&Instruction::I32Eq);
+                            f.instruction(&Instruction::If(BlockType::Result(
+                                super::ref_nullable(*base_type_idx),
+                            )));
+                        }
+                        // Push payload, narrow if needed
+                        f.instruction(&Instruction::LocalGet(payload_local));
+                        let vt = variant_valtypes[i];
+                        if vt != *payload_valtype {
+                            match (vt, *payload_valtype) {
+                                (ValType::I32, ValType::I64) => {
+                                    f.instruction(&Instruction::I32WrapI64);
+                                }
+                                (ValType::F32, ValType::F64) => {
+                                    f.instruction(&Instruction::F32DemoteF64);
+                                }
+                                _ => {}
+                            }
+                        }
+                        f.instruction(&Instruction::StructNew(variant_type_indices[i]));
+                        if i < n - 1 {
+                            f.instruction(&Instruction::Else);
+                        }
+                    }
+                    // Close all if/else blocks
+                    for _ in 0..n.saturating_sub(1) {
+                        f.instruction(&Instruction::End);
+                    }
                     flat_param_idx += 2;
                 }
             }
@@ -1199,6 +1350,84 @@ impl Ctx {
                     // start pointer on stack
                 }
             }
+            Some(ReturnAdaptation::PayloadVariant {
+                base_type_idx: _,
+                variant_type_indices,
+                variant_valtypes,
+                payload_valtype,
+            }) => {
+                // Payload variant return: GC ref → retptr with (disc, payload)
+                let ref_local = ret_local_start;
+                f.instruction(&Instruction::LocalSet(ref_local));
+
+                let payload_size = match payload_valtype {
+                    ValType::I64 | ValType::F64 => 8u32,
+                    _ => 4u32,
+                };
+                let total_size = 4 + payload_size; // disc (4) + payload
+
+                // Save start pointer
+                f.instruction(&Instruction::GlobalGet(0));
+
+                let n = variant_type_indices.len();
+                for i in 0..n {
+                    if i < n - 1 {
+                        f.instruction(&Instruction::LocalGet(ref_local));
+                        f.instruction(&Instruction::RefTestNonNull(HeapType::Concrete(
+                            variant_type_indices[i],
+                        )));
+                        f.instruction(&Instruction::If(BlockType::Empty));
+                    }
+                    // Write disc = i
+                    f.instruction(&Instruction::GlobalGet(0));
+                    f.instruction(&Instruction::I32Const(i as i32));
+                    f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
+                        offset: 0,
+                        align: 2,
+                        memory_index: 0,
+                    }));
+                    // Write payload at offset 4
+                    f.instruction(&Instruction::GlobalGet(0));
+                    f.instruction(&Instruction::I32Const(4));
+                    f.instruction(&Instruction::I32Add);
+                    f.instruction(&Instruction::LocalGet(ref_local));
+                    f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                        variant_type_indices[i],
+                    )));
+                    f.instruction(&Instruction::StructGet {
+                        struct_type_index: variant_type_indices[i],
+                        field_index: 0,
+                    });
+                    // Widen if variant's payload is narrower than the flat payload type
+                    let vt = variant_valtypes[i];
+                    if vt != *payload_valtype {
+                        match (vt, *payload_valtype) {
+                            (ValType::I32, ValType::I64) => {
+                                f.instruction(&Instruction::I64ExtendI32S);
+                            }
+                            (ValType::F32, ValType::F64) => {
+                                f.instruction(&Instruction::F64PromoteF32);
+                            }
+                            _ => {}
+                        }
+                    }
+                    emit_store_valtype(&mut f, *payload_valtype);
+                    if i < n - 1 {
+                        f.instruction(&Instruction::Else);
+                    }
+                }
+                // Close all if/else blocks
+                for _ in 0..n.saturating_sub(1) {
+                    f.instruction(&Instruction::End);
+                }
+
+                // Advance heap_ptr
+                f.instruction(&Instruction::GlobalGet(0));
+                f.instruction(&Instruction::I32Const(total_size as i32));
+                f.instruction(&Instruction::I32Add);
+                f.instruction(&Instruction::GlobalSet(0));
+                // start pointer on stack
+            }
         }
 
         f.instruction(&Instruction::End);
@@ -1217,6 +1446,7 @@ impl Ctx {
                 ParamAdaptation::List { .. } => count += 2,   // ptr + len
                 ParamAdaptation::OptionType { .. } => count += 2, // discriminant + payload
                 ParamAdaptation::ResultType { .. } => count += 2, // discriminant + payload
+                ParamAdaptation::PayloadVariant { .. } => count += 2, // discriminant + payload
             }
         }
         // String return uses i32 result pointer, no extra param needed
