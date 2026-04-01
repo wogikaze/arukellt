@@ -1099,6 +1099,63 @@ impl ArukellBackend {
         Some(result)
     }
 
+    /// Count the active parameter index at the cursor position inside a call.
+    /// Handles nested parentheses and string literals correctly.
+    fn count_active_parameter(args_text: &str) -> u32 {
+        let mut depth = 0u32;
+        let mut count = 0u32;
+        let mut in_string = false;
+        let mut prev = '\0';
+        for ch in args_text.chars() {
+            if in_string {
+                if ch == '"' && prev != '\\' {
+                    in_string = false;
+                }
+                prev = ch;
+                continue;
+            }
+            match ch {
+                '"' => in_string = true,
+                '(' | '[' => depth += 1,
+                ')' | ']' => depth = depth.saturating_sub(1),
+                ',' if depth == 0 => count += 1,
+                _ => {}
+            }
+            prev = ch;
+        }
+        count
+    }
+
+    /// Find the opening paren of the innermost unclosed function call.
+    /// Skips nested balanced parens to find the correct call context.
+    fn find_call_open_paren(before: &str) -> Option<usize> {
+        let mut depth = 0i32;
+        let mut in_string = false;
+        let mut prev = '\0';
+        for (i, ch) in before.char_indices().rev() {
+            if in_string {
+                if ch == '"' && prev != '\\' {
+                    in_string = false;
+                }
+                prev = ch;
+                continue;
+            }
+            match ch {
+                '"' => in_string = true,
+                ')' => depth += 1,
+                '(' => {
+                    if depth == 0 {
+                        return Some(i);
+                    }
+                    depth -= 1;
+                }
+                _ => {}
+            }
+            prev = ch;
+        }
+        None
+    }
+
     /// Classify a token kind into a semantic token type index.
     fn semantic_token_type_index(kind: &TokenKind) -> Option<u32> {
         if kind.is_keyword() {
@@ -2740,10 +2797,12 @@ impl LanguageServer for ArukellBackend {
 
         let offset = Self::position_to_offset(&source, pos);
         let before = &source[..offset];
-        if let Some(open_paren) = before.rfind('(') {
+        // Find the matching opening paren, skipping nested calls
+        if let Some(open_paren) = Self::find_call_open_paren(before) {
             let func_name_part = &before[..open_paren].trim_end();
+            // Extract function name, supporting qualified names like module::fn
             let name = func_name_part
-                .split(|c: char| !c.is_alphanumeric() && c != '_')
+                .split(|c: char| !c.is_alphanumeric() && c != '_' && c != ':')
                 .next_back()
                 .unwrap_or("");
 
@@ -2758,10 +2817,7 @@ impl LanguageServer for ArukellBackend {
                         })
                         .collect();
 
-                    let active_parameter = before[open_paren + 1..]
-                        .chars()
-                        .filter(|&c| c == ',')
-                        .count() as u32;
+                    let active_parameter = Self::count_active_parameter(&before[open_paren + 1..]);
 
                     return Ok(Some(SignatureHelp {
                         signatures: vec![SignatureInformation {
@@ -2788,7 +2844,13 @@ impl LanguageServer for ArukellBackend {
             // Fallback: check stdlib manifest for function signatures
             let manifest = self.stdlib_manifest.lock().unwrap();
             if let Some(ref m) = *manifest {
-                if let Some(func) = m.functions.iter().find(|f| f.name == name) {
+                // Handle qualified names (e.g. stdio::println)
+                let lookup_name = if name.contains("::") {
+                    name.rsplit("::").next().unwrap_or(name)
+                } else {
+                    name
+                };
+                if let Some(func) = m.functions.iter().find(|f| f.name == lookup_name) {
                     let param_infos: Vec<ParameterInformation> = func
                         .params
                         .iter()
@@ -2798,10 +2860,7 @@ impl LanguageServer for ArukellBackend {
                         })
                         .collect();
 
-                    let active_parameter = before[open_paren + 1..]
-                        .chars()
-                        .filter(|&c| c == ',')
-                        .count() as u32;
+                    let active_parameter = Self::count_active_parameter(&before[open_paren + 1..]);
 
                     let ret = func.returns.as_deref().unwrap_or("()");
                     return Ok(Some(SignatureHelp {
@@ -4223,5 +4282,24 @@ fn add(a: i32, b: i32) -> i32 {
         let stdio_pos = organized.find("use std::host::stdio").unwrap();
         let mymod_pos = organized.find("use mymod").unwrap();
         assert!(stdio_pos < mymod_pos, "stdlib imports should come before project imports");
+    }
+
+    #[test]
+    fn active_parameter_counts_correctly() {
+        assert_eq!(ArukellBackend::count_active_parameter(""), 0);
+        assert_eq!(ArukellBackend::count_active_parameter("a"), 0);
+        assert_eq!(ArukellBackend::count_active_parameter("a, "), 1);
+        assert_eq!(ArukellBackend::count_active_parameter("a, b, "), 2);
+        // Nested calls should not count inner commas
+        assert_eq!(ArukellBackend::count_active_parameter("foo(1, 2), "), 1);
+        // String literals should not count commas
+        assert_eq!(ArukellBackend::count_active_parameter(r#""a,b,c", "#), 1);
+    }
+
+    #[test]
+    fn find_call_open_paren_handles_nesting() {
+        assert_eq!(ArukellBackend::find_call_open_paren("foo("), Some(3));
+        assert_eq!(ArukellBackend::find_call_open_paren("foo(bar(1), "), Some(3));
+        assert_eq!(ArukellBackend::find_call_open_paren("outer(inner("), Some(11));
     }
 }
