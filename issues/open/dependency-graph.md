@@ -25,9 +25,6 @@ graph LR
   I408["408 Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する"]
   I412["412 Language Docs: 安定した anchor / permalink 体系を整える"]
   I414["414 Language Docs: transitional / archive banner を一括適用する"]
-  I439["439 VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する"]
-  I440["440 VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする"]
-  I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I442["442 Component Model: WIT / Component 生成を「出力できる」から「相互運用可能」に引き上げる"]
   I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
@@ -147,9 +144,6 @@ graph LR
   I379 --> I429
   I428 --> I433
   I428 --> I435
-  I439 --> I444
-  I440 --> I444
-  I441 --> I444
   I443 --> I444
   I284 --> I285
   I314 --> I316
@@ -203,9 +197,6 @@ graph LR
 - **408** depends on: none; blocks: 409
 - **412** depends on: none; blocks: none
 - **414** depends on: 372; blocks: none
-- **439** depends on: 333, 334, 335, 338, 339; blocks: 444
-- **440** depends on: 341, 346, 348, 349, 350, 352; blocks: 444
-- **441** depends on: 333, 335, 340; blocks: 444
 - **442** depends on: 299, 300; blocks: 443
 - **282** depends on: 281; blocks: 284
 - **283** depends on: 281; blocks: 284

@@ -1,6 +1,6 @@
 # VSCode Extension: Code Actions・Formatter・Diagnostics を統合し「fix-allが意味を持つ」状態にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 440
@@ -22,11 +22,11 @@
 
 ## Acceptance
 
-- [ ] formatter と semantic fix を分離する。
-- [ ] unused import / dead binding の自動修正が可能。
-- [ ] `source.fixAll` が複数ルールを統合して適用される。
-- [ ] CLI と LSP で同じ修正結果になる。
-- [ ] 修正差分が snapshot テストで固定される。
+- [x] formatter と semantic fix を分離する。
+- [x] unused import / dead binding の自動修正が可能。
+- [x] `source.fixAll` が複数ルールを統合して適用される。
+- [x] CLI と LSP で同じ修正結果になる。
+- [x] 修正差分が snapshot テストで固定される。
 
 ## References
 

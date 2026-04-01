@@ -1,6 +1,6 @@
 # VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 441
@@ -21,11 +21,11 @@ VSCode拡張を単なるファイル単位ツールから、ark.toml・workspace
 
 ## Acceptance
 
-- [ ] `ark.toml` を元に module graph を構築する。
-- [ ] workspace 内複数 package を解決可能にする。
-- [ ] cross-package go-to-definition が動作する。
-- [ ] import 解決が package aware になる。
-- [ ] workspace 変更時に index が再構築される。
+- [x] `ark.toml` を元に module graph を構築する。
+- [x] workspace 内複数 package を解決可能にする。
+- [x] cross-package go-to-definition が動作する。
+- [x] import 解決が package aware になる。
+- [x] workspace 変更時に index が再構築される。
 
 ## References
 

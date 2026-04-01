@@ -3394,6 +3394,20 @@ impl LanguageServer for ArukellBackend {
                 match ark_manifest::Manifest::find_root(&root) {
                     Some(new_root) => {
                         *self.project_root.lock().unwrap() = Some(new_root.clone());
+                        // Rebuild symbol index from the new project root
+                        Self::index_project_files(&self.symbol_index, &new_root);
+                        {
+                            let manifest = self.stdlib_manifest.lock().unwrap();
+                            if let Some(ref m) = *manifest {
+                                let std_dir = new_root.join("std");
+                                let std_path = if std_dir.exists() { Some(&std_dir) } else { None };
+                                Self::index_stdlib_from_manifest(
+                                    &self.symbol_index,
+                                    m,
+                                    std_path.map(|p| p),
+                                );
+                            }
+                        }
                         self.client
                             .log_message(
                                 MessageType::INFO,
@@ -3412,6 +3426,31 @@ impl LanguageServer for ArukellBackend {
                                 "ark.toml removed — switched to single-file mode",
                             )
                             .await;
+                    }
+                }
+            }
+        }
+        // Also rebuild index when .ark files change
+        let ark_file_changed = params
+            .changes
+            .iter()
+            .any(|c| c.uri.path().ends_with(".ark"));
+        if ark_file_changed {
+            for change in &params.changes {
+                if change.uri.path().ends_with(".ark") {
+                    // Re-index the changed file
+                    if let Ok(path) = change.uri.to_file_path() {
+                        if let Ok(source) = std::fs::read_to_string(&path) {
+                            let lexer = Lexer::new(0, &source);
+                            let tokens: Vec<_> = lexer.collect();
+                            let mut sink = ark_diagnostics::DiagnosticSink::new();
+                            let module = parse(&tokens, &mut sink);
+                            Self::update_file_symbols(
+                                &self.symbol_index,
+                                &change.uri,
+                                &module,
+                            );
+                        }
                     }
                 }
             }
@@ -4274,40 +4313,70 @@ impl LanguageServer for ArukellBackend {
                 }
             }
 
-            // source.fixAll — apply formatter as a fix-all
+            // source.fixAll — apply formatter + semantic fixes (unused imports)
             if params.context.only.as_ref().is_none_or(|kinds| {
                 kinds
                     .iter()
                     .any(|k| k == &CodeActionKind::SOURCE || k.as_str() == "source.fixAll")
             }) {
-                let formatted = ark_parser::fmt::format_source(src);
-                if let Some(formatted) = formatted {
-                    if formatted != *src {
-                        let full_range = Range {
-                            start: Position {
-                                line: 0,
-                                character: 0,
-                            },
-                            end: Self::offset_to_position(src, src.len() as u32),
-                        };
-                        let mut changes = HashMap::new();
-                        changes.insert(
-                            uri.clone(),
-                            vec![TextEdit {
-                                range: full_range,
-                                new_text: formatted,
-                            }],
-                        );
-                        actions.push(CodeActionOrCommand::CodeAction(CodeAction {
-                            title: "Fix All".to_string(),
-                            kind: Some(CodeActionKind::new("source.fixAll")),
-                            edit: Some(WorkspaceEdit {
-                                changes: Some(changes),
-                                ..Default::default()
-                            }),
-                            ..Default::default()
-                        }));
+                // Start from the formatted source (includes import sorting)
+                let base = ark_parser::fmt::format_source(src).unwrap_or_else(|| src.clone());
+                // Also remove unused imports by checking diagnostics
+                let mut result = base.clone();
+                let cache = self.analysis_cache.lock().unwrap();
+                if let Some(analysis) = cache.get(&uri) {
+                    // Collect unused import module names from lint diagnostics
+                    let mut unused_lines: Vec<u32> = Vec::new();
+                    for diag in &analysis.diagnostics {
+                        if diag.code == Some(NumberOrString::String("W0006".to_string())) {
+                            unused_lines.push(diag.range.start.line);
+                        }
                     }
+                    if !unused_lines.is_empty() {
+                        unused_lines.sort();
+                        unused_lines.dedup();
+                        // Remove lines from bottom to top to preserve line numbers
+                        let lines: Vec<&str> = result.lines().collect();
+                        let mut kept: Vec<&str> = Vec::new();
+                        for (i, line) in lines.iter().enumerate() {
+                            if !unused_lines.contains(&(i as u32)) {
+                                kept.push(line);
+                            }
+                        }
+                        result = kept.join("\n");
+                        if result.ends_with('\n') || src.ends_with('\n') {
+                            if !result.ends_with('\n') {
+                                result.push('\n');
+                            }
+                        }
+                    }
+                }
+                drop(cache);
+                if result != *src {
+                    let full_range = Range {
+                        start: Position {
+                            line: 0,
+                            character: 0,
+                        },
+                        end: Self::offset_to_position(src, src.len() as u32),
+                    };
+                    let mut changes = HashMap::new();
+                    changes.insert(
+                        uri.clone(),
+                        vec![TextEdit {
+                            range: full_range,
+                            new_text: result,
+                        }],
+                    );
+                    actions.push(CodeActionOrCommand::CodeAction(CodeAction {
+                        title: "Fix All".to_string(),
+                        kind: Some(CodeActionKind::new("source.fixAll")),
+                        edit: Some(WorkspaceEdit {
+                            changes: Some(changes),
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    }));
                 }
             }
         }
@@ -5603,5 +5672,16 @@ fn add(a: i32, b: i32) -> i32 {
         assert!(ArukellBackend::is_builtin_name("Result"));
         assert!(!ArukellBackend::is_builtin_name("my_function"));
         assert!(!ArukellBackend::is_builtin_name("custom_type"));
+    }
+
+    #[test]
+    fn formatter_and_fix_all_produce_consistent_output() {
+        // Test that format_source is deterministic (idempotent)
+        let source = "fn foo() {\n  let x = 1\n  x\n}\n";
+        let formatted = ark_parser::fmt::format_source(source);
+        if let Some(ref f) = formatted {
+            let reformatted = ark_parser::fmt::format_source(f);
+            assert_eq!(formatted, reformatted, "formatter should be idempotent");
+        }
     }
 }

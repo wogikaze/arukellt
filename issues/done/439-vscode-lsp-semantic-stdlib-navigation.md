@@ -1,6 +1,6 @@
 # VSCode Extension: LSP機能を「ローカル補助」から「標準ライブラリ含む完全ナビゲーション」に昇格する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 439
@@ -22,11 +22,11 @@ VSCode拡張の中核である LSP 機能を、単一ファイル・ローカル
 
 ## Acceptance
 
-- [ ] std/manifest + std source を含む symbol index が構築される。
-- [ ] go-to-definition が std 関数・型へジャンプ可能。
-- [ ] references / rename が semantic に動作。
-- [ ] hover に stdlib doc comment が表示される。
-- [ ] multi-file workspace で正しく動作する。
+- [x] std/manifest + std source を含む symbol index が構築される。
+- [x] go-to-definition が std 関数・型へジャンプ可能。
+- [x] references / rename が semantic に動作。
+- [x] hover に stdlib doc comment が表示される。
+- [x] multi-file workspace で正しく動作する。
 
 ## References
 
