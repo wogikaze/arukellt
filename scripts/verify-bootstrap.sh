@@ -17,7 +17,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-COMPILER="${REPO_ROOT}/target/release/arukellt"
+COMPILER="${ARUKELLT_BIN:-${REPO_ROOT}/target/release/arukellt}"
 SELFHOST_DIR="${REPO_ROOT}/src/compiler"
 
 # ── Colours ───────────────────────────────────────────────────────────────────

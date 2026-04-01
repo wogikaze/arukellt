@@ -10,7 +10,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-COMPILER="$ROOT/target/release/arukellt"
+COMPILER="${ARUKELLT_BIN:-$ROOT/target/release/arukellt}"
 RESULTS_DIR="$ROOT/benchmarks/results"
 TARGET="wasm32-wasi-p1"
 SCHEMA_VERSION="arukellt-bench-v1"

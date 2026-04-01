@@ -120,7 +120,7 @@ def rel(path: Path) -> str:
 def resolve_compiler(explicit: str | None) -> Path:
     if explicit:
         return Path(explicit).expanduser().resolve()
-    env_compiler = os.environ.get("ARUKELLT")
+    env_compiler = os.environ.get("ARUKELLT_BIN") or os.environ.get("ARUKELLT")
     if env_compiler:
         return Path(env_compiler).expanduser().resolve()
     candidates = [

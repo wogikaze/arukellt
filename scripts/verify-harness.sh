@@ -209,7 +209,7 @@ fi
 
 if [ "$RUN_FIXTURES" = true ]; then
     printf '\n%s\n' "${YELLOW}[fixtures] Running fixture harness...${NC}"
-    local_output=$($MISE bash -lc "cargo test -p arukellt --test harness -- --nocapture 2>&1") || true
+    local_output=$(ARUKELLT_BIN="${ARUKELLT_BIN:-}" $MISE bash -lc "cargo test -p arukellt --test harness -- --nocapture 2>&1") || true
     if printf '%s\n' "$local_output" | grep -q "FAIL: 0"; then
         summary=$(printf '%s\n' "$local_output" | grep "PASS:")
         check_pass "fixture harness (${summary})"
@@ -267,8 +267,8 @@ fi
 
 if [ "$RUN_SIZE" = true ]; then
     printf '\n%s\n' "${YELLOW}[size] Checking hello.wasm binary size gate...${NC}"
-    ARUKELLT_BIN="./target/debug/arukellt"
-    if [ ! -x "$ARUKELLT_BIN" ]; then
+    ARUKELLT_BIN="${ARUKELLT_BIN:-./target/debug/arukellt}"
+    if [ ! -x "$ARUKELLT_BIN" ] && [ "$ARUKELLT_BIN" = "./target/debug/arukellt" ]; then
         ARUKELLT_BIN="./target/release/arukellt"
     fi
     HELLO_WASM_OUT="hello_perfgate.wasm"

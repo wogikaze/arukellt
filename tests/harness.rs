@@ -90,6 +90,20 @@ fn entry_points(fixture_dir: &Path) -> HashSet<String> {
 }
 
 fn arukellt_binary() -> PathBuf {
+    // Allow overriding the compiler binary via ARUKELLT_BIN env var.
+    // This enables running the harness with the selfhost compiler or any
+    // alternative build.
+    if let Ok(bin) = std::env::var("ARUKELLT_BIN") {
+        let p = PathBuf::from(&bin);
+        if p.exists() {
+            return p;
+        }
+        panic!(
+            "ARUKELLT_BIN is set to {:?} but the file does not exist",
+            bin
+        );
+    }
+
     let mut path = std::env::current_exe().unwrap();
     path.pop(); // remove test binary name
     path.pop(); // remove deps/
