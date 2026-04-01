@@ -63,7 +63,9 @@ fn OP_I32_ADD() -> i32 { 0x6a }
 fn OP_I32_SUB() -> i32 { 0x6b }
 fn OP_I32_MUL() -> i32 { 0x6c }
 fn OP_I32_DIV_S() -> i32 { 0x6d }
+fn OP_I32_DIV_U() -> i32 { 0x6e }
 fn OP_I32_REM_S() -> i32 { 0x6f }
+fn OP_I32_REM_U() -> i32 { 0x70 }
 fn OP_I32_AND() -> i32 { 0x71 }
 fn OP_I32_OR() -> i32 { 0x72 }
 fn OP_I32_XOR() -> i32 { 0x73 }
@@ -193,10 +195,11 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     }
 
     // Build emit context
-    let ctx = SelfEmitCtx {
+    let mut ctx = SelfEmitCtx {
         functions: mir.functions,
         string_offsets: string_offsets,
         string_lengths: string_lengths,
+        scratch_base: 0,
     }
 
     // Type section
@@ -331,6 +334,7 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
         }
 
         // Instructions (simplified: emit MIR ops → Wasm ops)
+        ctx.scratch_base = local_count
         let block_count = len(f.blocks)
         let mut bi = 0
         while bi < block_count {
@@ -409,6 +413,7 @@ struct SelfEmitCtx {
     functions: Vec<MirFunction>,
     string_offsets: Vec<i32>,
     string_lengths: Vec<i32>,
+    scratch_base: i32,
 }
 
 fn resolve_fn_index(ctx: SelfEmitCtx, name: String) -> i32 {
@@ -495,8 +500,26 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         emit_byte(w, OP_I32_NE())
     } else if inst.op == 27 {  // LT
         emit_byte(w, OP_I32_LT_S())
+    } else if inst.op == 28 {  // LTEQ
+        emit_byte(w, OP_I32_LE_S())
     } else if inst.op == 29 {  // GT
         emit_byte(w, OP_I32_GT_S())
+    } else if inst.op == 30 {  // GTEQ
+        emit_byte(w, OP_I32_GE_S())
+    } else if inst.op == 31 {  // AND (logical)
+        emit_byte(w, OP_I32_AND())
+    } else if inst.op == 32 {  // OR (logical)
+        emit_byte(w, OP_I32_OR())
+    } else if inst.op == 35 {  // BIT_AND
+        emit_byte(w, OP_I32_AND())
+    } else if inst.op == 36 {  // BIT_OR
+        emit_byte(w, OP_I32_OR())
+    } else if inst.op == 37 {  // BIT_XOR
+        emit_byte(w, OP_I32_XOR())
+    } else if inst.op == 38 {  // SHL
+        emit_byte(w, OP_I32_SHL())
+    } else if inst.op == 39 {  // SHR
+        emit_byte(w, OP_I32_SHR_S())
     } else if inst.op == 40 {  // CALL
         let callee = clone(inst.str_val)
         if eq(clone(callee), "stdio::println") || eq(clone(callee), "println") {
@@ -621,97 +644,66 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             
         } else if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") {
             // Inline to_string(i32): convert integer on stack to string
-            // This is complex — for now, use a simplified i32-to-string inline
             // Stack has: [i32_value]
-            // We need to convert to a string representation in memory and push ptr
-            //
-            // For now, emit a simplified inline conversion using the SCRATCH_I32BUF area
-            // This writes digits to SCRATCH_I32BUF and returns a ptr to the result
+            // Scratch locals: scratch_base+0 = write_pos, +1 = is_neg, +2 = value
+            let s_val = ctx.scratch_base + 2
+            let s_wpos = ctx.scratch_base
+            let s_neg = ctx.scratch_base + 1
             
-            // Save value to a local
+            // Save value to scratch local
             emit_byte(w, OP_LOCAL_SET())
-            emit_leb128_u(w, inst.dest)
+            emit_leb128_u(w, s_val)
             
-            // For simplicity, just write the number to memory at SCRATCH_I32BUF
-            // using a loop that divides by 10 and writes digits
-            // This is complex to inline — use a helper approach
-            
-            // Simplified: handle small numbers by brute force
-            // Actually, let me use the buffer approach like the Rust emitter
-            // Write digits backwards into buffer, then set length prefix
-            
-            // We'll use inst.dest as temp, and inst.dest+1, inst.dest+2 as more temps
-            // But we only have the locals declared by the function...
-            // The selfhost adds extra locals for each dest, so we should have enough
-            
-            // For now, implement a basic to_string:
-            // 1. Handle negative: if val < 0, negate and set flag
-            // 2. Write digits from right to left into buffer at SCRATCH_I32BUF+4..+24
-            // 3. Store length at buffer_start - 4
-            // 4. Return pointer to first digit
-            
-            // This needs a lot of locals. Let's use a simpler approach:
-            // Store the int directly and call a runtime helper... but we don't have one.
-            
-            // For a minimal implementation: assume non-negative, write digits
-            // Buffer area: SCRATCH_I32BUF (16) to SCRATCH_I32BUF+20 (36)
-            // Length prefix at offset 12 (SCRATCH_I32BUF - 4)
-            
-            // Use block/loop structure for the digit extraction
-            let buf_end = SCRATCH_I32BUF() + 20  // write position (right to left)
-            let len_addr = SCRATCH_I32BUF() - 4   // length prefix location (12)
-            
-            // local dest = value (already set above)
-            // local dest+1 = write position (initialized to buf_end)
-            // local dest+2 = is_negative flag
+            let buf_end = SCRATCH_I32BUF() + 20
             
             // Initialize write position
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, buf_end)
             emit_byte(w, OP_LOCAL_SET())
-            emit_leb128_u(w, inst.dest + 1)  // write_pos
+            emit_leb128_u(w, s_wpos)
             
-            // Check for negative
+            // is_neg = 0
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 0)
             emit_byte(w, OP_LOCAL_SET())
-            emit_leb128_u(w, inst.dest + 2)  // is_neg = 0
+            emit_leb128_u(w, s_neg)
             
+            // Check for negative
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest)
+            emit_leb128_u(w, s_val)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 0)
             emit_byte(w, OP_I32_LT_S())
             emit_byte(w, OP_IF())
-            emit_byte(w, 0x40)  // void
+            emit_byte(w, 0x40)
             // Negate: val = 0 - val
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 0)
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest)
+            emit_leb128_u(w, s_val)
             emit_byte(w, OP_I32_SUB())
             emit_byte(w, OP_LOCAL_SET())
-            emit_leb128_u(w, inst.dest)
+            emit_leb128_u(w, s_val)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 1)
             emit_byte(w, OP_LOCAL_SET())
-            emit_leb128_u(w, inst.dest + 2)  // is_neg = 1
+            emit_leb128_u(w, s_neg)
             emit_byte(w, OP_END())
             
             // Handle zero case
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest)
+            emit_leb128_u(w, s_val)
             emit_byte(w, OP_I32_EQZ())
             emit_byte(w, OP_IF())
             emit_byte(w, 0x40)
             // Write '0' at write_pos - 1
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest + 1)
+            emit_leb128_u(w, s_wpos)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 1)
             emit_byte(w, OP_I32_SUB())
             emit_byte(w, OP_LOCAL_TEE())
-            emit_leb128_u(w, inst.dest + 1)
+            emit_leb128_u(w, s_wpos)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 48)  // '0'
             emit_byte(w, 0x3a)    // i32.store8
@@ -725,57 +717,57 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, 0x40)
             // if val == 0, break
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest)
+            emit_leb128_u(w, s_val)
             emit_byte(w, OP_I32_EQZ())
             emit_byte(w, OP_BR_IF())
-            emit_leb128_u(w, 1)  // break out of block
+            emit_leb128_u(w, 1)
             // write_pos -= 1
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest + 1)
+            emit_leb128_u(w, s_wpos)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 1)
             emit_byte(w, OP_I32_SUB())
             emit_byte(w, OP_LOCAL_TEE())
-            emit_leb128_u(w, inst.dest + 1)
-            // store digit: val % 10 + '0'
+            emit_leb128_u(w, s_wpos)
+            // store digit: val % 10 + '0' (unsigned to handle INT_MIN)
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest)
+            emit_leb128_u(w, s_val)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 10)
-            emit_byte(w, OP_I32_REM_S())
+            emit_byte(w, OP_I32_REM_U())
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 48)  // '0'
             emit_byte(w, OP_I32_ADD())
             emit_byte(w, 0x3a)    // i32.store8
             emit_byte(w, 0x00)
             emit_byte(w, 0x00)
-            // val = val / 10
+            // val = val / 10 (unsigned to handle INT_MIN)
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest)
+            emit_leb128_u(w, s_val)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 10)
-            emit_byte(w, OP_I32_DIV_S())
+            emit_byte(w, OP_I32_DIV_U())
             emit_byte(w, OP_LOCAL_SET())
-            emit_leb128_u(w, inst.dest)
+            emit_leb128_u(w, s_val)
             // continue loop
             emit_byte(w, OP_BR())
-            emit_leb128_u(w, 0)  // back to loop
+            emit_leb128_u(w, 0)
             emit_byte(w, OP_END())  // end loop
             emit_byte(w, OP_END())  // end block
             emit_byte(w, OP_END())  // end else
             
             // If negative, prepend '-'
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest + 2)
+            emit_leb128_u(w, s_neg)
             emit_byte(w, OP_IF())
             emit_byte(w, 0x40)
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest + 1)
+            emit_leb128_u(w, s_wpos)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 1)
             emit_byte(w, OP_I32_SUB())
             emit_byte(w, OP_LOCAL_TEE())
-            emit_leb128_u(w, inst.dest + 1)
+            emit_leb128_u(w, s_wpos)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 45)  // '-'
             emit_byte(w, 0x3a)    // i32.store8
@@ -785,7 +777,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             
             // Store length prefix at write_pos - 4
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest + 1)
+            emit_leb128_u(w, s_wpos)
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 4)
             emit_byte(w, OP_I32_SUB())
@@ -793,7 +785,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, buf_end)
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest + 1)
+            emit_leb128_u(w, s_wpos)
             emit_byte(w, OP_I32_SUB())
             emit_byte(w, OP_I32_STORE())
             emit_byte(w, 0x02)
@@ -801,7 +793,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             
             // Push result: pointer to string data (write_pos)
             emit_byte(w, OP_LOCAL_GET())
-            emit_leb128_u(w, inst.dest + 1)
+            emit_leb128_u(w, s_wpos)
             
         } else {
             // User-defined function call
@@ -849,13 +841,19 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
         emit_byte(w, OP_I32_AND())
     } else if inst.op == 32 {  // OR
         emit_byte(w, OP_I32_OR())
-    } else if inst.op == 33 {  // NEG (i32.const 0; i32.sub for negate)
+    } else if inst.op == 33 {  // NEG (0 - val)
+        // Stack has: [val]. Need [0, val] for i32.sub (0 - val)
+        let scratch = ctx.scratch_base + 2
+        emit_byte(w, OP_LOCAL_SET())
+        emit_leb128_u(w, scratch)
         emit_byte(w, OP_I32_CONST())
         emit_leb128_s(w, 0)
+        emit_byte(w, OP_LOCAL_GET())
+        emit_leb128_u(w, scratch)
         emit_byte(w, OP_I32_SUB())
-    } else if inst.op == 34 {  // NOT (i32.eqz)
+    } else if inst.op == 34 {  // NOT (i32.eqz) — value on stack
         emit_byte(w, OP_I32_EQZ())
-    } else if inst.op == 58 {  // EQZ
+    } else if inst.op == 58 {  // EQZ — value on stack
         emit_byte(w, OP_I32_EQZ())
     } else if inst.op == 60 {  // STRUCT_NEW — heap allocate
         // global.get 0 (heap ptr) → local.tee dest → bump by field_count*4

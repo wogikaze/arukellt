@@ -1,0 +1,14 @@
+use std::host::stdio
+
+fn pick(x: i32) -> i32 {
+    if x > 0 {
+        42
+    } else {
+        99
+    }
+}
+
+fn main() {
+    stdio::println(i32_to_string(pick(1)))
+    stdio::println(i32_to_string(pick(0)))
+}

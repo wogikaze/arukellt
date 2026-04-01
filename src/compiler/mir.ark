@@ -31,6 +31,11 @@ fn MIR_AND() -> i32 { 31 }
 fn MIR_OR() -> i32 { 32 }
 fn MIR_NEG() -> i32 { 33 }
 fn MIR_NOT() -> i32 { 34 }
+fn MIR_BIT_AND() -> i32 { 35 }
+fn MIR_BIT_OR() -> i32 { 36 }
+fn MIR_BIT_XOR() -> i32 { 37 }
+fn MIR_SHL() -> i32 { 38 }
+fn MIR_SHR() -> i32 { 39 }
 fn MIR_CALL() -> i32 { 40 }
 fn MIR_CALL_INDIRECT() -> i32 { 41 }
 fn MIR_RETURN() -> i32 { 42 }
@@ -264,6 +269,11 @@ fn OP_GT() -> i32 { 10 }
 fn OP_GTEQ() -> i32 { 11 }
 fn OP_AND() -> i32 { 12 }
 fn OP_OR() -> i32 { 13 }
+fn OP_BIT_AND() -> i32 { 14 }
+fn OP_BIT_OR() -> i32 { 15 }
+fn OP_BIT_XOR() -> i32 { 16 }
+fn OP_SHL() -> i32 { 17 }
+fn OP_SHR() -> i32 { 18 }
 
 // Unary operator tags
 fn UOP_NEG() -> i32 { 1 }
@@ -432,6 +442,11 @@ fn binop_to_mir(op: i32) -> i32 {
     if op == OP_GTEQ() { return MIR_GTEQ() }
     if op == OP_AND() { return MIR_AND() }
     if op == OP_OR() { return MIR_OR() }
+    if op == OP_BIT_AND() { return MIR_BIT_AND() }
+    if op == OP_BIT_OR() { return MIR_BIT_OR() }
+    if op == OP_BIT_XOR() { return MIR_BIT_XOR() }
+    if op == OP_SHL() { return MIR_SHL() }
+    if op == OP_SHR() { return MIR_SHR() }
     MIR_NOP()
 }
 
@@ -501,9 +516,9 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let operand = get_unchecked(node.children, 0)
             let o_idx = lower_expr(ctx, operand)
             let dest = ctx_fresh_local(ctx, VT_I32())
-            let mir_op = MIR_NOP()
-            if node.op == UOP_NEG() { let mir_op = MIR_NEG() }
-            if node.op == UOP_NOT() { let mir_op = MIR_NOT() }
+            let mut mir_op = MIR_NOP()
+            if node.op == UOP_NEG() { mir_op = MIR_NEG() }
+            if node.op == UOP_NOT() { mir_op = MIR_NOT() }
             let inst = MirInst_new(mir_op)
             inst.dest = dest
             inst.arg0 = o_idx
