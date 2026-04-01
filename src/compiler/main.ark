@@ -415,24 +415,45 @@ fn cmd_run(opts: CliOptions) {
 
 fn cmd_build(opts: CliOptions) {
     // Look for ark.toml in current directory or specified path
-    let manifest_path = if len(opts.input_file) > 0 {
-        clone(opts.input_file)
+    let mut manifest_path = String_new()
+    if len(opts.input_file) > 0 {
+        manifest_path = clone(opts.input_file)
     } else {
-        String_from("ark.toml")
+        manifest_path = String_from("ark.toml")
     }
 
     let manifest_result = fs::read_to_string(clone(manifest_path))
     match manifest_result {
         Ok(content) => {
-            // Simple ark.toml parsing: find entry = "..." line
-            let entry = find_toml_value(content, String_from("entry"))
+            // Extract package metadata
+            let pkg_name = find_toml_value(clone(content), String_from("name"))
+            let pkg_version = find_toml_value(clone(content), String_from("version"))
+
+            // Find entry point: try [bin].path first, then entry
+            let bin_path = find_toml_value(clone(content), String_from("path"))
+            let entry_path = find_toml_value(clone(content), String_from("entry"))
+            let mut entry = String_new()
+            if len(bin_path) > 0 {
+                entry = clone(bin_path)
+            } else if len(entry_path) > 0 {
+                entry = clone(entry_path)
+            }
+
             if len(entry) == 0 {
-                stdio::eprintln(String_from("error: no 'entry' field found in ark.toml"))
+                stdio::eprintln(String_from("error: no 'path' (under [bin]) or 'entry' field found in ark.toml"))
                 process::exit(1)
                 return
             }
 
-            stdio::eprintln(concat(String_from("building "), concat(clone(manifest_path), concat(String_from(" (entry: "), concat(clone(entry), String_from(")"))))))
+            if len(pkg_name) > 0 {
+                stdio::eprintln(concat(String_from("building "), concat(clone(pkg_name), concat(String_from(" v"), concat(clone(pkg_version), concat(String_from(" ("), concat(clone(entry), String_from(")"))))))))
+            } else {
+                stdio::eprintln(concat(String_from("building "), concat(clone(manifest_path), concat(String_from(" (entry: "), concat(clone(entry), String_from(")"))))))
+            }
+
+            // Parse dependencies (just list them for now)
+            let deps = find_toml_value(clone(content), String_from("dependencies"))
+            // Dependencies are not yet resolved, just acknowledged
 
             let config = driver::DriverConfig_default()
             config.target = clone(opts.target)
@@ -441,10 +462,15 @@ fn cmd_build(opts: CliOptions) {
 
             let result = driver::compile_file(clone(entry), config)
             if result.success {
-                let out_path = if len(opts.output_file) > 0 {
-                    clone(opts.output_file)
+                let mut out_path = String_new()
+                if len(opts.output_file) > 0 {
+                    out_path = clone(opts.output_file)
                 } else {
-                    String_from("output.wasm")
+                    if len(pkg_name) > 0 {
+                        out_path = concat(clone(pkg_name), String_from(".wasm"))
+                    } else {
+                        out_path = String_from("output.wasm")
+                    }
                 }
                 let write_result = fs::write_bytes(clone(out_path), result.output_bytes)
                 match write_result {

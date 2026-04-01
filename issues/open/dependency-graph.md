@@ -10,7 +10,7 @@ graph LR
   I290["290 セルフホスト parser に不足構文を追加する"]
   I296["296 string 型の canonical ABI lift-lower を実装する"]
   I308["308 Selfhost parser の構文 surface を拡張する"]
-  I320["320 Selfhost CLI に package/workspace 統合を実装する"]
+  I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
   I327["327 Bootstrap docs の重複を解消し truth を一本化する"]
   I358["358 Stdlib: host family の stub を解消し stable capability に引き上げる"]
   I363["363 Stdlib Docs: module family ごとの curated overview page を作る"]
@@ -32,7 +32,6 @@ graph LR
   I309["309 Selfhost resolver に module/import resolution を実装する"]
   I311["311 Selfhost typechecker に型推論エンジンを構築する"]
   I313["313 Selfhost MIR lowering: 式のコンパイルを実装する"]
-  I322["322 Selfhost CLI を CI canonical path として使えるようにする"]
   I362["362 Stdlib: stability tier を実行時・CI で検証する"]
   I365["365 Stdlib Docs: source-backed な cookbook / recipe 集を拡充する"]
   I396["396 Stdlib Docs: family overview ページを実装し learning path を作る"]
@@ -98,7 +97,6 @@ graph LR
   I308 --> I309
   I308 --> I311
   I308 --> I313
-  I320 --> I322
   I358 --> I362
   I363 --> I365
   I363 --> I396
@@ -171,7 +169,7 @@ graph LR
 - **290** depends on: none; blocks: 287
 - **296** depends on: 299; blocks: 297, 298
 - **308** depends on: none; blocks: 309, 311, 313
-- **320** depends on: 318; blocks: 322
+- **322** depends on: 320, 321; blocks: none
 - **327** depends on: none; blocks: none
 - **358** depends on: none; blocks: 362
 - **363** depends on: none; blocks: 365, 396
@@ -193,7 +191,6 @@ graph LR
 - **309** depends on: 308; blocks: 310
 - **311** depends on: 308; blocks: 312
 - **313** depends on: 308; blocks: 314, 315
-- **322** depends on: 320, 321; blocks: none
 - **362** depends on: 358, 360; blocks: none
 - **365** depends on: 363; blocks: 398
 - **396** depends on: 363; blocks: 402
