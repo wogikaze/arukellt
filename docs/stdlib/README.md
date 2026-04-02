@@ -155,5 +155,5 @@ All 18 module pages carry curated overviews.
 
 | File | Summary |
 |------|---------|
-| [core.md](core.md) | Legacy landing page for the current core-related stdlib docs. |
-| [io.md](io.md) | Legacy landing page for the current host-capability and path stdlib docs. |
+| [core.md](core.md) | ⚠️ Archived page. This legacy index has been superseded by std::core family. Please update your bookmarks and links to point there instead. |
+| [io.md](io.md) | ⚠️ Archived page. This legacy index has been superseded by std::host family. Please update your bookmarks and links to point there instead. |
