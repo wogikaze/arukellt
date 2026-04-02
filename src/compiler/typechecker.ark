@@ -210,6 +210,49 @@ fn resolve_type_name(name: String) -> TypeInfo {
     TypeInfo_named(TY_STRUCT(), name)
 }
 
+// ── Generic-Aware Type Resolution ────────────────────────────────────────────
+
+fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo {
+    let tp_count = len(type_params)
+    let mut k = 0
+    while k < tp_count {
+        let tp = get_unchecked(type_params, k)
+        if eq(clone(tp), clone(name)) {
+            return TypeInfo_named(TY_TYPE_VAR(), name)
+        }
+        k = k + 1
+    }
+    resolve_type_name(name)
+}
+
+fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
+    let count = len(fn_sigs)
+    let mut i = 0
+    while i < count {
+        let sig = get_unchecked(fn_sigs, i)
+        if eq(clone(sig.name), clone(name)) {
+            return sig
+        }
+        i = i + 1
+    }
+    FnSig { name: String_new(), param_types: Vec_new_TypeInfo(), return_type: TypeInfo_simple(TY_UNKNOWN()), type_params: Vec_new_String() }
+}
+
+fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> TypeInfo {
+    if ty.tag == TY_TYPE_VAR() {
+        let count = len(names)
+        let mut i = 0
+        while i < count {
+            let n = get_unchecked(names, i)
+            if eq(clone(n), clone(ty.name)) {
+                return get_unchecked(types, i)
+            }
+            i = i + 1
+        }
+    }
+    ty
+}
+
 // ── Type Check Context ───────────────────────────────────────────────────────
 
 struct CheckCtx {
@@ -223,6 +266,7 @@ struct FnSig {
     name: String,
     param_types: Vec<TypeInfo>,
     return_type: TypeInfo,
+    type_params: Vec<String>,
 }
 
 struct StructInfo {
@@ -296,7 +340,7 @@ fn is_logical_op(op: i32) -> bool {
     false
 }
 
-fn infer_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
+fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) -> TypeInfo {
     // Literals
     if node.kind == NK_INT_LIT() { return TypeInfo_simple(TY_I32()) }
     if node.kind == NK_FLOAT_LIT() { return TypeInfo_simple(TY_F64()) }
@@ -313,8 +357,8 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
         if len(node.children) >= 2 {
             let lhs_node = get_unchecked(node.children, 0)
             let rhs_node = get_unchecked(node.children, 1)
-            let lhs_ty = infer_expr(env, scope, lhs_node)
-            let rhs_ty = infer_expr(env, scope, rhs_node)
+            let lhs_ty = infer_expr(env, scope, fn_sigs, lhs_node)
+            let rhs_ty = infer_expr(env, scope, fn_sigs, rhs_node)
 
             // Comparison operators always produce bool
             if is_comparison_op(node.op) {
@@ -333,7 +377,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
     if node.kind == NK_UNARY() {
         if len(node.children) > 0 {
             let operand = get_unchecked(node.children, 0)
-            return infer_expr(env, scope, operand)
+            return infer_expr(env, scope, fn_sigs, operand)
         }
     }
 
@@ -345,9 +389,9 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
             let child = get_unchecked(node.children, i)
             if i == count - 1 {
                 // Last child: its inferred type is the block type
-                return infer_expr(env, scope, child)
+                return infer_expr(env, scope, fn_sigs, child)
             }
-            check_stmt(env, scope, child)
+            check_stmt(env, scope, fn_sigs, child)
             i = i + 1
         }
         return TypeInfo_simple(TY_UNIT())
@@ -357,13 +401,57 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
     if node.kind == NK_IF_EXPR() {
         if len(node.children) >= 2 {
             let then_node = get_unchecked(node.children, 1)
-            return infer_expr(env, scope, then_node)
+            return infer_expr(env, scope, fn_sigs, then_node)
         }
     }
 
-    // Call expression — return unknown (call-site arg checking out of scope)
+    // Call expression — infer return type via fn signature lookup
     if node.kind == NK_CALL() {
-        return TypeInfo_simple(TY_UNKNOWN())
+        if len(node.children) < 1 { return TypeInfo_simple(TY_UNKNOWN()) }
+        let callee = get_unchecked(node.children, 0)
+
+        // Only look up simple identifiers in fn_sigs
+        if callee.kind != NK_IDENT() { return TypeInfo_simple(TY_UNKNOWN()) }
+        let sig = lookup_fn_sig(fn_sigs, clone(callee.text))
+        if eq(clone(sig.name), String_from("")) { return TypeInfo_simple(TY_UNKNOWN()) }
+
+        // Non-generic function: return declared return type
+        if len(sig.type_params) == 0 {
+            return sig.return_type
+        }
+
+        // Generic function: instantiate type params and unify with arguments
+        let infer_env = TypeEnv_new()
+        let var_names = Vec_new_String()
+        let var_types = Vec_new_TypeInfo()
+
+        // Create fresh type vars for each type param
+        let tp_count = len(sig.type_params)
+        let mut k = 0
+        while k < tp_count {
+            let tp_name = get_unchecked(sig.type_params, k)
+            let tv = fresh_var(infer_env)
+            push(var_names, clone(tp_name))
+            push(var_types, tv)
+            k = k + 1
+        }
+
+        // Unify argument types with instantiated parameter types
+        let arg_count = len(node.children) - 1
+        let param_count = len(sig.param_types)
+        let mut a = 0
+        while a < arg_count && a < param_count {
+            let arg_node = get_unchecked(node.children, a + 1)
+            let arg_ty = infer_expr(env, scope, fn_sigs, arg_node)
+            let param_ty = get_unchecked(sig.param_types, a)
+            let inst_param = instantiate_type(param_ty, var_names, var_types)
+            unify(infer_env, inst_param, arg_ty)
+            a = a + 1
+        }
+
+        // Resolve return type through instantiation and substitution
+        let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
+        return resolve_type(infer_env, inst_ret)
     }
 
     TypeInfo_simple(TY_UNKNOWN())
@@ -371,14 +459,14 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
 
 // ── Statement Type Checking ─────────────────────────────────────────────────
 
-fn check_stmt(env: TypeEnv, scope: LocalScope, node: AstNode) {
+fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNode) {
     if node.kind == NK_LET() {
         let mut bind_ty = TypeInfo_simple(TY_UNKNOWN())
 
         // Infer from initializer expression
         if len(node.children) > 0 {
             let init = get_unchecked(node.children, 0)
-            bind_ty = infer_expr(env, scope, init)
+            bind_ty = infer_expr(env, scope, fn_sigs, init)
         }
 
         // Unify with explicit type annotation if present
@@ -398,7 +486,7 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, node: AstNode) {
     if node.kind == NK_EXPR_STMT() {
         if len(node.children) > 0 {
             let child = get_unchecked(node.children, 0)
-            infer_expr(env, scope, child)
+            infer_expr(env, scope, fn_sigs, child)
         }
         return
     }
@@ -406,7 +494,7 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, node: AstNode) {
     if node.kind == NK_RETURN() {
         if len(node.children) > 0 {
             let child = get_unchecked(node.children, 0)
-            infer_expr(env, scope, child)
+            infer_expr(env, scope, fn_sigs, child)
         }
         return
     }
@@ -417,7 +505,7 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, node: AstNode) {
         let mut i = 0
         while i < count {
             let child = get_unchecked(node.children, i)
-            check_stmt(env, scope, child)
+            check_stmt(env, scope, fn_sigs, child)
             i = i + 1
         }
         return
@@ -428,44 +516,53 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, node: AstNode) {
         let mut i = 0
         while i < count {
             let child = get_unchecked(node.children, i)
-            check_stmt(env, scope, child)
+            check_stmt(env, scope, fn_sigs, child)
             i = i + 1
         }
         return
     }
 
     // For any expression node used as a statement, try to infer its type
-    infer_expr(env, scope, node)
+    infer_expr(env, scope, fn_sigs, node)
 }
 
 // ── Function Body Type Checking ─────────────────────────────────────────────
 
-fn check_fn_body(env: TypeEnv, fn_node: AstNode) {
+fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
     let scope = LocalScope_new()
 
-    // Register parameter types from type_ann (skip __return marker)
+    // Collect generic type param names from type_ann (entries that are not __return)
+    let type_params = Vec_new_String()
     let ann_count = len(fn_node.type_ann)
     let mut j = 0
     while j < ann_count {
         let ann = get_unchecked(fn_node.type_ann, j)
         if !eq(clone(ann.text), "__return") {
-            let mut param_ty = TypeInfo_simple(TY_UNKNOWN())
-            if len(ann.children) > 0 {
-                let type_node = get_unchecked(ann.children, 0)
-                param_ty = resolve_type_name(clone(type_node.text))
-            }
-            scope_define(scope, clone(ann.text), param_ty)
+            push(type_params, clone(ann.text))
         }
         j = j + 1
     }
 
-    // Walk body statements
-    let body_count = len(fn_node.children)
-    let mut k = 0
-    while k < body_count {
-        let stmt = get_unchecked(fn_node.children, k)
-        check_stmt(env, scope, stmt)
-        k = k + 1
+    // Register parameter types from children (all except last child = body block)
+    let child_count = len(fn_node.children)
+    if child_count > 1 {
+        let mut p = 0
+        while p < child_count - 1 {
+            let param = get_unchecked(fn_node.children, p)
+            let mut param_ty = TypeInfo_simple(TY_UNKNOWN())
+            if len(param.type_ann) > 0 {
+                let type_node = get_unchecked(param.type_ann, 0)
+                param_ty = resolve_type_name_generic(clone(type_node.text), type_params)
+            }
+            scope_define(scope, clone(param.text), param_ty)
+            p = p + 1
+        }
+    }
+
+    // Walk body block (last child)
+    if child_count > 0 {
+        let body = get_unchecked(fn_node.children, child_count - 1)
+        check_stmt(env, scope, fn_sigs, body)
     }
 }
 
@@ -492,9 +589,69 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
     result.error_count = resolve_ctx.error_count
     result.errors = resolve_ctx.errors
 
-    // Walk decls and build TypedFn entries for each NK_FN_DECL
     let decl_count = len(decls)
+
+    // Pass 1: Build function signature registry (needed for call-site inference)
+    let fn_sigs = Vec_new_FnSig()
     let mut i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
+        if node.kind == NK_FN_DECL() {
+            // Collect generic type param names from type_ann
+            let type_params = Vec_new_String()
+            let ann_count = len(node.type_ann)
+            let mut j = 0
+            while j < ann_count {
+                let ann = get_unchecked(node.type_ann, j)
+                if !eq(clone(ann.text), "__return") {
+                    push(type_params, clone(ann.text))
+                }
+                j = j + 1
+            }
+
+            // Extract parameter types from children (all except last = body block)
+            let param_types = Vec_new_TypeInfo()
+            let child_count = len(node.children)
+            if child_count > 1 {
+                let mut p = 0
+                while p < child_count - 1 {
+                    let param = get_unchecked(node.children, p)
+                    let mut pty = TypeInfo_simple(TY_UNKNOWN())
+                    if len(param.type_ann) > 0 {
+                        let type_node = get_unchecked(param.type_ann, 0)
+                        pty = resolve_type_name_generic(clone(type_node.text), type_params)
+                    }
+                    push(param_types, pty)
+                    p = p + 1
+                }
+            }
+
+            // Extract return type
+            let mut return_type = TypeInfo_simple(TY_UNIT())
+            j = 0
+            while j < ann_count {
+                let ann = get_unchecked(node.type_ann, j)
+                if eq(clone(ann.text), "__return") {
+                    if len(ann.children) > 0 {
+                        let ret_node = get_unchecked(ann.children, 0)
+                        return_type = resolve_type_name_generic(clone(ret_node.text), type_params)
+                    }
+                }
+                j = j + 1
+            }
+
+            push(fn_sigs, FnSig {
+                name: clone(node.text),
+                param_types: param_types,
+                return_type: return_type,
+                type_params: type_params,
+            })
+        }
+        i = i + 1
+    }
+
+    // Pass 2: Type-check function bodies and build TypedFn entries
+    i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)
         if node.kind == NK_FN_DECL() {
@@ -516,7 +673,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
             push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type })
 
             // Infer expression types within the function body
-            check_fn_body(env, node)
+            check_fn_body(env, fn_sigs, node)
         }
         i = i + 1
     }
@@ -609,6 +766,42 @@ fn main() {
     // Test binary op unification: i32 + i32 = i32
     let arith_ty = unify(env2, TypeInfo_simple(TY_I32()), TypeInfo_simple(TY_I32()))
     stdio::println(concat(String_from("i32+i32: "), type_tag_name(arith_ty.tag)))
+
+    // Test generic-aware type resolution
+    let gp = Vec_new_String()
+    push(gp, String_from("T"))
+    let tv_res = resolve_type_name_generic(String_from("T"), gp)
+    stdio::println(concat(String_from("generic T: "), type_tag_name(tv_res.tag)))
+    let i32_res = resolve_type_name_generic(String_from("i32"), gp)
+    stdio::println(concat(String_from("concrete i32: "), type_tag_name(i32_res.tag)))
+
+    // Test instantiate_type
+    let tv_t = TypeInfo_named(TY_TYPE_VAR(), String_from("T"))
+    let inst_names = Vec_new_String()
+    push(inst_names, String_from("T"))
+    let inst_types = Vec_new_TypeInfo()
+    push(inst_types, TypeInfo_simple(TY_I32()))
+    let inst_result = instantiate_type(tv_t, inst_names, inst_types)
+    stdio::println(concat(String_from("instantiate T->i32: "), type_tag_name(inst_result.tag)))
+
+    // Test lookup_fn_sig
+    let test_sigs = Vec_new_FnSig()
+    let id_params = Vec_new_TypeInfo()
+    push(id_params, TypeInfo_named(TY_TYPE_VAR(), String_from("T")))
+    let id_tp = Vec_new_String()
+    push(id_tp, String_from("T"))
+    push(test_sigs, FnSig {
+        name: String_from("identity"),
+        param_types: id_params,
+        return_type: TypeInfo_named(TY_TYPE_VAR(), String_from("T")),
+        type_params: id_tp,
+    })
+    let found_sig = lookup_fn_sig(test_sigs, String_from("identity"))
+    stdio::println(concat(String_from("found sig: "), clone(found_sig.name)))
+    let not_found = lookup_fn_sig(test_sigs, String_from("nope"))
+    if eq(clone(not_found.name), String_from("")) {
+        stdio::println(String_from("missing sig: (none)"))
+    }
 
     stdio::println(String_from("TypeChecker OK."))
 }

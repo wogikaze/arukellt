@@ -65,6 +65,7 @@ Module family pages that currently carry a curated overview: `std::core` ([modul
 | [modules/wasm.md](modules/wasm.md) | std::wasm | Source-backed docs for WebAssembly helpers. |
 | [modules/wit.md](modules/wit.md) | std::wit | Source-backed docs for WIT helpers. |
 | [monomorphic-deprecation.md](monomorphic-deprecation.md) | Monomorphic API Deprecation Table | Monomorphic (type-suffixed) APIs are being phased out in favor of generic equivalents. |
+| [name-index.md](name-index.md) | stdlib Name Index | Do not edit manually — changes will be overwritten on the next regeneration. |
 | [prelude-dedup.md](prelude-dedup.md) | Prelude vs Module Import: Canonical Access Paths | Defines which stdlib names are prelude-only, which are module-only, |
 | [prelude-migration.md](prelude-migration.md) | Prelude Migration Guide (v3) | Historical migration note: this document records the v3 prelude migration strategy and compatibility story. |
 | [reference.md](reference.md) | stdlib API Reference | It reflects the current implemented public API, not roadmap-only or archived design notes. |
