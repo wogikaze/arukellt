@@ -7,7 +7,7 @@
 
 - Verification command: `bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)`
 - Current verification gate: 13/13 checks pass
-- Fixture manifest size: 626 entries
+- Fixture manifest size: 628 entries
 - Generated docs pull state from `docs/data/project-state.toml`, `std/manifest.toml`, and fixture manifests.
 
 ## Documents
