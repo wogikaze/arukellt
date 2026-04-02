@@ -669,6 +669,53 @@ def format_stability_counts(entries: list[dict]) -> str:
     return ", ".join(f"{name} {count}" for name, count in sorted(counts.items()))
 
 
+def format_host_module_badges(
+    module_name: str,
+    functions: list[dict],
+    manifest_modules: dict[str, dict],
+) -> list[str]:
+    """Return badge lines for a host module section.
+
+    Returns an empty list for non-host modules.
+    For ``std::host::*`` modules, returns a blockquote badge line showing:
+      - Target constraint (from manifest module metadata or function targets)
+      - Implementation status (implemented vs stub, derived from ``kind``)
+    """
+    if not module_name.startswith("std::host::"):
+        return []
+
+    # Determine target constraint from manifest [[modules]] entry first,
+    # then from individual function targets, falling back to the default.
+    module_meta = manifest_modules.get(module_name, {})
+    target_list: list[str] = module_meta.get("target", [])
+    if not target_list:
+        for fn in functions:
+            fn_targets = fn.get("target", [])
+            if fn_targets:
+                target_list = fn_targets
+                break
+    if not target_list:
+        target_list = ["wasm32-wasi-p2"]
+
+    target_str = ", ".join(f"`{t}`" for t in target_list)
+
+    # Determine implementation status from function ``kind`` fields.
+    stub_count = sum(1 for fn in functions if fn.get("kind") == "host_stub")
+    total = len(functions) if functions else 0
+    if total > 0 and stub_count == total:
+        status = "⚠️ **Status:** stub — not yet implemented"
+    elif stub_count > 0:
+        status = f"⚠️ **Status:** mixed — {stub_count}/{total} stub"
+    else:
+        status = "✅ **Status:** implemented"
+
+    return [
+        "",
+        f"> 🎯 **Target:** {target_str} · {status}",
+        "",
+    ]
+
+
 def join_pipeline(parts: list[str]) -> str:
     return " -> ".join(parts)
 
@@ -1206,6 +1253,7 @@ def render_stdlib_module_page(
     page: dict,
     manifest_functions_by_module: dict[str, list[dict]],
     source_modules: dict[str, StdlibSourceModule],
+    manifest_modules: dict[str, dict],
 ) -> str:
     output_path = DOCS / "stdlib" / page["path"]
     lines = [
@@ -1234,6 +1282,12 @@ def render_stdlib_module_page(
                 "",
             ]
         )
+
+        # Add host-capability badges for std::host::* modules
+        badge_lines = format_host_module_badges(module_name, functions, manifest_modules)
+        if badge_lines:
+            lines.extend(badge_lines)
+
         lines.extend(
             render_source_doc_block(
                 source_module.docs,
@@ -1277,26 +1331,53 @@ def render_stdlib_module_page(
                 section_order.append(label)
             grouped[label].append(entry)
 
+        # Determine if any function in this module is a host_stub — if so,
+        # render a Status column so users see per-function availability.
+        is_host_module = module_name.startswith("std::host::")
+
         for section_name in section_order:
-            lines.extend(
-                [
-                    "",
-                    f"### {section_name}",
-                    "",
-                    "| Name | Signature | Stability | Summary |",
-                    "|------|-----------|-----------|---------|",
-                ]
-            )
+            if is_host_module:
+                lines.extend(
+                    [
+                        "",
+                        f"### {section_name}",
+                        "",
+                        "| Name | Signature | Stability | Status | Summary |",
+                        "|------|-----------|-----------|--------|---------|",
+                    ]
+                )
+            else:
+                lines.extend(
+                    [
+                        "",
+                        f"### {section_name}",
+                        "",
+                        "| Name | Signature | Stability | Summary |",
+                        "|------|-----------|-----------|---------|",
+                    ]
+                )
             for entry in grouped[section_name]:
                 item = items_by_name.get(entry["name"])
-                lines.append(
-                    "| `{name}` | `{signature}` | `{stability}` | {summary} |".format(
-                        name=entry["name"],
-                        signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
-                        stability=entry.get("stability", "unknown"),
-                        summary=source_doc_summary(item.docs if item else []),
+                if is_host_module:
+                    fn_status = "⚠️ stub" if entry.get("kind") == "host_stub" else "✅ impl"
+                    lines.append(
+                        "| `{name}` | `{signature}` | `{stability}` | {status} | {summary} |".format(
+                            name=entry["name"],
+                            signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
+                            stability=entry.get("stability", "unknown"),
+                            status=fn_status,
+                            summary=source_doc_summary(item.docs if item else []),
+                        )
                     )
-                )
+                else:
+                    lines.append(
+                        "| `{name}` | `{signature}` | `{stability}` | {summary} |".format(
+                            name=entry["name"],
+                            signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
+                            stability=entry.get("stability", "unknown"),
+                            summary=source_doc_summary(item.docs if item else []),
+                        )
+                    )
 
     return "\n".join(lines) + "\n"
 
@@ -1596,6 +1677,9 @@ def main() -> int:
         module_name = entry.get("module")
         if module_name:
             manifest_functions_by_module[module_name].append(entry)
+    manifest_modules_by_name: dict[str, dict] = {
+        mod["name"]: mod for mod in manifest.get("modules", []) if "name" in mod
+    }
     source_modules = collect_stdlib_source_modules()
     examples = collect_examples(state)
     fixture_total = fixture_count()
@@ -1628,7 +1712,7 @@ def main() -> int:
     for page in STDLIB_MODULE_PAGES:
         write_file(
             DOCS / "stdlib" / page["path"],
-            render_stdlib_module_page(page, manifest_functions_by_module, source_modules),
+            render_stdlib_module_page(page, manifest_functions_by_module, source_modules, manifest_modules_by_name),
             args.check,
             stale,
         )

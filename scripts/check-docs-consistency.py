@@ -147,10 +147,40 @@ def check_issue_index_freshness() -> int:
     return stale
 
 
+def check_host_badge_presence() -> int:
+    """Verify that host module pages contain target/status badges.
+
+    Every generated module page that includes a ``std::host::*`` module section
+    must contain the unified badge pattern (``🎯 **Target:**``) produced by
+    ``format_host_module_badges()`` in the generator.
+    """
+    modules_dir = ROOT / "docs" / "stdlib" / "modules"
+    if not modules_dir.exists():
+        return 0
+
+    badge_pattern = re.compile(r"🎯 \*\*Target:\*\*")
+    missing: list[str] = []
+    for md_file in sorted(modules_dir.glob("*.md")):
+        content = md_file.read_text()
+        # Only check pages that contain std::host:: module sections
+        if "## `std::host::" in content and not badge_pattern.search(content):
+            missing.append(md_file.name)
+
+    if missing:
+        errors.append(
+            f"host badge drift: {', '.join(missing)} contain std::host:: modules "
+            f"but lack target/status badges; regenerate with `python3 scripts/generate-docs.py`"
+        )
+        return 1
+
+    return 0
+
+
 def main() -> int:
     failed = 0
     failed += check_generated_docs()
     failed += check_capability_state()
+    failed += check_host_badge_presence()
     failed += check_fixture_count_freshness()
     failed += check_issue_index_freshness()
 

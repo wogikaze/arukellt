@@ -50,6 +50,9 @@ match content {
 - Manifest-backed functions: 3
 - Stability: stable 3
 
+
+> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+
 Host standard I/O helpers backed by the current print intrinsics.
 
 These APIs are explicitly host-bound. They are not part of the pure
@@ -57,11 +60,11 @@ standard-library surface and must be imported from `std::host::stdio`.
 
 ### Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `print` | `(String) -> ()` | `stable` | Writes a string to stdout without appending a newline. |
-| `println` | `(String) -> ()` | `stable` | Writes a string to stdout and appends a newline. |
-| `eprintln` | `(String) -> ()` | `stable` | Writes a string to stderr. |
+| Name | Signature | Stability | Status | Summary |
+|------|-----------|-----------|--------|---------|
+| `print` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout without appending a newline. |
+| `println` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout and appends a newline. |
+| `eprintln` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stderr. |
 
 ## `std::host::fs`
 
@@ -69,17 +72,20 @@ standard-library surface and must be imported from `std::host::stdio`.
 - Manifest-backed functions: 3
 - Stability: stable 3
 
+
+> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+
 Host filesystem helpers backed by the current WASI filesystem intrinsics.
 
 These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 
 ### Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `read_to_string` | `(String) -> Result<String, String>` | `stable` | Reads a UTF-8 text file into memory. |
-| `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, replacing any existing contents. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | Writes a byte array to a file, replacing any existing contents. |
+| Name | Signature | Stability | Status | Summary |
+|------|-----------|-----------|--------|---------|
+| `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
+| `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
 
 ## `std::path`
 
@@ -109,6 +115,9 @@ separator to match POSIX and WASI conventions.
 - Manifest-backed functions: 2
 - Stability: stable 2
 
+
+> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+
 Host process-control helpers.
 
 The current implementation uses lightweight fallbacks because the WASI
@@ -116,16 +125,19 @@ The current implementation uses lightweight fallbacks because the WASI
 
 ### Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `exit` | `(i32) -> ()` | `stable` | Requests process termination with the given exit code. |
-| `abort` | `() -> ()` | `stable` | Aborts execution immediately by panicking. |
+| Name | Signature | Stability | Status | Summary |
+|------|-----------|-----------|--------|---------|
+| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
+| `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately by panicking. |
 
 ## `std::host::env`
 
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
 - Manifest-backed functions: 5
 - Stability: stable 5
+
+
+> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
 Host environment helpers.
 
@@ -134,13 +146,13 @@ and WASI environ_sizes_get / environ_get for environment variable lookup.
 
 ### Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `args` | `() -> Vec<String>` | `stable` | Returns the process argument vector (excluding argv[0]). |
-| `arg_count` | `() -> i32` | `stable` | Returns the number of process arguments (excluding argv[0]). |
-| `arg_at` | `(i32) -> Option<String>` | `stable` | Returns the argument at the given index when in range. |
-| `var` | `(String) -> Option<String>` | `stable` | Looks up an environment variable by name. |
-| `has_flag` | `(String) -> bool` | `stable` | Returns true when the argument vector contains the given flag. |
+| Name | Signature | Stability | Status | Summary |
+|------|-----------|-----------|--------|---------|
+| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Returns the process argument vector (excluding argv[0]). |
+| `arg_count` | `() -> i32` | `stable` | ✅ impl | Returns the number of process arguments (excluding argv[0]). |
+| `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ impl | Returns the argument at the given index when in range. |
+| `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |
+| `has_flag` | `(String) -> bool` | `stable` | ✅ impl | Returns true when the argument vector contains the given flag. |
 
 ## `std::host::clock`
 
@@ -148,15 +160,18 @@ and WASI environ_sizes_get / environ_get for environment variable lookup.
 - Manifest-backed functions: 1
 - Stability: stable 1
 
+
+> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+
 Host clock helpers.
 
 Clock reads are host-bound. Pure duration math lives in `std::time`.
 
 ### Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `monotonic_now` | `() -> i64` | `stable` | Returns a monotonic timestamp in nanoseconds. |
+| Name | Signature | Stability | Status | Summary |
+|------|-----------|-----------|--------|---------|
+| `monotonic_now` | `() -> i64` | `stable` | ✅ impl | Returns a monotonic timestamp in nanoseconds. |
 
 ## `std::host::random`
 
@@ -164,14 +179,17 @@ Clock reads are host-bound. Pure duration math lives in `std::time`.
 - Manifest-backed functions: 3
 - Stability: stable 3
 
+
+> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+
 Host random helpers backed by the current entropy intrinsic.
 
 Deterministic seeded utilities live in `std::random`.
 
 ### Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `random_i32` | `() -> i32` | `stable` | Returns a host-provided random i32. |
-| `random_i32_range` | `(i32, i32) -> i32` | `stable` | Returns a host-provided random value in [lo, hi). |
-| `random_bool` | `() -> bool` | `stable` | Returns a host-provided random boolean. |
+| Name | Signature | Stability | Status | Summary |
+|------|-----------|-----------|--------|---------|
+| `random_i32` | `() -> i32` | `stable` | ✅ impl | Returns a host-provided random i32. |
+| `random_i32_range` | `(i32, i32) -> i32` | `stable` | ✅ impl | Returns a host-provided random value in [lo, hi). |
+| `random_bool` | `() -> bool` | `stable` | ✅ impl | Returns a host-provided random boolean. |

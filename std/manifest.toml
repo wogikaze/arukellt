@@ -1774,12 +1774,13 @@ name = "std::host::http"
 target = ["wasm32-wasi-p2"]
 stability = "experimental"
 family = "expansion"
-doc = "HTTP client and server via WASI Preview 2 wasi:http interfaces"
+doc = "HTTP client via TCP-based HTTP/1.1 host functions"
 
 [[functions]]
 name = "request"
 module = "std::host::http"
-kind = "host_stub"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_http_request"
 params = ["String", "String", "String"]
 returns = "Result<String, String>"
 target = ["wasm32-wasi-p2"]
@@ -1789,7 +1790,8 @@ doc_category = "host_http"
 [[functions]]
 name = "get"
 module = "std::host::http"
-kind = "host_stub"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_http_get"
 params = ["String"]
 returns = "Result<String, String>"
 target = ["wasm32-wasi-p2"]

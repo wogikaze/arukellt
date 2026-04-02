@@ -230,8 +230,8 @@
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
 |------|-----------|--------|-----------|------|---------|-----------|
-| `get` | `(String) -> Result<String, String>` | `std::host::http` | `experimental` | `host_stub ⚠️ (wasm32-wasi-p2)` | no | - |
-| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `experimental` | `host_stub ⚠️ (wasm32-wasi-p2)` | no | - |
+| `get` | `(String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_get` |
+| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_request` |
 
 ## Host Process
 

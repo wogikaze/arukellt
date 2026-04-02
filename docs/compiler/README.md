@@ -16,6 +16,7 @@
 |------|-------|---------|
 | [bootstrap.md](bootstrap.md) | Bootstrap Guide | Self-hosting verification for the Arukellt compiler. |
 | [determinism.md](determinism.md) | Compiler Determinism | This document defines the rules that keep Arukellt's .wasm output |
+| [diagnostic-parity.md](diagnostic-parity.md) | Diagnostic Parity: Rust Compiler vs Selfhost Compiler | Comparison of error diagnostic output between the Rust-hosted compiler |
 | [diagnostics.md](diagnostics.md) | 診断システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [error-codes.md](error-codes.md) | Error Code Reference | Canonical listing of every diagnostic code emitted by the Arukellt compiler. |
 | [ir-spec.md](ir-spec.md) | CoreHIR / MIR Specification | This document describes the intermediate representations (IRs) used by the |

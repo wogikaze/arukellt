@@ -9,14 +9,17 @@ Source-backed docs for explicit host filesystem operations.
 - Manifest-backed functions: 3
 - Stability: stable 3
 
+
+> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+
 Host filesystem helpers backed by the current WASI filesystem intrinsics.
 
 These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 
 ### Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `read_to_string` | `(String) -> Result<String, String>` | `stable` | Reads a UTF-8 text file into memory. |
-| `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, replacing any existing contents. |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | Writes a byte array to a file, replacing any existing contents. |
+| Name | Signature | Stability | Status | Summary |
+|------|-----------|-----------|--------|---------|
+| `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
+| `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |

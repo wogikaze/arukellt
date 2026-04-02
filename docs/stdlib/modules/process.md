@@ -9,6 +9,9 @@ Source-backed docs for process control and runtime environment helpers.
 - Manifest-backed functions: 2
 - Stability: stable 2
 
+
+> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
+
 Host process-control helpers.
 
 The current implementation uses lightweight fallbacks because the WASI
@@ -16,16 +19,19 @@ The current implementation uses lightweight fallbacks because the WASI
 
 ### Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `exit` | `(i32) -> ()` | `stable` | Requests process termination with the given exit code. |
-| `abort` | `() -> ()` | `stable` | Aborts execution immediately by panicking. |
+| Name | Signature | Stability | Status | Summary |
+|------|-----------|-----------|--------|---------|
+| `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
+| `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately by panicking. |
 
 ## `std::host::env`
 
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
 - Manifest-backed functions: 5
 - Stability: stable 5
+
+
+> 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
 Host environment helpers.
 
@@ -34,10 +40,10 @@ and WASI environ_sizes_get / environ_get for environment variable lookup.
 
 ### Public API
 
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
-| `args` | `() -> Vec<String>` | `stable` | Returns the process argument vector (excluding argv[0]). |
-| `arg_count` | `() -> i32` | `stable` | Returns the number of process arguments (excluding argv[0]). |
-| `arg_at` | `(i32) -> Option<String>` | `stable` | Returns the argument at the given index when in range. |
-| `var` | `(String) -> Option<String>` | `stable` | Looks up an environment variable by name. |
-| `has_flag` | `(String) -> bool` | `stable` | Returns true when the argument vector contains the given flag. |
+| Name | Signature | Stability | Status | Summary |
+|------|-----------|-----------|--------|---------|
+| `args` | `() -> Vec<String>` | `stable` | ✅ impl | Returns the process argument vector (excluding argv[0]). |
+| `arg_count` | `() -> i32` | `stable` | ✅ impl | Returns the number of process arguments (excluding argv[0]). |
+| `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ impl | Returns the argument at the given index when in range. |
+| `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |
+| `has_flag` | `(String) -> bool` | `stable` | ✅ impl | Returns true when the argument vector contains the given flag. |
