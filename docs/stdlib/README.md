@@ -44,6 +44,7 @@ Module family pages that currently carry a curated overview: `std::core` ([modul
 | [expansion-policy.md](expansion-policy.md) | Standard Library Expansion Policy | Defines which module families accept new APIs, under what conditions, |
 | [generation-schema.md](generation-schema.md) | Stdlib Docs Generation Schema | This schema is enforced at generation time. |
 | [io.md](io.md) | std/io — generated index | Legacy landing page for the current host-capability and path stdlib docs. |
+| [migration-guidance.md](migration-guidance.md) | Deprecated API Migration Guidance | This guide documents deprecated stdlib APIs, their generic replacements, and |
 | [module-system.md](module-system.md) | Module System | Arukellt supports two import syntaxes for bringing modules into scope. |
 | [modules/bytes.md](modules/bytes.md) | std::bytes | Source-backed docs for binary data helpers. |
 | [modules/collections.md](modules/collections.md) | std::collections family | Source-backed docs for the currently supported collection modules. |

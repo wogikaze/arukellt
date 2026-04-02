@@ -462,3 +462,13 @@
 | `wit_type_u32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
 | `wit_type_u64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
 | `wit_type_u8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
+
+## Deprecated APIs
+
+> 3 API(s) are deprecated. See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+
+| Deprecated | Replacement |
+|------------|-------------|
+| ~~`Vec_new_i32`~~ | `Vec::new<i32>` |
+| ~~`Vec_new_i64`~~ | `Vec::new<i64>` |
+| ~~`filter_i32`~~ | `filter<i32>` |

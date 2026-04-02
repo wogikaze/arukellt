@@ -1509,6 +1509,28 @@ def render_stdlib_reference(manifest: dict) -> str:
                 )
             )
 
+    # Deprecation summary: collect deprecated entries and link to migration guide
+    deprecated_entries = [
+        entry for entry in functions if entry.get("deprecated_by")
+    ]
+    if deprecated_entries:
+        lines.extend(
+            [
+                "",
+                "## Deprecated APIs",
+                "",
+                f"> {len(deprecated_entries)} API(s) are deprecated. "
+                "See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.",
+                "",
+                "| Deprecated | Replacement |",
+                "|------------|-------------|",
+            ]
+        )
+        for entry in sorted(deprecated_entries, key=lambda e: e["name"]):
+            lines.append(
+                f"| ~~`{entry['name']}`~~ | `{entry['deprecated_by']}` |"
+            )
+
     return "\n".join(lines) + "\n"
 
 
