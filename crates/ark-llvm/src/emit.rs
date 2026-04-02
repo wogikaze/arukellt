@@ -1250,7 +1250,6 @@ impl<'ctx> LlvmEmitter<'ctx> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ark_mir::mir::*;
 
     fn make_hello_mir() -> MirModule {
         let mut module = MirModule::new();

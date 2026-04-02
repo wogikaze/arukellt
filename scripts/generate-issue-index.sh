@@ -155,7 +155,7 @@ if blocked_issues:
         blocked_by = data['blocked_by'] or 'see issue'
         lines.append(f'| {iid} | [{data["title"]}](../../issues/blocked/{data["path"]}) | {data["track"]} | {blocked_by} | |')
 
-index_out.write_text('\n'.join(lines) + '\n')
+index_out.write_text(re.sub(r'\n{3,}', '\n\n', '\n'.join(lines)) + '\n')
 
 # graph markdown
 all_for_graph = {**issues, **blocked_issues}
@@ -195,5 +195,5 @@ if blocked_issues:
         deps = ', '.join(data['deps']) if data['deps'] else 'none'
         graph.append(f'- **{iid}** ⛔ blocked — depends on: {deps}; blocked by: {data["blocked_by"] or "external"}')
 
-graph_out.write_text('\n'.join(graph) + '\n')
+graph_out.write_text(re.sub(r'\n{3,}', '\n\n', '\n'.join(graph)) + '\n')
 PY
