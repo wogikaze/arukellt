@@ -309,6 +309,7 @@ impl<'ctx> LlvmEmitter<'ctx> {
                 enum_typed_locals: f.enum_typed_locals.clone(),
                 type_params: f.type_params.clone(),
                 source: f.source,
+                is_exported: f.is_exported,
             })
             .collect();
 
@@ -870,6 +871,13 @@ impl<'ctx> LlvmEmitter<'ctx> {
             Operand::ConstChar(c) => {
                 Some(self.context.i32_type().const_int(*c as u64, false).into())
             }
+            // Extended scalar types — all map to i32/i64 at LLVM level
+            Operand::ConstU8(v) => Some(self.context.i32_type().const_int(*v as u64, false).into()),
+            Operand::ConstU16(v) => Some(self.context.i32_type().const_int(*v as u64, false).into()),
+            Operand::ConstU32(v) => Some(self.context.i32_type().const_int(*v as u64, false).into()),
+            Operand::ConstU64(v) => Some(self.context.i64_type().const_int(*v, false).into()),
+            Operand::ConstI8(v) => Some(self.context.i32_type().const_int(*v as i64 as u64, true).into()),
+            Operand::ConstI16(v) => Some(self.context.i32_type().const_int(*v as i64 as u64, true).into()),
             Operand::ConstString(s) => {
                 // Create a global string constant and return a pointer to it
                 let str_val = self.builder.build_global_string_ptr(s, "str").unwrap();
@@ -1260,11 +1268,15 @@ mod tests {
                     args: vec![Operand::ConstString("Hello from LLVM!".to_string())],
                 }],
                 terminator: Terminator::Return(None),
+                source: SourceInfo::unknown(),
             }],
             entry: BlockId(0),
             struct_typed_locals: HashMap::new(),
             enum_typed_locals: HashMap::new(),
             type_params: vec![],
+            instance: InstanceKey::simple("main"),
+            is_exported: false,
+            source: SourceInfo::unknown(),
         };
         module.functions.push(main_fn);
         module.entry_fn = Some(FnId(0));
@@ -1319,11 +1331,15 @@ mod tests {
                     ),
                 )],
                 terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(2))))),
+                source: SourceInfo::unknown(),
             }],
             entry: BlockId(0),
             struct_typed_locals: HashMap::new(),
             enum_typed_locals: HashMap::new(),
             type_params: vec![],
+            instance: InstanceKey::simple("add"),
+            is_exported: false,
+            source: SourceInfo::unknown(),
         };
         module.functions.push(func);
 

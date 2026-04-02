@@ -2565,9 +2565,15 @@ def ensure_parent(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
+def _collapse_blank_lines(text: str) -> str:
+    """Collapse 3+ consecutive newlines to 2 (one blank line) — satisfies MD012."""
+    import re
+    return re.sub(r"\n{3,}", "\n\n", text)
+
+
 def write_file(path: Path, desired: str, check: bool, stale: list[Path]) -> None:
     ensure_parent(path)
-    normalized = desired.rstrip() + "\n"
+    normalized = _collapse_blank_lines(desired).rstrip() + "\n"
     current = path.read_text(encoding="utf-8") if path.exists() else None
     if current == normalized:
         return

@@ -164,6 +164,7 @@ mod tests {
     use std::io::Write;
     use tempfile::TempDir;
 
+    #[allow(dead_code)]
     fn write_manifest(dir: &TempDir, content: &str) -> PathBuf {
         let path = dir.path().join("ark.toml");
         let mut file = std::fs::File::create(&path).unwrap();
