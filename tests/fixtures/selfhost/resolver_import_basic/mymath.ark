@@ -1,0 +1,17 @@
+// Module: mymath
+// Provides basic arithmetic helpers as pub functions.
+// Used by resolver_import_basic test (issue #309: `use path::to::item`
+// import resolution in the selfhost resolver).
+
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+pub fn mul(a: i32, b: i32) -> i32 {
+    a * b
+}
+
+// Private helper — should NOT be visible to the importer.
+fn internal_hint() -> i32 {
+    42
+}

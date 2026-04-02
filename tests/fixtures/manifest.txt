@@ -173,6 +173,8 @@ run:scalar/u8_basic.ark
 run:scalar/u8_overflow.ark
 run:selfhost/mir_lowering.ark
 run:selfhost/parser_new_syntax.ark
+run:selfhost/resolver_import_basic/main.ark
+run:selfhost/typecheck_infer.ark
 run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
 run:stdlib_cli/cli_basic.ark

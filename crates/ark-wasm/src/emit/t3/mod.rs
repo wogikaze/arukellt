@@ -424,6 +424,9 @@ pub(super) struct Ctx {
     pub(super) fn_map: HashMap<String, u32>,
     fn_names: Vec<String>,
     next_fn: u32,
+    /// Function names that are http.ark wrappers (e.g. "get", "request") which
+    /// have real bodies and must be called directly rather than inlined as builtins.
+    pub(super) http_wrapper_fns: HashSet<String>,
     // Well-known GC type indices
     string_ty: u32,
     arr_i32_ty: u32,
@@ -843,6 +846,34 @@ impl Ctx {
 
 // ── Public entry point ───────────────────────────────────────────
 
+/// Returns true if the MIR function body wraps `__intrinsic_http_get` or
+/// `__intrinsic_http_request` — i.e., it's an HTTP module wrapper that must
+/// be fully emitted even when its unqualified name (e.g. "get") collides
+/// with a Vec builtin name.
+fn func_body_wraps_http_intrinsic(func: &MirFunction) -> bool {
+    let is_http_intrinsic = |name: &str| {
+        name == "__intrinsic_http_get"
+            || name == "__intrinsic_http_request"
+            || normalize_intrinsic(name) == "http_get"
+            || normalize_intrinsic(name) == "http_request"
+    };
+    for block in &func.blocks {
+        for stmt in &block.stmts {
+            if let MirStmt::CallBuiltin { name, .. } = stmt {
+                if is_http_intrinsic(name) {
+                    return true;
+                }
+            }
+        }
+        if let Terminator::Return(Some(Operand::Call(name, _))) = &block.terminator {
+            if is_http_intrinsic(name) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// Emit a Wasm module from MIR using real Wasm GC types.
 ///
 /// Scalars live in Wasm locals. Strings, Vecs, structs, and enums use
@@ -890,6 +921,12 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         fn_map: HashMap::new(),
         fn_names: mir.functions.iter().map(|f| f.name.clone()).collect(),
         next_fn: 0,
+        http_wrapper_fns: mir
+            .functions
+            .iter()
+            .filter(|f| func_body_wraps_http_intrinsic(f))
+            .map(|f| f.name.clone())
+            .collect(),
         string_ty: 0,
         arr_i32_ty: 0,
         vec_i32_ty: 0,

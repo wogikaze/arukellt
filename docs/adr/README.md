@@ -29,3 +29,4 @@
 | [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: Stability Labels for Language Spec and Stdlib API | Status: accepted |
 | [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: No-Panic Quality Standard for User-Facing Paths | Status: DECIDED |
 | [ADR-016-breaking-change-process.md](ADR-016-breaking-change-process.md) | ADR-016: Breaking Change Process — Three-Piece Set | Status: DECIDED |
+| [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground Execution Model and v1 Product Contract | Status: DECIDED |
