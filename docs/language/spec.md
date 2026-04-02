@@ -1,7 +1,8 @@
 # Arukellt Language Specification
 
-> **Status**: Frozen for v5 (self-hosting).
-> Post-freeze changes require an ADR.
+> **Normative**: This document defines the authoritative behavior of Arukellt as implemented.
+> Behavior described here is verified by the fixture harness. Changes require spec review.
+> For current verified state, see [../current-state.md](../current-state.md).
 
 This document is the authoritative reference for the Arukellt programming
 language as implemented on the `feature-arukellt-v1` branch. It is intended

@@ -1,8 +1,8 @@
 # 型システム
 
-> **Current-first**: 実装の現在地は [../current-state.md](../current-state.md) を参照してください。
-
-このページは、現行ブランチで把握しやすい型システムの要約です。
+> **Normative**: This document defines the authoritative behavior of Arukellt as implemented.
+> Behavior described here is verified by the fixture harness. Changes require spec review.
+> For current verified state, see [../current-state.md](../current-state.md).
 Wasm GC 前提の設計話や古い slice/capability 前提の説明は外し、今の利用者目線で整理しています。
 
 ## 基本型

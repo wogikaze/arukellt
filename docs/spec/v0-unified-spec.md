@@ -1,5 +1,8 @@
 # Archived v0 unified spec
 
+> **Archive**: This document is a historical reference and is not the current behavior contract.
+> For current verified behavior, see [../current-state.md](../current-state.md).
+
 この文書は、以前の v0 統合仕様を 1 箇所に集めていた設計資料です。
 現在は **現行実装の source of truth ではありません**。
 

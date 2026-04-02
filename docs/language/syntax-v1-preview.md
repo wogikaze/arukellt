@@ -1,8 +1,9 @@
 # v1 構文メモ
 
-> **Status: Transitional** — This document describes planned v1 syntax changes.
-> For current behavior, see [../current-state.md](../current-state.md).
-> For the normative specification, see [spec.md](spec.md).
+> **Transitional**: This document describes planned or in-progress changes to Arukellt.
+> It will be promoted to normative, merged, or retired when the feature lands.
+> For current behavior, see [../current-state.md](../current-state.md) and [spec.md](spec.md).
+> DONE_WHEN: All listed v1 syntax items are verified in spec.md and the fixture harness.
 
 このページは、v0 の関数呼び出し中心スタイルに対して、
 このブランチで入っている **v1 系の追加構文** をざっくり把握するためのメモです。

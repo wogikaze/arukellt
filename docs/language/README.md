@@ -26,15 +26,15 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 
 ## Documents
 
-| File | Title | Summary |
-|------|-------|---------|
-| [error-handling.md](error-handling.md) | エラー処理 | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
-| [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | Source of truth: spec.md stability labels (ADR-013 §Stability). |
-| [memory-model.md](memory-model.md) | メモリモデル | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
-| [spec.md](spec.md) | Arukellt Language Specification | Status: Frozen for v5 (self-hosting). |
-| [syntax-v1-preview.md](syntax-v1-preview.md) | v1 構文メモ | Status: Transitional — This document describes planned v1 syntax changes. |
-| [syntax.md](syntax.md) | 構文仕様 | Current-first: いま動く構文の確認は ../current-state.md を基準にしてください。 |
-| [type-system.md](type-system.md) | 型システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
+| File | Title | Class | Summary |
+|------|-------|-------|---------|
+| [error-handling.md](error-handling.md) | エラー処理 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
+| [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
+| [memory-model.md](memory-model.md) | メモリモデル | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
+| [spec.md](spec.md) | Arukellt Language Specification | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
+| [syntax-v1-preview.md](syntax-v1-preview.md) | v1 構文メモ | transitional | Transitional: This document describes planned or in-progress changes to Arukellt. |
+| [syntax.md](syntax.md) | 構文仕様 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
+| [type-system.md](type-system.md) | 型システム | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 
 ## Anchor & Permalink Policy (ADR-019)
 

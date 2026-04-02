@@ -1,6 +1,8 @@
 # 構文仕様
 
-> **Current-first**: いま動く構文の確認は [../current-state.md](../current-state.md) を基準にしてください。
+> **Normative**: This document defines the authoritative behavior of Arukellt as implemented.
+> Behavior described here is verified by the fixture harness. Changes require spec review.
+> For current verified state, see [../current-state.md](../current-state.md).
 
 このページは、現行ブランチで把握しやすい構文の要約です。
 設計-only の capability I/O や古い v0 制約の説明は落とし、現在よく使う書き方を優先しています。

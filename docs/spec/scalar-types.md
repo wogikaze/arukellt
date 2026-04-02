@@ -1,5 +1,8 @@
 # Scalar Types Specification
 
+> **Archive**: This document is a historical reference and is not the current behavior contract.
+> For current verified behavior, see [../current-state.md](../current-state.md).
+
 ## Overview
 
 Arukellt provides a complete set of scalar types for integer, floating-point,

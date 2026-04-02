@@ -10,7 +10,7 @@
 
 ## Documents
 
-| File | Title | Summary |
-|------|-------|---------|
-| [scalar-types.md](scalar-types.md) | Scalar Types Specification | Arukellt provides a complete set of scalar types for integer, floating-point, |
-| [v0-unified-spec.md](v0-unified-spec.md) | Archived v0 unified spec | この文書は、以前の v0 統合仕様を 1 箇所に集めていた設計資料です。 |
+| File | Title | Label | Summary |
+|------|-------|-------|---------|
+| [scalar-types.md](scalar-types.md) | Scalar Types Specification | Archive | Archive: This document is a historical reference and is not the current behavior contract. |
+| [v0-unified-spec.md](v0-unified-spec.md) | Archived v0 unified spec | Archive | Archive: This document is a historical reference and is not the current behavior contract. |

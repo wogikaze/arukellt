@@ -1,8 +1,8 @@
 # エラー処理
 
-> **Current-first**: 実装の現在地は [../current-state.md](../current-state.md) を参照してください。
-
-Arukellt の現行エラー処理は、基本的に `Result<T, E>` と `Option<T>` ベースです。
+> **Normative**: This document defines the authoritative behavior of Arukellt as implemented.
+> Behavior described here is verified by the fixture harness. Changes require spec review.
+> For current verified state, see [../current-state.md](../current-state.md).、基本的に `Result<T, E>` と `Option<T>` ベースです。
 古い docs にある capability I/O 専用エラー階層は、現行 API の基準ではありません。
 
 ## 基本方針

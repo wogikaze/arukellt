@@ -1,6 +1,8 @@
 # メモリモデル
 
-> **Current-first**: 現在の実装確認は [../current-state.md](../current-state.md) を参照してください。
+> **Normative**: This document defines the authoritative behavior of Arukellt as implemented.
+> Behavior described here is verified by the fixture harness. Changes require spec review.
+> For current verified state, see [../current-state.md](../current-state.md).
 
 このページは、現行実装のメモリモデルを先に示し、そのあとに設計意図を短く残します。
 
