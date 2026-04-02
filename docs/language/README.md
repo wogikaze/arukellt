@@ -46,7 +46,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 |------|-------|------|
 | [error-handling.md](error-handling.md) | normative | Current-first error handling reference; reflects implemented Result/Option behavior |
 | [guide.md](guide.md) | explanatory | Current-first language guide; stable/implemented features only; recommended first reading |
-| [maturity-matrix.md](maturity-matrix.md) | normative | Generated feature maturity matrix; do not edit manually — regenerated from spec.md stability labels |
+| [maturity-matrix.md](maturity-matrix.md) | normative | Generated feature maturity matrix; do not edit manually — regenerated from [[features]] below |
 | [memory-model.md](memory-model.md) | normative | Current-first memory model reference; reflects GC-native T3 implementation |
 | [spec.md](spec.md) | normative | Frozen authoritative language specification; post-freeze changes require an ADR |
 | [syntax-v1-preview.md](syntax-v1-preview.md) | transitional | Describes planned v1 syntax additions; retires when all items land in spec.md |
@@ -79,4 +79,14 @@ by [ADR-019](../adr/ADR-019-anchor-permalink-policy.md). Key rules:
 ## Feature Maturity
 
 See [maturity-matrix.md](maturity-matrix.md) for a full classification of all language features
-extracted from [spec.md](spec.md) stability labels (stable / provisional / experimental / unimplemented).
+(stable / provisional / experimental / unimplemented).
+
+**Source of truth:** `docs/data/language-doc-classifications.toml` `[[features]]` section.
+
+**Update workflow:**
+
+1. Edit `[[features]]` entries in `docs/data/language-doc-classifications.toml`
+2. Run `python3 scripts/generate-docs.py`
+3. Commit the TOML and regenerated `maturity-matrix.md` together
+
+CI will fail if the TOML changes without regenerating the matrix.

@@ -21,6 +21,48 @@ CURRENT_STATE = ROOT / "docs" / "current-state.md"
 errors: list[str] = []
 
 
+def check_maturity_matrix_freshness() -> int:
+    """Verify that maturity-matrix.md is in sync with language-doc-classifications.toml.
+
+    If the TOML [[features]] section changes but the matrix isn't regenerated,
+    this check detects the drift before CI does a full regeneration pass.
+    """
+    import tomllib as _tomllib
+
+    toml_path = ROOT / "docs" / "data" / "language-doc-classifications.toml"
+    matrix_path = ROOT / "docs" / "language" / "maturity-matrix.md"
+
+    if not toml_path.exists() or not matrix_path.exists():
+        return 0
+
+    data = _tomllib.loads(toml_path.read_text(encoding="utf-8"))
+    features = data.get("features", [])
+    if not features:
+        return 0
+
+    matrix_text = matrix_path.read_text(encoding="utf-8")
+
+    # Count feature rows in the matrix (lines matching | N or N.M | pattern)
+    feature_rows = re.findall(r'^\| \d+(?:\.\d+)? \|', matrix_text, re.MULTILINE)
+    if len(features) != len(feature_rows):
+        errors.append(
+            f"maturity matrix stale: TOML has {len(features)} features "
+            f"but maturity-matrix.md has {len(feature_rows)} rows; "
+            "run `python3 scripts/generate-docs.py`"
+        )
+        return 1
+
+    # Verify TOML source-of-truth marker is present in the matrix
+    if "language-doc-classifications.toml" not in matrix_text:
+        errors.append(
+            "maturity matrix missing TOML source marker; "
+            "regenerate with `python3 scripts/generate-docs.py`"
+        )
+        return 1
+
+    return 0
+
+
 def check_generated_docs() -> int:
     """Run generate-docs.py --check."""
     cmd = [sys.executable, str(ROOT / "scripts" / "generate-docs.py"), "--check"]
@@ -233,6 +275,7 @@ def check_deprecated_badge_presence() -> int:
 
 def main() -> int:
     failed = 0
+    failed += check_maturity_matrix_freshness()
     failed += check_generated_docs()
     failed += check_capability_state()
     failed += check_host_badge_presence()
