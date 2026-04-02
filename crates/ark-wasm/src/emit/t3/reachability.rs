@@ -437,9 +437,7 @@ impl Ctx {
 
     fn stmt_uses_environ(stmt: &MirStmt) -> bool {
         match stmt {
-            MirStmt::CallBuiltin { name, .. } => {
-                name == "env_var" || name == "__intrinsic_env_var"
-            }
+            MirStmt::CallBuiltin { name, .. } => name == "env_var" || name == "__intrinsic_env_var",
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_environ(rvalue),
             MirStmt::IfStmt {
                 cond,
@@ -531,9 +529,7 @@ impl Ctx {
     fn rvalue_uses_http(rvalue: &Rvalue) -> bool {
         match rvalue {
             Rvalue::Use(op) => Self::operand_uses_http(op),
-            Rvalue::BinaryOp(_, l, r) => {
-                Self::operand_uses_http(l) || Self::operand_uses_http(r)
-            }
+            Rvalue::BinaryOp(_, l, r) => Self::operand_uses_http(l) || Self::operand_uses_http(r),
             Rvalue::UnaryOp(_, op) => Self::operand_uses_http(op),
             _ => false,
         }

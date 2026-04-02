@@ -202,7 +202,12 @@ enum Commands {
         #[arg(value_name = "COMPONENT", required = true)]
         inputs: Vec<PathBuf>,
         /// Output composed component file
-        #[arg(short, long, value_name = "FILE", default_value = "composed.component.wasm")]
+        #[arg(
+            short,
+            long,
+            value_name = "FILE",
+            default_value = "composed.component.wasm"
+        )]
         output: PathBuf,
     },
 }
@@ -317,11 +322,7 @@ fn main() {
         Commands::Analyze { wasm_size } => {
             commands::cmd_analyze_wasm_size(&wasm_size);
         }
-        Commands::Lint {
-            file,
-            target,
-            list,
-        } => {
+        Commands::Lint { file, target, list } => {
             commands::cmd_lint(file, target, list);
         }
         Commands::Compose { inputs, output } => {

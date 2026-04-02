@@ -251,11 +251,7 @@ pub fn format_module(module: &ast::Module) -> String {
 }
 
 /// Format a parsed AST module back to source text, preserving comments.
-fn format_module_with_comments(
-    module: &ast::Module,
-    source: &str,
-    comments: &[Comment],
-) -> String {
+fn format_module_with_comments(module: &ast::Module, source: &str, comments: &[Comment]) -> String {
     let mut out = String::new();
     let mut printer = Printer {
         out: &mut out,
@@ -398,13 +394,8 @@ impl<'a> Printer<'a> {
             .imports
             .first()
             .map(|imp| byte_offset_to_line(self.source, imp.span.start));
-        let first_item_line = module
-            .items
-            .first()
-            .map(|item| self.item_start_line(item));
-        let first_code_line = first_import_line
-            .or(first_item_line)
-            .unwrap_or(usize::MAX);
+        let first_item_line = module.items.first().map(|item| self.item_start_line(item));
+        let first_code_line = first_import_line.or(first_item_line).unwrap_or(usize::MAX);
 
         if !self.source.is_empty() {
             self.emit_leading_comments_before(first_code_line);
@@ -1543,7 +1534,8 @@ mod tests {
 
     #[test]
     fn format_preserves_line_comments_between_items() {
-        let source = "fn foo() -> i32 {\n    1\n}\n\n// helper function\nfn bar() -> i32 {\n    2\n}\n";
+        let source =
+            "fn foo() -> i32 {\n    1\n}\n\n// helper function\nfn bar() -> i32 {\n    2\n}\n";
         let formatted = format_source(source).unwrap();
         assert!(
             formatted.contains("// helper function"),
@@ -1579,6 +1571,9 @@ mod tests {
         let source = "// helper\nfn add(a: i32, b: i32) -> i32 {\n    a + b\n}\n\n// another helper\nfn sub(a: i32, b: i32) -> i32 {\n    a - b\n}\n";
         let first = format_source(source).unwrap();
         let second = format_source(&first).unwrap();
-        assert_eq!(first, second, "formatting with comments should be idempotent");
+        assert_eq!(
+            first, second,
+            "formatting with comments should be idempotent"
+        );
     }
 }

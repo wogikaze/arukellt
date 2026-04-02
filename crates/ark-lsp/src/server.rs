@@ -121,19 +121,19 @@ impl ArukellBackend {
     }
 
     /// Extract top-level symbols from an AST module and update the index.
-    fn update_file_symbols(
-        index: &Mutex<SymbolIndex>,
-        uri: &Url,
-        module: &ast::Module,
-    ) {
+    fn update_file_symbols(index: &Mutex<SymbolIndex>, uri: &Url, module: &ast::Module) {
         let mut entries = Vec::new();
         for item in &module.items {
             match item {
                 ast::Item::FnDef(f) => {
-                    let params: Vec<String> = f.params.iter().map(|p| {
-                        format!("{}: {}", p.name, Self::type_expr_to_string(&p.ty))
-                    }).collect();
-                    let ret = f.return_type.as_ref()
+                    let params: Vec<String> = f
+                        .params
+                        .iter()
+                        .map(|p| format!("{}: {}", p.name, Self::type_expr_to_string(&p.ty)))
+                        .collect();
+                    let ret = f
+                        .return_type
+                        .as_ref()
                         .map(|t| format!(" -> {}", Self::type_expr_to_string(t)))
                         .unwrap_or_default();
                     let sig = format!("fn {}({}){}", f.name, params.join(", "), ret);
@@ -207,7 +207,11 @@ impl ArukellBackend {
     }
 
     /// Build stdlib symbols from the manifest.
-    fn index_stdlib_from_manifest(index: &Mutex<SymbolIndex>, manifest: &StdlibManifest, std_dir: Option<&PathBuf>) {
+    fn index_stdlib_from_manifest(
+        index: &Mutex<SymbolIndex>,
+        manifest: &StdlibManifest,
+        std_dir: Option<&PathBuf>,
+    ) {
         let mut stdlib_symbols = Vec::new();
 
         for func in &manifest.functions {
@@ -287,11 +291,7 @@ impl ArukellBackend {
     /// Look up a symbol in the project-wide index (file symbols + stdlib).
     fn lookup_symbol_in_index(index: &Mutex<SymbolIndex>, name: &str) -> Vec<SymbolEntry> {
         let idx = index.lock().unwrap();
-        let mut results: Vec<SymbolEntry> = idx
-            .file_symbols
-            .get(name)
-            .cloned()
-            .unwrap_or_default();
+        let mut results: Vec<SymbolEntry> = idx.file_symbols.get(name).cloned().unwrap_or_default();
 
         // Also check stdlib
         for sym in &idx.stdlib_symbols {
@@ -302,7 +302,11 @@ impl ArukellBackend {
                             uri,
                             name: sym.name.clone(),
                             kind: sym.kind,
-                            span: ark_diagnostics::Span { file_id: 0, start: 0, end: 0 },
+                            span: ark_diagnostics::Span {
+                                file_id: 0,
+                                start: 0,
+                                end: 0,
+                            },
                             detail: Some(sym.detail.clone()),
                             module: sym.module.clone(),
                         });
@@ -587,9 +591,7 @@ impl ArukellBackend {
     fn find_var_type_in_stmts(stmts: &[ast::Stmt], name: &str) -> Option<String> {
         for stmt in stmts {
             if let ast::Stmt::Let {
-                name: var_name,
-                ty,
-                ..
+                name: var_name, ty, ..
             } = stmt
             {
                 if var_name == name {
@@ -891,12 +893,19 @@ impl ArukellBackend {
                     let (vname, insert, detail) = match variant {
                         ast::Variant::Unit { name, .. } => {
                             let qualified = format!("{}::{}", e.name, name);
-                            (qualified.clone(), qualified, format!("{}::{}", e.name, name))
+                            (
+                                qualified.clone(),
+                                qualified,
+                                format!("{}::{}", e.name, name),
+                            )
                         }
                         ast::Variant::Tuple { name, fields, .. } => {
                             let qualified = format!("{}::{}", e.name, name);
-                            let placeholders: Vec<String> =
-                                fields.iter().enumerate().map(|(i, _)| format!("_{i}")).collect();
+                            let placeholders: Vec<String> = fields
+                                .iter()
+                                .enumerate()
+                                .map(|(i, _)| format!("_{i}"))
+                                .collect();
                             let insert = format!("{}({})", qualified, placeholders.join(", "));
                             let detail = format!(
                                 "{}::{}({})",
@@ -910,14 +919,11 @@ impl ArukellBackend {
                             );
                             (qualified, insert, detail)
                         }
-                        ast::Variant::Struct {
-                            name, fields, ..
-                        } => {
+                        ast::Variant::Struct { name, fields, .. } => {
                             let qualified = format!("{}::{}", e.name, name);
                             let field_names: Vec<String> =
                                 fields.iter().map(|f| f.name.clone()).collect();
-                            let insert =
-                                format!("{} {{ {} }}", qualified, field_names.join(", "));
+                            let insert = format!("{} {{ {} }}", qualified, field_names.join(", "));
                             (qualified, insert, format!("{}::{} {{ ... }}", e.name, name))
                         }
                     };
@@ -936,11 +942,14 @@ impl ArukellBackend {
                             kind: Some(CompletionItemKind::ENUM_MEMBER),
                             detail: Some(detail),
                             insert_text: Some(insert),
-                            sort_text: Some(format!("0-{}", match variant {
-                                ast::Variant::Unit { name, .. }
-                                | ast::Variant::Tuple { name, .. }
-                                | ast::Variant::Struct { name, .. } => name.as_str(),
-                            })),
+                            sort_text: Some(format!(
+                                "0-{}",
+                                match variant {
+                                    ast::Variant::Unit { name, .. }
+                                    | ast::Variant::Tuple { name, .. }
+                                    | ast::Variant::Struct { name, .. } => name.as_str(),
+                                }
+                            )),
                             ..Default::default()
                         },
                     );
@@ -953,7 +962,10 @@ impl ArukellBackend {
             for (ename, info) in chk.enum_defs_iter() {
                 for v in &info.variants {
                     let qualified = format!("{ename}::{}", v.name);
-                    if !prefix.is_empty() && !qualified.starts_with(prefix) && !v.name.starts_with(prefix) {
+                    if !prefix.is_empty()
+                        && !qualified.starts_with(prefix)
+                        && !v.name.starts_with(prefix)
+                    {
                         continue;
                     }
                     let detail = if v.fields.is_empty() {
@@ -961,7 +973,11 @@ impl ArukellBackend {
                     } else {
                         format!(
                             "{qualified}({})",
-                            v.fields.iter().map(|f| format!("{f}")).collect::<Vec<_>>().join(", ")
+                            v.fields
+                                .iter()
+                                .map(|f| format!("{f}"))
+                                .collect::<Vec<_>>()
+                                .join(", ")
                         )
                     };
                     Self::push_completion(
@@ -1035,8 +1051,7 @@ impl ArukellBackend {
 
         // Match arm: inside `match expr { ... |` → provide enum variants
         if Self::is_match_arm_context(before) {
-            let match_items =
-                Self::match_arm_completions(module, checker, &prefix);
+            let match_items = Self::match_arm_completions(module, checker, &prefix);
             if !match_items.is_empty() {
                 return match_items;
             }
@@ -1525,12 +1540,39 @@ impl ArukellBackend {
     fn is_keyword(name: &str) -> bool {
         matches!(
             name,
-            "fn" | "let" | "mut" | "if" | "else" | "while" | "for" | "in"
-                | "loop" | "break" | "continue" | "return" | "match"
-                | "struct" | "enum" | "trait" | "impl" | "type" | "use"
-                | "pub" | "self" | "super" | "true" | "false" | "as"
-                | "try" | "catch" | "throw" | "async" | "await"
-                | "const" | "static" | "where" | "mod"
+            "fn" | "let"
+                | "mut"
+                | "if"
+                | "else"
+                | "while"
+                | "for"
+                | "in"
+                | "loop"
+                | "break"
+                | "continue"
+                | "return"
+                | "match"
+                | "struct"
+                | "enum"
+                | "trait"
+                | "impl"
+                | "type"
+                | "use"
+                | "pub"
+                | "self"
+                | "super"
+                | "true"
+                | "false"
+                | "as"
+                | "try"
+                | "catch"
+                | "throw"
+                | "async"
+                | "await"
+                | "const"
+                | "static"
+                | "where"
+                | "mod"
         )
     }
 
@@ -1538,12 +1580,38 @@ impl ArukellBackend {
     fn is_builtin_name(name: &str) -> bool {
         matches!(
             name,
-            "print" | "println" | "eprintln" | "assert" | "panic"
-                | "len" | "push" | "pop" | "to_string" | "parse"
-                | "Some" | "None" | "Ok" | "Err" | "Result" | "Option"
-                | "String" | "Vec" | "Map" | "Set" | "Array"
-                | "Int" | "Float" | "Bool" | "Char" | "Unit"
-                | "i32" | "i64" | "f32" | "f64" | "bool" | "str"
+            "print"
+                | "println"
+                | "eprintln"
+                | "assert"
+                | "panic"
+                | "len"
+                | "push"
+                | "pop"
+                | "to_string"
+                | "parse"
+                | "Some"
+                | "None"
+                | "Ok"
+                | "Err"
+                | "Result"
+                | "Option"
+                | "String"
+                | "Vec"
+                | "Map"
+                | "Set"
+                | "Array"
+                | "Int"
+                | "Float"
+                | "Bool"
+                | "Char"
+                | "Unit"
+                | "i32"
+                | "i64"
+                | "f32"
+                | "f64"
+                | "bool"
+                | "str"
         )
     }
 
@@ -1573,26 +1641,34 @@ impl ArukellBackend {
     /// Build hover information for a stdlib module from the manifest.
     fn stdlib_module_hover(name: &str, manifest: &StdlibManifest) -> Option<String> {
         // Find the full module name by alias match
-        let full_name = manifest.modules.iter()
+        let full_name = manifest
+            .modules
+            .iter()
             .find(|m| m.name == name || m.name.rsplit("::").next() == Some(name))
             .map(|m| m.name.as_str());
-        
+
         // If not in [[modules]], check function module references
         let full_name = full_name.or_else(|| {
-            manifest.functions.iter()
+            manifest
+                .functions
+                .iter()
                 .filter_map(|f| f.module.as_deref())
                 .find(|m| *m == name || m.rsplit("::").next() == Some(name))
         })?;
 
-        let doc = manifest.modules.iter()
+        let doc = manifest
+            .modules
+            .iter()
             .find(|m| m.name == full_name)
             .and_then(|m| m.doc.as_deref());
-        
-        let funcs: Vec<&str> = manifest.functions.iter()
+
+        let funcs: Vec<&str> = manifest
+            .functions
+            .iter()
             .filter(|f| f.module.as_deref() == Some(full_name))
             .map(|f| f.name.as_str())
             .collect();
-        
+
         let mut hover = format!("```\nmodule {full_name}\n```");
         if let Some(d) = doc {
             hover.push_str(&format!("\n\n{d}"));
@@ -1676,7 +1752,11 @@ impl ArukellBackend {
                 .map(|(n, t)| format!("    {n}: {t},"))
                 .collect();
             let docs = Self::find_item_docs(module, name);
-            let mut hover = format!("```arukellt\nstruct {} {{\n{}\n}}\n```", info.name, fields.join("\n"));
+            let mut hover = format!(
+                "```arukellt\nstruct {} {{\n{}\n}}\n```",
+                info.name,
+                fields.join("\n")
+            );
             if !docs.is_empty() {
                 hover.push_str("\n\n");
                 hover.push_str(&docs.join("\n"));
@@ -1688,7 +1768,11 @@ impl ArukellBackend {
         if let Some(info) = checker.enum_info(name) {
             let variants: Vec<String> = info.variants.iter().map(|v| v.name.clone()).collect();
             let docs = Self::find_item_docs(module, name);
-            let mut hover = format!("```arukellt\nenum {} {{ {} }}\n```", info.name, variants.join(", "));
+            let mut hover = format!(
+                "```arukellt\nenum {} {{ {} }}\n```",
+                info.name,
+                variants.join(", ")
+            );
             if !docs.is_empty() {
                 hover.push_str("\n\n");
                 hover.push_str(&docs.join("\n"));
@@ -1782,10 +1866,7 @@ impl ArukellBackend {
     ) -> Option<String> {
         for stmt in &block.stmts {
             if let ast::Stmt::Let {
-                name: n,
-                ty,
-                init,
-                ..
+                name: n, ty, init, ..
             } = stmt
             {
                 if n == name {
@@ -1805,9 +1886,13 @@ impl ArukellBackend {
         checker: Option<&ark_typecheck::TypeChecker>,
     ) -> Option<String> {
         match expr {
-            ast::Expr::IntLit { suffix: Some(s), .. } => Some(s.clone()),
+            ast::Expr::IntLit {
+                suffix: Some(s), ..
+            } => Some(s.clone()),
             ast::Expr::IntLit { suffix: None, .. } => Some("i32".into()),
-            ast::Expr::FloatLit { suffix: Some(s), .. } => Some(s.clone()),
+            ast::Expr::FloatLit {
+                suffix: Some(s), ..
+            } => Some(s.clone()),
             ast::Expr::FloatLit { suffix: None, .. } => Some("f64".into()),
             ast::Expr::StringLit { .. } => Some("String".into()),
             ast::Expr::CharLit { .. } => Some("char".into()),
@@ -1843,8 +1928,14 @@ impl ArukellBackend {
             ast::Expr::Binary { op, left, .. } => {
                 use ark_parser::ast::BinOp;
                 match op {
-                    BinOp::Eq | BinOp::Ne | BinOp::Lt | BinOp::Le | BinOp::Gt | BinOp::Ge
-                    | BinOp::And | BinOp::Or => Some("bool".into()),
+                    BinOp::Eq
+                    | BinOp::Ne
+                    | BinOp::Lt
+                    | BinOp::Le
+                    | BinOp::Gt
+                    | BinOp::Ge
+                    | BinOp::And
+                    | BinOp::Or => Some("bool".into()),
                     _ => Self::infer_expr_type(left, checker),
                 }
             }
@@ -3346,11 +3437,7 @@ impl LanguageServer for ArukellBackend {
         {
             let manifest = self.stdlib_manifest.lock().unwrap();
             if let Some(ref m) = *manifest {
-                Self::index_stdlib_from_manifest(
-                    &self.symbol_index,
-                    m,
-                    project_root.as_ref(),
-                );
+                Self::index_stdlib_from_manifest(&self.symbol_index, m, project_root.as_ref());
             }
         }
 
@@ -3401,7 +3488,11 @@ impl LanguageServer for ArukellBackend {
                             let manifest = self.stdlib_manifest.lock().unwrap();
                             if let Some(ref m) = *manifest {
                                 let std_dir = new_root.join("std");
-                                let std_path = if std_dir.exists() { Some(&std_dir) } else { None };
+                                let std_path = if std_dir.exists() {
+                                    Some(&std_dir)
+                                } else {
+                                    None
+                                };
                                 Self::index_stdlib_from_manifest(
                                     &self.symbol_index,
                                     m,
@@ -3446,11 +3537,7 @@ impl LanguageServer for ArukellBackend {
                             let tokens: Vec<_> = lexer.collect();
                             let mut sink = ark_diagnostics::DiagnosticSink::new();
                             let module = parse(&tokens, &mut sink);
-                            Self::update_file_symbols(
-                                &self.symbol_index,
-                                &change.uri,
-                                &module,
-                            );
+                            Self::update_file_symbols(&self.symbol_index, &change.uri, &module);
                         }
                     }
                 }
@@ -3566,7 +3653,14 @@ impl LanguageServer for ArukellBackend {
 
         let offset = Self::position_to_offset(&source, params.text_document_position.position);
         let manifest = self.stdlib_manifest.lock().unwrap();
-        let items = Self::get_completions(&source, &analysis.tokens, &analysis.module, offset, manifest.as_ref(), analysis.checker.as_ref());
+        let items = Self::get_completions(
+            &source,
+            &analysis.tokens,
+            &analysis.module,
+            offset,
+            manifest.as_ref(),
+            analysis.checker.as_ref(),
+        );
         Ok(Some(CompletionResponse::Array(items)))
     }
 
@@ -3612,7 +3706,9 @@ impl LanguageServer for ArukellBackend {
         if let Some(entry) = entries.first() {
             if entry.span.start == 0 && entry.span.end == 0 {
                 // Stdlib symbol without exact span — try to find in source file
-                if let Ok(target_source) = entry.uri.to_file_path()
+                if let Ok(target_source) = entry
+                    .uri
+                    .to_file_path()
                     .map_err(|_| ())
                     .and_then(|p| std::fs::read_to_string(&p).map_err(|_| ()))
                 {
@@ -3637,7 +3733,9 @@ impl LanguageServer for ArukellBackend {
             }
 
             // Cross-file symbol with known span — load source and resolve
-            if let Ok(target_source) = entry.uri.to_file_path()
+            if let Ok(target_source) = entry
+                .uri
+                .to_file_path()
                 .map_err(|_| ())
                 .and_then(|p| std::fs::read_to_string(&p).map_err(|_| ()))
             {
@@ -3695,7 +3793,9 @@ impl LanguageServer for ArukellBackend {
                 if end <= source.len() && source[start..end] == *name {
                     // If we have a scope range, restrict to that scope
                     if let Some((scope_start, scope_end)) = scope_range {
-                        if (tok.span.start as u32) < scope_start || (tok.span.end as u32) > scope_end {
+                        if (tok.span.start as u32) < scope_start
+                            || (tok.span.end as u32) > scope_end
+                        {
                             continue;
                         }
                     }
@@ -3717,7 +3817,9 @@ impl LanguageServer for ArukellBackend {
                         // Check if this file references our symbol
                         // We'd need to load and scan the file — for now, include definitions
                         if entry.name == name {
-                            if let Ok(target_source) = entry.uri.to_file_path()
+                            if let Ok(target_source) = entry
+                                .uri
+                                .to_file_path()
                                 .map_err(|_| ())
                                 .and_then(|p| std::fs::read_to_string(&p).map_err(|_| ()))
                             {
@@ -3780,7 +3882,9 @@ impl LanguageServer for ArukellBackend {
                 let end = tok.span.end as usize;
                 if end <= source.len() && source[start..end] == *name {
                     if let Some((scope_start, scope_end)) = scope_range {
-                        if (tok.span.start as u32) < scope_start || (tok.span.end as u32) > scope_end {
+                        if (tok.span.start as u32) < scope_start
+                            || (tok.span.end as u32) > scope_end
+                        {
                             continue;
                         }
                     }
@@ -3931,8 +4035,9 @@ impl LanguageServer for ArukellBackend {
                                                 })
                                                 .collect();
 
-                                            let active_parameter =
-                                                Self::count_active_parameter(&before[open_paren + 1..]);
+                                            let active_parameter = Self::count_active_parameter(
+                                                &before[open_paren + 1..],
+                                            );
                                             let ret_str = f
                                                 .return_type
                                                 .as_ref()
@@ -3998,9 +4103,10 @@ impl LanguageServer for ArukellBackend {
         // Search project-wide symbol index (includes unopened files)
         {
             let idx = self.symbol_index.lock().unwrap();
-            let seen: HashSet<String> = all_symbols.iter().map(|s| {
-                format!("{}:{}", s.location.uri, s.name)
-            }).collect();
+            let seen: HashSet<String> = all_symbols
+                .iter()
+                .map(|s| format!("{}:{}", s.location.uri, s.name))
+                .collect();
 
             for entries in idx.file_symbols.values() {
                 for entry in entries {
@@ -4094,7 +4200,9 @@ impl LanguageServer for ArukellBackend {
                 let end = tok.span.end as usize;
                 if end <= source.len() && &source[start..end] == old_name {
                     if let Some((scope_start, scope_end)) = scope_range {
-                        if (tok.span.start as u32) < scope_start || (tok.span.end as u32) > scope_end {
+                        if (tok.span.start as u32) < scope_start
+                            || (tok.span.end as u32) > scope_end
+                        {
                             continue;
                         }
                     }
@@ -4169,7 +4277,9 @@ impl LanguageServer for ArukellBackend {
         // --- Quick fix code actions (diagnostic-driven) ---
         let manifest_candidates: Vec<(String, String)> = {
             let m = self.stdlib_manifest.lock().unwrap();
-            m.as_ref().map(|m| m.import_candidates()).unwrap_or_default()
+            m.as_ref()
+                .map(|m| m.import_candidates())
+                .unwrap_or_default()
         };
         for diag in &params.context.diagnostics {
             if let Some(NumberOrString::String(ref code)) = diag.code {
@@ -4278,9 +4388,10 @@ impl LanguageServer for ArukellBackend {
                 // Determine unused imports from the analysis cache
                 let unused_modules = {
                     let cache = self.analysis_cache.lock().unwrap();
-                    cache.get(&uri).map(|a| {
-                        ark_resolve::find_unused_imports(&a.module)
-                    }).unwrap_or_default()
+                    cache
+                        .get(&uri)
+                        .map(|a| ark_resolve::find_unused_imports(&a.module))
+                        .unwrap_or_default()
                 };
 
                 let organized = Self::organize_imports_text(src, &unused_modules);
@@ -5206,7 +5317,14 @@ mod tests {
     fn completion_includes_auto_import_candidate_for_stdio() {
         let source = "std";
         let tokens = vec![];
-        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len(), None, None);
+        let items = ArukellBackend::get_completions(
+            source,
+            &tokens,
+            &empty_module(),
+            source.len(),
+            None,
+            None,
+        );
         let stdio = items
             .iter()
             .find(|item| item.label == "stdio")
@@ -5225,7 +5343,14 @@ mod tests {
     fn completion_prefers_string_helpers_in_print_context() {
         let source = "fn main() { println(to_";
         let tokens = vec![];
-        let items = ArukellBackend::get_completions(source, &tokens, &empty_module(), source.len(), None, None);
+        let items = ArukellBackend::get_completions(
+            source,
+            &tokens,
+            &empty_module(),
+            source.len(),
+            None,
+            None,
+        );
         assert_eq!(
             items.first().map(|item| item.label.as_str()),
             Some("to_string")
@@ -5287,7 +5412,10 @@ mod tests {
         // Compiler errors should use "arukellt" source, not "arukellt-lint"
         for diag in &compiler_diags {
             if let Some(NumberOrString::String(code)) = &diag.code {
-                assert!(!code.starts_with('W'), "W-codes should use arukellt-lint source");
+                assert!(
+                    !code.starts_with('W'),
+                    "W-codes should use arukellt-lint source"
+                );
             }
         }
     }
@@ -5302,13 +5430,19 @@ mod tests {
         assert!(formatted.is_some(), "formatter should handle valid source");
         let fmt = formatted.unwrap();
         // The formatter should normalize spacing
-        assert!(fmt.contains("let x = 1") || fmt.contains("let x ="), 
-            "formatter should clean up spacing in formatted output");
+        assert!(
+            fmt.contains("let x = 1") || fmt.contains("let x ="),
+            "formatter should clean up spacing in formatted output"
+        );
     }
 
     fn load_test_manifest() -> StdlibManifest {
         let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent().unwrap().parent().unwrap().to_path_buf();
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .to_path_buf();
         StdlibManifest::load_from_repo(&root).unwrap()
     }
 
@@ -5317,10 +5451,18 @@ mod tests {
         let manifest = load_test_manifest();
         let source = "asse";
         let items = ArukellBackend::get_completions(
-            source, &[], &empty_module(), source.len(), Some(&manifest), None,
+            source,
+            &[],
+            &empty_module(),
+            source.len(),
+            Some(&manifest),
+            None,
         );
         let assert_item = items.iter().find(|i| i.label == "assert");
-        assert!(assert_item.is_some(), "manifest completions should include assert");
+        assert!(
+            assert_item.is_some(),
+            "manifest completions should include assert"
+        );
         let item = assert_item.unwrap();
         assert_eq!(item.kind, Some(CompletionItemKind::FUNCTION));
         // Should show signature from manifest
@@ -5332,15 +5474,27 @@ mod tests {
         let manifest = load_test_manifest();
         let source = "";
         let items = ArukellBackend::get_completions(
-            source, &[], &empty_module(), source.len(), Some(&manifest), None,
+            source,
+            &[],
+            &empty_module(),
+            source.len(),
+            Some(&manifest),
+            None,
         );
-        let module_items: Vec<&str> = items.iter()
+        let module_items: Vec<&str> = items
+            .iter()
             .filter(|i| i.kind == Some(CompletionItemKind::MODULE))
             .map(|i| i.label.as_str())
             .collect();
-        assert!(module_items.contains(&"stdio"), "should have stdio from manifest");
+        assert!(
+            module_items.contains(&"stdio"),
+            "should have stdio from manifest"
+        );
         assert!(module_items.contains(&"fs"), "should have fs from manifest");
-        assert!(module_items.contains(&"env"), "should have env from manifest");
+        assert!(
+            module_items.contains(&"env"),
+            "should have env from manifest"
+        );
     }
 
     #[test]
@@ -5349,7 +5503,10 @@ mod tests {
         let info = ArukellBackend::stdlib_hover_info("println", &manifest);
         assert!(info.is_some(), "println should have stdlib hover info");
         let text = info.unwrap();
-        assert!(text.contains("fn println"), "should show function signature");
+        assert!(
+            text.contains("fn println"),
+            "should show function signature"
+        );
         assert!(text.contains("std::host::stdio"), "should show module name");
     }
 
@@ -5359,7 +5516,10 @@ mod tests {
         let info = ArukellBackend::stdlib_module_hover("stdio", &manifest);
         assert!(info.is_some(), "stdio should have module hover info");
         let text = info.unwrap();
-        assert!(text.contains("std::host::stdio"), "should show full module path");
+        assert!(
+            text.contains("std::host::stdio"),
+            "should show full module path"
+        );
     }
 
     #[test]
@@ -5367,17 +5527,28 @@ mod tests {
         let manifest = load_test_manifest();
         let source = "";
         let items = ArukellBackend::get_completions(
-            source, &[], &empty_module(), source.len(), Some(&manifest), None,
+            source,
+            &[],
+            &empty_module(),
+            source.len(),
+            Some(&manifest),
+            None,
         );
         // Check that deprecated functions have the deprecated flag
-        let deprecated_in_manifest: Vec<&str> = manifest.functions.iter()
+        let deprecated_in_manifest: Vec<&str> = manifest
+            .functions
+            .iter()
             .filter(|f| f.deprecated_by.is_some() && f.prelude)
             .map(|f| f.name.as_str())
             .collect();
         for name in deprecated_in_manifest {
             if let Some(item) = items.iter().find(|i| i.label == name) {
-                assert_eq!(item.deprecated, Some(true),
-                    "deprecated function '{}' should be marked deprecated", name);
+                assert_eq!(
+                    item.deprecated,
+                    Some(true),
+                    "deprecated function '{}' should be marked deprecated",
+                    name
+                );
             }
         }
     }
@@ -5401,7 +5572,10 @@ mod tests {
         );
         assert!(info.is_some(), "hover should work for variable x");
         let hover = info.unwrap();
-        assert!(hover.contains("i32"), "hover should show i32 for integer literal, got: {hover}");
+        assert!(
+            hover.contains("i32"),
+            "hover should show i32 for integer literal, got: {hover}"
+        );
 
         let info_s = ArukellBackend::type_hover_info(
             "s",
@@ -5410,7 +5584,10 @@ mod tests {
             analysis.checker.as_ref(),
         );
         assert!(info_s.is_some());
-        assert!(info_s.unwrap().contains("String"), "hover should show String for string literal");
+        assert!(
+            info_s.unwrap().contains("String"),
+            "hover should show String for string literal"
+        );
 
         let info_b = ArukellBackend::type_hover_info(
             "b",
@@ -5419,7 +5596,10 @@ mod tests {
             analysis.checker.as_ref(),
         );
         assert!(info_b.is_some());
-        assert!(info_b.unwrap().contains("bool"), "hover should show bool for bool literal");
+        assert!(
+            info_b.unwrap().contains("bool"),
+            "hover should show bool for bool literal"
+        );
     }
 
     #[test]
@@ -5439,7 +5619,10 @@ fn main() {
         );
         assert!(info.is_some(), "hover should work for variable result");
         let hover = info.unwrap();
-        assert!(hover.contains("i32"), "hover should show return type i32, got: {hover}");
+        assert!(
+            hover.contains("i32"),
+            "hover should show return type i32, got: {hover}"
+        );
     }
 
     #[test]
@@ -5457,7 +5640,10 @@ fn add(a: i32, b: i32) -> i32 {
         );
         assert!(info.is_some(), "hover should work for fn add");
         let hover = info.unwrap();
-        assert!(hover.contains("Adds two numbers"), "hover should show doc comment, got: {hover}");
+        assert!(
+            hover.contains("Adds two numbers"),
+            "hover should show doc comment, got: {hover}"
+        );
     }
 
     #[test]
@@ -5472,9 +5658,18 @@ fn add(a: i32, b: i32) -> i32 {
         let result = ArukellBackend::organize_imports_text(source, &unused);
         assert!(result.is_some());
         let organized = result.unwrap();
-        assert!(!organized.contains("use std::host::fs"), "unused fs import should be removed");
-        assert!(!organized.contains("use std::host::env"), "unused env import should be removed");
-        assert!(organized.contains("use std::host::stdio"), "used stdio import should remain");
+        assert!(
+            !organized.contains("use std::host::fs"),
+            "unused fs import should be removed"
+        );
+        assert!(
+            !organized.contains("use std::host::env"),
+            "unused env import should be removed"
+        );
+        assert!(
+            organized.contains("use std::host::stdio"),
+            "used stdio import should remain"
+        );
     }
 
     #[test]
@@ -5486,7 +5681,10 @@ fn add(a: i32, b: i32) -> i32 {
         let organized = result.unwrap();
         let stdio_pos = organized.find("use std::host::stdio").unwrap();
         let mymod_pos = organized.find("use mymod").unwrap();
-        assert!(stdio_pos < mymod_pos, "stdlib imports should come before project imports");
+        assert!(
+            stdio_pos < mymod_pos,
+            "stdlib imports should come before project imports"
+        );
     }
 
     #[test]
@@ -5504,8 +5702,14 @@ fn add(a: i32, b: i32) -> i32 {
     #[test]
     fn find_call_open_paren_handles_nesting() {
         assert_eq!(ArukellBackend::find_call_open_paren("foo("), Some(3));
-        assert_eq!(ArukellBackend::find_call_open_paren("foo(bar(1), "), Some(3));
-        assert_eq!(ArukellBackend::find_call_open_paren("outer(inner("), Some(11));
+        assert_eq!(
+            ArukellBackend::find_call_open_paren("foo(bar(1), "),
+            Some(3)
+        );
+        assert_eq!(
+            ArukellBackend::find_call_open_paren("outer(inner("),
+            Some(11)
+        );
     }
 
     #[test]
@@ -5515,12 +5719,19 @@ fn add(a: i32, b: i32) -> i32 {
         // Cursor after `p.`
         let dot_pos = source.find("p.\n").unwrap() + 2;
         let items = ArukellBackend::get_completions(source, &tokens, &module, dot_pos, None, None);
-        let field_names: Vec<&str> = items.iter()
+        let field_names: Vec<&str> = items
+            .iter()
             .filter(|i| i.kind == Some(CompletionItemKind::FIELD))
             .map(|i| i.label.as_str())
             .collect();
-        assert!(field_names.contains(&"x"), "dot completion should include field 'x'");
-        assert!(field_names.contains(&"y"), "dot completion should include field 'y'");
+        assert!(
+            field_names.contains(&"x"),
+            "dot completion should include field 'x'"
+        );
+        assert!(
+            field_names.contains(&"y"),
+            "dot completion should include field 'y'"
+        );
     }
 
     #[test]
@@ -5529,15 +5740,27 @@ fn add(a: i32, b: i32) -> i32 {
         let (tokens, module) = parse_source(source);
         // Cursor after `: ` in `x: `
         let colon_pos = source.find("x: ").unwrap() + 3;
-        let items = ArukellBackend::get_completions(source, &tokens, &module, colon_pos, None, None);
+        let items =
+            ArukellBackend::get_completions(source, &tokens, &module, colon_pos, None, None);
         // Types should be ranked higher (sort_text "0-") in type context
-        let type_items: Vec<&CompletionItem> = items.iter()
-            .filter(|i| i.kind == Some(CompletionItemKind::CLASS) || i.kind == Some(CompletionItemKind::STRUCT) || i.kind == Some(CompletionItemKind::ENUM))
+        let type_items: Vec<&CompletionItem> = items
+            .iter()
+            .filter(|i| {
+                i.kind == Some(CompletionItemKind::CLASS)
+                    || i.kind == Some(CompletionItemKind::STRUCT)
+                    || i.kind == Some(CompletionItemKind::ENUM)
+            })
             .collect();
-        assert!(!type_items.is_empty(), "type annotation context should have type completions");
+        assert!(
+            !type_items.is_empty(),
+            "type annotation context should have type completions"
+        );
         for item in &type_items {
-            assert!(item.sort_text.as_deref().unwrap_or("").starts_with("0-"),
-                "type '{}' should be top-ranked in type annotation context", item.label);
+            assert!(
+                item.sort_text.as_deref().unwrap_or("").starts_with("0-"),
+                "type '{}' should be top-ranked in type annotation context",
+                item.label
+            );
         }
     }
 
@@ -5545,12 +5768,21 @@ fn add(a: i32, b: i32) -> i32 {
     fn use_statement_context_shows_modules() {
         let source = "use ";
         let (tokens, module) = parse_source(source);
-        let items = ArukellBackend::get_completions(source, &tokens, &module, source.len(), None, None);
+        let items =
+            ArukellBackend::get_completions(source, &tokens, &module, source.len(), None, None);
         // Should only return module items
-        assert!(!items.is_empty(), "use context should provide module completions");
+        assert!(
+            !items.is_empty(),
+            "use context should provide module completions"
+        );
         for item in &items {
-            assert_eq!(item.kind, Some(CompletionItemKind::MODULE),
-                "use context should only show modules, got {:?} for '{}'", item.kind, item.label);
+            assert_eq!(
+                item.kind,
+                Some(CompletionItemKind::MODULE),
+                "use context should only show modules, got {:?} for '{}'",
+                item.kind,
+                item.label
+            );
         }
     }
 
@@ -5559,14 +5791,25 @@ fn add(a: i32, b: i32) -> i32 {
         let source = "enum Color { Red, Green, Blue }\nfn main() {\n    let c = Color::Red\n    match c {\n        \n    }\n}\n";
         let (tokens, module) = parse_source(source);
         let match_pos = source.find("        \n    }").unwrap() + 8;
-        let items = ArukellBackend::get_completions(source, &tokens, &module, match_pos, None, None);
-        let variant_labels: Vec<&str> = items.iter()
+        let items =
+            ArukellBackend::get_completions(source, &tokens, &module, match_pos, None, None);
+        let variant_labels: Vec<&str> = items
+            .iter()
             .filter(|i| i.kind == Some(CompletionItemKind::ENUM_MEMBER))
             .map(|i| i.label.as_str())
             .collect();
-        assert!(variant_labels.iter().any(|l| l.contains("Red")), "match arm should suggest Color::Red");
-        assert!(variant_labels.iter().any(|l| l.contains("Green")), "match arm should suggest Color::Green");
-        assert!(variant_labels.iter().any(|l| l.contains("Blue")), "match arm should suggest Color::Blue");
+        assert!(
+            variant_labels.iter().any(|l| l.contains("Red")),
+            "match arm should suggest Color::Red"
+        );
+        assert!(
+            variant_labels.iter().any(|l| l.contains("Green")),
+            "match arm should suggest Color::Green"
+        );
+        assert!(
+            variant_labels.iter().any(|l| l.contains("Blue")),
+            "match arm should suggest Color::Blue"
+        );
         let has_wildcard = items.iter().any(|i| i.label == "_");
         assert!(has_wildcard, "match arm should suggest wildcard pattern");
     }
@@ -5585,16 +5828,34 @@ fn add(a: i32, b: i32) -> i32 {
         ArukellBackend::update_file_symbols(&index, &uri, &module);
 
         let idx = index.lock().unwrap();
-        assert!(idx.file_symbols.contains_key("greet"), "should index fn greet");
-        assert!(idx.file_symbols.contains_key("Point"), "should index struct Point");
-        assert!(idx.file_symbols.contains_key("Color"), "should index enum Color");
-        assert!(idx.file_symbols.contains_key("Display"), "should index trait Display");
-        assert!(idx.indexed_files.contains(&uri), "should mark file as indexed");
+        assert!(
+            idx.file_symbols.contains_key("greet"),
+            "should index fn greet"
+        );
+        assert!(
+            idx.file_symbols.contains_key("Point"),
+            "should index struct Point"
+        );
+        assert!(
+            idx.file_symbols.contains_key("Color"),
+            "should index enum Color"
+        );
+        assert!(
+            idx.file_symbols.contains_key("Display"),
+            "should index trait Display"
+        );
+        assert!(
+            idx.indexed_files.contains(&uri),
+            "should mark file as indexed"
+        );
 
         // Check function detail includes signature
         let greet = &idx.file_symbols["greet"][0];
         assert_eq!(greet.kind, SymbolKind::FUNCTION);
-        assert!(greet.detail.as_ref().unwrap().contains("name: String"), "detail should include param types");
+        assert!(
+            greet.detail.as_ref().unwrap().contains("name: String"),
+            "detail should include param types"
+        );
     }
 
     #[test]

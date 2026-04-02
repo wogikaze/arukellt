@@ -401,7 +401,10 @@ pub fn lower_to_mir(
                                 ark_typecheck::types::Type::Any
                             }
                             ast::TypeExpr::Generic { name, args, .. } if name == "Vec" => {
-                                let elem = args.first().map(|a| lower_type_expr_to_type(a)).unwrap_or(ark_typecheck::types::Type::I32);
+                                let elem = args
+                                    .first()
+                                    .map(|a| lower_type_expr_to_type(a))
+                                    .unwrap_or(ark_typecheck::types::Type::I32);
                                 ark_typecheck::types::Type::Vec(Box::new(elem))
                             }
                             _ => ark_typecheck::types::Type::I32,
@@ -429,7 +432,10 @@ pub fn lower_to_mir(
                         ark_typecheck::types::Type::Any
                     }
                     Some(ast::TypeExpr::Generic { name, args, .. }) if name == "Vec" => {
-                        let elem = args.first().map(|a| lower_type_expr_to_type(a)).unwrap_or(ark_typecheck::types::Type::I32);
+                        let elem = args
+                            .first()
+                            .map(|a| lower_type_expr_to_type(a))
+                            .unwrap_or(ark_typecheck::types::Type::I32);
                         ark_typecheck::types::Type::Vec(Box::new(elem))
                     }
                     Some(_) => ark_typecheck::types::Type::I32,
@@ -592,7 +598,10 @@ pub fn lower_to_mir(
                                     ark_typecheck::types::Type::Char
                                 }
                                 ast::TypeExpr::Generic { name, args, .. } if name == "Vec" => {
-                                    let elem = args.first().map(|a| lower_type_expr_to_type(a)).unwrap_or(ark_typecheck::types::Type::I32);
+                                    let elem = args
+                                        .first()
+                                        .map(|a| lower_type_expr_to_type(a))
+                                        .unwrap_or(ark_typecheck::types::Type::I32);
                                     ark_typecheck::types::Type::Vec(Box::new(elem))
                                 }
                                 _ => ark_typecheck::types::Type::I32,
@@ -617,7 +626,10 @@ pub fn lower_to_mir(
                             ark_typecheck::types::Type::Char
                         }
                         Some(ast::TypeExpr::Generic { name, args, .. }) if name == "Vec" => {
-                            let elem = args.first().map(|a| lower_type_expr_to_type(a)).unwrap_or(ark_typecheck::types::Type::I32);
+                            let elem = args
+                                .first()
+                                .map(|a| lower_type_expr_to_type(a))
+                                .unwrap_or(ark_typecheck::types::Type::I32);
                             ark_typecheck::types::Type::Vec(Box::new(elem))
                         }
                         Some(_) => ark_typecheck::types::Type::I32,

@@ -3737,11 +3737,7 @@ impl Ctx {
     ///   si(4) = value string ref (ref null $string)
     ///   si(9) = name_len / entry total len / value_len (i32)
     ///   si(10) = name ref (anyref)
-    pub(super) fn emit_env_var_builtin(
-        &mut self,
-        f: &mut PeepholeWriter<'_>,
-        name_op: &Operand,
-    ) {
+    pub(super) fn emit_env_var_builtin(&mut self, f: &mut PeepholeWriter<'_>, name_op: &Operand) {
         let ma = wasm_encoder::MemArg {
             offset: 0,
             align: 2,
@@ -3770,7 +3766,9 @@ impl Ctx {
         f.instruction(&Instruction::LocalSet(self.si(10)));
 
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::ArrayLen);
         f.instruction(&Instruction::LocalSet(self.si(9))); // name_len
 
@@ -3788,7 +3786,9 @@ impl Ctx {
         f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
         f.instruction(&Instruction::I32Add);
         f.instruction(&Instruction::LocalGet(self.si(10)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::ArrayGetU(self.string_ty));
         f.instruction(&Instruction::I32Store8(ma1));
@@ -3830,7 +3830,8 @@ impl Ctx {
         // Block structure: block $found { block $not_found { loop $search { ... } } }
         // BrIf(2) from inside loop → $found (match), BrIf(1) from loop → $not_found (i>=count)
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::FunctionType(
-            self.types.add_func(&[], &[ref_nullable(option_some_ty - 1)]),
+            self.types
+                .add_func(&[], &[ref_nullable(option_some_ty - 1)]),
         )));
         // Inner block (break target for no match / loop exit)
         f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
@@ -3956,7 +3957,9 @@ impl Ctx {
         f.instruction(&Instruction::I32GeU);
         f.instruction(&Instruction::BrIf(1));
         f.instruction(&Instruction::LocalGet(self.si(4)));
-        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(self.string_ty)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
         f.instruction(&Instruction::LocalGet(self.si(1)));
         f.instruction(&Instruction::LocalGet(self.si(3)));
         f.instruction(&Instruction::LocalGet(self.si(1)));
@@ -3997,11 +4000,7 @@ impl Ctx {
     ///
     /// Scratch usage: si(0)=url_len, si(1)=loop_i, si(2)=result, si(3)=resp_len,
     ///                si(10)=anyref
-    pub(super) fn emit_http_get_builtin(
-        &mut self,
-        f: &mut PeepholeWriter<'_>,
-        args: &[Operand],
-    ) {
+    pub(super) fn emit_http_get_builtin(&mut self, f: &mut PeepholeWriter<'_>, args: &[Operand]) {
         use super::{HTTP_SCRATCH_IN, HTTP_SCRATCH_RESP};
 
         if args.is_empty() {

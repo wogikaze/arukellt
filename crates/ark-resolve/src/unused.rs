@@ -19,16 +19,13 @@ pub fn find_unused_imports(module: &ast::Module) -> HashSet<String> {
     }
 
     for import in &module.imports {
-        let effective_name = import
-            .alias
-            .as_deref()
-            .unwrap_or_else(|| {
-                import
-                    .module_name
-                    .rsplit("::")
-                    .next()
-                    .unwrap_or(&import.module_name)
-            });
+        let effective_name = import.alias.as_deref().unwrap_or_else(|| {
+            import
+                .module_name
+                .rsplit("::")
+                .next()
+                .unwrap_or(&import.module_name)
+        });
 
         if effective_name.starts_with('_') {
             continue;
@@ -53,16 +50,13 @@ pub fn check_unused_imports(module: &ast::Module, sink: &mut DiagnosticSink) {
     }
 
     for import in &module.imports {
-        let effective_name = import
-            .alias
-            .as_deref()
-            .unwrap_or_else(|| {
-                import
-                    .module_name
-                    .rsplit("::")
-                    .next()
-                    .unwrap_or(&import.module_name)
-            });
+        let effective_name = import.alias.as_deref().unwrap_or_else(|| {
+            import
+                .module_name
+                .rsplit("::")
+                .next()
+                .unwrap_or(&import.module_name)
+        });
 
         // Convention: `_` prefixed aliases suppress unused warnings
         if effective_name.starts_with('_') {
@@ -207,9 +201,7 @@ fn collect_used_modules_in_expr(expr: &ast::Expr, used: &mut HashSet<String>) {
         ast::Expr::QualifiedIdent { module, .. } => {
             used.insert(module.clone());
         }
-        ast::Expr::Call {
-            callee, args, ..
-        } => {
+        ast::Expr::Call { callee, args, .. } => {
             collect_used_modules_in_expr(callee, used);
             for arg in args {
                 collect_used_modules_in_expr(arg, used);
@@ -313,9 +305,7 @@ fn collect_used_modules_in_expr(expr: &ast::Expr, used: &mut HashSet<String>) {
 
 fn collect_used_modules_in_pattern(pattern: &ast::Pattern, used: &mut HashSet<String>) {
     match pattern {
-        ast::Pattern::Enum {
-            path, fields, ..
-        } => {
+        ast::Pattern::Enum { path, fields, .. } => {
             // path like "module::Type" — check if first segment is a module
             if path.contains("::") {
                 if let Some(module) = path.split("::").next() {
@@ -417,7 +407,9 @@ fn collect_bindings_in_block(block: &ast::Block, bindings: &mut Vec<(String, Spa
 
 fn collect_bindings_in_stmt(stmt: &ast::Stmt, bindings: &mut Vec<(String, Span)>) {
     match stmt {
-        ast::Stmt::Let { name, init, span, .. } => {
+        ast::Stmt::Let {
+            name, init, span, ..
+        } => {
             bindings.push((name.clone(), *span));
             collect_bindings_in_expr(init, bindings);
         }
@@ -444,7 +436,11 @@ fn collect_bindings_in_stmt(stmt: &ast::Stmt, bindings: &mut Vec<(String, Span)>
 
 fn collect_bindings_in_expr(expr: &ast::Expr, bindings: &mut Vec<(String, Span)>) {
     match expr {
-        ast::Expr::If { then_block, else_block, .. } => {
+        ast::Expr::If {
+            then_block,
+            else_block,
+            ..
+        } => {
             collect_bindings_in_block(then_block, bindings);
             if let Some(eb) = else_block {
                 collect_bindings_in_block(eb, bindings);
@@ -482,7 +478,9 @@ fn collect_ident_refs_in_stmt(stmt: &ast::Stmt, used: &mut HashSet<String>) {
             collect_ident_refs_in_block(body, used);
         }
         ast::Stmt::Loop { body, .. } => collect_ident_refs_in_block(body, used),
-        ast::Stmt::For { iter, body, target, .. } => {
+        ast::Stmt::For {
+            iter, body, target, ..
+        } => {
             // The for-loop target is used inside the body
             used.insert(target.clone());
             match iter {
@@ -525,14 +523,21 @@ fn collect_ident_refs_in_expr(expr: &ast::Expr, used: &mut HashSet<String>) {
             collect_ident_refs_in_expr(object, used);
             collect_ident_refs_in_expr(index, used);
         }
-        ast::Expr::If { cond, then_block, else_block, .. } => {
+        ast::Expr::If {
+            cond,
+            then_block,
+            else_block,
+            ..
+        } => {
             collect_ident_refs_in_expr(cond, used);
             collect_ident_refs_in_block(then_block, used);
             if let Some(eb) = else_block {
                 collect_ident_refs_in_block(eb, used);
             }
         }
-        ast::Expr::Match { scrutinee, arms, .. } => {
+        ast::Expr::Match {
+            scrutinee, arms, ..
+        } => {
             collect_ident_refs_in_expr(scrutinee, used);
             for arm in arms {
                 collect_ident_refs_in_pattern(&arm.pattern, used);
@@ -647,9 +652,7 @@ mod tests {
 
     #[test]
     fn unused_import_warns() {
-        let warnings = parse_and_check(
-            "use std::math\nfn main() {\n    println(42)\n}",
-        );
+        let warnings = parse_and_check("use std::math\nfn main() {\n    println(42)\n}");
         assert_eq!(warnings.len(), 1);
         assert!(warnings[0].contains("unused import"));
         assert!(warnings[0].contains("std::math"));
@@ -674,19 +677,19 @@ mod tests {
 
     #[test]
     fn aliased_import_unused() {
-        let warnings = parse_and_check(
-            "use std::math as m\nfn main() {\n    println(42)\n}",
-        );
+        let warnings = parse_and_check("use std::math as m\nfn main() {\n    println(42)\n}");
         assert_eq!(warnings.len(), 1);
         assert!(warnings[0].contains("std::math"));
     }
 
     #[test]
     fn underscore_prefix_suppresses() {
-        let warnings = parse_and_check(
-            "use std::math as _m\nfn main() {\n    println(42)\n}",
+        let warnings = parse_and_check("use std::math as _m\nfn main() {\n    println(42)\n}");
+        assert!(
+            warnings.is_empty(),
+            "_ prefix should suppress: {:?}",
+            warnings
         );
-        assert!(warnings.is_empty(), "_ prefix should suppress: {:?}", warnings);
     }
 
     // ── Unused binding tests ───────────────────────────────────────────
@@ -731,17 +734,15 @@ mod tests {
 
     #[test]
     fn binding_used_in_condition() {
-        let warnings = parse_and_check_bindings(
-            "fn main() {\n  let flag = true\n  if flag { println(1) }\n}",
-        );
+        let warnings =
+            parse_and_check_bindings("fn main() {\n  let flag = true\n  if flag { println(1) }\n}");
         assert!(warnings.is_empty());
     }
 
     #[test]
     fn multiple_bindings_partial_use() {
-        let warnings = parse_and_check_bindings(
-            "fn main() {\n  let a = 1\n  let b = 2\n  println(a)\n}",
-        );
+        let warnings =
+            parse_and_check_bindings("fn main() {\n  let a = 1\n  let b = 2\n  println(a)\n}");
         assert_eq!(warnings.len(), 1);
         assert!(warnings[0].contains("unused binding `b`"), "{:?}", warnings);
     }

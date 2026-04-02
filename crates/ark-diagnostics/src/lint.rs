@@ -216,7 +216,11 @@ mod tests {
     fn all_rules_have_descriptions() {
         let reg = LintRegistry::new();
         for rule in reg.rules() {
-            assert!(!rule.description.is_empty(), "rule {} has empty description", rule.id);
+            assert!(
+                !rule.description.is_empty(),
+                "rule {} has empty description",
+                rule.id
+            );
         }
     }
 }

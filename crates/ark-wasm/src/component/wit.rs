@@ -565,8 +565,7 @@ mod tests {
 
     #[test]
     fn test_wit_accuracy_export_add() {
-        let expected =
-            include_str!("../../../../tests/fixtures/component/export_add.expected.wit");
+        let expected = include_str!("../../../../tests/fixtures/component/export_add.expected.wit");
         let world = WitWorld {
             name: "export_add".to_string(),
             functions: vec![WitFunction {
@@ -668,11 +667,7 @@ mod tests {
             records: vec![],
             enums: vec![WitEnum {
                 name: "Color".to_string(),
-                variants: vec![
-                    "red".to_string(),
-                    "green".to_string(),
-                    "blue".to_string(),
-                ],
+                variants: vec!["red".to_string(), "green".to_string(), "blue".to_string()],
             }],
             variants: vec![],
             resources: vec![],

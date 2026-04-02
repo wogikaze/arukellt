@@ -614,10 +614,8 @@ impl Ctx {
                 if let Some(&base_idx) = self.enum_base_types.get(name) {
                     return ref_nullable(base_idx);
                 }
-                if let Some(specialized_name) = nominalize_generic_type_name(name)
-                {
-                    if let Some(&base_idx) = self.enum_base_types.get(specialized_name.as_str())
-                    {
+                if let Some(specialized_name) = nominalize_generic_type_name(name) {
+                    if let Some(&base_idx) = self.enum_base_types.get(specialized_name.as_str()) {
                         return ref_nullable(base_idx);
                     }
                 }

@@ -3,22 +3,14 @@
 //!
 //! This pass introduces fresh locals as temporaries for expression results.
 
-use crate::mir::{
-    LocalId, MirFunction, MirLocal, MirStmt, Operand, Place, Rvalue,
-};
+use crate::mir::{LocalId, MirFunction, MirLocal, MirStmt, Operand, Place, Rvalue};
 use ark_typecheck::types::Type;
 
 /// Desugar all backend-illegal operands in a function.
 /// Returns the number of operands desugared.
 pub fn desugar_exprs(func: &mut MirFunction) -> usize {
     let mut counter = 0;
-    let mut next_local = func
-        .locals
-        .iter()
-        .map(|l| l.id.0)
-        .max()
-        .unwrap_or(0)
-        + 1;
+    let mut next_local = func.locals.iter().map(|l| l.id.0).max().unwrap_or(0) + 1;
 
     for block in &mut func.blocks {
         let mut new_stmts = Vec::with_capacity(block.stmts.len());
@@ -32,11 +24,7 @@ pub fn desugar_exprs(func: &mut MirFunction) -> usize {
     counter
 }
 
-fn fresh_local(
-    next_id: &mut u32,
-    locals: &mut Vec<MirLocal>,
-    name: &str,
-) -> LocalId {
+fn fresh_local(next_id: &mut u32, locals: &mut Vec<MirLocal>, name: &str) -> LocalId {
     let id = LocalId(*next_id);
     *next_id += 1;
     locals.push(MirLocal {
@@ -112,10 +100,7 @@ fn desugar_stmt(
                 // Move condition computation into the loop body as an if-break
                 let mut loop_body = pre;
                 loop_body.push(MirStmt::IfStmt {
-                    cond: Operand::UnaryOp(
-                        crate::mir::UnaryOp::Not,
-                        Box::new(new_cond),
-                    ),
+                    cond: Operand::UnaryOp(crate::mir::UnaryOp::Not, Box::new(new_cond)),
                     then_body: vec![MirStmt::Break],
                     else_body: vec![],
                 });
@@ -250,20 +235,14 @@ fn desugar_operand(
         Operand::LoopExpr { init, body, result } => {
             let (new_init, mut pre, c1) = desugar_operand(*init, next_id, locals);
             let tmp = fresh_local(next_id, locals, "_loop_result");
-            pre.push(MirStmt::Assign(
-                Place::Local(tmp),
-                Rvalue::Use(new_init),
-            ));
+            pre.push(MirStmt::Assign(Place::Local(tmp), Rvalue::Use(new_init)));
 
             let (new_body, c2) = desugar_stmt_list(body, next_id, locals);
             // After loop body, assign result to tmp
             let (new_result, result_pre, c3) = desugar_operand(*result, next_id, locals);
             let mut loop_body = new_body;
             loop_body.extend(result_pre);
-            loop_body.push(MirStmt::Assign(
-                Place::Local(tmp),
-                Rvalue::Use(new_result),
-            ));
+            loop_body.push(MirStmt::Assign(Place::Local(tmp), Rvalue::Use(new_result)));
 
             pre.push(MirStmt::WhileStmt {
                 cond: Operand::ConstBool(true),

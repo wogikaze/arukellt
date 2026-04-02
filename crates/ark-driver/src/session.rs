@@ -594,10 +594,7 @@ impl Session {
                     && self.lint_deny.iter().any(|code| d.code.as_str() == code)
             });
             if !filtered.is_empty() {
-                eprint!(
-                    "{}",
-                    render_diagnostics(&filtered, &self.source_map)
-                );
+                eprint!("{}", render_diagnostics(&filtered, &self.source_map));
             }
             if has_denied {
                 return Err("lint rules denied by configuration".to_string());

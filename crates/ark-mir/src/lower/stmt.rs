@@ -312,8 +312,7 @@ impl LowerCtx {
                                 }
                             }
                         }
-                        self.enum_typed_locals
-                            .insert(local_id.0, enum_name.clone());
+                        self.enum_typed_locals.insert(local_id.0, enum_name.clone());
                         // Compute payload strings for the inferred type
                         let mut payload_strings = HashSet::new();
                         if let ast::TypeExpr::Generic { args, .. } = &ret_te {
@@ -752,7 +751,10 @@ impl LowerCtx {
         match object {
             ast::Expr::Ident { name, .. } => {
                 let local_id = self.lookup_local(name)?;
-                Some(Place::Field(Box::new(Place::Local(local_id)), field.to_string()))
+                Some(Place::Field(
+                    Box::new(Place::Local(local_id)),
+                    field.to_string(),
+                ))
             }
             ast::Expr::FieldAccess {
                 object: inner_object,

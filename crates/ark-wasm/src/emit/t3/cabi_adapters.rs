@@ -299,7 +299,7 @@ impl Ctx {
                                 payload_valtype: payload_vt,
                             });
                             flat_params.push(ValType::I32); // discriminant
-                            flat_params.push(payload_vt);   // payload
+                            flat_params.push(payload_vt); // payload
                             needs_adapter = true;
                         } else {
                             param_adaptations.push(ParamAdaptation::Scalar);
@@ -313,7 +313,9 @@ impl Ctx {
                     let inner = &type_name[7..type_name.len() - 1];
                     // Split on ", " to get ok and err types
                     if let Some((ok_str, err_str)) = inner.split_once(", ") {
-                        if is_scalar_type_name(ok_str) && (is_scalar_type_name(err_str) || err_str == "String") {
+                        if is_scalar_type_name(ok_str)
+                            && (is_scalar_type_name(err_str) || err_str == "String")
+                        {
                             if let Some((base_idx, ok_idx, err_idx, ok_vt, err_vt)) =
                                 self.resolve_result_types(ok_str, err_str)
                             {
@@ -328,7 +330,7 @@ impl Ctx {
                                     err_is_string: err_str == "String",
                                 });
                                 flat_params.push(ValType::I32); // discriminant
-                                flat_params.push(payload_vt);   // payload
+                                flat_params.push(payload_vt); // payload
                                 needs_adapter = true;
                             } else {
                                 param_adaptations.push(ParamAdaptation::Scalar);
@@ -370,9 +372,9 @@ impl Ctx {
                         needs_adapter = true;
                     } else {
                         // Payload enum: each variant has exactly one scalar field
-                        let all_single_scalar = variants.iter().all(|(_, p)| {
-                            p.len() == 1 && is_scalar_type_name(&p[0])
-                        });
+                        let all_single_scalar = variants
+                            .iter()
+                            .all(|(_, p)| p.len() == 1 && is_scalar_type_name(&p[0]));
                         if all_single_scalar {
                             let variant_type_indices: Vec<u32> = variants
                                 .iter()
@@ -393,7 +395,9 @@ impl Ctx {
                                 .get(type_name.as_str())
                                 .copied()
                                 .unwrap_or(0);
-                            let payload_vt = variant_valtypes.iter().copied()
+                            let payload_vt = variant_valtypes
+                                .iter()
+                                .copied()
                                 .reduce(wider_valtype)
                                 .unwrap_or(ValType::I32);
                             param_adaptations.push(ParamAdaptation::PayloadVariant {
@@ -403,7 +407,7 @@ impl Ctx {
                                 payload_valtype: payload_vt,
                             });
                             flat_params.push(ValType::I32); // discriminant
-                            flat_params.push(payload_vt);   // widened payload
+                            flat_params.push(payload_vt); // widened payload
                             needs_adapter = true;
                         } else {
                             param_adaptations.push(ParamAdaptation::Scalar);
@@ -453,9 +457,7 @@ impl Ctx {
                 })
             } else if ret_name.starts_with("Vec<") && ret_name.ends_with('>') {
                 let inner = &ret_name[4..ret_name.len() - 1];
-                if let Some((vec_ty, arr_ty, elem_size, elem_vt)) =
-                    self.resolve_vec_types(inner)
-                {
+                if let Some((vec_ty, arr_ty, elem_size, elem_vt)) = self.resolve_vec_types(inner) {
                     needs_adapter = true;
                     Some(ReturnAdaptation::List {
                         vec_type_idx: vec_ty,
@@ -487,7 +489,9 @@ impl Ctx {
             } else if ret_name.starts_with("Result<") && ret_name.ends_with('>') {
                 let inner = &ret_name[7..ret_name.len() - 1];
                 if let Some((ok_str, err_str)) = inner.split_once(", ") {
-                    if is_scalar_type_name(ok_str) && (is_scalar_type_name(err_str) || err_str == "String") {
+                    if is_scalar_type_name(ok_str)
+                        && (is_scalar_type_name(err_str) || err_str == "String")
+                    {
                         if let Some((base_idx, ok_idx, err_idx, ok_vt, err_vt)) =
                             self.resolve_result_types(ok_str, err_str)
                         {
@@ -534,9 +538,9 @@ impl Ctx {
                     })
                 } else {
                     // Payload enum: each variant has exactly one scalar field
-                    let all_single_scalar = variants.iter().all(|(_, p)| {
-                        p.len() == 1 && is_scalar_type_name(&p[0])
-                    });
+                    let all_single_scalar = variants
+                        .iter()
+                        .all(|(_, p)| p.len() == 1 && is_scalar_type_name(&p[0]));
                     if all_single_scalar {
                         let variant_type_indices: Vec<u32> = variants
                             .iter()
@@ -557,7 +561,9 @@ impl Ctx {
                             .get(ret_name.as_str())
                             .copied()
                             .unwrap_or(0);
-                        let payload_vt = variant_valtypes.iter().copied()
+                        let payload_vt = variant_valtypes
+                            .iter()
+                            .copied()
                             .reduce(wider_valtype)
                             .unwrap_or(ValType::I32);
                         needs_adapter = true;
@@ -721,7 +727,11 @@ impl Ctx {
                 locals.push((1, ValType::I32)); // len
                 locals.push((1, ValType::I32)); // loop counter i
             }
-            Some(ReturnAdaptation::List { vec_type_idx, arr_type_idx, .. }) => {
+            Some(ReturnAdaptation::List {
+                vec_type_idx,
+                arr_type_idx,
+                ..
+            }) => {
                 // Need: vec ref local, arr ref local, len local, loop counter local
                 locals.push((1, super::ref_nullable(*vec_type_idx)));
                 locals.push((1, super::ref_nullable(*arr_type_idx)));
@@ -732,14 +742,18 @@ impl Ctx {
                 // Need a local to store the GC enum ref
                 locals.push((1, super::ref_nullable(*base_type_idx)));
             }
-            Some(ReturnAdaptation::ResultType { base_type_idx, err_is_string, .. }) => {
+            Some(ReturnAdaptation::ResultType {
+                base_type_idx,
+                err_is_string,
+                ..
+            }) => {
                 // Need a local to store the GC enum ref
                 locals.push((1, super::ref_nullable(*base_type_idx)));
                 if *err_is_string {
                     // Extra locals for string lowering: string arr ref, len, loop counter
                     locals.push((1, super::ref_nullable(0))); // string arr ref (type 0 = i8 array)
-                    locals.push((1, ValType::I32));            // len
-                    locals.push((1, ValType::I32));            // loop counter
+                    locals.push((1, ValType::I32)); // len
+                    locals.push((1, ValType::I32)); // loop counter
                 }
             }
             Some(ReturnAdaptation::PayloadVariant { base_type_idx, .. }) => {
@@ -830,9 +844,9 @@ impl Ctx {
                     // if disc == 0 → None, else → Some(payload)
                     f.instruction(&Instruction::LocalGet(disc_local));
                     f.instruction(&Instruction::I32Eqz);
-                    f.instruction(&Instruction::If(BlockType::Result(
-                        super::ref_nullable(*base_type_idx),
-                    )));
+                    f.instruction(&Instruction::If(BlockType::Result(super::ref_nullable(
+                        *base_type_idx,
+                    ))));
                     // None branch
                     f.instruction(&Instruction::StructNew(*none_type_idx));
                     f.instruction(&Instruction::Else);
@@ -855,9 +869,9 @@ impl Ctx {
                     // if disc == 0 → Ok(payload), else → Err(payload)
                     f.instruction(&Instruction::LocalGet(disc_local));
                     f.instruction(&Instruction::I32Eqz);
-                    f.instruction(&Instruction::If(BlockType::Result(
-                        super::ref_nullable(*base_type_idx),
-                    )));
+                    f.instruction(&Instruction::If(BlockType::Result(super::ref_nullable(
+                        *base_type_idx,
+                    ))));
                     // Ok branch
                     f.instruction(&Instruction::LocalGet(payload_local));
                     // May need type conversion if ok_valtype != wider payload type
@@ -1106,20 +1120,26 @@ impl Ctx {
 
                 // Try to cast to Some variant
                 f.instruction(&Instruction::LocalGet(ref_local));
-                f.instruction(&Instruction::RefTestNonNull(HeapType::Concrete(*some_type_idx)));
+                f.instruction(&Instruction::RefTestNonNull(HeapType::Concrete(
+                    *some_type_idx,
+                )));
                 f.instruction(&Instruction::If(BlockType::Empty));
                 {
                     // It's Some: write disc=1, payload=value
                     f.instruction(&Instruction::GlobalGet(0));
                     f.instruction(&Instruction::I32Const(1));
                     f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
-                        offset: 0, align: 2, memory_index: 0,
+                        offset: 0,
+                        align: 2,
+                        memory_index: 0,
                     }));
                     f.instruction(&Instruction::GlobalGet(0));
                     f.instruction(&Instruction::I32Const(4));
                     f.instruction(&Instruction::I32Add);
                     f.instruction(&Instruction::LocalGet(ref_local));
-                    f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(*some_type_idx)));
+                    f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                        *some_type_idx,
+                    )));
                     f.instruction(&Instruction::StructGet {
                         struct_type_index: *some_type_idx,
                         field_index: 0,
@@ -1132,7 +1152,9 @@ impl Ctx {
                     f.instruction(&Instruction::GlobalGet(0));
                     f.instruction(&Instruction::I32Const(0));
                     f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
-                        offset: 0, align: 2, memory_index: 0,
+                        offset: 0,
+                        align: 2,
+                        memory_index: 0,
                     }));
                     f.instruction(&Instruction::GlobalGet(0));
                     f.instruction(&Instruction::I32Const(4));
@@ -1173,20 +1195,26 @@ impl Ctx {
                     f.instruction(&Instruction::GlobalGet(0));
 
                     f.instruction(&Instruction::LocalGet(ref_local));
-                    f.instruction(&Instruction::RefTestNonNull(HeapType::Concrete(*ok_type_idx)));
+                    f.instruction(&Instruction::RefTestNonNull(HeapType::Concrete(
+                        *ok_type_idx,
+                    )));
                     f.instruction(&Instruction::If(BlockType::Empty));
                     {
                         // Ok case: disc=0, ok_value at retptr+4
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(0));
                         f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
-                            offset: 0, align: 2, memory_index: 0,
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
                         }));
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::LocalGet(ref_local));
-                        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(*ok_type_idx)));
+                        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                            *ok_type_idx,
+                        )));
                         f.instruction(&Instruction::StructGet {
                             struct_type_index: *ok_type_idx,
                             field_index: 0,
@@ -1204,11 +1232,15 @@ impl Ctx {
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
-                            offset: 0, align: 2, memory_index: 0,
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
                         }));
                         // Get string ref from Err variant
                         f.instruction(&Instruction::LocalGet(ref_local));
-                        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(*err_type_idx)));
+                        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                            *err_type_idx,
+                        )));
                         f.instruction(&Instruction::StructGet {
                             struct_type_index: *err_type_idx,
                             field_index: 0,
@@ -1238,7 +1270,9 @@ impl Ctx {
                         f.instruction(&Instruction::LocalGet(str_i_local));
                         f.instruction(&Instruction::ArrayGetU(0)); // type 0 = i8 array
                         f.instruction(&Instruction::I32Store8(wasm_encoder::MemArg {
-                            offset: 0, align: 0, memory_index: 0,
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
                         }));
                         f.instruction(&Instruction::LocalGet(str_i_local));
                         f.instruction(&Instruction::I32Const(1));
@@ -1255,7 +1289,9 @@ impl Ctx {
                         f.instruction(&Instruction::I32Const(12));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
-                            offset: 0, align: 2, memory_index: 0,
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
                         }));
                         // Write str_len at retptr+8
                         f.instruction(&Instruction::GlobalGet(0));
@@ -1263,7 +1299,9 @@ impl Ctx {
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::LocalGet(str_len_local));
                         f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
-                            offset: 0, align: 2, memory_index: 0,
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
                         }));
                         // Advance heap_ptr by 12 + len (aligned to 4)
                         f.instruction(&Instruction::GlobalGet(0));
@@ -1296,20 +1334,26 @@ impl Ctx {
 
                     // Try to cast to Ok variant
                     f.instruction(&Instruction::LocalGet(ref_local));
-                    f.instruction(&Instruction::RefTestNonNull(HeapType::Concrete(*ok_type_idx)));
+                    f.instruction(&Instruction::RefTestNonNull(HeapType::Concrete(
+                        *ok_type_idx,
+                    )));
                     f.instruction(&Instruction::If(BlockType::Empty));
                     {
                         // It's Ok: write disc=0, payload=ok_value
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(0));
                         f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
-                            offset: 0, align: 2, memory_index: 0,
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
                         }));
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::LocalGet(ref_local));
-                        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(*ok_type_idx)));
+                        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                            *ok_type_idx,
+                        )));
                         f.instruction(&Instruction::StructGet {
                             struct_type_index: *ok_type_idx,
                             field_index: 0,
@@ -1327,13 +1371,17 @@ impl Ctx {
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(1));
                         f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
-                            offset: 0, align: 2, memory_index: 0,
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
                         }));
                         f.instruction(&Instruction::GlobalGet(0));
                         f.instruction(&Instruction::I32Const(4));
                         f.instruction(&Instruction::I32Add);
                         f.instruction(&Instruction::LocalGet(ref_local));
-                        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(*err_type_idx)));
+                        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                            *err_type_idx,
+                        )));
                         f.instruction(&Instruction::StructGet {
                             struct_type_index: *err_type_idx,
                             field_index: 0,

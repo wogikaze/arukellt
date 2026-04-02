@@ -873,11 +873,25 @@ impl<'ctx> LlvmEmitter<'ctx> {
             }
             // Extended scalar types — all map to i32/i64 at LLVM level
             Operand::ConstU8(v) => Some(self.context.i32_type().const_int(*v as u64, false).into()),
-            Operand::ConstU16(v) => Some(self.context.i32_type().const_int(*v as u64, false).into()),
-            Operand::ConstU32(v) => Some(self.context.i32_type().const_int(*v as u64, false).into()),
+            Operand::ConstU16(v) => {
+                Some(self.context.i32_type().const_int(*v as u64, false).into())
+            }
+            Operand::ConstU32(v) => {
+                Some(self.context.i32_type().const_int(*v as u64, false).into())
+            }
             Operand::ConstU64(v) => Some(self.context.i64_type().const_int(*v, false).into()),
-            Operand::ConstI8(v) => Some(self.context.i32_type().const_int(*v as i64 as u64, true).into()),
-            Operand::ConstI16(v) => Some(self.context.i32_type().const_int(*v as i64 as u64, true).into()),
+            Operand::ConstI8(v) => Some(
+                self.context
+                    .i32_type()
+                    .const_int(*v as i64 as u64, true)
+                    .into(),
+            ),
+            Operand::ConstI16(v) => Some(
+                self.context
+                    .i32_type()
+                    .const_int(*v as i64 as u64, true)
+                    .into(),
+            ),
             Operand::ConstString(s) => {
                 // Create a global string constant and return a pointer to it
                 let str_val = self.builder.build_global_string_ptr(s, "str").unwrap();

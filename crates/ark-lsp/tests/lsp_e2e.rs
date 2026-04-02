@@ -4,7 +4,7 @@
 //! JSON-RPC protocol directly, verifying capability negotiation, document
 //! lifecycle, and feature responses.
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::process::{Child, Command, Stdio};
 use std::sync::mpsc;
@@ -41,9 +41,7 @@ impl LspSession {
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
             .spawn()
-            .unwrap_or_else(|e| {
-                panic!("failed to spawn LSP server at {:?}: {}", bin_path, e)
-            });
+            .unwrap_or_else(|e| panic!("failed to spawn LSP server at {:?}: {}", bin_path, e));
 
         // Move stdout into a background reader thread that continuously
         // parses JSON-RPC messages and sends them through a channel.
@@ -196,9 +194,7 @@ fn initialize_returns_capabilities() {
     let resp = session.initialize();
 
     let result = resp.get("result").expect("result in initialize response");
-    let caps = result
-        .get("capabilities")
-        .expect("capabilities in result");
+    let caps = result.get("capabilities").expect("capabilities in result");
 
     // Should advertise completion
     assert!(
@@ -285,10 +281,7 @@ fn hover_returns_info() {
     if let Some(r) = result {
         if !r.is_null() {
             let contents = r.get("contents").expect("hover contents");
-            let value = contents
-                .get("value")
-                .and_then(|v| v.as_str())
-                .unwrap_or("");
+            let value = contents.get("value").and_then(|v| v.as_str()).unwrap_or("");
             assert!(
                 value.contains("greet") || value.contains("fn"),
                 "hover should show function info"
@@ -343,11 +336,12 @@ fn shutdown_sequence_works() {
         .request(100, "shutdown", json!(null))
         .expect("shutdown response");
 
-    // Result should be null (success)  
+    // Result should be null (success)
     // tower-lsp returns result: null on shutdown
     assert!(
         resp.get("result").is_some() || resp.get("error").is_none(),
-        "shutdown should return a result (got {:?})", resp
+        "shutdown should return a result (got {:?})",
+        resp
     );
 
     // Send exit notification

@@ -199,7 +199,10 @@ impl Ctx {
                 };
                 // Check if this is a builtin — redirect to inline implementation
                 let is_http_wrapper = self.http_wrapper_fns.contains(name);
-                if (self.is_builtin_name(&canonical) || is_lookup_builtin) && !prefer_user_fn && !is_http_wrapper {
+                if (self.is_builtin_name(&canonical) || is_lookup_builtin)
+                    && !prefer_user_fn
+                    && !is_http_wrapper
+                {
                     self.emit_call_builtin_operand(f, effective_builtin, args);
                 } else {
                     // Check if callee has Any-typed (generic) params needing boxing
@@ -478,19 +481,18 @@ impl Ctx {
                 } else {
                     enum_name.clone()
                 };
-                let effective_variant_name =
-                    if enum_name == "Option"
-                        && effective_enum_name != *enum_name
-                        && effective_enum_name.starts_with("Result")
-                    {
-                        match variant_name.as_str() {
-                            "Some" => "Ok",
-                            "None" => "Err",
-                            _ => variant_name.as_str(),
-                        }
-                    } else {
-                        variant_name.as_str()
-                    };
+                let effective_variant_name = if enum_name == "Option"
+                    && effective_enum_name != *enum_name
+                    && effective_enum_name.starts_with("Result")
+                {
+                    match variant_name.as_str() {
+                        "Some" => "Ok",
+                        "None" => "Err",
+                        _ => variant_name.as_str(),
+                    }
+                } else {
+                    variant_name.as_str()
+                };
                 let variant_ty = self
                     .enum_variant_types
                     .get(effective_enum_name.as_str())

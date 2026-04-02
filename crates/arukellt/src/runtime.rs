@@ -135,9 +135,7 @@ pub(crate) fn run_wasm_gc(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
         .map_err(|e| format!("wasi link error: {}", e))?;
 
     // Register arukellt_host HTTP functions (conditional — only if the module imports them)
-    let needs_http = module
-        .imports()
-        .any(|imp| imp.module() == "arukellt_host");
+    let needs_http = module.imports().any(|imp| imp.module() == "arukellt_host");
     if needs_http {
         register_http_host_fns(&mut linker)?;
     }
@@ -279,8 +277,7 @@ fn read_string_from_mem(
     if ptr + len > data.len() {
         return Err("out of bounds memory access".into());
     }
-    String::from_utf8(data[ptr..ptr + len].to_vec())
-        .map_err(|_| "invalid UTF-8".into())
+    String::from_utf8(data[ptr..ptr + len].to_vec()).map_err(|_| "invalid UTF-8".into())
 }
 
 /// Write an Ok response to linear memory. Returns the positive body length.
@@ -307,8 +304,7 @@ fn write_error(
 ) -> i32 {
     let ptr = resp_ptr as usize;
     let bytes = msg.as_bytes();
-    let data = caller.get_export("memory")
-        .and_then(|e| e.into_memory());
+    let data = caller.get_export("memory").and_then(|e| e.into_memory());
     if let Some(mem) = data {
         let d = mem.data_mut(caller);
         let end = ptr + bytes.len();
@@ -346,20 +342,20 @@ fn http_request_impl(method: &str, url: &str, body: &str) -> Result<String, Stri
         None => (rest, "/"),
     };
     let (host, port) = match host_port.find(':') {
-        Some(i) => (&host_port[..i], host_port[i + 1..].parse::<u16>().map_err(|_| "invalid port")?),
+        Some(i) => (
+            &host_port[..i],
+            host_port[i + 1..]
+                .parse::<u16>()
+                .map_err(|_| "invalid port")?,
+        ),
         None => (host_port, 80u16),
     };
 
     // Connect
     let addr = format!("{}:{}", host, port);
-    let mut stream = TcpStream::connect(&addr)
-        .map_err(|e| format!("connection error: {}", e))?;
-    stream
-        .set_read_timeout(Some(Duration::from_secs(30)))
-        .ok();
-    stream
-        .set_write_timeout(Some(Duration::from_secs(10)))
-        .ok();
+    let mut stream = TcpStream::connect(&addr).map_err(|e| format!("connection error: {}", e))?;
+    stream.set_read_timeout(Some(Duration::from_secs(30))).ok();
+    stream.set_write_timeout(Some(Duration::from_secs(10))).ok();
 
     // Send HTTP/1.1 request
     let request = if body.is_empty() {
@@ -370,7 +366,11 @@ fn http_request_impl(method: &str, url: &str, body: &str) -> Result<String, Stri
     } else {
         format!(
             "{} {} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\nUser-Agent: arukellt/0.1\r\nContent-Length: {}\r\n\r\n{}",
-            method, path, host, body.len(), body
+            method,
+            path,
+            host,
+            body.len(),
+            body
         )
     };
     stream
@@ -393,7 +393,11 @@ fn http_request_impl(method: &str, url: &str, body: &str) -> Result<String, Stri
         if parts.len() >= 2 {
             let status: u16 = parts[1].parse().unwrap_or(0);
             if status >= 400 {
-                return Err(format!("HTTP {}: {}", status, &response_str[header_end + 4..]));
+                return Err(format!(
+                    "HTTP {}: {}",
+                    status,
+                    &response_str[header_end + 4..]
+                ));
             }
         }
         Ok(response_str[header_end + 4..].to_string())

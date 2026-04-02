@@ -282,7 +282,10 @@ fn optimize_module_with_passes(
     if desugar_count > 0 {
         push_optimization_trace(
             module,
-            format!("desugar: lowered {} backend-illegal operands", desugar_count),
+            format!(
+                "desugar: lowered {} backend-illegal operands",
+                desugar_count
+            ),
         );
         if should_dump {
             crate::mir::dump_mir_phase(module, "after-desugar");

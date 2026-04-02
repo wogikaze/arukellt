@@ -17,24 +17,96 @@ pub struct StdlibFn {
 /// Get all stdlib function descriptors (legacy hardcoded list).
 pub fn stdlib_functions() -> Vec<StdlibFn> {
     vec![
-        StdlibFn { name: "println".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "print".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "eprintln".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "i32_to_string".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "i64_to_string".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "f64_to_string".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "parse_i32".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "parse_i64".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "to_string".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "parse_f64".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "Vec_new_i32".into(), module: "vec", wasi_import: None },
-        StdlibFn { name: "Vec_new_i64".into(), module: "vec", wasi_import: None },
-        StdlibFn { name: "Vec_new_f64".into(), module: "vec", wasi_import: None },
-        StdlibFn { name: "Vec_new_String".into(), module: "vec", wasi_import: None },
-        StdlibFn { name: "sqrt".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "abs".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "min".into(), module: "prelude", wasi_import: None },
-        StdlibFn { name: "max".into(), module: "prelude", wasi_import: None },
+        StdlibFn {
+            name: "println".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "print".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "eprintln".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "i32_to_string".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "i64_to_string".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "f64_to_string".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "parse_i32".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "parse_i64".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "to_string".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "parse_f64".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "Vec_new_i32".into(),
+            module: "vec",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "Vec_new_i64".into(),
+            module: "vec",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "Vec_new_f64".into(),
+            module: "vec",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "Vec_new_String".into(),
+            module: "vec",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "sqrt".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "abs".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "min".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
+        StdlibFn {
+            name: "max".into(),
+            module: "prelude",
+            wasi_import: None,
+        },
     ]
 }
 
@@ -227,7 +299,11 @@ mod tests {
     fn module_names_include_host_modules() {
         let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
         let names = manifest.module_names();
-        assert!(names.contains(&"std::host::stdio".to_string()), "missing stdio, got: {:?}", names);
+        assert!(
+            names.contains(&"std::host::stdio".to_string()),
+            "missing stdio, got: {:?}",
+            names
+        );
         assert!(names.contains(&"std::host::fs".to_string()), "missing fs");
     }
 
@@ -246,9 +322,16 @@ mod tests {
         let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
         let prelude = manifest.prelude_function_names();
         // Many core functions have prelude=true in the manifest
-        assert!(prelude.len() > 10, "prelude should have many functions, got {}", prelude.len());
+        assert!(
+            prelude.len() > 10,
+            "prelude should have many functions, got {}",
+            prelude.len()
+        );
         // String_from, eq, etc. are marked prelude in the manifest
-        assert!(prelude.contains(&"String_from".to_string()), "String_from should be prelude");
+        assert!(
+            prelude.contains(&"String_from".to_string()),
+            "String_from should be prelude"
+        );
     }
 
     #[test]
@@ -297,4 +380,3 @@ mod tests {
         );
     }
 }
-

@@ -641,7 +641,10 @@ pub(crate) fn cmd_lint(file: Option<PathBuf>, target: TargetId, list: bool) {
 
     if list {
         println!("Available lint rules ({}):\n", registry.len());
-        println!("{:<8} {:<14} {:<7} {}", "ID", "Category", "Level", "Description");
+        println!(
+            "{:<8} {:<14} {:<7} {}",
+            "ID", "Category", "Level", "Description"
+        );
         println!("{}", "-".repeat(70));
         for rule in registry.rules() {
             let level = match rule.default_level {
@@ -1161,10 +1164,7 @@ const RANDOM_BUILTINS: &[&str] = &[
 /// Functions marked `kind = "host_stub"` in std/manifest.toml.
 /// These always return Err("not implemented") and should be rejected at
 /// compile time rather than letting users discover the failure at runtime.
-const HOST_STUB_BUILTINS: &[&str] = &[
-    "sockets_connect",
-    "__intrinsic_sockets_connect",
-];
+const HOST_STUB_BUILTINS: &[&str] = &["sockets_connect", "__intrinsic_sockets_connect"];
 
 /// Scan MIR for calls to any of the given builtin names.
 fn mir_uses_capability(mir: &MirModule, builtins: &[&str]) -> bool {

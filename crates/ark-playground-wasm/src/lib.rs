@@ -216,9 +216,8 @@ pub fn parse(source: &str) -> String {
         diagnostics: all_diagnostics,
         error_count,
     };
-    serde_json::to_string(&resp).unwrap_or_else(|e| {
-        format!(r#"{{"ok":false,"error":"serialization failed: {}"}}"#, e)
-    })
+    serde_json::to_string(&resp)
+        .unwrap_or_else(|e| format!(r#"{{"ok":false,"error":"serialization failed: {}"}}"#, e))
 }
 
 /// Format Arukellt source code.
@@ -298,9 +297,8 @@ pub fn tokenize(source: &str) -> String {
         tokens: js_tokens,
         diagnostics,
     };
-    serde_json::to_string(&resp).unwrap_or_else(|e| {
-        format!(r#"{{"ok":false,"error":"serialization failed: {}"}}"#, e)
-    })
+    serde_json::to_string(&resp)
+        .unwrap_or_else(|e| format!(r#"{{"ok":false,"error":"serialization failed: {}"}}"#, e))
 }
 
 /// Return the crate version.

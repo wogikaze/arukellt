@@ -3857,8 +3857,16 @@ impl EmitCtx {
                     }
                     "f64_bits_lo" => {
                         // f64_bits_lo(val: f64) -> i32: low 32 bits of IEEE 754
-                        let ma8 = MemArg { offset: 0, align: 3, memory_index: 0 };
-                        let ma4 = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma8 = MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        };
+                        let ma4 = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
                         // Store f64 to scratch
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
                         if let Some(a) = args.first() {
@@ -3871,8 +3879,16 @@ impl EmitCtx {
                     }
                     "f64_bits_hi" => {
                         // f64_bits_hi(val: f64) -> i32: high 32 bits of IEEE 754
-                        let ma8 = MemArg { offset: 0, align: 3, memory_index: 0 };
-                        let ma4 = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma8 = MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        };
+                        let ma4 = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
                         // Store f64 to scratch
                         f.instruction(&Instruction::I32Const(SCRATCH as i32));
                         if let Some(a) = args.first() {

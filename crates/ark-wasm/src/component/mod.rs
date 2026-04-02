@@ -450,8 +450,7 @@ fn type_name_to_wit_full(
                 let wit_fields: Vec<WitType> = fields
                     .iter()
                     .map(|(_, ty)| {
-                        type_name_to_wit_full(ty, struct_defs, enum_defs)
-                            .unwrap_or(WitType::S32)
+                        type_name_to_wit_full(ty, struct_defs, enum_defs).unwrap_or(WitType::S32)
                     })
                     .collect();
                 return Some(WitType::Tuple(wit_fields));
@@ -581,8 +580,7 @@ pub fn validate_component_export_types(
                             errors.push((
                                 func.name.clone(),
                                 ark_diagnostics::component_compound_type_diagnostic(
-                                    &func.name,
-                                    &type_desc,
+                                    &func.name, &type_desc,
                                 ),
                             ));
                             break;
@@ -598,8 +596,7 @@ pub fn validate_component_export_types(
                             errors.push((
                                 func.name.clone(),
                                 ark_diagnostics::component_compound_type_diagnostic(
-                                    &func.name,
-                                    &type_desc,
+                                    &func.name, &type_desc,
                                 ),
                             ));
                             break;
@@ -624,8 +621,7 @@ pub fn validate_component_export_types(
                         errors.push((
                             func.name.clone(),
                             ark_diagnostics::component_compound_type_diagnostic(
-                                &func.name,
-                                &type_desc,
+                                &func.name, &type_desc,
                             ),
                         ));
                         break;
@@ -648,8 +644,7 @@ pub fn validate_component_export_types(
                         errors.push((
                             func.name.clone(),
                             ark_diagnostics::component_compound_type_diagnostic(
-                                &func.name,
-                                &type_desc,
+                                &func.name, &type_desc,
                             ),
                         ));
                         break;

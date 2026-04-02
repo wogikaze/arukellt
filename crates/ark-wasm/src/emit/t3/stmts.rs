@@ -163,7 +163,10 @@ impl Ctx {
                         lookup_name
                     };
                     let is_http_wrapper = self.http_wrapper_fns.contains(&fn_name);
-                    if (self.is_builtin_name(canonical) || is_lookup_builtin) && !prefer_user_fn && !is_http_wrapper {
+                    if (self.is_builtin_name(canonical) || is_lookup_builtin)
+                        && !prefer_user_fn
+                        && !is_http_wrapper
+                    {
                         self.emit_call_builtin(f, effective_builtin, args, dest.as_ref());
                     } else {
                         let param_types = self
@@ -1223,7 +1226,10 @@ impl Ctx {
                 }
             }
             "env_var" => {
-                let name_op = args.first().cloned().unwrap_or(Operand::ConstString(String::new()));
+                let name_op = args
+                    .first()
+                    .cloned()
+                    .unwrap_or(Operand::ConstString(String::new()));
                 self.emit_env_var_builtin(f, &name_op);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
@@ -1817,7 +1823,10 @@ impl Ctx {
                 self.emit_args_builtin(f);
             }
             "env_var" => {
-                let name_op = args.first().cloned().unwrap_or(Operand::ConstString(String::new()));
+                let name_op = args
+                    .first()
+                    .cloned()
+                    .unwrap_or(Operand::ConstString(String::new()));
                 self.emit_env_var_builtin(f, &name_op);
             }
             "sqrt" => {
@@ -2543,8 +2552,14 @@ impl Ctx {
             Operand::BinOp(op, lhs, _rhs) => {
                 match op {
                     // Comparison ops always return bool (I32)
-                    BinOp::Eq | BinOp::Ne | BinOp::Lt | BinOp::Le | BinOp::Gt | BinOp::Ge
-                    | BinOp::And | BinOp::Or => ValType::I32,
+                    BinOp::Eq
+                    | BinOp::Ne
+                    | BinOp::Lt
+                    | BinOp::Le
+                    | BinOp::Gt
+                    | BinOp::Ge
+                    | BinOp::And
+                    | BinOp::Or => ValType::I32,
                     // Arithmetic ops return the type of their operands
                     _ => self.infer_operand_type(lhs),
                 }
