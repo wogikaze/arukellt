@@ -983,6 +983,238 @@ def check_stability_implementation_consistency() -> int:
     return 0
 
 
+# ── Cookbook example drift detection (#401) ────────────────────────────────────
+
+# Minimum overlap ratio between significant cookbook code lines and the union of
+# fixture code lines.  Set permissively to allow simplified/combined examples
+# while still catching real API drift (e.g. function renames, signature changes).
+_COOKBOOK_DRIFT_THRESHOLD = 0.50
+
+# Minimum number of significant lines (length > 3) for a recipe to be checked.
+# Very short snippets are too small to measure overlap meaningfully.
+_MIN_SIGNIFICANT_LINES = 3
+
+# Language keywords and control-flow constructs that look like function calls
+# (e.g. ``if (...)``, ``while (...)``) but should not be treated as API calls.
+_LANG_KEYWORDS = frozenset({
+    "fn", "if", "while", "match", "let", "return", "use", "else", "for",
+    "enum", "struct", "impl", "pub", "mut", "const", "true", "false",
+    "Ok", "Err", "Some", "None",
+})
+
+
+def _extract_api_calls(code: str) -> set[str]:
+    """Extract function/method call names from Ark source code.
+
+    Returns identifiers immediately preceding ``(``, excluding language
+    keywords and locally-defined function names.  Module-qualified calls
+    (``stdio::println``) are captured as a single token.
+    """
+    # Match: identifier (possibly module-qualified) followed by (
+    calls = set(re.findall(
+        r'\b([a-zA-Z_][a-zA-Z0-9_]*(?:::[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\(', code
+    ))
+    calls -= _LANG_KEYWORDS
+    # Remove locally defined functions (fn name(...))
+    local_defs = set(re.findall(r'\bfn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(', code))
+    calls -= local_defs
+    return calls
+
+
+def _normalize_code_lines(code: str) -> list[str]:
+    """Normalize Ark source: strip inline comments, blank lines, whitespace.
+
+    Returns a list of non-empty lines after removing trailing ``// …``
+    comments and leading/trailing whitespace.  Used to compare cookbook
+    code blocks against fixture source files.
+    """
+    result: list[str] = []
+    for line in code.splitlines():
+        # Strip trailing inline comments.  This is a simple approach that
+        # does not handle // inside string literals, but the cookbook and
+        # fixture code rarely contains // in strings.
+        stripped = re.sub(r'\s*//.*$', '', line)
+        stripped = stripped.strip()
+        if stripped:
+            result.append(stripped)
+    return result
+
+
+def _parse_cookbook_recipes(text: str) -> list[dict]:
+    """Parse cookbook.md to extract recipes with fixture references and code blocks.
+
+    Scans for ``## / ###`` headings, collects ``📎 Fixture`` link targets
+    between headings and code fences, and associates them with the following
+    `````ark`` code block.
+
+    Returns a list of dicts:
+      - ``heading``: the section heading text
+      - ``fixture_paths``: list of fixture file paths (relative to repo root)
+      - ``code``: the raw code block content
+    """
+    lines = text.splitlines()
+    recipes: list[dict] = []
+    current_heading = ""
+    pending_fixtures: list[str] = []
+    in_code_block = False
+    code_lines: list[str] = []
+
+    fixture_link_re = re.compile(r'\(\.\.\/\.\./(tests/fixtures/[^)]+\.ark)\)')
+
+    for line in lines:
+        # Track headings — each new heading resets pending fixtures
+        if line.startswith("### "):
+            current_heading = line[4:].strip()
+            pending_fixtures = []
+        elif line.startswith("## ") and not line.startswith("### "):
+            current_heading = line[3:].strip()
+            pending_fixtures = []
+
+        # Collect fixture paths from any line outside code blocks
+        if not in_code_block:
+            for m in fixture_link_re.finditer(line):
+                path = m.group(1)
+                if path not in pending_fixtures:
+                    pending_fixtures.append(path)
+
+        # Code block start
+        if line.strip().startswith("```ark"):
+            in_code_block = True
+            code_lines = []
+            continue
+
+        # Code block end
+        if in_code_block and line.strip() == "```":
+            in_code_block = False
+            if pending_fixtures:
+                recipes.append({
+                    "heading": current_heading,
+                    "fixture_paths": list(pending_fixtures),
+                    "code": "\n".join(code_lines),
+                })
+                pending_fixtures = []
+            continue
+
+        if in_code_block:
+            code_lines.append(line)
+
+    return recipes
+
+
+def check_cookbook_example_drift() -> int:
+    """Verify that cookbook.md code blocks match their referenced fixture files.
+
+    Performs two complementary checks for each recipe with ``📎 Fixture``
+    references:
+
+    1. **Line overlap** — extracts normalised code lines from the cookbook
+       snippet and the referenced fixture files, and checks that at least
+       ``_COOKBOOK_DRIFT_THRESHOLD`` of the cookbook's significant lines
+       appear in the fixture union.  Catches major structural drift.
+
+    2. **API-call consistency** — extracts function-call names from the
+       cookbook snippet and checks that every call exists somewhere in the
+       full fixture corpus (``tests/fixtures/**/*.ark``).  Catches stale
+       function names after renames or removals.
+    """
+    cookbook_path = ROOT / "docs" / "stdlib" / "cookbook.md"
+    if not cookbook_path.exists():
+        return 0
+
+    cookbook_text = cookbook_path.read_text(encoding="utf-8")
+    recipes = _parse_cookbook_recipes(cookbook_text)
+
+    if not recipes:
+        return 0
+
+    # ── Build corpus-wide API call set from all fixture files ─────────────
+    fixtures_dir = ROOT / "tests" / "fixtures"
+    corpus_api_calls: set[str] = set()
+    if fixtures_dir.exists():
+        for ark_file in fixtures_dir.rglob("*.ark"):
+            try:
+                corpus_api_calls |= _extract_api_calls(
+                    ark_file.read_text(encoding="utf-8")
+                )
+            except (OSError, UnicodeDecodeError):
+                pass
+
+    drifted: list[str] = []
+    checked = 0
+
+    for recipe in recipes:
+        heading = recipe["heading"]
+        fixture_paths = recipe["fixture_paths"]
+        code = recipe["code"]
+
+        if not fixture_paths:
+            continue
+
+        # Union of normalised lines from all referenced fixtures
+        fixture_lines: set[str] = set()
+        fixtures_found = 0
+        for fpath in fixture_paths:
+            full_path = ROOT / fpath
+            if full_path.exists():
+                fixtures_found += 1
+                ftext = full_path.read_text(encoding="utf-8")
+                fixture_lines |= set(_normalize_code_lines(ftext))
+
+        if not fixture_lines or fixtures_found == 0:
+            continue
+
+        # Normalised cookbook code lines
+        cookbook_lines = _normalize_code_lines(code)
+
+        # Keep only significant lines (length > 3) to avoid matching
+        # trivial structural tokens like }, {, etc.
+        significant = [l for l in cookbook_lines if len(l) > 3]
+
+        if len(significant) < _MIN_SIGNIFICANT_LINES:
+            continue
+
+        checked += 1
+
+        # ── Check 1: line overlap ─────────────────────────────────────────
+        # Fraction of significant cookbook lines found in fixtures
+        matched = sum(1 for l in significant if l in fixture_lines)
+        ratio = matched / len(significant)
+
+        if ratio < _COOKBOOK_DRIFT_THRESHOLD:
+            unmatched = [l for l in significant if l not in fixture_lines]
+            preview = "; ".join(unmatched[:3])
+            if len(unmatched) > 3:
+                preview += f" (+{len(unmatched) - 3} more)"
+            drifted.append(
+                f"'{heading}': {matched}/{len(significant)} significant lines "
+                f"match fixtures ({ratio:.0%} < {_COOKBOOK_DRIFT_THRESHOLD:.0%}); "
+                f"unmatched: {preview}"
+            )
+            continue  # skip API check — line-level already flagged
+
+        # ── Check 2: API call consistency against full corpus ─────────────
+        # Cookbook API calls that don't appear in ANY fixture file.
+        # Catches stale function names after renames or removals.
+        if corpus_api_calls:
+            cookbook_api = _extract_api_calls(code)
+            stale_calls = cookbook_api - corpus_api_calls
+            if stale_calls:
+                drifted.append(
+                    f"'{heading}': cookbook uses API call(s) not found in any "
+                    f"fixture: {', '.join(sorted(stale_calls))}"
+                )
+
+    if drifted:
+        errors.append(
+            f"cookbook example drift: {len(drifted)} recipe(s) have drifted "
+            f"from their fixture files ({checked} checked):\n"
+            + "\n".join(f"  \u2022 {d}" for d in drifted)
+        )
+        return 1
+
+    return 0
+
+
 def check_recipe_fixture_links() -> int:
     """Verify that recipe-manifest.toml fixture paths exist and match cookbook.md.
 
@@ -1162,6 +1394,7 @@ def main() -> int:
     failed += check_cross_page_metadata_consistency()
     failed += check_host_stub_fixture_coverage()
     failed += check_stability_implementation_consistency()
+    failed += check_cookbook_example_drift()
     failed += check_recipe_fixture_links()
     failed += check_name_index_completeness()
 
