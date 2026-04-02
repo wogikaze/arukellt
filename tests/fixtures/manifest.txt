@@ -34,6 +34,8 @@ component-compile:component/export_string.ark
 component-compile:component/export_tuple.ark
 component-compile:component/export_variant.ark
 component-compile:component/multi_export.ark
+compile-error:component/export_unsupported_option_string.ark
+compile-error:component/export_unsupported_nested_option.ark
 diag:diagnostics/deprecated_prelude_println.ark
 diag:diagnostics/deprecated_std_io_import.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark

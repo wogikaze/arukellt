@@ -557,4 +557,221 @@ mod tests {
         assert!(wit.contains("import wasi:http/types@0.2.0;"));
         assert!(wit.contains("export wasi:http/incoming-handler@0.2.0;"));
     }
+
+    // ── WIT accuracy tests ────────────────────────────────────────────────────
+    // Each test constructs the WitWorld that matches a known fixture source file
+    // and compares the output byte-for-byte against the corresponding
+    // `.expected.wit` file checked into tests/fixtures/component/.
+
+    #[test]
+    fn test_wit_accuracy_export_add() {
+        let expected =
+            include_str!("../../../../tests/fixtures/component/export_add.expected.wit");
+        let world = WitWorld {
+            name: "export_add".to_string(),
+            functions: vec![WitFunction {
+                name: "add".to_string(),
+                params: vec![
+                    ("a".to_string(), WitType::S32),
+                    ("b".to_string(), WitType::S32),
+                ],
+                result: Some(WitType::S32),
+            }],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: None,
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "export_add WIT output does not match expected"
+        );
+    }
+
+    #[test]
+    fn test_wit_accuracy_export_record() {
+        let expected =
+            include_str!("../../../../tests/fixtures/component/export_record.expected.wit");
+        let world = WitWorld {
+            name: "export_record".to_string(),
+            functions: vec![WitFunction {
+                name: "distance_sq".to_string(),
+                params: vec![("p".to_string(), WitType::Record("Point".to_string()))],
+                result: Some(WitType::S32),
+            }],
+            imports: vec![],
+            records: vec![WitRecord {
+                name: "Point".to_string(),
+                fields: vec![
+                    ("x".to_string(), WitType::S32),
+                    ("y".to_string(), WitType::S32),
+                ],
+            }],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: None,
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "export_record WIT output does not match expected"
+        );
+    }
+
+    #[test]
+    fn test_wit_accuracy_export_variant() {
+        let expected =
+            include_str!("../../../../tests/fixtures/component/export_variant.expected.wit");
+        let world = WitWorld {
+            name: "export_variant".to_string(),
+            functions: vec![WitFunction {
+                name: "area".to_string(),
+                params: vec![("s".to_string(), WitType::Variant("Shape".to_string()))],
+                result: Some(WitType::F64),
+            }],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![WitVariant {
+                name: "Shape".to_string(),
+                cases: vec![
+                    ("Circle".to_string(), Some(WitType::F64)),
+                    ("Square".to_string(), Some(WitType::F64)),
+                ],
+            }],
+            resources: vec![],
+            world_spec: None,
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "export_variant WIT output does not match expected"
+        );
+    }
+
+    #[test]
+    fn test_wit_accuracy_export_enum() {
+        let expected =
+            include_str!("../../../../tests/fixtures/component/export_enum_wit.expected.wit");
+        let world = WitWorld {
+            name: "export_enum_wit".to_string(),
+            functions: vec![WitFunction {
+                name: "color_code".to_string(),
+                params: vec![("c".to_string(), WitType::Enum("Color".to_string()))],
+                result: Some(WitType::S32),
+            }],
+            imports: vec![],
+            records: vec![],
+            enums: vec![WitEnum {
+                name: "Color".to_string(),
+                variants: vec![
+                    "red".to_string(),
+                    "green".to_string(),
+                    "blue".to_string(),
+                ],
+            }],
+            variants: vec![],
+            resources: vec![],
+            world_spec: None,
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "export_enum_wit WIT output does not match expected"
+        );
+    }
+
+    #[test]
+    fn test_wit_accuracy_multi_export() {
+        let expected =
+            include_str!("../../../../tests/fixtures/component/multi_export.expected.wit");
+        let world = WitWorld {
+            name: "multi_export".to_string(),
+            functions: vec![
+                WitFunction {
+                    name: "add".to_string(),
+                    params: vec![
+                        ("a".to_string(), WitType::S32),
+                        ("b".to_string(), WitType::S32),
+                    ],
+                    result: Some(WitType::S32),
+                },
+                WitFunction {
+                    name: "multiply".to_string(),
+                    params: vec![
+                        ("a".to_string(), WitType::S32),
+                        ("b".to_string(), WitType::S32),
+                    ],
+                    result: Some(WitType::S32),
+                },
+                WitFunction {
+                    name: "negate".to_string(),
+                    params: vec![("x".to_string(), WitType::S32)],
+                    result: Some(WitType::S32),
+                },
+            ],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: None,
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "multi_export WIT output does not match expected"
+        );
+    }
+
+    #[test]
+    fn test_wit_accuracy_export_string() {
+        let expected =
+            include_str!("../../../../tests/fixtures/component/export_string.expected.wit");
+        let world = WitWorld {
+            name: "export_string".to_string(),
+            functions: vec![WitFunction {
+                name: "greet".to_string(),
+                params: vec![("name".to_string(), WitType::StringType)],
+                result: Some(WitType::StringType),
+            }],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: None,
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "export_string WIT output does not match expected"
+        );
+    }
+
+    // ── WitError display tests ────────────────────────────────────────────────
+
+    #[test]
+    fn test_wit_error_non_exportable_display() {
+        let err = WitError::NonExportableType {
+            type_name: "MyFunc".to_string(),
+            reason: "function types cannot be exported via WIT".to_string(),
+        };
+        let msg = err.to_string();
+        assert!(msg.contains("MyFunc"));
+        assert!(msg.contains("cannot be exported via WIT"));
+    }
+
+    #[test]
+    fn test_wit_error_unknown_world_display() {
+        let err = WitError::UnknownWorld {
+            spec: "wasi:unknown/world".to_string(),
+        };
+        let msg = err.to_string();
+        assert!(msg.contains("wasi:unknown/world"));
+    }
 }

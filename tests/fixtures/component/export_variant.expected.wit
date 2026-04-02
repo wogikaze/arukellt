@@ -1,0 +1,10 @@
+package arukellt:app;
+
+world export-variant {
+    variant shape {
+        circle(f64),
+        square(f64)
+    }
+
+    export area: func(s: shape) -> f64;
+}

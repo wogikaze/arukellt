@@ -1,0 +1,11 @@
+package arukellt:app;
+
+world export-enum-wit {
+    enum color {
+        red,
+        green,
+        blue
+    }
+
+    export color-code: func(c: color) -> s32;
+}

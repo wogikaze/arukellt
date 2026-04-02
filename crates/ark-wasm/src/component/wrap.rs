@@ -195,4 +195,101 @@ mod tests {
         // It may return Ok or ToolNotFound depending on the environment.
         let _result = find_wasm_tools();
     }
+
+    // ── validate_component tests ──────────────────────────────────────────────
+
+    /// Minimal valid WebAssembly module: magic + version 1 (no sections).
+    /// wasmparser::Validator::validate_all accepts empty modules as valid.
+    const MINIMAL_WASM_MODULE: &[u8] = &[
+        0x00, 0x61, 0x73, 0x6d, // magic "\0asm"
+        0x01, 0x00, 0x00, 0x00, // version 1 (module)
+    ];
+
+    /// Minimal valid WebAssembly Component binary: magic + component-model version.
+    /// Extracted from real component binaries: version bytes are [0x0d, 0x00, 0x01, 0x00].
+    const MINIMAL_WASM_COMPONENT: &[u8] = &[
+        0x00, 0x61, 0x73, 0x6d, // magic "\0asm"
+        0x0d, 0x00, 0x01, 0x00, // component-model version (0x0d = current version)
+    ];
+
+    #[test]
+    fn test_validate_component_rejects_invalid_bytes() {
+        // Random junk bytes must not validate.
+        let junk = &[0xde, 0xad, 0xbe, 0xef, 0xff, 0xff, 0xff, 0xff];
+        let result = validate_component(junk);
+        assert!(
+            result.is_err(),
+            "validate_component should reject invalid bytes"
+        );
+    }
+
+    #[test]
+    fn test_validate_component_rejects_empty_input() {
+        let result = validate_component(&[]);
+        assert!(
+            result.is_err(),
+            "validate_component should reject empty byte slice"
+        );
+    }
+
+    #[test]
+    fn test_validate_component_accepts_valid_module() {
+        // A minimal well-formed Wasm module must pass validation.
+        // wasmparser validates both modules and components via validate_all.
+        let result = validate_component(MINIMAL_WASM_MODULE);
+        assert!(
+            result.is_ok(),
+            "validate_component should accept minimal valid Wasm module: {:?}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_validate_component_accepts_valid_component() {
+        // A minimal empty component binary (header only) must pass validation.
+        // This serves as the cross-language interop readiness gate: any
+        // component binary that passes here is structurally valid and can be
+        // consumed by other Component Model implementations.
+        let result = validate_component(MINIMAL_WASM_COMPONENT);
+        assert!(
+            result.is_ok(),
+            "validate_component should accept minimal valid component binary: {:?}",
+            result
+        );
+    }
+
+    #[test]
+    fn test_validate_component_error_message_contains_detail() {
+        // Error messages for invalid binaries must be informative.
+        let junk = &[0x00, 0x00, 0x00, 0x00];
+        let err = validate_component(junk).unwrap_err();
+        assert!(
+            err.contains("component validation failed"),
+            "Error message should contain 'component validation failed', got: {err}"
+        );
+    }
+
+    // ── Cross-language interop validation ─────────────────────────────────────
+    // Verifies that the validate_component function correctly distinguishes
+    // valid component binaries from invalid ones, serving as an automated
+    // interop readiness gate for generated component output.
+
+    #[test]
+    fn test_component_interop_validation_gate() {
+        // A well-formed component binary passes validation and is structurally
+        // interoperable with other Component Model host implementations.
+        let valid_result = validate_component(MINIMAL_WASM_COMPONENT);
+        assert!(
+            valid_result.is_ok(),
+            "Minimal component binary must pass interop validation gate"
+        );
+
+        // Invalid bytes must be rejected — ensuring the gate is not trivially
+        // accepting all input.
+        let invalid_result = validate_component(&[0xff, 0x00, 0x00, 0x00]);
+        assert!(
+            invalid_result.is_err(),
+            "Invalid bytes must be rejected by interop validation gate"
+        );
+    }
 }

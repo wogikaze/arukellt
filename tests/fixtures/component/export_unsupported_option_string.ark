@@ -1,0 +1,8 @@
+// Export with Option<String> return — compound nested type not supported.
+// WIT: option<string> requires canonical ABI non-scalar lift/lower.
+// Expected: E0401 compile-time error.
+pub fn maybe_greet(name: String) -> Option<String> {
+    Some(name)
+}
+
+fn main() {}
