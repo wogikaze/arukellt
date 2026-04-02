@@ -704,7 +704,7 @@ function registerTaskProvider(context) {
           ? vscode.workspace.getConfiguration('arukellt', scope.uri)
           : getConfiguration()
         const target = folderConfig.get('target', 'wasm32-wasi-p1')
-        const prefix = scope.name ? `${scope.name}: ` : ''
+        const prefix = folders.length > 1 && scope.name ? `${scope.name}: ` : ''
 
         for (const def of definitions) {
           const fullCmd = def.command.includes('--target')
