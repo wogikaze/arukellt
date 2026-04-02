@@ -1,6 +1,6 @@
 # Playground: parser / formatter / diagnostics の Wasm package と JS wrapper を作る
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 429
@@ -21,10 +21,10 @@ browser 側で使う parser / formatter / diagnostics を 1 つの Wasm package 
 
 ## Acceptance
 
-- [ ] playground 用 Wasm package が作成される。
-- [ ] parse / format / diagnostics の wrapper API が定義される。
-- [ ] package のビルド手順が自動化される。
-- [ ] 最低限のブラウザ起動確認がある。
+- [x] playground 用 Wasm package が作成される。
+- [x] parse / format / diagnostics の wrapper API が定義される。
+- [x] package のビルド手順が自動化される。
+- [x] 最低限のブラウザ起動確認がある。
 
 ## References
 

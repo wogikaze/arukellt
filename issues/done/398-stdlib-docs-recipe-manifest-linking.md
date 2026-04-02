@@ -1,6 +1,6 @@
 # Stdlib Docs: recipe と fixtures / examples を結ぶ manifest を作る
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 398
@@ -21,10 +21,10 @@ cookbook と tests / examples を二重管理しないため、recipe ごとの 
 
 ## Acceptance
 
-- [ ] recipe-manifest が追加される。
-- [ ] 各 recipe が fixture または example に紐づく。
-- [ ] target / capability 情報が manifest に入る。
-- [ ] generator または CI がリンク切れを検出する。
+- [x] recipe-manifest が追加される。
+- [x] 各 recipe が fixture または example に紐づく。
+- [x] target / capability 情報が manifest に入る。
+- [x] generator または CI がリンク切れを検出する。
 
 ## References
 

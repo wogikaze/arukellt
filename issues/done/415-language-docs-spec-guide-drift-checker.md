@@ -1,6 +1,6 @@
 # Language Docs: spec と guide の drift checker を CI に入れる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 415
@@ -21,10 +21,10 @@ stable/implemented な機能が guide に反映されているかを自動チェ
 
 ## Acceptance
 
-- [ ] spec-guide drift checker が追加される。
-- [ ] stable 機能の更新漏れを検出できる。
-- [ ] CI で結果が見える。
-- [ ] 失敗時にどの節を更新すべきかが分かる出力がある。
+- [x] spec-guide drift checker が追加される。
+- [x] stable 機能の更新漏れを検出できる。
+- [x] CI で結果が見える。
+- [x] 失敗時にどの節を更新すべきかが分かる出力がある。
 
 ## References
 
