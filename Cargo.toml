@@ -17,6 +17,7 @@ members = [
     "crates/ark-manifest",
     "crates/ark-dap",
     "crates/arukellt",
+    "crates/ark-playground-wasm",
 ]
 # ark-llvm requires LLVM 18 native libraries; exclude from default build
 default-members = [
@@ -58,6 +59,7 @@ ark-stdlib = { path = "crates/ark-stdlib" }
 ark-driver = { path = "crates/ark-driver" }
 ark-manifest = { path = "crates/ark-manifest" }
 ark-dap = { path = "crates/ark-dap" }
+ark-playground-wasm = { path = "crates/ark-playground-wasm" }
 
 # Shared dependencies
 wasm-encoder = "0.225"
@@ -72,3 +74,4 @@ inkwell = { version = "0.8", features = ["llvm18-1"] }
 tower-lsp = "0.20"
 tokio = { version = "1", features = ["full"] }
 serde_json = "1.0"
+wasm-bindgen = "0.2"

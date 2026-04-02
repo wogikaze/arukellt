@@ -43,3 +43,6 @@ docs/spec/spec-*/
 
 # VS Code test downloads
 **/.vscode-test/
+
+# wasm-pack build output
+crates/ark-playground-wasm/pkg/

@@ -229,6 +229,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ark-playground-wasm"
+version = "0.1.0"
+dependencies = [
+ "ark-diagnostics",
+ "ark-lexer",
+ "ark-parser",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "ark-resolve"
 version = "0.1.0"
 dependencies = [

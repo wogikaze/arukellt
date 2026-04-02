@@ -1,0 +1,16 @@
+[package]
+name = "ark-playground-wasm"
+version.workspace = true
+edition.workspace = true
+description = "Arukellt playground: browser-side parse/format via wasm-bindgen"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+ark-lexer = { workspace = true }
+ark-parser = { workspace = true }
+ark-diagnostics = { workspace = true }
+wasm-bindgen = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
