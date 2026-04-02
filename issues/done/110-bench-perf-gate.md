@@ -10,7 +10,7 @@
 
 ## Summary
 
-`scripts/verify-harness.sh` を拡張して、
+`scripts/run/verify-harness.sh` を拡張して、
 コンパイル時間・実行時間・バイナリサイズの回帰を CI で自動検知する perf gate を追加する。
 roadmap-v4.md §6 item 8 および §7 で明示的に要求されている。
 
@@ -25,7 +25,7 @@ roadmap-v4.md §6 item 8 および §7 で明示的に要求されている。
 ## 受け入れ条件
 
 1. `tests/baselines/perf/` に JSON 形式のベースラインファイル
-2. `scripts/verify-harness.sh` に `--perf-gate` オプション追加
+2. `scripts/run/verify-harness.sh` に `--perf-gate` オプション追加
 3. `scripts/update-baselines.sh` でベースラインを手動更新
 4. CI で perf gate が失敗した場合にわかりやすいエラーメッセージ
 

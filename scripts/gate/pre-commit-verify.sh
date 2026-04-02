@@ -12,7 +12,7 @@ NC=$'\033[0m'
 
 echo -e "${YELLOW}Running pre-commit checks (quick harness)...${NC}"
 
-if ! bash scripts/verify-harness.sh --quick; then
+if ! bash scripts/run/verify-harness.sh --quick; then
     echo -e "${RED}verify-harness quick check failed.${NC}"
     exit 1
 fi

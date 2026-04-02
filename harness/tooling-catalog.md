@@ -14,7 +14,7 @@
 | --- | --- | --- |
 | Environment bootstrap | `wado` は `mise` task と Claude startup hook を持ち、`vibe-lang` と `NEPLg2` は手動 shell setup 寄り。 | 今すぐ採用: 外部 tool や generated artifact が複数ある repo では `mise` を使う。 |
 | Task runner | `vibe-lang` は `just`、`wado` は `mise`、`NEPLg2` は raw command 中心。 | 今すぐ採用: canonical runner を 1 つに決める。polyglot なら `mise`、軽量なら `just`。 |
-| Root verify command | Arukellt は `scripts/verify-harness.sh` を持ち、参照 repo は CI、`just`、`mise` で completion surface を定義。 | 今すぐ採用: 短い root verify script を常に持つ。 |
+| Root verify command | Arukellt は `scripts/run/verify-harness.sh` を持ち、参照 repo は CI、`just`、`mise` で completion surface を定義。 | 今すぐ採用: 短い root verify script を常に持つ。 |
 | Formatter and lint | `vibe-lang` は `moon fmt` と `moon check --deny-warn`、`wado` は `cargo fmt`、`cargo clippy -D warnings`、`dprint fmt`。 | 今すぐ採用: production code は warning で fail させ、docs が重要なら Markdown も整形する。 |
 | Executable docs | `NEPLg2` は docs と stdlib comment の doctest、`wado` は generated stdlib docs。 | 今すぐ採用: 例は executable docs、網羅参照は generated docs にする。 |
 | Golden and generated artifacts | `wado` は named regeneration task と dirty-tree CI、`vibe-lang` も explicit script が多い。 | generated output を commit するなら今すぐ採用。 |
@@ -105,7 +105,7 @@ rule:
 次プロジェクトは、次に相当する root command を必ず持つべきです。
 
 ```bash
-./scripts/verify-harness.sh
+./scripts/run/verify-harness.sh
 ```
 
 これは trust できる短さと、completion を定義できる広さの両方を持たせます。
@@ -136,7 +136,7 @@ Rust-heavy repo なら今すぐ採用。
 
 参照パターン:
 
-- Arukellt `scripts/verify-harness.sh`
+- Arukellt `scripts/run/verify-harness.sh`
 - `wado` integrity task
 
 ## Markdown
@@ -303,7 +303,7 @@ rule:
 次プロジェクトを今日始めるなら、推奨 stack は次です。
 
 - canonical tool / task manager としての `mise`
-- root completion gate としての `scripts/verify-harness.sh`
+- root completion gate としての `scripts/run/verify-harness.sh`
 - operational queue としての `issues/`
 - workflow decision を残す `docs/adr/`
 - 重要な例を支える executable docs

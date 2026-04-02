@@ -20,6 +20,6 @@
 - Only missing: `__intrinsic_string_is_empty` (internal intrinsic, correctly excluded from public docs)
 - No dual-exposed functions found (0 functions have both prelude=true and a module path)
 - `docs/stdlib/prelude-dedup.md` documents canonical access paths for all categories
-- `scripts/check-admission-gate.sh` validates all manifest functions have docs coverage
+- `scripts/check/check-admission-gate.sh` validates all manifest functions have docs coverage
 - LSP import candidates test (`lsp_import_candidates_are_subset_of_manifest`) prevents drift
 - Virtual modules (std::math, std::string, std::collections) documented as doc categories, not importable paths

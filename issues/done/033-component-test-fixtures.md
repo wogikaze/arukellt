@@ -51,7 +51,7 @@ Component Model testing requires new test kinds:
       - Test script in `tests/component-interop/` with build + run + validate steps.
 - [x] WIT extraction test: for each component fixture, `wasm-tools component wit` on the
       output matches the expected WIT text (snapshot test).
-- [x] `scripts/verify-harness.sh` extended with a component test gate (check 17).
+- [x] `scripts/run/verify-harness.sh` extended with a component test gate (check 17).
 - [x] Fixture count in `docs/current-state.md` updated.
 
 ## Key Files
@@ -60,7 +60,7 @@ Component Model testing requires new test kinds:
 - `tests/fixtures/component/` — new fixture directory
 - `tests/fixtures/manifest.txt` — new entries
 - `tests/component-interop/` — cross-language test scripts
-- `scripts/verify-harness.sh` — component gate addition
+- `scripts/run/verify-harness.sh` — component gate addition
 
 ## Notes
 

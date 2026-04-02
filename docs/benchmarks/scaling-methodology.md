@@ -31,7 +31,7 @@ mise bench   # full mode (10 iterations)
 
 Output conforms to `arukellt-bench-v1` schema. Per-size analysis can be done
 by inspecting the JSON results directly or by running
-`python3 scripts/benchmark_runner.py --mode compare`.
+`python3 scripts/util/benchmark_runner.py --mode compare`.
 
 ## Benchmark Scaling Parameters
 

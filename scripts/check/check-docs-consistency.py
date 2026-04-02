@@ -14,7 +14,7 @@ import sys
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 MANIFEST = ROOT / "std" / "manifest.toml"
 CURRENT_STATE = ROOT / "docs" / "current-state.md"
 
@@ -65,7 +65,7 @@ def check_maturity_matrix_freshness() -> int:
 
 def check_generated_docs() -> int:
     """Run generate-docs.py --check."""
-    cmd = [sys.executable, str(ROOT / "scripts" / "generate-docs.py"), "--check"]
+    cmd = [sys.executable, str(ROOT / "scripts" / "gen" / "generate-docs.py"), "--check"]
     result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
     if result.returncode != 0:
         errors.append("generated docs are out of date; run `python3 scripts/generate-docs.py`")

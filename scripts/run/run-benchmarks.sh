@@ -11,7 +11,7 @@
 #   ARUKELLT_BIN=/path/to/arukellt bash scripts/run-benchmarks.sh  # custom compiler
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 COMPILER="${ARUKELLT_BIN:-$ROOT/target/release/arukellt}"
 SELFHOST_WASM="$ROOT/src/compiler/arukellt-s1.wasm"
 RESULTS_DIR="$ROOT/benchmarks/results"

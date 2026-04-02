@@ -23,7 +23,7 @@ performs the integration verification and cleanup that confirms v2 exit readines
 
 ### Correctness
 
-- [x] `scripts/verify-harness.sh` passes all checks including the new component gate (17/17).
+- [x] `scripts/run/verify-harness.sh` passes all checks including the new component gate (17/17).
 - [x] All existing 346+ fixture tests continue to pass (no regressions in T1 or T3 core Wasm).
 - [x] All new component fixture tests pass (`component-compile:` and `component-run:`).
 - [x] `arukellt compile --emit component` produces valid `.component.wasm` for at least
@@ -44,7 +44,7 @@ performs the integration verification and cleanup that confirms v2 exit readines
 - [x] No `TODO(v2)` or `FIXME(v2)` comments remain in source code.
 - [x] All v2 issues (#028–#034) moved to `issues/done/`.
 - [x] `issues/open/index.md` and `issues/open/dependency-graph.md` regenerated via
-      `scripts/generate-issue-index.sh`.
+      `scripts/gen/generate-issue-index.sh`.
 - [x] Cargo.toml dependencies updated if new crates were added (e.g., component
       validation features for wasmparser).
 - [x] `std/manifest.toml` updated if any stdlib changes were made for component support.
@@ -77,10 +77,10 @@ V2 is complete when all of the following are satisfied:
 
 ## Key Files
 
-- `scripts/verify-harness.sh` — add component gate
+- `scripts/run/verify-harness.sh` — add component gate
 - `docs/current-state.md` — v2 exit status
 - `issues/open/` → `issues/done/` — move completed issues
-- `scripts/generate-issue-index.sh` — regenerate
+- `scripts/gen/generate-issue-index.sh` — regenerate
 
 ## Notes
 

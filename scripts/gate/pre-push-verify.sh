@@ -55,8 +55,8 @@ fi
 # ── 2. Docs freshness (skip if no doc/script changes) ────────────────────────
 if has_doc_changes || has_rust_changes || [ -z "$CHANGED" ]; then
     echo -e "\n${YELLOW}── Docs freshness ──${NC}"
-    python3 scripts/generate-docs.py --check
-    bash scripts/generate-issue-index.sh
+    python3 scripts/gen/generate-docs.py --check
+    bash scripts/gen/generate-issue-index.sh
     git diff --exit-code -- docs/ issues/ README.md
 else
     echo -e "\n⊙ No doc changes — skipping docs freshness"
@@ -65,7 +65,7 @@ fi
 # ── 3. T3 fixture suite (skip if no Rust/fixture changes) ────────────────────
 if has_rust_changes || has_fixture_changes || [ -z "$CHANGED" ]; then
     echo -e "\n${YELLOW}── T3 fixtures (wasm32-wasi-p2) ──${NC}"
-    ARUKELLT_TARGET=wasm32-wasi-p2 bash scripts/verify-harness.sh --fixtures
+    ARUKELLT_TARGET=wasm32-wasi-p2 bash scripts/run/verify-harness.sh --fixtures
 else
     echo -e "\n⊙ No Rust/fixture changes — skipping T3 fixtures"
 fi
@@ -83,4 +83,4 @@ if has_extension_changes; then
 fi
 
 echo -e "\n${GREEN}=== Pre-push passed ===${NC}"
-echo -e "${GREEN}For full CI checks (release, selfhost, component, extension): bash scripts/ci-full-local.sh${NC}"
+echo -e "${GREEN}For full CI checks (release, selfhost, component, extension): bash scripts/gate/ci-full-local.sh${NC}"

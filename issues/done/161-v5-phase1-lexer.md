@@ -31,7 +31,7 @@ Arukellt で書かれた Lexer を `src/compiler/lexer.ark` に実装する。Ru
 
 - `arukellt compile src/compiler/lexer.ark` が成功する
 - 10 個以上のテストケースで Rust 版と同一トークン列を生成する
-- `scripts/compare-outputs.sh lexer` で差分ゼロ
+- `scripts/run/compare-outputs.sh lexer` で差分ゼロ
 
 ## 注意事項
 

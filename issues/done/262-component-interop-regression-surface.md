@@ -16,7 +16,7 @@
 
 - [x] component interop テストが `tests/component-interop/` 以下に複数 fixture として整備されている
 - [x] 各 fixture が WIT export surface の代表的なパターン（primitive / record / variant / resource）を少なくとも1件ずつカバーしている
-- [x] `scripts/verify-harness.sh --component` がこれらの fixture を全件実行する
+- [x] `scripts/run/verify-harness.sh --component` がこれらの fixture を全件実行する
 - [x] CI で component interop が独立した step として実行される
 
 ## Scope

@@ -15,17 +15,17 @@
 
 ## Current state
 
-- `scripts/generate-docs.py`: 1103 行、stdlib module pages / sidebar / landing pages を生成
+- `scripts/gen/generate-docs.py`: 1103 行、stdlib module pages / sidebar / landing pages を生成
 - `docs/current-state.md`: 5 箇所がインラインマーカーで自動更新、残りは手書き
 - 生成ファイル一覧が明文化されていない
 
 ## Acceptance
 
-- [x] `scripts/generate-docs.py` の冒頭コメントに生成ファイル一覧がある
+- [x] `scripts/gen/generate-docs.py` の冒頭コメントに生成ファイル一覧がある
 - [x] 各生成ファイルの先頭に `<!-- This file is auto-generated. Do not edit manually. -->` バナーがある
 - [x] docs の README に「生成 vs 手書き」の分類表がある
 
 ## References
 
-- `scripts/generate-docs.py`
+- `scripts/gen/generate-docs.py`
 - `docs/README.md`

@@ -15,7 +15,7 @@
 
 ## Current state
 
-- `scripts/verify-harness.sh`: docs consistency check (生成 docs 一致) はある
+- `scripts/run/verify-harness.sh`: docs consistency check (生成 docs 一致) はある
 - bootstrap 状態 / capability 状態の stale は検出しない
 - pre-push hook で 17 チェック走るが、docs freshness は含まれない
 
@@ -27,5 +27,5 @@
 
 ## References
 
-- `scripts/verify-harness.sh`
+- `scripts/run/verify-harness.sh`
 - `docs/data/project-state.toml`

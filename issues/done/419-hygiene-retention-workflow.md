@@ -19,4 +19,4 @@
 - `docs/retention-policy.md` (created for #375) documents the archive workflow with 4 steps: add banner, update links, move file, record in commit
 - Issue close workflow well-established: create done file, delete open file, run `generate-issue-index.sh`
 - 40+ issues have followed this workflow, establishing the operational pattern
-- Index regeneration: `bash scripts/generate-issue-index.sh`
+- Index regeneration: `bash scripts/gen/generate-issue-index.sh`

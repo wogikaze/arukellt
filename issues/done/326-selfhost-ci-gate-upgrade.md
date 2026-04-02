@@ -30,4 +30,4 @@ CI の `selfhost-stage0` job を full fixpoint check に昇格する。現在は
 ## References
 
 - `.github/workflows/ci.yml:328-363` — selfhost-stage0 job
-- `scripts/verify-bootstrap.sh` — bootstrap verification
+- `scripts/run/verify-bootstrap.sh` — bootstrap verification

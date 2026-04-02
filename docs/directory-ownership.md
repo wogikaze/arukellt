@@ -37,17 +37,17 @@
 | `benchmarks/` | internal | — | Performance benchmarks and results |
 | `scripts/` | internal | — | Build, test, generation scripts |
 | `docs/` | product | — | User and developer documentation |
-| `docs/stdlib/reference.md` | generated | `scripts/generate-docs.py` | Stdlib API reference |
-| `docs/stdlib/modules/*.md` | generated | `scripts/generate-docs.py` | Per-module reference pages |
-| `docs/stdlib/scoreboard.md` | generated | `scripts/generate-scoreboard.sh` | Module maturity scoreboard |
-| `docs/data/` | generated | `scripts/generate-docs.py` | Project state data |
+| `docs/stdlib/reference.md` | generated | `scripts/gen/generate-docs.py` | Stdlib API reference |
+| `docs/stdlib/modules/*.md` | generated | `scripts/gen/generate-docs.py` | Per-module reference pages |
+| `docs/stdlib/scoreboard.md` | generated | `scripts/gen/generate-scoreboard.sh` | Module maturity scoreboard |
+| `docs/data/` | generated | `scripts/gen/generate-docs.py` | Project state data |
 | `docs/spec/` | archive | — | Previous version specs |
 | `docs/migration/` | archive | — | Version migration guides |
 | `docs/adr/` | product | — | Architecture Decision Records |
 | `extensions/arukellt-all-in-one/` | product | — | VS Code extension |
 | `harness/` | internal | — | Test harness configuration |
-| `issues/open/` | internal | `scripts/generate-issue-index.sh` | Active issue tracking |
-| `issues/done/` | internal | `scripts/generate-issue-index.sh` | Completed issue archive |
+| `issues/open/` | internal | `scripts/gen/generate-issue-index.sh` | Active issue tracking |
+| `issues/done/` | internal | `scripts/gen/generate-issue-index.sh` | Completed issue archive |
 
 ## Generated Files
 
@@ -55,12 +55,12 @@ These files are auto-generated. Run the generator instead of editing manually:
 
 | File | Generator |
 |------|-----------|
-| `docs/stdlib/reference.md` | `python3 scripts/generate-docs.py` |
-| `docs/stdlib/modules/*.md` | `python3 scripts/generate-docs.py` |
-| `docs/stdlib/scoreboard.md` | `bash scripts/generate-scoreboard.sh` |
-| `issues/open/index.md` | `bash scripts/generate-issue-index.sh` |
-| `issues/done/index.md` | `bash scripts/generate-issue-index.sh` |
-| `issues/open/dependency-graph.md` | `bash scripts/generate-issue-index.sh` |
+| `docs/stdlib/reference.md` | `python3 scripts/gen/generate-docs.py` |
+| `docs/stdlib/modules/*.md` | `python3 scripts/gen/generate-docs.py` |
+| `docs/stdlib/scoreboard.md` | `bash scripts/gen/generate-scoreboard.sh` |
+| `issues/open/index.md` | `bash scripts/gen/generate-issue-index.sh` |
+| `issues/done/index.md` | `bash scripts/gen/generate-issue-index.sh` |
+| `issues/open/dependency-graph.md` | `bash scripts/gen/generate-issue-index.sh` |
 
 ## Excluded from Default Build
 

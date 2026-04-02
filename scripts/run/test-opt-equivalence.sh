@@ -11,7 +11,7 @@
 #   bash scripts/test-opt-equivalence.sh --fixture X   # single fixture
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 ARUKELLT="${REPO_ROOT}/target/debug/arukellt"
 FIXTURE_DIR="${REPO_ROOT}/tests/fixtures"
 MANIFEST="${FIXTURE_DIR}/manifest.txt"

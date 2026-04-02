@@ -11,7 +11,7 @@
 
 - [x] manifest に `since`、`see_also`、`deprecated_by` フィールドが定義される
 - [x] 全関数に `doc_category` が付与される
-- [x] `scripts/generate-docs.py` が新フィールドを reference / module pages に反映する
+- [x] `scripts/gen/generate-docs.py` が新フィールドを reference / module pages に反映する
 - [x] 生成 docs で「いつ追加されたか」「関連関数」「後継関数」が表示される
 
 ## Resolution

@@ -171,8 +171,8 @@ added. An explicit budget forces conscious trade-offs and prevents
 
 ## Verification
 
-- `bash scripts/verify-harness.sh --quick` — all harness checks pass
-- `python3 scripts/check-docs-consistency.py` — docs consistency verified
+- `bash scripts/run/verify-harness.sh --quick` — all harness checks pass
+- `python3 scripts/check/check-docs-consistency.py` — docs consistency verified
 - Deployment strategy document: `docs/playground/deployment-strategy.md`
 
 ---

@@ -31,4 +31,4 @@ deprecated API を reference に載せたまま放置せず、明確な badge・
 - ``docs/stdlib/reference.md``
 - ``docs/stdlib/prelude-migration.md``
 - ``std/manifest.toml``
-- ``scripts/generate-docs.py``
+- ``scripts/gen/generate-docs.py``

@@ -21,7 +21,7 @@
 3. unsupported target/module 組み合わせで専用 diagnostics を返す
 4. T1 success, T3 success, old-import reject, old-prelude reject, T1 reject, T3 reject-not-expected を網羅する compile fixture を追加する
 5. `cargo test --workspace --exclude ark-llvm --exclude ark-lsp` が通る
-6. `bash scripts/verify-harness.sh --quick` が status 0
+6. `bash scripts/run/verify-harness.sh --quick` が status 0
 
 ## 実装タスク
 

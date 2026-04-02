@@ -29,5 +29,5 @@
 
 - `docs/compiler/bootstrap.md`
 - `docs/migration/v4-to-v5.md`
-- `scripts/verify-bootstrap.sh`
+- `scripts/run/verify-bootstrap.sh`
 - `issues/open/253-selfhost-completion-criteria.md`

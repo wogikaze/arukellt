@@ -28,7 +28,7 @@ metadata enrichment 後の docs drift を防ぐため、since / see-also / depre
 
 ## References
 
-- ``scripts/check-docs-consistency.py``
-- ``scripts/generate-docs.py``
+- ``scripts/check/check-docs-consistency.py``
+- ``scripts/gen/generate-docs.py``
 - ``std/manifest.toml``
 - ``docs/stdlib/reference.md``

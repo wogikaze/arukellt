@@ -52,7 +52,7 @@
 - 短い pointer doc としての `docs/process/agent-harness.md`
 - `issues/index.md`、`issues/open/`、`issues/done/`
 - 最初の判断を記録する `docs/adr/ADR-0001-*.md`
-- `scripts/verify-harness.sh`
+- `scripts/run/verify-harness.sh`
 - 正式なローカル task surface としての `mise.toml` または `justfile`
 
 このディレクトリ内の他の要素は、すべてこの最小セットの上に積み上げるべきであって、置き換えるものではありません。

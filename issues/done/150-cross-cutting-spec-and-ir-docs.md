@@ -20,7 +20,7 @@
 1. `docs/language/spec.md` が追加され、v5 着手前の凍結対象として扱う範囲が明記される
 2. `docs/compiler/ir-spec.md` が追加され、CoreHIR / MIR の主要 struct / enum / invariant / phase 境界が文書化される
 3. `docs/compiler/pipeline.md` と `docs/language/type-system.md` から新規文書へ辿れる
-4. `scripts/verify-harness.sh` または docs consistency check で上記 2 ファイルの存在が検証される
+4. `scripts/run/verify-harness.sh` または docs consistency check で上記 2 ファイルの存在が検証される
 
 ## 実装タスク
 

@@ -22,4 +22,4 @@
 
 ## Implementation
 
-Completed as part of #373. See `.generated-files` manifest and `scripts/check-generated-files.sh`.
+Completed as part of #373. See `.generated-files` manifest and `scripts/check/check-generated-files.sh`.

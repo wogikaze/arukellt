@@ -30,4 +30,4 @@ docs に掲載する code snippet や recipe snippet が実際に通ることを
 
 - ``docs/stdlib/**``
 - ``tests/fixtures/``
-- ``scripts/check-docs-consistency.py``
+- ``scripts/check/check-docs-consistency.py``

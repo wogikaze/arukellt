@@ -11,7 +11,7 @@
 As the language documentation grows and reorganization occurs (section splits, renames, hierarchy changes),
 anchor links and document permalinks become unstable. Readers who bookmark URLs or external tools (issue
 trackers, RFCs, external blogs) that link into the docs will encounter broken references. Additionally,
-the existing `scripts/check-links.sh` checks internal file references but does not validate anchor
+the existing `scripts/check/check-links.sh` checks internal file references but does not validate anchor
 fragments — this gap should be documented and a policy set for v1 scope.
 
 This ADR covers three related concerns:
@@ -162,9 +162,9 @@ When two documents are merged:
 
 ### 3. Link-Check Coverage
 
-#### 3.1 Existing coverage: `scripts/check-links.sh`
+#### 3.1 Existing coverage: `scripts/check/check-links.sh`
 
-A link-check script already exists at `scripts/check-links.sh`. It:
+A link-check script already exists at `scripts/check/check-links.sh`. It:
 
 - Scans all Markdown files under `docs/` and `issues/`.
 - Validates that relative file references in `](path...)` link targets resolve to existing files.
@@ -191,7 +191,7 @@ This is deferred to v2. For v1, the policy is:
 
 | Check | Tool | v1 Status |
 |-------|------|-----------|
-| Internal file references (e.g. `path/to/file....md`) | `scripts/check-links.sh` | ✅ Covered |
+| Internal file references (e.g. `path/to/file....md`) | `scripts/check/check-links.sh` | ✅ Covered |
 | Anchor fragments (e.g. `file....md#section-id`) | — | ❌ Not covered (v2) |
 | Pure in-page anchors (e.g. `#section-id`) | — | ❌ Not covered (v2) |
 | External URLs (`https://...`) | — | ❌ Out of scope |
@@ -203,7 +203,7 @@ This is deferred to v2. For v1, the policy is:
 - Every PR that renames an S1 heading in a normative document MUST either (a) update all inbound
   anchor links, or (b) add an explicit `<a id="old-anchor">` to preserve the old target.
 - Every PR that moves or removes a document MUST add a Docsify alias entry to `docs/index.html`.
-- `scripts/check-links.sh` is the v1 canonical link checker; no additional tool is required for v1.
+- `scripts/check/check-links.sh` is the v1 canonical link checker; no additional tool is required for v1.
 - Anchor fragment checking is a v2 enhancement (separate work order).
 - ADR-018 classification banners are orthogonal to this policy; both apply independently.
 
@@ -228,7 +228,7 @@ Docsify aliases in `docs/index.html` are self-contained and do not require a hos
 ## References
 
 - `docs/index.html` — Docsify configuration including alias entries
-- `scripts/check-links.sh` — existing internal file reference checker
+- `scripts/check/check-links.sh` — existing internal file reference checker
 - `docs/data/language-doc-classifications.toml` — per-document classification data (ADR-018)
 - ADR-018: Language Docs Classification — Normative / Explanatory / Transitional
 - ADR-016: Breaking Change Process — Three-Piece Set

@@ -16,8 +16,8 @@
 
 ## Resolution
 
-- Added internal link integrity check to `scripts/verify-harness.sh` (runs `scripts/check-links.sh`)
+- Added internal link integrity check to `scripts/run/verify-harness.sh` (runs `scripts/check/check-links.sh`)
 - Pre-commit hook runs `verify-harness.sh --quick` which now includes: docs consistency, link integrity, asset naming, generated boundary, stdlib manifest, panic audit
-- Admission gate (`scripts/check-admission-gate.sh`) available as advisory check
+- Admission gate (`scripts/check/check-admission-gate.sh`) available as advisory check
 - `docs/directory-ownership.md` documents hook vs CI responsibility split
-- Failure messages include remediation command (e.g., "run scripts/check-links.sh")
+- Failure messages include remediation command (e.g., "run scripts/check/check-links.sh")

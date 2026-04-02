@@ -2,7 +2,7 @@
 # scripts/check-admission-gate.sh — Verify every stdlib API has fixture, docs, metadata
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 MANIFEST="$REPO_ROOT/std/manifest.toml"
 FIXTURE_DIR="$REPO_ROOT/tests/fixtures"
 FIXTURE_MANIFEST="$FIXTURE_DIR/manifest.txt"

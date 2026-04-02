@@ -734,7 +734,7 @@ error[E0200|typecheck]: type mismatch
 
 This document is maintained manually. When adding or modifying diagnostic codes
 in `crates/ark-diagnostics/src/codes.rs`, update this file to match.
-`scripts/check-docs-consistency.py` includes a check for error-code-to-doc
+`scripts/check/check-docs-consistency.py` includes a check for error-code-to-doc
 alignment.
 
 ## See Also

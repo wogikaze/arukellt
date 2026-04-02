@@ -29,7 +29,7 @@ PERF_GATE=false
 
 usage() {
     cat <<'EOF'
-Usage: bash scripts/verify-harness.sh [options]
+Usage: bash scripts/run/verify-harness.sh [options]
 
 No options:
   Run the fast local verification gate.
@@ -181,19 +181,19 @@ _bg_run platform_spec "Platform specification OK" \
 _bg_run stdlib_spec "Stdlib specification OK" \
     "test -f docs/stdlib/README.md && test -f docs/stdlib/core.md && test -f docs/stdlib/io.md" &
 _bg_run docs_consistency "docs consistency (${FIXTURE_COUNT} fixtures)" \
-    "python3 scripts/check-docs-consistency.py" &
+    "python3 scripts/check/check-docs-consistency.py" &
 _bg_run docs_freshness "docs freshness (project-state.toml vs manifest.txt)" \
-    "python3 scripts/check-docs-freshness.py" &
+    "python3 scripts/check/check-docs-freshness.py" &
 _bg_run stdlib_manifest "stdlib manifest check" \
-    "bash scripts/check-stdlib-manifest.sh" &
+    "bash scripts/check/check-stdlib-manifest.sh" &
 _bg_run done_issues_checkboxes "issues/done/ has no unchecked checkboxes" \
     "files=\$(grep -rl '\\- \\[ \\]' issues/done/ 2>/dev/null | grep '\\.md\$' || true); if [ -n \"\$files\" ]; then echo 'Files in done/ with unchecked items:'; printf '%s\n' \"\$files\"; exit 1; fi" &
 _bg_run no_panic_audit "no panic/unwrap in user-facing crates" \
-    "bash scripts/check-panic-audit.sh" &
+    "bash scripts/check/check-panic-audit.sh" &
 _bg_run asset_naming "asset naming convention (snake_case)" \
-    "bash scripts/check-asset-naming.sh" &
+    "bash scripts/check/check-asset-naming.sh" &
 _bg_run generated_boundary "generated file boundary check" \
-    "bash scripts/check-generated-files.sh" &
+    "bash scripts/check/check-generated-files.sh" &
 if [ "$RUN_DOCS" = true ]; then
     _bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
         "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
@@ -289,7 +289,7 @@ fi
 
 if [ "$RUN_BASELINE" = true ]; then
     printf '\n%s\n' "${YELLOW}[baseline] Collecting baseline snapshots...${NC}"
-    run_check "baseline collection" "python3 scripts/collect-baseline.py"
+    run_check "baseline collection" "python3 scripts/util/collect-baseline.py"
 fi
 
 printf '\n%s\n' "${YELLOW}[bg] Collecting background check results...${NC}"
@@ -338,16 +338,16 @@ else
 fi
 
 # Hygiene checks
-if [ -f scripts/check-links.sh ]; then
-    if bash scripts/check-links.sh >/dev/null 2>&1; then
+if [ -f scripts/check/check-links.sh ]; then
+    if bash scripts/check/check-links.sh >/dev/null 2>&1; then
         check_pass "internal link integrity"
     else
         check_fail "broken internal links detected (run scripts/check-links.sh)"
     fi
 fi
 
-if [ -f scripts/check-diagnostic-codes.sh ]; then
-    if bash scripts/check-diagnostic-codes.sh >/dev/null 2>&1; then
+if [ -f scripts/check/check-diagnostic-codes.sh ]; then
+    if bash scripts/check/check-diagnostic-codes.sh >/dev/null 2>&1; then
         check_pass "diagnostic codes aligned"
     else
         check_fail "diagnostic codes out of sync (run scripts/check-diagnostic-codes.sh)"
@@ -372,17 +372,17 @@ fi
 
 if [ "$RUN_WAT" = true ]; then
     printf '\n%s\n' "${YELLOW}[wat] Running WAT roundtrip verification...${NC}"
-    run_check "WAT roundtrip (wasm2wat ⇄ wat2wasm)" "bash scripts/wat-roundtrip.sh"
+    run_check "WAT roundtrip (wasm2wat ⇄ wat2wasm)" "bash scripts/run/wat-roundtrip.sh"
 fi
 
 if [ "$PERF_GATE" = true ]; then
     printf '\n%s\n' "${YELLOW}[perf] Running performance regression gate...${NC}"
-    run_check "perf gate (compile time / binary size / run time)" "bash scripts/perf-gate.sh"
+    run_check "perf gate (compile time / binary size / run time)" "bash scripts/check/perf-gate.sh"
 fi
 
 if [ "$RUN_OPT_EQUIV" = true ]; then
     printf '\n%s\n' "${YELLOW}[opt-equiv] Running optimization equivalence tests (O0 vs O1)...${NC}"
-    run_check "optimization equivalence (O0 vs O1)" "bash scripts/test-opt-equivalence.sh --quick"
+    run_check "optimization equivalence (O0 vs O1)" "bash scripts/run/test-opt-equivalence.sh --quick"
 fi
 
 printf '\n%s\n' "${YELLOW}========================================${NC}"

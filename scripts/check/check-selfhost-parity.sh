@@ -23,7 +23,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 RUST_BIN="${ARUKELLT_BIN:-}"
 SELFHOST_WASM="${SELFHOST_WASM:-${REPO_ROOT}/src/compiler/arukellt-s1.wasm}"
 FIXTURE_DIR="${REPO_ROOT}/tests/fixtures"

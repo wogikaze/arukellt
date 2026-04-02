@@ -8,7 +8,7 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 BIN = ROOT / "target" / "release" / "arukellt"
 PERF_CASES = [
     ROOT / "docs" / "examples" / "hello.ark",

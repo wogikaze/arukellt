@@ -22,7 +22,7 @@
 
 ## Implementation
 
-- Expanded `scripts/check-docs-consistency.py` from 22-line wrapper to full checker
+- Expanded `scripts/check/check-docs-consistency.py` from 22-line wrapper to full checker
 - Added `check_capability_state()`: validates host_stub functions are mentioned in current-state.md
 - Added `check_fixture_count_freshness()`: validates project-state.toml matches manifest.txt count
 - Fixed `docs/current-state.md` to acknowledge 3 host_stub functions

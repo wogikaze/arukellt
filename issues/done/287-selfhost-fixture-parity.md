@@ -15,7 +15,7 @@
 
 ## Current state
 
-- `scripts/verify-bootstrap.sh:282`: `fixture-parity: not-verified` と出力するだけ
+- `scripts/run/verify-bootstrap.sh:282`: `fixture-parity: not-verified` と出力するだけ
 - セルフホストで fixture をコンパイル＆実行するスクリプトがない
 
 ## Acceptance
@@ -27,6 +27,6 @@
 
 ## References
 
-- `scripts/verify-bootstrap.sh`
+- `scripts/run/verify-bootstrap.sh`
 - `tests/fixtures/`
 - `src/compiler/driver.ark`

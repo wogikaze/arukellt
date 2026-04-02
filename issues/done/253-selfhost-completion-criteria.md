@@ -10,11 +10,11 @@
 
 ## Summary
 
-selfhost 周辺は `src/compiler/*.ark`、`docs/compiler/bootstrap.md`、`scripts/verify-bootstrap.sh`、`docs/migration/v4-to-v5.md`、`issues/done/209` 以降の一連の issue により前進しているが、「selfhost 用の部品が揃ってきた」ことと「selfhost compiler が達成された」ことがまだ厳密には同義ではない。
+selfhost 周辺は `src/compiler/*.ark`、`docs/compiler/bootstrap.md`、`scripts/run/verify-bootstrap.sh`、`docs/migration/v4-to-v5.md`、`issues/done/209` 以降の一連の issue により前進しているが、「selfhost 用の部品が揃ってきた」ことと「selfhost compiler が達成された」ことがまだ厳密には同義ではない。
 
 ## Why this matters
 
-* `scripts/verify-bootstrap.sh` は Stage 0 で各 selfhost source を個別に compile し、`main.wasm` が生成されない場合は Stage 1/2 を skip する構造であり、fixpoint が継続検証されていない。
+* `scripts/run/verify-bootstrap.sh` は Stage 0 で各 selfhost source を個別に compile し、`main.wasm` が生成されない場合は Stage 1/2 を skip する構造であり、fixpoint が継続検証されていない。
 * selfhost compiler が end-user fixture 全体を通すことまで検証されていない。
 * Rust 実装と selfhost 実装の parity が日次で崩れていないかを示す CI 契約がまだ弱い。
 * selfhost が曖昧なまま進むと「言語仕様の canonical source」「実装の canonical compiler」「バグ修正の適用先」が二重化する。
@@ -22,7 +22,7 @@ selfhost 周辺は `src/compiler/*.ark`、`docs/compiler/bootstrap.md`、`script
 ## Acceptance
 
 * [ ] selfhost 完了条件が 1 行で言える形で文書に固定されている
-* [ ] `scripts/verify-bootstrap.sh` が skip 前提の scaffold ではなく達成判定の本体になっている
+* [ ] `scripts/run/verify-bootstrap.sh` が skip 前提の scaffold ではなく達成判定の本体になっている
 * [ ] Stage1 fixture parity・CLI parity・diagnostic parity・determinism が CI で継続検証されている
 * [ ] Rust 実装と selfhost 実装の dual period を終わらせる条件が定義されている
 * [ ] `docs/current-state.md` の selfhost 記述が「部品がある」ではなく「どこまで verified か」で表示されている
@@ -53,7 +53,7 @@ selfhost 周辺は `src/compiler/*.ark`、`docs/compiler/bootstrap.md`、`script
 
 * `src/compiler/*.ark`
 * `docs/compiler/bootstrap.md`
-* `scripts/verify-bootstrap.sh`
+* `scripts/run/verify-bootstrap.sh`
 * `docs/migration/v4-to-v5.md`
 * `issues/done/209-selfhost-cli-driver-connection.md`
 * `issues/open/266-selfhost-completion-definition.md`

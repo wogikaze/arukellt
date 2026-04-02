@@ -10,7 +10,7 @@
 
 ## Summary
 
-既存の `benchmarks/run_benchmarks.sh`、`scripts/compare-benchmarks.sh`、`scripts/perf-gate.sh` が分散しているため、
+既存の `benchmarks/run_benchmarks.sh`、`scripts/compare-benchmarks.sh`、`scripts/check/perf-gate.sh` が分散しているため、
 ローカル計測・比較・ベースライン更新を `mise bench` 系の 1 コマンド導線に統合する。
 「まず何を叩けばよいか」を固定し、ベンチ運用の心理的コストを下げる。
 
@@ -31,5 +31,5 @@
 
 - `benchmarks/run_benchmarks.sh`
 - `scripts/compare-benchmarks.sh`
-- `scripts/perf-gate.sh`
+- `scripts/check/perf-gate.sh`
 - `benchmarks/README.md`

@@ -79,10 +79,10 @@ if [ "${1:-}" = "--remove" ]; then
 fi
 
 # Pre-commit: format check and docs consistency
-install_hook "pre-commit" "scripts/pre-commit-verify.sh"
+install_hook "pre-commit" "scripts/gate/pre-commit-verify.sh"
 
 # Pre-push: full harness verification
-install_hook "pre-push" "scripts/pre-push-verify.sh"
+install_hook "pre-push" "scripts/gate/pre-push-verify.sh"
 
 echo ""
 echo "Git hooks installed successfully."

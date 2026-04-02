@@ -7,7 +7,7 @@
 
 ## Completed
 
-- [x] orphan/stale inventory スクリプトが追加される — `scripts/check-orphan-inventory.sh`
+- [x] orphan/stale inventory スクリプトが追加される — `scripts/check/check-orphan-inventory.sh`
 - [x] 少なくとも docs / tests / benchmarks / artifacts を走査する — large files, orphan fixtures, orphan .expected, broken doc refs, orphan bench assets の5カテゴリ
 - [x] レポートに候補ファイルと参照状況が出る — 217 candidates detected (12 orphan fixtures, 2 orphan .expected, 188 broken doc refs, 14 orphan bench files, 1 large file)
-- [x] CI か定期手順から呼び出せる — `bash scripts/check-orphan-inventory.sh` (advisory, exit 0)
+- [x] CI か定期手順から呼び出せる — `bash scripts/check/check-orphan-inventory.sh` (advisory, exit 0)

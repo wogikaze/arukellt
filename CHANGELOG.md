@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Self-hosted compiler in `src/compiler/*.ark`
-- Bootstrap verification script (`scripts/verify-bootstrap.sh`)
+- Bootstrap verification script (`scripts/run/verify-bootstrap.sh`)
 - Frozen language specification (`docs/language/spec.md`)
 
 ### Changed
@@ -38,7 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Perf gate thresholds added to `scripts/verify-harness.sh`
+- Perf gate thresholds added to `scripts/run/verify-harness.sh`
 
 ### Migration
 

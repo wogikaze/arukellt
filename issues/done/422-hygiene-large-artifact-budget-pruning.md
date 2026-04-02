@@ -17,7 +17,7 @@
 ## Resolution
 
 - `docs/retention-policy.md` defines 1MB budget per file, binary assets prefer external hosting
-- `scripts/check-orphan-inventory.sh` reports files > 500KB (category 1: large files)
+- `scripts/check/check-orphan-inventory.sh` reports files > 500KB (category 1: large files)
 - `.vscode-test/` excluded from large file scan (VS Code test downloads)
 - `docs/directory-ownership.md` lists build artifacts as "never committed"
-- `scripts/check-admission-gate.sh` provides family coverage info
+- `scripts/check/check-admission-gate.sh` provides family coverage info

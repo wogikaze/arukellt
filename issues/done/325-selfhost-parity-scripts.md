@@ -11,13 +11,13 @@
 
 ## Summary
 
-`docs/compiler/bootstrap.md` が 4 箇所で参照するが存在しない `scripts/check-selfhost-parity.sh` を作成する。fixture / cli / diagnostic の 3 モードで Rust 版と selfhost 版の出力を比較する。
+`docs/compiler/bootstrap.md` が 4 箇所で参照するが存在しない `scripts/check/check-selfhost-parity.sh` を作成する。fixture / cli / diagnostic の 3 モードで Rust 版と selfhost 版の出力を比較する。
 
 ## Current state
 
 - `docs/compiler/bootstrap.md:256-258`: `check-selfhost-parity.sh --fixture`, `--cli`, `--diag` を参照
 - これら 3 variant とも script が存在しない
-- `scripts/compare-outputs.sh` は phase 比較ツールであり、parity check ではない
+- `scripts/run/compare-outputs.sh` は phase 比較ツールであり、parity check ではない
 - parity の比較基準が定義されていない
 
 ## Acceptance
@@ -31,4 +31,4 @@
 ## References
 
 - `docs/compiler/bootstrap.md:256-258` — 存在しない script への参照
-- `scripts/compare-outputs.sh` — 既存 phase 比較ツール
+- `scripts/run/compare-outputs.sh` — 既存 phase 比較ツール

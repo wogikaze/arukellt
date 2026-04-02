@@ -105,7 +105,7 @@ internal bug reporting 用に `ICE-*` 系 ID を registry に予約する。
 - fixture baseline は `tests/baselines/fixture-baseline.json`
 - perf baseline は `tests/baselines/perf-baseline.json`
 - API baseline は `tests/baselines/api-baseline.json`
-- docs drift は `scripts/check-docs-consistency.py`
+- docs drift は `scripts/check/check-docs-consistency.py`
 
 ## 注意
 

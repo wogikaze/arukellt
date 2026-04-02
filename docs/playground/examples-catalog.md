@@ -35,7 +35,7 @@ playground/src/examples.ts   ← catalog (source + metadata + fixturePath)
    Verify locally:
 
    ```bash
-   bash scripts/verify-harness.sh --quick
+   bash scripts/run/verify-harness.sh --quick
    ```
 
 3. **Add the example to the catalog** in
@@ -67,7 +67,7 @@ playground/src/examples.ts   ← catalog (source + metadata + fixturePath)
 5. **Verify end-to-end**:
 
    ```bash
-   bash scripts/verify-harness.sh --quick
+   bash scripts/run/verify-harness.sh --quick
    ```
 
 ## Current catalog

@@ -12,7 +12,7 @@
 - [x] `docs/language/` 内の全文書に current / transitional / archive のラベルが付与される
 - [x] archive / transitional 文書に banner (免責注記) が設置される
 - [x] `docs/language/README.md` の generated table にラベルが反映される
-- [x] `scripts/generate-docs.py` が archive banner を自動挿入する
+- [x] `scripts/gen/generate-docs.py` が archive banner を自動挿入する
 
 ## Resolution
 

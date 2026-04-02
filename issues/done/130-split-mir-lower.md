@@ -47,7 +47,7 @@ crates/ark-mir/src/
 2. `facade.rs` の薄ラッパーは lint `dead_code` を通過 (使われていないものは削除 or `#[cfg(test)]`)
 3. `cargo build --workspace --exclude ark-llvm --exclude ark-lsp` が通る
 4. `cargo test -p arukellt --test harness` が全テスト green
-5. `scripts/verify-harness.sh` が status 0
+5. `scripts/run/verify-harness.sh` が status 0
 
 ## 補足
 

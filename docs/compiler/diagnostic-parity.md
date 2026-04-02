@@ -359,7 +359,7 @@ ok: 413 bytes
 | 6 | Wrong arg count | E0202 | ✅ | ❌ | ❌ | ❌ | ❌ |
 | 7 | Immutable mutation | E0207 | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-**Full parity check** (`scripts/check-selfhost-parity.sh --diag`):
+**Full parity check** (`scripts/check/check-selfhost-parity.sh --diag`):
 23 diagnostic fixtures tested — 0 pass, 0 fail, **23 skip** (selfhost does
 not emit the expected `error[Exxxx|phase]:` pattern for any fixture).
 
@@ -432,7 +432,7 @@ The selfhost compiler's diagnostic system is at an **early stage**:
 ## Verification
 
 ```
-scripts/check-selfhost-parity.sh --diag
+scripts/check/check-selfhost-parity.sh --diag
   → diag-parity: pass=0 fail=0 skip=23 total=23
   → Exit 0 (no regressions; skips are expected at this stage)
 ```

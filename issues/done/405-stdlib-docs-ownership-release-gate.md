@@ -30,5 +30,5 @@ stdlib docs を継続的に維持するため、どの page / generator / manife
 
 - ``docs/stdlib/**``
 - ``docs/release-checklist.md``
-- ``scripts/generate-docs.py``
+- ``scripts/gen/generate-docs.py``
 - ``std/manifest.toml``

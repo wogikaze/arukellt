@@ -21,8 +21,8 @@ verify-harness.sh and document the results.
 
 - [x] All `t3-compile:*` fixtures compile (every category).
 - [x] All `run:*` fixtures produce correct output (every category).
-- [x] `scripts/verify-harness.sh` exits with status 0 (all 16 checks pass).
-- [x] `scripts/verify-harness.sh --quick` passes.
+- [x] `scripts/run/verify-harness.sh` exits with status 0 (all 16 checks pass).
+- [x] `scripts/run/verify-harness.sh --quick` passes.
 
 ### Code cleanup
 
@@ -57,7 +57,7 @@ verify-harness.sh and document the results.
 
 - `crates/ark-wasm/src/emit/t3_wasm_gc.rs` — cleanup target
 - `docs/adr/ADR-002-memory-model.md` — update
-- `scripts/verify-harness.sh` — verification
+- `scripts/run/verify-harness.sh` — verification
 
 ## Notes
 

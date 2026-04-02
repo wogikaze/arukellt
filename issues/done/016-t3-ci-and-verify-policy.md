@@ -25,7 +25,7 @@ Turn T3 completion into an enforced policy, not a one-time milestone.
 
 ## Implementation
 
-- Update `scripts/verify-harness.sh` to run the T3 fixture matrix and representative T3 smoke tests.
+- Update `scripts/run/verify-harness.sh` to run the T3 fixture matrix and representative T3 smoke tests.
 - Update CI workflows to separate normal correctness from heavy perf telemetry.
 - Update docs consistency checks so drift on T3 target status/runtime model fails verification.
 - If `cargo check --workspace` still includes optional paths that are intentionally unstable, document exactly how they are handled in CI.
@@ -36,7 +36,7 @@ Turn T3 completion into an enforced policy, not a one-time milestone.
 
 ## Impact
 
-- `scripts/verify-harness.sh`
+- `scripts/run/verify-harness.sh`
 - `.github/workflows/ci.yml`
 - docs consistency scripts
 

@@ -18,7 +18,7 @@ pure stdlib と explicit host facade を明確に分離すること。
 
 1. `std::host::*` の naming / target policy が `std/manifest.toml`、generated docs、issue queue で一貫する
 2. `137`, `138`, `077`, `139` が完了し、依存グラフ上の残課題がなくなる
-3. `scripts/verify-harness.sh --quick` が status 0
+3. `scripts/run/verify-harness.sh --quick` が status 0
 4. child issue で追加した T1/T3 実行確認手順が docs から辿れる
 
 ## 参照

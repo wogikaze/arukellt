@@ -22,10 +22,10 @@ Before changing behavior, read:
 cargo build --release -p arukellt
 
 # Run the fast local verification gate
-bash scripts/verify-harness.sh
+bash scripts/run/verify-harness.sh
 
 # Run the full local verification set when needed
-bash scripts/verify-harness.sh --full
+bash scripts/run/verify-harness.sh --full
 
 # Run a sample program
 ./target/release/arukellt run docs/examples/hello.ark
@@ -37,14 +37,14 @@ bash scripts/verify-harness.sh --full
 cargo fmt --all --check
 cargo clippy --workspace --exclude ark-llvm -- -D warnings
 cargo test --workspace --exclude ark-llvm
-bash scripts/verify-harness.sh
-bash scripts/verify-harness.sh --cargo
-bash scripts/verify-harness.sh --fixtures
-bash scripts/verify-harness.sh --full
-python3 scripts/generate-docs.py
-python3 scripts/check-docs-consistency.py
-python3 scripts/collect-baseline.py
-bash scripts/install-git-hooks.sh
+bash scripts/run/verify-harness.sh
+bash scripts/run/verify-harness.sh --cargo
+bash scripts/run/verify-harness.sh --fixtures
+bash scripts/run/verify-harness.sh --full
+python3 scripts/gen/generate-docs.py
+python3 scripts/check/check-docs-consistency.py
+python3 scripts/util/collect-baseline.py
+bash scripts/gate/install-git-hooks.sh
 ```
 
 ## Project Structure
@@ -78,7 +78,7 @@ docs/               # user-facing and design docs
 
 - `tests/fixtures/manifest.txt` is the single source of truth for fixture entry points.
 - The harness is manifest-driven; do not assume globbing.
-- Current totals are derived dynamically by `scripts/verify-harness.sh` and surfaced in [`current-state.md`](current-state.md).
+- Current totals are derived dynamically by `scripts/run/verify-harness.sh` and surfaced in [`current-state.md`](current-state.md).
 - Fixture kinds currently include:
   - `run`
   - `diag`
@@ -98,8 +98,8 @@ Some docs are generated and should be regenerated rather than hand-edited.
 Use:
 
 ```bash
-python3 scripts/generate-docs.py
-python3 scripts/check-docs-consistency.py
+python3 scripts/gen/generate-docs.py
+python3 scripts/check/check-docs-consistency.py
 ```
 
 This updates / validates generated landing pages, README status blocks, sidebar content, and manifest-backed stdlib reference material.
@@ -109,7 +109,7 @@ This updates / validates generated landing pages, README status blocks, sidebar 
 Default local verification is the fast deterministic gate:
 
 ```bash
-bash scripts/verify-harness.sh
+bash scripts/run/verify-harness.sh
 ```
 
 It covers, among other checks:
@@ -122,16 +122,16 @@ It covers, among other checks:
 Run heavier groups explicitly when needed:
 
 ```bash
-bash scripts/verify-harness.sh --cargo
-bash scripts/verify-harness.sh --fixtures
-bash scripts/verify-harness.sh --full
+bash scripts/run/verify-harness.sh --cargo
+bash scripts/run/verify-harness.sh --fixtures
+bash scripts/run/verify-harness.sh --full
 ```
 
 Heavy checks also belong in CI and can be installed locally as a pre-push hook via:
 
 ```bash
-bash scripts/install-git-hooks.sh
-bash scripts/pre-push-verify.sh
+bash scripts/gate/install-git-hooks.sh
+bash scripts/gate/pre-push-verify.sh
 ```
 
 ## Perf Policy

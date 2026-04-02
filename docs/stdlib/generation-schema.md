@@ -1,7 +1,7 @@
 # Stdlib Docs Generation Schema
 
 > **This schema is enforced at generation time.**
-> `python3 scripts/generate-docs.py` validates every `[[functions]]` entry in
+> `python3 scripts/gen/generate-docs.py` validates every `[[functions]]` entry in
 > `std/manifest.toml` against these rules before producing any output.
 > A schema violation causes a non-zero exit and blocks CI.
 
@@ -50,7 +50,7 @@ These fields are mandatory regardless of role:
 ## Valid Stability Labels
 
 Defined in `spec.md` (ADR-013 §Stability) and enforced by `STABILITY_LABELS` in
-`scripts/generate-docs.py`:
+`scripts/gen/generate-docs.py`:
 
 | Label | Meaning |
 |-------|---------|
@@ -63,7 +63,7 @@ Defined in `spec.md` (ADR-013 §Stability) and enforced by `STABILITY_LABELS` in
 
 ## Valid Kind Values
 
-Enforced by `VALID_KIND_VALUES` in `scripts/generate-docs.py`:
+Enforced by `VALID_KIND_VALUES` in `scripts/gen/generate-docs.py`:
 
 | Kind | Meaning |
 |------|---------|
@@ -92,10 +92,10 @@ Entries with `kind = "host_stub"` must additionally provide:
 Schema validation is integrated into the documentation generation pipeline:
 
 ```
-python3 scripts/generate-docs.py          # validates schema, then generates
-python3 scripts/generate-docs.py --check  # validates schema, then checks freshness
-python3 scripts/check-docs-consistency.py # calls generate-docs.py --check internally
-bash scripts/verify-harness.sh --quick    # runs check-docs-consistency.py as a bg check
+python3 scripts/gen/generate-docs.py          # validates schema, then generates
+python3 scripts/gen/generate-docs.py --check  # validates schema, then checks freshness
+python3 scripts/check/check-docs-consistency.py # calls generate-docs.py --check internally
+bash scripts/run/verify-harness.sh --quick    # runs check-docs-consistency.py as a bg check
 ```
 
 A violation in `std/manifest.toml` will:
@@ -107,7 +107,7 @@ A violation in `std/manifest.toml` will:
 
 ## Schema Constants (source of truth)
 
-The authoritative schema constants live in `scripts/generate-docs.py`:
+The authoritative schema constants live in `scripts/gen/generate-docs.py`:
 
 ```python
 FUNCTION_REQUIRED_FIELDS = ("name", "params", "returns", "stability", "doc_category")

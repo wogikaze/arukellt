@@ -7,7 +7,7 @@
 
 ## Completed
 
-- [x] リンク / 参照チェッカーが追加される — `scripts/check-links.sh`
+- [x] リンク / 参照チェッカーが追加される — `scripts/check/check-links.sh`
 - [x] docs と issues の少なくとも主要参照を検証する — docs/**/*.md, issues/**/*.md, README.md, CHANGELOG.md, AGENTS.md (582 files)
 - [x] 欠損時に具体的な file/path が出る — `BROKEN: file -> ref` format with stderr output
 - [x] CI または hook で実行される — exit 1 on broken links, integrable into CI/hooks

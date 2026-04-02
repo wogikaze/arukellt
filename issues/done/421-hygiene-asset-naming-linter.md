@@ -22,7 +22,7 @@
 
 ## Implementation
 
-- `scripts/check-asset-naming.sh`: checks benchmarks/*.ark and tests/fixtures/**/*.ark
+- `scripts/check/check-asset-naming.sh`: checks benchmarks/*.ark and tests/fixtures/**/*.ark
 - snake_case enforced: lowercase letters, digits, underscores, must start with letter
 - Provides sed-based fix suggestions for violations
 - Integrated into verify-harness.sh as background check

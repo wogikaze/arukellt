@@ -29,6 +29,6 @@ clean build / warm build / incremental build と、parse / resolve / typecheck /
 
 ## 参照
 
-- `scripts/perf-gate.sh`
+- `scripts/check/perf-gate.sh`
 - `docs/process/benchmark-plan.md`
 - `issues/done/110-bench-perf-gate.md`

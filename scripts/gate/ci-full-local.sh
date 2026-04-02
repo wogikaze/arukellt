@@ -58,18 +58,18 @@ ok "Unit checks"
 
 # ── 2. Docs ──────────────────────────────────────────────────────────────────
 step 2 "Docs (freshness + consistency)"
-bash scripts/verify-harness.sh --docs
+bash scripts/run/verify-harness.sh --docs
 python3 scripts/check-docs-consistency.py
 ok "Docs checks"
 
 # ── 3. T3 Fixtures ───────────────────────────────────────────────────────────
 step 3 "Fixtures T3 (wasm32-wasi-p2)"
-ARUKELLT_TARGET=wasm32-wasi-p2 bash scripts/verify-harness.sh --fixtures
+ARUKELLT_TARGET=wasm32-wasi-p2 bash scripts/run/verify-harness.sh --fixtures
 ok "T3 fixtures"
 
 # ── 4. T1 Fixtures (non-blocking) ────────────────────────────────────────────
 step 4 "Fixtures T1 (wasm32-wasi-p1, non-blocking)"
-if ARUKELLT_TARGET=wasm32-wasi-p1 bash scripts/verify-harness.sh --fixtures 2>&1; then
+if ARUKELLT_TARGET=wasm32-wasi-p1 bash scripts/run/verify-harness.sh --fixtures 2>&1; then
     ok "T1 fixtures"
 else
     fail "T1 fixtures (non-blocking — recorded but not fatal)"
@@ -83,10 +83,10 @@ ok "Release build"
 # ── 6. Integration & Packaging ───────────────────────────────────────────────
 step 6 "Integration & Packaging"
 if [ -x scripts/smoke-test-binary.sh ]; then
-    bash scripts/smoke-test-binary.sh ./target/release/arukellt
+    bash scripts/run/smoke-test-binary.sh ./target/release/arukellt
 fi
 if [ -x scripts/test-package-workspace.sh ]; then
-    bash scripts/test-package-workspace.sh
+    bash scripts/run/test-package-workspace.sh
 fi
 ok "Integration & packaging"
 
@@ -108,13 +108,13 @@ fi
 
 # ── 8. Selfhost Stage 0 ──────────────────────────────────────────────────────
 step 8 "Selfhost Stage 0"
-bash scripts/verify-bootstrap.sh --stage1-only
+bash scripts/run/verify-bootstrap.sh --stage1-only
 ok "Selfhost stage 0"
 
 # ── 9. Component Interop + Size + WAT ────────────────────────────────────────
 step 9 "Component interop + size + WAT"
-bash scripts/verify-harness.sh --component
-bash scripts/verify-harness.sh --size --wat
+bash scripts/run/verify-harness.sh --component
+bash scripts/run/verify-harness.sh --size --wat
 ok "Component + size + WAT"
 
 # ── 10. Extension Tests ───────────────────────────────────────────────────────

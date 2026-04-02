@@ -25,7 +25,7 @@ roadmap-v4.md §2 の「hello.wasm 1KB 以下」目標を達成するための
 
 1. `hello.wasm` (GC-native) が `--opt-level 2` で 1KB 以下
 2. 各最適化の寄与量を記録した `docs/process/wasm-size-reduction.md` を作成
-3. `scripts/verify-harness.sh` の perf gate にバイナリサイズチェックを追加
+3. `scripts/run/verify-harness.sh` の perf gate にバイナリサイズチェックを追加
 
 ## 参照
 

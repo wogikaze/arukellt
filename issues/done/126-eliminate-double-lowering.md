@@ -29,7 +29,7 @@ let corehir_mir = if corehir_valid {
 1. `run_frontend()` をリファクタして選択された `MirSelection` に応じてのみ lower を実行
    - あるいは `lower_mir_selected()` の実装を選択済み MIR だけを生成するよう変更
 2. `cargo bench` でコンパイル時間が短縮されること (v4 目標: 50ms / 500ms)
-3. `scripts/verify-harness.sh` が status 0 で終了
+3. `scripts/run/verify-harness.sh` が status 0 で終了
 4. parity テスト (`compare_mir_paths`) は引き続き明示的に両方の lower を実行
 
 ## 背景

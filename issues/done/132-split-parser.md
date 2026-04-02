@@ -33,7 +33,7 @@ crates/ark-parser/src/
 1. 上記 6 ファイルに分割
 2. `cargo build --workspace --exclude ark-llvm --exclude ark-lsp` が通る
 3. `cargo test --workspace --exclude ark-llvm --exclude ark-lsp` が通る
-4. `scripts/verify-harness.sh` が status 0
+4. `scripts/run/verify-harness.sh` が status 0
 
 ## 参照
 

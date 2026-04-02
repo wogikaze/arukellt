@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OPEN_DIR="$ROOT/issues/open"
 BLOCKED_DIR="$ROOT/issues/blocked"
 INDEX_OUT="$OPEN_DIR/index.md"

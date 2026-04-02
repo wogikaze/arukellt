@@ -38,13 +38,13 @@ strongest practical proof of compiler correctness short of formal verification.
 cargo build --release
 
 # Stage 0 only — Rust compiles selfhost sources
-scripts/verify-bootstrap.sh --stage1-only
+scripts/run/verify-bootstrap.sh --stage1-only
 
 # Full fixpoint verification (Stages 0 → 1 → 2)
-scripts/verify-bootstrap.sh
+scripts/run/verify-bootstrap.sh
 
 # Run a single stage
-scripts/verify-bootstrap.sh --stage 0
+scripts/run/verify-bootstrap.sh --stage 0
 ```
 
 ## Verification Stages
@@ -76,7 +76,7 @@ Identical checksums prove the compiler is a fixpoint.
 
 Fixpoint verification only works when compilation is **deterministic**.
 The compiler must not embed timestamps, random nonces, or pointer-derived
-values into the output binary.  `scripts/verify-harness.sh` already
+values into the output binary.  `scripts/run/verify-harness.sh` already
 checks determinism for fixtures and will be extended to the selfhost
 compiler.
 
@@ -120,18 +120,18 @@ wasmtime arukellt-s1.wasm -- compile --dump-phases ast hello.ark
 
 ### Compare Rust vs selfhost output
 
-Use `scripts/compare-outputs.sh` to diff phase output between the two
+Use `scripts/run/compare-outputs.sh` to diff phase output between the two
 compilers:
 
 ```bash
 # Compare token output for hello.ark
-scripts/compare-outputs.sh tokens tests/fixtures/hello/hello.ark
+scripts/run/compare-outputs.sh tokens tests/fixtures/hello/hello.ark
 
 # Compare AST output
-scripts/compare-outputs.sh ast tests/fixtures/hello/hello.ark
+scripts/run/compare-outputs.sh ast tests/fixtures/hello/hello.ark
 
 # Use a custom selfhost binary
-scripts/compare-outputs.sh mir hello.ark --selfhost-wasm ./arukellt-s1.wasm
+scripts/run/compare-outputs.sh mir hello.ark --selfhost-wasm ./arukellt-s1.wasm
 ```
 
 The script runs both compilers, captures stderr, and shows a unified diff.
@@ -141,7 +141,7 @@ Exit code 0 means identical output; exit code 1 means divergence.
 
 When Stage 2 reports that `arukellt-s1.wasm ≠ arukellt-s2.wasm`:
 
-1. **Find the divergent phase** — run `scripts/compare-outputs.sh` for
+1. **Find the divergent phase** — run `scripts/run/compare-outputs.sh` for
    each phase (`tokens`, `ast`, `hir`, `mir`, `wasm`) against a small
    fixture to locate the first phase where output differs.
 
@@ -162,7 +162,7 @@ When Stage 2 reports that `arukellt-s1.wasm ≠ arukellt-s2.wasm`:
 4. **Fix and verify** — correct the selfhost source and re-run:
 
    ```bash
-   scripts/verify-bootstrap.sh
+   scripts/run/verify-bootstrap.sh
    ```
 
 ## Artifact Naming Convention
@@ -179,13 +179,13 @@ up after each verification run.  Only component `.wasm` files (e.g.
 
 ## CI Integration
 
-The bootstrap check is available via `scripts/verify-bootstrap.sh`:
+The bootstrap check is available via `scripts/run/verify-bootstrap.sh`:
 
 | Context | Command | Notes |
 |---------|---------|-------|
-| PR checks | `scripts/verify-bootstrap.sh --stage1-only` | Fast — Rust compilation only |
-| Merge to main | `scripts/verify-bootstrap.sh` | Full fixpoint when available |
-| Local dev | `scripts/verify-bootstrap.sh --stage 0` | Single stage |
+| PR checks | `scripts/run/verify-bootstrap.sh --stage1-only` | Fast — Rust compilation only |
+| Merge to main | `scripts/run/verify-bootstrap.sh` | Full fixpoint when available |
+| Local dev | `scripts/run/verify-bootstrap.sh --stage 0` | Single stage |
 
 The `--stage1-only` flag is suitable for PR checks (faster), while full
 fixpoint verification runs on merge to main.
@@ -194,9 +194,9 @@ fixpoint verification runs on merge to main.
 
 | Script | Purpose | Issue |
 |--------|---------|-------|
-| `scripts/verify-bootstrap.sh` | Stage 0→1→2 fixpoint verification | #181, #182 |
-| `scripts/compare-outputs.sh` | Phase output diff (Rust vs selfhost) | #174 |
-| `scripts/verify-harness.sh` | Top-level verification gate | — |
+| `scripts/run/verify-bootstrap.sh` | Stage 0→1→2 fixpoint verification | #181, #182 |
+| `scripts/run/compare-outputs.sh` | Phase output diff (Rust vs selfhost) | #174 |
+| `scripts/run/verify-harness.sh` | Top-level verification gate | — |
 
 ## See Also
 
@@ -213,17 +213,17 @@ are satisfied simultaneously and verified by CI on every merge to `master`:
 
 | Criterion | Description | Verification script/command |
 |-----------|-------------|----------------------------|
-| **Stage 0 compile** | Rust compiler compiles all `src/compiler/*.ark` files with zero errors | `scripts/verify-bootstrap.sh --stage1-only` |
-| **Stage 1 compile** | `arukellt-s1.wasm` compiles all `src/compiler/*.ark` files with zero errors | `scripts/verify-bootstrap.sh` Stage 1 |
-| **Stage 2 fixpoint** | `sha256(s1) == sha256(s2)` — compiler reproduces itself byte-for-byte | `scripts/verify-bootstrap.sh` Stage 2 |
-| **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `scripts/check-selfhost-parity.sh` |
-| **CLI parity** | `arukellt-s1.wasm compile <file>` stdout/stderr matches `arukellt compile <file>` for all fixture inputs | `scripts/check-selfhost-parity.sh --cli` |
-| **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `scripts/check-selfhost-parity.sh --diag` |
+| **Stage 0 compile** | Rust compiler compiles all `src/compiler/*.ark` files with zero errors | `scripts/run/verify-bootstrap.sh --stage1-only` |
+| **Stage 1 compile** | `arukellt-s1.wasm` compiles all `src/compiler/*.ark` files with zero errors | `scripts/run/verify-bootstrap.sh` Stage 1 |
+| **Stage 2 fixpoint** | `sha256(s1) == sha256(s2)` — compiler reproduces itself byte-for-byte | `scripts/run/verify-bootstrap.sh` Stage 2 |
+| **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `scripts/check/check-selfhost-parity.sh` |
+| **CLI parity** | `arukellt-s1.wasm compile <file>` stdout/stderr matches `arukellt compile <file>` for all fixture inputs | `scripts/check/check-selfhost-parity.sh --cli` |
+| **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `scripts/check/check-selfhost-parity.sh --diag` |
 | **Determinism** | Running Stage 0 twice on the same input produces identical bytes | part of `verify-bootstrap.sh` Stage 2 |
 
 **One-line definition:** The selfhost compiler is complete when
-`scripts/verify-bootstrap.sh` exits 0 with all stages passing (no SKIP),
-**and** `scripts/check-selfhost-parity.sh` exits 0.
+`scripts/run/verify-bootstrap.sh` exits 0 with all stages passing (no SKIP),
+**and** `scripts/check/check-selfhost-parity.sh` exits 0.
 
 ### Current Status (Updated Automatically)
 
@@ -266,12 +266,12 @@ its selfhost equivalent passes the parity check.
 
 | Crate | Role | Deletion Condition |
 |-------|------|--------------------|
-| `ark-driver` | Pipeline orchestration (lex→parse→…→emit) | Selfhost `driver.ark` equivalent passes `scripts/check-selfhost-parity.sh` |
-| `ark-mir` | Mid-level IR and HIR→MIR lowering | Selfhost `mir.ark` equivalent passes `scripts/check-selfhost-parity.sh` |
-| `ark-wasm` | Wasm binary emitter | Selfhost `emitter.ark` equivalent passes `scripts/check-selfhost-parity.sh` |
-| `arukellt` | Top-level CLI binary | Selfhost `main.ark` (as `arukellt.wasm`) passes `scripts/check-selfhost-parity.sh` |
+| `ark-driver` | Pipeline orchestration (lex→parse→…→emit) | Selfhost `driver.ark` equivalent passes `scripts/check/check-selfhost-parity.sh` |
+| `ark-mir` | Mid-level IR and HIR→MIR lowering | Selfhost `mir.ark` equivalent passes `scripts/check/check-selfhost-parity.sh` |
+| `ark-wasm` | Wasm binary emitter | Selfhost `emitter.ark` equivalent passes `scripts/check/check-selfhost-parity.sh` |
+| `arukellt` | Top-level CLI binary | Selfhost `main.ark` (as `arukellt.wasm`) passes `scripts/check/check-selfhost-parity.sh` |
 
-**Parity check definition:** "passes `scripts/check-selfhost-parity.sh`" means
+**Parity check definition:** "passes `scripts/check/check-selfhost-parity.sh`" means
 the script exits 0 for every fixture in `tests/fixtures/` on the current `HEAD`
 of `master`.
 
@@ -279,11 +279,11 @@ of `master`.
 
 **One observable condition:** The dual period ends when:
 
-> `scripts/check-selfhost-parity.sh` exits 0 on `HEAD` of `master`.
+> `scripts/check/check-selfhost-parity.sh` exits 0 on `HEAD` of `master`.
 
 All other gates (fixpoint check, CLI parity, diagnostic parity, determinism)
 are prerequisites that must be satisfied before this command can exit 0. Once
-`scripts/check-selfhost-parity.sh` exits 0 in CI, the dual period is over and
+`scripts/check/check-selfhost-parity.sh` exits 0 in CI, the dual period is over and
 the deletion procedure below may begin.
 
 ### Rust Compiler Deletion Procedure
@@ -299,7 +299,7 @@ state before the next step begins.
 5. Delete `crates/arukellt/` (precondition: selfhost `main.ark` as `arukellt.wasm` passes parity check)
 6. Remove the deleted crates from `Cargo.toml` workspace `members` and `default-members`
 7. Update CI: replace `cargo build --workspace` compile step with `wasmtime run arukellt.wasm`
-8. Update `scripts/verify-harness.sh` to invoke the selfhost binary
+8. Update `scripts/run/verify-harness.sh` to invoke the selfhost binary
 9. Update `docs/current-state.md` to remove the dual-period sections
 10. Archive `issues/done/` for all selfhost promotion issues
 
@@ -628,7 +628,7 @@ passes all checks).
 | 3.7 | Remove `wasm-encoder`, `wasmparser`, `wasmtime`, `inkwell` from workspace deps | `cargo build --workspace` passes |
 | 3.8 | Apply minimal post-selfhost `Cargo.toml` (see above); bump version to `0.2.0` | `cargo build --workspace` passes |
 | 3.9 | Update CI: replace `cargo build --workspace` compile step with `wasmtime run arukellt.wasm` for compiler tests | CI green |
-| 3.10 | Update `scripts/verify-harness.sh` to invoke the selfhost binary | `verify-harness.sh --quick` passes |
+| 3.10 | Update `scripts/run/verify-harness.sh` to invoke the selfhost binary | `verify-harness.sh --quick` passes |
 
 ### IDE Tooling Positioning (Post-Selfhost Architecture)
 

@@ -109,4 +109,4 @@ Rejected: Existing banners are inconsistent (`Current-first`, `Transitional`, `F
 - `docs/data/language-doc-classifications.toml` — machine-readable classification data (created in this work order)
 - ADR-014: Stability Labels for Language Spec and Stdlib API
 - ADR-016: Breaking Change Process — Three-Piece Set
-- `scripts/generate-docs.py` — generates `docs/language/README.md` including classification table
+- `scripts/gen/generate-docs.py` — generates `docs/language/README.md` including classification table

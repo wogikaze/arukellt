@@ -27,7 +27,7 @@
 
 ## References
 
-- `scripts/verify-harness.sh`
+- `scripts/run/verify-harness.sh`
 - `docs/target-contract.md`（257 で作成）
 - `issues/open/256-ci-target-matrix-inject-args.md`
 - `issues/open/257-target-contract-table.md`

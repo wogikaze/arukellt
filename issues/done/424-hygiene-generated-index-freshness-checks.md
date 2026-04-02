@@ -22,5 +22,5 @@ docs index、issue index の freshness を自動検出。
 
 ## Implementation
 
-- Extended `scripts/check-docs-consistency.py` with `check_issue_index_freshness()`
+- Extended `scripts/check/check-docs-consistency.py` with `check_issue_index_freshness()`
 - Regenerates issue indexes, compares output, reports stale files with command to fix

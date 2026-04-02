@@ -23,10 +23,10 @@
 
 - `docs/target-contract.md` の emit 行を core / component に分割
 - CI の component 出力 step に `wasm-tools` 依存チェックを追加
-- `scripts/verify-harness.sh` の `--component` フラグと CI ジョブの対応を整理
+- `scripts/run/verify-harness.sh` の `--component` フラグと CI ジョブの対応を整理
 
 ## References
 
-- `scripts/verify-harness.sh`
+- `scripts/run/verify-harness.sh`
 - `issues/open/257-target-contract-table.md`
 - `issues/open/251-target-matrix-execution-contract.md`

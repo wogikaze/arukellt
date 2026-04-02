@@ -12,10 +12,10 @@ their responsibilities, and how they map to the CI pipeline.
 | **target-contract** | Per-target fixture subset via `ARUKELLT_TARGET` | merge-blocking | `target-behavior` CI matrix |
 | **component-interop** | Component Model emit + host interop | smoke (opt-in) | `verify-harness.sh --component` |
 | **package-workspace** | `ark.toml`, workspace resolution, manifest | merge-blocking | unit tests in `ark-manifest` / `ark-resolve` |
-| **bootstrap** | Selfhost Stage 0→1→2 fixpoint | informational | `scripts/verify-bootstrap.sh` |
+| **bootstrap** | Selfhost Stage 0→1→2 fixpoint | informational | `scripts/run/verify-bootstrap.sh` |
 | **editor-tooling** | VS Code extension activate / LSP handshake | smoke (CI-gated) | `@vscode/test-cli` via `xvfb-run` |
 | **determinism** | Same input → same output | smoke | `tests/baselines/` comparison |
-| **perf** | Compile/run time regression | non-blocking | `scripts/benchmark_runner.py` |
+| **perf** | Compile/run time regression | non-blocking | `scripts/util/benchmark_runner.py` |
 | **diagnostics-snapshot** | Error message stability | informational | `tests/snapshots/diagnostics/` |
 
 ## Regression layer mapping

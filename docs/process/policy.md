@@ -15,9 +15,9 @@
 
 | Artifact | Commit? | Regeneration |
 |----------|---------|--------------|
-| Baseline JSON under `tests/baselines/` | Yes | `python3 scripts/collect-baseline.py` |
-| Generated docs / landing pages / status blocks | Yes | `python3 scripts/generate-docs.py` |
-| Issue queue indexes under `issues/open/` | Yes | `bash scripts/generate-issue-index.sh` |
+| Baseline JSON under `tests/baselines/` | Yes | `python3 scripts/util/collect-baseline.py` |
+| Generated docs / landing pages / status blocks | Yes | `python3 scripts/gen/generate-docs.py` |
+| Issue queue indexes under `issues/open/` | Yes | `bash scripts/gen/generate-issue-index.sh` |
 | CLI help text | No | built from source |
 
 ## Target Support Policy
@@ -55,7 +55,7 @@
 
 ## Verification Policy
 
-Normal correctness verification lives in `scripts/verify-harness.sh` and should stay deterministic.
+Normal correctness verification lives in `scripts/run/verify-harness.sh` and should stay deterministic.
 
 The default invocation is the fast local gate. It covers:
 

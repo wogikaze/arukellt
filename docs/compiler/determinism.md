@@ -59,7 +59,7 @@ a stable order (e.g. first-occurrence in AST walk).
 
 ## Verification
 
-The reproducible-build gate is enforced by `scripts/verify-harness.sh`. To
+The reproducible-build gate is enforced by `scripts/run/verify-harness.sh`. To
 verify manually, compile the same fixture twice and compare:
 
 ```bash

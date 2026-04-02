@@ -26,7 +26,7 @@
 1. `crates/ark-diagnostics` の code registry を棚卸しする
 2. 手書きか生成かを決め、更新フローを明文化する
 3. `docs/compiler/error-codes.md` を追加し、代表 code と運用ルールを整理する
-4. `scripts/check-docs-consistency.py` か同等の check に error code doc の整合確認を追加する
+4. `scripts/check/check-docs-consistency.py` か同等の check に error code doc の整合確認を追加する
 
 ## 参照
 

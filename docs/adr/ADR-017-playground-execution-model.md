@@ -200,8 +200,8 @@ signal.  Playground-specific verification layers are:
 | Layer | Scope | Location |
 |-------|-------|----------|
 | Cargo unit tests | Each crate compiled into the bundle (lexer, parser, typecheck, diagnostics, formatter) | `crates/*/tests/` and `#[test]` blocks |
-| Harness smoke tests | `scripts/verify-harness.sh --quick` and `--cargo` must pass; the bundle is not gated by a separate browser test in v1 | `harness/`, `scripts/` |
-| Docs-consistency check | `python3 scripts/check-docs-consistency.py` must pass; playground additions must not break doc cross-references | `scripts/check-docs-consistency.py` |
+| Harness smoke tests | `scripts/run/verify-harness.sh --quick` and `--cargo` must pass; the bundle is not gated by a separate browser test in v1 | `harness/`, `scripts/` |
+| Docs-consistency check | `python3 scripts/check/check-docs-consistency.py` must pass; playground additions must not break doc cross-references | `scripts/check/check-docs-consistency.py` |
 | Browser smoke test (v1 gate) | A minimal JS/HTML smoke test that imports the Wasm bundle and calls `parse()` is sufficient for v1; full browser integration tests are a v2 concern | Defined in issue 379 |
 
 No new test infrastructure is required to close issue 428; the test contract

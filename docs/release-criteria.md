@@ -29,10 +29,10 @@ Run before any tagged release:
 cargo test -p arukellt --test harness
 
 # 2. Verification gate
-bash scripts/verify-harness.sh --quick
+bash scripts/run/verify-harness.sh --quick
 
 # 3. Full verification (optional, before stable releases)
-bash scripts/verify-harness.sh --full
+bash scripts/run/verify-harness.sh --full
 
 # 4. Determinism check
 arukellt compile docs/examples/hello.ark --target wasm32-wasi-p2 -o /tmp/h1.wasm

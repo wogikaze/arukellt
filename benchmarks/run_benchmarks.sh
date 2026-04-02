@@ -18,4 +18,4 @@ for arg in "$@"; do
     esac
 done
 
-exec python3 "$ROOT/scripts/benchmark_runner.py" --mode "$MODE" "${ARGS[@]}"
+exec python3 "$ROOT/scripts/util/benchmark_runner.py" --mode "$MODE" "${ARGS[@]}"

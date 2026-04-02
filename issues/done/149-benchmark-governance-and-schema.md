@@ -30,5 +30,5 @@
 
 - `benchmarks/README.md`
 - `docs/process/benchmark-plan.md`
-- `scripts/perf-gate.sh`
+- `scripts/check/perf-gate.sh`
 - `scripts/compare-benchmarks.sh`

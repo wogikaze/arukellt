@@ -2,7 +2,7 @@
 # scripts/generate-scoreboard.sh — Generate stdlib module maturity scoreboard
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUTPUT="$REPO_ROOT/docs/stdlib/scoreboard.md"
 
 python3 - "$REPO_ROOT" "$OUTPUT" << 'PYTHON_SCRIPT'

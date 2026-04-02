@@ -28,13 +28,13 @@ performance-regression workflow.
 
 ```bash
 # Regenerate all snapshots
-bash scripts/update-snapshots.sh
+bash scripts/run/update-snapshots.sh
 
 # MIR only
-bash scripts/update-snapshots.sh --mir
+bash scripts/run/update-snapshots.sh --mir
 
 # Diagnostics only
-bash scripts/update-snapshots.sh --diag
+bash scripts/run/update-snapshots.sh --diag
 ```
 
 After updating, review the diff carefully:
@@ -49,10 +49,10 @@ that caused the difference.
 ## Adding a New Snapshot Fixture
 
 1. Add the `.ark` file path to the `MIR_FIXTURES` array in
-   `scripts/update-snapshots.sh` (for MIR snapshots), or ensure the
+   `scripts/run/update-snapshots.sh` (for MIR snapshots), or ensure the
    fixture has a matching `.diag` file in `tests/fixtures/diagnostics/`
    (for diagnostic snapshots).
-2. Run `bash scripts/update-snapshots.sh`.
+2. Run `bash scripts/run/update-snapshots.sh`.
 3. Commit the new snapshot file.
 
 ## Relationship to Baselines

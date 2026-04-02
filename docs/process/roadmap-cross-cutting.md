@@ -91,7 +91,7 @@ v4.言語仕様凍結 (docs/language/spec.md)
 |------|------|
 | 発生条件 | v3 でモノモーフ名 (`Vec_new_i32`) から新 API 名への移行時、deprecation 期間なしに旧 API が除去される |
 | 影響 | 既存 346 fixture と user code が全て壊れる |
-| 緩和策 | `std/manifest.toml` の `stability` フィールドで管理。旧 API は v3 で Deprecated 化、v4 で除去。除去前に全 fixture を新 API に移行する。`scripts/verify-harness.sh` に deprecated API 使用チェックを追加 |
+| 緩和策 | `std/manifest.toml` の `stability` フィールドで管理。旧 API は v3 で Deprecated 化、v4 で除去。除去前に全 fixture を新 API に移行する。`scripts/run/verify-harness.sh` に deprecated API 使用チェックを追加 |
 | 許容基準 | v3 リリース時に Deprecated API が 0 の状態の fixture がない (全件移行済み) |
 
 ### リスク 4: 性能未達 — GC overhead が許容範囲を超える
@@ -119,7 +119,7 @@ v4.言語仕様凍結 (docs/language/spec.md)
 | 発生条件 | Arukellt 版 emitter が非決定的な出力を生成する (関数順序、アドレス等) |
 | 影響 | Stage 1 と Stage 2 のバイナリが一致せず、fixpoint 検証が通らない |
 | 緩和策 | emitter 設計時に決定性を保証する: 関数インデックスはソース内出現順で固定、HashMap の iteration 順序は挿入順で固定 (または sorted key で iterate)。`ARUKELLT_DUMP_PHASES=emit` でバイナリ生成の中間状態を比較できるようにする |
-| 許容基準 | fixpoint 検証が通らない場合は `scripts/verify-bootstrap.sh` が詳細な差分を出力する |
+| 許容基準 | fixpoint 検証が通らない場合は `scripts/run/verify-bootstrap.sh` が詳細な差分を出力する |
 
 ---
 
@@ -189,12 +189,12 @@ v5 完了時に揃っているべきドキュメントの全リスト:
 
 - MIR dump: `ARUKELLT_DUMP_PHASES=mir` の出力を `tests/snapshots/mir/` に固定 (v4 で追加)
 - diagnostics output: エラーメッセージの期待値を `tests/snapshots/diagnostics/` に固定
-- 更新方法: `scripts/update-snapshots.sh` で一括更新、diff をコミットに含める
+- 更新方法: `scripts/run/update-snapshots.sh` で一括更新、diff をコミットに含める
 
 ### 性能回帰テスト
 
 - `tests/baselines/perf/` に JSON 形式でベンチマーク結果を保存 (v4 で追加)
-- `scripts/verify-harness.sh` の perf gate で自動比較: コンパイル時間 +20%, 実行時間 +10%, バイナリサイズ +15% で failure
+- `scripts/run/verify-harness.sh` の perf gate で自動比較: コンパイル時間 +20%, 実行時間 +10%, バイナリサイズ +15% で failure
 - 手動更新: `scripts/update-baselines.sh` (意図的な性能変化のみ)
 
 ### 再現ビルド検証
@@ -204,7 +204,7 @@ v5 完了時に揃っているべきドキュメントの全リスト:
 
 ### セルフホスト検証
 
-- `scripts/verify-bootstrap.sh`: Stage 0 → Stage 1 → Stage 2 → fixpoint 確認
+- `scripts/run/verify-bootstrap.sh`: Stage 0 → Stage 1 → Stage 2 → fixpoint 確認
 - v5 の verify-harness.sh に組み込む
 
 ---

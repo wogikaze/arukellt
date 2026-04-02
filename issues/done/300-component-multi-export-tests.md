@@ -25,5 +25,5 @@
 - Added `tests/component-interop/jco/multi-type-exports/` with 5 exported functions
   across i32, i64, f64, bool types in a single component world
 - 9 wasmtime invocations all pass
-- Auto-discovered by CI via `scripts/verify-harness.sh --component`
+- Auto-discovered by CI via `scripts/run/verify-harness.sh --component`
 - Python bindings test deferred (optional acceptance criterion)

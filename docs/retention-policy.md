@@ -57,7 +57,7 @@ This policy covers:
 
 - **Budget**: No single file should exceed 1MB without justification.
 - **Binary assets**: Prefer external hosting or build-time download.
-- **Monitoring**: `scripts/check-orphan-inventory.sh` reports files > 500KB.
+- **Monitoring**: `scripts/check/check-orphan-inventory.sh` reports files > 500KB.
 
 ## Archive Workflow
 
@@ -72,4 +72,4 @@ When moving content to archive:
 
 - Review `issues/done/` count at each milestone
 - Review `docs/migration/` retention at each major version
-- Run `scripts/check-orphan-inventory.sh` monthly
+- Run `scripts/check/check-orphan-inventory.sh` monthly

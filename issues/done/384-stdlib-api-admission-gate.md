@@ -16,7 +16,7 @@
 
 ## Resolution
 
-- Created `scripts/check-admission-gate.sh` that validates every manifest API has fixture, docs, and stability metadata
+- Created `scripts/check/check-admission-gate.sh` that validates every manifest API has fixture, docs, and stability metadata
 - Script exits 1 on errors (missing stability), exits 0 with warnings for missing fixtures
 - Generates per-family coverage report with API/stable/experimental/deprecated counts
 - 274 APIs checked, 0 errors, 35 fixture warnings, 78% overall coverage

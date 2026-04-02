@@ -63,7 +63,7 @@ pub fn const_fold(func: &mut MirFunction) -> OptimizationSummary { ... }
 3. v4 計画中の LICM, escape_analysis, gc_hint パスを追加する際に
    `passes/` 以下に新ファイルを1つ追加するだけで完結すること
 4. `cargo build --workspace --exclude ark-llvm --exclude ark-lsp` が通る
-5. `scripts/verify-harness.sh` が status 0
+5. `scripts/run/verify-harness.sh` が status 0
 
 ## 参照
 

@@ -31,4 +31,4 @@ deprecated や alias を含む stdlib 名称の揺れを docs 側で吸収する
 - ``docs/stdlib/reference.md``
 - ``std/manifest.toml``
 - ``docs/stdlib/prelude-migration.md``
-- ``scripts/generate-docs.py``
+- ``scripts/gen/generate-docs.py``

@@ -136,13 +136,13 @@ Every tier change must update **both** the manifest source of truth and the gene
   - Confirm at least one `tests/fixtures/*.ark` file exercises the promoted function(s)
   - For `host_stub` functions, confirm fixture tests the stub behavior (compile error, runtime trap, etc.)
 - [ ] **Regenerate documentation**
-  - Run `python3 scripts/generate-docs.py`
+  - Run `python3 scripts/gen/generate-docs.py`
   - Verify `docs/stdlib/reference.md` reflects the new tier in both the per-category and by-stability sections
   - Verify `docs/stdlib/modules/*.md` pages show updated stability
 - [ ] **Run CI checks**
-  - `python3 scripts/generate-docs.py --check` must pass
-  - `python3 scripts/check-docs-consistency.py` must pass
-  - `bash scripts/verify-harness.sh --quick` must pass
+  - `python3 scripts/gen/generate-docs.py --check` must pass
+  - `python3 scripts/check/check-docs-consistency.py` must pass
+  - `bash scripts/run/verify-harness.sh --quick` must pass
 - [ ] **Update this file** if the module classification table changes
 - [ ] **Record the change in CHANGELOG.md**
 
@@ -153,7 +153,7 @@ Every tier change must update **both** the manifest source of truth and the gene
 - [ ] **Set `stability = "deprecated"`** on the same entry
 - [ ] **Add migration example** to `docs/stdlib/migration-guidance.md`
 - [ ] **Regenerate documentation**
-  - Run `python3 scripts/generate-docs.py`
+  - Run `python3 scripts/gen/generate-docs.py`
   - Verify `~~strikethrough~~` and `⚠️ Deprecated` badge appear in reference.md
   - Verify the Deprecated APIs summary section lists the function
 - [ ] **Run CI checks** (same as above)
@@ -171,8 +171,8 @@ Every tier change must update **both** the manifest source of truth and the gene
 After any stability tier change, run these commands and confirm all pass:
 
 ```bash
-python3 scripts/generate-docs.py          # regenerate all docs
-python3 scripts/generate-docs.py --check  # verify freshness
-python3 scripts/check-docs-consistency.py # verify metadata consistency
-bash scripts/verify-harness.sh --quick    # verify test harness
+python3 scripts/gen/generate-docs.py          # regenerate all docs
+python3 scripts/gen/generate-docs.py --check  # verify freshness
+python3 scripts/check/check-docs-consistency.py # verify metadata consistency
+bash scripts/run/verify-harness.sh --quick    # verify test harness
 ```

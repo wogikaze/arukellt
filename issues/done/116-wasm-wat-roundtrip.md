@@ -16,7 +16,7 @@
 
 ## 受け入れ条件
 
-1. `scripts/verify-harness.sh` に WAT ラウンドトリップチェックを追加
+1. `scripts/run/verify-harness.sh` に WAT ラウンドトリップチェックを追加
 2. 全 fixture について `wasm2wat | wat2wasm | binary_diff` が差分ゼロ
 3. ラウンドトリップ失敗 fixture のエラー診断ヘルパーを追加
 

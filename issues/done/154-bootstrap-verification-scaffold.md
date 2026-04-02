@@ -1,4 +1,4 @@
-# 横断基盤: `scripts/verify-bootstrap.sh` と fixpoint 検証 scaffold
+# 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold
 
 **Status**: open
 **Created**: 2026-03-29
@@ -10,14 +10,14 @@
 
 ## Summary
 
-`docs/process/roadmap-cross-cutting.md` §6.5 は v5 で `scripts/verify-bootstrap.sh` による
+`docs/process/roadmap-cross-cutting.md` §6.5 は v5 で `scripts/run/verify-bootstrap.sh` による
 Stage0 → Stage1 → Stage2 → fixpoint 検証を要求している。
 まだセルフホスト本体は先だが、verify 導線と artifact 契約は先に scaffold 化しておいた方が、
 v5 に入ったときの曖昧さを減らせる。
 
 ## 受け入れ条件
 
-1. `scripts/verify-bootstrap.sh` の雛形が追加され、将来の Stage0/1/2/fixpoint 手順を受け止められる
+1. `scripts/run/verify-bootstrap.sh` の雛形が追加され、将来の Stage0/1/2/fixpoint 手順を受け止められる
 2. 期待する artifact 命名、比較対象、失敗時の diff 出力方針が明文化される
 3. `docs/compiler/bootstrap.md` の着手前提となる scaffold ができる
 4. verify-harness から将来的に組み込み可能な契約が定義される
@@ -33,4 +33,4 @@ v5 に入ったときの曖昧さを減らせる。
 
 - `docs/process/roadmap-cross-cutting.md` §6.5
 - `docs/process/roadmap-v5.md`
-- `scripts/verify-harness.sh`
+- `scripts/run/verify-harness.sh`

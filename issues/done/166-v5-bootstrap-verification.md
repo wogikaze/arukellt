@@ -23,4 +23,4 @@
 
 - `issues/open/165-v5-phase3-wasm-emitter.md`
 - `issues/open/169-v5-bootstrap-doc.md`
-- `scripts/verify-harness.sh`
+- `scripts/run/verify-harness.sh`

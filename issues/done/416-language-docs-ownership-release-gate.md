@@ -30,4 +30,4 @@
 
 - ``docs/language/**``
 - ``docs/release-checklist.md``
-- ``scripts/generate-docs.py``
+- ``scripts/gen/generate-docs.py``

@@ -9,8 +9,8 @@ This document defines the responsibilities and update workflows for
 
 | Concept    | Location | Content | Governance |
 |------------|----------|---------|------------|
-| **Snapshot** | `tests/snapshots/` | Deterministic compiler output (MIR dumps, diagnostic messages) | Updated via `scripts/update-snapshots.sh`; committed alongside the code change that caused the diff |
-| **Baseline** | `tests/baselines/` | Quantitative performance data (compile time, binary size, runtime) | Updated via `scripts/collect-baseline.py`; reviewed before commit to confirm regressions are intentional |
+| **Snapshot** | `tests/snapshots/` | Deterministic compiler output (MIR dumps, diagnostic messages) | Updated via `scripts/run/update-snapshots.sh`; committed alongside the code change that caused the diff |
+| **Baseline** | `tests/baselines/` | Quantitative performance data (compile time, binary size, runtime) | Updated via `scripts/util/collect-baseline.py`; reviewed before commit to confirm regressions are intentional |
 
 ## When to Update
 
@@ -23,7 +23,7 @@ or rewording a diagnostic message.
 **Workflow:**
 
 1. Make the code change.
-2. Run `bash scripts/update-snapshots.sh`.
+2. Run `bash scripts/run/update-snapshots.sh`.
 3. Run `git diff tests/snapshots/` and confirm every difference is
    expected.
 4. Commit the updated snapshot files in the same PR as the code change.
@@ -37,7 +37,7 @@ compile time.
 **Workflow:**
 
 1. Make the code change.
-2. Run `python3 scripts/collect-baseline.py` (or `mise bench:update-baseline`).
+2. Run `python3 scripts/util/collect-baseline.py` (or `mise bench:update-baseline`).
 3. Compare results against the previous baseline using
    `mise bench:compare`.
 4. Commit updated baselines only after confirming the regression (if any)
@@ -45,7 +45,7 @@ compile time.
 
 ## Verification Harness Integration
 
-`scripts/verify-harness.sh` treats snapshots and baselines differently:
+`scripts/run/verify-harness.sh` treats snapshots and baselines differently:
 
 - **Baselines**: The `--perf-gate` flag enables quantitative regression
   checks (compile ≤ +20 %, runtime ≤ +10 %, binary size ≤ +15 %).

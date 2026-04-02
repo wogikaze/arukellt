@@ -47,8 +47,8 @@ note = "Generated feature maturity matrix; do not edit manually — regenerated 
 # Source of truth for docs/language/maturity-matrix.md (generated).
 # Stability labels: stable | provisional | experimental | unimplemented | deprecated
 #
-# Workflow:  edit features below → run `python3 scripts/generate-docs.py` → commit
-# CI guard:  `python3 scripts/check-docs-consistency.py` detects stale matrix
+# Workflow:  edit features below → run `python3 scripts/gen/generate-docs.py` → commit
+# CI guard:  `python3 scripts/check/check-docs-consistency.py` detects stale matrix
 
 [[features]]
 id = "1"

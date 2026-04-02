@@ -16,7 +16,7 @@
 
 ## Resolution
 
-- Created `scripts/generate-scoreboard.sh` that generates `docs/stdlib/scoreboard.md`
+- Created `scripts/gen/generate-scoreboard.sh` that generates `docs/stdlib/scoreboard.md`
 - Shows per-family: API count, stable/experimental/deprecated breakdown, fixture coverage %, host dependency
 - Total: 274 APIs, 221 stable, 50 experimental, 3 deprecated, 214/271 (78%) fixture coverage
 - Low coverage families highlighted: std::wasm (26%), std::wit (35%), std::host::random (33%)

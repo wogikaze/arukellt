@@ -19,7 +19,7 @@
 1. 同一入力を複数回 compile して bit-exact に一致することを確認する check が追加される
 2. 決定性に影響する要素 (関数順、type 順、HashMap iteration 順など) の運用ルールが文書化される
 3. 再現ビルド失敗時に diff を追える導線がある
-4. `scripts/verify-harness.sh` か専用 script から再現ビルド check を呼べる
+4. `scripts/run/verify-harness.sh` か専用 script から再現ビルド check を呼べる
 
 ## 実装タスク
 
@@ -31,6 +31,6 @@
 ## 参照
 
 - `docs/process/roadmap-cross-cutting.md` §6.5, §6.6
-- `scripts/verify-harness.sh`
-- `scripts/wat-roundtrip.sh`
+- `scripts/run/verify-harness.sh`
+- `scripts/run/wat-roundtrip.sh`
 - `docs/compiler/pipeline.md`

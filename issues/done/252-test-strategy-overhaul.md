@@ -10,7 +10,7 @@
 
 ## Summary
 
-現在の検証は `tests/harness.rs` と `scripts/verify-harness.sh` を中心にかなり整っているが、fixture correctness に重心が寄りすぎている。target matrix、component interop、negative capability、package/workspace、tooling integration、bootstrap parity といった面が十分に第一級のテスト種別になっていない。
+現在の検証は `tests/harness.rs` と `scripts/run/verify-harness.sh` を中心にかなり整っているが、fixture correctness に重心が寄りすぎている。target matrix、component interop、negative capability、package/workspace、tooling integration、bootstrap parity といった面が十分に第一級のテスト種別になっていない。
 
 ## Why this matters
 
@@ -52,7 +52,7 @@
 ## References
 
 * `tests/harness.rs`
-* `scripts/verify-harness.sh`
+* `scripts/run/verify-harness.sh`
 * `tests/component-interop/`
 * `issues/open/242-ci-layer-structure.md`
 * `issues/open/261-test-category-classification-scheme.md`

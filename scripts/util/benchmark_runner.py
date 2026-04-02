@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_TARGET = "wasm32-wasi-p1"
 DEFAULT_CURRENT_RESULTS = ROOT / "tests" / "baselines" / "perf" / "current.json"
 DEFAULT_BASELINE_RESULTS = ROOT / "tests" / "baselines" / "perf" / "baselines.json"

@@ -53,7 +53,7 @@ toolchain (Rust + wasmtime). Separating the issue allows:
         5. Exits with code 0 on success, 1 on failure
       - `run.sh` — shell script that compiles `calculator.ark` to `calculator.component.wasm`
         then runs `node test.mjs`
-- [x] `scripts/verify-harness.sh` gains an optional check:
+- [x] `scripts/run/verify-harness.sh` gains an optional check:
       - Skipped silently when `ARUKELLT_TEST_JCO=1` is not set
       - When set: runs `tests/component-interop/jco/calculator/run.sh` and reports
         pass/fail as check 18 (jco-interop)
@@ -65,7 +65,7 @@ toolchain (Rust + wasmtime). Separating the issue allows:
 - `tests/component-interop/jco/calculator/calculator.ark`
 - `tests/component-interop/jco/calculator/test.mjs`
 - `tests/component-interop/jco/calculator/run.sh`
-- `scripts/verify-harness.sh` — optional check 18
+- `scripts/run/verify-harness.sh` — optional check 18
 - `docs/platform/wasm-features.md` — jco usage docs
 - `README.md` / `docs/contributing.md` — Node.js dependency note
 
@@ -87,7 +87,7 @@ types.
 - `tests/component-interop/jco/calculator/run.sh` — wasmtime CLI–based test:
   `wasmtime run --wasm gc --wasm component-model --invoke 'add(3, 4)'` → `7`
   7 test cases: add(3,4), add(0,0), add(-1,1), mul(6,7), mul(0,100), negate(5), negate(-3)
-- `scripts/verify-harness.sh` — optional check 17 via `ARUKELLT_TEST_COMPONENT=1`
+- `scripts/run/verify-harness.sh` — optional check 17 via `ARUKELLT_TEST_COMPONENT=1`
   (renamed from `ARUKELLT_TEST_JCO=1` to reflect wasmtime-based implementation)
 
 ### String exports excluded
@@ -106,7 +106,7 @@ String component interop is deferred to the canonical ABI implementation work.
 - ⚠️  `greet(String) -> String`: BLOCKED — canonical ABI string adapters not implemented.
 - ⚠️  `docs/platform/wasm-features.md` jco documentation: deferred (jco not usable).
 
-- The jco gate is **opt-in**. `scripts/verify-harness.sh` without `ARUKELLT_TEST_JCO=1`
+- The jco gate is **opt-in**. `scripts/run/verify-harness.sh` without `ARUKELLT_TEST_JCO=1`
   must still exit 0 at 17/17 (the existing component gate from #035). The jco gate is
   check 18, separate from the core 17-point harness.
 - String crossing the component boundary (`greet`) is included to exercise the canonical

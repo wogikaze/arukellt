@@ -30,4 +30,4 @@
 
 - ``docs/language/README.md``
 - ``docs/spec/README.md``
-- ``scripts/generate-docs.py``
+- ``scripts/gen/generate-docs.py``

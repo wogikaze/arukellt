@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 if [[ -n "${ARUKELLT_BIN:-}" ]]; then
     COMPILER="$ARUKELLT_BIN"
 elif [[ -f "${REPO_ROOT}/target/debug/arukellt" ]]; then

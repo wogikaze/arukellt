@@ -31,4 +31,4 @@ cookbook と tests / examples を二重管理しないため、recipe ごとの 
 - ``docs/stdlib/cookbook.md``
 - ``tests/fixtures/``
 - ``docs/examples/``
-- ``scripts/generate-docs.py``
+- ``scripts/gen/generate-docs.py``

@@ -1,7 +1,7 @@
 # Recipe-to-fixture manifest for cookbook.md
 #
 # Maps each cookbook recipe to its corresponding test fixture files.
-# CI verifies these links via `python3 scripts/check-docs-consistency.py`.
+# CI verifies these links via `python3 scripts/check/check-docs-consistency.py`.
 #
 # Format:
 #   [[recipes]]

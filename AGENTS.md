@@ -21,8 +21,8 @@ Use these in order, depending on the question:
 - **Current dependency ordering**: `issues/open/dependency-graph.md`
 - **Completed tracked work**: `issues/done/`
 - **Design decisions / rationale**: `docs/adr/`
-- **Verification contract**: `scripts/verify-harness.sh`
-- **Generated docs contract**: `scripts/generate-docs.py`
+- **Verification contract**: `scripts/run/verify-harness.sh`
+- **Generated docs contract**: `scripts/gen/generate-docs.py`
 
 ## Current Work Surface
 
@@ -41,19 +41,19 @@ Do not infer active work from old roadmap prose when `issues/open/index.md` disa
 - Many landing pages are generated. After changing manual doc sources, regenerate docs with:
 
 ```bash
-python3 scripts/generate-docs.py
+python3 scripts/gen/generate-docs.py
 ```
 
 - Check for docs drift with:
 
 ```bash
-python3 scripts/check-docs-consistency.py
+python3 scripts/check/check-docs-consistency.py
 ```
 
 - If queue structure changes, regenerate issue indexes with:
 
 ```bash
-bash scripts/generate-issue-index.sh
+bash scripts/gen/generate-issue-index.sh
 ```
 
 ## Completion Criteria
@@ -61,7 +61,7 @@ bash scripts/generate-issue-index.sh
 Work is complete when the relevant scope is updated and verification passes.
 For tracked issue work, that normally means:
 
-1. `bash scripts/verify-harness.sh` exits with status 0
+1. `bash scripts/run/verify-harness.sh` exits with status 0
 2. generated artifacts touched by the work are regenerated and included
 3. relevant docs / ADRs are updated when behavior changed
 4. tracked issue files move from `issues/open/` to `issues/done/` when the task itself is completed
@@ -69,8 +69,8 @@ For tracked issue work, that normally means:
 
 ## Verification Loop
 
-- Quick pass: `bash scripts/verify-harness.sh --quick`
-- Full pass: `bash scripts/verify-harness.sh`
+- Quick pass: `bash scripts/run/verify-harness.sh --quick`
+- Full pass: `bash scripts/run/verify-harness.sh`
 
 ## Tooling Notes
 

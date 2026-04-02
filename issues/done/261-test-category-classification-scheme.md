@@ -28,5 +28,5 @@
 ## References
 
 - `tests/harness.rs`
-- `scripts/verify-harness.sh`
+- `scripts/run/verify-harness.sh`
 - `issues/open/252-test-strategy-overhaul.md`

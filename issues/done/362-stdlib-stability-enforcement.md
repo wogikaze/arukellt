@@ -19,11 +19,11 @@
 - [x] `experimental` API の使用時に compiler が W-level diagnostic を出す (opt-in)
 - [x] `docs/stdlib/reference.md` の生成時に stability tier ごとにセクションが分離される
 - [x] stability tier の変更 (experimental → stable) に対応する checklist が文書化される
-- [x] `scripts/check-docs-consistency.py` が stability metadata と実装状態の不整合を検出する
+- [x] `scripts/check/check-docs-consistency.py` が stability metadata と実装状態の不整合を検出する
 
 ## References
 
 - `std/manifest.toml` — stability フィールド
 - `docs/stdlib/stability-policy.md` — tier 定義
-- `scripts/check-docs-consistency.py` — 整合性チェック
-- `scripts/generate-docs.py` — docs 生成
+- `scripts/check/check-docs-consistency.py` — 整合性チェック
+- `scripts/gen/generate-docs.py` — docs 生成

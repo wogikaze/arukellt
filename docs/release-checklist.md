@@ -9,14 +9,14 @@ Items marked **CI** are automated; items marked **Manual** require human verific
 - [ ] **CI** — `cargo test -p arukellt --test harness` passes (all fixtures green)
 - [ ] **CI** — `cargo clippy --workspace --exclude ark-llvm -- -D warnings` clean
 - [ ] **CI** — `cargo fmt --all -- --check` clean
-- [ ] **CI** — `bash scripts/verify-harness.sh --quick` passes
-- [ ] **CI** — `bash scripts/verify-harness.sh --component` passes (component interop)
-- [ ] **CI** — `bash scripts/verify-harness.sh --opt-equiv` passes (O0 == O1)
+- [ ] **CI** — `bash scripts/run/verify-harness.sh --quick` passes
+- [ ] **CI** — `bash scripts/run/verify-harness.sh --component` passes (component interop)
+- [ ] **CI** — `bash scripts/run/verify-harness.sh --opt-equiv` passes (O0 == O1)
 - [ ] **CI** — Binary smoke: `arukellt --version` exits 0
 - [ ] **CI** — Binary smoke: `arukellt run tests/fixtures/hello_world.ark` outputs `Hello, World!`
 - [ ] **CI** — Binary smoke: `arukellt check tests/fixtures/type_error.diag` exits non-zero
 - [ ] **CI** — Determinism: same source produces identical `.wasm` across two builds
-- [ ] **CI** — Selfhost: `bash scripts/verify-bootstrap.sh --stage1-only` passes
+- [ ] **CI** — Selfhost: `bash scripts/run/verify-bootstrap.sh --stage1-only` passes
 - [ ] **CI** — LSP unit tests: `cargo test -p ark-lsp --lib` passes
 - [ ] **CI** — LSP E2E tests: `cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1` passes
 

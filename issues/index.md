@@ -37,7 +37,7 @@ The generator reads these exact header fields. `Depends on` must contain comma-s
 Generated artifacts:
 - `issues/open/index.md` — dependency-aware issue index
 - `issues/open/dependency-graph.md` — Mermaid graph + adjacency lists
-- `scripts/generate-issue-index.sh` — shell entrypoint for regeneration
+- `scripts/gen/generate-issue-index.sh` — shell entrypoint for regeneration
 
 ## Workflow
 

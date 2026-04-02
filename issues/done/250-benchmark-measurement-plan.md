@@ -83,5 +83,5 @@ GC 版と linear memory 版を比較する。
 
 - `docs/adr/ADR-002-memory-model.md`
 - `benchmarks/`
-- `scripts/run-benchmarks.sh`
+- `scripts/run/run-benchmarks.sh`
 - `mise.toml`

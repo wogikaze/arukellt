@@ -58,7 +58,7 @@ T3 を選ぶ根拠:
 ## current-state.md への影響
 
 `docs/current-state.md` の target 表はこの ADR の tier を反映する。
-各 tier が CI 結果と一致しているか、`scripts/verify-harness.sh` 経由で確認できるようにする。
+各 tier が CI 結果と一致しているか、`scripts/run/verify-harness.sh` 経由で確認できるようにする。
 
 ---
 

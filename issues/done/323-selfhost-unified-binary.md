@@ -29,6 +29,6 @@
 
 ## References
 
-- `scripts/verify-bootstrap.sh:175-180` — main.wasm を期待するロジック
+- `scripts/run/verify-bootstrap.sh:175-180` — main.wasm を期待するロジック
 - `src/compiler/main.ark` — selfhost entry point
 - `src/compiler/ark.toml` — selfhost manifest

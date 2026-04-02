@@ -66,7 +66,7 @@ crates/ark-wasm/src/emit/
 2. `pub fn emit()` のシグネチャは変更しない
 3. `cargo build --workspace --exclude ark-llvm --exclude ark-lsp` が通る
 4. `cargo test -p arukellt --test harness` が全テスト green
-5. `scripts/verify-harness.sh` が status 0
+5. `scripts/run/verify-harness.sh` が status 0
 
 ## 参照
 

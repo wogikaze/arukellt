@@ -165,7 +165,7 @@ the correct hashed assets.
 10. **Assemble dist** — Copy Wasm + frontend assets into deploy directory, apply content hashes
 11. **Smoke test** — Run headless browser test (Playwright) against built assets
 12. **Deploy** — `peaceiris/actions-gh-pages@v4` to push to `gh-pages` branch
-13. **Verify** — `bash scripts/verify-harness.sh --quick`
+13. **Verify** — `bash scripts/run/verify-harness.sh --quick`
 
 **Estimated CI time**: 3–5 minutes (Rust build cached), 6–8 minutes (cold cache).
 

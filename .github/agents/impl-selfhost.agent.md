@@ -55,9 +55,9 @@ You do NOT work on:
    - Do not over-engineer; tests should be minimal and focused
 
 5. **Run Required Verification**
-   - Always run: `bash scripts/verify-harness.sh --quick`
-   - For compiler/runtime/selfhost code changes, also run: `bash scripts/verify-harness.sh --cargo`
-   - For behavior/fixture changes, also run: `bash scripts/verify-harness.sh --fixtures`
+   - Always run: `bash scripts/run/verify-harness.sh --quick`
+   - For compiler/runtime/selfhost code changes, also run: `bash scripts/run/verify-harness.sh --cargo`
+   - For behavior/fixture changes, also run: `bash scripts/run/verify-harness.sh --fixtures`
    - If work order specifies additional verification, run only those commands
    - Report exact commands run and their results
    - If verification fails, diagnose and fix—don't mark as complete
@@ -91,9 +91,9 @@ Acceptance slice: <exact SUBTASK text>
 Files changed: <list>
 Tests/fixtures added or updated: <list>
 Verification commands and results:
-  - bash scripts/verify-harness.sh --quick: [PASS/FAIL]
-  - bash scripts/verify-harness.sh --cargo: [PASS/FAIL]
-  - bash scripts/verify-harness.sh --fixtures: [PASS/FAIL]
+  - bash scripts/run/verify-harness.sh --quick: [PASS/FAIL]
+  - bash scripts/run/verify-harness.sh --cargo: [PASS/FAIL]
+  - bash scripts/run/verify-harness.sh --fixtures: [PASS/FAIL]
 Completed: yes/no
 Blockers: <list or 'None'>
 ```

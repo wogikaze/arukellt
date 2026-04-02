@@ -29,7 +29,7 @@ if matches!(selection, MirSelection::OptimizedLegacy | MirSelection::OptimizedCo
 
 1. `compile_selected()` で選択に関わらず `validate_mir()` を lower 直後に実行
 2. `validate_backend_ready_mir()` は CoreHIR パスでのみ (現行通り)
-3. `scripts/verify-harness.sh` が status 0 で終了
+3. `scripts/run/verify-harness.sh` が status 0 で終了
 4. パイプライン図の `MIRValidate` ステージと `ark-mir/src/validate.rs` の内容が一致すること
 5. validate 失敗時は `E0501` 診断コードを emit (既存か確認)
 

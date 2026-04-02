@@ -15,7 +15,7 @@ stdlib docs の品質を上げる前提として、generator が受け取る met
 
 ## Current state
 
-- `scripts/generate-docs.py` は manifest フィールドから複数ページを生成するが、ページ種別ごとの必須項目が明文化されていない。
+- `scripts/gen/generate-docs.py` は manifest フィールドから複数ページを生成するが、ページ種別ごとの必須項目が明文化されていない。
 - metadata が増えても、どこに表示されるかがコード依存になりやすい。
 - docs 差分が大きくなっても schema レベルでは検証されない。
 
@@ -28,7 +28,7 @@ stdlib docs の品質を上げる前提として、generator が受け取る met
 
 ## References
 
-- ``scripts/generate-docs.py``
+- ``scripts/gen/generate-docs.py``
 - ``std/manifest.toml``
 - ``docs/stdlib/reference.md``
 - ``docs/stdlib/modules/*.md``

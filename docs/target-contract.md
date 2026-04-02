@@ -113,7 +113,7 @@ There is no scaffold code.
 | `correctness` | all | `verify-harness.sh --cargo --size --wat --docs` |
 | `target-behavior (wasm32-wasi-p1)` | T1 | `ARUKELLT_TARGET=wasm32-wasi-p1 cargo test -p arukellt --test harness` |
 | `target-behavior (wasm32-wasi-p2)` | T3 | `ARUKELLT_TARGET=wasm32-wasi-p2 cargo test -p arukellt --test harness` |
-| `perf-baseline` | T1 | `scripts/collect-baseline.py` (push-only) |
+| `perf-baseline` | T1 | `scripts/util/collect-baseline.py` (push-only) |
 
 ## Component output: separate guarantee tier
 

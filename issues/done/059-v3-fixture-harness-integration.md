@@ -84,12 +84,12 @@ v3 の全受け入れ条件を自動検証できるようにする。
 1. `tests/fixtures/stdlib_{core,text,bytes,collections,seq,fs,io,time,random,process,test}/` ディレクトリを作成
 2. 上記 fixture ファイルを作成 (各 issue の受け入れ条件を直接テストする)
 3. `tests/fixtures/manifest.txt` に全エントリを追加 (`compile:tests/fixtures/stdlib_*/...`)
-4. `scripts/verify-harness.sh` に Check 18–20 を追加
+4. `scripts/run/verify-harness.sh` に Check 18–20 を追加
 
 ## 完了条件
 
 - fixture 40 件以上が `cargo test -p arukellt --test harness` で pass
-- `scripts/verify-harness.sh` が exit 0 (Check 20 まで全通過)
+- `scripts/run/verify-harness.sh` が exit 0 (Check 20 まで全通過)
 - deprecated API 使用が 0 件 (Check 19 pass)
 - manifest.txt の整合性 Check 18 pass
 

@@ -9,7 +9,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 MANIFEST="$REPO_ROOT/std/manifest.toml"
 CHECKER="$REPO_ROOT/crates/ark-typecheck/src/checker/builtins.rs"
 PRELUDE="$REPO_ROOT/std/prelude.ark"

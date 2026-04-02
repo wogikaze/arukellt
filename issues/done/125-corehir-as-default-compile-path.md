@@ -35,7 +35,7 @@ pub fn compile(&mut self, path: &Path, target: TargetId) -> Result<Vec<u8>, Stri
 
 1. `compile()` が `MirSelection::CoreHir`（または最終的に `OptimizedCoreHir`）をデフォルトで使うこと
 2. すべての fixture (`cargo test -p arukellt --test harness`) が CoreHIR パスで green
-3. `scripts/verify-harness.sh` が status 0 で終了
+3. `scripts/run/verify-harness.sh` が status 0 で終了
 4. Legacy MIR パスを `--mir-select=legacy` フラグで明示的に選択可能にする (後方互換性)
 5. `INTERFACE-COREHIR.md` の記述と `compile()` の挙動が一致すること
 

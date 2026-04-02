@@ -78,9 +78,9 @@ and serves as a real-world stress test for the compiler and runtime.
 
 ## Tooling Notes
 
-- **`scripts/benchmark_runner.py`** — canonical runner used by `mise bench`, compare, baseline update, and CI gate.
+- **`scripts/util/benchmark_runner.py`** — canonical runner used by `mise bench`, compare, baseline update, and CI gate.
 - **`benchmarks/run_benchmarks.sh`** — wrapper for the canonical runner.
-- **`scripts/perf-gate.sh`** — CI-oriented wrapper (`--mode ci` / `--mode update-baseline`).
+- **`scripts/check/perf-gate.sh`** — CI-oriented wrapper (`--mode ci` / `--mode update-baseline`).
 - **`scripts/compare-benchmarks.sh`** — baseline comparison wrapper.
 - **`parity-check.sh`** — Verify T1 vs T3 produce identical output for all `.ark` fixtures.
 - **`size-compare.sh`** — Compare Wasm binary sizes between T1 and T3.
@@ -93,7 +93,7 @@ and serves as a real-world stress test for the compiler and runtime.
 
 ## Threshold Policy
 
-`mise bench:ci` and `scripts/perf-gate.sh` enforce these baseline regressions:
+`mise bench:ci` and `scripts/check/perf-gate.sh` enforce these baseline regressions:
 
 | Metric       | Max allowed regression |
 |--------------|:----------------------:|
@@ -122,13 +122,13 @@ for full details on regression detection.
 
 Each benchmark has a `.expected` file containing the correct stdout.
 When `wasmtime` is available, runtime execution verifies output against these files.
-Benchmarks that read checked-in files may declare extra wasmtime args in `scripts/benchmark_runner.py` (for example `run --dir=.`) so runtime verification can access benchmark-local inputs.
+Benchmarks that read checked-in files may declare extra wasmtime args in `scripts/util/benchmark_runner.py` (for example `run --dir=.`) so runtime verification can access benchmark-local inputs.
 
 ## Adding a New Benchmark
 
 1. Create `benchmarks/bench_<category>_<name>.ark` (see [naming conventions](../docs/benchmarks/governance.md#1-naming-conventions)).
 2. Create a matching `.expected` file with correct stdout.
-3. Register the benchmark in `scripts/benchmark_runner.py` (`BENCHMARKS` tuple).
+3. Register the benchmark in `scripts/util/benchmark_runner.py` (`BENCHMARKS` tuple).
 4. Run `mise bench` to verify, then `mise bench:update-baseline`.
 5. Commit the fixture, expected file, and updated baseline.
 
@@ -136,4 +136,4 @@ Benchmarks that read checked-in files may declare extra wasmtime args in `script
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ARUKELLT` | `target/release/arukellt` | Legacy variable. Prefer `mise bench`, or pass `--arukellt` to `scripts/benchmark_runner.py`. |
+| `ARUKELLT` | `target/release/arukellt` | Legacy variable. Prefer `mise bench`, or pass `--arukellt` to `scripts/util/benchmark_runner.py`. |

@@ -7,7 +7,7 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 STATE_FILE = ROOT / "docs" / "data" / "project-state.toml"
 MANIFEST_FILE = ROOT / "tests" / "fixtures" / "manifest.txt"
 MAX_STALENESS_DAYS = 60

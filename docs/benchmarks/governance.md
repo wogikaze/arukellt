@@ -102,7 +102,7 @@ The authoritative JSON Schema is [`benchmarks/schema.json`](../../benchmarks/sch
 
 ## 3. Execution Modes
 
-All modes are invoked through `mise` tasks backed by `scripts/benchmark_runner.py`.
+All modes are invoked through `mise` tasks backed by `scripts/util/benchmark_runner.py`.
 
 | Mode               | Command                    | Compile iters | Runtime iters | Warmups | Purpose                                           |
 |--------------------|----------------------------|:---:|:---:|:---:|---------------------------------------------------|
@@ -198,7 +198,7 @@ A regression is flagged when `delta_pct` exceeds the threshold for that metric
    convention.
 2. Create `benchmarks/bench_<category>_<name>.expected` with correct stdout.
 3. If the benchmark reads checked-in files at runtime, add the required wasmtime args (for example `run --dir=.`) in its `BenchmarkCase` entry.
-4. Register the benchmark in `scripts/benchmark_runner.py` by adding a
+4. Register the benchmark in `scripts/util/benchmark_runner.py` by adding a
    `BenchmarkCase` entry to the `BENCHMARKS` tuple.
 5. Run `mise bench` to verify it compiles, runs, and produces correct output.
 6. Run `mise bench:update-baseline` to include the new benchmark in the

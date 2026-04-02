@@ -55,7 +55,7 @@ formal verification.
 
 Fixpoint verification only works when compilation is **deterministic**.
 The compiler must not embed timestamps, random nonces, or pointer-derived
-values into the output binary.  Determinism is verified by `scripts/verify-harness.sh`
+values into the output binary.  Determinism is verified by `scripts/run/verify-harness.sh`
 (which compiles fixtures twice and asserts byte-identical output) and will be extended to
 cover the self-hosted compiler once it exists.
 
@@ -63,15 +63,15 @@ cover the self-hosted compiler once it exists.
 
 ```bash
 # All stages
-scripts/verify-bootstrap.sh
+scripts/run/verify-bootstrap.sh
 
 # Single stage
-scripts/verify-bootstrap.sh --stage=0
+scripts/run/verify-bootstrap.sh --stage=0
 ```
 
 ## Integration with verify-harness
 
-`scripts/verify-harness.sh` is the top-level completion gate.  Once
+`scripts/run/verify-harness.sh` is the top-level completion gate.  Once
 bootstrap stages are stable, the harness will invoke `verify-bootstrap.sh`
 as a sub-check so that self-hosting regressions block the build.
 

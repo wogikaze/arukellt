@@ -30,4 +30,4 @@ stable/implemented な機能が guide に反映されているかを自動チェ
 
 - ``docs/language/spec.md``
 - ``docs/language/**``
-- ``scripts/check-docs-consistency.py``
+- ``scripts/check/check-docs-consistency.py``

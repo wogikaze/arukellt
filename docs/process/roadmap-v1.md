@@ -119,10 +119,10 @@ cargo test -p arukellt --test harness -- --nocapture
 cargo test --workspace --exclude ark-llvm
 
 # quick verify
-scripts/verify-harness.sh --quick
+scripts/run/verify-harness.sh --quick
 
 # full verify (16 点ゲート)
-scripts/verify-harness.sh
+scripts/run/verify-harness.sh
 ```
 
 ---
@@ -133,7 +133,7 @@ scripts/verify-harness.sh
 |------|------|------|
 | `cargo test --workspace --exclude ark-llvm` が 0 exit | yes/no | ✅ |
 | `cargo test -p arukellt --test harness` が 346/346 pass | 数値 | ✅ 346/346 |
-| `scripts/verify-harness.sh` が 16/16 pass | 数値 | ✅ 16/16 |
+| `scripts/run/verify-harness.sh` が 16/16 pass | 数値 | ✅ 16/16 |
 | 生成 Wasm に `heap_ptr` グローバルが存在しない | バイナリ検査 | ✅ |
 | 生成 Wasm に Table section / Elem section が存在しない | バイナリ検査 | ✅ |
 | `wasmparser` validation が全 fixture で pass | validator exit code | ✅ |

@@ -31,7 +31,7 @@ crates/ark-diagnostics/src/
 2. 全ての `pub` シンボルは `lib.rs` 経由で同一パスで参照可能 (後方互換性)
 3. 新しい診断コードの追加は `codes.rs` のみ変更で完結すること
 4. `cargo build --workspace --exclude ark-llvm --exclude ark-lsp` が通る
-5. `scripts/verify-harness.sh` が status 0
+5. `scripts/run/verify-harness.sh` が status 0
 
 ## 参照
 

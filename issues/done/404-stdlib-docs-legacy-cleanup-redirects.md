@@ -30,4 +30,4 @@ stdlib docs に残る historical / legacy landing pages の扱いを整理し、
 
 - ``docs/stdlib/**``
 - ``docs/README.md``
-- ``scripts/generate-docs.py``
+- ``scripts/gen/generate-docs.py``

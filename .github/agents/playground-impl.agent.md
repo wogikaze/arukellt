@@ -52,9 +52,9 @@ Execution methodology:
    - Integration: Verify end-to-end works as specified
 
 7. **Run REQUIRED_VERIFICATION**
-   - Always run: `bash scripts/verify-harness.sh --quick`
-   - For Rust/Wasm/package changes: also run `bash scripts/verify-harness.sh --cargo`
-   - For docs/ADR/playground scope changes: also run `python3 scripts/check-docs-consistency.py`
+   - Always run: `bash scripts/run/verify-harness.sh --quick`
+   - For Rust/Wasm/package changes: also run `bash scripts/run/verify-harness.sh --cargo`
+   - For docs/ADR/playground scope changes: also run `python3 scripts/check/check-docs-consistency.py`
    - For frontend/browser slices: run the project's explicit browser or package smoke command if provided
    - For share/permalink: ensure round-trip test passes
    - Report command output: what ran, what passed, what failed

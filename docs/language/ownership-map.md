@@ -18,7 +18,7 @@
 
 ### Generated Files
 
-These files are produced by `scripts/generate-docs.py` from
+These files are produced by `scripts/gen/generate-docs.py` from
 `docs/data/language-doc-classifications.toml` as the single source of truth.
 Hand-edits will be overwritten on the next regeneration.
 
@@ -58,10 +58,10 @@ when all described items land in their target normative documents.
 ```
 docs/data/language-doc-classifications.toml     (canonical feature maturity data)
         │
-        ├─► scripts/generate-docs.py ──► docs/language/README.md
+        ├─► scripts/gen/generate-docs.py ──► docs/language/README.md
         │                              └─► docs/language/maturity-matrix.md
         │
-        └─► scripts/check-docs-consistency.py
+        └─► scripts/check/check-docs-consistency.py
                     │
                     ├─► validates maturity-matrix.md freshness
                     │       (check_maturity_matrix_freshness)
@@ -88,7 +88,7 @@ or published. Items marked **CI** are automated in `check-docs-consistency.py` o
 
 | # | Check | Type | Command / Function |
 |---|-------|------|--------------------|
-| 1.1 | Generated docs match TOML classifications | **CI** | `python3 scripts/generate-docs.py --check` |
+| 1.1 | Generated docs match TOML classifications | **CI** | `python3 scripts/gen/generate-docs.py --check` |
 | 1.2 | Maturity matrix matches `[[features]]` in TOML | **CI** | `check_maturity_matrix_freshness` |
 
 ### Gate 2 — Spec ↔ Guide Sync
@@ -103,7 +103,7 @@ or published. Items marked **CI** are automated in `check-docs-consistency.py` o
 | # | Check | Type | Command / Function |
 |---|-------|------|--------------------|
 | 3.1 | No S1 headings renamed without redirect alias (ADR-019) | **Manual** | Review diff for `##` heading changes in normative docs |
-| 3.2 | Internal file links resolve | **CI** | `scripts/check-links.sh` (file references; anchor fragments are v2) |
+| 3.2 | Internal file links resolve | **CI** | `scripts/check/check-links.sh` (file references; anchor fragments are v2) |
 
 ### Gate 4 — Classification Consistency
 
@@ -134,15 +134,15 @@ or published. Items marked **CI** are automated in `check-docs-consistency.py` o
 
 ```bash
 # Run all automated gates (required before merge):
-python3 scripts/check-docs-consistency.py    # Gates 1–2 (automated checks)
-bash scripts/verify-harness.sh --quick       # Includes docs consistency + harness checks
+python3 scripts/check/check-docs-consistency.py    # Gates 1–2 (automated checks)
+bash scripts/run/verify-harness.sh --quick       # Includes docs consistency + harness checks
 
 # If generated source inputs changed:
-python3 scripts/generate-docs.py             # Regenerate README.md + maturity-matrix.md
-python3 scripts/generate-docs.py --check     # Verify freshness (Gate 1.1)
+python3 scripts/gen/generate-docs.py             # Regenerate README.md + maturity-matrix.md
+python3 scripts/gen/generate-docs.py --check     # Verify freshness (Gate 1.1)
 
 # Full verification (before releases):
-bash scripts/verify-harness.sh --full        # All checks including heavy ones
+bash scripts/run/verify-harness.sh --full        # All checks including heavy ones
 ```
 
 ---
@@ -194,7 +194,7 @@ A future `check_transitional_staleness` function could cross-reference
 
 **Files affected:** All documents with cross-document `#anchor` links
 
-**Description:** `scripts/check-links.sh` validates file-level references but does
+**Description:** `scripts/check/check-links.sh` validates file-level references but does
 not check that `#heading-anchor` fragments resolve to actual headings in target
 documents. Broken anchor links are invisible to CI.
 

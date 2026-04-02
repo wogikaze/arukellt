@@ -15,7 +15,7 @@ verify-bootstrap.sh の Stage 1 / Stage 2 を実際に実行する。現在は u
 
 ## Current state
 
-- `scripts/verify-bootstrap.sh:127`: ヘッダが `"Bootstrap verification — fixpoint scaffold"` と自称
+- `scripts/run/verify-bootstrap.sh:127`: ヘッダが `"Bootstrap verification — fixpoint scaffold"` と自称
 - Stage 1/2 は `main.wasm` 不在で conditional skip
 - machine-readable summary で `fixture-parity` / `cli-parity` / `diagnostic-parity` / `determinism` が `not-verified` 固定
 - `--stage1-only` フラグで CI は Stage 0 のみ実行
@@ -30,5 +30,5 @@ verify-bootstrap.sh の Stage 1 / Stage 2 を実際に実行する。現在は u
 
 ## References
 
-- `scripts/verify-bootstrap.sh` — bootstrap verification script
+- `scripts/run/verify-bootstrap.sh` — bootstrap verification script
 - `docs/compiler/bootstrap.md` — completion criteria

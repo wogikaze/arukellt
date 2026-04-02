@@ -10,7 +10,7 @@
 
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 MIR_DIR="$ROOT/tests/snapshots/mir"
 DIAG_DIR="$ROOT/tests/snapshots/diagnostics"
 

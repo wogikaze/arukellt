@@ -39,47 +39,47 @@ run = "cargo fmt --all --check"
 description = "Check formatting"
 
 [tasks.verify]
-run = "bash scripts/verify-harness.sh"
+run = "bash scripts/run/verify-harness.sh"
 description = "Run fast local verification"
 
 [tasks."verify:quick"]
-run = "bash scripts/verify-harness.sh --quick"
+run = "bash scripts/run/verify-harness.sh --quick"
 description = "Run fast local verification (alias)"
 
 [tasks."verify:cargo"]
-run = "bash scripts/verify-harness.sh --cargo"
+run = "bash scripts/run/verify-harness.sh --cargo"
 description = "Run cargo fmt, clippy, and workspace tests"
 
 [tasks."verify:fixtures"]
-run = "bash scripts/verify-harness.sh --fixtures"
+run = "bash scripts/run/verify-harness.sh --fixtures"
 description = "Run manifest-driven fixture harness"
 
 [tasks."verify:baseline"]
-run = "bash scripts/verify-harness.sh --baseline"
+run = "bash scripts/run/verify-harness.sh --baseline"
 description = "Collect baseline snapshots"
 
 [tasks."verify:full"]
-run = "bash scripts/verify-harness.sh --full"
+run = "bash scripts/run/verify-harness.sh --full"
 description = "Run full local verification"
 
 [tasks."verify:ci"]
-run = "bash scripts/verify-harness.sh --cargo --size --wat --docs"
+run = "bash scripts/run/verify-harness.sh --cargo --size --wat --docs"
 description = "Run the explicit heavy verification groups used by CI correctness"
 
 [tasks."verify:pre-commit"]
-run = "bash scripts/verify-harness.sh --cargo --docs"
+run = "bash scripts/run/verify-harness.sh --cargo --docs"
 description = "Run the recommended pre-commit verification groups"
 
 [tasks."hooks:install"]
-run = "bash scripts/install-git-hooks.sh"
+run = "bash scripts/gate/install-git-hooks.sh"
 description = "Install repository-managed git hooks"
 
 [tasks."hooks:pre-commit"]
-run = "bash scripts/pre-commit-verify.sh"
+run = "bash scripts/gate/pre-commit-verify.sh"
 description = "Run the repository-managed pre-commit verification script"
 
 [tasks."hooks:remove"]
-run = "bash scripts/install-git-hooks.sh --remove"
+run = "bash scripts/gate/install-git-hooks.sh --remove"
 description = "Remove repository-managed git hooks"
 
 [tasks.check]
@@ -87,25 +87,25 @@ run = "cargo check --workspace"
 description = "Type-check all crates"
 
 [tasks.bench]
-run = "bash scripts/run-benchmarks.sh --full"
+run = "bash scripts/run/run-benchmarks.sh --full"
 description = "Run default local benchmark workflow"
 
 [tasks."bench:quick"]
-run = "bash scripts/run-benchmarks.sh --quick"
+run = "bash scripts/run/run-benchmarks.sh --quick"
 description = "Run quick benchmark smoke workflow"
 
 [tasks."bench:compare"]
-run = "bash scripts/run-benchmarks.sh --quick --compare"
+run = "bash scripts/run/run-benchmarks.sh --quick --compare"
 description = "Run benchmarks with Rust and selfhost compilers, show comparison"
 
 [tasks."bench:selfhost"]
-run = "bash scripts/run-benchmarks.sh --quick --selfhost"
+run = "bash scripts/run/run-benchmarks.sh --quick --selfhost"
 description = "Run benchmarks using selfhost compiler only"
 
 [tasks."bench:update-baseline"]
-run = "cargo build --release -p arukellt && python3 scripts/benchmark_runner.py --mode update-baseline"
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode update-baseline"
 description = "Update benchmark baselines from current measurements"
 
 [tasks."bench:ci"]
-run = "cargo build --release -p arukellt && python3 scripts/benchmark_runner.py --mode ci"
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode ci"
 description = "Run benchmark regression gate for CI"

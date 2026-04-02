@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 ARUKELLT="${ARUKELLT_BIN:-$REPO_ROOT/target/debug/arukellt}"
 FIXTURE_DIR="$REPO_ROOT/tests/package-workspace"
 

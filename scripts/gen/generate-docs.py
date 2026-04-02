@@ -30,7 +30,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 DOCS = ROOT / "docs"
 DATA = DOCS / "data"
 PROJECT_STATE = DATA / "project-state.toml"

@@ -36,7 +36,7 @@ Watch the cost of the T3 transition while keeping normal CI deterministic.
 
 ## Impact
 
-- `scripts/collect-baseline.py`
+- `scripts/util/collect-baseline.py`
 - benchmark scripts
 - baseline artifacts
 - benchmark docs

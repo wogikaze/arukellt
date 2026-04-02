@@ -18,12 +18,12 @@ generated ファイルと手書きファイルの境界を明確にし、ownersh
 - [x] 全 generated ファイルに ownership banner が付与される
 - [x] generated ファイルの一覧が `.generated-files` manifest に文書化される
 - [x] CI が generated ファイルの手編集を検出し警告する
-- [x] `scripts/generate-docs.py` が banner を自動挿入する
+- [x] `scripts/gen/generate-docs.py` が banner を自動挿入する
 
 ## Implementation
 
 - `.generated-files`: 39 entries with path | generator | command format
-- `scripts/check-generated-files.sh`: validates existence, banners, unlisted files
+- `scripts/check/check-generated-files.sh`: validates existence, banners, unlisted files
 - Added banner to `docs/_sidebar.md`
-- Updated `scripts/generate-docs.py` to include sidebar banner
+- Updated `scripts/gen/generate-docs.py` to include sidebar banner
 - Integrated as verify-harness check #16
