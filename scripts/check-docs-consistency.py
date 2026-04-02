@@ -176,11 +176,67 @@ def check_host_badge_presence() -> int:
     return 0
 
 
+def check_deprecated_badge_presence() -> int:
+    """Verify that deprecated functions display ⚠️ Deprecated badges in generated docs.
+
+    For every function with ``deprecated_by`` or ``stability = "deprecated"``
+    in the manifest, the reference page must contain a ⚠️ Deprecated badge.
+    Also checks that the Deprecated APIs summary section exists.
+    """
+    import tomllib as _tomllib
+
+    if not MANIFEST.exists():
+        return 0
+
+    manifest = _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    deprecated_names: list[str] = []
+    for fn in manifest.get("functions", []):
+        if fn.get("deprecated_by") or fn.get("stability") == "deprecated":
+            deprecated_names.append(fn["name"])
+
+    if not deprecated_names:
+        return 0
+
+    reference_path = ROOT / "docs" / "stdlib" / "reference.md"
+    if not reference_path.exists():
+        errors.append("deprecated badge check: reference.md not found")
+        return 1
+
+    ref_text = reference_path.read_text(encoding="utf-8")
+    failed = 0
+
+    # Check that the Deprecated APIs summary section exists
+    if "## Deprecated APIs" not in ref_text:
+        errors.append(
+            f"deprecated badge drift: {len(deprecated_names)} deprecated function(s) in manifest "
+            "but reference.md lacks '## Deprecated APIs' section"
+        )
+        failed = 1
+
+    # Check that each deprecated function has a ⚠️ Deprecated badge in reference.md
+    missing_badges: list[str] = []
+    for name in deprecated_names:
+        # Look for the badge pattern: ~~`name`~~ ⚠️ Deprecated
+        badge_pattern = f"~~`{name}`~~ ⚠️ Deprecated"
+        if badge_pattern not in ref_text:
+            missing_badges.append(name)
+
+    if missing_badges:
+        errors.append(
+            f"deprecated badge drift: {', '.join(missing_badges)} have deprecated_by in manifest "
+            f"but lack ⚠️ Deprecated badge in reference.md; regenerate with `python3 scripts/generate-docs.py`"
+        )
+        failed = 1
+
+    return min(failed, 1)
+
+
 def main() -> int:
     failed = 0
     failed += check_generated_docs()
     failed += check_capability_state()
     failed += check_host_badge_presence()
+    failed += check_deprecated_badge_presence()
     failed += check_fixture_count_freshness()
     failed += check_issue_index_freshness()
 

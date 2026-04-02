@@ -24,6 +24,7 @@
 | provisional | 8 |
 | experimental | 0 |
 | unimplemented | 0 |
+| deprecated | 0 |
 
 ## Feature Classification
 

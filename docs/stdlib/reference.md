@@ -87,9 +87,9 @@
 | `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` |
 | `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` |
 | `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` |
-| ~~`Vec_new_i32`~~ → `Vec::new<i32>` | `() -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` |
+| ~~`Vec_new_i32`~~ ⚠️ Deprecated → `Vec::new<i32>` | `() -> Vec<i32>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` |
 | `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` |
-| ~~`Vec_new_i64`~~ → `Vec::new<i64>` | `() -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` |
+| ~~`Vec_new_i64`~~ ⚠️ Deprecated → `Vec::new<i64>` | `() -> Vec<i64>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` |
 | `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` |
 | `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `builtin` | yes | - |
 | `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - |
@@ -115,7 +115,7 @@
 | `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - |
 | `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` |
 | `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` |
-| ~~`filter_i32`~~ → `filter<i32>` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` |
+| ~~`filter_i32`~~ ⚠️ Deprecated → `filter<i32>` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` |
 | `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` |
 | `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i32` |
 | `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` |
@@ -465,10 +465,10 @@
 
 ## Deprecated APIs
 
-> 3 API(s) are deprecated. See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
+> ⚠️ **3 API(s) are deprecated.** See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.
 
-| Deprecated | Replacement |
-|------------|-------------|
-| ~~`Vec_new_i32`~~ | `Vec::new<i32>` |
-| ~~`Vec_new_i64`~~ | `Vec::new<i64>` |
-| ~~`filter_i32`~~ | `filter<i32>` |
+| Deprecated | Replacement | Migration Guide |
+|------------|-------------|-----------------|
+| ~~`Vec_new_i32`~~ | `Vec::new<i32>` | [migration-guidance.md](migration-guidance.md) |
+| ~~`Vec_new_i64`~~ | `Vec::new<i64>` | [migration-guidance.md](migration-guidance.md) |
+| ~~`filter_i32`~~ | `filter<i32>` | [migration-guidance.md](migration-guidance.md) |

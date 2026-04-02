@@ -41,7 +41,7 @@ SPEC_MD = ROOT / "docs" / "language" / "spec.md"
 MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
 
 # Stability labels as defined in spec.md (ADR-013 §Stability)
-STABILITY_LABELS = ("stable", "provisional", "experimental", "unimplemented")
+STABILITY_LABELS = ("stable", "provisional", "experimental", "unimplemented", "deprecated")
 
 # ── Manifest schema ──────────────────────────────────────────────────────────
 # Enforced by validate_manifest_schema(); see docs/stdlib/generation-schema.md
@@ -1358,11 +1358,15 @@ def render_stdlib_module_page(
                 )
             for entry in grouped[section_name]:
                 item = items_by_name.get(entry["name"])
+                deprecated = _is_deprecated(entry)
+                name_display = f"~~`{entry['name']}`~~" if deprecated else f"`{entry['name']}`"
+                dep_inline = _format_deprecated_inline(entry) if deprecated else ""
                 if is_host_module:
                     fn_status = "⚠️ stub" if entry.get("kind") == "host_stub" else "✅ impl"
                     lines.append(
-                        "| `{name}` | `{signature}` | `{stability}` | {status} | {summary} |".format(
-                            name=entry["name"],
+                        "| {name}{dep} | `{signature}` | `{stability}` | {status} | {summary} |".format(
+                            name=name_display,
+                            dep=dep_inline,
                             signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
                             stability=entry.get("stability", "unknown"),
                             status=fn_status,
@@ -1371,13 +1375,29 @@ def render_stdlib_module_page(
                     )
                 else:
                     lines.append(
-                        "| `{name}` | `{signature}` | `{stability}` | {summary} |".format(
-                            name=entry["name"],
+                        "| {name}{dep} | `{signature}` | `{stability}` | {summary} |".format(
+                            name=name_display,
+                            dep=dep_inline,
                             signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
                             stability=entry.get("stability", "unknown"),
                             summary=source_doc_summary(item.docs if item else []),
                         )
                     )
+
+        # Deprecation cross-link: if any function in this module is deprecated,
+        # add a link to migration-guidance.md at the end of the module section.
+        module_deprecated = [
+            entry for entry in functions if _is_deprecated(entry)
+        ]
+        if module_deprecated:
+            migration_link = rel_link(output_path, DOCS / "stdlib" / "migration-guidance.md")
+            lines.extend(
+                [
+                    "",
+                    f"> ⚠️ **{len(module_deprecated)} deprecated API(s)** in this module. "
+                    f"See [{migration_link}]({migration_link}) for replacement examples and migration steps.",
+                ]
+            )
 
     return "\n".join(lines) + "\n"
 
@@ -1526,6 +1546,47 @@ def format_signature(params: list[str], returns: str) -> str:
     return f"({joined}) -> {returns}" if params else f"() -> {returns}"
 
 
+# ── Deprecation helpers ──────────────────────────────────────────────────────
+
+
+def _is_deprecated(entry: dict) -> bool:
+    """Return True if a manifest function entry is deprecated.
+
+    A function is deprecated if it has ``deprecated_by`` set or
+    ``stability == "deprecated"``.
+    """
+    return bool(entry.get("deprecated_by")) or entry.get("stability") == "deprecated"
+
+
+def _format_deprecated_inline(entry: dict) -> str:
+    """Return an inline deprecation annotation for a table row.
+
+    Format:  `` ⚠️ Deprecated → `replacement` ``
+    If no ``deprecated_by`` is specified, omits the arrow/replacement.
+    """
+    replacement = entry.get("deprecated_by")
+    if replacement:
+        return f" ⚠️ Deprecated → `{replacement}`"
+    return " ⚠️ Deprecated"
+
+
+def _format_deprecated_badge_block(entry: dict, migration_link: str) -> str:
+    """Return a standalone deprecation badge line for module page detail views.
+
+    Used when rendering per-function deprecation notices outside of tables.
+    """
+    replacement = entry.get("deprecated_by")
+    if replacement:
+        return (
+            f"> ⚠️ **Deprecated** — use `{replacement}` instead. "
+            f"See [{migration_link}]({migration_link}) for migration examples."
+        )
+    return (
+        f"> ⚠️ **Deprecated** — "
+        f"see [{migration_link}]({migration_link}) for migration guidance."
+    )
+
+
 def render_stdlib_reference(manifest: dict) -> str:
     types = manifest.get("types", [])
     values = manifest.get("values", [])
@@ -1568,8 +1629,9 @@ def render_stdlib_reference(manifest: dict) -> str:
         for entry in sorted(grouped[category], key=lambda item: item["name"]):
             intrinsic = f"`{entry['intrinsic']}`" if entry.get("intrinsic") else "-"
             module_name = f"`{entry['module']}`" if entry.get("module") else "`prelude`"
-            name_display = f"~~`{entry['name']}`~~" if entry.get("deprecated_by") else f"`{entry['name']}`"
-            deprecated_note = f" → `{entry['deprecated_by']}`" if entry.get("deprecated_by") else ""
+            is_deprecated = _is_deprecated(entry)
+            name_display = f"~~`{entry['name']}`~~" if is_deprecated else f"`{entry['name']}`"
+            deprecated_note = _format_deprecated_inline(entry) if is_deprecated else ""
             # Add target/capability annotation for host functions
             kind_display = entry.get("kind", "builtin")
             target_list = entry.get("target", [])
@@ -1592,7 +1654,7 @@ def render_stdlib_reference(manifest: dict) -> str:
 
     # Deprecation summary: collect deprecated entries and link to migration guide
     deprecated_entries = [
-        entry for entry in functions if entry.get("deprecated_by")
+        entry for entry in functions if _is_deprecated(entry)
     ]
     if deprecated_entries:
         lines.extend(
@@ -1600,16 +1662,17 @@ def render_stdlib_reference(manifest: dict) -> str:
                 "",
                 "## Deprecated APIs",
                 "",
-                f"> {len(deprecated_entries)} API(s) are deprecated. "
+                f"> ⚠️ **{len(deprecated_entries)} API(s) are deprecated.** "
                 "See [Migration Guidance](migration-guidance.md) for replacement examples and migration steps.",
                 "",
-                "| Deprecated | Replacement |",
-                "|------------|-------------|",
+                "| Deprecated | Replacement | Migration Guide |",
+                "|------------|-------------|-----------------|",
             ]
         )
         for entry in sorted(deprecated_entries, key=lambda e: e["name"]):
+            replacement = f"`{entry['deprecated_by']}`" if entry.get("deprecated_by") else "_see docs_"
             lines.append(
-                f"| ~~`{entry['name']}`~~ | `{entry['deprecated_by']}` |"
+                f"| ~~`{entry['name']}`~~ | {replacement} | [migration-guidance.md](migration-guidance.md) |"
             )
 
     return "\n".join(lines) + "\n"

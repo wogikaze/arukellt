@@ -479,7 +479,7 @@ intrinsic = "__intrinsic_Vec_new_i32"
 params = []
 returns = "Vec<i32>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
 deprecated_by = "Vec::new<i32>"
 doc_category = "collections"
 
@@ -490,7 +490,7 @@ intrinsic = "__intrinsic_Vec_new_i64"
 params = []
 returns = "Vec<i64>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
 deprecated_by = "Vec::new<i64>"
 doc_category = "collections"
 
@@ -700,7 +700,7 @@ intrinsic = "__intrinsic_filter_i32"
 params = ["Vec<i32>", "fn(i32) -> bool"]
 returns = "Vec<i32>"
 prelude = true
-stability = "stable"
+stability = "deprecated"
 doc_category = "collections"
 deprecated_by = "filter<i32>"
 
