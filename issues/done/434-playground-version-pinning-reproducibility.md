@@ -1,6 +1,6 @@
 # Playground: shared link の version pinning と再現性を確保する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 434
@@ -21,10 +21,10 @@ share link が将来の compiler / parser 更新で壊れないよう、version 
 
 ## Acceptance
 
-- [ ] share link に version 情報が入る。
-- [ ] バージョン不一致時の挙動が定義される。
-- [ ] 古い link の fallback / warning が実装される。
-- [ ] 再現性テストがある。
+- [x] share link に version 情報が入る。
+- [x] バージョン不一致時の挙動が定義される。
+- [x] 古い link の fallback / warning が実装される。
+- [x] 再現性テストがある。
 
 ## References
 
