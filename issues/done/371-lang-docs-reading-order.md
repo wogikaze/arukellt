@@ -1,6 +1,6 @@
 # Language Docs: 読む順番と entry point を明確化する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 371
@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] `docs/language/README.md` が目的別の推奨読書順を案内する
-- [ ] 学習目的→ガイド、仕様確認→spec、状態確認→maturity matrix の導線が明確
-- [ ] historical / archive 文書が current 文書と視覚的に区別される
-- [ ] `syntax-v1-preview.md` などの transitional docs の位置づけが明記される
+- [x] `docs/language/README.md` が目的別の推奨読書順を案内する
+- [x] 学習目的→ガイド、仕様確認→spec、状態確認→maturity matrix の導線が明確
+- [x] historical / archive 文書が current 文書と視覚的に区別される
+- [x] `syntax-v1-preview.md` などの transitional docs の位置づけが明記される
 
 ## References
 

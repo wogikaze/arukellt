@@ -1,6 +1,6 @@
 # Language Docs: current-first な言語ガイドを spec から分離して作る
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 368
@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] current-first ガイド文書が `docs/language/` に存在する
-- [ ] ガイドが stable / implemented な機能のみを扱い、experimental / unimplemented を含まない
-- [ ] `docs/language/README.md` がガイドを最初の推奨読書先として案内する
-- [ ] spec.md との責務分担が文書化される (spec = normative + all tiers, guide = current + stable only)
+- [x] current-first ガイド文書が `docs/language/` に存在する
+- [x] ガイドが stable / implemented な機能のみを扱い、experimental / unimplemented を含まない
+- [x] `docs/language/README.md` がガイドを最初の推奨読書先として案内する
+- [x] spec.md との責務分担が文書化される (spec = normative + all tiers, guide = current + stable only)
 
 ## References
 

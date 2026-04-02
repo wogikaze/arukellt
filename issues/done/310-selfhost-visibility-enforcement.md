@@ -1,6 +1,6 @@
 # Selfhost resolver に visibility enforcement を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 310
@@ -23,10 +23,10 @@ pub/private の区別を selfhost resolver と typechecker に追加する。現
 
 ## Acceptance
 
-- [ ] private symbol への外部 module からのアクセスが compile error になる
-- [ ] `pub(crate)` を parse して crate 内可視として扱える
-- [ ] struct field の pub/private が個別に効く
-- [ ] error メッセージに visibility violation の理由が含まれる
+- [x] private symbol への外部 module からのアクセスが compile error になる
+- [x] `pub(crate)` を parse して crate 内可視として扱える
+- [x] struct field の pub/private が個別に効く
+- [x] error メッセージに visibility violation の理由が含まれる
 
 ## References
 

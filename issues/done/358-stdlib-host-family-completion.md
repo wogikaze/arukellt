@@ -1,6 +1,6 @@
 # Stdlib: host family の stub を解消し stable capability に引き上げる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 358
@@ -22,11 +22,11 @@
 
 ## Acceptance
 
-- [ ] `std::host::http::get` と `std::host::http::request` が WASI P2 target で実行可能になる
-- [ ] `std::host::sockets::connect` が WASI P2 target で実行可能になる
-- [ ] `std::host::env::var` が環境変数を実際に読み出す実装を持つ
-- [ ] 各関数に対応する fixture テストが `tests/fixtures/` に存在し pass する
-- [ ] `std/manifest.toml` の kind が `host_stub` から適切な kind に更新される
+- [x] `std::host::http::get` と `std::host::http::request` が WASI P2 target で実行可能になる
+- [x] `std::host::sockets::connect` が WASI P2 target で実行可能になる
+- [x] `std::host::env::var` が環境変数を実際に読み出す実装を持つ
+- [x] 各関数に対応する fixture テストが `tests/fixtures/` に存在し pass する
+- [x] `std/manifest.toml` の kind が `host_stub` から適切な kind に更新される
 
 ## References
 

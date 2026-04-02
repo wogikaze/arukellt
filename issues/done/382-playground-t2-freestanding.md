@@ -1,6 +1,6 @@
 # Playground: wasm32-freestanding (T2) target の downstream 実装を開始する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 382
@@ -23,11 +23,11 @@ playground v2 (ブラウザ内フル実行) に向けて、`wasm32-freestanding`
 
 ## Acceptance
 
-- [ ] T2 emitter が WASI import なしで最小限の Wasm module を生成する
-- [ ] T2 output がブラウザの Wasm runtime (Chrome/Firefox) でインスタンス化できる
-- [ ] T2 の I/O surface (console / DOM bridge) の設計が ADR として記録される
-- [ ] 最低 1 つの fixture が T2 target で compile + browser 実行される
-- [ ] `docs/target-contract.md` の T2 状態が更新される
+- [x] T2 emitter が WASI import なしで最小限の Wasm module を生成する
+- [x] T2 output がブラウザの Wasm runtime (Chrome/Firefox) でインスタンス化できる
+- [x] T2 の I/O surface (console / DOM bridge) の設計が ADR として記録される
+- [x] 最低 1 つの fixture が T2 target で compile + browser 実行される
+- [x] `docs/target-contract.md` の T2 状態が更新される
 
 ## References
 

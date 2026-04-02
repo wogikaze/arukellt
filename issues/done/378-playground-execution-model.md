@@ -1,6 +1,6 @@
 # Playground: execution model を選定し v1 scope を確定する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 378
@@ -23,11 +23,11 @@ web playground の実行モデル (client-side / server-side / hybrid) を選定
 
 ## Acceptance
 
-- [ ] execution model が ADR として決定・記録される
-- [ ] v1 scope が「edit + format + parse + check + diagnostics + examples + share」に確定される
-- [ ] client-side で動かす surface (parser / formatter / diagnostics) が特定される
-- [ ] server-side に逃がす surface (full compile / run) の要否が決定される
-- [ ] T2 target 実装の要否と timeline が playground roadmap から分離される
+- [x] execution model が ADR として決定・記録される
+- [x] v1 scope が「edit + format + parse + check + diagnostics + examples + share」に確定される
+- [x] client-side で動かす surface (parser / formatter / diagnostics) が特定される
+- [x] server-side に逃がす surface (full compile / run) の要否が決定される
+- [x] T2 target 実装の要否と timeline が playground roadmap から分離される
 
 ## References
 

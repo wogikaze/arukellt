@@ -1,6 +1,6 @@
 # Stdlib Docs: deprecated API の表示と migration cross-link を自動化する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 400
@@ -21,10 +21,10 @@ deprecated API を reference に載せたまま放置せず、明確な badge・
 
 ## Acceptance
 
-- [ ] deprecated badge が自動表示される。
-- [ ] 後継 API と migration guide へのリンクが自動表示される。
-- [ ] 削除予定の metadata を表示できる。
-- [ ] deprecated API を含む page で表示が一貫する。
+- [x] deprecated badge が自動表示される。
+- [x] 後継 API と migration guide へのリンクが自動表示される。
+- [x] 削除予定の metadata を表示できる。
+- [x] deprecated API を含む page で表示が一貫する。
 
 ## References
 

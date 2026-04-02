@@ -1,6 +1,6 @@
 # Stdlib Docs: canonical name / alias / historical name を横断検索できるようにする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 399
@@ -21,10 +21,10 @@ deprecated や alias を含む stdlib 名称の揺れを docs 側で吸収する
 
 ## Acceptance
 
-- [ ] canonical / alias / historical name を持つ検索索引が生成される。
-- [ ] 古い名前から current page へ遷移できる。
-- [ ] deprecated ページまたは reference 行に migration guide リンクが出る。
-- [ ] 索引生成のテストがある。
+- [x] canonical / alias / historical name を持つ検索索引が生成される。
+- [x] 古い名前から current page へ遷移できる。
+- [x] deprecated ページまたは reference 行に migration guide リンクが出る。
+- [x] 索引生成のテストがある。
 
 ## References
 

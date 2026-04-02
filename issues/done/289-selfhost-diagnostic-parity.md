@@ -1,6 +1,6 @@
 # セルフホスト diagnostic parity を確認する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 289
@@ -21,9 +21,9 @@
 
 ## Acceptance
 
-- [ ] 代表的なエラーケース（未定義変数、型不一致、構文エラー）で両版の出力を比較
-- [ ] 比較契約: error code / primary span (行番号) / severity の一致を求める。message 文言の完全一致は求めない
-- [ ] 差分リストが作成される
+- [x] 代表的なエラーケース（未定義変数、型不一致、構文エラー）で両版の出力を比較
+- [x] 比較契約: error code / primary span (行番号) / severity の一致を求める。message 文言の完全一致は求めない
+- [x] 差分リストが作成される
 
 ## References
 

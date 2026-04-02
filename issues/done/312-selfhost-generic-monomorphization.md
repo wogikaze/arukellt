@@ -1,6 +1,6 @@
 # Selfhost に generic instantiation と monomorphization を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 312
@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] `Vec<i32>` と `Vec<String>` が異なる具象型として扱われる
-- [ ] generic fn の呼び出しで型引数が推論される
-- [ ] monomorphization 後の typed function list が backend に渡される
-- [ ] 未使用の generic instantiation が codegen に含まれない
+- [x] `Vec<i32>` と `Vec<String>` が異なる具象型として扱われる
+- [x] generic fn の呼び出しで型引数が推論される
+- [x] monomorphization 後の typed function list が backend に渡される
+- [x] 未使用の generic instantiation が codegen に含まれない
 
 ## References
 

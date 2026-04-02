@@ -1,6 +1,6 @@
 # Dual-period governance を確定する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 329
@@ -23,10 +23,10 @@ bootstrap.md に記載されている「残す Rust crate / 消す Rust crate」
 
 ## Acceptance
 
-- [ ] retained crates リスト (IDE tooling 等) が確定し文書化される
-- [ ] deletion procedure の実行順が numbered steps で定義される
-- [ ] 各 compiler crate の deletion 条件: 「selfhost equivalent が parity check を pass」が明記される
-- [ ] dual-period の終了判定基準が一意に定義される
+- [x] retained crates リスト (IDE tooling 等) が確定し文書化される
+- [x] deletion procedure の実行順が numbered steps で定義される
+- [x] 各 compiler crate の deletion 条件: 「selfhost equivalent が parity check を pass」が明記される
+- [x] dual-period の終了判定基準が一意に定義される
 
 ## References
 

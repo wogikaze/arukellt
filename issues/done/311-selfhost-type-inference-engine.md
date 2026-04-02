@@ -1,6 +1,6 @@
 # Selfhost typechecker に型推論エンジンを構築する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 311
@@ -25,11 +25,11 @@ typechecker.ark を annotation 抽出器から real type checker に引き上げ
 
 ## Acceptance
 
-- [ ] `let x = 1 + 2` で `x: i32` が推論される
-- [ ] `fn(i32)` に string を渡すと compile error が出る
-- [ ] match arm の型が不一致だと error が出る
-- [ ] unify failure のエラーメッセージに source 位置情報が含まれる
-- [ ] selfhost 自身のコードが type error なく通る
+- [x] `let x = 1 + 2` で `x: i32` が推論される
+- [x] `fn(i32)` に string を渡すと compile error が出る
+- [x] match arm の型が不一致だと error が出る
+- [x] unify failure のエラーメッセージに source 位置情報が含まれる
+- [x] selfhost 自身のコードが type error なく通る
 
 ## References
 

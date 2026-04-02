@@ -1,6 +1,6 @@
 # Selfhost resolver に module/import resolution を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 309
@@ -25,11 +25,11 @@ selfhost resolver (`src/compiler/resolver.ark`) の名前解決を flat namespac
 
 ## Acceptance
 
-- [ ] `use path::to::item` が実 module から symbol を import する
-- [ ] qualified name (`module::fn()`) が正しく解決される
-- [ ] `.ark` ファイル単位の module スコープ分離が動作する
-- [ ] 循環 import が検出され compile error になる
-- [ ] stdlib module が manifest.toml に基づいて解決される
+- [x] `use path::to::item` が実 module から symbol を import する
+- [x] qualified name (`module::fn()`) が正しく解決される
+- [x] `.ark` ファイル単位の module スコープ分離が動作する
+- [x] 循環 import が検出され compile error になる
+- [x] stdlib module が manifest.toml に基づいて解決される
 
 ## References
 

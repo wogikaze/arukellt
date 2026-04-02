@@ -1,6 +1,6 @@
 # Stdlib Docs: 生成スキーマと metadata 契約を強化する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 395
@@ -21,10 +21,10 @@ stdlib docs の品質を上げる前提として、generator が受け取る met
 
 ## Acceptance
 
-- [ ] stdlib docs 用の生成スキーマが文書化される。
-- [ ] page kind ごとの必須表示項目が定義される。
-- [ ] generator に schema validation が追加される。
-- [ ] schema 違反時に CI で失敗する。
+- [x] stdlib docs 用の生成スキーマが文書化される。
+- [x] page kind ごとの必須表示項目が定義される。
+- [x] generator に schema validation が追加される。
+- [x] schema 違反時に CI で失敗する。
 
 ## References
 

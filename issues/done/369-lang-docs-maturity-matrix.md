@@ -1,6 +1,6 @@
 # Language Docs: feature maturity matrix を作成する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 369
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] 全言語機能の maturity matrix が `docs/language/` に存在する
-- [ ] matrix が stable / provisional / experimental / unimplemented で分類される
-- [ ] matrix が `spec.md` の labels と自動同期される (生成 or CI check)
-- [ ] `docs/language/README.md` から matrix へのリンクがある
+- [x] 全言語機能の maturity matrix が `docs/language/` に存在する
+- [x] matrix が stable / provisional / experimental / unimplemented で分類される
+- [x] matrix が `spec.md` の labels と自動同期される (生成 or CI check)
+- [x] `docs/language/README.md` から matrix へのリンクがある
 
 ## References
 

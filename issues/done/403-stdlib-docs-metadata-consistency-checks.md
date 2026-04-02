@@ -1,6 +1,6 @@
 # Stdlib Docs: manifest metadata と生成 docs の整合チェックを拡張する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 403
@@ -21,10 +21,10 @@ metadata enrichment 後の docs drift を防ぐため、since / see-also / depre
 
 ## Acceptance
 
-- [ ] metadata 表示漏れを検出するチェックが追加される。
-- [ ] reference と module page の両方を検証する。
-- [ ] stability / target / deprecated 情報の不整合が fail する。
-- [ ] 差分が具体的に表示される。
+- [x] metadata 表示漏れを検出するチェックが追加される。
+- [x] reference と module page の両方を検証する。
+- [x] stability / target / deprecated 情報の不整合が fail する。
+- [x] 差分が具体的に表示される。
 
 ## References
 

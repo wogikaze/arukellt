@@ -1,6 +1,6 @@
 # Language Docs: normative / explanatory / transitional の境界を ADR と banner で固定する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 408
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] 文書分類の ADR が追加される。
-- [ ] 分類に応じた banner テンプレートが定義される。
-- [ ] 主要 language docs に banner が付与される。
-- [ ] README の table に分類が反映される。
+- [x] 文書分類の ADR が追加される。
+- [x] 分類に応じた banner テンプレートが定義される。
+- [x] 主要 language docs に banner が付与される。
+- [x] README の table に分類が反映される。
 
 ## References
 

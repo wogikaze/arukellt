@@ -1,6 +1,6 @@
 # Playground: v1 の product contract と execution ADR を固定する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 428
@@ -21,10 +21,10 @@ playground を作り始める前に、v1 が何を提供し何を提供しない
 
 ## Acceptance
 
-- [ ] ADR が追加される。
-- [ ] v1 scope と非目標が明文化される。
-- [ ] client-side / server-side / hybrid の選択理由が記録される。
-- [ ] docs / tests / examples との接続点が書かれる。
+- [x] ADR が追加される。
+- [x] v1 scope と非目標が明文化される。
+- [x] client-side / server-side / hybrid の選択理由が記録される。
+- [x] docs / tests / examples との接続点が書かれる。
 
 ## References
 

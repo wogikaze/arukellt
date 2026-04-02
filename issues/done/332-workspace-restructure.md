@@ -1,6 +1,6 @@
 # Workspace 構造を selfhost primary に備えて再編する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 332
@@ -22,10 +22,10 @@ Cargo.toml の default-members と workspace 構造を、selfhost primary への
 
 ## Acceptance
 
-- [ ] compiler-pipeline crate を optional feature gate 配下に移す計画が文書化される
-- [ ] selfhost primary 後に残る minimal Cargo.toml 構造が設計される
-- [ ] 移行手順が step-by-step で定義される
-- [ ] IDE tooling crate の位置付けが明確化される
+- [x] compiler-pipeline crate を optional feature gate 配下に移す計画が文書化される
+- [x] selfhost primary 後に残る minimal Cargo.toml 構造が設計される
+- [x] 移行手順が step-by-step で定義される
+- [x] IDE tooling crate の位置付けが明確化される
 
 ## References
 

@@ -1,6 +1,6 @@
 # Language Docs: current-first guide の骨格と章立てを作る
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 406
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] current-first guide ファイルが追加される。
-- [ ] 章立てが stable/implemented な内容だけで構成される。
-- [ ] `docs/language/README.md` から guide へ導線が張られる。
-- [ ] spec と guide の責務差が冒頭で明記される。
+- [x] current-first guide ファイルが追加される。
+- [x] 章立てが stable/implemented な内容だけで構成される。
+- [x] `docs/language/README.md` から guide へ導線が張られる。
+- [x] spec と guide の責務差が冒頭で明記される。
 
 ## References
 
