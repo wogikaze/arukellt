@@ -342,7 +342,7 @@ if [ -f scripts/check/check-links.sh ]; then
     if bash scripts/check/check-links.sh >/dev/null 2>&1; then
         check_pass "internal link integrity"
     else
-        check_fail "broken internal links detected (run scripts/check-links.sh)"
+        check_fail "broken internal links detected (run scripts/check/check-links.sh)"
     fi
 fi
 
@@ -350,7 +350,7 @@ if [ -f scripts/check/check-diagnostic-codes.sh ]; then
     if bash scripts/check/check-diagnostic-codes.sh >/dev/null 2>&1; then
         check_pass "diagnostic codes aligned"
     else
-        check_fail "diagnostic codes out of sync (run scripts/check-diagnostic-codes.sh)"
+        check_fail "diagnostic codes out of sync (run scripts/check/check-diagnostic-codes.sh)"
     fi
 fi
 

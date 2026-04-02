@@ -2,9 +2,9 @@
 # update-snapshots.sh — Regenerate MIR and diagnostics snapshots.
 #
 # Usage:
-#   bash scripts/update-snapshots.sh          # update all snapshots
-#   bash scripts/update-snapshots.sh --mir     # MIR only
-#   bash scripts/update-snapshots.sh --diag    # diagnostics only
+#   bash scripts/run/update-snapshots.sh          # update all snapshots
+#   bash scripts/run/update-snapshots.sh --mir     # MIR only
+#   bash scripts/run/update-snapshots.sh --diag    # diagnostics only
 #
 # After running, review the diff and commit the updated snapshots.
 

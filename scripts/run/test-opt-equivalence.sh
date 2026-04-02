@@ -6,9 +6,9 @@
 # changes program semantics.
 #
 # Usage:
-#   bash scripts/test-opt-equivalence.sh              # all run fixtures
-#   bash scripts/test-opt-equivalence.sh --quick       # first 50 fixtures only
-#   bash scripts/test-opt-equivalence.sh --fixture X   # single fixture
+#   bash scripts/run/test-opt-equivalence.sh              # all run fixtures
+#   bash scripts/run/test-opt-equivalence.sh --quick       # first 50 fixtures only
+#   bash scripts/run/test-opt-equivalence.sh --fixture X   # single fixture
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -29,7 +29,7 @@ while [[ $# -gt 0 ]]; do
         --quick) QUICK=true ;;
         --fixture) shift; SINGLE_FIXTURE="$1" ;;
         --help|-h)
-            echo "Usage: bash scripts/test-opt-equivalence.sh [--quick] [--fixture path]"
+            echo "Usage: bash scripts/run/test-opt-equivalence.sh [--quick] [--fixture path]"
             exit 0
             ;;
     esac

@@ -4,11 +4,11 @@
 # times both phases, and emits JSON matching benchmarks/schema.json.
 #
 # Usage:
-#   bash scripts/run-benchmarks.sh            # quick (1 iteration, default)
-#   bash scripts/run-benchmarks.sh --quick     # same as above
-#   bash scripts/run-benchmarks.sh --full      # 10 iterations per benchmark
-#   bash scripts/run-benchmarks.sh --compare   # run both Rust & selfhost, show diff
-#   ARUKELLT_BIN=/path/to/arukellt bash scripts/run-benchmarks.sh  # custom compiler
+#   bash scripts/run/run-benchmarks.sh            # quick (1 iteration, default)
+#   bash scripts/run/run-benchmarks.sh --quick     # same as above
+#   bash scripts/run/run-benchmarks.sh --full      # 10 iterations per benchmark
+#   bash scripts/run/run-benchmarks.sh --compare   # run both Rust & selfhost, show diff
+#   ARUKELLT_BIN=/path/to/arukellt bash scripts/run/run-benchmarks.sh  # custom compiler
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"

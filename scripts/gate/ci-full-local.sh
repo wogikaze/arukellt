@@ -59,7 +59,7 @@ ok "Unit checks"
 # ── 2. Docs ──────────────────────────────────────────────────────────────────
 step 2 "Docs (freshness + consistency)"
 bash scripts/run/verify-harness.sh --docs
-python3 scripts/check-docs-consistency.py
+python3 scripts/check/check-docs-consistency.py
 ok "Docs checks"
 
 # ── 3. T3 Fixtures ───────────────────────────────────────────────────────────

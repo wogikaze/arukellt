@@ -7,10 +7,10 @@
 #   2  Compare sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)
 #
 # Usage:
-#   scripts/verify-bootstrap.sh                # all stages (skip unavailable)
-#   scripts/verify-bootstrap.sh --stage1-only  # only Stage 0 (Rust → s1)
-#   scripts/verify-bootstrap.sh --stage N      # run single stage
-#   scripts/verify-bootstrap.sh --help
+#   scripts/run/verify-bootstrap.sh                # all stages (skip unavailable)
+#   scripts/run/verify-bootstrap.sh --stage1-only  # only Stage 0 (Rust → s1)
+#   scripts/run/verify-bootstrap.sh --stage N      # run single stage
+#   scripts/run/verify-bootstrap.sh --help
 #
 # Exit: 0 if all enabled stages pass, 1 on first failure.
 
@@ -46,7 +46,7 @@ FIXTURE_PARITY=false
 
 usage() {
     cat <<'EOF'
-Usage: scripts/verify-bootstrap.sh [options]
+Usage: scripts/run/verify-bootstrap.sh [options]
 
 Bootstrap fixpoint verification for the Arukellt self-hosted compiler.
 
@@ -179,7 +179,7 @@ run_stage 0 "Compile selfhost sources (Rust compiler)" stage0
 # ── Fixture parity (optional, after Stage 0) ──────────────────────────────────
 
 if [[ "$FIXTURE_PARITY" = true && -f "$S1_WASM" ]]; then
-    PARITY_SCRIPT="${REPO_ROOT}/scripts/check-selfhost-parity.sh"
+    PARITY_SCRIPT="${REPO_ROOT}/scripts/check/check-selfhost-parity.sh"
     if [[ -x "$PARITY_SCRIPT" ]]; then
         echo -e "${CYAN}── Fixture Parity ──${NC}"
         SELFHOST_WASM="$S1_WASM" REPO_ROOT="$REPO_ROOT" bash "$PARITY_SCRIPT" --fixture
@@ -248,7 +248,7 @@ if [[ -f "$S1_WASM" && -f "$S2_WASM" ]]; then
             echo -e "  ${RED}Fixpoint NOT reached — binaries differ${NC}"
             echo
             echo "  Debug steps:"
-            echo "    1. Run scripts/compare-outputs.sh <phase> <fixture> for each phase"
+            echo "    1. Run scripts/run/compare-outputs.sh <phase> <fixture> for each phase"
             echo "    2. Find the first phase where outputs diverge"
             echo "    3. Fix the selfhost source and re-run this script"
             return 1
@@ -275,8 +275,8 @@ if [[ "$CHECK_MODE" = true ]]; then
         echo "  fixpoint: not-reached"
     fi
     # Run parity checks if check-selfhost-parity.sh exists
-    if [[ -x "${REPO_ROOT}/scripts/check-selfhost-parity.sh" && -f "$S1_WASM" ]]; then
-        parity_out=$(SELFHOST_WASM="$S1_WASM" "${REPO_ROOT}/scripts/check-selfhost-parity.sh" 2>&1 || true)
+    if [[ -x "${REPO_ROOT}/scripts/check/check-selfhost-parity.sh" && -f "$S1_WASM" ]]; then
+        parity_out=$(SELFHOST_WASM="$S1_WASM" "${REPO_ROOT}/scripts/check/check-selfhost-parity.sh" 2>&1 || true)
         echo "  $(echo "$parity_out" | grep 'fixture-parity:' | head -1 || echo 'fixture-parity: not-verified')"
         echo "  $(echo "$parity_out" | grep 'cli-parity:' | head -1 || echo 'cli-parity: not-verified')"
         echo "  $(echo "$parity_out" | grep 'diag-parity:' | head -1 || echo 'diag-parity: not-verified')"

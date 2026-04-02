@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# scripts/smoke-test-binary.sh — Minimal smoke tests for a release binary.
-# Usage: ./scripts/smoke-test-binary.sh [path-to-arukellt]
+# scripts/run/smoke-test-binary.sh — Minimal smoke tests for a release binary.
+# Usage: ./scripts/run/smoke-test-binary.sh [path-to-arukellt]
 #
 # Exits 0 if all checks pass, non-zero on first failure.
 set -euo pipefail

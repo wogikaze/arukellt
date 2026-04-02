@@ -2,8 +2,8 @@
 # compare-outputs.sh — Compare Rust and selfhost compiler outputs for a given phase.
 #
 # Usage:
-#   scripts/compare-outputs.sh <phase> [fixture.ark]
-#   scripts/compare-outputs.sh --help
+#   scripts/run/compare-outputs.sh <phase> [fixture.ark]
+#   scripts/run/compare-outputs.sh --help
 #
 # Phases (Rust):     parse, resolve, corehir, mir, optimized-mir, backend-plan
 # Phases (selfhost): tokens, ast, hir, mir, wasm
@@ -29,7 +29,7 @@ NC='\033[0m'
 
 usage() {
     cat <<'EOF'
-Usage: scripts/compare-outputs.sh <phase> [fixture.ark]
+Usage: scripts/run/compare-outputs.sh <phase> [fixture.ark]
 
 Compare Rust-hosted and selfhost compiler phase output for a given fixture.
 
