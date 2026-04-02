@@ -9,33 +9,54 @@
 - Fixture-backed verification covers 623 manifest entries.
 - Canonical target for current docs: `wasm32-wasi-p2`
 
-## Reading Order
+## Reading Paths
 
-### 🟢 Start Here
+Choose the path that fits your goal.
 
-> **New to Arukellt?** Begin with the guide and follow the numbered path below.
+### 🟢 Quick Start
 
-### Beginner Path
-
-Read these in order to learn the language from the ground up:
+> **Want to write Arukellt code right away?** Read the guide and you're off.
 
 | Step | Document | What You'll Learn |
 |------|----------|-------------------|
-| 1 | [guide.md](guide.md) | **Start here.** Practical introduction — variables, functions, structs, enums, error handling, and more |
+| 1 | [guide.md](guide.md) | **Start here.** Practical walkthrough — variables, functions, structs, enums, control flow |
+| 2 | [error-handling.md](error-handling.md) | Result, Option, and the `?` operator — essential for real programs |
+
+### 📘 Deep Dive
+
+> **New to Arukellt and want a thorough understanding?** Follow every step.
+
+| Step | Document | What You'll Learn |
+|------|----------|-------------------|
+| 1 | [guide.md](guide.md) | **Start here.** Complete language walkthrough (14 sections) |
 | 2 | [type-system.md](type-system.md) | Types, generics, type inference, and trait-like behavior |
 | 3 | [error-handling.md](error-handling.md) | Result, Option, error propagation, and recovery patterns |
 | 4 | [memory-model.md](memory-model.md) | GC-native ownership, value semantics, and lifetime model |
 | 5 | [syntax.md](syntax.md) | Complete syntax reference for all implemented constructs |
+| 6 | [spec.md](spec.md) | Full normative specification for definitive answers |
 
-### Reference Path
+### 🔍 Reference Lookup
 
-For experienced users or when you need authoritative detail:
+> **Already know the language?** Jump straight to the topic you need.
+
+| Topic | Document | Use When… |
+|-------|----------|-----------|
+| Specification | [spec.md](spec.md) | You need the authoritative, normative answer |
+| Syntax | [syntax.md](syntax.md) | You want the exact syntax for a construct |
+| Types | [type-system.md](type-system.md) | You need type rules, generics, or inference details |
+| Errors | [error-handling.md](error-handling.md) | You're working with Result, Option, or `?` |
+| Memory | [memory-model.md](memory-model.md) | You need ownership, GC, or value-semantics rules |
+| Stability | [maturity-matrix.md](maturity-matrix.md) | You want to know if a feature is stable, provisional, or experimental |
+
+### 🔮 Language Evolution
+
+> **Tracking what's changing?** These documents cover planned and in-progress work.
 
 | Document | Purpose |
 |----------|---------|
-| [spec.md](spec.md) | Normative specification — the authoritative source including provisional features |
-| [maturity-matrix.md](maturity-matrix.md) | Feature stability classification (stable / provisional / experimental) |
 | [syntax-v1-preview.md](syntax-v1-preview.md) | Planned v1 syntax additions (transitional — retires when items land in spec.md) |
+| [maturity-matrix.md](maturity-matrix.md) | Feature stability classification — see what's stable vs. experimental |
+| [spec.md](spec.md) | Stability labels per section mark which parts of the spec are provisional |
 
 ## Classification (ADR-018)
 
