@@ -104,6 +104,14 @@ fn MirInst_const_string(val: String, dest: i32) -> MirInst {
     }
 }
 
+fn MirInst_const_f64(val: f64, dest: i32) -> MirInst {
+    MirInst {
+        op: MIR_CONST_F64(), dest: dest, arg0: 0 - 1, arg1: 0 - 1,
+        int_val: 0, float_val: val, str_val: String_new(),
+        val_type: VT_F64(),
+    }
+}
+
 fn MirInst_binop(op: i32, dest: i32, a: i32, b: i32) -> MirInst {
     MirInst {
         op: op, dest: dest, arg0: a, arg1: b,
@@ -559,6 +567,14 @@ fn ctx_fresh_local(ctx: LowerCtx, vt: i32) -> i32 {
     idx
 }
 
+fn ctx_local_vt(ctx: LowerCtx, idx: i32) -> i32 {
+    if idx >= 0 && idx < len(ctx.func.locals) {
+        let loc = get_unchecked(ctx.func.locals, idx)
+        return loc.val_type
+    }
+    VT_I32()
+}
+
 fn binop_to_mir(op: i32) -> i32 {
     if op == OP_ADD() { return MIR_ADD() }
     if op == OP_SUB() { return MIR_SUB() }
@@ -600,9 +616,8 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
     }
 
     if kind == NK_FLOAT_LIT() {
-        // Workaround: encode f64 as i32 placeholder until T3 f64 struct field codegen is fixed
-        let dest = ctx_fresh_local(ctx, VT_I32())
-        ctx_emit(ctx, MirInst_const_i32(0, dest))
+        let dest = ctx_fresh_local(ctx, VT_F64())
+        ctx_emit(ctx, MirInst_const_f64(node.float_val, dest))
         return dest
     }
 
@@ -773,8 +788,19 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
 
             let l_idx = lower_expr(ctx, lhs)
             let r_idx = lower_expr(ctx, rhs)
-            let dest = ctx_fresh_local(ctx, VT_I32())
-            ctx_emit(ctx, MirInst_binop(mir_op, dest, l_idx, r_idx))
+            // Determine val_type from operands (f64 if either operand is f64)
+            let mut binop_vt = VT_I32()
+            if ctx_local_vt(ctx, l_idx) == VT_F64() || ctx_local_vt(ctx, r_idx) == VT_F64() {
+                binop_vt = VT_F64()
+            }
+            // Comparison ops always return i32 (boolean)
+            let is_cmp = mir_op == MIR_EQ() || mir_op == MIR_NEQ() || mir_op == MIR_LT() || mir_op == MIR_LTEQ() || mir_op == MIR_GT() || mir_op == MIR_GTEQ()
+            let mut dest_vt = binop_vt
+            if is_cmp { dest_vt = VT_I32() }
+            let dest = ctx_fresh_local(ctx, dest_vt)
+            let binop_inst = MirInst_binop(mir_op, dest, l_idx, r_idx)
+            binop_inst.val_type = binop_vt
+            ctx_emit(ctx, binop_inst)
             return dest
         }
         return 0 - 1
@@ -785,13 +811,15 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         if child_count >= 1 {
             let operand = get_unchecked(node.children, 0)
             let o_idx = lower_expr(ctx, operand)
-            let dest = ctx_fresh_local(ctx, VT_I32())
+            let uvt = ctx_local_vt(ctx, o_idx)
+            let dest = ctx_fresh_local(ctx, uvt)
             let mut mir_op = MIR_NOP()
             if node.op == UOP_NEG() { mir_op = MIR_NEG() }
             if node.op == UOP_NOT() { mir_op = MIR_NOT() }
             let inst = MirInst_new(mir_op)
             inst.dest = dest
             inst.arg0 = o_idx
+            inst.val_type = uvt
             ctx_emit(ctx, inst)
             return dest
         }
@@ -1644,15 +1672,22 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
 
     if kind == NK_LET() {
         // text = binding name, children[0] = init expr (if present)
-        let vt = VT_I32()
+        // Determine val_type from type annotation (default i32)
+        let mut vt = VT_I32()
+        let ta_count = len(node.type_ann)
+        if ta_count >= 1 {
+            let ta_pre = get_unchecked(node.type_ann, 0)
+            if eq(clone(ta_pre.text), "f64") {
+                vt = VT_F64()
+            }
+        }
         let local_idx = ctx_alloc_local(ctx, clone(node.text), vt)
 
         // Check type annotation for primitive types
-        let ta_count = len(node.type_ann)
         if ta_count >= 1 {
             let ta = get_unchecked(node.type_ann, 0)
             let ta_name = clone(ta.text)
-            if eq(clone(ta_name), "char") || eq(clone(ta_name), "u8") || eq(clone(ta_name), "u16") || eq(clone(ta_name), "u32") || eq(clone(ta_name), "i16") || eq(clone(ta_name), "i32") || eq(clone(ta_name), "i64") || eq(clone(ta_name), "bool") {
+            if eq(clone(ta_name), "char") || eq(clone(ta_name), "u8") || eq(clone(ta_name), "u16") || eq(clone(ta_name), "u32") || eq(clone(ta_name), "i16") || eq(clone(ta_name), "i32") || eq(clone(ta_name), "i64") || eq(clone(ta_name), "bool") || eq(clone(ta_name), "f64") {
                 ctx_set_local_type(ctx, local_idx, ta_name)
             }
             // NK_TYPE_GENERIC = 91: Vec<T> annotation
@@ -2169,8 +2204,16 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             while p < body_idx {
                 let param = get_unchecked(decl.children, p)
                 if param.kind == NK_IDENT() {
-                    let param_local = ctx_alloc_local(ctx, clone(param.text), VT_I32())
-                    push(ctx.func.params, MirLocal { name: clone(param.text), val_type: VT_I32() })
+                    // Determine param val_type from type annotation
+                    let mut pvt = VT_I32()
+                    if len(param.type_ann) >= 1 {
+                        let pta = get_unchecked(param.type_ann, 0)
+                        if eq(clone(pta.text), "f64") {
+                            pvt = VT_F64()
+                        }
+                    }
+                    let param_local = ctx_alloc_local(ctx, clone(param.text), pvt)
+                    push(ctx.func.params, MirLocal { name: clone(param.text), val_type: pvt })
                 }
                 p = p + 1
             }
@@ -2180,7 +2223,9 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
             // TY_UNIT=7 means void, TY_UNKNOWN=0 means unresolved
             // TY_VEC=10, TY_OPTION=11, TY_RESULT=12, TY_STRUCT=21, TY_ENUM=22
             let rt_tag = tf.return_type.tag
-            if rt_tag >= 1 && rt_tag <= 5 {
+            if rt_tag == 3 {
+                ctx.func.return_type = VT_F64()
+            } else if rt_tag >= 1 && rt_tag <= 5 {
                 ctx.func.return_type = VT_I32()
             }
             // Struct/enum/vec/option/result return as i32 pointer
