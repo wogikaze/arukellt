@@ -5521,21 +5521,30 @@ mod tests {
     #[test]
     fn stdlib_hover_http_get_shows_doc_and_target_and_errors() {
         let manifest = load_test_manifest();
-        let info = ArukellBackend::stdlib_hover_info("get", &manifest);
-        assert!(info.is_some(), "get (http) should have stdlib hover info");
+        // Use `connect` (sockets) which is unique and has target + doc + availability
+        let info = ArukellBackend::stdlib_hover_info("connect", &manifest);
+        assert!(
+            info.is_some(),
+            "connect (sockets) should have stdlib hover info"
+        );
         let text = info.unwrap();
         assert!(
-            text.contains("fn get"),
-            "should show function signature for get"
+            text.contains("fn connect"),
+            "should show function signature for connect"
         );
         assert!(
             text.contains("wasm32-wasi-p2"),
-            "http::get hover should contain target constraint wasm32-wasi-p2"
+            "sockets::connect hover should contain target constraint wasm32-wasi-p2"
         );
         // doc text should be present
         assert!(
-            text.contains("HTTP GET") || text.contains("http"),
-            "http::get hover should contain doc description"
+            text.contains("TCP") || text.contains("socket") || text.contains("hostname"),
+            "sockets::connect hover should contain doc description"
+        );
+        // availability: t1=false should show warning
+        assert!(
+            text.contains("wasm32-wasi-p1") || text.contains("Not available"),
+            "sockets::connect hover should indicate p1 unavailability"
         );
     }
 

@@ -1,8 +1,8 @@
 # stdlib metadata v2: manifest に doc/examples/errors/availability を追加し docs と LSP を拡充する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-02
+**Updated**: 2026-04-03
 **ID**: 455
 **Depends on**: none
 **Track**: stdlib-docs
@@ -227,12 +227,12 @@ fn stdlib_hover_info(name: &str, manifest: &StdlibManifest) -> Option<String> {
 
 ## 完了条件
 
-- [ ] `ManifestFunction` に `doc`, `examples`, `errors`, `availability` フィールドが Rust 側で定義されている
-- [ ] `std::host::*` 全関数に `doc`, `availability` が設定されている
-- [ ] LSP hover で `http::get` 上に target 制約と doc が表示される
-- [ ] `generate-docs.py` の `target_constraints` が manifest から自動生成される（ハードコード辞書はフォールバックとして残す）
-- [ ] `docs/stdlib/reference.md` が再生成されて doc/errors を含む
-- [ ] `python3 scripts/check/check-docs-consistency.py` が 0 errors
+- [x] `ManifestFunction` に `doc`, `examples`, `errors`, `availability` フィールドが Rust 側で定義されている
+- [x] `std::host::*` 全関数に `doc`, `availability` が設定されている
+- [x] LSP hover で `http::get` 上に target 制約と doc が表示される
+- [x] `generate-docs.py` の `target_constraints` が manifest から自動生成される（ハードコード辞書はフォールバックとして残す）
+- [x] `docs/stdlib/reference.md` が再生成されて doc/errors を含む
+- [x] `python3 scripts/check/check-docs-consistency.py` が 0 errors
 
 ---
 

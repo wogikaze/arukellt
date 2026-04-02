@@ -14,19 +14,19 @@ graph LR
   I450["450 LSP: ローカル変数の Go to Definition を identifier span ベースに修正する"]
   I451["451 LSP: Hover をセマンティックな identifier に限定し literal / keyword の無意味表示を除去する"]
   I452["452 LSP: E0100 偽陽性 diagnostics を解消し CLI check と一致させる"]
-  I455["455 stdlib metadata v2: manifest に doc/examples/errors/availability を追加し docs と LSP を拡充する"]
+  I456["456 `arukellt doc` サブコマンドの新設"]
   I460["460 エラーメッセージの文面と補助情報の統一整備"]
   I461["461 docs 内コード例の自動検証 CI 追加"]
   I462["462 拡張機能の設定項目の整理と実装への配線"]
   I464["464 `arukellt init` のテンプレート拡充と新規ユーザー導線整備"]
+  I457["457 T1/T3 API 可用性の compiler / LSP / docs 統一表現"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I454["454 LSP 回帰フィクスチャ群を snapshot 化し CI で固定する"]
-  I456["456 `arukellt doc` サブコマンドの新設"]
-  I457["457 T1/T3 API 可用性の compiler / LSP / docs 統一表現"]
   I458["458 拡張機能 CodeLens を Run Main / Debug / Run Test 中心に再設計する"]
   I463["463 LSP 性能スモークテストの追加"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
+  I448 --> I457
   I445 --> I459
   I446 --> I459
   I447 --> I459
@@ -38,9 +38,6 @@ graph LR
   I450 --> I454
   I451 --> I454
   I452 --> I454
-  I455 --> I456
-  I448 --> I457
-  I455 --> I457
   I453 --> I458
   I454 --> I463
 ```
@@ -55,16 +52,15 @@ graph LR
 - **450** depends on: none; blocks: 453, 454
 - **451** depends on: none; blocks: 453, 454
 - **452** depends on: none; blocks: 453, 454
-- **455** depends on: none; blocks: 456, 457
+- **456** depends on: 455; blocks: none
 - **460** depends on: none; blocks: none
 - **461** depends on: none; blocks: none
 - **462** depends on: none; blocks: none
 - **464** depends on: none; blocks: none
+- **457** depends on: 448, 455; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **453** depends on: 450, 451, 452; blocks: 458
 - **454** depends on: 450, 451, 452; blocks: 463
-- **456** depends on: 455; blocks: none
-- **457** depends on: 448, 455; blocks: none
 - **458** depends on: 453; blocks: none
 - **463** depends on: 454; blocks: none
 
