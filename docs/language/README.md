@@ -6,8 +6,16 @@
 ## Current Snapshot
 
 - Current user-visible behavior is described by [../current-state.md](../current-state.md).
-- Fixture-backed verification covers 619 manifest entries.
+- Fixture-backed verification covers 621 manifest entries.
 - Canonical target for current docs: `wasm32-wasi-p2`
+
+## Recommended Reading
+
+| Order | Document | Why |
+|-------|----------|-----|
+| 1st | [guide.md](guide.md) | Practical introduction covering stable, implemented features only |
+| 2nd | [spec.md](spec.md) | Normative authoritative specification including provisional features |
+| Reference | [maturity-matrix.md](maturity-matrix.md) | Full stability classification of all language features |
 
 ## Classification (ADR-018)
 
@@ -17,6 +25,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | File | Class | Note |
 |------|-------|------|
 | [error-handling.md](error-handling.md) | normative | Current-first error handling reference; reflects implemented Result/Option behavior |
+| [guide.md](guide.md) | explanatory | Current-first language guide; stable/implemented features only; recommended first reading |
 | [maturity-matrix.md](maturity-matrix.md) | normative | Generated feature maturity matrix; do not edit manually — regenerated from spec.md stability labels |
 | [memory-model.md](memory-model.md) | normative | Current-first memory model reference; reflects GC-native T3 implementation |
 | [spec.md](spec.md) | normative | Frozen authoritative language specification; post-freeze changes require an ADR |
@@ -29,6 +38,7 @@ See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-doc
 | File | Title | Class | Summary |
 |------|-------|-------|---------|
 | [error-handling.md](error-handling.md) | エラー処理 | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
+| [guide.md](guide.md) | Arukellt Language Guide | explanatory | Explanatory: This document explains concepts and usage patterns. |
 | [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [memory-model.md](memory-model.md) | メモリモデル | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |
 | [spec.md](spec.md) | Arukellt Language Specification | normative | Normative: This document defines the authoritative behavior of Arukellt as implemented. |

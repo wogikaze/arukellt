@@ -34,6 +34,11 @@ class = "transitional"
 note = "Describes planned v1 syntax additions; retires when all items land in spec.md"
 
 [[docs]]
+file = "guide.md"
+class = "explanatory"
+note = "Current-first language guide; stable/implemented features only; recommended first reading"
+
+[[docs]]
 file = "maturity-matrix.md"
 class = "normative"
 note = "Generated feature maturity matrix; do not edit manually — regenerated from spec.md stability labels"

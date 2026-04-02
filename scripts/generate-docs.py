@@ -946,6 +946,18 @@ def render_language_readme(
     ]
     lines.extend(snapshot_lines or ["- Current source of truth: [../current-state.md](../current-state.md)"])
 
+    # Recommended Reading — guide.md first, then spec.md
+    lines.extend([
+        "",
+        "## Recommended Reading",
+        "",
+        "| Order | Document | Why |",
+        "|-------|----------|-----|",
+        "| 1st | [guide.md](guide.md) | Practical introduction covering stable, implemented features only |",
+        "| 2nd | [spec.md](spec.md) | Normative authoritative specification including provisional features |",
+        "| Reference | [maturity-matrix.md](maturity-matrix.md) | Full stability classification of all language features |",
+    ])
+
     # Classification table (ADR-018)
     if classifications:
         class_by_file = {c["file"]: c for c in classifications}
