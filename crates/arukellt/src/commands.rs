@@ -546,8 +546,8 @@ pub(crate) fn cmd_run(
                 if mir_uses_capability(&compiled.mir, &HOST_STUB_BUILTINS) {
                     eprintln!(
                         "error: this program calls an unimplemented host API (host_stub). \
-                         Functions marked host_stub (e.g. http::request, http::get, \
-                         sockets::connect) are not yet available."
+                         Functions marked host_stub (e.g. sockets::connect) \
+                         are not yet available."
                     );
                     return false;
                 }
@@ -1162,11 +1162,7 @@ const RANDOM_BUILTINS: &[&str] = &[
 /// These always return Err("not implemented") and should be rejected at
 /// compile time rather than letting users discover the failure at runtime.
 const HOST_STUB_BUILTINS: &[&str] = &[
-    "http_request",
-    "http_get",
     "sockets_connect",
-    "__intrinsic_http_request",
-    "__intrinsic_http_get",
     "__intrinsic_sockets_connect",
 ];
 

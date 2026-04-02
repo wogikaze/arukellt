@@ -3984,4 +3984,522 @@ impl Ctx {
 
         f.instruction(&Instruction::End); // outermost typed block
     }
+
+    // ── HTTP builtins ────────────────────────────────────────────────
+
+    /// Emit `http_get(url: String) -> Result<String, String>`:
+    ///
+    /// 1. Copy GC url string → linear memory at HTTP_SCRATCH_IN
+    /// 2. Call host import http_get(url_ptr, url_len, resp_ptr) → i32
+    ///    returns >= 0 → Ok (resp body len), < 0 → Err (abs = err msg len)
+    /// 3. Copy response from linear memory → GC string
+    /// 4. Wrap in Result::Ok or Result::Err
+    ///
+    /// Scratch usage: si(0)=url_len, si(1)=loop_i, si(2)=result, si(3)=resp_len,
+    ///                si(10)=anyref
+    pub(super) fn emit_http_get_builtin(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
+        use super::{HTTP_SCRATCH_IN, HTTP_SCRATCH_RESP};
+
+        if args.is_empty() {
+            // Fallback: return Err("missing url")
+            let result_base = *self.enum_base_types.get("Result_String_String").unwrap();
+            let err_variant = result_base + 2;
+            let seg = self.alloc_string_data(b"missing url");
+            let abs_seg = self.data_segs.len() as u32 + seg;
+            f.instruction(&Instruction::I32Const(0));
+            f.instruction(&Instruction::I32Const(11));
+            f.instruction(&Instruction::ArrayNewData {
+                array_type_index: self.string_ty,
+                array_data_index: abs_seg,
+            });
+            f.instruction(&Instruction::StructNew(err_variant));
+            return;
+        }
+
+        let result_base = *self.enum_base_types.get("Result_String_String").unwrap();
+        let ok_variant = result_base + 1;
+        let err_variant = result_base + 2;
+        let ma8 = wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+
+        // Step 1: Copy url GC string → linear memory at HTTP_SCRATCH_IN
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(self.si(10))); // url ref → anyref
+
+        // Get url length
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(self.si(0))); // url_len
+
+        // Copy loop: url[i] → mem[HTTP_SCRATCH_IN + i]
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1))); // i = 0
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        // mem[HTTP_SCRATCH_IN + i] = url[i]
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(HTTP_SCRATCH_IN as i32));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma8));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // loop
+        f.instruction(&Instruction::End); // block
+
+        // Step 2: Call host import http_get(url_ptr, url_len, resp_ptr) → i32
+        f.instruction(&Instruction::I32Const(HTTP_SCRATCH_IN as i32));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32Const(HTTP_SCRATCH_RESP as i32));
+        f.instruction(&Instruction::Call(self.host_http_get));
+        f.instruction(&Instruction::LocalSet(self.si(2))); // result (signed)
+
+        // Step 3: Determine ok/err and resp_len
+        // result >= 0 → Ok, result < 0 → Err
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32LtS);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        {
+            // Err path: resp_len = -result
+            f.instruction(&Instruction::I32Const(0));
+            f.instruction(&Instruction::LocalGet(self.si(2)));
+            f.instruction(&Instruction::I32Sub);
+            f.instruction(&Instruction::LocalSet(self.si(3)));
+        }
+        f.instruction(&Instruction::Else);
+        {
+            // Ok path: resp_len = result
+            f.instruction(&Instruction::LocalGet(self.si(2)));
+            f.instruction(&Instruction::LocalSet(self.si(3)));
+        }
+        f.instruction(&Instruction::End);
+
+        // Step 4: Copy response from linear memory to GC string
+        // Build new GC string array of length si(3), copy bytes from HTTP_SCRATCH_RESP
+        self.emit_http_copy_resp_to_gc_string(f);
+
+        // Step 5: Wrap in Result
+        // si(10) now holds the response GC string
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32LtS);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        {
+            // Err variant
+            f.instruction(&Instruction::LocalGet(self.si(10)));
+            f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                self.string_ty,
+            )));
+            f.instruction(&Instruction::StructNew(err_variant));
+            f.instruction(&Instruction::LocalSet(self.si(10)));
+        }
+        f.instruction(&Instruction::Else);
+        {
+            // Ok variant
+            f.instruction(&Instruction::LocalGet(self.si(10)));
+            f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                self.string_ty,
+            )));
+            f.instruction(&Instruction::StructNew(ok_variant));
+            f.instruction(&Instruction::LocalSet(self.si(10)));
+        }
+        f.instruction(&Instruction::End);
+
+        // Push result
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            result_base,
+        )));
+    }
+
+    /// Emit `http_request(method: String, url: String, body: String) -> Result<String, String>`:
+    ///
+    /// Similar to http_get but copies three strings to linear memory.
+    /// Layout: method at HTTP_SCRATCH_IN, url after method, body after url.
+    ///
+    /// Scratch usage: si(0)=len, si(1)=loop_i, si(2)=result, si(3)=resp_len,
+    ///                si(9)=offset, si(10)=anyref
+    pub(super) fn emit_http_request_builtin(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
+        use super::{HTTP_SCRATCH_IN, HTTP_SCRATCH_RESP};
+
+        if args.len() < 3 {
+            let result_base = *self.enum_base_types.get("Result_String_String").unwrap();
+            let err_variant = result_base + 2;
+            let seg = self.alloc_string_data(b"missing arguments");
+            let abs_seg = self.data_segs.len() as u32 + seg;
+            f.instruction(&Instruction::I32Const(0));
+            f.instruction(&Instruction::I32Const(17));
+            f.instruction(&Instruction::ArrayNewData {
+                array_type_index: self.string_ty,
+                array_data_index: abs_seg,
+            });
+            f.instruction(&Instruction::StructNew(err_variant));
+            return;
+        }
+
+        let result_base = *self.enum_base_types.get("Result_String_String").unwrap();
+        let ok_variant = result_base + 1;
+        let err_variant = result_base + 2;
+        let ma8 = wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+
+        // We'll store method_ptr, method_len, url_ptr, url_len, body_ptr, body_len
+        // in fixed scratch i32 locals.  Use si(0)=current_len, si(1)=loop_i,
+        // si(9)=write_offset to track where we are in HTTP_SCRATCH_IN.
+        //
+        // Layout in linear memory:
+        //   method: [HTTP_SCRATCH_IN .. HTTP_SCRATCH_IN + method_len)
+        //   url:    [method_end .. method_end + url_len)
+        //   body:   [url_end .. url_end + body_len)
+        //
+        // We store method_ptr=HTTP_SCRATCH_IN and lengths in locals.
+
+        // We need to track: method_len, url_start, url_len, body_start, body_len.
+        // Use linear memory at a known scratch location for these.
+        // Actually simpler: use si(0..9) for tracking.
+        //
+        // Plan:
+        //   Copy method → HTTP_SCRATCH_IN, save method_len in mem[HTTP_SCRATCH_IN-16]
+        //   Copy url → HTTP_SCRATCH_IN+method_len, save url_len in mem[HTTP_SCRATCH_IN-12]
+        //   Copy body → ..., save body_len in mem[HTTP_SCRATCH_IN-8]
+        //
+        // Even simpler: just track offsets on scratch locals.
+
+        let method_ptr_val = HTTP_SCRATCH_IN;
+
+        // === Copy method string ===
+        self.emit_operand(f, &args[0]); // method
+        f.instruction(&Instruction::LocalSet(self.si(10))); // method ref
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(self.si(0))); // method_len
+
+        // Store method_len in linear memory for later retrieval
+        f.instruction(&Instruction::I32Const((HTTP_SCRATCH_IN - 16) as i32));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        }));
+
+        // Copy method bytes
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1))); // i = 0
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(method_ptr_val as i32));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma8));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // url_ptr = method_ptr + method_len
+        f.instruction(&Instruction::I32Const(method_ptr_val as i32));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(9))); // url_start offset
+
+        // === Copy url string ===
+        self.emit_operand(f, &args[1]); // url
+        f.instruction(&Instruction::LocalSet(self.si(10))); // url ref
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(self.si(0))); // url_len
+
+        // Store url_len
+        f.instruction(&Instruction::I32Const((HTTP_SCRATCH_IN - 12) as i32));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        }));
+
+        // Copy url bytes
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma8));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // body_start = url_start + url_len
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(9))); // body_start
+
+        // === Copy body string ===
+        self.emit_operand(f, &args[2]); // body
+        f.instruction(&Instruction::LocalSet(self.si(10))); // body ref
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(self.si(0))); // body_len
+
+        // Store body_len
+        f.instruction(&Instruction::I32Const((HTTP_SCRATCH_IN - 8) as i32));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32Store(wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        }));
+
+        // Copy body bytes
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma8));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // === Call host import ===
+        // http_request(method_ptr, method_len, url_ptr, url_len, body_ptr, body_len, resp_ptr)
+        f.instruction(&Instruction::I32Const(method_ptr_val as i32)); // method_ptr
+        // method_len from saved memory
+        f.instruction(&Instruction::I32Const((HTTP_SCRATCH_IN - 16) as i32));
+        f.instruction(&Instruction::I32Load(wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        }));
+        // url_ptr = method_ptr + method_len
+        f.instruction(&Instruction::I32Const(method_ptr_val as i32));
+        f.instruction(&Instruction::I32Const((HTTP_SCRATCH_IN - 16) as i32));
+        f.instruction(&Instruction::I32Load(wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        }));
+        f.instruction(&Instruction::I32Add);
+        // url_len from saved memory
+        f.instruction(&Instruction::I32Const((HTTP_SCRATCH_IN - 12) as i32));
+        f.instruction(&Instruction::I32Load(wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        }));
+        // body_ptr = url_ptr + url_len (= method_ptr + method_len + url_len)
+        f.instruction(&Instruction::I32Const(method_ptr_val as i32));
+        f.instruction(&Instruction::I32Const((HTTP_SCRATCH_IN - 16) as i32));
+        f.instruction(&Instruction::I32Load(wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        }));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Const((HTTP_SCRATCH_IN - 12) as i32));
+        f.instruction(&Instruction::I32Load(wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        }));
+        f.instruction(&Instruction::I32Add);
+        // body_len from saved memory
+        f.instruction(&Instruction::I32Const((HTTP_SCRATCH_IN - 8) as i32));
+        f.instruction(&Instruction::I32Load(wasm_encoder::MemArg {
+            offset: 0,
+            align: 2,
+            memory_index: 0,
+        }));
+        // resp_ptr
+        f.instruction(&Instruction::I32Const(HTTP_SCRATCH_RESP as i32));
+        f.instruction(&Instruction::Call(self.host_http_request));
+        f.instruction(&Instruction::LocalSet(self.si(2))); // result (signed)
+
+        // Step 3: Determine ok/err and resp_len (same as http_get)
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32LtS);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        {
+            f.instruction(&Instruction::I32Const(0));
+            f.instruction(&Instruction::LocalGet(self.si(2)));
+            f.instruction(&Instruction::I32Sub);
+            f.instruction(&Instruction::LocalSet(self.si(3)));
+        }
+        f.instruction(&Instruction::Else);
+        {
+            f.instruction(&Instruction::LocalGet(self.si(2)));
+            f.instruction(&Instruction::LocalSet(self.si(3)));
+        }
+        f.instruction(&Instruction::End);
+
+        // Step 4: Copy response → GC string (reuses shared helper)
+        self.emit_http_copy_resp_to_gc_string(f);
+
+        // Step 5: Wrap in Result
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32LtS);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        {
+            f.instruction(&Instruction::LocalGet(self.si(10)));
+            f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                self.string_ty,
+            )));
+            f.instruction(&Instruction::StructNew(err_variant));
+            f.instruction(&Instruction::LocalSet(self.si(10)));
+        }
+        f.instruction(&Instruction::Else);
+        {
+            f.instruction(&Instruction::LocalGet(self.si(10)));
+            f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                self.string_ty,
+            )));
+            f.instruction(&Instruction::StructNew(ok_variant));
+            f.instruction(&Instruction::LocalSet(self.si(10)));
+        }
+        f.instruction(&Instruction::End);
+
+        // Push result
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            result_base,
+        )));
+    }
+
+    /// Shared helper: copy response bytes from linear memory at HTTP_SCRATCH_RESP
+    /// into a new GC string array.  Length is in si(3).  Result ref is stored in si(10).
+    fn emit_http_copy_resp_to_gc_string(&mut self, f: &mut PeepholeWriter<'_>) {
+        use super::HTTP_SCRATCH_RESP;
+
+        let ma8 = wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+
+        // Allocate new GC string of length si(3)
+        f.instruction(&Instruction::I32Const(0)); // fill value
+        f.instruction(&Instruction::LocalGet(self.si(3))); // length
+        f.instruction(&Instruction::ArrayNew(self.string_ty));
+        f.instruction(&Instruction::LocalSet(self.si(10))); // save new string ref
+
+        // Copy loop: mem[HTTP_SCRATCH_RESP + i] → string[i]
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1))); // i = 0
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // string[i] = mem[HTTP_SCRATCH_RESP + i]
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        // Load byte from linear memory
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(HTTP_SCRATCH_RESP as i32));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32Load8U(ma8));
+        // array.set
+        f.instruction(&Instruction::ArraySet(self.string_ty));
+
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // loop
+        f.instruction(&Instruction::End); // block
+    }
 }

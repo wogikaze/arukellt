@@ -162,7 +162,8 @@ impl Ctx {
                     } else {
                         lookup_name
                     };
-                    if (self.is_builtin_name(canonical) || is_lookup_builtin) && !prefer_user_fn {
+                    let is_http_wrapper = self.http_wrapper_fns.contains(&fn_name);
+                    if (self.is_builtin_name(canonical) || is_lookup_builtin) && !prefer_user_fn && !is_http_wrapper {
                         self.emit_call_builtin(f, effective_builtin, args, dest.as_ref());
                     } else {
                         let param_types = self
@@ -481,6 +482,8 @@ impl Ctx {
                 | "clamp"
                 | "fs_read_file"
                 | "fs_write_file"
+                | "http_get"
+                | "http_request"
                 | "memory_copy"
                 | "memory_fill"
                 | "arg_count"
@@ -1035,6 +1038,22 @@ impl Ctx {
             }
             "fs_write_bytes" => {
                 self.emit_fs_write_bytes_gc(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "http_get" => {
+                self.emit_http_get_builtin(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "http_request" => {
+                self.emit_http_request_builtin(f, args);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
@@ -1671,6 +1690,12 @@ impl Ctx {
             }
             "fs_write_bytes" => {
                 self.emit_fs_write_bytes_gc(f, args);
+            }
+            "http_get" => {
+                self.emit_http_get_builtin(f, args);
+            }
+            "http_request" => {
+                self.emit_http_request_builtin(f, args);
             }
             "memory_copy" => {
                 // memory.copy returns Unit; emit instruction, push dummy i32 for stack

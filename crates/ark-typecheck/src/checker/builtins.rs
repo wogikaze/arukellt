@@ -1164,6 +1164,26 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
+            "__intrinsic_http_get".into(),
+            FnSig {
+                name: "__intrinsic_http_get".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String],
+                ret: Type::Result(Box::new(Type::String), Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_http_request".into(),
+            FnSig {
+                name: "__intrinsic_http_request".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::String, Type::String],
+                ret: Type::Result(Box::new(Type::String), Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
             "__intrinsic_f64_bits_lo".into(),
             FnSig {
                 name: "__intrinsic_f64_bits_lo".into(),

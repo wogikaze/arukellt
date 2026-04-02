@@ -177,6 +177,7 @@ module-diag:selfhost/resolver_visibility_error/main.ark
 run:selfhost/resolver_visibility_ok/main.ark
 run:selfhost/typecheck_infer.ark
 run:selfhost/typecheck_infer_expr.ark
+run:selfhost/typecheck_generic_call.ark
 run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
 run:stdlib_cli/cli_basic.ark

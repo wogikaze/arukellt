@@ -2100,6 +2100,11 @@ impl Ctx {
                                     .entry(dst.0)
                                     .or_insert_with(|| "Result_String_String".to_string());
                             }
+                            "http_get" | "http_request" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Result_String_String".to_string());
+                            }
                             "fs_write_file" => {
                                 extra_enum
                                     .entry(dst.0)

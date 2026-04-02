@@ -82,7 +82,7 @@ pub(crate) fn parse_module_file(
 /// Modules whose functions are all `host_stub` — always return errors at
 /// runtime.  We reject imports of these at resolve time so the user gets a
 /// clear compile-time error instead of a surprising runtime failure.
-const HOST_STUB_MODULES: &[&str] = &["std::host::http", "std::host::sockets"];
+const HOST_STUB_MODULES: &[&str] = &["std::host::sockets"];
 
 pub(crate) fn resolve_import_path(
     current_path: &Path,

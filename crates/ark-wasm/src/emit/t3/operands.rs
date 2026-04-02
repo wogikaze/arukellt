@@ -198,7 +198,8 @@ impl Ctx {
                     lookup_name
                 };
                 // Check if this is a builtin — redirect to inline implementation
-                if (self.is_builtin_name(&canonical) || is_lookup_builtin) && !prefer_user_fn {
+                let is_http_wrapper = self.http_wrapper_fns.contains(name);
+                if (self.is_builtin_name(&canonical) || is_lookup_builtin) && !prefer_user_fn && !is_http_wrapper {
                     self.emit_call_builtin_operand(f, effective_builtin, args);
                 } else {
                     // Check if callee has Any-typed (generic) params needing boxing

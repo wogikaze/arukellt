@@ -236,6 +236,11 @@ impl Ctx {
             if !super::is_component_export_candidate(name) {
                 continue;
             }
+            // Skip HTTP wrapper functions — they are stdlib-internal and don't need
+            // component-level CABI adapters.
+            if self.http_wrapper_fns.contains(name) {
+                continue;
+            }
 
             // Look up the function's accurate type signature from type_table
             let sig = match mir.type_table.fn_sigs.get(name.as_str()) {

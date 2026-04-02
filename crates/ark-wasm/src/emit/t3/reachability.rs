@@ -481,6 +481,80 @@ impl Ctx {
         }
     }
 
+    // ── HTTP reachability ────────────────────────────────────────────
+
+    pub(super) fn mir_uses_http(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    if Self::stmt_uses_http(stmt) {
+                        return true;
+                    }
+                }
+                if let Terminator::Return(Some(op)) = &block.terminator
+                    && Self::operand_uses_http(op)
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_http(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "http_get"
+                    || name == "http_request"
+                    || name == "__intrinsic_http_get"
+                    || name == "__intrinsic_http_request"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_http(rvalue),
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
+                Self::operand_uses_http(cond)
+                    || then_body.iter().any(Self::stmt_uses_http)
+                    || else_body.iter().any(Self::stmt_uses_http)
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_http(cond) || body.iter().any(Self::stmt_uses_http)
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_http(op),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_http(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_http(op),
+            Rvalue::BinaryOp(_, l, r) => {
+                Self::operand_uses_http(l) || Self::operand_uses_http(r)
+            }
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_http(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_http(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "http_get"
+                    || name == "http_request"
+                    || name == "__intrinsic_http_get"
+                    || name == "__intrinsic_http_request"
+                {
+                    return true;
+                }
+                args.iter().any(Self::operand_uses_http)
+            }
+            _ => false,
+        }
+    }
+
     pub(super) fn reachable_function_indices(&self, mir: &MirModule) -> Vec<usize> {
         let mut name_to_idx = HashMap::new();
         for (idx, func) in mir.functions.iter().enumerate() {

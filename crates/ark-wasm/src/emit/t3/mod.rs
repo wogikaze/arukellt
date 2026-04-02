@@ -70,6 +70,10 @@ const VEC_FIELD_CAP: u32 = 2;
 const FS_SCRATCH: u32 = 160;
 const FS_BUF_SIZE: u32 = 4096;
 
+// HTTP scratch memory layout: input strings at 16KB, response at 32KB
+pub(super) const HTTP_SCRATCH_IN: u32 = 16384;
+pub(super) const HTTP_SCRATCH_RESP: u32 = 32768;
+
 /// P2 canonical ABI: retptr area (12 bytes, reuses IOV_BASE region)
 pub(super) const P2_RETPTR: u32 = 0;
 
@@ -141,6 +145,8 @@ fn normalize_intrinsic(name: &str) -> &str {
             "fs_read_file" => "fs_read_file",
             "fs_write_file" => "fs_write_file",
             "fs_write_bytes" => "fs_write_bytes",
+            "http_get" => "http_get",
+            "http_request" => "http_request",
             other => other,
         }
     } else {
@@ -523,6 +529,10 @@ pub(super) struct Ctx {
     wasi_environ_sizes_get: u32,
     wasi_environ_get: u32,
     wasi_needs_environ: bool,
+    /// Host HTTP import indices (conditional, in arukellt_host namespace)
+    host_http_get: u32,
+    host_http_request: u32,
+    needs_http: bool,
     /// Optimization level (0 = O0, 1 = O1, 2 = O2).
     /// Tail-call emission (`return_call`) is enabled at opt_level >= 1.
     opt_level: u8,
@@ -569,6 +579,22 @@ impl Ctx {
                     ValType::I32
                 }
             }
+            Type::Result(ok, err) => {
+                // Result<String, String> → Result_String_String, etc.
+                let key = match (ok.as_ref(), err.as_ref()) {
+                    (Type::String, Type::String) => "Result_String_String".to_string(),
+                    (Type::I64, Type::String) => "Result_i64_String".to_string(),
+                    (Type::F64, Type::String) => "Result_f64_String".to_string(),
+                    _ => "Result".to_string(),
+                };
+                if let Some(&base_idx) = self.enum_base_types.get(key.as_str()) {
+                    ref_nullable(base_idx)
+                } else if let Some(&base_idx) = self.enum_base_types.get("Result") {
+                    ref_nullable(base_idx)
+                } else {
+                    ValType::I32
+                }
+            }
             _ => ValType::I32,
         }
     }
@@ -589,9 +615,11 @@ impl Ctx {
                     return ref_nullable(base_idx);
                 }
                 if let Some(specialized_name) = nominalize_generic_type_name(name)
-                    && let Some(&base_idx) = self.enum_base_types.get(specialized_name.as_str())
                 {
-                    return ref_nullable(base_idx);
+                    if let Some(&base_idx) = self.enum_base_types.get(specialized_name.as_str())
+                    {
+                        return ref_nullable(base_idx);
+                    }
                 }
                 // Vec types: Vec<i32>, Vec<String>, etc.
                 if name.starts_with("Vec<") {
@@ -1006,6 +1034,9 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         wasi_environ_sizes_get: 0,
         wasi_environ_get: 0,
         wasi_needs_environ: false,
+        host_http_get: 0,
+        host_http_request: 0,
+        needs_http: false,
         opt_level,
         string_intern_globals: HashMap::new(),
         string_intern_count: 0,
@@ -1050,6 +1081,8 @@ impl Ctx {
         self.wasi_needs_args = needs_args;
         let needs_environ = Self::mir_uses_environ(mir, &reachable_user_indices);
         self.wasi_needs_environ = needs_environ;
+        let needs_http = Self::mir_uses_http(mir, &reachable_user_indices);
+        self.needs_http = needs_http;
 
         self.ensure_specialized_result_enums();
 
@@ -1094,6 +1127,23 @@ impl Ctx {
             .add_func(&[ValType::I32, ValType::I32], &[ValType::I32]);
         // args_get: (i32, i32) -> i32
         let args_get_ty = args_sizes_get_ty; // same signature
+        // http_get: (url_ptr: i32, url_len: i32, resp_ptr: i32) -> i32
+        let http_get_ty = self
+            .types
+            .add_func(&[ValType::I32, ValType::I32, ValType::I32], &[ValType::I32]);
+        // http_request: (method_ptr, method_len, url_ptr, url_len, body_ptr, body_len, resp_ptr) -> i32
+        let http_request_ty = self.types.add_func(
+            &[
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+                ValType::I32,
+            ],
+            &[ValType::I32],
+        );
 
         // Scan MIR to determine which stdlib helpers are actually needed
         // (must happen before import counting so we know if fd_write is needed)
@@ -1146,6 +1196,12 @@ impl Ctx {
             self.wasi_environ_sizes_get = num_imports;
             num_imports += 1;
             self.wasi_environ_get = num_imports;
+            num_imports += 1;
+        }
+        if needs_http {
+            self.host_http_get = num_imports;
+            num_imports += 1;
+            self.host_http_request = num_imports;
             num_imports += 1;
         }
 
@@ -1529,6 +1585,18 @@ impl Ctx {
                 wasm_encoder::EntityType::Function(args_get_ty),
             );
         }
+        if needs_http {
+            imports.import(
+                "arukellt_host",
+                "http_get",
+                wasm_encoder::EntityType::Function(http_get_ty),
+            );
+            imports.import(
+                "arukellt_host",
+                "http_request",
+                wasm_encoder::EntityType::Function(http_request_ty),
+            );
+        }
 
         // Function section
         let mut functions = FunctionSection::new();
@@ -1682,7 +1750,9 @@ impl Ctx {
             let func = &mir.functions[idx];
             let canonical = normalize_intrinsic(&func.name);
             let lookup = func.name.rsplit("::").next().unwrap_or(&func.name);
-            if self.is_builtin_name(canonical) || self.is_builtin_name(lookup) {
+            if (self.is_builtin_name(canonical) || self.is_builtin_name(lookup))
+                && !self.http_wrapper_fns.contains(&func.name)
+            {
                 // Builtin functions are inlined at call sites — emit a stub body
                 // that just returns a default value to satisfy validation.
                 self.emit_builtin_stub(&mut codes, func);
@@ -1827,6 +1897,10 @@ impl Ctx {
         if needs_environ {
             func_names.append(self.wasi_environ_sizes_get, "wasi:environ_sizes_get");
             func_names.append(self.wasi_environ_get, "wasi:environ_get");
+        }
+        if needs_http {
+            func_names.append(self.host_http_get, "arukellt_host:http_get");
+            func_names.append(self.host_http_request, "arukellt_host:http_request");
         }
         // Helper function names (sorted by index for NameMap)
         let mut helpers: Vec<(u32, &str)> = self

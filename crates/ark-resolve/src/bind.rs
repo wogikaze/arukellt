@@ -254,6 +254,8 @@ pub(crate) fn inject_prelude_symbols(symbols: &mut SymbolTable, scope: ScopeId) 
         "__intrinsic_arg_count",
         "__intrinsic_arg_at",
         "__intrinsic_env_var",
+        "__intrinsic_http_get",
+        "__intrinsic_http_request",
         "__intrinsic_f64_bits_lo",
         "__intrinsic_f64_bits_hi",
         "HashMap_i32_i32_new",
