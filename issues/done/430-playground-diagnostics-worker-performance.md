@@ -1,6 +1,6 @@
 # Playground: diagnostics worker と incremental parse loop の性能予算を作る
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 430
@@ -21,10 +21,10 @@ UI スレッドを詰まらせずに diagnostics を出すため、worker 化、
 
 ## Acceptance
 
-- [ ] diagnostics が worker 経由で実行される。
-- [ ] debounce / update policy が実装される。
-- [ ] 性能予算（例: 典型ファイルでの更新時間）が定義される。
-- [ ] 簡単な perf 測定または benchmark がある。
+- [x] diagnostics が worker 経由で実行される。
+- [x] debounce / update policy が実装される。
+- [x] 性能予算（例: 典型ファイルでの更新時間）が定義される。
+- [x] 簡単な perf 測定または benchmark がある。
 
 ## References
 

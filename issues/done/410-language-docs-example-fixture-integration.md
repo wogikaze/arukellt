@@ -1,6 +1,6 @@
 # Language Docs: guide / reference の例コードを fixture 連動にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 410
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] language docs の例コードに source-of-truth が付与される。
-- [ ] 少なくとも guide の主要章の例は compile-check される。
-- [ ] 例コードと fixture の対応表が作られる。
-- [ ] CI が壊れた例コードを検出する。
+- [x] language docs の例コードに source-of-truth が付与される。
+- [x] 少なくとも guide の主要章の例は compile-check される。
+- [x] 例コードと fixture の対応表が作られる。
+- [x] CI が壊れた例コードを検出する。
 
 ## References
 
