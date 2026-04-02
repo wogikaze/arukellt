@@ -68,6 +68,14 @@ export {
 // Re-export playground app integration.
 export { createPlaygroundApp } from "./playground-app.js";
 
+// Re-export capability detection.
+export {
+  checkCapabilities,
+  capabilityWarningsToDiagnostics,
+  UNSUPPORTED_CAPABILITIES,
+  getCapabilityInfo,
+} from "./capability-check.js";
+
 // Re-export share link encoder/decoder (ADR-021).
 export {
   encodeSharePayload,
@@ -154,3 +162,10 @@ export type {
 
 // Re-export example types.
 export type { ExampleEntry } from "./examples.js";
+
+// Re-export capability-check types.
+export type {
+  CapabilityId,
+  CapabilityInfo,
+  CapabilityWarning,
+} from "./capability-check.js";

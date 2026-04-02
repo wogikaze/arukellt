@@ -45,6 +45,10 @@
     "./examples": {
       "types": "./dist/examples.d.ts",
       "import": "./dist/examples.js"
+    },
+    "./capability-check": {
+      "types": "./dist/capability-check.d.ts",
+      "import": "./dist/capability-check.js"
     }
   },
   "files": [

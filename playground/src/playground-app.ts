@@ -37,6 +37,10 @@ import {
   injectDiagnosticStyles,
 } from "./diagnostics.js";
 import type { DiagnosticsPanel } from "./diagnostics.js";
+import {
+  checkCapabilities,
+  capabilityWarningsToDiagnostics,
+} from "./capability-check.js";
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -225,13 +229,22 @@ export function createPlaygroundApp(
     response: ParseResponse,
     source: string,
   ): void {
-    diagnosticsPanel.update(response.diagnostics, source);
+    // Check for unsupported capability usage and merge warnings
+    // with parse diagnostics so they display together.
+    const capWarnings = checkCapabilities(source);
+    const capDiags = capabilityWarningsToDiagnostics(capWarnings);
+    const allDiagnostics: Diagnostic[] = [
+      ...response.diagnostics,
+      ...capDiags,
+    ];
+
+    diagnosticsPanel.update(allDiagnostics, source);
 
     // Update inline markers.
-    const overlayHtml = buildDiagnosticOverlay(source, response.diagnostics);
+    const overlayHtml = buildDiagnosticOverlay(source, allDiagnostics);
     overlay.innerHTML = overlayHtml;
 
-    onDiagnostics?.(response.diagnostics, response);
+    onDiagnostics?.(allDiagnostics, response);
   }
 
   /** Trigger a parse of the current editor content. */
