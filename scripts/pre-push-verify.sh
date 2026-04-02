@@ -1,102 +1,77 @@
 #!/usr/bin/env bash
-# scripts/pre-push-verify.sh — Comprehensive verification matching GitHub Actions CI.
+# scripts/pre-push-verify.sh — Lightweight pre-push gate (target: 2-5 min).
 #
-# This script aligns with the CI pipeline (ADR-013) to ensure that local
-# push attempts are gated by the same standards as the remote merge gates.
+# Runs fast checks only. Heavy CI (release build, selfhost, component interop,
+# extension tests, determinism, T1 fixtures) lives in scripts/ci-full-local.sh.
 #
-# Layer structure (matches .github/workflows/ci.yml):
-# 1. unit (cargo test, clippy, fmt)
-# 2. fixture/T3 (wasm32-wasi-p2 fixtures)
-# 3. integration (CLI smoke tests)
-# 4. packaging (binary smoke tests)
-# 5. determinism (same input -> same output)
-# 6. selfhost (Rust compiler stage 0)
-# 7. extension (VS Code extension tests, if tools available)
-# 8. heavy (size, wat, docs)
-# 9. interop (component model interop)
+# Change-based filtering skips irrelevant checks when only docs/issues changed.
 
 set -euo pipefail
 
 ROOT=$(git rev-parse --show-toplevel)
 cd "$ROOT"
 
-# Strict mode for CI-equivalence
 export RUSTFLAGS="-D warnings"
 export CARGO_TERM_COLOR=always
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
 NC='\033[0m'
 
-echo -e "${YELLOW}=== arukellt Pre-Push Verification (CI Equivalence Mode) ===${NC}"
+echo -e "${YELLOW}=== arukellt Pre-Push (lightweight gate) ===${NC}"
 
-step() {
-    echo -e "\n${YELLOW}── Layer: $1 ──${NC}"
+# Detect what changed relative to the upstream tracking branch (or HEAD~1 as fallback)
+UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo "HEAD~1")
+CHANGED=$(git diff --name-only "$UPSTREAM"...HEAD 2>/dev/null || git diff --name-only HEAD~1 || true)
+
+has_rust_changes() {
+    echo "$CHANGED" | grep -qE '^(crates/|src/|Cargo\.toml|Cargo\.lock)' 2>/dev/null
+}
+has_doc_changes() {
+    echo "$CHANGED" | grep -qE '^(docs/|issues/|scripts/generate-docs\.py|scripts/generate-issue-index\.sh|std/manifest\.toml)' 2>/dev/null
+}
+has_fixture_changes() {
+    echo "$CHANGED" | grep -qE '^(tests/fixtures/|std/)' 2>/dev/null
+}
+has_extension_changes() {
+    echo "$CHANGED" | grep -qE '^extensions/' 2>/dev/null
 }
 
-# 1. Unit tests, clippy, fmt, and docs (CI: unit-tests + heavy-checks)
-step "Unit, Clippy, Fmt, and Docs"
-bash scripts/verify-harness.sh --cargo --docs --size --wat
-
-# 2. Build release binary for subsequent layers
-step "Build release binary"
-cargo build --release -p arukellt
-
-# 3. Fixture suite (CI: fixture-primary + fixture-supported)
-step "Fixture suite (T3 primary: wasm32-wasi-p2)"
-ARUKELLT_TARGET=wasm32-wasi-p2 bash scripts/verify-harness.sh --fixtures
-
-step "Fixture suite (T1 supported: wasm32-wasi-p1)"
-ARUKELLT_TARGET=wasm32-wasi-p1 bash scripts/verify-harness.sh --fixtures || echo -e "  ${YELLOW}⚠ T1 fixtures failed (supported target, non-blocking)${NC}"
-
-# 4. Integration & Packaging (CI: integration + packaging)
-step "Integration & Packaging smoke tests"
-bash scripts/smoke-test-binary.sh ./target/release/arukellt
-bash scripts/test-package-workspace.sh
-
-# 5. Determinism (CI: determinism)
-step "Determinism check"
-TMP_DET_A=$(mktemp)
-TMP_DET_B=$(mktemp)
-HELLO_ARK="docs/examples/hello.ark"
-
-if [ -f "$HELLO_ARK" ]; then
-    echo "  Checking T3 determinism..."
-    ./target/release/arukellt compile --target wasm32-wasi-p2 --output "$TMP_DET_A" "$HELLO_ARK"
-    ./target/release/arukellt compile --target wasm32-wasi-p2 --output "$TMP_DET_B" "$HELLO_ARK"
-    diff "$TMP_DET_A" "$TMP_DET_B" && echo -e "  ${GREEN}✓ T3 deterministic${NC}"
-
-    echo "  Checking T1 determinism..."
-    ./target/release/arukellt compile --target wasm32-wasi-p1 --output "$TMP_DET_A" "$HELLO_ARK"
-    ./target/release/arukellt compile --target wasm32-wasi-p1 --output "$TMP_DET_B" "$HELLO_ARK"
-    diff "$TMP_DET_A" "$TMP_DET_B" && echo -e "  ${GREEN}✓ T1 deterministic${NC}"
+# ── 1. Rust: fmt + clippy + test (skip if only docs/issues changed) ──────────
+if has_rust_changes || has_fixture_changes || [ -z "$CHANGED" ]; then
+    echo -e "\n${YELLOW}── Rust checks ──${NC}"
+    cargo fmt --check --all
+    cargo clippy --workspace --exclude ark-llvm --exclude ark-lsp --all-targets -- -D warnings
+    cargo test --workspace --exclude ark-llvm --exclude ark-lsp
 else
-    echo -e "  ${YELLOW}⊙ Skipping determinism (hello.ark not found)${NC}"
-fi
-rm -f "$TMP_DET_A" "$TMP_DET_B"
-
-# 6. Selfhost Stage 0 (CI: selfhost-stage0)
-step "Selfhost Stage 0 (Rust compiler → Stage 1)"
-bash scripts/verify-bootstrap.sh --stage1-only
-
-# 7. Component Interop (CI: component-interop)
-step "Component Interop"
-bash scripts/verify-harness.sh --component
-
-# 8. Extension Tests (CI: extension-tests)
-step "VS Code Extension Tests"
-if command -v npm >/dev/null 2>&1 && command -v xvfb-run >/dev/null 2>&1; then
-    if [ -d "extensions/arukellt-all-in-one" ]; then
-        (cd extensions/arukellt-all-in-one && npm install --quiet && xvfb-run -a npm test)
-        echo -e "  ${GREEN}✓ Extension tests passed${NC}"
-    else
-        echo -e "  ${YELLOW}⊙ Skipping extension tests (directory not found)${NC}"
-    fi
-else
-    echo -e "  ${YELLOW}⊙ Skipping extension tests (npm or xvfb-run not found)${NC}"
+    echo -e "\n⊙ No Rust changes — skipping cargo fmt/clippy/test"
 fi
 
-echo -e "\n${GREEN}==============================================${NC}"
-echo -e "${GREEN}✓ All CI-equivalent layers passed successfully!${NC}"
-echo -e "${GREEN}==============================================${NC}"
+# ── 2. Docs freshness (skip if no doc/script changes) ────────────────────────
+if has_doc_changes || has_rust_changes || [ -z "$CHANGED" ]; then
+    echo -e "\n${YELLOW}── Docs freshness ──${NC}"
+    python3 scripts/generate-docs.py --check
+    bash scripts/generate-issue-index.sh
+    git diff --exit-code -- docs/ issues/ README.md
+else
+    echo -e "\n⊙ No doc changes — skipping docs freshness"
+fi
+
+# ── 3. T3 fixture suite (skip if no Rust/fixture changes) ────────────────────
+if has_rust_changes || has_fixture_changes || [ -z "$CHANGED" ]; then
+    echo -e "\n${YELLOW}── T3 fixtures (wasm32-wasi-p2) ──${NC}"
+    ARUKELLT_TARGET=wasm32-wasi-p2 bash scripts/verify-harness.sh --fixtures
+else
+    echo -e "\n⊙ No Rust/fixture changes — skipping T3 fixtures"
+fi
+
+# ── 4. Extension syntax check (only when extension files changed) ─────────────
+if has_extension_changes; then
+    echo -e "\n${YELLOW}── Extension syntax check ──${NC}"
+    node --check extensions/arukellt-all-in-one/src/extension.js
+    python3 -c "import json; json.load(open('extensions/arukellt-all-in-one/package.json'))" \
+        && echo "  ✓ package.json valid JSON"
+fi
+
+echo -e "\n${GREEN}=== Pre-push passed ===${NC}"
+echo -e "${GREEN}For full CI checks (release, selfhost, component, extension): bash scripts/ci-full-local.sh${NC}"
