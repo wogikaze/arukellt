@@ -1004,7 +1004,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_DROP())
             emit_byte(w, OP_I32_CONST())
             emit_leb128_s(w, 0)
-        } else if eq(clone(callee), "bool_to_string") || eq(clone(callee), "text::format_bool") {
+        } else if eq(clone(callee), "bool_to_string") || eq(clone(callee), "text::format_bool") || eq(clone(callee), "convert::bool_to_string") {
             // Inline bool_to_string: if value != 0 → "true" ptr, else → "false" ptr
             let s_tmp = ctx.scratch_base + 2
             emit_byte(w, OP_LOCAL_SET())
@@ -2148,7 +2148,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_ADD())
             emit_byte(w, OP_END())  // end if/else
 
-        } else if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") || eq(clone(callee), "i64_to_string") || eq(clone(callee), "text::format_i32") || eq(clone(callee), "text::format_i64") {
+        } else if eq(clone(callee), "to_string") || eq(clone(callee), "i32_to_string") || eq(clone(callee), "i64_to_string") || eq(clone(callee), "text::format_i32") || eq(clone(callee), "text::format_i64") || eq(clone(callee), "convert::i32_to_string") || eq(clone(callee), "convert::i64_to_string") {
             // Inline to_string(i32): convert integer on stack to string
             // Stack has: [i32_value]
             // Scratch locals: scratch_base+0 = write_pos, +1 = is_neg, +2 = value
@@ -2338,7 +2338,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 4)
             emit_byte(w, OP_I32_ADD())
             
-        } else if eq(clone(callee), "f64_to_string") || eq(clone(callee), "text::format_f64") {
+        } else if eq(clone(callee), "f64_to_string") || eq(clone(callee), "text::format_f64") || eq(clone(callee), "convert::f64_to_string") {
             // f64_to_string: convert f64 on stack to string
             // Uses scratch locals: scratch_base+0..+4 (i32) and scratch_base+12..+13 (f64)
             // Strategy: separate sign, integer part, fractional part
@@ -3769,7 +3769,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_GLOBAL_SET())
             emit_leb128_u(w, 0)
             emit_byte(w, OP_END())  // end if/else
-        } else if eq(clone(callee), "char_to_string") {
+        } else if eq(clone(callee), "char_to_string") || eq(clone(callee), "convert::char_to_string") {
             // char_to_string: convert codepoint (i32) to single-char string
             // Stack: [char_code]
             // Allocate 5 bytes from heap: [len=1, char_byte]
@@ -5566,7 +5566,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s_sp_vec)
 
-        } else if eq(clone(callee), "parse_i32") {
+        } else if eq(clone(callee), "parse_i32") || eq(clone(callee), "parse_i64") || eq(clone(callee), "convert::parse_i32") {
             // parse_i32(s: String) -> Result<i32, String>
             // Stack: [str_ptr]
             let s_tmp = ctx.scratch_base
@@ -7394,7 +7394,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s5)
 
-        } else if eq(clone(callee), "repeat") || eq(clone(callee), "text::repeat") {
+        } else if eq(clone(callee), "repeat") || eq(clone(callee), "text::repeat") || eq(clone(callee), "string::repeat") {
             // repeat(str, count) -> str
             let s0 = ctx.scratch_base + 0  // str ptr
             let s1 = ctx.scratch_base + 1  // count

@@ -228,6 +228,11 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("host"), SYM_MODULE())
     define(ctx, String_from("clock"), SYM_MODULE())
     define(ctx, String_from("random"), SYM_MODULE())
+    define(ctx, String_from("convert"), SYM_MODULE())
+    define(ctx, String_from("string"), SYM_MODULE())
+    define(ctx, String_from("collections"), SYM_MODULE())
+    // parse_i64 (same as parse_i32 in selfhost, i32-limited)
+    define(ctx, String_from("parse_i64"), SYM_BUILTIN())
 }
 
 // ── AST Node Kind Constants (from parser) ────────────────────────────────────
