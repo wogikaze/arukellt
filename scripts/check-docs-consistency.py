@@ -384,6 +384,209 @@ def check_spec_guide_sync() -> int:
     return 0
 
 
+# ── Feature-level spec–guide drift (#415) ─────────────────────────────────────
+
+# Top-level spec sections whose subsections are foundational syntax descriptions
+# (e.g. source encoding, whitespace, identifiers) covered implicitly by every
+# code example in the guide.  Subsections under these parents are excluded from
+# the feature-level drift check.
+_FOUNDATIONAL_PARENT_SECTIONS = frozenset({"1"})
+
+# Individual subsections that are syntax grammar rules rather than user-facing
+# features.  These describe notation/grammar mechanics and are covered
+# implicitly through guide examples.
+_FOUNDATIONAL_SUBSECTIONS = frozenset({
+    "3.2",  # Identifier and Qualified Identifier — syntax grammar
+})
+
+# Maximum individually-uncovered stable subsections allowed before the check
+# fails.  Accommodates minor transient gaps when new spec subsections are added
+# but the guide hasn't been updated yet.
+_FEATURE_DRIFT_TOLERANCE = 2
+
+# Extended stop-word list for body-content keyword extraction, filtering out
+# prose words that provide no topical signal.
+_CONTENT_STOP_WORDS = _COVERAGE_STOP_WORDS | frozenset({
+    "that", "this", "from", "when", "each", "both", "same",
+    "must", "have", "been", "will", "they", "them", "than",
+    "type", "used", "uses", "into", "also", "only", "which",
+    "such", "like", "then", "some", "more", "does", "note",
+    "example", "above", "below", "following", "per", "are",
+    "not", "can", "all", "its", "one", "two", "any",
+})
+
+
+def _parse_spec_subsection_bodies(spec_text: str) -> dict[str, str]:
+    """Parse spec.md and return subsection body text keyed by section ID.
+
+    Returns a mapping from dotted IDs (e.g. ``"3.2"``, ``"9.12"``) to the
+    body text between that heading and the next ``###`` heading.
+    """
+    heading_re = re.compile(r"^###\s+(\d+\.\d+)\s+", re.MULTILINE)
+    matches = list(heading_re.finditer(spec_text))
+    bodies: dict[str, str] = {}
+    for i, m in enumerate(matches):
+        sid = m.group(1)
+        start = m.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(spec_text)
+        bodies[sid] = spec_text[start:end]
+    return bodies
+
+
+def _extract_content_keywords(body: str) -> set[str]:
+    """Extract significant topic words from a spec subsection body.
+
+    Strips code blocks, inline code, and table formatting, then returns
+    words that are long enough and topically meaningful.  Uses a stricter
+    filter than ``_extract_coverage_keywords()`` to reduce prose noise.
+    """
+    text = re.sub(r"```.*?```", "", body, flags=re.DOTALL)
+    text = re.sub(r"`[^`]*`", "", text)
+    text = re.sub(r"[|#\-]", " ", text)
+    text = re.sub(r"[^\w\s']", " ", text)
+    words = text.lower().split()
+    return {
+        w
+        for w in words
+        if len(w) > 3
+        and w not in _CONTENT_STOP_WORDS
+        and not w.isdigit()
+        and not w.startswith("__")
+    }
+
+
+def check_spec_guide_feature_drift() -> int:
+    """Detect stable spec subsections missing from guide.md at feature level.
+
+    Extends ``check_spec_guide_sync()`` with subsection-level granularity.
+    For each stable subsection in *language-doc-classifications.toml*,
+    extracts topic keywords from both the feature name **and** spec.md body
+    content, then checks whether *guide.md* mentions any of those keywords.
+
+    Subsections under foundational parent sections (§1 Lexical Structure)
+    and individual foundational subsections (§3.2 Identifiers) are excluded.
+
+    Reports uncovered features grouped by parent section.  Tolerates up to
+    ``_FEATURE_DRIFT_TOLERANCE`` uncovered features before failing, to
+    accommodate transient gaps when new spec content is added.
+    """
+    import tomllib
+
+    classifications_path = ROOT / "docs" / "data" / "language-doc-classifications.toml"
+    guide_path = ROOT / "docs" / "language" / "guide.md"
+    spec_path = ROOT / "docs" / "language" / "spec.md"
+
+    if not all(p.exists() for p in [classifications_path, guide_path, spec_path]):
+        return 0
+
+    toml_data = tomllib.loads(
+        classifications_path.read_text(encoding="utf-8")
+    )
+    features = toml_data.get("features", [])
+    if not features:
+        return 0
+
+    # ── 1. Parse spec.md for subsection body content ──────────────────────
+    spec_text = spec_path.read_text(encoding="utf-8")
+    spec_bodies = _parse_spec_subsection_bodies(spec_text)
+
+    # Build parent-section name lookup
+    parent_names: dict[str, str] = {}
+    for feat in features:
+        fid = str(feat.get("id", ""))
+        if "." not in fid:
+            parent_names[fid] = feat.get("name", "")
+
+    # ── 2. Collect stable subsections, excluding foundational ones ────────
+    stable_subs: list[tuple[str, str]] = []  # (id, name)
+    for feat in features:
+        fid = str(feat.get("id", ""))
+        if "." not in fid:
+            continue
+        if feat.get("stability") != "stable":
+            continue
+        parent_id = fid.split(".")[0]
+        if parent_id in _FOUNDATIONAL_PARENT_SECTIONS:
+            continue
+        if fid in _FOUNDATIONAL_SUBSECTIONS:
+            continue
+        stable_subs.append((fid, feat.get("name", "")))
+
+    if not stable_subs:
+        return 0
+
+    # ── 3. Parse guide headings + full text ───────────────────────────────
+    guide_text = guide_path.read_text(encoding="utf-8")
+    guide_lower = guide_text.lower()
+    guide_headings_lower: list[str] = [
+        line.lstrip("#").strip().lower()
+        for line in guide_text.splitlines()
+        if line.startswith("#")
+    ]
+
+    # ── 4. Check each subsection for guide coverage ───────────────────────
+    uncovered: list[tuple[str, str]] = []
+    for fid, name in stable_subs:
+        # Keywords from the feature title
+        keywords = _extract_coverage_keywords(name)
+
+        # Supplement with keywords from spec.md body content
+        body = spec_bodies.get(fid, "")
+        if body:
+            keywords |= _extract_content_keywords(body)
+
+        if not keywords:
+            continue
+
+        # Match: any keyword in a guide heading …
+        covered = any(
+            kw in heading
+            for kw in keywords
+            for heading in guide_headings_lower
+        )
+        # … or anywhere in the guide body text.
+        if not covered:
+            covered = any(kw in guide_lower for kw in keywords)
+
+        if not covered:
+            uncovered.append((fid, name))
+
+    if not uncovered:
+        return 0
+
+    # ── 5. Group by parent and report ─────────────────────────────────────
+    by_parent: dict[str, list[str]] = {}
+    for fid, name in uncovered:
+        parent_id = fid.split(".")[0]
+        parent_name = parent_names.get(parent_id, "")
+        key = f"\u00a7{parent_id} {parent_name}"
+        by_parent.setdefault(key, []).append(f"\u00a7{fid} {name}")
+
+    detail_lines = []
+    for parent_key in sorted(by_parent, key=lambda k: int(k.split()[0].lstrip("\u00a7"))):
+        items = by_parent[parent_key]
+        detail_lines.append(f"  {parent_key}: {', '.join(items)}")
+
+    # Below tolerance → informational note, not a failure
+    if len(uncovered) <= _FEATURE_DRIFT_TOLERANCE:
+        print(
+            f"spec-guide feature drift (info): {len(uncovered)} stable subsection(s) "
+            "lack guide.md coverage (within tolerance):",
+            file=sys.stderr,
+        )
+        for line in detail_lines:
+            print(f"  \u2139 {line}", file=sys.stderr)
+        return 0
+
+    # Above tolerance → error
+    errors.append(
+        f"spec-guide feature drift: {len(uncovered)} stable subsection(s) "
+        f"lack guide.md coverage (tolerance: {_FEATURE_DRIFT_TOLERANCE}):\n"
+        + "\n".join(detail_lines)
+    )
+    return 1
+
+
 # ── Metadata-level verification (#403) ────────────────────────────────────────
 
 
@@ -780,6 +983,93 @@ def check_stability_implementation_consistency() -> int:
     return 0
 
 
+def check_recipe_fixture_links() -> int:
+    """Verify that recipe-manifest.toml fixture paths exist and match cookbook.md.
+
+    Checks:
+    - recipe-manifest.toml parses correctly
+    - All recipe IDs are unique
+    - Every fixture path listed in the manifest exists on disk
+    - Every 📎 Fixture reference in cookbook.md appears in the manifest
+    - Manifest fixture paths are a superset of cookbook references
+    """
+    import tomllib as _tomllib
+
+    manifest_path = ROOT / "docs" / "stdlib" / "recipe-manifest.toml"
+    cookbook_path = ROOT / "docs" / "stdlib" / "cookbook.md"
+
+    if not manifest_path.exists():
+        errors.append(
+            "recipe-manifest.toml does not exist; "
+            "create docs/stdlib/recipe-manifest.toml with recipe-to-fixture mappings"
+        )
+        return 1
+
+    if not cookbook_path.exists():
+        return 0
+
+    # ── 1. Parse manifest ─────────────────────────────────────────────────
+    try:
+        manifest = _tomllib.loads(manifest_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        errors.append(f"recipe-manifest.toml parse error: {exc}")
+        return 1
+
+    recipes = manifest.get("recipes", [])
+    if not recipes:
+        errors.append("recipe-manifest.toml has no [[recipes]] entries")
+        return 1
+
+    # ── 2. Check unique IDs ───────────────────────────────────────────────
+    seen_ids: dict[str, int] = {}
+    for recipe in recipes:
+        rid = recipe.get("id", "")
+        if rid in seen_ids:
+            errors.append(f"recipe-manifest.toml: duplicate recipe id '{rid}'")
+            return 1
+        seen_ids[rid] = 1
+
+    # ── 3. Check all fixture paths exist on disk ──────────────────────────
+    missing_files: list[str] = []
+    all_manifest_fixtures: set[str] = set()
+    for recipe in recipes:
+        rid = recipe.get("id", "")
+        for fixture_path in recipe.get("fixtures", []):
+            all_manifest_fixtures.add(fixture_path)
+            full_path = ROOT / fixture_path
+            if not full_path.exists():
+                missing_files.append(f"{rid}: {fixture_path}")
+
+    if missing_files:
+        errors.append(
+            f"recipe-manifest.toml has {len(missing_files)} broken fixture path(s): "
+            + "; ".join(missing_files)
+        )
+        return 1
+
+    # ── 4. Cross-check cookbook.md fixture references against manifest ─────
+    cookbook_text = cookbook_path.read_text(encoding="utf-8")
+    # Extract fixture paths from 📎 Fixture(s): lines
+    # Pattern matches: tests/fixtures/…/file.ark inside []() markdown links
+    cookbook_fixtures: set[str] = set()
+    for match in re.finditer(
+        r"\(\.\.\/\.\.\/(" r"tests/fixtures/[^)]+\.ark" r")\)", cookbook_text
+    ):
+        cookbook_fixtures.add(match.group(1))
+
+    # Every cookbook fixture must appear in the manifest
+    untracked = sorted(cookbook_fixtures - all_manifest_fixtures)
+    if untracked:
+        errors.append(
+            f"recipe-manifest.toml missing {len(untracked)} cookbook fixture(s): "
+            + "; ".join(untracked)
+            + "; add them to docs/stdlib/recipe-manifest.toml"
+        )
+        return 1
+
+    return 0
+
+
 def check_name_index_completeness() -> int:
     """Verify that name-index.md contains every public function from manifest.
 
@@ -866,11 +1156,13 @@ def main() -> int:
     failed += check_fixture_count_freshness()
     failed += check_issue_index_freshness()
     failed += check_spec_guide_sync()
+    failed += check_spec_guide_feature_drift()
     failed += check_target_metadata_in_reference()
     failed += check_stability_metadata_in_reference()
     failed += check_cross_page_metadata_consistency()
     failed += check_host_stub_fixture_coverage()
     failed += check_stability_implementation_consistency()
+    failed += check_recipe_fixture_links()
     failed += check_name_index_completeness()
 
     if errors:
