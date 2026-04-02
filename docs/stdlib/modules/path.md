@@ -34,7 +34,6 @@ let dir  = parent(p)                    // "/home/user"
 
 ---
 
-
 ## `std::path`
 
 - Source: [`../../../std/path/mod.ark`](../../../std/path/mod.ark)

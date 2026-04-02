@@ -29,7 +29,6 @@ let ver = component_model_version()     // e.g. "0.2"
 
 ---
 
-
 ## `std::component`
 
 - Source: [`../../../std/component/mod.ark`](../../../std/component/mod.ark)

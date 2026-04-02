@@ -36,7 +36,6 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
 
 ---
 
-
 ## `std::text`
 
 - Source: [`../../../std/text/mod.ark`](../../../std/text/mod.ark)

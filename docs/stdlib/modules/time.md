@@ -33,7 +33,6 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
 
 ---
 
-
 ## `std::time`
 
 - Source: [`../../../std/time/mod.ark`](../../../std/time/mod.ark)

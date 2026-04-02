@@ -38,13 +38,11 @@ println("Running as: " + name)
 
 ---
 
-
 ## `std::host::process`
 
 - Source: [`../../../std/host/process.ark`](../../../std/host/process.ark)
 - Manifest-backed functions: 2
 - Stability: stable 2
-
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -65,7 +63,6 @@ The current implementation uses lightweight fallbacks because the WASI
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
 - Manifest-backed functions: 5
 - Stability: stable 5
-
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 

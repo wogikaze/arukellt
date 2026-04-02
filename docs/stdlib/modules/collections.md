@@ -34,7 +34,6 @@ let exists = hashmap_contains(map, 42)  // true
 
 ---
 
-
 ## `std::collections::compiler`
 
 - Source: [`../../../std/collections/compiler.ark`](../../../std/collections/compiler.ark)

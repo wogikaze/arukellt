@@ -35,7 +35,6 @@ let len = range_len(r)  // 10
 
 ---
 
-
 ## `std::core`
 
 - Source: [`../../../std/core/mod.ark`](../../../std/core/mod.ark)

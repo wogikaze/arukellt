@@ -29,7 +29,6 @@ let name = wit_type_name(t)   // "u32"
 
 ---
 
-
 ## `std::wit`
 
 - Source: [`../../../std/wit/mod.ark`](../../../std/wit/mod.ark)

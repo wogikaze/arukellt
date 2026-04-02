@@ -35,7 +35,6 @@ let s = string_from_bytes(back)  // "hello"
 
 ---
 
-
 ## `std::bytes`
 
 - Source: [`../../../std/bytes/mod.ark`](../../../std/bytes/mod.ark)

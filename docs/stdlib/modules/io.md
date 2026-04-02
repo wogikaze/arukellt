@@ -43,13 +43,11 @@ match content {
 
 ---
 
-
 ## `std::host::stdio`
 
 - Source: [`../../../std/host/stdio.ark`](../../../std/host/stdio.ark)
 - Manifest-backed functions: 3
 - Stability: stable 3
-
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -71,7 +69,6 @@ standard-library surface and must be imported from `std::host::stdio`.
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
 - Manifest-backed functions: 3
 - Stability: stable 3
-
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -115,7 +112,6 @@ separator to match POSIX and WASI conventions.
 - Manifest-backed functions: 2
 - Stability: stable 2
 
-
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
 Host process-control helpers.
@@ -135,7 +131,6 @@ The current implementation uses lightweight fallbacks because the WASI
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
 - Manifest-backed functions: 5
 - Stability: stable 5
-
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -160,7 +155,6 @@ and WASI environ_sizes_get / environ_get for environment variable lookup.
 - Manifest-backed functions: 1
 - Stability: stable 1
 
-
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
 Host clock helpers.
@@ -178,7 +172,6 @@ Clock reads are host-bound. Pure duration math lives in `std::time`.
 - Source: [`../../../std/host/random.ark`](../../../std/host/random.ark)
 - Manifest-backed functions: 3
 - Stability: stable 3
-
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 

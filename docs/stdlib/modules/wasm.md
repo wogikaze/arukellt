@@ -34,7 +34,6 @@ let i32_type = valtype_i32()       // 0x7f
 
 ---
 
-
 ## `std::wasm`
 
 - Source: [`../../../std/wasm/mod.ark`](../../../std/wasm/mod.ark)

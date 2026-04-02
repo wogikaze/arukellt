@@ -31,7 +31,6 @@ let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
 
 ---
 
-
 ## `std::random`
 
 - Source: [`../../../std/random/mod.ark`](../../../std/random/mod.ark)

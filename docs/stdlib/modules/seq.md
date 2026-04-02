@@ -35,7 +35,6 @@ let dedup = unique(nums)            // [3, 1, 4, 5, 9]
 
 ---
 
-
 ## `std::seq`
 
 - Source: [`../../../std/seq/mod.ark`](../../../std/seq/mod.ark)

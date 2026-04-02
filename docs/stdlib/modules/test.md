@@ -37,7 +37,6 @@ let value = expect_ok_i32(result)  // 42
 
 ---
 
-
 ## `std::test`
 
 - Source: [`../../../std/test/mod.ark`](../../../std/test/mod.ark)

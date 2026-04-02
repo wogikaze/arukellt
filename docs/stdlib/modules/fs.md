@@ -35,13 +35,11 @@ write_string("output.txt", "hello")
 
 ---
 
-
 ## `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
 - Manifest-backed functions: 3
 - Stability: stable 3
-
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
