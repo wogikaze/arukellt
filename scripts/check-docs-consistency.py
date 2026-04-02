@@ -273,6 +273,117 @@ def check_deprecated_badge_presence() -> int:
     return min(failed, 1)
 
 
+# ── Spec–Guide sync ──────────────────────────────────────────────────────────
+
+# Words too generic to signal topic coverage.
+_COVERAGE_STOP_WORDS = frozenset({
+    "and", "the", "a", "an", "of", "in", "for", "to", "with", "or",
+    "vs", "non", "see", "individual", "entries",
+})
+
+
+def _extract_coverage_keywords(name: str) -> set[str]:
+    """Extract significant topic keywords from a feature / subsection name.
+
+    Strips version markers ``(v1)``, backticks, em-dashes, and qualified
+    paths so that only meaningful topic words remain.
+    """
+    # Remove parenthetical markers: (v1), (prelude), (std::host::stdio), etc.
+    cleaned = re.sub(r"\([^)]*\)", "", name).strip()
+    # Normalise punctuation
+    cleaned = cleaned.replace("`", "").replace("\u2014", " ").replace("::", " ")
+    words = cleaned.lower().split()
+    return {w for w in words if len(w) > 2 and w not in _COVERAGE_STOP_WORDS}
+
+
+def check_spec_guide_sync() -> int:
+    """Detect when spec.md stable features diverge from guide.md coverage.
+
+    Reads ``[[features]]`` from *language-doc-classifications.toml* to find
+    top-level stable spec sections (IDs without a dot, e.g. ``"1"``,
+    ``"8"``).  For each, it collects topic keywords from the section name
+    **and** all of its stable sub-section names, then checks whether
+    *guide.md* mentions any of those keywords — first in section headings,
+    then in body text.
+
+    A missing match means the guide has drifted away from spec coverage and
+    a warning is emitted.
+    """
+    import tomllib
+
+    classifications_path = ROOT / "docs" / "data" / "language-doc-classifications.toml"
+    guide_path = ROOT / "docs" / "language" / "guide.md"
+
+    if not classifications_path.exists() or not guide_path.exists():
+        return 0
+
+    toml_data = tomllib.loads(
+        classifications_path.read_text(encoding="utf-8")
+    )
+    features = toml_data.get("features", [])
+    if not features:
+        return 0
+
+    # ── 1. Build top-level stable sections with subsection names ──────────
+    top_level: dict[str, dict[str, object]] = {}  # id → {name, subs}
+    for feat in features:
+        fid = str(feat.get("id", ""))
+        name = feat.get("name", "")
+        stability = feat.get("stability", "")
+
+        if "." not in fid:
+            # Top-level section
+            if stability == "stable":
+                top_level[fid] = {"name": name, "subs": []}
+        else:
+            # Sub-section – attach to parent when both are stable
+            parent_id = fid.split(".")[0]
+            if parent_id in top_level and stability == "stable":
+                top_level[parent_id]["subs"].append(name)  # type: ignore[union-attr]
+
+    if not top_level:
+        return 0
+
+    # ── 2. Parse guide headings + full text ───────────────────────────────
+    guide_text = guide_path.read_text(encoding="utf-8")
+    guide_lower = guide_text.lower()
+    guide_headings_lower: list[str] = [
+        line.lstrip("#").strip().lower()
+        for line in guide_text.splitlines()
+        if line.startswith("#")
+    ]
+
+    # ── 3. Check each stable section for guide coverage ───────────────────
+    uncovered: list[str] = []
+    for sid in sorted(top_level, key=lambda x: int(x)):
+        sec = top_level[sid]
+        keywords = _extract_coverage_keywords(sec["name"])  # type: ignore[arg-type]
+        for sub_name in sec["subs"]:  # type: ignore[union-attr]
+            keywords.update(_extract_coverage_keywords(sub_name))
+
+        # Match: keyword appears in any guide heading …
+        covered = any(
+            kw in heading
+            for kw in keywords
+            for heading in guide_headings_lower
+        )
+        # … or as a fallback, anywhere in the guide body text.
+        if not covered:
+            covered = any(kw in guide_lower for kw in keywords)
+
+        if not covered:
+            uncovered.append(f"\u00a7{sid} {sec['name']}")
+
+    if uncovered:
+        errors.append(
+            f"spec-guide sync drift: {len(uncovered)} stable spec feature(s) "
+            f"have no coverage in guide.md: {', '.join(uncovered)}"
+        )
+        return 1
+
+    return 0
+
+
 def main() -> int:
     failed = 0
     failed += check_maturity_matrix_freshness()
@@ -282,6 +393,7 @@ def main() -> int:
     failed += check_deprecated_badge_presence()
     failed += check_fixture_count_freshness()
     failed += check_issue_index_freshness()
+    failed += check_spec_guide_sync()
 
     if errors:
         print("docs consistency check FAILED:", file=sys.stderr)
