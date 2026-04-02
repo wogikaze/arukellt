@@ -19,7 +19,7 @@ This page covers two closely related host modules: `std::host::process` for proc
 | `var(name)` | Look up an environment variable by name, returning `Option<String>`. |
 | `has_flag(flag)` | Check whether a flag is present in the argument vector. |
 
-**Target constraints:** **wasm32-wasi-p2** required for both modules.
+**Target constraints:** All targets. No host capability required.
 
 **Typical usage:**
 
@@ -58,6 +58,14 @@ The current implementation uses lightweight fallbacks because the WASI
 | `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
 | `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately by panicking. |
 
+#### `exit`
+
+Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure.
+
+#### `abort`
+
+Abort the process immediately with an abnormal-termination signal (non-zero exit).
+
 ## `std::host::env`
 
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
@@ -80,3 +88,33 @@ and WASI environ_sizes_get / environ_get for environment variable lookup.
 | `arg_at` | `(i32) -> Option<String>` | `stable` | ✅ impl | Returns the argument at the given index when in range. |
 | `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |
 | `has_flag` | `(String) -> bool` | `stable` | ✅ impl | Returns true when the argument vector contains the given flag. |
+
+#### `args`
+
+Return the command-line arguments as a list of strings. The first element is the program name.
+
+#### `arg_count`
+
+Return the number of command-line arguments (including the program name).
+
+#### `arg_at`
+
+Return the command-line argument at the given zero-based index, or None if out of bounds.
+
+#### `var`
+
+Look up an environment variable by name. Returns None if the variable is not set.
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — Environment variable access requires WASI Preview 2 component model.
+
+**Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
+
+*Example — Read the HOME environment variable:*
+```ark
+let home = env::var("HOME")
+match home { Some(p) => println(p), None => println("not set") }
+```
+
+#### `has_flag`
+
+Return true if the given flag (e.g. "--verbose") was passed as a command-line argument.

@@ -17,7 +17,7 @@ The `std::host::fs` module provides host filesystem operations: reading files in
 | `write_string(path, content)` | Write or replace a UTF-8 file. |
 | `write_bytes(path, buf)` | Write a byte array to a file. |
 
-**Target constraints:** **wasm32-wasi-p2** required.
+**Target constraints:** All targets. No host capability required.
 
 **Typical usage:**
 
@@ -54,3 +54,33 @@ These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 | `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
+
+#### `read_to_string`
+
+Read the entire contents of a file at the given path and return them as a UTF-8 string.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
+
+*Example — Read a text file and print it:*
+```ark
+let txt = fs::read_to_string("data.txt")
+match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
+```
+
+#### `write_string`
+
+Write a UTF-8 string to the given file path, creating or truncating the file.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the path is not writable or the directory does not exist.
+
+#### `write_bytes`
+
+Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.

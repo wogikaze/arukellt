@@ -22,7 +22,7 @@ The `std::host` family exposes all runtime-environment capabilities: standard I/
 | `std::host::clock` — `monotonic_now()` | High-resolution monotonic timestamp (nanoseconds). |
 | `std::host::random` — `random_i32()` | Host-entropy random integer. |
 
-**Target constraints:** **wasm32-wasi-p2** required for all `std::host::*` modules. `std::path` has no host constraint and works on all targets.
+**Target constraints:** All targets. No host capability required.
 
 **Typical usage:**
 
@@ -64,6 +64,36 @@ standard-library surface and must be imported from `std::host::stdio`.
 | `println` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stdout and appends a newline. |
 | `eprintln` | `(String) -> ()` | `stable` | ✅ impl | Writes a string to stderr. |
 
+#### `print`
+
+Write a string to standard output without appending a newline.
+
+*Example — Print without newlines:*
+```ark
+print("hello ")
+print("world")
+```
+
+#### `println`
+
+Write a string to standard output followed by a newline.
+
+*Example — Basic hello-world output:*
+```ark
+println("Hello, world!")
+```
+
+Expected output: `Hello, world!`
+
+#### `eprintln`
+
+Write a string to standard error followed by a newline.
+
+*Example — Write a diagnostic message to stderr:*
+```ark
+eprintln("Error: something went wrong")
+```
+
 ## `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
@@ -83,6 +113,36 @@ These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 | `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
+
+#### `read_to_string`
+
+Read the entire contents of a file at the given path and return them as a UTF-8 string.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
+
+*Example — Read a text file and print it:*
+```ark
+let txt = fs::read_to_string("data.txt")
+match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
+```
+
+#### `write_string`
+
+Write a UTF-8 string to the given file path, creating or truncating the file.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the path is not writable or the directory does not exist.
+
+#### `write_bytes`
+
+Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
 
 ## `std::path`
 
@@ -126,6 +186,14 @@ The current implementation uses lightweight fallbacks because the WASI
 | `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
 | `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately by panicking. |
 
+#### `exit`
+
+Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure.
+
+#### `abort`
+
+Abort the process immediately with an abnormal-termination signal (non-zero exit).
+
 ## `std::host::env`
 
 - Source: [`../../../std/host/env.ark`](../../../std/host/env.ark)
@@ -149,6 +217,36 @@ and WASI environ_sizes_get / environ_get for environment variable lookup.
 | `var` | `(String) -> Option<String>` | `stable` | ✅ impl | Looks up an environment variable by name. |
 | `has_flag` | `(String) -> bool` | `stable` | ✅ impl | Returns true when the argument vector contains the given flag. |
 
+#### `args`
+
+Return the command-line arguments as a list of strings. The first element is the program name.
+
+#### `arg_count`
+
+Return the number of command-line arguments (including the program name).
+
+#### `arg_at`
+
+Return the command-line argument at the given zero-based index, or None if out of bounds.
+
+#### `var`
+
+Look up an environment variable by name. Returns None if the variable is not set.
+
+**Availability:** ⚠️ Not available on wasm32-wasi-p1 — Environment variable access requires WASI Preview 2 component model.
+
+**Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
+
+*Example — Read the HOME environment variable:*
+```ark
+let home = env::var("HOME")
+match home { Some(p) => println(p), None => println("not set") }
+```
+
+#### `has_flag`
+
+Return true if the given flag (e.g. "--verbose") was passed as a command-line argument.
+
 ## `std::host::clock`
 
 - Source: [`../../../std/host/clock.ark`](../../../std/host/clock.ark)
@@ -166,6 +264,12 @@ Clock reads are host-bound. Pure duration math lives in `std::time`.
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
 | `monotonic_now` | `() -> i64` | `stable` | ✅ impl | Returns a monotonic timestamp in nanoseconds. |
+
+#### `monotonic_now`
+
+Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a wall-clock.
+
+**Availability:** Requires the --allow-clock capability flag at runtime.
 
 ## `std::host::random`
 
@@ -186,3 +290,28 @@ Deterministic seeded utilities live in `std::random`.
 | `random_i32` | `() -> i32` | `stable` | ✅ impl | Returns a host-provided random i32. |
 | `random_i32_range` | `(i32, i32) -> i32` | `stable` | ✅ impl | Returns a host-provided random value in [lo, hi). |
 | `random_bool` | `() -> bool` | `stable` | ✅ impl | Returns a host-provided random boolean. |
+
+#### `random_i32`
+
+Return a cryptographically-secure random i32 value.
+
+**Availability:** Requires the --allow-random capability flag at runtime.
+
+#### `random_i32_range`
+
+Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < hi.
+
+**Availability:** Requires the --allow-random capability flag at runtime.
+
+**Errors:** Panics at runtime if lo >= hi.
+
+*Example — Roll a six-sided die (1–6):*
+```ark
+let n = random::random_i32_range(1, 7)
+```
+
+#### `random_bool`
+
+Return a random boolean value with equal probability of true and false.
+
+**Availability:** Requires the --allow-random capability flag at runtime.

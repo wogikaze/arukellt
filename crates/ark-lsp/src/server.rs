@@ -1635,6 +1635,24 @@ impl ArukellBackend {
         if let Some(ref cat) = func.doc_category {
             hover.push_str(&format!("  \n*Category:* {cat}"));
         }
+        if let Some(ref doc) = func.doc {
+            hover.push_str(&format!("\n\n{}", doc));
+        }
+        if !func.target.is_empty() {
+            let targets = func.target.join(", ");
+            hover.push_str(&format!("\n\n🎯 *Supported on:* `{}`", targets));
+        }
+        if let Some(ref avail) = func.availability {
+            if !avail.t1 {
+                hover.push_str("\n\n⚠️ *Not available on wasm32-wasi-p1*");
+            }
+            if let Some(ref note) = avail.note {
+                hover.push_str(&format!("  \n{}", note));
+            }
+        }
+        if let Some(ref errors) = func.errors {
+            hover.push_str(&format!("\n\n**Errors:** {}", errors));
+        }
         Some(hover)
     }
 
@@ -5498,6 +5516,27 @@ mod tests {
             "should show function signature"
         );
         assert!(text.contains("std::host::stdio"), "should show module name");
+    }
+
+    #[test]
+    fn stdlib_hover_http_get_shows_doc_and_target_and_errors() {
+        let manifest = load_test_manifest();
+        let info = ArukellBackend::stdlib_hover_info("get", &manifest);
+        assert!(info.is_some(), "get (http) should have stdlib hover info");
+        let text = info.unwrap();
+        assert!(
+            text.contains("fn get"),
+            "should show function signature for get"
+        );
+        assert!(
+            text.contains("wasm32-wasi-p2"),
+            "http::get hover should contain target constraint wasm32-wasi-p2"
+        );
+        // doc text should be present
+        assert!(
+            text.contains("HTTP GET") || text.contains("http"),
+            "http::get hover should contain doc description"
+        );
     }
 
     #[test]

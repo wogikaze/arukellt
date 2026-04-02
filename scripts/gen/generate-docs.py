@@ -1900,7 +1900,18 @@ def render_stdlib_module_page(
     ]
 
     if page.get("overview"):
-        lines.extend(render_curated_overview_section(page["overview"]))
+        # Compute target_constraints dynamically from manifest data and use it
+        # to override (or confirm) the hardcoded value in the page dict.
+        all_page_funcs: list[dict] = []
+        for mod in page["modules"]:
+            all_page_funcs.extend(manifest_functions_by_module.get(mod, []))
+        computed_constraints = build_target_constraints(
+            "/".join(page["modules"]), all_page_funcs
+        )
+        # Build a copy of the overview with the dynamically-derived constraint
+        overview_with_computed = dict(page["overview"])
+        overview_with_computed["target_constraints"] = computed_constraints
+        lines.extend(render_curated_overview_section(overview_with_computed))
 
     for module_name in page["modules"]:
         source_module = source_modules[module_name]
@@ -2019,6 +2030,39 @@ def render_stdlib_module_page(
                             summary=source_doc_summary(item.docs if item else []),
                         )
                     )
+
+            # After the table, emit per-function detail blocks (manifest doc + errors + examples)
+            for entry in grouped[section_name]:
+                fn_doc = entry.get("doc")
+                fn_errors = entry.get("errors")
+                fn_examples = entry.get("examples", [])
+                fn_avail = entry.get("availability")
+                if not (fn_doc or fn_errors or fn_examples or fn_avail):
+                    continue
+                lines.extend(["", f"#### `{entry['name']}`"])
+                if fn_doc:
+                    lines.extend(["", fn_doc])
+                if fn_avail:
+                    avail_parts: list[str] = []
+                    if fn_avail.get("t1") is False:
+                        avail_parts.append("⚠️ Not available on wasm32-wasi-p1")
+                    if fn_avail.get("note"):
+                        avail_parts.append(fn_avail["note"])
+                    if avail_parts:
+                        lines.extend(["", "**Availability:** " + " — ".join(avail_parts)])
+                if fn_errors:
+                    lines.extend(["", f"**Errors:** {fn_errors}"])
+                for ex in fn_examples:
+                    code = ex.get("code", "").strip()
+                    if not code:
+                        continue
+                    desc = ex.get("description", "")
+                    lines.append("")
+                    if desc:
+                        lines.append(f"*Example — {desc}:*")
+                    lines.extend(["```ark", code, "```"])
+                    if ex.get("output"):
+                        lines.extend(["", f"Expected output: `{ex['output']}`"])
 
         # Deprecation cross-link: if any function in this module is deprecated,
         # add a link to migration-guidance.md at the end of the module section.
@@ -2195,6 +2239,37 @@ def format_signature(params: list[str], returns: str) -> str:
     return f"({joined}) -> {returns}" if params else f"() -> {returns}"
 
 
+# ── Target-constraint helpers ────────────────────────────────────────────────
+
+def build_target_constraints(module_name: str, funcs: list[dict]) -> str:
+    """Derive a human-readable target-constraint string from manifest ``target`` fields.
+
+    Returns a string describing which build targets the given functions support.
+    Uses the old hardcoded fallback text when no function carries explicit ``target``
+    entries (i.e. the module is unconditionally available on all targets).
+
+    Args:
+        module_name: Module name for context (currently unused, reserved for future use).
+        funcs: List of manifest function dicts for the module(s) being described.
+
+    Returns:
+        A Markdown-friendly constraint string such as:
+        - ``"All targets. No host capability required."``
+        - ``"**wasm32-wasi-p2** required."``
+        - ``"Targets: wasm32-wasi-p1, wasm32-wasi-p2."``
+    """
+    targets: set[str] = set()
+    for f in funcs:
+        t = f.get("target", [])
+        if t:
+            targets.update(t)
+    if not targets or targets == {"wasm32-wasi-p1", "wasm32-wasi-p2"}:
+        return "All targets. No host capability required."
+    if targets == {"wasm32-wasi-p2"}:
+        return "**wasm32-wasi-p2** required."
+    return f"Targets: {', '.join(sorted(targets))}."
+
+
 # ── Deprecation helpers ──────────────────────────────────────────────────────
 
 
@@ -2250,8 +2325,11 @@ def _render_reference_function_row(entry: dict) -> str:
         kind_display = "host_stub ⚠️"
     if target_list:
         kind_display += f" ({', '.join(target_list)})"
+    # Include manifest doc text (truncated for table legibility)
+    doc_text = entry.get("doc", "") or ""
+    doc_cell = escape_table(doc_text[:100] + ("…" if len(doc_text) > 100 else "")) if doc_text else "-"
     return (
-        "| {name}{deprecated} | `{signature}` | {module_name} | `{stability}` | `{kind}` | {prelude} | {intrinsic} |".format(
+        "| {name}{deprecated} | `{signature}` | {module_name} | `{stability}` | `{kind}` | {prelude} | {intrinsic} | {doc} |".format(
             name=name_display,
             deprecated=deprecated_note,
             signature=format_signature(entry.get("params", []), entry.get("returns", "()")),
@@ -2260,13 +2338,46 @@ def _render_reference_function_row(entry: dict) -> str:
             kind=kind_display,
             prelude="yes" if entry.get("prelude") else "no",
             intrinsic=intrinsic,
+            doc=doc_cell,
         )
     )
 
 
+def _render_reference_function_details(entry: dict) -> list[str]:
+    """Render a detail block for a function that has errors or examples in the manifest.
+
+    Emitted after the category table so users can see full descriptions and code samples.
+    Only generates output when the entry carries ``errors`` or ``examples`` fields.
+    """
+    name = entry["name"]
+    module = entry.get("module", "prelude")
+    errors = entry.get("errors")
+    examples = entry.get("examples", [])
+
+    if not errors and not examples:
+        return []
+
+    lines: list[str] = ["", f"#### `{name}` — `{module}`"]
+    if errors:
+        lines.extend(["", f"**Errors:** {errors}"])
+    for ex in examples:
+        code = ex.get("code", "").strip()
+        if not code:
+            continue
+        desc = ex.get("description", "")
+        expected = ex.get("output", "")
+        lines.append("")
+        if desc:
+            lines.append(f"*Example — {desc}:*")
+        lines.extend(["```ark", code, "```"])
+        if expected:
+            lines.extend([f"", f"Expected output: `{expected}`"])
+    return lines
+
+
 _REFERENCE_TABLE_HEADER = [
-    "| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |",
-    "|------|-----------|--------|-----------|------|---------|-----------|",
+    "| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |",
+    "|------|-----------|--------|-----------|------|---------|-----------|-------------|",
 ]
 
 # Stability tiers rendered as sections, in display order.
@@ -2337,9 +2448,13 @@ def render_stdlib_reference(manifest: dict) -> str:
 
     # ── Per-category sections (existing layout) ──────────────────────────
     for category in sorted(grouped):
+        sorted_entries = sorted(grouped[category], key=lambda item: item["name"])
         lines.extend(["", f"## {humanize_slug(category)}", ""] + _REFERENCE_TABLE_HEADER)
-        for entry in sorted(grouped[category], key=lambda item: item["name"]):
+        for entry in sorted_entries:
             lines.append(_render_reference_function_row(entry))
+        # After the table, emit per-function detail blocks (errors + examples)
+        for entry in sorted_entries:
+            lines.extend(_render_reference_function_details(entry))
 
     # ── Stability-tier sections ──────────────────────────────────────────
     lines.extend([

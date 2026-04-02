@@ -133,6 +133,9 @@ returns = "String"
 prelude = true
 stability = "stable"
 doc_category = "string"
+doc = "Concatenate two strings and return the result."
+availability = { t1 = true, t3 = true }
+examples = [{code = "let s = concat(\"hello\", \" world\")", description = "Join two string literals", output = "hello world"}]
 
 [[functions]]
 name = "clone"
@@ -304,6 +307,9 @@ returns = "String"
 prelude = true
 stability = "stable"
 doc_category = "conversion"
+doc = "Convert an i32 integer to its decimal string representation."
+availability = { t1 = true, t3 = true }
+examples = [{code = "println(i32_to_string(42))", description = "Print integer as string", output = "42"}]
 
 [[functions]]
 name = "i64_to_string"
@@ -396,6 +402,10 @@ returns = "Result<i32, String>"
 prelude = true
 stability = "stable"
 doc_category = "conversion"
+doc = "Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on failure."
+errors = "Returns Err if the string is not a valid decimal integer or is out of i32 range."
+availability = { t1 = true, t3 = true }
+examples = [{code = "match parse_i32(\"42\") { Ok(n) => println(i32_to_string(n)), Err(e) => eprintln(e) }", description = "Parse a numeric string", output = "42"}]
 
 [[functions]]
 name = "parse_i64"
@@ -583,6 +593,9 @@ returns = "()"
 prelude = true
 stability = "stable"
 doc_category = "collections"
+doc = "Append an element to the end of a Vec, mutating it in place."
+availability = { t1 = true, t3 = true }
+examples = [{code = "let v = Vec_new_i32()\npush(v, 1)\npush(v, 2)", description = "Build a vector by pushing elements"}]
 
 [[functions]]
 name = "pop"
@@ -592,6 +605,8 @@ returns = "Option<T>"
 prelude = true
 stability = "stable"
 doc_category = "collections"
+doc = "Remove and return the last element of a Vec. Returns None if the Vec is empty."
+availability = { t1 = true, t3 = true }
 
 [[functions]]
 name = "len"
@@ -601,6 +616,9 @@ returns = "i32"
 prelude = true
 stability = "stable"
 doc_category = "collections"
+doc = "Return the number of elements in a Vec."
+availability = { t1 = true, t3 = true }
+examples = [{code = "let v = Vec_new_i32()\npush(v, 10)\nprintln(i32_to_string(len(v)))", description = "Get the length of a vector", output = "1"}]
 
 [[functions]]
 name = "get"
@@ -1575,6 +1593,8 @@ stability = "stable"
 params = ["i32"]
 returns = "()"
 doc_category = "host_process"
+doc = "Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure."
+availability = { t1 = true, t3 = true }
 
 [[functions]]
 name = "abort"
@@ -1583,6 +1603,8 @@ stability = "stable"
 params = []
 returns = "()"
 doc_category = "host_process"
+doc = "Abort the process immediately with an abnormal-termination signal (non-zero exit)."
+availability = { t1 = true, t3 = true }
 
 # === std::host::env ===
 
@@ -1594,6 +1616,8 @@ params = []
 returns = "Vec<String>"
 intrinsic = "__intrinsic_args"
 doc_category = "host_env"
+doc = "Return the command-line arguments as a list of strings. The first element is the program name."
+availability = { t1 = true, t3 = true }
 
 [[functions]]
 name = "var"
@@ -1603,6 +1627,10 @@ params = ["String"]
 returns = "Option<String>"
 doc_category = "host_env"
 intrinsic = "__intrinsic_env_var"
+doc = "Look up an environment variable by name. Returns None if the variable is not set."
+errors = "Returns None (not Err) when the variable is absent; no panic is raised."
+availability = { t1 = false, t3 = true, note = "Environment variable access requires WASI Preview 2 component model." }
+examples = [{code = "let home = env::var(\"HOME\")\nmatch home { Some(p) => println(p), None => println(\"not set\") }", description = "Read the HOME environment variable"}]
 
 [[functions]]
 name = "arg_count"
@@ -1612,6 +1640,8 @@ params = []
 returns = "i32"
 intrinsic = "__intrinsic_arg_count"
 doc_category = "host_env"
+doc = "Return the number of command-line arguments (including the program name)."
+availability = { t1 = true, t3 = true }
 
 [[functions]]
 name = "arg_at"
@@ -1621,6 +1651,8 @@ params = ["i32"]
 returns = "Option<String>"
 intrinsic = "__intrinsic_arg_at"
 doc_category = "host_env"
+doc = "Return the command-line argument at the given zero-based index, or None if out of bounds."
+availability = { t1 = true, t3 = true }
 
 [[functions]]
 name = "has_flag"
@@ -1629,6 +1661,8 @@ stability = "stable"
 params = ["String"]
 returns = "bool"
 doc_category = "host_env"
+doc = "Return true if the given flag (e.g. \"--verbose\") was passed as a command-line argument."
+availability = { t1 = true, t3 = true }
 
 # === std::path ===
 
@@ -1690,6 +1724,10 @@ params = ["String"]
 returns = "Result<String, String>"
 intrinsic = "__intrinsic_fs_read_file"
 doc_category = "host_fs"
+doc = "Read the entire contents of a file at the given path and return them as a UTF-8 string."
+errors = "Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+examples = [{code = "let txt = fs::read_to_string(\"data.txt\")\nmatch txt { Ok(s) => println(s), Err(e) => eprintln(e) }", description = "Read a text file and print it"}]
 
 [[functions]]
 name = "write_string"
@@ -1699,6 +1737,9 @@ params = ["String", "String"]
 returns = "Result<(), String>"
 intrinsic = "__intrinsic_fs_write_file"
 doc_category = "host_fs"
+doc = "Write a UTF-8 string to the given file path, creating or truncating the file."
+errors = "Returns Err if the path is not writable or the directory does not exist."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 [[functions]]
 name = "write_bytes"
@@ -1708,6 +1749,9 @@ params = ["String", "Vec<i32>"]
 returns = "Result<(), String>"
 intrinsic = "__intrinsic_fs_write_bytes"
 doc_category = "host_fs"
+doc = "Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path."
+errors = "Returns Err if the path is not writable or any byte value is out of range 0–255."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
 # === std::host::stdio ===
 
@@ -1719,6 +1763,9 @@ params = ["String"]
 returns = "()"
 intrinsic = "__intrinsic_print"
 doc_category = "host_stdio"
+doc = "Write a string to standard output without appending a newline."
+availability = { t1 = true, t3 = true }
+examples = [{code = "print(\"hello \")\nprint(\"world\")", description = "Print without newlines"}]
 
 [[functions]]
 name = "println"
@@ -1728,6 +1775,9 @@ params = ["String"]
 returns = "()"
 intrinsic = "__intrinsic_println"
 doc_category = "host_stdio"
+doc = "Write a string to standard output followed by a newline."
+availability = { t1 = true, t3 = true }
+examples = [{code = "println(\"Hello, world!\")", description = "Basic hello-world output", output = "Hello, world!"}]
 
 [[functions]]
 name = "eprintln"
@@ -1737,6 +1787,9 @@ params = ["String"]
 returns = "()"
 intrinsic = "__intrinsic_eprintln"
 doc_category = "host_stdio"
+doc = "Write a string to standard error followed by a newline."
+availability = { t1 = true, t3 = true }
+examples = [{code = "eprintln(\"Error: something went wrong\")", description = "Write a diagnostic message to stderr"}]
 
 # === std::host::clock ===
 
@@ -1748,6 +1801,8 @@ params = []
 returns = "i64"
 intrinsic = "__intrinsic_clock_now"
 doc_category = "host_clock"
+doc = "Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a wall-clock."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capability flag at runtime." }
 
 # === std::host::random ===
 
@@ -1759,6 +1814,8 @@ params = []
 returns = "i32"
 intrinsic = "__intrinsic_random_i32"
 doc_category = "host_random"
+doc = "Return a cryptographically-secure random i32 value."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
 
 [[functions]]
 name = "random_i32_range"
@@ -1768,6 +1825,10 @@ params = ["i32", "i32"]
 returns = "i32"
 intrinsic = "__intrinsic_random_i32"
 doc_category = "host_random"
+doc = "Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < hi."
+errors = "Panics at runtime if lo >= hi."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
+examples = [{code = "let n = random::random_i32_range(1, 7)", description = "Roll a six-sided die (1–6)"}]
 
 [[functions]]
 name = "random_bool"
@@ -1777,6 +1838,8 @@ params = []
 returns = "bool"
 intrinsic = "__intrinsic_random_i32"
 doc_category = "host_random"
+doc = "Return a random boolean value with equal probability of true and false."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
 
 # === std::host::http ===
 
@@ -1797,6 +1860,10 @@ returns = "Result<String, String>"
 target = ["wasm32-wasi-p2"]
 stability = "experimental"
 doc_category = "host_http"
+doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message."
+errors = "Err on DNS failure, connection refused, timeout, or HTTP 4xx/5xx status codes."
+availability = { t1 = true, t3 = true, note = "T1 via Wasmtime linker; T3 native component path planned." }
+examples = [{code = "let resp = http::request(\"POST\", \"https://api.example.com/data\", \"{\\\"key\\\":\\\"val\\\"}\")", description = "POST JSON to an API endpoint"}]
 
 [[functions]]
 name = "get"
@@ -1808,6 +1875,10 @@ returns = "Result<String, String>"
 target = ["wasm32-wasi-p2"]
 stability = "experimental"
 doc_category = "host_http"
+doc = "Send an HTTP GET request to the given URL and return the response body as a string."
+errors = "Err on DNS failure (dns: ...), connection refused (connection refused: ...), or HTTP error status (http N: ...)."
+availability = { t1 = true, t3 = true, note = "T1 via Wasmtime linker; T3 native component path planned." }
+examples = [{code = "let body = http::get(\"https://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body", output = "<!doctype html>..."}]
 
 # === std::host::sockets ===
 
@@ -1827,6 +1898,10 @@ returns = "Result<i32, String>"
 target = ["wasm32-wasi-p2"]
 stability = "experimental"
 doc_category = "host_sockets"
+doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
+errors = "Err on DNS resolution failure, connection refused, or network unreachable."
+availability = { t1 = false, t3 = true, note = "TCP connect requires WASI Preview 2 component model (wasi:sockets)." }
+examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
 
 # === std::bytes ===
 

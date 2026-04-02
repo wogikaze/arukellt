@@ -44,434 +44,578 @@
 
 ## Assert
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `assert` | `(bool) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert` |
-| `assert_eq` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq` |
-| `assert_eq_i64` | `(i64, i64) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_i64` |
-| `assert_eq_str` | `(String, String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_str` |
-| `assert_ne` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_ne` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `assert` | `(bool) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert` | - |
+| `assert_eq` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq` | - |
+| `assert_eq_i64` | `(i64, i64) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_i64` | - |
+| `assert_eq_str` | `(String, String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_str` | - |
+| `assert_ne` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_ne` | - |
 
 ## Box
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
 
 ## Bytes
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_push` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - |
-| `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_push` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 
 ## Collections
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - |
-| `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - |
-| `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - |
-| `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `stable` | `builtin` | yes | - |
-| `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` |
-| `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` |
-| `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` |
-| ~~`Vec_new_i32`~~ ⚠️ Deprecated → `Vec::new<i32>` | `() -> Vec<i32>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` |
-| `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` |
-| ~~`Vec_new_i64`~~ ⚠️ Deprecated → `Vec::new<i64>` | `() -> Vec<i64>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` |
-| `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` |
-| `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `builtin` | yes | - |
-| `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - |
-| `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` |
-| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
-| `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
-| `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
-| `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
-| `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `bitset_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `builtin` | yes | - |
-| `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` |
-| `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` |
-| `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` |
-| `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` |
-| ~~`filter_i32`~~ ⚠️ Deprecated → `filter<i32>` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` |
-| `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` |
-| `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i32` |
-| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` |
-| `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` |
-| `get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - |
-| `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` |
-| `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` |
-| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` |
-| `map_i64_i64` | `(Vec<i64>, fn(i64) -> i64) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i64_i64` |
-| `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `product_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - |
-| `push` | `(Vec<T>, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - |
-| `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` |
-| `reverse_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` |
-| `reverse_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` |
-| `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - |
-| `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_String` |
-| `sort_f64` | `(Vec<f64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` |
-| `sort_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i32` |
-| `sort_i64` | `(Vec<i64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i64` |
-| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
+| `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` | - |
+| `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` | - |
+| ~~`Vec_new_i32`~~ ⚠️ Deprecated → `Vec::new<i32>` | `() -> Vec<i32>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32` | - |
+| `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` | - |
+| ~~`Vec_new_i64`~~ ⚠️ Deprecated → `Vec::new<i64>` | `() -> Vec<i64>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64` | - |
+| `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` | - |
+| `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
+| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bitset_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
+| `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
+| `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
+| `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
+| ~~`filter_i32`~~ ⚠️ Deprecated → `filter<i32>` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
+| `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` | - |
+| `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i32` | - |
+| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` | - |
+| `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` | - |
+| `get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | Return the number of elements in a Vec. |
+| `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
+| `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
+| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` | - |
+| `map_i64_i64` | `(Vec<i64>, fn(i64) -> i64) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i64_i64` | - |
+| `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
+| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `product_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
+| `push` | `(Vec<T>, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
+| `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` | - |
+| `reverse_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` | - |
+| `reverse_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` | - |
+| `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_String` | - |
+| `sort_f64` | `(Vec<f64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` | - |
+| `sort_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i32` | - |
+| `sort_i64` | `(Vec<i64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i64` | - |
+| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
+
+#### `len` — `prelude`
+
+*Example — Get the length of a vector:*
+```ark
+let v = Vec_new_i32()
+push(v, 10)
+println(i32_to_string(len(v)))
+```
+
+Expected output: `1`
+
+#### `push` — `prelude`
+
+*Example — Build a vector by pushing elements:*
+```ark
+let v = Vec_new_i32()
+push(v, 1)
+push(v, 2)
+```
 
 ## Component
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - |
-| `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - | - |
+| `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - | - |
 
 ## Control
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `panic` | `(String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_panic` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `panic` | `(String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_panic` | - |
 
 ## Conversion
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `bool_to_string` | `(bool) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_bool_to_string` |
-| `char_to_string` | `(char) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` |
-| `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - |
-| `f64_to_string` | `(f64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_string` |
-| `i32_to_string` | `(i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_string` |
-| `i64_to_string` | `(i64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_string` |
-| `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` |
-| `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` |
-| `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` |
-| `to_string` | `(any) -> String` | `prelude` | `stable` | `builtin` | yes | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `bool_to_string` | `(bool) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_bool_to_string` | - |
+| `char_to_string` | `(char) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | - |
+| `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - | - |
+| `f64_to_string` | `(f64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_string` | - |
+| `i32_to_string` | `(i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_string` | Convert an i32 integer to its decimal string representation. |
+| `i64_to_string` | `(i64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_string` | - |
+| `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
+| `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
+| `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
+| `to_string` | `(any) -> String` | `prelude` | `stable` | `builtin` | yes | - | - |
+
+#### `i32_to_string` — `prelude`
+
+*Example — Print integer as string:*
+```ark
+println(i32_to_string(42))
+```
+
+Expected output: `42`
+
+#### `parse_i32` — `prelude`
+
+**Errors:** Returns Err if the string is not a valid decimal integer or is out of i32 range.
+
+*Example — Parse a numeric string:*
+```ark
+match parse_i32("42") { Ok(n) => println(i32_to_string(n)), Err(e) => eprintln(e) }
+```
+
+Expected output: `42`
 
 ## Core
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - |
-| `hash_combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - |
-| `hash_i32` | `(i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - |
-| `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - |
-| `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - |
-| `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
+| `hash_combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
+| `hash_i32` | `(i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
+| `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
+| `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - | - |
+| `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
 
 ## Csv
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
 
 ## Host Clock
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
 
 ## Host Env
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` |
-| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` |
-| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` |
-| `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - |
-| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
+| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` | Return the number of command-line arguments (including the program name). |
+| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` | Return the command-line arguments as a list of strings. The first element is the program name. |
+| `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
+| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
+
+#### `var` — `std::host::env`
+
+**Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
+
+*Example — Read the HOME environment variable:*
+```ark
+let home = env::var("HOME")
+match home { Some(p) => println(p), None => println("not set") }
+```
 
 ## Host Fs
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
+| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
+
+#### `read_to_string` — `std::host::fs`
+
+**Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
+
+*Example — Read a text file and print it:*
+```ark
+let txt = fs::read_to_string("data.txt")
+match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
+```
+
+#### `write_bytes` — `std::host::fs`
+
+**Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
+
+#### `write_string` — `std::host::fs`
+
+**Errors:** Returns Err if the path is not writable or the directory does not exist.
 
 ## Host Http
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `get` | `(String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_get` |
-| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_request` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `get` | `(String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. |
+| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
+
+#### `get` — `std::host::http`
+
+**Errors:** Err on DNS failure (dns: ...), connection refused (connection refused: ...), or HTTP error status (http N: ...).
+
+*Example — Fetch a URL and print its body:*
+```ark
+let body = http::get("https://example.com")
+match body {
+  Ok(s) => println(s)
+  Err(e) => eprintln(e)
+}
+```
+
+Expected output: `<!doctype html>...`
+
+#### `request` — `std::host::http`
+
+**Errors:** Err on DNS failure, connection refused, timeout, or HTTP 4xx/5xx status codes.
+
+*Example — POST JSON to an API endpoint:*
+```ark
+let resp = http::request("POST", "https://api.example.com/data", "{\"key\":\"val\"}")
+```
 
 ## Host Process
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | - |
-| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | - | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
+| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 
 ## Host Random
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `random_bool` | `() -> bool` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` |
-| `random_i32` | `() -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` |
-| `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `random_bool` | `() -> bool` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random boolean value with equal probability of true and false. |
+| `random_i32` | `() -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a cryptographically-secure random i32 value. |
+| `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
+
+#### `random_i32_range` — `std::host::random`
+
+**Errors:** Panics at runtime if lo >= hi.
+
+*Example — Roll a six-sided die (1–6):*
+```ark
+let n = random::random_i32_range(1, 7)
+```
 
 ## Host Sockets
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `experimental` | `host_stub ⚠️ (wasm32-wasi-p2)` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `experimental` | `host_stub ⚠️ (wasm32-wasi-p2)` | no | - | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
+
+#### `connect` — `std::host::sockets`
+
+**Errors:** Err on DNS resolution failure, connection refused, or network unreachable.
+
+*Example — Connect to a local server on port 8080:*
+```ark
+let sock = sockets::connect("localhost", 8080)
+match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
+```
 
 ## Host Stdio
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_eprintln` |
-| `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_print` |
-| `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_println` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
+| `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
+| `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
+
+#### `eprintln` — `std::host::stdio`
+
+*Example — Write a diagnostic message to stderr:*
+```ark
+eprintln("Error: something went wrong")
+```
+
+#### `print` — `std::host::stdio`
+
+*Example — Print without newlines:*
+```ark
+print("hello ")
+print("world")
+```
+
+#### `println` — `std::host::stdio`
+
+*Example — Basic hello-world output:*
+```ark
+println("Hello, world!")
+```
+
+Expected output: `Hello, world!`
 
 ## Json
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `json_null` | `() -> String` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `json_null` | `() -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 
 ## Math
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `abs` | `(i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_abs` |
-| `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - |
-| `max` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_max` |
-| `min` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_min` |
-| `sqrt` | `(f64) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sqrt` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `abs` | `(i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_abs` | - |
+| `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
+| `max` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_max` | - |
+| `min` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_min` | - |
+| `sqrt` | `(f64) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sqrt` | - |
 
 ## Numeric
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `f64_bits_hi` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` |
-| `f64_bits_lo` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `f64_bits_hi` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` | - |
+| `f64_bits_lo` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` | - |
 
 ## Option Result
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - |
-| `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `is_err` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `map_option_String_String` | `(Option<String>, fn(String) -> String) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - |
-| `map_option_i32_i32` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` |
-| `map_result_i32_i32` | `(Result<i32, E>, fn(i32) -> i32) -> Result<i32, E>` | `prelude` | `stable` | `builtin` | yes | - |
-| `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `builtin` | yes | - |
-| `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `unwrap_or_else` | `(Option<T>, fn() -> T) -> T` | `prelude` | `stable` | `builtin` | yes | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `is_err` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `map_option_String_String` | `(Option<String>, fn(String) -> String) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `map_option_i32_i32` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` | - |
+| `map_result_i32_i32` | `(Result<i32, E>, fn(i32) -> i32) -> Result<i32, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `unwrap_or_else` | `(Option<T>, fn() -> T) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
 
 ## Path
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `extension` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - |
-| `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - |
-| `is_absolute` | `(String) -> bool` | `std::path` | `stable` | `builtin` | no | - |
-| `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - |
-| `parent` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - |
-| `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `extension` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `is_absolute` | `(String) -> bool` | `std::path` | `stable` | `builtin` | no | - | - |
+| `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `parent` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 
 ## Random
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `seeded_random` | `(i32) -> i32` | `std::random` | `stable` | `builtin` | no | - |
-| `seeded_range` | `(i32, i32, i32) -> i32` | `std::random` | `stable` | `builtin` | no | - |
-| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `seeded_random` | `(i32) -> i32` | `std::random` | `stable` | `builtin` | no | - | - |
+| `seeded_range` | `(i32, i32, i32) -> i32` | `std::random` | `stable` | `builtin` | no | - | - |
+| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `builtin` | no | - | - |
 
 ## Seq
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `max_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `seq_contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `stable` | `builtin` | no | - |
-| `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - |
-| `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `max_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `seq_contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
 
 ## String
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `String_from` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_from` |
-| `String_new` | `() -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_new` |
-| `char_at` | `(String, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_at` |
-| `clone` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_clone` |
-| `concat` | `(String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_concat` |
-| `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` |
-| `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_ends_with` |
-| `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` |
-| `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_index_of` |
-| `is_empty` | `(String) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` |
-| `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_push_char` |
-| `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_replace` |
-| `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_slice` |
-| `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_split` |
-| `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_starts_with` |
-| `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` |
-| `to_lower` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_lower` |
-| `to_upper` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_upper` |
-| `trim` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_trim` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `String_from` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
+| `String_new` | `() -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
+| `char_at` | `(String, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_at` | - |
+| `clone` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
+| `concat` | `(String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
+| `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
+| `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
+| `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
+| `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
+| `is_empty` | `(String) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
+| `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_push_char` | - |
+| `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |
+| `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
+| `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_split` | - |
+| `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
+| `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
+| `to_lower` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
+| `to_upper` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
+| `trim` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_trim` | - |
+
+#### `concat` — `prelude`
+
+*Example — Join two string literals:*
+```ark
+let s = concat("hello", " world")
+```
+
+Expected output: `hello world`
 
 ## Test
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_false` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_msg` | `(bool, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_ne_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_true` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `stable` | `builtin` | no | - |
-| `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `builtin` | no | - |
-| `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_false` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_msg` | `(bool, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_ne_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_true` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `stable` | `builtin` | no | - | - |
+| `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `builtin` | no | - | - |
+| `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `builtin` | no | - | - |
 
 ## Text
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - |
-| `format_bool` | `(bool) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `format_f64` | `(f64) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `format_i32` | `(i32) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `format_i64` | `(i64) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` |
-| `is_empty` | `(String) -> bool` | `std::text` | `stable` | `builtin` | no | - |
-| `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - |
-| `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - |
-| `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `trim` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `trim_end` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `trim_start` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
+| `format_bool` | `(bool) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `format_f64` | `(f64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `format_i32` | `(i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `format_i64` | `(i64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` | - |
+| `is_empty` | `(String) -> bool` | `std::text` | `stable` | `builtin` | no | - | - |
+| `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
+| `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
+| `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `trim` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `trim_end` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `trim_start` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 
 ## Time
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `duration_ms` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - |
-| `duration_ns` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - |
-| `duration_us` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `duration_ms` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
+| `duration_ns` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
+| `duration_us` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
 
 ## Toml
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - | - |
 
 ## Wasm
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` |
-| `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` |
-| `section_code` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_data` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_element` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_export` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_function` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_global` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_import` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_memory` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_start` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_table` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_type` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `valtype_i64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
+| `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
+| `section_code` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_data` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_element` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_export` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_function` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_global` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_import` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_memory` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_start` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_table` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_type` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_i64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 
 ## Wit
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `wit_type_bool` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_char` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_f32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_f64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_name` | `(i32) -> String` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_s16` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_s32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_s64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_s8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_string` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_u16` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_u32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_u64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_u8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `wit_type_bool` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_char` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_f32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_f64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_name` | `(i32) -> String` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_s16` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_s32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_s64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_s8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_string` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_u16` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_u32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_u64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_u8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
 
 ---
 
@@ -484,295 +628,295 @@
 
 > Backward-compatible within a major version. Safe for production use.
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - |
-| `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - |
-| `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - |
-| `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `stable` | `builtin` | yes | - |
-| `String_from` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_from` |
-| `String_new` | `() -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_new` |
-| `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` |
-| `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` |
-| `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` |
-| `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` |
-| `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` |
-| `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `builtin` | yes | - |
-| `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - |
-| `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | - |
-| `abs` | `(i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_abs` |
-| `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` |
-| `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` |
-| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` |
-| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` |
-| `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `assert` | `(bool) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert` |
-| `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq` |
-| `assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_i64` | `(i64, i64) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_i64` |
-| `assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_eq_str` | `(String, String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_str` |
-| `assert_eq_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_false` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_msg` | `(bool, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_ne` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_ne` |
-| `assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_ne_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `assert_true` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `bitset_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `bool_to_string` | `(bool) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_bool_to_string` |
-| `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_push` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - |
-| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `char_at` | `(String, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_at` |
-| `char_to_string` | `(char) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` |
-| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - |
-| `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - |
-| `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `builtin` | yes | - |
-| `clone` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_clone` |
-| `concat` | `(String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_concat` |
-| `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` |
-| `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` |
-| `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` |
-| `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `duration_ms` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - |
-| `duration_ns` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - |
-| `duration_us` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - |
-| `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_ends_with` |
-| `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_eprintln` |
-| `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` |
-| `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - |
-| `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - |
-| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | - |
-| `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `stable` | `builtin` | no | - |
-| `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `builtin` | no | - |
-| `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `builtin` | no | - |
-| `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `builtin` | no | - |
-| `extension` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - |
-| `f64_bits_hi` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` |
-| `f64_bits_lo` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` |
-| `f64_to_string` | `(f64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_string` |
-| `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - |
-| `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` |
-| `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` |
-| `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` |
-| `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i32` |
-| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` |
-| `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` |
-| `format_bool` | `(bool) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `format_f64` | `(f64) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `format_i32` | `(i32) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `format_i64` | `(i64) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - |
-| `hash_combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - |
-| `hash_i32` | `(i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - |
-| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - |
-| `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - |
-| `i32_to_string` | `(i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_string` |
-| `i64_to_string` | `(i64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_string` |
-| `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_index_of` |
-| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` |
-| `is_absolute` | `(String) -> bool` | `std::path` | `stable` | `builtin` | no | - |
-| `is_empty` | `(String) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `is_empty` | `(String) -> bool` | `std::text` | `stable` | `builtin` | no | - |
-| `is_err` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
-| `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` |
-| `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - |
-| `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - |
-| `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - |
-| `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - |
-| `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` |
-| `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` |
-| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` |
-| `map_i64_i64` | `(Vec<i64>, fn(i64) -> i64) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i64_i64` |
-| `map_option_String_String` | `(Option<String>, fn(String) -> String) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - |
-| `map_option_i32_i32` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` |
-| `map_result_i32_i32` | `(Result<i32, E>, fn(i32) -> i32) -> Result<i32, E>` | `prelude` | `stable` | `builtin` | yes | - |
-| `max` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_max` |
-| `max_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `min` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_min` |
-| `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` |
-| `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `builtin` | yes | - |
-| `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `panic` | `(String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_panic` |
-| `parent` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - |
-| `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` |
-| `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` |
-| `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` |
-| `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - |
-| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - |
-| `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_print` |
-| `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_println` |
-| `product_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - |
-| `push` | `(Vec<T>, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - |
-| `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_push_char` |
-| `random_bool` | `() -> bool` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` |
-| `random_i32` | `() -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` |
-| `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` |
-| `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - |
-| `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - |
-| `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - |
-| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` |
-| `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` |
-| `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_replace` |
-| `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `reverse_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` |
-| `reverse_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` |
-| `seeded_random` | `(i32) -> i32` | `std::random` | `stable` | `builtin` | no | - |
-| `seeded_range` | `(i32, i32, i32) -> i32` | `std::random` | `stable` | `builtin` | no | - |
-| `seq_contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `stable` | `builtin` | no | - |
-| `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - |
-| `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - |
-| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `builtin` | no | - |
-| `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_slice` |
-| `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_String` |
-| `sort_f64` | `(Vec<f64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` |
-| `sort_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i32` |
-| `sort_i64` | `(Vec<i64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i64` |
-| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - |
-| `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_split` |
-| `sqrt` | `(f64) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sqrt` |
-| `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_starts_with` |
-| `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - |
-| `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` |
-| `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - |
-| `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - |
-| `to_lower` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_lower` |
-| `to_string` | `(any) -> String` | `prelude` | `stable` | `builtin` | yes | - |
-| `to_upper` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_upper` |
-| `trim` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_trim` |
-| `trim` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `trim_end` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `trim_start` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - |
-| `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - |
-| `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `unwrap_or_else` | `(Option<T>, fn() -> T) -> T` | `prelude` | `stable` | `builtin` | yes | - |
-| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` |
-| `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - |
-| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` |
-| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `String_from` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
+| `String_new` | `() -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
+| `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
+| `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` | - |
+| `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` | - |
+| `Vec_new_i32_with_cap` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i32_with_cap` | - |
+| `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` | - |
+| `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | - | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
+| `abs` | `(i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_abs` | - |
+| `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
+| `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
+| `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` | Return the number of command-line arguments (including the program name). |
+| `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` | Return the command-line arguments as a list of strings. The first element is the program name. |
+| `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `assert` | `(bool) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert` | - |
+| `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq` | - |
+| `assert_eq_bool` | `(bool, bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_f64` | `(f64, f64) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_i64` | `(i64, i64) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_i64` | - |
+| `assert_eq_i64` | `(i64, i64) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_snapshot` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_eq_str` | `(String, String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_eq_str` | - |
+| `assert_eq_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_false` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_msg` | `(bool, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_ne` | `(i32, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert_ne` | - |
+| `assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_ne_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `assert_true` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `bitset_mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bitset_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bool_to_string` | `(bool) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_bool_to_string` | - |
+| `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_push` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `char_at` | `(String, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_at` | - |
+| `char_to_string` | `(char) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | - |
+| `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
+| `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
+| `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `clone` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
+| `concat` | `(String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
+| `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
+| `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
+| `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
+| `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `duration_ms` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
+| `duration_ns` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
+| `duration_us` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
+| `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
+| `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
+| `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
+| `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
+| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
+| `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `stable` | `builtin` | no | - | - |
+| `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `builtin` | no | - | - |
+| `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `builtin` | no | - | - |
+| `extension` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `f64_bits_hi` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` | - |
+| `f64_bits_lo` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` | - |
+| `f64_to_string` | `(f64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_string` | - |
+| `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
+| `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
+| `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` | - |
+| `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i32` | - |
+| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` | - |
+| `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` | - |
+| `format_bool` | `(bool) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `format_f64` | `(f64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `format_i32` | `(i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `format_i64` | `(i64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
+| `hash_combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
+| `hash_i32` | `(i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `i32_to_string` | `(i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_string` | Convert an i32 integer to its decimal string representation. |
+| `i64_to_string` | `(i64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_string` | - |
+| `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
+| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` | - |
+| `is_absolute` | `(String) -> bool` | `std::path` | `stable` | `builtin` | no | - | - |
+| `is_empty` | `(String) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `is_empty` | `(String) -> bool` | `std::text` | `stable` | `builtin` | no | - | - |
+| `is_err` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
+| `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | Return the number of elements in a Vec. |
+| `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
+| `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
+| `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
+| `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
+| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` | - |
+| `map_i64_i64` | `(Vec<i64>, fn(i64) -> i64) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i64_i64` | - |
+| `map_option_String_String` | `(Option<String>, fn(String) -> String) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `map_option_i32_i32` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` | - |
+| `map_result_i32_i32` | `(Result<i32, E>, fn(i32) -> i32) -> Result<i32, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `max` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_max` | - |
+| `max_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `min` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_min` | - |
+| `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
+| `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `panic` | `(String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_panic` | - |
+| `parent` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
+| `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
+| `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
+| `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
+| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
+| `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
+| `product_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
+| `push` | `(Vec<T>, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
+| `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_push_char` | - |
+| `random_bool` | `() -> bool` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random boolean value with equal probability of true and false. |
+| `random_i32` | `() -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a cryptographically-secure random i32 value. |
+| `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
+| `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
+| `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - | - |
+| `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
+| `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
+| `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` | - |
+| `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |
+| `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `reverse_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` | - |
+| `reverse_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` | - |
+| `seeded_random` | `(i32) -> i32` | `std::random` | `stable` | `builtin` | no | - | - |
+| `seeded_range` | `(i32, i32, i32) -> i32` | `std::random` | `stable` | `builtin` | no | - | - |
+| `seq_contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `builtin` | no | - | - |
+| `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
+| `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_String` | - |
+| `sort_f64` | `(Vec<f64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` | - |
+| `sort_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i32` | - |
+| `sort_i64` | `(Vec<i64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i64` | - |
+| `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_find_idx` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_split` | - |
+| `sqrt` | `(f64) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sqrt` | - |
+| `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
+| `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
+| `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
+| `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `to_lower` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
+| `to_string` | `(any) -> String` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `to_upper` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
+| `trim` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_trim` | - |
+| `trim` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `trim_end` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `trim_start` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `unwrap_or_else` | `(Option<T>, fn() -> T) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
+| `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
+| `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
 
 ## Provisional APIs
 
 > API is usable but may change in minor versions based on feedback.
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - | - |
 
 ## Experimental APIs
 
 > API may change without notice. Functionality is available but not finalized.
 
-| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
-|------|-----------|--------|-----------|------|---------|-----------|
-| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
-| `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
-| `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
-| `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - |
-| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - |
-| `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - |
-| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `experimental` | `host_stub ⚠️ (wasm32-wasi-p2)` | no | - |
-| `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - |
-| `get` | `(String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_get` |
-| `json_null` | `() -> String` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `builtin` | no | - |
-| `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - |
-| `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` |
-| `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` |
-| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_request` |
-| `section_code` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_data` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_element` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_export` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_function` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_global` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_import` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_memory` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_start` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_table` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `section_type` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - |
-| `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `valtype_i64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - |
-| `wit_type_bool` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_char` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_f32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_f64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_name` | `(i32) -> String` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_s16` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_s32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_s64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_s8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_string` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_u16` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_u32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_u64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
-| `wit_type_u8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - | - |
+| `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - | - |
+| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `experimental` | `host_stub ⚠️ (wasm32-wasi-p2)` | no | - | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
+| `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
+| `get` | `(String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. |
+| `json_null` | `() -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
+| `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
+| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
+| `section_code` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_data` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_element` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_export` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_function` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_global` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_import` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_memory` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_start` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_table` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `section_type` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - | - |
+| `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_i64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `wit_type_bool` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_char` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_f32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_f64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_name` | `(i32) -> String` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_s16` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_s32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_s64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_s8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_string` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_u16` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_u32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_u64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
+| `wit_type_u8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
 
 ## Deprecated APIs
 

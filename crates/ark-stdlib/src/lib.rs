@@ -162,6 +162,27 @@ pub struct ManifestModule {
     pub doc: Option<String>,
 }
 
+/// A code example attached to a stdlib function.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ManifestExample {
+    pub code: String,
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub output: Option<String>,
+}
+
+/// T1 / T3 availability flags for a stdlib function.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ManifestAvailability {
+    /// Available on wasm32-wasi-p1 (T1) target.
+    pub t1: bool,
+    /// Available on wasm32-wasi-p2 (T3) target.
+    pub t3: bool,
+    #[serde(default)]
+    pub note: Option<String>,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct ManifestFunction {
     pub name: String,
@@ -189,6 +210,18 @@ pub struct ManifestFunction {
     pub see_also: Option<String>,
     #[serde(default)]
     pub target: Vec<String>,
+    /// Short description of the function (1–3 lines).
+    #[serde(default)]
+    pub doc: Option<String>,
+    /// Code examples demonstrating usage.
+    #[serde(default)]
+    pub examples: Vec<ManifestExample>,
+    /// Description of failure conditions (for Result-returning functions).
+    #[serde(default)]
+    pub errors: Option<String>,
+    /// Explicit T1/T3 availability, overrides target inference.
+    #[serde(default)]
+    pub availability: Option<ManifestAvailability>,
 }
 
 impl StdlibManifest {
@@ -364,6 +397,69 @@ mod tests {
                 manifest_modules
             );
         }
+    }
+
+    #[test]
+    fn new_fields_deserialize() {
+        let toml_text = r#"
+[metadata]
+version = "0.1"
+
+[[functions]]
+name = "http_get"
+module = "std::host::http"
+params = ["String"]
+returns = "Result<String, String>"
+doc = "Send an HTTP GET request and return the response body."
+errors = "Returns Err on DNS or connection failure."
+availability = { t1 = true, t3 = true, note = "T1 via Wasmtime linker" }
+examples = [
+  { code = "let r = http::get(\"https://example.com\")", description = "Fetch a URL", output = "Ok(...)" }
+]
+"#;
+        let manifest = StdlibManifest::parse(toml_text).unwrap();
+        assert_eq!(manifest.functions.len(), 1);
+        let f = &manifest.functions[0];
+        assert_eq!(f.name, "http_get");
+        assert_eq!(
+            f.doc.as_deref(),
+            Some("Send an HTTP GET request and return the response body.")
+        );
+        assert_eq!(
+            f.errors.as_deref(),
+            Some("Returns Err on DNS or connection failure.")
+        );
+        let avail = f.availability.as_ref().unwrap();
+        assert!(avail.t1);
+        assert!(avail.t3);
+        assert_eq!(avail.note.as_deref(), Some("T1 via Wasmtime linker"));
+        assert_eq!(f.examples.len(), 1);
+        let ex = &f.examples[0];
+        assert_eq!(
+            ex.code,
+            "let r = http::get(\"https://example.com\")"
+        );
+        assert_eq!(ex.description.as_deref(), Some("Fetch a URL"));
+        assert_eq!(ex.output.as_deref(), Some("Ok(...)"));
+    }
+
+    #[test]
+    fn new_fields_default_when_absent() {
+        let toml_text = r#"
+[metadata]
+version = "0.1"
+
+[[functions]]
+name = "println"
+params = ["String"]
+returns = "()"
+"#;
+        let manifest = StdlibManifest::parse(toml_text).unwrap();
+        let f = &manifest.functions[0];
+        assert!(f.doc.is_none());
+        assert!(f.errors.is_none());
+        assert!(f.availability.is_none());
+        assert!(f.examples.is_empty());
     }
 
     #[test]

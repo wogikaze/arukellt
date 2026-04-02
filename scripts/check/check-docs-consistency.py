@@ -1378,6 +1378,77 @@ def check_name_index_completeness() -> int:
     return 0
 
 
+def check_manifest_availability_consistency() -> int:
+    """Validate that availability.t1=false when target is exclusively wasm32-wasi-p2.
+
+    Functions that only list ``target = ["wasm32-wasi-p2"]`` and carry an
+    ``[availability]`` block with ``t1 = true`` but no ``note`` are likely a
+    data-entry mistake — ``t1`` should be ``false`` unless a ``note`` explains
+    the T1 support path (e.g. via Wasmtime linker bridge).
+    """
+    import tomllib as _tomllib
+
+    if not MANIFEST.exists():
+        return 0
+
+    manifest = _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    functions = manifest.get("functions", [])
+    bad: list[str] = []
+
+    for entry in functions:
+        name = entry.get("name", "?")
+        target = entry.get("target", [])
+        avail = entry.get("availability")
+        if target == ["wasm32-wasi-p2"] and avail is not None:
+            # If t1 = true but no note is provided, this is a probable data error.
+            # When a note is present, the author has explicitly documented the T1
+            # support path (e.g. "T1 via Wasmtime linker"), which is a valid case.
+            if avail.get("t1", True) is True and not avail.get("note"):
+                bad.append(name)
+
+    if bad:
+        errors.append(
+            f"availability.t1 should be false (or documented with a note) for "
+            f"wasm32-wasi-p2-only functions: "
+            + ", ".join(bad)
+            + "; set availability.t1 = false or add an availability.note in std/manifest.toml"
+        )
+        return 1
+    return 0
+
+
+def check_manifest_example_integrity() -> int:
+    """Validate that manifest examples have non-empty code fields.
+
+    An ``[[functions.examples]]`` entry with an empty ``code`` string is a
+    data-entry mistake — it would produce an empty code block in generated docs.
+    """
+    import tomllib as _tomllib
+
+    if not MANIFEST.exists():
+        return 0
+
+    manifest = _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    functions = manifest.get("functions", [])
+    bad: list[str] = []
+
+    for entry in functions:
+        name = entry.get("name", "?")
+        for ex in entry.get("examples", []):
+            if not ex.get("code", "").strip():
+                bad.append(name)
+                break
+
+    if bad:
+        errors.append(
+            f"manifest has {len(bad)} function(s) with empty examples.code: "
+            + ", ".join(bad)
+            + "; fill in the code field in std/manifest.toml"
+        )
+        return 1
+    return 0
+
+
 def main() -> int:
     failed = 0
     failed += check_maturity_matrix_freshness()
@@ -1397,6 +1468,8 @@ def main() -> int:
     failed += check_cookbook_example_drift()
     failed += check_recipe_fixture_links()
     failed += check_name_index_completeness()
+    failed += check_manifest_availability_consistency()
+    failed += check_manifest_example_integrity()
 
     if errors:
         print("docs consistency check FAILED:", file=sys.stderr)
