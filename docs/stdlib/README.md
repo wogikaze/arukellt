@@ -42,6 +42,7 @@ Module family pages that currently carry a curated overview: `std::core` ([modul
 | [cookbook.md](cookbook.md) | Core API Cookbook | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
 | [core.md](core.md) | std/core — generated index | Legacy landing page for the current core-related stdlib docs. |
 | [expansion-policy.md](expansion-policy.md) | Standard Library Expansion Policy | Defines which module families accept new APIs, under what conditions, |
+| [generation-schema.md](generation-schema.md) | Stdlib Docs Generation Schema | This schema is enforced at generation time. |
 | [io.md](io.md) | std/io — generated index | Legacy landing page for the current host-capability and path stdlib docs. |
 | [module-system.md](module-system.md) | Module System | Arukellt supports two import syntaxes for bringing modules into scope. |
 | [modules/bytes.md](modules/bytes.md) | std::bytes | Source-backed docs for binary data helpers. |

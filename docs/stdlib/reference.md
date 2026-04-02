@@ -462,3 +462,14 @@
 | `wit_type_u32` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
 | `wit_type_u64` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
 | `wit_type_u8` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - |
+
+## Deprecated APIs
+
+> Deprecated names are shown with ~~strikethrough~~ in the tables above.
+> See [migration-guidance.md](migration-guidance.md) for before/after migration examples.
+
+| Deprecated Name | Replacement | Signature |
+|----------------|-------------|-----------|
+| ~~`Vec_new_i32`~~ | `Vec::new<i32>` | `() -> Vec<i32>` |
+| ~~`Vec_new_i64`~~ | `Vec::new<i64>` | `() -> Vec<i64>` |
+| ~~`filter_i32`~~ | `filter<i32>` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` |

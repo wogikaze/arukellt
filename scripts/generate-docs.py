@@ -43,6 +43,29 @@ MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
 # Stability labels as defined in spec.md (ADR-013 §Stability)
 STABILITY_LABELS = ("stable", "provisional", "experimental", "unimplemented")
 
+# ── Manifest schema ──────────────────────────────────────────────────────────
+# Enforced by validate_manifest_schema(); see docs/stdlib/generation-schema.md
+#
+# Page kinds:
+#   "prelude"   — entry has `kind` but no `module` (or has `prelude = true`)
+#   "module"    — entry has `module` and no `kind` (standard module function)
+#   "host_stub" — entry has `kind = "host_stub"` (capability-gated host function)
+#   "mixed"     — entry has both `kind` and `module` (e.g., intrinsic_wrapper in std::wasm)
+#
+# Required on every [[functions]] entry:
+FUNCTION_REQUIRED_FIELDS: tuple[str, ...] = ("name", "params", "returns", "stability", "doc_category")
+
+# Valid values for `kind` (when present):
+VALID_KIND_VALUES: frozenset[str] = frozenset(
+    {"builtin", "intrinsic", "prelude_wrapper", "intrinsic_wrapper", "host_stub"}
+)
+
+# Extra required fields per `kind` value:
+FUNCTION_KIND_REQUIRED: dict[str, tuple[str, ...]] = {
+    "host_stub": ("module", "target"),
+}
+# ─────────────────────────────────────────────────────────────────────────────
+
 # Regexes for parsing stability annotations from spec.md
 _SPEC_SECTION_RE = re.compile(
     r'^## (\d+)\. (.+?)(?:\s+<!--\s*stability:\s*(.*?)\s*-->)?\s*$'
@@ -356,6 +379,63 @@ class StdlibSourceModule:
 
 def load_toml(path: Path) -> dict:
     return tomllib.loads(path.read_text(encoding="utf-8"))
+
+
+def validate_manifest_schema(manifest: dict) -> list[str]:
+    """Validate every [[functions]] entry against the manifest schema.
+
+    Returns a list of error strings (empty if all entries are valid).
+    Rules enforced:
+      - Every entry must have: name, params, returns, stability, doc_category
+      - `stability` must be one of STABILITY_LABELS
+      - `kind`, when present, must be one of VALID_KIND_VALUES
+      - `target`, when present, must be a list
+      - `kind = "host_stub"` entries must also have `module` and `target`
+    """
+    violations: list[str] = []
+    functions = manifest.get("functions", [])
+
+    for entry in functions:
+        fn_name = entry.get("name", "<unnamed>")
+        label = f"function '{fn_name}'"
+
+        # 1. Required fields on every entry
+        for field in FUNCTION_REQUIRED_FIELDS:
+            if field not in entry:
+                violations.append(f"{label}: missing required field '{field}'")
+
+        # 2. stability must be a known label
+        stability = entry.get("stability")
+        if stability is not None and stability not in STABILITY_LABELS:
+            violations.append(
+                f"{label}: invalid stability '{stability}'; "
+                f"must be one of {list(STABILITY_LABELS)}"
+            )
+
+        # 3. kind must be a known value when present
+        kind = entry.get("kind")
+        if kind is not None and kind not in VALID_KIND_VALUES:
+            violations.append(
+                f"{label}: invalid kind '{kind}'; "
+                f"must be one of {sorted(VALID_KIND_VALUES)}"
+            )
+
+        # 4. target must be a list when present
+        target = entry.get("target")
+        if target is not None and not isinstance(target, list):
+            violations.append(
+                f"{label}: 'target' must be a list of strings, got {type(target).__name__}"
+            )
+
+        # 5. kind-specific required fields
+        if kind in FUNCTION_KIND_REQUIRED:
+            for field in FUNCTION_KIND_REQUIRED[kind]:
+                if field not in entry:
+                    violations.append(
+                        f"{label}: kind='{kind}' requires field '{field}'"
+                    )
+
+    return violations
 
 
 def fixture_count() -> int:
@@ -1474,6 +1554,20 @@ def main() -> int:
     state = load_toml(PROJECT_STATE)
     sections = load_toml(SECTIONS_FILE)["sections"]
     manifest = load_stdlib_manifest()
+
+    # Schema validation: always run, fail fast before any doc generation
+    schema_errors = validate_manifest_schema(manifest)
+    if schema_errors:
+        print("stdlib manifest schema validation FAILED:", file=sys.stderr)
+        for err in schema_errors:
+            print(f"  ✗ {err}", file=sys.stderr)
+        print(
+            f"\n{len(schema_errors)} violation(s) found in std/manifest.toml. "
+            "Fix the entries above to match the schema in docs/stdlib/generation-schema.md",
+            file=sys.stderr,
+        )
+        return 1
+
     manifest_stats = stdlib_stats(manifest)
     manifest_functions_by_module: dict[str, list[dict]] = defaultdict(list)
     for entry in manifest_stats["public_functions"]:
