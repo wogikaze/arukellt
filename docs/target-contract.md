@@ -50,19 +50,32 @@ matrix job.  See `.github/workflows/ci.yml`.
 | validator pass | guaranteed | `wasmparser` validation runs post-emit |
 | compile-error | guaranteed | 10 `compile-error` fixtures verify expected failures |
 
-### T2 — `wasm32-wasi-p1` (linear memory, alternative)
+### T2 — `wasm32-freestanding` (Wasm GC, no WASI — browser/embedded)
 
-**Status: not-started**
+**Status: ADR written, emitter not started**
 
 T2 is not implemented.  No codegen backend, no tests, no scaffold.  The target
 identifier `wasm32-freestanding` is registered in `ark-target` but nothing downstream
-handles it.  To start T2: add a new codegen backend in `crates/ark-wasm` that emits
-linear-memory Wasm without GC instructions, wire it into the backend plan in
-`crates/ark-driver`, and add fixture entries.
+handles it.
+
+The I/O surface design has been decided in [ADR-020](adr/ADR-020-t2-io-surface.md):
+T2 modules import `{ arukellt_io: { write(ptr, len), flush() } }` from the JS host
+and export their linear memory as `"memory"`.  A 1-page (64 KB) linear memory region
+is retained for I/O string marshaling; all other storage uses Wasm GC.
+
+T2 is a **v2 playground target** — playground v1 does not require T2 and is not
+blocked on it (see ADR-017).
+
+To start the T2 emitter: implement a new codegen backend in `crates/ark-wasm` that
+emits Wasm GC instructions (no WASI), emits the two `arukellt_io` imports, exports
+`"memory"`, and lowers `println` to `write`+`flush` call pairs.  Wire it into the
+backend plan in `crates/ark-driver` and add fixture entries.
 
 | Surface | Status | Detail |
 |---------|--------|--------|
-| all | none | T2 is not implemented.  No codegen, no tests, no scaffold. |
+| I/O surface | ADR written | ADR-020 defines `arukellt_io.write`/`flush` import contract |
+| codegen | none | T2 emitter not started.  No codegen, no tests, no scaffold. |
+| all other | none | Blocked on codegen implementation. |
 
 ### T4 — native (LLVM backend)
 

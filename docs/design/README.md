@@ -10,11 +10,11 @@
 
 ## Documents
 
-| File | Title | Summary |
-|------|-------|---------|
-| [gc-c-abi-bridge.md](gc-c-abi-bridge.md) | Archived GC ↔ C ABI bridge design | この文書は、Wasm GC 前提だった時期の GC ↔ C 境界設計メモです。 |
-| [gc-mono-tradeoff.md](gc-mono-tradeoff.md) | GC + Monomorphization トレードオフ | ADR-002（GC採用）と ADR-003（制限付きmono）の緊張関係を明確化する。 |
-| [reference-control.md](reference-control.md) | 参照過多への制御戦略 | GC 環境で「すべてがヒープに逃げる」リスクを制御する。 |
-| [syntax-v1-preview.md](syntax-v1-preview.md) | Syntax v1 Preview | Features implemented in v1 milestones M4–M8. |
-| [trait-less-abstraction.md](trait-less-abstraction.md) | trait なし環境での抽象化戦略 | Archive / current-first note: |
-| [value-semantics.md](value-semantics.md) | 値セマンティクス仕様 | GC 採用下での copy/move 動作を厳密に定義する。 |
+| File | Title | Label | Summary |
+|------|-------|-------|---------|
+| [gc-c-abi-bridge.md](gc-c-abi-bridge.md) | Archived GC ↔ C ABI bridge design | Archive | この文書は、Wasm GC 前提だった時期の GC ↔ C 境界設計メモです。 |
+| [gc-mono-tradeoff.md](gc-mono-tradeoff.md) | GC + Monomorphization トレードオフ | Archive | ADR-002（GC採用）と ADR-003（制限付きmono）の緊張関係を明確化する。 |
+| [reference-control.md](reference-control.md) | 参照過多への制御戦略 | Archive | GC 環境で「すべてがヒープに逃げる」リスクを制御する。 |
+| [syntax-v1-preview.md](syntax-v1-preview.md) | Syntax v1 Preview | Archive | Features implemented in v1 milestones M4–M8. |
+| [trait-less-abstraction.md](trait-less-abstraction.md) | trait なし環境での抽象化戦略 | Archive | Archive / current-first note: |
+| [value-semantics.md](value-semantics.md) | 値セマンティクス仕様 | Archive | GC 採用下での copy/move 動作を厳密に定義する。 |

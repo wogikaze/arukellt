@@ -10,25 +10,26 @@
 
 ## Documents
 
-| File | Title | Summary |
-|------|-------|---------|
-| [ADR-0001-harness-bootstrap.md](ADR-0001-harness-bootstrap.md) | ADR-0001: Harness Bootstrap Strategy | Status: Accepted |
-| [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | ステータス: DECIDED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
-| [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | ステータス: DECIDED |
-| [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: Method Syntax Evaluation | Status: DEFERRED |
-| [ADR-004-trait-strategy.md](ADR-004-trait-strategy.md) | ADR-004: trait を v0 に入れるか | ステータス: DECIDED |
-| [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | ステータス: DECIDED |
-| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI の上限 | ステータス: DECIDED |
-| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | ステータス: DECIDED |
-| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | ステータス: DECIDED |
-| [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Status: DECIDED |
-| [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | ステータス: DECIDED |
-| [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | ステータス: DECIDED |
-| [ADR-012-stringification-surface.md](ADR-012-stringification-surface.md) | ADR-012: stringification surface は to_string(x) を canonical にする | ステータス: DECIDED |
-| [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: T3 (wasm32-wasi-p2) をプライマリターゲットとして選定する | ステータス: DECIDED |
-| [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: Stability Labels for Language Spec and Stdlib API | Status: accepted |
-| [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: No-Panic Quality Standard for User-Facing Paths | Status: DECIDED |
-| [ADR-016-breaking-change-process.md](ADR-016-breaking-change-process.md) | ADR-016: Breaking Change Process — Three-Piece Set | Status: DECIDED |
-| [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground Execution Model and v1 Product Contract | Status: DECIDED |
-| [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: Language Docs Classification — Normative / Explanatory / Transitional | Status: DECIDED |
-| [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: Anchor / Permalink Naming Convention and Redirect Policy | Status: DECIDED |
+| File | Title | Label | Summary |
+|------|-------|-------|---------|
+| [ADR-0001-harness-bootstrap.md](ADR-0001-harness-bootstrap.md) | ADR-0001: Harness Bootstrap Strategy | Archive | Status: Accepted |
+| [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | Archive | ステータス: DECIDED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
+| [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | Archive | ステータス: DECIDED |
+| [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: Method Syntax Evaluation | Archive | Status: DEFERRED |
+| [ADR-004-trait-strategy.md](ADR-004-trait-strategy.md) | ADR-004: trait を v0 に入れるか | Archive | ステータス: DECIDED |
+| [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | Archive | ステータス: DECIDED |
+| [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI の上限 | Archive | ステータス: DECIDED |
+| [ADR-007-targets.md](ADR-007-targets.md) | ADR-007: コンパイルターゲット整理 | Archive | ステータス: DECIDED |
+| [ADR-008-component-wrapping.md](ADR-008-component-wrapping.md) | ADR-008: Component Model ラッピング戦略 | Archive | ステータス: DECIDED |
+| [ADR-009-import-syntax.md](ADR-009-import-syntax.md) | ADR-009: Import 構文の決定 — ソースモジュール参照と Component Model 境界の分離 | Archive | Status: DECIDED |
+| [ADR-010-extended-const.md](ADR-010-extended-const.md) | ADR-010: Extended Const Expressions (Wasm) | Archive | ステータス: DECIDED |
+| [ADR-011-wasi-host-layering.md](ADR-011-wasi-host-layering.md) | ADR-011: host-bound stdlib API は std::host:: に隔離する | Archive | ステータス: DECIDED |
+| [ADR-012-stringification-surface.md](ADR-012-stringification-surface.md) | ADR-012: stringification surface は to_string(x) を canonical にする | Archive | ステータス: DECIDED |
+| [ADR-013-primary-target.md](ADR-013-primary-target.md) | ADR-013: T3 (wasm32-wasi-p2) をプライマリターゲットとして選定する | Archive | ステータス: DECIDED |
+| [ADR-014-stability-labels.md](ADR-014-stability-labels.md) | ADR-014: Stability Labels for Language Spec and Stdlib API | Archive | Status: accepted |
+| [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: No-Panic Quality Standard for User-Facing Paths | Archive | Status: DECIDED |
+| [ADR-016-breaking-change-process.md](ADR-016-breaking-change-process.md) | ADR-016: Breaking Change Process — Three-Piece Set | Archive | Status: DECIDED |
+| [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground Execution Model and v1 Product Contract | Archive | Status: DECIDED |
+| [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: Language Docs Classification — Normative / Explanatory / Transitional | Archive | Status: DECIDED |
+| [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: Anchor / Permalink Naming Convention and Redirect Policy | Archive | Status: DECIDED |
+| [ADR-020-t2-io-surface.md](ADR-020-t2-io-surface.md) | ADR-020: T2 (wasm32-freestanding) I/O Surface Design — Console/DOM Bridge Contract | Archive | Status: DECIDED |
