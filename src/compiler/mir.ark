@@ -652,6 +652,13 @@ fn ctx_local_vt(ctx: LowerCtx, idx: i32) -> i32 {
     VT_I32()
 }
 
+fn ctx_set_local_vt(ctx: LowerCtx, idx: i32, vt: i32) {
+    if idx >= 0 && idx < len(ctx.func.locals) {
+        let loc = get_unchecked(ctx.func.locals, idx)
+        loc.val_type = vt
+    }
+}
+
 fn binop_to_mir(op: i32) -> i32 {
     if op == OP_ADD() { return MIR_ADD() }
     if op == OP_SUB() { return MIR_SUB() }
@@ -694,12 +701,14 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
 
     if kind == NK_FLOAT_LIT() {
         let dest = ctx_fresh_local(ctx, VT_F64())
+        ctx_set_local_type(ctx, dest, String_from("f64"))
         ctx_emit(ctx, MirInst_const_f64(node.float_val, dest))
         return dest
     }
 
     if kind == NK_BOOL_LIT() {
         let dest = ctx_fresh_local(ctx, VT_I32())
+        ctx_set_local_type(ctx, dest, String_from("bool"))
         let mut bval = 0
         if eq(clone(node.text), "true") {
             bval = 1
@@ -875,6 +884,13 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let mut dest_vt = binop_vt
             if is_cmp { dest_vt = VT_I32() }
             let dest = ctx_fresh_local(ctx, dest_vt)
+            if is_cmp {
+                ctx_set_local_type(ctx, dest, String_from("bool"))
+            } else if dest_vt == VT_F64() {
+                ctx_set_local_type(ctx, dest, String_from("f64"))
+            } else {
+                ctx_set_local_type(ctx, dest, String_from("i32"))
+            }
             let binop_inst = MirInst_binop(mir_op, dest, l_idx, r_idx)
             binop_inst.val_type = binop_vt
             ctx_emit(ctx, binop_inst)
@@ -991,11 +1007,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 let mut arg_idx = lower_expr(ctx, arg)
                 // Auto-convert println(integer) to println(to_string(integer))
                 if is_println && a == 1 && arg_idx >= 0 {
-                    let mut needs_convert = arg.kind == NK_INT_LIT() || arg.kind == NK_BOOL_LIT() || arg.kind == NK_CHAR_LIT()
+                    let mut needs_convert = arg.kind == NK_INT_LIT() || arg.kind == NK_BOOL_LIT() || arg.kind == NK_CHAR_LIT() || arg.kind == NK_FLOAT_LIT()
                     if !needs_convert {
                         // Check if variable has a numeric type annotation
                         let lt = ctx_get_local_type(ctx, arg_idx)
-                        if eq(clone(lt), "char") || eq(clone(lt), "u8") || eq(clone(lt), "u16") || eq(clone(lt), "u32") || eq(clone(lt), "i16") || eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "bool") {
+                        if eq(clone(lt), "char") || eq(clone(lt), "u8") || eq(clone(lt), "u16") || eq(clone(lt), "u32") || eq(clone(lt), "i16") || eq(clone(lt), "i32") || eq(clone(lt), "i64") || eq(clone(lt), "bool") || eq(clone(lt), "f64") {
                             needs_convert = true
                         }
                     }
@@ -1032,6 +1048,8 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                             wrap_inst.str_val = String_from("char_to_string")
                         } else if eq(clone(wrap_lt), "bool") || arg.kind == NK_BOOL_LIT() {
                             wrap_inst.str_val = String_from("bool_to_string")
+                        } else if eq(clone(wrap_lt), "f64") || arg.kind == NK_FLOAT_LIT() {
+                            wrap_inst.str_val = String_from("f64_to_string")
                         } else {
                             wrap_inst.str_val = String_from("to_string")
                         }
@@ -1047,12 +1065,19 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 }
                 a = a + 1
             }
-            // Dispatch to_string to char_to_string when arg is char type
+            // Dispatch to_string to char_to_string/f64_to_string/bool_to_string when arg has specific type
             if eq(clone(call_inst.str_val), "to_string") {
                 if first_arg_idx >= 0 {
                     let arg_type = ctx_get_local_type(ctx, first_arg_idx)
                     if eq(clone(arg_type), "char") {
                         call_inst.str_val = String_from("char_to_string")
+                    } else if eq(clone(arg_type), "f64") {
+                        call_inst.str_val = String_from("f64_to_string")
+                    } else if eq(clone(arg_type), "bool") {
+                        call_inst.str_val = String_from("bool_to_string")
+                    } else if eq(clone(arg_type), "string") || eq(clone(arg_type), "String") {
+                        // to_string on a string is identity — return arg directly
+                        return first_arg_idx
                     }
                 }
             }
@@ -1151,6 +1176,10 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 ctx_set_local_type(ctx, dest, String_from("vec:Pair"))
             } else if eq(clone(callee_name), "Vec_new_Node") {
                 ctx_set_local_type(ctx, dest, String_from("vec:Node"))
+            }
+            // Track string-returning functions
+            if eq(clone(callee_name), "String_from") || eq(clone(callee_name), "concat") || eq(clone(callee_name), "clone") || eq(clone(callee_name), "to_string") || eq(clone(callee_name), "char_to_string") || eq(clone(callee_name), "bool_to_string") || eq(clone(callee_name), "f64_to_string") || eq(clone(callee_name), "substring") || eq(clone(callee_name), "trim") || eq(clone(callee_name), "to_uppercase") || eq(clone(callee_name), "to_lowercase") || eq(clone(callee_name), "replace") || eq(clone(callee_name), "string::repeat") {
+                ctx_set_local_type(ctx, dest, String_from("string"))
             }
             // Propagate element type from vec_get_unchecked result
             if eq(clone(callee_name), "vec_get_unchecked") {
@@ -1844,6 +1873,21 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 vt = VT_F64()
             }
         }
+        // Infer f64 from init expression when no annotation
+        if vt == VT_I32() && ta_count == 0 && len(node.children) >= 1 {
+            let init_peek = get_unchecked(node.children, 0)
+            if init_peek.kind == NK_FLOAT_LIT() {
+                vt = VT_F64()
+            }
+            // Check binary expr with float operands
+            if init_peek.kind == NK_BINARY() && len(init_peek.children) >= 2 {
+                let lhs_peek = get_unchecked(init_peek.children, 0)
+                let rhs_peek = get_unchecked(init_peek.children, 1)
+                if lhs_peek.kind == NK_FLOAT_LIT() || rhs_peek.kind == NK_FLOAT_LIT() {
+                    vt = VT_F64()
+                }
+            }
+        }
         let local_idx = ctx_alloc_local(ctx, clone(node.text), vt)
 
         // Check type annotation for primitive types and struct types
@@ -1890,6 +1934,10 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
             let init = get_unchecked(node.children, 0)
             let val_idx = lower_expr(ctx, init)
             if val_idx >= 0 {
+                // Post-correct local VT if init is f64 but local was allocated as i32
+                if ctx_local_vt(ctx, val_idx) == VT_F64() && ctx_local_vt(ctx, local_idx) == VT_I32() {
+                    ctx_set_local_vt(ctx, local_idx, VT_F64())
+                }
                 let set_inst = MirInst_new(MIR_LOCAL_SET())
                 set_inst.arg0 = local_idx
                 set_inst.arg1 = val_idx
@@ -1898,6 +1946,18 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 let init_type = ctx_get_local_type(ctx, val_idx)
                 if len(init_type) > 0 {
                     ctx_set_local_type(ctx, local_idx, init_type)
+                }
+                // Infer type from literal kind when no annotation and no propagated type
+                if ta_count == 0 && len(ctx_get_local_type(ctx, local_idx)) == 0 {
+                    if init.kind == NK_INT_LIT() {
+                        ctx_set_local_type(ctx, local_idx, String_from("i32"))
+                    } else if init.kind == NK_FLOAT_LIT() {
+                        ctx_set_local_type(ctx, local_idx, String_from("f64"))
+                    } else if init.kind == NK_BOOL_LIT() {
+                        ctx_set_local_type(ctx, local_idx, String_from("bool"))
+                    } else if init.kind == NK_CHAR_LIT() {
+                        ctx_set_local_type(ctx, local_idx, String_from("char"))
+                    }
                 }
             }
         }

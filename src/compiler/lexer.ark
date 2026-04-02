@@ -316,11 +316,22 @@ fn lex_number(lex: Lexer) -> Token {
         }
     }
 
+    // Consume optional type suffix: i8 i16 i32 i64 u8 u16 u32 u64 f32 f64
+    let suffix_len = try_eat_type_suffix(lex)
+    if suffix_len > 0 && !is_float {
+        // Check if suffix is f64/f32 — treat integer as float
+        let suf = substring(lex.src, lex.pos - suffix_len, lex.pos)
+        if eq(suf, "f64") || eq(suf, "f32") {
+            is_float = true
+        }
+    }
+
     let text = substring(lex.src, start, lex.pos)
     if is_float {
         // Workaround: extract f64 from match to avoid codegen bug
         // with match returning structs containing f64 fields
-        let f_result = parse_f64(clone(text))
+        let num_text = substring(lex.src, start, lex.pos - suffix_len)
+        let f_result = parse_f64(clone(num_text))
         let mut fv: f64 = 0.0
         let mut parse_ok = true
         match f_result {
@@ -334,6 +345,53 @@ fn lex_number(lex: Lexer) -> Token {
     } else {
         Token_int(val, text, start, lex.pos)
     }
+}
+
+fn try_eat_type_suffix(lex: Lexer) -> i32 {
+    // Check for 3-char suffixes first: i32 i64 u32 u64 f32 f64 i16 u16
+    if lex.pos + 3 <= lex.src_len {
+        let c0 = char_at(lex.src, lex.pos)
+        let c1 = char_at(lex.src, lex.pos + 1)
+        let c2 = char_at(lex.src, lex.pos + 2)
+        // Check next char is not alphanumeric (avoid matching prefix of longer ident)
+        let mut end_ok = true
+        if lex.pos + 3 < lex.src_len {
+            let cn = char_at(lex.src, lex.pos + 3)
+            if is_alnum(cn) || cn == 95 {
+                end_ok = false
+            }
+        }
+        if end_ok {
+            // i32=105,51,50 i64=105,54,52 u32=117,51,50 u64=117,54,52
+            // f32=102,51,50 f64=102,54,52 i16=105,49,54 u16=117,49,54
+            let is_3 = (c0 == 105 || c0 == 117 || c0 == 102) &&
+                       ((c1 == 51 && c2 == 50) || (c1 == 54 && c2 == 52) || (c1 == 49 && c2 == 54))
+            if is_3 {
+                lex.pos = lex.pos + 3
+                return 3
+            }
+        }
+    }
+    // Check for 2-char suffixes: i8 u8
+    if lex.pos + 2 <= lex.src_len {
+        let c0 = char_at(lex.src, lex.pos)
+        let c1 = char_at(lex.src, lex.pos + 1)
+        let mut end_ok = true
+        if lex.pos + 2 < lex.src_len {
+            let cn = char_at(lex.src, lex.pos + 2)
+            if is_alnum(cn) || cn == 95 {
+                end_ok = false
+            }
+        }
+        if end_ok {
+            // i8=105,56  u8=117,56
+            if (c0 == 105 || c0 == 117) && c1 == 56 {
+                lex.pos = lex.pos + 2
+                return 2
+            }
+        }
+    }
+    0
 }
 
 // ── Lex String ───────────────────────────────────────────────────────────────
