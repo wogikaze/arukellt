@@ -302,3 +302,388 @@ state before the next step begins.
 8. Update `scripts/verify-harness.sh` to invoke the selfhost binary
 9. Update `docs/current-state.md` to remove the dual-period sections
 10. Archive `issues/done/` for all selfhost promotion issues
+
+## Workspace Restructuring Plan
+
+> **Issue:** #332 — Design for selfhost-primary migration.
+> **Status:** Planning only — no `Cargo.toml` or code changes.
+
+This section documents the workspace restructuring that accompanies the
+selfhost-primary transition. After the dual period ends and the selfhost
+compiler is promoted, the Rust crates shift from "full compiler" to "IDE
+tooling only." This plan defines the complete crate classification, feature
+gate design, minimal post-selfhost workspace, migration procedure, and IDE
+tooling architecture.
+
+### Complete Crate Classification
+
+The dual-period governance section above categorizes crates into "retained"
+and "deletion candidates," but six crates are unclassified. This section
+provides the complete three-tier classification for all 16 workspace crates.
+
+**Tier 1 — Permanent (IDE tooling and shared foundations)**
+
+These crates are retained permanently. They provide IDE integration, shared
+analysis infrastructure, and foundational types used by both the Rust compiler
+and future tooling.
+
+| Crate | Purpose | Workspace Deps |
+|-------|---------|----------------|
+| `ark-diagnostics` | Shared diagnostic types | — |
+| `ark-lexer` | Tokenizer | ark-diagnostics |
+| `ark-parser` | Parser | ark-lexer, ark-diagnostics |
+| `ark-hir` | High-level IR types | ark-diagnostics |
+| `ark-resolve` | Name resolution and scopes | ark-parser, ark-diagnostics, ark-lexer |
+| `ark-typecheck` | Type inference and unification | ark-parser, ark-resolve, ark-hir, ark-diagnostics |
+| `ark-manifest` | Project manifest parsing | — |
+| `ark-target` | Compilation target definitions | — |
+| `ark-dap` | Debug Adapter Protocol | — |
+| `ark-lsp` | Language Server Protocol | ark-lexer, ark-parser, ark-resolve, ark-typecheck, ark-diagnostics, ark-manifest, ark-driver\*, ark-stdlib\* |
+
+\*Dependencies marked with `*` must be decoupled before deletion candidates
+can be removed. See [ark-lsp Decoupling](#ark-lsp-decoupling-pre-deletion-prerequisite)
+below.
+
+**Rationale for Tier 1 additions** (crates not listed in dual-period governance):
+
+- **ark-resolve, ark-typecheck, ark-hir**: Required by `ark-lsp` for
+  go-to-definition, find-references, hover types, and inline diagnostics.
+  These are fast, incremental, in-process operations that cannot be replaced
+  by a subprocess call to the selfhost compiler. All three depend only on
+  other Tier 1 crates.
+
+- **ark-target**: Required by `ark-lsp` for stdlib path resolution and
+  conditional compilation hints. No workspace dependencies.
+
+**Tier 2 — Deletion Candidates (compiler pipeline)**
+
+These crates implement the Rust compiler pipeline. Each is deleted after its
+selfhost equivalent passes the parity check, as defined in the
+[Rust Compiler Deletion Procedure](#rust-compiler-deletion-procedure) above.
+
+| Crate | Role | Workspace Deps |
+|-------|------|----------------|
+| `ark-driver` | Pipeline orchestration | ark-lexer, ark-parser, ark-resolve, ark-typecheck, ark-hir, ark-mir, ark-wasm, ark-diagnostics, ark-target |
+| `ark-mir` | MIR and HIR→MIR lowering | ark-parser, ark-typecheck, ark-diagnostics, ark-hir |
+| `ark-wasm` | Wasm binary emitter | ark-mir, ark-typecheck, ark-diagnostics, ark-parser, ark-target |
+| `ark-stdlib` | Stdlib binary embedding | ark-wasm |
+| `ark-llvm` | LLVM backend (already optional) | ark-mir, ark-diagnostics, ark-typecheck, ark-target |
+| `arukellt` | CLI binary | all crates |
+
+**Note on `ark-stdlib`**: Although it provides stdlib definitions, its current
+implementation depends on `ark-wasm` for binary embedding. After selfhost
+promotion, stdlib embedding moves to the selfhost compiler. The LSP needs
+stdlib *metadata* (names, signatures) but not binary embedding; this
+decoupling is part of the migration (see Phase 2 below).
+
+### Dependency Graph
+
+```
+LEAF (no workspace deps)
+├── ark-diagnostics
+├── ark-manifest
+├── ark-target
+└── ark-dap
+
+FOUNDATION → diagnostics only
+├── ark-lexer ──→ ark-diagnostics
+└── ark-hir ────→ ark-diagnostics
+
+PARSING → lexer + diagnostics
+└── ark-parser ─→ ark-lexer, ark-diagnostics
+
+SEMANTIC ANALYSIS → parser + diagnostics
+├── ark-resolve ───→ ark-parser, ark-diagnostics, ark-lexer
+└── ark-typecheck ─→ ark-parser, ark-resolve, ark-hir, ark-diagnostics
+
+─── DELETION BOUNDARY ─────────────────────────────
+
+COMPILER BACKEND (deletion candidates below this line)
+├── ark-mir ───→ ark-parser, ark-typecheck, ark-diagnostics, ark-hir
+├── ark-wasm ──→ ark-mir, ark-typecheck, ark-diagnostics, ark-parser, ark-target
+├── ark-llvm ──→ ark-mir, ark-diagnostics, ark-typecheck, ark-target
+└── ark-stdlib → ark-wasm
+
+ORCHESTRATION
+├── ark-driver → (9 crates: lexer, parser, resolve, typecheck, hir, mir, wasm, diagnostics, target)
+└── arukellt ──→ (14 crates: all)
+
+IDE (crosses the boundary — requires decoupling)
+└── ark-lsp ───→ lexer, parser, resolve, typecheck, diagnostics, manifest, driver*, stdlib*
+```
+
+The deletion boundary cleanly separates Tier 1 (above) from Tier 2 (below),
+except for `ark-lsp`'s dependencies on `ark-driver` and `ark-stdlib`, which
+must be decoupled before deletion.
+
+### Feature Gate Design
+
+During the transition period between dual-period governance and full deletion,
+a `rust-compiler` Cargo feature controls whether compiler-pipeline crates are
+built. This allows the IDE-only workspace to be tested before pipeline crates
+are permanently removed.
+
+**Per-crate feature configuration:**
+
+```toml
+# crates/ark-lsp/Cargo.toml (planned change)
+[features]
+default = ["rust-compiler"]
+rust-compiler = ["dep:ark-driver", "dep:ark-stdlib"]
+
+[dependencies]
+ark-driver = { workspace = true, optional = true }
+ark-stdlib = { workspace = true, optional = true }
+# ... other deps remain non-optional ...
+```
+
+```toml
+# crates/arukellt/Cargo.toml (planned change)
+[features]
+default = ["rust-compiler"]
+rust-compiler = ["ark-lsp/rust-compiler"]
+```
+
+**Crates gated by `rust-compiler`:**
+
+| Crate | Gate mechanism |
+|-------|---------------|
+| `ark-driver` | Made optional dep in ark-lsp via feature |
+| `ark-mir` | Only reached transitively through ark-driver |
+| `ark-wasm` | Only reached transitively through ark-driver and ark-stdlib |
+| `ark-stdlib` | Made optional dep in ark-lsp via feature |
+| `ark-llvm` | Already gated by `llvm` feature in arukellt |
+| `arukellt` | Removed from `default-members` when feature disabled |
+
+**Build commands during transition:**
+
+```bash
+# Full build (default — dual period, all crates)
+cargo build --workspace
+
+# IDE-only build (test the minimal workspace)
+cargo build -p ark-lsp --no-default-features
+cargo build -p ark-dap
+
+# Verify IDE-only build doesn't pull pipeline crates
+cargo tree -p ark-lsp --no-default-features | grep -E 'ark-(driver|mir|wasm|stdlib)'
+# Expected: no output (no pipeline crates in dependency tree)
+```
+
+### Minimal Post-Selfhost Cargo.toml
+
+After all deletion candidates are removed, the workspace contains only the
+10 permanent Tier 1 crates. The selfhost compiler (`arukellt.wasm`) is the
+primary compiler; Rust crates provide IDE tooling only.
+
+```toml
+[workspace]
+resolver = "2"
+members = [
+    "crates/ark-lexer",
+    "crates/ark-parser",
+    "crates/ark-resolve",
+    "crates/ark-typecheck",
+    "crates/ark-hir",
+    "crates/ark-diagnostics",
+    "crates/ark-target",
+    "crates/ark-manifest",
+    "crates/ark-lsp",
+    "crates/ark-dap",
+]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.85"
+
+[workspace.dependencies]
+ark-lexer = { path = "crates/ark-lexer" }
+ark-parser = { path = "crates/ark-parser" }
+ark-resolve = { path = "crates/ark-resolve" }
+ark-typecheck = { path = "crates/ark-typecheck" }
+ark-hir = { path = "crates/ark-hir" }
+ark-diagnostics = { path = "crates/ark-diagnostics" }
+ark-target = { path = "crates/ark-target" }
+ark-manifest = { path = "crates/ark-manifest" }
+ark-dap = { path = "crates/ark-dap" }
+
+# Shared dependencies (IDE tooling only)
+ariadne = "0.5"
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+tower-lsp = "0.20"
+tokio = { version = "1", features = ["full"] }
+serde_json = "1.0"
+```
+
+**Removed crates:** `ark-driver`, `ark-mir`, `ark-wasm`, `ark-stdlib`,
+`ark-llvm`, `arukellt`.
+
+**Removed workspace dependencies:** `wasm-encoder`, `wasmparser`, `wasmtime`,
+`inkwell` — these belong to the compiler pipeline and are no longer needed.
+
+**Version bump:** `0.1.0` → `0.2.0` to mark the post-selfhost transition.
+
+### ark-lsp Decoupling (Pre-deletion Prerequisite)
+
+Before compiler-pipeline crates can be deleted, `ark-lsp` must be decoupled
+from `ark-driver` and `ark-stdlib`. This is a prerequisite for Phase 3 of
+the migration.
+
+**Current problematic dependency chains:**
+
+```
+ark-lsp → ark-driver → ark-mir, ark-wasm, ...  (9 transitive deps)
+ark-lsp → ark-stdlib → ark-wasm                (2 transitive deps)
+```
+
+**Decoupling strategy:**
+
+1. **`ark-driver` → subprocess invocation.** The LSP currently uses ark-driver
+   to run the full compilation pipeline and collect diagnostics. After selfhost
+   promotion, replace this with a subprocess call:
+
+   ```
+   wasmtime arukellt.wasm compile --check --diagnostics-format=json <file>
+   ```
+
+   The selfhost compiler emits structured JSON diagnostics on stdout; the LSP
+   parses this output. This eliminates the in-process dependency on the entire
+   Rust compilation pipeline.
+
+   **Trade-off:** subprocess invocation adds ~50-100ms latency per full-file
+   diagnostic check. This is acceptable because:
+   - Fast operations (tokenization, parsing, name resolution, type hover)
+     remain in-process via Tier 1 crates
+   - Full-file diagnostics are debounced (typically 300ms+ after last keystroke)
+   - The subprocess model matches how other LSP servers work (e.g., rust-analyzer
+     invokes `cargo check`)
+
+2. **`ark-stdlib` → metadata extraction.** The LSP uses ark-stdlib for
+   function signatures, type information, and documentation strings for
+   completions and hover. Replace the direct dependency with a static metadata
+   file:
+
+   - Generate `std/stdlib-metadata.json` from stdlib manifests (signatures,
+     types, doc strings) as a build step
+   - The LSP reads this file at startup and caches it in memory
+   - No dependency on `ark-wasm` or binary embedding
+
+   **Format sketch:**
+
+   ```json
+   {
+     "modules": {
+       "io": {
+         "functions": {
+           "println": {
+             "signature": "fn println(s: String)",
+             "doc": "Print a string followed by a newline."
+           }
+         }
+       }
+     }
+   }
+   ```
+
+### Step-by-Step Migration Procedure
+
+Execute the following phases **in order**. Each step within a phase must leave
+the repository in a buildable, test-passing state (`verify-harness.sh --quick`
+passes all checks).
+
+**Phase 1 — Feature gate introduction** (while dual period is active)
+
+| Step | Action | Verification |
+|------|--------|--------------|
+| 1.1 | Add `rust-compiler` feature to `ark-lsp/Cargo.toml`; make `ark-driver` and `ark-stdlib` optional behind this feature | `cargo build --workspace` passes |
+| 1.2 | Guard `ark-lsp` code that uses `ark-driver` / `ark-stdlib` with `#[cfg(feature = "rust-compiler")]` | `cargo build -p ark-lsp --no-default-features` passes |
+| 1.3 | Add `rust-compiler` feature to `arukellt/Cargo.toml` that enables it transitively in ark-lsp | `cargo build --workspace` passes (default features) |
+| 1.4 | Verify IDE-only build produces a functional LSP binary (syntax highlighting, basic diagnostics from in-process analysis) | Manual LSP test with `--no-default-features` |
+
+**Phase 2 — ark-lsp decoupling** (after selfhost promotion confirmed)
+
+| Step | Action | Verification |
+|------|--------|--------------|
+| 2.1 | Generate `std/stdlib-metadata.json` from stdlib manifests | File exists and is valid JSON |
+| 2.2 | Replace `ark-lsp`'s direct `ark-stdlib` usage with metadata file reading | `cargo build -p ark-lsp --no-default-features` passes |
+| 2.3 | Add `--diagnostics-format=json` flag to selfhost compiler | `wasmtime arukellt.wasm compile --check --diagnostics-format=json <file>` emits JSON |
+| 2.4 | Replace `ark-lsp`'s direct `ark-driver` usage with selfhost subprocess invocation | `cargo build -p ark-lsp --no-default-features` passes |
+| 2.5 | Remove `rust-compiler` feature from `ark-lsp` (zero pipeline deps remain) | `cargo build -p ark-lsp` passes; `cargo tree -p ark-lsp \| grep ark-driver` outputs nothing |
+
+**Phase 3 — Compiler pipeline deletion** (follows [Rust Compiler Deletion Procedure](#rust-compiler-deletion-procedure) above)
+
+| Step | Action | Verification |
+|------|--------|--------------|
+| 3.1 | Delete `crates/ark-driver/` and remove from `Cargo.toml` | `cargo build --workspace` passes |
+| 3.2 | Delete `crates/ark-mir/` and remove from `Cargo.toml` | `cargo build --workspace` passes |
+| 3.3 | Delete `crates/ark-wasm/` and remove from `Cargo.toml` | `cargo build --workspace` passes |
+| 3.4 | Delete `crates/ark-stdlib/` and remove from `Cargo.toml` | `cargo build --workspace` passes |
+| 3.5 | Delete `crates/ark-llvm/` and remove from `Cargo.toml` | `cargo build --workspace` passes |
+| 3.6 | Delete `crates/arukellt/` and remove from `Cargo.toml` | `cargo build --workspace` passes |
+| 3.7 | Remove `wasm-encoder`, `wasmparser`, `wasmtime`, `inkwell` from workspace deps | `cargo build --workspace` passes |
+| 3.8 | Apply minimal post-selfhost `Cargo.toml` (see above); bump version to `0.2.0` | `cargo build --workspace` passes |
+| 3.9 | Update CI: replace `cargo build --workspace` compile step with `wasmtime run arukellt.wasm` for compiler tests | CI green |
+| 3.10 | Update `scripts/verify-harness.sh` to invoke the selfhost binary | `verify-harness.sh --quick` passes |
+
+### IDE Tooling Positioning (Post-Selfhost Architecture)
+
+After selfhost promotion, the Rust crates serve a single purpose: **IDE
+tooling.** The compilation workflow shifts entirely to the selfhost compiler.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  Editor (VS Code / Neovim / etc.)                        │
+│  └─ LSP client                                           │
+└───────────────┬──────────────────────────────────────────┘
+                │ LSP protocol (JSON-RPC over stdio)
+┌───────────────▼──────────────────────────────────────────┐
+│  ark-lsp (Rust binary)                                   │
+│                                                          │
+│  In-process (fast, incremental):                         │
+│  ├─ ark-lexer      → syntax highlighting, token stream   │
+│  ├─ ark-parser     → AST, structural navigation          │
+│  ├─ ark-resolve    → go-to-definition, find-references   │
+│  ├─ ark-typecheck  → hover types, type diagnostics       │
+│  ├─ ark-hir        → high-level IR for analysis          │
+│  ├─ ark-manifest   → project config, stdlib paths        │
+│  ├─ ark-target     → target info, conditional hints      │
+│  └─ ark-diagnostics→ diagnostic formatting               │
+│                                                          │
+│  Subprocess (full-file diagnostics):                     │
+│  └─ wasmtime arukellt.wasm compile --check --diag=json   │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│  ark-dap (Rust binary)                                   │
+│  └─ Debug Adapter Protocol for Wasm debugging            │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Key design decisions:**
+
+1. **Rust crates handle fast, incremental IDE operations.** Tokenization,
+   parsing, name resolution, and type hover run in-process for sub-millisecond
+   response times. These operations benefit from Rust's speed and can operate
+   on partial or incomplete source files.
+
+2. **Selfhost compiler handles full compilation diagnostics** via subprocess
+   invocation. The LSP invokes
+   `wasmtime arukellt.wasm compile --check --diagnostics-format=json <file>`
+   and parses structured JSON output. This model matches how `rust-analyzer`
+   delegates to `cargo check`.
+
+3. **Semantic analysis crates are retained** (`ark-resolve`, `ark-typecheck`,
+   `ark-hir`) because IDE features like go-to-definition, find-references,
+   and hover-type require fast in-process analysis that subprocess latency
+   cannot support.
+
+4. **No duplication of compiler logic.** The Tier 1 semantic analysis crates
+   analyze source code for IDE purposes. They do *not* need to match the
+   selfhost compiler's output bit-for-bit — they only need to provide
+   correct-enough analysis for IDE features. The selfhost compiler is the
+   single source of truth for compilation correctness.
