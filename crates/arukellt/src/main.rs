@@ -196,6 +196,15 @@ enum Commands {
         #[arg(long = "wasm-size", value_name = "FILE")]
         wasm_size: PathBuf,
     },
+    /// Link multiple Wasm components into a single composed component
+    Compose {
+        /// Input component .wasm files (two or more)
+        #[arg(value_name = "COMPONENT", required = true)]
+        inputs: Vec<PathBuf>,
+        /// Output composed component file
+        #[arg(short, long, value_name = "FILE", default_value = "composed.component.wasm")]
+        output: PathBuf,
+    },
 }
 
 fn main() {
@@ -314,6 +323,9 @@ fn main() {
             list,
         } => {
             commands::cmd_lint(file, target, list);
+        }
+        Commands::Compose { inputs, output } => {
+            commands::cmd_compose(inputs, output);
         }
     }
 }

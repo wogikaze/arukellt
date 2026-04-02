@@ -1239,3 +1239,46 @@ fn operand_uses_capability(op: &Operand, builtins: &[&str]) -> bool {
         _ => false,
     }
 }
+
+/// Compose multiple WebAssembly components into a single composed component.
+///
+/// Reads each input component's imports/exports, prints the dependency graph,
+/// detects export conflicts, and invokes `wasm-tools component compose`.
+pub(crate) fn cmd_compose(inputs: Vec<PathBuf>, output: PathBuf) {
+    use ark_wasm::component::{WrapError, compose_components};
+
+    if inputs.is_empty() {
+        eprintln!("error: arukellt compose requires at least one component input");
+        process::exit(1);
+    }
+
+    let input_paths: Vec<&std::path::Path> = inputs.iter().map(PathBuf::as_path).collect();
+
+    match compose_components(&input_paths) {
+        Ok(bytes) => {
+            if let Err(e) = std::fs::write(&output, &bytes) {
+                eprintln!("error: failed to write output {}: {}", output.display(), e);
+                process::exit(1);
+            }
+            eprintln!(
+                "[arukellt compose] composed {} components → {} ({} bytes)",
+                inputs.len(),
+                output.display(),
+                bytes.len()
+            );
+        }
+        Err(WrapError::ToolNotFound(msg)) => {
+            eprintln!("error: {}", msg);
+            eprintln!("hint: install wasm-tools with: cargo install wasm-tools");
+            process::exit(1);
+        }
+        Err(WrapError::WasmTools(msg)) => {
+            eprintln!("error: {}", msg);
+            process::exit(1);
+        }
+        Err(WrapError::Io(msg)) => {
+            eprintln!("error: {}", msg);
+            process::exit(1);
+        }
+    }
+}

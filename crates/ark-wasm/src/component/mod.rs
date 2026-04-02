@@ -16,6 +16,7 @@ pub use wit::{
 pub use wit_parse::{
     WitDocument, WitInterface, WitParseError, parse_wit, wit_interface_to_mir_imports,
 };
+pub use wrap::{ComponentDeps, WrapError, compose_components, read_component_deps};
 
 use ark_mir::mir::MirModule;
 use ark_typecheck::types::Type;
