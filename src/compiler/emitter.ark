@@ -892,10 +892,6 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_CALL())
             emit_leb128_u(w, 0)  // fd_write
             emit_byte(w, OP_DROP())
-
-            // Push dummy result (println is void, but caller may LOCAL_SET the "result")
-            emit_byte(w, OP_I32_CONST())
-            emit_leb128_s(w, 0)
             
         } else if eq(clone(callee), "stdio::print") || eq(clone(callee), "print") {
             // Inline print (no newline): same as println but skip newline step
@@ -935,9 +931,6 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_CALL())
             emit_leb128_u(w, 0)
             emit_byte(w, OP_DROP())
-            // Push dummy result
-            emit_byte(w, OP_I32_CONST())
-            emit_leb128_s(w, 0)
 
         } else if eq(clone(callee), "String_from") || eq(clone(callee), "clone") {
             // String_from and clone are no-op identities: value is already on stack
@@ -1011,8 +1004,6 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_CALL())
             emit_leb128_u(w, 0)
             emit_byte(w, OP_DROP())
-            emit_byte(w, OP_I32_CONST())
-            emit_leb128_s(w, 0)
         } else if eq(clone(callee), "bool_to_string") || eq(clone(callee), "text::format_bool") || eq(clone(callee), "convert::bool_to_string") {
             // Inline bool_to_string: if value != 0 → "true" ptr, else → "false" ptr
             let s_tmp = ctx.scratch_base + 2
@@ -3874,9 +3865,6 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, 0x02)  // align=4
             emit_byte(w, 0x00)  // offset=0
 
-            // Push dummy result
-            emit_byte(w, OP_I32_CONST())
-            emit_leb128_s(w, 0)
         } else if eq(clone(callee), "Vec_new_i32") || eq(clone(callee), "Vec_new_String") || eq(clone(callee), "Vec_new_Point") || eq(clone(callee), "Vec_new_MirInst") || eq(clone(callee), "Vec_new_MirLocal") || eq(clone(callee), "Vec_new_MirBlock") || eq(clone(callee), "Vec_new_MirFunction") || eq(clone(callee), "Vec_new_AstNode") || eq(clone(callee), "Vec_new_u8") || eq(clone(callee), "Vec_new_f64") || eq(clone(callee), "Vec_new_bool") || eq(clone(callee), "Vec_new_Item") || eq(clone(callee), "Vec_new_Container") || eq(clone(callee), "Vec_new_Context") || eq(clone(callee), "Vec_new_Holder") || eq(clone(callee), "Vec_new_Inner") || eq(clone(callee), "Vec_new_Outer") || eq(clone(callee), "Vec_new_Token") || eq(clone(callee), "Vec_new_Span") || eq(clone(callee), "Vec_new_Diagnostic") || eq(clone(callee), "Vec_new_TypedFn") || eq(clone(callee), "Vec_new_WasmLocal") || eq(clone(callee), "Vec_new_ImportEntry") || eq(clone(callee), "Vec_new_ExportEntry") || eq(clone(callee), "Vec_new_FuncType") || eq(clone(callee), "Vec_new_Pair") || eq(clone(callee), "Vec_new_Node") {
             // Vec_new_*: allocate Vec header {len:0, cap:8, data_ptr} + data (8*4=32 bytes)
             // Memory layout: [len(4) | cap(4) | data_ptr(4)] then [data(32)]
@@ -6212,7 +6200,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             // Allocate Arukellt string: [len_i32, data...]
             emit_byte(w, OP_GLOBAL_GET())
             emit_leb128_u(w, 0)
-            let s_str = ctx.scratch_base + 4  // reuse
+            let s_str = ctx.scratch_base + 6  // must not alias s_cstr (scratch_base+4)
             emit_byte(w, OP_LOCAL_TEE())
             emit_leb128_u(w, s_str)
             // Store length
@@ -8484,8 +8472,18 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
                 emit_byte(w, OP_CALL())
                 emit_leb128_u(w, fn_idx + NUM_WASI_IMPORTS())  // offset for wasi imports
             } else {
-                // Unknown function — emit unreachable
-                emit_byte(w, OP_UNREACHABLE())
+                // Unknown function (cross-module or unresolved) — drop the args
+                // that are on the stack, then push i32.const 0 as placeholder.
+                // This keeps the wasm type-stack valid without using unreachable.
+                let arg_count = inst.int_val
+                let mut drop_i = 0
+                while drop_i < arg_count {
+                    emit_byte(w, OP_DROP())
+                    drop_i = drop_i + 1
+                }
+                // Push placeholder result (i32 = 0)
+                emit_byte(w, OP_I32_CONST())
+                emit_leb128_s(w, 0)
             }
         }
     } else if inst.op == 42 {  // RETURN

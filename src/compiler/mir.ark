@@ -312,6 +312,8 @@ struct LowerCtx {
     local_indices: Vec<i32>,
     fn_names: Vec<String>,
     fn_indices: Vec<i32>,
+    // Return value type for each function (parallel to fn_names): VT_VOID=0, VT_I32=1, VT_F64=3
+    fn_return_vts: Vec<i32>,
     loop_exit_block: i32,
     loop_cond_block: i32,
     nesting_depth: i32,
@@ -342,6 +344,7 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         local_indices: Vec_new_i32(),
         fn_names: Vec_new_String(),
         fn_indices: Vec_new_i32(),
+        fn_return_vts: Vec_new_i32(),
         loop_exit_block: 0 - 1,
         loop_cond_block: 0 - 1,
         nesting_depth: 0,
@@ -358,6 +361,32 @@ fn LowerCtx_new(m: MirModule) -> LowerCtx {
         variant_tags: Vec_new_i32(),
         payload_variants: Vec_new_String(),
     }
+}
+
+// Look up return VT for a named function (VT_VOID=0 if not found or void, VT_I32=1, VT_F64=3)
+fn ctx_fn_return_vt(ctx: LowerCtx, name: String) -> i32 {
+    let fc = len(ctx.fn_names)
+    let mut i = 0
+    while i < fc {
+        if eq(clone(get_unchecked(ctx.fn_names, i)), clone(name)) {
+            return get_unchecked(ctx.fn_return_vts, i)
+        }
+        i = i + 1
+    }
+    // Known void stdlib/built-in functions
+    let is_void_builtin =
+        eq(clone(name), "stdio::println") || eq(clone(name), "println") ||
+        eq(clone(name), "stdio::print")   || eq(clone(name), "print")   ||
+        eq(clone(name), "stdio::eprintln") || eq(clone(name), "eprintln") ||
+        eq(clone(name), "stdio::eprint")  || eq(clone(name), "eprint")  ||
+        eq(clone(name), "process::exit")  || eq(clone(name), "host::process::exit") ||
+        eq(clone(name), "push_char")      || eq(clone(name), "push")    ||
+        eq(clone(name), "push_byte")
+    if is_void_builtin {
+        return VT_VOID()
+    }
+    // Unknown function: assume non-void (safe default for stdlib/builtins)
+    VT_I32()
 }
 
 // Look up field index within a struct definition
@@ -1237,6 +1266,10 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 }
             }
             ctx_emit(ctx, call_inst)
+            // If this user-defined function returns void, return -1 (no stack value)
+            if ctx_fn_return_vt(ctx, clone(callee_name)) == VT_VOID() {
+                return 0 - 1
+            }
             return dest
         }
         return 0 - 1
@@ -1265,10 +1298,11 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             }
 
             // Else block (optional)
+            let mut else_result = 0 - 1
             if child_count >= 3 {
                 ctx_emit(ctx, MirInst_new(MIR_ELSE()))
                 let else_body = get_unchecked(node.children, 2)
-                let else_result = lower_expr(ctx, else_body)
+                else_result = lower_expr(ctx, else_body)
                 if else_result >= 0 {
                     let set_inst2 = MirInst_new(MIR_LOCAL_SET())
                     set_inst2.arg0 = result
@@ -1280,13 +1314,16 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             ctx_emit(ctx, MirInst_new(MIR_END()))
             ctx.nesting_depth = ctx.nesting_depth - 1
 
-            // Emit LOCAL_GET to put the result back on the Wasm stack
-            let get_inst = MirInst_new(MIR_LOCAL_GET())
-            get_inst.arg0 = result
-            get_inst.dest = result
-            ctx_emit(ctx, get_inst)
-
-            return result
+            // Only push result to stack if at least one branch produced a value
+            if then_result >= 0 || else_result >= 0 {
+                let get_inst = MirInst_new(MIR_LOCAL_GET())
+                get_inst.arg0 = result
+                get_inst.dest = result
+                ctx_emit(ctx, get_inst)
+                return result
+            }
+            // Void if-expression: no value on stack
+            return 0 - 1
         }
         return 0 - 1
     }
@@ -2343,12 +2380,26 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
     // Build function name→index map from declarations
     let decl_count = len(decls)
     let mut fn_names = Vec_new_String()
+    let mut fn_return_vts = Vec_new_i32()
     let mut fn_index = 0
+    let typed_fn_count = len(check_result.typed_fns)
     let mut d = 0
     while d < decl_count {
         let decl = get_unchecked(decls, d)
         if decl.kind == NK_FN_DECL() {
             push(fn_names, clone(decl.text))
+            // Record return vt for void detection: VT_VOID=0, VT_I32=1, VT_F64=3
+            let mut rvt = VT_I32()
+            if fn_index < typed_fn_count {
+                let tf = get_unchecked(check_result.typed_fns, fn_index)
+                let rt_tag = tf.return_type.tag
+                if rt_tag == 3 {
+                    rvt = VT_F64()
+                } else if rt_tag == 7 || rt_tag == 8 || rt_tag == 0 {
+                    rvt = VT_VOID()
+                }
+            }
+            push(fn_return_vts, rvt)
             fn_index = fn_index + 1
         }
         d = d + 1
@@ -2357,6 +2408,7 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
     // Lower each function
     let mut ctx = LowerCtx_new(m)
     ctx.fn_names = fn_names
+    ctx.fn_return_vts = fn_return_vts
     ctx_register_builtin_variants(ctx)
 
     // Collect struct definitions for field index resolution
@@ -2478,25 +2530,41 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                     }
                     let param_local = ctx_alloc_local(ctx, clone(param.text), pvt)
                     push(ctx.func.params, MirLocal { name: clone(param.text), val_type: pvt })
+                    // Register type for Vec/struct parameters so len/get_unchecked dispatch works
+                    if len(param.type_ann) >= 1 {
+                        let p_ty = get_unchecked(param.type_ann, 0)
+                        if p_ty.kind == 91 {  // NK_TYPE_GENERIC
+                            if eq(clone(p_ty.text), "Vec") && len(p_ty.children) >= 2 {
+                                let p_elem = get_unchecked(p_ty.children, 1)
+                                ctx_set_local_type(ctx, param_local, concat(String_from("vec:"), clone(p_elem.text)))
+                            }
+                        } else if p_ty.kind == 90 {  // NK_TYPE_NAMED
+                            let p_ty_name = clone(p_ty.text)
+                            if !eq(clone(p_ty_name), "i32") && !eq(clone(p_ty_name), "f64") && !eq(clone(p_ty_name), "bool") && !eq(clone(p_ty_name), "String") && !eq(clone(p_ty_name), "u8") && !eq(clone(p_ty_name), "char") {
+                                ctx_set_local_type(ctx, param_local, p_ty_name)
+                            }
+                        }
+                    }
                 }
                 p = p + 1
             }
 
             // Set return type from type-check result
-            // TY_I32=1, TY_I64=2, TY_F64=3, TY_BOOL=4, TY_STRING=5
+            // TY_I32=1, TY_I64=2, TY_F64=3, TY_BOOL=4, TY_STRING=5, TY_CHAR=6
             // TY_UNIT=7 means void, TY_UNKNOWN=0 means unresolved
-            // TY_VEC=10, TY_OPTION=11, TY_RESULT=12, TY_STRUCT=21, TY_ENUM=22
+            // TY_VEC=10, TY_OPTION=11, TY_RESULT=12, TY_STRUCT=21, TY_ENUM=22, TY_TUPLE=23
             let rt_tag = tf.return_type.tag
             if rt_tag == 3 {
                 ctx.func.return_type = VT_F64()
-            } else if rt_tag >= 1 && rt_tag <= 5 {
+            } else if rt_tag >= 1 && rt_tag <= 6 {
+                // covers i32(1), i64(2), f64(3), bool(4), String(5), char(6)
                 ctx.func.return_type = VT_I32()
             }
-            // Struct/enum/vec/option/result return as i32 pointer
+            // Struct/enum/vec/option/result/tuple return as i32 pointer
             if rt_tag >= 10 && rt_tag <= 12 {
                 ctx.func.return_type = VT_I32()
             }
-            if rt_tag >= 21 && rt_tag <= 23 {
+            if rt_tag >= 20 && rt_tag <= 23 {
                 ctx.func.return_type = VT_I32()
             }
 
