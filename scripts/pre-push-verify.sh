@@ -20,15 +20,20 @@ NC='\033[0m'
 
 echo -e "${YELLOW}=== arukellt Pre-Push (lightweight gate) ===${NC}"
 
-# Detect what changed relative to the upstream tracking branch (or HEAD~1 as fallback)
-UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo "HEAD~1")
-CHANGED=$(git diff --name-only "$UPSTREAM"...HEAD 2>/dev/null || git diff --name-only HEAD~1 || true)
+# Detect what changed: use merge-base for accuracy with complex histories
+UPSTREAM_REF=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
+if [ -n "${UPSTREAM_REF:-}" ]; then
+    BASE=$(git merge-base HEAD "$UPSTREAM_REF")
+    CHANGED=$(git diff --name-only "$BASE"...HEAD)
+else
+    CHANGED=$(git diff --name-only HEAD~1...HEAD 2>/dev/null || true)
+fi
 
 has_rust_changes() {
-    echo "$CHANGED" | grep -qE '^(crates/|src/|Cargo\.toml|Cargo\.lock)' 2>/dev/null
+    echo "$CHANGED" | grep -qE '^(crates/|src/|tests/|benches/|examples/|build\.rs|Cargo\.toml|Cargo\.lock)' 2>/dev/null
 }
 has_doc_changes() {
-    echo "$CHANGED" | grep -qE '^(docs/|issues/|scripts/generate-docs\.py|scripts/generate-issue-index\.sh|std/manifest\.toml)' 2>/dev/null
+    echo "$CHANGED" | grep -qE '^(docs/|issues/|scripts/generate-docs\.py|scripts/generate-issue-index\.sh|std/manifest\.toml|README\.md)' 2>/dev/null
 }
 has_fixture_changes() {
     echo "$CHANGED" | grep -qE '^(tests/fixtures/|std/)' 2>/dev/null
@@ -68,9 +73,13 @@ fi
 # ── 4. Extension syntax check (only when extension files changed) ─────────────
 if has_extension_changes; then
     echo -e "\n${YELLOW}── Extension syntax check ──${NC}"
-    node --check extensions/arukellt-all-in-one/src/extension.js
-    python3 -c "import json; json.load(open('extensions/arukellt-all-in-one/package.json'))" \
-        && echo "  ✓ package.json valid JSON"
+    if [ -f extensions/arukellt-all-in-one/src/extension.js ]; then
+        node --check extensions/arukellt-all-in-one/src/extension.js
+    fi
+    if [ -f extensions/arukellt-all-in-one/package.json ]; then
+        python3 -c "import json; json.load(open('extensions/arukellt-all-in-one/package.json'))" \
+            && echo "  ✓ package.json valid JSON"
+    fi
 fi
 
 echo -e "\n${GREEN}=== Pre-push passed ===${NC}"
