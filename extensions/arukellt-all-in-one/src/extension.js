@@ -689,12 +689,12 @@ function registerTaskProvider(context) {
       const tasks = []
 
       const definitions = [
-        { task: 'check', command: 'check', group: vscode.TaskGroup.Build },
-        { task: 'compile', command: 'compile', group: vscode.TaskGroup.Build },
-        { task: 'run', command: 'run', group: undefined },
-        { task: 'test', command: 'test', group: vscode.TaskGroup.Test },
-        { task: 'fmt', command: 'fmt', group: undefined },
-        { task: 'fmt-check', command: 'fmt --check', group: undefined },
+        { type: 'arukellt', task: 'check', command: 'check', group: vscode.TaskGroup.Build },
+        { type: 'arukellt', task: 'compile', command: 'compile', group: vscode.TaskGroup.Build },
+        { type: 'arukellt', task: 'run', command: 'run', group: undefined },
+        { type: 'arukellt', task: 'test', command: 'test', group: vscode.TaskGroup.Test },
+        { type: 'arukellt', task: 'fmt', command: 'fmt', group: undefined },
+        { type: 'arukellt', task: 'fmt-check', command: 'fmt --check', group: undefined },
       ]
 
       // Generate tasks per workspace folder for multi-root support
@@ -720,7 +720,7 @@ function registerTaskProvider(context) {
         }
 
         // Background watch task
-        const watchDef = { task: 'watch', command: 'check --watch', isBackground: true }
+        const watchDef = { type: 'arukellt', task: 'watch', command: 'check --watch', isBackground: true }
         const watchExec = new vscode.ShellExecution(`${command} check --watch`, {
           cwd: scope.uri ? scope.uri.fsPath : undefined,
         })

@@ -257,7 +257,7 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Verify harness (size + WAT + docs)
-        run: bash scripts/verify-harness.sh --size --wat --docs
+        run: bash scripts/run/verify-harness.sh --size --wat --docs
 
   # ── Layer 7b: Component interop (push only) ──────────────────────────────
   component-interop:
@@ -286,11 +286,14 @@ jobs:
           curl https://wasmtime.dev/install.sh -sSf | bash
           echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
+      - name: Install wasm-tools
+        run: cargo install wasm-tools --locked --quiet
+
       - name: Build arukellt
         run: cargo build -p arukellt --quiet
 
       - name: Component interop tests
-        run: bash scripts/verify-harness.sh --component
+        run: bash scripts/run/verify-harness.sh --component
 
   # ── Layer 8: Perf baseline snapshot (push only) ─────────────────────────
   perf-baseline:
@@ -318,7 +321,7 @@ jobs:
         run: cargo build --release -p arukellt
 
       - name: Collect perf and fixture baselines
-        run: python3 scripts/collect-baseline.py
+        run: python3 scripts/util/collect-baseline.py
 
       - name: Upload baseline artifacts
         uses: actions/upload-artifact@v4
@@ -358,13 +361,13 @@ jobs:
       - name: Run full bootstrap (Stage 0 + Stage 1 + Stage 2)
         run: |
           # Run full bootstrap — Stage 2 fixpoint may fail (expected until selfhost reaches parity)
-          bash scripts/verify-bootstrap.sh --check 2>&1 | tee bootstrap-results.txt || true
+          bash scripts/run/verify-bootstrap.sh --check 2>&1 | tee bootstrap-results.txt || true
           # Stage 0 and Stage 1 must pass (merge-blocking)
           grep -q 'stage0-compile: reached' bootstrap-results.txt
           grep -q 'stage1-compile: reached' bootstrap-results.txt
 
       - name: Run selfhost fixture parity
-        run: bash scripts/check-selfhost-parity.sh --fixture 2>&1 | tee parity-results.txt || true
+        run: bash scripts/check/check-selfhost-parity.sh --fixture 2>&1 | tee parity-results.txt || true
 
       - name: Upload results
         if: always()
