@@ -9,7 +9,7 @@
 - CLI default target: `wasm32-wasi-p1`
 - Canonical target: `wasm32-wasi-p2`
 - Component emit: available on `wasm32-wasi-p2` (requires external `wasm-tools` binary and WASI adapter module)
-- Fixture harness: 592 passed, 5 skipped / 622 entries
+- Fixture harness: 592 passed, 5 skipped / 623 entries
 - Verification: `bash scripts/verify-harness.sh (fast local gate; use --full for full local verification)` — 13/13 checks pass
 - Stdlib manifest-backed public API: 275 functions
 
@@ -56,6 +56,7 @@ Do not edit generated files manually — changes will be overwritten on the next
 | `docs/README.md` | generated |
 | `docs/_sidebar.md` | generated |
 | `docs/stdlib/reference.md` | generated |
+| `docs/stdlib/name-index.md` | generated |
 | `docs/stdlib/modules/*.md` | generated |
 | `docs/compiler/README.md` | generated |
 | `docs/language/README.md` | generated |

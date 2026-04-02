@@ -6,7 +6,7 @@
 ## Current Snapshot
 
 - Current user-visible behavior is described by [../current-state.md](../current-state.md).
-- Fixture-backed verification covers 622 manifest entries.
+- Fixture-backed verification covers 623 manifest entries.
 - Canonical target for current docs: `wasm32-wasi-p2`
 
 ## Reading Order

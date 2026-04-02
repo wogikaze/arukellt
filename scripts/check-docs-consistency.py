@@ -629,6 +629,82 @@ def check_cross_page_metadata_consistency() -> int:
     return 0
 
 
+def check_name_index_completeness() -> int:
+    """Verify that name-index.md contains every public function from manifest.
+
+    Checks:
+    - name-index.md exists and is non-empty
+    - Every non-intrinsic function name from manifest appears in the index
+    - Every deprecated function with deprecated_by appears in Historical section
+    """
+    import tomllib as _tomllib
+
+    name_index_path = ROOT / "docs" / "stdlib" / "name-index.md"
+    if not name_index_path.exists():
+        errors.append(
+            "name-index.md does not exist; run `python3 scripts/generate-docs.py`"
+        )
+        return 1
+
+    if not MANIFEST.exists():
+        return 0
+
+    manifest = _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    functions = manifest.get("functions", [])
+    public_functions = [
+        entry for entry in functions
+        if not entry.get("name", "").startswith("__intrinsic_")
+    ]
+
+    index_text = name_index_path.read_text(encoding="utf-8")
+    missing: list[str] = []
+
+    for entry in public_functions:
+        name = entry["name"]
+        # The name should appear in the index (either as `name` or ~~`name`~~)
+        if f"`{name}`" not in index_text:
+            missing.append(name)
+
+    if missing:
+        errors.append(
+            f"name-index.md missing {len(missing)} function(s): "
+            + ", ".join(missing[:10])
+            + (f" (and {len(missing) - 10} more)" if len(missing) > 10 else "")
+            + "; regenerate with `python3 scripts/generate-docs.py`"
+        )
+        return 1
+
+    # Check deprecated entries appear in Historical section
+    deprecated = [
+        entry for entry in public_functions
+        if entry.get("deprecated_by") or entry.get("stability") == "deprecated"
+    ]
+    if deprecated:
+        if "## Historical / Deprecated Names" not in index_text:
+            errors.append(
+                "name-index.md missing '## Historical / Deprecated Names' section; "
+                "regenerate with `python3 scripts/generate-docs.py`"
+            )
+            return 1
+
+        # Verify each deprecated name appears with strikethrough in the historical section
+        historical_section = index_text.split("## Historical / Deprecated Names")[1]
+        historical_section = historical_section.split("## Combined Alphabetical Index")[0]
+        missing_deprecated: list[str] = []
+        for entry in deprecated:
+            if f"~~`{entry['name']}`~~" not in historical_section:
+                missing_deprecated.append(entry["name"])
+        if missing_deprecated:
+            errors.append(
+                f"name-index.md historical section missing {len(missing_deprecated)} "
+                f"deprecated name(s): {', '.join(missing_deprecated)}; "
+                "regenerate with `python3 scripts/generate-docs.py`"
+            )
+            return 1
+
+    return 0
+
+
 def main() -> int:
     failed = 0
     failed += check_maturity_matrix_freshness()
@@ -642,6 +718,7 @@ def main() -> int:
     failed += check_target_metadata_in_reference()
     failed += check_stability_metadata_in_reference()
     failed += check_cross_page_metadata_consistency()
+    failed += check_name_index_completeness()
 
     if errors:
         print("docs consistency check FAILED:", file=sys.stderr)
