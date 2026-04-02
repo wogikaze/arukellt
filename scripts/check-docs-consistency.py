@@ -629,6 +629,157 @@ def check_cross_page_metadata_consistency() -> int:
     return 0
 
 
+def check_host_stub_fixture_coverage() -> int:
+    """Verify that every host_stub function has at least one corresponding test fixture.
+
+    For each function with ``kind = "host_stub"`` in the manifest, checks that
+    a test fixture file in ``tests/fixtures/`` references the function name or
+    its module.  This ensures CI catches untested host stubs before they
+    silently bitrot.
+    """
+    import tomllib as _tomllib
+
+    if not MANIFEST.exists():
+        return 0
+
+    manifest = _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    fixtures_dir = ROOT / "tests" / "fixtures"
+    if not fixtures_dir.exists():
+        return 0
+
+    # Collect all fixture file contents for searching
+    fixture_texts: dict[str, str] = {}
+    for ark_file in fixtures_dir.rglob("*.ark"):
+        try:
+            fixture_texts[str(ark_file.relative_to(ROOT))] = ark_file.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            pass
+
+    # Also consider fixture file *names* as coverage signals
+    fixture_names = {p.stem for p in fixtures_dir.rglob("*.ark")}
+    fixture_dirs = {p.name for p in fixtures_dir.iterdir() if p.is_dir()}
+
+    uncovered: list[str] = []
+    for fn in manifest.get("functions", []):
+        if fn.get("kind") != "host_stub":
+            continue
+        name = fn["name"]
+        module = fn.get("module", "")
+
+        # Derive search terms: function name and module short name
+        search_terms = [name]
+        if "::" in module:
+            # e.g. "std::host::sockets" → "sockets"
+            short_module = module.rsplit("::", 1)[-1]
+            search_terms.append(short_module)
+
+        # Check 1: fixture file name contains the function name or module
+        name_match = any(
+            term.lower() in fname.lower()
+            for term in search_terms
+            for fname in fixture_names
+        ) or any(
+            term.lower() in dname.lower()
+            for term in search_terms
+            for dname in fixture_dirs
+        )
+
+        # Check 2: any fixture file body references the function or module
+        body_match = any(
+            term in content
+            for term in search_terms
+            for content in fixture_texts.values()
+        )
+
+        if not name_match and not body_match:
+            uncovered.append(f"{name} (module={module})")
+
+    if uncovered:
+        errors.append(
+            f"host_stub fixture coverage gap: {len(uncovered)} host_stub function(s) "
+            f"lack test fixture coverage: {', '.join(uncovered)}; "
+            "add fixture files in tests/fixtures/ that exercise these stubs"
+        )
+        return 1
+
+    return 0
+
+
+def check_stability_implementation_consistency() -> int:
+    """Detect mismatches between stability metadata and implementation state.
+
+    Checks for semantic inconsistencies such as:
+    - A ``host_stub`` function marked ``stable`` (stubs should not be stable)
+    - A ``deprecated`` function missing ``deprecated_by`` field
+    - A function with ``deprecated_by`` not marked ``stability = "deprecated"``
+    - Module-level stability in [[modules]] conflicting with function-level stability
+    """
+    import tomllib as _tomllib
+
+    if not MANIFEST.exists():
+        return 0
+
+    manifest = _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+    issues: list[str] = []
+
+    # Build module stability lookup from [[modules]] entries
+    module_stability: dict[str, str] = {}
+    for mod in manifest.get("modules", []):
+        mod_name = mod.get("name", "")
+        mod_stab = mod.get("stability", "")
+        if mod_name and mod_stab:
+            module_stability[mod_name] = mod_stab
+
+    for fn in manifest.get("functions", []):
+        name = fn["name"]
+        kind = fn.get("kind", "")
+        stability = fn.get("stability", "")
+        deprecated_by = fn.get("deprecated_by")
+        module = fn.get("module", "")
+
+        # 1. host_stub marked stable is suspicious — stubs are not production-ready
+        if kind == "host_stub" and stability == "stable":
+            issues.append(
+                f"{name}: host_stub should not be 'stable' — "
+                "use 'experimental' or 'provisional' until fully implemented"
+            )
+
+        # 2. deprecated_by set but stability is not "deprecated"
+        if deprecated_by and stability != "deprecated":
+            issues.append(
+                f"{name}: has deprecated_by='{deprecated_by}' "
+                f"but stability='{stability}' (expected 'deprecated')"
+            )
+
+        # 3. stability is "deprecated" but no deprecated_by
+        if stability == "deprecated" and not deprecated_by:
+            issues.append(
+                f"{name}: stability='deprecated' but missing 'deprecated_by' field"
+            )
+
+        # 4. Function stability exceeds module stability
+        #    e.g. function is "stable" but its module is "experimental"
+        if module and module in module_stability:
+            mod_stab = module_stability[module]
+            stability_rank = {"experimental": 0, "provisional": 1, "stable": 2, "deprecated": -1}
+            fn_rank = stability_rank.get(stability, -2)
+            mod_rank = stability_rank.get(mod_stab, -2)
+            if fn_rank > mod_rank and fn_rank >= 0 and mod_rank >= 0:
+                issues.append(
+                    f"{name}: function stability '{stability}' exceeds "
+                    f"module '{module}' stability '{mod_stab}'"
+                )
+
+    if issues:
+        errors.append(
+            "stability-implementation inconsistency: "
+            + "; ".join(issues)
+        )
+        return 1
+
+    return 0
+
+
 def check_name_index_completeness() -> int:
     """Verify that name-index.md contains every public function from manifest.
 
@@ -718,6 +869,8 @@ def main() -> int:
     failed += check_target_metadata_in_reference()
     failed += check_stability_metadata_in_reference()
     failed += check_cross_page_metadata_consistency()
+    failed += check_host_stub_fixture_coverage()
+    failed += check_stability_implementation_consistency()
     failed += check_name_index_completeness()
 
     if errors:

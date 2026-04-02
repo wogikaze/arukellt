@@ -114,3 +114,65 @@ A Stable API is deprecated before removal:
 1. Mark with `@deprecated` annotation and document the replacement.
 2. Keep the deprecated API available for at least one major version.
 3. Remove in the next major version with a migration guide.
+
+---
+
+## Stability Tier Change Checklist
+
+Use this checklist when promoting, demoting, or deprecating a function or module's stability tier.
+Every tier change must update **both** the manifest source of truth and the generated documentation.
+
+### Promotion: Experimental → Provisional → Stable
+
+- [ ] **Verify readiness criteria** (see [Promotion Process](#promotion-process))
+  - API unchanged for at least one minor release cycle
+  - Test coverage meets project baseline
+  - ADR documents the design rationale (if new module)
+- [ ] **Update `std/manifest.toml`**
+  - Set `stability = "<new_tier>"` on each affected `[[functions]]` entry
+  - If promoting an entire module, also update the `[[modules]]` entry's `stability`
+  - Ensure no function stability exceeds its module stability
+- [ ] **Verify fixture coverage**
+  - Confirm at least one `tests/fixtures/*.ark` file exercises the promoted function(s)
+  - For `host_stub` functions, confirm fixture tests the stub behavior (compile error, runtime trap, etc.)
+- [ ] **Regenerate documentation**
+  - Run `python3 scripts/generate-docs.py`
+  - Verify `docs/stdlib/reference.md` reflects the new tier in both the per-category and by-stability sections
+  - Verify `docs/stdlib/modules/*.md` pages show updated stability
+- [ ] **Run CI checks**
+  - `python3 scripts/generate-docs.py --check` must pass
+  - `python3 scripts/check-docs-consistency.py` must pass
+  - `bash scripts/verify-harness.sh --quick` must pass
+- [ ] **Update this file** if the module classification table changes
+- [ ] **Record the change in CHANGELOG.md**
+
+### Deprecation: Any → Deprecated
+
+- [ ] **Add `deprecated_by` field** to the `[[functions]]` entry in `std/manifest.toml`
+  - Value must be the canonical replacement function name (e.g., `"Vec::new<i32>"`)
+- [ ] **Set `stability = "deprecated"`** on the same entry
+- [ ] **Add migration example** to `docs/stdlib/migration-guidance.md`
+- [ ] **Regenerate documentation**
+  - Run `python3 scripts/generate-docs.py`
+  - Verify `~~strikethrough~~` and `⚠️ Deprecated` badge appear in reference.md
+  - Verify the Deprecated APIs summary section lists the function
+- [ ] **Run CI checks** (same as above)
+- [ ] **Record the change in CHANGELOG.md**
+
+### Demotion: Stable → Experimental (breaking change)
+
+- [ ] **Confirm this is a major version boundary** — demoting a stable API is a breaking change
+- [ ] **Update `std/manifest.toml`** — set `stability = "experimental"`
+- [ ] **Document the reason** in CHANGELOG.md and a brief ADR note
+- [ ] **Regenerate documentation and run CI checks** (same as above)
+
+### Pre-commit Verification Summary
+
+After any stability tier change, run these commands and confirm all pass:
+
+```bash
+python3 scripts/generate-docs.py          # regenerate all docs
+python3 scripts/generate-docs.py --check  # verify freshness
+python3 scripts/check-docs-consistency.py # verify metadata consistency
+bash scripts/verify-harness.sh --quick    # verify test harness
+```
