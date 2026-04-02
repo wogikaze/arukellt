@@ -2683,6 +2683,10 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 4)
             emit_byte(w, OP_I32_ADD())
 
+        } else if eq(clone(callee), "sqrt") || eq(clone(callee), "math::sqrt") {
+            // sqrt(x: f64) -> f64: Wasm native f64.sqrt
+            emit_byte(w, 0x9f) // f64.sqrt
+
         } else if eq(clone(callee), "parse_f64") || eq(clone(callee), "text::parse_f64") {
             // parse_f64(s: String) -> Result<f64, String>
             // Stack: [str_ptr] → [enum_ptr]
@@ -4460,6 +4464,64 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, 0x02)
             emit_byte(w, 0x00)
             emit_byte(w, OP_I32_EQZ())
+
+        } else if eq(clone(callee), "is_some") || eq(clone(callee), "is_ok") {
+            // is_some/is_ok(opt): tag == 0 (Some/Ok)
+            // Stack: [enum_ptr] → [bool]
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00) // load tag
+            emit_byte(w, OP_I32_EQZ()) // tag == 0 → 1 (true)
+
+        } else if eq(clone(callee), "is_none") || eq(clone(callee), "is_err") {
+            // is_none/is_err(opt): tag != 0 (None/Err)
+            // Stack: [enum_ptr] → [bool]
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00) // load tag (1=None/Err, 0=Some/Ok)
+
+        } else if eq(clone(callee), "unwrap") {
+            // unwrap(opt): load payload at offset 4
+            // Stack: [enum_ptr] → [i32 payload]
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+
+        } else if eq(clone(callee), "unwrap_or") {
+            // unwrap_or(opt, default): if tag==0 return payload, else default
+            // Stack: [enum_ptr, default] → [i32]
+            let s_opt = ctx.scratch_base
+            let s_def = ctx.scratch_base + 1
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_def) // save default
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_opt) // save enum_ptr
+            // Check tag
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_opt)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_I32_EQZ()) // tag == 0?
+            emit_byte(w, OP_IF())
+            emit_byte(w, 0x7f) // result i32
+            // Some/Ok: load payload
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_opt)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00)
+            emit_byte(w, OP_ELSE())
+            // None/Err: return default
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_def)
+            emit_byte(w, OP_END())
 
         } else if eq(clone(callee), "contains_i32") {
             // contains_i32(v, needle): scan vec for needle, return bool
