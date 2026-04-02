@@ -1,6 +1,6 @@
 # Language Docs: syntax / type / error / memory の重複記述を統合する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 409
@@ -21,10 +21,10 @@ syntax/type/error/memory の説明が spec と guide と分割文書で過度に
 
 ## Acceptance
 
-- [ ] 重複が大きい節の inventory が作成される。
-- [ ] canonical explanation を置くページが節ごとに決まる。
-- [ ] 重複記述が削減され、参照リンクで接続される。
-- [ ] 少なくとも主要 4 領域で統合作業が行われる。
+- [x] 重複が大きい節の inventory が作成される。
+- [x] canonical explanation を置くページが節ごとに決まる。
+- [x] 重複記述が削減され、参照リンクで接続される。
+- [x] 少なくとも主要 4 領域で統合作業が行われる。
 
 ## References
 

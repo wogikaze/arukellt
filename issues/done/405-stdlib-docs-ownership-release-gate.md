@@ -1,6 +1,6 @@
 # Stdlib Docs: ownership map と release gate を整備する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 405
@@ -21,10 +21,10 @@ stdlib docs を継続的に維持するため、どの page / generator / manife
 
 ## Acceptance
 
-- [ ] stdlib docs の ownership map が作成される。
-- [ ] release gate に stdlib docs 項目が明記される。
-- [ ] generator / manifest / curated docs の責務境界が書かれる。
-- [ ] checklist が CI または release docs と接続される。
+- [x] stdlib docs の ownership map が作成される。
+- [x] release gate に stdlib docs 項目が明記される。
+- [x] generator / manifest / curated docs の責務境界が書かれる。
+- [x] checklist が CI または release docs と接続される。
 
 ## References
 

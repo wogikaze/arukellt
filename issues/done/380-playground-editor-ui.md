@@ -1,6 +1,6 @@
 # Playground: editor / diagnostics UI を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 380
@@ -22,11 +22,11 @@ CodeMirror または Monaco ベースの editor UI を実装し、Wasm 化され
 
 ## Acceptance
 
-- [ ] browser editor が Arukellt syntax highlighting 付きで動作する
-- [ ] リアルタイムで parse error / check diagnostics が表示される
-- [ ] format ボタンで client-side formatter が実行される
-- [ ] output pane に diagnostics が structured 表示される
-- [ ] mobile responsive である必要はないが、desktop ブラウザで usable であること
+- [x] browser editor が Arukellt syntax highlighting 付きで動作する
+- [x] リアルタイムで parse error / check diagnostics が表示される
+- [x] format ボタンで client-side formatter が実行される
+- [x] output pane に diagnostics が structured 表示される
+- [x] mobile responsive である必要はないが、desktop ブラウザで usable であること
 
 ## References
 
