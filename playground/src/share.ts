@@ -90,6 +90,48 @@ export type FragmentAction =
   | { type: "none" }
   | { type: "unknown"; prefix: string };
 
+/**
+ * Level of version mismatch between a share link and the running playground.
+ *
+ * - `"none"` — versions are identical.
+ * - `"patch"` — only patch differs (bug fixes, unlikely to affect behavior).
+ * - `"minor"` — minor version differs (new features, some behavior changes possible).
+ * - `"major"` — major version differs (breaking changes likely).
+ * - `"unknown"` — the share link has no `ver` field (version-unspecified, ADR-021 §4.3).
+ * - `"prerelease"` — same major.minor.patch but pre-release suffixes differ.
+ */
+export type VersionMismatchLevel =
+  | "none"
+  | "patch"
+  | "minor"
+  | "major"
+  | "unknown"
+  | "prerelease";
+
+/**
+ * Result of comparing a share link's version against the running playground version.
+ *
+ * Used to decide whether to display a version mismatch banner (ADR-021 §4.2).
+ */
+export interface VersionMismatchInfo {
+  /** The mismatch level. `"none"` means versions match exactly. */
+  level: VersionMismatchLevel;
+  /** The version from the share link (`undefined` if absent). */
+  linkVersion: string | undefined;
+  /** The current running playground version. */
+  currentVersion: string;
+  /**
+   * Human-readable message for display in a banner.
+   *
+   * - `null` when level is `"none"` or `"unknown"` (no banner needed).
+   * - Non-null for `"patch"`, `"minor"`, `"major"`, and `"prerelease"` mismatches.
+   *
+   * Format: "This snippet was shared from version X.Y.Z. You are viewing
+   * it with version A.B.C. Behavior may differ." (ADR-021 §4.2)
+   */
+  message: string | null;
+}
+
 // ---------------------------------------------------------------------------
 // Base64url encoding (RFC 4648 §5, no padding)
 // ---------------------------------------------------------------------------
@@ -429,3 +471,209 @@ export const SHARE_URL_TARGET_LENGTH: number = URL_LENGTH_TARGET;
 
 /** Hard URL length limit in characters (ADR-021 §5.4). */
 export const SHARE_URL_HARD_LIMIT: number = URL_LENGTH_HARD_LIMIT;
+
+// ---------------------------------------------------------------------------
+// Version pinning (ADR-021 §4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Parsed semver components.
+ * @internal
+ */
+interface SemverParts {
+  major: number;
+  minor: number;
+  patch: number;
+  prerelease: string;
+}
+
+/**
+ * Parse a semver string into its components.
+ *
+ * Accepts `MAJOR.MINOR.PATCH` and `MAJOR.MINOR.PATCH-prerelease` formats.
+ * Returns `null` if the string is not valid semver.
+ *
+ * @internal
+ */
+function parseSemver(version: string): SemverParts | null {
+  const match = version.match(
+    /^(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/,
+  );
+  if (!match) return null;
+  return {
+    major: parseInt(match[1], 10),
+    minor: parseInt(match[2], 10),
+    patch: parseInt(match[3], 10),
+    prerelease: match[4] ?? "",
+  };
+}
+
+/**
+ * Check for a version mismatch between a decoded share payload and the
+ * currently running playground version (ADR-021 §4.2).
+ *
+ * Returns structured information about the mismatch level and a
+ * human-readable message suitable for display in an informational banner.
+ *
+ * Per ADR-021 §4.2:
+ * - The source code is always loaded as-is (no transformation).
+ * - The playground MAY display a banner when versions differ.
+ * - The playground MUST NOT refuse to load the snippet.
+ * - Re-sharing updates `ver` to the current version.
+ *
+ * Per ADR-021 §4.3:
+ * - If `ver` is absent, the snippet is treated as version-unspecified
+ *   and no banner is shown.
+ *
+ * @param payload - The decoded share payload.
+ * @param currentVersion - The currently running playground/compiler version (semver).
+ * @returns Version mismatch information.
+ *
+ * @example
+ * ```ts
+ * const decoded = await decodeSharePayload(fragment);
+ * if (decoded.ok) {
+ *   const mismatch = checkVersionMismatch(decoded.payload, pg.version());
+ *   if (mismatch.message) {
+ *     showBanner(mismatch.message);
+ *   }
+ * }
+ * ```
+ */
+export function checkVersionMismatch(
+  payload: SharePayload,
+  currentVersion: string,
+): VersionMismatchInfo {
+  const linkVersion = payload.ver;
+
+  // §4.3: absent version → unknown, no banner
+  if (linkVersion === undefined) {
+    return {
+      level: "unknown",
+      linkVersion: undefined,
+      currentVersion,
+      message: null,
+    };
+  }
+
+  // Exact string match — fast path
+  if (linkVersion === currentVersion) {
+    return {
+      level: "none",
+      linkVersion,
+      currentVersion,
+      message: null,
+    };
+  }
+
+  // Parse both versions to determine mismatch level
+  const link = parseSemver(linkVersion);
+  const current = parseSemver(currentVersion);
+
+  // If either is unparseable, treat as major mismatch (safest default)
+  if (!link || !current) {
+    return {
+      level: "major",
+      linkVersion,
+      currentVersion,
+      message:
+        `This snippet was shared from version ${linkVersion}. ` +
+        `You are viewing it with version ${currentVersion}. Behavior may differ.`,
+    };
+  }
+
+  // Determine mismatch level by comparing components
+  let level: VersionMismatchLevel;
+  if (link.major !== current.major) {
+    level = "major";
+  } else if (link.minor !== current.minor) {
+    level = "minor";
+  } else if (link.patch !== current.patch) {
+    level = "patch";
+  } else {
+    // Same major.minor.patch but different pre-release
+    level = "prerelease";
+  }
+
+  return {
+    level,
+    linkVersion,
+    currentVersion,
+    message:
+      `This snippet was shared from version ${linkVersion}. ` +
+      `You are viewing it with version ${currentVersion}. Behavior may differ.`,
+  };
+}
+
+/**
+ * Encode playground state with automatic version injection.
+ *
+ * Convenience wrapper around {@link encodeSharePayload} that automatically
+ * sets the `ver` field to the provided compiler version. If the payload
+ * already has a `ver` field, it is overwritten with the current version
+ * (ADR-021 §4.2: re-sharing updates `ver` to the current version).
+ *
+ * @param payload - The playground state to encode. Must include `src`.
+ * @param currentVersion - The current compiler/frontend version (semver).
+ * @returns Encoded share fragment with length metadata.
+ *
+ * @example
+ * ```ts
+ * const result = await encodeSharePayloadWithVersion(
+ *   { src: 'fn main() {}' },
+ *   pg.version(),
+ * );
+ * window.location.hash = result.fragment.slice(1);
+ * ```
+ */
+export async function encodeSharePayloadWithVersion(
+  payload: SharePayload,
+  currentVersion: string,
+): Promise<ShareEncodeResult> {
+  return encodeSharePayload({ ...payload, ver: currentVersion });
+}
+
+// ---------------------------------------------------------------------------
+// Reproducibility contract (ADR-021 §4 + §6)
+// ---------------------------------------------------------------------------
+
+/**
+ * Documents what is guaranteed when opening a share link across different
+ * playground versions. This is a machine-readable contract that the
+ * playground UI can display or test against.
+ *
+ * **Guaranteed across all versions:**
+ * - Source code (`src`) is preserved byte-for-byte (UTF-8 round-trip lossless).
+ * - Feature flags (`f`) are preserved (unknown flags are kept but may be ignored).
+ * - Example ID (`ex`) is preserved.
+ * - Unknown fields are preserved (forward compatibility, ADR-021 §3.3).
+ *
+ * **NOT guaranteed across versions:**
+ * - Parse diagnostics may differ (new/removed errors, changed messages).
+ * - Formatting output may differ (formatter improvements).
+ * - Tokenization may produce different token streams.
+ * - Feature flags may be interpreted differently or ignored.
+ *
+ * **Version mismatch behavior (ADR-021 §4.2):**
+ * - Source code is always loaded — the playground never refuses to load.
+ * - An informational banner MAY be shown for version mismatches.
+ * - Re-sharing always updates `ver` to the current playground version.
+ */
+export const REPRODUCIBILITY_CONTRACT = {
+  /** Fields whose values are preserved byte-for-byte across all versions. */
+  guaranteedFields: ["src", "ver", "ex", "f"] as readonly string[],
+
+  /** Behaviors that may change between versions. */
+  notGuaranteed: [
+    "parse-diagnostics",
+    "format-output",
+    "tokenization",
+    "flag-interpretation",
+  ] as readonly string[],
+
+  /** The playground MUST NOT refuse to load a share link due to version mismatch. */
+  alwaysLoads: true,
+
+  /** Re-sharing a loaded snippet MUST update `ver` to the current version. */
+  reshareUpdatesVersion: true,
+} as const;

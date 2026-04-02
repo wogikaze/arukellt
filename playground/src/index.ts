@@ -81,17 +81,22 @@ export {
   encodeSharePayload,
   decodeSharePayload,
   parseFragment,
+  checkVersionMismatch,
+  encodeSharePayloadWithVersion,
   CURRENT_SHARE_VERSION,
   SHARE_URL_TARGET_LENGTH,
   SHARE_URL_HARD_LIMIT,
+  REPRODUCIBILITY_CONTRACT,
 } from "./share.js";
 
 // Re-export examples catalog.
 export {
   EXAMPLES,
+  FIXTURE_BASE_PATH,
   getExample,
   getExampleList,
   getExamplesByTag,
+  getFixtureMap,
 } from "./examples.js";
 
 // Re-export all types for consumer use.
@@ -158,6 +163,8 @@ export type {
   ShareEncodeResult,
   ShareDecodeResult,
   FragmentAction,
+  VersionMismatchLevel,
+  VersionMismatchInfo,
 } from "./share.js";
 
 // Re-export example types.

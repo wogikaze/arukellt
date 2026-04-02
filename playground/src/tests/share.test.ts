@@ -18,14 +18,19 @@ import {
   encodeSharePayload,
   decodeSharePayload,
   parseFragment,
+  checkVersionMismatch,
+  encodeSharePayloadWithVersion,
   CURRENT_SHARE_VERSION,
   SHARE_URL_TARGET_LENGTH,
   SHARE_URL_HARD_LIMIT,
+  REPRODUCIBILITY_CONTRACT,
 } from "../share.js";
 import type {
   SharePayload,
   ShareEncodeResult,
   FragmentAction,
+  VersionMismatchInfo,
+  VersionMismatchLevel,
 } from "../share.js";
 
 // ---------------------------------------------------------------------------
@@ -354,5 +359,278 @@ describe("parseFragment (ADR-021 §8)", () => {
   it("share fragment without version slash → unknown", () => {
     const result = parseFragment("#share/abc");
     assert.equal(result.type, "unknown");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Version mismatch detection (ADR-021 §4)
+// ---------------------------------------------------------------------------
+
+describe("checkVersionMismatch (ADR-021 §4.2)", () => {
+  it("same version → level 'none', no message", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}", ver: "0.1.0" },
+      "0.1.0",
+    );
+    assert.equal(info.level, "none");
+    assert.equal(info.linkVersion, "0.1.0");
+    assert.equal(info.currentVersion, "0.1.0");
+    assert.equal(info.message, null);
+  });
+
+  it("absent ver → level 'unknown', no message (§4.3)", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}" },
+      "0.1.0",
+    );
+    assert.equal(info.level, "unknown");
+    assert.equal(info.linkVersion, undefined);
+    assert.equal(info.currentVersion, "0.1.0");
+    assert.equal(info.message, null);
+  });
+
+  it("patch mismatch → level 'patch', has message", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}", ver: "0.1.0" },
+      "0.1.1",
+    );
+    assert.equal(info.level, "patch");
+    assert.equal(info.linkVersion, "0.1.0");
+    assert.equal(info.currentVersion, "0.1.1");
+    assert.ok(info.message !== null);
+    assert.ok(info.message!.includes("0.1.0"), "message includes link version");
+    assert.ok(info.message!.includes("0.1.1"), "message includes current version");
+    assert.ok(info.message!.includes("Behavior may differ"), "message includes behavior note");
+  });
+
+  it("minor mismatch → level 'minor', has message", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}", ver: "0.1.0" },
+      "0.2.0",
+    );
+    assert.equal(info.level, "minor");
+    assert.ok(info.message !== null);
+  });
+
+  it("major mismatch → level 'major', has message", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}", ver: "0.1.0" },
+      "1.0.0",
+    );
+    assert.equal(info.level, "major");
+    assert.ok(info.message !== null);
+  });
+
+  it("prerelease mismatch → level 'prerelease', has message", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}", ver: "0.1.0-dev" },
+      "0.1.0-rc1",
+    );
+    assert.equal(info.level, "prerelease");
+    assert.ok(info.message !== null);
+    assert.ok(info.message!.includes("0.1.0-dev"));
+    assert.ok(info.message!.includes("0.1.0-rc1"));
+  });
+
+  it("prerelease vs release → level 'prerelease'", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}", ver: "0.1.0-dev" },
+      "0.1.0",
+    );
+    assert.equal(info.level, "prerelease");
+    assert.ok(info.message !== null);
+  });
+
+  it("unparseable link version → level 'major' (safest default)", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}", ver: "custom-build" },
+      "0.1.0",
+    );
+    assert.equal(info.level, "major");
+    assert.ok(info.message !== null);
+  });
+
+  it("unparseable current version → level 'major' (safest default)", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}", ver: "0.1.0" },
+      "nightly",
+    );
+    assert.equal(info.level, "major");
+    assert.ok(info.message !== null);
+  });
+
+  it("both unparseable → level 'major'", () => {
+    const info = checkVersionMismatch(
+      { src: "fn main() {}", ver: "abc" },
+      "xyz",
+    );
+    assert.equal(info.level, "major");
+    assert.ok(info.message !== null);
+  });
+
+  it("message format matches ADR-021 §4.2 template", () => {
+    const info = checkVersionMismatch(
+      { src: "", ver: "0.1.0" },
+      "0.2.0",
+    );
+    assert.equal(
+      info.message,
+      "This snippet was shared from version 0.1.0. " +
+        "You are viewing it with version 0.2.0. Behavior may differ.",
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Version-injected encoding (ADR-021 §4.2)
+// ---------------------------------------------------------------------------
+
+describe("encodeSharePayloadWithVersion", () => {
+  it("injects version into payload", async () => {
+    const result = await encodeSharePayloadWithVersion(
+      { src: "fn main() {}" },
+      "0.1.0",
+    );
+    assert.ok(result.fragment.startsWith("#share/"));
+
+    const decoded = await decodeSharePayload(result.fragment);
+    assert.ok(decoded.ok);
+    if (!decoded.ok) return;
+    assert.equal(decoded.payload.src, "fn main() {}");
+    assert.equal(decoded.payload.ver, "0.1.0");
+  });
+
+  it("overwrites existing ver (re-sharing updates version)", async () => {
+    const result = await encodeSharePayloadWithVersion(
+      { src: "fn main() {}", ver: "0.0.1" },
+      "0.2.0",
+    );
+
+    const decoded = await decodeSharePayload(result.fragment);
+    assert.ok(decoded.ok);
+    if (!decoded.ok) return;
+    assert.equal(
+      decoded.payload.ver,
+      "0.2.0",
+      "re-sharing should update ver to current",
+    );
+  });
+
+  it("preserves all other payload fields", async () => {
+    const result = await encodeSharePayloadWithVersion(
+      {
+        src: "fn main() {}",
+        ex: "hello-world",
+        f: { "diag-verbose": true },
+      },
+      "0.1.0",
+    );
+
+    const decoded = await decodeSharePayload(result.fragment);
+    assert.ok(decoded.ok);
+    if (!decoded.ok) return;
+    assert.equal(decoded.payload.src, "fn main() {}");
+    assert.equal(decoded.payload.ver, "0.1.0");
+    assert.equal(decoded.payload.ex, "hello-world");
+    assert.deepEqual(decoded.payload.f, { "diag-verbose": true });
+  });
+
+  it("preserves unknown fields when re-encoding with version", async () => {
+    const payload: SharePayload = { src: "fn main() {}" };
+    (payload as Record<string, unknown>)["x"] = 99;
+
+    const result = await encodeSharePayloadWithVersion(payload, "0.1.0");
+    const decoded = await decodeSharePayload(result.fragment);
+    assert.ok(decoded.ok);
+    if (!decoded.ok) return;
+    assert.equal(decoded.payload.ver, "0.1.0");
+    assert.equal(
+      (decoded.payload as Record<string, unknown>)["x"],
+      99,
+      "unknown field 'x' should be preserved",
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Version pinning round-trip (encode → decode → mismatch check)
+// ---------------------------------------------------------------------------
+
+describe("Version pinning round-trip", () => {
+  it("encode with version → decode → check mismatch (same version)", async () => {
+    const encoded = await encodeSharePayloadWithVersion(
+      { src: "fn main() {}" },
+      "0.1.0",
+    );
+    const decoded = await decodeSharePayload(encoded.fragment);
+    assert.ok(decoded.ok);
+    if (!decoded.ok) return;
+
+    const mismatch = checkVersionMismatch(decoded.payload, "0.1.0");
+    assert.equal(mismatch.level, "none");
+    assert.equal(mismatch.message, null);
+  });
+
+  it("encode with version → decode → check mismatch (different version)", async () => {
+    const encoded = await encodeSharePayloadWithVersion(
+      { src: "fn main() {}" },
+      "0.1.0",
+    );
+    const decoded = await decodeSharePayload(encoded.fragment);
+    assert.ok(decoded.ok);
+    if (!decoded.ok) return;
+
+    const mismatch = checkVersionMismatch(decoded.payload, "0.2.0");
+    assert.equal(mismatch.level, "minor");
+    assert.ok(mismatch.message !== null);
+    assert.ok(mismatch.message!.includes("0.1.0"));
+    assert.ok(mismatch.message!.includes("0.2.0"));
+  });
+
+  it("encode without version → decode → check mismatch → unknown", async () => {
+    const encoded = await encodeSharePayload({ src: "fn main() {}" });
+    const decoded = await decodeSharePayload(encoded.fragment);
+    assert.ok(decoded.ok);
+    if (!decoded.ok) return;
+
+    const mismatch = checkVersionMismatch(decoded.payload, "0.1.0");
+    assert.equal(mismatch.level, "unknown");
+    assert.equal(mismatch.message, null);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Reproducibility contract (ADR-021 §4 + §6)
+// ---------------------------------------------------------------------------
+
+describe("REPRODUCIBILITY_CONTRACT", () => {
+  it("exports the contract object", () => {
+    assert.ok(REPRODUCIBILITY_CONTRACT !== null);
+    assert.ok(typeof REPRODUCIBILITY_CONTRACT === "object");
+  });
+
+  it("guarantees src, ver, ex, f fields", () => {
+    assert.ok(REPRODUCIBILITY_CONTRACT.guaranteedFields.includes("src"));
+    assert.ok(REPRODUCIBILITY_CONTRACT.guaranteedFields.includes("ver"));
+    assert.ok(REPRODUCIBILITY_CONTRACT.guaranteedFields.includes("ex"));
+    assert.ok(REPRODUCIBILITY_CONTRACT.guaranteedFields.includes("f"));
+  });
+
+  it("lists non-guaranteed behaviors", () => {
+    assert.ok(REPRODUCIBILITY_CONTRACT.notGuaranteed.length > 0);
+    assert.ok(
+      REPRODUCIBILITY_CONTRACT.notGuaranteed.includes("parse-diagnostics"),
+    );
+    assert.ok(
+      REPRODUCIBILITY_CONTRACT.notGuaranteed.includes("format-output"),
+    );
+  });
+
+  it("always loads — never refuses due to version mismatch", () => {
+    assert.equal(REPRODUCIBILITY_CONTRACT.alwaysLoads, true);
+  });
+
+  it("re-sharing updates version", () => {
+    assert.equal(REPRODUCIBILITY_CONTRACT.reshareUpdatesVersion, true);
   });
 });
