@@ -49,8 +49,10 @@ fn OP_LOCAL_TEE() -> i32 { 0x22 }
 fn OP_GLOBAL_GET() -> i32 { 0x23 }
 fn OP_GLOBAL_SET() -> i32 { 0x24 }
 fn OP_I32_LOAD() -> i32 { 0x28 }
+fn OP_F64_LOAD() -> i32 { 0x2b }
 fn OP_I32_LOAD8_U() -> i32 { 0x2d }
 fn OP_I32_STORE() -> i32 { 0x36 }
+fn OP_F64_STORE() -> i32 { 0x39 }
 fn OP_I32_STORE8() -> i32 { 0x3a }
 fn OP_I32_CONST() -> i32 { 0x41 }
 fn OP_I64_CONST() -> i32 { 0x42 }
@@ -7692,71 +7694,78 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
     } else if inst.op == 58 {  // EQZ — value on stack
         emit_byte(w, OP_I32_EQZ())
     } else if inst.op == 60 {  // STRUCT_NEW — heap allocate
-        // global.get 0 (heap ptr) → local.tee dest → bump by field_count*4
+        // global.get 0 (heap ptr) → local.set dest → bump by byte_size
         // Step 1: get current heap pointer
         emit_byte(w, OP_GLOBAL_GET())
         emit_leb128_u(w, 0)
         // Step 2: save to dest local
         emit_byte(w, OP_LOCAL_SET())
         emit_leb128_u(w, inst.dest)
-        // Step 3: advance heap pointer by field_count * 4
+        // Step 3: advance heap pointer by byte_size (int_val is already in bytes)
         emit_byte(w, OP_GLOBAL_GET())
         emit_leb128_u(w, 0)
         emit_byte(w, OP_I32_CONST())
-        emit_leb128_s(w, inst.int_val * 4)
+        emit_leb128_s(w, inst.int_val)
         emit_byte(w, OP_I32_ADD())
         emit_byte(w, OP_GLOBAL_SET())
         emit_leb128_u(w, 0)
-    } else if inst.op == 61 {  // STRUCT_GET — i32.load from base + field_idx*4
+    } else if inst.op == 61 {  // STRUCT_GET — load from base + byte_offset
         // Base pointer is already on the Wasm stack from preceding lower_expr.
-        // Just compute the offset and load.
         if inst.int_val > 0 {
             emit_byte(w, OP_I32_CONST())
-            emit_leb128_s(w, inst.int_val * 4)
+            emit_leb128_s(w, inst.int_val)
             emit_byte(w, OP_I32_ADD())
         }
-        emit_byte(w, OP_I32_LOAD())
-        emit_byte(w, 0x02)  // align = 4
-        emit_byte(w, 0x00)  // offset = 0
-    } else if inst.op == 62 {  // STRUCT_SET — i32.store to base + field_idx*4
+        if inst.val_type == VT_F64() {
+            emit_byte(w, OP_F64_LOAD())
+            emit_byte(w, 0x03)  // align = 8
+            emit_byte(w, 0x00)  // offset = 0
+        } else {
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)  // align = 4
+            emit_byte(w, 0x00)  // offset = 0
+        }
+    } else if inst.op == 62 {  // STRUCT_SET — store to base + byte_offset
         // Value is on the Wasm stack from preceding instruction.
-        // Save value to temp, compute address, push value, i32.store
-        // Use (local_count + extra) as temp — but we need a known temp local.
-        // Actually: stack has [value]. We need [address, value].
-        // Save value → compute address → restore value → store
-        let temp_local = inst.arg0 + 1  // reuse any local after base as temp
-        // Actually, we don't know a safe temp. Use inst.arg1 as the source local.
-        // The MIR has: STRUCT_SET(arg0=base, arg1=val_local, int_val=field_idx)
-        // The emitter can just use local.get for both.
-        // addr: local.get base + const offset
-        // val: should already be on stack from lower_expr, OR we can use local.get arg1
-        // Since lower_expr leaves value on stack, but STRUCT_SET consumes it...
-        // Actually the MIR emitter emits the value expression BEFORE STRUCT_SET.
-        // So the Wasm stack has [value]. But i32.store needs [addr, value].
-        // We need to rearrange.
-        // Approach: save value to a temp, compute addr, push value, store.
-        // Use the dest local (from MirInst_new, = -1). Not available.
-        // Better: use arg1 as the local that holds the value.
+        // Save value to temp, compute address, push value, store
+        // The MIR has: STRUCT_SET(arg0=base, arg1=val_local, int_val=byte_offset)
         // The value was put on stack by the preceding CONST or expr.
         // Save it, then compute address, then restore it.
 
-        // Step 1: Compute address first, then get value
-        // Actually, the value IS on the stack. But we need address UNDER it.
-        // Solution: save value to arg1 local, compute address, restore value
-        emit_byte(w, OP_LOCAL_SET())
-        emit_leb128_u(w, inst.arg1)  // save value from stack to val local
-        emit_byte(w, OP_LOCAL_GET())
-        emit_leb128_u(w, inst.arg0)  // base ptr
-        if inst.int_val > 0 {
-            emit_byte(w, OP_I32_CONST())
-            emit_leb128_s(w, inst.int_val * 4)
-            emit_byte(w, OP_I32_ADD())
+        // Step 1: save value from stack to val local
+        if inst.val_type == VT_F64() {
+            // For f64 values, use scratch f64 local
+            let f64_temp = ctx.scratch_base + 12
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, f64_temp)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.arg0)  // base ptr
+            if inst.int_val > 0 {
+                emit_byte(w, OP_I32_CONST())
+                emit_leb128_s(w, inst.int_val)
+                emit_byte(w, OP_I32_ADD())
+            }
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, f64_temp)
+            emit_byte(w, OP_F64_STORE())
+            emit_byte(w, 0x03)  // align = 8
+            emit_byte(w, 0x00)  // offset = 0
+        } else {
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, inst.arg1)  // save value from stack to val local
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.arg0)  // base ptr
+            if inst.int_val > 0 {
+                emit_byte(w, OP_I32_CONST())
+                emit_leb128_s(w, inst.int_val)
+                emit_byte(w, OP_I32_ADD())
+            }
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, inst.arg1)  // restore value
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)  // align = 4
+            emit_byte(w, 0x00)  // offset = 0
         }
-        emit_byte(w, OP_LOCAL_GET())
-        emit_leb128_u(w, inst.arg1)  // restore value
-        emit_byte(w, OP_I32_STORE())
-        emit_byte(w, 0x02)  // align = 4
-        emit_byte(w, 0x00)  // offset = 0
     } else if inst.op == 63 {  // ARRAY_NEW — heap allocate int_val elements
         // Same as STRUCT_NEW: allocate int_val * 4 bytes on heap
         emit_byte(w, OP_GLOBAL_GET())

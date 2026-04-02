@@ -462,6 +462,83 @@ fn ctx_get_field_type(ctx: LowerCtx, struct_name: String, field_name: String) ->
     String_from("")
 }
 
+// Compute byte offset for a field, accounting for f64 fields (8 bytes) vs i32 fields (4 bytes)
+fn ctx_struct_field_offset(ctx: LowerCtx, struct_name: String, target_field_idx: i32) -> i32 {
+    let sc = len(ctx.struct_names)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = get_unchecked(ctx.struct_names, si)
+        let fc = get_unchecked(ctx.struct_field_counts, si)
+        if eq(clone(sn), clone(struct_name)) {
+            let mut byte_off = 0
+            let mut fi = 0
+            while fi < target_field_idx && fi < fc {
+                let ft = get_unchecked(ctx.struct_field_types, offset + fi)
+                if eq(clone(ft), "f64") {
+                    byte_off = byte_off + 8
+                } else {
+                    byte_off = byte_off + 4
+                }
+                fi = fi + 1
+            }
+            return byte_off
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    target_field_idx * 4
+}
+
+// Compute total byte size of a struct
+fn ctx_struct_byte_size(ctx: LowerCtx, struct_name: String) -> i32 {
+    let sc = len(ctx.struct_names)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = get_unchecked(ctx.struct_names, si)
+        let fc = get_unchecked(ctx.struct_field_counts, si)
+        if eq(clone(sn), clone(struct_name)) {
+            let mut byte_off = 0
+            let mut fi = 0
+            while fi < fc {
+                let ft = get_unchecked(ctx.struct_field_types, offset + fi)
+                if eq(clone(ft), "f64") {
+                    byte_off = byte_off + 8
+                } else {
+                    byte_off = byte_off + 4
+                }
+                fi = fi + 1
+            }
+            return byte_off
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    0
+}
+
+// Check if a struct field at given index is f64
+fn ctx_struct_field_is_f64(ctx: LowerCtx, struct_name: String, field_idx: i32) -> bool {
+    let sc = len(ctx.struct_names)
+    let mut offset = 0
+    let mut si = 0
+    while si < sc {
+        let sn = get_unchecked(ctx.struct_names, si)
+        let fc = get_unchecked(ctx.struct_field_counts, si)
+        if eq(clone(sn), clone(struct_name)) {
+            if field_idx < fc {
+                let ft = get_unchecked(ctx.struct_field_types, offset + field_idx)
+                return eq(clone(ft), "f64")
+            }
+            return false
+        }
+        offset = offset + fc
+        si = si + 1
+    }
+    false
+}
+
 // Track struct type for a local variable
 fn ctx_set_local_type(ctx: LowerCtx, local_idx: i32, type_name: String) {
     push(ctx.local_types, clone(type_name))
@@ -668,14 +745,14 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 let dest = ctx_fresh_local(ctx, VT_I32())
                 let struct_inst = MirInst_new(MIR_STRUCT_NEW())
                 struct_inst.dest = dest
-                struct_inst.int_val = 1
+                struct_inst.int_val = 4  // 1 field * 4 bytes (tag only)
                 ctx_emit(ctx, struct_inst)
                 let tag_tmp = ctx_fresh_local(ctx, VT_I32())
                 ctx_emit(ctx, MirInst_const_i32(tag, tag_tmp))
                 let set_tag = MirInst_new(MIR_STRUCT_SET())
                 set_tag.arg0 = dest
                 set_tag.arg1 = tag_tmp
-                set_tag.int_val = 0
+                set_tag.int_val = 0  // byte offset 0
                 ctx_emit(ctx, set_tag)
                 let get_r = MirInst_new(MIR_LOCAL_GET())
                 get_r.arg0 = dest
@@ -718,7 +795,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 let dest = ctx_fresh_local(ctx, VT_I32())
                 let struct_inst = MirInst_new(MIR_STRUCT_NEW())
                 struct_inst.dest = dest
-                struct_inst.int_val = 1
+                struct_inst.int_val = 4  // 1 tag * 4 bytes
                 ctx_emit(ctx, struct_inst)
                 // Store tag
                 let tag_tmp = ctx_fresh_local(ctx, VT_I32())
@@ -726,7 +803,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 let set_tag = MirInst_new(MIR_STRUCT_SET())
                 set_tag.arg0 = dest
                 set_tag.arg1 = tag_tmp
-                set_tag.int_val = 0
+                set_tag.int_val = 0  // byte offset 0
                 ctx_emit(ctx, set_tag)
                 let get_r = MirInst_new(MIR_LOCAL_GET())
                 get_r.arg0 = dest
@@ -836,32 +913,65 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let var_tag = ctx_variant_tag(ctx, clone(callee.text))
             if var_tag >= 0 && child_count > 1 {
                 // Payload variant construction: allocate [tag, payload1, ...]
-                let field_count = child_count  // 1 tag + (child_count-1) payload fields
+                // First lower all payload expressions and save to locals
+                let mut payload_locals = Vec_new_i32()
+                let mut payload_vts = Vec_new_i32()
+                let mut total_bytes = 4  // tag is always 4 bytes (i32)
+                let mut pa = 1
+                while pa < child_count {
+                    let parg = get_unchecked(node.children, pa)
+                    let p_idx = lower_expr(ctx, parg)
+                    let p_vt = ctx_local_vt(ctx, p_idx)
+                    // Save value from stack to local (lower_expr leaves value on stack)
+                    let save_local = ctx_fresh_local(ctx, p_vt)
+                    let save_inst = MirInst_new(MIR_LOCAL_SET())
+                    save_inst.arg0 = save_local
+                    ctx_emit(ctx, save_inst)
+                    push(payload_locals, save_local)
+                    push(payload_vts, p_vt)
+                    if p_vt == VT_F64() {
+                        total_bytes = total_bytes + 8
+                    } else {
+                        total_bytes = total_bytes + 4
+                    }
+                    pa = pa + 1
+                }
                 let dest = ctx_fresh_local(ctx, VT_I32())
                 let struct_inst = MirInst_new(MIR_STRUCT_NEW())
                 struct_inst.dest = dest
-                struct_inst.int_val = field_count
+                struct_inst.int_val = total_bytes
                 ctx_emit(ctx, struct_inst)
-                // Store tag (field 0)
+                // Store tag (field 0, byte offset 0)
                 let tag_tmp = ctx_fresh_local(ctx, VT_I32())
                 ctx_emit(ctx, MirInst_const_i32(var_tag, tag_tmp))
                 let set_tag = MirInst_new(MIR_STRUCT_SET())
                 set_tag.arg0 = dest
                 set_tag.arg1 = tag_tmp
-                set_tag.int_val = 0
+                set_tag.int_val = 0  // byte offset 0
                 ctx_emit(ctx, set_tag)
-                // Store payload fields
-                let mut pa = 1
-                while pa < child_count {
-                    let parg = get_unchecked(node.children, pa)
-                    lower_expr(ctx, parg)
-                    let val_tmp = ctx_fresh_local(ctx, VT_I32())
+                // Store payload fields with correct byte offsets
+                let mut byte_off = 4  // after tag
+                let mut pi = 0
+                let payload_count = len(payload_locals)
+                while pi < payload_count {
+                    let p_local = get_unchecked(payload_locals, pi)
+                    let p_vt = get_unchecked(payload_vts, pi)
+                    // Push value on stack via LOCAL_GET
+                    let get_val = MirInst_new(MIR_LOCAL_GET())
+                    get_val.arg0 = p_local
+                    ctx_emit(ctx, get_val)
                     let set_p = MirInst_new(MIR_STRUCT_SET())
                     set_p.arg0 = dest
-                    set_p.arg1 = val_tmp
-                    set_p.int_val = pa
+                    set_p.arg1 = p_local
+                    set_p.int_val = byte_off
+                    if p_vt == VT_F64() {
+                        set_p.val_type = VT_F64()
+                        byte_off = byte_off + 8
+                    } else {
+                        byte_off = byte_off + 4
+                    }
                     ctx_emit(ctx, set_p)
-                    pa = pa + 1
+                    pi = pi + 1
                 }
                 // Push result pointer on stack
                 let get_r = MirInst_new(MIR_LOCAL_GET())
@@ -1228,15 +1338,21 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     }
                     // Bind payload variables if this arm has bindings
                     if is_payload_match && pat.kind == NK_PAT_VARIANT() && len(pat.children) > 0 {
+                        let variant_name = clone(pat.text)
                         let mut bi = 0
                         while bi < len(pat.children) {
                             let bind_pat = get_unchecked(pat.children, bi)
-                            let bind_local = ctx_alloc_local(ctx, clone(bind_pat.text), VT_I32())
+                            // Determine field type from variant pseudo-struct (field bi+1 = payload field bi)
+                            let field_is_f64 = ctx_struct_field_is_f64(ctx, clone(variant_name), bi + 1)
+                            let mut bind_vt = VT_I32()
+                            if field_is_f64 { bind_vt = VT_F64() }
+                            let bind_local = ctx_alloc_local(ctx, clone(bind_pat.text), bind_vt)
                             let get_s2 = MirInst_new(MIR_LOCAL_GET())
                             get_s2.arg0 = scrut_idx
                             ctx_emit(ctx, get_s2)
                             let sget2 = MirInst_new(MIR_STRUCT_GET())
-                            sget2.int_val = bi + 1
+                            sget2.int_val = ctx_struct_field_offset(ctx, clone(variant_name), bi + 1)
+                            if field_is_f64 { sget2.val_type = VT_F64() }
                             ctx_emit(ctx, sget2)
                             let set_b = MirInst_new(MIR_LOCAL_SET())
                             set_b.arg0 = bind_local
@@ -1303,15 +1419,20 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
 
                         // Bind payload variables BEFORE guard (guard may reference them)
                         if is_payload_match && pat.kind == NK_PAT_VARIANT() && len(pat.children) > 0 {
+                            let variant_name2 = clone(pat.text)
                             let mut bi2 = 0
                             while bi2 < len(pat.children) {
                                 let bind_pat2 = get_unchecked(pat.children, bi2)
-                                let bind_local2 = ctx_alloc_local(ctx, clone(bind_pat2.text), VT_I32())
+                                let field_is_f64_2 = ctx_struct_field_is_f64(ctx, clone(variant_name2), bi2 + 1)
+                                let mut bind_vt2 = VT_I32()
+                                if field_is_f64_2 { bind_vt2 = VT_F64() }
+                                let bind_local2 = ctx_alloc_local(ctx, clone(bind_pat2.text), bind_vt2)
                                 let get_s3 = MirInst_new(MIR_LOCAL_GET())
                                 get_s3.arg0 = scrut_idx
                                 ctx_emit(ctx, get_s3)
                                 let sget3 = MirInst_new(MIR_STRUCT_GET())
-                                sget3.int_val = bi2 + 1
+                                sget3.int_val = ctx_struct_field_offset(ctx, clone(variant_name2), bi2 + 1)
+                                if field_is_f64_2 { sget3.val_type = VT_F64() }
                                 ctx_emit(ctx, sget3)
                                 let set_b2 = MirInst_new(MIR_LOCAL_SET())
                                 set_b2.arg0 = bind_local2
@@ -1411,12 +1532,18 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                     set_inst.arg0 = struct_idx
                     set_inst.arg1 = val_idx
                     set_inst.str_val = clone(target.text)
-                    // Resolve field index from struct type
+                    // Resolve field index from struct type, then convert to byte offset
                     let base_type = ctx_get_local_type(ctx, struct_idx)
+                    let mut fi_assign = 0
                     if len(base_type) > 0 {
-                        set_inst.int_val = ctx_field_index(ctx, base_type, clone(target.text))
+                        fi_assign = ctx_field_index(ctx, clone(base_type), clone(target.text))
+                        set_inst.int_val = ctx_struct_field_offset(ctx, clone(base_type), fi_assign)
+                        if ctx_struct_field_is_f64(ctx, clone(base_type), fi_assign) {
+                            set_inst.val_type = VT_F64()
+                        }
                     } else {
-                        set_inst.int_val = ctx_field_index_any(ctx, clone(target.text))
+                        fi_assign = ctx_field_index_any(ctx, clone(target.text))
+                        set_inst.int_val = fi_assign * 4
                     }
                     ctx_emit(ctx, set_inst)
                 }
@@ -1436,7 +1563,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         let new_inst = MirInst_new(MIR_STRUCT_NEW())
         new_inst.dest = dest
         new_inst.str_val = clone(struct_name)
-        new_inst.int_val = total_fields
+        new_inst.int_val = ctx_struct_byte_size(ctx, clone(struct_name))
         ctx_emit(ctx, new_inst)
 
         // Track struct type for this local
@@ -1462,7 +1589,10 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             let mut fi = 0
             while fi < total_fields {
                 let fname = ctx_struct_field_name(ctx, clone(struct_name), fi)
-                let tmp = ctx_fresh_local(ctx, VT_I32())
+                let is_f64_field = ctx_struct_field_is_f64(ctx, clone(struct_name), fi)
+                let mut field_vt = VT_I32()
+                if is_f64_field { field_vt = VT_F64() }
+                let tmp = ctx_fresh_local(ctx, field_vt)
                 // Emit LOCAL_GET to push base ptr onto Wasm stack
                 let get_base = MirInst_new(MIR_LOCAL_GET())
                 get_base.arg0 = base_idx
@@ -1473,14 +1603,16 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 g.dest = tmp
                 g.arg0 = base_idx
                 g.str_val = clone(fname)
-                g.int_val = fi
+                g.int_val = ctx_struct_field_offset(ctx, clone(struct_name), fi)
+                if is_f64_field { g.val_type = VT_F64() }
                 ctx_emit(ctx, g)
                 // STRUCT_SET consumes value from stack, stores into dest struct
                 let s = MirInst_new(MIR_STRUCT_SET())
                 s.arg0 = dest
                 s.arg1 = tmp
                 s.str_val = clone(fname)
-                s.int_val = fi
+                s.int_val = ctx_struct_field_offset(ctx, clone(struct_name), fi)
+                if is_f64_field { s.val_type = VT_F64() }
                 ctx_emit(ctx, s)
                 fi = fi + 1
             }
@@ -1495,11 +1627,15 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 if fc >= 1 {
                     let init = get_unchecked(field.children, 0)
                     let val_idx = lower_expr(ctx, init)
+                    let fi_idx = ctx_field_index(ctx, clone(struct_name), clone(field.text))
                     let set_inst = MirInst_new(MIR_STRUCT_SET())
                     set_inst.arg0 = dest
                     set_inst.arg1 = val_idx
                     set_inst.str_val = clone(field.text)
-                    set_inst.int_val = ctx_field_index(ctx, clone(struct_name), clone(field.text))
+                    set_inst.int_val = ctx_struct_field_offset(ctx, clone(struct_name), fi_idx)
+                    if ctx_struct_field_is_f64(ctx, clone(struct_name), fi_idx) {
+                        set_inst.val_type = VT_F64()
+                    }
                     ctx_emit(ctx, set_inst)
                 }
             }
@@ -1521,22 +1657,33 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         if child_count >= 1 {
             let base = get_unchecked(node.children, 0)
             let base_idx = lower_expr(ctx, base)
-            let dest = ctx_fresh_local(ctx, VT_I32())
+            // Resolve field index and type from struct type
+            let base_type = ctx_get_local_type(ctx, base_idx)
+            let mut field_idx = 0
+            let mut is_f64_field = false
+            if len(base_type) > 0 {
+                field_idx = ctx_field_index(ctx, clone(base_type), clone(node.text))
+                is_f64_field = ctx_struct_field_is_f64(ctx, clone(base_type), field_idx)
+            } else {
+                field_idx = ctx_field_index_any(ctx, clone(node.text))
+            }
+            let mut dest_vt = VT_I32()
+            if is_f64_field { dest_vt = VT_F64() }
+            let dest = ctx_fresh_local(ctx, dest_vt)
             let get_inst = MirInst_new(MIR_STRUCT_GET())
             get_inst.dest = dest
             get_inst.arg0 = base_idx
             get_inst.str_val = clone(node.text)
-            // Resolve field index from struct type
-            let base_type = ctx_get_local_type(ctx, base_idx)
             if len(base_type) > 0 {
-                get_inst.int_val = ctx_field_index(ctx, clone(base_type), clone(node.text))
+                get_inst.int_val = ctx_struct_field_offset(ctx, clone(base_type), field_idx)
+                if is_f64_field { get_inst.val_type = VT_F64() }
                 // Propagate field type to dest for chained access / vec dispatch
                 let ft = ctx_get_field_type(ctx, clone(base_type), clone(node.text))
                 if len(ft) > 0 {
                     ctx_set_local_type(ctx, dest, ft)
                 }
             } else {
-                get_inst.int_val = ctx_field_index_any(ctx, clone(node.text))
+                get_inst.int_val = field_idx * 4  // fallback: 4 bytes per field
             }
             ctx_emit(ctx, get_inst)
             return dest
@@ -1633,7 +1780,7 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
             get_ok.arg0 = res_ptr
             ctx_emit(ctx, get_ok)
             let sget_payload = MirInst_new(MIR_STRUCT_GET())
-            sget_payload.int_val = 1
+            sget_payload.int_val = 4
             ctx_emit(ctx, sget_payload)
             let set_result = MirInst_new(MIR_LOCAL_SET())
             set_result.arg0 = result
@@ -1683,11 +1830,14 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
         }
         let local_idx = ctx_alloc_local(ctx, clone(node.text), vt)
 
-        // Check type annotation for primitive types
+        // Check type annotation for primitive types and struct types
         if ta_count >= 1 {
             let ta = get_unchecked(node.type_ann, 0)
             let ta_name = clone(ta.text)
             if eq(clone(ta_name), "char") || eq(clone(ta_name), "u8") || eq(clone(ta_name), "u16") || eq(clone(ta_name), "u32") || eq(clone(ta_name), "i16") || eq(clone(ta_name), "i32") || eq(clone(ta_name), "i64") || eq(clone(ta_name), "bool") || eq(clone(ta_name), "f64") {
+                ctx_set_local_type(ctx, local_idx, ta_name)
+            } else if ctx_struct_field_count(ctx, clone(ta_name)) > 0 {
+                // Known struct type from type annotation
                 ctx_set_local_type(ctx, local_idx, ta_name)
             }
             // NK_TYPE_GENERIC = 91: Vec<T> annotation
@@ -2146,8 +2296,10 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                         }
                     } else if fty.kind == 90 {
                         let ty_text = clone(fty.text)
-                        // Check if it's a struct type (not a primitive)
-                        if !eq(clone(ty_text), "i32") && !eq(clone(ty_text), "i64") && !eq(clone(ty_text), "f64") && !eq(clone(ty_text), "bool") && !eq(clone(ty_text), "String") && !eq(clone(ty_text), "u8") {
+                        // Track f64 fields for proper layout; track struct types for chaining
+                        if eq(clone(ty_text), "f64") {
+                            field_type_str = String_from("f64")
+                        } else if !eq(clone(ty_text), "i32") && !eq(clone(ty_text), "i64") && !eq(clone(ty_text), "bool") && !eq(clone(ty_text), "String") && !eq(clone(ty_text), "u8") {
                             field_type_str = ty_text
                         }
                     }
@@ -2160,11 +2312,12 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
         if decl.kind == 52 {
             let vc = len(decl.children)
             // Check if any variant has fields (payload enum)
+            // Note: variant fields are stored in type_ann, not children
             let mut has_payload = false
             let mut vcheck = 0
             while vcheck < vc {
                 let vc_node = get_unchecked(decl.children, vcheck)
-                if len(vc_node.children) > 0 {
+                if len(vc_node.type_ann) > 0 {
                     has_payload = true
                 }
                 vcheck = vcheck + 1
@@ -2177,6 +2330,27 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                 push(ctx.variant_tags, vi)
                 if has_payload {
                     push(ctx.payload_variants, clone(full_name))
+                    // Register payload variant as pseudo-struct for field type tracking
+                    // Field 0 = tag (i32), Field 1+ = payload fields (from type_ann)
+                    let payload_count = len(variant.type_ann)
+                    push(ctx.struct_names, clone(full_name))
+                    push(ctx.struct_field_counts, payload_count + 1)
+                    // Field 0: tag
+                    push(ctx.struct_all_fields, String_from("_tag"))
+                    push(ctx.struct_field_types, String_from(""))
+                    // Payload fields
+                    let mut pfi = 0
+                    while pfi < payload_count {
+                        let pfield = get_unchecked(variant.type_ann, pfi)
+                        push(ctx.struct_all_fields, concat(String_from("_"), to_string(pfi)))
+                        // Check if payload field is f64
+                        if eq(clone(pfield.text), "f64") {
+                            push(ctx.struct_field_types, String_from("f64"))
+                        } else {
+                            push(ctx.struct_field_types, String_from(""))
+                        }
+                        pfi = pfi + 1
+                    }
                 }
                 vi = vi + 1
             }
