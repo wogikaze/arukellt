@@ -13,16 +13,60 @@ manifest-backed な公開 API と利用ガイド。
 - Categories: `assert` 5, `box` 2, `bytes` 20, `collections` 77, `component` 2, `control` 1, `conversion` 10, `core` 6, `csv` 1, `host_clock` 1, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 3, `host_sockets` 1, `host_stdio` 3, `json` 6, `math` 5, `numeric` 2, `option_result` 14, `path` 6, `random` 3, `seq` 8, `string` 19, `test` 16, `text` 15, `time` 3, `toml` 1, `wasm` 19, `wit` 14
 - Source-backed modules: 26
 
-## Recommended Reads
+## Module Family Overviews
 
-- [reference.md](reference.md)
-- [modules/core.md](modules/core.md)
-- [modules/io.md](modules/io.md)
-- [modules/time.md](modules/time.md)
-- [modules/random.md](modules/random.md)
-- [modules/text.md](modules/text.md)
-- [std.md](std.md)
-- [cookbook.md](cookbook.md)
+Every module page includes a curated **Overview** section explaining when and how to use it,
+plus exhaustive generated reference tables.
+
+### Core & Collections
+
+| Module | Description |
+|--------|-------------|
+| [std::core](modules/core.md) | Ranges, errors, and hashing primitives. |
+| [std::collections](modules/collections.md) | Hash maps, deques, priority queues, sorted maps, bitsets. |
+| [std::seq](modules/seq.md) | Eager sequence search, aggregation, and deduplication. |
+
+### Text & Data Formats
+
+| Module | Description |
+|--------|-------------|
+| [std::text](modules/text.md) | String inspection, trimming, searching, formatting. |
+| [std::bytes](modules/bytes.md) | Binary data buffers, hex encoding, LEB128, endian conversion. |
+| [std::json](modules/json.md) | JSON stringify and parse helpers (experimental). |
+| [std::csv](modules/csv.md) | CSV line splitting (experimental). |
+| [std::toml](modules/toml.md) | TOML key=value parsing (experimental). |
+
+### I/O & Host Capabilities
+
+| Module | Description |
+|--------|-------------|
+| [std::host family](modules/io.md) | Full host I/O overview: stdio, fs, env, clock, random, process. |
+| [std::host::fs](modules/fs.md) | Host filesystem read/write operations. |
+| [std::path](modules/path.md) | Pure path manipulation (no host required). |
+| [std::host::process / env](modules/process.md) | Process control and environment variable access. |
+
+### Algorithms & Utilities
+
+| Module | Description |
+|--------|-------------|
+| [std::random](modules/random.md) | Deterministic seeded pseudo-random helpers. |
+| [std::time](modules/time.md) | Pure duration arithmetic over timestamps. |
+| [std::test](modules/test.md) | Typed assertion and expectation helpers. |
+
+### WebAssembly & Component Model
+
+| Module | Description |
+|--------|-------------|
+| [std::wasm](modules/wasm.md) | Wasm binary-format constants and memory operations. |
+| [std::wit](modules/wit.md) | WIT primitive type constants and introspection. |
+| [std::component](modules/component.md) | Component model version constants. |
+
+### Cross-cutting Resources
+
+- [reference.md](reference.md) — Complete manifest-backed API reference
+- [cookbook.md](cookbook.md) — Current-first usage examples
+- [std.md](std.md) — 総合設計書 (comprehensive design document)
+- [migration-guidance.md](migration-guidance.md) — Deprecated API migration paths
 
 ## Overview vs Reference
 
@@ -30,10 +74,10 @@ Stdlib documentation is split into two complementary layers:
 
 | Layer | Where | Purpose |
 |-------|-------|---------|
-| **Curated overview** | `## Overview` section in each module family page | Explains *when* and *how* to use a module family: usage summary, recommended API highlights, target constraints, and typical usage patterns. Hand-maintained in `scripts/generate-docs.py` alongside the module page definition. |
+| **Curated overview** | `## Overview` section in each module page | Explains *when* and *how* to use a module: usage summary, recommended API highlights, target constraints, and typical usage patterns. Hand-maintained in `scripts/generate-docs.py` alongside the module page definition. |
 | **Generated reference** | All other sections in module pages; `reference.md` | Exhaustive, manifest-backed API tables sourced from `std/manifest.toml` and `//!` doc comments. Always reflects the real implemented surface. Auto-regenerated — do not edit manually. |
 
-Module family pages that currently carry a curated overview: `std::core` ([modules/core.md](modules/core.md)), `std::collections` ([modules/collections.md](modules/collections.md)), `std::text` ([modules/text.md](modules/text.md)), `std::host` / io ([modules/io.md](modules/io.md)).
+All 18 module pages carry curated overviews.
 
 ## Documents
 

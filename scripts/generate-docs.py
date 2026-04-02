@@ -89,6 +89,32 @@ STDLIB_MODULE_PAGES = [
         "title": "std::bytes",
         "description": "Source-backed docs for binary data helpers.",
         "modules": ["std::bytes"],
+        "overview": {
+            "summary": (
+                "The `std::bytes` module provides binary data helpers built on `Vec<i32>`. "
+                "Each element is treated as a byte in the `0..=255` range. The module covers "
+                "buffer creation and manipulation, string-to-bytes conversion, hex encoding/decoding, "
+                "LEB128 variable-length encoding, and little-/big-endian integer conversions."
+            ),
+            "highlights": [
+                ("`bytes_from_string(s)` / `string_from_bytes(buf)`", "Convert between UTF-8 strings and byte buffers."),
+                ("`hex_encode(buf)` / `hex_decode(s)`", "Hex-encode a buffer or decode a hex string."),
+                ("`leb128_encode_u32(n)` / `leb128_encode_i32(n)`", "Variable-length LEB128 encoding."),
+                ("`u32_to_le_bytes(n)` / `u32_from_le_bytes(buf)`", "Little-endian u32 ↔ byte conversion."),
+                ("`bytes_slice(buf, start, end)`", "Extract a sub-range of bytes as a new buffer."),
+                ("`bytes_concat(a, b)`", "Concatenate two byte buffers into a new one."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::bytes
+
+let buf = bytes_from_string("hello")
+let hex = hex_encode(buf)        // "68656c6c6f"
+let back = hex_decode(hex)       // [104, 101, 108, 108, 111]
+let s = string_from_bytes(back)  // "hello"
+```""",
+        },
     },
     {
         "path": "modules/collections.md",
@@ -131,6 +157,25 @@ let exists = hashmap_contains(map, 42)  // true
         "title": "std::component",
         "description": "Source-backed docs for component-model helpers.",
         "modules": ["std::component"],
+        "overview": {
+            "summary": (
+                "The `std::component` module exposes version constants for the WebAssembly "
+                "Component Model. The surface is intentionally minimal while the component "
+                "model integration is still being designed."
+            ),
+            "highlights": [
+                ("`canonical_abi_version()`", "Returns the canonical ABI version number."),
+                ("`component_model_version()`", "Returns the component model version string."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::component
+
+let abi = canonical_abi_version()       // e.g. 1
+let ver = component_model_version()     // e.g. "0.2"
+```""",
+        },
     },
     {
         "path": "modules/core.md",
@@ -171,12 +216,56 @@ let len = range_len(r)  // 10
         "title": "std::csv",
         "description": "Source-backed docs for CSV parsing helpers.",
         "modules": ["std::csv"],
+        "overview": {
+            "summary": (
+                "The `std::csv` module provides minimal experimental CSV helpers. The current "
+                "implementation exposes only line-level splitting and does not yet handle full "
+                "RFC 4180 quoting rules."
+            ),
+            "highlights": [
+                ("`csv_split_line(line)`", "Split a comma-separated line into a `Vec<String>` of fields."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::csv
+
+let fields = csv_split_line("name,age,city")
+// fields == ["name", "age", "city"]
+```""",
+        },
     },
     {
         "path": "modules/fs.md",
         "title": "std::host::fs",
         "description": "Source-backed docs for explicit host filesystem operations.",
         "modules": ["std::host::fs"],
+        "overview": {
+            "summary": (
+                "The `std::host::fs` module provides host filesystem operations: reading files "
+                "into strings and writing string or byte content to files. These are host-bound "
+                "APIs backed by WASI filesystem intrinsics. Pure path manipulation lives in "
+                "`std::path`; for the full host family overview, see [io.md](io.md)."
+            ),
+            "highlights": [
+                ("`read_to_string(path)`", "Read a whole file as a UTF-8 string, returning `Result<String, String>`."),
+                ("`write_string(path, content)`", "Write or replace a UTF-8 file."),
+                ("`write_bytes(path, buf)`", "Write a byte array to a file."),
+            ],
+            "target_constraints": "**wasm32-wasi-p2** required.",
+            "typical_usage": """\
+```ark
+import std::host::fs
+
+let content = read_to_string("data.txt")
+match content {
+    Ok(text) => println(text),
+    Err(e)   => eprintln("read error: " + e),
+}
+
+write_string("output.txt", "hello")
+```""",
+        },
     },
     {
         "path": "modules/io.md",
@@ -236,36 +325,189 @@ match content {
         "title": "std::json",
         "description": "Source-backed docs for the current JSON helpers.",
         "modules": ["std::json"],
+        "overview": {
+            "summary": (
+                "The `std::json` module provides experimental JSON stringify and parse helpers "
+                "for primitive types (`i32`, `bool`, `String`). These are building blocks for "
+                "constructing or reading JSON fragments; full structured JSON DOM support is "
+                "planned for a future release."
+            ),
+            "highlights": [
+                ("`json_stringify_i32(n)` / `json_stringify_bool(b)`", "Serialize a primitive value to a JSON string."),
+                ("`json_stringify_string(s)`", "Serialize a string value with JSON escaping."),
+                ("`json_parse_i32(s)` / `json_parse_bool(s)`", "Parse a JSON primitive back to a typed value."),
+                ("`json_null()`", "Returns the JSON `null` literal."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::json
+
+let n = json_stringify_i32(42)       // "42"
+let b = json_stringify_bool(true)    // "true"
+let s = json_stringify_string("hi")  // "\"hi\""
+let parsed = json_parse_i32("42")    // 42
+```""",
+        },
     },
     {
         "path": "modules/path.md",
         "title": "std::path",
         "description": "Source-backed docs for path manipulation helpers.",
         "modules": ["std::path"],
+        "overview": {
+            "summary": (
+                "The `std::path` module provides pure string-based path manipulation helpers. "
+                "Paths are represented as `String` values and always use `/` as the separator "
+                "to match POSIX and WASI conventions. This module requires no host access; for "
+                "file I/O see `std::host::fs` or the [host family overview](io.md)."
+            ),
+            "highlights": [
+                ("`join(base, segment)`", "Join two path segments with a single `/` separator."),
+                ("`file_name(path)`", "Returns the final path segment after the last `/`."),
+                ("`extension(path)`", "Returns the extension without the leading `.`."),
+                ("`parent(path)`", "Returns the parent directory path."),
+                ("`is_absolute(path)`", "Returns `true` when the path starts with `/`."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::path
+
+let p = join("/home/user", "data.txt")  // "/home/user/data.txt"
+let name = file_name(p)                 // "data.txt"
+let ext  = extension(p)                 // "txt"
+let dir  = parent(p)                    // "/home/user"
+```""",
+        },
     },
     {
         "path": "modules/process.md",
         "title": "std::host::process / std::host::env",
         "description": "Source-backed docs for process control and runtime environment helpers.",
         "modules": ["std::host::process", "std::host::env"],
+        "overview": {
+            "summary": (
+                "This page covers two closely related host modules: `std::host::process` for "
+                "process lifecycle control (exit, abort) and `std::host::env` for runtime "
+                "environment access (CLI arguments, environment variables). Both are host-bound "
+                "and require WASI capabilities. For the full host family overview, see [io.md](io.md)."
+            ),
+            "highlights": [
+                ("`exit(code)`", "Request process termination with the given exit code."),
+                ("`abort()`", "Abort execution immediately by panicking."),
+                ("`args()`", "Retrieve the CLI argument vector (excluding argv[0])."),
+                ("`var(name)`", "Look up an environment variable by name, returning `Option<String>`."),
+                ("`has_flag(flag)`", "Check whether a flag is present in the argument vector."),
+            ],
+            "target_constraints": "**wasm32-wasi-p2** required for both modules.",
+            "typical_usage": """\
+```ark
+import std::host::env
+import std::host::process
+
+if has_flag("--help") {
+    println("Usage: myapp [options]")
+    exit(0)
+}
+
+let name = var("USER").unwrap_or("unknown")
+println("Running as: " + name)
+```""",
+        },
     },
     {
         "path": "modules/random.md",
         "title": "std::random",
         "description": "Source-backed docs for pseudo-random utilities.",
         "modules": ["std::random"],
+        "overview": {
+            "summary": (
+                "The `std::random` module provides deterministic pseudo-random helpers that "
+                "take an explicit seed, making results reproducible across runs. For "
+                "host-entropy (non-deterministic) random numbers, use `std::host::random` "
+                "instead (see [host family overview](io.md))."
+            ),
+            "highlights": [
+                ("`seeded_random(seed)`", "Generate a pseudo-random `i32` from a seed value."),
+                ("`seeded_range(seed, lo, hi)`", "Generate a pseudo-random value in `[lo, hi)`."),
+                ("`shuffle_i32(vec, seed)`", "Return a shuffled copy of a `Vec<i32>`."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::random
+
+let r = seeded_random(42)           // deterministic i32
+let v = seeded_range(42, 0, 100)    // deterministic value in [0, 100)
+let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
+```""",
+        },
     },
     {
         "path": "modules/seq.md",
         "title": "std::seq",
         "description": "Source-backed docs for eager sequence helpers.",
         "modules": ["std::seq"],
+        "overview": {
+            "summary": (
+                "The `std::seq` module provides eager sequence helpers over `Vec<i32>`: "
+                "search, aggregation, deduplication, and reversal. Lazy pipelines and "
+                "closure-heavy adapters are deferred to a future release."
+            ),
+            "highlights": [
+                ("`binary_search(vec, value)`", "Binary search a sorted vector; returns index or -1."),
+                ("`min_i32(vec)` / `max_i32(vec)`", "Find the minimum or maximum element."),
+                ("`sum_i32(vec)`", "Sum all elements in a vector."),
+                ("`unique(vec)`", "Remove duplicates, preserving first occurrence."),
+                ("`seq_reverse(vec)`", "Return a reversed copy of the vector."),
+                ("`seq_contains(vec, value)`", "Linear search for membership."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::seq
+
+let nums = vec![3, 1, 4, 1, 5, 9]
+let total = sum_i32(nums)           // 23
+let lo    = min_i32(nums)           // 1
+let dedup = unique(nums)            // [3, 1, 4, 5, 9]
+```""",
+        },
     },
     {
         "path": "modules/test.md",
         "title": "std::test",
         "description": "Source-backed docs for assertion and expectation helpers.",
         "modules": ["std::test"],
+        "overview": {
+            "summary": (
+                "The `std::test` module provides typed assertion and expectation helpers for "
+                "fixture and test code. It includes equality assertions for all primitive types, "
+                "unwrap helpers for `Result` and `Option`, string containment checks, and "
+                "snapshot comparison."
+            ),
+            "highlights": [
+                ("`assert_eq_i32(a, b)` / `assert_eq_string(a, b)`", "Assert typed equality; panics with a message on mismatch."),
+                ("`assert_true(cond)` / `assert_false(cond)`", "Assert boolean conditions."),
+                ("`expect_ok_i32(result)`", "Unwrap a `Result<i32, String>` or panic on `Err`."),
+                ("`expect_some_i32(option)`", "Unwrap an `Option<i32>` or panic on `None`."),
+                ("`assert_contains(haystack, needle)`", "Assert that a string contains a substring."),
+                ("`assert_eq_snapshot(actual, expected)`", "Line-by-line string comparison with diff on failure."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::test
+
+assert_eq_i32(1 + 1, 2)
+assert_eq_string(trim(" hi "), "hi")
+assert_true(10 > 5)
+
+let result: Result<i32, String> = Ok(42)
+let value = expect_ok_i32(result)  // 42
+```""",
+        },
     },
     {
         "path": "modules/text.md",
@@ -305,24 +547,111 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
         "title": "std::time",
         "description": "Source-backed docs for pure duration helpers.",
         "modules": ["std::time"],
+        "overview": {
+            "summary": (
+                "The `std::time` module provides pure duration arithmetic over caller-supplied "
+                "timestamps. It computes elapsed time in milliseconds, microseconds, or "
+                "nanoseconds given two `i64` timestamps. Host clock reads live in "
+                "`std::host::clock` (see [host family overview](io.md)); this module only "
+                "does pure math."
+            ),
+            "highlights": [
+                ("`duration_ms(start, end)`", "Elapsed time in milliseconds."),
+                ("`duration_us(start, end)`", "Elapsed time in microseconds."),
+                ("`duration_ns(start, end)`", "Elapsed time in nanoseconds (identity: `end - start`)."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::time
+import std::host::clock
+
+let t0 = monotonic_now()
+// ... do work ...
+let t1 = monotonic_now()
+let elapsed = duration_ms(t0, t1)  // milliseconds
+```""",
+        },
     },
     {
         "path": "modules/toml.md",
         "title": "std::toml",
         "description": "Source-backed docs for the current TOML helpers.",
         "modules": ["std::toml"],
+        "overview": {
+            "summary": (
+                "The `std::toml` module provides minimal experimental TOML helpers. The current "
+                "implementation handles only simple `key=value` style lines; full TOML table and "
+                "array support is not yet available."
+            ),
+            "highlights": [
+                ("`toml_parse_line(line)`", "Parse a `key=value` line and return the value as a string."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::toml
+
+let value = toml_parse_line("name = \\"arukellt\\"")
+// value == "arukellt"
+```""",
+        },
     },
     {
         "path": "modules/wasm.md",
         "title": "std::wasm",
         "description": "Source-backed docs for WebAssembly helpers.",
         "modules": ["std::wasm"],
+        "overview": {
+            "summary": (
+                "The `std::wasm` module exposes WebAssembly binary-format constants and low-level "
+                "memory operations. It provides the magic bytes, version bytes, section IDs, "
+                "value-type constants, and bulk memory helpers (`memory_copy`, `memory_fill`) "
+                "needed to build or inspect Wasm modules programmatically."
+            ),
+            "highlights": [
+                ("`wasm_magic()` / `wasm_version()`", "The 4-byte Wasm magic number and version bytes."),
+                ("`section_type()` … `section_data()`", "Section ID constants for all standard Wasm sections."),
+                ("`valtype_i32()` … `valtype_f64()`", "Value-type constants matching the Wasm binary encoding."),
+                ("`memory_copy(dst, src, len)`", "Bulk memory copy (like `memory.copy`)."),
+                ("`memory_fill(dst, val, len)`", "Bulk memory fill (like `memory.fill`)."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::wasm
+
+let magic = wasm_magic()    // [0x00, 0x61, 0x73, 0x6d]
+let ver   = wasm_version()  // [0x01, 0x00, 0x00, 0x00]
+let type_section = section_type()  // 1
+let i32_type = valtype_i32()       // 0x7f
+```""",
+        },
     },
     {
         "path": "modules/wit.md",
         "title": "std::wit",
         "description": "Source-backed docs for WIT helpers.",
         "modules": ["std::wit"],
+        "overview": {
+            "summary": (
+                "The `std::wit` module mirrors WebAssembly Interface Types (WIT) primitive type "
+                "identifiers as integer constants plus a name-lookup helper. These are building "
+                "blocks for component-model tooling and WIT introspection."
+            ),
+            "highlights": [
+                ("`wit_type_bool()` … `wit_type_string()`", "Integer constants for each WIT primitive type."),
+                ("`wit_type_name(id)`", "Map a WIT type constant back to its human-readable name."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::wit
+
+let t = wit_type_u32()        // integer constant for u32
+let name = wit_type_name(t)   // "u32"
+```""",
+        },
     },
 ]
 
@@ -1228,16 +1557,60 @@ def render_stdlib_readme(
         f"- Categories: {category_summary}",
         f"- Source-backed modules: {len(source_modules)}",
         "",
-        "## Recommended Reads",
+        "## Module Family Overviews",
         "",
-        "- [reference.md](reference.md)",
-        "- [modules/core.md](modules/core.md)",
-        "- [modules/io.md](modules/io.md)",
-        "- [modules/time.md](modules/time.md)",
-        "- [modules/random.md](modules/random.md)",
-        "- [modules/text.md](modules/text.md)",
-        "- [std.md](std.md)",
-        "- [cookbook.md](cookbook.md)",
+        "Every module page includes a curated **Overview** section explaining when and how to use it,",
+        "plus exhaustive generated reference tables.",
+        "",
+        "### Core & Collections",
+        "",
+        "| Module | Description |",
+        "|--------|-------------|",
+        "| [std::core](modules/core.md) | Ranges, errors, and hashing primitives. |",
+        "| [std::collections](modules/collections.md) | Hash maps, deques, priority queues, sorted maps, bitsets. |",
+        "| [std::seq](modules/seq.md) | Eager sequence search, aggregation, and deduplication. |",
+        "",
+        "### Text & Data Formats",
+        "",
+        "| Module | Description |",
+        "|--------|-------------|",
+        "| [std::text](modules/text.md) | String inspection, trimming, searching, formatting. |",
+        "| [std::bytes](modules/bytes.md) | Binary data buffers, hex encoding, LEB128, endian conversion. |",
+        "| [std::json](modules/json.md) | JSON stringify and parse helpers (experimental). |",
+        "| [std::csv](modules/csv.md) | CSV line splitting (experimental). |",
+        "| [std::toml](modules/toml.md) | TOML key=value parsing (experimental). |",
+        "",
+        "### I/O & Host Capabilities",
+        "",
+        "| Module | Description |",
+        "|--------|-------------|",
+        "| [std::host family](modules/io.md) | Full host I/O overview: stdio, fs, env, clock, random, process. |",
+        "| [std::host::fs](modules/fs.md) | Host filesystem read/write operations. |",
+        "| [std::path](modules/path.md) | Pure path manipulation (no host required). |",
+        "| [std::host::process / env](modules/process.md) | Process control and environment variable access. |",
+        "",
+        "### Algorithms & Utilities",
+        "",
+        "| Module | Description |",
+        "|--------|-------------|",
+        "| [std::random](modules/random.md) | Deterministic seeded pseudo-random helpers. |",
+        "| [std::time](modules/time.md) | Pure duration arithmetic over timestamps. |",
+        "| [std::test](modules/test.md) | Typed assertion and expectation helpers. |",
+        "",
+        "### WebAssembly & Component Model",
+        "",
+        "| Module | Description |",
+        "|--------|-------------|",
+        "| [std::wasm](modules/wasm.md) | Wasm binary-format constants and memory operations. |",
+        "| [std::wit](modules/wit.md) | WIT primitive type constants and introspection. |",
+        "| [std::component](modules/component.md) | Component model version constants. |",
+        "",
+        "### Cross-cutting Resources",
+        "",
+        "- [reference.md](reference.md) — Complete manifest-backed API reference",
+        "- [cookbook.md](cookbook.md) — Current-first usage examples",
+        "- [std.md](std.md) — 総合設計書 (comprehensive design document)",
+        "- [migration-guidance.md](migration-guidance.md) — Deprecated API migration paths",
         "",
         "## Overview vs Reference",
         "",
@@ -1245,14 +1618,10 @@ def render_stdlib_readme(
         "",
         "| Layer | Where | Purpose |",
         "|-------|-------|---------|",
-        "| **Curated overview** | `## Overview` section in each module family page | Explains *when* and *how* to use a module family: usage summary, recommended API highlights, target constraints, and typical usage patterns. Hand-maintained in `scripts/generate-docs.py` alongside the module page definition. |",
+        "| **Curated overview** | `## Overview` section in each module page | Explains *when* and *how* to use a module: usage summary, recommended API highlights, target constraints, and typical usage patterns. Hand-maintained in `scripts/generate-docs.py` alongside the module page definition. |",
         "| **Generated reference** | All other sections in module pages; `reference.md` | Exhaustive, manifest-backed API tables sourced from `std/manifest.toml` and `//!` doc comments. Always reflects the real implemented surface. Auto-regenerated — do not edit manually. |",
         "",
-        "Module family pages that currently carry a curated overview: "
-        "`std::core` ([modules/core.md](modules/core.md)), "
-        "`std::collections` ([modules/collections.md](modules/collections.md)), "
-        "`std::text` ([modules/text.md](modules/text.md)), "
-        "`std::host` / io ([modules/io.md](modules/io.md)).",
+        "All 18 module pages carry curated overviews.",
         "",
         "## Documents",
         "",
