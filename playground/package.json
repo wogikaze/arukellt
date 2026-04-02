@@ -1,0 +1,53 @@
+{
+  "name": "@arukellt/playground",
+  "version": "0.1.0",
+  "description": "Browser API for the Arukellt language playground — wraps ark-playground-wasm with TypeScript types and Web Worker support",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "import": "./dist/worker.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:wasm": "cd ../crates/ark-playground-wasm && wasm-pack build --target web --release",
+    "build:all": "npm run build:wasm && npm run build",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test dist/tests/types.test.js",
+    "test:typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist/",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "arukellt",
+    "playground",
+    "wasm",
+    "parser",
+    "formatter",
+    "web"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
