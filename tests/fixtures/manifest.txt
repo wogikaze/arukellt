@@ -636,3 +636,6 @@ t3-run:variables/tuple.ark
 run:structs/nested_struct_init_call.ark
 run:structs/push_chained_field.ark
 run:structs/chained_field_assign.ark
+run:guide/variables.ark
+run:guide/fn_add.ark
+run:guide/string_ops.ark

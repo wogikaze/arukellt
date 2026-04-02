@@ -10,6 +10,14 @@ It is written for readers who want a practical introduction before diving into t
 not covered here — consult the [Feature Maturity Matrix](maturity-matrix.md) for the
 complete stability picture.
 
+> **Fixture-linking convention**: Code examples in this guide are linked to runnable
+> test fixtures via HTML comments of the form `<!-- fixture: path/relative/to/tests/fixtures/ -->`.
+> These comments appear immediately before the fenced code block they verify.
+> The fixture files are compiled and run by CI through the manifest-driven harness
+> (`tests/fixtures/manifest.txt`), ensuring guide examples stay in sync with the compiler.
+> Fixtures may use `stdio::println` (the stable I/O path) where the guide shows
+> the prelude `println` form — both call the same underlying function.
+
 ---
 
 ## Table of Contents
@@ -35,6 +43,7 @@ complete stability picture.
 
 Every Arukellt program starts from a `main` function:
 
+<!-- fixture: hello/hello.ark -->
 ```ark
 fn main() {
     println(String_from("Hello, world!"))
@@ -58,6 +67,7 @@ Source files are UTF-8. Comments use `//` for line comments and `/* … */` for 
 
 Declare bindings with `let`. By default they are immutable:
 
+<!-- fixture: guide/variables.ark -->
 ```ark
 let x = 42
 let name = String_from("Alice")
@@ -123,6 +133,7 @@ No implicit narrowing is ever performed — use an explicit conversion function.
 
 ## 4. Functions
 
+<!-- fixture: guide/fn_add.ark -->
 ```ark
 fn add(a: i32, b: i32) -> i32 {
     a + b
@@ -194,6 +205,7 @@ let result = loop {
 
 Range iteration (half-open `[start, end)`):
 
+<!-- fixture: for_loops/for_range.ark -->
 ```ark
 for i in 0..10 {
     println(to_string(i))
@@ -218,6 +230,7 @@ for item in values(v) {
 
 Define a named product type:
 
+<!-- fixture: structs/basic_struct.ark -->
 ```ark
 struct Point {
     x: i32,
@@ -293,6 +306,7 @@ let err: Result<i32, String> = Err(String_from("bad"))
 
 `match` exhaustively tests a value against a sequence of patterns:
 
+<!-- fixture: control/match_enum.ark -->
 ```ark
 match direction {
     Direction::North => println(String_from("north")),
@@ -422,6 +436,7 @@ Common operations (all prelude):
 
 Fixed-size arrays (stack-allocated value type):
 
+<!-- fixture: arrays/array_literal.ark -->
 ```ark
 let arr: [i32; 3] = [1, 2, 3]
 let repeated: [i32; 5] = [0; 5]
@@ -525,6 +540,7 @@ The prelude (available in every module without import):
 
 ### Strings
 
+<!-- fixture: guide/string_ops.ark -->
 ```ark
 let s = String_from("hello")
 let t = concat(s, String_from(" world"))
