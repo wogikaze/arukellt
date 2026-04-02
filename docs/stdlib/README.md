@@ -115,6 +115,7 @@ All 18 module pages carry curated overviews.
 | [generation-schema.md](generation-schema.md) | This schema is enforced at generation time. |
 | [module-system.md](module-system.md) | Arukellt supports two import syntaxes for bringing modules into scope. |
 | [name-index.md](name-index.md) | Do not edit manually — changes will be overwritten on the next regeneration. |
+| [ownership-map.md](ownership-map.md) | Defines the ownership, maintenance tier, and release gate responsibilities |
 
 ### Policies & Deprecation
 
