@@ -33,3 +33,4 @@
 | [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: Language Docs Classification — Normative / Explanatory / Transitional | Archive | Status: DECIDED |
 | [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: Anchor / Permalink Naming Convention and Redirect Policy | Archive | Status: DECIDED |
 | [ADR-020-t2-io-surface.md](ADR-020-t2-io-surface.md) | ADR-020: T2 (wasm32-freestanding) I/O Surface Design — Console/DOM Bridge Contract | Archive | Status: DECIDED |
+| [ADR-021-playground-share-url-format.md](ADR-021-playground-share-url-format.md) | ADR-021: Playground Share URL Format — Encoding, Versioning, and Round-Trip Contract | Archive | Status: DECIDED |
