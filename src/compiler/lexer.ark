@@ -263,6 +263,7 @@ fn lex_number(lex: Lexer) -> Token {
                 }
                 lex.pos = lex.pos + 1
             }
+            try_eat_type_suffix(lex)
             let text = substring(lex.src, start, lex.pos)
             return Token_int(val, text, start, lex.pos)
         }
@@ -277,6 +278,7 @@ fn lex_number(lex: Lexer) -> Token {
                 }
                 lex.pos = lex.pos + 1
             }
+            try_eat_type_suffix(lex)
             let text = substring(lex.src, start, lex.pos)
             return Token_int(val, text, start, lex.pos)
         }
