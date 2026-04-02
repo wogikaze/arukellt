@@ -58,6 +58,13 @@ Choose the path that fits your goal.
 | [maturity-matrix.md](maturity-matrix.md) | Feature stability classification — see what's stable vs. experimental |
 | [spec.md](spec.md) | Stability labels per section mark which parts of the spec are provisional |
 
+### 🎮 Try It Interactively
+
+> **Want to experiment?** The [Playground](../playground/README.md) lets you write, parse, and check Arukellt code in the browser.
+
+The playground runs the parser, type checker, and formatter as Wasm in your browser —
+no install needed. Pair it with the [guide](guide.md) for a hands-on learning experience.
+
 ## Classification (ADR-018)
 
 Each document is classified as **normative**, **explanatory**, or **transitional**.

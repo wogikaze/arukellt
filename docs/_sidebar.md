@@ -13,6 +13,7 @@
   - [プロセス](process/README.md)
   - [標準ライブラリ](stdlib/README.md)
   - [実行例](examples/README.md)
+  - [プレイグラウンド](playground/README.md)
 
 - **Supporting Docs**
   - [移行](migration/README.md)

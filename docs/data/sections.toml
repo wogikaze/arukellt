@@ -41,6 +41,13 @@ category = "current"
 snapshot = "examples"
 
 [[sections]]
+dir = "playground"
+title = "プレイグラウンド"
+description = "ブラウザ上で Arukellt を試せるインタラクティブ環境。"
+category = "current"
+snapshot = "playground"
+
+[[sections]]
 dir = "migration"
 title = "移行"
 description = "バージョンやランタイム間の移行ガイド。"

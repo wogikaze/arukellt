@@ -29,6 +29,7 @@
 | プロセス | [process](process/README.md) | 検証契約、運用方針、ロードマップ。 |
 | 標準ライブラリ | [stdlib](stdlib/README.md) | manifest-backed な公開 API と利用ガイド。 |
 | 実行例 | [examples](examples/README.md) | 実行可能なサンプルと expected 出力。 |
+| プレイグラウンド | [playground](playground/README.md) | ブラウザ上で Arukellt を試せるインタラクティブ環境。 |
 
 ## Supporting Docs
 
