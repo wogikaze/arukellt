@@ -880,11 +880,8 @@ impl Ctx {
                         let wider = wider_valtype(*ok_valtype, *err_valtype);
                         if wider != *ok_valtype {
                             // payload is wider than ok — truncate
-                            match (*ok_valtype, wider) {
-                                (ValType::I32, ValType::I64) => {
-                                    f.instruction(&Instruction::I32WrapI64);
-                                }
-                                _ => {} // other cases: keep as-is
+                            if let (ValType::I32, ValType::I64) = (*ok_valtype, wider) {
+                                f.instruction(&Instruction::I32WrapI64);
                             }
                         }
                     }
@@ -894,13 +891,10 @@ impl Ctx {
                     f.instruction(&Instruction::LocalGet(payload_local));
                     if *ok_valtype != *err_valtype {
                         let wider = wider_valtype(*ok_valtype, *err_valtype);
-                        if wider != *err_valtype {
-                            match (*err_valtype, wider) {
-                                (ValType::I32, ValType::I64) => {
-                                    f.instruction(&Instruction::I32WrapI64);
-                                }
-                                _ => {}
-                            }
+                        if wider != *err_valtype
+                            && let (ValType::I32, ValType::I64) = (*err_valtype, wider)
+                        {
+                            f.instruction(&Instruction::I32WrapI64);
                         }
                     }
                     f.instruction(&Instruction::StructNew(*err_type_idx));
@@ -1358,10 +1352,10 @@ impl Ctx {
                             struct_type_index: *ok_type_idx,
                             field_index: 0,
                         });
-                        if *ok_valtype != payload_vt {
-                            if let (ValType::I32, ValType::I64) = (*ok_valtype, payload_vt) {
-                                f.instruction(&Instruction::I64ExtendI32S);
-                            }
+                        if *ok_valtype != payload_vt
+                            && let (ValType::I32, ValType::I64) = (*ok_valtype, payload_vt)
+                        {
+                            f.instruction(&Instruction::I64ExtendI32S);
                         }
                         emit_store_valtype(&mut f, payload_vt);
                     }
@@ -1386,10 +1380,10 @@ impl Ctx {
                             struct_type_index: *err_type_idx,
                             field_index: 0,
                         });
-                        if *err_valtype != payload_vt {
-                            if let (ValType::I32, ValType::I64) = (*err_valtype, payload_vt) {
-                                f.instruction(&Instruction::I64ExtendI32S);
-                            }
+                        if *err_valtype != payload_vt
+                            && let (ValType::I32, ValType::I64) = (*err_valtype, payload_vt)
+                        {
+                            f.instruction(&Instruction::I64ExtendI32S);
                         }
                         emit_store_valtype(&mut f, payload_vt);
                     }
@@ -1956,6 +1950,7 @@ fn is_scalar_type_name(name: &str) -> bool {
 ///   i++
 /// vec = struct.new $vec_T (arr, len)
 /// ```
+#[allow(clippy::too_many_arguments)]
 fn emit_linear_to_gc_list(
     f: &mut Function,
     ptr_local: u32,
@@ -2060,6 +2055,7 @@ fn emit_linear_to_gc_list(
 /// 2. Copies elements from GC array to linear memory starting at heap_ptr
 /// 3. Allocates 8 bytes for the (ptr, len) result pair
 /// 4. Returns the pair pointer
+#[allow(clippy::too_many_arguments)]
 fn emit_gc_list_to_linear_return(
     f: &mut Function,
     vec_local: u32,

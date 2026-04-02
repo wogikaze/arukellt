@@ -213,10 +213,11 @@ impl StdlibManifest {
         }
         // Also collect modules referenced by functions but not declared as [[modules]]
         for f in &self.functions {
-            if let Some(ref m) = f.module {
-                if !m.is_empty() && m != "prelude" {
-                    names.insert(m.clone());
-                }
+            if let Some(ref m) = f.module
+                && !m.is_empty()
+                && m != "prelude"
+            {
+                names.insert(m.clone());
             }
         }
         names.into_iter().collect()
@@ -233,11 +234,12 @@ impl StdlibManifest {
         }
         // From function module references (covers modules without [[modules]] entry)
         for f in &self.functions {
-            if let Some(ref m) = f.module {
-                if !m.is_empty() && m != "prelude" {
-                    let alias = m.rsplit("::").next().unwrap_or(m).to_string();
-                    candidates.push((alias, m.clone()));
-                }
+            if let Some(ref m) = f.module
+                && !m.is_empty()
+                && m != "prelude"
+            {
+                let alias = m.rsplit("::").next().unwrap_or(m).to_string();
+                candidates.push((alias, m.clone()));
             }
         }
         candidates.sort();

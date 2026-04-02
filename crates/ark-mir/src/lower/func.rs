@@ -403,7 +403,7 @@ pub fn lower_to_mir(
                             ast::TypeExpr::Generic { name, args, .. } if name == "Vec" => {
                                 let elem = args
                                     .first()
-                                    .map(|a| lower_type_expr_to_type(a))
+                                    .map(lower_type_expr_to_type)
                                     .unwrap_or(ark_typecheck::types::Type::I32);
                                 ark_typecheck::types::Type::Vec(Box::new(elem))
                             }
@@ -434,7 +434,7 @@ pub fn lower_to_mir(
                     Some(ast::TypeExpr::Generic { name, args, .. }) if name == "Vec" => {
                         let elem = args
                             .first()
-                            .map(|a| lower_type_expr_to_type(a))
+                            .map(lower_type_expr_to_type)
                             .unwrap_or(ark_typecheck::types::Type::I32);
                         ark_typecheck::types::Type::Vec(Box::new(elem))
                     }
@@ -600,7 +600,7 @@ pub fn lower_to_mir(
                                 ast::TypeExpr::Generic { name, args, .. } if name == "Vec" => {
                                     let elem = args
                                         .first()
-                                        .map(|a| lower_type_expr_to_type(a))
+                                        .map(lower_type_expr_to_type)
                                         .unwrap_or(ark_typecheck::types::Type::I32);
                                     ark_typecheck::types::Type::Vec(Box::new(elem))
                                 }
@@ -628,7 +628,7 @@ pub fn lower_to_mir(
                         Some(ast::TypeExpr::Generic { name, args, .. }) if name == "Vec" => {
                             let elem = args
                                 .first()
-                                .map(|a| lower_type_expr_to_type(a))
+                                .map(lower_type_expr_to_type)
                                 .unwrap_or(ark_typecheck::types::Type::I32);
                             ark_typecheck::types::Type::Vec(Box::new(elem))
                         }

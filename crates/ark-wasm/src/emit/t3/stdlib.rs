@@ -3812,7 +3812,7 @@ impl Ctx {
 
         // Step 4: environ_get — use safe base past all data segments
         // Pointer table at env_base, buffer at env_base + env_count*4
-        let env_base = ((self.data_offset + 255) / 256) * 256; // align to 256
+        let env_base = self.data_offset.div_ceil(256) * 256; // align to 256
         f.instruction(&Instruction::I32Const(env_base as i32));
         f.instruction(&Instruction::I32Const(env_base as i32));
         f.instruction(&Instruction::LocalGet(self.si(0)));

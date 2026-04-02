@@ -979,6 +979,8 @@ impl Session {
     }
 }
 
+fn _keep_pathbuf(_: &PathBuf, _: Option<ResolvedProgram>) {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1009,5 +1011,3 @@ mod tests {
         );
     }
 }
-
-fn _keep_pathbuf(_: &PathBuf, _: Option<ResolvedProgram>) {}

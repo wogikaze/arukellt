@@ -527,14 +527,14 @@ pub(crate) fn cmd_run(
         match session.compile_selected(&file, target, selection) {
             Ok(compiled) => {
                 // Enforce --deny-clock / --deny-random at compile time
-                if deny_clock && mir_uses_capability(&compiled.mir, &CLOCK_BUILTINS) {
+                if deny_clock && mir_uses_capability(&compiled.mir, CLOCK_BUILTINS) {
                     eprintln!(
                         "error: --deny-clock: this program uses clock intrinsics, \
                          which are denied by the current capability policy"
                     );
                     return false;
                 }
-                if deny_random && mir_uses_capability(&compiled.mir, &RANDOM_BUILTINS) {
+                if deny_random && mir_uses_capability(&compiled.mir, RANDOM_BUILTINS) {
                     eprintln!(
                         "error: --deny-random: this program uses random intrinsics, \
                          which are denied by the current capability policy"
@@ -543,7 +543,7 @@ pub(crate) fn cmd_run(
                 }
 
                 // Reject calls to host_stub functions (always-unimplemented)
-                if mir_uses_capability(&compiled.mir, &HOST_STUB_BUILTINS) {
+                if mir_uses_capability(&compiled.mir, HOST_STUB_BUILTINS) {
                     eprintln!(
                         "error: this program calls an unimplemented host API (host_stub). \
                          Functions marked host_stub (e.g. sockets::connect) \
@@ -615,13 +615,12 @@ pub(crate) fn cmd_check(file: PathBuf, target: TargetId) {
     }
     let mut session = Session::new();
     // Load lint config from ark.toml if available
-    if let Some(root) = Manifest::find_root(&std::env::current_dir().unwrap_or_default()) {
-        if let Ok(manifest) = Manifest::load_from_dir(&root) {
-            if let Some(lint) = &manifest.lint {
-                session.lint_allow = lint.allow.clone();
-                session.lint_deny = lint.deny.clone();
-            }
-        }
+    if let Some(root) = Manifest::find_root(&std::env::current_dir().unwrap_or_default())
+        && let Ok(manifest) = Manifest::load_from_dir(&root)
+        && let Some(lint) = &manifest.lint
+    {
+        session.lint_allow = lint.allow.clone();
+        session.lint_deny = lint.deny.clone();
     }
     match session.check(&file) {
         Ok(()) => {
@@ -641,10 +640,7 @@ pub(crate) fn cmd_lint(file: Option<PathBuf>, target: TargetId, list: bool) {
 
     if list {
         println!("Available lint rules ({}):\n", registry.len());
-        println!(
-            "{:<8} {:<14} {:<7} {}",
-            "ID", "Category", "Level", "Description"
-        );
+        println!("{:<8} {:<14} {:<7} Description", "ID", "Category", "Level");
         println!("{}", "-".repeat(70));
         for rule in registry.rules() {
             let level = match rule.default_level {
@@ -682,13 +678,12 @@ pub(crate) fn cmd_lint(file: Option<PathBuf>, target: TargetId, list: bool) {
     }
     let mut session = Session::new();
     // Load lint config from ark.toml if available
-    if let Some(root) = Manifest::find_root(&std::env::current_dir().unwrap_or_default()) {
-        if let Ok(manifest) = Manifest::load_from_dir(&root) {
-            if let Some(lint) = &manifest.lint {
-                session.lint_allow = lint.allow.clone();
-                session.lint_deny = lint.deny.clone();
-            }
-        }
+    if let Some(root) = Manifest::find_root(&std::env::current_dir().unwrap_or_default())
+        && let Ok(manifest) = Manifest::load_from_dir(&root)
+        && let Some(lint) = &manifest.lint
+    {
+        session.lint_allow = lint.allow.clone();
+        session.lint_deny = lint.deny.clone();
     }
     match session.check(&file) {
         Ok(()) => {

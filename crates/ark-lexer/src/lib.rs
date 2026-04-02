@@ -164,6 +164,7 @@ mod tests {
     // ── Float literals ───────────────────────────────────────────────────
 
     #[test]
+    #[allow(clippy::approx_constant)]
     fn float_basic() {
         assert_eq!(
             kinds("3.14"),
@@ -622,6 +623,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::approx_constant)]
     fn lex_mixed_literals() {
         let src = r#"42 3.14 "hello" 'x' true 0xFF"#;
         let k: Vec<TokenKind> = kinds(src)

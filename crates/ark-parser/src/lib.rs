@@ -175,12 +175,12 @@ mod tests {
         assert!(!sink.has_errors());
         // Should parse as 1 + (2 * 3), meaning top-level Binary is Add
         if let ast::Item::FnDef(f) = &module.items[0] {
-            if let ast::Stmt::Let { init, .. } = &f.body.stmts[0] {
-                if let ast::Expr::Binary { op, .. } = init {
-                    assert_eq!(*op, ast::BinOp::Add);
-                } else {
-                    panic!("expected Binary expr");
-                }
+            if let ast::Stmt::Let { init, .. } = &f.body.stmts[0]
+                && let ast::Expr::Binary { op, .. } = init
+            {
+                assert_eq!(*op, ast::BinOp::Add);
+            } else {
+                panic!("expected Binary expr");
             }
         }
     }
@@ -259,13 +259,13 @@ mod tests {
         let (module, sink) = parse_src("fn main() { let p = Point { x: 1, y: 2 } }");
         assert!(!sink.has_errors());
         if let ast::Item::FnDef(f) = &module.items[0] {
-            if let ast::Stmt::Let { init, .. } = &f.body.stmts[0] {
-                if let ast::Expr::StructInit { name, fields, .. } = init {
-                    assert_eq!(name, "Point");
-                    assert_eq!(fields.len(), 2);
-                } else {
-                    panic!("expected StructInit");
-                }
+            if let ast::Stmt::Let { init, .. } = &f.body.stmts[0]
+                && let ast::Expr::StructInit { name, fields, .. } = init
+            {
+                assert_eq!(name, "Point");
+                assert_eq!(fields.len(), 2);
+            } else {
+                panic!("expected StructInit");
             }
         }
     }
@@ -321,13 +321,13 @@ mod tests {
         let (module, sink) = parse_src("fn main() { let f = |x: i32, y: i32| x + y }");
         assert!(!sink.has_errors());
         if let ast::Item::FnDef(f) = &module.items[0] {
-            if let ast::Stmt::Let { init, .. } = &f.body.stmts[0] {
-                if let ast::Expr::Closure { params, .. } = init {
-                    assert_eq!(params.len(), 2);
-                    assert!(params[0].ty.is_some());
-                } else {
-                    panic!("expected Closure");
-                }
+            if let ast::Stmt::Let { init, .. } = &f.body.stmts[0]
+                && let ast::Expr::Closure { params, .. } = init
+            {
+                assert_eq!(params.len(), 2);
+                assert!(params[0].ty.is_some());
+            } else {
+                panic!("expected Closure");
             }
         }
     }
@@ -349,12 +349,12 @@ mod tests {
         let (module, sink) = parse_src("fn f() { if a { 1 } else if b { 2 } else { 3 } }");
         assert!(!sink.has_errors());
         if let ast::Item::FnDef(f) = &module.items[0] {
-            if let Some(tail) = &f.body.tail_expr {
-                if let ast::Expr::If { else_block, .. } = tail.as_ref() {
-                    assert!(else_block.is_some());
-                } else {
-                    panic!("expected If");
-                }
+            if let Some(tail) = &f.body.tail_expr
+                && let ast::Expr::If { else_block, .. } = tail.as_ref()
+            {
+                assert!(else_block.is_some());
+            } else {
+                panic!("expected If");
             }
         }
     }

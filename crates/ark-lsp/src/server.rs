@@ -541,10 +541,10 @@ impl ArukellBackend {
     }
 
     /// Resolve the receiver type name from text before a `.`.
-    fn resolve_receiver_type<'a>(
+    fn resolve_receiver_type(
         before_dot: &str,
         module: &ast::Module,
-        checker: Option<&'a ark_typecheck::TypeChecker>,
+        checker: Option<&ark_typecheck::TypeChecker>,
     ) -> Option<String> {
         // Extract the receiver identifier (rightmost ident before the dot)
         let trimmed = before_dot.trim_end();
@@ -1066,7 +1066,7 @@ impl ArukellBackend {
                         continue;
                     }
                     let doc = func.doc_category.as_deref().or(func.module.as_deref());
-                    let rank = if expected_type.is_some() && doc == expected_type.as_deref() {
+                    let rank = if expected_type.is_some() && doc == expected_type {
                         format!("0-{}", func.name)
                     } else {
                         format!("1-{}", func.name)
@@ -3493,11 +3493,7 @@ impl LanguageServer for ArukellBackend {
                                 } else {
                                     None
                                 };
-                                Self::index_stdlib_from_manifest(
-                                    &self.symbol_index,
-                                    m,
-                                    std_path.map(|p| p),
-                                );
+                                Self::index_stdlib_from_manifest(&self.symbol_index, m, std_path);
                             }
                         }
                         self.client
@@ -3793,9 +3789,7 @@ impl LanguageServer for ArukellBackend {
                 if end <= source.len() && source[start..end] == *name {
                     // If we have a scope range, restrict to that scope
                     if let Some((scope_start, scope_end)) = scope_range {
-                        if (tok.span.start as u32) < scope_start
-                            || (tok.span.end as u32) > scope_end
-                        {
+                        if tok.span.start < scope_start || tok.span.end > scope_end {
                             continue;
                         }
                     }
@@ -3882,9 +3876,7 @@ impl LanguageServer for ArukellBackend {
                 let end = tok.span.end as usize;
                 if end <= source.len() && source[start..end] == *name {
                     if let Some((scope_start, scope_end)) = scope_range {
-                        if (tok.span.start as u32) < scope_start
-                            || (tok.span.end as u32) > scope_end
-                        {
+                        if tok.span.start < scope_start || tok.span.end > scope_end {
                             continue;
                         }
                     }
@@ -4041,7 +4033,7 @@ impl LanguageServer for ArukellBackend {
                                             let ret_str = f
                                                 .return_type
                                                 .as_ref()
-                                                .map(|t| Self::type_expr_to_string(t))
+                                                .map(Self::type_expr_to_string)
                                                 .unwrap_or_else(|| "()".to_string());
 
                                             return Ok(Some(SignatureHelp {
@@ -4200,9 +4192,7 @@ impl LanguageServer for ArukellBackend {
                 let end = tok.span.end as usize;
                 if end <= source.len() && &source[start..end] == old_name {
                     if let Some((scope_start, scope_end)) = scope_range {
-                        if (tok.span.start as u32) < scope_start
-                            || (tok.span.end as u32) > scope_end
-                        {
+                        if tok.span.start < scope_start || tok.span.end > scope_end {
                             continue;
                         }
                     }
@@ -4456,10 +4446,10 @@ impl LanguageServer for ArukellBackend {
                             }
                         }
                         result = kept.join("\n");
-                        if result.ends_with('\n') || src.ends_with('\n') {
-                            if !result.ends_with('\n') {
-                                result.push('\n');
-                            }
+                        if (result.ends_with('\n') || src.ends_with('\n'))
+                            && !result.ends_with('\n')
+                        {
+                            result.push('\n');
                         }
                     }
                 }

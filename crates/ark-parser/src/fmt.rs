@@ -82,11 +82,7 @@ fn find_line_comment_start(line: &str) -> Option<usize> {
     while i < bytes.len() {
         match bytes[i] {
             b'"' if !in_char => {
-                if in_string {
-                    in_string = false;
-                } else {
-                    in_string = true;
-                }
+                in_string = !in_string;
             }
             b'\'' if !in_string => {
                 in_char = !in_char;

@@ -110,7 +110,7 @@ pub(crate) fn lower_type_expr_to_type(ty: &ast::TypeExpr) -> ark_typecheck::type
         ast::TypeExpr::Generic { name, args, .. } if name == "Vec" => {
             let elem = args
                 .first()
-                .map(|a| lower_type_expr_to_type(a))
+                .map(lower_type_expr_to_type)
                 .unwrap_or(ark_typecheck::types::Type::I32);
             ark_typecheck::types::Type::Vec(Box::new(elem))
         }

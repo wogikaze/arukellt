@@ -741,32 +741,29 @@ impl EmitCtx {
                         self.string_locals.insert(id.0);
                     }
                     // get/get_unchecked on Vec<String> → String
-                    if matches!(n, "get_unchecked" | "get") {
-                        if let Some(vec_op) = args.first() {
-                            if self.is_vec_string_operand(vec_op) {
-                                self.string_locals.insert(id.0);
-                            }
-                        }
+                    if matches!(n, "get_unchecked" | "get")
+                        && let Some(vec_op) = args.first()
+                        && self.is_vec_string_operand(vec_op)
+                    {
+                        self.string_locals.insert(id.0);
                     }
                     // push returns the vec — propagate Vec<String>
-                    if n == "push" {
-                        if let Some(vec_op) = args.first() {
-                            if self.is_vec_string_operand(vec_op) {
-                                self.vec_string_locals.insert(id.0);
-                            }
-                        }
+                    if n == "push"
+                        && let Some(vec_op) = args.first()
+                        && self.is_vec_string_operand(vec_op)
+                    {
+                        self.vec_string_locals.insert(id.0);
                     }
                     // Vec_new_String
                     if n == "Vec_new_String" {
                         self.vec_string_locals.insert(id.0);
                     }
                     // clone of Vec<String>
-                    if n == "clone" {
-                        if let Some(vec_op) = args.first() {
-                            if self.is_vec_string_operand(vec_op) {
-                                self.vec_string_locals.insert(id.0);
-                            }
-                        }
+                    if n == "clone"
+                        && let Some(vec_op) = args.first()
+                        && self.is_vec_string_operand(vec_op)
+                    {
+                        self.vec_string_locals.insert(id.0);
                     }
                 }
                 MirStmt::IfStmt {
@@ -800,10 +797,10 @@ impl EmitCtx {
                     return true;
                 }
                 // push returns the same vec type as its first argument
-                if name == "push" {
-                    if let Some(vec_op) = args.first() {
-                        return self.is_vec_string_operand(vec_op);
-                    }
+                if name == "push"
+                    && let Some(vec_op) = args.first()
+                {
+                    return self.is_vec_string_operand(vec_op);
                 }
                 self.fn_return_types
                     .get(name)
@@ -850,22 +847,20 @@ impl EmitCtx {
                 }
                 // get/get_unchecked on Vec<String> returns String
                 if matches!(name, "get" | "get_unchecked") {
-                    if let Some(Operand::Place(Place::Local(id))) = args.first() {
-                        if self.vec_string_locals.contains(&id.0) {
-                            return true;
-                        }
+                    if let Some(Operand::Place(Place::Local(id))) = args.first()
+                        && self.vec_string_locals.contains(&id.0)
+                    {
+                        return true;
                     }
                     // Also handle struct field access: get_unchecked(s.field, i)
                     if let Some(Operand::FieldAccess {
                         struct_name, field, ..
                     }) = args.first()
-                    {
-                        if self
+                        && self
                             .struct_vec_string_fields
                             .contains(&(struct_name.clone(), field.clone()))
-                        {
-                            return true;
-                        }
+                    {
+                        return true;
                     }
                 }
                 // Check if function returns String

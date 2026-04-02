@@ -305,12 +305,11 @@ impl LowerCtx {
                             "Option".to_string()
                         };
                         // Specialize Option<String> → Option_String
-                        if is_option {
-                            if let ast::TypeExpr::Generic { args, .. } = &ret_te {
-                                if args.first().is_some_and(is_string_type) {
-                                    enum_name = "Option_String".to_string();
-                                }
-                            }
+                        if is_option
+                            && let ast::TypeExpr::Generic { args, .. } = &ret_te
+                            && args.first().is_some_and(is_string_type)
+                        {
+                            enum_name = "Option_String".to_string();
                         }
                         self.enum_typed_locals.insert(local_id.0, enum_name.clone());
                         // Compute payload strings for the inferred type

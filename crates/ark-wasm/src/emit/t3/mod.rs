@@ -614,10 +614,10 @@ impl Ctx {
                 if let Some(&base_idx) = self.enum_base_types.get(name) {
                     return ref_nullable(base_idx);
                 }
-                if let Some(specialized_name) = nominalize_generic_type_name(name) {
-                    if let Some(&base_idx) = self.enum_base_types.get(specialized_name.as_str()) {
-                        return ref_nullable(base_idx);
-                    }
+                if let Some(specialized_name) = nominalize_generic_type_name(name)
+                    && let Some(&base_idx) = self.enum_base_types.get(specialized_name.as_str())
+                {
+                    return ref_nullable(base_idx);
                 }
                 // Vec types: Vec<i32>, Vec<String>, etc.
                 if name.starts_with("Vec<") {
@@ -885,16 +885,16 @@ fn func_body_wraps_http_intrinsic(func: &MirFunction) -> bool {
     };
     for block in &func.blocks {
         for stmt in &block.stmts {
-            if let MirStmt::CallBuiltin { name, .. } = stmt {
-                if is_http_intrinsic(name) {
-                    return true;
-                }
-            }
-        }
-        if let Terminator::Return(Some(Operand::Call(name, _))) = &block.terminator {
-            if is_http_intrinsic(name) {
+            if let MirStmt::CallBuiltin { name, .. } = stmt
+                && is_http_intrinsic(name)
+            {
                 return true;
             }
+        }
+        if let Terminator::Return(Some(Operand::Call(name, _))) = &block.terminator
+            && is_http_intrinsic(name)
+        {
+            return true;
         }
     }
     false

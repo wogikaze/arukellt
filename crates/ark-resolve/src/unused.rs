@@ -307,12 +307,11 @@ fn collect_used_modules_in_pattern(pattern: &ast::Pattern, used: &mut HashSet<St
     match pattern {
         ast::Pattern::Enum { path, fields, .. } => {
             // path like "module::Type" — check if first segment is a module
-            if path.contains("::") {
-                if let Some(module) = path.split("::").next() {
-                    if module.chars().next().is_some_and(|c| c.is_lowercase()) {
-                        used.insert(module.to_string());
-                    }
-                }
+            if path.contains("::")
+                && let Some(module) = path.split("::").next()
+                && module.chars().next().is_some_and(|c| c.is_lowercase())
+            {
+                used.insert(module.to_string());
             }
             for f in fields {
                 collect_used_modules_in_pattern(f, used);
@@ -588,30 +587,30 @@ fn collect_ident_refs_in_expr(expr: &ast::Expr, used: &mut HashSet<String>) {
     }
 }
 
-fn collect_ident_refs_in_pattern(pattern: &ast::Pattern, used: &mut HashSet<String>) {
+fn collect_ident_refs_in_pattern(pattern: &ast::Pattern, _used: &mut HashSet<String>) {
     match pattern {
         ast::Pattern::Ident { .. } => {
             // Pattern bindings introduce names, they don't "use" them
         }
         ast::Pattern::Enum { fields, .. } => {
             for f in fields {
-                collect_ident_refs_in_pattern(f, used);
+                collect_ident_refs_in_pattern(f, _used);
             }
         }
         ast::Pattern::Tuple { elements, .. } => {
             for p in elements {
-                collect_ident_refs_in_pattern(p, used);
+                collect_ident_refs_in_pattern(p, _used);
             }
         }
         ast::Pattern::Or { patterns, .. } => {
             for p in patterns {
-                collect_ident_refs_in_pattern(p, used);
+                collect_ident_refs_in_pattern(p, _used);
             }
         }
         ast::Pattern::Struct { fields, .. } => {
             for (_name, pat) in fields {
                 if let Some(p) = pat {
-                    collect_ident_refs_in_pattern(p, used);
+                    collect_ident_refs_in_pattern(p, _used);
                 }
             }
         }
