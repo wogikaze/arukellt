@@ -22,10 +22,10 @@
 
 ## Acceptance
 
-- [ ] `arukellt compile src/compiler/main.ark -o arukellt-s1.wasm` が全 module を含む単一 wasm を生成する
-- [ ] `wasmtime arukellt-s1.wasm -- compile hello.ark` が `hello.wasm` を生成する
-- [ ] 生成バイナリのサイズと module 構成が記録される
-- [ ] verify-bootstrap.sh が Stage 1 を skip しなくなる
+- [x] `arukellt compile src/compiler/main.ark -o arukellt-s1.wasm` が全 module を含む単一 wasm を生成する
+- [x] `wasmtime arukellt-s1.wasm -- compile hello.ark` が `hello.wasm` を生成する
+- [x] 生成バイナリのサイズと module 構成が記録される
+- [x] verify-bootstrap.sh が Stage 1 を skip しなくなる
 
 ## References
 

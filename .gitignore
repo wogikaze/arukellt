@@ -19,7 +19,17 @@ tests/component-interop/**/*.wasm
 
 # root-level wasm build/test artifacts
 /*.wasm
+/*.cwasm
 /src/**/*.wasm
+
+# root-level scratch/temp files
+/_test_*.ark
+/archive.zip
+
+# benchmark build artifacts (result summaries are tracked separately)
+benchmarks/*.wasm
+benchmarks/*.bench.wasm
+benchmarks/results/*.wasm
 
 # local-only reference specs (not tracked; cause docs-gen drift)
 docs/spec/spec-*/

@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] selfhost CLI で `compile` コマンドが動作し、生成 wasm の実行結果が Rust 版と一致する（バイナリ同一性は求めない）
-- [ ] selfhost CLI で `check` コマンドが動作し、エラー有無が Rust 版と一致する
-- [ ] `--target`, `--opt-level`, `--emit-mode` フラグが selfhost で動作する
-- [ ] 差分リストが文書化される
+- [x] selfhost CLI で `compile` コマンドが動作し、生成 wasm の実行結果が Rust 版と一致する（バイナリ同一性は求めない）
+- [x] selfhost CLI で `check` コマンドが動作し、エラー有無が Rust 版と一致する
+- [x] `--target`, `--opt-level`, `--emit-mode` フラグが selfhost で動作する
+- [x] 差分リストが文書化される
 
 ## References
 

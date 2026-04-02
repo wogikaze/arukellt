@@ -22,11 +22,11 @@ verify-bootstrap.sh の Stage 1 / Stage 2 を実際に実行する。現在は u
 
 ## Acceptance
 
-- [ ] verify-bootstrap.sh が Stage 1 を実行し `arukellt-s2.wasm` を生成する
-- [ ] Stage 2 で `sha256(s1) == sha256(s2)` fixpoint を検証する
-- [ ] machine-readable summary の status が `not-verified` 以外の値を返す
-- [ ] scaffold ラベルが除去される
-- [ ] `--stage1-only` 以外の mode で Stage 1/2 が実行可能になる
+- [x] verify-bootstrap.sh が Stage 1 を実行し `arukellt-s2.wasm` を生成する
+- [x] Stage 2 で `sha256(s1) == sha256(s2)` fixpoint を検証する
+- [x] machine-readable summary の status が `not-verified` 以外の値を返す
+- [x] scaffold ラベルが除去される
+- [x] `--stage1-only` 以外の mode で Stage 1/2 が実行可能になる
 
 ## References
 

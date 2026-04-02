@@ -283,6 +283,13 @@
 | `min` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_min` |
 | `sqrt` | `(f64) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sqrt` |
 
+## Numeric
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
+|------|-----------|--------|-----------|------|---------|-----------|
+| `f64_bits_hi` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` |
+| `f64_bits_lo` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` |
+
 ## Option Result
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |

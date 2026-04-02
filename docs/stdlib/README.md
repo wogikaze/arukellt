@@ -6,11 +6,11 @@ manifest-backed な公開 API と利用ガイド。
 ## Current Snapshot
 
 - Current source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), and the `std/*.ark` source files that carry doc comments.
-- Manifest-backed public functions: 273
-- Prelude wrappers: 100
+- Manifest-backed public functions: 275
+- Prelude wrappers: 102
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
 - Prelude values: `Some`, `None`, `Ok`, `Err`, `true`, `false`
-- Categories: `assert` 5, `box` 2, `bytes` 20, `collections` 77, `component` 2, `control` 1, `conversion` 10, `core` 6, `csv` 1, `host_clock` 1, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 3, `host_sockets` 1, `host_stdio` 3, `json` 6, `math` 5, `option_result` 14, `path` 6, `random` 3, `seq` 8, `string` 19, `test` 16, `text` 15, `time` 3, `toml` 1, `wasm` 19, `wit` 14
+- Categories: `assert` 5, `box` 2, `bytes` 20, `collections` 77, `component` 2, `control` 1, `conversion` 10, `core` 6, `csv` 1, `host_clock` 1, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 3, `host_sockets` 1, `host_stdio` 3, `json` 6, `math` 5, `numeric` 2, `option_result` 14, `path` 6, `random` 3, `seq` 8, `string` 19, `test` 16, `text` 15, `time` 3, `toml` 1, `wasm` 19, `wit` 14
 - Source-backed modules: 26
 
 ## Recommended Reads

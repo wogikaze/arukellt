@@ -306,6 +306,26 @@ stability = "stable"
 doc_category = "conversion"
 
 [[functions]]
+name = "f64_bits_lo"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f64_bits_lo"
+params = ["f64"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "numeric"
+
+[[functions]]
+name = "f64_bits_hi"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f64_bits_hi"
+params = ["f64"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "numeric"
+
+[[functions]]
 name = "f64_to_string"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_f64_to_string"

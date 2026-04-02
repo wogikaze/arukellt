@@ -22,10 +22,10 @@ CI の `selfhost-stage0` job を full fixpoint check に昇格する。現在は
 
 ## Acceptance
 
-- [ ] CI job が Stage 0 + Stage 1 + Stage 2 を実行する
-- [ ] fixpoint failure が merge-blocking になる
-- [ ] parity check の結果が CI output に含まれる
-- [ ] job 名が実態を反映する (`selfhost-fixpoint` 等)
+- [x] CI job が Stage 0 + Stage 1 + Stage 2 を実行する
+- [x] fixpoint failure が merge-blocking になる
+- [x] parity check の結果が CI output に含まれる
+- [x] job 名が実態を反映する (`selfhost-fixpoint` 等)
 
 ## References
 

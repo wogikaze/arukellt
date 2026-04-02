@@ -20,10 +20,10 @@
 
 ## Acceptance
 
-- [ ] 代表 fixture (少なくとも 50 個) を selfhost コンパイラでコンパイル＆実行するスクリプトが存在する
-- [ ] 比較基準は「実行結果 (stdout) の一致」とする（バイナリ同一性は求めない）
-- [ ] 不一致箇所のリストが出力される
-- [ ] `verify-bootstrap.sh --fixture-parity` で呼び出し可能
+- [x] 代表 fixture (少なくとも 50 個) を selfhost コンパイラでコンパイル＆実行するスクリプトが存在する
+- [x] 比較基準は「実行結果 (stdout) の一致」とする（バイナリ同一性は求めない）
+- [x] 不一致箇所のリストが出力される
+- [x] `verify-bootstrap.sh --fixture-parity` で呼び出し可能
 
 ## References
 
