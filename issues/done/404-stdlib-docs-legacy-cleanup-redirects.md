@@ -1,6 +1,6 @@
 # Stdlib Docs: legacy ページの整理と redirect / archive 方針を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 404
@@ -21,10 +21,10 @@ stdlib docs に残る historical / legacy landing pages の扱いを整理し、
 
 ## Acceptance
 
-- [ ] legacy stdlib docs の inventory が作成される。
-- [ ] 各ページに keep / merge / redirect / archive の処置が決まる。
-- [ ] 必要な redirect または banner が実装される。
-- [ ] README からの導線が current-first になる。
+- [x] legacy stdlib docs の inventory が作成される。
+- [x] 各ページに keep / merge / redirect / archive の処置が決まる。
+- [x] 必要な redirect または banner が実装される。
+- [x] README からの導線が current-first になる。
 
 ## References
 
