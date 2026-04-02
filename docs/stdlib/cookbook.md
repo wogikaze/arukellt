@@ -7,6 +7,10 @@
 古い capability API や未確認 helper は削っています。
 各レシピは対応するテスト fixture へのリンクを含んでおり、実際に動くコードの出典として参照できます。
 
+> 📋 **Recipe manifest**: レシピと fixture の対応は
+> [`recipe-manifest.toml`](recipe-manifest.toml) で管理されており、
+> CI が `check-docs-consistency.py` でリンク整合性を検証します。
+
 ## 基本方針
 
 1. 関数呼び出し形式を基準にする
