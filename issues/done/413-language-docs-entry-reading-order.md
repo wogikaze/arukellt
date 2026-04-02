@@ -1,6 +1,6 @@
 # Language Docs: entry page に目的別 reading order を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 413
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] README に目的別の reading order が追加される。
-- [ ] guide / spec / matrix / archive の導線が明確になる。
-- [ ] table または badges に文書分類が反映される。
-- [ ] generated 更新で崩れない構造になる。
+- [x] README に目的別の reading order が追加される。
+- [x] guide / spec / matrix / archive の導線が明確になる。
+- [x] table または badges に文書分類が反映される。
+- [x] generated 更新で崩れない構造になる。
 
 ## References
 

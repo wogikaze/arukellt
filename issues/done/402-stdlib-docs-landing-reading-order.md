@@ -1,6 +1,6 @@
 # Stdlib Docs: landing page と読む順番を family 単位で再設計する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 402
@@ -21,10 +21,10 @@ README と landing page を単なる一覧ではなく、目的別の reading or
 
 ## Acceptance
 
-- [ ] 目的別の reading order が README に追加される。
-- [ ] family landing page から適切な overview / recipe / reference へ誘導する。
-- [ ] legacy page の導線が current first になる。
-- [ ] README の自動生成または更新手順が明文化される。
+- [x] 目的別の reading order が README に追加される。
+- [x] family landing page から適切な overview / recipe / reference へ誘導する。
+- [x] legacy page の導線が current first になる。
+- [x] README の自動生成または更新手順が明文化される。
 
 ## References
 

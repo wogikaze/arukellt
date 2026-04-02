@@ -1,6 +1,6 @@
 # Playground: editor shell と syntax highlighting を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 431
@@ -21,10 +21,10 @@ Monaco または CodeMirror ベースの editor shell を作り、既存 syntax 
 
 ## Acceptance
 
-- [ ] browser editor が追加される。
-- [ ] syntax highlighting が動作する。
-- [ ] diagnostics markers または panel 表示が動作する。
-- [ ] format action が editor から呼べる。
+- [x] browser editor が追加される。
+- [x] syntax highlighting が動作する。
+- [x] diagnostics markers または panel 表示が動作する。
+- [x] format action が editor から呼べる。
 
 ## References
 
