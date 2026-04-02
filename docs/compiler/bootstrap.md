@@ -237,42 +237,68 @@ for the latest stage-by-stage status. That section is the authoritative source.
 - LSP support in the selfhost compiler
 - Identical binary output for *all possible* inputs (only the fixture set)
 
-## Dual-Period End Condition
+## Dual-Period Governance
 
 During the dual period, **both** the Rust compiler (`crates/`) and the selfhost
 sources (`src/compiler/`) are maintained in parallel. Every bug fix applied to
 the Rust compiler must also be applied to the selfhost sources.
 
-### When the dual period ends
+### Retained Crates (IDE tooling — never deleted)
 
-The dual period ends when **all** of the following are true:
+The following crates provide IDE and editor integration and remain in
+`Cargo.toml` after the dual period ends.
 
-1. All selfhost completion criteria above are satisfied
-2. The CI `selfhost-parity` job has passed on every merge for at least **4
-   consecutive weeks** (28 days of green CI)
-3. A PR titled "chore(selfhost): promote selfhost compiler to primary" is
-   approved and merged by a maintainer
-4. `docs/current-state.md` is updated to reflect the Rust compiler's removal
+| Crate | Purpose |
+|-------|---------|
+| `ark-lsp` | Language Server Protocol integration |
+| `ark-dap` | Debug Adapter Protocol integration |
+| `ark-diagnostics` | Shared diagnostic types (used by LSP/DAP) |
+| `ark-manifest` | Project manifest parsing (used by LSP and CLI) |
+| `ark-lexer` | Tokenizer — shared between IDE tooling and the compiler |
+| `ark-parser` | Parser — shared between IDE tooling and the compiler |
 
-### Rust compiler deletion procedure
+Test infrastructure in `tests/` and `scripts/` is also never removed.
 
-When the dual period ends:
+### Deletion Candidates (compiler pipeline)
 
-1. Open issue: "chore: remove Rust compiler backend after selfhost promotion"
-2. Delete `crates/ark-driver/src/`, `crates/ark-wasm/src/`, and the compiler
-   pipeline crates (keep `ark-manifest`, `ark-diagnostics`, `ark-lexer`,
-   `ark-parser` for IDE tooling)
-3. Update `Cargo.toml` workspace members
-4. Update CI: replace `cargo build` with `wasmtime run arukellt.wasm`
-5. Update `scripts/verify-harness.sh` to use selfhost binary
-6. Archive `issues/done/` for all selfhost-related issues
-7. Update `docs/current-state.md` to remove the Rust/selfhost dual sections
+The following crates implement the Rust compiler pipeline. Each is deleted once
+its selfhost equivalent passes the parity check.
 
-### Exclusions
+| Crate | Role | Deletion Condition |
+|-------|------|--------------------|
+| `ark-driver` | Pipeline orchestration (lex→parse→…→emit) | Selfhost `driver.ark` equivalent passes `scripts/check-selfhost-parity.sh` |
+| `ark-mir` | Mid-level IR and HIR→MIR lowering | Selfhost `mir.ark` equivalent passes `scripts/check-selfhost-parity.sh` |
+| `ark-wasm` | Wasm binary emitter | Selfhost `emitter.ark` equivalent passes `scripts/check-selfhost-parity.sh` |
+| `arukellt` | Top-level CLI binary | Selfhost `main.ark` (as `arukellt.wasm`) passes `scripts/check-selfhost-parity.sh` |
 
-The following are **never** deleted during the dual period transition:
+**Parity check definition:** "passes `scripts/check-selfhost-parity.sh`" means
+the script exits 0 for every fixture in `tests/fixtures/` on the current `HEAD`
+of `master`.
 
-- `ark-lsp` (used for editor integration; Rust stays)
-- `ark-manifest` (used by both CLI and LSP)
-- `ark-diagnostics`, `ark-lexer`, `ark-parser` (used by LSP)
-- Test infrastructure in `tests/` and `scripts/`
+### When the Dual Period Ends
+
+**One observable condition:** The dual period ends when:
+
+> `scripts/check-selfhost-parity.sh` exits 0 on `HEAD` of `master`.
+
+All other gates (fixpoint check, CLI parity, diagnostic parity, determinism)
+are prerequisites that must be satisfied before this command can exit 0. Once
+`scripts/check-selfhost-parity.sh` exits 0 in CI, the dual period is over and
+the deletion procedure below may begin.
+
+### Rust Compiler Deletion Procedure
+
+Execute the following steps **in order** after the dual-period end condition is
+confirmed. Each step must leave the repository in a buildable, test-passing
+state before the next step begins.
+
+1. Open a tracking issue: `"chore: remove Rust compiler backend after selfhost promotion"`
+2. Delete `crates/ark-driver/` (precondition: selfhost `driver.ark` passes parity check)
+3. Delete `crates/ark-mir/` (precondition: selfhost `mir.ark` passes parity check)
+4. Delete `crates/ark-wasm/` (precondition: selfhost `emitter.ark` passes parity check)
+5. Delete `crates/arukellt/` (precondition: selfhost `main.ark` as `arukellt.wasm` passes parity check)
+6. Remove the deleted crates from `Cargo.toml` workspace `members` and `default-members`
+7. Update CI: replace `cargo build --workspace` compile step with `wasmtime run arukellt.wasm`
+8. Update `scripts/verify-harness.sh` to invoke the selfhost binary
+9. Update `docs/current-state.md` to remove the dual-period sections
+10. Archive `issues/done/` for all selfhost promotion issues
