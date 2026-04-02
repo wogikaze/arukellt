@@ -384,6 +384,251 @@ def check_spec_guide_sync() -> int:
     return 0
 
 
+# ── Metadata-level verification (#403) ────────────────────────────────────────
+
+
+def _parse_manifest() -> dict:
+    """Load and return parsed manifest.toml."""
+    import tomllib as _tomllib
+
+    return _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
+
+
+def _find_reference_row(
+    ref_lines: list[str], fn_name: str, module: str | None = None
+) -> str | None:
+    """Find the reference.md table row containing a function by name and module.
+
+    Returns the full line or None.  Handles both normal and deprecated display
+    forms.  When *module* is given, the Module column (3rd pipe-field) must
+    contain it to disambiguate functions that share a name (e.g. prelude
+    ``get`` vs ``std::host::http`` ``get``).
+    """
+    normal_pattern = f"| `{fn_name}` |"
+    deprecated_pattern = f"| ~~`{fn_name}`~~"
+    for line in ref_lines:
+        if normal_pattern in line or deprecated_pattern in line:
+            if module is not None:
+                cells = [c.strip() for c in line.split("|")]
+                # cells: ['', Name, Signature, Module, Stability, Kind, ...]
+                if len(cells) >= 4:
+                    ref_module = cells[3].strip("`").strip()
+                    if ref_module != module:
+                        continue
+            return line
+    return None
+
+
+def check_target_metadata_in_reference() -> int:
+    """Verify that every function with ``target`` in manifest shows target info in reference.md.
+
+    For each function entry carrying a ``target`` list (e.g. ``["wasm32-wasi-p2"]``),
+    the corresponding reference.md row's Kind column must contain the target value
+    in parentheses — e.g. ``(wasm32-wasi-p2)``.
+    """
+    if not MANIFEST.exists():
+        return 0
+
+    reference_path = ROOT / "docs" / "stdlib" / "reference.md"
+    if not reference_path.exists():
+        return 0
+
+    manifest = _parse_manifest()
+    ref_lines = reference_path.read_text(encoding="utf-8").splitlines()
+
+    missing: list[str] = []
+    for fn in manifest.get("functions", []):
+        target_list = fn.get("target")
+        if not target_list:
+            continue
+        # Skip raw intrinsics — they are not rendered into reference.md
+        if fn.get("kind") == "intrinsic":
+            continue
+        name = fn["name"]
+        module = fn.get("module", "prelude")
+        row = _find_reference_row(ref_lines, name, module)
+        if row is None:
+            missing.append(f"{name} (module={module}, not found in reference.md)")
+            continue
+        # Each target value should appear in the row
+        for target in target_list:
+            if target not in row:
+                missing.append(f"{name}: target '{target}' missing from Kind column")
+
+    if missing:
+        errors.append(
+            f"target metadata drift in reference.md: "
+            + "; ".join(missing)
+            + "; regenerate with `python3 scripts/generate-docs.py`"
+        )
+        return 1
+
+    return 0
+
+
+def check_stability_metadata_in_reference() -> int:
+    """Verify that every function's stability in manifest matches reference.md.
+
+    Parses the Stability column from each function's table row and compares it
+    to the manifest ``stability`` field.  Reports mismatches with the expected
+    vs actual value.
+    """
+    if not MANIFEST.exists():
+        return 0
+
+    reference_path = ROOT / "docs" / "stdlib" / "reference.md"
+    if not reference_path.exists():
+        return 0
+
+    manifest = _parse_manifest()
+    ref_lines = reference_path.read_text(encoding="utf-8").splitlines()
+
+    mismatches: list[str] = []
+    for fn in manifest.get("functions", []):
+        name = fn["name"]
+        expected_stability = fn.get("stability")
+        if not expected_stability:
+            continue
+        # Skip raw intrinsics — they are not rendered into reference.md
+        if fn.get("kind") == "intrinsic":
+            continue
+        module = fn.get("module", "prelude")
+        row = _find_reference_row(ref_lines, name, module)
+        if row is None:
+            mismatches.append(f"{name} (module={module}, not found in reference.md)")
+            continue
+
+        # Parse stability from table row — it's the 4th pipe-delimited column
+        # Format: | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic |
+        cells = [c.strip() for c in row.split("|")]
+        # cells[0] is empty (before first |), cells[1]=Name, ..., cells[4]=Stability
+        if len(cells) >= 5:
+            ref_stability = cells[4].strip("`").strip()
+            if ref_stability != expected_stability:
+                mismatches.append(
+                    f"{name}: manifest='{expected_stability}', "
+                    f"reference.md='{ref_stability}'"
+                )
+
+    if mismatches:
+        errors.append(
+            f"stability metadata drift in reference.md: "
+            + "; ".join(mismatches)
+            + "; regenerate with `python3 scripts/generate-docs.py`"
+        )
+        return 1
+
+    return 0
+
+
+def check_cross_page_metadata_consistency() -> int:
+    """Verify that reference.md and module pages agree on metadata display.
+
+    For each module page under ``docs/stdlib/modules/``, extracts function
+    names and their stability from the generated tables, then cross-checks
+    against the manifest source of truth.  Also verifies that host module
+    pages display ``🎯 **Target:**`` badges consistent with the manifest
+    ``[[modules]]`` target metadata.
+    """
+    if not MANIFEST.exists():
+        return 0
+
+    modules_dir = ROOT / "docs" / "stdlib" / "modules"
+    if not modules_dir.exists():
+        return 0
+
+    manifest = _parse_manifest()
+
+    # Build lookup: function name → manifest metadata
+    fn_lookup: dict[str, dict] = {}
+    for fn in manifest.get("functions", []):
+        fn_lookup[fn["name"]] = fn
+
+    # Build lookup: module name → manifest module metadata
+    mod_lookup: dict[str, dict] = {}
+    for mod in manifest.get("modules", []):
+        mod_lookup[mod["name"]] = mod
+
+    inconsistencies: list[str] = []
+
+    # Pattern for function names in module page tables:
+    #   | `name` | ... | `stability` | ...
+    fn_row_pattern = re.compile(
+        r"^\| `([^`]+)` \|"  # function name in first column
+    )
+    # Pattern for stability column in module page tables (3rd pipe-column):
+    #   | Name | Signature | Stability | ...
+    mod_table_pattern = re.compile(
+        r"^\| `([^`]+)` \| [^|]+ \| `([^`]+)` \|"
+    )
+
+    badge_pattern = re.compile(r"🎯 \*\*Target:\*\* `([^`]+)`")
+
+    for md_file in sorted(modules_dir.glob("*.md")):
+        content = md_file.read_text(encoding="utf-8")
+        page_name = md_file.name
+
+        # ── 1. Cross-check function stability in module pages vs manifest ──
+        for match in mod_table_pattern.finditer(content):
+            fn_name = match.group(1)
+            page_stability = match.group(2)
+            manifest_fn = fn_lookup.get(fn_name)
+            if manifest_fn is None:
+                continue
+            expected_stability = manifest_fn.get("stability", "")
+            if page_stability != expected_stability:
+                inconsistencies.append(
+                    f"{page_name}/{fn_name}: stability "
+                    f"page='{page_stability}', manifest='{expected_stability}'"
+                )
+
+        # ── 2. Cross-check host module target badges vs manifest modules ──
+        # Find all module headings (## `std::host::*`) and their badge lines
+        module_heading_pattern = re.compile(
+            r'^## `(std::host::[^`]+)`', re.MULTILINE
+        )
+        for heading_match in module_heading_pattern.finditer(content):
+            mod_name = heading_match.group(1)
+            mod_meta = mod_lookup.get(mod_name)
+            if mod_meta is None:
+                continue
+
+            manifest_targets = mod_meta.get("target", [])
+            if not manifest_targets:
+                continue
+
+            # Search for badge in the region after this heading (up to next heading)
+            heading_end = heading_match.end()
+            next_heading = re.search(r'^## ', content[heading_end:], re.MULTILINE)
+            section_end = heading_end + next_heading.start() if next_heading else len(content)
+            section_text = content[heading_end:section_end]
+
+            badge_match = badge_pattern.search(section_text)
+            if badge_match is None:
+                inconsistencies.append(
+                    f"{page_name}/{mod_name}: manifest has target "
+                    f"{manifest_targets} but module page section lacks 🎯 Target badge"
+                )
+            else:
+                badge_target = badge_match.group(1)
+                for expected_target in manifest_targets:
+                    if expected_target not in badge_target:
+                        inconsistencies.append(
+                            f"{page_name}/{mod_name}: target mismatch — "
+                            f"manifest='{expected_target}', badge='{badge_target}'"
+                        )
+
+    if inconsistencies:
+        errors.append(
+            f"cross-page metadata inconsistency: "
+            + "; ".join(inconsistencies)
+            + "; regenerate with `python3 scripts/generate-docs.py`"
+        )
+        return 1
+
+    return 0
+
+
 def main() -> int:
     failed = 0
     failed += check_maturity_matrix_freshness()
@@ -394,6 +639,9 @@ def main() -> int:
     failed += check_fixture_count_freshness()
     failed += check_issue_index_freshness()
     failed += check_spec_guide_sync()
+    failed += check_target_metadata_in_reference()
+    failed += check_stability_metadata_in_reference()
+    failed += check_cross_page_metadata_consistency()
 
     if errors:
         print("docs consistency check FAILED:", file=sys.stderr)
