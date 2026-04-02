@@ -1,6 +1,6 @@
 # Component Composition: 複数コンポーネントの合成と linking モデルを定義・実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 443
@@ -21,11 +21,11 @@
 
 ## Acceptance
 
-- [ ] component 同士の import/export を解決可能にする。
-- [ ] 複数 component を 1つの実行単位に合成できる。
-- [ ] dependency graph が構築される。
-- [ ] conflict（名前/型）の検出が可能。
-- [ ] CLI から compose/build が実行可能。
+- [x] component 同士の import/export を解決可能にする。
+- [x] 複数 component を 1つの実行単位に合成できる。
+- [x] dependency graph が構築される。
+- [x] conflict（名前/型）の検出が可能。
+- [x] CLI から compose/build が実行可能。
 
 ## References
 
