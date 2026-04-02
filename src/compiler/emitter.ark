@@ -8272,6 +8272,107 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s0)
 
+        } else if eq(clone(callee), "core::range_new") || eq(clone(callee), "range_new") {
+            // range_new(start, end) -> Range struct (2 i32 fields on heap)
+            let s_start = ctx.scratch_base + 0
+            let s_end = ctx.scratch_base + 1
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_end)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_start)
+            // Allocate 8 bytes on heap
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0) // base ptr (result)
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_start)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00) // [0] = start
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_end)
+            emit_byte(w, OP_I32_STORE())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00) // [4] = end
+            // Bump heap
+            emit_byte(w, OP_GLOBAL_GET())
+            emit_leb128_u(w, 0)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 8)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_GLOBAL_SET())
+            emit_leb128_u(w, 0)
+
+        } else if eq(clone(callee), "core::range_contains") || eq(clone(callee), "range_contains") {
+            // range_contains(r, value) -> bool: value >= start && value < end
+            let s_range = ctx.scratch_base + 0
+            let s_val = ctx.scratch_base + 1
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_val)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_range)
+            // value >= start
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_val)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_range)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00) // load start
+            emit_byte(w, OP_I32_GE_S())
+            // value < end
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_val)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_range)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00) // load end
+            emit_byte(w, OP_I32_LT_S())
+            // AND
+            emit_byte(w, OP_I32_AND())
+
+        } else if eq(clone(callee), "core::range_len") || eq(clone(callee), "range_len") {
+            // range_len(r) -> i32: max(0, end - start)
+            let s_range = ctx.scratch_base + 0
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_range)
+            // end - start
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_range)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 4)
+            emit_byte(w, OP_I32_ADD())
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00) // end
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_range)
+            emit_byte(w, OP_I32_LOAD())
+            emit_byte(w, 0x02)
+            emit_byte(w, 0x00) // start
+            emit_byte(w, OP_I32_SUB())
+            // max(0, result) — use select
+            emit_byte(w, OP_LOCAL_TEE())
+            emit_leb128_u(w, s_range) // reuse scratch for diff
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_range)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 0)
+            emit_byte(w, OP_I32_GT_S()) // diff > 0 ?
+            emit_byte(w, OP_SELECT()) // diff > 0 ? diff : 0
+
         } else if eq(clone(callee), "pow_i32") || eq(clone(callee), "math::pow_i32") {
             // pow_i32(base, exp) -> i32: iterative exponentiation
             let s_base = ctx.scratch_base + 0
