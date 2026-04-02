@@ -1,0 +1,16 @@
+// Regression fixture for issue #310:
+// Selfhost resolver visibility enforcement — pub cross-module access.
+//
+// This fixture exercises that `pub` functions from an imported module are
+// accessible without error. The private helper `internal_helper` is NOT
+// called here; only the pub API is used.
+
+use std::host::stdio
+use vismod
+
+fn main() {
+    let msg = vismod::greet(String_from("Ark"))
+    let sq = vismod::square(7)
+    stdio::println(msg)
+    stdio::println(i32_to_string(sq))
+}

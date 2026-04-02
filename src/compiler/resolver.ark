@@ -25,10 +25,15 @@ struct Symbol {
     scope_depth: i32,
     decl_index: i32,
     is_mut: bool,
+    is_pub: bool,
 }
 
 fn Symbol_new(name: String, kind: i32, depth: i32, index: i32) -> Symbol {
-    Symbol { name: name, kind: kind, scope_depth: depth, decl_index: index, is_mut: false }
+    Symbol { name: name, kind: kind, scope_depth: depth, decl_index: index, is_mut: false, is_pub: false }
+}
+
+fn Symbol_new_pub(name: String, kind: i32, depth: i32, index: i32) -> Symbol {
+    Symbol { name: name, kind: kind, scope_depth: depth, decl_index: index, is_mut: false, is_pub: true }
 }
 
 // ── Scope ────────────────────────────────────────────────────────────────────
@@ -82,10 +87,9 @@ fn pop_scope(ctx: ResolveCtx) {
     ctx.current_depth = ctx.current_depth - 1
 }
 
-fn define(ctx: ResolveCtx, name: String, kind: i32) {
+fn define_impl(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
     let idx = ctx.next_decl_index
     ctx.next_decl_index = ctx.next_decl_index + 1
-    let sym = Symbol_new(clone(name), kind, ctx.current_depth, idx)
     // Add to current scope
     let scope = get_unchecked(ctx.scopes, ctx.current_depth)
     // Check for duplicates at current depth
@@ -99,7 +103,20 @@ fn define(ctx: ResolveCtx, name: String, kind: i32) {
         }
         i = i + 1
     }
+    let sym = Symbol { name: clone(name), kind: kind, scope_depth: ctx.current_depth, decl_index: idx, is_mut: false, is_pub: is_pub }
     push(scope.symbols, sym)
+}
+
+fn define(ctx: ResolveCtx, name: String, kind: i32) {
+    define_impl(ctx, name, kind, false)
+}
+
+fn define_pub(ctx: ResolveCtx, name: String, kind: i32) {
+    define_impl(ctx, name, kind, true)
+}
+
+fn define_with_vis(ctx: ResolveCtx, name: String, kind: i32, is_pub: bool) {
+    define_impl(ctx, name, kind, is_pub)
 }
 
 fn lookup(ctx: ResolveCtx, name: String) -> i32 {
@@ -121,9 +138,82 @@ fn lookup(ctx: ResolveCtx, name: String) -> i32 {
     0 - 1  // not found
 }
 
+// Return the symbol kind for a name, or -1 if not found.
+fn lookup_kind(ctx: ResolveCtx, name: String) -> i32 {
+    let mut depth = ctx.current_depth
+    while depth >= 0 {
+        let scope = get_unchecked(ctx.scopes, depth)
+        let sym_count = len(scope.symbols)
+        let mut i = sym_count - 1
+        while i >= 0 {
+            let sym = get_unchecked(scope.symbols, i)
+            if eq(clone(sym.name), clone(name)) {
+                return sym.kind
+            }
+            i = i - 1
+        }
+        depth = depth - 1
+    }
+    0 - 1
+}
+
+// Return whether a symbol is marked pub; returns false if not found.
+fn lookup_is_pub(ctx: ResolveCtx, name: String) -> bool {
+    let mut depth = ctx.current_depth
+    while depth >= 0 {
+        let scope = get_unchecked(ctx.scopes, depth)
+        let sym_count = len(scope.symbols)
+        let mut i = sym_count - 1
+        while i >= 0 {
+            let sym = get_unchecked(scope.symbols, i)
+            if eq(clone(sym.name), clone(name)) {
+                return sym.is_pub
+            }
+            i = i - 1
+        }
+        depth = depth - 1
+    }
+    false
+}
+
 fn resolve_error(ctx: ResolveCtx, msg: String) {
     ctx.error_count = ctx.error_count + 1
     push(ctx.errors, msg)
+}
+
+// ── Path Helpers ─────────────────────────────────────────────────────────────
+// These helpers extract the module and symbol components of a qualified path
+// like "mymod::fn_name".
+
+// Returns the module part of "module::symbol", or the full path if no "::" is found.
+fn path_module_part(path: String) -> String {
+    let pos = index_of(clone(path), String_from("::"))
+    if pos < 0 {
+        return clone(path)
+    }
+    substring(path, 0, pos)
+}
+
+// Returns the symbol part of "module::symbol", or an empty string if no "::" is found.
+fn path_symbol_part(path: String) -> String {
+    let pos = index_of(clone(path), String_from("::"))
+    if pos < 0 {
+        return String_new()
+    }
+    substring(path, pos + 2, len(path))
+}
+
+// Register a single exported symbol from an imported module.
+//
+// Call this for each pub/private symbol in an imported module before resolving
+// the importing module. The qualified name "module_name::symbol_name" is registered
+// in the global scope with its visibility.
+//
+//   is_pub = true  → accessible cross-module (pub fn/struct/enum)
+//   is_pub = false → private; resolver will emit a visibility error on access
+pub fn register_module_export(ctx: ResolveCtx, module_name: String, symbol_name: String, kind: i32, is_pub: bool) {
+    let qualified = concat(clone(module_name), concat(String_from("::"), clone(symbol_name)))
+    define_impl(ctx, qualified, kind, is_pub)
 }
 
 // ── Builtin Registration ─────────────────────────────────────────────────────
@@ -243,6 +333,7 @@ fn NK_BINARY() -> i32 { 6 }
 fn NK_UNARY() -> i32 { 7 }
 fn NK_CALL() -> i32 { 8 }
 fn NK_FIELD_ACCESS() -> i32 { 9 }
+fn NK_PATH() -> i32 { 16 }
 fn NK_STRUCT_LIT() -> i32 { 11 }
 fn NK_IF_EXPR() -> i32 { 13 }
 fn NK_MATCH_EXPR() -> i32 { 14 }
@@ -292,16 +383,16 @@ pub fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
     let ctx = ResolveCtx_new()
     let count = len(decls)
 
-    // First pass: register all top-level names
+    // First pass: register all top-level names, preserving pub/private visibility.
     let mut i = 0
     while i < count {
         let d = get_unchecked(decls, i)
         if d.kind == NK_FN_DECL() {
-            define(ctx, clone(d.text), SYM_FN())
+            define_with_vis(ctx, clone(d.text), SYM_FN(), d.is_pub)
         } else if d.kind == NK_STRUCT_DECL() {
-            define(ctx, clone(d.text), SYM_STRUCT())
+            define_with_vis(ctx, clone(d.text), SYM_STRUCT(), d.is_pub)
         } else if d.kind == NK_ENUM_DECL() {
-            define(ctx, clone(d.text), SYM_ENUM())
+            define_with_vis(ctx, clone(d.text), SYM_ENUM(), d.is_pub)
         } else if d.kind == NK_USE() {
             define(ctx, clone(d.text), SYM_IMPORT())
         }
@@ -402,6 +493,42 @@ fn resolve_node(ctx: ResolveCtx, node: AstNode) {
             let receiver = get_unchecked(node.children, 0)
             resolve_node(ctx, receiver)
         }
+        return
+    }
+
+    if node.kind == NK_PATH() {
+        // Cross-module path expression: "module::symbol"
+        // 1. Verify the module is in scope.
+        // 2. If the qualified name "module::symbol" is pre-registered (via
+        //    register_module_export), enforce its visibility: private symbols
+        //    from other modules must not be accessed.
+        let path = clone(node.text)
+        let module_part = path_module_part(clone(path))
+        let symbol_part = path_symbol_part(clone(path))
+
+        // Verify the module name is defined.
+        let mod_idx = lookup(ctx, clone(module_part))
+        if mod_idx < 0 {
+            resolve_error(ctx, concat(String_from("undefined module: "), clone(module_part)))
+            return
+        }
+
+        // Check visibility when the qualified symbol is pre-registered.
+        let sym_idx = lookup(ctx, clone(path))
+        if sym_idx >= 0 {
+            if !lookup_is_pub(ctx, clone(path)) {
+                resolve_error(ctx, concat(
+                    String_from("visibility error: `"),
+                    concat(clone(symbol_part),
+                    concat(String_from("` is private and cannot be accessed from module `"),
+                    concat(clone(module_part), String_from("`"))))
+                ))
+            }
+        }
+        // If sym_idx < 0 the qualified name is not pre-registered (e.g. std:: modules,
+        // or the driver did not call register_module_export for this import yet).
+        // In that case, access is allowed — graceful degradation until the driver
+        // populates the module export table.
         return
     }
 
@@ -591,4 +718,72 @@ fn main() {
     stdio::println(concat(String_from("y found (outer): "), to_string(idx_y2 >= 0)))
 
     stdio::println(String_from("Resolver OK."))
+
+    // ── Visibility Enforcement Tests ─────────────────────────────────────────
+    // Test that cross-module visibility is enforced:
+    //   - pub symbols are accessible (no error)
+    //   - private symbols produce a visibility error
+
+    let vctx = ResolveCtx_new()
+    // Register "mymod" as an imported module
+    define(vctx, String_from("mymod"), SYM_IMPORT())
+    // Register exports: one pub, one private
+    register_module_export(vctx, String_from("mymod"), String_from("pub_fn"), SYM_FN(), true)
+    register_module_export(vctx, String_from("mymod"), String_from("priv_fn"), SYM_FN(), false)
+
+    // Build a NK_PATH node for "mymod::pub_fn" and resolve it — should not add an error.
+    let pub_node = AstNode {
+        kind: NK_PATH(),
+        span: Span { start: 0, end: 0 },
+        text: String_from("mymod::pub_fn"),
+        int_val: 0,
+        float_val: 0.0,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: false,
+    }
+    let errors_before_pub = vctx.error_count
+    resolve_node(vctx, pub_node)
+    let pub_ok = vctx.error_count == errors_before_pub
+    stdio::println(concat(String_from("pub access OK: "), bool_to_string(pub_ok)))
+
+    // Build a NK_PATH node for "mymod::priv_fn" and resolve it — should add one error.
+    let priv_node = AstNode {
+        kind: NK_PATH(),
+        span: Span { start: 0, end: 0 },
+        text: String_from("mymod::priv_fn"),
+        int_val: 0,
+        float_val: 0.0,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: false,
+    }
+    let errors_before_priv = vctx.error_count
+    resolve_node(vctx, priv_node)
+    let priv_blocked = vctx.error_count > errors_before_priv
+    stdio::println(concat(String_from("private access blocked: "), bool_to_string(priv_blocked)))
+
+    // Build a NK_PATH for an unregistered path — should succeed (graceful degradation).
+    let unknown_node = AstNode {
+        kind: NK_PATH(),
+        span: Span { start: 0, end: 0 },
+        text: String_from("mymod::unknown_fn"),
+        int_val: 0,
+        float_val: 0.0,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: false,
+    }
+    let errors_before_unknown = vctx.error_count
+    resolve_node(vctx, unknown_node)
+    let unknown_ok = vctx.error_count == errors_before_unknown
+    stdio::println(concat(String_from("unregistered access OK (graceful): "), bool_to_string(unknown_ok)))
+
+    stdio::println(String_from("Visibility OK."))
 }
