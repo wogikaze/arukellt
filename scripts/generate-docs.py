@@ -36,6 +36,20 @@ PROJECT_STATE = DATA / "project-state.toml"
 SECTIONS_FILE = DATA / "sections.toml"
 STDLIB_MANIFEST = ROOT / "std" / "manifest.toml"
 FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
+LANGUAGE_CLASSIFICATIONS = DATA / "language-doc-classifications.toml"
+SPEC_MD = ROOT / "docs" / "language" / "spec.md"
+MATURITY_MATRIX = ROOT / "docs" / "language" / "maturity-matrix.md"
+
+# Stability labels as defined in spec.md (ADR-013 §Stability)
+STABILITY_LABELS = ("stable", "provisional", "experimental", "unimplemented")
+
+# Regexes for parsing stability annotations from spec.md
+_SPEC_SECTION_RE = re.compile(
+    r'^## (\d+)\. (.+?)(?:\s+<!--\s*stability:\s*(.*?)\s*-->)?\s*$'
+)
+_SPEC_SUBSECTION_RE = re.compile(r'^### (\d+\.\d+) (.+)$')
+# Matches v1/v2/v3/v4 feature markers in subsection titles
+_V_FEATURE_RE = re.compile(r'\(v\d+\w*\)\s*$', re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -62,6 +76,31 @@ STDLIB_MODULE_PAGES = [
             "std::collections::linear",
             "std::collections::ordered",
         ],
+        "overview": {
+            "summary": (
+                "The `std::collections` family provides the primary collection data structures "
+                "for Arukellt programs: hash maps, double-ended queues, min-heap priority queues, "
+                "sorted maps, and bitsets. All current containers are monomorphic `i32` "
+                "containers backed by `Vec<i32>`, making them compatible with any build target."
+            ),
+            "highlights": [
+                ("`hashmap_new` / `hashmap_get` / `hashmap_set`", "Hash map with open addressing (i32 → i32)."),
+                ("`deque_push_back` / `deque_pop_front`", "FIFO / ring-buffer deque."),
+                ("`pq_push` / `pq_pop`", "Min-heap priority queue — smallest element first."),
+                ("`sorted_map_insert` / `sorted_map_get`", "Sorted-vector map for ordered iteration."),
+                ("`bitset_mark` / `bitset_test`", "Compact bit-flag set backed by a `Vec<i32>`."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::collections::hash
+
+let map = hashmap_new()
+hashmap_set(map, 42, 100)
+let v = hashmap_get(map, 42)   // 100
+let exists = hashmap_contains(map, 42)  // true
+```""",
+        },
     },
     {
         "path": "modules/component.md",
@@ -74,6 +113,34 @@ STDLIB_MODULE_PAGES = [
         "title": "std::core family",
         "description": "Source-backed docs for ranges, errors, and hashing helpers.",
         "modules": ["std::core", "std::core::error", "std::core::hash"],
+        "overview": {
+            "summary": (
+                "The `std::core` family provides the fundamental building blocks shared across "
+                "the standard library: integer ranges (`Range`, `RangeInclusive`), the shared "
+                "`Error` type used by fallible stdlib operations, and low-level hash utilities "
+                "used internally by collection modules. Import only the sub-module you need — "
+                "most application code uses only `std::core` (ranges) and the `Error` type from "
+                "`std::core::error`."
+            ),
+            "highlights": [
+                ("`range_new(start, end)`", "Create a half-open range `[start, end)`."),
+                ("`range_contains(r, value)`", "Test membership in a range."),
+                ("`range_len(r)`", "Length of a half-open range."),
+                ("`error_message(e)`", "Convert a stdlib `Error` variant to a human-readable string."),
+                ("`hash_i32(n)`", "Hash an `i32` to a stable non-negative integer."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::core
+
+let r = range_new(0, 10)
+if range_contains(r, 5) {
+    println("5 is in range")
+}
+let len = range_len(r)  // 10
+```""",
+        },
     },
     {
         "path": "modules/csv.md",
@@ -100,6 +167,45 @@ STDLIB_MODULE_PAGES = [
             "std::host::clock",
             "std::host::random",
         ],
+        "overview": {
+            "summary": (
+                "The `std::host` family exposes all runtime-environment capabilities: standard "
+                "I/O, filesystem access, process control, environment variables, wall-clock and "
+                "monotonic time, and host-entropy random numbers. These modules are explicitly "
+                "host-bound — they depend on WASI capabilities that are not available in pure "
+                "freestanding Wasm. `std::path` is included here because it is the pure "
+                "companion to `std::host::fs`; path manipulation itself requires no host access."
+            ),
+            "highlights": [
+                ("`std::host::stdio` — `println(s)`", "Write a line to stdout."),
+                ("`std::host::stdio` — `eprintln(s)`", "Write a line to stderr."),
+                ("`std::host::fs` — `read_to_string(path)`", "Read a whole file as a UTF-8 string."),
+                ("`std::host::fs` — `write_string(path, content)`", "Write or replace a UTF-8 file."),
+                ("`std::host::env` — `args()`", "Retrieve the CLI argument vector."),
+                ("`std::host::env` — `var(name)`", "Look up an environment variable."),
+                ("`std::host::clock` — `monotonic_now()`", "High-resolution monotonic timestamp (nanoseconds)."),
+                ("`std::host::random` — `random_i32()`", "Host-entropy random integer."),
+            ],
+            "target_constraints": (
+                "**wasm32-wasi-p2** required for all `std::host::*` modules. "
+                "`std::path` has no host constraint and works on all targets."
+            ),
+            "typical_usage": """\
+```ark
+import std::host::stdio
+import std::host::fs
+import std::host::env
+
+let name = var("USER").unwrap_or("world")
+println("Hello, " + name + "!")
+
+let content = read_to_string("/etc/hostname")
+match content {
+    Ok(text) => println(text),
+    Err(e)   => eprintln("error: " + e),
+}
+```""",
+        },
     },
     {
         "path": "modules/json.md",
@@ -142,6 +248,33 @@ STDLIB_MODULE_PAGES = [
         "title": "std::text",
         "description": "Source-backed docs for string and formatting helpers.",
         "modules": ["std::text"],
+        "overview": {
+            "summary": (
+                "The `std::text` module extends the prelude's built-in string type with "
+                "inspection, trimming, searching, transformation, padding, and primitive "
+                "formatting helpers. If you need to check whether a string is empty, split it "
+                "into lines, remove whitespace, or format a number, start here."
+            ),
+            "highlights": [
+                ("`trim(s)` / `trim_start(s)` / `trim_end(s)`", "Strip ASCII whitespace from both, leading, or trailing end."),
+                ("`replace(s, from, to)`", "Replace all non-overlapping occurrences of `from` with `to`."),
+                ("`lines(s)`", "Split a string on newlines into a `Vec<String>`."),
+                ("`index_of(s, needle)`", "First byte index of `needle`, or -1 when not found."),
+                ("`format_i32(n)` / `format_f64(n)`", "Format numeric values as decimal strings."),
+                ("`pad_left(s, width, fill)` / `pad_right(s, width, fill)`", "Fixed-width string padding."),
+            ],
+            "target_constraints": "All targets. No host capability required.",
+            "typical_usage": """\
+```ark
+import std::text
+
+let s = "  hello, world!  "
+let trimmed = trim(s)              // "hello, world!"
+let parts   = lines("a\\nb\\nc")   // ["a", "b", "c"]
+let idx     = index_of(s, "world")  // 9
+let label   = pad_right(format_i32(42), 6, " ")  // "42    "
+```""",
+        },
     },
     {
         "path": "modules/time.md",
@@ -680,6 +813,186 @@ def render_generic_section_readme(section: dict, entries: list[DocEntry], snapsh
     return "\n".join(lines) + "\n"
 
 
+def parse_spec_stability_sections() -> list[dict]:
+    """Parse docs/language/spec.md and extract section/subsection stability data.
+
+    Returns a list of dicts with keys: id, name, stability, notes.
+    Stability is one of: stable, provisional, experimental, unimplemented.
+    Subsections marked (v1)/(v2)/etc. are treated as provisional.
+    """
+    if not SPEC_MD.exists():
+        return []
+
+    lines = SPEC_MD.read_text(encoding="utf-8").splitlines()
+    sections: list[dict] = []
+    current_section_stability: str = "stable"
+
+    for line in lines:
+        # Top-level section: ## N. Name <!-- stability: LABEL -->
+        m = _SPEC_SECTION_RE.match(line)
+        if m:
+            sec_id = m.group(1)
+            sec_name = m.group(2).strip()
+            raw_stability = (m.group(3) or "").strip().lower()
+            if raw_stability in STABILITY_LABELS:
+                stability = raw_stability
+            else:
+                # "see individual entries" or empty — default to stable
+                stability = "stable"
+            current_section_stability = stability
+            notes: str = ""
+            if raw_stability == "see individual entries":
+                notes = "See subsections for individual stability"
+            sections.append({"id": sec_id, "name": sec_name, "stability": stability, "notes": notes})
+            continue
+
+        # Subsection: ### N.M Name
+        ms = _SPEC_SUBSECTION_RE.match(line)
+        if ms:
+            sub_id = ms.group(1)
+            sub_name = ms.group(2).strip()
+            # Version-gated features (v1/v2/...) are provisional
+            if _V_FEATURE_RE.search(sub_name):
+                stability = "provisional"
+                sub_notes = "version-gated feature — interface may change before stable exit"
+            else:
+                stability = current_section_stability
+                sub_notes = ""
+            sections.append({"id": sub_id, "name": sub_name, "stability": stability, "notes": sub_notes})
+
+    return sections
+
+
+def render_maturity_matrix(sections: list[dict]) -> str:
+    """Render the feature maturity matrix as a Markdown file."""
+    from collections import Counter as _Counter
+    stability_counts = _Counter(s["stability"] for s in sections)
+
+    lines = [
+        "# Feature Maturity Matrix",
+        "",
+        "> This file is generated by `python3 scripts/generate-docs.py`. Do not edit manually.",
+        "> Source of truth: [spec.md](spec.md) stability labels (ADR-013 §Stability).",
+        "",
+        "## Stability Labels",
+        "",
+        "| Label | Meaning |",
+        "|-------|---------|",
+        "| **stable** | Feature is finalized. Breaking changes require a new major version. |",
+        "| **provisional** | Feature is implemented and tested, but the interface may change before v1 exit. |",
+        "| **experimental** | Feature exists in the codebase but is not tested or guaranteed on every build. |",
+        "| **unimplemented** | Feature is specified but not yet implemented. |",
+        "",
+        "## Summary",
+        "",
+        "| Stability | Count |",
+        "|-----------|-------|",
+    ]
+    for label in STABILITY_LABELS:
+        lines.append(f"| {label} | {stability_counts.get(label, 0)} |")
+
+    lines.extend([
+        "",
+        "## Feature Classification",
+        "",
+        "| § | Feature | Stability | Notes |",
+        "|---|---------|-----------|-------|",
+    ])
+    for s in sections:
+        notes_cell = escape_table(s["notes"]) if s["notes"] else "—"
+        # Bold non-stable labels for visibility
+        if s["stability"] in ("provisional", "experimental", "unimplemented"):
+            stability_cell = f"**{s['stability']}**"
+        else:
+            stability_cell = s["stability"]
+        lines.append(f"| {s['id']} | {escape_table(s['name'])} | {stability_cell} | {notes_cell} |")
+
+    return "\n".join(lines) + "\n"
+
+
+def load_language_classifications() -> list[dict]:
+    """Load language doc classifications from docs/data/language-doc-classifications.toml."""
+    if not LANGUAGE_CLASSIFICATIONS.exists():
+        return []
+    with open(LANGUAGE_CLASSIFICATIONS, "rb") as f:
+        data = tomllib.load(f)
+    return data.get("docs", [])
+
+
+def render_language_readme(
+    section: dict,
+    entries: list[DocEntry],
+    snapshot_lines: list[str],
+    classifications: list[dict],
+) -> str:
+    lines = [
+        f"# {section['title']}",
+        "",
+        "> This file is generated by `python3 scripts/generate-docs.py`.",
+        section["description"],
+        "",
+        "## Current Snapshot",
+        "",
+    ]
+    lines.extend(snapshot_lines or ["- Current source of truth: [../current-state.md](../current-state.md)"])
+
+    # Classification table (ADR-018)
+    if classifications:
+        class_by_file = {c["file"]: c for c in classifications}
+        lines.extend([
+            "",
+            "## Classification (ADR-018)",
+            "",
+            "Each document is classified as **normative**, **explanatory**, or **transitional**.",
+            "See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-docs-classification.md) for definitions and banner templates.",
+            "",
+            "| File | Class | Note |",
+            "|------|-------|------|",
+        ])
+        # Emit rows in canonical order (entries order, fall back to classifications order)
+        covered: set[str] = set()
+        for entry in entries:
+            fname = entry.rel_path
+            c = class_by_file.get(fname)
+            if c:
+                lines.append(f"| [{fname}]({fname}) | {c['class']} | {escape_table(c['note'])} |")
+                covered.add(fname)
+            else:
+                lines.append(f"| [{fname}]({fname}) | — | (unclassified — add entry to language-doc-classifications.toml) |")
+        # Any classifications not matched to a current entry (future-proofing)
+        for c in classifications:
+            if c["file"] not in covered:
+                lines.append(f"| {c['file']} | {c['class']} | {escape_table(c['note'])} |")
+
+    lines.extend(["", "## Documents", "", "| File | Title | Summary |", "|------|-------|---------|"])
+    for entry in entries:
+        lines.append(f"| [{entry.rel_path}]({entry.rel_path}) | {escape_table(entry.title)} | {entry.summary} |")
+
+    # Anchor & Permalink Policy (ADR-019)
+    lines.extend([
+        "",
+        "## Anchor & Permalink Policy (ADR-019)",
+        "",
+        "Heading anchors, redirect policy for doc reorganization, and link-check coverage are governed",
+        "by [ADR-019](../adr/ADR-019-anchor-permalink-policy.md). Key rules:",
+        "",
+        "- S1 headings (`##`) in normative docs MUST NOT be renamed after merge without a redirect alias.",
+        "- Use `<a id=\"stable-id\"></a>` before headings that are externally linked.",
+        "- When a document is moved, add a Docsify alias to `docs/index.html`.",
+        "- `scripts/check-links.sh` is the v1 canonical link-checker (file references only; anchor fragments are v2).",
+    ])
+
+    # Link to the generated maturity matrix
+    lines.extend([
+        "",
+        "## Feature Maturity",
+        "",
+        "See [maturity-matrix.md](maturity-matrix.md) for a full classification of all language features",
+        "extracted from [spec.md](spec.md) stability labels (stable / provisional / experimental / unimplemented).",
+    ])
+    return "\n".join(lines) + "\n"
+
+
 def render_stdlib_readme(
     section: dict,
     entries: list[DocEntry],
@@ -719,6 +1032,21 @@ def render_stdlib_readme(
         "- [std.md](std.md)",
         "- [cookbook.md](cookbook.md)",
         "",
+        "## Overview vs Reference",
+        "",
+        "Stdlib documentation is split into two complementary layers:",
+        "",
+        "| Layer | Where | Purpose |",
+        "|-------|-------|---------|",
+        "| **Curated overview** | `## Overview` section in each module family page | Explains *when* and *how* to use a module family: usage summary, recommended API highlights, target constraints, and typical usage patterns. Hand-maintained in `scripts/generate-docs.py` alongside the module page definition. |",
+        "| **Generated reference** | All other sections in module pages; `reference.md` | Exhaustive, manifest-backed API tables sourced from `std/manifest.toml` and `//!` doc comments. Always reflects the real implemented surface. Auto-regenerated — do not edit manually. |",
+        "",
+        "Module family pages that currently carry a curated overview: "
+        "`std::core` ([modules/core.md](modules/core.md)), "
+        "`std::collections` ([modules/collections.md](modules/collections.md)), "
+        "`std::text` ([modules/text.md](modules/text.md)), "
+        "`std::host` / io ([modules/io.md](modules/io.md)).",
+        "",
         "## Documents",
         "",
         "| File | Title | Summary |",
@@ -727,6 +1055,42 @@ def render_stdlib_readme(
     for entry in entries:
         lines.append(f"| [{entry.rel_path}]({entry.rel_path}) | {escape_table(entry.title)} | {entry.summary} |")
     return "\n".join(lines) + "\n"
+
+
+def render_curated_overview_section(overview: dict) -> list[str]:
+    """Render a curated overview section for a module family page.
+
+    The overview dict should contain:
+      summary           - prose description of the module family
+      highlights        - list of (api_pattern, description) tuples
+      target_constraints - target restriction note (string)
+      typical_usage     - fenced code block as a string
+    """
+    lines: list[str] = [
+        "",
+        "## Overview",
+        "",
+        "> **Overview vs Reference:** This section is curated prose — it explains when and "
+        "how to use this module family. The sections below are exhaustive generated reference "
+        "tables sourced directly from `std/manifest.toml` and source doc comments.",
+        "",
+        overview["summary"],
+    ]
+
+    if overview.get("highlights"):
+        lines.extend(["", "**Recommended API highlights:**", ""])
+        lines.extend(["| API | Purpose |", "|-----|---------|"])
+        for api, purpose in overview["highlights"]:
+            lines.append(f"| {api} | {purpose} |")
+
+    if overview.get("target_constraints"):
+        lines.extend(["", f"**Target constraints:** {overview['target_constraints']}"])
+
+    if overview.get("typical_usage"):
+        lines.extend(["", "**Typical usage:**", "", overview["typical_usage"]])
+
+    lines.extend(["", "---", ""])
+    return lines
 
 
 def render_stdlib_module_page(
@@ -741,6 +1105,9 @@ def render_stdlib_module_page(
         f"> This file is generated by `python3 scripts/generate-docs.py` from source doc comments and [`{rel_link(output_path, STDLIB_MANIFEST)}`]({rel_link(output_path, STDLIB_MANIFEST)}).",
         page["description"],
     ]
+
+    if page.get("overview"):
+        lines.extend(render_curated_overview_section(page["overview"]))
 
     for module_name in page["modules"]:
         source_module = source_modules[module_name]
@@ -1132,6 +1499,13 @@ def main() -> int:
             content = render_examples_readme(section, examples, state)
         elif section["dir"] == "sample":
             content = render_sample_readme(section, collect_sample_files())
+        elif section["dir"] == "language":
+            content = render_language_readme(
+                section,
+                entries,
+                section_snapshot(section, state, fixture_total, manifest_stats, examples),
+                load_language_classifications(),
+            )
         else:
             content = render_generic_section_readme(
                 section,
@@ -1139,6 +1513,10 @@ def main() -> int:
                 section_snapshot(section, state, fixture_total, manifest_stats, examples),
             )
         write_file(section_dir / "README.md", content, args.check, stale)
+
+    # Generate the feature maturity matrix from spec.md stability labels
+    spec_sections = parse_spec_stability_sections()
+    write_file(MATURITY_MATRIX, render_maturity_matrix(spec_sections), args.check, stale)
 
     if stale:
         for path in stale:

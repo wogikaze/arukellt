@@ -30,3 +30,5 @@
 | [ADR-015-no-panic-in-user-paths.md](ADR-015-no-panic-in-user-paths.md) | ADR-015: No-Panic Quality Standard for User-Facing Paths | Status: DECIDED |
 | [ADR-016-breaking-change-process.md](ADR-016-breaking-change-process.md) | ADR-016: Breaking Change Process — Three-Piece Set | Status: DECIDED |
 | [ADR-017-playground-execution-model.md](ADR-017-playground-execution-model.md) | ADR-017: Playground Execution Model and v1 Product Contract | Status: DECIDED |
+| [ADR-018-language-docs-classification.md](ADR-018-language-docs-classification.md) | ADR-018: Language Docs Classification — Normative / Explanatory / Transitional | Status: DECIDED |
+| [ADR-019-anchor-permalink-policy.md](ADR-019-anchor-permalink-policy.md) | ADR-019: Anchor / Permalink Naming Convention and Redirect Policy | Status: DECIDED |

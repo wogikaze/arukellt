@@ -9,13 +9,44 @@
 - Fixture-backed verification covers 619 manifest entries.
 - Canonical target for current docs: `wasm32-wasi-p2`
 
+## Classification (ADR-018)
+
+Each document is classified as **normative**, **explanatory**, or **transitional**.
+See [../adr/ADR-018-language-docs-classification.md](../adr/ADR-018-language-docs-classification.md) for definitions and banner templates.
+
+| File | Class | Note |
+|------|-------|------|
+| [error-handling.md](error-handling.md) | normative | Current-first error handling reference; reflects implemented Result/Option behavior |
+| [maturity-matrix.md](maturity-matrix.md) | normative | Generated feature maturity matrix; do not edit manually — regenerated from spec.md stability labels |
+| [memory-model.md](memory-model.md) | normative | Current-first memory model reference; reflects GC-native T3 implementation |
+| [spec.md](spec.md) | normative | Frozen authoritative language specification; post-freeze changes require an ADR |
+| [syntax-v1-preview.md](syntax-v1-preview.md) | transitional | Describes planned v1 syntax additions; retires when all items land in spec.md |
+| [syntax.md](syntax.md) | normative | Current-first syntax reference; reflects implemented, tested behavior |
+| [type-system.md](type-system.md) | normative | Current-first type system reference; reflects implemented type checker behavior |
+
 ## Documents
 
 | File | Title | Summary |
 |------|-------|---------|
 | [error-handling.md](error-handling.md) | エラー処理 | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
+| [maturity-matrix.md](maturity-matrix.md) | Feature Maturity Matrix | Source of truth: spec.md stability labels (ADR-013 §Stability). |
 | [memory-model.md](memory-model.md) | メモリモデル | Current-first: 現在の実装確認は ../current-state.md を参照してください。 |
 | [spec.md](spec.md) | Arukellt Language Specification | Status: Frozen for v5 (self-hosting). |
 | [syntax-v1-preview.md](syntax-v1-preview.md) | v1 構文メモ | Status: Transitional — This document describes planned v1 syntax changes. |
 | [syntax.md](syntax.md) | 構文仕様 | Current-first: いま動く構文の確認は ../current-state.md を基準にしてください。 |
 | [type-system.md](type-system.md) | 型システム | Current-first: 実装の現在地は ../current-state.md を参照してください。 |
+
+## Anchor & Permalink Policy (ADR-019)
+
+Heading anchors, redirect policy for doc reorganization, and link-check coverage are governed
+by [ADR-019](../adr/ADR-019-anchor-permalink-policy.md). Key rules:
+
+- S1 headings (`##`) in normative docs MUST NOT be renamed after merge without a redirect alias.
+- Use `<a id="stable-id"></a>` before headings that are externally linked.
+- When a document is moved, add a Docsify alias to `docs/index.html`.
+- `scripts/check-links.sh` is the v1 canonical link-checker (file references only; anchor fragments are v2).
+
+## Feature Maturity
+
+See [maturity-matrix.md](maturity-matrix.md) for a full classification of all language features
+extracted from [spec.md](spec.md) stability labels (stable / provisional / experimental / unimplemented).

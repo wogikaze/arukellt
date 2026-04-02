@@ -80,43 +80,6 @@ values into the output binary.  `scripts/verify-harness.sh` already
 checks determinism for fixtures and will be extended to the selfhost
 compiler.
 
-## Selfhost Completion Criteria
-
-Self-hosting is **complete** when all five conditions are met simultaneously:
-
-| # | Condition | Verification | Status |
-|---|-----------|--------------|--------|
-| 1 | **Stage 0→1→2 fixpoint** | `scripts/verify-bootstrap.sh` exits 0 with identical SHA-256 | not reached |
-| 2 | **Stage 1 fixture parity** | Stage 1 compiler passes the same fixture set as the Rust compiler | not reached |
-| 3 | **CLI parity** | `arukellt-s1.wasm compile/run/check` produces identical stdout/stderr as Rust `arukellt` for the same inputs | not reached |
-| 4 | **Diagnostic parity** | Error messages (code, position, text) are identical between Rust and selfhost for all `diag` fixtures | not reached |
-| 5 | **Determinism** | Two consecutive Stage 0 runs produce byte-identical `arukellt-s1.wasm` | not verified |
-
-### Interpreting status
-
-- **not reached**: The condition has not been satisfied yet.
-- **reached**: The condition has been demonstrated at least once.
-- **ci-verified**: The condition is checked on every CI run.
-
-### Current state
-
-Stage 0 successfully compiles all 9 selfhost `.ark` sources individually.
-Stage 1 and Stage 2 are conditionally skipped because `main.ark` does not
-yet produce a unified `main.wasm` binary.  The selfhost compiler components
-are functional in isolation but not yet linked into a single driver.
-
-### Dual period
-
-During the dual period, both the Rust compiler and the selfhost compiler
-coexist.  The Rust compiler remains the canonical compiler until all five
-completion criteria above are met.
-
-The dual period ends when:
-
-1. All five criteria are met and verified in CI for at least 2 consecutive weeks.
-2. A decision to switch the canonical compiler is made via ADR.
-3. The Rust compiler sources are archived (not deleted immediately).
-
 ## Selfhost Compiler Components
 
 | File | Role |
@@ -253,7 +216,7 @@ are satisfied simultaneously and verified by CI on every merge to `master`:
 | **Stage 0 compile** | Rust compiler compiles all `src/compiler/*.ark` files with zero errors | `scripts/verify-bootstrap.sh --stage1-only` |
 | **Stage 1 compile** | `arukellt-s1.wasm` compiles all `src/compiler/*.ark` files with zero errors | `scripts/verify-bootstrap.sh` Stage 1 |
 | **Stage 2 fixpoint** | `sha256(s1) == sha256(s2)` — compiler reproduces itself byte-for-byte | `scripts/verify-bootstrap.sh` Stage 2 |
-| **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `scripts/check-selfhost-parity.sh` (to be written when Stage 1 passes) |
+| **Fixture parity** | Selfhost compiler passes all 575+ fixture tests identically to the Rust compiler | `scripts/check-selfhost-parity.sh` |
 | **CLI parity** | `arukellt-s1.wasm compile <file>` stdout/stderr matches `arukellt compile <file>` for all fixture inputs | `scripts/check-selfhost-parity.sh --cli` |
 | **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `scripts/check-selfhost-parity.sh --diag` |
 | **Determinism** | Running Stage 0 twice on the same input produces identical bytes | part of `verify-bootstrap.sh` Stage 2 |

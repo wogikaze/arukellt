@@ -187,20 +187,20 @@ Each stage below represents a concrete, CI-verified milestone.
 |-------|-------------|--------|
 | **Stage 0** | Rust compiler compiles all `src/compiler/*.ark` files individually | ✅ **Verified** (CI + `verify-bootstrap.sh --stage1-only`) |
 | **Stage 1** | `arukellt-s1.wasm` (selfhost compiler) compiles its own sources | ✅ **Verified** — 9/9 files compile, 78474 bytes |
-| **Stage 2** | `sha256(s1) == sha256(s2)` fixpoint | ✅ **Verified** — fixpoint reached, binaries identical |
+| **Stage 2** | `sha256(s1) == sha256(s2)` fixpoint | 🔴 **Not reached** — `sha256(s1) ≠ sha256(s2)` |
 | **Fixture parity** | Selfhost compiler passes all harness fixtures | 🔴 **Not started** — requires selfhost to run fixtures |
 | **CLI parity** | Selfhost CLI output matches Rust output for identical inputs | 🔴 **Not started** — requires fixture parity first |
 | **Diagnostic parity** | Error messages are identical between Rust and selfhost | 🔴 **Not started** — requires CLI parity first |
 
 ### Fixpoint status
 
-Bootstrap fixpoint has been achieved: `sha256(s1) == sha256(s2)`.
-The selfhost compiler can compile its own sources and produce bit-identical output.
-Remaining work is fixture/CLI/diagnostic parity for full selfhost equivalence.
+Stage 0 and Stage 1 compile successfully (`stage0-compile: reached`, `stage1-compile: reached`).
+Fixpoint has not yet been reached: `sha256(s1) ≠ sha256(s2)` (`fixpoint: not-reached`).
+Remaining work is fixing the determinism divergence before fixture/CLI/diagnostic parity can be verified.
 
 ### Dual-period policy
 
-With fixpoint achieved, the dual-period continues only for feature parity.
+The dual-period continues while fixpoint and parity criteria remain unmet.
 Both the Rust compiler and the selfhost sources are maintained in parallel.
 See [Dual-Period End Condition](docs/compiler/bootstrap.md#dual-period-end-condition)
 in bootstrap.md for the exact criteria that close this period.

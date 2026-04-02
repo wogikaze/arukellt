@@ -24,6 +24,17 @@ manifest-backed な公開 API と利用ガイド。
 - [std.md](std.md)
 - [cookbook.md](cookbook.md)
 
+## Overview vs Reference
+
+Stdlib documentation is split into two complementary layers:
+
+| Layer | Where | Purpose |
+|-------|-------|---------|
+| **Curated overview** | `## Overview` section in each module family page | Explains *when* and *how* to use a module family: usage summary, recommended API highlights, target constraints, and typical usage patterns. Hand-maintained in `scripts/generate-docs.py` alongside the module page definition. |
+| **Generated reference** | All other sections in module pages; `reference.md` | Exhaustive, manifest-backed API tables sourced from `std/manifest.toml` and `//!` doc comments. Always reflects the real implemented surface. Auto-regenerated — do not edit manually. |
+
+Module family pages that currently carry a curated overview: `std::core` ([modules/core.md](modules/core.md)), `std::collections` ([modules/collections.md](modules/collections.md)), `std::text` ([modules/text.md](modules/text.md)), `std::host` / io ([modules/io.md](modules/io.md)).
+
 ## Documents
 
 | File | Title | Summary |
