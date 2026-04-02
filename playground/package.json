@@ -37,6 +37,14 @@
     "./playground-app": {
       "types": "./dist/playground-app.d.ts",
       "import": "./dist/playground-app.js"
+    },
+    "./share": {
+      "types": "./dist/share.d.ts",
+      "import": "./dist/share.js"
+    },
+    "./examples": {
+      "types": "./dist/examples.d.ts",
+      "import": "./dist/examples.js"
     }
   },
   "files": [

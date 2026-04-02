@@ -68,6 +68,24 @@ export {
 // Re-export playground app integration.
 export { createPlaygroundApp } from "./playground-app.js";
 
+// Re-export share link encoder/decoder (ADR-021).
+export {
+  encodeSharePayload,
+  decodeSharePayload,
+  parseFragment,
+  CURRENT_SHARE_VERSION,
+  SHARE_URL_TARGET_LENGTH,
+  SHARE_URL_HARD_LIMIT,
+} from "./share.js";
+
+// Re-export examples catalog.
+export {
+  EXAMPLES,
+  getExample,
+  getExampleList,
+  getExamplesByTag,
+} from "./examples.js";
+
 // Re-export all types for consumer use.
 export type {
   // Configuration
@@ -125,3 +143,14 @@ export type {
   PlaygroundAppOptions,
   PlaygroundApp,
 } from "./playground-app.js";
+
+// Re-export share types.
+export type {
+  SharePayload,
+  ShareEncodeResult,
+  ShareDecodeResult,
+  FragmentAction,
+} from "./share.js";
+
+// Re-export example types.
+export type { ExampleEntry } from "./examples.js";
