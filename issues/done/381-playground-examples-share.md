@@ -1,6 +1,6 @@
 # Playground: examples loader と share link を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 381
@@ -23,11 +23,11 @@ stdlib / docs の example コードを playground に読み込む examples loade
 
 ## Acceptance
 
-- [ ] examples ドロップダウンから fixture / example を選択して editor に読み込める
-- [ ] examples の source of truth が `tests/fixtures/` or `docs/examples/` と一致する
-- [ ] share link がエディタ内容を URL hash にエンコードする
-- [ ] share link から playground を開くと同じコードが復元される
-- [ ] examples が host capability 必須かどうかを明示する
+- [x] examples ドロップダウンから fixture / example を選択して editor に読み込める
+- [x] examples の source of truth が `tests/fixtures/` or `docs/examples/` と一致する
+- [x] share link がエディタ内容を URL hash にエンコードする
+- [x] share link から playground を開くと同じコードが復元される
+- [x] examples が host capability 必須かどうかを明示する
 
 ## References
 

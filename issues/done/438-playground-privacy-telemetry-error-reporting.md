@@ -1,6 +1,6 @@
 # Playground: privacy / telemetry / error reporting を実装方針付きで定める
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 438
@@ -21,10 +21,10 @@ playground で何を収集し何を収集しないか、エラー報告をどう
 
 ## Acceptance
 
-- [ ] privacy / telemetry 方針が文書化される。
-- [ ] 必要なら telemetry の on/off 設定や無効化既定が実装される。
-- [ ] error reporting の送信条件がコードまたは config に反映される。
-- [ ] docs に利用者向け説明が追加される。
+- [x] privacy / telemetry 方針が文書化される。
+- [x] 必要なら telemetry の on/off 設定や無効化既定が実装される。
+- [x] error reporting の送信条件がコードまたは config に反映される。
+- [x] docs に利用者向け説明が追加される。
 
 ## References
 

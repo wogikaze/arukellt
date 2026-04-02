@@ -1,6 +1,6 @@
 # Language Docs: ownership map と release gate を定義する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 416
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] language docs の ownership map が作成される。
-- [ ] release gate に language docs 項目が追加される。
-- [ ] generated / curated / archive の責務差が文書化される。
-- [ ] quality gate が docs または CI と接続される。
+- [x] language docs の ownership map が作成される。
+- [x] release gate に language docs 項目が追加される。
+- [x] generated / curated / archive の責務差が文書化される。
+- [x] quality gate が docs または CI と接続される。
 
 ## References
 
