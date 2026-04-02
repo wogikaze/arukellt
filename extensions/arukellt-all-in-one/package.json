@@ -33,6 +33,10 @@
     "onCommand:arukellt.explainCode",
     "onCommand:arukellt.showPipeline",
     "onCommand:arukellt.securityReview",
+    "onCommand:arukellt.buildComponent",
+    "onCommand:arukellt.buildComponentWit",
+    "onCommand:arukellt.runComponent",
+    "onCommand:arukellt.openInPlayground",
     "onView:arukellt-project"
   ],
   "main": "./src/extension.js",
@@ -128,6 +132,22 @@
         "command": "arukellt.runScript",
         "title": "Run Script",
         "category": "Arukellt"
+      },
+      {
+        "command": "arukellt.buildComponent",
+        "title": "Arukellt: Build Component (wasm32-wasi-p2, all outputs)"
+      },
+      {
+        "command": "arukellt.buildComponentWit",
+        "title": "Arukellt: Build Component – Show WIT Interface"
+      },
+      {
+        "command": "arukellt.runComponent",
+        "title": "Arukellt: Run Component (wasm32-wasi-p2)"
+      },
+      {
+        "command": "arukellt.openInPlayground",
+        "title": "Arukellt: Open in Playground"
       }
     ],
     "configuration": {
@@ -157,6 +177,12 @@
           "type": "string",
           "default": "core-wasm",
           "description": "Default emit kind passed by extension compile commands.",
+          "scope": "resource"
+        },
+        "arukellt.playgroundUrl": {
+          "type": "string",
+          "default": "https://arukellt.dev/playground",
+          "description": "Base URL of the Arukellt web playground used by the 'Open in Playground' command.",
           "scope": "resource"
         }
       }
@@ -261,6 +287,26 @@
           "command": "arukellt.compileCurrentFile",
           "when": "resourceLangId == arukellt",
           "group": "arukellt"
+        },
+        {
+          "command": "arukellt.buildComponent",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt@4"
+        },
+        {
+          "command": "arukellt.buildComponentWit",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt@5"
+        },
+        {
+          "command": "arukellt.runComponent",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt@6"
+        },
+        {
+          "command": "arukellt.openInPlayground",
+          "when": "resourceLangId == arukellt",
+          "group": "arukellt@7"
         }
       ],
       "editor/title": [

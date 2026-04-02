@@ -14,6 +14,7 @@ let restartCount = 0
 let languageStatusItem = null
 let testController = null
 let projectTreeProvider = null
+let componentDiagnostics = null
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -27,10 +28,13 @@ function activate(context) {
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100)
   statusBarItem.name = 'Arukellt'
 
+  componentDiagnostics = vscode.languages.createDiagnosticCollection('arukellt-component')
+
   context.subscriptions.push(outputChannel)
   context.subscriptions.push(compilerChannel)
   context.subscriptions.push(testChannel)
   context.subscriptions.push(statusBarItem)
+  context.subscriptions.push(componentDiagnostics)
 
   // Language status item — shows LSP server state
   setupLanguageStatus(context)
@@ -265,6 +269,245 @@ function runCliCommand(kind) {
   })
 }
 
+// ---------------------------------------------------------------------------
+// Component build / run / inspect helpers (Issue #444)
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse stderr text for diagnostic lines in two supported formats:
+ *   (1) error[E001]: message at file.ark:10:5
+ *   (2) error[E001]: message\n  --> file.ark:10:5
+ * Returns a Map<uriString, {uri, diags[]}> ready to push.
+ */
+function parseStderrDiagnostics(stderr) {
+  const diagnosticsMap = new Map()
+
+  function addEntry(filePath, severity, message, line, col) {
+    const resolved = path.isAbsolute(filePath)
+      ? filePath
+      : (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
+          ? path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, filePath)
+          : filePath)
+    const uri = vscode.Uri.file(resolved)
+    const key = uri.toString()
+    if (!diagnosticsMap.has(key)) diagnosticsMap.set(key, { uri, diags: [] })
+    const zeroLine = Math.max(0, line - 1)
+    const zeroCol = Math.max(0, col - 1)
+    const range = new vscode.Range(zeroLine, zeroCol, zeroLine, zeroCol + 1)
+    const sev = severity === 'error'
+      ? vscode.DiagnosticSeverity.Error
+      : severity === 'warning'
+        ? vscode.DiagnosticSeverity.Warning
+        : vscode.DiagnosticSeverity.Information
+    diagnosticsMap.get(key).diags.push(new vscode.Diagnostic(range, message, sev))
+  }
+
+  // Pattern 1: inline "error[E001]: msg at file:line:col"
+  const inlineRe = /^(error|warning|info)(?:\[[A-Z]\d+\])?:\s*(.+?)\s+at\s+(\S+?):(\d+):(\d+)\s*$/gm
+  let m
+  while ((m = inlineRe.exec(stderr)) !== null) {
+    addEntry(m[3], m[1], m[2], parseInt(m[4], 10), parseInt(m[5], 10))
+  }
+
+  // Pattern 2: arrow "error[E001]: msg\n  --> file:line:col"
+  const arrowRe = /^(error|warning|info)(?:\[[A-Z]\d+\])?:\s*(.+)\r?\n\s+-->\s+(\S+?):(\d+):(\d+)/gm
+  while ((m = arrowRe.exec(stderr)) !== null) {
+    addEntry(m[3], m[1], m[2], parseInt(m[4], 10), parseInt(m[5], 10))
+  }
+
+  return diagnosticsMap
+}
+
+/** Apply parsed diagnostics to the DiagnosticCollection, clearing stale entries. */
+function applyDiagnostics(diagMap, fileUri) {
+  if (!componentDiagnostics) return
+  componentDiagnostics.clear()
+  if (diagMap.size > 0) {
+    for (const { uri, diags } of diagMap.values()) {
+      componentDiagnostics.set(uri, diags)
+    }
+  } else if (fileUri) {
+    componentDiagnostics.set(fileUri, [])
+  }
+}
+
+/** Resolve the active .ark file or show an error and return null. */
+function resolveActiveArkFile() {
+  const editor = vscode.window.activeTextEditor
+  if (!editor) {
+    vscode.window.showErrorMessage('Arukellt: no active editor.')
+    return null
+  }
+  const file = editor.document.uri.fsPath
+  if (!file.endsWith('.ark')) {
+    vscode.window.showErrorMessage('Arukellt: current file is not an .ark source file.')
+    return null
+  }
+  return { file, uri: editor.document.uri }
+}
+
+/**
+ * arukellt.buildComponent
+ * Compiles the current .ark file as a component (--target wasm32-wasi-p2 --emit all),
+ * shows output paths and sizes in the compiler output channel, and pushes diagnostics.
+ */
+async function buildComponent() {
+  const resolved = resolveActiveArkFile()
+  if (!resolved) return
+  const { file, uri } = resolved
+
+  const { command } = resolveServerCommand()
+  const args = ['compile', file, '--target', 'wasm32-wasi-p2', '--emit', 'all']
+
+  compilerChannel.appendLine(`$ ${command} ${args.join(' ')}`)
+  compilerChannel.show()
+
+  return new Promise((resolve) => {
+    let stderr = ''
+    const child = cp.spawn(command, args)
+    child.stdout.on('data', (data) => compilerChannel.append(data.toString()))
+    child.stderr.on('data', (data) => {
+      const text = data.toString()
+      stderr += text
+      compilerChannel.append(text)
+    })
+    child.on('close', (code) => {
+      const diagMap = parseStderrDiagnostics(stderr)
+      applyDiagnostics(diagMap, uri)
+
+      if (code === 0) {
+        compilerChannel.appendLine('✓ Component build succeeded')
+        // Report output files with their sizes
+        const dir = path.dirname(file)
+        const base = path.basename(file, '.ark')
+        const outputs = [
+          { ext: '.wasm', label: 'Component Wasm' },
+          { ext: '.wit',  label: 'WIT interface'  },
+          { ext: '.wat',  label: 'WAT text'        },
+        ]
+        for (const out of outputs) {
+          const outPath = path.join(dir, base + out.ext)
+          try {
+            const stat = fs.statSync(outPath)
+            compilerChannel.appendLine(`  ${out.label}: ${outPath} (${stat.size} bytes)`)
+          } catch (_) { /* file not produced for this emit */ }
+        }
+      } else {
+        compilerChannel.appendLine(`✗ Component build failed (exit ${code})`)
+      }
+      resolve()
+    })
+  })
+}
+
+/**
+ * arukellt.buildComponentWit
+ * Compiles the current .ark file with --emit wit and displays the WIT text
+ * in a new VS Code document opened beside the current editor.
+ */
+async function buildComponentWit() {
+  const resolved = resolveActiveArkFile()
+  if (!resolved) return
+  const { file, uri } = resolved
+
+  const { command } = resolveServerCommand()
+  const args = ['compile', file, '--target', 'wasm32-wasi-p2', '--emit', 'wit']
+
+  compilerChannel.appendLine(`$ ${command} ${args.join(' ')}`)
+  compilerChannel.show()
+
+  return new Promise((resolve) => {
+    let stdout = ''
+    let stderr = ''
+    const child = cp.spawn(command, args)
+    child.stdout.on('data', (data) => { stdout += data.toString() })
+    child.stderr.on('data', (data) => {
+      const text = data.toString()
+      stderr += text
+      compilerChannel.append(text)
+    })
+    child.on('close', (code) => {
+      const diagMap = parseStderrDiagnostics(stderr)
+      applyDiagnostics(diagMap, uri)
+
+      if (code === 0) {
+        const witContent = stdout.trim() || '// (no WIT output produced)'
+        vscode.workspace.openTextDocument({ content: witContent, language: 'wit' }).then(doc => {
+          vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside)
+        })
+      } else {
+        compilerChannel.appendLine(`✗ WIT generation failed (exit ${code})`)
+      }
+      resolve()
+    })
+  })
+}
+
+/**
+ * arukellt.runComponent
+ * Runs the current .ark file as a component (--target wasm32-wasi-p2).
+ * Stderr is parsed for diagnostics; stdout/stderr are streamed to the compiler channel.
+ */
+async function runComponent() {
+  const resolved = resolveActiveArkFile()
+  if (!resolved) return
+  const { file, uri } = resolved
+
+  const { command } = resolveServerCommand()
+  const args = ['run', file, '--target', 'wasm32-wasi-p2']
+
+  compilerChannel.appendLine(`$ ${command} ${args.join(' ')}`)
+  compilerChannel.show()
+
+  return new Promise((resolve) => {
+    let stderr = ''
+    const child = cp.spawn(command, args)
+    child.stdout.on('data', (data) => compilerChannel.append(data.toString()))
+    child.stderr.on('data', (data) => {
+      const text = data.toString()
+      stderr += text
+      compilerChannel.append(text)
+    })
+    child.on('close', (code) => {
+      const diagMap = parseStderrDiagnostics(stderr)
+      applyDiagnostics(diagMap, uri)
+      compilerChannel.appendLine(`arukellt run --target wasm32-wasi-p2 exited with code ${code}`)
+      resolve()
+    })
+  })
+}
+
+/**
+ * arukellt.openInPlayground
+ * Opens the current file's source in the web playground.
+ * For files ≤ 2 000 characters the source is appended as ?src=<encoded>.
+ * Larger files open the playground base URL (user can paste manually).
+ * The playground URL is configurable via arukellt.playgroundUrl (default: https://arukellt.dev/playground).
+ */
+async function openInPlayground() {
+  const editor = vscode.window.activeTextEditor
+  if (!editor) {
+    vscode.window.showErrorMessage('Arukellt: no active editor.')
+    return
+  }
+  const source = editor.document.getText()
+  const config = vscode.workspace.getConfiguration('arukellt', editor.document.uri)
+  const playgroundUrl = config.get('playgroundUrl', 'https://arukellt.dev/playground')
+
+  const MAX_SRC_LENGTH = 2000
+  let url
+  if (source.length <= MAX_SRC_LENGTH) {
+    url = `${playgroundUrl}?src=${encodeURIComponent(source)}`
+  } else {
+    url = playgroundUrl
+    vscode.window.showInformationMessage(
+      'Arukellt: source is too large to encode in a URL. Opening playground — paste your code manually.'
+    )
+  }
+
+  vscode.env.openExternal(vscode.Uri.parse(url))
+}
+
 function showSetupDoctor() {
   const config = getConfiguration()
   const { command: configuredPath, extraArgs } = resolveServerCommand()
@@ -357,6 +600,12 @@ function registerCommands(context) {
     terminal.sendText(`${command} script run ${name}`)
     terminal.show()
   }))
+
+  // Component commands (Issue #444)
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.buildComponent', buildComponent))
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.buildComponentWit', buildComponentWit))
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.runComponent', runComponent))
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.openInPlayground', openInPlayground))
 }
 
 function showSecurityReview() {
