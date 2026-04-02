@@ -215,6 +215,16 @@ stability = "stable"
 doc_category = "string"
 
 [[functions]]
+name = "index_of"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_index_of"
+params = ["String", "String"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "string"
+
+[[functions]]
 name = "char_at"
 kind = "prelude_wrapper"
 intrinsic = "__intrinsic_char_at"
@@ -1456,6 +1466,7 @@ name = "index_of"
 module = "std::text"
 doc_category = "text"
 stability = "stable"
+intrinsic = "__intrinsic_index_of"
 params = ["String", "String"]
 returns = "i32"
 

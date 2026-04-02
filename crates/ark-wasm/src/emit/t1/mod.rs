@@ -156,6 +156,7 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_read_int" => "read_int",
         "__intrinsic_trim" => "trim",
         "__intrinsic_contains" => "contains",
+        "__intrinsic_index_of" => "index_of",
         "__intrinsic_char_at" => "char_at",
         "__intrinsic_substring" => "substring",
         "__intrinsic_replace" => "replace",

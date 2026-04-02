@@ -4801,6 +4801,140 @@ impl EmitCtx {
                         f.instruction(&Instruction::I32Const(NWRITTEN as i32));
                         f.instruction(&Instruction::I32Load(ma));
                     }
+                    "index_of" => {
+                        // index_of(s: String, sub: String) -> i32
+                        // Returns byte position of first occurrence of sub in s, or -1 if not found.
+                        // Memory layout identical to `contains`:
+                        //   SCRATCH+8  = s_ptr
+                        //   SCRATCH+12 = s_len
+                        //   SCRATCH+16 = sub_ptr
+                        //   SCRATCH+20 = sub_len
+                        //   SCRATCH+24 = i (outer position in s)
+                        //   SCRATCH+28 = j (inner position in sub)
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
+                        let ma0 = MemArg {
+                            offset: 0,
+                            align: 0,
+                            memory_index: 0,
+                        };
+                        // Save s_ptr
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        if let Some(s) = args.first() {
+                            self.emit_operand(f, s);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        // s_len
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // sub_ptr
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        if let Some(sub) = args.get(1) {
+                            self.emit_operand(f, sub);
+                        }
+                        f.instruction(&Instruction::I32Store(ma));
+                        // sub_len
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // i = 0
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // result starts as -1 (not found); store at NWRITTEN
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const(-1i32));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // outer block/loop: for i in 0..=(s_len - sub_len)
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block2 (found-exit)
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block1 (outer loop exit)
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty)); // loop0 (outer)
+                        // if i + sub_len > s_len, exit outer
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const((SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GtU);
+                        f.instruction(&Instruction::BrIf(1)); // exit block1
+                        // j = 0
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Store(ma));
+                        // inner block/loop: for j in 0..sub_len
+                        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // block_inner_exit
+                        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty)); // loop_inner
+                        // if j >= sub_len, match found
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32GeU);
+                        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                        // found: store i into result, break to block2
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(5)); // exit block2 (found)
+                        f.instruction(&Instruction::End);
+                        // if s[i+j] != sub[j], break inner
+                        f.instruction(&Instruction::I32Const((SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Load8U(ma0));
+                        f.instruction(&Instruction::I32Ne);
+                        f.instruction(&Instruction::BrIf(1)); // exit block_inner_exit
+                        // j++
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0)); // continue loop_inner
+                        f.instruction(&Instruction::End); // end loop_inner
+                        f.instruction(&Instruction::End); // end block_inner_exit
+                        // i++
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Const((SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::Br(0)); // continue loop0
+                        f.instruction(&Instruction::End); // end loop0
+                        f.instruction(&Instruction::End); // end block1
+                        f.instruction(&Instruction::End); // end block2
+                        // return result (-1 or position i)
+                        f.instruction(&Instruction::I32Const(NWRITTEN as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                    }
                     "replace" => {
                         // replace(s: String, from: String, to: String) -> String
                         // Replace all non-overlapping occurrences of `from` in `s` with `to`

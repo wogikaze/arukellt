@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 221 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 222 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 1 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 50 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -362,6 +362,7 @@
 | `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` |
 | `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_ends_with` |
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` |
+| `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_index_of` |
 | `is_empty` | `(String) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
 | `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` |
 | `push_char` | `(String, char) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_push_char` |
@@ -404,7 +405,7 @@
 | `format_f64` | `(f64) -> String` | `std::text` | `stable` | `builtin` | no | - |
 | `format_i32` | `(i32) -> String` | `std::text` | `stable` | `builtin` | no | - |
 | `format_i64` | `(i64) -> String` | `std::text` | `stable` | `builtin` | no | - |
-| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | - |
+| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` |
 | `is_empty` | `(String) -> bool` | `std::text` | `stable` | `builtin` | no | - |
 | `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - |
 | `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - |
@@ -600,7 +601,8 @@
 | `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - |
 | `i32_to_string` | `(i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_string` |
 | `i64_to_string` | `(i64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_string` |
-| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | - |
+| `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_index_of` |
+| `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` |
 | `is_absolute` | `(String) -> bool` | `std::path` | `stable` | `builtin` | no | - |
 | `is_empty` | `(String) -> bool` | `prelude` | `stable` | `builtin` | yes | - |
 | `is_empty` | `(String) -> bool` | `std::text` | `stable` | `builtin` | no | - |

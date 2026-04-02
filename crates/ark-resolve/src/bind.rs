@@ -193,6 +193,8 @@ pub(crate) fn inject_prelude_symbols(symbols: &mut SymbolTable, scope: ScopeId) 
         "__intrinsic_string_clone",
         "__intrinsic_starts_with",
         "__intrinsic_ends_with",
+        "__intrinsic_contains",
+        "__intrinsic_index_of",
         "__intrinsic_to_lower",
         "__intrinsic_to_upper",
         "__intrinsic_string_slice",

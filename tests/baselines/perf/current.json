@@ -1,8 +1,8 @@
 {
   "schema_version": "arukellt-bench-v1",
-  "generated_at": "2026-03-29T08:41:23+00:00",
-  "mode": "update-baseline",
-  "mode_description": "measure current results and replace baseline",
+  "generated_at": "2026-04-02T14:53:44+00:00",
+  "mode": "full",
+  "mode_description": "default local benchmark profile",
   "target": "wasm32-wasi-p1",
   "thresholds": {
     "compile_ms": 20,
@@ -57,33 +57,33 @@
         "status": "ok",
         "iterations": 5,
         "samples_ms": [
-          16.306,
-          17.937,
-          14.609,
-          17.675,
-          32.964
+          14.76,
+          13.882,
+          10.938,
+          10.98,
+          11.908
         ],
-        "median_ms": 17.675,
-        "max_rss_kb": 9856,
-        "binary_bytes": 737,
-        "command": "/home/wogikaze/arukellt.worktrees/feature-arukellt-v1/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-l3p1qt_9/fib.wasm /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/benchmarks/fib.ark"
+        "median_ms": 11.908,
+        "max_rss_kb": 10032,
+        "binary_bytes": 912,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-xva7szz2/fib.wasm /home/wogikaze/arukellt/benchmarks/fib.ark"
       },
       "runtime": {
         "status": "ok",
         "iterations": 5,
         "warmups": 1,
         "samples_ms": [
-          23.055,
-          22.742,
-          24.119,
-          27.161,
-          22.152
+          20.377,
+          20.393,
+          21.461,
+          25.625,
+          19.54
         ],
-        "median_ms": 23.055,
+        "median_ms": 20.393,
         "max_rss_kb": 18832,
         "stdout": "9227465\n",
         "correctness": "pass",
-        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-l3p1qt_9/fib.wasm"
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-xva7szz2/fib.wasm"
       }
     },
     {
@@ -106,33 +106,33 @@
         "status": "ok",
         "iterations": 5,
         "samples_ms": [
-          18.31,
-          17.809,
-          15.826,
-          18.048,
-          16.42
+          14.591,
+          17.462,
+          12.604,
+          14.976,
+          13.202
         ],
-        "median_ms": 17.809,
-        "max_rss_kb": 9856,
-        "binary_bytes": 713,
-        "command": "/home/wogikaze/arukellt.worktrees/feature-arukellt-v1/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-l3p1qt_9/binary_tree.wasm /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/benchmarks/binary_tree.ark"
+        "median_ms": 14.591,
+        "max_rss_kb": 10032,
+        "binary_bytes": 888,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-xva7szz2/binary_tree.wasm /home/wogikaze/arukellt/benchmarks/binary_tree.ark"
       },
       "runtime": {
         "status": "ok",
         "iterations": 5,
         "warmups": 1,
         "samples_ms": [
-          31.903,
-          56.434,
-          37.267,
-          26.563,
-          27.834
+          28.98,
+          24.885,
+          32.871,
+          39.456,
+          37.845
         ],
-        "median_ms": 31.903,
-        "max_rss_kb": 18656,
+        "median_ms": 32.871,
+        "max_rss_kb": 18832,
         "stdout": "2097151\n",
         "correctness": "pass",
-        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-l3p1qt_9/binary_tree.wasm"
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-xva7szz2/binary_tree.wasm"
       }
     },
     {
@@ -155,33 +155,33 @@
         "status": "ok",
         "iterations": 5,
         "samples_ms": [
-          35.522,
-          21.82,
-          18.704,
-          23.054,
-          24.401
+          25.663,
+          27.269,
+          22.016,
+          17.264,
+          14.401
         ],
-        "median_ms": 23.054,
-        "max_rss_kb": 10032,
-        "binary_bytes": 1506,
-        "command": "/home/wogikaze/arukellt.worktrees/feature-arukellt-v1/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-l3p1qt_9/vec_ops.wasm /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/benchmarks/vec_ops.ark"
+        "median_ms": 22.016,
+        "max_rss_kb": 10208,
+        "binary_bytes": 1880,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-xva7szz2/vec_ops.wasm /home/wogikaze/arukellt/benchmarks/vec_ops.ark"
       },
       "runtime": {
         "status": "ok",
         "iterations": 5,
         "warmups": 1,
         "samples_ms": [
-          24.68,
-          24.249,
-          24.984,
-          25.117,
-          59.923
+          19.549,
+          18.759,
+          15.082,
+          14.396,
+          15.277
         ],
-        "median_ms": 24.984,
+        "median_ms": 15.277,
         "max_rss_kb": 19184,
         "stdout": "1000\n499500\nfound 500\nnot found 9999\n",
         "correctness": "pass",
-        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-l3p1qt_9/vec_ops.wasm"
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-xva7szz2/vec_ops.wasm"
       }
     },
     {
@@ -204,33 +204,33 @@
         "status": "ok",
         "iterations": 5,
         "samples_ms": [
-          14.595,
-          15.757,
-          15.802,
-          14.429,
-          15.425
+          15.438,
+          15.313,
+          11.6,
+          13.058,
+          17.991
         ],
-        "median_ms": 15.425,
+        "median_ms": 15.313,
         "max_rss_kb": 10032,
-        "binary_bytes": 904,
-        "command": "/home/wogikaze/arukellt.worktrees/feature-arukellt-v1/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-l3p1qt_9/string_concat.wasm /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/benchmarks/string_concat.ark"
+        "binary_bytes": 1151,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-xva7szz2/string_concat.wasm /home/wogikaze/arukellt/benchmarks/string_concat.ark"
       },
       "runtime": {
         "status": "ok",
         "iterations": 5,
         "warmups": 1,
         "samples_ms": [
-          47.636,
-          29.172,
-          34.77,
-          31.924,
-          28.084
+          18.713,
+          18.265,
+          17.8,
+          19.981,
+          17.148
         ],
-        "median_ms": 31.924,
-        "max_rss_kb": 19184,
+        "median_ms": 18.265,
+        "max_rss_kb": 19008,
         "stdout": "100\n",
         "correctness": "pass",
-        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-l3p1qt_9/string_concat.wasm"
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime /tmp/arukellt-bench-xva7szz2/string_concat.wasm"
       }
     },
     {
@@ -254,33 +254,33 @@
         "status": "ok",
         "iterations": 5,
         "samples_ms": [
-          25.052,
-          25.844,
-          33.361,
-          26.494,
-          29.144
+          19.239,
+          15.404,
+          18.692,
+          18.796,
+          15.471
         ],
-        "median_ms": 26.494,
-        "max_rss_kb": 11088,
-        "binary_bytes": 3906,
-        "command": "/home/wogikaze/arukellt.worktrees/feature-arukellt-v1/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-l3p1qt_9/parse_tree_distance.wasm /home/wogikaze/arukellt.worktrees/feature-arukellt-v1/benchmarks/bench_parse_tree_distance.ark"
+        "median_ms": 18.692,
+        "max_rss_kb": 11264,
+        "binary_bytes": 5485,
+        "command": "/home/wogikaze/arukellt/target/release/arukellt compile --target wasm32-wasi-p1 -o /tmp/arukellt-bench-xva7szz2/parse_tree_distance.wasm /home/wogikaze/arukellt/benchmarks/bench_parse_tree_distance.ark"
       },
       "runtime": {
         "status": "ok",
         "iterations": 5,
         "warmups": 1,
         "samples_ms": [
-          112.885,
-          112.789,
-          103.271,
-          97.902,
-          105.096
+          59.716,
+          57.943,
+          64.704,
+          60.045,
+          58.237
         ],
-        "median_ms": 105.096,
+        "median_ms": 59.716,
         "max_rss_kb": 27808,
         "stdout": "Yes\n",
         "correctness": "pass",
-        "command": "/home/wogikaze/.wasmtime/bin/wasmtime run --dir=. /tmp/arukellt-bench-l3p1qt_9/parse_tree_distance.wasm"
+        "command": "/home/wogikaze/.wasmtime/bin/wasmtime run --dir=. /tmp/arukellt-bench-xva7szz2/parse_tree_distance.wasm"
       }
     }
   ]

@@ -183,6 +183,16 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
+            "__intrinsic_index_of".into(),
+            FnSig {
+                name: "__intrinsic_index_of".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::String],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
             "__intrinsic_char_at".into(),
             FnSig {
                 name: "__intrinsic_char_at".into(),

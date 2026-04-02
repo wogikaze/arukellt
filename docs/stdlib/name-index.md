@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 272
+- **Canonical names:** 273
 - **Historical/deprecated names:** 3
-- **Total entries:** 275
+- **Total entries:** 276
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -137,6 +137,7 @@ Current public API names, sorted alphabetically.
 | `hex_encode` | `std::bytes` | `stable` | Bytes |
 | `i32_to_string` | `prelude` | `stable` | Conversion |
 | `i64_to_string` | `prelude` | `stable` | Conversion |
+| `index_of` | `prelude` | `stable` | String |
 | `index_of` | `std::text` | `stable` | Text |
 | `is_absolute` | `std::path` | `stable` | Path |
 | `is_empty` | `prelude` | `stable` | String |
@@ -431,6 +432,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hex_encode` | ✅ `stable` | `std::bytes` | Bytes |
 | `i32_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `i64_to_string` | ✅ `stable` | `prelude` | Conversion |
+| `index_of` | ✅ `stable` | `prelude` | String |
 | `index_of` | ✅ `stable` | `std::text` | Text |
 | `is_absolute` | ✅ `stable` | `std::path` | Path |
 | `is_empty` | ✅ `stable` | `prelude` | String |

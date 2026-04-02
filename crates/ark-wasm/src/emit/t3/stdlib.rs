@@ -900,7 +900,104 @@ impl Ctx {
         f.instruction(&Instruction::End); // end if (empty sub)
     }
 
-    /// join(parts_vec, separator) → String
+    /// index_of(s, sub) → i32: returns byte position of first occurrence, or -1 if not found.
+    pub(super) fn emit_index_of_gc(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        s: &Operand,
+        sub: &Operand,
+    ) {
+        let s0 = self.si(4);
+        let s1 = self.si(5);
+        let s_len = self.si(0);
+        let sub_len = self.si(1);
+        let i = self.si(2);
+        let j = self.si(3);
+        let result = self.si(9);
+        let sty = self.string_ty;
+
+        self.emit_operand(f, s);
+        f.instruction(&Instruction::LocalTee(s0));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(s_len));
+        self.emit_operand(f, sub);
+        f.instruction(&Instruction::LocalTee(s1));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(sub_len));
+
+        // Empty substring: position 0
+        f.instruction(&Instruction::LocalGet(sub_len));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(
+            ValType::I32,
+        )));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::Else);
+
+        f.instruction(&Instruction::I32Const(-1i32));
+        f.instruction(&Instruction::LocalSet(result)); // assume not found
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(i));
+
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(i));
+        f.instruction(&Instruction::LocalGet(s_len));
+        f.instruction(&Instruction::LocalGet(sub_len));
+        f.instruction(&Instruction::I32Sub);
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(j));
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::LocalGet(sub_len));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(s0));
+        f.instruction(&Instruction::LocalGet(i));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::ArrayGetU(sty));
+        f.instruction(&Instruction::LocalGet(s1));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::ArrayGetU(sty));
+        f.instruction(&Instruction::I32Ne);
+        f.instruction(&Instruction::BrIf(1));
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(j));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        // j == sub_len means full match; store i as result and break outer
+        f.instruction(&Instruction::LocalGet(j));
+        f.instruction(&Instruction::LocalGet(sub_len));
+        f.instruction(&Instruction::I32Eq);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(i));
+        f.instruction(&Instruction::LocalSet(result));
+        f.instruction(&Instruction::Br(1));
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(i));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(i));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::End);
+
+        f.instruction(&Instruction::LocalGet(result));
+
+        f.instruction(&Instruction::End); // end if (empty sub)
+    }
     pub(super) fn emit_join_gc(&mut self, f: &mut PeepholeWriter<'_>, _args: &[Operand]) {
         // Stub: return empty string for now (join requires Vec<String> access)
         let sty = self.string_ty;

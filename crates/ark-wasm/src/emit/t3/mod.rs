@@ -147,6 +147,7 @@ fn normalize_intrinsic(name: &str) -> &str {
             "fs_write_bytes" => "fs_write_bytes",
             "http_get" => "http_get",
             "http_request" => "http_request",
+            "index_of" => "index_of",
             other => other,
         }
     } else {

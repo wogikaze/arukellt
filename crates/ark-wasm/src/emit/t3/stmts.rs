@@ -407,6 +407,7 @@ impl Ctx {
                 | "substring"
                 | "string_slice"
                 | "contains"
+                | "index_of"
                 | "to_uppercase"
                 | "to_lowercase"
                 | "to_upper"
@@ -876,6 +877,7 @@ impl Ctx {
             | "to_lower"
             | "trim"
             | "contains"
+            | "index_of"
             | "starts_with"
             | "ends_with"
             | "__intrinsic_replace"
@@ -1523,6 +1525,13 @@ impl Ctx {
                     self.emit_contains_gc(f, &args[0], &args[1]);
                 } else {
                     f.instruction(&Instruction::I32Const(0));
+                }
+            }
+            "index_of" => {
+                if args.len() >= 2 {
+                    self.emit_index_of_gc(f, &args[0], &args[1]);
+                } else {
+                    f.instruction(&Instruction::I32Const(-1i32));
                 }
             }
             "starts_with" => {

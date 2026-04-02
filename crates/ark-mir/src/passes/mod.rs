@@ -22,4 +22,3 @@
 //! | O0    | None |
 //! | O1    | const_fold, branch_fold, cfg_simplify, copy_prop, const_prop, dead_local_elim, dead_block_elim, unreachable_cleanup |
 //! | O2    | All O1 + inline_small_leaf, string_concat_opt, aggregate_simplify, algebraic_simplify, strength_reduction |
-
