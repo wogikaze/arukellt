@@ -1291,6 +1291,10 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                 arm_scan = arm_scan + 1
             }
 
+            // Detect if scrutinee is Result<f64,...> or Option<f64>
+            let scrut_type = ctx_get_local_type(ctx, scrut_idx)
+            let scrut_ok_is_f64 = eq(clone(scrut_type), "Result_f64") || eq(clone(scrut_type), "Option_f64")
+
             // For payload enum match, extract the tag from the heap once
             let mut compare_idx = scrut_idx
             if is_payload_match {
@@ -1343,7 +1347,13 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                         while bi < len(pat.children) {
                             let bind_pat = get_unchecked(pat.children, bi)
                             // Determine field type from variant pseudo-struct (field bi+1 = payload field bi)
-                            let field_is_f64 = ctx_struct_field_is_f64(ctx, clone(variant_name), bi + 1)
+                            let mut field_is_f64 = ctx_struct_field_is_f64(ctx, clone(variant_name), bi + 1)
+                            // Override: if scrutinee is Result<f64,...>/Option<f64> and variant is Ok/Some
+                            if !field_is_f64 && scrut_ok_is_f64 && bi == 0 {
+                                if eq(clone(variant_name), "Ok") || eq(clone(variant_name), "Result::Ok") || eq(clone(variant_name), "Some") || eq(clone(variant_name), "Option::Some") {
+                                    field_is_f64 = true
+                                }
+                            }
                             let mut bind_vt = VT_I32()
                             if field_is_f64 { bind_vt = VT_F64() }
                             let bind_local = ctx_alloc_local(ctx, clone(bind_pat.text), bind_vt)
@@ -1423,7 +1433,13 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
                             let mut bi2 = 0
                             while bi2 < len(pat.children) {
                                 let bind_pat2 = get_unchecked(pat.children, bi2)
-                                let field_is_f64_2 = ctx_struct_field_is_f64(ctx, clone(variant_name2), bi2 + 1)
+                                let mut field_is_f64_2 = ctx_struct_field_is_f64(ctx, clone(variant_name2), bi2 + 1)
+                                // Override: if scrutinee is Result<f64,...>/Option<f64> and variant is Ok/Some
+                                if !field_is_f64_2 && scrut_ok_is_f64 && bi2 == 0 {
+                                    if eq(clone(variant_name2), "Ok") || eq(clone(variant_name2), "Result::Ok") || eq(clone(variant_name2), "Some") || eq(clone(variant_name2), "Option::Some") {
+                                        field_is_f64_2 = true
+                                    }
+                                }
                                 let mut bind_vt2 = VT_I32()
                                 if field_is_f64_2 { bind_vt2 = VT_F64() }
                                 let bind_local2 = ctx_alloc_local(ctx, clone(bind_pat2.text), bind_vt2)
@@ -1840,7 +1856,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 // Known struct type from type annotation
                 ctx_set_local_type(ctx, local_idx, ta_name)
             }
-            // NK_TYPE_GENERIC = 91: Vec<T> annotation
+            // NK_TYPE_GENERIC = 91: Vec<T>, Result<T,E>, Option<T> annotation
             if ta.kind == 91 {
                 if eq(clone(ta_name), "Vec") {
                     if len(ta.children) >= 2 {
@@ -1848,6 +1864,20 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                         ctx_set_local_type(ctx, local_idx, concat(String_from("vec:"), clone(elem_ty.text)))
                     } else {
                         ctx_set_local_type(ctx, local_idx, String_from("vec"))
+                    }
+                } else if eq(clone(ta_name), "Result") {
+                    if len(ta.children) >= 2 {
+                        let ok_ty = get_unchecked(ta.children, 1)
+                        if eq(clone(ok_ty.text), "f64") {
+                            ctx_set_local_type(ctx, local_idx, String_from("Result_f64"))
+                        }
+                    }
+                } else if eq(clone(ta_name), "Option") {
+                    if len(ta.children) >= 2 {
+                        let some_ty = get_unchecked(ta.children, 1)
+                        if eq(clone(some_ty.text), "f64") {
+                            ctx_set_local_type(ctx, local_idx, String_from("Option_f64"))
+                        }
                     }
                 }
             } else if eq(clone(ta_name), "Vec") {
