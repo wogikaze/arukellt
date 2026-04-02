@@ -89,6 +89,8 @@ Semicolons are optional statement terminators. The last expression in a block (w
 
 ## 3. Primitive Types
 
+> 📘 **Canonical reference**: [spec.md §2 Type System](spec.md#2-type-system) · [type-system.md](type-system.md)
+
 | Type | Description | Example |
 |------|-------------|---------|
 | `i32` | 32-bit signed integer (default) | `42` |
@@ -143,6 +145,8 @@ fn identity<T>(x: T) -> T {
 ---
 
 ## 5. Control Flow
+
+> 📘 **Canonical reference**: [spec.md §3.10–3.18](spec.md#310-if-expression) · [syntax.md](syntax.md)
 
 ### if / else
 
@@ -285,6 +289,8 @@ let err: Result<i32, String> = Err(String_from("bad"))
 
 ## 8. Pattern Matching
 
+> 📘 **Canonical reference**: [spec.md §5 Pattern Matching](spec.md#5-pattern-matching)
+
 `match` exhaustively tests a value against a sequence of patterns:
 
 ```ark
@@ -323,6 +329,8 @@ Patterns also appear in `let` (destructuring) and `for` (iteration target).
 ---
 
 ## 9. Error Handling
+
+> 📘 **Canonical reference**: [error-handling.md](error-handling.md) · [spec.md §3.9](spec.md#39-try-operator) · [spec.md §9.10–9.11](spec.md#910-option)
 
 Arukellt uses `Result<T, E>` for recoverable errors and `Option<T>` for nullable values.
 There is no exception mechanism.
@@ -454,6 +462,8 @@ let result = add(3, 4)   // 7
 
 ## 12. Generics
 
+> 📘 **Canonical reference**: [spec.md §2.7 Generics](spec.md#27-generics) · [type-system.md](type-system.md)
+
 Functions, structs, and enums can be parameterised by type variables:
 
 ```ark
@@ -481,6 +491,8 @@ specialised code. See [spec.md §2.7](spec.md#27-generics) for the normative def
 ---
 
 ## 13. Imports and Modules
+
+> 📘 **Canonical reference**: [spec.md §7 Module System](spec.md#7-module-system)
 
 Each `.ark` file is a module. Use `import` to load a sibling file:
 
