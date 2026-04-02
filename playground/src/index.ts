@@ -43,6 +43,19 @@
 export { createPlayground } from "./playground.js";
 export { createWorkerPlayground } from "./worker-client.js";
 
+// Re-export editor components.
+export { createEditor } from "./editor.js";
+
+// Re-export highlighting utilities.
+export {
+  classifyTokenKind,
+  categoryClass,
+  highlightTokens,
+} from "./highlight.js";
+
+// Re-export theme utilities.
+export { DEFAULT_THEME_CSS, injectTheme } from "./theme.js";
+
 // Re-export all types for consumer use.
 export type {
   // Configuration
@@ -77,3 +90,13 @@ export type {
   WorkerRequest,
   WorkerResponse,
 } from "./types.js";
+
+// Re-export editor types.
+export type {
+  TokenizeFn,
+  EditorOptions,
+  ArkEditor,
+} from "./editor.js";
+
+// Re-export highlight types.
+export type { HighlightCategory } from "./highlight.js";
