@@ -474,7 +474,7 @@
 
 ---
 
-# APIs by Stability Tier
+## APIs by Stability Tier
 
 > The sections below group all functions by their stability classification.
 > See [stability-policy.md](stability-policy.md) for tier definitions and the change checklist.

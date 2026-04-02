@@ -669,7 +669,6 @@ fn main() {
 ## I/O — Clock / Random
 
 > ⚠️ **Target constraint**: `std::host::clock` と `std::host::random` は **wasm32-wasi** ターゲットが必要です。
-
 > 📎 Fixture: [`tests/fixtures/stdlib_io/clock_random.ark`](../../tests/fixtures/stdlib_io/clock_random.ark)
 
 ```ark
