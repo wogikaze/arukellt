@@ -56,6 +56,18 @@ export {
 // Re-export theme utilities.
 export { DEFAULT_THEME_CSS, injectTheme } from "./theme.js";
 
+// Re-export diagnostics components.
+export {
+  createDiagnosticsPanel,
+  offsetToLineCol,
+  buildDiagnosticOverlay,
+  DIAGNOSTICS_CSS,
+  injectDiagnosticStyles,
+} from "./diagnostics.js";
+
+// Re-export playground app integration.
+export { createPlaygroundApp } from "./playground-app.js";
+
 // Re-export all types for consumer use.
 export type {
   // Configuration
@@ -100,3 +112,16 @@ export type {
 
 // Re-export highlight types.
 export type { HighlightCategory } from "./highlight.js";
+
+// Re-export diagnostics types.
+export type {
+  DiagnosticsPanel,
+  DiagnosticsPanelOptions,
+} from "./diagnostics.js";
+
+// Re-export playground app types.
+export type {
+  ParseFn,
+  PlaygroundAppOptions,
+  PlaygroundApp,
+} from "./playground-app.js";
