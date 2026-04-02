@@ -28,17 +28,20 @@ This document defines which tooling features are available in the CLI, LSP, and 
 ## Source of Truth Details
 
 ### Shared Code Paths (CLI = LSP)
+
 - **Formatter**: Both CLI `arukellt fmt` and LSP `textDocument/formatting` call `ark_parser::fmt::format_source()`. Output is guaranteed identical.
 - **Diagnostics**: Both CLI `arukellt check` and LSP produce diagnostics via `ark_typecheck::TypeChecker` and `ark_resolve` using the same error codes.
 - **Lint**: Both CLI `arukellt lint` and LSP lint diagnostics use the same warning codes (W0001–W0006+).
 
 ### LSP-Only Features
+
 - Navigation: go-to-definition, references, rename, hover, completion, signature help
 - Document/workspace symbols
 - Code actions (auto-import, organize imports, fix-all)
 - Document highlight
 
 ### CLI-Only Features
+
 - `arukellt run` — compile and execute
 - `arukellt build` — compile to Wasm
 - `arukellt test` — run test suite

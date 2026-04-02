@@ -133,7 +133,7 @@ unchecked bloat.
 ### Neutral
 
 - **Rollback is git-based**: Reverting a bad deploy requires `git revert`
-  + CI redeploy (~15 minutes). Emergency rollback via force-push to
+  - CI redeploy (~15 minutes). Emergency rollback via force-push to
   `gh-pages` is faster (< 1 minute + CDN propagation).
 - **Migration to another host is low-friction**: All assets are static
   files with no platform-specific configuration.

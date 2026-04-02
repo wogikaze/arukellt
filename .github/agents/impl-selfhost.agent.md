@@ -84,6 +84,7 @@ When faced with ambiguity:
 
 **Output Format:**
 Report your work as:
+
 ```
 Issue worked: <ISSUE_ID>
 Acceptance slice: <exact SUBTASK text>

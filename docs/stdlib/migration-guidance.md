@@ -28,6 +28,7 @@ shown with ~~strikethrough~~ in the [API reference](reference.md).
 Creates an empty `Vec<i32>`.
 
 **Before:**
+
 ```ark
 let v = Vec_new_i32()
 push(v, 1)
@@ -35,6 +36,7 @@ push(v, 2)
 ```
 
 **After:**
+
 ```ark
 let v = Vec::new<i32>()
 push(v, 1)
@@ -46,12 +48,14 @@ push(v, 2)
 Creates an empty `Vec<i64>`.
 
 **Before:**
+
 ```ark
 let v = Vec_new_i64()
 push(v, 100i64)
 ```
 
 **After:**
+
 ```ark
 let v = Vec::new<i64>()
 push(v, 100i64)
@@ -62,11 +66,13 @@ push(v, 100i64)
 Filters a `Vec<i32>` by a predicate.
 
 **Before:**
+
 ```ark
 let evens = filter_i32(numbers, fn(x: i32) -> bool { x % 2 == 0 })
 ```
 
 **After:**
+
 ```ark
 let evens = filter<i32>(numbers, fn(x: i32) -> bool { x % 2 == 0 })
 ```
@@ -90,12 +96,14 @@ lifecycle once their generic counterparts are wired.
 | `Vec_new_f64_with_cap(n)` | `Vec::with_capacity<f64>(n)` |
 
 **Before:**
+
 ```ark
 let v = Vec_new_f64()
 let buf = Vec_new_i32_with_cap(64)
 ```
 
 **After:**
+
 ```ark
 let v = Vec::new<f64>()
 let buf = Vec::with_capacity<i32>(64)
@@ -111,12 +119,14 @@ let buf = Vec::with_capacity<i32>(64)
 | `sort_String(v)` | `sort<String>(v)` |
 
 **Before:**
+
 ```ark
 sort_i32(numbers)
 sort_String(names)
 ```
 
 **After:**
+
 ```ark
 sort<i32>(numbers)
 sort<String>(names)
@@ -153,6 +163,7 @@ sort<String>(names)
 | `find_String(v, f)` | `find<String>(v, f)` |
 
 **Before:**
+
 ```ark
 let doubled = map_i32_i32(numbers, fn(x: i32) -> i32 { x * 2 })
 let total = fold_i32_i32(numbers, 0, fn(acc: i32, x: i32) -> i32 { acc + x })
@@ -161,6 +172,7 @@ reverse_i32(numbers)
 ```
 
 **After:**
+
 ```ark
 let doubled = map<i32, i32>(numbers, fn(x: i32) -> i32 { x * 2 })
 let total = fold<i32, i32>(numbers, 0, fn(acc: i32, x: i32) -> i32 { acc + x })
@@ -183,6 +195,7 @@ reverse<i32>(numbers)
 | `HashMap_i32_i32_len(m)` | `len(m)` |
 
 **Before:**
+
 ```ark
 let m = HashMap_new_i32_i32()
 HashMap_i32_i32_insert(m, 1, 100)
@@ -190,6 +203,7 @@ let v = HashMap_i32_i32_get(m, 1)
 ```
 
 **After:**
+
 ```ark
 let m = HashMap::new<i32, i32>()
 insert(m, 1, 100)
@@ -205,11 +219,13 @@ let v = get(m, 1)
 | `map_result_i32_i32(r, f)` | `map_result<i32, i32>(r, f)` |
 
 **Before:**
+
 ```ark
 let doubled = map_option_i32_i32(maybe_val, fn(x: i32) -> i32 { x * 2 })
 ```
 
 **After:**
+
 ```ark
 let doubled = map_option<i32, i32>(maybe_val, fn(x: i32) -> i32 { x * 2 })
 ```

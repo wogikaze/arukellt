@@ -60,6 +60,7 @@ For generator/manifest/docs consistency: also run `python3 scripts/check-docs-co
 If generated docs sources changed: also run `python3 scripts/generate-docs.py`
 
 Output Format (required for completion):
+
 ```
 Issue worked: <ISSUE_ID>
 Acceptance slice: <exact slice description>

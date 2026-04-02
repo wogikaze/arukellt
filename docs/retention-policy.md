@@ -28,9 +28,11 @@ This policy covers:
 
 - **Archive boundary**: `docs/spec/` is the archive zone.
 - **Marking**: Files must have an archive banner at the top:
+
   ```
   > **Archive**: This document describes a previous version. See [current-state](current-state.md).
   ```
+
 - **No deletion**: Historical docs remain for reference.
 
 ### Migration Documentation (`docs/migration/`)

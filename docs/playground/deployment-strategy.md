@@ -211,6 +211,7 @@ provides automatic per-PR preview URLs at no cost).
 | PR closed (not merged) | Delete preview deployment after 7 days |
 
 **PR comment**: The CI bot comments on the PR with:
+
 ```
 🎮 Playground preview: https://...preview.../pr-123/
 📦 Wasm size: 247 KB (budget: 300 KB) ✅
@@ -270,6 +271,7 @@ The Wasm module is the dominant asset at 247 KB (≈100 KB gzipped). Caching
 it effectively is the single largest performance lever.
 
 **Content-hash derivation**:
+
 ```
 SHA-256(ark_playground_wasm.wasm) → first 12 hex chars → ark-playground-<hash>.wasm
 ```

@@ -23,6 +23,7 @@ above agree.
 ### How diagnostics are formatted
 
 **Rust compiler** (`crates/ark-diagnostics/`):
+
 ```
 error[E0100|resolve]: unresolved name
   --> file.ark:2:13
@@ -32,6 +33,7 @@ error[E0100|resolve]: unresolved name
 ```
 
 **Selfhost compiler** (`src/compiler/main.ark`):
+
 ```
 file.ark: error: 1 resolve error(s)
 file.ark: error: undefined name: unknown_function
@@ -55,6 +57,7 @@ The selfhost compiler currently emits **flat text messages** with:
 ### Case 1: Undefined Variable — `unresolved_name.ark`
 
 **Source:**
+
 ```ark
 fn main() {
     let x = unknown_function()
@@ -71,6 +74,7 @@ fn main() {
 | Detected? | ✅ Yes | ✅ Yes | ✅ |
 
 **Rust output:**
+
 ```
 warning[W0007|typecheck]: unused binding `x`
   --> tests/fixtures/diagnostics/unresolved_name.ark:2:5
@@ -83,6 +87,7 @@ error[E0100|resolve]: unresolved name
 ```
 
 **Selfhost output:**
+
 ```
 tests/fixtures/diagnostics/unresolved_name.ark: error: 1 resolve error(s)
 tests/fixtures/diagnostics/unresolved_name.ark: error: undefined name: unknown_function
@@ -98,6 +103,7 @@ warning for the unused binding — selfhost does not emit warnings at all.
 ### Case 2: Type Mismatch — `type_mismatch.ark`
 
 **Source:**
+
 ```ark
 fn main() {
     let x: i32 = "hello"
@@ -114,6 +120,7 @@ fn main() {
 | Detected? | ✅ Yes | ❌ **No** | ❌ |
 
 **Rust output:**
+
 ```
 warning[W0007|typecheck]: unused binding `x`
   --> tests/fixtures/diagnostics/type_mismatch.ark:2:5
@@ -124,6 +131,7 @@ error[E0200|typecheck]: expected `i32`, found `String`
 ```
 
 **Selfhost output:**
+
 ```
 compilation succeeded (phase 6)
 ok: 417 bytes
@@ -139,6 +147,7 @@ with explicit type annotations.
 ### Case 3: Syntax Error (Unexpected Token) — `unexpected_token.ark`
 
 **Source:**
+
 ```ark
 fn main() {
     let x = ;
@@ -155,6 +164,7 @@ fn main() {
 | Detected? | ✅ Yes | ✅ Yes | ✅ |
 
 **Rust output:**
+
 ```
 error[E0001|parse]: expected expression, found `Semi`
   --> tests/fixtures/diagnostics/unexpected_token.ark:2:13
@@ -164,6 +174,7 @@ error[E0001|parse]: expected expression, found `Semi`
 ```
 
 **Selfhost output:**
+
 ```
 tests/fixtures/diagnostics/unexpected_token.ark: error: 2 parse error(s)
 tests/fixtures/diagnostics/unexpected_token.ark: error: unexpected token in expression: 73
@@ -179,6 +190,7 @@ human-readable token names. No error code, no line number.
 ### Case 4: Missing Brace — `missing_brace.ark`
 
 **Source:**
+
 ```ark
 fn main() {
     let x = 42
@@ -194,6 +206,7 @@ fn main() {
 | Detected? | ✅ Yes | ✅ Yes | ✅ |
 
 **Rust output:**
+
 ```
 error[E0002|parse]: expected `RBrace`, found `Eof`
    = expected: RBrace
@@ -205,6 +218,7 @@ error[E0002|parse]: expected `RBrace`, found `Eof`
 ```
 
 **Selfhost output:**
+
 ```
 tests/fixtures/diagnostics/missing_brace.ark: error: 1 parse error(s)
 tests/fixtures/diagnostics/missing_brace.ark: error: expected token kind 73, got 0
@@ -219,6 +233,7 @@ kind numbers instead of token names. Token kind 73 corresponds to `RBrace`
 ### Case 5: Duplicate Definition — `duplicate_def.ark`
 
 **Source:**
+
 ```ark
 fn foo() -> i32 { 1 }
 fn foo() -> i32 { 2 }
@@ -235,6 +250,7 @@ fn main() { foo() }
 | Detected? | ✅ Yes | ✅ Yes | ✅ |
 
 **Rust output:**
+
 ```
 error[E0101|resolve]: duplicate definition
   --> tests/fixtures/diagnostics/duplicate_def.ark:5:1
@@ -244,6 +260,7 @@ error[E0101|resolve]: duplicate definition
 ```
 
 **Selfhost output:**
+
 ```
 tests/fixtures/diagnostics/duplicate_def.ark: error: 1 resolve error(s)
 tests/fixtures/diagnostics/duplicate_def.ark: error: duplicate definition: foo
@@ -258,6 +275,7 @@ line number on the selfhost side.
 ### Case 6: Wrong Argument Count — `wrong_arg_count.ark`
 
 **Source:**
+
 ```ark
 fn add(a: i32, b: i32) -> i32 { a + b }
 fn main() { add(1, 2, 3) }
@@ -273,11 +291,13 @@ fn main() { add(1, 2, 3) }
 | Detected? | ✅ Yes | ❌ **No** | ❌ |
 
 **Rust output:**
+
 ```
 error[E0202|typecheck]: expected 2 argument(s), found 3
 ```
 
 **Selfhost output:**
+
 ```
 compilation succeeded (phase 6)
 ok: 461 bytes
@@ -291,6 +311,7 @@ compiles through all 6 phases with no errors.
 ### Case 7: Immutable Mutation — `immutable_mutation.ark`
 
 **Source:**
+
 ```ark
 fn main() {
     let x: i32 = 10
@@ -308,6 +329,7 @@ fn main() {
 | Detected? | ✅ Yes | ❌ **No** | ❌ |
 
 **Rust output:**
+
 ```
 error[E0207|typecheck]: cannot assign to immutable variable `x`
   --> tests/fixtures/diagnostics/immutable_mutation.ark:3:5
@@ -317,6 +339,7 @@ error[E0207|typecheck]: cannot assign to immutable variable `x`
 ```
 
 **Selfhost output:**
+
 ```
 compilation succeeded (phase 6)
 ok: 413 bytes

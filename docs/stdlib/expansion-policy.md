@@ -35,16 +35,19 @@
 ## Label Definitions
 
 ### Expansion
+
 - Actively accepts new function additions
 - Must meet admission gate criteria (see below)
 - New APIs start as `experimental` stability
 
 ### Maintenance
+
 - Surface is considered stable and complete for current use
 - Bug fixes and documentation improvements accepted
 - New functions require ADR justification
 
 ### Frozen
+
 - No changes accepted except critical bug fixes
 - API is stable and backward-compatible
 - Currently no families are frozen
