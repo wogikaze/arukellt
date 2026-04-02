@@ -1,8 +1,8 @@
 /**
  * Tests for the examples catalog module.
  *
- * Verifies the examples catalog structure, lookup functions, and
- * data integrity.
+ * Verifies the examples catalog structure, lookup functions,
+ * fixture references, and data integrity.
  *
  * @module
  */
@@ -12,9 +12,11 @@ import assert from "node:assert/strict";
 
 import {
   EXAMPLES,
+  FIXTURE_BASE_PATH,
   getExample,
   getExampleList,
   getExamplesByTag,
+  getFixtureMap,
 } from "../examples.js";
 import type { ExampleEntry } from "../examples.js";
 
@@ -182,5 +184,84 @@ describe("getExamplesByTag", () => {
         );
       }
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fixture references
+// ---------------------------------------------------------------------------
+
+describe("Fixture references", () => {
+  it("every example has a fixturePath", () => {
+    for (const ex of EXAMPLES) {
+      assert.ok(
+        typeof ex.fixturePath === "string" && ex.fixturePath.length > 0,
+        `${ex.id} should have a non-empty fixturePath`,
+      );
+    }
+  });
+
+  it("all fixture paths end with .ark", () => {
+    for (const ex of EXAMPLES) {
+      assert.ok(
+        ex.fixturePath.endsWith(".ark"),
+        `fixturePath for "${ex.id}" should end with .ark, got "${ex.fixturePath}"`,
+      );
+    }
+  });
+
+  it("all fixture paths are unique", () => {
+    const paths = EXAMPLES.map((e) => e.fixturePath);
+    const unique = new Set(paths);
+    assert.equal(
+      unique.size,
+      paths.length,
+      "duplicate fixture paths detected",
+    );
+  });
+
+  it("fixture paths do not start with /", () => {
+    for (const ex of EXAMPLES) {
+      assert.ok(
+        !ex.fixturePath.startsWith("/"),
+        `fixturePath for "${ex.id}" should be relative, got "${ex.fixturePath}"`,
+      );
+    }
+  });
+
+  it("FIXTURE_BASE_PATH is tests/fixtures", () => {
+    assert.equal(FIXTURE_BASE_PATH, "tests/fixtures");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getFixtureMap
+// ---------------------------------------------------------------------------
+
+describe("getFixtureMap", () => {
+  it("returns a Map", () => {
+    const map = getFixtureMap();
+    assert.ok(map instanceof Map);
+  });
+
+  it("has one entry per example", () => {
+    const map = getFixtureMap();
+    assert.equal(map.size, EXAMPLES.length);
+  });
+
+  it("maps example IDs to fixture paths", () => {
+    const map = getFixtureMap();
+    for (const ex of EXAMPLES) {
+      assert.equal(
+        map.get(ex.id),
+        ex.fixturePath,
+        `fixture map for "${ex.id}" should match fixturePath`,
+      );
+    }
+  });
+
+  it("hello-world maps to hello/hello.ark", () => {
+    const map = getFixtureMap();
+    assert.equal(map.get("hello-world"), "hello/hello.ark");
   });
 });

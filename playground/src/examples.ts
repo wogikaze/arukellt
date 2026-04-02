@@ -5,6 +5,11 @@
  * in the playground via the `#example/<id>` fragment URL (ADR-021 §8)
  * or through the examples loader UI.
  *
+ * Each example references a corresponding test fixture in
+ * `tests/fixtures/` so that playground examples stay in sync with
+ * CI-verified code.  See `docs/playground/examples-catalog.md` for the
+ * convention on how to add or update examples.
+ *
  * For v1, this is a simple TypeScript array — no server needed.
  *
  * @module
@@ -26,7 +31,20 @@ export interface ExampleEntry {
   source: string;
   /** Tags for categorization (optional). */
   tags?: string[];
+  /**
+   * Path to the corresponding CI-verified test fixture, relative to
+   * `tests/fixtures/`.  Must appear in `tests/fixtures/manifest.txt`.
+   */
+  fixturePath: string;
 }
+
+/**
+ * Base path for test fixtures, relative to the repository root.
+ *
+ * Consumers that need to resolve fixture files on disk can join this
+ * with `ExampleEntry.fixturePath`.
+ */
+export const FIXTURE_BASE_PATH = "tests/fixtures" as const;
 
 // ---------------------------------------------------------------------------
 // Example catalog
@@ -48,6 +66,7 @@ export const EXAMPLES: readonly ExampleEntry[] = [
 }
 `,
     tags: ["basics"],
+    fixturePath: "hello/hello.ark",
   },
   {
     id: "variables",
@@ -61,6 +80,7 @@ export const EXAMPLES: readonly ExampleEntry[] = [
 }
 `,
     tags: ["basics"],
+    fixturePath: "guide/variables.ark",
   },
   {
     id: "functions",
@@ -76,6 +96,7 @@ fn main() {
 }
 `,
     tags: ["basics"],
+    fixturePath: "guide/fn_add.ark",
   },
   {
     id: "structs",
@@ -93,6 +114,7 @@ fn main() {
 }
 `,
     tags: ["types"],
+    fixturePath: "structs/basic_struct.ark",
   },
   {
     id: "enums",
@@ -118,6 +140,7 @@ fn main() {
 }
 `,
     tags: ["types"],
+    fixturePath: "enums/exhaustive_match.ark",
   },
   {
     id: "fibonacci",
@@ -137,6 +160,7 @@ fn main() {
 }
 `,
     tags: ["algorithms"],
+    fixturePath: "functions/recursive.ark",
   },
   {
     id: "traits",
@@ -162,6 +186,7 @@ fn main() {
 }
 `,
     tags: ["types", "traits"],
+    fixturePath: "trait/trait_impl.ark",
   },
 ];
 
@@ -220,4 +245,28 @@ export function getExamplesByTag(): Map<string, string[]> {
     }
   }
   return byTag;
+}
+
+/**
+ * Get a machine-readable mapping from example ID to fixture path.
+ *
+ * Each fixture path is relative to `tests/fixtures/`.  Use
+ * {@link FIXTURE_BASE_PATH} to build the full repository-relative path.
+ *
+ * @returns A `Map<string, string>` where keys are example IDs and
+ * values are fixture paths (e.g., `"hello/hello.ark"`).
+ *
+ * @example
+ * ```ts
+ * const fixtures = getFixtureMap();
+ * const path = fixtures.get("hello-world"); // "hello/hello.ark"
+ * const full = `${FIXTURE_BASE_PATH}/${path}`; // "tests/fixtures/hello/hello.ark"
+ * ```
+ */
+export function getFixtureMap(): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const example of EXAMPLES) {
+    map.set(example.id, example.fixturePath);
+  }
+  return map;
 }
