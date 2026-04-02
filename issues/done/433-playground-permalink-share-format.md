@@ -1,6 +1,6 @@
 # Playground: permalink / share format と圧縮方式を定義する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 433
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] share format の仕様が決まる。
-- [ ] 少なくともコードと version を含む URL が生成できる。
-- [ ] 長い入力に対する圧縮または fallback 方針がある。
-- [ ] round-trip テストがある。
+- [x] share format の仕様が決まる。
+- [x] 少なくともコードと version を含む URL が生成できる。
+- [x] 長い入力に対する圧縮または fallback 方針がある。
+- [x] round-trip テストがある。
 
 ## References
 

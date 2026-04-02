@@ -1,6 +1,6 @@
 # Playground: parser / formatter を Wasm に build しブラウザで動かす
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 379
@@ -23,10 +23,10 @@
 
 ## Acceptance
 
-- [ ] `ark-parser` + `ark-lexer` + `ark-diagnostics` が `wasm32-unknown-unknown` で build できる
-- [ ] JS から `parse(source) -> AST/diagnostics` と `format(source) -> formatted` が呼べる
-- [ ] Wasm module のサイズが playground 用途に許容される範囲 (目安 < 5MB)
-- [ ] ブラウザ (Chrome/Firefox) で動作確認される
+- [x] `ark-parser` + `ark-lexer` + `ark-diagnostics` が `wasm32-unknown-unknown` で build できる
+- [x] JS から `parse(source) -> AST/diagnostics` と `format(source) -> formatted` が呼べる
+- [x] Wasm module のサイズが playground 用途に許容される範囲 (目安 < 5MB)
+- [x] ブラウザ (Chrome/Firefox) で動作確認される
 
 ## References
 

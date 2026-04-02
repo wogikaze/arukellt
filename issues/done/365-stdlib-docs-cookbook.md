@@ -1,6 +1,6 @@
 # Stdlib Docs: source-backed な cookbook / recipe 集を拡充する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 365
@@ -21,10 +21,10 @@
 
 ## Acceptance
 
-- [ ] 主要ユースケース (ファイル操作, JSON 処理, HTTP, テスト, コレクション操作) の recipe が存在する
-- [ ] 各 recipe に対応する fixture ファイルパスが明記される
-- [ ] recipe コードが CI (fixture harness) で検証される
-- [ ] host capability を必要とする recipe に target 制約が明記される
+- [x] 主要ユースケース (ファイル操作, JSON 処理, HTTP, テスト, コレクション操作) の recipe が存在する
+- [x] 各 recipe に対応する fixture ファイルパスが明記される
+- [x] recipe コードが CI (fixture harness) で検証される
+- [x] host capability を必要とする recipe に target 制約が明記される
 
 ## References
 

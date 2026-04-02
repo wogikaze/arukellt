@@ -1,6 +1,6 @@
 # Stdlib: stability tier を実行時・CI で検証する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-03-31
 **ID**: 362
@@ -15,11 +15,11 @@
 
 ## Acceptance
 
-- [ ] CI が `host_stub` の関数に対応する fixture がないことを検出し警告する
-- [ ] `experimental` API の使用時に compiler が W-level diagnostic を出す (opt-in)
-- [ ] `docs/stdlib/reference.md` の生成時に stability tier ごとにセクションが分離される
-- [ ] stability tier の変更 (experimental → stable) に対応する checklist が文書化される
-- [ ] `scripts/check-docs-consistency.py` が stability metadata と実装状態の不整合を検出する
+- [x] CI が `host_stub` の関数に対応する fixture がないことを検出し警告する
+- [x] `experimental` API の使用時に compiler が W-level diagnostic を出す (opt-in)
+- [x] `docs/stdlib/reference.md` の生成時に stability tier ごとにセクションが分離される
+- [x] stability tier の変更 (experimental → stable) に対応する checklist が文書化される
+- [x] `scripts/check-docs-consistency.py` が stability metadata と実装状態の不整合を検出する
 
 ## References
 
