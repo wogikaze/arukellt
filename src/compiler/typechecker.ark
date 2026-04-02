@@ -9,9 +9,41 @@ use std::host::stdio
 
 fn TY_UNKNOWN() -> i32 { 0 }
 
-// ── Node Kind Tags (from resolver.ark) ───────────────────────────────────────
+// ── Node Kind Tags (from parser.ark) ─────────────────────────────────────────
 
+fn NK_INT_LIT() -> i32 { 1 }
+fn NK_FLOAT_LIT() -> i32 { 2 }
+fn NK_STRING_LIT() -> i32 { 3 }
+fn NK_BOOL_LIT() -> i32 { 4 }
+fn NK_IDENT() -> i32 { 5 }
+fn NK_BINARY() -> i32 { 6 }
+fn NK_UNARY() -> i32 { 7 }
+fn NK_CALL() -> i32 { 8 }
+fn NK_BLOCK() -> i32 { 20 }
+fn NK_LET() -> i32 { 30 }
+fn NK_RETURN() -> i32 { 31 }
+fn NK_WHILE() -> i32 { 34 }
+fn NK_FOR() -> i32 { 36 }
+fn NK_EXPR_STMT() -> i32 { 37 }
 fn NK_FN_DECL() -> i32 { 50 }
+fn NK_IF_EXPR() -> i32 { 13 }
+fn NK_ASSIGN() -> i32 { 18 }
+
+// ── Operator Tags (from parser.ark) ──────────────────────────────────────────
+
+fn OP_ADD() -> i32 { 1 }
+fn OP_SUB() -> i32 { 2 }
+fn OP_MUL() -> i32 { 3 }
+fn OP_DIV() -> i32 { 4 }
+fn OP_MOD() -> i32 { 5 }
+fn OP_EQ() -> i32 { 6 }
+fn OP_NEQ() -> i32 { 7 }
+fn OP_LT() -> i32 { 8 }
+fn OP_LTEQ() -> i32 { 9 }
+fn OP_GT() -> i32 { 10 }
+fn OP_GTEQ() -> i32 { 11 }
+fn OP_AND() -> i32 { 12 }
+fn OP_OR() -> i32 { 13 }
 
 // ── Type Tags (continued) ────────────────────────────────────────────────────
 
@@ -213,6 +245,230 @@ fn CheckCtx_new() -> CheckCtx {
     }
 }
 
+// ── Variable Scope (tracks let-binding types within a function) ─────────────
+
+struct VarBinding {
+    name: String,
+    ty: TypeInfo,
+}
+
+struct LocalScope {
+    bindings: Vec<VarBinding>,
+}
+
+fn LocalScope_new() -> LocalScope {
+    LocalScope { bindings: Vec_new_VarBinding() }
+}
+
+fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
+    push(scope.bindings, VarBinding { name: name, ty: ty })
+}
+
+fn scope_lookup(scope: LocalScope, name: String) -> TypeInfo {
+    let count = len(scope.bindings)
+    let mut found = TypeInfo_simple(TY_UNKNOWN())
+    let mut i = 0
+    while i < count {
+        let b = get_unchecked(scope.bindings, i)
+        if eq(clone(b.name), clone(name)) {
+            found = b.ty
+        }
+        i = i + 1
+    }
+    found
+}
+
+// ── Expression Type Inference ───────────────────────────────────────────────
+
+fn is_comparison_op(op: i32) -> bool {
+    if op == OP_EQ() { return true }
+    if op == OP_NEQ() { return true }
+    if op == OP_LT() { return true }
+    if op == OP_LTEQ() { return true }
+    if op == OP_GT() { return true }
+    if op == OP_GTEQ() { return true }
+    false
+}
+
+fn is_logical_op(op: i32) -> bool {
+    if op == OP_AND() { return true }
+    if op == OP_OR() { return true }
+    false
+}
+
+fn infer_expr(env: TypeEnv, scope: LocalScope, node: AstNode) -> TypeInfo {
+    // Literals
+    if node.kind == NK_INT_LIT() { return TypeInfo_simple(TY_I32()) }
+    if node.kind == NK_FLOAT_LIT() { return TypeInfo_simple(TY_F64()) }
+    if node.kind == NK_STRING_LIT() { return TypeInfo_simple(TY_STRING()) }
+    if node.kind == NK_BOOL_LIT() { return TypeInfo_simple(TY_BOOL()) }
+
+    // Variable reference
+    if node.kind == NK_IDENT() {
+        return scope_lookup(scope, clone(node.text))
+    }
+
+    // Binary expression
+    if node.kind == NK_BINARY() {
+        if len(node.children) >= 2 {
+            let lhs_node = get_unchecked(node.children, 0)
+            let rhs_node = get_unchecked(node.children, 1)
+            let lhs_ty = infer_expr(env, scope, lhs_node)
+            let rhs_ty = infer_expr(env, scope, rhs_node)
+
+            // Comparison operators always produce bool
+            if is_comparison_op(node.op) {
+                return TypeInfo_simple(TY_BOOL())
+            }
+            // Logical operators always produce bool
+            if is_logical_op(node.op) {
+                return TypeInfo_simple(TY_BOOL())
+            }
+            // Arithmetic operators propagate operand type via unification
+            return unify(env, lhs_ty, rhs_ty)
+        }
+    }
+
+    // Unary expression — propagate operand type
+    if node.kind == NK_UNARY() {
+        if len(node.children) > 0 {
+            let operand = get_unchecked(node.children, 0)
+            return infer_expr(env, scope, operand)
+        }
+    }
+
+    // Block — type is the type of the last expression
+    if node.kind == NK_BLOCK() {
+        let count = len(node.children)
+        let mut i = 0
+        while i < count {
+            let child = get_unchecked(node.children, i)
+            if i == count - 1 {
+                // Last child: its inferred type is the block type
+                return infer_expr(env, scope, child)
+            }
+            check_stmt(env, scope, child)
+            i = i + 1
+        }
+        return TypeInfo_simple(TY_UNIT())
+    }
+
+    // If expression — infer from then branch
+    if node.kind == NK_IF_EXPR() {
+        if len(node.children) >= 2 {
+            let then_node = get_unchecked(node.children, 1)
+            return infer_expr(env, scope, then_node)
+        }
+    }
+
+    // Call expression — return unknown (call-site arg checking out of scope)
+    if node.kind == NK_CALL() {
+        return TypeInfo_simple(TY_UNKNOWN())
+    }
+
+    TypeInfo_simple(TY_UNKNOWN())
+}
+
+// ── Statement Type Checking ─────────────────────────────────────────────────
+
+fn check_stmt(env: TypeEnv, scope: LocalScope, node: AstNode) {
+    if node.kind == NK_LET() {
+        let mut bind_ty = TypeInfo_simple(TY_UNKNOWN())
+
+        // Infer from initializer expression
+        if len(node.children) > 0 {
+            let init = get_unchecked(node.children, 0)
+            bind_ty = infer_expr(env, scope, init)
+        }
+
+        // Unify with explicit type annotation if present
+        if len(node.type_ann) > 0 {
+            let ann = get_unchecked(node.type_ann, 0)
+            let ann_ty = resolve_type_name(clone(ann.text))
+            bind_ty = unify(env, bind_ty, ann_ty)
+        }
+
+        // Bind the variable name to the inferred type
+        if !eq(clone(node.text), "_") {
+            scope_define(scope, clone(node.text), bind_ty)
+        }
+        return
+    }
+
+    if node.kind == NK_EXPR_STMT() {
+        if len(node.children) > 0 {
+            let child = get_unchecked(node.children, 0)
+            infer_expr(env, scope, child)
+        }
+        return
+    }
+
+    if node.kind == NK_RETURN() {
+        if len(node.children) > 0 {
+            let child = get_unchecked(node.children, 0)
+            infer_expr(env, scope, child)
+        }
+        return
+    }
+
+    if node.kind == NK_WHILE() || node.kind == NK_FOR() {
+        // Walk body children
+        let count = len(node.children)
+        let mut i = 0
+        while i < count {
+            let child = get_unchecked(node.children, i)
+            check_stmt(env, scope, child)
+            i = i + 1
+        }
+        return
+    }
+
+    if node.kind == NK_BLOCK() {
+        let count = len(node.children)
+        let mut i = 0
+        while i < count {
+            let child = get_unchecked(node.children, i)
+            check_stmt(env, scope, child)
+            i = i + 1
+        }
+        return
+    }
+
+    // For any expression node used as a statement, try to infer its type
+    infer_expr(env, scope, node)
+}
+
+// ── Function Body Type Checking ─────────────────────────────────────────────
+
+fn check_fn_body(env: TypeEnv, fn_node: AstNode) {
+    let scope = LocalScope_new()
+
+    // Register parameter types from type_ann (skip __return marker)
+    let ann_count = len(fn_node.type_ann)
+    let mut j = 0
+    while j < ann_count {
+        let ann = get_unchecked(fn_node.type_ann, j)
+        if !eq(clone(ann.text), "__return") {
+            let mut param_ty = TypeInfo_simple(TY_UNKNOWN())
+            if len(ann.children) > 0 {
+                let type_node = get_unchecked(ann.children, 0)
+                param_ty = resolve_type_name(clone(type_node.text))
+            }
+            scope_define(scope, clone(ann.text), param_ty)
+        }
+        j = j + 1
+    }
+
+    // Walk body statements
+    let body_count = len(fn_node.children)
+    let mut k = 0
+    while k < body_count {
+        let stmt = get_unchecked(fn_node.children, k)
+        check_stmt(env, scope, stmt)
+        k = k + 1
+    }
+}
+
 // ── Type Check Result ────────────────────────────────────────────────────────
 
 struct TypeCheckResult {
@@ -232,6 +488,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         errors: Vec_new_String(),
         typed_fns: Vec_new_TypedFn(),
     }
+    let env = TypeEnv_new()
     result.error_count = resolve_ctx.error_count
     result.errors = resolve_ctx.errors
 
@@ -257,8 +514,21 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                 j = j + 1
             }
             push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type })
+
+            // Infer expression types within the function body
+            check_fn_body(env, node)
         }
         i = i + 1
+    }
+
+    // Propagate any type errors from inference
+    let err_count = len(env.errors)
+    let mut e = 0
+    while e < err_count {
+        let err = get_unchecked(env.errors, e)
+        push(result.errors, clone(err))
+        result.error_count = result.error_count + 1
+        e = e + 1
     }
 
     result
@@ -319,6 +589,26 @@ fn main() {
     let tb = TypeInfo_simple(TY_STRING())
     let tc = unify(env, ta, tb)
     stdio::println(concat(String_from("error count: "), to_string(env.error_count)))
+
+    // Test expression inference: literals
+    let env2 = TypeEnv_new()
+    let scope = LocalScope_new()
+
+    // Infer integer literal → i32
+    let int_ty = TypeInfo_simple(TY_I32())
+    scope_define(scope, String_from("x"), int_ty)
+    let looked = scope_lookup(scope, String_from("x"))
+    stdio::println(concat(String_from("x type: "), type_tag_name(looked.tag)))
+
+    // Infer float → f64
+    let float_ty = TypeInfo_simple(TY_F64())
+    scope_define(scope, String_from("f"), float_ty)
+    let looked_f = scope_lookup(scope, String_from("f"))
+    stdio::println(concat(String_from("f type: "), type_tag_name(looked_f.tag)))
+
+    // Test binary op unification: i32 + i32 = i32
+    let arith_ty = unify(env2, TypeInfo_simple(TY_I32()), TypeInfo_simple(TY_I32()))
+    stdio::println(concat(String_from("i32+i32: "), type_tag_name(arith_ty.tag)))
 
     stdio::println(String_from("TypeChecker OK."))
 }

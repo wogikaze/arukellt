@@ -51,7 +51,6 @@ diag:diagnostics/unresolved_name.ark
 diag:diagnostics/unused_binding.ark
 diag:diagnostics/unused_import.ark
 diag:diagnostics/wrong_arg_count.ark
-diag:host_stub_http.ark
 diag:host_stub_sockets.ark
 diag:stdlib_io/deny_clock.ark
 diag:stdlib_io/deny_random.ark
@@ -177,6 +176,7 @@ run:selfhost/resolver_import_basic/main.ark
 module-diag:selfhost/resolver_visibility_error/main.ark
 run:selfhost/resolver_visibility_ok/main.ark
 run:selfhost/typecheck_infer.ark
+run:selfhost/typecheck_infer_expr.ark
 run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
 run:stdlib_cli/cli_basic.ark
@@ -393,6 +393,7 @@ t3-compile:operators/string_eq.ark
 t3-compile:operators/unary.ark
 t3-compile:stdlib_filter/filter_string.ark
 t3-compile:stdlib_hashmap/hashmap_basic.ark
+t3-compile:stdlib_http_compile.ark
 t3-compile:stdlib_io/eprintln.ark
 t3-compile:stdlib_io/f64_to_string.ark
 t3-compile:stdlib_io/fs_read_error.ark
