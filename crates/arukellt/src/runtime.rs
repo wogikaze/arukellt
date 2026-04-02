@@ -98,7 +98,14 @@ pub(crate) fn run_wasm_p1(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
 
     start
         .call(&mut store, ())
-        .map_err(|e| format!("runtime error: {}", e))?;
+        .map_err(|e| {
+            // WASI proc_exit is reported as I32Exit — treat it as a clean exit
+            if e.downcast_ref::<wasmtime_wasi::I32Exit>().is_some() {
+                return String::new(); // signal "handled"
+            }
+            format!("runtime error: {}", e)
+        })
+        .or_else(|e| if e.is_empty() { Ok(()) } else { Err(e) })?;
 
     Ok(())
 }
@@ -161,7 +168,14 @@ pub(crate) fn run_wasm_gc(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
 
     start
         .call(&mut store, ())
-        .map_err(|e| format!("runtime error: {}", e))?;
+        .map_err(|e| {
+            // WASI proc_exit is reported as I32Exit — treat it as a clean exit
+            if e.downcast_ref::<wasmtime_wasi::I32Exit>().is_some() {
+                return String::new(); // signal "handled"
+            }
+            format!("runtime error: {}", e)
+        })
+        .or_else(|e| if e.is_empty() { Ok(()) } else { Err(e) })?;
 
     Ok(())
 }

@@ -100,7 +100,9 @@ const FN_ENVIRON_SIZES_GET: u32 = 38;
 const FN_ENVIRON_GET: u32 = 39;
 // Stdlib environ helper
 const FN_ENV_VAR: u32 = 40;
-const FN_USER_BASE: u32 = 41;
+// WASI proc_exit import (conditional)
+const FN_PROC_EXIT: u32 = 41;
+const FN_USER_BASE: u32 = 42;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
@@ -1317,6 +1319,9 @@ fn cfn_handle_builtin(
             needed.insert(FN_ENVIRON_GET);
             needed.insert(FN_ENV_VAR);
             needed.insert(FN_ENSURE_HEAP);
+        }
+        "exit" | "proc_exit" => {
+            needed.insert(FN_PROC_EXIT);
         }
         other
             if (other.contains("HashMap") || other.contains("hashmap"))

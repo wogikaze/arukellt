@@ -263,21 +263,31 @@ run_diag_parity() {
         local expected_diag
         expected_diag=$(head -1 "$diag_file")
 
+        # Read optional CLI flags from .flags file
+        local flags_file="${fixture%.ark}.flags"
+        local extra_flags=""
+        if [[ -f "$flags_file" ]]; then
+            extra_flags=$(cat "$flags_file")
+        fi
+
         # Rust compiler diagnostic
         local rust_stderr
-        rust_stderr=$("${RUST_BIN}" run "$fixture" 2>&1 || true)
+        # shellcheck disable=SC2086
+        rust_stderr=$("${RUST_BIN}" run $extra_flags "$fixture" 2>&1 || true)
 
         # Selfhost diagnostic
         local self_stderr
+        local rel_fixture="${fixture#${REPO_ROOT}/}"
+        # shellcheck disable=SC2086
         self_stderr=$(wasmtime run --dir="${REPO_ROOT}" "$SELFHOST_WASM" -- \
-            compile "$fixture" 2>&1 || true)
+            compile $extra_flags "$rel_fixture" 2>&1 || true)
 
         # Check if the Rust compiler's diagnostic contains the expected pattern
         local rust_has=false self_has=false
-        if echo "$rust_stderr" | grep -qF "$expected_diag" 2>/dev/null; then
+        if echo "$rust_stderr" | grep -qF -- "$expected_diag" 2>/dev/null; then
             rust_has=true
         fi
-        if echo "$self_stderr" | grep -qF "$expected_diag" 2>/dev/null; then
+        if echo "$self_stderr" | grep -qF -- "$expected_diag" 2>/dev/null; then
             self_has=true
         fi
 

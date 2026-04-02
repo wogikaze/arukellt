@@ -27,6 +27,7 @@ impl EmitCtx {
             (FN_ARGS_GET, "args_get"),
             (FN_ENVIRON_SIZES_GET, "environ_sizes_get"),
             (FN_ENVIRON_GET, "environ_get"),
+            (FN_PROC_EXIT, "proc_exit"),
         ];
         // Stdlib helpers in canonical order (indices 6..35)
         const STDLIB_ORDER: &[u32] = &[
@@ -170,6 +171,7 @@ impl EmitCtx {
                     x if x == FN_ARGS_GET => ty_i32_i32_i32,
                     x if x == FN_ENVIRON_SIZES_GET => ty_i32_i32_i32,
                     x if x == FN_ENVIRON_GET => ty_i32_i32_i32,
+                    x if x == FN_PROC_EXIT => ty_i32_void,
                     _ => ty_fd_write,
                 };
                 imports.import(

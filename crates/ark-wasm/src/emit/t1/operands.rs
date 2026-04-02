@@ -5932,6 +5932,16 @@ impl EmitCtx {
                         f.instruction(&Instruction::F64PromoteF32);
                         self.call_fn(f, FN_F64_TO_STR);
                     }
+                    "exit" | "proc_exit" => {
+                        // process::exit(code: i32) -> !: call WASI proc_exit
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        } else {
+                            f.instruction(&Instruction::I32Const(0));
+                        }
+                        self.call_fn(f, FN_PROC_EXIT);
+                        f.instruction(&Instruction::Unreachable);
+                    }
                     other => {
                         // Type-aware argument emission for user functions
                         let lookup_name = other.rsplit("::").next().unwrap_or(other);

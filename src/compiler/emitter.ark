@@ -332,6 +332,11 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_byte(type_sec, WASM_I32())
     emit_leb128_u(type_sec, 1)  // 1 result
     emit_byte(type_sec, WASM_I32())
+    // Type 4: proc_exit: (code) -> ()
+    emit_byte(type_sec, 0x60)
+    emit_leb128_u(type_sec, 1)  // 1 param
+    emit_byte(type_sec, WASM_I32())
+    emit_leb128_u(type_sec, 0)  // 0 results
     // User function types (indices 2..fn_count+1)
     let mut i = 0
     while i < fn_count {
@@ -389,6 +394,10 @@ fn emit_wasm_module(mir: MirModule, target: String, opt_level: i32) -> Vec<i32> 
     emit_string(import_sec, String_from("fd_close"))
     emit_byte(import_sec, 0x00)
     emit_leb128_u(import_sec, 3) // type index 3 (fd_close type)
+    emit_string(import_sec, clone(wasi_module))
+    emit_string(import_sec, String_from("proc_exit"))
+    emit_byte(import_sec, 0x00)
+    emit_leb128_u(import_sec, 4) // type index 4 (proc_exit type)
     emit_section(out, SEC_IMPORT(), import_sec)
 
     // Function section (type indices offset by NUM_WASI_TYPES for wasi types)
@@ -603,10 +612,10 @@ fn SCRATCH_PF_DIVISOR() -> i32 { 120 } // 8 bytes: f64 divisor for decimal (must
 fn SCRATCH_PF_SAWDOT() -> i32 { 48 }   // 4 bytes: saw_dot flag (reuses P_STR)
 fn SCRATCH_PF_DECCOUNT() -> i32 { 52 } // 4 bytes: decimal_count (reuses P_LEN)
 fn FS_BUF_SIZE() -> i32 { 4096 }       // read buffer chunk size
-// Number of WASI imports (fd_write, args_sizes_get, args_get, path_open, fd_read, fd_close)
-fn NUM_WASI_IMPORTS() -> i32 { 6 }
+// Number of WASI imports (fd_write, args_sizes_get, args_get, path_open, fd_read, fd_close, proc_exit)
+fn NUM_WASI_IMPORTS() -> i32 { 7 }
 // Number of fixed WASI type signatures (before user types)
-fn NUM_WASI_TYPES() -> i32 { 4 }
+fn NUM_WASI_TYPES() -> i32 { 5 }
 fn DATA_START() -> i32 { 128 }      // string data starts here (scratch uses 0-127)
 
 // Emit context for passing module info to instruction emitter
@@ -8465,8 +8474,9 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_u(w, s_a)
 
         } else if eq(clone(callee), "process::exit") || eq(clone(callee), "host::process::exit") {
-            // process::exit(code) — no-op stub, just drop the argument
-            emit_byte(w, OP_DROP())
+            // process::exit(code) — call WASI proc_exit
+            emit_byte(w, OP_CALL())
+            emit_leb128_u(w, 6)  // import index 6 = proc_exit
         } else {
             // User-defined function call
             let fn_idx = resolve_fn_index(ctx, clone(callee))
