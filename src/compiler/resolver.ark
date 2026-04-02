@@ -179,6 +179,8 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("is_ok"), SYM_BUILTIN())
     define(ctx, String_from("is_err"), SYM_BUILTIN())
     define(ctx, String_from("sqrt"), SYM_BUILTIN())
+    define(ctx, String_from("pow_i32"), SYM_BUILTIN())
+    define(ctx, String_from("gcd"), SYM_BUILTIN())
     define(ctx, String_from("abs"), SYM_BUILTIN())
     define(ctx, String_from("min"), SYM_BUILTIN())
     define(ctx, String_from("max"), SYM_BUILTIN())
@@ -218,6 +220,11 @@ fn register_builtins(ctx: ResolveCtx) {
     define(ctx, String_from("process"), SYM_MODULE())
     define(ctx, String_from("env"), SYM_MODULE())
     define(ctx, String_from("text"), SYM_MODULE())
+    define(ctx, String_from("math"), SYM_MODULE())
+    define(ctx, String_from("core"), SYM_MODULE())
+    define(ctx, String_from("host"), SYM_MODULE())
+    define(ctx, String_from("clock"), SYM_MODULE())
+    define(ctx, String_from("random"), SYM_MODULE())
 }
 
 // ── AST Node Kind Constants (from parser) ────────────────────────────────────

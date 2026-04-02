@@ -6480,7 +6480,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 0)
             emit_byte(w, OP_I32_NE())
 
-        } else if eq(clone(callee), "abs") {
+        } else if eq(clone(callee), "abs") || eq(clone(callee), "math::abs") {
             // abs(x) -> i32: if x < 0 then 0 - x else x
             let s0 = ctx.scratch_base + 0
             emit_byte(w, OP_LOCAL_TEE())
@@ -6500,7 +6500,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_u(w, s0)
             emit_byte(w, OP_END())
 
-        } else if eq(clone(callee), "min") {
+        } else if eq(clone(callee), "min") || eq(clone(callee), "math::min") {
             // min(a, b) -> i32
             let s0 = ctx.scratch_base + 0
             let s1 = ctx.scratch_base + 1
@@ -6519,7 +6519,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_I32_LE_S())
             emit_byte(w, OP_SELECT())
 
-        } else if eq(clone(callee), "max") {
+        } else if eq(clone(callee), "max") || eq(clone(callee), "math::max") {
             // max(a, b) -> i32
             let s0 = ctx.scratch_base + 0
             let s1 = ctx.scratch_base + 1
@@ -8232,7 +8232,7 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_leb128_s(w, 4)
             emit_byte(w, OP_I32_ADD())
 
-        } else if eq(clone(callee), "clamp_i32") {
+        } else if eq(clone(callee), "clamp_i32") || eq(clone(callee), "math::clamp") || eq(clone(callee), "clamp") {
             // clamp_i32(val, min, max) -> i32
             let s0 = ctx.scratch_base + 0  // val
             let s1 = ctx.scratch_base + 1  // min
@@ -8271,6 +8271,97 @@ fn emit_mir_inst_ctx(w: WasmWriter, inst: MirInst, ctx: SelfEmitCtx) {
             emit_byte(w, OP_END())
             emit_byte(w, OP_LOCAL_GET())
             emit_leb128_u(w, s0)
+
+        } else if eq(clone(callee), "pow_i32") || eq(clone(callee), "math::pow_i32") {
+            // pow_i32(base, exp) -> i32: iterative exponentiation
+            let s_base = ctx.scratch_base + 0
+            let s_exp = ctx.scratch_base + 1
+            let s_result = ctx.scratch_base + 2
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_exp) // save exp
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_base) // save base
+            // result = 1
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_result)
+            // loop: while exp > 0
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_exp)
+            emit_byte(w, OP_I32_EQZ())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1) // break if exp == 0
+            // result *= base
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_result)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_base)
+            emit_byte(w, OP_I32_MUL())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_result)
+            // exp -= 1
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_exp)
+            emit_byte(w, OP_I32_CONST())
+            emit_leb128_s(w, 1)
+            emit_byte(w, OP_I32_SUB())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_exp)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0) // continue
+            emit_byte(w, OP_END()) // end loop
+            emit_byte(w, OP_END()) // end block
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_result)
+
+        } else if eq(clone(callee), "gcd") || eq(clone(callee), "math::gcd") {
+            // gcd(a, b) -> i32: Euclidean algorithm
+            let s_a = ctx.scratch_base + 0
+            let s_b = ctx.scratch_base + 1
+            let s_t = ctx.scratch_base + 2
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_b) // save b
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_a) // save a
+            // loop: while b != 0
+            emit_byte(w, OP_BLOCK())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOOP())
+            emit_byte(w, 0x40)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_b)
+            emit_byte(w, OP_I32_EQZ())
+            emit_byte(w, OP_BR_IF())
+            emit_leb128_u(w, 1) // break if b == 0
+            // t = b
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_b)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_t)
+            // b = a % b
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_a)
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_b)
+            emit_byte(w, OP_I32_REM_S())
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_b)
+            // a = t
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_t)
+            emit_byte(w, OP_LOCAL_SET())
+            emit_leb128_u(w, s_a)
+            emit_byte(w, OP_BR())
+            emit_leb128_u(w, 0) // continue
+            emit_byte(w, OP_END()) // end loop
+            emit_byte(w, OP_END()) // end block
+            emit_byte(w, OP_LOCAL_GET())
+            emit_leb128_u(w, s_a)
 
         } else if eq(clone(callee), "process::exit") || eq(clone(callee), "host::process::exit") {
             // process::exit(code) — no-op stub, just drop the argument
