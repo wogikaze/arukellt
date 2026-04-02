@@ -564,10 +564,20 @@ assert_eq(actual, expected, String_from("values differ"))
 
 ## Next Steps
 
-- **Normative reference**: [spec.md](spec.md) — the authoritative specification of all language behavior, including provisional and planned features.
-- **Type system detail**: [type-system.md](type-system.md)
-- **Syntax reference**: [syntax.md](syntax.md)
-- **Error handling in depth**: [error-handling.md](error-handling.md)
-- **Memory model**: [memory-model.md](memory-model.md)
-- **Feature stability overview**: [maturity-matrix.md](maturity-matrix.md)
+> **Recommended next**: [type-system.md](type-system.md) — continue the beginner path with types, generics, and inference.
+
+After the type system, follow the full reading order in [README.md](README.md#reading-order):
+
+| Step | Document | Topic |
+|------|----------|-------|
+| ✅ 1 | guide.md | You are here |
+| → 2 | [type-system.md](type-system.md) | Types, generics, and inference |
+| 3 | [error-handling.md](error-handling.md) | Result, Option, error propagation |
+| 4 | [memory-model.md](memory-model.md) | GC-native ownership and lifetimes |
+| 5 | [syntax.md](syntax.md) | Complete syntax reference |
+
+**Reference material** (read any time):
+
+- **Normative specification**: [spec.md](spec.md) — authoritative spec including provisional features
+- **Feature stability**: [maturity-matrix.md](maturity-matrix.md) — what's stable, provisional, or experimental
 - **Standard library**: [../stdlib/README.md](../stdlib/README.md)

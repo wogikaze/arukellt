@@ -1073,16 +1073,36 @@ def render_language_readme(
     ]
     lines.extend(snapshot_lines or ["- Current source of truth: [../current-state.md](../current-state.md)"])
 
-    # Recommended Reading — guide.md first, then spec.md
+    # Reading Order — explicit numbered paths for beginners and reference users
     lines.extend([
         "",
-        "## Recommended Reading",
+        "## Reading Order",
         "",
-        "| Order | Document | Why |",
-        "|-------|----------|-----|",
-        "| 1st | [guide.md](guide.md) | Practical introduction covering stable, implemented features only |",
-        "| 2nd | [spec.md](spec.md) | Normative authoritative specification including provisional features |",
-        "| Reference | [maturity-matrix.md](maturity-matrix.md) | Full stability classification of all language features |",
+        "### 🟢 Start Here",
+        "",
+        "> **New to Arukellt?** Begin with the guide and follow the numbered path below.",
+        "",
+        "### Beginner Path",
+        "",
+        "Read these in order to learn the language from the ground up:",
+        "",
+        "| Step | Document | What You'll Learn |",
+        "|------|----------|-------------------|",
+        "| 1 | [guide.md](guide.md) | **Start here.** Practical introduction — variables, functions, structs, enums, error handling, and more |",
+        "| 2 | [type-system.md](type-system.md) | Types, generics, type inference, and trait-like behavior |",
+        "| 3 | [error-handling.md](error-handling.md) | Result, Option, error propagation, and recovery patterns |",
+        "| 4 | [memory-model.md](memory-model.md) | GC-native ownership, value semantics, and lifetime model |",
+        "| 5 | [syntax.md](syntax.md) | Complete syntax reference for all implemented constructs |",
+        "",
+        "### Reference Path",
+        "",
+        "For experienced users or when you need authoritative detail:",
+        "",
+        "| Document | Purpose |",
+        "|----------|---------|",
+        "| [spec.md](spec.md) | Normative specification — the authoritative source including provisional features |",
+        "| [maturity-matrix.md](maturity-matrix.md) | Feature stability classification (stable / provisional / experimental) |",
+        "| [syntax-v1-preview.md](syntax-v1-preview.md) | Planned v1 syntax additions (transitional — retires when items land in spec.md) |",
     ])
 
     # Classification table (ADR-018)
