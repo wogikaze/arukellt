@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 298
+- **Canonical names:** 299
 - **Historical/deprecated names:** 3
-- **Total entries:** 301
+- **Total entries:** 302
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -238,6 +238,7 @@ Current public API names, sorted alphabetically.
 | `section_type` | `std::wasm` | `experimental` | Wasm |
 | `seeded_random` | `std::random` | `stable` | Random |
 | `seeded_range` | `std::random` | `stable` | Random |
+| `send` | `std::host::udp` | `provisional` | Host Udp |
 | `seq_contains` | `std::seq` | `stable` | Seq |
 | `seq_reverse` | `std::seq` | `stable` | Seq |
 | `set` | `prelude` | `stable` | Collections |
@@ -558,6 +559,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `section_type` | ✅ `experimental` | `std::wasm` | Wasm |
 | `seeded_random` | ✅ `stable` | `std::random` | Random |
 | `seeded_range` | ✅ `stable` | `std::random` | Random |
+| `send` | ✅ `provisional` | `std::host::udp` | Host Udp |
 | `seq_contains` | ✅ `stable` | `std::seq` | Seq |
 | `seq_reverse` | ✅ `stable` | `std::seq` | Seq |
 | `set` | ✅ `stable` | `prelude` | Collections |

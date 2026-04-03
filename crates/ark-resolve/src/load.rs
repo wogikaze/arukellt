@@ -116,7 +116,10 @@ const HOST_STUB_MODULES: &[&str] = &[];
 /// `std::host::http` was removed from this list in issue 446: both T1 and T3
 /// register `register_http_host_fns` in the Wasmtime linker, so the module is
 /// available on both targets via TCP HTTP/1.1.
-const T3_ONLY_MODULES: &[&str] = &["std::host::sockets"];
+///
+/// `std::host::udp` is T3-only because UDP datagrams require the WASI Preview 2
+/// `wasi:sockets/udp` interface which is not available on wasm32-wasi-p1.
+const T3_ONLY_MODULES: &[&str] = &["std::host::sockets", "std::host::udp"];
 
 pub(crate) fn resolve_import_path(
     current_path: &Path,

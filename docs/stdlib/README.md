@@ -98,11 +98,11 @@ All 20 module pages carry curated overviews.
 
 ## Current Snapshot
 
-- Manifest-backed public functions: **301**
+- Manifest-backed public functions: **302**
 - Prelude wrappers: 117
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
 - Prelude values: `Some`, `None`, `Ok`, `Err`, `true`, `false`
-- Categories: `assert` 5, `box` 2, `bytes` 20, `collections` 77, `component` 2, `control` 1, `conversion` 10, `core` 6, `csv` 1, `host_clock` 1, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 3, `host_sockets` 1, `host_stdio` 3, `json` 6, `math` 5, `numeric` 2, `option_result` 14, `path` 6, `random` 3, `scalar_conversion` 14, `seq` 8, `signal` 11, `string` 20, `test` 16, `text` 15, `time` 3, `toml` 1, `wasm` 19, `wit` 14
+- Categories: `assert` 5, `box` 2, `bytes` 20, `collections` 77, `component` 2, `control` 1, `conversion` 10, `core` 6, `csv` 1, `host_clock` 1, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 3, `host_sockets` 1, `host_stdio` 3, `host_udp` 1, `json` 6, `math` 5, `numeric` 2, `option_result` 14, `path` 6, `random` 3, `scalar_conversion` 14, `seq` 8, `signal` 11, `string` 20, `test` 16, `text` 15, `time` 3, `toml` 1, `wasm` 19, `wit` 14
 - Source-backed modules: 28
 - Source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), `std/*.ark` source files
 

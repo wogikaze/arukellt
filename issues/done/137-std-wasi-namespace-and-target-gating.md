@@ -1,6 +1,6 @@
 # `std::host::*` namespace 導入と migration / target-gated 診断
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
 **Updated**: 2026-04-03
 **ID**: 137
@@ -47,3 +47,23 @@
 
 - `docs/adr/ADR-011-wasi-host-layering.md`
 - `issues/open/074-wasi-p2-native-component.md`
+
+## Closed — 2026-04-03
+
+### Evidence
+
+- `T3_ONLY_MODULES` in `crates/ark-resolve/src/load.rs` now includes `std::host::sockets` and `std::host::udp`
+- `std/host/udp.ark` stub created (T3-only UDP datagram module)
+- `std/manifest.toml` updated with `[[modules]]` and `[[functions]]` entry for `std::host::udp`
+- `docs/capability-surface.md` updated with `std::host::udp` section
+- `diag:` fixture `tests/fixtures/target_gating/t1_import_sockets.ark` — E0500 for T1 + std::host::sockets
+- `diag:` fixture `tests/fixtures/target_gating/t1_import_udp.ark` — E0500 for T1 + std::host::udp
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
+
+### Acceptance criteria
+
+- [x] `std::host::*` modules registered in `std/manifest.toml` and resolver T3_ONLY_MODULES
+- [x] Deprecated import paths (`std::io`, `std::fs`, etc.) already emit E0104 migration diagnostics
+- [x] T3-only module imports on T1 emit E0500 (incompatible target)
+- [x] Compile fixtures covering T1+T3-only module rejection
+- [x] `bash scripts/run/verify-harness.sh --quick` passes (19/19)

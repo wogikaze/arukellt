@@ -18,6 +18,7 @@
 | [`std::host::process`](#stdhostprocess) | 2 | Available | all |
 | [`std::host::http`](#stdhosthttp) | 2 | Available | all |
 | [`std::host::sockets`](#stdhostsockets) | 1 | Available (T3 only) | wasm32-wasi-p2 |
+| [`std::host::udp`](#stdhostudp) | 1 | Provisional (T3 only) | wasm32-wasi-p2 |
 
 ---
 
@@ -161,6 +162,23 @@ Registers a TCP connection to the given hostname and port.  Returns
 on success, or `Err("connect: <host>:<port>: <reason>")` on failure.
 Module stability is **provisional**.  On T1 (wasm32-wasi-p1) a compile-time
 diagnostic E0500 (incompatible target) is emitted by the resolver.
+
+---
+
+### `std::host::udp`
+
+UDP datagram helpers via WASI Preview 2 `wasi:sockets/udp` interface.
+
+| Function | Signature | Status | Targets | WASI import |
+|---|---|---|---|---|
+| `send` | `(String, i32, String) -> Result<i32, String>` | provisional | wasm32-wasi-p2 | `arukellt_host::udp_send` |
+
+Sends a UDP datagram to the given hostname and port.  Returns `Ok(bytes_sent)`
+on success or `Err("udp: <host>:<port>: <reason>")` on failure.  Module
+stability is **provisional**; full UDP receive support is a future extension.
+On T1 (wasm32-wasi-p1) a compile-time diagnostic E0500 (incompatible target)
+is emitted by the resolver because WASI Preview 1 does not expose the
+`wasi:sockets/udp` interface.
 
 ---
 

@@ -2047,6 +2047,27 @@ errors = "Err on DNS resolution failure, connection refused, or network unreacha
 availability = { t1 = false, t3 = true, note = "TCP connect requires WASI Preview 2 component model (wasi:sockets)." }
 examples = [{code = "let sock = sockets::connect(\"localhost\", 8080)\nmatch sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }", description = "Connect to a local server on port 8080"}]
 
+[[modules]]
+name = "std::host::udp"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+family = "expansion"
+doc = "UDP datagram helpers via WASI Preview 2 wasi:sockets/udp interface (T3 only)"
+
+[[functions]]
+name = "send"
+module = "std::host::udp"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_udp_send"
+params = ["String", "i32", "String"]
+returns = "Result<i32, String>"
+target = ["wasm32-wasi-p2"]
+stability = "provisional"
+doc_category = "host_udp"
+doc = "Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success."
+errors = "Err on DNS resolution failure, invalid port, or network unreachable."
+availability = { t1 = false, t3 = true, note = "UDP datagrams require WASI Preview 2 wasi:sockets/udp interface." }
+
 # === std::bytes ===
 
 [[functions]]
