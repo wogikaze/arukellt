@@ -2395,6 +2395,11 @@ impl Ctx {
                                     w.instruction(&Instruction::Drop);
                                 }
                             }
+                        } else if self.opt_level >= 1
+                            && self.try_emit_tail_call_return(&mut w, op)
+                        {
+                            // return_call (or return_call via IfExpr branch) was emitted;
+                            // no Return instruction needed.
                         } else {
                             self.emit_operand(&mut w, op);
                             // Box value types when returning from generic function with anyref return
@@ -2404,8 +2409,8 @@ impl Ctx {
                                     w.instruction(&Instruction::RefI31);
                                 }
                             }
+                            w.instruction(&Instruction::Return);
                         }
-                        w.instruction(&Instruction::Return);
                     }
                     Terminator::Return(None) => {
                         w.instruction(&Instruction::Return);
@@ -2481,5 +2486,206 @@ impl Ctx {
             let _ = tee_count;
         }
         codes.function(&f);
+    }
+
+    /// Emit an operand that is in result position within an IfExpr branch that is
+    /// itself in tail position (i.e., `Terminator::Return(Some(IfExpr))`).
+    ///
+    /// For `Call` operands at opt_level ≥ 1: emit `return_call` (tail call).
+    /// For all others: emit normally (pushes result value on stack for the block).
+    fn emit_operand_try_tco(&mut self, f: &mut PeepholeWriter<'_>, op: &Operand) {
+        if self.opt_level >= 1 {
+            if let Operand::Call(name, args) = op {
+                let canonical = normalize_intrinsic(name).to_string();
+                if !self.is_builtin_name(&canonical) {
+                    let callee_ret_is_any = self
+                        .fn_ret_types
+                        .get(canonical.as_str())
+                        .is_some_and(|t| *t == Type::Any);
+                    let current_ret_is_any = self.current_fn_return_ty == Type::Any;
+                    if callee_ret_is_any == current_ret_is_any {
+                        if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
+                            let param_types =
+                                self.fn_param_types.get(canonical.as_str()).cloned();
+                            for (i, arg) in args.iter().enumerate() {
+                                self.emit_operand(f, arg);
+                                if let Some(ref pts) = param_types
+                                    && i < pts.len()
+                                    && pts[i] == Type::Any
+                                {
+                                    let arg_vt = self.infer_operand_type(arg);
+                                    if arg_vt == ValType::I32 {
+                                        f.instruction(&Instruction::RefI31);
+                                    }
+                                }
+                            }
+                            f.instruction(&Instruction::ReturnCall(fn_idx));
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        // Fallback: emit normally (leaves value on stack for block result)
+        self.emit_operand(f, op);
+    }
+
+    /// Try to emit a tail-call return for operand `op` when in tail position.
+    ///
+    /// Returns `true` if a `return_call` (or equivalent) was emitted and the
+    /// caller must NOT emit an additional `return` instruction.
+    pub(super) fn try_emit_tail_call_return(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        op: &Operand,
+    ) -> bool {
+        match op {
+            // ── Direct tail call ──
+            Operand::Call(name, args) => {
+                let canonical = normalize_intrinsic(name).to_string();
+                if self.is_builtin_name(&canonical) {
+                    return false;
+                }
+                let callee_ret_is_any = self
+                    .fn_ret_types
+                    .get(canonical.as_str())
+                    .is_some_and(|t| *t == Type::Any);
+                let current_ret_is_any = self.current_fn_return_ty == Type::Any;
+                if callee_ret_is_any != current_ret_is_any {
+                    return false;
+                }
+                if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
+                    let param_types = self.fn_param_types.get(canonical.as_str()).cloned();
+                    for (i, arg) in args.iter().enumerate() {
+                        self.emit_operand(f, arg);
+                        if let Some(ref pts) = param_types
+                            && i < pts.len()
+                            && pts[i] == Type::Any
+                        {
+                            let arg_vt = self.infer_operand_type(arg);
+                            if arg_vt == ValType::I32 {
+                                f.instruction(&Instruction::RefI31);
+                            }
+                        }
+                    }
+                    f.instruction(&Instruction::ReturnCall(fn_idx));
+                    return true;
+                }
+                false
+            }
+            // ── Indirect tail call ──
+            Operand::CallIndirect { callee, args } => {
+                if self.current_fn_return_ty == Type::Any {
+                    return false; // boxing/unboxing required; skip TCO
+                }
+                for arg in args.iter() {
+                    self.emit_operand(f, arg);
+                }
+                self.emit_operand(f, callee);
+                let params: Vec<ValType> = args
+                    .iter()
+                    .map(|a| {
+                        if self.is_f64_like_operand(a) {
+                            ValType::F64
+                        } else if self.is_i64_like_operand(a) {
+                            ValType::I64
+                        } else {
+                            ValType::I32
+                        }
+                    })
+                    .collect();
+                let results = vec![ValType::I32];
+                let type_index = self
+                    .indirect_types
+                    .get(&(params, results))
+                    .copied()
+                    .unwrap_or(0);
+                f.instruction(&Instruction::ReturnCallIndirect {
+                    type_index,
+                    table_index: 0,
+                });
+                true
+            }
+            // ── IfExpr with Call results in tail position ──
+            // Emit as `if (result_type) { ... } else { return_call }`.
+            // The `return_call` in the tail-call branch is polymorphic on the result
+            // side, so it satisfies the block's result type and exits the function
+            // directly.  Non-call branches just push their result value for the block.
+            // The outer `return` instruction (emitted by the `both_tail = false` path)
+            // is only reachable from non-tail branches.
+            //
+            // Returns `false` always: the outer caller must emit `return`.
+            Operand::IfExpr {
+                cond,
+                then_body,
+                then_result,
+                else_body,
+                else_result,
+            } => {
+                let then_is_tail_call = matches!(
+                    then_result.as_deref(),
+                    Some(Operand::Call(_, _)) | Some(Operand::CallIndirect { .. })
+                );
+                let else_is_tail_call = matches!(
+                    else_result.as_deref(),
+                    Some(Operand::Call(_, _)) | Some(Operand::CallIndirect { .. })
+                );
+                if !then_is_tail_call && !else_is_tail_call {
+                    return false;
+                }
+
+                // Determine the block result type from the non-call branch.
+                let result_vt = {
+                    let check = if !then_is_tail_call {
+                        then_result.as_deref()
+                    } else {
+                        else_result.as_deref()
+                    };
+                    check.map(|r| self.infer_operand_type(r)).unwrap_or(ValType::I32)
+                };
+
+                // Emit condition + if block with function result type.
+                // `return_call` is polymorphic so it satisfies `BlockType::Result(vt)`.
+                self.emit_operand(f, cond);
+                f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(result_vt)));
+                self.loop_break_extra_depth += 1;
+
+                // Emit then-branch statements
+                for s in then_body {
+                    self.emit_stmt(f, s);
+                }
+                // Emit then-result: tail call → return_call; otherwise push value
+                match then_result.as_deref() {
+                    Some(r) => {
+                        // Try as tail call (return_call), otherwise emit as value
+                        self.emit_operand_try_tco(f, r);
+                    }
+                    None => {}
+                }
+
+                f.instruction(&Instruction::Else);
+
+                // Emit else-branch statements
+                for s in else_body {
+                    self.emit_stmt(f, s);
+                }
+                // Emit else-result: tail call → return_call; otherwise push value
+                match else_result.as_deref() {
+                    Some(r) => {
+                        self.emit_operand_try_tco(f, r);
+                    }
+                    None => {}
+                }
+
+                self.loop_break_extra_depth -= 1;
+                f.instruction(&Instruction::End);
+
+                // Return false: the outer code MUST emit `return` for the if-block result.
+                // The `return_call` branches already exited the function; the `return`
+                // only applies to the non-tail-call branch.
+                false
+            }
+            _ => false,
+        }
     }
 }

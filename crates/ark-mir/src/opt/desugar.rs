@@ -20,6 +20,66 @@ pub fn desugar_exprs(func: &mut MirFunction) -> usize {
             new_stmts.extend(desugared);
         }
         block.stmts = new_stmts;
+
+        // ── Desugar Terminator::Return(Some(IfExpr)) ──
+        // Convert:
+        //   terminator: Return(Some(IfExpr { cond, then_result, else_result, ... }))
+        // to:
+        //   stmts: [..., IfStmt { then_body: [Return(then_result)], else_body: [Return(else_result)] }]
+        //   terminator: Unreachable
+        //
+        // This preserves Return(Some(Call(...))) in each branch so the T3 emitter's
+        // tail-call detection (return_call emission) can fire for recursive tail calls.
+        if let Terminator::Return(Some(Operand::IfExpr { .. })) = &block.terminator {
+            if let Terminator::Return(Some(Operand::IfExpr {
+                cond,
+                then_body,
+                then_result,
+                else_body,
+                else_result,
+            })) = std::mem::replace(&mut block.terminator, Terminator::Unreachable)
+            {
+                let (new_cond, mut pre, c1) =
+                    desugar_operand(*cond, &mut next_local, &mut func.locals);
+
+                let (mut then_stmts, c2) =
+                    desugar_stmt_list(then_body, &mut next_local, &mut func.locals);
+                match then_result {
+                    Some(r) => {
+                        let (new_r, r_pre, _) =
+                            desugar_operand(*r, &mut next_local, &mut func.locals);
+                        then_stmts.extend(r_pre);
+                        then_stmts.push(MirStmt::Return(Some(new_r)));
+                    }
+                    None => {
+                        then_stmts.push(MirStmt::Return(None));
+                    }
+                }
+
+                let (mut else_stmts, c3) =
+                    desugar_stmt_list(else_body, &mut next_local, &mut func.locals);
+                match else_result {
+                    Some(r) => {
+                        let (new_r, r_pre, _) =
+                            desugar_operand(*r, &mut next_local, &mut func.locals);
+                        else_stmts.extend(r_pre);
+                        else_stmts.push(MirStmt::Return(Some(new_r)));
+                    }
+                    None => {
+                        else_stmts.push(MirStmt::Return(None));
+                    }
+                }
+
+                pre.push(MirStmt::IfStmt {
+                    cond: new_cond,
+                    then_body: then_stmts,
+                    else_body: else_stmts,
+                });
+                block.stmts.extend(pre);
+                // terminator was already replaced with Unreachable above
+                counter += 1 + c1 + c2 + c3;
+            }
+        }
     }
     counter
 }
