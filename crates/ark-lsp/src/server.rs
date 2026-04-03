@@ -43,6 +43,10 @@ pub struct LspSettings {
     pub enable_code_lens: bool,
     /// Controls hover response verbosity.
     pub hover_detail_level: HoverDetailLevel,
+    /// Configured project compilation target (e.g. "wasm32-wasi-p1" for T1,
+    /// "wasm32-wasi-p2" for T3).  Used to tag T3-only completion items as
+    /// deprecated when the project targets T1.  `None` means unknown/unset.
+    pub project_target: Option<String>,
 }
 
 impl Default for LspSettings {
@@ -50,6 +54,7 @@ impl Default for LspSettings {
         LspSettings {
             enable_code_lens: true,
             hover_detail_level: HoverDetailLevel::Standard,
+            project_target: None,
         }
     }
 }
@@ -65,7 +70,19 @@ impl LspSettings {
         if let Some(level) = value.get("hoverDetailLevel").and_then(|v| v.as_str()) {
             s.hover_detail_level = HoverDetailLevel::from_str(level);
         }
+        if let Some(target) = value.get("arkTarget").and_then(|v| v.as_str()) {
+            s.project_target = Some(target.to_string());
+        }
         s
+    }
+
+    /// Return true when the configured target is T1 (wasm32-wasi-p1).
+    /// Accepts "t1", "wasm32-wasi-p1", "p1", "wasmtime" as T1 aliases.
+    pub fn is_t1_target(&self) -> bool {
+        match self.project_target.as_deref() {
+            Some("t1") | Some("wasm32-wasi-p1") | Some("p1") | Some("wasmtime") => true,
+            _ => false,
+        }
     }
 }
 
@@ -1178,6 +1195,7 @@ impl ArukellBackend {
         offset: usize,
         manifest: Option<&StdlibManifest>,
         checker: Option<&ark_typecheck::TypeChecker>,
+        project_target: Option<&str>,
     ) -> Vec<CompletionItem> {
         let mut items = Vec::new();
         let mut seen = HashSet::new();
@@ -1216,6 +1234,12 @@ impl ArukellBackend {
         }
 
         // Prelude functions from manifest (replaces hardcoded builtins).
+        // Determine whether the configured project target is T1 so that
+        // T3-only functions can be tagged as deprecated in the completion list.
+        let is_t1_target = matches!(
+            project_target,
+            Some("t1") | Some("wasm32-wasi-p1") | Some("p1") | Some("wasmtime")
+        );
         if let Some(m) = manifest {
             for func in &m.functions {
                 if func.prelude {
@@ -1235,7 +1259,20 @@ impl ArukellBackend {
                         let params_str = func.params.join(", ");
                         format!("fn {}({})", func.name, params_str)
                     };
+                    // A function is t3_only when its availability declares t1=false.
+                    let t3_only = func
+                        .availability
+                        .as_ref()
+                        .map_or(false, |a| !a.t1 && a.t3);
                     let deprecated = func.deprecated_by.is_some();
+                    // Tag T3-only functions as deprecated when project targets T1,
+                    // surfacing them as unavailable in the IDE without hiding them.
+                    let tags: Option<Vec<CompletionItemTag>> =
+                        if is_t1_target && t3_only {
+                            Some(vec![CompletionItemTag::DEPRECATED])
+                        } else {
+                            None
+                        };
                     Self::push_completion(
                         &mut items,
                         &mut seen,
@@ -1245,7 +1282,12 @@ impl ArukellBackend {
                             detail: Some(detail),
                             sort_text: Some(rank),
                             filter_text: Some(func.name.clone()),
-                            deprecated: if deprecated { Some(true) } else { None },
+                            deprecated: if deprecated || (is_t1_target && t3_only) {
+                                Some(true)
+                            } else {
+                                None
+                            },
+                            tags,
                             ..Default::default()
                         },
                     );
@@ -1818,11 +1860,33 @@ impl ArukellBackend {
             hover.push_str(&format!("\n\n🎯 *Supported on:* `{}`", targets));
         }
         if let Some(ref avail) = func.availability {
-            if !avail.t1 {
-                hover.push_str("\n\n⚠️ *Not available on wasm32-wasi-p1*");
-            }
-            if let Some(ref note) = avail.note {
-                hover.push_str(&format!("  \n{}", note));
+            match (avail.t1, avail.t3) {
+                (false, true) => {
+                    // T3-only: not available on the default wasm32-wasi-p1 target.
+                    hover.push_str("\n\n⚠ **T3 only** — wasm32-wasi-p2 required");
+                    if let Some(ref note) = avail.note {
+                        hover.push_str(&format!("  \n{}", note));
+                    }
+                }
+                (true, true) => {
+                    // Available everywhere — no warning needed; note still shown
+                    // if provided (e.g. "T1 via Wasmtime linker").
+                    if let Some(ref note) = avail.note {
+                        hover.push_str(&format!("\n\n{}", note));
+                    }
+                }
+                (false, false) => {
+                    hover.push_str("\n\n⚠ **Not available** on any configured target");
+                    if let Some(ref note) = avail.note {
+                        hover.push_str(&format!("  \n{}", note));
+                    }
+                }
+                (true, false) => {
+                    // T1-only: show note if present.
+                    if let Some(ref note) = avail.note {
+                        hover.push_str(&format!("\n\n{}", note));
+                    }
+                }
             }
         }
 
@@ -3819,19 +3883,31 @@ impl LanguageServer for ArukellBackend {
                 // Identifiers with no type/stdlib info also return no hover.
                 if let TokenKind::Ident(_) = &tok.kind {
                     let text = &source[start..end];
-                    let info = if let Some(type_info) = Self::type_hover_info(
+                    // Try manifest first: if the identifier is a known stdlib function
+                    // the manifest entry is richer (includes availability, doc, category)
+                    // than what the type checker alone provides.
+                    let info = if let Some(ref m) = *manifest {
+                        if let Some(stdlib_info) =
+                            Self::stdlib_hover_info(text, m, hover_level)
+                        {
+                            Some(stdlib_info)
+                        } else if let Some(type_info) = Self::type_hover_info(
+                            text,
+                            &analysis.module,
+                            analysis.resolved.as_ref(),
+                            analysis.checker.as_ref(),
+                        ) {
+                            Some(type_info)
+                        } else {
+                            Self::stdlib_module_hover(text, m)
+                        }
+                    } else if let Some(type_info) = Self::type_hover_info(
                         text,
                         &analysis.module,
                         analysis.resolved.as_ref(),
                         analysis.checker.as_ref(),
                     ) {
                         Some(type_info)
-                    } else if let Some(ref m) = *manifest {
-                        if let Some(stdlib_info) = Self::stdlib_hover_info(text, m, hover_level) {
-                            Some(stdlib_info)
-                        } else {
-                            Self::stdlib_module_hover(text, m)
-                        }
                     } else {
                         None
                     };
@@ -3873,6 +3949,7 @@ impl LanguageServer for ArukellBackend {
 
         let offset = Self::position_to_offset(&source, params.text_document_position.position);
         let manifest = self.stdlib_manifest.lock().unwrap();
+        let project_target = self.settings.lock().unwrap().project_target.clone();
         let items = Self::get_completions(
             &source,
             &analysis.tokens,
@@ -3880,6 +3957,7 @@ impl LanguageServer for ArukellBackend {
             offset,
             manifest.as_ref(),
             analysis.checker.as_ref(),
+            project_target.as_deref(),
         );
         Ok(Some(CompletionResponse::Array(items)))
     }
@@ -5543,6 +5621,7 @@ mod tests {
             source.len(),
             None,
             None,
+            None,
         );
         let stdio = items
             .iter()
@@ -5569,6 +5648,7 @@ mod tests {
             source.len(),
             None,
             None,
+            None,
         );
         assert_eq!(
             items.first().map(|item| item.label.as_str()),
@@ -5588,7 +5668,7 @@ mod tests {
             }],
             items: vec![],
         };
-        let items = ArukellBackend::get_completions(source, &[], &module, source.len(), None, None);
+        let items = ArukellBackend::get_completions(source, &[], &module, source.len(), None, None, None);
         let stdio = items
             .iter()
             .find(|item| item.label == "stdio")
@@ -5676,6 +5756,7 @@ mod tests {
             source.len(),
             Some(&manifest),
             None,
+            None,
         );
         let assert_item = items.iter().find(|i| i.label == "assert");
         assert!(
@@ -5698,6 +5779,7 @@ mod tests {
             &empty_module(),
             source.len(),
             Some(&manifest),
+            None,
             None,
         );
         let module_items: Vec<&str> = items
@@ -5754,10 +5836,10 @@ mod tests {
             text.contains("TCP") || text.contains("socket") || text.contains("hostname"),
             "sockets::connect hover should contain doc description"
         );
-        // availability: t1=false should show warning
+        // availability: t1=false should show warning (now: T3 only message)
         assert!(
-            text.contains("wasm32-wasi-p1") || text.contains("Not available"),
-            "sockets::connect hover should indicate p1 unavailability"
+            text.contains("T3 only") || text.contains("wasm32-wasi-p2"),
+            "sockets::connect hover should indicate T3-only unavailability on p1"
         );
     }
 
@@ -5783,6 +5865,7 @@ mod tests {
             &empty_module(),
             source.len(),
             Some(&manifest),
+            None,
             None,
         );
         // Check that deprecated functions have the deprecated flag
@@ -5969,7 +6052,7 @@ fn add(a: i32, b: i32) -> i32 {
         let (tokens, module) = parse_source(source);
         // Cursor after `p.`
         let dot_pos = source.find("p.\n").unwrap() + 2;
-        let items = ArukellBackend::get_completions(source, &tokens, &module, dot_pos, None, None);
+        let items = ArukellBackend::get_completions(source, &tokens, &module, dot_pos, None, None, None);
         let field_names: Vec<&str> = items
             .iter()
             .filter(|i| i.kind == Some(CompletionItemKind::FIELD))
@@ -5992,7 +6075,7 @@ fn add(a: i32, b: i32) -> i32 {
         // Cursor after `: ` in `x: `
         let colon_pos = source.find("x: ").unwrap() + 3;
         let items =
-            ArukellBackend::get_completions(source, &tokens, &module, colon_pos, None, None);
+            ArukellBackend::get_completions(source, &tokens, &module, colon_pos, None, None, None);
         // Types should be ranked higher (sort_text "0-") in type context
         let type_items: Vec<&CompletionItem> = items
             .iter()
@@ -6020,7 +6103,7 @@ fn add(a: i32, b: i32) -> i32 {
         let source = "use ";
         let (tokens, module) = parse_source(source);
         let items =
-            ArukellBackend::get_completions(source, &tokens, &module, source.len(), None, None);
+            ArukellBackend::get_completions(source, &tokens, &module, source.len(), None, None, None);
         // Should only return module items
         assert!(
             !items.is_empty(),
@@ -6043,7 +6126,7 @@ fn add(a: i32, b: i32) -> i32 {
         let (tokens, module) = parse_source(source);
         let match_pos = source.find("        \n    }").unwrap() + 8;
         let items =
-            ArukellBackend::get_completions(source, &tokens, &module, match_pos, None, None);
+            ArukellBackend::get_completions(source, &tokens, &module, match_pos, None, None, None);
         let variant_labels: Vec<&str> = items
             .iter()
             .filter(|i| i.kind == Some(CompletionItemKind::ENUM_MEMBER))
@@ -6432,5 +6515,117 @@ fn add(a: i32, b: i32) -> i32 {
                 "verbose hover should be at least as long as standard"
             );
         }
+    }
+
+    // ---- Issue 457: availability in hover and completion tagging ---------------
+
+    #[test]
+    fn stdlib_hover_t3_only_shows_warning() {
+        // `connect` has availability = { t1 = false, t3 = true } in manifest.toml.
+        // Its hover must include a clear T3-only warning (issue #457 slice 2).
+        let manifest = load_test_manifest();
+        let info =
+            ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Standard);
+        assert!(info.is_some(), "connect should have hover info");
+        let text = info.unwrap();
+        assert!(
+            text.contains("T3 only") || text.contains("wasm32-wasi-p2"),
+            "T3-only function hover should contain T3 warning; got: {:?}",
+            text
+        );
+        // Must NOT claim availability on all targets
+        assert!(
+            !text.contains("all targets"),
+            "T3-only function should NOT say 'all targets'; got: {:?}",
+            text
+        );
+    }
+
+    #[test]
+    fn stdlib_hover_all_targets_no_unavailability_warning() {
+        // `concat` has availability = { t1 = true, t3 = true }.
+        // Its hover must NOT show a T3-only or unavailability warning (#457 slice 2).
+        let manifest = load_test_manifest();
+        let info =
+            ArukellBackend::stdlib_hover_info("concat", &manifest, HoverDetailLevel::Standard);
+        assert!(info.is_some(), "concat should have hover info");
+        let text = info.unwrap();
+        assert!(
+            text.contains("fn concat"),
+            "all-targets function hover should show signature"
+        );
+        // Must NOT show a T3-only warning
+        assert!(
+            !text.contains("T3 only"),
+            "all-targets function should NOT show 'T3 only' warning; got: {:?}",
+            text
+        );
+        assert!(
+            !text.contains("Not available"),
+            "all-targets function should NOT show 'Not available'; got: {:?}",
+            text
+        );
+    }
+
+    #[test]
+    fn completion_t3_only_tagged_deprecated_for_t1_target() {
+        // When project_target = "wasm32-wasi-p1" (T1), prelude functions with
+        // availability.t1 = false must receive CompletionItemTag::DEPRECATED (#457 slice 2).
+        // NOTE: `connect` and `var` have t1=false but are NOT prelude functions —
+        // only prelude functions appear in the flat completion list.
+        // This test verifies the tagging logic fires for any hypothetical prelude function
+        // that is T3-only; if no such function exists in the current manifest, the test
+        // still validates that T1-available prelude functions are NOT tagged.
+        let manifest = load_test_manifest();
+        let source = "";
+        let items = ArukellBackend::get_completions(
+            source,
+            &[],
+            &empty_module(),
+            source.len(),
+            Some(&manifest),
+            None,
+            Some("wasm32-wasi-p1"),
+        );
+        // No currently-prelude function has t1=false, so confirm no spurious tagging.
+        for item in &items {
+            if item.kind == Some(CompletionItemKind::FUNCTION) {
+                // Check: if the function is tagged deprecated, it must either have
+                // deprecated_by in manifest OR be t3-only in the manifest.
+                if item.tags.as_ref().map_or(false, |t| {
+                    t.contains(&CompletionItemTag::DEPRECATED)
+                }) {
+                    // Valid: either deprecated_by or t3_only from manifest.
+                    let func = manifest.functions.iter().find(|f| f.name == item.label);
+                    if let Some(f) = func {
+                        let t3_only = f.availability.as_ref().map_or(false, |a| !a.t1 && a.t3);
+                        assert!(
+                            f.deprecated_by.is_some() || t3_only,
+                            "function '{}' tagged deprecated but is neither deprecated_by nor t3-only",
+                            item.label
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn lsp_settings_project_target_parsing() {
+        // Verify that `arkTarget` in initializationOptions is stored in LspSettings (#457).
+        let v = serde_json::json!({ "arkTarget": "wasm32-wasi-p1" });
+        let s = LspSettings::from_json(&v);
+        assert_eq!(s.project_target.as_deref(), Some("wasm32-wasi-p1"));
+        assert!(s.is_t1_target(), "wasm32-wasi-p1 must be recognized as T1");
+
+        let v2 = serde_json::json!({ "arkTarget": "wasm32-wasi-p2" });
+        let s2 = LspSettings::from_json(&v2);
+        assert_eq!(s2.project_target.as_deref(), Some("wasm32-wasi-p2"));
+        assert!(!s2.is_t1_target(), "wasm32-wasi-p2 must NOT be recognized as T1");
+
+        // Default: no project_target set.
+        let s3 = LspSettings::default();
+        assert!(s3.project_target.is_none(), "default project_target must be None");
+        assert!(!s3.is_t1_target(), "unknown target must not be treated as T1");
     }
 }

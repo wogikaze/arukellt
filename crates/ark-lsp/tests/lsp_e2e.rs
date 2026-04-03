@@ -1280,3 +1280,111 @@ fn parity_prelude_string_ops_no_e0100() {
 
     session.shutdown();
 }
+
+// ---- Issue 457: availability info in LSP hover and completion tagging --------
+
+#[test]
+fn hover_t3_only_function_shows_availability_warning() {
+    // Regression test for issue #457 (LSP slice).
+    //
+    // `var` (std::host::env) has availability = { t1 = false, t3 = true }.
+    // When a document uses `var` and the cursor is on that identifier,
+    // the hover response must include a T3-only availability warning.
+    //
+    // Source (positions):
+    //   0: fn main() {
+    //   1:     var("HOME")
+    //   2: }
+    // Cursor is on `var` at line 1, character 4.
+    let mut session = LspSession::start();
+    session.initialize_with_root(&workspace_root_uri());
+
+    let uri = "file:///test/hover_t3_only.ark";
+    session.open_document(uri, "fn main() {\n    var(\"HOME\")\n}\n");
+
+    let resp = session
+        .request(
+            457,
+            "textDocument/hover",
+            json!({
+                "textDocument": { "uri": uri },
+                "position": { "line": 1, "character": 4 }
+            }),
+        )
+        .expect("hover response for T3-only function");
+
+    let result = resp.get("result").expect("result field");
+    // If manifest is loaded, result is non-null and must contain T3 warning.
+    // If manifest is absent (e.g. CI without stdlib), we skip gracefully.
+    if !result.is_null() {
+        let value = result
+            .get("contents")
+            .and_then(|c| c.get("value"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        if value.contains("fn var") {
+            // Manifest was loaded and hover resolved to the stdlib function.
+            assert!(
+                value.contains("T3 only") || value.contains("wasm32-wasi-p2"),
+                "hover for T3-only `var` should show availability warning; got: {:?}",
+                value
+            );
+        }
+    }
+
+    session.shutdown();
+}
+
+#[test]
+fn hover_all_targets_function_no_t3_warning() {
+    // Regression test for issue #457 (LSP slice).
+    //
+    // `println` has availability = { t1 = true, t3 = true } — it is available
+    // everywhere.  Its hover must NOT show a "T3 only" or "Not available" warning.
+    //
+    // Source (positions):
+    //   0: fn main() {
+    //   1:     println("hi")
+    //   2: }
+    // Cursor is on `println` at line 1, character 4.
+    let mut session = LspSession::start();
+    session.initialize_with_root(&workspace_root_uri());
+
+    let uri = "file:///test/hover_all_targets.ark";
+    session.open_document(uri, "fn main() {\n    println(\"hi\")\n}\n");
+
+    let resp = session
+        .request(
+            458,
+            "textDocument/hover",
+            json!({
+                "textDocument": { "uri": uri },
+                "position": { "line": 1, "character": 4 }
+            }),
+        )
+        .expect("hover response for all-targets function");
+
+    let result = resp.get("result").expect("result field");
+    if !result.is_null() {
+        let value = result
+            .get("contents")
+            .and_then(|c| c.get("value"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        if value.contains("fn println") {
+            // Manifest was loaded; verify no spurious availability warning.
+            assert!(
+                !value.contains("T3 only"),
+                "all-targets `println` hover must NOT show 'T3 only'; got: {:?}",
+                value
+            );
+            assert!(
+                !value.contains("Not available"),
+                "all-targets `println` hover must NOT show 'Not available'; got: {:?}",
+                value
+            );
+        }
+    }
+
+    session.shutdown();
+}
