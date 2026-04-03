@@ -2,6 +2,7 @@
 //!
 //! Subcommands: compile, run, check
 
+mod cmd_doc;
 mod commands;
 mod native;
 mod runtime;
@@ -214,6 +215,20 @@ enum Commands {
         #[arg(long = "wasm-size", value_name = "FILE")]
         wasm_size: PathBuf,
     },
+    /// Look up standard library documentation for a symbol or module
+    Doc {
+        /// Symbol or module to look up (e.g. "println", "std::host::http::get", "std::host::http")
+        symbol: String,
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
+        /// Show availability for a specific target
+        #[arg(long, value_name = "TARGET")]
+        target: Option<TargetId>,
+        /// Show all matching candidates even if an exact match exists
+        #[arg(long)]
+        all: bool,
+    },
     /// Link multiple Wasm components into a single composed component
     Compose {
         /// Input component .wasm files (two or more)
@@ -342,6 +357,17 @@ fn main() {
         }
         Commands::Lint { file, target, list } => {
             commands::cmd_lint(file, target, list);
+        }
+        Commands::Doc {
+            symbol,
+            json,
+            target,
+            all,
+        } => {
+            let found = cmd_doc::cmd_doc(&symbol, json, target.as_ref(), all);
+            if !found {
+                std::process::exit(1);
+            }
         }
         Commands::Compose { inputs, output } => {
             commands::cmd_compose(inputs, output);

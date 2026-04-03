@@ -27,6 +27,7 @@ wasmparser = { workspace = true }
 wasmtime-wasi = "29"
 serde = { workspace = true }
 serde_json = { workspace = true }
+strsim = "0.11"
 ark-lsp = { path = "../ark-lsp" }
 tokio = { version = "1", features = ["full"] }
 
