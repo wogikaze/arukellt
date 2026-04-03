@@ -223,7 +223,10 @@ impl LspSession {
             if remaining.is_zero() {
                 break;
             }
-            match self.rx.recv_timeout(remaining.min(Duration::from_millis(200))) {
+            match self
+                .rx
+                .recv_timeout(remaining.min(Duration::from_millis(200)))
+            {
                 Ok(msg) => {
                     let method = msg.get("method").and_then(|m| m.as_str());
                     if method == Some("textDocument/publishDiagnostics") {
@@ -281,7 +284,10 @@ fn record_result(results: &mut Vec<PerfResult>, test: &str, elapsed: Duration, b
             test, elapsed_ms, baseline_ms, threshold
         );
     } else {
-        println!("PERF OK: {} took {}ms (baseline {}ms)", test, elapsed_ms, baseline_ms);
+        println!(
+            "PERF OK: {} took {}ms (baseline {}ms)",
+            test, elapsed_ms, baseline_ms
+        );
     }
     results.push(PerfResult {
         test: test.to_string(),
@@ -346,9 +352,7 @@ fn fixture_uri(name: &str) -> String {
         .unwrap()
         .parent()
         .unwrap();
-    let path = workspace_root
-        .join("tests/fixtures/lsp_perf")
-        .join(name);
+    let path = workspace_root.join("tests/fixtures/lsp_perf").join(name);
     format!("file://{}", path.display())
 }
 
@@ -359,9 +363,7 @@ fn fixture_text(name: &str) -> String {
         .unwrap()
         .parent()
         .unwrap();
-    let path = workspace_root
-        .join("tests/fixtures/lsp_perf")
-        .join(name);
+    let path = workspace_root.join("tests/fixtures/lsp_perf").join(name);
     std::fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("failed to read fixture {:?}: {}", path, e))
 }
@@ -385,7 +387,12 @@ fn perf_hover_large_module() {
     let elapsed = t0.elapsed();
 
     let mut results = vec![];
-    record_result(&mut results, "perf_hover_large_module", elapsed, baseline_ms);
+    record_result(
+        &mut results,
+        "perf_hover_large_module",
+        elapsed,
+        baseline_ms,
+    );
     write_results_json(&results);
 
     session.shutdown();
@@ -412,7 +419,12 @@ fn perf_definition_large_module() {
     let elapsed = t0.elapsed();
 
     let mut results = vec![];
-    record_result(&mut results, "perf_definition_large_module", elapsed, baseline_ms);
+    record_result(
+        &mut results,
+        "perf_definition_large_module",
+        elapsed,
+        baseline_ms,
+    );
     write_results_json(&results);
 
     session.shutdown();
@@ -435,7 +447,12 @@ fn perf_open_and_diagnose_large_module() {
     let elapsed = t0.elapsed();
 
     let mut results = vec![];
-    record_result(&mut results, "perf_open_and_diagnose_large_module", elapsed, baseline_ms);
+    record_result(
+        &mut results,
+        "perf_open_and_diagnose_large_module",
+        elapsed,
+        baseline_ms,
+    );
     write_results_json(&results);
 
     session.shutdown();

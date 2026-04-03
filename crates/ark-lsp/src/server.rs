@@ -1327,19 +1327,15 @@ impl ArukellBackend {
                         format!("fn {}({})", func.name, params_str)
                     };
                     // A function is t3_only when its availability declares t1=false.
-                    let t3_only = func
-                        .availability
-                        .as_ref()
-                        .map_or(false, |a| !a.t1 && a.t3);
+                    let t3_only = func.availability.as_ref().map_or(false, |a| !a.t1 && a.t3);
                     let deprecated = func.deprecated_by.is_some();
                     // Tag T3-only functions as deprecated when project targets T1,
                     // surfacing them as unavailable in the IDE without hiding them.
-                    let tags: Option<Vec<CompletionItemTag>> =
-                        if is_t1_target && t3_only {
-                            Some(vec![CompletionItemTag::DEPRECATED])
-                        } else {
-                            None
-                        };
+                    let tags: Option<Vec<CompletionItemTag>> = if is_t1_target && t3_only {
+                        Some(vec![CompletionItemTag::DEPRECATED])
+                    } else {
+                        None
+                    };
                     Self::push_completion(
                         &mut items,
                         &mut seen,
@@ -4010,9 +4006,7 @@ impl LanguageServer for ArukellBackend {
                     // the manifest entry is richer (includes availability, doc, category)
                     // than what the type checker alone provides.
                     let info = if let Some(ref m) = *manifest {
-                        if let Some(stdlib_info) =
-                            Self::stdlib_hover_info(text, m, hover_level)
-                        {
+                        if let Some(stdlib_info) = Self::stdlib_hover_info(text, m, hover_level) {
                             Some(stdlib_info)
                         } else if let Some(type_info) = Self::type_hover_info(
                             text,
@@ -5826,7 +5820,8 @@ mod tests {
             }],
             items: vec![],
         };
-        let items = ArukellBackend::get_completions(source, &[], &module, source.len(), None, None, None);
+        let items =
+            ArukellBackend::get_completions(source, &[], &module, source.len(), None, None, None);
         let stdio = items
             .iter()
             .find(|item| item.label == "stdio")
@@ -6210,7 +6205,8 @@ fn add(a: i32, b: i32) -> i32 {
         let (tokens, module) = parse_source(source);
         // Cursor after `p.`
         let dot_pos = source.find("p.\n").unwrap() + 2;
-        let items = ArukellBackend::get_completions(source, &tokens, &module, dot_pos, None, None, None);
+        let items =
+            ArukellBackend::get_completions(source, &tokens, &module, dot_pos, None, None, None);
         let field_names: Vec<&str> = items
             .iter()
             .filter(|i| i.kind == Some(CompletionItemKind::FIELD))
@@ -6260,8 +6256,15 @@ fn add(a: i32, b: i32) -> i32 {
     fn use_statement_context_shows_modules() {
         let source = "use ";
         let (tokens, module) = parse_source(source);
-        let items =
-            ArukellBackend::get_completions(source, &tokens, &module, source.len(), None, None, None);
+        let items = ArukellBackend::get_completions(
+            source,
+            &tokens,
+            &module,
+            source.len(),
+            None,
+            None,
+            None,
+        );
         // Should only return module items
         assert!(
             !items.is_empty(),
@@ -6605,8 +6608,14 @@ fn add(a: i32, b: i32) -> i32 {
             DiagnosticsReportLevel::All,
             "default diagnosticsReportLevel must be All"
         );
-        assert!(!s.use_self_host_backend, "default useSelfHostBackend must be false");
-        assert!(s.project_target.is_none(), "default project_target must be None");
+        assert!(
+            !s.use_self_host_backend,
+            "default useSelfHostBackend must be false"
+        );
+        assert!(
+            s.project_target.is_none(),
+            "default project_target must be None"
+        );
     }
 
     #[test]
@@ -6632,8 +6641,15 @@ fn add(a: i32, b: i32) -> i32 {
         });
         let s = LspSettings::from_json(&v);
         assert!(!s.enable_code_lens);
-        assert_eq!(s.hover_detail_level, HoverDetailLevel::Verbose, "'full' must map to Verbose");
-        assert_eq!(s.diagnostics_report_level, DiagnosticsReportLevel::ErrorsOnly);
+        assert_eq!(
+            s.hover_detail_level,
+            HoverDetailLevel::Verbose,
+            "'full' must map to Verbose"
+        );
+        assert_eq!(
+            s.diagnostics_report_level,
+            DiagnosticsReportLevel::ErrorsOnly
+        );
         assert_eq!(s.project_target.as_deref(), Some("wasm32-wasi-p2"));
         assert!(s.use_self_host_backend);
     }
@@ -6651,10 +6667,17 @@ fn add(a: i32, b: i32) -> i32 {
     fn code_lens_disabled_settings_causes_empty_result() {
         let v = serde_json::json!({ "enableCodeLens": false });
         let settings = LspSettings::from_json(&v);
-        assert!(!settings.enable_code_lens, "enableCodeLens=false must parse to enable_code_lens=false");
+        assert!(
+            !settings.enable_code_lens,
+            "enableCodeLens=false must parse to enable_code_lens=false"
+        );
         // Simulate the code_lens short-circuit:
         //   `if !self.settings.lock().unwrap().enable_code_lens { return Ok(Some(vec![])); }`
-        let lenses: Vec<u8> = if !settings.enable_code_lens { vec![] } else { vec![1, 2] };
+        let lenses: Vec<u8> = if !settings.enable_code_lens {
+            vec![]
+        } else {
+            vec![1, 2]
+        };
         assert!(
             lenses.is_empty(),
             "code_lens must return empty array when enableCodeLens=false; got {} lenses",
@@ -6834,9 +6857,11 @@ fn add(a: i32, b: i32) -> i32 {
             if item.kind == Some(CompletionItemKind::FUNCTION) {
                 // Check: if the function is tagged deprecated, it must either have
                 // deprecated_by in manifest OR be t3-only in the manifest.
-                if item.tags.as_ref().map_or(false, |t| {
-                    t.contains(&CompletionItemTag::DEPRECATED)
-                }) {
+                if item
+                    .tags
+                    .as_ref()
+                    .map_or(false, |t| t.contains(&CompletionItemTag::DEPRECATED))
+                {
                     // Valid: either deprecated_by or t3_only from manifest.
                     let func = manifest.functions.iter().find(|f| f.name == item.label);
                     if let Some(f) = func {
@@ -6863,11 +6888,20 @@ fn add(a: i32, b: i32) -> i32 {
         let v2 = serde_json::json!({ "arkTarget": "wasm32-wasi-p2" });
         let s2 = LspSettings::from_json(&v2);
         assert_eq!(s2.project_target.as_deref(), Some("wasm32-wasi-p2"));
-        assert!(!s2.is_t1_target(), "wasm32-wasi-p2 must NOT be recognized as T1");
+        assert!(
+            !s2.is_t1_target(),
+            "wasm32-wasi-p2 must NOT be recognized as T1"
+        );
 
         // Default: no project_target set.
         let s3 = LspSettings::default();
-        assert!(s3.project_target.is_none(), "default project_target must be None");
-        assert!(!s3.is_t1_target(), "unknown target must not be treated as T1");
+        assert!(
+            s3.project_target.is_none(),
+            "default project_target must be None"
+        );
+        assert!(
+            !s3.is_t1_target(),
+            "unknown target must not be treated as T1"
+        );
     }
 }

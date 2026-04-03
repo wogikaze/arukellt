@@ -1206,7 +1206,11 @@ fn cli_like_diagnostic_codes(source: &str) -> Vec<String> {
 fn lsp_diagnostic_codes(diags: &[serde_json::Value]) -> Vec<String> {
     let mut codes: Vec<String> = diags
         .iter()
-        .filter_map(|d| d.get("code").and_then(|c| c.as_str()).map(|s| s.to_string()))
+        .filter_map(|d| {
+            d.get("code")
+                .and_then(|c| c.as_str())
+                .map(|s| s.to_string())
+        })
         .collect();
     codes.sort();
     codes.dedup();
@@ -1239,10 +1243,7 @@ fn parity_valid_prelude_only_program_no_diagnostics() {
 
     // CLI-like pipeline: should produce no E0xxx errors.
     let cli_codes = cli_like_diagnostic_codes(src);
-    let cli_errors: Vec<_> = cli_codes
-        .iter()
-        .filter(|c| c.starts_with('E'))
-        .collect();
+    let cli_errors: Vec<_> = cli_codes.iter().filter(|c| c.starts_with('E')).collect();
     assert!(
         cli_errors.is_empty(),
         "parity: CLI-like pipeline should produce no errors for valid prelude-only program; \
@@ -1258,10 +1259,7 @@ fn parity_valid_prelude_only_program_no_diagnostics() {
     session.open_document(uri, src);
     let diags = session.collect_diagnostics_for(uri, Duration::from_secs(5));
     let lsp_codes = lsp_diagnostic_codes(&diags);
-    let lsp_errors: Vec<_> = lsp_codes
-        .iter()
-        .filter(|c| c.starts_with('E'))
-        .collect();
+    let lsp_errors: Vec<_> = lsp_codes.iter().filter(|c| c.starts_with('E')).collect();
 
     assert!(
         lsp_errors.is_empty(),
@@ -1287,11 +1285,7 @@ fn parity_real_error_matches_cli() {
     // A program with a genuine E0100 (calling a truly undefined function `does_not_exist`).
     // Both CLI check and LSP must produce E0100 for this, confirming that the fix
     // does not suppress legitimate errors.
-    let src = concat!(
-        "fn main() {\n",
-        "    does_not_exist()\n",
-        "}\n"
-    );
+    let src = concat!("fn main() {\n", "    does_not_exist()\n", "}\n");
 
     // CLI-like pipeline: must produce E0100.
     let cli_codes = cli_like_diagnostic_codes(src);
