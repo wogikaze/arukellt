@@ -480,13 +480,13 @@ returns = "()"
 
     /// Issue 457 slice 1: every std::host::* function must declare `availability`
     /// with t1/t3 booleans, and values must match the target-gating in load.rs
-    /// (T3_ONLY_MODULES = ["std::host::sockets"]).
+    /// (T3_ONLY_MODULES = ["std::host::http", "std::host::sockets"]).
     #[test]
     fn host_functions_have_availability() {
         let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
 
         // T3-only modules (matches T3_ONLY_MODULES in crates/ark-resolve/src/load.rs)
-        let t3_only: &[&str] = &["std::host::sockets"];
+        let t3_only: &[&str] = &["std::host::http", "std::host::sockets"];
 
         let host_fns: Vec<&ManifestFunction> = manifest
             .functions
@@ -564,9 +564,9 @@ returns = "()"
             );
         };
 
-        // std::host::http — t1=true, t3=true (issue 446)
-        check("request", "std::host::http", true, true);
-        check("get", "std::host::http", true, true);
+        // std::host::http — t1=false, t3=true (T3-only per issue 448)
+        check("request", "std::host::http", false, true);
+        check("get", "std::host::http", false, true);
 
         // std::host::sockets — t1=false, t3=true (issue 447 T3 impl; E0500 on T1 per 448)
         check("connect", "std::host::sockets", false, true);

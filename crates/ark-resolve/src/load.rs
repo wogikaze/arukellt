@@ -69,6 +69,28 @@ fn emit_deprecated_std_import(import: &ast::Import, sink: &mut DiagnosticSink) -
     true
 }
 
+fn emit_target_incompatible_import(
+    import: &ast::Import,
+    target: Option<TargetId>,
+    sink: &mut DiagnosticSink,
+) -> bool {
+    if let Some(TargetId::Wasm32WasiP1) = target {
+        if T3_ONLY_MODULES.contains(&import.module_name.as_str()) {
+            sink.emit(
+                Diagnostic::new(DiagnosticCode::E0500)
+                    .with_message(format!(
+                        "module `{}` requires target wasm32-wasi-p2 (T3); \
+                         use `--target wasm32-wasi-p2` to enable this module",
+                        import.module_name
+                    ))
+                    .with_label(import.span, "requires T3 target"),
+            );
+            return true;
+        }
+    }
+    false
+}
+
 pub(crate) fn parse_module_file(
     path: &Path,
     sink: &mut DiagnosticSink,
@@ -90,29 +112,15 @@ const HOST_STUB_MODULES: &[&str] = &[];
 
 /// Modules that are only available on wasm32-wasi-p2 (T3) or later.
 /// Importing these on wasm32-wasi-p1 (T1) emits E0500 (incompatible target).
-const T3_ONLY_MODULES: &[&str] = &["std::host::sockets"];
+const T3_ONLY_MODULES: &[&str] = &["std::host::http", "std::host::sockets"];
 
 pub(crate) fn resolve_import_path(
     current_path: &Path,
     module_name: &str,
     std_root: &Path,
     sink: &mut DiagnosticSink,
-    target: Option<TargetId>,
+    _target: Option<TargetId>,
 ) -> PathBuf {
-    // T3-only modules on T1: emit E0500 (incompatible target) and reject early.
-    if T3_ONLY_MODULES.contains(&module_name) {
-        if target == Some(TargetId::Wasm32WasiP1) {
-            sink.emit(
-                Diagnostic::new(DiagnosticCode::E0500).with_message(format!(
-                    "module `{}` requires target wasm32-wasi-p2 (T3); \
-                     use `--target wasm32-wasi-p2` to enable this module",
-                    module_name,
-                )),
-            );
-            return PathBuf::from("<target-incompatible>");
-        }
-    }
-
     // Reject host_stub modules at import time
     if HOST_STUB_MODULES.contains(&module_name) {
         sink.emit(Diagnostic::new(DiagnosticCode::E0211).with_message(format!(
@@ -240,6 +248,9 @@ fn load_module_recursive(
         if emit_deprecated_std_import(import, sink) {
             continue;
         }
+        if emit_target_incompatible_import(import, target, sink) {
+            continue;
+        }
         let import_path = resolve_import_path(&path, &import.module_name, std_root, sink, target);
         let effective_name = import.alias.clone().unwrap_or_else(|| {
             import
@@ -295,6 +306,9 @@ pub(crate) fn load_program_with_target(
 
     for import in &entry_module.imports {
         if emit_deprecated_std_import(import, sink) {
+            continue;
+        }
+        if emit_target_incompatible_import(import, target, sink) {
             continue;
         }
         let import_path =

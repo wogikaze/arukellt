@@ -192,7 +192,7 @@ catches GC reference types that bypass WIT-level checks (W0004).
 - No `--dir` flag means no filesystem access
 - `ark-llvm` is excluded from default builds (requires LLVM 18)
 - some historical docs remain archived / historical and should not override current-state
-- **Host stubs**: `std::host::sockets::connect` is declared in `std/manifest.toml` as `host_stub` — it exists in the module surface but is not yet backed by a real implementation. `std::host::http::{request, get}` are **available** on T1 and T3 via the Wasmtime linker (TCP HTTP/1.1; no HTTPS).
+- **Host module target-gating**: `std::host::http` and `std::host::sockets` are T3-only (wasm32-wasi-p2). Importing either module on T1 (wasm32-wasi-p1) produces an E0500 compile-time error (issue 448). `std::host::http` uses TCP HTTP/1.1; HTTPS is not supported.
 
 ## V4 Optimization Status
 

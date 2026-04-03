@@ -743,6 +743,9 @@ pub(crate) fn cmd_check(file: PathBuf, target: TargetId) {
         process::exit(1);
     }
     let mut session = Session::new();
+    // Set the target so that target-gating checks (e.g., E0500 for T1-incompatible
+    // imports) work during the resolve phase.
+    session.active_target = Some(target);
     // Load lint config from ark.toml if available
     if let Some(root) = Manifest::find_root(&std::env::current_dir().unwrap_or_default())
         && let Ok(manifest) = Manifest::load_from_dir(&root)
@@ -806,6 +809,9 @@ pub(crate) fn cmd_lint(file: Option<PathBuf>, target: TargetId, list: bool) {
         process::exit(1);
     }
     let mut session = Session::new();
+    // Set the target so that target-gating checks (e.g., E0500 for T1-incompatible
+    // imports) work during the resolve phase.
+    session.active_target = Some(target);
     // Load lint config from ark.toml if available
     if let Some(root) = Manifest::find_root(&std::env::current_dir().unwrap_or_default())
         && let Ok(manifest) = Manifest::load_from_dir(&root)

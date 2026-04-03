@@ -56,6 +56,8 @@ diag:diagnostics/wrong_arg_count.ark
 diag:host_stub_sockets.ark
 diag:deny_clock_compile.ark
 diag:deny_random_compile.ark
+diag:target_gating/t1_import_http.ark
+diag:target_gating/t1_import_sockets.ark
 diag:stdlib_io/deny_clock.ark
 diag:stdlib_io/deny_random.ark
 diag:v0_constraints/no_method_call.ark

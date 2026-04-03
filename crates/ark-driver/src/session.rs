@@ -159,7 +159,7 @@ pub struct Session {
     /// The active compilation target for the current compile invocation.
     /// Set by `compile_with_entry` before the frontend runs so that
     /// `load_graph` can pass it to the module loader for target-gating.
-    active_target: Option<TargetId>,
+    pub active_target: Option<TargetId>,
 }
 
 impl Default for Session {
