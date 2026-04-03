@@ -6484,11 +6484,25 @@ impl EmitCtx {
                     // --- Scalar type conversion functions (issue #040) ---
                     // Narrow types (u8/u16/i8/i16) are all stored as i32 in Wasm.
                     // Widening to i32 is a no-op; narrowing applies masking/sign-extension.
-                    "u8_to_i32" | "u16_to_i32" | "i8_to_i32" | "i16_to_i32" => {
-                        // All these types are already i32 in Wasm — identity conversion.
+                    "u8_to_i32" | "u16_to_i32" => {
+                        // Unsigned narrow types already stored as zero-extended i32 — identity.
                         if let Some(a) = args.first() {
                             self.emit_operand(f, a);
                         }
+                    }
+                    "i8_to_i32" => {
+                        // Sign-extend from 8 bits: i32.extend8_s (issue #067)
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Extend8S);
+                    }
+                    "i16_to_i32" => {
+                        // Sign-extend from 16 bits: i32.extend16_s (issue #067)
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Extend16S);
                     }
                     "i32_to_u8" => {
                         // Mask to 8-bit unsigned: x & 0xFF

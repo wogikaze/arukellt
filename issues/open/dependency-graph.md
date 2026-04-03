@@ -43,7 +43,6 @@ graph LR
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I127["127 `MIRValidate` をコンパイル経路で無条件実行"]
   I128["128 T3 GC エミッター (t3_wasm_gc.rs 8678行) をサブモジュールに分割"]
   I129["129 T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割"]
   I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
@@ -56,7 +55,6 @@ graph LR
   I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
   I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
-  I151["151 横断 docs: `docs/compiler/error-codes.md` と診断コード一覧の正規化"]
   I153["153 横断検証: bit-exact Wasm 再現ビルドゲートと決定性ルール"]
   I156["156 T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化"]
   I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
@@ -212,7 +210,6 @@ graph LR
 - **120** depends on: none; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **127** depends on: none; blocks: none
 - **128** depends on: none; blocks: none
 - **129** depends on: none; blocks: none
 - **130** depends on: none; blocks: none
@@ -225,7 +222,6 @@ graph LR
 - **145** depends on: 149; blocks: 148, 158
 - **146** depends on: 149; blocks: 148
 - **147** depends on: 149; blocks: none
-- **151** depends on: none; blocks: none
 - **153** depends on: none; blocks: 154
 - **156** depends on: none; blocks: none
 - **157** depends on: none; blocks: none

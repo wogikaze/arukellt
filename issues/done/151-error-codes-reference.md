@@ -1,8 +1,8 @@
 # 横断 docs: `docs/compiler/error-codes.md` と診断コード一覧の正規化
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-04-03
+**Updated**: 2026-04-10
 **ID**: 151
 **Depends on**: —
 **Track**: cross-cutting

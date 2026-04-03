@@ -1,8 +1,8 @@
 # `MIRValidate` をコンパイル経路で無条件実行
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-10
 **ID**: 127
 **Depends on**: —
 **Track**: pipeline-refactor
