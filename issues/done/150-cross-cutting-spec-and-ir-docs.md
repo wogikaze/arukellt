@@ -1,13 +1,24 @@
 # 横断 docs: `docs/language/spec.md` 凍結版と `docs/compiler/ir-spec.md` を整備
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-04-03
+**Updated**: 2026-04-29
 **ID**: 150
 **Depends on**: —
 **Track**: cross-cutting
 **Blocks v1 exit**: no
 
+---
+
+## Closure — 2026-04-29
+
+All acceptance criteria verified:
+
+1. ✅ `docs/language/spec.md` — comprehensive frozen v1 language spec covering lexical structure, type system (primitives, composites, generics, traits), expressions, statements, pattern matching, items, module/import system, operator precedence, stdlib API, and error codes. Each section carries a stability label (stable / provisional / experimental / unimplemented).
+2. ✅ `docs/compiler/ir-spec.md` — authoritative CoreHIR/MIR reference covering: compiler pipeline overview, AST types, CoreHIR data structures (Expr/Stmt/Item/Ty), MIR data structures (MirModule/MirFunc/BasicBlock/Instruction/Value), HIR→MIR lowering rules, MIR optimization passes with pre/post conditions, MIR validation rules (invariants), and MIR→Wasm mapping.
+3. ✅ `docs/compiler/pipeline.md` and `docs/language/type-system.md` both contain cross-links to the new documents.
+4. ✅ `python3 scripts/check/check-docs-consistency.py` exits 0 (0 issues).
+5. ✅ `bash scripts/run/verify-harness.sh --quick` passes 19/19 checks.
 
 ---
 

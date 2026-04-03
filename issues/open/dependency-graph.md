@@ -37,8 +37,8 @@ graph LR
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I109["109 ベンチマーク: fib / binary_tree / vec_ops / string_concat / json_parse スイート"]
   I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
-  I114["114 Wasm 検証エラーをエラーに昇格 (W0004 warning → error)"]
   I115["115 Wasm Name Section: デバッグ用関数名・ローカル名セクション生成"]
+  I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
@@ -56,7 +56,6 @@ graph LR
   I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
   I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
-  I150["150 横断 docs: `docs/language/spec.md` 凍結版と `docs/compiler/ir-spec.md` を整備"]
   I151["151 横断 docs: `docs/compiler/error-codes.md` と診断コード一覧の正規化"]
   I153["153 横断検証: bit-exact Wasm 再現ビルドゲートと決定性ルール"]
   I156["156 T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化"]
@@ -82,7 +81,6 @@ graph LR
   I119["119 MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応"]
   I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
-  I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
@@ -125,7 +123,6 @@ graph LR
   I101 --> I119
   I101 --> I122
   I109 --> I112
-  I114 --> I116
   I117 --> I118
   I125 --> I126
   I141 --> I144
@@ -209,8 +206,8 @@ graph LR
 - **106** depends on: none; blocks: none
 - **109** depends on: none; blocks: 112
 - **111** depends on: none; blocks: none
-- **114** depends on: none; blocks: 116
 - **115** depends on: none; blocks: none
+- **116** depends on: 114; blocks: none
 - **117** depends on: none; blocks: 118
 - **120** depends on: none; blocks: none
 - **123** depends on: none; blocks: none
@@ -228,7 +225,6 @@ graph LR
 - **145** depends on: 149; blocks: 148, 158
 - **146** depends on: 149; blocks: 148
 - **147** depends on: 149; blocks: none
-- **150** depends on: none; blocks: none
 - **151** depends on: none; blocks: none
 - **153** depends on: none; blocks: 154
 - **156** depends on: none; blocks: none
@@ -254,7 +250,6 @@ graph LR
 - **119** depends on: 101; blocks: none
 - **122** depends on: 101; blocks: none
 - **112** depends on: 109; blocks: none
-- **116** depends on: 114; blocks: none
 - **118** depends on: 117; blocks: none
 - **126** depends on: 125; blocks: none
 - **144** depends on: 141, 142, 143, 149; blocks: none

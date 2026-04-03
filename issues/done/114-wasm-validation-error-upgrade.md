@@ -1,8 +1,8 @@
 # Wasm 検証エラーをエラーに昇格 (W0004 warning → error)
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-10
 **ID**: 114
 **Depends on**: —
 **Track**: wasm-quality
