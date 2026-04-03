@@ -73,7 +73,6 @@ graph LR
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I480["480 Extension README: 設定一覧テーブル追加"]
-  I481["481 scripts/update-target-status.sh: CI 出力から target-contract.md を更新"]
   I486["486 f32 ローカル変数の MIR lowerer 対応 (F32 locals tracking)"]
   I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
   I043["043 std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"]
@@ -262,7 +261,6 @@ graph LR
 - **472** depends on: 466; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **480** depends on: 479; blocks: none
-- **481** depends on: 256, 257; blocks: none
 - **486** depends on: 040; blocks: none
 - **041** depends on: 039; blocks: 042, 044, 045, 046, 047, 048, 049, 050, 056
 - **043** depends on: 039, 040; blocks: 050, 053
