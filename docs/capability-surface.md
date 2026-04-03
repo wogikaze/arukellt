@@ -15,7 +15,7 @@
 | [`std::host::random`](#stdhostrandom) | 3 | Available | all |
 | [`std::host::env`](#stdhostenv) | 5 | Available | all (partial T1) |
 | [`std::host::fs`](#stdhostfs) | 3 | Available | all |
-| [`std::host::process`](#stdhostprocess) | 2 | Stub | all |
+| [`std::host::process`](#stdhostprocess) | 2 | Available | all |
 | [`std::host::http`](#stdhosthttp) | 2 | Stub / Experimental | wasm32-wasi-p2 |
 | [`std::host::sockets`](#stdhostsockets) | 1 | Stub / Experimental | wasm32-wasi-p2 |
 
@@ -104,12 +104,14 @@ Process lifecycle primitives.
 
 | Function | Signature | Status | Targets | WASI import |
 |---|---|---|---|---|
-| `exit` | `(i32) -> ()` | stub | all | `proc_exit` (not wired) |
-| `abort` | `() -> ()` | stub | all | — |
+| `exit` | `(i32) -> ()` | available | all | `proc_exit` (`wasi_snapshot_preview1`) |
+| `abort` | `() -> ()` | available | all | `proc_exit(134)` (`wasi_snapshot_preview1`) |
 
-`exit(0)` is currently a no-op (the program ends naturally). Non-zero
-codes panic with an error message. `abort()` panics unconditionally.
-`proc_exit` is declared in WASI but not yet wired in the emitter.
+`exit(code)` calls the WASI `proc_exit` host function directly, terminating the
+process immediately with the given exit code. `abort()` calls `proc_exit(134)`,
+following the SIGABRT convention. Both are **noreturn**: the emitter emits
+`unreachable` after every call site. Neither function is subject to capability
+gating (see Issue 448 for future `--deny-process` support).
 
 ---
 
@@ -220,8 +222,8 @@ blocked intrinsic, the program is still rejected.
 | `fs::read_to_string` | ✓ | ✓ |
 | `fs::write_string` | ✓ | ✓ |
 | `fs::write_bytes` | ✓ | ✓ |
-| `process::exit` | stub | stub |
-| `process::abort` | stub | stub |
+| `process::exit` | ✓ | ✓ |
+| `process::abort` | ✓ | ✓ |
 | `http::request` | — | stub |
 | `http::get` | — | stub |
 | `sockets::connect` | — | stub |
@@ -230,25 +232,22 @@ blocked intrinsic, the program is still rejected.
 
 ## Known Limitations
 
-1. **`std::host::process::exit` is a stub.** `proc_exit` is not wired in
-   the WASI emitter. `exit(0)` silently succeeds; non-zero codes panic.
-
-2. **`env::var` unavailable on T1.** WASI Preview 1 on the T1 backend does
+1. **`env::var` unavailable on T1.** WASI Preview 1 on the T1 backend does
    not import `environ_get`, so `std::host::env::var` is T3-only.
 
-3. **HTTP and Sockets are stubs.** Both modules exist in the manifest and
+2. **HTTP and Sockets are stubs.** Both modules exist in the manifest and
    compile, but every function returns an error at runtime. Usage is
    blocked at compile time by the host-stub enforcement scan.
 
-4. **No `--deny-stdio` flag.** Standard I/O is unconditionally available.
+3. **No `--deny-stdio` flag.** Standard I/O is unconditionally available.
 
-5. **No per-function capability deny.** The deny flags operate at the
+4. **No per-function capability deny.** The deny flags operate at the
    module/category level (clock, random, fs), not per-function.
 
-6. **T3 is in bridge mode.** The wasm32-wasi-p2 backend still uses linear
+5. **T3 is in bridge mode.** The wasm32-wasi-p2 backend still uses linear
    memory for WASI I/O. Full GC-native emission is in progress.
 
-7. **Filesystem is deny-by-default but not deny-flagged by default.**
+6. **Filesystem is deny-by-default but not deny-flagged by default.**
    Without `--dir`, filesystem calls fail at runtime rather than at
    compile time. `--deny-fs` explicitly blocks grants and overrides
    `--dir` flags, but does not add a compile-time scan.

@@ -107,13 +107,19 @@ impl EmitCtx {
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
                     }
-                    "exit" | "proc_exit" => {
+                    "exit" | "proc_exit" | "process_exit" => {
                         // process::exit(code: i32) -> ! — call WASI proc_exit and terminate
                         if let Some(arg) = args.first() {
                             self.emit_operand(f, arg);
                         } else {
                             f.instruction(&Instruction::I32Const(0));
                         }
+                        self.call_fn(f, FN_PROC_EXIT);
+                        f.instruction(&Instruction::Unreachable);
+                    }
+                    "process_abort" => {
+                        // process::abort() -> ! — SIGABRT convention: proc_exit(134)
+                        f.instruction(&Instruction::I32Const(134));
                         self.call_fn(f, FN_PROC_EXIT);
                         f.instruction(&Instruction::Unreachable);
                     }

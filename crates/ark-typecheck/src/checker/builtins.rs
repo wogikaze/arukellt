@@ -1213,5 +1213,26 @@ impl TypeChecker {
                 ret: Type::I32,
             },
         );
+        // Process intrinsics — wired to WASI proc_exit in T1/T3 emitters.
+        self.fn_sigs.insert(
+            "__intrinsic_process_exit".into(),
+            FnSig {
+                name: "__intrinsic_process_exit".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_process_abort".into(),
+            FnSig {
+                name: "__intrinsic_process_abort".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::Unit,
+            },
+        );
     }
 }

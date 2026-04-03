@@ -287,6 +287,10 @@ impl Ctx {
                     || name == "proc_exit"
                     || name == "__intrinsic_exit"
                     || name == "__intrinsic_proc_exit"
+                    || name == "__intrinsic_process_exit"
+                    || name == "__intrinsic_process_abort"
+                    || name == "process_exit"
+                    || name == "process_abort"
             }
             MirStmt::Assign(_, rvalue) => Self::rvalue_uses_proc_exit(rvalue),
             MirStmt::IfStmt {
@@ -333,6 +337,10 @@ impl Ctx {
                     || name == "proc_exit"
                     || name == "__intrinsic_exit"
                     || name == "__intrinsic_proc_exit"
+                    || name == "__intrinsic_process_exit"
+                    || name == "__intrinsic_process_abort"
+                    || name == "process_exit"
+                    || name == "process_abort"
                 {
                     return true;
                 }

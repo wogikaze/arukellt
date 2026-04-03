@@ -423,6 +423,8 @@ impl Ctx {
                 | "random_f64"
                 | "exit"
                 | "proc_exit"
+                | "process_exit"
+                | "process_abort"
                 | "args"
                 | "HashMap_new_i32_i32"
                 | "HashMap_new_i32_String"
@@ -1168,13 +1170,20 @@ impl Ctx {
                     f.instruction(&Instruction::Drop);
                 }
             }
-            "exit" | "proc_exit" => {
+            "exit" | "proc_exit" | "process_exit" => {
                 if let Some(arg) = args.first() {
                     self.emit_operand(f, arg);
                 } else {
                     f.instruction(&Instruction::I32Const(0));
                 }
                 f.instruction(&Instruction::Call(self.wasi_proc_exit));
+                f.instruction(&Instruction::Unreachable);
+            }
+            "process_abort" => {
+                // abort() → proc_exit(134) — SIGABRT convention
+                f.instruction(&Instruction::I32Const(134));
+                f.instruction(&Instruction::Call(self.wasi_proc_exit));
+                f.instruction(&Instruction::Unreachable);
             }
             "args" => {
                 self.emit_args_builtin(f);

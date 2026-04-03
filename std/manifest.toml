@@ -1595,6 +1595,7 @@ returns = "()"
 doc_category = "host_process"
 doc = "Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure."
 availability = { t1 = true, t3 = true }
+intrinsic = "__intrinsic_process_exit"
 
 [[functions]]
 name = "abort"
@@ -1605,6 +1606,7 @@ returns = "()"
 doc_category = "host_process"
 doc = "Abort the process immediately with an abnormal-termination signal (non-zero exit)."
 availability = { t1 = true, t3 = true }
+intrinsic = "__intrinsic_process_abort"
 
 # === std::host::env ===
 

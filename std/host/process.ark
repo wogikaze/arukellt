@@ -1,18 +1,11 @@
 //! Host process-control helpers.
-//!
-//! The current implementation uses lightweight fallbacks because the WASI
-//! `proc_exit` import is not wired in yet.
 
 /// Requests process termination with the given exit code.
 pub fn exit(code: i32) {
-    if code == 0 {
-        // Clean exit: no-op (let program end naturally)
-    } else {
-        panic(concat("exit: non-zero code ", i32_to_string(code)))
-    }
+    __intrinsic_process_exit(code)
 }
 
-/// Aborts execution immediately by panicking.
+/// Aborts execution immediately with exit code 134 (SIGABRT convention).
 pub fn abort() {
-    panic("abort: process aborted")
+    __intrinsic_process_abort()
 }

@@ -260,6 +260,8 @@ pub(crate) fn inject_prelude_symbols(symbols: &mut SymbolTable, scope: ScopeId) 
         "__intrinsic_http_request",
         "__intrinsic_f64_bits_lo",
         "__intrinsic_f64_bits_hi",
+        "__intrinsic_process_exit",
+        "__intrinsic_process_abort",
         "HashMap_i32_i32_new",
         "HashMap_i32_i32_insert",
         "HashMap_i32_i32_get",
