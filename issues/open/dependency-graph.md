@@ -65,7 +65,6 @@ graph LR
   I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
   I260["260 current-state.md の target 表を CI 結果からのみ更新する仕組みを作る"]
   I330["330 Fixture harness を selfhost binary 対応にする"]
-  I462["462 拡張機能の設定項目の整理と実装への配線"]
   I470["470 Playground docs: feature claim は current implementation と一致させる"]
   I471["471 Playground docs: command / workflow / publish claim の現実整合監査"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
@@ -245,7 +244,6 @@ graph LR
 - **157** depends on: none; blocks: none
 - **260** depends on: 256, 257; blocks: none
 - **330** depends on: 328; blocks: none
-- **462** depends on: none; blocks: none
 - **470** depends on: 465; blocks: none
 - **471** depends on: 465; blocks: none
 - **472** depends on: 466; blocks: none
