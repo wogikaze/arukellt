@@ -657,3 +657,6 @@ run:structs/chained_field_assign.ark
 run:guide/variables.ark
 run:guide/fn_add.ark
 run:guide/string_ops.ark
+# issue 449 / MIR-01: regression fixtures — T1 (run) coverage alongside t3-compile entries above
+run:regression/type_table/enum_match_variants.ark
+run:regression/type_table/struct_field_access.ark
