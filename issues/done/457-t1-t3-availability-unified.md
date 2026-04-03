@@ -1,13 +1,35 @@
 # T1/T3 API 可用性の compiler / LSP / docs 統一表現
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-02
+**Updated**: 2026-04-03
 **ID**: 457
 **Depends on**: 448, 455
 **Track**: compiler, lsp, docs
 **Blocks v1 exit**: yes
 **Priority**: 1
+
+
+---
+
+## Closed by audit — 2026-04-03
+
+**Reason**: All acceptance criteria verified by repo evidence.
+
+**Evidence**: server.rs:1928-1945 hover shows T3 only warning, completion tags T3-only deprecated on T1
+
+**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
+
+
+## Reopened by audit — 2026-04-03
+
+**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+
+**Audit evidence**:
+- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- File was located at `issues/done/457-t1-t3-availability-unified.md` — incorrect directory for an open issue.
+
+**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

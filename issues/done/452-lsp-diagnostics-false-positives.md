@@ -1,13 +1,35 @@
 # LSP: E0100 偽陽性 diagnostics を解消し CLI check と一致させる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-02
+**Updated**: 2026-04-03
 **ID**: 452
 **Depends on**: none
 **Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 1
+
+
+---
+
+## Closed by audit — 2026-04-03
+
+**Reason**: All acceptance criteria verified by repo evidence.
+
+**Evidence**: lsp_e2e.rs has parity_valid_prelude_only_program_no_diagnostics, snapshot_diagnostics_valid_program_zero_errors, parity_real_error_matches_cli — full CLI/LSP parity coverage (test function renamed during implementation)
+
+**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
+
+
+## Reopened by audit — 2026-04-03
+
+**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+
+**Audit evidence**:
+- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- File was located at `issues/done/452-lsp-diagnostics-false-positives.md` — incorrect directory for an open issue.
+
+**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

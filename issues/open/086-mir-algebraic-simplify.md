@@ -1,0 +1,46 @@
+# MIR: 代数的簡略化 — 恒等式・吸収則・ド・モルガン則
+
+**Status**: open
+**Created**: 2026-03-28
+**Updated**: 2026-04-03
+**ID**: 086
+**Depends on**: —
+**Track**: mir-opt
+**Blocks v4 exit**: no
+
+
+---
+
+## Reopened by audit — 2026-04-03
+
+**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+
+**Audit evidence**:
+- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- File was located at `issues/done/086-mir-algebraic-simplify.md` — incorrect directory for an open issue.
+
+**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
+
+## Summary
+
+代数的な恒等式・吸収則をMIRレベルで適用するパスを追加する。
+`const_fold` が定数畳み込みであるのに対し、このパスは変数を含む式の簡略化を担う。
+
+## 対象パターン
+
+- `x + 0` → `x`, `x * 1` → `x`, `x * 0` → `0`
+- `x - x` → `0`, `x / x` → `1` (x ≠ 0 の場合)
+- `x || true` → `true`, `x && false` → `false`
+- `!!x` → `x` (double negation)
+- `x << 0` → `x`, `x >> 0` → `x`
+- `min(x, x)` → `x`, `max(x, x)` → `x`
+
+## 受け入れ条件
+
+1. `passes/algebraic_simplify.rs`: 上記パターンのマッチング・置換
+2. `const_fold` との組み合わせで追加削減を確認
+3. `--opt-level 1` 以上で有効
+
+## 参照
+
+- roadmap-v4.md §5.2

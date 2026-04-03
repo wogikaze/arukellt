@@ -1,13 +1,35 @@
 # capability / target-gating のエンドツーエンド実装: load.rs TODO 解消・deny flag fixture 化
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-02
+**Updated**: 2026-04-03
 **ID**: 448
 **Depends on**: none
 **Track**: runtime
 **Blocks v1 exit**: yes
 **Priority**: 4
+
+
+---
+
+## Closed by audit — 2026-04-03
+
+**Reason**: All acceptance criteria verified by repo evidence.
+
+**Evidence**: E0500 in codes.rs, t1_import_sockets.diag, T3_ONLY_MODULES in load.rs
+
+**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
+
+
+## Reopened by audit — 2026-04-03
+
+**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+
+**Audit evidence**:
+- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- File was located at `issues/done/448-capability-target-gating-e2e.md` — incorrect directory for an open issue.
+
+**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

@@ -1,12 +1,34 @@
 # VS Code commands / tasks / status surfaces
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-03-29
+**Updated**: 2026-04-03
 **ID**: 190
 **Depends on**: 189
 **Track**: parallel
 **Blocks v1 exit**: no
+
+
+---
+
+## Closed by audit — 2026-04-03
+
+**Reason**: All acceptance criteria verified by repo evidence.
+
+**Evidence**: check/compile/run commands registered in extension.js, status bar and output channel present
+
+**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
+
+
+## Reopened by audit — 2026-04-03
+
+**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+
+**Audit evidence**:
+- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- File was located at `issues/done/190-vscode-commands-tasks-and-status-surfaces.md` — incorrect directory for an open issue.
+
+**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

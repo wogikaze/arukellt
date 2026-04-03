@@ -1,13 +1,35 @@
 # option / result 型の canonical ABI lift-lower を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2026-04-03
 **ID**: 298
 **Depends on**: 296
 **Track**: component-model
 **Blocks v1 exit**: no
 **Priority**: 19
+
+
+---
+
+## Closed by audit — 2026-04-03
+
+**Reason**: All acceptance criteria verified by repo evidence.
+
+**Evidence**: cabi_adapters.rs has OptionType and ResultType lift/lower at lines 58-72
+
+**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
+
+
+## Reopened by audit — 2026-04-03
+
+**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+
+**Audit evidence**:
+- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- File was located at `issues/done/298-cabi-option-result-lift-lower.md` — incorrect directory for an open issue.
+
+**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

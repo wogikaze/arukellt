@@ -1,13 +1,35 @@
 # VSCode API を使った editor behavior E2E テストを追加する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-02
+**Updated**: 2026-04-03
 **ID**: 453
 **Depends on**: 450, 451, 452
 **Track**: vscode-ide
 **Blocks v1 exit**: no
 **Priority**: 4
+
+
+---
+
+## Closed by audit — 2026-04-03
+
+**Reason**: All acceptance criteria verified by repo evidence.
+
+**Evidence**: extension.test.js:259 definition range test, :360 hover-string-literal test, :424 zero-diagnostics test; fixtures/basic.ark present
+
+**Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
+
+
+## Reopened by audit — 2026-04-03
+
+**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+
+**Audit evidence**:
+- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- File was located at `issues/done/453-vscode-e2e-editor-behavior-tests.md` — incorrect directory for an open issue.
+
+**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
 ## Summary
 

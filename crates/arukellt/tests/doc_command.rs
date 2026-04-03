@@ -178,7 +178,7 @@ fn doc_json_not_found_outputs_json_with_candidates() {
         "should have candidates array"
     );
     assert!(
-        parsed["candidates"].as_array().unwrap().len() >= 1,
+        !parsed["candidates"].as_array().unwrap().is_empty(),
         "should have at least 1 candidate"
     );
 }
