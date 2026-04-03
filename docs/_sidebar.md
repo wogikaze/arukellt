@@ -14,6 +14,7 @@
   - [標準ライブラリ](stdlib/README.md)
   - [実行例](examples/README.md)
   - [プレイグラウンド](playground/README.md)
+    - [▶ Try Playground](playground/index.html)
 
 - **Supporting Docs**
   - [移行](migration/README.md)

@@ -58,12 +58,13 @@ Choose the path that fits your goal.
 | [maturity-matrix.md](maturity-matrix.md) | Feature stability classification — see what's stable vs. experimental |
 | [spec.md](spec.md) | Stability labels per section mark which parts of the spec are provisional |
 
-### 🎮 Playground Status
+### 🎮 Playground
 
-<!-- target-state: browser playground route (entrypoint, docs route, deploy, type-checking) — tracked by issues/open/466, 467, 468, 472 -->
-> **Looking for the web playground?** The [Playground](../playground/README.md) currently documents the browser-side engine, UI building blocks, and remaining work toward a repo-visible browser entrypoint.
+<!-- issue-466 ✅ entrypoint live; issue-467 ✅ docs route wired; deploy/type-checking tracked by issues/open/468, 472 -->
+> **[▶ Try the Playground](../playground/index.html)** — parse, format, and tokenize Arukellt code in your browser.
 
-Current repo proof covers parser / formatter / tokenizer Wasm surfaces and component-level UI code. Do not treat the generated docs site as exposing a browser-reachable playground route yet.
+The playground editor shell supports parse / format / tokenize via the `ark-playground-wasm` engine.
+See the [Playground docs](../playground/README.md) for architecture details, design policies, and remaining work.
 
 ## Classification (ADR-018)
 

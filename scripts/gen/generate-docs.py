@@ -1292,6 +1292,8 @@ def render_sidebar(sections: list[dict]) -> str:
         lines.extend(["", f"- **{category_labels[category]}**"])
         for section in category_sections:
             lines.append(f"  - [{section['title']}]({section['dir']}/README.md)")
+            if section["dir"] == "playground":
+                lines.append("    - [▶ Try Playground](playground/index.html)")
     return "\n".join(lines) + "\n"
 
 
@@ -1520,12 +1522,13 @@ def render_language_readme(
     # Interactive playground cross-link
     lines.extend([
         "",
-        "### 🎮 Playground Status",
+        "### 🎮 Playground",
         "",
-        "<!-- target-state: browser playground route (entrypoint, docs route, deploy, type-checking) — tracked by issues/open/466, 467, 468, 472 -->",
-        "> **Looking for the web playground?** The [Playground](../playground/README.md) currently documents the browser-side engine, UI building blocks, and remaining work toward a repo-visible browser entrypoint.",
+        "<!-- issue-466 ✅ entrypoint live; issue-467 ✅ docs route wired; deploy/type-checking tracked by issues/open/468, 472 -->",
+        "> **[▶ Try the Playground](../playground/index.html)** — parse, format, and tokenize Arukellt code in your browser.",
         "",
-        "Current repo proof covers parser / formatter / tokenizer Wasm surfaces and component-level UI code. Do not treat the generated docs site as exposing a browser-reachable playground route yet.",
+        "The playground editor shell supports parse / format / tokenize via the `ark-playground-wasm` engine.",
+        "See the [Playground docs](../playground/README.md) for architecture details, design policies, and remaining work.",
     ])
 
     # Classification table (ADR-018)
@@ -1622,10 +1625,9 @@ def render_playground_readme(
         "",
         "## What is in this directory today?",
         "",
-        "This section currently documents the browser-side playground work that exists in the repository:",
-        "the Wasm engine, editor/diagnostics/share/example components, and design/operations documents.",
-        "It does **not** by itself prove that the generated docs site already exposes a browser-reachable",
-        "playground route.",
+        "This section documents the browser-side playground work in the repository:",
+        "the Wasm engine, editor/diagnostics/share/example components, design/operations documents,",
+        "and the live browser entrypoint at [`playground/index.html`](index.html).",
         "",
         "### Current repo-proved surfaces",
         "",
@@ -1637,17 +1639,17 @@ def render_playground_readme(
         "| Editor components | ✅ | `playground/src/**` contains editor / diagnostics UI building blocks |",
         "| Share helpers | ✅ | `playground/src/share.ts` provides fragment helpers |",
         "| Curated examples catalog | ✅ | `playground/src/examples.ts` contains example metadata |",
+        "| Browser entrypoint | ✅ | [`docs/playground/index.html`](index.html) — editor shell with parse / format / tokenize (issue 466) |",
+        "| Docs route to live playground | ✅ | [`playground/index.html`](index.html) — linked from docs site navigation (issue 467) |",
         "<!-- target-state: rows below are not yet repo-proved; each row moves to ✅ when its tracking issue closes -->",
-        "| Browser entrypoint | ❌ repo-proof missing | tracked by `issues/open/466` |",
-        "| Docs route to live playground | ❌ repo-proof missing | tracked by `issues/open/467` |",
         "| Publish / deploy path | ❌ repo-proof missing | tracked by `issues/open/468` |",
         "| Type-checking in browser UI | ❌ repo-proof missing | tracked by `issues/open/472` |",
         "",
         "### Architecture status",
         "",
         "The current browser-side engine is the `wasm32-unknown-unknown` playground Wasm package plus",
-        "TypeScript UI components. Current repo proof covers parse / format / tokenize and component-level",
-        "UI code; it does not yet establish a browser-visible entrypoint in the generated docs site. See",
+        "TypeScript UI components. The browser entrypoint `docs/playground/index.html` provides an",
+        "editor shell with parse / format / tokenize. The docs site navigation links to it. See",
         "[ADR-017](../adr/ADR-017-playground-execution-model.md) for the intended execution model and",
         "[issues/done/465-playground-false-done-audit-and-status-rollback.md](../../issues/done/465-playground-false-done-audit-and-status-rollback.md)",
         "for the current audit status.",
