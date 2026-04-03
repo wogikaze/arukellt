@@ -1,0 +1,12 @@
+// Fixture: sockets::connect to 127.0.0.1:1 always refuses — CI-safe loopback test.
+// Expected target: wasm32-wasi-p2 (T3).
+// Port 1 is privileged and never listening; the OS immediately refuses the connection.
+use std::host::sockets
+use std::host::stdio
+
+fn main() {
+    match sockets::connect("127.0.0.1", 1) {
+        Ok(_fd) => stdio::println("unexpected ok"),
+        Err(e) => stdio::println(e),
+    }
+}

@@ -8,8 +8,8 @@
 | Tier | Count | Description |
 |------|-------|-------------|
 | [stable](#stable-apis) | 222 | Backward-compatible within a major version. Safe for production use. |
-| [provisional](#provisional-apis) | 1 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 50 | API may change without notice. Functionality is available but not finalized. |
+| [provisional](#provisional-apis) | 4 | API is usable but may change in minor versions based on feedback. |
+| [experimental](#experimental-apis) | 47 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -307,39 +307,37 @@ match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `get` | `(String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. |
-| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
+| `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
+| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
 
 #### `get` — `std::host::http`
 
-**Errors:** Err on DNS failure (dns: ...), connection refused (connection refused: ...), or HTTP error status (http N: ...).
+**Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
 *Example — Fetch a URL and print its body:*
 ```ark
-let body = http::get("https://example.com")
+let body = http::get("http://example.com")
 match body {
   Ok(s) => println(s)
   Err(e) => eprintln(e)
 }
 ```
 
-Expected output: `<!doctype html>...`
-
 #### `request` — `std::host::http`
 
-**Errors:** Err on DNS failure, connection refused, timeout, or HTTP 4xx/5xx status codes.
+**Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
 *Example — POST JSON to an API endpoint:*
 ```ark
-let resp = http::request("POST", "https://api.example.com/data", "{\"key\":\"val\"}")
+let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\"}")
 ```
 
 ## Host Process
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | - | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
-| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
+| `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
+| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 
 ## Host Random
 
@@ -362,7 +360,7 @@ let n = random::random_i32_range(1, 7)
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
-| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `experimental` | `host_stub ⚠️ (wasm32-wasi-p2)` | no | - | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
+| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
 
 #### `connect` — `std::host::sockets`
 
@@ -645,7 +643,7 @@ Expected output: `hello world`
 | `Vec_new_i64_with_cap` | `(i32) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_i64_with_cap` | - |
 | `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
-| `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | - | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
+| `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
 | `abs` | `(i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_abs` | - |
 | `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
 | `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
@@ -710,7 +708,7 @@ Expected output: `hello world`
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
 | `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
-| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
+| `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 | `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `stable` | `builtin` | no | - | - |
 | `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
@@ -859,7 +857,10 @@ Expected output: `hello world`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
 | `f32_to_string` | `(f32) -> String` | `prelude` | `provisional` | `builtin` | no | - | - |
+| `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
+| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
 
 ## Experimental APIs
 
@@ -873,9 +874,7 @@ Expected output: `hello world`
 | `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
 | `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - | - |
 | `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - | - |
-| `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `experimental` | `host_stub ⚠️ (wasm32-wasi-p2)` | no | - | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
 | `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
-| `get` | `(String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. |
 | `json_null` | `() -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `builtin` | no | - | - |
@@ -884,7 +883,6 @@ Expected output: `hello world`
 | `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
 | `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
-| `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `experimental` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
 | `section_code` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_data` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_element` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |

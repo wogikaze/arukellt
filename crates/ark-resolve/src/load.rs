@@ -83,7 +83,10 @@ pub(crate) fn parse_module_file(
 /// Modules whose functions are all `host_stub` — always return errors at
 /// runtime.  We reject imports of these at resolve time so the user gets a
 /// clear compile-time error instead of a surprising runtime failure.
-const HOST_STUB_MODULES: &[&str] = &["std::host::sockets"];
+///
+/// `std::host::sockets` was removed when T3 TCP connect was implemented
+/// (issue 447).  The array is kept empty; T1 is still blocked by T3_ONLY_MODULES.
+const HOST_STUB_MODULES: &[&str] = &[];
 
 /// Modules that are only available on wasm32-wasi-p2 (T3) or later.
 /// Importing these on wasm32-wasi-p1 (T1) emits E0500 (incompatible target).

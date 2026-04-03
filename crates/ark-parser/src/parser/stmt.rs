@@ -68,11 +68,14 @@ impl Parser<'_> {
         let is_mut = self.eat(&TokenKind::Mut);
 
         // Check for tuple destructuring: let (a, b) = ...
-        let (name, pattern) = if *self.peek() == TokenKind::LParen {
+        let (name, name_span, pattern) = if *self.peek() == TokenKind::LParen {
             let pat = self.parse_pattern();
-            ("_tuple".to_string(), Some(pat))
+            let pat_span = pat.span();
+            ("_tuple".to_string(), pat_span, Some(pat))
         } else {
-            (self.expect_ident(), None)
+            let ns = self.span(); // capture identifier token span before advancing
+            let n = self.expect_ident();
+            (n, ns, None)
         };
 
         let ty = if self.eat(&TokenKind::Colon) {
@@ -88,6 +91,7 @@ impl Parser<'_> {
 
         Stmt::Let {
             name,
+            name_span,
             ty,
             init,
             is_mut,

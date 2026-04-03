@@ -4598,4 +4598,170 @@ impl Ctx {
         f.instruction(&Instruction::End); // loop
         f.instruction(&Instruction::End); // block
     }
+
+    /// Emit `sockets_connect(host: String, port: i32) -> Result<i32, String>`:
+    ///
+    /// Host ABI: `sockets_connect(host_ptr: i32, host_len: i32, port: i32, result_ptr: i32) -> i32`
+    /// - Returns >= 0: Ok, fd = return value.
+    /// - Returns < 0: Err, abs(return) = error string length at result_ptr.
+    ///
+    /// Scratch: SOCKETS_SCRATCH_IN for host string, SOCKETS_SCRATCH_RESP for error string.
+    /// Scratch scratch locals: si(0)=host_len, si(1)=loop_i, si(2)=host_call_result,
+    ///                         si(3)=err_len, si(10)=anyref
+    pub(super) fn emit_sockets_connect_builtin(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
+        use super::{SOCKETS_SCRATCH_IN, SOCKETS_SCRATCH_RESP};
+
+        if args.len() < 2 {
+            // Fallback: return Err("missing args")
+            let result_base = *self.enum_base_types.get("Result").unwrap_or(&0);
+            let err_variant = result_base + 2;
+            let seg = self.alloc_string_data(b"connect: missing args");
+            let abs_seg = self.data_segs.len() as u32 + seg;
+            f.instruction(&Instruction::I32Const(0));
+            f.instruction(&Instruction::I32Const(21));
+            f.instruction(&Instruction::ArrayNewData {
+                array_type_index: self.string_ty,
+                array_data_index: abs_seg,
+            });
+            f.instruction(&Instruction::StructNew(err_variant));
+            return;
+        }
+
+        let result_base = *self.enum_base_types.get("Result").unwrap();
+        let ok_variant = result_base + 1;
+        let err_variant = result_base + 2;
+        let ma8 = wasm_encoder::MemArg {
+            offset: 0,
+            align: 0,
+            memory_index: 0,
+        };
+
+        // Step 1: Copy host GC string → linear memory at SOCKETS_SCRATCH_IN
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(self.si(10))); // host ref → anyref
+
+        // Get host string length → si(0)
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::ArrayLen);
+        f.instruction(&Instruction::LocalSet(self.si(0))); // host_len
+
+        // Copy loop: host[i] → mem[SOCKETS_SCRATCH_IN + i]
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(1))); // i = 0
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+        // mem[SOCKETS_SCRATCH_IN + i] = host[i]
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(SOCKETS_SCRATCH_IN as i32));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+            self.string_ty,
+        )));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::ArrayGetU(self.string_ty));
+        f.instruction(&Instruction::I32Store8(ma8));
+        f.instruction(&Instruction::LocalGet(self.si(1)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(1)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // loop
+        f.instruction(&Instruction::End); // block
+
+        // Step 2: Call host sockets_connect(host_ptr, host_len, port, result_ptr) → i32
+        f.instruction(&Instruction::I32Const(SOCKETS_SCRATCH_IN as i32));
+        f.instruction(&Instruction::LocalGet(self.si(0)));
+        self.emit_operand(f, &args[1]); // port (i32)
+        f.instruction(&Instruction::I32Const(SOCKETS_SCRATCH_RESP as i32));
+        f.instruction(&Instruction::Call(self.host_sockets_connect));
+        f.instruction(&Instruction::LocalSet(self.si(2))); // result (signed)
+
+        // Step 3: Determine ok/err based on sign of result
+        // result >= 0 → Ok(fd), result < 0 → Err(message)
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32LtS);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        {
+            // Err path: err_len = -result
+            f.instruction(&Instruction::I32Const(0));
+            f.instruction(&Instruction::LocalGet(self.si(2)));
+            f.instruction(&Instruction::I32Sub);
+            f.instruction(&Instruction::LocalSet(self.si(3)));
+        }
+        f.instruction(&Instruction::End);
+
+        // Step 4a: Build result in si(10) depending on sign
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32LtS);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        {
+            // Err path: copy error string from SOCKETS_SCRATCH_RESP → GC string → si(10)
+            // Allocate GC string of length si(3)
+            f.instruction(&Instruction::I32Const(0));
+            f.instruction(&Instruction::LocalGet(self.si(3)));
+            f.instruction(&Instruction::ArrayNew(self.string_ty));
+            f.instruction(&Instruction::LocalSet(self.si(10)));
+            // Copy loop: string[i] = mem[SOCKETS_SCRATCH_RESP + i]
+            f.instruction(&Instruction::I32Const(0));
+            f.instruction(&Instruction::LocalSet(self.si(1)));
+            f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+            f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+            f.instruction(&Instruction::LocalGet(self.si(1)));
+            f.instruction(&Instruction::LocalGet(self.si(3)));
+            f.instruction(&Instruction::I32GeU);
+            f.instruction(&Instruction::BrIf(1));
+            f.instruction(&Instruction::LocalGet(self.si(10)));
+            f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                self.string_ty,
+            )));
+            f.instruction(&Instruction::LocalGet(self.si(1)));
+            f.instruction(&Instruction::LocalGet(self.si(1)));
+            f.instruction(&Instruction::I32Const(SOCKETS_SCRATCH_RESP as i32));
+            f.instruction(&Instruction::I32Add);
+            f.instruction(&Instruction::I32Load8U(ma8));
+            f.instruction(&Instruction::ArraySet(self.string_ty));
+            f.instruction(&Instruction::LocalGet(self.si(1)));
+            f.instruction(&Instruction::I32Const(1));
+            f.instruction(&Instruction::I32Add);
+            f.instruction(&Instruction::LocalSet(self.si(1)));
+            f.instruction(&Instruction::Br(0));
+            f.instruction(&Instruction::End); // loop
+            f.instruction(&Instruction::End); // block
+            // Build Err(string)
+            f.instruction(&Instruction::LocalGet(self.si(10)));
+            f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(
+                self.string_ty,
+            )));
+            f.instruction(&Instruction::StructNew(err_variant));
+            f.instruction(&Instruction::LocalSet(self.si(10)));
+        }
+        f.instruction(&Instruction::Else);
+        {
+            // Ok path: fd = si(2) (the return value itself)
+            f.instruction(&Instruction::LocalGet(self.si(2)));
+            f.instruction(&Instruction::StructNew(ok_variant));
+            f.instruction(&Instruction::LocalSet(self.si(10)));
+        }
+        f.instruction(&Instruction::End);
+
+        // Push result onto stack
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNullable(HeapType::Concrete(
+            result_base,
+        )));
+    }
 }

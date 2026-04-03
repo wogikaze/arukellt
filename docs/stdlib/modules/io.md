@@ -176,15 +176,12 @@ separator to match POSIX and WASI conventions.
 
 Host process-control helpers.
 
-The current implementation uses lightweight fallbacks because the WASI
-`proc_exit` import is not wired in yet.
-
 ### Public API
 
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
 | `exit` | `(i32) -> ()` | `stable` | ✅ impl | Requests process termination with the given exit code. |
-| `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately by panicking. |
+| `abort` | `() -> ()` | `stable` | ✅ impl | Aborts execution immediately with exit code 134 (SIGABRT convention). |
 
 #### `exit`
 

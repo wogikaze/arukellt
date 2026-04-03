@@ -67,6 +67,7 @@ pub(crate) fn run_wasm_p1(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
     if needs_http {
         register_http_host_fns(&mut linker)?;
     }
+    // Note: sockets_connect is T3-only and is never emitted for T1 modules.
 
     let mut builder = WasiCtxBuilder::new();
     builder.inherit_stdio();
@@ -144,6 +145,13 @@ pub(crate) fn run_wasm_gc(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
     let needs_http = module.imports().any(|imp| imp.module() == "arukellt_host");
     if needs_http {
         register_http_host_fns(&mut linker)?;
+    }
+    // Register arukellt_host sockets_connect (T3 only: TCP socket connect)
+    let needs_sockets = module
+        .imports()
+        .any(|imp| imp.module() == "arukellt_host" && imp.name() == "sockets_connect");
+    if needs_sockets {
+        register_sockets_host_fns(&mut linker)?;
     }
 
     let mut builder = WasiCtxBuilder::new();
@@ -319,6 +327,115 @@ fn write_error(
         }
     }
     -(bytes.len() as i32)
+}
+
+/// Register `arukellt_host::sockets_connect` in the linker (T3 only).
+///
+/// Host ABI: `sockets_connect(host_ptr: i32, host_len: i32, port: i32, result_ptr: i32) -> i32`
+/// - Returns >= 0: Ok, fd = return value (minimum implementation: always 3).
+/// - Returns < 0: Err, abs(return) = error message length; message bytes written at result_ptr.
+fn register_sockets_host_fns(
+    linker: &mut wasmtime::Linker<wasmtime_wasi::preview1::WasiP1Ctx>,
+) -> Result<(), String> {
+    use wasmtime::*;
+
+    linker
+        .func_wrap(
+            "arukellt_host",
+            "sockets_connect",
+            |mut caller: Caller<'_, wasmtime_wasi::preview1::WasiP1Ctx>,
+             host_ptr: i32,
+             host_len: i32,
+             port: i32,
+             result_ptr: i32|
+             -> i32 {
+                let mem = match caller.get_export("memory") {
+                    Some(Extern::Memory(m)) => m,
+                    _ => return write_error(&mut caller, result_ptr, "no memory export"),
+                };
+                let host = match read_string_from_mem(&caller, &mem, host_ptr, host_len) {
+                    Ok(s) => s,
+                    Err(e) => return write_error(&mut caller, result_ptr, &e),
+                };
+                // Validate port range (Ark i32, convert to u16)
+                if port < 0 || port > 65535 {
+                    let msg = format!("connect: invalid port {}", port);
+                    return write_error(&mut caller, result_ptr, &msg);
+                }
+                match tcp_connect_impl(&host, port as u16) {
+                    Ok(fd) => {
+                        // Success: fd is returned directly as a positive i32.
+                        // TODO(future): real fd management when socket read/write/close are added.
+                        fd
+                    }
+                    Err(msg) => write_error(&mut caller, result_ptr, &msg),
+                }
+            },
+        )
+        .map_err(|e| format!("linker sockets_connect error: {}", e))?;
+
+    Ok(())
+}
+
+/// TCP connect implementation.
+///
+/// Returns Ok(3) on success (minimum implementation; fd 3 is a placeholder — full fd
+/// management is a future extension).  Returns Err(String) on failure.
+///
+/// Error format: `"connect: <host>:<port>: <reason>"` to match the error mapping spec
+/// in docs/capability-surface.md.
+fn tcp_connect_impl(host: &str, port: u16) -> Result<i32, String> {
+    use std::net::TcpStream;
+    use std::time::Duration;
+
+    let socket_addr = to_socket_addr_for_connect(host, port)?;
+    match TcpStream::connect_timeout(&socket_addr, Duration::from_secs(5)) {
+        Ok(_stream) => {
+            // TODO(future): store _stream in a fd table; return real fd.
+            Ok(3)
+        }
+        Err(e) => {
+            use std::io::ErrorKind;
+            let reason = match e.kind() {
+                ErrorKind::ConnectionRefused => "connection refused".to_string(),
+                ErrorKind::TimedOut => "timed out".to_string(),
+                _ => {
+                    let msg = e.to_string().to_lowercase();
+                    if msg.contains("refused") {
+                        "connection refused".to_string()
+                    } else if msg.contains("timed out") || msg.contains("timeout") {
+                        "timed out".to_string()
+                    } else {
+                        e.to_string()
+                    }
+                }
+            };
+            Err(format!("connect: {}:{}: {}", host, port, reason))
+        }
+    }
+}
+
+/// Resolve a host:port pair to a single `SocketAddr`, returning a clean error on DNS failure.
+fn to_socket_addr_for_connect(
+    host: &str,
+    port: u16,
+) -> Result<std::net::SocketAddr, String> {
+    use std::net::ToSocketAddrs;
+    let addr_str = format!("{}:{}", host, port);
+    let mut addrs = addr_str.to_socket_addrs().map_err(|e| {
+        let msg = e.to_string().to_lowercase();
+        if msg.contains("name or service not known")
+            || msg.contains("nodename nor servname")
+            || msg.contains("no such host")
+            || msg.contains("failed to lookup")
+            || msg.contains("name resolution")
+        {
+            format!("connect: {}:{}: dns not found", host, port)
+        } else {
+            format!("connect: {}:{}: {}", host, port, e)
+        }
+    })?;
+    addrs.next().ok_or_else(|| format!("connect: {}:{}: dns not found", host, port))
 }
 
 /// TCP-based HTTP/1.1 GET implementation.

@@ -1194,6 +1194,16 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
+            "__intrinsic_sockets_connect".into(),
+            FnSig {
+                name: "__intrinsic_sockets_connect".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::String, Type::I32],
+                ret: Type::Result(Box::new(Type::I32), Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
             "__intrinsic_f64_bits_lo".into(),
             FnSig {
                 name: "__intrinsic_f64_bits_lo".into(),

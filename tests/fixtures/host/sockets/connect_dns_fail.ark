@@ -1,0 +1,19 @@
+// Fixture: sockets::connect with an invalid TLD always fails DNS resolution — CI-safe.
+// Expected target: wasm32-wasi-p2 (T3).
+// The .invalid TLD is RFC-guaranteed never to resolve.
+use std::host::sockets
+use std::host::stdio
+
+fn main() {
+    match sockets::connect("this.host.does.not.exist.invalid", 80) {
+        Ok(_fd) => stdio::println("unexpected ok"),
+        Err(e) => {
+            // DNS error message prefix is OS-specific; just check it starts with "connect:"
+            if starts_with(e, "connect:") {
+                stdio::println("dns error")
+            } else {
+                stdio::println(concat("unexpected error: ", e))
+            }
+        },
+    }
+}

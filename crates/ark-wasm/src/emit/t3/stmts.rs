@@ -490,6 +490,7 @@ impl Ctx {
                 | "fs_write_file"
                 | "http_get"
                 | "http_request"
+                | "sockets_connect"
                 | "memory_copy"
                 | "memory_fill"
                 | "arg_count"
@@ -1061,6 +1062,14 @@ impl Ctx {
             }
             "http_request" => {
                 self.emit_http_request_builtin(f, args);
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "sockets_connect" => {
+                self.emit_sockets_connect_builtin(f, args);
                 if let Some(Place::Local(id)) = dest {
                     f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
                 } else {
@@ -1720,6 +1729,9 @@ impl Ctx {
             }
             "http_request" => {
                 self.emit_http_request_builtin(f, args);
+            }
+            "sockets_connect" => {
+                self.emit_sockets_connect_builtin(f, args);
             }
             "memory_copy" => {
                 // memory.copy returns Unit; emit instruction, push dummy i32 for stack

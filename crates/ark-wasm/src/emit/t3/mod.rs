@@ -74,6 +74,10 @@ const FS_BUF_SIZE: u32 = 4096;
 pub(super) const HTTP_SCRATCH_IN: u32 = 16384;
 pub(super) const HTTP_SCRATCH_RESP: u32 = 32768;
 
+// Sockets scratch memory layout: host string at 48KB, error response at 56KB
+pub(super) const SOCKETS_SCRATCH_IN: u32 = 49152;
+pub(super) const SOCKETS_SCRATCH_RESP: u32 = 57344;
+
 /// P2 canonical ABI: retptr area (12 bytes, reuses IOV_BASE region)
 pub(super) const P2_RETPTR: u32 = 0;
 
@@ -147,6 +151,7 @@ fn normalize_intrinsic(name: &str) -> &str {
             "fs_write_bytes" => "fs_write_bytes",
             "http_get" => "http_get",
             "http_request" => "http_request",
+            "sockets_connect" => "sockets_connect",
             "index_of" => "index_of",
             "process_exit" => "process_exit",
             "process_abort" => "process_abort",
@@ -536,6 +541,9 @@ pub(super) struct Ctx {
     host_http_get: u32,
     host_http_request: u32,
     needs_http: bool,
+    /// Host sockets import index (conditional, in arukellt_host namespace)
+    host_sockets_connect: u32,
+    needs_sockets: bool,
     /// Optimization level (0 = O0, 1 = O1, 2 = O2).
     /// Tail-call emission (`return_call`) is enabled at opt_level >= 1.
     opt_level: u8,
@@ -1038,6 +1046,8 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         host_http_get: 0,
         host_http_request: 0,
         needs_http: false,
+        host_sockets_connect: 0,
+        needs_sockets: false,
         opt_level,
         string_intern_globals: HashMap::new(),
         string_intern_count: 0,
@@ -1084,6 +1094,8 @@ impl Ctx {
         self.wasi_needs_environ = needs_environ;
         let needs_http = Self::mir_uses_http(mir, &reachable_user_indices);
         self.needs_http = needs_http;
+        let needs_sockets = Self::mir_uses_sockets(mir, &reachable_user_indices);
+        self.needs_sockets = needs_sockets;
 
         self.ensure_specialized_result_enums();
 
@@ -1145,6 +1157,12 @@ impl Ctx {
             ],
             &[ValType::I32],
         );
+        // sockets_connect: (host_ptr: i32, host_len: i32, port: i32, result_ptr: i32) -> i32
+        // Returns >= 0: Ok, fd = return value.  Returns < 0: Err, abs(return) = error string
+        // length written at result_ptr.
+        let sockets_connect_ty = self
+            .types
+            .add_func(&[ValType::I32, ValType::I32, ValType::I32, ValType::I32], &[ValType::I32]);
 
         // Scan MIR to determine which stdlib helpers are actually needed
         // (must happen before import counting so we know if fd_write is needed)
@@ -1205,8 +1223,10 @@ impl Ctx {
             self.host_http_request = num_imports;
             num_imports += 1;
         }
-
-        // GC-native helper function signatures — only include needed ones
+        if needs_sockets {
+            self.host_sockets_connect = num_imports;
+            num_imports += 1;
+        }
         let str_ref = ref_nullable(self.string_ty);
         let mut helper_fns: Vec<(String, Vec<ValType>, Vec<ValType>)> = Vec::new();
 
@@ -1598,6 +1618,13 @@ impl Ctx {
                 wasm_encoder::EntityType::Function(http_request_ty),
             );
         }
+        if needs_sockets {
+            imports.import(
+                "arukellt_host",
+                "sockets_connect",
+                wasm_encoder::EntityType::Function(sockets_connect_ty),
+            );
+        }
 
         // Function section
         let mut functions = FunctionSection::new();
@@ -1902,6 +1929,9 @@ impl Ctx {
         if needs_http {
             func_names.append(self.host_http_get, "arukellt_host:http_get");
             func_names.append(self.host_http_request, "arukellt_host:http_request");
+        }
+        if needs_sockets {
+            func_names.append(self.host_sockets_connect, "arukellt_host:sockets_connect");
         }
         // Helper function names (sorted by index for NameMap)
         let mut helpers: Vec<(u32, &str)> = self

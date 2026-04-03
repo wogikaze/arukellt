@@ -17,7 +17,7 @@
 | [`std::host::fs`](#stdhostfs) | 3 | Available | all |
 | [`std::host::process`](#stdhostprocess) | 2 | Available | all |
 | [`std::host::http`](#stdhosthttp) | 2 | Available (T1 linker) | T1, T3 |
-| [`std::host::sockets`](#stdhostsockets) | 1 | Stub / Experimental | wasm32-wasi-p2 |
+| [`std::host::sockets`](#stdhostsockets) | 1 | Available (T3 only) | wasm32-wasi-p2 |
 
 ---
 
@@ -152,10 +152,13 @@ TCP/UDP sockets via WASI Preview 2 `wasi:sockets` interfaces.
 
 | Function | Signature | Status | Targets | WASI import |
 |---|---|---|---|---|
-| `connect` | `(String, i32) -> Result<i32, String>` | stub | wasm32-wasi-p2 | `wasi:sockets/*` |
+| `connect` | `(String, i32) -> Result<i32, String>` | available | wasm32-wasi-p2 | `arukellt_host::sockets_connect` |
 
-Returns `Err("not yet implemented (WASI P2 host stub)")`. Module stability
-is **experimental**. Usage is rejected at compile time.
+Registers a TCP connection to the given hostname and port.  Returns
+`Ok(fd)` (fd = 3, placeholder — full fd management is a future extension)
+on success, or `Err("connect: <host>:<port>: <reason>")` on failure.
+Module stability is **provisional**.  On T1 (wasm32-wasi-p1) a compile-time
+diagnostic E0500 (incompatible target) is emitted by the resolver.
 
 ---
 
@@ -191,17 +194,13 @@ is **experimental**. Usage is rejected at compile time.
 ## Host Stub Enforcement
 
 Programs that reference unimplemented host stubs are rejected at compile
-time by a MIR scan. The following builtins trigger a hard error:
+time by a MIR scan. There are currently **no** builtins in the stub list —
+`sockets_connect` was promoted to a real T3 host function in issue 447.
 
-- `sockets_connect` — `std::host::sockets`
+(The infrastructure is kept for future host-stub additions.)
 
-(Plus their `__intrinsic_*` variants.)
-
-This means stub modules cannot accidentally be shipped in a compiled binary.
-
-`std::host::http` is **not** in this list because `http_get` / `http_request`
-are fully wired in the T1/T3 Wasmtime linker and do not require a host-stub
-guard.
+`std::host::http` and `std::host::sockets` are both fully wired in the
+Wasmtime linker and do not require a host-stub guard.
 
 ---
 
@@ -244,7 +243,7 @@ blocked intrinsic, the program is still rejected.
 | `process::abort` | ✓ | ✓ |
 | `http::request` | ✓ | ✓ |
 | `http::get` | ✓ | ✓ |
-| `sockets::connect` | — | stub |
+| `sockets::connect` | E0500 | ✓ |
 
 ---
 
@@ -253,11 +252,11 @@ blocked intrinsic, the program is still rejected.
 1. **`env::var` unavailable on T1.** WASI Preview 1 on the T1 backend does
    not import `environ_get`, so `std::host::env::var` is T3-only.
 
-2. **Sockets is a stub.** `std::host::sockets::connect` exists in the manifest
-   but returns `Err("not yet implemented (WASI P2 host stub)")` at runtime.
-   Usage is blocked at compile time by the host-stub enforcement scan.
-   `std::host::http` is **not** a stub — it is available on T1 and T3 via
-   the Wasmtime linker (HTTP/1.1 only; HTTPS is not supported).
+2. **Sockets is T3-only.** `std::host::sockets::connect` is available on
+   T3 (wasm32-wasi-p2) via the Wasmtime linker (`arukellt_host::sockets_connect`).
+   On T1 (wasm32-wasi-p1) the compiler emits E0500 (incompatible target).
+   `std::host::http` is available on both T1 and T3 via the Wasmtime linker
+   (HTTP/1.1 only; HTTPS is not supported).
 
 3. **No `--deny-stdio` flag.** Standard I/O is unconditionally available.
 

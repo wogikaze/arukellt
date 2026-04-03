@@ -1887,18 +1887,19 @@ examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\
 [[modules]]
 name = "std::host::sockets"
 target = ["wasm32-wasi-p2"]
-stability = "experimental"
+stability = "provisional"
 family = "expansion"
 doc = "TCP/UDP sockets via WASI Preview 2 wasi:sockets interfaces"
 
 [[functions]]
 name = "connect"
 module = "std::host::sockets"
-kind = "host_stub"
+kind = "intrinsic_wrapper"
+intrinsic = "__intrinsic_sockets_connect"
 params = ["String", "i32"]
 returns = "Result<i32, String>"
 target = ["wasm32-wasi-p2"]
-stability = "experimental"
+stability = "provisional"
 doc_category = "host_sockets"
 doc = "Open a TCP connection to the given hostname and port. Returns a socket descriptor on success."
 errors = "Err on DNS resolution failure, connection refused, or network unreachable."

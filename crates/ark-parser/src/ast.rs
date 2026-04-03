@@ -443,6 +443,7 @@ impl Pattern {
 pub enum Stmt {
     Let {
         name: String,
+        name_span: Span,
         ty: Option<TypeExpr>,
         init: Expr,
         is_mut: bool,

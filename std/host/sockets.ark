@@ -1,10 +1,27 @@
-//! TCP/UDP socket helpers via WASI Preview 2 wasi:sockets interfaces.
+//! TCP socket helpers via the arukellt_host Wasmtime linker.
 //!
-//! These APIs are host-bound and only available on wasm32-wasi-p2 targets.
-//! They are stubs until the WASI sockets adapter is fully wired.
+//! These APIs are host-bound and only available on wasm32-wasi-p2 (T3) targets.
+//! On T1 (wasm32-wasi-p1) a compile-time error (E0500) is emitted by the resolver.
+//!
+//! # Minimum implementation notes
+//!
+//! `connect` establishes a TCP connection and returns a fixed fd value of 3 on
+//! success.  Full socket fd management (read/write/close) is a future extension.
 
 /// Opens a TCP connection to the given host and port.
-/// Returns a socket descriptor or an error string.
+///
+/// Returns `Ok(fd)` where fd is a socket descriptor (minimum implementation:
+/// always 3), or `Err(message)` on failure.
+///
+/// # Error strings
+///
+/// | Situation | `Err` value |
+/// |---|---|
+/// | DNS resolution failure | `"connect: <host>:<port>: ..."` |
+/// | Connection refused | `"connect: <host>:<port>: connection refused"` |
+/// | Connection timeout | `"connect: <host>:<port>: timed out"` |
+/// | Invalid port (< 0 or > 65535) | `"connect: invalid port <n>"` |
+/// | Any other I/O failure | `"connect: <host>:<port>: <os_error>"` |
 pub fn connect(host: String, port: i32) -> Result<i32, String> {
-    Err(String_from("std::host::sockets::connect is not yet implemented (WASI P2 host stub)"))
+    __intrinsic_sockets_connect(host, port)
 }

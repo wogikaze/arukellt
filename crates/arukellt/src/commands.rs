@@ -1288,7 +1288,11 @@ const RANDOM_BUILTINS: &[&str] = &[
 /// Functions marked `kind = "host_stub"` in std/manifest.toml.
 /// These always return Err("not implemented") and should be rejected at
 /// compile time rather than letting users discover the failure at runtime.
-const HOST_STUB_BUILTINS: &[&str] = &["sockets_connect", "__intrinsic_sockets_connect"];
+///
+/// `sockets_connect` / `__intrinsic_sockets_connect` were removed when T3 TCP
+/// connect was implemented (issue 447).  The array is kept empty so the
+/// infrastructure is available for future host-stub additions.
+const HOST_STUB_BUILTINS: &[&str] = &[];
 
 /// Scan MIR for calls to any of the given builtin names.
 fn mir_uses_capability(mir: &MirModule, builtins: &[&str]) -> bool {

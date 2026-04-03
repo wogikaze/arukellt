@@ -74,7 +74,7 @@ Current public API names, sorted alphabetically.
 | `clone` | `prelude` | `stable` | String |
 | `component_model_version` | `std::component` | `experimental` | Component |
 | `concat` | `prelude` | `stable` | String |
-| `connect` | `std::host::sockets` | `experimental` | Host Sockets |
+| `connect` | `std::host::sockets` | `provisional` | Host Sockets |
 | `contains` | `prelude` | `stable` | String |
 | `contains_i32` | `prelude` | `stable` | Collections |
 | `contains_String` | `prelude` | `stable` | Collections |
@@ -118,7 +118,7 @@ Current public API names, sorted alphabetically.
 | `format_i32` | `std::text` | `stable` | Text |
 | `format_i64` | `std::text` | `stable` | Text |
 | `get` | `prelude` | `stable` | Collections |
-| `get` | `std::host::http` | `experimental` | Host Http |
+| `get` | `std::host::http` | `provisional` | Host Http |
 | `get_unchecked` | `prelude` | `stable` | Collections |
 | `has_flag` | `std::host::env` | `stable` | Host Env |
 | `hash_combine` | `std::core::hash` | `stable` | Core |
@@ -204,7 +204,7 @@ Current public API names, sorted alphabetically.
 | `remove_i32` | `prelude` | `stable` | Collections |
 | `replace` | `prelude` | `stable` | String |
 | `replace` | `std::text` | `stable` | Text |
-| `request` | `std::host::http` | `experimental` | Host Http |
+| `request` | `std::host::http` | `provisional` | Host Http |
 | `reverse_i32` | `prelude` | `stable` | Collections |
 | `reverse_String` | `prelude` | `stable` | Collections |
 | `section_code` | `std::wasm` | `experimental` | Wasm |
@@ -368,7 +368,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `clone` | ✅ `stable` | `prelude` | String |
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
 | `concat` | ✅ `stable` | `prelude` | String |
-| `connect` | ✅ `experimental` | `std::host::sockets` | Host Sockets |
+| `connect` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `contains` | ✅ `stable` | `prelude` | String |
 | `contains_i32` | ✅ `stable` | `prelude` | Collections |
 | `contains_String` | ✅ `stable` | `prelude` | Collections |
@@ -413,7 +413,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `format_i32` | ✅ `stable` | `std::text` | Text |
 | `format_i64` | ✅ `stable` | `std::text` | Text |
 | `get` | ✅ `stable` | `prelude` | Collections |
-| `get` | ✅ `experimental` | `std::host::http` | Host Http |
+| `get` | ✅ `provisional` | `std::host::http` | Host Http |
 | `get_unchecked` | ✅ `stable` | `prelude` | Collections |
 | `has_flag` | ✅ `stable` | `std::host::env` | Host Env |
 | `hash_combine` | ✅ `stable` | `std::core::hash` | Core |
@@ -499,7 +499,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `remove_i32` | ✅ `stable` | `prelude` | Collections |
 | `replace` | ✅ `stable` | `prelude` | String |
 | `replace` | ✅ `stable` | `std::text` | Text |
-| `request` | ✅ `experimental` | `std::host::http` | Host Http |
+| `request` | ✅ `provisional` | `std::host::http` | Host Http |
 | `reverse_i32` | ✅ `stable` | `prelude` | Collections |
 | `reverse_String` | ✅ `stable` | `prelude` | Collections |
 | `section_code` | ✅ `experimental` | `std::wasm` | Wasm |

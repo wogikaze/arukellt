@@ -559,8 +559,75 @@ impl Ctx {
         }
     }
 
+    // ── Sockets reachability ─────────────────────────────────────────
+
+    pub(super) fn mir_uses_sockets(mir: &MirModule, reachable: &[usize]) -> bool {
+        for &idx in reachable {
+            let func = &mir.functions[idx];
+            for block in &func.blocks {
+                for stmt in &block.stmts {
+                    if Self::stmt_uses_sockets(stmt) {
+                        return true;
+                    }
+                }
+                if let Terminator::Return(Some(op)) = &block.terminator
+                    && Self::operand_uses_sockets(op)
+                {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn stmt_uses_sockets(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::CallBuiltin { name, .. } => {
+                name == "sockets_connect" || name == "__intrinsic_sockets_connect"
+            }
+            MirStmt::Assign(_, rvalue) => Self::rvalue_uses_sockets(rvalue),
+            MirStmt::IfStmt {
+                cond,
+                then_body,
+                else_body,
+            } => {
+                Self::operand_uses_sockets(cond)
+                    || then_body.iter().any(Self::stmt_uses_sockets)
+                    || else_body.iter().any(Self::stmt_uses_sockets)
+            }
+            MirStmt::WhileStmt { cond, body } => {
+                Self::operand_uses_sockets(cond) || body.iter().any(Self::stmt_uses_sockets)
+            }
+            MirStmt::Return(Some(op)) => Self::operand_uses_sockets(op),
+            _ => false,
+        }
+    }
+
+    fn rvalue_uses_sockets(rvalue: &Rvalue) -> bool {
+        match rvalue {
+            Rvalue::Use(op) => Self::operand_uses_sockets(op),
+            Rvalue::BinaryOp(_, l, r) => {
+                Self::operand_uses_sockets(l) || Self::operand_uses_sockets(r)
+            }
+            Rvalue::UnaryOp(_, op) => Self::operand_uses_sockets(op),
+            _ => false,
+        }
+    }
+
+    fn operand_uses_sockets(op: &Operand) -> bool {
+        match op {
+            Operand::Call(name, args) => {
+                if name == "sockets_connect" || name == "__intrinsic_sockets_connect" {
+                    return true;
+                }
+                args.iter().any(Self::operand_uses_sockets)
+            }
+            _ => false,
+        }
+    }
+
     pub(super) fn reachable_function_indices(&self, mir: &MirModule) -> Vec<usize> {
-        let mut name_to_idx = HashMap::new();
+        let mut name_to_idx: HashMap<&str, usize> = HashMap::new();
         for (idx, func) in mir.functions.iter().enumerate() {
             name_to_idx.insert(func.name.as_str(), idx);
         }
