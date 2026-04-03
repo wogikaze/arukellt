@@ -12,7 +12,7 @@ use serde::Serialize;
 use crate::native;
 use crate::runtime::{RuntimeCaps, run_wasm_gc, run_wasm_p1};
 
-pub(crate) fn cmd_init(path: PathBuf) {
+pub(crate) fn cmd_init(path: PathBuf, template: crate::InitTemplate) {
     let manifest_path = path.join("ark.toml");
     if manifest_path.exists() {
         eprintln!("error: ark.toml already exists in {}", path.display());
@@ -24,8 +24,16 @@ pub(crate) fn cmd_init(path: PathBuf) {
         .and_then(|s| s.to_str())
         .unwrap_or("hello-ark");
 
-    let manifest_content = format!(
-        r#"[package]
+    let src_dir = path.join("src");
+    std::fs::create_dir_all(&src_dir).unwrap_or_else(|e| {
+        eprintln!("error: failed to create src directory: {}", e);
+        process::exit(1);
+    });
+
+    match template {
+        crate::InitTemplate::Minimal => {
+            let manifest_content = format!(
+                r#"[package]
 name = "{}"
 version = "0.1.0"
 
@@ -33,36 +41,157 @@ version = "0.1.0"
 name = "{}"
 path = "src/main.ark"
 "#,
-        project_name, project_name
-    );
-
-    let src_dir = path.join("src");
-    std::fs::create_dir_all(&src_dir).unwrap_or_else(|e| {
-        eprintln!("error: failed to create src directory: {}", e);
-        process::exit(1);
-    });
-
-    let main_ark_path = src_dir.join("main.ark");
-    let main_ark_content = r#"use std::host::stdio
+                project_name, project_name
+            );
+            let main_ark_content = r#"use std::host::stdio
 
 fn main() {
     stdio::println("Hello, Arukellt!")
 }
 "#;
+            write_init_files(&manifest_path, &manifest_content, &src_dir, "main.ark", main_ark_content);
+        }
+        crate::InitTemplate::Cli => {
+            let manifest_content = format!(
+                r#"[package]
+name = "{}"
+version = "0.1.0"
 
-    std::fs::write(&manifest_path, manifest_content).unwrap_or_else(|e| {
+[bin]
+name = "{}"
+path = "src/main.ark"
+"#,
+                project_name, project_name
+            );
+            let main_ark_content = r#"use std::host::stdio
+use std::host::process
+
+fn greet(name: String) -> String {
+    concat(concat("Hello, ", name), "!")
+}
+
+fn main() {
+    // TODO: use std::host::env::args() for real CLI arg parsing when available
+    let name = "World"
+    stdio::println(greet(name))
+    process::exit(0)
+}
+"#;
+            write_init_files(&manifest_path, &manifest_content, &src_dir, "main.ark", main_ark_content);
+        }
+        crate::InitTemplate::WithTests => {
+            let manifest_content = format!(
+                r#"[package]
+name = "{}"
+version = "0.1.0"
+
+[bin]
+name = "{}"
+path = "src/main.ark"
+"#,
+                project_name, project_name
+            );
+            let main_ark_content = r#"use std::host::stdio
+
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+pub fn subtract(a: i32, b: i32) -> i32 {
+    a - b
+}
+
+fn test_add() {
+    let result = add(2, 3)
+    stdio::println(i32_to_string(result))
+}
+
+fn test_subtract() {
+    let result = subtract(10, 4)
+    stdio::println(i32_to_string(result))
+}
+
+fn main() {
+    let result = add(1, 2)
+    stdio::println(concat("1 + 2 = ", i32_to_string(result)))
+}
+"#;
+            write_init_files(&manifest_path, &manifest_content, &src_dir, "main.ark", main_ark_content);
+        }
+        crate::InitTemplate::WasiHost => {
+            let manifest_content = format!(
+                r#"[package]
+name = "{}"
+version = "0.1.0"
+
+[bin]
+name = "{}"
+path = "src/main.ark"
+target = "wasm32-wasi-p2"
+"#,
+                project_name, project_name
+            );
+            let main_ark_content = r#"// This example targets wasm32-wasi-p2.
+// Build with: arukellt run --target wasm32-wasi-p2 src/main.ark
+use std::host::stdio
+
+fn main() {
+    stdio::println("Hello from WASI host!")
+    stdio::println("Arukellt supports std::host::stdio for portable I/O.")
+    // To make an HTTP request, add: use std::host::http
+    // and call: http::get("https://example.com")
+}
+"#;
+            write_init_files(&manifest_path, &manifest_content, &src_dir, "main.ark", main_ark_content);
+        }
+    }
+
+    let template_name = match template {
+        crate::InitTemplate::Minimal => "minimal",
+        crate::InitTemplate::Cli => "cli",
+        crate::InitTemplate::WithTests => "with-tests",
+        crate::InitTemplate::WasiHost => "wasi-host",
+    };
+    eprintln!(
+        "Initialized Arukellt project in {} (template: {})",
+        path.display(),
+        template_name
+    );
+    eprintln!();
+    eprintln!("Next steps:");
+    eprintln!("  cd {}", path.display());
+    eprintln!("  arukellt check src/main.ark   # type-check");
+    eprintln!("  arukellt run src/main.ark     # run the program");
+    match template {
+        crate::InitTemplate::WithTests => {
+            eprintln!("  arukellt test src/main.ark    # run tests");
+        }
+        crate::InitTemplate::WasiHost => {
+            eprintln!("  arukellt run --target wasm32-wasi-p2 src/main.ark  # run with WASI P2");
+        }
+        _ => {}
+    }
+}
+
+fn write_init_files(
+    manifest_path: &std::path::Path,
+    manifest_content: &str,
+    src_dir: &std::path::Path,
+    main_filename: &str,
+    main_content: &str,
+) {
+    std::fs::write(manifest_path, manifest_content).unwrap_or_else(|e| {
         eprintln!("error: failed to write ark.toml: {}", e);
         process::exit(1);
     });
 
-    if !main_ark_path.exists() {
-        std::fs::write(&main_ark_path, main_ark_content).unwrap_or_else(|e| {
-            eprintln!("error: failed to write src/main.ark: {}", e);
+    let main_path = src_dir.join(main_filename);
+    if !main_path.exists() {
+        std::fs::write(&main_path, main_content).unwrap_or_else(|e| {
+            eprintln!("error: failed to write src/{}: {}", main_filename, e);
             process::exit(1);
         });
     }
-
-    eprintln!("Initialized Arukellt project in {}", path.display());
 }
 
 pub(crate) fn cmd_fmt(files: Vec<PathBuf>, check: bool) {

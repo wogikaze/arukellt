@@ -37,6 +37,21 @@ enum ScriptCommands {
     },
 }
 
+/// Template to use when initializing a new Arukellt project.
+#[derive(Debug, Clone, Copy, clap::ValueEnum)]
+pub enum InitTemplate {
+    /// Minimal Hello World project (default)
+    Minimal,
+    /// CLI tool with argument parsing boilerplate
+    Cli,
+    /// Project with test functions (run with `arukellt test`)
+    #[value(name = "with-tests")]
+    WithTests,
+    /// WASI host API usage example (requires --target wasm32-wasi-p2)
+    #[value(name = "wasi-host")]
+    WasiHost,
+}
+
 #[derive(Subcommand)]
 enum Commands {
     /// Compile an .ark file to Wasm
@@ -85,6 +100,9 @@ enum Commands {
         /// Project directory
         #[arg(default_value = ".")]
         path: PathBuf,
+        /// Project template to use
+        #[arg(long, value_name = "TEMPLATE", default_value = "minimal")]
+        template: InitTemplate,
     },
     /// Build the project in the current directory (requires ark.toml)
     Build {
@@ -253,8 +271,8 @@ fn main() {
                 json,
             );
         }
-        Commands::Init { path } => {
-            commands::cmd_init(path);
+        Commands::Init { path, template } => {
+            commands::cmd_init(path, template);
         }
         Commands::Fmt { files, check } => {
             commands::cmd_fmt(files, check);
