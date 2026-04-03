@@ -153,6 +153,29 @@ impl LspSession {
         resp
     }
 
+    /// Perform the initialize handshake with a real workspace root URI.
+    /// The root URI is used by the LSP server to locate the stdlib directory
+    /// so that stdlib imports (e.g. `use std::host::stdio`) are resolved
+    /// during diagnostics analysis.
+    fn initialize_with_root(&mut self, root_uri: &str) -> Value {
+        let resp = self
+            .request(
+                1,
+                "initialize",
+                json!({
+                    "processId": null,
+                    "rootUri": root_uri,
+                    "capabilities": {}
+                }),
+            )
+            .expect("initialize response");
+        // Send initialized notification
+        self.notify("initialized", json!({}));
+        // Give the server time to index project files and stdlib
+        std::thread::sleep(Duration::from_millis(300));
+        resp
+    }
+
     /// Open a document.
     fn open_document(&mut self, uri: &str, text: &str) {
         self.notify(
@@ -168,6 +191,48 @@ impl LspSession {
         );
         // Small delay to let the server process the notification
         std::thread::sleep(Duration::from_millis(200));
+    }
+
+    /// Collect the `textDocument/publishDiagnostics` notification for `target_uri`.
+    ///
+    /// Waits up to `timeout` for a matching notification.  Returns the diagnostics
+    /// array, or an empty `Vec` if no notification arrives within the timeout.
+    fn collect_diagnostics_for(&self, target_uri: &str, timeout: Duration) -> Vec<Value> {
+        let deadline = std::time::Instant::now() + timeout;
+        loop {
+            let remaining = deadline.saturating_duration_since(std::time::Instant::now());
+            if remaining.is_zero() {
+                break;
+            }
+            match self
+                .rx
+                .recv_timeout(remaining.min(Duration::from_millis(200)))
+            {
+                Ok(msg) => {
+                    let method = msg.get("method").and_then(|m| m.as_str());
+                    if method == Some("textDocument/publishDiagnostics") {
+                        let uri_matches = msg
+                            .get("params")
+                            .and_then(|p| p.get("uri"))
+                            .and_then(|u| u.as_str())
+                            == Some(target_uri);
+                        if uri_matches {
+                            return msg
+                                .get("params")
+                                .and_then(|p| p.get("diagnostics"))
+                                .and_then(|d| d.as_array())
+                                .cloned()
+                                .unwrap_or_default();
+                        }
+                    }
+                }
+                Err(_) => break, // Timeout
+            }
+        }
+        // No matching notification received within the timeout.
+        // Treat as "no diagnostics published", which is a safe default —
+        // the server sends an empty array when there are no errors.
+        vec![]
     }
 
     /// Shut down cleanly.
@@ -619,6 +684,109 @@ fn hover_stdlib_function_returns_content() {
             value
         );
     }
+
+    session.shutdown();
+}
+
+// ---- Issue 452: E0100 false positives for valid stdlib imports ----
+
+/// Return the workspace root as a `file://` URI so tests can pass it to the
+/// LSP server's `initialize` request.  The server uses this root to locate the
+/// `std/` directory and resolve stdlib imports during diagnostics analysis.
+fn workspace_root_uri() -> String {
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    // CARGO_MANIFEST_DIR is `{workspace}/crates/ark-lsp`.
+    // Go up two levels to reach the workspace root.
+    let root = std::path::Path::new(manifest_dir)
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    // Build a file:// URI manually to avoid an external URL-encoding dependency.
+    let path_str = root.to_str().expect("workspace root is valid UTF-8");
+    if path_str.starts_with('/') {
+        format!("file://{}", path_str)
+    } else {
+        // Windows absolute path: file:///C:/...
+        format!("file:///{}", path_str.replace('\\', "/"))
+    }
+}
+
+#[test]
+fn no_e0100_for_valid_stdlib_import() {
+    // Regression test for issue #452.
+    //
+    // A source file that imports `std::host::stdio` and calls `stdio::println`
+    // is valid.  `arukellt check` produces no errors; the LSP must not produce
+    // any E0100 diagnostics for it either.
+    //
+    // The server is initialized with the real workspace root so it can locate
+    // the stdlib directory and register `println` from `std/host/stdio.ark`
+    // into the TypeChecker before checking the user's module.
+    let mut session = LspSession::start();
+    let root_uri = workspace_root_uri();
+    session.initialize_with_root(&root_uri);
+
+    let uri = "file:///test/issue452_stdlib.ark";
+    let src = "use std::host::stdio\nfn main() {\n    stdio::println(\"hello from stdlib\")\n}\n";
+    session.open_document(uri, src);
+
+    // Wait for publishDiagnostics.  After fix #452 this should arrive with an
+    // empty diagnostics array (or not arrive at all, which we also treat as
+    // "no errors").
+    let diags = session.collect_diagnostics_for(uri, Duration::from_secs(5));
+
+    let e0100_diags: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            d.get("code")
+                .and_then(|c| c.as_str())
+                .map(|s| s == "E0100")
+                .unwrap_or(false)
+        })
+        .collect();
+
+    assert!(
+        e0100_diags.is_empty(),
+        "E0100 false positive for valid `use std::host::stdio` import — \
+         LSP diagnostics must match CLI check (no errors). Got: {:?}",
+        e0100_diags
+    );
+
+    session.shutdown();
+}
+
+#[test]
+fn no_e0100_for_valid_multimodule_stdlib_import() {
+    // Additional regression for issue #452: multiple stdlib imports in the same
+    // file should all be resolved without E0100.
+    let mut session = LspSession::start();
+    let root_uri = workspace_root_uri();
+    session.initialize_with_root(&root_uri);
+
+    let uri = "file:///test/issue452_multi.ark";
+    // Use two stdlib modules; calls to both should be free of E0100.
+    let src = "use std::host::stdio\nuse std::text\n\
+        fn main() {\n    let s = text::to_string(42)\n    stdio::println(s)\n}\n";
+    session.open_document(uri, src);
+
+    let diags = session.collect_diagnostics_for(uri, Duration::from_secs(5));
+
+    let e0100_diags: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            d.get("code")
+                .and_then(|c| c.as_str())
+                .map(|s| s == "E0100")
+                .unwrap_or(false)
+        })
+        .collect();
+
+    assert!(
+        e0100_diags.is_empty(),
+        "E0100 false positive for multi-module stdlib imports: {:?}",
+        e0100_diags
+    );
 
     session.shutdown();
 }

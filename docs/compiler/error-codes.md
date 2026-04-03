@@ -15,6 +15,7 @@ The first digit after the prefix identifies the compiler phase:
 | `E02xx` | Type checking | `ark-typecheck` |
 | `E03xx` | v0 version constraints / target | `ark-typecheck`, target selection |
 | `E04xx` | Component Model / canonical ABI | backend validate |
+| `E05xx` | Resolve / target gating | `ark-resolve` |
 | `W0xxx` | Warnings & validation gate | various |
 | `ICE-*` | Internal compiler errors | runtime |
 
@@ -525,6 +526,22 @@ The exported function uses a WIT `resource` type which is not yet implemented.
 
 ---
 
+## Resolve Errors — `E05xx`
+
+### E0500 — module requires a different target
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | resolve |
+| **Message** | module requires a different target |
+
+A stdlib module was imported that is only available on a specific target
+(e.g., `std::host::http` on a target that does not support host networking).
+Switch to a target that supports the module, or remove the import.
+
+---
+
 ## Warnings — `W0xxx`
 
 ### W0001 — possible unintended sharing of reference type
@@ -703,6 +720,7 @@ one, please file a bug report.
 | E0400 | error | backend-validate | WIT flags type not supported in current version |
 | E0401 | error | backend-validate | canonical ABI not implemented for compound type |
 | E0402 | error | backend-validate | WIT resource type not implemented in current version |
+| E0500 | error | resolve | module requires a different target |
 | W0001 | warning | typecheck | possible unintended sharing of reference type |
 | W0002 | warning | target | deprecated target alias |
 | W0003 | warning | resolve | ambiguous import |

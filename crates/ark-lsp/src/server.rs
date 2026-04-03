@@ -107,7 +107,14 @@ impl ArukellBackend {
     }
 
     async fn refresh_diagnostics(&self, uri: Url, text: &str) {
-        let analysis = Self::analyze_source(text);
+        // Compute the stdlib root so that imports like `use std::host::stdio` are
+        // resolved during diagnostics analysis (fix for E0100 false positives, #452).
+        let std_root: Option<std::path::PathBuf> = self
+            .project_root
+            .lock().unwrap()
+            .as_ref()
+            .map(|r| r.join("std"));
+        let analysis = Self::analyze_source_with_stdlib(text, std_root.as_deref());
         let diagnostics = analysis.diagnostics.clone();
         // Update symbol index from this file's analysis
         Self::update_file_symbols(&self.symbol_index, &uri, &analysis.module);
@@ -370,6 +377,55 @@ impl ArukellBackend {
     /// in-memory source text and return cached results for reuse by all LSP
     /// features.
     fn analyze_source(source: &str) -> CachedAnalysis {
+        Self::analyze_source_with_stdlib(source, None)
+    }
+
+    /// Resolve `std::X::Y` → `{std_root}/X/Y.ark` given the stdlib root directory
+    /// (e.g. `{project_root}/std`).  Returns `None` when the file cannot be found
+    /// or the import is not a stdlib import.
+    fn stdlib_file_for_import(
+        module_name: &str,
+        std_root: &std::path::Path,
+    ) -> Option<std::path::PathBuf> {
+        if !module_name.starts_with("std") {
+            return None;
+        }
+        // Convert "std::host::stdio" → "std/host/stdio"
+        let rel = module_name.replace("::", "/");
+        // Try with full path including "std/" prefix: {std_root}/std/host/stdio.ark
+        let candidate1 = std_root.join(format!("{}.ark", rel));
+        if candidate1.exists() {
+            return Some(candidate1);
+        }
+        // Try mod.ark variant: {std_root}/std/host/stdio/mod.ark
+        let candidate1_mod = std_root.join(&rel).join("mod.ark");
+        if candidate1_mod.exists() {
+            return Some(candidate1_mod);
+        }
+        // Strip "std/" prefix and try: {std_root}/host/stdio.ark
+        let stripped = rel.strip_prefix("std/").unwrap_or(&rel);
+        let candidate2 = std_root.join(format!("{}.ark", stripped));
+        if candidate2.exists() {
+            return Some(candidate2);
+        }
+        // Try mod.ark variant: {std_root}/host/stdio/mod.ark
+        let candidate2_mod = std_root.join(stripped).join("mod.ark");
+        if candidate2_mod.exists() {
+            return Some(candidate2_mod);
+        }
+        None
+    }
+
+    /// Like `analyze_source` but loads stdlib `.ark` files for each stdlib import
+    /// (e.g. `use std::host::stdio`) so that qualified calls like `stdio::println`
+    /// are registered in the TypeChecker before the user's module is checked.
+    ///
+    /// `std_root` should be the path to the `std/` directory (e.g.
+    /// `{project_root}/std`).  When `None`, this is identical to `analyze_source`.
+    fn analyze_source_with_stdlib(
+        source: &str,
+        std_root: Option<&std::path::Path>,
+    ) -> CachedAnalysis {
         let mut sink = DiagnosticSink::new();
 
         let lexer = Lexer::new(0, source);
@@ -391,6 +447,32 @@ impl ArukellBackend {
         let resolved = ark_resolve::resolve_module(module, &mut sink);
         let mut checker = ark_typecheck::TypeChecker::new();
         checker.register_builtins();
+
+        // Issue #452: load stdlib source files for stdlib imports so that
+        // qualified calls (e.g. `stdio::println(...)`) are known to the
+        // TypeChecker and do not produce spurious E0100 diagnostics.
+        if let Some(std_root) = std_root {
+            for import in &cached_module.imports {
+                if let Some(path) = Self::stdlib_file_for_import(&import.module_name, std_root) {
+                    if let Ok(stdlib_src) = std::fs::read_to_string(&path) {
+                        let mut stdlib_sink = DiagnosticSink::new();
+                        let stdlib_lexer = Lexer::new(0, &stdlib_src);
+                        let stdlib_tokens: Vec<_> = stdlib_lexer.collect();
+                        let stdlib_module = parse(&stdlib_tokens, &mut stdlib_sink);
+                        if !stdlib_sink.has_errors() {
+                            let stdlib_resolved =
+                                ark_resolve::resolve_module(stdlib_module, &mut stdlib_sink);
+                            // check_module populates checker.fn_sigs with the
+                            // stdlib module's exported functions, making them
+                            // available for qualified-call resolution in the
+                            // user's module (e.g. `stdio::println`).
+                            checker.check_module(&stdlib_resolved, &mut stdlib_sink);
+                        }
+                    }
+                }
+            }
+        }
+
         checker.check_module(&resolved, &mut sink);
 
         // Run lint checks (unused imports and bindings)
@@ -5982,5 +6064,89 @@ fn add(a: i32, b: i32) -> i32 {
             let reformatted = ark_parser::fmt::format_source(f);
             assert_eq!(formatted, reformatted, "formatter should be idempotent");
         }
+    }
+
+    // ---- Issue #452: E0100 false positives for valid stdlib imports ----
+
+    /// Return the repository root (the directory containing `ark.toml` and `std/`).
+    fn repo_root() -> std::path::PathBuf {
+        // CARGO_MANIFEST_DIR = {workspace}/crates/ark-lsp
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .to_path_buf()
+    }
+
+    #[test]
+    fn analyze_source_with_stdlib_no_e0100_for_valid_stdio_import() {
+        // Regression test for issue #452.
+        //
+        // `use std::host::stdio` followed by `stdio::println(...)` is valid code.
+        // `arukellt check` produces no E0100.  The LSP must not produce E0100
+        // either when `analyze_source_with_stdlib` is given the real stdlib root.
+        let root = repo_root();
+        let std_root = root.join("std");
+        let src =
+            "use std::host::stdio\nfn main() {\n    stdio::println(\"hello\")\n}\n";
+
+        let analysis = ArukellBackend::analyze_source_with_stdlib(src, Some(&std_root));
+
+        let e0100: Vec<_> = analysis
+            .diagnostics
+            .iter()
+            .filter(|d| {
+                d.code
+                    .as_ref()
+                    .map(|c| matches!(c, tower_lsp::lsp_types::NumberOrString::String(s) if s == "E0100"))
+                    .unwrap_or(false)
+            })
+            .collect();
+
+        assert!(
+            e0100.is_empty(),
+            "E0100 false positive for valid `use std::host::stdio` import. \
+             Got: {:?}",
+            e0100
+        );
+    }
+
+    #[test]
+    fn analyze_source_without_stdlib_root_still_works() {
+        // When no stdlib root is provided (None), analyze_source_with_stdlib
+        // must behave identically to analyze_source — no panic, no regression.
+        let src = "fn main() {\n    let x = 1\n}\n";
+        let analysis = ArukellBackend::analyze_source_with_stdlib(src, None);
+        // No parse errors for valid source
+        let errors: Vec<_> = analysis
+            .diagnostics
+            .iter()
+            .filter(|d| d.severity == Some(tower_lsp::lsp_types::DiagnosticSeverity::ERROR))
+            .collect();
+        assert!(
+            errors.is_empty(),
+            "no errors expected for trivial valid source without stdlib root: {:?}",
+            errors
+        );
+    }
+
+    #[test]
+    fn stdlib_file_for_import_resolves_known_modules() {
+        // Unit test for the stdlib path resolver helper.
+        let root = repo_root();
+        let std_root = root.join("std");
+
+        // std::host::stdio → std/host/stdio.ark
+        let p = ArukellBackend::stdlib_file_for_import("std::host::stdio", &std_root);
+        assert!(
+            p.is_some(),
+            "should resolve std::host::stdio, std_root={:?}",
+            std_root
+        );
+
+        // Non-stdlib import → None
+        let p2 = ArukellBackend::stdlib_file_for_import("my_local_module", &std_root);
+        assert!(p2.is_none(), "non-stdlib import should return None");
     }
 }
