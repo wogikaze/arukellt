@@ -1,0 +1,47 @@
+use std::host::stdio
+use std::text
+use std::path
+
+fn greet(name: String) -> String {
+    to_upper(name)
+}
+
+fn format_path(base: String, file: String) -> String {
+    path::join(base, file)
+}
+
+fn pad_number(n: i32) -> String {
+    text::pad_left(i32_to_string(n), 6, "0")
+}
+
+fn main() {
+    // text operations
+    let msg = greet(String_from("world"))
+    stdio::println(msg)
+
+    // path operations
+    let p = format_path(String_from("/usr/local"), String_from("bin"))
+    stdio::println(p)
+
+    // pad a number
+    let padded = pad_number(42)
+    stdio::println(padded)
+
+    // string operations
+    let s = String_from("hello world")
+    let upper = to_upper(s)
+    stdio::println(upper)
+
+    let lower = to_lower(String_from("ARUKELLT"))
+    stdio::println(lower)
+
+    // path utilities
+    let ext = path::extension(String_from("main.ark"))
+    stdio::println(ext)
+
+    let parent = path::parent(String_from("/usr/bin/ls"))
+    stdio::println(parent)
+
+    let fname = path::file_name(String_from("/usr/bin/arukellt"))
+    stdio::println(fname)
+}

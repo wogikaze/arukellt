@@ -29,6 +29,7 @@ PERF_GATE=false
 RUN_FIXPOINT=false
 RUN_SELFHOST_FIXTURE_PARITY=false
 RUN_SELFHOST_DIAG_PARITY=false
+RUN_LSP_PERF=false
 
 usage() {
     cat <<'EOF'
@@ -50,8 +51,9 @@ Options:
   --fixpoint         Run selfhost bootstrap fixpoint check (issue #459)
   --selfhost-fixture-parity  Run selfhost fixture output parity check
   --selfhost-diag-parity     Run selfhost diagnostic parity check
+  --lsp-perf   Run LSP performance smoke tests (issue #463)
   --full       Run all heavy local verification groups (includes --fixpoint,
-               --selfhost-fixture-parity, --selfhost-diag-parity)
+               --selfhost-fixture-parity, --selfhost-diag-parity, --lsp-perf)
   --perf-gate  Run the perf regression gate (still opt-in)
   --help       Show this help message
 EOF
@@ -71,6 +73,7 @@ for arg in "$@"; do
         --fixpoint) RUN_FIXPOINT=true ;;
         --selfhost-fixture-parity) RUN_SELFHOST_FIXTURE_PARITY=true ;;
         --selfhost-diag-parity)    RUN_SELFHOST_DIAG_PARITY=true ;;
+        --lsp-perf) RUN_LSP_PERF=true ;;
         --full)
             RUN_CARGO=true
             RUN_FIXTURES=true
@@ -83,6 +86,7 @@ for arg in "$@"; do
             RUN_FIXPOINT=true
             RUN_SELFHOST_FIXTURE_PARITY=true
             RUN_SELFHOST_DIAG_PARITY=true
+            RUN_LSP_PERF=true
             ;;
         --perf-gate) PERF_GATE=true ;;
         --help|-h)
@@ -98,7 +102,7 @@ for arg in "$@"; do
 done
 
 echo -e "${YELLOW}Running harness verification...${NC}"
-if [ "$RUN_CARGO" = false ] && [ "$RUN_FIXTURES" = false ] && [ "$RUN_BASELINE" = false ] && [ "$RUN_SIZE" = false ] && [ "$RUN_WAT" = false ] && [ "$RUN_DOCS" = false ] && [ "$RUN_COMPONENT" = false ] && [ "$RUN_OPT_EQUIV" = false ] && [ "$PERF_GATE" = false ] && [ "$RUN_FIXPOINT" = false ] && [ "$RUN_SELFHOST_FIXTURE_PARITY" = false ] && [ "$RUN_SELFHOST_DIAG_PARITY" = false ]; then
+if [ "$RUN_CARGO" = false ] && [ "$RUN_FIXTURES" = false ] && [ "$RUN_BASELINE" = false ] && [ "$RUN_SIZE" = false ] && [ "$RUN_WAT" = false ] && [ "$RUN_DOCS" = false ] && [ "$RUN_COMPONENT" = false ] && [ "$RUN_OPT_EQUIV" = false ] && [ "$PERF_GATE" = false ] && [ "$RUN_FIXPOINT" = false ] && [ "$RUN_SELFHOST_FIXTURE_PARITY" = false ] && [ "$RUN_SELFHOST_DIAG_PARITY" = false ] && [ "$RUN_LSP_PERF" = false ]; then
     echo -e "${YELLOW}Mode: fast local gate${NC}"
 else
     selected=()
@@ -114,6 +118,7 @@ else
     [ "$RUN_FIXPOINT" = true ] && selected+=(selfhost-fixpoint)
     [ "$RUN_SELFHOST_FIXTURE_PARITY" = true ] && selected+=(selfhost-fixture-parity)
     [ "$RUN_SELFHOST_DIAG_PARITY" = true ] && selected+=(selfhost-diag-parity)
+    [ "$RUN_LSP_PERF" = true ] && selected+=(lsp-perf)
     echo -e "${YELLOW}Mode: fast local gate + ${selected[*]}${NC}"
 fi
 
@@ -251,6 +256,9 @@ root = Path('tests/fixtures')
 entries = []
 for ark in sorted(root.rglob('*.ark')):
     rel = ark.relative_to(root)
+    # Skip LSP-specific test fixture directories (not part of the general harness)
+    if str(rel).startswith('lsp_perf/'):
+        continue
     if ark.name != 'main.ark' and (ark.parent / 'main.ark').exists():
         continue
     entries.append(str(rel))
@@ -434,6 +442,12 @@ if [ "$RUN_SELFHOST_DIAG_PARITY" = true ]; then
     printf '\n%s\n' "${YELLOW}[selfhost-diag-parity] Running selfhost diagnostic parity...${NC}"
     run_check "selfhost diagnostic parity (error fixtures through s1.wasm)" \
         "bash scripts/check/check-selfhost-diagnostic-parity.sh"
+fi
+
+if [ "$RUN_LSP_PERF" = true ]; then
+    printf '\n%s\n' "${YELLOW}[lsp-perf] Running LSP performance smoke tests...${NC}"
+    run_check "LSP performance smoke" \
+        "$MISE cargo test --release -p ark-lsp --test lsp_perf -- --nocapture"
 fi
 
 printf '\n%s\n' "${YELLOW}========================================${NC}"
