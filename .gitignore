@@ -46,3 +46,8 @@ docs/spec/spec-*/
 
 # wasm-pack build output
 crates/ark-playground-wasm/pkg/
+
+# playground build:app generated assets (produced by `npm run build:app` in playground/)
+# docs/playground/dist/ is intentionally NOT ignored — CI builds it before pages upload
+docs/playground/wasm/
+docs/playground/dist/
