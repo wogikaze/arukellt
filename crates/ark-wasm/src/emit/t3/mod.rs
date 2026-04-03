@@ -148,6 +148,8 @@ fn normalize_intrinsic(name: &str) -> &str {
             "http_get" => "http_get",
             "http_request" => "http_request",
             "index_of" => "index_of",
+            "process_exit" => "process_exit",
+            "process_abort" => "process_abort",
             other => other,
         }
     } else {
@@ -907,7 +909,7 @@ fn func_body_wraps_http_intrinsic(func: &MirFunction) -> bool {
 /// GC struct/array types. I/O bridges through a small linear memory
 /// region for WASI fd_write.
 pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u8> {
-    // TODO(MIR-01): remove checker fallback — read layouts from type_table only
+    // struct_layouts is sourced exclusively from mir.type_table (MIR-01 resolved).
     let struct_layouts: HashMap<String, Vec<(String, String)>> = mir.type_table.struct_defs.clone();
     let fn_ret_types: HashMap<String, Type> = mir
         .functions

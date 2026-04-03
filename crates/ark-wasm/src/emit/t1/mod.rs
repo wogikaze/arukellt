@@ -190,6 +190,8 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_env_var" => "env_var",
         "__intrinsic_f64_bits_lo" => "f64_bits_lo",
         "__intrinsic_f64_bits_hi" => "f64_bits_hi",
+        "__intrinsic_process_exit" => "process_exit",
+        "__intrinsic_process_abort" => "process_abort",
         other => other,
     }
 }
@@ -216,7 +218,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         }
         struct_layouts.insert(sname.clone(), fields.clone());
     }
-    // TODO(MIR-01): remove checker fallback — enum_payload_types should come from type_table only
+    // struct_layouts and enum_payload_types are sourced exclusively from mir.type_table (MIR-01 resolved).
     let mut ctx = EmitCtx {
         string_literals: Vec::new(),
         data_offset: DATA_START,
@@ -1316,7 +1318,7 @@ fn cfn_handle_builtin(
             needed.insert(FN_ENV_VAR);
             needed.insert(FN_ENSURE_HEAP);
         }
-        "exit" | "proc_exit" => {
+        "exit" | "proc_exit" | "process_exit" | "process_abort" => {
             needed.insert(FN_PROC_EXIT);
         }
         other

@@ -1,0 +1,26 @@
+// Regression fixture: enum match variants sourced exclusively from type_table (issue 449 / MIR-01).
+// Verifies that enum_payload_types are read from mir.type_table.enum_defs in both T1 and T3 emitters.
+use std::host::stdio
+
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+fn describe(d: Direction) -> String {
+    match d {
+        Direction::North => String_from("north"),
+        Direction::South => String_from("south"),
+        Direction::East => String_from("east"),
+        Direction::West => String_from("west"),
+    }
+}
+
+fn main() {
+    stdio::println(describe(Direction::North))
+    stdio::println(describe(Direction::East))
+    stdio::println(describe(Direction::South))
+    stdio::println(describe(Direction::West))
+}

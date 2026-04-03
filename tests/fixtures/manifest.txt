@@ -139,6 +139,9 @@ run:hello/exit_code.ark
 run:hello/hello.ark
 run:hello/multi_print.ark
 run:hello/print_int.ark
+run:host/process/abort.ark
+run:host/process/exit_nonzero.ark
+run:host/process/exit_zero.ark
 run:integration/calculator.ark
 run:integration/fibonacci.ark
 run:integration/linked_list.ark
@@ -394,6 +397,8 @@ t3-compile:operators/precedence.ark
 t3-compile:operators/short_circuit.ark
 t3-compile:operators/string_eq.ark
 t3-compile:operators/unary.ark
+t3-compile:regression/type_table/enum_match_variants.ark
+t3-compile:regression/type_table/struct_field_access.ark
 t3-compile:stdlib_filter/filter_string.ark
 t3-compile:stdlib_hashmap/hashmap_basic.ark
 t3-compile:stdlib_http_compile.ark
@@ -533,6 +538,9 @@ t3-run:hello/exit_code.ark
 t3-run:hello/hello.ark
 t3-run:hello/multi_print.ark
 t3-run:hello/print_int.ark
+t3-run:host/process/abort.ark
+t3-run:host/process/exit_nonzero.ark
+t3-run:host/process/exit_zero.ark
 t3-run:integration/calculator.ark
 t3-run:integration/fibonacci.ark
 t3-run:integration/word_counter.ark
