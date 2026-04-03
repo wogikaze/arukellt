@@ -39,6 +39,7 @@ fn parse_twice(s: String) -> Result<i32, String> {
 
 ## panic
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 panic(String_from("unreachable"))
 ```
@@ -50,6 +51,7 @@ panic(String_from("unreachable"))
 
 現行 stdlib wrapper では、たとえば以下のような形が多いです。
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 Result<String, String>
 Result<(), String>

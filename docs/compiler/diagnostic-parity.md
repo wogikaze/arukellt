@@ -58,6 +58,7 @@ The selfhost compiler currently emits **flat text messages** with:
 
 **Source:**
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn main() {
     let x = unknown_function()
@@ -104,6 +105,7 @@ warning for the unused binding — selfhost does not emit warnings at all.
 
 **Source:**
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn main() {
     let x: i32 = "hello"
@@ -148,6 +150,7 @@ with explicit type annotations.
 
 **Source:**
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn main() {
     let x = ;
@@ -191,6 +194,7 @@ human-readable token names. No error code, no line number.
 
 **Source:**
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn main() {
     let x = 42
@@ -234,6 +238,7 @@ kind numbers instead of token names. Token kind 73 corresponds to `RBrace`
 
 **Source:**
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn foo() -> i32 { 1 }
 fn foo() -> i32 { 2 }
@@ -276,6 +281,7 @@ line number on the selfhost side.
 
 **Source:**
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn add(a: i32, b: i32) -> i32 { a + b }
 fn main() { add(1, 2, 3) }
@@ -312,6 +318,7 @@ compiles through all 6 phases with no errors.
 
 **Source:**
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn main() {
     let x: i32 = 10

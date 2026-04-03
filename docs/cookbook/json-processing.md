@@ -6,6 +6,7 @@ Parse and stringify JSON primitive values using `std::json`.
 
 ## Stringify Values
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::json
 
@@ -28,6 +29,7 @@ println(empty) // "null"
 
 ## Parse Values
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::json
 
@@ -49,6 +51,7 @@ assert(b2 == false)
 
 ## Build a Simple JSON-like Output
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::json
 

@@ -20,6 +20,7 @@ Achieve `hello.wasm` (GC-native, `wasm32-wasi-p2`) under 1 KB with `--opt-level 
 
 **Source fixture:** `tests/fixtures/hello/hello.ark`
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 fn main() {
     println("Hello, world!")

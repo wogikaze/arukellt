@@ -37,6 +37,7 @@ Arukellt の現在の production path は **linear memory + bump allocator** ベ
 
 利用者視点では、参照型は共有される前提で考えるのが安全です。
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let v1: Vec<i32> = Vec_new_i32()
 push(v1, 10)

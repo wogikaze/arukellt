@@ -4,6 +4,7 @@ Using `std::test` assert functions for effective tests.
 
 ## Basic Assertions
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 // assert — check a boolean condition
 assert(1 + 1 == 2)
@@ -20,6 +21,7 @@ assert_ne(1, 2)
 
 ## Type-Specific Assertions
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 // i64 equality
 assert_eq_i64(1000000000_i64, 1000000000_i64)
@@ -31,6 +33,7 @@ assert_eq_str(to_string(42), "42")
 
 ## Testing Option Values
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let some_val = Some(42)
 let none_val: Option<i32> = None
@@ -43,6 +46,7 @@ assert_eq(unwrap_or(none_val, 0), 0)
 
 ## Testing Result Values
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let ok_val: Result<i32, String> = Ok(42)
 let err_val: Result<i32, String> = Err("not found")
@@ -55,6 +59,7 @@ assert_eq_str(unwrap_err(err_val), "not found")
 
 ## Testing String Operations
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::text
 
@@ -72,6 +77,7 @@ assert_eq_str(to_string(n), "42")
 
 ## Testing Collections
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let v = Vec_new_i32()
 push(v, 10)
@@ -101,6 +107,7 @@ assert_eq(unwrap(hashmap_get(m, "b")), 2)
 
 ## Testing Path Operations
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::path
 
@@ -114,6 +121,7 @@ assert(path::is_absolute("relative") == false)
 
 ## Testing with Error Cases
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 // Verify that invalid input produces errors
 let bad = parse_i32("abc")

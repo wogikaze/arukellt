@@ -19,6 +19,7 @@ arukellt run hello.ark
 
 ## 基本型
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let n: i32 = 42
 let big: i64 = 1000000

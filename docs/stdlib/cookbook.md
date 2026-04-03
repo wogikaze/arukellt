@@ -433,6 +433,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_option_result/none_unwrap_or.ark`](../../tests/fixtures/stdlib_option_result/none_unwrap_or.ark)
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::stdio
 fn main() {
@@ -515,6 +516,7 @@ fn main() {
 
 > 📎 Fixture: [`tests/fixtures/stdlib_option_result/error_conventions.ark`](../../tests/fixtures/stdlib_option_result/error_conventions.ark)
 
+<!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 use std::host::stdio
 fn try_parse(s: String) -> Result<i32, String> {

@@ -194,6 +194,8 @@ _bg_run asset_naming "asset naming convention (snake_case)" \
     "bash scripts/check/check-asset-naming.sh" &
 _bg_run generated_boundary "generated file boundary check" \
     "bash scripts/check/check-generated-files.sh" &
+_bg_run doc_examples "doc example check (ark blocks in docs/)" \
+    "python3 scripts/check/check-doc-examples.py docs/" &
 if [ "$RUN_DOCS" = true ]; then
     _bg_run markdownlint "markdownlint-cli2 **/*.md --fix --config .markdownlint.json" \
         "npx markdownlint-cli2 '**/*.md' --fix --config .markdownlint.json" &
@@ -306,6 +308,7 @@ _bg_collect done_issues_checkboxes
 _bg_collect no_panic_audit
 _bg_collect asset_naming
 _bg_collect generated_boundary
+_bg_collect doc_examples
 if [ "$RUN_DOCS" = true ]; then
     _bg_collect markdownlint
 fi
