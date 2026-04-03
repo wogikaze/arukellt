@@ -587,6 +587,41 @@ let trimmed = trim(String_from("  hi  "))
 
 ### Conversions
 
+#### Stringification — `to_string(x)`
+
+`to_string(x)` is the **canonical surface** for converting any scalar value to a `String`.
+It accepts `i32`, `i64`, `f64`, `bool`, and `String` (pass-through).
+
+<!-- fixture: stdlib_core/to_string_i32.ark -->
+```ark
+use std::host::stdio
+
+fn main() {
+    stdio::println(to_string(42))    // "42"
+    stdio::println(to_string(0))     // "0"
+    stdio::println(to_string(-7))    // "-7"
+}
+```
+
+Works the same for other scalar types:
+
+<!-- skip-doc-check -->
+```ark
+to_string(3.14)   // f64  → "3.14"
+to_string(true)   // bool → "true"
+to_string(false)  // bool → "false"
+to_string(9001_i64)  // i64 → "9001"
+```
+
+Combine with `concat` to build strings from mixed values:
+
+<!-- skip-doc-check -->
+```ark
+let msg = concat(String_from("count: "), to_string(n))
+```
+
+#### Other numeric conversions
+
 <!-- skip-doc-check --> <!-- TODO(#461): fix or wrap this doc example -->
 ```ark
 let s = to_string(42)        // i32 → String
