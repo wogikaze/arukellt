@@ -195,8 +195,39 @@ fixpoint verification runs on merge to main.
 | Script | Purpose | Issue |
 |--------|---------|-------|
 | `scripts/run/verify-bootstrap.sh` | Stage 0→1→2 fixpoint verification | #181, #182 |
+| `scripts/check/check-selfhost-fixpoint.sh` | sha256 fixpoint check (s1 vs s2); `--no-build` compares cached artifacts | #459 |
+| `scripts/check/check-selfhost-fixture-parity.sh` | Run "run:" fixtures through s1.wasm; compare stdout to Rust output | #459 |
+| `scripts/check/check-selfhost-diagnostic-parity.sh` | Run "diag:" fixtures through s1.wasm; check expected error pattern appears | #459 |
 | `scripts/run/compare-outputs.sh` | Phase output diff (Rust vs selfhost) | #174 |
 | `scripts/run/verify-harness.sh` | Top-level verification gate | — |
+
+### How to Run the Fixpoint Check
+
+```bash
+# Build s1.wasm and s2.wasm then compare sha256
+bash scripts/check/check-selfhost-fixpoint.sh
+
+# Compare pre-built cached artifacts (faster, suitable for CI)
+bash scripts/check/check-selfhost-fixpoint.sh --no-build
+
+# Run fixture output parity (requires .build/selfhost/arukellt-s1.wasm)
+bash scripts/check/check-selfhost-fixture-parity.sh
+
+# Run diagnostic parity (requires .build/selfhost/arukellt-s1.wasm)
+bash scripts/check/check-selfhost-diagnostic-parity.sh
+
+# Run all selfhost checks via the full harness pass
+bash scripts/run/verify-harness.sh --full
+# Or individually:
+bash scripts/run/verify-harness.sh --fixpoint
+bash scripts/run/verify-harness.sh --selfhost-fixture-parity
+bash scripts/run/verify-harness.sh --selfhost-diag-parity
+```
+
+**SKIP behaviour:** All three scripts exit 0 with a `SKIP:` message when
+`arukellt-s1.wasm` is not present at `.build/selfhost/`, so CI does not
+hard-fail when the bootstrap stage has not yet been run.  When wired into
+`verify-harness.sh --full`, a SKIP counts as a passing check (not a failure).
 
 ## See Also
 

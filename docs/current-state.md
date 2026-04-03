@@ -225,17 +225,35 @@ Each stage below represents a concrete, CI-verified milestone.
 | Stage | Description | Status |
 |-------|-------------|--------|
 | **Stage 0** | Rust compiler compiles all `src/compiler/*.ark` files individually | ✅ **Verified** (CI + `verify-bootstrap.sh --stage1-only`) |
-| **Stage 1** | `arukellt-s1.wasm` (selfhost compiler) compiles its own sources | ✅ **Verified** — 9/9 files compile, 78474 bytes |
-| **Stage 2** | `sha256(s1) == sha256(s2)` fixpoint | 🔴 **Not reached** — `sha256(s1) ≠ sha256(s2)` |
-| **Fixture parity** | Selfhost compiler passes all harness fixtures | 🔴 **Not started** — requires selfhost to run fixtures |
-| **CLI parity** | Selfhost CLI output matches Rust output for identical inputs | 🔴 **Not started** — requires fixture parity first |
-| **Diagnostic parity** | Error messages are identical between Rust and selfhost | 🔴 **Not started** — requires CLI parity first |
+| **Stage 1** | `arukellt-s1.wasm` (selfhost compiler) compiles its own sources | ✅ **Verified** — 9/9 files compile, 377158 bytes |
+| **Stage 2** | `sha256(s1) == sha256(s2)` fixpoint | 🔴 **Not reached** — `sha256(s1) ≠ sha256(s2)` (see below) |
+| **Fixture parity** | Selfhost compiler passes all harness fixtures | 🟡 **CI scripted** — `check-selfhost-fixture-parity.sh` wired into `--full`; s1.wasm compile errors expected until multi-file module loading is fixed |
+| **CLI parity** | Selfhost CLI output matches Rust output for identical inputs | 🔴 **Blocked** — requires fixture parity |
+| **Diagnostic parity** | Error messages are identical between Rust and selfhost | 🟡 **CI scripted** — `check-selfhost-diagnostic-parity.sh` wired into `--full`; Rust baseline confirmed; s1.wasm gap expected |
 
 ### Fixpoint status
 
 Stage 0 and Stage 1 compile successfully (`stage0-compile: reached`, `stage1-compile: reached`).
-Fixpoint has not yet been reached: `sha256(s1) ≠ sha256(s2)` (`fixpoint: not-reached`).
-Remaining work is fixing the determinism divergence before fixture/CLI/diagnostic parity can be verified.
+Fixpoint has **not** been reached:
+
+```
+sha256(s1) = a9bdbe3abe1778e8e5c6d30f3d181922c185935050701bafa77f7e363bab0ce3  (377158 bytes)
+sha256(s2) = 59fe5d256d065952d75d719eed9c6ba8c2e35bcc9fafdfce06adf28b993964a5  ( 21863 bytes)
+```
+
+Root cause (tracked in issue #459 — not fixed in this slice):
+- s1.wasm does **not** implement multi-file module loading; `use driver`, `use lexer`, etc. are ignored.
+- All cross-module calls are lowered to `i32.const 0` stubs in `emitter.ark`.
+- s2.wasm contains only ~24 functions (CLI stubs) vs s1.wasm's ~556 (full compiler).
+
+CI scripts added in issue #459:
+- `scripts/check/check-selfhost-fixpoint.sh` — sha256 fixpoint check
+- `scripts/check/check-selfhost-fixture-parity.sh` — run fixture output parity
+- `scripts/check/check-selfhost-diagnostic-parity.sh` — diagnostic parity
+
+All three are wired into `verify-harness.sh --full` (and individually via `--fixpoint`,
+`--selfhost-fixture-parity`, `--selfhost-diag-parity`).  They exit 0 (SKIP) when
+`arukellt-s1.wasm` is absent so CI does not hard-fail before bootstrap is built.
 
 ### Dual-period policy
 

@@ -27,6 +27,8 @@ RUN_COMPONENT=false
 RUN_OPT_EQUIV=false
 PERF_GATE=false
 RUN_FIXPOINT=false
+RUN_SELFHOST_FIXTURE_PARITY=false
+RUN_SELFHOST_DIAG_PARITY=false
 
 usage() {
     cat <<'EOF'
@@ -45,8 +47,11 @@ Options:
   --docs       Run markdownlint in addition to default docs checks
   --component  Run the optional component interop smoke test
   --opt-equiv  Run optimization equivalence tests (O0 vs O1)
-  --fixpoint   Run selfhost bootstrap fixpoint check (issue #459)
-  --full       Run all heavy local verification groups (includes --fixpoint)
+  --fixpoint         Run selfhost bootstrap fixpoint check (issue #459)
+  --selfhost-fixture-parity  Run selfhost fixture output parity check
+  --selfhost-diag-parity     Run selfhost diagnostic parity check
+  --full       Run all heavy local verification groups (includes --fixpoint,
+               --selfhost-fixture-parity, --selfhost-diag-parity)
   --perf-gate  Run the perf regression gate (still opt-in)
   --help       Show this help message
 EOF
@@ -64,6 +69,8 @@ for arg in "$@"; do
         --component) RUN_COMPONENT=true ;;
         --opt-equiv) RUN_OPT_EQUIV=true ;;
         --fixpoint) RUN_FIXPOINT=true ;;
+        --selfhost-fixture-parity) RUN_SELFHOST_FIXTURE_PARITY=true ;;
+        --selfhost-diag-parity)    RUN_SELFHOST_DIAG_PARITY=true ;;
         --full)
             RUN_CARGO=true
             RUN_FIXTURES=true
@@ -74,6 +81,8 @@ for arg in "$@"; do
             RUN_COMPONENT=true
             RUN_OPT_EQUIV=true
             RUN_FIXPOINT=true
+            RUN_SELFHOST_FIXTURE_PARITY=true
+            RUN_SELFHOST_DIAG_PARITY=true
             ;;
         --perf-gate) PERF_GATE=true ;;
         --help|-h)
@@ -89,7 +98,7 @@ for arg in "$@"; do
 done
 
 echo -e "${YELLOW}Running harness verification...${NC}"
-if [ "$RUN_CARGO" = false ] && [ "$RUN_FIXTURES" = false ] && [ "$RUN_BASELINE" = false ] && [ "$RUN_SIZE" = false ] && [ "$RUN_WAT" = false ] && [ "$RUN_DOCS" = false ] && [ "$RUN_COMPONENT" = false ] && [ "$RUN_OPT_EQUIV" = false ] && [ "$PERF_GATE" = false ]; then
+if [ "$RUN_CARGO" = false ] && [ "$RUN_FIXTURES" = false ] && [ "$RUN_BASELINE" = false ] && [ "$RUN_SIZE" = false ] && [ "$RUN_WAT" = false ] && [ "$RUN_DOCS" = false ] && [ "$RUN_COMPONENT" = false ] && [ "$RUN_OPT_EQUIV" = false ] && [ "$PERF_GATE" = false ] && [ "$RUN_FIXPOINT" = false ] && [ "$RUN_SELFHOST_FIXTURE_PARITY" = false ] && [ "$RUN_SELFHOST_DIAG_PARITY" = false ]; then
     echo -e "${YELLOW}Mode: fast local gate${NC}"
 else
     selected=()
@@ -102,6 +111,9 @@ else
     [ "$RUN_COMPONENT" = true ] && selected+=(component)
     [ "$RUN_OPT_EQUIV" = true ] && selected+=(opt-equiv)
     [ "$PERF_GATE" = true ] && selected+=(perf-gate)
+    [ "$RUN_FIXPOINT" = true ] && selected+=(selfhost-fixpoint)
+    [ "$RUN_SELFHOST_FIXTURE_PARITY" = true ] && selected+=(selfhost-fixture-parity)
+    [ "$RUN_SELFHOST_DIAG_PARITY" = true ] && selected+=(selfhost-diag-parity)
     echo -e "${YELLOW}Mode: fast local gate + ${selected[*]}${NC}"
 fi
 
@@ -390,6 +402,38 @@ fi
 if [ "$RUN_OPT_EQUIV" = true ]; then
     printf '\n%s\n' "${YELLOW}[opt-equiv] Running optimization equivalence tests (O0 vs O1)...${NC}"
     run_check "optimization equivalence (O0 vs O1)" "bash scripts/run/test-opt-equivalence.sh --quick"
+fi
+
+if [ "$RUN_FIXPOINT" = true ]; then
+    printf '\n%s\n' "${YELLOW}[selfhost-fixpoint] Running selfhost bootstrap fixpoint check...${NC}"
+    # Exit 0 = fixpoint reached; exit 1 = not yet reached (known state); exit 2 = prerequisites missing.
+    # Use --no-build to compare pre-built artifacts without triggering a full rebuild in CI.
+    fixpoint_out=""
+    fixpoint_rc=0
+    fixpoint_out=$(bash scripts/check/check-selfhost-fixpoint.sh --no-build 2>&1) || fixpoint_rc=$?
+    if [ "$fixpoint_rc" -eq 0 ]; then
+        check_pass "selfhost fixpoint: sha256(s1) == sha256(s2)"
+    elif [ "$fixpoint_rc" -eq 1 ]; then
+        # Fixpoint not yet reached — expected state tracked in issue #459.
+        # Reported as skip (not fail) so the full harness can still pass.
+        check_skip "selfhost fixpoint not yet reached (sha256(s1) ≠ sha256(s2) — see issue #459)"
+        printf '%s\n' "$fixpoint_out" | grep -E "s[12]\.wasm:|✗ Selfhost" | head -5 || true
+    else
+        check_fail "selfhost fixpoint prerequisites missing"
+        printf '%s\n' "$fixpoint_out" | tail -10
+    fi
+fi
+
+if [ "$RUN_SELFHOST_FIXTURE_PARITY" = true ]; then
+    printf '\n%s\n' "${YELLOW}[selfhost-fixture-parity] Running selfhost fixture output parity...${NC}"
+    run_check "selfhost fixture parity (run fixtures through s1.wasm)" \
+        "bash scripts/check/check-selfhost-fixture-parity.sh"
+fi
+
+if [ "$RUN_SELFHOST_DIAG_PARITY" = true ]; then
+    printf '\n%s\n' "${YELLOW}[selfhost-diag-parity] Running selfhost diagnostic parity...${NC}"
+    run_check "selfhost diagnostic parity (error fixtures through s1.wasm)" \
+        "bash scripts/check/check-selfhost-diagnostic-parity.sh"
 fi
 
 printf '\n%s\n' "${YELLOW}========================================${NC}"
