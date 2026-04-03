@@ -3644,6 +3644,48 @@ impl ArukellBackend {
             data: None,
         }
     }
+
+    /// Returns `true` when `name` matches the test-function naming convention:
+    /// `test_` prefix **or** `_test` suffix.
+    fn is_test_function(name: &str) -> bool {
+        name.starts_with("test_") || name.ends_with("_test")
+    }
+
+    /// Compute the byte span that covers just the function *name* identifier.
+    ///
+    /// `FnDef::span` starts at the `fn` keyword (or `pub` when the function is
+    /// public).  We scan forward over the optional `pub ` prefix and the `fn `
+    /// keyword to locate the name, then build a narrow span for it so that the
+    /// CodeLens appears on the identifier line rather than spanning the whole body.
+    fn fn_name_span(source: &str, f: &ast::FnDef) -> ark_diagnostics::Span {
+        let start = f.span.start as usize;
+        // Guard against out-of-bounds on malformed / incomplete source.
+        let end = source.len().min(start + 512);
+        let chunk = &source[start..end];
+
+        // Skip optional `pub ` prefix.
+        let without_pub = if chunk.starts_with("pub ") {
+            &chunk[4..]
+        } else {
+            chunk
+        };
+        // Skip `fn ` keyword.
+        let without_fn = if without_pub.starts_with("fn ") {
+            &without_pub[3..]
+        } else {
+            without_pub
+        };
+
+        // offset_from_start = number of bytes consumed so far.
+        let offset_from_start = (chunk.len() - without_fn.len()) as u32;
+        let name_start = f.span.start + offset_from_start;
+        let name_end = name_start + f.name.len() as u32;
+        ark_diagnostics::Span {
+            file_id: f.span.file_id,
+            start: name_start,
+            end: name_end,
+        }
+    }
 }
 
 #[tower_lsp::async_trait]
@@ -5079,32 +5121,67 @@ impl LanguageServer for ArukellBackend {
 
         let mut cache = self.analysis_cache.lock().unwrap();
         let analysis = cache
-            .entry(uri)
+            .entry(uri.clone())
             .or_insert_with(|| Self::analyze_source(&source));
 
         let mut lenses = Vec::new();
+        let uri_str = uri.to_string();
 
         for item in &analysis.module.items {
             if let ast::Item::FnDef(f) = item {
-                let range = Self::span_to_range(&source, f.span);
-                lenses.push(CodeLens {
-                    range,
-                    command: Some(Command {
-                        title: "Open Docs".to_string(),
-                        command: "arukellt.openDocs".to_string(),
-                        arguments: Some(vec![serde_json::json!(f.name)]),
-                    }),
-                    data: None,
-                });
-                lenses.push(CodeLens {
-                    range,
-                    command: Some(Command {
-                        title: "Explain Function".to_string(),
-                        command: "arukellt.explainCode".to_string(),
-                        arguments: Some(vec![serde_json::json!(f.name)]),
-                    }),
-                    data: None,
-                });
+                let name: &str = &f.name;
+                let range = Self::span_to_range(&source, Self::fn_name_span(&source, f));
+
+                if name == "main" {
+                    // ▶ Run Main
+                    lenses.push(CodeLens {
+                        range,
+                        command: Some(Command {
+                            title: "\u{25b6} Run Main".to_string(),
+                            command: "arukellt.runMain".to_string(),
+                            arguments: Some(vec![serde_json::json!(uri_str)]),
+                        }),
+                        data: None,
+                    });
+                    // ⬛ Debug
+                    lenses.push(CodeLens {
+                        range,
+                        command: Some(Command {
+                            title: "\u{2b1b} Debug".to_string(),
+                            command: "arukellt.debugMain".to_string(),
+                            arguments: Some(vec![serde_json::json!(uri_str)]),
+                        }),
+                        data: None,
+                    });
+                } else if Self::is_test_function(name) {
+                    // ▶ Run Test
+                    lenses.push(CodeLens {
+                        range,
+                        command: Some(Command {
+                            title: "\u{25b6} Run Test".to_string(),
+                            command: "arukellt.runTest".to_string(),
+                            arguments: Some(vec![
+                                serde_json::json!(uri_str),
+                                serde_json::json!(name),
+                            ]),
+                        }),
+                        data: None,
+                    });
+                    // ⬛ Debug Test
+                    lenses.push(CodeLens {
+                        range,
+                        command: Some(Command {
+                            title: "\u{2b1b} Debug Test".to_string(),
+                            command: "arukellt.debugTest".to_string(),
+                            arguments: Some(vec![
+                                serde_json::json!(uri_str),
+                                serde_json::json!(name),
+                            ]),
+                        }),
+                        data: None,
+                    });
+                }
+                // All other functions → 0 lenses (no push).
             }
         }
 

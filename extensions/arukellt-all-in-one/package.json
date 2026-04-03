@@ -37,6 +37,10 @@
     "onCommand:arukellt.buildComponentWit",
     "onCommand:arukellt.runComponent",
     "onCommand:arukellt.openInPlayground",
+    "onCommand:arukellt.runMain",
+    "onCommand:arukellt.debugMain",
+    "onCommand:arukellt.runTest",
+    "onCommand:arukellt.debugTest",
     "onView:arukellt-project"
   ],
   "main": "./src/extension.js",
@@ -148,6 +152,22 @@
       {
         "command": "arukellt.openInPlayground",
         "title": "Arukellt: Open in Playground"
+      },
+      {
+        "command": "arukellt.runMain",
+        "title": "Arukellt: Run Main"
+      },
+      {
+        "command": "arukellt.debugMain",
+        "title": "Arukellt: Debug Main"
+      },
+      {
+        "command": "arukellt.runTest",
+        "title": "Arukellt: Run Test"
+      },
+      {
+        "command": "arukellt.debugTest",
+        "title": "Arukellt: Debug Test"
       }
     ],
     "configuration": {

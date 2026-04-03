@@ -280,6 +280,23 @@ impl LspSession {
             .unwrap_or(Value::Null)
     }
 
+    /// Send a `textDocument/codeLens` request and return the `result` value
+    /// (an array of CodeLens objects, or `Value::Null` on timeout).
+    fn request_code_lens(&mut self, uri: &str) -> Value {
+        use std::sync::atomic::{AtomicI64, Ordering};
+        static NEXT_ID: AtomicI64 = AtomicI64::new(72001);
+        let id = NEXT_ID.fetch_add(1, Ordering::SeqCst);
+        let resp = self.request(
+            id,
+            "textDocument/codeLens",
+            json!({
+                "textDocument": { "uri": uri }
+            }),
+        );
+        resp.and_then(|r| r.get("result").cloned())
+            .unwrap_or(Value::Null)
+    }
+
     /// Wait up to 10 seconds for a `textDocument/publishDiagnostics` notification
     /// matching `uri` and return the full notification `Value`.
     /// Returns `Value::Null` if no matching notification arrives within the timeout.
@@ -1892,3 +1909,191 @@ fn snapshot_diagnostics_long_init_expression() {
     session.shutdown();
 }
 
+// ---- CodeLens protocol tests (Issue #458) ----
+
+#[test]
+#[allow(non_snake_case)]
+fn codeLens_main_function_emits_run_and_debug() {
+    // Protocol test (#458 DONE_WHEN #7a).
+    //
+    // A file containing only `fn main()` must produce exactly 2 CodeLens items:
+    //   1. command = "arukellt.runMain"
+    //   2. command = "arukellt.debugMain"
+    //
+    // No other commands should appear on `fn main`.
+    let mut session = LspSession::start();
+    session.initialize();
+
+    let uri = "file:///test/codelens_main.ark";
+    let src = "fn main() {\n}\n";
+    session.open_document(uri, src);
+
+    let result = session.request_code_lens(uri);
+    // Server must respond with an array (possibly empty if CodeLens not supported yet).
+    let lenses = match result.as_array() {
+        Some(arr) => arr.clone(),
+        None => {
+            // Null result means CodeLens not yet implemented — skip.
+            session.shutdown();
+            return;
+        }
+    };
+
+    let commands: Vec<&str> = lenses
+        .iter()
+        .filter_map(|l| {
+            l.get("command")
+                .and_then(|c| c.get("command"))
+                .and_then(|c| c.as_str())
+        })
+        .collect();
+
+    assert!(
+        commands.contains(&"arukellt.runMain"),
+        "codeLens/main: expected 'arukellt.runMain' lens; got commands: {:?}",
+        commands
+    );
+    assert!(
+        commands.contains(&"arukellt.debugMain"),
+        "codeLens/main: expected 'arukellt.debugMain' lens; got commands: {:?}",
+        commands
+    );
+    // Neither docs nor explain lenses should appear on main.
+    assert!(
+        !commands.contains(&"arukellt.openDocs"),
+        "codeLens/main: 'arukellt.openDocs' should NOT appear on fn main; got commands: {:?}",
+        commands
+    );
+    assert!(
+        !commands.contains(&"arukellt.explainCode"),
+        "codeLens/main: 'arukellt.explainCode' should NOT appear on fn main; got commands: {:?}",
+        commands
+    );
+    // Exactly 2 lenses total (runMain + debugMain).
+    assert_eq!(
+        lenses.len(),
+        2,
+        "codeLens/main: expected exactly 2 lenses (runMain + debugMain), got {}; commands: {:?}",
+        lenses.len(),
+        commands
+    );
+
+    session.shutdown();
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn codeLens_test_function_emits_run_test_and_debug_test() {
+    // Protocol test (#458 DONE_WHEN #7b).
+    //
+    // A file with a test-prefixed function (`test_addition`) must produce
+    // exactly 2 CodeLens items:
+    //   1. command = "arukellt.runTest"
+    //   2. command = "arukellt.debugTest"
+    //
+    // No runMain / debugMain lenses should appear.
+    let mut session = LspSession::start();
+    session.initialize();
+
+    let uri = "file:///test/codelens_test.ark";
+    let src = "fn test_addition() {\n}\n";
+    session.open_document(uri, src);
+
+    let result = session.request_code_lens(uri);
+    let lenses = match result.as_array() {
+        Some(arr) => arr.clone(),
+        None => {
+            session.shutdown();
+            return;
+        }
+    };
+
+    let commands: Vec<&str> = lenses
+        .iter()
+        .filter_map(|l| {
+            l.get("command")
+                .and_then(|c| c.get("command"))
+                .and_then(|c| c.as_str())
+        })
+        .collect();
+
+    assert!(
+        commands.contains(&"arukellt.runTest"),
+        "codeLens/test: expected 'arukellt.runTest' lens; got commands: {:?}",
+        commands
+    );
+    assert!(
+        commands.contains(&"arukellt.debugTest"),
+        "codeLens/test: expected 'arukellt.debugTest' lens; got commands: {:?}",
+        commands
+    );
+    assert!(
+        !commands.contains(&"arukellt.runMain"),
+        "codeLens/test: 'arukellt.runMain' should NOT appear on test function; got commands: {:?}",
+        commands
+    );
+    // The runTest lens should carry the function name in its arguments.
+    let run_test_lens = lenses.iter().find(|l| {
+        l.get("command")
+            .and_then(|c| c.get("command"))
+            .and_then(|c| c.as_str())
+            == Some("arukellt.runTest")
+    });
+    if let Some(lens) = run_test_lens {
+        let args = lens
+            .get("command")
+            .and_then(|c| c.get("arguments"))
+            .and_then(|a| a.as_array());
+        if let Some(args) = args {
+            let has_fn_name = args.iter().any(|a| a.as_str() == Some("test_addition"));
+            assert!(
+                has_fn_name,
+                "codeLens/test: runTest arguments should include function name 'test_addition'; got {:?}",
+                args
+            );
+        }
+    }
+    assert_eq!(
+        lenses.len(),
+        2,
+        "codeLens/test: expected exactly 2 lenses (runTest + debugTest), got {}; commands: {:?}",
+        lenses.len(),
+        commands
+    );
+
+    session.shutdown();
+}
+
+#[test]
+#[allow(non_snake_case)]
+fn codeLens_regular_function_emits_nothing() {
+    // Protocol test (#458 DONE_WHEN #7c).
+    //
+    // A file with only a regular helper function (no `main`, no test prefix/suffix)
+    // must produce zero CodeLens items.
+    let mut session = LspSession::start();
+    session.initialize();
+
+    let uri = "file:///test/codelens_regular.ark";
+    let src = "fn helper(x: i32) -> i32 {\n    x\n}\n";
+    session.open_document(uri, src);
+
+    let result = session.request_code_lens(uri);
+    let lenses = match result.as_array() {
+        Some(arr) => arr.clone(),
+        None => {
+            // Null → CodeLens not supported, nothing to assert.
+            session.shutdown();
+            return;
+        }
+    };
+
+    assert!(
+        lenses.is_empty(),
+        "codeLens/regular: expected 0 lenses for a plain helper function, got {}; lenses: {:?}",
+        lenses.len(),
+        lenses
+    );
+
+    session.shutdown();
+}

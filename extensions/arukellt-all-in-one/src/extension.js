@@ -656,6 +656,59 @@ function registerCommands(context) {
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.buildComponentWit', buildComponentWit))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.runComponent', runComponent))
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.openInPlayground', openInPlayground))
+
+  // CodeLens commands (Issue #458)
+  // arukellt.runMain: launched from CodeLens on `fn main()`.
+  // Receives the file URI string passed by the LSP server as the first argument.
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.runMain', (fileUri) => {
+    const { command } = resolveServerCommand()
+    const filePath = fileUri ? vscode.Uri.parse(fileUri).fsPath : (vscode.window.activeTextEditor ? vscode.window.activeTextEditor.document.uri.fsPath : '')
+    if (!filePath) {
+      vscode.window.showErrorMessage('Arukellt: could not determine file path for Run Main.')
+      return
+    }
+    const terminal = vscode.window.createTerminal('Arukellt: Run Main')
+    terminal.sendText(`${command} run "${filePath}"`)
+    terminal.show()
+  }))
+
+  // arukellt.debugMain: placeholder — full DAP integration is tracked separately.
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.debugMain', (fileUri) => {
+    const filePath = fileUri ? vscode.Uri.parse(fileUri).fsPath : (vscode.window.activeTextEditor ? vscode.window.activeTextEditor.document.uri.fsPath : '')
+    vscode.debug.startDebugging(undefined, {
+      type: 'arukellt',
+      request: 'launch',
+      name: 'Debug Main',
+      program: filePath || '${file}',
+    })
+  }))
+
+  // arukellt.runTest: launched from CodeLens on a test function.
+  // Receives (fileUri, fnName) from the LSP server.
+  // Note: `arukellt test` does not yet support --filter; all tests in the file are run.
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.runTest', (fileUri, fnName) => {
+    const { command } = resolveServerCommand()
+    const filePath = fileUri ? vscode.Uri.parse(fileUri).fsPath : (vscode.window.activeTextEditor ? vscode.window.activeTextEditor.document.uri.fsPath : '')
+    if (!filePath) {
+      vscode.window.showErrorMessage('Arukellt: could not determine file path for Run Test.')
+      return
+    }
+    const terminal = vscode.window.createTerminal(`Arukellt: Run Test${fnName ? ` (${fnName})` : ''}`)
+    // arukellt test does not support --filter yet; run all tests in the file.
+    terminal.sendText(`${command} test "${filePath}"`)
+    terminal.show()
+  }))
+
+  // arukellt.debugTest: placeholder — full DAP integration is tracked separately.
+  context.subscriptions.push(vscode.commands.registerCommand('arukellt.debugTest', (fileUri, fnName) => {
+    const filePath = fileUri ? vscode.Uri.parse(fileUri).fsPath : (vscode.window.activeTextEditor ? vscode.window.activeTextEditor.document.uri.fsPath : '')
+    vscode.debug.startDebugging(undefined, {
+      type: 'arukellt',
+      request: 'launch',
+      name: `Debug Test${fnName ? `: ${fnName}` : ''}`,
+      program: filePath || '${file}',
+    })
+  }))
 }
 
 function showSecurityReview() {
