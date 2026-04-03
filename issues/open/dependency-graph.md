@@ -74,7 +74,6 @@ graph LR
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I479["479 LSP server: LspConfig struct と設定反映ハンドラ実装"]
   I481["481 scripts/update-target-status.sh: CI 出力から target-contract.md を更新"]
-  I484["484 compiler: to_string() builtin 実装と stdlib surface 整備"]
   I486["486 f32 ローカル変数の MIR lowerer 対応 (F32 locals tracking)"]
   I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
   I043["043 std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"]
@@ -266,7 +265,6 @@ graph LR
 - **473** depends on: 032, done); blocks: none
 - **479** depends on: 478; blocks: 480
 - **481** depends on: 256, 257; blocks: none
-- **484** depends on: 483; blocks: none
 - **486** depends on: 040; blocks: none
 - **041** depends on: 039; blocks: 042, 044, 045, 046, 047, 048, 049, 050, 056
 - **043** depends on: 039, 040; blocks: 050, 053
