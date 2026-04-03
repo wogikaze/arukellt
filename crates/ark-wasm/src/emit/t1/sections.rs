@@ -30,10 +30,8 @@ impl EmitCtx {
             (FN_PROC_EXIT, "proc_exit"),
         ];
         // arukellt_host imports in canonical order
-        const HOST_ORDER: &[(u32, &str)] = &[
-            (FN_HTTP_GET, "http_get"),
-            (FN_HTTP_REQUEST, "http_request"),
-        ];
+        const HOST_ORDER: &[(u32, &str)] =
+            &[(FN_HTTP_GET, "http_get"), (FN_HTTP_REQUEST, "http_request")];
         // Stdlib helpers in canonical order (indices 6..35)
         const STDLIB_ORDER: &[u32] = &[
             FN_I32_TO_STR,
@@ -153,11 +151,8 @@ impl EmitCtx {
         // http_get(url_ptr: i32, url_len: i32, resp_ptr: i32) -> i32
         let ty_http_get = ty_i32x3_i32;
         // http_request(method_ptr, method_len, url_ptr, url_len, body_ptr, body_len, resp_ptr) -> i32
-        let ty_http_request = self.register_type(
-            &mut types,
-            vec![ValType::I32; 7],
-            vec![ValType::I32],
-        );
+        let ty_http_request =
+            self.register_type(&mut types, vec![ValType::I32; 7], vec![ValType::I32]);
         let mut user_func_type_indices = Vec::new();
         for func in &mir.functions {
             let params: Vec<ValType> = func

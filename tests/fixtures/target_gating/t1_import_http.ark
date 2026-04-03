@@ -1,6 +1,0 @@
-// Fixture: T1 target cannot import std::host::http
-// Expected: E0500 error at compile time (incompatible target)
-// Gating: This should be rejected when --target wasm32-wasi-p1 is used
-use std::host::http
-
-fn main() {}

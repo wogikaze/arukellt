@@ -132,6 +132,7 @@ Unknown symbols produce a "Did you mean?" list of fuzzy candidates. Module paths
 ## Recent Milestones
 
 - **`arukellt doc` subcommand added (issue 456)** — stdlib manifest lookup via `arukellt doc <symbol>`. Supports `--json`, `--target`, and fuzzy-match "did you mean?" for unknown symbols.
+- **HTTP T1 linker path confirmed (issue 446)** — `std::host::http` (`http::get`, `http::request`) is now available on both T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via `register_http_host_fns`. The compile-time E0500 gate was removed from `T3_ONLY_MODULES`; a T3 GC-native match-arm type-inference fix (`detect_specialized_result` propagation for qualified callee paths) enables correct T3 Wasm emission. Error-case fixtures `get_err_dns.ark` and `request_err_refused.ark` pass on both targets.
 - **GC-native T3 emitter complete** — the v1 GC-native track closed on 2026-03-27
 - **Component / WIT support added in v2** — `--emit component`, `--emit wit`, and `--emit all` are available on `wasm32-wasi-p2`
 - **Stdlib v3 track completed** — the stdlib roadmap items tracked as issues 039–059 now live in `issues/done/`
@@ -192,7 +193,7 @@ catches GC reference types that bypass WIT-level checks (W0004).
 - No `--dir` flag means no filesystem access
 - `ark-llvm` is excluded from default builds (requires LLVM 18)
 - some historical docs remain archived / historical and should not override current-state
-- **Host module target-gating**: `std::host::http` and `std::host::sockets` are T3-only (wasm32-wasi-p2). Importing either module on T1 (wasm32-wasi-p1) produces an E0500 compile-time error (issue 448). `std::host::http` uses TCP HTTP/1.1; HTTPS is not supported.
+- **Host module target-gating**: `std::host::http` is available on all targets (T1 and T3) via the Wasmtime linker (issue 446). `std::host::sockets` remains T3-only (wasm32-wasi-p2); importing it on T1 produces an E0500 compile-time error (issue 448). `std::host::http` uses TCP HTTP/1.1; HTTPS is not supported.
 
 ## V4 Optimization Status
 

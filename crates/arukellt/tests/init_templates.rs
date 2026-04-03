@@ -101,8 +101,10 @@ fn template_minimal_default_no_flag_equivalent() {
 
     run_init(&dir_minimal, "minimal");
 
-    let main_default = std::fs::read_to_string(dir_default.path().join("src").join("main.ark")).unwrap();
-    let main_minimal = std::fs::read_to_string(dir_minimal.path().join("src").join("main.ark")).unwrap();
+    let main_default =
+        std::fs::read_to_string(dir_default.path().join("src").join("main.ark")).unwrap();
+    let main_minimal =
+        std::fs::read_to_string(dir_minimal.path().join("src").join("main.ark")).unwrap();
     assert_eq!(
         main_default, main_minimal,
         "default init and --template minimal should generate identical src/main.ark"
@@ -116,7 +118,10 @@ fn template_cli_generates_files() {
     let dir = tempfile::TempDir::new().unwrap();
     run_init(&dir, "cli");
 
-    assert!(dir.path().join("ark.toml").exists(), "ark.toml should exist");
+    assert!(
+        dir.path().join("ark.toml").exists(),
+        "ark.toml should exist"
+    );
     assert!(
         dir.path().join("src").join("main.ark").exists(),
         "src/main.ark should exist"
@@ -161,7 +166,10 @@ fn template_with_tests_generates_files() {
     let dir = tempfile::TempDir::new().unwrap();
     run_init(&dir, "with-tests");
 
-    assert!(dir.path().join("ark.toml").exists(), "ark.toml should exist");
+    assert!(
+        dir.path().join("ark.toml").exists(),
+        "ark.toml should exist"
+    );
     assert!(
         dir.path().join("src").join("main.ark").exists(),
         "src/main.ark should exist"
@@ -233,7 +241,10 @@ fn template_wasi_host_generates_files() {
     let dir = tempfile::TempDir::new().unwrap();
     run_init(&dir, "wasi-host");
 
-    assert!(dir.path().join("ark.toml").exists(), "ark.toml should exist");
+    assert!(
+        dir.path().join("ark.toml").exists(),
+        "ark.toml should exist"
+    );
     assert!(
         dir.path().join("src").join("main.ark").exists(),
         "src/main.ark should exist"

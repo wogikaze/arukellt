@@ -49,7 +49,13 @@ fn main() {
     stdio::println("Hello, Arukellt!")
 }
 "#;
-            write_init_files(&manifest_path, &manifest_content, &src_dir, "main.ark", main_ark_content);
+            write_init_files(
+                &manifest_path,
+                &manifest_content,
+                &src_dir,
+                "main.ark",
+                main_ark_content,
+            );
         }
         crate::InitTemplate::Cli => {
             let manifest_content = format!(
@@ -77,7 +83,13 @@ fn main() {
     process::exit(0)
 }
 "#;
-            write_init_files(&manifest_path, &manifest_content, &src_dir, "main.ark", main_ark_content);
+            write_init_files(
+                &manifest_path,
+                &manifest_content,
+                &src_dir,
+                "main.ark",
+                main_ark_content,
+            );
         }
         crate::InitTemplate::WithTests => {
             let manifest_content = format!(
@@ -116,7 +128,13 @@ fn main() {
     stdio::println(concat("1 + 2 = ", i32_to_string(result)))
 }
 "#;
-            write_init_files(&manifest_path, &manifest_content, &src_dir, "main.ark", main_ark_content);
+            write_init_files(
+                &manifest_path,
+                &manifest_content,
+                &src_dir,
+                "main.ark",
+                main_ark_content,
+            );
         }
         crate::InitTemplate::WasiHost => {
             let manifest_content = format!(
@@ -142,7 +160,13 @@ fn main() {
     // and call: http::get("https://example.com")
 }
 "#;
-            write_init_files(&manifest_path, &manifest_content, &src_dir, "main.ark", main_ark_content);
+            write_init_files(
+                &manifest_path,
+                &manifest_content,
+                &src_dir,
+                "main.ark",
+                main_ark_content,
+            );
         }
     }
 

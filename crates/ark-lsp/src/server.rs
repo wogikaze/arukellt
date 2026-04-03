@@ -14,20 +14,15 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 /// Controls how much information is shown in hover responses.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum HoverDetailLevel {
     /// Type signature only.
     Minimal,
     /// Signature + doc + availability (default).
+    #[default]
     Standard,
     /// Standard + examples + see_also + related spans.
     Verbose,
-}
-
-impl Default for HoverDetailLevel {
-    fn default() -> Self {
-        HoverDetailLevel::Standard
-    }
 }
 
 impl HoverDetailLevel {
@@ -176,7 +171,8 @@ impl ArukellBackend {
         // resolved during diagnostics analysis (fix for E0100 false positives, #452).
         let std_root: Option<std::path::PathBuf> = self
             .project_root
-            .lock().unwrap()
+            .lock()
+            .expect("project_root lock poisoned")
             .as_ref()
             .map(|r| r.join("std"));
         let analysis = Self::analyze_source_with_stdlib(text, std_root.as_deref());
@@ -586,11 +582,8 @@ impl ArukellBackend {
                     message: if diag.helps.is_empty() {
                         diag.message.clone()
                     } else {
-                        let help_lines: Vec<String> = diag
-                            .helps
-                            .iter()
-                            .map(|h| format!("help: {}", h))
-                            .collect();
+                        let help_lines: Vec<String> =
+                            diag.helps.iter().map(|h| format!("help: {}", h)).collect();
                         format!("{}\n\n{}", diag.message, help_lines.join("\n"))
                     },
                     ..Default::default()
@@ -1604,7 +1597,9 @@ impl ArukellBackend {
     fn find_let_in_block(block: &ast::Block, name: &str) -> Option<ark_diagnostics::Span> {
         for stmt in &block.stmts {
             match stmt {
-                ast::Stmt::Let { name: n, name_span, .. } if n == name => return Some(*name_span),
+                ast::Stmt::Let {
+                    name: n, name_span, ..
+                } if n == name => return Some(*name_span),
                 ast::Stmt::While { body, .. }
                 | ast::Stmt::Loop { body, .. }
                 | ast::Stmt::For { body, .. } => {
@@ -1777,7 +1772,11 @@ impl ArukellBackend {
     /// - `Minimal`:  type signature only (first code block).
     /// - `Standard`: signature + doc + availability (default; matches old behaviour).
     /// - `Verbose`:  standard + errors section (future: examples, see_also).
-    fn stdlib_hover_info(name: &str, manifest: &StdlibManifest, level: HoverDetailLevel) -> Option<String> {
+    fn stdlib_hover_info(
+        name: &str,
+        manifest: &StdlibManifest,
+        level: HoverDetailLevel,
+    ) -> Option<String> {
         let func = manifest.functions.iter().find(|f| f.name == name)?;
         let params_str = func.params.join(", ");
         let ret = func.returns.as_deref().unwrap_or("()");
@@ -3754,10 +3753,7 @@ impl LanguageServer for ArukellBackend {
     async fn did_change_configuration(&self, params: DidChangeConfigurationParams) {
         // The VS Code client sends the changed section under its section name.
         // Try "arukellt" key first, then fall back to treating the whole value as settings.
-        let settings_value = params
-            .settings
-            .get("arukellt")
-            .unwrap_or(&params.settings);
+        let settings_value = params.settings.get("arukellt").unwrap_or(&params.settings);
         let new_settings = LspSettings::from_json(settings_value);
         *self.settings.lock().unwrap() = new_settings;
         self.client
@@ -3825,10 +3821,8 @@ impl LanguageServer for ArukellBackend {
                     } else if let Some(ref m) = *manifest {
                         if let Some(stdlib_info) = Self::stdlib_hover_info(text, m, hover_level) {
                             Some(stdlib_info)
-                        } else if let Some(mod_info) = Self::stdlib_module_hover(text, m) {
-                            Some(mod_info)
                         } else {
-                            None
+                            Self::stdlib_module_hover(text, m)
                         }
                     } else {
                         None
@@ -5717,7 +5711,8 @@ mod tests {
     #[test]
     fn stdlib_hover_shows_signature_and_metadata() {
         let manifest = load_test_manifest();
-        let info = ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Standard);
+        let info =
+            ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Standard);
         assert!(info.is_some(), "println should have stdlib hover info");
         let text = info.unwrap();
         assert!(
@@ -5731,7 +5726,8 @@ mod tests {
     fn stdlib_hover_http_get_shows_doc_and_target_and_errors() {
         let manifest = load_test_manifest();
         // Use `connect` (sockets) which is unique and has target + doc + availability
-        let info = ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Standard);
+        let info =
+            ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Standard);
         assert!(
             info.is_some(),
             "connect (sockets) should have stdlib hover info"
@@ -6216,8 +6212,7 @@ fn add(a: i32, b: i32) -> i32 {
         // either when `analyze_source_with_stdlib` is given the real stdlib root.
         let root = repo_root();
         let std_root = root.join("std");
-        let src =
-            "use std::host::stdio\nfn main() {\n    stdio::println(\"hello\")\n}\n";
+        let src = "use std::host::stdio\nfn main() {\n    stdio::println(\"hello\")\n}\n";
 
         let analysis = ArukellBackend::analyze_source_with_stdlib(src, Some(&std_root));
 
@@ -6312,9 +6307,13 @@ fn add(a: i32, b: i32) -> i32 {
     #[test]
     fn stdlib_hover_minimal_returns_signature_only() {
         let manifest = load_test_manifest();
-        let info = ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Minimal);
+        let info =
+            ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Minimal);
         let text = info.unwrap();
-        assert!(text.contains("fn println"), "minimal hover should show signature");
+        assert!(
+            text.contains("fn println"),
+            "minimal hover should show signature"
+        );
         assert!(
             !text.contains("*Module:*") && !text.contains("*Prelude"),
             "minimal hover should NOT include module/prelude metadata"
@@ -6325,9 +6324,13 @@ fn add(a: i32, b: i32) -> i32 {
     fn stdlib_hover_standard_includes_doc_and_availability() {
         let manifest = load_test_manifest();
         // println is a prelude function — standard level should include prelude marker
-        let info = ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Standard);
+        let info =
+            ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Standard);
         let text = info.unwrap();
-        assert!(text.contains("fn println"), "standard hover should show signature");
+        assert!(
+            text.contains("fn println"),
+            "standard hover should show signature"
+        );
         // Should include module or prelude info
         assert!(
             text.contains("Module") || text.contains("Prelude") || text.contains("prelude"),
@@ -6339,8 +6342,10 @@ fn add(a: i32, b: i32) -> i32 {
     fn stdlib_hover_verbose_includes_errors_section() {
         let manifest = load_test_manifest();
         // Use connect which has an errors field in the manifest
-        let info_std = ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Standard);
-        let info_verbose = ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Verbose);
+        let info_std =
+            ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Standard);
+        let info_verbose =
+            ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Verbose);
         // If there are errors in the manifest, verbose should include them
         if let (Some(std_text), Some(verbose_text)) = (info_std, info_verbose) {
             // At minimum both should have the signature

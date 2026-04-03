@@ -358,7 +358,7 @@ fn register_sockets_host_fns(
                     Err(e) => return write_error(&mut caller, result_ptr, &e),
                 };
                 // Validate port range (Ark i32, convert to u16)
-                if port < 0 || port > 65535 {
+                if !(0..=65535).contains(&port) {
                     let msg = format!("connect: invalid port {}", port);
                     return write_error(&mut caller, result_ptr, &msg);
                 }
@@ -416,10 +416,7 @@ fn tcp_connect_impl(host: &str, port: u16) -> Result<i32, String> {
 }
 
 /// Resolve a host:port pair to a single `SocketAddr`, returning a clean error on DNS failure.
-fn to_socket_addr_for_connect(
-    host: &str,
-    port: u16,
-) -> Result<std::net::SocketAddr, String> {
+fn to_socket_addr_for_connect(host: &str, port: u16) -> Result<std::net::SocketAddr, String> {
     use std::net::ToSocketAddrs;
     let addr_str = format!("{}:{}", host, port);
     let mut addrs = addr_str.to_socket_addrs().map_err(|e| {
@@ -435,7 +432,9 @@ fn to_socket_addr_for_connect(
             format!("connect: {}:{}: {}", host, port, e)
         }
     })?;
-    addrs.next().ok_or_else(|| format!("connect: {}:{}: dns not found", host, port))
+    addrs
+        .next()
+        .ok_or_else(|| format!("connect: {}:{}: dns not found", host, port))
 }
 
 /// TCP-based HTTP/1.1 GET implementation.
@@ -481,19 +480,22 @@ fn http_request_impl(method: &str, url: &str, body: &str) -> Result<String, Stri
 
     // Resolve DNS first so we can produce a clean "dns: … not found" error.
     let addr_str = format!("{}:{}", host, port);
-    let addrs: Vec<_> = addr_str.to_socket_addrs().map_err(|e| {
-        let msg = e.to_string().to_lowercase();
-        if msg.contains("name or service not known")
-            || msg.contains("nodename nor servname")
-            || msg.contains("no such host")
-            || msg.contains("failed to lookup")
-            || msg.contains("name resolution")
-        {
-            format!("dns: {}: not found", host)
-        } else {
-            format!("error: {}", e)
-        }
-    })?.collect();
+    let addrs: Vec<_> = addr_str
+        .to_socket_addrs()
+        .map_err(|e| {
+            let msg = e.to_string().to_lowercase();
+            if msg.contains("name or service not known")
+                || msg.contains("nodename nor servname")
+                || msg.contains("no such host")
+                || msg.contains("failed to lookup")
+                || msg.contains("name resolution")
+            {
+                format!("dns: {}: not found", host)
+            } else {
+                format!("error: {}", e)
+            }
+        })?
+        .collect();
 
     // Connect
     let mut stream = TcpStream::connect(addrs.as_slice()).map_err(|e| {

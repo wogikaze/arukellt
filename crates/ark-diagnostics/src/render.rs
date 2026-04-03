@@ -250,14 +250,24 @@ mod tests {
         let fid = sm.add_file("test.ark".into(), "fn main() { foo(42) }".into());
         let diag = Diagnostic::new(DiagnosticCode::E0100)
             .with_label(Span::new(fid, 12, 15), "unresolved name `foo`")
-            .with_note(
-                "names must be declared before use with `let`, `fn`, `use`, or `import`",
-            )
+            .with_note("names must be declared before use with `let`, `fn`, `use`, or `import`")
             .with_help("did you mean `foo_bar`?");
         let rendered = render_structured_snapshot(&diag, &sm);
-        assert!(rendered.contains("code=E0100"), "should contain code=E0100\n{}", rendered);
-        assert!(rendered.contains("note="), "should contain note\n{}", rendered);
-        assert!(rendered.contains("help="), "should contain help\n{}", rendered);
+        assert!(
+            rendered.contains("code=E0100"),
+            "should contain code=E0100\n{}",
+            rendered
+        );
+        assert!(
+            rendered.contains("note="),
+            "should contain note\n{}",
+            rendered
+        );
+        assert!(
+            rendered.contains("help="),
+            "should contain help\n{}",
+            rendered
+        );
         assert!(
             rendered.contains("did you mean `foo_bar`?"),
             "should contain suggestion text\n{}",
@@ -265,8 +275,16 @@ mod tests {
         );
         // Also verify full render produces help: prefix
         let full = render_diagnostics(&[diag], &sm);
-        assert!(full.contains("= note:"), "full render should have note prefix\n{}", full);
-        assert!(full.contains("= help:"), "full render should have help prefix\n{}", full);
+        assert!(
+            full.contains("= note:"),
+            "full render should have note prefix\n{}",
+            full
+        );
+        assert!(
+            full.contains("= help:"),
+            "full render should have help prefix\n{}",
+            full
+        );
     }
 
     #[test]
@@ -283,11 +301,31 @@ mod tests {
                 "ensure the initializer expression matches the declared type, or use `as` for explicit numeric conversion",
             );
         let rendered = render_structured_snapshot(&diag, &sm);
-        assert!(rendered.contains("code=E0200"), "should contain code=E0200\n{}", rendered);
-        assert!(rendered.contains("expected=i32"), "should contain expected\n{}", rendered);
-        assert!(rendered.contains("actual=String"), "should contain actual\n{}", rendered);
-        assert!(rendered.contains("note="), "should contain note\n{}", rendered);
-        assert!(rendered.contains("help="), "should contain help\n{}", rendered);
+        assert!(
+            rendered.contains("code=E0200"),
+            "should contain code=E0200\n{}",
+            rendered
+        );
+        assert!(
+            rendered.contains("expected=i32"),
+            "should contain expected\n{}",
+            rendered
+        );
+        assert!(
+            rendered.contains("actual=String"),
+            "should contain actual\n{}",
+            rendered
+        );
+        assert!(
+            rendered.contains("note="),
+            "should contain note\n{}",
+            rendered
+        );
+        assert!(
+            rendered.contains("help="),
+            "should contain help\n{}",
+            rendered
+        );
     }
 
     #[test]
@@ -300,9 +338,21 @@ mod tests {
             .with_note("available fields: `x`, `y`")
             .with_help("check the struct definition of `Point`");
         let rendered = render_structured_snapshot(&diag, &sm);
-        assert!(rendered.contains("code=E0300"), "should contain code=E0300\n{}", rendered);
-        assert!(rendered.contains("note="), "should contain note\n{}", rendered);
-        assert!(rendered.contains("help="), "should contain help\n{}", rendered);
+        assert!(
+            rendered.contains("code=E0300"),
+            "should contain code=E0300\n{}",
+            rendered
+        );
+        assert!(
+            rendered.contains("note="),
+            "should contain note\n{}",
+            rendered
+        );
+        assert!(
+            rendered.contains("help="),
+            "should contain help\n{}",
+            rendered
+        );
         assert!(
             rendered.contains("available fields"),
             "note should list available fields\n{}",
@@ -310,8 +360,16 @@ mod tests {
         );
         // Verify full render
         let full = render_diagnostics(&[diag], &sm);
-        assert!(full.contains("= note:"), "full render should have note prefix\n{}", full);
-        assert!(full.contains("= help:"), "full render should have help prefix\n{}", full);
+        assert!(
+            full.contains("= note:"),
+            "full render should have note prefix\n{}",
+            full
+        );
+        assert!(
+            full.contains("= help:"),
+            "full render should have help prefix\n{}",
+            full
+        );
     }
 
     #[test]
@@ -322,15 +380,22 @@ mod tests {
             .with_note("this is a note")
             .with_help("this is a help");
         let rendered = render_diagnostics(&[diag], &sm);
-        assert!(rendered.contains("= note: this is a note"), "note prefix\n{}", rendered);
-        assert!(rendered.contains("= help: this is a help"), "help prefix\n{}", rendered);
+        assert!(
+            rendered.contains("= note: this is a note"),
+            "note prefix\n{}",
+            rendered
+        );
+        assert!(
+            rendered.contains("= help: this is a help"),
+            "help prefix\n{}",
+            rendered
+        );
     }
 
     #[test]
     fn test_with_suggestion_compat() {
         // with_suggestion() should still produce help output and populate suggestion field.
-        let diag = Diagnostic::new(DiagnosticCode::E0100)
-            .with_suggestion("did you mean `bar`?");
+        let diag = Diagnostic::new(DiagnosticCode::E0100).with_suggestion("did you mean `bar`?");
         assert_eq!(diag.suggestion.as_deref(), Some("did you mean `bar`?"));
         assert_eq!(diag.helps.len(), 1);
         assert_eq!(diag.helps[0], "did you mean `bar`?");

@@ -435,10 +435,7 @@ examples = [
         assert_eq!(avail.note.as_deref(), Some("T1 via Wasmtime linker"));
         assert_eq!(f.examples.len(), 1);
         let ex = &f.examples[0];
-        assert_eq!(
-            ex.code,
-            "let r = http::get(\"https://example.com\")"
-        );
+        assert_eq!(ex.code, "let r = http::get(\"https://example.com\")");
         assert_eq!(ex.description.as_deref(), Some("Fetch a URL"));
         assert_eq!(ex.output.as_deref(), Some("Ok(...)"));
     }
@@ -480,13 +477,14 @@ returns = "()"
 
     /// Issue 457 slice 1: every std::host::* function must declare `availability`
     /// with t1/t3 booleans, and values must match the target-gating in load.rs
-    /// (T3_ONLY_MODULES = ["std::host::http", "std::host::sockets"]).
+    /// (T3_ONLY_MODULES = ["std::host::sockets"]; http is T1+T3 as of issue 446).
     #[test]
     fn host_functions_have_availability() {
         let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
 
         // T3-only modules (matches T3_ONLY_MODULES in crates/ark-resolve/src/load.rs)
-        let t3_only: &[&str] = &["std::host::http", "std::host::sockets"];
+        // Note: std::host::http was removed from T3_ONLY_MODULES in issue 446 (T1+T3 now).
+        let t3_only: &[&str] = &["std::host::sockets"];
 
         let host_fns: Vec<&ManifestFunction> = manifest
             .functions
@@ -564,9 +562,9 @@ returns = "()"
             );
         };
 
-        // std::host::http — t1=false, t3=true (T3-only per issue 448)
-        check("request", "std::host::http", false, true);
-        check("get", "std::host::http", false, true);
+        // std::host::http — t1=true, t3=true (T1+T3 linker path per issue 446)
+        check("request", "std::host::http", true, true);
+        check("get", "std::host::http", true, true);
 
         // std::host::sockets — t1=false, t3=true (issue 447 T3 impl; E0500 on T1 per 448)
         check("connect", "std::host::sockets", false, true);

@@ -29,11 +29,17 @@ impl LowerCtx {
             _ => {
                 let tmp = self.declare_local("__match_scrut");
                 out.push(MirStmt::Assign(Place::Local(tmp), Rvalue::Use(scrut_val)));
-                // If scrutinee is a function call, resolve generic enum payload types
-                if let ast::Expr::Call { callee, .. } = scrutinee
-                    && let ast::Expr::Ident { name: fn_name, .. } = callee.as_ref()
-                {
-                    self.resolve_enum_payload_types_for_local(tmp, fn_name);
+                // If scrutinee is a function call, resolve generic enum payload types.
+                // Handle both plain `fn(args)` and qualified `mod::fn(args)` callees.
+                if let ast::Expr::Call { callee, .. } = scrutinee {
+                    let fn_name = match callee.as_ref() {
+                        ast::Expr::Ident { name, .. } => Some(name.as_str()),
+                        ast::Expr::QualifiedIdent { name, .. } => Some(name.as_str()),
+                        _ => None,
+                    };
+                    if let Some(fn_name) = fn_name {
+                        self.resolve_enum_payload_types_for_local(tmp, fn_name);
+                    }
                 }
                 Operand::Place(Place::Local(tmp))
             }
@@ -73,6 +79,11 @@ impl LowerCtx {
                 if !payload_strings.is_empty() {
                     self.enum_local_payload_strings
                         .insert(local.0, payload_strings);
+                }
+                // Also set enum_local_specialized so the match arm can use the precise
+                // specialized enum name (e.g. "Result_String_String") for payload type lookup.
+                if let Some(spec) = detect_specialized_result(&ret_ty) {
+                    self.enum_local_specialized.insert(local.0, spec);
                 }
             }
             _ => {}

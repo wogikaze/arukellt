@@ -150,14 +150,8 @@ fn doc_json_http_get_shows_target_fields() {
 
     assert_eq!(parsed["kind"], "function");
     assert_eq!(parsed["name"], "get");
-    assert!(
-        parsed.get("stability").is_some(),
-        "should have stability"
-    );
-    assert!(
-        parsed.get("returns").is_some(),
-        "should have returns"
-    );
+    assert!(parsed.get("stability").is_some(), "should have stability");
+    assert!(parsed.get("returns").is_some(), "should have returns");
 }
 
 // ── not-found JSON output ───────────────────────────────────────────────────

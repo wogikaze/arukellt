@@ -777,8 +777,7 @@ fn no_e0100_for_valid_stdlib_import() {
 //   7:     stdio::println(result)
 //   8: }
 
-const FIXTURE_BASIC: &str =
-    "use std::host::stdio\nfn greet(name: String) -> String {\n    name\n}\n\nfn main() {\n    let result = greet(\"world\")\n    stdio::println(result)\n}\n";
+const FIXTURE_BASIC: &str = "use std::host::stdio\nfn greet(name: String) -> String {\n    name\n}\n\nfn main() {\n    let result = greet(\"world\")\n    stdio::println(result)\n}\n";
 
 #[test]
 fn snapshot_hover_println_contains_signature() {

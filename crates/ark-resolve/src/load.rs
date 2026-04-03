@@ -74,19 +74,19 @@ fn emit_target_incompatible_import(
     target: Option<TargetId>,
     sink: &mut DiagnosticSink,
 ) -> bool {
-    if let Some(TargetId::Wasm32WasiP1) = target {
-        if T3_ONLY_MODULES.contains(&import.module_name.as_str()) {
-            sink.emit(
-                Diagnostic::new(DiagnosticCode::E0500)
-                    .with_message(format!(
-                        "module `{}` requires target wasm32-wasi-p2 (T3); \
-                         use `--target wasm32-wasi-p2` to enable this module",
-                        import.module_name
-                    ))
-                    .with_label(import.span, "requires T3 target"),
-            );
-            return true;
-        }
+    if let Some(TargetId::Wasm32WasiP1) = target
+        && T3_ONLY_MODULES.contains(&import.module_name.as_str())
+    {
+        sink.emit(
+            Diagnostic::new(DiagnosticCode::E0500)
+                .with_message(format!(
+                    "module `{}` requires target wasm32-wasi-p2 (T3); \
+                     use `--target wasm32-wasi-p2` to enable this module",
+                    import.module_name
+                ))
+                .with_label(import.span, "requires T3 target"),
+        );
+        return true;
     }
     false
 }
@@ -112,7 +112,11 @@ const HOST_STUB_MODULES: &[&str] = &[];
 
 /// Modules that are only available on wasm32-wasi-p2 (T3) or later.
 /// Importing these on wasm32-wasi-p1 (T1) emits E0500 (incompatible target).
-const T3_ONLY_MODULES: &[&str] = &["std::host::http", "std::host::sockets"];
+///
+/// `std::host::http` was removed from this list in issue 446: both T1 and T3
+/// register `register_http_host_fns` in the Wasmtime linker, so the module is
+/// available on both targets via TCP HTTP/1.1.
+const T3_ONLY_MODULES: &[&str] = &["std::host::sockets"];
 
 pub(crate) fn resolve_import_path(
     current_path: &Path,

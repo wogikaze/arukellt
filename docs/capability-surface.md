@@ -16,7 +16,7 @@
 | [`std::host::env`](#stdhostenv) | 5 | Available | all (partial T1) |
 | [`std::host::fs`](#stdhostfs) | 3 | Available | all |
 | [`std::host::process`](#stdhostprocess) | 2 | Available | all |
-| [`std::host::http`](#stdhosthttp) | 2 | Available (T3 only) | wasm32-wasi-p2 |
+| [`std::host::http`](#stdhosthttp) | 2 | Available | all |
 | [`std::host::sockets`](#stdhostsockets) | 1 | Available (T3 only) | wasm32-wasi-p2 |
 
 ---
@@ -117,14 +117,15 @@ gating (see Issue 448 for future `--deny-process` support).
 
 ### `std::host::http`
 
-HTTP client via TCP-based HTTP/1.1 host functions (Wasmtime linker, T3 only).
+HTTP client via TCP-based HTTP/1.1 host functions (Wasmtime linker, T1 and T3).
 HTTP**S** is not supported; only plain `http://` URLs work.
-Importing this module on T1 (wasm32-wasi-p1) produces an E0500 compile-time error.
+Both T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) support this module via the
+same `register_http_host_fns` linker registration (issue 446).
 
 | Function | Signature | Status | Targets | Host import |
 |---|---|---|---|---|
-| `request` | `(String, String, String) -> Result<String, String>` | available | wasm32-wasi-p2 | `arukellt_host::http_request` |
-| `get` | `(String) -> Result<String, String>` | available | wasm32-wasi-p2 | `arukellt_host::http_get` |
+| `request` | `(String, String, String) -> Result<String, String>` | available | all | `arukellt_host::http_request` |
+| `get` | `(String) -> Result<String, String>` | available | all | `arukellt_host::http_get` |
 
 Both functions are wired in the Wasmtime linker via `register_http_host_fns`
 (see `crates/arukellt/src/runtime.rs`). They use `std::net::TcpStream` — no
@@ -143,7 +144,7 @@ The following error strings are returned as the `Err` variant:
 | HTTPS URL (unsupported) | `"https is not supported (TCP HTTP/1.1 only)"` |
 | Any other I/O failure | `"error: <message>"` |
 
-Module stability is **provisional** (T3 only; HTTPS not supported). There is no `--deny-http` flag.
+Module stability is **provisional** (HTTPS not supported). There is no `--deny-http` flag.
 
 ---
 
@@ -242,8 +243,8 @@ blocked intrinsic, the program is still rejected.
 | `fs::write_bytes` | ✓ | ✓ |
 | `process::exit` | ✓ | ✓ |
 | `process::abort` | ✓ | ✓ |
-| `http::request` | E0500 | ✓ |
-| `http::get` | E0500 | ✓ |
+| `http::request` | ✓ | ✓ |
+| `http::get` | ✓ | ✓ |
 | `sockets::connect` | E0500 | ✓ |
 
 ---
@@ -253,10 +254,10 @@ blocked intrinsic, the program is still rejected.
 1. **`env::var` unavailable on T1.** WASI Preview 1 on the T1 backend does
    not import `environ_get`, so `std::host::env::var` is T3-only.
 
-2. **HTTP and sockets are T3-only.** `std::host::http` and
-   `std::host::sockets` are available on T3 (wasm32-wasi-p2) via the Wasmtime
-   linker. On T1 (wasm32-wasi-p1) the compiler emits E0500 (incompatible target)
-   for both modules (issue 448).
+2. **HTTP is available on both T1 and T3.** `std::host::http` is wired via
+   `register_http_host_fns` in the Wasmtime linker for both T1 (wasm32-wasi-p1)
+   and T3 (wasm32-wasi-p2). `std::host::sockets` is available on T3 only;
+   importing it on T1 emits E0500.
    `std::host::http` uses HTTP/1.1 only; HTTPS is not supported.
 
 3. **No `--deny-stdio` flag.** Standard I/O is unconditionally available.

@@ -564,7 +564,7 @@ pub fn validate_type_table_consistency(module: &MirModule) -> Vec<MirValidationE
     let mut errors = Vec::new();
 
     // -- 1. struct_defs vs type_table.struct_defs --
-    for (name, _) in &module.struct_defs {
+    for name in module.struct_defs.keys() {
         if !module.type_table.struct_defs.contains_key(name.as_str()) {
             errors.push(MirValidationError::new(
                 "<module>".to_string(),
@@ -576,7 +576,7 @@ pub fn validate_type_table_consistency(module: &MirModule) -> Vec<MirValidationE
             ));
         }
     }
-    for (name, _) in &module.type_table.struct_defs {
+    for name in module.type_table.struct_defs.keys() {
         if !module.struct_defs.contains_key(name.as_str()) {
             errors.push(MirValidationError::new(
                 "<module>".to_string(),
@@ -590,7 +590,7 @@ pub fn validate_type_table_consistency(module: &MirModule) -> Vec<MirValidationE
     }
 
     // -- 2. enum_defs vs type_table.enum_defs --
-    for (name, _) in &module.enum_defs {
+    for name in module.enum_defs.keys() {
         if !module.type_table.enum_defs.contains_key(name.as_str()) {
             errors.push(MirValidationError::new(
                 "<module>".to_string(),
@@ -602,7 +602,7 @@ pub fn validate_type_table_consistency(module: &MirModule) -> Vec<MirValidationE
             ));
         }
     }
-    for (name, _) in &module.type_table.enum_defs {
+    for name in module.type_table.enum_defs.keys() {
         if !module.enum_defs.contains_key(name.as_str()) {
             errors.push(MirValidationError::new(
                 "<module>".to_string(),
@@ -657,9 +657,16 @@ fn check_operand_type_table_ref(
                 check_operand_type_table_ref(module, function_name, block_id, op, errors);
             }
         }
-        Operand::FieldAccess { object, struct_name, .. } => {
+        Operand::FieldAccess {
+            object,
+            struct_name,
+            ..
+        } => {
             if !struct_name.is_empty()
-                && !module.type_table.struct_defs.contains_key(struct_name.as_str())
+                && !module
+                    .type_table
+                    .struct_defs
+                    .contains_key(struct_name.as_str())
             {
                 errors.push(MirValidationError::new(
                     function_name.to_string(),
@@ -672,7 +679,9 @@ fn check_operand_type_table_ref(
             }
             check_operand_type_table_ref(module, function_name, block_id, object, errors);
         }
-        Operand::EnumInit { enum_name, payload, .. } => {
+        Operand::EnumInit {
+            enum_name, payload, ..
+        } => {
             if !module.type_table.enum_defs.contains_key(enum_name.as_str()) {
                 errors.push(MirValidationError::new(
                     function_name.to_string(),
@@ -687,7 +696,9 @@ fn check_operand_type_table_ref(
                 check_operand_type_table_ref(module, function_name, block_id, op, errors);
             }
         }
-        Operand::EnumPayload { object, enum_name, .. } => {
+        Operand::EnumPayload {
+            object, enum_name, ..
+        } => {
             if !module.type_table.enum_defs.contains_key(enum_name.as_str()) {
                 errors.push(MirValidationError::new(
                     function_name.to_string(),
@@ -712,7 +723,13 @@ fn check_operand_type_table_ref(
                 check_operand_type_table_ref(module, function_name, block_id, arg, errors);
             }
         }
-        Operand::IfExpr { cond, then_body, then_result, else_body, else_result } => {
+        Operand::IfExpr {
+            cond,
+            then_body,
+            then_result,
+            else_body,
+            else_result,
+        } => {
             check_operand_type_table_ref(module, function_name, block_id, cond, errors);
             for s in then_body {
                 check_stmt_type_table_ref(module, function_name, block_id, s, errors);
@@ -807,7 +824,11 @@ fn check_stmt_type_table_ref(
                 check_operand_type_table_ref(module, function_name, block_id, arg, errors);
             }
         }
-        MirStmt::IfStmt { cond, then_body, else_body } => {
+        MirStmt::IfStmt {
+            cond,
+            then_body,
+            else_body,
+        } => {
             check_operand_type_table_ref(module, function_name, block_id, cond, errors);
             for s in then_body {
                 check_stmt_type_table_ref(module, function_name, block_id, s, errors);
@@ -825,10 +846,7 @@ fn check_stmt_type_table_ref(
         MirStmt::Return(Some(op)) => {
             check_operand_type_table_ref(module, function_name, block_id, op, errors);
         }
-        MirStmt::Return(None)
-        | MirStmt::Break
-        | MirStmt::Continue
-        | MirStmt::GcHint { .. } => {}
+        MirStmt::Return(None) | MirStmt::Break | MirStmt::Continue | MirStmt::GcHint { .. } => {}
     }
 }
 
@@ -849,9 +867,7 @@ fn check_terminator_type_table_ref(
         Terminator::Switch { scrutinee, .. } => {
             check_operand_type_table_ref(module, function_name, block_id, scrutinee, errors);
         }
-        Terminator::Goto(_)
-        | Terminator::Unreachable
-        | Terminator::Return(None) => {}
+        Terminator::Goto(_) | Terminator::Unreachable | Terminator::Return(None) => {}
     }
 }
 
@@ -931,14 +947,28 @@ mod tests {
         module.entry_fn = Some(FnId(0));
         module.functions.push(make_function());
         let fields = vec![("x".to_string(), "i32".to_string())];
-        module.struct_defs.insert("Point".to_string(), fields.clone());
-        module.type_table.struct_defs.insert("Point".to_string(), fields);
+        module
+            .struct_defs
+            .insert("Point".to_string(), fields.clone());
+        module
+            .type_table
+            .struct_defs
+            .insert("Point".to_string(), fields);
         let variants = vec![("Some".to_string(), vec!["i32".to_string()])];
-        module.enum_defs.insert("Option".to_string(), variants.clone());
-        module.type_table.enum_defs.insert("Option".to_string(), variants);
+        module
+            .enum_defs
+            .insert("Option".to_string(), variants.clone());
+        module
+            .type_table
+            .enum_defs
+            .insert("Option".to_string(), variants);
         sync_module_metadata(&mut module);
         let errors = validate_type_table_consistency(&module);
-        assert!(errors.is_empty(), "consistent type_table should produce no errors: {:?}", errors);
+        assert!(
+            errors.is_empty(),
+            "consistent type_table should produce no errors: {:?}",
+            errors
+        );
     }
 
     #[test]
@@ -946,14 +976,20 @@ mod tests {
         let mut module = MirModule::new();
         module.entry_fn = Some(FnId(0));
         module.functions.push(make_function());
-        module.struct_defs.insert("Ghost".to_string(), vec![("f".to_string(), "i32".to_string())]);
+        module.struct_defs.insert(
+            "Ghost".to_string(),
+            vec![("f".to_string(), "i32".to_string())],
+        );
         sync_module_metadata(&mut module);
         let errors = validate_type_table_consistency(&module);
         assert!(
-            errors.iter().any(|e| e.message.contains("type_table mismatch")
-                && e.message.contains("struct")
-                && e.message.contains("Ghost")),
-            "expected mismatch for struct 'Ghost': {:?}", errors
+            errors
+                .iter()
+                .any(|e| e.message.contains("type_table mismatch")
+                    && e.message.contains("struct")
+                    && e.message.contains("Ghost")),
+            "expected mismatch for struct 'Ghost': {:?}",
+            errors
         );
     }
 
@@ -962,14 +998,19 @@ mod tests {
         let mut module = MirModule::new();
         module.entry_fn = Some(FnId(0));
         module.functions.push(make_function());
-        module.enum_defs.insert("Phantom".to_string(), vec![("A".to_string(), vec![])]);
+        module
+            .enum_defs
+            .insert("Phantom".to_string(), vec![("A".to_string(), vec![])]);
         sync_module_metadata(&mut module);
         let errors = validate_type_table_consistency(&module);
         assert!(
-            errors.iter().any(|e| e.message.contains("type_table mismatch")
-                && e.message.contains("enum")
-                && e.message.contains("Phantom")),
-            "expected mismatch for enum 'Phantom': {:?}", errors
+            errors
+                .iter()
+                .any(|e| e.message.contains("type_table mismatch")
+                    && e.message.contains("enum")
+                    && e.message.contains("Phantom")),
+            "expected mismatch for enum 'Phantom': {:?}",
+            errors
         );
     }
 
@@ -989,10 +1030,13 @@ mod tests {
         sync_module_metadata(&mut module);
         let errors = validate_type_table_consistency(&module);
         assert!(
-            errors.iter().any(|e| e.message.contains("type_table mismatch")
-                && e.message.contains("StructInit")
-                && e.message.contains("NoSuchStruct")),
-            "expected mismatch for StructInit 'NoSuchStruct': {:?}", errors
+            errors
+                .iter()
+                .any(|e| e.message.contains("type_table mismatch")
+                    && e.message.contains("StructInit")
+                    && e.message.contains("NoSuchStruct")),
+            "expected mismatch for StructInit 'NoSuchStruct': {:?}",
+            errors
         );
     }
 
@@ -1014,10 +1058,13 @@ mod tests {
         sync_module_metadata(&mut module);
         let errors = validate_type_table_consistency(&module);
         assert!(
-            errors.iter().any(|e| e.message.contains("type_table mismatch")
-                && e.message.contains("EnumInit")
-                && e.message.contains("NoSuchEnum")),
-            "expected mismatch for EnumInit 'NoSuchEnum': {:?}", errors
+            errors
+                .iter()
+                .any(|e| e.message.contains("type_table mismatch")
+                    && e.message.contains("EnumInit")
+                    && e.message.contains("NoSuchEnum")),
+            "expected mismatch for EnumInit 'NoSuchEnum': {:?}",
+            errors
         );
     }
 }

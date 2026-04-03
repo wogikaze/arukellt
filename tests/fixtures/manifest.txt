@@ -56,7 +56,6 @@ diag:diagnostics/wrong_arg_count.ark
 diag:host_stub_sockets.ark
 diag:deny_clock_compile.ark
 diag:deny_random_compile.ark
-diag:target_gating/t1_import_http.ark
 diag:target_gating/t1_import_sockets.ark
 diag:stdlib_io/deny_clock.ark
 diag:stdlib_io/deny_random.ark
@@ -145,6 +144,8 @@ run:hello/multi_print.ark
 run:hello/print_int.ark
 run:host/http/get_err_dns.ark
 run:host/http/request_err_refused.ark
+t3-run:host/http/get_err_dns.ark
+t3-run:host/http/request_err_refused.ark
 run:host/process/abort.ark
 run:host/process/exit_nonzero.ark
 run:host/process/exit_zero.ark

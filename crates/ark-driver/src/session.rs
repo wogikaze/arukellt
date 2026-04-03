@@ -322,7 +322,8 @@ impl Session {
         }
 
         self.sink = DiagnosticSink::new();
-        let program = ark_resolve::resolve_program_with_target(path, &mut self.sink, self.active_target).ok();
+        let program =
+            ark_resolve::resolve_program_with_target(path, &mut self.sink, self.active_target).ok();
         if self.sink.has_errors() {
             return Err(render_diagnostics(
                 self.sink.diagnostics(),

@@ -1847,10 +1847,10 @@ availability = { t1 = true, t3 = true, note = "Requires the --allow-random capab
 
 [[modules]]
 name = "std::host::http"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-wasi-p1", "wasm32-wasi-p2"]
 stability = "provisional"
 family = "expansion"
-doc = "HTTP client via TCP-based HTTP/1.1 host functions (T3-only Wasmtime linker). Importing on T1 produces E0500 compile-time error."
+doc = "HTTP client via TCP-based HTTP/1.1 host functions (Wasmtime linker, T1 and T3). Available on both wasm32-wasi-p1 and wasm32-wasi-p2 via register_http_host_fns (issue 446). HTTPS is not supported."
 
 [[functions]]
 name = "request"
@@ -1859,12 +1859,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_http_request"
 params = ["String", "String", "String"]
 returns = "Result<String, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-wasi-p1", "wasm32-wasi-p2"]
 stability = "provisional"
 doc_category = "host_http"
-doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Available on T3 only (wasm32-wasi-p2); importing on T1 (wasm32-wasi-p1) produces an E0500 compile-time error."
+doc = "Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err with a descriptive message. Only plain http:// URLs are supported (no HTTPS). Available on T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via Wasmtime linker."
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "T3-only via Wasmtime linker (arukellt_host::http_request). HTTPS not supported." }
+availability = { t1 = true, t3 = true, note = "T1+T3 via Wasmtime linker (arukellt_host::http_request). HTTPS not supported." }
 examples = [{code = "let resp = http::request(\"POST\", \"http://api.example.com/data\", \"{\\\"key\\\":\\\"val\\\"}\")", description = "POST JSON to an API endpoint"}]
 
 [[functions]]
@@ -1874,12 +1874,12 @@ kind = "intrinsic_wrapper"
 intrinsic = "__intrinsic_http_get"
 params = ["String"]
 returns = "Result<String, String>"
-target = ["wasm32-wasi-p2"]
+target = ["wasm32-wasi-p1", "wasm32-wasi-p2"]
 stability = "provisional"
 doc_category = "host_http"
-doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Available on T3 only (wasm32-wasi-p2); importing on T1 (wasm32-wasi-p1) produces an E0500 compile-time error."
+doc = "Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:// URLs are supported (no HTTPS). Available on T1 (wasm32-wasi-p1) and T3 (wasm32-wasi-p2) via Wasmtime linker."
 errors = "Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>)."
-availability = { t1 = false, t3 = true, note = "T3-only via Wasmtime linker (arukellt_host::http_get). HTTPS not supported." }
+availability = { t1 = true, t3 = true, note = "T1+T3 via Wasmtime linker (arukellt_host::http_get). HTTPS not supported." }
 examples = [{code = "let body = http::get(\"http://example.com\")\nmatch body {\n  Ok(s) => println(s)\n  Err(e) => eprintln(e)\n}", description = "Fetch a URL and print its body"}]
 
 # === std::host::sockets ===

@@ -34,10 +34,10 @@ fn find_repo_root() -> Option<std::path::PathBuf> {
             .parent()
             .and_then(|p| p.parent())
             .map(|p| p.to_path_buf());
-        if let Some(root) = p {
-            if root.join("std").join("manifest.toml").exists() {
-                return Some(root);
-            }
+        if let Some(root) = p
+            && root.join("std").join("manifest.toml").exists()
+        {
+            return Some(root);
         }
     }
 
@@ -50,8 +50,7 @@ fn load_stdlib_manifest() -> Result<StdlibManifest, String> {
         let path = std::path::PathBuf::from(p);
         let text = std::fs::read_to_string(&path)
             .map_err(|e| format!("cannot read {}: {}", path.display(), e))?;
-        return StdlibManifest::parse(&text)
-            .map_err(|e| format!("cannot parse manifest: {e}"));
+        return StdlibManifest::parse(&text).map_err(|e| format!("cannot parse manifest: {e}"));
     }
 
     let root = find_repo_root().ok_or_else(|| {
@@ -80,7 +79,9 @@ fn classify_query(symbol: &str) -> QueryKind {
     }
 
     // Split off the last segment
-    let (prefix, last) = symbol.rsplit_once("::").expect("already checked contains '::'");
+    let (prefix, last) = symbol
+        .rsplit_once("::")
+        .expect("already checked contains '::'");
 
     // Heuristic: if the prefix itself matches a known module or there's a last
     // segment that looks like a function (lowercase start), treat as ModuleAndName.
@@ -229,24 +230,15 @@ fn target_warning(f: &ManifestFunction, filter_target: &TargetId) -> Option<Stri
 
     if let Some(ref avail) = f.availability {
         if is_t1 && !avail.t1 {
-            return Some(format!(
-                "⚠  Not available on {}",
-                target_str
-            ));
+            return Some(format!("⚠  Not available on {}", target_str));
         }
         if is_t3 && !avail.t3 {
-            return Some(format!(
-                "⚠  Not available on {}",
-                target_str
-            ));
+            return Some(format!("⚠  Not available on {}", target_str));
         }
     } else if !f.target.is_empty() {
         let available = f.target.iter().any(|t| t.as_str() == target_str);
         if !available {
-            return Some(format!(
-                "⚠  Not available on {}",
-                target_str
-            ));
+            return Some(format!("⚠  Not available on {}", target_str));
         }
     }
     None
@@ -254,10 +246,10 @@ fn target_warning(f: &ManifestFunction, filter_target: &TargetId) -> Option<Stri
 
 fn print_function(f: &ManifestFunction, filter_target: Option<&TargetId>) {
     // Target warning first
-    if let Some(ref ft) = filter_target {
-        if let Some(warn) = target_warning(f, ft) {
-            println!("{}", yellow(&warn));
-        }
+    if let Some(ft) = filter_target
+        && let Some(warn) = target_warning(f, ft)
+    {
+        println!("{}", yellow(&warn));
     }
 
     // Signature
@@ -339,8 +331,7 @@ fn print_module_info(
         .functions
         .iter()
         .filter(|f| {
-            f.module.as_deref() == Some(&module.name)
-                && f.kind.as_deref() != Some("intrinsic")
+            f.module.as_deref() == Some(&module.name) && f.kind.as_deref() != Some("intrinsic")
         })
         .collect();
 
@@ -460,7 +451,10 @@ fn emit_function_json(f: &ManifestFunction, filter_target: Option<&TargetId>) {
         deprecated_by: f.deprecated_by.as_deref(),
         target_warning: tw,
     };
-    println!("{}", serde_json::to_string_pretty(&out).expect("DocJsonFunction serialization cannot fail"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&out).expect("DocJsonFunction serialization cannot fail")
+    );
 }
 
 fn emit_module_json(manifest: &StdlibManifest, module: &ManifestModule) {
@@ -468,8 +462,7 @@ fn emit_module_json(manifest: &StdlibManifest, module: &ManifestModule) {
         .functions
         .iter()
         .filter(|f| {
-            f.module.as_deref() == Some(&module.name)
-                && f.kind.as_deref() != Some("intrinsic")
+            f.module.as_deref() == Some(&module.name) && f.kind.as_deref() != Some("intrinsic")
         })
         .map(|f| format!("{}::{}", module.name, f.name))
         .collect();
@@ -481,7 +474,10 @@ fn emit_module_json(manifest: &StdlibManifest, module: &ManifestModule) {
         doc: module.doc.as_deref(),
         functions: fns,
     };
-    println!("{}", serde_json::to_string_pretty(&out).expect("DocJsonModule serialization cannot fail"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&out).expect("DocJsonModule serialization cannot fail")
+    );
 }
 
 fn emit_not_found_json(symbol: &str, candidates: Vec<String>) {
@@ -490,7 +486,10 @@ fn emit_not_found_json(symbol: &str, candidates: Vec<String>) {
         symbol: symbol.to_string(),
         candidates,
     };
-    println!("{}", serde_json::to_string_pretty(&out).expect("DocJsonNotFound serialization cannot fail"));
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&out).expect("DocJsonNotFound serialization cannot fail")
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -536,7 +535,10 @@ pub fn cmd_doc(symbol: &str, json: bool, filter_target: Option<&TargetId>, _all:
                 false
             }
         }
-        QueryKind::ModuleAndName { ref module, ref name } => {
+        QueryKind::ModuleAndName {
+            ref module,
+            ref name,
+        } => {
             let fns = find_by_module_and_name(&manifest, module, name);
             if !fns.is_empty() {
                 for f in &fns {
@@ -662,7 +664,10 @@ mod tests {
         assert!(!fns.is_empty(), "println should be found");
         let f = fns[0];
         assert_eq!(f.name, "println");
-        assert!(f.stability.as_deref() == Some("stable"), "println should be stable");
+        assert!(
+            f.stability.as_deref() == Some("stable"),
+            "println should be stable"
+        );
     }
 
     #[test]
@@ -674,7 +679,10 @@ mod tests {
         assert_eq!(f.name, "get");
         assert_eq!(f.module.as_deref(), Some("std::host::http"));
         // stability could be "experimental" or "available" depending on manifest version
-        assert!(f.stability.is_some(), "http::get should have a stability field");
+        assert!(
+            f.stability.is_some(),
+            "http::get should have a stability field"
+        );
     }
 
     #[test]

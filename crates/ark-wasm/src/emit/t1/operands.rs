@@ -3563,7 +3563,11 @@ impl EmitCtx {
                         //   FS_SCRATCH+12 (172): ret_i32 from host
                         //   FS_SCRATCH+16 (176): abs_len
                         //   FS_SCRATCH+20 (180): enum_ptr
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
 
                         // 1. Save url_ptr to scratch[0]
                         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
@@ -3712,7 +3716,11 @@ impl EmitCtx {
                         //   FS_SCRATCH+28 (188): ret_i32
                         //   FS_SCRATCH+32 (192): abs_len
                         //   FS_SCRATCH+36 (196): enum_ptr
-                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+                        let ma = MemArg {
+                            offset: 0,
+                            align: 2,
+                            memory_index: 0,
+                        };
 
                         // 1. Save method_ptr/len, url_ptr/len, body_ptr/len to scratch
                         f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));

@@ -1160,9 +1160,10 @@ impl Ctx {
         // sockets_connect: (host_ptr: i32, host_len: i32, port: i32, result_ptr: i32) -> i32
         // Returns >= 0: Ok, fd = return value.  Returns < 0: Err, abs(return) = error string
         // length written at result_ptr.
-        let sockets_connect_ty = self
-            .types
-            .add_func(&[ValType::I32, ValType::I32, ValType::I32, ValType::I32], &[ValType::I32]);
+        let sockets_connect_ty = self.types.add_func(
+            &[ValType::I32, ValType::I32, ValType::I32, ValType::I32],
+            &[ValType::I32],
+        );
 
         // Scan MIR to determine which stdlib helpers are actually needed
         // (must happen before import counting so we know if fd_write is needed)
