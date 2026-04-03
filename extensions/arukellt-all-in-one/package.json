@@ -184,6 +184,30 @@
           "default": "https://arukellt.dev/playground",
           "description": "Base URL of the Arukellt web playground used by the 'Open in Playground' command.",
           "scope": "resource"
+        },
+        "arukellt.enableCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Run / Debug / Test CodeLens above functions in .ark files. Set to false to hide all CodeLens entries.",
+          "scope": "resource"
+        },
+        "arukellt.hoverDetailLevel": {
+          "type": "string",
+          "enum": ["minimal", "standard", "verbose"],
+          "enumDescriptions": [
+            "Type signature only.",
+            "Type signature + documentation + availability (default).",
+            "All information including errors and extended metadata."
+          ],
+          "default": "standard",
+          "description": "Controls how much information is shown on hover. 'minimal': type signature only. 'standard': signature + doc + availability. 'verbose': all details including errors.",
+          "scope": "resource"
+        },
+        "arukellt.useSelfHostBackend": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use the self-hosted (ark-compiled) compiler backend instead of the Rust backend. Requires Stage 2 fixpoint (Issue 459). When true before Stage 2 is achieved, the extension logs a warning and continues using the Rust backend.",
+          "scope": "resource"
         }
       }
     },

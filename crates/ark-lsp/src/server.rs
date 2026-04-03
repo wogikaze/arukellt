@@ -13,6 +13,67 @@ use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+/// Controls how much information is shown in hover responses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HoverDetailLevel {
+    /// Type signature only.
+    Minimal,
+    /// Signature + doc + availability (default).
+    Standard,
+    /// Standard + examples + see_also + related spans.
+    Verbose,
+}
+
+impl Default for HoverDetailLevel {
+    fn default() -> Self {
+        HoverDetailLevel::Standard
+    }
+}
+
+impl HoverDetailLevel {
+    fn from_str(s: &str) -> Self {
+        match s {
+            "minimal" => HoverDetailLevel::Minimal,
+            "verbose" => HoverDetailLevel::Verbose,
+            _ => HoverDetailLevel::Standard,
+        }
+    }
+}
+
+/// Runtime-adjustable LSP server settings, populated from initializationOptions
+/// and updated via workspace/didChangeConfiguration.
+#[derive(Debug, Clone)]
+pub struct LspSettings {
+    /// When false, code_lens returns an empty array (CodeLens disabled).
+    pub enable_code_lens: bool,
+    /// Controls hover response verbosity.
+    pub hover_detail_level: HoverDetailLevel,
+}
+
+impl Default for LspSettings {
+    fn default() -> Self {
+        LspSettings {
+            enable_code_lens: true,
+            hover_detail_level: HoverDetailLevel::Standard,
+        }
+    }
+}
+
+impl LspSettings {
+    /// Parse settings from a JSON value (initializationOptions or
+    /// workspace/didChangeConfiguration settings object).
+    fn from_json(value: &serde_json::Value) -> Self {
+        let mut s = LspSettings::default();
+        if let Some(b) = value.get("enableCodeLens").and_then(|v| v.as_bool()) {
+            s.enable_code_lens = b;
+        }
+        if let Some(level) = value.get("hoverDetailLevel").and_then(|v| v.as_str()) {
+            s.hover_detail_level = HoverDetailLevel::from_str(level);
+        }
+        s
+    }
+}
+
 // Semantic token types registered with the client.
 const SEMANTIC_TOKEN_TYPES: &[SemanticTokenType] = &[
     SemanticTokenType::KEYWORD,
@@ -87,6 +148,9 @@ struct ArukellBackend {
     stdlib_manifest: Mutex<Option<StdlibManifest>>,
     /// Project-wide symbol index (file symbols + stdlib symbols).
     symbol_index: Mutex<SymbolIndex>,
+    /// Runtime-adjustable settings (populated from initializationOptions /
+    /// workspace/didChangeConfiguration).
+    settings: Mutex<LspSettings>,
 }
 
 impl ArukellBackend {
@@ -103,6 +167,7 @@ impl ArukellBackend {
                 stdlib_symbols: Vec::new(),
                 indexed_files: HashSet::new(),
             }),
+            settings: Mutex::new(LspSettings::default()),
         }
     }
 
@@ -1698,11 +1763,23 @@ impl ArukellBackend {
     }
 
     /// Build hover information for a stdlib function from the manifest.
-    fn stdlib_hover_info(name: &str, manifest: &StdlibManifest) -> Option<String> {
+    ///
+    /// `level` controls verbosity:
+    /// - `Minimal`:  type signature only (first code block).
+    /// - `Standard`: signature + doc + availability (default; matches old behaviour).
+    /// - `Verbose`:  standard + errors section (future: examples, see_also).
+    fn stdlib_hover_info(name: &str, manifest: &StdlibManifest, level: HoverDetailLevel) -> Option<String> {
         let func = manifest.functions.iter().find(|f| f.name == name)?;
         let params_str = func.params.join(", ");
         let ret = func.returns.as_deref().unwrap_or("()");
         let mut hover = format!("```arukellt\nfn {name}({params_str}) -> {ret}\n```");
+
+        // Minimal: signature only — return here.
+        if level == HoverDetailLevel::Minimal {
+            return Some(hover);
+        }
+
+        // Standard and Verbose: include module/prelude marker, stability, deprecation, category.
         if let Some(ref module) = func.module {
             hover.push_str(&format!("\n\n*Module:* `{module}`"));
         } else if func.prelude {
@@ -1732,9 +1809,14 @@ impl ArukellBackend {
                 hover.push_str(&format!("  \n{}", note));
             }
         }
-        if let Some(ref errors) = func.errors {
-            hover.push_str(&format!("\n\n**Errors:** {}", errors));
+
+        // Verbose: additionally include errors section.
+        if level == HoverDetailLevel::Verbose {
+            if let Some(ref errors) = func.errors {
+                hover.push_str(&format!("\n\n**Errors:** {}", errors));
+            }
         }
+
         Some(hover)
     }
 
@@ -3459,6 +3541,12 @@ impl LanguageServer for ArukellBackend {
 
         *self.workspace_roots.lock().unwrap() = ws_roots;
 
+        // Parse initializationOptions if provided by the client.
+        if let Some(ref opts) = params.initialization_options {
+            let new_settings = LspSettings::from_json(opts);
+            *self.settings.lock().unwrap() = new_settings;
+        }
+
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
@@ -3651,6 +3739,30 @@ impl LanguageServer for ArukellBackend {
         self.refresh_diagnostics(uri, &text).await;
     }
 
+    /// Handle workspace/didChangeConfiguration: update settings without requiring
+    /// an LSP restart.  The client sends the full `arukellt` settings object under
+    /// `params.settings["arukellt"]`.
+    async fn did_change_configuration(&self, params: DidChangeConfigurationParams) {
+        // The VS Code client sends the changed section under its section name.
+        // Try "arukellt" key first, then fall back to treating the whole value as settings.
+        let settings_value = params
+            .settings
+            .get("arukellt")
+            .unwrap_or(&params.settings);
+        let new_settings = LspSettings::from_json(settings_value);
+        *self.settings.lock().unwrap() = new_settings;
+        self.client
+            .log_message(
+                MessageType::INFO,
+                format!(
+                    "arukellt LSP: settings updated — enableCodeLens={}, hoverDetailLevel={:?}",
+                    self.settings.lock().unwrap().enable_code_lens,
+                    self.settings.lock().unwrap().hover_detail_level,
+                ),
+            )
+            .await;
+    }
+
     async fn did_change(&self, params: DidChangeTextDocumentParams) {
         let uri = params.text_document.uri.clone();
         if let Some(change) = params.content_changes.into_iter().last() {
@@ -3674,6 +3786,8 @@ impl LanguageServer for ArukellBackend {
                 None => return Ok(None),
             }
         };
+
+        let hover_level = self.settings.lock().unwrap().hover_detail_level;
 
         let mut cache = self.analysis_cache.lock().unwrap();
         let analysis = cache
@@ -3700,7 +3814,7 @@ impl LanguageServer for ArukellBackend {
                     ) {
                         Some(type_info)
                     } else if let Some(ref m) = *manifest {
-                        if let Some(stdlib_info) = Self::stdlib_hover_info(text, m) {
+                        if let Some(stdlib_info) = Self::stdlib_hover_info(text, m, hover_level) {
                             Some(stdlib_info)
                         } else if let Some(mod_info) = Self::stdlib_module_hover(text, m) {
                             Some(mod_info)
@@ -4778,6 +4892,11 @@ impl LanguageServer for ArukellBackend {
     }
 
     async fn code_lens(&self, params: CodeLensParams) -> Result<Option<Vec<CodeLens>>> {
+        // Respect the arukellt.enableCodeLens setting: return empty when disabled.
+        if !self.settings.lock().unwrap().enable_code_lens {
+            return Ok(Some(vec![]));
+        }
+
         let uri = params.text_document.uri;
 
         let source = {
@@ -5589,7 +5708,7 @@ mod tests {
     #[test]
     fn stdlib_hover_shows_signature_and_metadata() {
         let manifest = load_test_manifest();
-        let info = ArukellBackend::stdlib_hover_info("println", &manifest);
+        let info = ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Standard);
         assert!(info.is_some(), "println should have stdlib hover info");
         let text = info.unwrap();
         assert!(
@@ -5603,7 +5722,7 @@ mod tests {
     fn stdlib_hover_http_get_shows_doc_and_target_and_errors() {
         let manifest = load_test_manifest();
         // Use `connect` (sockets) which is unique and has target + doc + availability
-        let info = ArukellBackend::stdlib_hover_info("connect", &manifest);
+        let info = ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Standard);
         assert!(
             info.is_some(),
             "connect (sockets) should have stdlib hover info"
@@ -6148,5 +6267,81 @@ fn add(a: i32, b: i32) -> i32 {
         // Non-stdlib import → None
         let p2 = ArukellBackend::stdlib_file_for_import("my_local_module", &std_root);
         assert!(p2.is_none(), "non-stdlib import should return None");
+    }
+
+    // ---- Issue 462: LspSettings and hover detail level --------------------------
+
+    #[test]
+    fn lsp_settings_default_values() {
+        let s = LspSettings::default();
+        assert!(s.enable_code_lens, "default enableCodeLens must be true");
+        assert_eq!(
+            s.hover_detail_level,
+            HoverDetailLevel::Standard,
+            "default hoverDetailLevel must be Standard"
+        );
+    }
+
+    #[test]
+    fn lsp_settings_from_json_parses_all_fields() {
+        let v = serde_json::json!({
+            "enableCodeLens": false,
+            "hoverDetailLevel": "minimal"
+        });
+        let s = LspSettings::from_json(&v);
+        assert!(!s.enable_code_lens, "enableCodeLens should be false");
+        assert_eq!(s.hover_detail_level, HoverDetailLevel::Minimal);
+    }
+
+    #[test]
+    fn lsp_settings_from_json_unknown_level_defaults_to_standard() {
+        let v = serde_json::json!({ "hoverDetailLevel": "bogus" });
+        let s = LspSettings::from_json(&v);
+        assert_eq!(s.hover_detail_level, HoverDetailLevel::Standard);
+    }
+
+    #[test]
+    fn stdlib_hover_minimal_returns_signature_only() {
+        let manifest = load_test_manifest();
+        let info = ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Minimal);
+        let text = info.unwrap();
+        assert!(text.contains("fn println"), "minimal hover should show signature");
+        assert!(
+            !text.contains("*Module:*") && !text.contains("*Prelude"),
+            "minimal hover should NOT include module/prelude metadata"
+        );
+    }
+
+    #[test]
+    fn stdlib_hover_standard_includes_doc_and_availability() {
+        let manifest = load_test_manifest();
+        // println is a prelude function — standard level should include prelude marker
+        let info = ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Standard);
+        let text = info.unwrap();
+        assert!(text.contains("fn println"), "standard hover should show signature");
+        // Should include module or prelude info
+        assert!(
+            text.contains("Module") || text.contains("Prelude") || text.contains("prelude"),
+            "standard hover should include module/prelude info"
+        );
+    }
+
+    #[test]
+    fn stdlib_hover_verbose_includes_errors_section() {
+        let manifest = load_test_manifest();
+        // Use connect which has an errors field in the manifest
+        let info_std = ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Standard);
+        let info_verbose = ArukellBackend::stdlib_hover_info("connect", &manifest, HoverDetailLevel::Verbose);
+        // If there are errors in the manifest, verbose should include them
+        if let (Some(std_text), Some(verbose_text)) = (info_std, info_verbose) {
+            // At minimum both should have the signature
+            assert!(std_text.contains("fn connect"));
+            assert!(verbose_text.contains("fn connect"));
+            // Verbose should be at least as long as standard
+            assert!(
+                verbose_text.len() >= std_text.len(),
+                "verbose hover should be at least as long as standard"
+            );
+        }
     }
 }

@@ -156,6 +156,17 @@ function startLanguageServer(context) {
     return
   }
 
+  // Warn if selfhost backend is requested but not yet available.
+  const useSelfHostBackend = config.get('useSelfHostBackend', false)
+  if (useSelfHostBackend) {
+    if (outputChannel) {
+      outputChannel.appendLine(
+        '[arukellt] WARNING: arukellt.useSelfHostBackend=true but selfhost backend requires ' +
+        'Stage 2 fixpoint (Issue 459). Continuing with the Rust backend.'
+      )
+    }
+  }
+
   const serverOptions = {
     run: {
       command,
@@ -173,8 +184,16 @@ function startLanguageServer(context) {
     documentSelector: [{ scheme: 'file', language: 'arukellt' }],
     synchronize: {
       fileEvents: vscode.workspace.createFileSystemWatcher('**/*.ark'),
+      configurationSection: 'arukellt',
     },
     outputChannel,
+    // Pass current settings as initializationOptions so the LSP server can
+    // apply them on startup without waiting for didChangeConfiguration.
+    initializationOptions: {
+      enableCodeLens: config.get('enableCodeLens', true),
+      hoverDetailLevel: config.get('hoverDetailLevel', 'standard'),
+      useSelfHostBackend: config.get('useSelfHostBackend', false),
+    },
     errorHandler: {
       error(error, message, count) {
         if (count && count <= 3) {
@@ -205,6 +224,32 @@ function startLanguageServer(context) {
     restartCount = 0
     updateStatus('Arukellt: $(check) LSP running', probe.version || command)
     updateLanguageStatus('ready', probe.version || command)
+
+    // Forward configuration changes to the LSP server via workspace/didChangeConfiguration.
+    context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration(e => {
+        if (!e.affectsConfiguration('arukellt')) return
+        const cfg = getConfiguration()
+        const newUseSelfHost = cfg.get('useSelfHostBackend', false)
+        if (newUseSelfHost && outputChannel) {
+          outputChannel.appendLine(
+            '[arukellt] WARNING: arukellt.useSelfHostBackend=true but selfhost backend requires ' +
+            'Stage 2 fixpoint (Issue 459). Continuing with the Rust backend.'
+          )
+        }
+        if (client) {
+          client.sendNotification('workspace/didChangeConfiguration', {
+            settings: {
+              arukellt: {
+                enableCodeLens: cfg.get('enableCodeLens', true),
+                hoverDetailLevel: cfg.get('hoverDetailLevel', 'standard'),
+                useSelfHostBackend: cfg.get('useSelfHostBackend', false),
+              },
+            },
+          })
+        }
+      })
+    )
   }).catch((err) => {
     updateStatus('$(error) Arukellt: start failed', err.message)
     updateLanguageStatus('error', err.message)

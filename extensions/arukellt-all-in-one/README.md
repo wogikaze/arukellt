@@ -19,10 +19,18 @@ Minimal VS Code extension scaffold for Arukellt.
 - `Arukellt: Compile Current File`
 - `Arukellt: Run Current File`
 
-## Settings
+## Extension Settings
 
-- `arukellt.server.path` — path to the `arukellt` binary (default: `arukellt`)
-- `arukellt.server.args` — extra args inserted before `lsp`
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `arukellt.server.path` | `string` | `"arukellt"` | Path to the `arukellt` binary used to launch the language server. |
+| `arukellt.server.args` | `string[]` | `[]` | Extra arguments inserted before the built-in `lsp` subcommand. |
+| `arukellt.target` | `string` | `"wasm32-wasi-p1"` | Default compilation target for check, compile, and run commands. |
+| `arukellt.emit` | `string` | `"core-wasm"` | Default emit kind for compile commands. |
+| `arukellt.playgroundUrl` | `string` | `"https://arukellt.dev/playground"` | Base URL of the Arukellt web playground. |
+| `arukellt.enableCodeLens` | `boolean` | `true` | Show Run / Debug / Test CodeLens above functions in `.ark` files. Set to `false` to hide all CodeLens entries. |
+| `arukellt.hoverDetailLevel` | `"minimal"` \| `"standard"` \| `"verbose"` | `"standard"` | Controls hover information verbosity. `minimal`: signature only. `standard`: signature + docs + availability. `verbose`: all details. |
+| `arukellt.useSelfHostBackend` | `boolean` | `false` | Use the self-hosted (ark-compiled) compiler backend. Requires Stage 2 fixpoint (Issue 459). Before Stage 2, enabling this logs a warning and falls back to the Rust backend. |
 
 ## Notes
 
