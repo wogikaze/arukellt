@@ -196,6 +196,7 @@ function startLanguageServer(context) {
       arkTarget: config.get('target', null),
       diagnosticsReportLevel: config.get('diagnostics.reportLevel', 'all'),
       useSelfHostBackend: config.get('useSelfHostBackend', false),
+      checkOnSave: config.get('check.onSave', true),
     },
     errorHandler: {
       error(error, message, count) {
@@ -249,6 +250,7 @@ function startLanguageServer(context) {
                 arkTarget: cfg.get('target', null),
                 diagnosticsReportLevel: cfg.get('diagnostics.reportLevel', 'all'),
                 useSelfHostBackend: cfg.get('useSelfHostBackend', false),
+                checkOnSave: cfg.get('check.onSave', true),
               },
             },
           })
