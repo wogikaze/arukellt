@@ -1,17 +1,8 @@
 ---
-description: "Use this agent when the user has an assigned language-reference / tutorial / spec-sync documentation work order to complete.
-
-Trigger phrases include:
-- 'Complete this language docs issue slice'
-- 'Implement this spec-sync task'
-- 'Work on this language reference update'
-- 'Finish this tutorial/docs verification work'
-- 'Implement this docs acceptance criterion'
-
-Examples:
-- User provides ISSUE_ID, SUBTASK='sync language guide with current type-system behavior', PRIMARY_PATHS=['docs/language/**'] → invoke this agent to implement exactly that docs slice with consistency verification
-- User says 'Update only the language-reference wording and sample validation, not the runtime implementation' → invoke this agent to stay inside language-docs boundaries
-- After defining a language-docs work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → invoke this agent to execute precisely that scope with no scope creep"
+description: >-
+  Use this agent when the user has an assigned language-reference /
+  tutorial / spec-sync documentation slice with explicit verification and
+  completion criteria.
 name: impl-language-docs
 ---
 

@@ -1,17 +1,8 @@
 ---
-description: "Use this agent when the user has an assigned LSP / VS Code extension / editor-behavior work order to complete.
-
-Trigger phrases include:
-- 'Complete this VS Code issue slice'
-- 'Implement this LSP behavior fix'
-- 'Work on this hover or definition task'
-- 'Finish this diagnostics parity work'
-- 'Implement this editor acceptance criterion'
-
-Examples:
-- User provides ISSUE_ID, SUBTASK='tighten definition range for imports', PRIMARY_PATHS=['crates/ark-lsp/**'] → invoke this agent to implement exactly that LSP slice with regression proof
-- User says 'Fix only the CodeLens behavior, not the CLI command itself' → invoke this agent to stay inside editor behavior boundaries
-- After defining an IDE work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → invoke this agent to execute precisely that scope with no scope creep"
+description: >-
+  Use this agent when the user has an assigned LSP / VS Code extension /
+  editor-behavior implementation slice with explicit verification and completion
+  criteria.
 name: impl-vscode-ide
 ---
 

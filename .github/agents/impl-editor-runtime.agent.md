@@ -1,16 +1,7 @@
 ---
-description: "Use this agent when the user has an assigned editor-run / editor-debug / launch-path work order to complete.
-
-Trigger phrases include:
-- 'Complete this editor runtime issue slice'
-- 'Implement this run-in-editor task'
-- 'Work on this debug launch flow'
-- 'Finish this editor launch acceptance criterion'
-
-Examples:
-- User provides ISSUE_ID, SUBTASK='wire Run command to launch local execution and surface output', PRIMARY_PATHS=['extensions/arukellt-all-in-one/src/**'] → invoke this agent to implement exactly that editor-runtime slice with verification
-- User says 'Complete only the launch settings path, not general LSP hover work' → invoke this agent to stay inside editor-runtime boundaries
-- After defining an editor-runtime work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → invoke this agent to execute precisely that scope with no scope creep"
+description: >-
+  Use this agent when the user has an assigned editor-run / editor-debug /
+  launch-integration slice with explicit verification and completion criteria.
 name: impl-editor-runtime
 ---
 

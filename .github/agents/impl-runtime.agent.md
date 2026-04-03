@@ -1,17 +1,8 @@
----
-description: "Use this agent when the user has an assigned runtime / capability / target-gating implementation work order to complete.
-
-Trigger phrases include:
-- 'Complete this runtime issue slice'
-- 'Implement this host runtime wiring'
-- 'Work on this capability enforcement task'
-- 'Finish this target-gating work'
-- 'Implement this runtime acceptance criterion'
-
-Examples:
-- User provides ISSUE_ID, SUBTASK='wire std::host process call into runtime', PRIMARY_PATHS=['crates/arukellt/**'] → invoke this agent to implement exactly that runtime slice with verification
-- User says 'Complete only the deny/grant capability enforcement part' → invoke this agent to focus on that compile-time/runtime consistency slice only
-- After defining a runtime work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → invoke this agent to execute precisely that scope with no scope creep"
+--- 
+description: >-
+  Use this agent when the user has an assigned runtime / capability /
+  target-gating implementation slice with explicit verification and completion
+  criteria.
 name: impl-runtime
 ---
 

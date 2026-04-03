@@ -1,16 +1,8 @@
 ---
-description: "Use this agent when the user has an assigned selfhost-retirement / bootstrap-governance / source-of-truth-transition work order to complete.
-
-Trigger phrases include:
-- 'Complete this selfhost retirement issue slice'
-- 'Implement this bootstrap governance task'
-- 'Work on this source-of-truth transition'
-- 'Finish this selfhost retirement acceptance criterion'
-
-Examples:
-- User provides ISSUE_ID, SUBTASK='codify selfhost parity exit gate', PRIMARY_PATHS=['docs/process/bootstrap-verification.md'] → invoke this agent to implement exactly that governance slice with verification
-- User says 'Complete only the dual-source retirement policy, not frontend compiler implementation' → invoke this agent to stay inside retirement/governance boundaries
-- After defining a selfhost-retirement work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → invoke this agent to execute precisely that scope with no scope creep"
+description: >-
+  Use this agent when the user has an assigned selfhost-retirement /
+  bootstrap-governance / source-of-truth-transition slice with explicit
+  verification and completion criteria.
 name: impl-selfhost-retirement
 ---
 

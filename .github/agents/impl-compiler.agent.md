@@ -1,17 +1,8 @@
 ---
-description: "Use this agent when the user has an assigned compiler-core / MIR / emitter / validation work order to complete.
-
-Trigger phrases include:
-- 'Complete this compiler issue slice'
-- 'Implement this emitter work'
-- 'Work on this MIR validation task'
-- 'Finish this lowering fix'
-- 'Implement this compiler acceptance criterion'
-
-Examples:
-- User provides ISSUE_ID, SUBTASK='unify emitter type-table source of truth', PRIMARY_PATHS=['crates/ark-wasm/**','crates/ark-mir/**'] → invoke this agent to complete exactly that compiler slice
-- User says 'Fix only the backend emission difference, not the runtime wiring' → invoke this agent to stay inside compiler-core boundaries
-- After defining a compiler work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → invoke this agent to execute precisely that scope with regression proof"
+description: >-
+  Use this agent when the user has an assigned compiler / MIR / emitter /
+  validation implementation slice with explicit verification and completion
+  criteria.
 name: impl-compiler
 ---
 

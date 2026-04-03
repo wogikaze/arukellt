@@ -1,17 +1,8 @@
 ---
-description: "Use this agent when the user has an assigned CLI surface work order to complete.
-
-Trigger phrases include:
-- 'Complete this CLI issue slice'
-- 'Implement this subcommand'
-- 'Work on this flag UX task'
-- 'Finish this --json output work'
-- 'Implement this command-surface acceptance criterion'
-
-Examples:
-- User provides ISSUE_ID, SUBTASK='add machine-readable output for verify command', PRIMARY_PATHS=['crates/arukellt/src/commands.rs'] → invoke this agent to implement exactly that CLI slice with snapshot proof
-- User says 'Fix only the help and stdout/stderr contract, not the runtime behavior' → invoke this agent to stay inside command-surface boundaries
-- After defining a CLI work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → invoke this agent to execute precisely that scope with no scope creep"
+description: >-
+  Use this agent when the user has an assigned CLI / command-surface /
+  machine-readable-output implementation slice with explicit verification and
+  completion criteria.
 name: impl-cli
 ---
 

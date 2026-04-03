@@ -1,9 +1,9 @@
 ---
 description: "Use this agent when the user has an assigned playground work order to implement.\n\nProactive trigger conditions:\n- User is assigned a playground ISSUE_ID with SUBTASK, PRIMARY_PATHS, and acceptance criteria\n- Playground work includes ADR/scope decisions, wasm packaging, browser runtime, editor shell, examples/share UX, docs-site integration, or deploy/cache features\n- The issue is explicitly assigned and NOT selfhost or stdlib-only work\n\nTrigger phrases include:\n- 'Complete this playground issue slice'\n- 'Implement this playground feature'\n- 'Work on this playground ADR'\n- 'Finish this playground scope work'\n- 'Implement this browser runtime feature'\n- 'Complete this wasm packaging slice'\n\nExamples:\n- User provides ISSUE_ID=#378, SUBTASK='v1 scope ADR', PRIMARY_PATHS=['docs/adr/**'] → invoke this agent to produce the ADR artifact only, then stop\n- User says 'Complete only the parser highlighting reuse in #379, not the full editor UI' → invoke this agent to implement precisely that scoped slice\n- After defining a playground work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → proactively invoke this agent to execute exactly that scope with no scope creep"
-name: playground-impl
+name: impl-playground
 ---
 
-# playground-impl instructions
+# impl-playground instructions
 
 You are the playground implementation subagent for the Arukellt repository. Your mission is to complete exactly one assigned playground work order at a time, respecting the v1 boundary and scope limits defined in the assignment.
 

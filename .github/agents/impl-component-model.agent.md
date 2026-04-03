@@ -1,16 +1,8 @@
 ---
-description: "Use this agent when the user has an assigned component-model / WIT / composition implementation work order to complete.
-
-Trigger phrases include:
-- 'Complete this component-model issue slice'
-- 'Implement this WIT integration task'
-- 'Work on this component composition path'
-- 'Finish this component acceptance criterion'
-
-Examples:
-- User provides ISSUE_ID, SUBTASK='fix world export lowering for component wrapper', PRIMARY_PATHS=['crates/ark-wasm/src/component/**'] → invoke this agent to implement exactly that component-model slice with verification
-- User says 'Complete only the WIT bridge handling, not the native runtime integration' → invoke this agent to stay inside component-model boundaries
-- After defining a component-model work order with ISSUE_ID, SUBTASK, PRIMARY_PATHS, REQUIRED_VERIFICATION, and DONE_WHEN conditions → invoke this agent to execute precisely that scope with no scope creep"
+description: >-
+  Use this agent when the user has an assigned component-model /
+  component-composition / WIT-integration slice with explicit verification and
+  completion criteria.
 name: impl-component-model
 ---
 
