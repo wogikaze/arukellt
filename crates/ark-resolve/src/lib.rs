@@ -14,8 +14,8 @@ mod unused;
 
 #[allow(deprecated)]
 pub use resolve::{
-    ResolvedEnum, ResolvedFunction, ResolvedModule, ResolvedProgram, ResolvedStruct, Visibility,
-    bind_program, load_program_graph_with_target, merge_prelude, resolve_module,
+    LoadedModule, ResolvedEnum, ResolvedFunction, ResolvedModule, ResolvedProgram, ResolvedStruct,
+    Visibility, bind_program, load_program_graph_with_target, merge_prelude, resolve_module,
     resolve_module_default, resolve_module_for_tests, resolve_module_legacy, resolve_module_public,
     resolve_module_stdlib, resolve_module_with_intrinsic_prelude, resolve_program,
     resolve_program_entry, resolve_program_entry_with_target, resolve_program_with_target,

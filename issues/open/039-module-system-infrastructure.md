@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-04
 **ID**: 039
 **Depends on**: —
 **Track**: stdlib
@@ -134,3 +134,37 @@ Verification:
 - `use std::collections::{vec}` followed by `vec::new_i32()` resolves correctly
 
 Remaining slices 3-6 still open.
+
+---
+
+## Slice 3 complete
+
+**Typechecker: module-qualified call type resolution — DONE**
+
+Changes merged:
+- `crates/ark-resolve/src/lib.rs`: Re-exported `LoadedModule` from the crate root so the
+  typecheck crate can reference it in `register_qualified_module_sigs`.
+- `crates/ark-typecheck/src/checker/mod.rs`: Added `register_qualified_module_sigs` method
+  to `TypeChecker`.  It iterates the `ResolvedProgram::modules` slice and inserts every
+  `pub fn` from each loaded module under the key `"qualifier::fn_name"` (e.g.
+  `"string::split"`) into `fn_sigs`.  `check_program` calls this method before flattening
+  the module, so the primary lookup path in `QualifiedIdent` type-checking resolves without
+  relying on the plain-name fallback.  Private functions (`is_pub: false`) are excluded.
+- `tests/fixtures/module_import/use_qualified_call_typed.ark` + `.expected`: New `run:`
+  fixture that uses explicit `String` type annotations, calls `string::split(s, sep)` via
+  the qualified form, and verifies the return `Vec<String>` is usable with `len()`.
+- `tests/fixtures/manifest.txt`: Added `run:module_import/use_qualified_call_typed.ark`.
+- Unit tests (5 new in `checker::tests`):
+  - `register_qualified_module_sigs_inserts_qualified_key`
+  - `register_qualified_module_sigs_correct_signature`
+  - `register_qualified_module_sigs_no_collision_between_modules`
+  - `register_qualified_module_sigs_skips_private_fns`
+  - `synthesize_qualified_ident_resolves_via_primary_key`
+
+Verification:
+- `cargo test -p ark-typecheck`: 10/10 passed (5 pre-existing + 5 new)
+- `cargo test -p arukellt -- fixture_harness`: fixture_harness passed
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 passed
+- `string::split(s, sep)` typechecks and runs without error when `use std::text::string` in scope
+
+Remaining slices 4-6 still open.

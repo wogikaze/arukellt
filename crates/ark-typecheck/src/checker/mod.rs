@@ -362,6 +362,14 @@ impl TypeChecker {
         // module boundaries.
         self.check_cross_module_visibility(program, sink);
 
+        // Register qualified fn signatures (e.g. `string::split`) so that
+        // the primary lookup path in QualifiedIdent type-checking resolves
+        // without relying solely on the plain-name fallback.
+        // This is the slice-3 (#039) typecheck fix: the resolver already
+        // inserts qualified names into the symbol table; here we mirror that
+        // in the fn_sigs type table so type inference sees the canonical key.
+        self.register_qualified_module_sigs(&program.modules);
+
         #[allow(deprecated)]
         let flat = ark_resolve::resolved_program_to_module(program);
         let resolved = ark_resolve::ResolvedModule {
@@ -372,6 +380,52 @@ impl TypeChecker {
             entry_fn_names: self.entry_fn_names.clone(),
         };
         self.check_module(&resolved, sink);
+    }
+
+    /// For each loaded module, register every `pub fn` under
+    /// `qualifier::fn_name` in `fn_sigs`.  The qualifier is the module's
+    /// leaf name (e.g. `"string"` for `std/text/string.ark`).
+    ///
+    /// This ensures that `QualifiedIdent { module: "string", name: "split" }`
+    /// resolves via the primary key `"string::split"` rather than relying on
+    /// the plain-name fallback, which can shadow or be shadowed by same-named
+    /// functions in other modules.
+    fn register_qualified_module_sigs(&mut self, modules: &[ark_resolve::LoadedModule]) {
+        for loaded in modules {
+            let qualifier = &loaded.name;
+            for item in &loaded.ast.items {
+                if let ast::Item::FnDef(f) = item {
+                    if !f.is_pub {
+                        continue;
+                    }
+                    let qualified_key = format!("{}::{}", qualifier, f.name);
+                    // Only insert if not already present (avoids overwriting a
+                    // more-specific entry that may have been set earlier).
+                    if !self.fn_sigs.contains_key(&qualified_key) {
+                        let params: Vec<crate::types::Type> = f
+                            .params
+                            .iter()
+                            .map(|p| self.resolve_type_expr(&p.ty))
+                            .collect();
+                        let ret = f
+                            .return_type
+                            .as_ref()
+                            .map(|t| self.resolve_type_expr(t))
+                            .unwrap_or(crate::types::Type::Unit);
+                        self.fn_sigs.insert(
+                            qualified_key.clone(),
+                            FnSig {
+                                name: qualified_key,
+                                type_params: f.type_params.clone(),
+                                type_param_bounds: f.type_param_bounds.clone(),
+                                params,
+                                ret,
+                            },
+                        );
+                    }
+                }
+            }
+        }
     }
 
     /// Emit E0102 for any use of a private symbol from another module.
@@ -603,5 +657,200 @@ impl TypeChecker {
 impl Default for TypeChecker {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ark_diagnostics::{DiagnosticSink, Span};
+    use ark_parser::ast;
+    use ark_resolve::LoadedModule;
+
+    /// Build a minimal `LoadedModule` with one `pub fn` for testing.
+    fn make_loaded_module(module_name: &str, fn_name: &str) -> LoadedModule {
+        let span = Span::dummy();
+        LoadedModule {
+            name: module_name.to_string(),
+            path: std::path::PathBuf::from(format!("<test/{}.ark>", module_name)),
+            ast: ast::Module {
+                docs: vec![],
+                imports: vec![],
+                items: vec![ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
+                    name: fn_name.to_string(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![
+                        ast::Param {
+                            name: "s".to_string(),
+                            ty: ast::TypeExpr::Named {
+                                name: "String".to_string(),
+                                span,
+                            },
+                            span,
+                        },
+                        ast::Param {
+                            name: "sep".to_string(),
+                            ty: ast::TypeExpr::Named {
+                                name: "String".to_string(),
+                                span,
+                            },
+                            span,
+                        },
+                    ],
+                    return_type: Some(ast::TypeExpr::Named {
+                        name: "i32".to_string(),
+                        span,
+                    }),
+                    body: ast::Block {
+                        stmts: vec![],
+                        tail_expr: Some(Box::new(ast::Expr::IntLit {
+                            value: 0,
+                            suffix: None,
+                            span,
+                        })),
+                        span,
+                    },
+                    is_pub: true,
+                    span,
+                })],
+            },
+        }
+    }
+
+    /// Slice-3 (#039): `register_qualified_module_sigs` inserts
+    /// `qualifier::fn_name` into `fn_sigs` for every `pub fn` in a loaded module.
+    #[test]
+    fn register_qualified_module_sigs_inserts_qualified_key() {
+        let mut checker = TypeChecker::new();
+        let modules = vec![make_loaded_module("string", "split")];
+        checker.register_qualified_module_sigs(&modules);
+
+        // Primary qualified key must be present.
+        assert!(
+            checker.fn_sigs.contains_key("string::split"),
+            "expected `string::split` in fn_sigs after register_qualified_module_sigs"
+        );
+        // Plain key is NOT inserted by this method (check_module handles it separately).
+        assert!(
+            !checker.fn_sigs.contains_key("split"),
+            "register_qualified_module_sigs should not insert plain key `split`"
+        );
+    }
+
+    /// Slice-3 (#039): qualified key resolves to correct signature (params, ret).
+    #[test]
+    fn register_qualified_module_sigs_correct_signature() {
+        let mut checker = TypeChecker::new();
+        let modules = vec![make_loaded_module("string", "split")];
+        checker.register_qualified_module_sigs(&modules);
+
+        let sig = checker
+            .fn_sigs
+            .get("string::split")
+            .expect("`string::split` sig must be present");
+        assert_eq!(sig.params.len(), 2, "split takes 2 params");
+        assert_eq!(sig.params[0], crate::types::Type::String);
+        assert_eq!(sig.params[1], crate::types::Type::String);
+        assert_eq!(sig.ret, crate::types::Type::I32);
+    }
+
+    /// Slice-3 (#039): a second module with the same plain fn name gets its own
+    /// qualified key without collision.
+    #[test]
+    fn register_qualified_module_sigs_no_collision_between_modules() {
+        let mut checker = TypeChecker::new();
+        let modules = vec![
+            make_loaded_module("string", "split"),
+            make_loaded_module("url", "split"),
+        ];
+        checker.register_qualified_module_sigs(&modules);
+
+        assert!(
+            checker.fn_sigs.contains_key("string::split"),
+            "`string::split` must be present"
+        );
+        assert!(
+            checker.fn_sigs.contains_key("url::split"),
+            "`url::split` must be present"
+        );
+    }
+
+    /// Slice-3 (#039): private functions are NOT registered under qualified key.
+    #[test]
+    fn register_qualified_module_sigs_skips_private_fns() {
+        let span = Span::dummy();
+        let mut checker = TypeChecker::new();
+        let module = LoadedModule {
+            name: "string".to_string(),
+            path: std::path::PathBuf::from("<test/string.ark>"),
+            ast: ast::Module {
+                docs: vec![],
+                imports: vec![],
+                items: vec![ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
+                    name: "internal_helper".to_string(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![],
+                    return_type: None,
+                    body: ast::Block {
+                        stmts: vec![],
+                        tail_expr: Some(Box::new(ast::Expr::IntLit {
+                            value: 0,
+                            suffix: None,
+                            span,
+                        })),
+                        span,
+                    },
+                    is_pub: false, // private
+                    span,
+                })],
+            },
+        };
+        checker.register_qualified_module_sigs(&[module]);
+        assert!(
+            !checker.fn_sigs.contains_key("string::internal_helper"),
+            "private fn must not be registered under qualified key"
+        );
+    }
+
+    /// Slice-3 (#039): `QualifiedIdent` synthesize resolves via primary
+    /// qualified key when `string::split` is in fn_sigs.
+    #[test]
+    fn synthesize_qualified_ident_resolves_via_primary_key() {
+        use ark_diagnostics::Span;
+        let mut checker = TypeChecker::new();
+        // Pre-populate fn_sigs with the qualified key (as register_qualified_module_sigs would do).
+        checker.fn_sigs.insert(
+            "string::split".to_string(),
+            FnSig {
+                name: "string::split".to_string(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![crate::types::Type::String, crate::types::Type::String],
+                ret: crate::types::Type::I32,
+            },
+        );
+
+        let mut env = TypeEnv::new();
+        let mut sink = DiagnosticSink::new();
+        let expr = ast::Expr::QualifiedIdent {
+            module: "string".to_string(),
+            name: "split".to_string(),
+            span: Span::dummy(),
+        };
+        let ty = checker.synthesize_expr(&expr, &mut env, &mut sink);
+        assert!(
+            sink.diagnostics().is_empty(),
+            "should not emit any diagnostics for resolved qualified ident, got: {:?}",
+            sink.diagnostics()
+        );
+        assert!(
+            matches!(ty, crate::types::Type::Function { .. }),
+            "expected Function type, got {:?}",
+            ty
+        );
     }
 }

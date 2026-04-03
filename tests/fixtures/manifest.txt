@@ -57,6 +57,7 @@ diag:host_stub_sockets.ark
 diag:deny_clock_compile.ark
 diag:deny_random_compile.ark
 diag:target_gating/t1_import_sockets.ark
+diag:target_gating/t1_import_udp.ark
 diag:stdlib_io/deny_clock.ark
 diag:stdlib_io/deny_random.ark
 diag:v0_constraints/no_method_call.ark
@@ -79,6 +80,7 @@ module-run:modules/visibility_pub_access/main.ark
 parse-only:module_import/use_basic.ark
 parse-only:module_import/use_destructure.ark
 run:module_import/use_std_string.ark
+run:module_import/use_qualified_call_typed.ark
 module-run:stdlib_random/random_range.ark
 module-run:stdlib_random/random_seed.ark
 module-run:stdlib_random/shuffle.ark

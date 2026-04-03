@@ -1,0 +1,15 @@
+// Fixture: use_qualified_call_typed.ark
+// Slice 3 of issue #039 (typecheck): verify that `string::split(s, sep)` type-checks
+// correctly when `use std::text::string` is in scope.  The typechecker must
+// look up the qualified signature `string::split` in its fn_sigs table, infer
+// the return type as `Vec<String>`, and allow `len()` on the result.
+//
+// Expected output: 3
+use std::text::string
+
+fn main() {
+    let s: String = "a,b,c"
+    let sep: String = ","
+    let parts = string::split(s, sep)
+    __intrinsic_println(__intrinsic_i32_to_string(len(parts)))
+}
