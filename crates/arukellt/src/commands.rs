@@ -1287,10 +1287,11 @@ fn parse_mir_select(s: &str) -> MirSelection {
                 MirSelection::Legacy
             }
         }
-        "corehir" => MirSelection::CoreHir,
+        "corehir" | "optimized-corehir" => MirSelection::OptimizedCoreHir,
+        "corehir-debug" => MirSelection::CoreHir,
         other => {
             eprintln!(
-                "error: unknown --mir-select value: {:?} (expected \"legacy\" or \"corehir\")",
+                "error: unknown --mir-select value: {:?} (expected \"legacy\", \"corehir\", \"corehir-debug\", or \"optimized-corehir\")",
                 other
             );
             process::exit(1);

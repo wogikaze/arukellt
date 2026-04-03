@@ -80,6 +80,9 @@ enum Commands {
         /// Optimization level (0=none, 1=safe, 2=all). Default: 1
         #[arg(long, default_value = "1")]
         opt_level: u8,
+        /// Strip Name Section from output Wasm (omit debug symbols)
+        #[arg(long)]
+        strip_debug: bool,
         /// Disable specific optimization pass by name
         #[arg(long = "no-pass", value_name = "NAME")]
         no_pass: Vec<String>,
@@ -113,6 +116,9 @@ enum Commands {
         /// Optimization level (0=none, 1=safe, 2=all). Default: 1
         #[arg(long, default_value = "1")]
         opt_level: u8,
+        /// Strip Name Section from output Wasm (omit debug symbols)
+        #[arg(long)]
+        strip_debug: bool,
         /// MIR lowering path: legacy or corehir (default)
         #[arg(long = "mir-select", value_name = "PATH", default_value = "corehir")]
         mir_select: String,
@@ -262,6 +268,7 @@ fn main() {
             profile_mem,
             time,
             opt_level,
+            strip_debug,
             no_pass,
             mir_select,
             world,
@@ -281,6 +288,7 @@ fn main() {
                 profile_mem,
                 time,
                 opt_level,
+                strip_debug,
                 no_pass,
                 &mir_select,
                 json,
@@ -295,11 +303,12 @@ fn main() {
         Commands::Build {
             target,
             opt_level,
+            strip_debug,
             mir_select,
             profile_mem,
             time,
         } => {
-            commands::cmd_build(target, opt_level, &mir_select, profile_mem, time);
+            commands::cmd_build(target, opt_level, strip_debug, &mir_select, profile_mem, time);
         }
         Commands::Run {
             file,

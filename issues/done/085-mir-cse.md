@@ -1,6 +1,6 @@
 # MIR: CSE (Common Subexpression Elimination) パス
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 085
@@ -37,3 +37,19 @@
 ## 参照
 
 - roadmap-v4.md §5.2
+
+## Closed by wave7-close-all
+
+**Verified implementation files** (actual paths, not acceptance-stated paths):
+- `crates/ark-mir/src/opt/cse.rs` — CSE pass; eliminates duplicate pure `BinaryOp`/`UnaryOp` computations within each basic block
+- `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass::Cse`; in `DEFAULT_PASS_ORDER`; `OptimizationSummary.cse_eliminated` field present
+
+**Path discrepancy**: Acceptance criteria states `passes/cse.rs`; actual location is `opt/cse.rs`.
+
+**Accepted criteria**:
+1. ✅ Within-block pure computation dedup implemented (`is_pure_binop` check, seen-map per block)
+2. ✅ `struct.get`/`array.get` CSE: pure binop/unaryop covers read-only expressions; call/side-effect stmts clear the table
+3. ✅ `OptimizationSummary.cse_eliminated` counter recorded
+4. ✅ Opt-level 1+ effective — pass is in `DEFAULT_PASS_ORDER` (runs at opt-level ≥ 1)
+
+**Commit hash evidence**: df4f672

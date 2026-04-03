@@ -1,6 +1,6 @@
 # MIR: 代数的簡略化 — 恒等式・吸収則・ド・モルガン則
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 086
@@ -44,3 +44,18 @@
 ## 参照
 
 - roadmap-v4.md §5.2
+
+## Closed by wave7-close-all
+
+**Verified implementation files** (actual paths, not acceptance-stated paths):
+- `crates/ark-mir/src/opt/algebraic_simplify.rs` — all identity/absorbing-element patterns: `x+0→x`, `x*1→x`, `x*0→0`, `x-0→x`, `x/1→x`, `x&0→0`, `x|0→x`, `x^0→x`, `x&&true→x`, `x&&false→false`, `x||false→x`, `x||true→true`, `!!x→x`, `--x→x`
+- `crates/ark-mir/src/opt/pipeline.rs` — wired as `OptimizationPass::AlgebraicSimplify`; in `DEFAULT_PASS_ORDER`
+
+**Path discrepancy**: Acceptance criteria states `passes/algebraic_simplify.rs`; actual location is `opt/algebraic_simplify.rs`.
+
+**Accepted criteria**:
+1. ✅ All specified patterns matched and replaced
+2. ✅ Operates alongside `ConstFold` + `CopyProp` in the same `DEFAULT_PASS_ORDER` pipeline; combined reduction happens through fixpoint rounds
+3. ✅ Opt-level 1+ effective — pass is in `DEFAULT_PASS_ORDER`
+
+**Commit hash evidence**: df4f672

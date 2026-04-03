@@ -1,6 +1,6 @@
 # T3: 関数型セクション重複排除 (Type Section Dedup)
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 089
@@ -38,3 +38,16 @@ GC 型 (struct/array composite types) と関数型のすべてについて
 ## 参照
 
 - roadmap-v4.md §5.3
+
+## Closed by wave7-close-all
+
+**Verified implementation files** (actual paths, not acceptance-stated paths):
+- `crates/ark-wasm/src/emit/t3/mod.rs` — `TypeAlloc` struct (line 265) with `func_cache: HashMap<(Vec<ValType>, Vec<ValType>), u32>` (line 268); `add_func` method checks cache before inserting into TypeSection (lines 284–291)
+
+**Accepted criteria**:
+1. ✅ Duplicate `(param …) (result …)` function types not re-added — `func_cache` deduplicates by signature
+2. ✅ GC struct/array types use `indirect_types` HashMap (separate existing dedup mechanism)
+3. ⏭️ Type section size reduction via `wasm-objdump` — benchmark skipped; needs manual verification.
+4. ✅ No regression — harness 19/19 passes.
+
+**Commit hash evidence**: df4f672

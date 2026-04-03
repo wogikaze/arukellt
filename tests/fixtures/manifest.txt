@@ -194,6 +194,7 @@ run:scalar/u32_arithmetic.ark
 run:scalar/u64_basic.ark
 run:scalar/u8_basic.ark
 run:scalar/u8_overflow.ark
+run:scalar/licm_hoist.ark
 run:selfhost/mir_lowering.ark
 run:selfhost/parser_new_syntax.ark
 run:selfhost/resolver_import_basic/main.ark

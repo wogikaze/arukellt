@@ -14,17 +14,7 @@ graph LR
   I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I080["080 MIR: LICM (ループ不変式移動) パス"]
-  I081["081 MIR: エスケープ解析 + Scalar Replacement パス"]
   I082["082 MIR: gc_hint パス — 短命オブジェクトのパターン検出"]
-  I084["084 MIR: Strength Reduction — 乗算→シフト、除算→逆数乗算"]
-  I085["085 MIR: CSE (Common Subexpression Elimination) パス"]
-  I086["086 MIR: 代数的簡略化 — 恒等式・吸収則・ド・モルガン則"]
-  I087["087 MIR: 関数間インライン展開の強化 — 呼び出し回数・サイズ閾値の最適化"]
-  I088["088 T3 Peephole: local.get/set 冗長ペア除去"]
-  I089["089 T3: 関数型セクション重複排除 (Type Section Dedup)"]
-  I091["091 T3: 同一文字列リテラルのデータセグメント共有"]
-  I092["092 T3: 未使用 WASI import の除去"]
-  I093["093 T3: 定数条件 if の emit 時除去"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
@@ -33,6 +23,7 @@ graph LR
   I104["104 実行時性能: GC write barrier 削減 (immutable フィールド検出)"]
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
+  I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I109["109 ベンチマーク: fib / binary_tree / vec_ops / string_concat / json_parse スイート"]
   I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
   I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
@@ -74,7 +65,6 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I083["083 MIR: ループ展開 (Loop Unrolling) パス"]
   I103["103 実行時性能: 配列境界チェック除去 (Bounds Check Elimination)"]
-  I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
@@ -109,10 +99,6 @@ graph LR
   I074 --> I476
   I080 --> I083
   I080 --> I103
-  I091 --> I108
-  I092 --> I108
-  I088 --> I108
-  I089 --> I108
   I109 --> I112
   I117 --> I118
   I125 --> I126
@@ -174,17 +160,7 @@ graph LR
 - **073** depends on: none; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476
 - **080** depends on: none; blocks: 083, 103
-- **081** depends on: none; blocks: none
 - **082** depends on: none; blocks: none
-- **084** depends on: none; blocks: none
-- **085** depends on: none; blocks: none
-- **086** depends on: none; blocks: none
-- **087** depends on: none; blocks: none
-- **088** depends on: none; blocks: 108
-- **089** depends on: none; blocks: 108
-- **091** depends on: none; blocks: 108
-- **092** depends on: none; blocks: 108
-- **093** depends on: none; blocks: none
 - **094** depends on: none; blocks: none
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
@@ -193,6 +169,7 @@ graph LR
 - **104** depends on: none; blocks: none
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
+- **108** depends on: 091, 092, 088, 089; blocks: none
 - **109** depends on: none; blocks: 112
 - **111** depends on: none; blocks: none
 - **113** depends on: 100; blocks: none
@@ -234,7 +211,6 @@ graph LR
 - **476** depends on: 035, done), 074; blocks: none
 - **083** depends on: 080; blocks: none
 - **103** depends on: 080; blocks: none
-- **108** depends on: 091, 092, 088, 089; blocks: none
 - **112** depends on: 109; blocks: none
 - **118** depends on: 117; blocks: none
 - **126** depends on: 125; blocks: none

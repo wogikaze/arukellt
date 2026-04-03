@@ -42,7 +42,7 @@ pub fn emit(
     opt_level: u8,
 ) -> Vec<u8> {
     match build_backend_plan(target, target.profile().default_emit_kind) {
-        Ok(plan) => emit_with_plan(mir, sink, &plan, opt_level),
+        Ok(plan) => emit_with_plan(mir, sink, &plan, opt_level, false),
         Err(message) => {
             sink.emit(wasm_validation_diagnostic(message));
             Vec::new()
@@ -55,10 +55,11 @@ pub fn emit_with_plan(
     sink: &mut DiagnosticSink,
     plan: &BackendPlan,
     opt_level: u8,
+    strip_debug: bool,
 ) -> Vec<u8> {
     let bytes = match plan.runtime_model {
         RuntimeModel::T1LinearP1 => t1_wasm32_p1::emit(mir, sink),
-        RuntimeModel::T3WasmGcP2 => t3::emit(mir, sink, opt_level),
+        RuntimeModel::T3WasmGcP2 => t3::emit(mir, sink, opt_level, strip_debug),
         RuntimeModel::T4LlvmScaffold => {
             sink.emit(wasm_validation_diagnostic(
                 "native backend plan cannot be emitted via ark-wasm".to_string(),

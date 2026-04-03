@@ -556,6 +556,8 @@ pub(super) struct Ctx {
     /// Struct field reorder map (opt_level >= 2): struct_name → permutation
     /// where perm[old_idx] = new_idx.
     field_remap: HashMap<String, Vec<usize>>,
+    /// When true, the Wasm Name Section is omitted entirely (--strip-debug).
+    strip_name_section: bool,
 }
 
 impl Ctx {
@@ -916,7 +918,7 @@ fn func_body_wraps_http_intrinsic(func: &MirFunction) -> bool {
 /// Scalars live in Wasm locals. Strings, Vecs, structs, and enums use
 /// GC struct/array types. I/O bridges through a small linear memory
 /// region for WASI fd_write.
-pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u8> {
+pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8, strip_debug: bool) -> Vec<u8> {
     // struct_layouts is sourced exclusively from mir.type_table (MIR-01 resolved).
     let struct_layouts: HashMap<String, Vec<(String, String)>> = mir.type_table.struct_defs.clone();
     let fn_ret_types: HashMap<String, Type> = mir
@@ -1052,6 +1054,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8) -> Vec<u
         string_intern_globals: HashMap::new(),
         string_intern_count: 0,
         field_remap: HashMap::new(),
+        strip_name_section: strip_debug,
     };
     ctx.emit_module(mir)
 }
@@ -1898,6 +1901,8 @@ impl Ctx {
         module.section(&data);
 
         // Name section: emit function names for debug/profiling
+        // Skip entirely when --strip-debug is requested.
+        if !self.strip_name_section {
         let mut name_section = wasm_encoder::NameSection::new();
         name_section.module("arukellt");
         let mut func_names = wasm_encoder::NameMap::new();
@@ -1951,7 +1956,28 @@ impl Ctx {
             func_names.append(wasm_idx, &mir.functions[mir_idx].name);
         }
         name_section.functions(&func_names);
+
+        // Local variable names — only at opt_level 0 (debug builds)
+        if self.opt_level == 0 {
+            let mut all_local_names = wasm_encoder::IndirectNameMap::new();
+            for (i, &mir_idx) in reachable_user_indices.iter().enumerate() {
+                let wasm_func_idx = user_base + i as u32;
+                let func = &mir.functions[mir_idx];
+                let mut local_name_map = wasm_encoder::NameMap::new();
+                for (j, local) in func.locals.iter().enumerate() {
+                    let name = match &local.name {
+                        Some(n) if !n.is_empty() => n.clone(),
+                        _ => format!("local_{}", j),
+                    };
+                    local_name_map.append(j as u32, &name);
+                }
+                all_local_names.append(wasm_func_idx, &local_name_map);
+            }
+            name_section.locals(&all_local_names);
+        }
+
         module.section(&name_section);
+        } // end !strip_name_section
 
         module.finish()
     }

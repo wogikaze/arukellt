@@ -30,6 +30,7 @@ pub enum OptimizationPass {
     EscapeAnalysis,
     TypeNarrowing,
     BranchHintInfer,
+    Licm,
 }
 
 impl OptimizationPass {
@@ -55,6 +56,7 @@ impl OptimizationPass {
             Self::EscapeAnalysis => "escape_analysis",
             Self::TypeNarrowing => "type_narrowing",
             Self::BranchHintInfer => "branch_hint_infer",
+            Self::Licm => "licm",
         }
     }
 }
@@ -73,6 +75,7 @@ pub const DEFAULT_PASS_ORDER: &[OptimizationPass] = &[
     OptimizationPass::DeadBlockElim,
     OptimizationPass::UnreachableCleanup,
     OptimizationPass::InlineSmallLeaf,
+    OptimizationPass::Licm,
     OptimizationPass::StringConcatOpt,
     OptimizationPass::AggregateSimplify,
     OptimizationPass::AlgebraicSimplify,
@@ -105,6 +108,7 @@ pub struct OptimizationSummary {
     pub scalar_replaced: usize,
     pub types_narrowed: usize,
     pub branch_hinted: usize,
+    pub licm_hoisted: usize,
 }
 
 impl OptimizationSummary {
@@ -129,6 +133,7 @@ impl OptimizationSummary {
             || self.scalar_replaced > 0
             || self.types_narrowed > 0
             || self.branch_hinted > 0
+            || self.licm_hoisted > 0
     }
 
     fn absorb(&mut self, other: OptimizationSummary) {
@@ -152,6 +157,7 @@ impl OptimizationSummary {
         self.scalar_replaced += other.scalar_replaced;
         self.types_narrowed += other.types_narrowed;
         self.branch_hinted += other.branch_hinted;
+        self.licm_hoisted += other.licm_hoisted;
     }
 }
 
@@ -380,6 +386,7 @@ fn run_pass(function: &mut MirFunction, pass: OptimizationPass) -> OptimizationS
         OptimizationPass::EscapeAnalysis => super::escape_analysis::escape_analysis_pass(function),
         OptimizationPass::TypeNarrowing => super::type_narrowing::type_narrowing(function),
         OptimizationPass::BranchHintInfer => super::branch_hint::branch_hint_infer(function),
+        OptimizationPass::Licm => super::licm::licm(function),
     }
 }
 

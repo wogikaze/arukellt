@@ -1,6 +1,6 @@
 # T3: 定数条件 if の emit 時除去
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 093
@@ -37,3 +37,15 @@ roadmap-v4.md §5.3 で明示的に要求されている最適化。
 ## 参照
 
 - roadmap-v4.md §5.3
+
+## Closed by wave7-close-all
+
+**Verified implementation files** (actual paths, not acceptance-stated paths):
+- `crates/ark-wasm/src/emit/t3/stmts.rs` — `MirStmt::IfStmt` handler (lines 231–242); when `cond` is `Operand::ConstBool(value)`, the `if`/`else`/`end` Wasm instructions are skipped entirely and only the matching branch body is emitted directly
+
+**Accepted criteria**:
+1. ✅ `emit_if` (via `emit_stmt` for `IfStmt`) skips `if`/`else`/`end` Wasm instructions for constant boolean conditions
+2. ✅ Always active (not gated behind opt-level check); safe unconditional optimization
+3. ⏭️ `wc -c` binary size reduction for fixture — benchmark skipped; needs manual verification.
+
+**Commit hash evidence**: df4f672

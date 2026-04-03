@@ -152,6 +152,8 @@ pub struct Session {
     pub disabled_passes: Vec<String>,
     /// When true, component wrapping skips the P1 adapter (~100 KB savings).
     pub p2_native: bool,
+    /// When true, the Wasm Name Section is omitted from emission (--strip-debug).
+    pub strip_debug: bool,
     /// Lint rules to suppress (allow) — diagnostics with these codes are dropped.
     pub lint_allow: Vec<String>,
     /// Lint rules to escalate to errors (deny).
@@ -226,6 +228,7 @@ impl Session {
             opt_level: OptLevel::O1,
             disabled_passes: Vec::new(),
             p2_native: false,
+            strip_debug: false,
             lint_allow: Vec::new(),
             lint_deny: Vec::new(),
             active_target: None,
@@ -776,7 +779,7 @@ impl Session {
             OptLevel::O1 => 1u8,
             OptLevel::O2 => 2u8,
         };
-        let wasm = ark_wasm::emit_with_plan(&mir, &mut self.sink, &plan, opt_u8);
+        let wasm = ark_wasm::emit_with_plan(&mir, &mut self.sink, &plan, opt_u8, self.strip_debug);
         let emit_ms = t_emit.elapsed().as_secs_f64() * 1000.0;
 
         if self.sink.has_errors() {
