@@ -62,6 +62,10 @@ pub enum DiagnosticCode {
     /// WIT resource type not implemented in current version
     E0402,
 
+    // E05xx: Target / capability compatibility errors
+    /// Module requires a different target (e.g. wasm32-wasi-p2 only)
+    E0500,
+
     // W0xxx: Warnings / validation gate
     W0001,
     W0002,
@@ -109,6 +113,7 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::E0400,
     DiagnosticCode::E0401,
     DiagnosticCode::E0402,
+    DiagnosticCode::E0500,
     DiagnosticCode::W0001,
     DiagnosticCode::W0002,
     DiagnosticCode::W0003,
@@ -350,6 +355,13 @@ impl DiagnosticCode {
                 message: "WIT resource type not implemented in current version",
                 severity: Severity::Error,
                 phase: DiagnosticPhase::BackendValidate,
+            },
+            Self::E0500 => DiagnosticSpec {
+                code: self,
+                id: "E0500",
+                message: "module requires a different target",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
             },
             Self::W0001 => DiagnosticSpec {
                 code: self,

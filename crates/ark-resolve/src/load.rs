@@ -4,15 +4,16 @@ use std::path::{Path, PathBuf};
 use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink};
 use ark_lexer::Lexer;
 use ark_parser::{ast, parse};
+use ark_target::TargetId;
 
 use crate::module_graph::ModuleGraph;
 use crate::resolve::LoadedModule;
 
-// TODO(issue-077, issue-139): Add target-gating for WASI P2-only modules.
-// When target is wasm32-wasi-p1 (T1), imports of `std::host::http` and
-// `std::host::sockets` should emit a compile-time diagnostic error because
-// these modules require WASI Preview 2 host capabilities.
-// This requires threading the active TargetId into the module loader.
+// TODO(issue-077, issue-139): Target-gating for WASI P2-only modules is now
+// implemented below via `T3_ONLY_MODULES`. When the active target is
+// wasm32-wasi-p1 (T1), imports of `std::host::sockets` emit E0500 at resolve
+// time because these modules require WASI Preview 2 host capabilities.
+// The TargetId is threaded into load_program via resolve_program_with_target.
 
 fn deprecated_std_import_replacement(module_name: &str) -> Option<(&'static str, &'static str)> {
     match module_name {
@@ -84,12 +85,31 @@ pub(crate) fn parse_module_file(
 /// clear compile-time error instead of a surprising runtime failure.
 const HOST_STUB_MODULES: &[&str] = &["std::host::sockets"];
 
+/// Modules that are only available on wasm32-wasi-p2 (T3) or later.
+/// Importing these on wasm32-wasi-p1 (T1) emits E0500 (incompatible target).
+const T3_ONLY_MODULES: &[&str] = &["std::host::sockets"];
+
 pub(crate) fn resolve_import_path(
     current_path: &Path,
     module_name: &str,
     std_root: &Path,
     sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
 ) -> PathBuf {
+    // T3-only modules on T1: emit E0500 (incompatible target) and reject early.
+    if T3_ONLY_MODULES.contains(&module_name) {
+        if target == Some(TargetId::Wasm32WasiP1) {
+            sink.emit(
+                Diagnostic::new(DiagnosticCode::E0500).with_message(format!(
+                    "module `{}` requires target wasm32-wasi-p2 (T3); \
+                     use `--target wasm32-wasi-p2` to enable this module",
+                    module_name,
+                )),
+            );
+            return PathBuf::from("<target-incompatible>");
+        }
+    }
+
     // Reject host_stub modules at import time
     if HOST_STUB_MODULES.contains(&module_name) {
         sink.emit(Diagnostic::new(DiagnosticCode::E0211).with_message(format!(
@@ -173,9 +193,10 @@ fn load_module_recursive(
     sink: &mut DiagnosticSink,
     visiting: &mut HashSet<PathBuf>,
     loaded: &mut HashMap<PathBuf, LoadedModule>,
+    target: Option<TargetId>,
 ) {
     // Skip host_stub sentinel path (error already emitted by resolve_import_path)
-    if path.as_os_str() == "<host_stub>" {
+    if path.as_os_str() == "<host_stub>" || path.as_os_str() == "<target-incompatible>" {
         return;
     }
     if loaded.contains_key(&path) {
@@ -216,7 +237,7 @@ fn load_module_recursive(
         if emit_deprecated_std_import(import, sink) {
             continue;
         }
-        let import_path = resolve_import_path(&path, &import.module_name, std_root, sink);
+        let import_path = resolve_import_path(&path, &import.module_name, std_root, sink, target);
         let effective_name = import.alias.clone().unwrap_or_else(|| {
             import
                 .module_name
@@ -232,6 +253,7 @@ fn load_module_recursive(
             sink,
             visiting,
             loaded,
+            target,
         );
     }
 
@@ -250,6 +272,14 @@ pub(crate) fn load_program(
     entry_path: &Path,
     sink: &mut DiagnosticSink,
 ) -> Result<ModuleGraph, String> {
+    load_program_with_target(entry_path, sink, None)
+}
+
+pub(crate) fn load_program_with_target(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+) -> Result<ModuleGraph, String> {
     let std_root = entry_path
         .ancestors()
         .find(|p| p.join("std").is_dir())
@@ -264,7 +294,8 @@ pub(crate) fn load_program(
         if emit_deprecated_std_import(import, sink) {
             continue;
         }
-        let import_path = resolve_import_path(entry_path, &import.module_name, &std_root, sink);
+        let import_path =
+            resolve_import_path(entry_path, &import.module_name, &std_root, sink, target);
         let effective_name = import.alias.clone().unwrap_or_else(|| {
             // For `use std::text`, the effective name should be `text` (last segment)
             import
@@ -281,6 +312,7 @@ pub(crate) fn load_program(
             sink,
             &mut visiting,
             &mut loaded,
+            target,
         );
     }
 
@@ -303,6 +335,7 @@ mod tests {
             "foo::bar",
             Path::new("/std"),
             &mut sink,
+            None,
         );
         assert!(path.ends_with("foo/bar.ark"));
     }

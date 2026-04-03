@@ -6,10 +6,11 @@ use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink};
 use ark_lexer::Lexer;
 use ark_parser::ast;
 use ark_parser::parse;
+use ark_target::TargetId;
 
 use crate::analyze::{analyze_module, analyze_program};
 use crate::bind::{bind_module, bind_public_module, inject_prelude_symbols};
-use crate::load::load_program;
+use crate::load::{load_program, load_program_with_target};
 use crate::scope::{ScopeId, SymbolTable};
 
 /// Visibility of a declaration within its module.
@@ -80,6 +81,14 @@ pub fn load_program_graph(
     load_program(entry_path, sink)
 }
 
+pub fn load_program_graph_with_target(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+) -> Result<crate::module_graph::ModuleGraph, String> {
+    load_program_with_target(entry_path, sink, target)
+}
+
 pub fn analyze_loaded_program(
     graph: crate::module_graph::ModuleGraph,
     sink: &mut DiagnosticSink,
@@ -96,6 +105,15 @@ pub fn resolve_program(
     sink: &mut DiagnosticSink,
 ) -> Result<ResolvedProgram, String> {
     let graph = load_program_graph(entry_path, sink)?;
+    Ok(resolve_bound_program(analyze_loaded_program(graph, sink)))
+}
+
+pub fn resolve_program_with_target(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+) -> Result<ResolvedProgram, String> {
+    let graph = load_program_graph_with_target(entry_path, sink, target)?;
     Ok(resolve_bound_program(analyze_loaded_program(graph, sink)))
 }
 
@@ -263,6 +281,16 @@ pub fn resolve_program_entry(
     sink: &mut DiagnosticSink,
 ) -> Result<ResolvedModule, String> {
     let mut program = resolve_program(entry_path, sink)?;
+    merge_prelude(&mut program, sink);
+    Ok(resolved_program_entry(program))
+}
+
+pub fn resolve_program_entry_with_target(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+) -> Result<ResolvedModule, String> {
+    let mut program = resolve_program_with_target(entry_path, sink, target)?;
     merge_prelude(&mut program, sink);
     Ok(resolved_program_entry(program))
 }

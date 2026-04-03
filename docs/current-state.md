@@ -90,6 +90,7 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 - `W0002`: deprecated target alias warning (warning, `target`)
 - `W0004`: generated Wasm failed backend validation (error, `backend-validate`)
 - `W0005`: non-exportable function skipped from component exports (warning, `component`)
+- `E0500`: module requires a different target (e.g. `std::host::sockets` on T1 emits E0500; use `--target wasm32-wasi-p2`) (error, `resolve`)
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
 <!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 
@@ -151,7 +152,7 @@ catches GC reference types that bypass WIT-level checks (W0004).
 
 ## Known Limitations
 
-- `--deny-clock` and `--deny-random` are not enforced as full capability filters yet (they are hard-error placeholders)
+- `--deny-clock` and `--deny-random` are enforced at **compile time** via MIR scan (`mir_uses_capability`). Detection is transitive. These flags apply to the `run` subcommand; the `compile` subcommand does not accept them (compile only emits Wasm bytes, no runtime policy is applied).
 - No `--dir` flag means no filesystem access
 - `ark-llvm` is excluded from default builds (requires LLVM 18)
 - some historical docs remain archived / historical and should not override current-state

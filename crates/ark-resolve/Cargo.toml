@@ -7,3 +7,4 @@ edition.workspace = true
 ark-parser = { workspace = true }
 ark-diagnostics = { workspace = true }
 ark-lexer = { workspace = true }
+ark-target = { workspace = true }

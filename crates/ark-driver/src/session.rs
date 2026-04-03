@@ -156,6 +156,10 @@ pub struct Session {
     pub lint_allow: Vec<String>,
     /// Lint rules to escalate to errors (deny).
     pub lint_deny: Vec<String>,
+    /// The active compilation target for the current compile invocation.
+    /// Set by `compile_with_entry` before the frontend runs so that
+    /// `load_graph` can pass it to the module loader for target-gating.
+    active_target: Option<TargetId>,
 }
 
 impl Default for Session {
@@ -224,6 +228,7 @@ impl Session {
             p2_native: false,
             lint_allow: Vec::new(),
             lint_deny: Vec::new(),
+            active_target: None,
         }
     }
 
@@ -317,7 +322,7 @@ impl Session {
         }
 
         self.sink = DiagnosticSink::new();
-        let program = ark_resolve::resolve_program(path, &mut self.sink).ok();
+        let program = ark_resolve::resolve_program_with_target(path, &mut self.sink, self.active_target).ok();
         if self.sink.has_errors() {
             return Err(render_diagnostics(
                 self.sink.diagnostics(),
@@ -677,6 +682,10 @@ impl Session {
             return Err("error: native target uses the dedicated LLVM compile path".to_string());
         }
 
+        // Store the active target so that load_graph can pass it to the module
+        // loader for compile-time target-gating (e.g. E0500 for T3-only imports on T1).
+        self.active_target = Some(target);
+
         let frontend = self.run_frontend_for(path, Some(selection))?;
         let pending_diagnostics = frontend.pending_diagnostics.clone();
         let mut mir = match selection {
@@ -837,6 +846,8 @@ impl Session {
         if target == TargetId::Native {
             return Err("error: component model requires a Wasm target".to_string());
         }
+        // Store target for module loader gating (same as compile_with_entry).
+        self.active_target = Some(target);
         let profile = target.profile();
         if !profile.component_model {
             return Err(format!(

@@ -247,6 +247,7 @@ dependencies = [
  "ark-diagnostics",
  "ark-lexer",
  "ark-parser",
+ "ark-target",
 ]
 
 [[package]]
