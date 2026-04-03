@@ -12,24 +12,20 @@ graph LR
   I467["467 Playground: docs route が real entrypoint に配線される"]
   I468["468 Playground: build と publish path を repo 証拠で固定する"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
-  I469["469 Extension: playground surface は repo で証明できる endpoint だけを指す"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I466 --> I467
   I466 --> I468
   I466 --> I472
-  I466 --> I469
-  I468 --> I469
 ```
 
 ## Adjacency list
 
-- **466** depends on: 465; blocks: 467, 468, 469, 472
+- **466** depends on: 465; blocks: 467, 468, 472
 - **470** depends on: 465; blocks: none
 - **471** depends on: 465; blocks: none
 - **467** depends on: 466; blocks: none
-- **468** depends on: 466; blocks: 469
+- **468** depends on: 466; blocks: none
 - **472** depends on: 466; blocks: none
-- **469** depends on: 466, 468; blocks: none
 
 ### Blocked
 
