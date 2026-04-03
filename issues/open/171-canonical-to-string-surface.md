@@ -12,6 +12,21 @@
 
 ---
 
+## Decomposition note — 2026-04-03
+
+この issue を 3 層に分解した。
+
+| Layer | Issue | Scope |
+|-------|-------|-------|
+| ADR / design decision | #483 | `to_string(x)` ポリシーを ADR に記録 |
+| implementation | #484 | compiler/stdlib で to_string() を実装 |
+| docs + fixtures | **#171 (this issue)** | docs/quickstart 更新 + fixture coverage |
+
+**Close order**: #483 → #484 → #171
+**#171 はこの順序の最後**: 実装 (#484) が完了するまで docs を更新してはならない。
+
+---
+
 ## Reopened by audit — 2026-04-03
 
 **Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.

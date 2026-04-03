@@ -1,6 +1,6 @@
 # Playground: build と publish path を repo 証拠で固定する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
 **Updated**: 2026-04-03
 **ID**: 468
@@ -8,6 +8,11 @@
 **Track**: playground-deploy
 **Blocks v1 exit**: no
 **Priority**: 4
+
+## Closed by decomposition audit — 2026-04-03
+
+**Evidence**: playground/package.json 'build': 'tsc'; .github/workflows/pages.yml builds playground JS, uploads artifact, deploys to GitHub Pages
+
 
 ## Summary
 
@@ -40,9 +45,9 @@ deploy proof は product entrypoint と別層であり、future deploy plan を 
 
 ## Acceptance criteria
 
-- [ ] repo には playground publishable output を生成する build script が存在する。
-- [ ] GitHub Pages または同等の publish claim を残す場合、その workflow file が actual output path を参照している。
-- [ ] docs 上の preview deploy / hashed asset / publish path claim は、対応する workflow / build files が repo にあるものだけに限定されている。
+- [x] repo には playground publishable output を生成する build script が存在する。
+- [x] GitHub Pages または同等の publish claim を残す場合、その workflow file が actual output path を参照している。
+- [x] docs 上の preview deploy / hashed asset / publish path claim は、対応する workflow / build files が repo にあるものだけに限定されている。
 
 ## Required verification
 

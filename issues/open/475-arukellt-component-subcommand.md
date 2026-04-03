@@ -10,6 +10,20 @@
 
 ---
 
+## Decomposition note — 2026-04-03
+
+この issue を 2 層に分解した。
+
+| Layer | Issue | Scope |
+|-------|-------|-------|
+| CLI implementation | **#475 (this issue)** | build/inspect/validate subcommands 実装 |
+| docs | #485 | CLI リファレンス docs 追加 |
+
+**Close order**: #475 → #485  
+#475 の close gate から docs 更新を除外した。docs は #485 が担当する。
+
+---
+
 ## Reopened by audit — 2026-04-03
 
 **Source**: Future-work gap extracted from `issues/done/035-v2-verification-cleanup.md`.

@@ -12,6 +12,21 @@
 
 ---
 
+## Decomposition note — 2026-04-03
+
+この issue を 2 層に分解した。
+
+| Layer | Issue | Scope |
+|-------|-------|-------|
+| harness implementation | #482 | `harness.rs` が ARUKELLT_BIN env var を読む |
+| CI artifact / regression | **#330 (this issue)** | pass/fail リスト生成 + regression 追跡 |
+
+**#330 の acceptance を絞り込む**: acceptance 1 (ARUKELLT_BIN が harness で使われる) は #482 担当。
+この issue (#330) は acceptance 2-4 (pass/fail リスト・regression・CI artifact) のみを担当する。
+**Depends on #482**。
+
+---
+
 ## False-Done Audit Note — 2026-04-03
 
 **Additional audit finding**: Acceptance criteria verified as NOT met.

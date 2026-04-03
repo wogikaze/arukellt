@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 222 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 233 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 4 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 47 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -483,6 +483,22 @@ Expected output: `Hello, world!`
 | `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
 
+## Signal
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `approx_eq` | `(f64, f64, f64) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `clone_f64` | `(Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `cos_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `fft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `ifft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `is_power_of_two` | `(i32) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `magnitude` | `(Vec<f64>, Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `pi` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `sin_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `tau` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `zeros` | `(i32) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
+
 ## String
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
@@ -646,6 +662,7 @@ Expected output: `hello world`
 | `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
 | `abs` | `(i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_abs` | - |
 | `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
+| `approx_eq` | `(f64, f64, f64) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
 | `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` | Return the number of command-line arguments (including the program name). |
 | `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` | Return the command-line arguments as a list of strings. The first element is the program name. |
@@ -688,10 +705,12 @@ Expected output: `hello world`
 | `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
 | `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `clone` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
+| `clone_f64` | `(Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `concat` | `(String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
 | `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
 | `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
 | `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
+| `cos_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
 | `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
@@ -718,6 +737,7 @@ Expected output: `hello world`
 | `f64_bits_hi` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` | - |
 | `f64_bits_lo` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` | - |
 | `f64_to_string` | `(f64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_string` | - |
+| `fft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
 | `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
@@ -743,6 +763,7 @@ Expected output: `hello world`
 | `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `i32_to_string` | `(i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_string` | Convert an i32 integer to its decimal string representation. |
 | `i64_to_string` | `(i64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_string` | - |
+| `ifft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
 | `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` | - |
 | `is_absolute` | `(String) -> bool` | `std::path` | `stable` | `builtin` | no | - | - |
@@ -751,6 +772,7 @@ Expected output: `hello world`
 | `is_err` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `is_none` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `is_ok` | `(Result<T, E>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `is_power_of_two` | `(i32) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
 | `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
@@ -759,6 +781,7 @@ Expected output: `hello world`
 | `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
 | `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
+| `magnitude` | `(Vec<f64>, Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
 | `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
 | `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` | - |
@@ -780,6 +803,7 @@ Expected output: `hello world`
 | `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
 | `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
 | `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
+| `pi` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
 | `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
 | `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
@@ -810,6 +834,7 @@ Expected output: `hello world`
 | `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `builtin` | no | - | - |
+| `sin_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
 | `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_String` | - |
 | `sort_f64` | `(Vec<f64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` | - |
@@ -828,6 +853,7 @@ Expected output: `hello world`
 | `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `tau` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `to_lower` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
 | `to_string` | `(any) -> String` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `to_upper` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
@@ -850,6 +876,7 @@ Expected output: `hello world`
 | `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
+| `zeros` | `(i32) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
 
 ## Provisional APIs
 

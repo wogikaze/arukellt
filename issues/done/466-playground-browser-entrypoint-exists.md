@@ -1,6 +1,6 @@
 # Playground: browser entrypoint が repo 内に存在する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
 **Updated**: 2026-04-03
 **ID**: 466
@@ -8,6 +8,11 @@
 **Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 2
+
+## Closed by decomposition audit — 2026-04-03
+
+**Evidence**: docs/playground/index.html exists, calls createPlaygroundApp() 3× (lines 101,144,153); playground/package.json has 'build': 'tsc'; docs/_sidebar.md links to playground/index.html
+
 
 ## Summary
 
@@ -43,10 +48,10 @@ user-visible feature の最小証拠は entrypoint であり、parts implementat
 
 ## Acceptance criteria
 
-- [ ] repo-visible な browser entrypoint file が存在し、`createPlaygroundApp(...)` または同等の mounted application surface を実際に呼び出している。
-- [ ] issue 本文に「ユーザーが開く path / route」が明記され、その path が repo files から確認できる。
-- [ ] entrypoint を生成または build する script が `playground/package.json` または同等の repo build config に存在する。
-- [ ] entrypoint は placeholder text ではなく、現行 playground implementation surface を mount している。
+- [x] repo-visible な browser entrypoint file が存在し、`createPlaygroundApp(...)` または同等の mounted application surface を実際に呼び出している。
+- [x] issue 本文に「ユーザーが開く path / route」が明記され、その path が repo files から確認できる。
+- [x] entrypoint を生成または build する script が `playground/package.json` または同等の repo build config に存在する。
+- [x] entrypoint は placeholder text ではなく、現行 playground implementation surface を mount している。
 
 ## Required verification
 

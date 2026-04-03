@@ -8,6 +8,21 @@
 **Track**: main
 **Blocks v1 exit**: no
 
+## Decomposition note — 2026-04-03
+
+この issue を 2 層に分解した。
+
+| Layer | Issue | Scope |
+|-------|-------|-------|
+| script implementation | #481 | `scripts/update-target-status.sh` 実装 |
+| CI drift-check wiring | **#260 (this issue)** | CI ジョブ追加 + drift check |
+
+**#260 の acceptance を絞り込む**: acceptance 1 (スクリプト実装) は #481 担当に変更。
+この issue (#260) の close 条件は CI ジョブ追加 + drift-check のみとする。
+**Depends on #481** (スクリプトが存在することを前提とする)。
+
+---
+
 ## Reopened by audit — 2026-04-03
 
 **Reason**: False-done. All 4 acceptance criteria reference implementations that do not exist in the repo.

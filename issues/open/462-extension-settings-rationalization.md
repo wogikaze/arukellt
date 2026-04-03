@@ -23,6 +23,22 @@
 **Evidence**: `extensions/arukellt-all-in-one/package.json` — grep for arukellt settings shows only 4 new entries added. Issue requires check.onSave per '追加する設定項目' section but it is absent.
 
 
+## Superseded by decomposition — 2026-04-03
+
+**Action**: この issue は 4 つの layer に分解された。**この issue 自体は close しない** が、
+実装は分解先 issue を通じて行う。この issue は分解の根拠ファイルとして保持する。
+
+| Layer | Issue | Scope |
+|-------|-------|-------|
+| manifest | #477 | package.json に 5 設定宣言 |
+| extension wiring | #478 | extension.js が initializationOptions に設定を含める |
+| LSP implementation | #479 | server.rs に LspConfig + ハンドラ変更 |
+| docs | #480 | README に設定一覧テーブル |
+
+**Close gate**: #477 → #478 → #479 → #480 が全て close されたら、この issue も close できる。
+
+---
+
 ## Reopened by audit — 2026-04-03
 
 **Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.

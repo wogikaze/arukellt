@@ -64,10 +64,14 @@ graph LR
   I260["260 current-state.md の target 表を CI 結果からのみ更新する仕組みを作る"]
   I330["330 Fixture harness を selfhost binary 対応にする"]
   I462["462 拡張機能の設定項目の整理と実装への配線"]
-  I466["466 Playground: browser entrypoint が repo 内に存在する"]
   I470["470 Playground docs: feature claim は current implementation と一致させる"]
   I471["471 Playground docs: command / workflow / publish claim の現実整合監査"]
+  I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
+  I477["477 Extension package.json: 5 arukellt 設定項目の宣言"]
+  I481["481 scripts/update-target-status.sh: CI 出力から target-contract.md を更新"]
+  I482["482 harness.rs: ARUKELLT_BIN 環境変数でバイナリパスを上書きできるようにする"]
+  I483["483 ADR: canonical stringification surface — to_string(x) ポリシー"]
   I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
   I043["043 std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"]
   I051["051 std::time + std::random: 時刻・期間・乱数"]
@@ -97,9 +101,8 @@ graph LR
   I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
   I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
-  I467["467 Playground: docs route が real entrypoint に配線される"]
-  I468["468 Playground: build と publish path を repo 証拠で固定する"]
-  I472["472 Playground: type-checker product claim を独立 issue に分離する"]
+  I478["478 Extension: initializationOptions で全 5 設定を LSP サーバーに渡す"]
+  I484["484 compiler: to_string() builtin 実装と stdlib surface 整備"]
   I042["042 std::text: String API 拡張、StringBuilder、format ユーティリティ"]
   I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
   I045["045 std::collections: Deque、PriorityQueue"]
@@ -109,14 +112,17 @@ graph LR
   I056["056 std::test: assert、snapshot テスト、bench-lite"]
   I050["050 std::io: Reader、Writer、stdin/stdout/stderr、buffered I/O"]
   I053["053 std::wasm: Wasm バイナリ型・opcode・module builder"]
+  I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
+  I479["479 LSP server: LspConfig struct と設定反映ハンドラ実装"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
   I052["052 std::process + std::env + std::cli: 実行環境 API"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
+  I480["480 Extension README: 設定一覧テーブル追加"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I039 --> I041
   I039 --> I043
@@ -154,9 +160,8 @@ graph LR
   I149 --> I146
   I149 --> I147
   I153 --> I154
-  I466 --> I467
-  I466 --> I468
-  I466 --> I472
+  I477 --> I478
+  I483 --> I484
   I039 --> I042
   I041 --> I042
   I039 --> I044
@@ -177,6 +182,7 @@ graph LR
   I039 --> I053
   I040 --> I053
   I043 --> I053
+  I475 --> I485
   I137 --> I136
   I138 --> I136
   I077 --> I136
@@ -189,6 +195,7 @@ graph LR
   I142 --> I148
   I145 --> I148
   I146 --> I148
+  I478 --> I479
   I039 --> I049
   I041 --> I049
   I042 --> I049
@@ -206,6 +213,7 @@ graph LR
   I145 --> I158
   I148 --> I158
   I155 --> I158
+  I479 --> I480
 ```
 
 ## Adjacency list
@@ -268,17 +276,21 @@ graph LR
 - **260** depends on: 256, 257; blocks: none
 - **330** depends on: 328; blocks: none
 - **462** depends on: none; blocks: none
-- **466** depends on: 465; blocks: 467, 468, 472
 - **470** depends on: 465; blocks: none
 - **471** depends on: 465; blocks: none
+- **472** depends on: 466; blocks: none
 - **473** depends on: 032, done); blocks: none
+- **477** depends on: (none); blocks: 478
+- **481** depends on: 256, 257; blocks: none
+- **482** depends on: 328; blocks: none
+- **483** depends on: (none); blocks: 484
 - **041** depends on: 039; blocks: 042, 044, 045, 046, 047, 048, 049, 050, 056
 - **043** depends on: 039, 040; blocks: 050, 053
 - **051** depends on: 039, 040; blocks: none
 - **090** depends on: 060; blocks: none
 - **124** depends on: 074; blocks: none
 - **474** depends on: 035, done), 074; blocks: none
-- **475** depends on: 035, done), 074; blocks: none
+- **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
 - **083** depends on: 080; blocks: none
 - **103** depends on: 080; blocks: none
@@ -301,9 +313,8 @@ graph LR
 - **146** depends on: 149; blocks: 148
 - **147** depends on: 149; blocks: none
 - **154** depends on: 153; blocks: none
-- **467** depends on: 466; blocks: none
-- **468** depends on: 466; blocks: none
-- **472** depends on: 466; blocks: none
+- **478** depends on: 477; blocks: 479
+- **484** depends on: 483; blocks: none
 - **042** depends on: 039, 041; blocks: 049, 052, 055
 - **044** depends on: 039, 041; blocks: 054, 055
 - **045** depends on: 039, 041; blocks: none
@@ -313,14 +324,17 @@ graph LR
 - **056** depends on: 039, 041; blocks: none
 - **050** depends on: 039, 041, 043; blocks: none
 - **053** depends on: 039, 040, 043; blocks: 054
+- **485** depends on: 475; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **144** depends on: 141, 142, 143, 149; blocks: none
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
+- **479** depends on: 478; blocks: 480
 - **049** depends on: 039, 041, 042; blocks: none
 - **052** depends on: 039, 042; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
+- **480** depends on: 479; blocks: none
 
 ### Blocked
 

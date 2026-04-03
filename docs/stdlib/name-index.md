@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 273
+- **Canonical names:** 284
 - **Historical/deprecated names:** 3
-- **Total entries:** 276
+- **Total entries:** 287
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -24,6 +24,7 @@ Current public API names, sorted alphabetically.
 | `abort` | `std::host::process` | `stable` | Host Process |
 | `abs` | `prelude` | `stable` | Math |
 | `any_i32` | `prelude` | `stable` | Collections |
+| `approx_eq` | `std::signal` | `stable` | Signal |
 | `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_get` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_len` | `std::collections::compiler` | `experimental` | Collections |
@@ -72,12 +73,14 @@ Current public API names, sorted alphabetically.
 | `clamp_i32` | `prelude` | `stable` | Math |
 | `clear` | `prelude` | `stable` | Collections |
 | `clone` | `prelude` | `stable` | String |
+| `clone_f64` | `std::signal` | `stable` | Signal |
 | `component_model_version` | `std::component` | `experimental` | Component |
 | `concat` | `prelude` | `stable` | String |
 | `connect` | `std::host::sockets` | `provisional` | Host Sockets |
 | `contains` | `prelude` | `stable` | String |
 | `contains_i32` | `prelude` | `stable` | Collections |
 | `contains_String` | `prelude` | `stable` | Collections |
+| `cos_approx` | `std::signal` | `stable` | Signal |
 | `count_eq` | `std::seq` | `stable` | Seq |
 | `csv_split_line` | `std::csv` | `experimental` | Csv |
 | `deque_is_empty` | `std::collections::linear` | `stable` | Collections |
@@ -106,6 +109,7 @@ Current public API names, sorted alphabetically.
 | `f64_bits_hi` | `prelude` | `stable` | Numeric |
 | `f64_bits_lo` | `prelude` | `stable` | Numeric |
 | `f64_to_string` | `prelude` | `stable` | Conversion |
+| `fft` | `std::signal` | `stable` | Signal |
 | `file_name` | `std::path` | `stable` | Path |
 | `filter_f64` | `prelude` | `stable` | Collections |
 | `filter_i64` | `prelude` | `stable` | Collections |
@@ -137,6 +141,7 @@ Current public API names, sorted alphabetically.
 | `hex_encode` | `std::bytes` | `stable` | Bytes |
 | `i32_to_string` | `prelude` | `stable` | Conversion |
 | `i64_to_string` | `prelude` | `stable` | Conversion |
+| `ifft` | `std::signal` | `stable` | Signal |
 | `index_of` | `prelude` | `stable` | String |
 | `index_of` | `std::text` | `stable` | Text |
 | `is_absolute` | `std::path` | `stable` | Path |
@@ -145,6 +150,7 @@ Current public API names, sorted alphabetically.
 | `is_err` | `prelude` | `stable` | Option Result |
 | `is_none` | `prelude` | `stable` | Option Result |
 | `is_ok` | `prelude` | `stable` | Option Result |
+| `is_power_of_two` | `std::signal` | `stable` | Signal |
 | `is_some` | `prelude` | `stable` | Option Result |
 | `join` | `prelude` | `stable` | String |
 | `join` | `std::path` | `stable` | Path |
@@ -159,6 +165,7 @@ Current public API names, sorted alphabetically.
 | `len` | `prelude` | `stable` | Collections |
 | `len_bytes` | `std::text` | `stable` | Text |
 | `lines` | `std::text` | `stable` | Text |
+| `magnitude` | `std::signal` | `stable` | Signal |
 | `map_f64_f64` | `prelude` | `stable` | Collections |
 | `map_i32_i32` | `prelude` | `stable` | Collections |
 | `map_i64_i64` | `prelude` | `stable` | Collections |
@@ -182,6 +189,7 @@ Current public API names, sorted alphabetically.
 | `parse_f64` | `prelude` | `stable` | Conversion |
 | `parse_i32` | `prelude` | `stable` | Conversion |
 | `parse_i64` | `prelude` | `stable` | Conversion |
+| `pi` | `std::signal` | `stable` | Signal |
 | `pop` | `prelude` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
 | `pq_len` | `std::collections::linear` | `stable` | Collections |
@@ -224,6 +232,7 @@ Current public API names, sorted alphabetically.
 | `seq_reverse` | `std::seq` | `stable` | Seq |
 | `set` | `prelude` | `stable` | Collections |
 | `shuffle_i32` | `std::random` | `stable` | Random |
+| `sin_approx` | `std::signal` | `stable` | Signal |
 | `slice` | `prelude` | `stable` | String |
 | `sort_f64` | `prelude` | `stable` | Collections |
 | `sort_i32` | `prelude` | `stable` | Collections |
@@ -244,6 +253,7 @@ Current public API names, sorted alphabetically.
 | `substring` | `prelude` | `stable` | String |
 | `sum_i32` | `prelude` | `stable` | Collections |
 | `sum_i32` | `std::seq` | `stable` | Seq |
+| `tau` | `std::signal` | `stable` | Signal |
 | `to_lower` | `prelude` | `stable` | String |
 | `to_string` | `prelude` | `stable` | Conversion |
 | `to_upper` | `prelude` | `stable` | String |
@@ -294,6 +304,7 @@ Current public API names, sorted alphabetically.
 | `with_extension` | `std::path` | `stable` | Path |
 | `write_bytes` | `std::host::fs` | `stable` | Host Fs |
 | `write_string` | `std::host::fs` | `stable` | Host Fs |
+| `zeros` | `std::signal` | `stable` | Signal |
 
 ---
 
@@ -318,6 +329,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `abort` | ✅ `stable` | `std::host::process` | Host Process |
 | `abs` | ✅ `stable` | `prelude` | Math |
 | `any_i32` | ✅ `stable` | `prelude` | Collections |
+| `approx_eq` | ✅ `stable` | `std::signal` | Signal |
 | `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
@@ -366,12 +378,14 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
 | `clear` | ✅ `stable` | `prelude` | Collections |
 | `clone` | ✅ `stable` | `prelude` | String |
+| `clone_f64` | ✅ `stable` | `std::signal` | Signal |
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
 | `concat` | ✅ `stable` | `prelude` | String |
 | `connect` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `contains` | ✅ `stable` | `prelude` | String |
 | `contains_i32` | ✅ `stable` | `prelude` | Collections |
 | `contains_String` | ✅ `stable` | `prelude` | Collections |
+| `cos_approx` | ✅ `stable` | `std::signal` | Signal |
 | `count_eq` | ✅ `stable` | `std::seq` | Seq |
 | `csv_split_line` | ✅ `experimental` | `std::csv` | Csv |
 | `deque_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
@@ -400,6 +414,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `f64_bits_hi` | ✅ `stable` | `prelude` | Numeric |
 | `f64_bits_lo` | ✅ `stable` | `prelude` | Numeric |
 | `f64_to_string` | ✅ `stable` | `prelude` | Conversion |
+| `fft` | ✅ `stable` | `std::signal` | Signal |
 | `file_name` | ✅ `stable` | `std::path` | Path |
 | `filter_f64` | ✅ `stable` | `prelude` | Collections |
 | ~~`filter_i32`~~ | ⚠️ deprecated | `prelude` | → `filter<i32>` · [migration guide](migration-guidance.md) |
@@ -432,6 +447,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hex_encode` | ✅ `stable` | `std::bytes` | Bytes |
 | `i32_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `i64_to_string` | ✅ `stable` | `prelude` | Conversion |
+| `ifft` | ✅ `stable` | `std::signal` | Signal |
 | `index_of` | ✅ `stable` | `prelude` | String |
 | `index_of` | ✅ `stable` | `std::text` | Text |
 | `is_absolute` | ✅ `stable` | `std::path` | Path |
@@ -440,6 +456,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `is_err` | ✅ `stable` | `prelude` | Option Result |
 | `is_none` | ✅ `stable` | `prelude` | Option Result |
 | `is_ok` | ✅ `stable` | `prelude` | Option Result |
+| `is_power_of_two` | ✅ `stable` | `std::signal` | Signal |
 | `is_some` | ✅ `stable` | `prelude` | Option Result |
 | `join` | ✅ `stable` | `prelude` | String |
 | `join` | ✅ `stable` | `std::path` | Path |
@@ -454,6 +471,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `len` | ✅ `stable` | `prelude` | Collections |
 | `len_bytes` | ✅ `stable` | `std::text` | Text |
 | `lines` | ✅ `stable` | `std::text` | Text |
+| `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | `map_f64_f64` | ✅ `stable` | `prelude` | Collections |
 | `map_i32_i32` | ✅ `stable` | `prelude` | Collections |
 | `map_i64_i64` | ✅ `stable` | `prelude` | Collections |
@@ -477,6 +495,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `parse_f64` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i32` | ✅ `stable` | `prelude` | Conversion |
 | `parse_i64` | ✅ `stable` | `prelude` | Conversion |
+| `pi` | ✅ `stable` | `std::signal` | Signal |
 | `pop` | ✅ `stable` | `prelude` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_len` | ✅ `stable` | `std::collections::linear` | Collections |
@@ -519,6 +538,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `seq_reverse` | ✅ `stable` | `std::seq` | Seq |
 | `set` | ✅ `stable` | `prelude` | Collections |
 | `shuffle_i32` | ✅ `stable` | `std::random` | Random |
+| `sin_approx` | ✅ `stable` | `std::signal` | Signal |
 | `slice` | ✅ `stable` | `prelude` | String |
 | `sort_f64` | ✅ `stable` | `prelude` | Collections |
 | `sort_i32` | ✅ `stable` | `prelude` | Collections |
@@ -539,6 +559,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `substring` | ✅ `stable` | `prelude` | String |
 | `sum_i32` | ✅ `stable` | `prelude` | Collections |
 | `sum_i32` | ✅ `stable` | `std::seq` | Seq |
+| `tau` | ✅ `stable` | `std::signal` | Signal |
 | `to_lower` | ✅ `stable` | `prelude` | String |
 | `to_string` | ✅ `stable` | `prelude` | Conversion |
 | `to_upper` | ✅ `stable` | `prelude` | String |
@@ -591,3 +612,4 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `with_extension` | ✅ `stable` | `std::path` | Path |
 | `write_bytes` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::host::fs` | Host Fs |
+| `zeros` | ✅ `stable` | `std::signal` | Signal |

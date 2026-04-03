@@ -1,6 +1,6 @@
 # Playground: docs route が real entrypoint に配線される
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
 **Updated**: 2026-04-03
 **ID**: 467
@@ -8,6 +8,11 @@
 **Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 3
+
+## Closed by decomposition audit — 2026-04-03
+
+**Evidence**: docs/_sidebar.md: '▶ Try Playground' links to playground/index.html (repo-produced path); no external URL
+
 
 ## Summary
 
@@ -41,9 +46,9 @@ route/link wiring を entrypoint existence や deploy と混ぜると、リン�
 
 ## Acceptance criteria
 
-- [ ] repo-visible docs route または navigation link が、issue 466 で作られた actual playground entrypoint path を指している。
-- [ ] link target は repo-produced site 内の path であり、repo 外 URL ではない。
-- [ ] route / link text は current repo evidence を超える capability claim を新たに追加していない。
+- [x] repo-visible docs route または navigation link が、issue 466 で作られた actual playground entrypoint path を指している。
+- [x] link target は repo-produced site 内の path であり、repo 外 URL ではない。
+- [x] route / link text は current repo evidence を超える capability claim を新たに追加していない。
 
 ## Required verification
 
