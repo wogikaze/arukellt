@@ -139,6 +139,8 @@ run:hello/exit_code.ark
 run:hello/hello.ark
 run:hello/multi_print.ark
 run:hello/print_int.ark
+run:host/http/get_err_dns.ark
+run:host/http/request_err_refused.ark
 run:host/process/abort.ark
 run:host/process/exit_nonzero.ark
 run:host/process/exit_zero.ark

@@ -62,6 +62,12 @@ pub(crate) fn run_wasm_p1(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
     wasmtime_wasi::preview1::add_to_linker_sync(&mut linker, |cx| cx)
         .map_err(|e| format!("wasi link error: {}", e))?;
 
+    // Register arukellt_host HTTP functions (conditional — only if the module imports them)
+    let needs_http = module.imports().any(|imp| imp.module() == "arukellt_host");
+    if needs_http {
+        register_http_host_fns(&mut linker)?;
+    }
+
     let mut builder = WasiCtxBuilder::new();
     builder.inherit_stdio();
     builder.inherit_env();
@@ -321,21 +327,26 @@ fn http_get_impl(url: &str) -> Result<String, String> {
 }
 
 /// TCP-based HTTP/1.1 request implementation.
+///
+/// Error mapping (matches the spec in docs/capability-surface.md):
+/// - DNS resolution failure  → `"dns: <host>: not found"`
+/// - Connection refused      → `"connection refused: <url>"`
+/// - Connection/read timeout → `"timeout: <url>"`
+/// - HTTP 4xx or 5xx status  → `"http <status>: <url>"`
+/// - Any other failure       → `"error: <message>"`
 fn http_request_impl(method: &str, url: &str, body: &str) -> Result<String, String> {
     use std::io::{Read, Write};
-    use std::net::TcpStream;
+    use std::net::{TcpStream, ToSocketAddrs};
     use std::time::Duration;
 
     // Parse URL: expect http://host[:port]/path
-    let url_str = url;
-    let (scheme, rest) = if let Some(r) = url_str.strip_prefix("http://") {
-        ("http", r)
-    } else if let Some(_r) = url_str.strip_prefix("https://") {
+    let rest = if let Some(r) = url.strip_prefix("http://") {
+        r
+    } else if url.starts_with("https://") {
         return Err("https is not supported (TCP HTTP/1.1 only)".into());
     } else {
-        return Err(format!("unsupported URL scheme: {}", url_str));
+        return Err(format!("unsupported URL scheme: {}", url));
     };
-    let _ = scheme;
 
     let (host_port, path) = match rest.find('/') {
         Some(i) => (&rest[..i], &rest[i..]),
@@ -351,9 +362,40 @@ fn http_request_impl(method: &str, url: &str, body: &str) -> Result<String, Stri
         None => (host_port, 80u16),
     };
 
+    // Resolve DNS first so we can produce a clean "dns: … not found" error.
+    let addr_str = format!("{}:{}", host, port);
+    let addrs: Vec<_> = addr_str.to_socket_addrs().map_err(|e| {
+        let msg = e.to_string().to_lowercase();
+        if msg.contains("name or service not known")
+            || msg.contains("nodename nor servname")
+            || msg.contains("no such host")
+            || msg.contains("failed to lookup")
+            || msg.contains("name resolution")
+        {
+            format!("dns: {}: not found", host)
+        } else {
+            format!("error: {}", e)
+        }
+    })?.collect();
+
     // Connect
-    let addr = format!("{}:{}", host, port);
-    let mut stream = TcpStream::connect(&addr).map_err(|e| format!("connection error: {}", e))?;
+    let mut stream = TcpStream::connect(addrs.as_slice()).map_err(|e| {
+        use std::io::ErrorKind;
+        match e.kind() {
+            ErrorKind::ConnectionRefused => format!("connection refused: {}", url),
+            ErrorKind::TimedOut => format!("timeout: {}", url),
+            _ => {
+                let msg = e.to_string().to_lowercase();
+                if msg.contains("refused") {
+                    format!("connection refused: {}", url)
+                } else if msg.contains("timed out") || msg.contains("timeout") {
+                    format!("timeout: {}", url)
+                } else {
+                    format!("error: {}", e)
+                }
+            }
+        }
+    })?;
     stream.set_read_timeout(Some(Duration::from_secs(30))).ok();
     stream.set_write_timeout(Some(Duration::from_secs(10))).ok();
 
@@ -375,33 +417,33 @@ fn http_request_impl(method: &str, url: &str, body: &str) -> Result<String, Stri
     };
     stream
         .write_all(request.as_bytes())
-        .map_err(|e| format!("write error: {}", e))?;
+        .map_err(|e| format!("error: {}", e))?;
 
     // Read response
     let mut response = Vec::new();
-    stream
-        .read_to_end(&mut response)
-        .map_err(|e| format!("read error: {}", e))?;
+    stream.read_to_end(&mut response).map_err(|e| {
+        if e.kind() == std::io::ErrorKind::TimedOut {
+            format!("timeout: {}", url)
+        } else {
+            format!("error: {}", e)
+        }
+    })?;
 
     let response_str = String::from_utf8_lossy(&response);
 
-    // Parse HTTP response: find end of headers, return body
+    // Parse HTTP response: split headers from body, map 4xx/5xx to errors.
     if let Some(header_end) = response_str.find("\r\n\r\n") {
         let status_line = &response_str[..response_str.find("\r\n").unwrap_or(header_end)];
-        // Parse status code
         let parts: Vec<&str> = status_line.splitn(3, ' ').collect();
         if parts.len() >= 2 {
             let status: u16 = parts[1].parse().unwrap_or(0);
             if status >= 400 {
-                return Err(format!(
-                    "HTTP {}: {}",
-                    status,
-                    &response_str[header_end + 4..]
-                ));
+                // "http <status>: <url>" — URL rather than body keeps the error concise.
+                return Err(format!("http {}: {}", status, url));
             }
         }
         Ok(response_str[header_end + 4..].to_string())
     } else {
-        Err("malformed HTTP response: no header terminator".into())
+        Err("error: malformed HTTP response (no header terminator)".into())
     }
 }

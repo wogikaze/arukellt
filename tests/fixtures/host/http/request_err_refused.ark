@@ -1,0 +1,11 @@
+// Fixture: http::request to a port nobody is listening on returns connection refused.
+// CI-safe: loopback connect-refused is deterministic and needs no external network.
+use std::host::http
+use std::host::stdio
+
+fn main() {
+    match http::request("POST", "http://127.0.0.1:1/", "") {
+        Ok(_body) => stdio::println("unexpected ok"),
+        Err(e) => stdio::println(e),
+    }
+}

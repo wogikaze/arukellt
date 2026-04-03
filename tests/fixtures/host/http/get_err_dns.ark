@@ -1,0 +1,11 @@
+// Fixture: http::get with a non-resolvable domain should return a dns error.
+// CI-safe: no real network needed — the .invalid TLD is guaranteed never to resolve.
+use std::host::http
+use std::host::stdio
+
+fn main() {
+    match http::get("http://this.domain.does.not.exist.invalid/") {
+        Ok(_body) => stdio::println("unexpected ok"),
+        Err(e) => stdio::println(e),
+    }
+}

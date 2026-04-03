@@ -29,6 +29,11 @@ impl EmitCtx {
             (FN_ENVIRON_GET, "environ_get"),
             (FN_PROC_EXIT, "proc_exit"),
         ];
+        // arukellt_host imports in canonical order
+        const HOST_ORDER: &[(u32, &str)] = &[
+            (FN_HTTP_GET, "http_get"),
+            (FN_HTTP_REQUEST, "http_request"),
+        ];
         // Stdlib helpers in canonical order (indices 6..35)
         const STDLIB_ORDER: &[u32] = &[
             FN_I32_TO_STR,
@@ -70,6 +75,13 @@ impl EmitCtx {
         let mut next_idx = 0u32;
 
         for &(canonical, _) in WASI_ORDER {
+            if needed.contains(&canonical) {
+                fn_map[canonical as usize] = next_idx;
+                next_idx += 1;
+            }
+        }
+
+        for &(canonical, _) in HOST_ORDER {
             if needed.contains(&canonical) {
                 fn_map[canonical as usize] = next_idx;
                 next_idx += 1;
@@ -138,6 +150,14 @@ impl EmitCtx {
             vec![ValType::I32, ValType::I64, ValType::I32],
             vec![ValType::I32],
         );
+        // http_get(url_ptr: i32, url_len: i32, resp_ptr: i32) -> i32
+        let ty_http_get = ty_i32x3_i32;
+        // http_request(method_ptr, method_len, url_ptr, url_len, body_ptr, body_len, resp_ptr) -> i32
+        let ty_http_request = self.register_type(
+            &mut types,
+            vec![ValType::I32; 7],
+            vec![ValType::I32],
+        );
         let mut user_func_type_indices = Vec::new();
         for func in &mir.functions {
             let params: Vec<ValType> = func
@@ -156,7 +176,7 @@ impl EmitCtx {
         }
         module.section(&types);
 
-        // Import section - only needed WASI imports
+        // Import section - WASI imports and arukellt_host imports
         let mut imports = ImportSection::new();
         for &(canonical, wasi_name) in WASI_ORDER {
             if needed.contains(&canonical) {
@@ -177,6 +197,21 @@ impl EmitCtx {
                 imports.import(
                     "wasi_snapshot_preview1",
                     wasi_name,
+                    wasm_encoder::EntityType::Function(ty),
+                );
+            }
+        }
+        // arukellt_host imports (http_get, http_request)
+        for &(canonical, host_name) in HOST_ORDER {
+            if needed.contains(&canonical) {
+                let ty = match canonical {
+                    x if x == FN_HTTP_GET => ty_http_get,
+                    x if x == FN_HTTP_REQUEST => ty_http_request,
+                    _ => ty_http_get,
+                };
+                imports.import(
+                    "arukellt_host",
+                    host_name,
                     wasm_encoder::EntityType::Function(ty),
                 );
             }

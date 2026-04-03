@@ -16,7 +16,7 @@
 | [`std::host::env`](#stdhostenv) | 5 | Available | all (partial T1) |
 | [`std::host::fs`](#stdhostfs) | 3 | Available | all |
 | [`std::host::process`](#stdhostprocess) | 2 | Available | all |
-| [`std::host::http`](#stdhosthttp) | 2 | Stub / Experimental | wasm32-wasi-p2 |
+| [`std::host::http`](#stdhosthttp) | 2 | Available (T1 linker) | T1, T3 |
 | [`std::host::sockets`](#stdhostsockets) | 1 | Stub / Experimental | wasm32-wasi-p2 |
 
 ---
@@ -117,17 +117,32 @@ gating (see Issue 448 for future `--deny-process` support).
 
 ### `std::host::http`
 
-HTTP client via WASI Preview 2 `wasi:http` interfaces.
+HTTP client via TCP-based HTTP/1.1 host functions (Wasmtime linker).
+HTTP**S** is not supported; only plain `http://` URLs work.
 
-| Function | Signature | Status | Targets | WASI import |
+| Function | Signature | Status | Targets | Host import |
 |---|---|---|---|---|
-| `request` | `(String, String, String) -> Result<String, String>` | stub | wasm32-wasi-p2 | `wasi:http/*` |
-| `get` | `(String) -> Result<String, String>` | stub | wasm32-wasi-p2 | `wasi:http/*` |
+| `request` | `(String, String, String) -> Result<String, String>` | available | T1, T3 | `arukellt_host::http_request` |
+| `get` | `(String) -> Result<String, String>` | available | T1, T3 | `arukellt_host::http_get` |
 
-Both functions currently return
-`Err("not yet implemented (WASI P2 host stub)")`. Module stability is
-**experimental**. Calling either stub in a compiled program is rejected
-at compile time (see [Host Stub Enforcement](#host-stub-enforcement)).
+Both functions are wired in the Wasmtime linker via `register_http_host_fns`
+(see `crates/arukellt/src/runtime.rs`). They use `std::net::TcpStream` — no
+external HTTP client library is required.
+
+#### Error mapping
+
+The following error strings are returned as the `Err` variant:
+
+| Situation | `Err(String)` value |
+|---|---|
+| DNS resolution failure | `"dns: <hostname>: not found"` |
+| Connection refused | `"connection refused: <url>"` |
+| Connection / read timeout | `"timeout: <url>"` |
+| HTTP 4xx or 5xx status | `"http <status>: <url>"` |
+| HTTPS URL (unsupported) | `"https is not supported (TCP HTTP/1.1 only)"` |
+| Any other I/O failure | `"error: <message>"` |
+
+Module stability is **provisional** (T1 wired; HTTPS not supported). There is no `--deny-http` flag.
 
 ---
 
@@ -178,12 +193,15 @@ is **experimental**. Usage is rejected at compile time.
 Programs that reference unimplemented host stubs are rejected at compile
 time by a MIR scan. The following builtins trigger a hard error:
 
-- `http_request`, `http_get` — `std::host::http`
 - `sockets_connect` — `std::host::sockets`
 
 (Plus their `__intrinsic_*` variants.)
 
 This means stub modules cannot accidentally be shipped in a compiled binary.
+
+`std::host::http` is **not** in this list because `http_get` / `http_request`
+are fully wired in the T1/T3 Wasmtime linker and do not require a host-stub
+guard.
 
 ---
 
@@ -224,8 +242,8 @@ blocked intrinsic, the program is still rejected.
 | `fs::write_bytes` | ✓ | ✓ |
 | `process::exit` | ✓ | ✓ |
 | `process::abort` | ✓ | ✓ |
-| `http::request` | — | stub |
-| `http::get` | — | stub |
+| `http::request` | ✓ | ✓ |
+| `http::get` | ✓ | ✓ |
 | `sockets::connect` | — | stub |
 
 ---
@@ -235,9 +253,11 @@ blocked intrinsic, the program is still rejected.
 1. **`env::var` unavailable on T1.** WASI Preview 1 on the T1 backend does
    not import `environ_get`, so `std::host::env::var` is T3-only.
 
-2. **HTTP and Sockets are stubs.** Both modules exist in the manifest and
-   compile, but every function returns an error at runtime. Usage is
-   blocked at compile time by the host-stub enforcement scan.
+2. **Sockets is a stub.** `std::host::sockets::connect` exists in the manifest
+   but returns `Err("not yet implemented (WASI P2 host stub)")` at runtime.
+   Usage is blocked at compile time by the host-stub enforcement scan.
+   `std::host::http` is **not** a stub — it is available on T1 and T3 via
+   the Wasmtime linker (HTTP/1.1 only; HTTPS is not supported).
 
 3. **No `--deny-stdio` flag.** Standard I/O is unconditionally available.
 

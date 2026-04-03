@@ -76,7 +76,15 @@ impl EmitCtx {
             Operand::Call(name, args) => {
                 let original_name = name.as_str();
                 let lookup_name = original_name.rsplit("::").next().unwrap_or(original_name);
-                let name = normalize_intrinsic_name(lookup_name);
+                // Resolve the canonical name. Full-path http entries must not be confused with
+                // Vec::get (2 args) or other short-name builtins. Single-arg "get" / 3-arg
+                // "request" that resolve to user functions are http wrappers – route them through
+                // the http_get / http_request inline paths so the host call is emitted correctly.
+                let name = match original_name {
+                    "std::host::http::get" | "http::get" => "http_get",
+                    "std::host::http::request" | "http::request" => "http_request",
+                    _ => normalize_intrinsic_name(lookup_name),
+                };
                 match name {
                     "to_string" => {
                         // Polymorphic to_string: dispatch based on argument type
@@ -658,8 +666,10 @@ impl EmitCtx {
                             f.instruction(&Instruction::I32Load(ma));
                         }
                     }
-                    "get" => {
-                        // get(v, i) -> Option<i32>: bounds check, return Some(data[i]) or None
+                    "get" if args.len() >= 2 => {
+                        // Vec::get(v, i) -> Option<T>: bounds check, return Some(data[i]) or None.
+                        // Guard: only fire for 2-arg calls (Vec.get); single-arg "get" calls are
+                        // user functions (e.g. http::get) and are handled by the `other` fallthrough.
                         let ma = MemArg {
                             offset: 0,
                             align: 2,
@@ -3542,6 +3552,327 @@ impl EmitCtx {
                             self.emit_heap_grow_check(f);
                         }
                         f.instruction(&Instruction::End);
+                    }
+                    "http_get" => {
+                        // http_get(url: String) -> Result<String, String>
+                        // T1 strings: ptr→data bytes, length at (ptr-4).
+                        // Scratch layout (reuses FS_SCRATCH area; http+fs are mutually exclusive):
+                        //   FS_SCRATCH+0  (160): url_ptr
+                        //   FS_SCRATCH+4  (164): url_len
+                        //   FS_SCRATCH+8  (168): resp_str_ptr (heap_top + 4 before host call)
+                        //   FS_SCRATCH+12 (172): ret_i32 from host
+                        //   FS_SCRATCH+16 (176): abs_len
+                        //   FS_SCRATCH+20 (180): enum_ptr
+                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+
+                        // 1. Save url_ptr to scratch[0]
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        self.emit_operand(f, &args[0]);
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // 2. Save url_len = *(url_ptr - 4) to scratch[4]
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // 3. Allocate 4 bytes for length prefix; resp_str_ptr = heap_top + 4
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+
+                        // Pre-grow: ensure ≥65536 bytes headroom for response body
+                        {
+                            let headroom: i32 = 65540;
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(headroom));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const(16));
+                            f.instruction(&Instruction::I32ShrU);
+                            f.instruction(&Instruction::I32Const(2));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::MemorySize(0));
+                            f.instruction(&Instruction::I32GtU);
+                            f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(headroom));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const(16));
+                            f.instruction(&Instruction::I32ShrU);
+                            f.instruction(&Instruction::I32Const(2));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::MemorySize(0));
+                            f.instruction(&Instruction::I32Sub);
+                            f.instruction(&Instruction::MemoryGrow(0));
+                            f.instruction(&Instruction::Drop);
+                            f.instruction(&Instruction::End);
+                        }
+
+                        // 4. Call http_get(url_ptr, url_len, resp_str_ptr) → ret_i32; save to scratch[12]
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32)); // dest addr
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // url_ptr
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // url_len
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // resp_str_ptr
+                        self.call_fn(f, FN_HTTP_GET);
+                        f.instruction(&Instruction::I32Store(ma)); // scratch[12] = ret_i32
+
+                        // 5. Compute abs_len = select(-ret, ret, ret < 0); save to scratch[16]
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Sub); // -ret (val if err)
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // ret (val if ok)
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32LtS); // ret < 0?
+                        f.instruction(&Instruction::Select); // abs_len
+                        f.instruction(&Instruction::I32Store(ma)); // scratch[16] = abs_len
+
+                        // 6. Write length prefix: mem[resp_str_ptr - 4] = abs_len
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub); // resp_len_ptr = resp_str_ptr - 4
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // abs_len
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // 7. Bump heap by abs_len
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
+
+                        // 8. Build Result enum on heap: [tag: i32][str_ptr: i32]
+                        //    Save enum_ptr = heap_top to scratch[20]
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // Write tag at enum_ptr: tag = select(1, 0, ret < 0)
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // addr = enum_ptr
+                        f.instruction(&Instruction::I32Const(1)); // val if err
+                        f.instruction(&Instruction::I32Const(0)); // val if ok
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32LtS); // ret < 0?
+                        f.instruction(&Instruction::Select); // tag
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // Write str_ptr at enum_ptr+4
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add); // enum_ptr + 4
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // resp_str_ptr
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // Bump heap by 8 for enum
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(8));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
+
+                        // Return enum_ptr
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                    }
+                    "http_request" => {
+                        // http_request(method: String, url: String, body: String) -> Result<String, String>
+                        // T1 strings: ptr→data bytes, length at (ptr-4).
+                        // Scratch layout (reuses FS_SCRATCH area):
+                        //   FS_SCRATCH+0  (160): method_ptr
+                        //   FS_SCRATCH+4  (164): method_len
+                        //   FS_SCRATCH+8  (168): url_ptr
+                        //   FS_SCRATCH+12 (172): url_len
+                        //   FS_SCRATCH+16 (176): body_ptr
+                        //   FS_SCRATCH+20 (180): body_len
+                        //   FS_SCRATCH+24 (184): resp_str_ptr
+                        //   FS_SCRATCH+28 (188): ret_i32
+                        //   FS_SCRATCH+32 (192): abs_len
+                        //   FS_SCRATCH+36 (196): enum_ptr
+                        let ma = MemArg { offset: 0, align: 2, memory_index: 0 };
+
+                        // 1. Save method_ptr/len, url_ptr/len, body_ptr/len to scratch
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        self.emit_operand(f, &args[0]); // method_ptr
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma)); // method_len
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        self.emit_operand(f, &args[1]); // url_ptr
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma)); // url_len
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                        self.emit_operand(f, &args[2]); // body_ptr
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Load(ma)); // body_len
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // 2. Allocate 4 bytes for length prefix; resp_str_ptr = heap_top + 4
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::I32Store(ma));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+
+                        // Pre-grow: ensure ≥65536 bytes headroom for response body
+                        {
+                            let headroom: i32 = 65540;
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(headroom));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const(16));
+                            f.instruction(&Instruction::I32ShrU);
+                            f.instruction(&Instruction::I32Const(2));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::MemorySize(0));
+                            f.instruction(&Instruction::I32GtU);
+                            f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+                            f.instruction(&Instruction::GlobalGet(0));
+                            f.instruction(&Instruction::I32Const(headroom));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::I32Const(16));
+                            f.instruction(&Instruction::I32ShrU);
+                            f.instruction(&Instruction::I32Const(2));
+                            f.instruction(&Instruction::I32Add);
+                            f.instruction(&Instruction::MemorySize(0));
+                            f.instruction(&Instruction::I32Sub);
+                            f.instruction(&Instruction::MemoryGrow(0));
+                            f.instruction(&Instruction::Drop);
+                            f.instruction(&Instruction::End);
+                        }
+
+                        // 3. Call http_request(m_ptr,m_len,u_ptr,u_len,b_ptr,b_len,resp_ptr)→ret; save to scratch[28]
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 28) as i32)); // dest addr
+                        f.instruction(&Instruction::I32Const(FS_SCRATCH as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // method_ptr
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 4) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // method_len
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 8) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // url_ptr
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 12) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // url_len
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 16) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // body_ptr
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 20) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // body_len
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // resp_str_ptr
+                        self.call_fn(f, FN_HTTP_REQUEST);
+                        f.instruction(&Instruction::I32Store(ma)); // scratch[28] = ret_i32
+
+                        // 4. Compute abs_len; save to scratch[32]
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Sub); // -ret
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // ret
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32LtS);
+                        f.instruction(&Instruction::Select);
+                        f.instruction(&Instruction::I32Store(ma)); // scratch[32] = abs_len
+
+                        // 5. Write length prefix: mem[resp_str_ptr - 4] = abs_len
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Sub);
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        // 6. Bump heap by abs_len
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 32) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
+
+                        // 7. Build Result enum on heap: [tag: i32][str_ptr: i32]
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 36) as i32));
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Store(ma)); // scratch[36] = enum_ptr
+
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 36) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // enum_ptr (addr)
+                        f.instruction(&Instruction::I32Const(1));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 28) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(0));
+                        f.instruction(&Instruction::I32LtS);
+                        f.instruction(&Instruction::Select); // tag
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 36) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
+                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Add); // enum_ptr + 4
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 24) as i32));
+                        f.instruction(&Instruction::I32Load(ma)); // resp_str_ptr
+                        f.instruction(&Instruction::I32Store(ma));
+
+                        f.instruction(&Instruction::GlobalGet(0));
+                        f.instruction(&Instruction::I32Const(8));
+                        f.instruction(&Instruction::I32Add);
+                        f.instruction(&Instruction::GlobalSet(0));
+                        self.emit_heap_grow_check(f);
+
+                        // Return enum_ptr
+                        f.instruction(&Instruction::I32Const((FS_SCRATCH + 36) as i32));
+                        f.instruction(&Instruction::I32Load(ma));
                     }
                     "map_i32_i32" | "map_String_String" => {
                         // map(vec, fn) -> call __map_i32 helper (String is i32 ptr at Wasm level)

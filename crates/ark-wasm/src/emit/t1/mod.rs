@@ -102,7 +102,10 @@ const FN_ENVIRON_GET: u32 = 39;
 const FN_ENV_VAR: u32 = 40;
 // WASI proc_exit import (conditional)
 const FN_PROC_EXIT: u32 = 41;
-const FN_USER_BASE: u32 = 42;
+// arukellt_host HTTP imports (conditional)
+const FN_HTTP_GET: u32 = 42;
+const FN_HTTP_REQUEST: u32 = 43;
+const FN_USER_BASE: u32 = 44;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
@@ -192,6 +195,8 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_f64_bits_hi" => "f64_bits_hi",
         "__intrinsic_process_exit" => "process_exit",
         "__intrinsic_process_abort" => "process_abort",
+        "__intrinsic_http_get" => "http_get",
+        "__intrinsic_http_request" => "http_request",
         other => other,
     }
 }
@@ -1320,6 +1325,14 @@ fn cfn_handle_builtin(
         }
         "exit" | "proc_exit" | "process_exit" | "process_abort" => {
             needed.insert(FN_PROC_EXIT);
+        }
+        "http_get" => {
+            needed.insert(FN_HTTP_GET);
+            needed.insert(FN_ENSURE_HEAP);
+        }
+        "http_request" => {
+            needed.insert(FN_HTTP_REQUEST);
+            needed.insert(FN_ENSURE_HEAP);
         }
         other
             if (other.contains("HashMap") || other.contains("hashmap"))
