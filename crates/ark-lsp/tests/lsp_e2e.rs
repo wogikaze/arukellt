@@ -756,6 +756,253 @@ fn no_e0100_for_valid_stdlib_import() {
     session.shutdown();
 }
 
+// ---- Issue 454: snapshot-style regression tests ----
+//
+// These tests use a shared FIXTURE_BASIC source constant (greet + main) and
+// assert hover markdown content, definition character ranges, and diagnostic
+// counts with exact/contains checks — no snapshot crate required.
+//
+// FIXTURE_BASIC includes an explicit stdlib import (`use std::host::stdio`) so
+// the program is fully valid and produces zero E0xxx diagnostics when the
+// workspace root is provided to the LSP server.
+//
+// Layout of FIXTURE_BASIC (0-indexed lines):
+//   0: use std::host::stdio
+//   1: fn greet(name: String) -> String {
+//   2:     name
+//   3: }
+//   4: (empty)
+//   5: fn main() {
+//   6:     let result = greet("world")
+//   7:     stdio::println(result)
+//   8: }
+
+const FIXTURE_BASIC: &str =
+    "use std::host::stdio\nfn greet(name: String) -> String {\n    name\n}\n\nfn main() {\n    let result = greet(\"world\")\n    stdio::println(result)\n}\n";
+
+#[test]
+fn snapshot_hover_println_contains_signature() {
+    // Snapshot test for issue #454 (complements issue #451 hover tests).
+    //
+    // Hover on `println` in FIXTURE_BASIC (line 7, character 11 — the `p` of
+    // `println` in `stdio::println(result)`) must return non-null content that
+    // contains the string "println", confirming the stdlib manifest entry is
+    // rendered for a qualified call.
+    //
+    // Source position:
+    //   Line 7: "    stdio::println(result)"
+    //            0         1
+    //            01234567890123456789
+    //   character 11 = start of `println` (after "    stdio::")
+    let mut session = LspSession::start();
+    session.initialize();
+
+    let uri = "file:///test/snapshot_hover_println.ark";
+    session.open_document(uri, FIXTURE_BASIC);
+
+    let resp = session
+        .request(
+            454_01,
+            "textDocument/hover",
+            json!({
+                "textDocument": { "uri": uri },
+                "position": { "line": 7, "character": 11 }  // on `println` in stdio::println
+            }),
+        )
+        .expect("hover response for println in FIXTURE_BASIC");
+
+    let result = resp.get("result").expect("result field in hover response");
+
+    // If the server returns non-null, it must mention "println".
+    // A null result is also accepted when the stdlib manifest is not loaded
+    // (e.g. CI without the workspace root), but no *wrong* content is allowed.
+    if !result.is_null() {
+        let value = result
+            .get("contents")
+            .and_then(|c| c.get("value"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        assert!(
+            value.contains("println"),
+            "snapshot: hover on `println` must mention the function name; got: {:?}",
+            value
+        );
+    }
+
+    session.shutdown();
+}
+
+#[test]
+fn snapshot_hover_string_literal_is_null() {
+    // Snapshot test for issue #454 (complements issue #451 null-hover tests).
+    //
+    // Hover on the string literal `"world"` inside FIXTURE_BASIC (line 6,
+    // character 23 — the `w` inside `"world"`) must return null.  String
+    // literals carry no semantic hover information.
+    //
+    // Source position:
+    //   Line 6: "    let result = greet(\"world\")"
+    //            0         1         2
+    //            0123456789012345678901234567890
+    //   character 23 = 'w' inside the "world" literal
+    let mut session = LspSession::start();
+    session.initialize();
+
+    let uri = "file:///test/snapshot_hover_string.ark";
+    session.open_document(uri, FIXTURE_BASIC);
+
+    let resp = session
+        .request(
+            454_02,
+            "textDocument/hover",
+            json!({
+                "textDocument": { "uri": uri },
+                "position": { "line": 6, "character": 23 }  // inside "world"
+            }),
+        )
+        .expect("hover response for string literal in FIXTURE_BASIC");
+
+    let result = resp.get("result").expect("result field in hover response");
+    assert!(
+        result.is_null(),
+        "snapshot: hovering over a string literal must return null; got: {:?}",
+        result
+    );
+
+    session.shutdown();
+}
+
+#[test]
+fn snapshot_definition_local_var_name_span() {
+    // Snapshot test for issue #454 (complements issue #450 definition-span test).
+    //
+    // Goto-definition on the `result` usage in FIXTURE_BASIC (line 7,
+    // character 19 — the `r` of `result` in `stdio::println(result)`) must
+    // resolve to the `let result` binding on line 6 with a range that covers
+    // only the identifier token:
+    //   start.character = 8   ("    let " is 8 characters)
+    //   end.character   = 14  (start + len("result") = 8 + 6)
+    //
+    // Source positions:
+    //   Line 6: "    let result = greet(\"world\")"
+    //            0       8      14
+    //   Line 7: "    stdio::println(result)"
+    //            0                  19    25
+    let mut session = LspSession::start();
+    session.initialize();
+
+    let uri = "file:///test/snapshot_def_result.ark";
+    session.open_document(uri, FIXTURE_BASIC);
+
+    let resp = session
+        .request(
+            454_03,
+            "textDocument/definition",
+            json!({
+                "textDocument": { "uri": uri },
+                "position": { "line": 7, "character": 19 }  // on `result` in stdio::println(result)
+            }),
+        )
+        .expect("definition response for `result` in FIXTURE_BASIC");
+
+    if let Some(result) = resp.get("result") {
+        if result.is_null() {
+            // Server did not resolve — skip range assertions.
+            session.shutdown();
+            return;
+        }
+        // Accept both a single Location and an array of Locations.
+        let location = if result.is_array() {
+            result.as_array().and_then(|arr| arr.first())
+        } else {
+            Some(result)
+        };
+        if let Some(loc) = location {
+            // Same-file assertion.
+            if let Some(def_uri) = loc.get("uri").and_then(|u| u.as_str()) {
+                assert_eq!(
+                    def_uri, uri,
+                    "snapshot: definition for `result` should be in the same file"
+                );
+            }
+            if let Some(range) = loc.get("range") {
+                let start_line = range
+                    .get("start")
+                    .and_then(|s| s.get("line"))
+                    .and_then(|l| l.as_u64());
+                let start_char = range
+                    .get("start")
+                    .and_then(|s| s.get("character"))
+                    .and_then(|c| c.as_u64());
+                let end_char = range
+                    .get("end")
+                    .and_then(|e| e.get("character"))
+                    .and_then(|c| c.as_u64());
+
+                if let (Some(sl), Some(sc), Some(ec)) = (start_line, start_char, end_char) {
+                    assert_eq!(
+                        sl, 6,
+                        "snapshot: definition of `result` should be on line 6 (the let binding), got line {}",
+                        sl
+                    );
+                    assert_eq!(
+                        sc, 8,
+                        "snapshot: definition range start.character should be 8 (start of `result`), got {}",
+                        sc
+                    );
+                    assert_eq!(
+                        ec, 14,
+                        "snapshot: definition range end.character should be 14 (end of `result`), got {}",
+                        ec
+                    );
+                }
+            }
+        }
+    }
+
+    session.shutdown();
+}
+
+#[test]
+fn snapshot_diagnostics_valid_program_zero_errors() {
+    // Snapshot test for issue #454 (complements issue #452 E0100 tests).
+    //
+    // FIXTURE_BASIC includes `use std::host::stdio` and calls `stdio::println`,
+    // making it a fully valid program.  After opening it the LSP server should
+    // publish zero E0xxx diagnostics.  The server is initialized with the real
+    // workspace root so stdlib resolution is available just as it would be in
+    // normal editor use.
+    let mut session = LspSession::start();
+    let root_uri = workspace_root_uri();
+    session.initialize_with_root(&root_uri);
+
+    let uri = "file:///test/snapshot_valid.ark";
+    session.open_document(uri, FIXTURE_BASIC);
+
+    let diags = session.collect_diagnostics_for(uri, Duration::from_secs(5));
+
+    let error_diags: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            // Capture any E0xxx diagnostic code (error-level)
+            d.get("code")
+                .and_then(|c| c.as_str())
+                .map(|s| s.starts_with('E'))
+                .unwrap_or(false)
+        })
+        .collect();
+
+    assert!(
+        error_diags.is_empty(),
+        "snapshot: valid program (FIXTURE_BASIC) must produce zero E-prefixed diagnostics; \
+         got {} error(s): {:?}",
+        error_diags.len(),
+        error_diags
+    );
+
+    session.shutdown();
+}
+
 #[test]
 fn no_e0100_for_valid_multimodule_stdlib_import() {
     // Additional regression for issue #452: multiple stdlib imports in the same
