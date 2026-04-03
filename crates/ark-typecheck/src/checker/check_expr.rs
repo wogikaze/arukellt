@@ -150,9 +150,12 @@ impl TypeChecker {
                         }
                     }
                     let mut diag = Diagnostic::new(DiagnosticCode::E0100)
-                        .with_label(*span, format!("unresolved name `{}`", name));
+                        .with_label(*span, format!("unresolved name `{}`", name))
+                        .with_note("names must be declared before use with `let`, `fn`, `use`, or `import`");
                     if !best_name.is_empty() {
-                        diag = diag.with_suggestion(format!("did you mean `{}`?", best_name));
+                        diag = diag.with_help(format!("did you mean `{}`?", best_name));
+                    } else {
+                        diag = diag.with_help("if this name is in another module, add `use <module>` at the top of the file");
                     }
                     sink.emit(diag);
                     Type::Error
@@ -766,15 +769,52 @@ impl TypeChecker {
                     Type::Error
                 }
             }
-            ast::Expr::FieldAccess { object, field, .. } => {
+            ast::Expr::FieldAccess { object, field, span } => {
                 let obj_ty = self.synthesize_expr(object, env, sink);
-                if let Type::Struct(type_id) = &obj_ty
-                    && let Some(info) = self.struct_defs.values().find(|s| s.type_id == *type_id)
-                    && let Some((_, field_ty)) = info.fields.iter().find(|(name, _)| name == field)
-                {
-                    return field_ty.clone();
+                if let Type::Struct(type_id) = &obj_ty {
+                    if let Some(info) = self
+                        .struct_defs
+                        .values()
+                        .find(|s| s.type_id == *type_id)
+                        .cloned()
+                    {
+                        if let Some((_, field_ty)) =
+                            info.fields.iter().find(|(name, _)| name == field)
+                        {
+                            return field_ty.clone();
+                        } else {
+                            // Known struct but unknown field — emit E0300.
+                            let available: Vec<String> = info
+                                .fields
+                                .iter()
+                                .map(|(n, _)| format!("`{}`", n))
+                                .collect();
+                            let available_str = if available.is_empty() {
+                                "(none)".to_string()
+                            } else {
+                                available.join(", ")
+                            };
+                            sink.emit(
+                                Diagnostic::new(DiagnosticCode::E0300)
+                                    .with_message(format!(
+                                        "`{}` has no field `{}`",
+                                        info.name, field
+                                    ))
+                                    .with_label(*span, format!("unknown field `{}`", field))
+                                    .with_note(format!(
+                                        "available fields: {}",
+                                        available_str
+                                    ))
+                                    .with_help(format!(
+                                        "check the struct definition of `{}`",
+                                        info.name
+                                    )),
+                            );
+                            return Type::Error;
+                        }
+                    }
                 }
-                // Struct field access at Wasm level is always i32 (pointer)
+                // Non-struct or unresolved type: fall back to i32 (pointer at Wasm level).
                 Type::I32
             }
             ast::Expr::StructInit {

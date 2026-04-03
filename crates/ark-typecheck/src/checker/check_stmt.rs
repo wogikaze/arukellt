@@ -67,10 +67,20 @@ impl TypeChecker {
                         _ => self.synthesize_expr(init, env, sink),
                     };
                     if !self.types_compatible(&init_type, &declared_type) {
-                        sink.emit(Diagnostic::new(DiagnosticCode::E0200).with_message(format!(
-                            "expected `{}`, found `{}`",
-                            declared_type, init_type
-                        )));
+                        sink.emit(
+                            Diagnostic::new(DiagnosticCode::E0200)
+                                .with_message(format!(
+                                    "expected `{}`, found `{}`",
+                                    declared_type, init_type
+                                ))
+                                .with_note(format!(
+                                    "the declared type `{}` does not match the initializer type `{}`",
+                                    declared_type, init_type
+                                ))
+                                .with_help(
+                                    "ensure the initializer expression matches the declared type, or use `as` for explicit numeric conversion",
+                                ),
+                        );
                     }
                     if *is_mut {
                         env.bind_mut(name.clone(), declared_type.clone());

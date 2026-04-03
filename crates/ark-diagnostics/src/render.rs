@@ -26,12 +26,10 @@ pub fn render_expected_actual_for_diagnostic(diagnostic: &Diagnostic) -> Option<
 
 pub fn render_fix_hints(diagnostic: &Diagnostic) -> Vec<String> {
     let mut hints = Vec::new();
-    if let Some(suggestion) = &diagnostic.suggestion {
-        hints.push(suggestion.clone());
-    }
     for fix_it in &diagnostic.fix_its {
         hints.push(fix_it.message.clone());
     }
+    // suggestion is now also in helps, but we skip it here to avoid duplication
     hints
 }
 
@@ -74,19 +72,22 @@ pub fn render_diagnostics(diagnostics: &[Diagnostic], source_map: &SourceMap) ->
             ));
         }
 
-        for fix_it in &diag.fix_its {
-            let file = source_map.get_file(fix_it.span.file_id);
-            let (line, _col) = file.offset_to_line_col(fix_it.span.start);
-            out.push_str(&format!("help: {}\n", fix_it.message));
-            out.push_str("   |\n");
-            out.push_str(&format!("{:>3} | {}\n", line, fix_it.replacement));
-        }
-
         for note in &diag.notes {
             out.push_str(&format!("   = note: {}\n", note));
         }
-        if let Some(suggestion) = &diag.suggestion {
-            out.push_str(&format!("   = help: {}\n", suggestion));
+        // Render helps (distinct from notes). `with_suggestion()` now feeds into
+        // `helps` as well, so we render from `helps` only — the `suggestion` field
+        // is kept solely for backward-compat direct field access (e.g. playground-wasm).
+        for help in &diag.helps {
+            out.push_str(&format!("   = help: {}\n", help));
+        }
+
+        for fix_it in &diag.fix_its {
+            let file = source_map.get_file(fix_it.span.file_id);
+            let (line, _col) = file.offset_to_line_col(fix_it.span.start);
+            out.push_str(&format!("fix: {}\n", fix_it.message));
+            out.push_str("   |\n");
+            out.push_str(&format!("{:>3} | {}\n", line, fix_it.replacement));
         }
         out.push('\n');
     }
@@ -126,6 +127,9 @@ pub fn render_structured_snapshot(diagnostic: &Diagnostic, source_map: &SourceMa
     }
     for note in &diagnostic.notes {
         out.push_str(&format!("note={}\n", note));
+    }
+    for help in &diagnostic.helps {
+        out.push_str(&format!("help={}\n", help));
     }
     out
 }
@@ -238,5 +242,97 @@ mod tests {
         assert!(rendered.contains("code=E0200"));
         assert!(rendered.contains("phase=typecheck"));
         assert!(rendered.contains("fix_hint=change the type annotation"));
+    }
+
+    #[test]
+    fn snapshot_e0100_unresolved_name() {
+        let mut sm = SourceMap::new();
+        let fid = sm.add_file("test.ark".into(), "fn main() { foo(42) }".into());
+        let diag = Diagnostic::new(DiagnosticCode::E0100)
+            .with_label(Span::new(fid, 12, 15), "unresolved name `foo`")
+            .with_note(
+                "names must be declared before use with `let`, `fn`, `use`, or `import`",
+            )
+            .with_help("did you mean `foo_bar`?");
+        let rendered = render_structured_snapshot(&diag, &sm);
+        assert!(rendered.contains("code=E0100"), "should contain code=E0100\n{}", rendered);
+        assert!(rendered.contains("note="), "should contain note\n{}", rendered);
+        assert!(rendered.contains("help="), "should contain help\n{}", rendered);
+        assert!(
+            rendered.contains("did you mean `foo_bar`?"),
+            "should contain suggestion text\n{}",
+            rendered
+        );
+        // Also verify full render produces help: prefix
+        let full = render_diagnostics(&[diag], &sm);
+        assert!(full.contains("= note:"), "full render should have note prefix\n{}", full);
+        assert!(full.contains("= help:"), "full render should have help prefix\n{}", full);
+    }
+
+    #[test]
+    fn snapshot_e0200_type_mismatch() {
+        let mut sm = SourceMap::new();
+        let fid = sm.add_file("test.ark".into(), "let x: i32 = \"hello\"\n".into());
+        let diag = Diagnostic::new(DiagnosticCode::E0200)
+            .with_message("expected `i32`, found `String`")
+            .with_label(Span::new(fid, 13, 20), "expected `i32`, found `String`")
+            .with_note(
+                "the declared type `i32` does not match the initializer type `String`",
+            )
+            .with_help(
+                "ensure the initializer expression matches the declared type, or use `as` for explicit numeric conversion",
+            );
+        let rendered = render_structured_snapshot(&diag, &sm);
+        assert!(rendered.contains("code=E0200"), "should contain code=E0200\n{}", rendered);
+        assert!(rendered.contains("expected=i32"), "should contain expected\n{}", rendered);
+        assert!(rendered.contains("actual=String"), "should contain actual\n{}", rendered);
+        assert!(rendered.contains("note="), "should contain note\n{}", rendered);
+        assert!(rendered.contains("help="), "should contain help\n{}", rendered);
+    }
+
+    #[test]
+    fn snapshot_e0300_missing_field() {
+        let mut sm = SourceMap::new();
+        let fid = sm.add_file("test.ark".into(), "let v = point.z\n".into());
+        let diag = Diagnostic::new(DiagnosticCode::E0300)
+            .with_message("`Point` has no field `z`")
+            .with_label(Span::new(fid, 8, 15), "unknown field `z`")
+            .with_note("available fields: `x`, `y`")
+            .with_help("check the struct definition of `Point`");
+        let rendered = render_structured_snapshot(&diag, &sm);
+        assert!(rendered.contains("code=E0300"), "should contain code=E0300\n{}", rendered);
+        assert!(rendered.contains("note="), "should contain note\n{}", rendered);
+        assert!(rendered.contains("help="), "should contain help\n{}", rendered);
+        assert!(
+            rendered.contains("available fields"),
+            "note should list available fields\n{}",
+            rendered
+        );
+        // Verify full render
+        let full = render_diagnostics(&[diag], &sm);
+        assert!(full.contains("= note:"), "full render should have note prefix\n{}", full);
+        assert!(full.contains("= help:"), "full render should have help prefix\n{}", full);
+    }
+
+    #[test]
+    fn test_note_and_help_render_distinct() {
+        let mut sm = SourceMap::new();
+        sm.add_file("test.ark".into(), "let x = 1\n".into());
+        let diag = Diagnostic::new(DiagnosticCode::E0200)
+            .with_note("this is a note")
+            .with_help("this is a help");
+        let rendered = render_diagnostics(&[diag], &sm);
+        assert!(rendered.contains("= note: this is a note"), "note prefix\n{}", rendered);
+        assert!(rendered.contains("= help: this is a help"), "help prefix\n{}", rendered);
+    }
+
+    #[test]
+    fn test_with_suggestion_compat() {
+        // with_suggestion() should still produce help output and populate suggestion field.
+        let diag = Diagnostic::new(DiagnosticCode::E0100)
+            .with_suggestion("did you mean `bar`?");
+        assert_eq!(diag.suggestion.as_deref(), Some("did you mean `bar`?"));
+        assert_eq!(diag.helps.len(), 1);
+        assert_eq!(diag.helps[0], "did you mean `bar`?");
     }
 }

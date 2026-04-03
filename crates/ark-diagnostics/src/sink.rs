@@ -92,6 +92,8 @@ pub struct Diagnostic {
     pub labels: Vec<Label>,
     pub fix_its: Vec<FixIt>,
     pub notes: Vec<String>,
+    /// How-to-fix suggestions (rendered as `help:` lines, distinct from `note:`).
+    pub helps: Vec<String>,
     pub suggestion: Option<String>,
 }
 
@@ -104,6 +106,7 @@ impl Diagnostic {
             labels: Vec::new(),
             fix_its: Vec::new(),
             notes: Vec::new(),
+            helps: Vec::new(),
             suggestion: None,
         }
     }
@@ -145,8 +148,19 @@ impl Diagnostic {
         self
     }
 
+    /// Add a how-to-fix help message (rendered as `help:`, distinct from `note:`).
+    pub fn with_help(mut self, help: impl Into<String>) -> Self {
+        self.helps.push(help.into());
+        self
+    }
+
+    /// Compat shim: equivalent to `with_help()`. Kept for backward compatibility.
     pub fn with_suggestion(mut self, suggestion: impl Into<String>) -> Self {
-        self.suggestion = Some(suggestion.into());
+        let s: String = suggestion.into();
+        // Keep suggestion field populated for any code that reads it directly
+        // (e.g., ark-playground-wasm serialisation).
+        self.suggestion = Some(s.clone());
+        self.helps.push(s);
         self
     }
 

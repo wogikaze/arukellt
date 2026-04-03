@@ -583,7 +583,16 @@ impl ArukellBackend {
                     severity: Some(severity),
                     code: Some(NumberOrString::String(diag.code.as_str().to_string())),
                     source: Some(source_name.to_string()),
-                    message: diag.message.clone(),
+                    message: if diag.helps.is_empty() {
+                        diag.message.clone()
+                    } else {
+                        let help_lines: Vec<String> = diag
+                            .helps
+                            .iter()
+                            .map(|h| format!("help: {}", h))
+                            .collect();
+                        format!("{}\n\n{}", diag.message, help_lines.join("\n"))
+                    },
                     ..Default::default()
                 }
             })
