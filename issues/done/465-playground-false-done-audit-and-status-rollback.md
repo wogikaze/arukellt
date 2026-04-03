@@ -1,6 +1,6 @@
 # Playground false-done 監査表と status rollback
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
 **Updated**: 2026-04-03
 **ID**: 465
@@ -74,10 +74,10 @@ internal-only
 
 ## Acceptance criteria
 
-- [ ] A/B/C/D/E/F 監査表が本 issue 内に固定され、各行に repo file evidence が書かれている。
-- [ ] false-done risk が高い playground surface について、1 issue = 1 product claim の narrower open issue 群が `issues/open/` に作成されている。
-- [ ] `issues/done/380` と `issues/done/431` に historical implementation-parts only の注記が入り、broad user-visible claim をそのまま future proof に使わず、replacement open issues からのみ追跡できる状態になっている。
-- [ ] `bash scripts/gen/generate-issue-index.sh` 実行後、`issues/open/index.md` と `issues/open/dependency-graph.md` に本監査 initiative が反映されている。
+- [x] A/B/C/D/E/F 監査表が本 issue 内に固定され、各行に repo file evidence が書かれている。
+- [x] false-done risk が高い playground surface について、1 issue = 1 product claim の narrower open issue 群が `issues/open/` に作成されている。
+- [x] `issues/done/380` と `issues/done/431` に historical implementation-parts only の注記が入り、broad user-visible claim をそのまま future proof に使わず、replacement open issues からのみ追跡できる状態になっている。
+- [x] `bash scripts/gen/generate-issue-index.sh` 実行後、`issues/open/index.md` と `issues/open/dependency-graph.md` に本監査 initiative が反映されている。
 
 ## Required verification
 

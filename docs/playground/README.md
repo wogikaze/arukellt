@@ -38,7 +38,7 @@ The current browser-side engine is the `wasm32-unknown-unknown` playground Wasm 
 TypeScript UI components. Current repo proof covers parse / format / tokenize and component-level
 UI code; it does not yet establish a browser-visible entrypoint in the generated docs site. See
 [ADR-017](../adr/ADR-017-playground-execution-model.md) for the intended execution model and
-[issues/open/465-playground-false-done-audit-and-status-rollback.md](../../issues/open/465-playground-false-done-audit-and-status-rollback.md)
+[issues/done/465-playground-false-done-audit-and-status-rollback.md](../../issues/done/465-playground-false-done-audit-and-status-rollback.md)
 for the current audit status.
 
 ### Learning the Language
