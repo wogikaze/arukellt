@@ -2410,6 +2410,65 @@ impl Ctx {
                     Terminator::Return(None) => {
                         w.instruction(&Instruction::Return);
                     }
+                    Terminator::TailCall { func: callee_name, args } => {
+                        // Emit `return_call <func>` — tail-call terminator from MIR optimiser.
+                        let canonical = normalize_intrinsic(callee_name).to_string();
+                        if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
+                            let param_types =
+                                self.fn_param_types.get(canonical.as_str()).cloned();
+                            for (i, arg) in args.iter().enumerate() {
+                                self.emit_operand(&mut w, arg);
+                                if let Some(ref pts) = param_types
+                                    && i < pts.len()
+                                    && pts[i] == Type::Any
+                                {
+                                    let arg_vt = self.infer_operand_type(arg);
+                                    if arg_vt == ValType::I32 {
+                                        w.instruction(&Instruction::RefI31);
+                                    }
+                                }
+                            }
+                            w.instruction(&Instruction::ReturnCall(fn_idx));
+                        } else {
+                            // Fallback: emit as regular call + return
+                            for arg in args {
+                                self.emit_operand(&mut w, arg);
+                            }
+                            if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
+                                w.instruction(&Instruction::Call(fn_idx));
+                            }
+                            w.instruction(&Instruction::Return);
+                        }
+                    }
+                    Terminator::TailCallIndirect { callee, args } => {
+                        // Emit `return_call_indirect` — indirect tail-call terminator.
+                        for arg in args {
+                            self.emit_operand(&mut w, arg);
+                        }
+                        self.emit_operand(&mut w, callee);
+                        let params: Vec<ValType> = args
+                            .iter()
+                            .map(|a| {
+                                if self.is_f64_like_operand(a) {
+                                    ValType::F64
+                                } else if self.is_i64_like_operand(a) {
+                                    ValType::I64
+                                } else {
+                                    ValType::I32
+                                }
+                            })
+                            .collect();
+                        let results = vec![ValType::I32];
+                        let type_index = self
+                            .indirect_types
+                            .get(&(params, results))
+                            .copied()
+                            .unwrap_or(0);
+                        w.instruction(&Instruction::ReturnCallIndirect {
+                            type_index,
+                            table_index: 0,
+                        });
+                    }
                     _ => {}
                 }
             }

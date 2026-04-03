@@ -112,6 +112,67 @@ pub fn f64_bits_hi(x: f64) -> i32 {
     __intrinsic_f64_bits_hi(x)
 }
 
+// --- Scalar type conversion functions (issue #040) ---
+// Widening narrow integer types → i32 (no-op in Wasm; all stored as i32)
+pub fn u8_to_i32(x: u8) -> i32 {
+    __intrinsic_u8_to_i32(x)
+}
+
+pub fn u16_to_i32(x: u16) -> i32 {
+    __intrinsic_u16_to_i32(x)
+}
+
+pub fn i8_to_i32(x: i8) -> i32 {
+    __intrinsic_i8_to_i32(x)
+}
+
+pub fn i16_to_i32(x: i16) -> i32 {
+    __intrinsic_i16_to_i32(x)
+}
+
+// Narrowing i32 → narrow types (masking for unsigned, sign-extension for signed)
+pub fn i32_to_u8(x: i32) -> u8 {
+    __intrinsic_i32_to_u8(x)
+}
+
+pub fn i32_to_u16(x: i32) -> u16 {
+    __intrinsic_i32_to_u16(x)
+}
+
+pub fn i32_to_i8(x: i32) -> i8 {
+    __intrinsic_i32_to_i8(x)
+}
+
+pub fn i32_to_i16(x: i32) -> i16 {
+    __intrinsic_i32_to_i16(x)
+}
+
+// i32/u32 ↔ i64/u64 widening and truncation
+pub fn u32_to_u64(x: u32) -> u64 {
+    __intrinsic_u32_to_u64(x)
+}
+
+pub fn u64_to_u32(x: u64) -> u32 {
+    __intrinsic_u64_to_u32(x)
+}
+
+pub fn i32_to_i64(x: i32) -> i64 {
+    __intrinsic_i32_to_i64(x)
+}
+
+pub fn i64_to_i32(x: i64) -> i32 {
+    __intrinsic_i64_to_i32(x)
+}
+
+// f32 ↔ f64 conversion
+pub fn f32_to_f64(x: f32) -> f64 {
+    __intrinsic_f32_to_f64(x)
+}
+
+pub fn f64_to_f32(x: f64) -> f32 {
+    __intrinsic_f64_to_f32(x)
+}
+
 pub fn abs(x: i32) -> i32 {
     if x < 0 { 0 - x } else { x }
 }

@@ -1,0 +1,81 @@
+use std::signal
+use std::host::stdio
+
+fn assert_close(actual: f64, expected: f64) {
+    if !signal::approx_eq(actual, expected, 0.001) {
+        panic(concat("expected ", concat(f64_to_string(expected), concat(", got ", f64_to_string(actual)))))
+    }
+}
+
+fn assert_vec_close(actual: Vec<f64>, expected: Vec<f64>) {
+    if len(actual) != len(expected) {
+        panic("vector length mismatch")
+    }
+    let mut i = 0
+    while i < len(actual) {
+        assert_close(get_unchecked(actual, i), get_unchecked(expected, i))
+        i = i + 1
+    }
+}
+
+fn main() {
+    let impulse = Vec_new_f64()
+    push(impulse, 1.0)
+    push(impulse, 0.0)
+    push(impulse, 0.0)
+    push(impulse, 0.0)
+    let impulse_r = signal::clone_f64(impulse)
+    let impulse_i = signal::zeros(len(impulse))
+    signal::fft(impulse_r, impulse_i)
+
+    let ones = Vec_new_f64()
+    push(ones, 1.0)
+    push(ones, 1.0)
+    push(ones, 1.0)
+    push(ones, 1.0)
+    let zeros = signal::zeros(4)
+    assert_vec_close(impulse_r, ones)
+    assert_vec_close(impulse_i, zeros)
+
+    let shifted = Vec_new_f64()
+    push(shifted, 0.0)
+    push(shifted, 1.0)
+    push(shifted, 0.0)
+    push(shifted, 0.0)
+    let shift_r = signal::clone_f64(shifted)
+    let shift_i = signal::zeros(len(shifted))
+    signal::fft(shift_r, shift_i)
+
+    let expected_shift_r = Vec_new_f64()
+    push(expected_shift_r, 1.0)
+    push(expected_shift_r, 0.0)
+    push(expected_shift_r, 0.0 - 1.0)
+    push(expected_shift_r, 0.0)
+    let expected_shift_i = Vec_new_f64()
+    push(expected_shift_i, 0.0)
+    push(expected_shift_i, 0.0 - 1.0)
+    push(expected_shift_i, 0.0)
+    push(expected_shift_i, 1.0)
+    assert_vec_close(shift_r, expected_shift_r)
+    assert_vec_close(shift_i, expected_shift_i)
+
+    let seq = Vec_new_f64()
+    push(seq, 1.0)
+    push(seq, 2.0)
+    push(seq, 3.0)
+    push(seq, 4.0)
+    let roundtrip_r = signal::clone_f64(seq)
+    let roundtrip_i = signal::zeros(len(seq))
+    signal::fft(roundtrip_r, roundtrip_i)
+    signal::ifft(roundtrip_r, roundtrip_i)
+
+    let expected_seq = Vec_new_f64()
+    push(expected_seq, 1.0)
+    push(expected_seq, 2.0)
+    push(expected_seq, 3.0)
+    push(expected_seq, 4.0)
+    assert_vec_close(roundtrip_r, expected_seq)
+    assert_vec_close(roundtrip_i, zeros)
+
+    stdio::println("fft ok")
+}

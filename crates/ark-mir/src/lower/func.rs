@@ -319,7 +319,7 @@ pub fn lower_to_mir(
                 }
                 // Track i64/f64-typed parameters
                 if let ast::TypeExpr::Named { name: tname, .. } = &param.ty {
-                    if tname == "i64" {
+                    if tname == "i64" || tname == "u64" {
                         ctx.i64_locals.insert(pid.0);
                     }
                     if tname == "f64" {
@@ -349,6 +349,22 @@ pub fn lower_to_mir(
                     && ctx.struct_defs.contains_key(inner.as_str())
                 {
                     ctx.vec_struct_locals.insert(pid.0, inner.clone());
+                }
+                if let ast::TypeExpr::Generic {
+                    name: tname, args, ..
+                } = &param.ty
+                    && tname == "Vec"
+                    && let Some(ast::TypeExpr::Named { name: inner, .. }) = args.first()
+                {
+                    if inner == "f64" {
+                        ctx.vec_f64_locals.insert(pid.0);
+                    }
+                    if inner == "i64" {
+                        ctx.vec_i64_locals.insert(pid.0);
+                    }
+                    if inner == "String" {
+                        ctx.vec_string_locals.insert(pid.0);
+                    }
                 }
             }
 
@@ -388,7 +404,7 @@ pub fn lower_to_mir(
                             ast::TypeExpr::Named { name, .. } if name == "f32" => {
                                 ark_typecheck::types::Type::F32
                             }
-                            ast::TypeExpr::Named { name, .. } if name == "i64" => {
+                            ast::TypeExpr::Named { name, .. } if name == "i64" || name == "u64" => {
                                 ark_typecheck::types::Type::I64
                             }
                             ast::TypeExpr::Named { name, .. } if name == "bool" => {
@@ -419,7 +435,7 @@ pub fn lower_to_mir(
                     Some(ast::TypeExpr::Named { name, .. }) if name == "f32" => {
                         ark_typecheck::types::Type::F32
                     }
-                    Some(ast::TypeExpr::Named { name, .. }) if name == "i64" => {
+                    Some(ast::TypeExpr::Named { name, .. }) if name == "i64" || name == "u64" => {
                         ark_typecheck::types::Type::I64
                     }
                     Some(ast::TypeExpr::Named { name, .. }) if name == "bool" => {

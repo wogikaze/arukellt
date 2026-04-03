@@ -325,6 +325,33 @@ fn optimize_module_with_passes(
     validate_module(module)
         .map_err(|errors| format!("MIR validation failed after optimization: {errors:?}"))?;
 
+    // ── Tail-call detection (post-opt, opt_level ≥ 1) ──
+    // Run after all scalar/structural passes so that inlining, const-prop, and
+    // copy-prop have already simplified the call operands.  Only runs when the
+    // caller opted in (any pass list that isn't the `optimize_module_none`
+    // path), so that opt_level 0 callers that bypass optimisation don't get
+    // TCO applied.
+    {
+        let mut tco_count = 0usize;
+        for func in &mut module.functions {
+            tco_count += super::tail_call::detect_tail_calls(func, 1);
+        }
+        if tco_count > 0 {
+            push_optimization_trace(
+                module,
+                format!("tail_call: rewrote {} terminator(s) to TailCall", tco_count),
+            );
+            if should_dump {
+                crate::mir::dump_mir_phase(module, "after-tail-call-detection");
+            }
+            // Re-validate after rewriting terminators.
+            validate_module(module)
+                .map_err(|errors| {
+                    format!("MIR validation failed after tail-call detection: {errors:?}")
+                })?;
+        }
+    }
+
     if should_dump {
         crate::mir::dump_mir_phase(module, "post-opt");
     }
@@ -825,7 +852,7 @@ fn rewrite_terminator_with_replacements(
         Terminator::Return(value) => value
             .as_mut()
             .is_some_and(|value| rewrite_operand(value, replacements)),
-        Terminator::Goto(_) | Terminator::Unreachable => false,
+        Terminator::Goto(_) | Terminator::Unreachable | Terminator::TailCall { .. } | Terminator::TailCallIndirect { .. } => false,
     }
 }
 
@@ -1007,7 +1034,7 @@ fn collect_terminator_locals(terminator: &Terminator, used: &mut std::collection
                 collect_operand_locals(value, used);
             }
         }
-        Terminator::Goto(_) | Terminator::Unreachable => {}
+        Terminator::Goto(_) | Terminator::Unreachable | Terminator::TailCall { .. } | Terminator::TailCallIndirect { .. } => {}
     }
 }
 
@@ -1152,7 +1179,10 @@ fn reachable_blocks(function: &MirFunction) -> std::collections::HashSet<BlockId
                 }
                 worklist.push(*default);
             }
-            Terminator::Return(_) | Terminator::Unreachable => {}
+            Terminator::Return(_)
+            | Terminator::Unreachable
+            | Terminator::TailCall { .. }
+            | Terminator::TailCallIndirect { .. } => {}
         }
     }
     reachable

@@ -357,9 +357,12 @@ impl MirStmt {
 impl Terminator {
     pub fn effect_kind(&self) -> EffectKind {
         match self {
-            Self::Goto(_) | Self::If { .. } | Self::Switch { .. } | Self::Return(_) => {
-                EffectKind::ControlFlow
-            }
+            Self::Goto(_)
+            | Self::If { .. }
+            | Self::Switch { .. }
+            | Self::Return(_)
+            | Self::TailCall { .. }
+            | Self::TailCallIndirect { .. } => EffectKind::ControlFlow,
             Self::Unreachable => EffectKind::Unknown,
         }
     }
@@ -472,6 +475,10 @@ fn terminator_backend_legal(terminator: &Terminator) -> bool {
         Terminator::If { cond, .. } => is_backend_legal_operand(cond),
         Terminator::Switch { scrutinee, .. } => is_backend_legal_operand(scrutinee),
         Terminator::Return(value) => value.as_ref().is_none_or(is_backend_legal_operand),
+        Terminator::TailCall { args, .. } => args.iter().all(is_backend_legal_operand),
+        Terminator::TailCallIndirect { callee, args } => {
+            is_backend_legal_operand(callee) && args.iter().all(is_backend_legal_operand)
+        }
     }
 }
 
@@ -848,6 +855,22 @@ pub enum Terminator {
     },
     Return(Option<Operand>),
     Unreachable,
+    /// Tail-call return: emit `return_call` (direct) or `return_call_indirect` instead of
+    /// `call` + `return`.  Created during MIR optimisation (opt_level >= 1) when a block's
+    /// sole job is to tail-call a known function and return its result directly.
+    TailCall {
+        /// Callee function name (mangled / canonical).
+        func: String,
+        /// Arguments to pass to the callee.
+        args: Vec<Operand>,
+    },
+    /// Tail-call via function pointer: emit `return_call_indirect`.
+    TailCallIndirect {
+        /// Function-pointer operand.
+        callee: Box<Operand>,
+        /// Arguments to pass to the callee.
+        args: Vec<Operand>,
+    },
 }
 
 /// A value reference (lvalue).

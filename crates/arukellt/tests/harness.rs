@@ -84,12 +84,17 @@ fn entry_points(fixture_dir: &Path) -> HashSet<String> {
     let mut result = HashSet::new();
     for path in &all_ark {
         let rel = path.strip_prefix(fixture_dir).unwrap();
+        let rel_str = rel.display().to_string();
+        // Skip LSP-specific performance fixture directory (managed by --lsp-perf flag in verify-harness.sh)
+        if rel_str.starts_with("lsp_perf/") || rel_str.starts_with("lsp_perf\\") {
+            continue;
+        }
         let dir = path.parent().unwrap();
         let is_main = path.file_name() == Some(std::ffi::OsStr::new("main.ark"));
         if !is_main && dir.join("main.ark").exists() {
             continue;
         }
-        result.insert(rel.display().to_string());
+        result.insert(rel_str);
     }
     result
 }

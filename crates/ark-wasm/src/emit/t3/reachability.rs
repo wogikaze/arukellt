@@ -760,6 +760,22 @@ impl Ctx {
             Terminator::Return(Some(op)) => {
                 self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
             }
+            Terminator::TailCall { func, args } => {
+                if let Some(&idx) = name_to_idx.get(func.as_str()) {
+                    if reachable.insert(idx) {
+                        queue.push_back(idx);
+                    }
+                }
+                for arg in args {
+                    self.collect_reachable_from_operand(arg, name_to_idx, reachable, queue);
+                }
+            }
+            Terminator::TailCallIndirect { callee, args } => {
+                self.collect_reachable_from_operand(callee, name_to_idx, reachable, queue);
+                for arg in args {
+                    self.collect_reachable_from_operand(arg, name_to_idx, reachable, queue);
+                }
+            }
             Terminator::Goto(_) | Terminator::Return(None) | Terminator::Unreachable => {}
         }
     }

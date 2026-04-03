@@ -245,6 +245,12 @@
           "default": false,
           "description": "Use the self-hosted (ark-compiled) compiler backend instead of the Rust backend. Requires Stage 2 fixpoint (Issue 459). When true before Stage 2 is achieved, the extension logs a warning and continues using the Rust backend.",
           "scope": "window"
+        },
+        "arukellt.check.onSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run arukellt check on file save.",
+          "scope": "resource"
         }
       }
     },

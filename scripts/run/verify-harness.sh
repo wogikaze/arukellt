@@ -168,6 +168,7 @@ _BG_DIR=$(mktemp -d)
 trap 'rm -rf "$_BG_DIR"' EXIT
 
 _bg_run() {
+    trap - EXIT
     local id="$1"; shift
     local label="$1"; shift
     printf '%s\n' "$label" > "$_BG_DIR/$id.label"

@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 233 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 247 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 4 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 47 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -470,6 +470,25 @@ Expected output: `Hello, world!`
 | `seeded_range` | `(i32, i32, i32) -> i32` | `std::random` | `stable` | `builtin` | no | - | - |
 | `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `builtin` | no | - | - |
 
+## Scalar Conversion
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `f32_to_f64` | `(f32) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f32_to_f64` | - |
+| `f64_to_f32` | `(f64) -> f32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_f32` | - |
+| `i16_to_i32` | `(i16) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i16_to_i32` | - |
+| `i32_to_i16` | `(i32) -> i16` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i16` | - |
+| `i32_to_i64` | `(i32) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i64` | - |
+| `i32_to_i8` | `(i32) -> i8` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i8` | - |
+| `i32_to_u16` | `(i32) -> u16` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u16` | - |
+| `i32_to_u8` | `(i32) -> u8` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u8` | - |
+| `i64_to_i32` | `(i64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_i32` | - |
+| `i8_to_i32` | `(i8) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i8_to_i32` | - |
+| `u16_to_i32` | `(u16) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u16_to_i32` | - |
+| `u32_to_u64` | `(u32) -> u64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u32_to_u64` | - |
+| `u64_to_u32` | `(u64) -> u32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u64_to_u32` | - |
+| `u8_to_i32` | `(u8) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u8_to_i32` | - |
+
 ## Seq
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
@@ -734,8 +753,10 @@ Expected output: `hello world`
 | `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `builtin` | no | - | - |
 | `expect_some_i32` | `(Option<i32>) -> i32` | `std::test` | `stable` | `builtin` | no | - | - |
 | `extension` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `f32_to_f64` | `(f32) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f32_to_f64` | - |
 | `f64_bits_hi` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_hi` | - |
 | `f64_bits_lo` | `(f64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_bits_lo` | - |
+| `f64_to_f32` | `(f64) -> f32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_f32` | - |
 | `f64_to_string` | `(f64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_f64_to_string` | - |
 | `fft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
@@ -761,8 +782,16 @@ Expected output: `hello world`
 | `hashmap_size` | `(Vec<i32>) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `i16_to_i32` | `(i16) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i16_to_i32` | - |
+| `i32_to_i16` | `(i32) -> i16` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i16` | - |
+| `i32_to_i64` | `(i32) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i64` | - |
+| `i32_to_i8` | `(i32) -> i8` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_i8` | - |
 | `i32_to_string` | `(i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_string` | Convert an i32 integer to its decimal string representation. |
+| `i32_to_u16` | `(i32) -> u16` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u16` | - |
+| `i32_to_u8` | `(i32) -> u8` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i32_to_u8` | - |
+| `i64_to_i32` | `(i64) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_i32` | - |
 | `i64_to_string` | `(i64) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i64_to_string` | - |
+| `i8_to_i32` | `(i8) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_i8_to_i32` | - |
 | `ifft` | `(Vec<f64>, Vec<f64>) -> ()` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `index_of` | `(String, String) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_index_of` | - |
 | `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` | - |
@@ -862,11 +891,15 @@ Expected output: `hello world`
 | `trim_end` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `trim_start` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u16_to_i32` | `(u16) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u16_to_i32` | - |
 | `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `u32_to_u64` | `(u32) -> u64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u32_to_u64` | - |
+| `u64_to_u32` | `(u64) -> u32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u64_to_u32` | - |
+| `u8_to_i32` | `(u8) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_u8_to_i32` | - |
 | `unbox` | `(Box<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `unwrap` | `(Option<T>) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |

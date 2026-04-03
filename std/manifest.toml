@@ -341,6 +341,147 @@ prelude = true
 stability = "stable"
 doc_category = "numeric"
 
+# --- Scalar type conversion functions (issue #040) ---
+[[functions]]
+name = "u8_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_u8_to_i32"
+params = ["u8"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "u16_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_u16_to_i32"
+params = ["u16"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i8_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i8_to_i32"
+params = ["i8"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i16_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i16_to_i32"
+params = ["i16"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_u8"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_u8"
+params = ["i32"]
+returns = "u8"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_u16"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_u16"
+params = ["i32"]
+returns = "u16"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_i8"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_i8"
+params = ["i32"]
+returns = "i8"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_i16"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_i16"
+params = ["i32"]
+returns = "i16"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "u32_to_u64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_u32_to_u64"
+params = ["u32"]
+returns = "u64"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "u64_to_u32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_u64_to_u32"
+params = ["u64"]
+returns = "u32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i32_to_i64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i32_to_i64"
+params = ["i32"]
+returns = "i64"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "i64_to_i32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_i64_to_i32"
+params = ["i64"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "f32_to_f64"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f32_to_f64"
+params = ["f32"]
+returns = "f64"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
+[[functions]]
+name = "f64_to_f32"
+kind = "prelude_wrapper"
+intrinsic = "__intrinsic_f64_to_f32"
+params = ["f64"]
+returns = "f32"
+prelude = true
+stability = "stable"
+doc_category = "scalar_conversion"
+
 [[functions]]
 name = "f64_to_string"
 kind = "prelude_wrapper"
@@ -2757,3 +2898,93 @@ doc_category = "csv"
 stability = "experimental"
 params = ["String"]
 returns = "Vec<String>"
+
+# === std::signal ===
+
+[[functions]]
+name = "pi"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = []
+returns = "f64"
+
+[[functions]]
+name = "tau"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = []
+returns = "f64"
+
+[[functions]]
+name = "is_power_of_two"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["i32"]
+returns = "bool"
+
+[[functions]]
+name = "sin_approx"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["f64"]
+returns = "f64"
+
+[[functions]]
+name = "cos_approx"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["f64"]
+returns = "f64"
+
+[[functions]]
+name = "clone_f64"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["Vec<f64>"]
+returns = "Vec<f64>"
+
+[[functions]]
+name = "zeros"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["i32"]
+returns = "Vec<f64>"
+
+[[functions]]
+name = "fft"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["Vec<f64>", "Vec<f64>"]
+returns = "()"
+
+[[functions]]
+name = "ifft"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["Vec<f64>", "Vec<f64>"]
+returns = "()"
+
+[[functions]]
+name = "magnitude"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["Vec<f64>", "Vec<f64>"]
+returns = "Vec<f64>"
+
+[[functions]]
+name = "approx_eq"
+module = "std::signal"
+doc_category = "signal"
+stability = "stable"
+params = ["f64", "f64", "f64"]
+returns = "bool"

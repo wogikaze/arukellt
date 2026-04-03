@@ -174,6 +174,7 @@ run:operators/string_eq.ark
 run:operators/unary.ark
 run:opt/tail_call_deep.ark
 run:scalar/comparison.ark
+run:scalar/conversion.ark
 run:scalar/f32_basic.ark
 run:scalar/hex_literal.ark
 run:scalar/i16_basic.ark
@@ -666,3 +667,7 @@ run:regression/type_table/enum_match_variants.ark
 run:regression/type_table/struct_field_access.ark
 
 run:stdlib_signal/fft.ark
+
+# tail_call: uses T3/WasmGC emitter (wasm32-wasi-p2) which emits return_call for tail recursion.
+# The 100,000-depth countdown proves TCO prevents stack overflow.
+t3-run:tail_call/deep_recursion.ark

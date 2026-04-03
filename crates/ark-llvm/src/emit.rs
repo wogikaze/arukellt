@@ -300,6 +300,16 @@ impl<'ctx> LlvmEmitter<'ctx> {
                                 arms: arms.clone(),
                                 default: *default,
                             },
+                            Terminator::TailCall { func, args } => Terminator::TailCall {
+                                func: func.clone(),
+                                args: args.clone(),
+                            },
+                            Terminator::TailCallIndirect { callee, args } => {
+                                Terminator::TailCallIndirect {
+                                    callee: callee.clone(),
+                                    args: args.clone(),
+                                }
+                            }
                         },
                         source: b.source,
                     })

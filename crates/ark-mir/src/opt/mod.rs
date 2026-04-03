@@ -5,6 +5,7 @@ pub mod escape_analysis;
 pub mod gc_hint;
 pub mod loop_unroll;
 pub mod pipeline;
+pub mod tail_call;
 pub mod type_narrowing;
 
 pub use pipeline::{

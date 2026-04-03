@@ -39,7 +39,10 @@ fn reachable_blocks(function: &MirFunction) -> std::collections::HashSet<BlockId
                 }
                 worklist.push(*default);
             }
-            Terminator::Return(_) | Terminator::Unreachable => {}
+            Terminator::Return(_)
+            | Terminator::Unreachable
+            | Terminator::TailCall { .. }
+            | Terminator::TailCallIndirect { .. } => {}
         }
     }
     reachable

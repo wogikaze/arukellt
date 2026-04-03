@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 284
+- **Canonical names:** 298
 - **Historical/deprecated names:** 3
-- **Total entries:** 287
+- **Total entries:** 301
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -105,9 +105,11 @@ Current public API names, sorted alphabetically.
 | `expect_ok_i32` | `std::test` | `stable` | Test |
 | `expect_some_i32` | `std::test` | `stable` | Test |
 | `extension` | `std::path` | `stable` | Path |
+| `f32_to_f64` | `prelude` | `stable` | Scalar Conversion |
 | `f32_to_string` | `prelude` | `provisional` | Conversion |
 | `f64_bits_hi` | `prelude` | `stable` | Numeric |
 | `f64_bits_lo` | `prelude` | `stable` | Numeric |
+| `f64_to_f32` | `prelude` | `stable` | Scalar Conversion |
 | `f64_to_string` | `prelude` | `stable` | Conversion |
 | `fft` | `std::signal` | `stable` | Signal |
 | `file_name` | `std::path` | `stable` | Path |
@@ -139,8 +141,16 @@ Current public API names, sorted alphabetically.
 | `hashmap_size` | `std::collections::hash` | `stable` | Collections |
 | `hex_decode` | `std::bytes` | `stable` | Bytes |
 | `hex_encode` | `std::bytes` | `stable` | Bytes |
+| `i16_to_i32` | `prelude` | `stable` | Scalar Conversion |
+| `i32_to_i16` | `prelude` | `stable` | Scalar Conversion |
+| `i32_to_i64` | `prelude` | `stable` | Scalar Conversion |
+| `i32_to_i8` | `prelude` | `stable` | Scalar Conversion |
 | `i32_to_string` | `prelude` | `stable` | Conversion |
+| `i32_to_u16` | `prelude` | `stable` | Scalar Conversion |
+| `i32_to_u8` | `prelude` | `stable` | Scalar Conversion |
+| `i64_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `i64_to_string` | `prelude` | `stable` | Conversion |
+| `i8_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `ifft` | `std::signal` | `stable` | Signal |
 | `index_of` | `prelude` | `stable` | String |
 | `index_of` | `std::text` | `stable` | Text |
@@ -263,11 +273,15 @@ Current public API names, sorted alphabetically.
 | `trim_end` | `std::text` | `stable` | Text |
 | `trim_start` | `std::text` | `stable` | Text |
 | `u16_from_le_bytes` | `std::bytes` | `stable` | Bytes |
+| `u16_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `u16_to_le_bytes` | `std::bytes` | `stable` | Bytes |
 | `u32_from_be_bytes` | `std::bytes` | `stable` | Bytes |
 | `u32_from_le_bytes` | `std::bytes` | `stable` | Bytes |
 | `u32_to_be_bytes` | `std::bytes` | `stable` | Bytes |
 | `u32_to_le_bytes` | `std::bytes` | `stable` | Bytes |
+| `u32_to_u64` | `prelude` | `stable` | Scalar Conversion |
+| `u64_to_u32` | `prelude` | `stable` | Scalar Conversion |
+| `u8_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `unbox` | `prelude` | `stable` | Box |
 | `unique` | `std::seq` | `stable` | Seq |
 | `unwrap` | `prelude` | `stable` | Option Result |
@@ -410,9 +424,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `expect_ok_i32` | ✅ `stable` | `std::test` | Test |
 | `expect_some_i32` | ✅ `stable` | `std::test` | Test |
 | `extension` | ✅ `stable` | `std::path` | Path |
+| `f32_to_f64` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `f32_to_string` | ✅ `provisional` | `prelude` | Conversion |
 | `f64_bits_hi` | ✅ `stable` | `prelude` | Numeric |
 | `f64_bits_lo` | ✅ `stable` | `prelude` | Numeric |
+| `f64_to_f32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `f64_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `fft` | ✅ `stable` | `std::signal` | Signal |
 | `file_name` | ✅ `stable` | `std::path` | Path |
@@ -445,8 +461,16 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hashmap_size` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hex_decode` | ✅ `stable` | `std::bytes` | Bytes |
 | `hex_encode` | ✅ `stable` | `std::bytes` | Bytes |
+| `i16_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
+| `i32_to_i16` | ✅ `stable` | `prelude` | Scalar Conversion |
+| `i32_to_i64` | ✅ `stable` | `prelude` | Scalar Conversion |
+| `i32_to_i8` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i32_to_string` | ✅ `stable` | `prelude` | Conversion |
+| `i32_to_u16` | ✅ `stable` | `prelude` | Scalar Conversion |
+| `i32_to_u8` | ✅ `stable` | `prelude` | Scalar Conversion |
+| `i64_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `i64_to_string` | ✅ `stable` | `prelude` | Conversion |
+| `i8_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `ifft` | ✅ `stable` | `std::signal` | Signal |
 | `index_of` | ✅ `stable` | `prelude` | String |
 | `index_of` | ✅ `stable` | `std::text` | Text |
@@ -569,11 +593,15 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `trim_end` | ✅ `stable` | `std::text` | Text |
 | `trim_start` | ✅ `stable` | `std::text` | Text |
 | `u16_from_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |
+| `u16_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `u16_to_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `u32_from_be_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `u32_from_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `u32_to_be_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `u32_to_le_bytes` | ✅ `stable` | `std::bytes` | Bytes |
+| `u32_to_u64` | ✅ `stable` | `prelude` | Scalar Conversion |
+| `u64_to_u32` | ✅ `stable` | `prelude` | Scalar Conversion |
+| `u8_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `unbox` | ✅ `stable` | `prelude` | Box |
 | `unique` | ✅ `stable` | `std::seq` | Seq |
 | `unwrap` | ✅ `stable` | `prelude` | Option Result |

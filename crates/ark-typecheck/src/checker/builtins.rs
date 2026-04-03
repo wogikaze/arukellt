@@ -1019,6 +1019,56 @@ impl TypeChecker {
             },
         );
 
+        // --- Scalar type conversion functions (issue #040) ---
+        // Public wrapper names (defined in prelude.ark)
+        macro_rules! conv_sig {
+            ($name:expr, $from:expr, $to:expr) => {
+                self.fn_sigs.insert(
+                    $name.into(),
+                    FnSig {
+                        name: $name.into(),
+                        type_params: vec![],
+                        type_param_bounds: vec![],
+                        params: vec![$from],
+                        ret: $to,
+                    },
+                );
+            };
+        }
+        // Widening narrow types → i32 (identity in Wasm)
+        conv_sig!("u8_to_i32", Type::U8, Type::I32);
+        conv_sig!("u16_to_i32", Type::U16, Type::I32);
+        conv_sig!("i8_to_i32", Type::I8, Type::I32);
+        conv_sig!("i16_to_i32", Type::I16, Type::I32);
+        // Narrowing i32 → narrow types (masking/sign-extension)
+        conv_sig!("i32_to_u8", Type::I32, Type::U8);
+        conv_sig!("i32_to_u16", Type::I32, Type::U16);
+        conv_sig!("i32_to_i8", Type::I32, Type::I8);
+        conv_sig!("i32_to_i16", Type::I32, Type::I16);
+        // i32 ↔ i64 / u64 widening and truncation
+        conv_sig!("u32_to_u64", Type::U32, Type::U64);
+        conv_sig!("u64_to_u32", Type::U64, Type::U32);
+        conv_sig!("i32_to_i64", Type::I32, Type::I64);
+        conv_sig!("i64_to_i32", Type::I64, Type::I32);
+        // f32 ↔ f64
+        conv_sig!("f32_to_f64", Type::F32, Type::F64);
+        conv_sig!("f64_to_f32", Type::F64, Type::F32);
+        // Intrinsic names (called from prelude.ark wrappers)
+        conv_sig!("__intrinsic_u8_to_i32", Type::U8, Type::I32);
+        conv_sig!("__intrinsic_u16_to_i32", Type::U16, Type::I32);
+        conv_sig!("__intrinsic_i8_to_i32", Type::I8, Type::I32);
+        conv_sig!("__intrinsic_i16_to_i32", Type::I16, Type::I32);
+        conv_sig!("__intrinsic_i32_to_u8", Type::I32, Type::U8);
+        conv_sig!("__intrinsic_i32_to_u16", Type::I32, Type::U16);
+        conv_sig!("__intrinsic_i32_to_i8", Type::I32, Type::I8);
+        conv_sig!("__intrinsic_i32_to_i16", Type::I32, Type::I16);
+        conv_sig!("__intrinsic_u32_to_u64", Type::U32, Type::U64);
+        conv_sig!("__intrinsic_u64_to_u32", Type::U64, Type::U32);
+        conv_sig!("__intrinsic_i32_to_i64", Type::I32, Type::I64);
+        conv_sig!("__intrinsic_i64_to_i32", Type::I64, Type::I32);
+        conv_sig!("__intrinsic_f32_to_f64", Type::F32, Type::F64);
+        conv_sig!("__intrinsic_f64_to_f32", Type::F64, Type::F32);
+
         // --- HashMap<i32, i32> ---
         self.fn_sigs.insert(
             "HashMap_i32_i32_new".into(),

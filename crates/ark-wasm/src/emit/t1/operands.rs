@@ -742,6 +742,9 @@ impl EmitCtx {
                             align: 2,
                             memory_index: 0,
                         };
+                        let is_i64_elem = args.first().map(|v| self.is_vec_i64(v)).unwrap_or(false);
+                        let is_f64_elem = args.first().map(|v| self.is_vec_f64(v)).unwrap_or(false);
+                        let elem_size: i32 = if is_i64_elem || is_f64_elem { 8 } else { 4 };
                         if let Some(v) = args.first() {
                             self.emit_operand(f, v);
                         }
@@ -751,13 +754,25 @@ impl EmitCtx {
                         if let Some(i_arg) = args.get(1) {
                             self.emit_operand(f, i_arg);
                         }
-                        f.instruction(&Instruction::I32Const(4));
+                        f.instruction(&Instruction::I32Const(elem_size));
                         f.instruction(&Instruction::I32Mul);
                         f.instruction(&Instruction::I32Add);
                         if let Some(x) = args.get(2) {
-                            self.emit_operand(f, x);
+                            if is_i64_elem {
+                                self.emit_i64_operand(f, x);
+                            } else if is_f64_elem {
+                                self.emit_f64_operand(f, x);
+                            } else {
+                                self.emit_operand(f, x);
+                            }
                         }
-                        f.instruction(&Instruction::I32Store(ma));
+                        if is_i64_elem {
+                            f.instruction(&Instruction::I64Store(ma));
+                        } else if is_f64_elem {
+                            f.instruction(&Instruction::F64Store(ma));
+                        } else {
+                            f.instruction(&Instruction::I32Store(ma));
+                        }
                     }
                     "pop" => {
                         // pop(v) -> Option<i32>: if len > 0, decrement len, return Some(data[len-1]); else None
@@ -6420,6 +6435,80 @@ impl EmitCtx {
                         }
                         f.instruction(&Instruction::F64PromoteF32);
                         self.call_fn(f, FN_F64_TO_STR);
+                    }
+                    // --- Scalar type conversion functions (issue #040) ---
+                    // Narrow types (u8/u16/i8/i16) are all stored as i32 in Wasm.
+                    // Widening to i32 is a no-op; narrowing applies masking/sign-extension.
+                    "u8_to_i32" | "u16_to_i32" | "i8_to_i32" | "i16_to_i32" => {
+                        // All these types are already i32 in Wasm — identity conversion.
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                    }
+                    "i32_to_u8" => {
+                        // Mask to 8-bit unsigned: x & 0xFF
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Const(0xFF));
+                        f.instruction(&Instruction::I32And);
+                    }
+                    "i32_to_u16" => {
+                        // Mask to 16-bit unsigned: x & 0xFFFF
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Const(0xFFFF));
+                        f.instruction(&Instruction::I32And);
+                    }
+                    "i32_to_i8" => {
+                        // Sign-extend from 8 bits: (x << 24) >> 24
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Extend8S);
+                    }
+                    "i32_to_i16" => {
+                        // Sign-extend from 16 bits: (x << 16) >> 16
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32Extend16S);
+                    }
+                    "u32_to_u64" => {
+                        // Zero-extend i32 to i64 (unsigned): i64.extend_i32_u
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I64ExtendI32U);
+                    }
+                    "i32_to_i64" => {
+                        // Sign-extend i32 to i64: i64.extend_i32_s
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I64ExtendI32S);
+                    }
+                    "u64_to_u32" | "i64_to_i32" => {
+                        // Truncate i64 to i32: i32.wrap_i64
+                        if let Some(a) = args.first() {
+                            self.emit_i64_operand(f, a);
+                        }
+                        f.instruction(&Instruction::I32WrapI64);
+                    }
+                    "f32_to_f64" => {
+                        // Promote f32 to f64: f64.promote_f32
+                        if let Some(a) = args.first() {
+                            self.emit_operand(f, a);
+                        }
+                        f.instruction(&Instruction::F64PromoteF32);
+                    }
+                    "f64_to_f32" => {
+                        // Demote f64 to f32: f32.demote_f64
+                        if let Some(a) = args.first() {
+                            self.emit_f64_operand(f, a);
+                        }
+                        f.instruction(&Instruction::F32DemoteF64);
                     }
                     "exit" | "proc_exit" => {
                         // process::exit(code: i32) -> !: call WASI proc_exit

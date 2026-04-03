@@ -197,6 +197,21 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_process_abort" => "process_abort",
         "__intrinsic_http_get" => "http_get",
         "__intrinsic_http_request" => "http_request",
+        // Scalar type conversion intrinsics (issue #040)
+        "__intrinsic_u8_to_i32" => "u8_to_i32",
+        "__intrinsic_i32_to_u8" => "i32_to_u8",
+        "__intrinsic_u16_to_i32" => "u16_to_i32",
+        "__intrinsic_i32_to_u16" => "i32_to_u16",
+        "__intrinsic_i8_to_i32" => "i8_to_i32",
+        "__intrinsic_i32_to_i8" => "i32_to_i8",
+        "__intrinsic_i16_to_i32" => "i16_to_i32",
+        "__intrinsic_i32_to_i16" => "i32_to_i16",
+        "__intrinsic_u32_to_u64" => "u32_to_u64",
+        "__intrinsic_u64_to_u32" => "u64_to_u32",
+        "__intrinsic_i32_to_i64" => "i32_to_i64",
+        "__intrinsic_i64_to_i32" => "i64_to_i32",
+        "__intrinsic_f32_to_f64" => "f32_to_f64",
+        "__intrinsic_f64_to_f32" => "f64_to_f32",
         other => other,
     }
 }
@@ -334,7 +349,7 @@ impl EmitCtx {
         match ty {
             ark_typecheck::types::Type::F64 => ValType::F64,
             ark_typecheck::types::Type::F32 => ValType::F32,
-            ark_typecheck::types::Type::I64 => ValType::I64,
+            ark_typecheck::types::Type::I64 | ark_typecheck::types::Type::U64 => ValType::I64,
             // Everything else (i32, bool, char, String, struct ptr, enum ptr, etc.) is i32
             _ => ValType::I32,
         }

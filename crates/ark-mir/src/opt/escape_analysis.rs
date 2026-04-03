@@ -364,7 +364,11 @@ fn mark_escaping_in_terminator(
         Terminator::Switch { scrutinee, .. } => {
             operand_escapes(scrutinee, candidate_ids, candidates);
         }
-        Terminator::Return(None) | Terminator::Goto(_) | Terminator::Unreachable => {}
+        Terminator::Return(None)
+        | Terminator::Goto(_)
+        | Terminator::Unreachable
+        | Terminator::TailCall { .. }
+        | Terminator::TailCallIndirect { .. } => {}
     }
 }
 
@@ -674,7 +678,11 @@ fn rewrite_terminator_operands(
             let taken = std::mem::replace(scrutinee, Operand::Unit);
             *scrutinee = rewrite_operand_deep(taken, non_escaping, scalar_map);
         }
-        Terminator::Return(None) | Terminator::Goto(_) | Terminator::Unreachable => {}
+        Terminator::Return(None)
+        | Terminator::Goto(_)
+        | Terminator::Unreachable
+        | Terminator::TailCall { .. }
+        | Terminator::TailCallIndirect { .. } => {}
     }
 }
 

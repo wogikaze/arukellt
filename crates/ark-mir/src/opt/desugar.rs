@@ -3,7 +3,7 @@
 //!
 //! This pass introduces fresh locals as temporaries for expression results.
 
-use crate::mir::{LocalId, MirFunction, MirLocal, MirStmt, Operand, Place, Rvalue};
+use crate::mir::{LocalId, MirFunction, MirLocal, MirStmt, Operand, Place, Rvalue, Terminator};
 use ark_typecheck::types::Type;
 
 /// Desugar all backend-illegal operands in a function.

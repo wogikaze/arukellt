@@ -289,6 +289,56 @@ impl LowerCtx {
                 {
                     self.struct_typed_locals.insert(local_id.0, sname);
                 }
+                // Infer scalar element type from get_unchecked(vec, i)
+                if let ast::Expr::Call {
+                    callee,
+                    args: call_args,
+                    ..
+                } = init
+                    && let ast::Expr::Ident {
+                        name: callee_name, ..
+                    } = callee.as_ref()
+                    && (callee_name == "get_unchecked" || callee_name == "get")
+                    && let Some(first_arg) = call_args.first()
+                {
+                    if let ast::Expr::Ident { name: arg_name, .. } = first_arg
+                        && let Some(vec_local_id) = self.lookup_local(arg_name)
+                    {
+                        if self.vec_f64_locals.contains(&vec_local_id.0) {
+                            self.f64_locals.insert(local_id.0);
+                        }
+                        if self.vec_i64_locals.contains(&vec_local_id.0) {
+                            self.i64_locals.insert(local_id.0);
+                        }
+                    }
+                    if let ast::Expr::Call {
+                        callee: inner_callee,
+                        args: inner_args,
+                        ..
+                    } = first_arg
+                        && let ast::Expr::Ident {
+                            name: inner_name, ..
+                        } = inner_callee.as_ref()
+                        && (inner_name == "clone_f64" || inner_name == "zeros")
+                    {
+                        self.f64_locals.insert(local_id.0);
+                        if let Some(ast::Expr::Ident { name: arg_name, .. }) = inner_args.first()
+                            && let Some(vec_local_id) = self.lookup_local(arg_name)
+                            && self.vec_i64_locals.contains(&vec_local_id.0)
+                        {
+                            self.i64_locals.insert(local_id.0);
+                        }
+                    }
+                }
+                if let ast::Expr::Call {
+                    callee,
+                    ..
+                } = init
+                    && let ast::Expr::Ident { name, .. } = callee.as_ref()
+                    && (name == "clone_f64" || name == "zeros")
+                {
+                    self.vec_f64_locals.insert(local_id.0);
+                }
                 // Infer enum type from call return type when there's no explicit annotation
                 #[allow(clippy::map_entry)]
                 if !self.enum_typed_locals.contains_key(&local_id.0)

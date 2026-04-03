@@ -307,6 +307,17 @@ fn validate_terminator(
                 validate_operand(function_name, block_id, value, declared, errors);
             }
         }
+        Terminator::TailCall { args, .. } => {
+            for arg in args {
+                validate_operand(function_name, block_id, arg, declared, errors);
+            }
+        }
+        Terminator::TailCallIndirect { callee, args } => {
+            validate_operand(function_name, block_id, callee, declared, errors);
+            for arg in args {
+                validate_operand(function_name, block_id, arg, declared, errors);
+            }
+        }
     }
 
     if matches!(terminator, Terminator::Unreachable)
@@ -545,7 +556,10 @@ fn terminator_successors(terminator: &Terminator) -> Vec<BlockId> {
             blocks.push(*default);
             blocks
         }
-        Terminator::Return(_) | Terminator::Unreachable => Vec::new(),
+        Terminator::Return(_)
+        | Terminator::Unreachable
+        | Terminator::TailCall { .. }
+        | Terminator::TailCallIndirect { .. } => Vec::new(),
     }
 }
 
@@ -868,6 +882,17 @@ fn check_terminator_type_table_ref(
             check_operand_type_table_ref(module, function_name, block_id, scrutinee, errors);
         }
         Terminator::Goto(_) | Terminator::Unreachable | Terminator::Return(None) => {}
+        Terminator::TailCall { args, .. } => {
+            for arg in args {
+                check_operand_type_table_ref(module, function_name, block_id, arg, errors);
+            }
+        }
+        Terminator::TailCallIndirect { callee, args } => {
+            check_operand_type_table_ref(module, function_name, block_id, callee, errors);
+            for arg in args {
+                check_operand_type_table_ref(module, function_name, block_id, arg, errors);
+            }
+        }
     }
 }
 

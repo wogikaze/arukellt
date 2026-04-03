@@ -146,6 +146,17 @@ fn count_terminator(freq: &mut HashMap<(String, String), usize>, term: &Terminat
         Terminator::If { cond, .. } => count_operand(freq, cond),
         Terminator::Switch { scrutinee, .. } => count_operand(freq, scrutinee),
         Terminator::Return(Some(op)) => count_operand(freq, op),
+        Terminator::TailCall { args, .. } => {
+            for arg in args {
+                count_operand(freq, arg);
+            }
+        }
+        Terminator::TailCallIndirect { callee, args } => {
+            count_operand(freq, callee);
+            for arg in args {
+                count_operand(freq, arg);
+            }
+        }
         Terminator::Goto(_) | Terminator::Return(None) | Terminator::Unreachable => {}
     }
 }
