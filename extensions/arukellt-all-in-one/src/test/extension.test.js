@@ -243,6 +243,239 @@ suite("Language Registration", () => {
 });
 
 // ============================================================
+// #453 — Go to Definition E2E (verifies #450 identifier-only span)
+// ============================================================
+
+suite("Go to Definition (#450 / #453)", () => {
+  let doc;
+  suiteSetup(async () => {
+    const fixturePath = path.join(__dirname, "fixtures", "basic.ark");
+    doc = await vscode.workspace.openTextDocument(fixturePath);
+    await vscode.window.showTextDocument(doc);
+    // Wait for LSP to finish analysis
+    await new Promise((r) => setTimeout(r, 3000));
+  });
+
+  test("local variable definition range is identifier only", async () => {
+    // `result` usage in `println(result)` on line 7 (0-indexed), col 13 is inside `result`
+    const pos = new vscode.Position(7, 13);
+    const locs = await vscode.commands.executeCommand(
+      "vscode.executeDefinitionProvider",
+      doc.uri,
+      pos
+    );
+    assert.ok(locs && locs.length > 0, "Should find definition of result");
+    // Handle both Location (loc.range) and LocationLink (loc.targetRange)
+    const loc = locs[0];
+    const range = loc.targetRange || loc.range;
+    assert.ok(range, "Definition result should have a range");
+    // Should point to `let result = ...` on line 6
+    assert.strictEqual(
+      range.start.line,
+      6,
+      "Should point to let-binding line (line 6)"
+    );
+    assert.strictEqual(
+      range.start.character,
+      8,
+      "Should start at 'result' identifier (col 8)"
+    );
+    // Range must be a single line (not the full let statement)
+    assert.strictEqual(
+      range.start.line,
+      range.end.line,
+      "Definition range should be single line (identifier only, not full let statement)"
+    );
+    // Range length should be at most the length of 'result' (6) + small tolerance
+    const rangeLen = range.end.character - range.start.character;
+    assert.ok(
+      rangeLen <= 10,
+      `Range too wide: ${rangeLen} chars (expected identifier width ~6)`
+    );
+  });
+
+  test("function definition range is function name only", async () => {
+    // `greet(...)` call on line 6, col 17 is inside `greet`
+    const pos = new vscode.Position(6, 17);
+    const locs = await vscode.commands.executeCommand(
+      "vscode.executeDefinitionProvider",
+      doc.uri,
+      pos
+    );
+    assert.ok(locs && locs.length > 0, "Should find definition of greet");
+    const loc = locs[0];
+    const range = loc.targetRange || loc.range;
+    assert.ok(range, "Definition result should have a range");
+    // fn greet(...) — `greet` starts at col 3 on line 0
+    assert.strictEqual(range.start.line, 0, "Should point to fn greet line (line 0)");
+    assert.strictEqual(
+      range.start.character,
+      3,
+      "Should start at 'greet' identifier (col 3)"
+    );
+    // Range must be a single line
+    assert.strictEqual(
+      range.start.line,
+      range.end.line,
+      "Function definition range should be single line"
+    );
+    const rangeLen = range.end.character - range.start.character;
+    assert.ok(
+      rangeLen <= 8,
+      `greet range too wide: ${rangeLen} chars (expected ~5)`
+    );
+  });
+
+  test("definition on keyword/whitespace returns nothing", async () => {
+    // Position 0, 0 is the `f` of `fn` keyword — not a bound name
+    const pos = new vscode.Position(0, 0);
+    const locs = await vscode.commands.executeCommand(
+      "vscode.executeDefinitionProvider",
+      doc.uri,
+      pos
+    );
+    // `fn` keyword should produce no definition
+    assert.ok(
+      !locs || locs.length === 0,
+      "Keyword/whitespace position should return no definition"
+    );
+  });
+});
+
+// ============================================================
+// #453 — Hover E2E (verifies #451 semantic-only hover filter)
+// ============================================================
+
+suite("Hover (#451 / #453)", () => {
+  let doc;
+  suiteSetup(async () => {
+    const fixturePath = path.join(__dirname, "fixtures", "basic.ark");
+    doc = await vscode.workspace.openTextDocument(fixturePath);
+    await vscode.window.showTextDocument(doc);
+    await new Promise((r) => setTimeout(r, 3000));
+  });
+
+  test("string literal position returns no 'string literal' hover noise", async () => {
+    // Line 1: `    let msg = concat("Hello, ", name)` — inside "Hello, " at col 25
+    const pos = new vscode.Position(1, 25);
+    const hovers = await vscode.commands.executeCommand(
+      "vscode.executeHoverProvider",
+      doc.uri,
+      pos
+    );
+    // After #451 fix: string literal positions should NOT produce a 'string literal' label
+    const hasNoise =
+      hovers &&
+      hovers.some((h) =>
+        h.contents.some((c) => {
+          const text = typeof c === "string" ? c : c.value || "";
+          return text.includes("string literal");
+        })
+      );
+    assert.ok(
+      !hasNoise,
+      "String literal position should not produce 'string literal' hover noise (fixed by #451)"
+    );
+  });
+
+  test("known function name produces meaningful hover content", async () => {
+    // Line 7: `    println(result)` — `println` starts at col 4
+    const pos = new vscode.Position(7, 4);
+    const hovers = await vscode.commands.executeCommand(
+      "vscode.executeHoverProvider",
+      doc.uri,
+      pos
+    );
+    assert.ok(
+      hovers && hovers.length > 0,
+      "println should produce a hover result"
+    );
+    const content = hovers
+      .flatMap((h) => h.contents)
+      .map((c) => (typeof c === "string" ? c : c.value || ""))
+      .join("\n");
+    assert.ok(
+      content.includes("println") || content.includes("fn"),
+      `Hover should contain function name or signature, got: ${content.slice(0, 200)}`
+    );
+  });
+});
+
+// ============================================================
+// #453 — Diagnostics E2E (verifies #452 false-positive removal)
+// ============================================================
+
+suite("Diagnostics (#452 / #453)", () => {
+  test("valid ark file produces no diagnostics", async () => {
+    const fixturePath = path.join(__dirname, "fixtures", "basic.ark");
+    const doc = await vscode.workspace.openTextDocument(fixturePath);
+    await vscode.window.showTextDocument(doc);
+    // Wait for LSP to publish diagnostics
+    await new Promise((r) => setTimeout(r, 4000));
+
+    const diags = vscode.languages.getDiagnostics(doc.uri);
+    assert.strictEqual(
+      diags.length,
+      0,
+      `Valid basic.ark should have 0 diagnostics, got: ${diags
+        .map((d) => d.message)
+        .join(", ")}`
+    );
+  });
+
+  test("unresolved name produces E0100 diagnostic", async () => {
+    const content = "fn main() {\n    println(undefined_var)\n}\n";
+    const doc = await vscode.workspace.openTextDocument({
+      language: "arukellt",
+      content,
+    });
+    await vscode.window.showTextDocument(doc);
+    await new Promise((r) => setTimeout(r, 4000));
+
+    const diags = vscode.languages.getDiagnostics(doc.uri);
+    const hasE0100 = diags.some(
+      (d) =>
+        d.message.includes("E0100") ||
+        d.message.toLowerCase().includes("unresolved")
+    );
+    assert.ok(hasE0100, `Should have E0100 for undefined_var, got: ${diags.map((d) => d.message).join(", ")}`);
+  });
+
+  test("diagnostics are stable after content change", async () => {
+    const doc = await vscode.workspace.openTextDocument({
+      language: "arukellt",
+      content: 'fn main() { println("hello") }\n',
+    });
+    await vscode.window.showTextDocument(doc);
+    await new Promise((r) => setTimeout(r, 3000));
+
+    const diags1 = vscode.languages.getDiagnostics(doc.uri);
+    assert.strictEqual(
+      diags1.length,
+      0,
+      "Should have no diagnostics initially"
+    );
+
+    // Edit the document content (still valid)
+    const edit = new vscode.WorkspaceEdit();
+    edit.replace(
+      doc.uri,
+      new vscode.Range(0, 0, doc.lineCount, 0),
+      'fn main() { println("world") }\n'
+    );
+    await vscode.workspace.applyEdit(edit);
+    await new Promise((r) => setTimeout(r, 3000));
+
+    const diags2 = vscode.languages.getDiagnostics(doc.uri);
+    assert.strictEqual(
+      diags2.length,
+      0,
+      "Should still have no diagnostics after editing to another valid file"
+    );
+  });
+});
+
+// ============================================================
 // #280 — DAP test wiring
 // ============================================================
 
