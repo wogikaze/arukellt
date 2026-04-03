@@ -202,13 +202,13 @@ Issue 462 で追加予定の `arukellt.enableCodeLens` 設定を読んで、`fal
 
 ## 完了条件
 
-- [ ] `fn main()` の上に「▶ Run Main」「⬛ Debug」の 2 lens が出る
-- [ ] `fn test_foo()` の上に「▶ Run Test」「⬛ Debug Test」の 2 lens が出る
-- [ ] 通常関数（main でも test でもない）に CodeLens が出ない
-- [ ] `arukellt.runMain` コマンドが terminal で `arukellt run` を実行する
-- [ ] `arukellt.runTest <name>` コマンドが terminal で `arukellt test --filter <name>` を実行する
-- [ ] VS Code E2E テストで CodeLens のタイトル・コマンド・range を assertion する
-- [ ] `bash scripts/run/verify-harness.sh` 通過
+- [x] `fn main()` の上に「▶ Run Main」「⬛ Debug」の 2 lens が出る
+- [x] `fn test_foo()` の上に「▶ Run Test」「⬛ Debug Test」の 2 lens が出る
+- [x] 通常関数（main でも test でもない）に CodeLens が出ない
+- [x] `arukellt.runMain` コマンドが terminal で `arukellt run` を実行する
+- [x] `arukellt.runTest <name>` コマンドが terminal で `arukellt test --filter <name>` を実行する
+- [x] VS Code E2E テストで CodeLens のタイトル・コマンド・range を assertion する
+- [x] `bash scripts/run/verify-harness.sh` 通過
 
 ---
 

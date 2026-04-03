@@ -163,12 +163,12 @@ Self::E0500 => DiagnosticSpec {
 
 ## 完了条件
 
-- [ ] T1 で `std::host::http` を import すると `E0500` compile-time error が出る
-- [ ] T1 で `std::host::sockets` を import すると `E0500` compile-time error が出る
-- [ ] `deny_clock_compile.ark` / `deny_random_compile.ark` fixture が CI pass
-- [ ] `docs/current-state.md` の CLI フラグ記述が実装と一致している
-- [ ] `docs/capability-surface.md` が docs と実装の矛盾なく整合している
-- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass
+- [x] T1 で `std::host::http` を import すると `E0500` compile-time error が出る
+- [x] T1 で `std::host::sockets` を import すると `E0500` compile-time error が出る
+- [x] `deny_clock_compile.ark` / `deny_random_compile.ark` fixture が CI pass
+- [x] `docs/current-state.md` の CLI フラグ記述が実装と一致している
+- [x] `docs/capability-surface.md` が docs と実装の矛盾なく整合している
+- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
 
 ---
 

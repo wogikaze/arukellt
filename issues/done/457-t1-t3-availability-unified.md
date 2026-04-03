@@ -147,12 +147,12 @@ def availability_string(functions: list[dict]) -> str:
 
 ## 完了条件
 
-- [ ] `std::host::http::get` の hover に `⚠ Not available on wasm32-wasi-p1` が出る（target = p1 設定時）
-- [ ] `std::host::http::get` の hover に `Supported on: wasm32-wasi-p2 (T3 only)` が出る
-- [ ] completion リストで T1 非対応 symbol に deprecated tag or 後ろ送り sort が付く
-- [ ] `docs/stdlib/modules/http.md` に target availability カラムが存在する
-- [ ] `generate-docs.py` の `target_constraints` がハードコードではなく manifest から生成される
-- [ ] `bash scripts/run/verify-harness.sh` 通過
+- [x] `std::host::http::get` の hover に `⚠ Not available on wasm32-wasi-p1` が出る（target = p1 設定時）
+- [x] `std::host::http::get` の hover に `Supported on: wasm32-wasi-p2 (T3 only)` が出る
+- [x] completion リストで T1 非対応 symbol に deprecated tag or 後ろ送り sort が付く
+- [x] `docs/stdlib/modules/http.md` に target availability カラムが存在する
+- [x] `generate-docs.py` の `target_constraints` がハードコードではなく manifest から生成される
+- [x] `bash scripts/run/verify-harness.sh` 通過
 
 ---
 

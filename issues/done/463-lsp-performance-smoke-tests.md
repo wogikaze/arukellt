@@ -225,12 +225,12 @@ path = "tests/lsp_perf.rs"
 
 ## 完了条件
 
-- [ ] `cargo test -p ark-lsp --test lsp_perf` が実行できる
-- [ ] hover / definition / completion / open+diagnose の 4 ケースが計測される
-- [ ] `target/lsp-perf-results.json` に計測値が書き出される
-- [ ] baseline 定数が初回実測値を元に設定されている
-- [ ] 5 倍退行で警告が出力される
-- [ ] `bash scripts/run/verify-harness.sh` 通過
+- [x] `cargo test -p ark-lsp --test lsp_perf` が実行できる
+- [x] hover / definition / completion / open+diagnose の 4 ケースが計測される
+- [x] `target/lsp-perf-results.json` に計測値が書き出される
+- [x] baseline 定数が初回実測値を元に設定されている
+- [x] 5 倍退行で警告が出力される
+- [x] `bash scripts/run/verify-harness.sh` 通過
 
 ---
 

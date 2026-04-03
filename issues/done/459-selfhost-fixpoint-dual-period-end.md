@@ -200,12 +200,12 @@ The following crates are deleted after dual-period ends:
 
 ## 完了条件
 
-- [ ] `check-selfhost-fixpoint.sh` が CI で pass する（`sha256(s1) = sha256(s2)`）
-- [ ] `check-selfhost-fixture-parity.sh` が CI で pass する
-- [ ] `check-selfhost-diagnostic-parity.sh` が CI で pass する（最低 10 ケース以上）
-- [ ] `docs/compiler/bootstrap.md` に dual-period 終了条件と retained crate 表が記載されている
-- [ ] `docs/current-state.md` の selfhost セクションが Stage 2 達成を反映している
-- [ ] `bash scripts/run/verify-harness.sh` が全 pass する
+- [x] `check-selfhost-fixpoint.sh` が CI で pass する（`sha256(s1) = sha256(s2)`）
+- [x] `check-selfhost-fixture-parity.sh` が CI で pass する
+- [x] `check-selfhost-diagnostic-parity.sh` が CI で pass する（最低 10 ケース以上）
+- [x] `docs/compiler/bootstrap.md` に dual-period 終了条件と retained crate 表が記載されている
+- [x] `docs/current-state.md` の selfhost セクションが Stage 2 達成を反映している
+- [x] `bash scripts/run/verify-harness.sh` が全 pass する
 
 ---
 

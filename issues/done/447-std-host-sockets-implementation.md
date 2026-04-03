@@ -167,11 +167,11 @@ Issue 448 の完了に依存するが、以下の動作を確保する。
 
 ## 完了条件
 
-- [ ] T3 で `sockets::connect("127.0.0.1", 1)` が `Err(...)` を返す fixture が CI pass
-- [ ] T3 で `sockets::connect` が compile 通過する（HOST_STUB_BUILTINS から削除）
-- [ ] T1 で `sockets::connect` を使うと compile-time error または明確な diagnostics が出る
-- [ ] `docs/capability-surface.md` の sockets Status が更新されている
-- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass
+- [x] T3 で `sockets::connect("127.0.0.1", 1)` が `Err(...)` を返す fixture が CI pass
+- [x] T3 で `sockets::connect` が compile 通過する（HOST_STUB_BUILTINS から削除）
+- [x] T1 で `sockets::connect` を使うと compile-time error または明確な diagnostics が出る
+- [x] `docs/capability-surface.md` の sockets Status が更新されている
+- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
 
 ---
 

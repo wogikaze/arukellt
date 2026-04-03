@@ -314,10 +314,10 @@ impl LspSession {
 
 ## 完了条件
 
-- [ ] Step 6 の全 9 テストケースが `crates/ark-lsp/tests/lsp_e2e.rs` に追加されている
-- [ ] `LspSession` に `request_hover` / `request_definition` / `wait_for_diagnostics` が追加されている
-- [ ] Issue 450/451/452 完了後に全テストが `cargo test -p ark-lsp` で pass
-- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass
+- [x] Step 6 の全 9 テストケースが `crates/ark-lsp/tests/lsp_e2e.rs` に追加されている
+- [x] `LspSession` に `request_hover` / `request_definition` / `wait_for_diagnostics` が追加されている
+- [x] Issue 450/451/452 完了後に全テストが `cargo test -p ark-lsp` で pass
+- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
 
 ---
 

@@ -256,13 +256,13 @@ Options:
 
 ## 完了条件
 
-- [ ] `arukellt doc println` がシグネチャ・module・stability を表示する
-- [ ] `arukellt doc std::host::http::get` が target 制約を表示する
-- [ ] `arukellt doc std::host::http` がモジュール内関数一覧を表示する
-- [ ] `arukellt doc --json println` が valid JSON を返す
-- [ ] `arukellt doc --target wasm32-wasi-p1 std::host::http::get` が「T1 非対応」を明示する
-- [ ] 存在しないシンボルで `Did you mean?` 候補が出る
-- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass
+- [x] `arukellt doc println` がシグネチャ・module・stability を表示する
+- [x] `arukellt doc std::host::http::get` が target 制約を表示する
+- [x] `arukellt doc std::host::http` がモジュール内関数一覧を表示する
+- [x] `arukellt doc --json println` が valid JSON を返す
+- [x] `arukellt doc --target wasm32-wasi-p1 std::host::http::get` が「T1 非対応」を明示する
+- [x] 存在しないシンボルで `Did you mean?` 候補が出る
+- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
 
 ---
 

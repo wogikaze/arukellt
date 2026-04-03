@@ -220,13 +220,13 @@ fn filter_diagnostics(diags: Vec<Diagnostic>, level: DiagnosticsLevel) -> Vec<Di
 
 ## 完了条件
 
-- [ ] `package.json` に 5 設定が追加されている（型・デフォルト・description・scope 全て設定）
-- [ ] `enableCodeLens: false` で CodeLens が消える
-- [ ] `hoverDetailLevel: "minimal"` でシグネチャのみ表示になる
-- [ ] `diagnostics.reportLevel: "errors"` で警告が LSP から届かなくなる
-- [ ] `extension.js` が新設定を initializationOptions に含めて LSP サーバーに渡す
-- [ ] README に設定一覧テーブルが存在する
-- [ ] `bash scripts/run/verify-harness.sh` 通過
+- [x] `package.json` に 5 設定が追加されている（型・デフォルト・description・scope 全て設定）
+- [x] `enableCodeLens: false` で CodeLens が消える
+- [x] `hoverDetailLevel: "minimal"` でシグネチャのみ表示になる
+- [x] `diagnostics.reportLevel: "errors"` で警告が LSP から届かなくなる
+- [x] `extension.js` が新設定を initializationOptions に含めて LSP サーバーに渡す
+- [x] README に設定一覧テーブルが存在する
+- [x] `bash scripts/run/verify-harness.sh` 通過
 
 ---
 

@@ -189,11 +189,11 @@ LSP セッションで:
 
 ## 完了条件
 
-- [ ] 有効な stdlib prelude 使用コードで `arukellt check` と LSP diagnostics が一致（両方エラーなし）
-- [ ] ファイル変更後に LSP diagnostics が正しく更新される（キャッシュ失効が動作）
-- [ ] VS Code で同一ファイルを再起動前後で同じ diagnostics が出る
-- [ ] `test_lsp_diagnostics_match_cli_for_valid_file` が pass
-- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass
+- [x] 有効な stdlib prelude 使用コードで `arukellt check` と LSP diagnostics が一致（両方エラーなし）
+- [x] ファイル変更後に LSP diagnostics が正しく更新される（キャッシュ失効が動作）
+- [x] VS Code で同一ファイルを再起動前後で同じ diagnostics が出る
+- [x] `test_lsp_diagnostics_match_cli_for_valid_file` が pass
+- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
 
 ---
 

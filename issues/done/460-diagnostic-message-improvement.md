@@ -183,11 +183,11 @@ fn snapshot_e0100_unresolved_name() {
 
 ## 完了条件
 
-- [ ] `Diagnostic` 構造体に `helps: Vec<String>` フィールドと `with_help()` メソッドが存在する
-- [ ] E0100 の diagnostic 出力に `note:` と `help:` の両方が含まれる
-- [ ] CLI の `arukellt check` と LSP diagnostics で同じ文言が出る（同一 fixture で確認）
-- [ ] E0100, E0200, E0300 の snapshot test が `cargo test -p ark-diagnostics` で pass する
-- [ ] `bash scripts/run/verify-harness.sh --quick` 通過
+- [x] `Diagnostic` 構造体に `helps: Vec<String>` フィールドと `with_help()` メソッドが存在する
+- [x] E0100 の diagnostic 出力に `note:` と `help:` の両方が含まれる
+- [x] CLI の `arukellt check` と LSP diagnostics で同じ文言が出る（同一 fixture で確認）
+- [x] E0100, E0200, E0300 の snapshot test が `cargo test -p ark-diagnostics` で pass する
+- [x] `bash scripts/run/verify-harness.sh --quick` 通過
 
 ---
 

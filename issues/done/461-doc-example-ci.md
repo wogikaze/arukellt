@@ -210,11 +210,11 @@ python3 scripts/check/check-doc-examples.py --allow-skip
 
 ## 完了条件
 
-- [ ] `python3 scripts/check/check-doc-examples.py` が `docs/` 全体を走査して結果を出力する
-- [ ] 壊れているブロックには `# doc-skip` または修正が施されており、失敗ゼロで完了する
-- [ ] `verify-harness.sh` full pass にこのスクリプトが組み込まれている
-- [ ] 失敗時の出力に「どの .md ファイルの何番目のブロック」が明確に出る
-- [ ] `bash scripts/run/verify-harness.sh` 通過
+- [x] `python3 scripts/check/check-doc-examples.py` が `docs/` 全体を走査して結果を出力する
+- [x] 壊れているブロックには `# doc-skip` または修正が施されており、失敗ゼロで完了する
+- [x] `verify-harness.sh` full pass にこのスクリプトが組み込まれている
+- [x] 失敗時の出力に「どの .md ファイルの何番目のブロック」が明確に出る
+- [x] `bash scripts/run/verify-harness.sh` 通過
 
 ---
 

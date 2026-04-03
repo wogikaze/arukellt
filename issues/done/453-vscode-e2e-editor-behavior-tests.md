@@ -269,11 +269,11 @@ suite("Diagnostics (#452)", () => {
 
 ## 完了条件
 
-- [ ] `basic.ark` fixture が `extensions/arukellt-all-in-one/src/test/fixtures/` に存在する
-- [ ] definition range が identifier のみを指すことの E2E テストが追加されている
-- [ ] string literal 上で hover が出ないことの E2E テストが追加されている
-- [ ] 有効ファイルで diagnostics が 0 件であることの E2E テストが追加されている
-- [ ] すべての新規テストが `npm test`（extension test suite）で pass する（Issue 450/451/452 完了後）
+- [x] `basic.ark` fixture が `extensions/arukellt-all-in-one/src/test/fixtures/` に存在する
+- [x] definition range が identifier のみを指すことの E2E テストが追加されている
+- [x] string literal 上で hover が出ないことの E2E テストが追加されている
+- [x] 有効ファイルで diagnostics が 0 件であることの E2E テストが追加されている
+- [x] すべての新規テストが `npm test`（extension test suite）で pass する（Issue 450/451/452 完了後）
 
 ---
 
