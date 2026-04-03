@@ -29,17 +29,19 @@ graph LR
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
-  I100["100 CLI: --time フラグ + フェーズ別コンパイル時間計測"]
-  I101["101 CLI: --opt-level 0/1/2 フラグ + Session 統合"]
+  I102["102 コンパイル速度: Lexer / Parser のホットパス最適化"]
   I104["104 実行時性能: GC write barrier 削減 (immutable フィールド検出)"]
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I109["109 ベンチマーク: fib / binary_tree / vec_ops / string_concat / json_parse スイート"]
   I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
+  I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
   I115["115 Wasm Name Section: デバッグ用関数名・ローカル名セクション生成"]
   I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
+  I119["119 MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
+  I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
   I128["128 T3 GC エミッター (t3_wasm_gc.rs 8678行) をサブモジュールに分割"]
@@ -73,10 +75,6 @@ graph LR
   I083["083 MIR: ループ展開 (Loop Unrolling) パス"]
   I103["103 実行時性能: 配列境界チェック除去 (Bounds Check Elimination)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
-  I102["102 コンパイル速度: Lexer / Parser のホットパス最適化"]
-  I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
-  I119["119 MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応"]
-  I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
@@ -115,10 +113,6 @@ graph LR
   I092 --> I108
   I088 --> I108
   I089 --> I108
-  I100 --> I102
-  I100 --> I113
-  I101 --> I119
-  I101 --> I122
   I109 --> I112
   I117 --> I118
   I125 --> I126
@@ -195,17 +189,19 @@ graph LR
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
-- **100** depends on: none; blocks: 102, 113
-- **101** depends on: none; blocks: 119, 122
+- **102** depends on: 100; blocks: none
 - **104** depends on: none; blocks: none
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
 - **109** depends on: none; blocks: 112
 - **111** depends on: none; blocks: none
+- **113** depends on: 100; blocks: none
 - **115** depends on: none; blocks: none
 - **116** depends on: 114; blocks: none
 - **117** depends on: none; blocks: 118
+- **119** depends on: 101; blocks: none
 - **120** depends on: none; blocks: none
+- **122** depends on: 101; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
 - **128** depends on: none; blocks: none
@@ -239,10 +235,6 @@ graph LR
 - **083** depends on: 080; blocks: none
 - **103** depends on: 080; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
-- **102** depends on: 100; blocks: none
-- **113** depends on: 100; blocks: none
-- **119** depends on: 101; blocks: none
-- **122** depends on: 101; blocks: none
 - **112** depends on: 109; blocks: none
 - **118** depends on: 117; blocks: none
 - **126** depends on: 125; blocks: none

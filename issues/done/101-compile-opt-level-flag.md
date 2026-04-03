@@ -1,8 +1,8 @@
 # CLI: --opt-level 0/1/2 フラグ + Session 統合
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-10
 **ID**: 101
 **Depends on**: —
 **Track**: compile-speed
@@ -11,7 +11,7 @@
 
 ---
 
-## Reopened by audit — 2026-04-03
+## Reopened by audit — 2026-04-10
 
 **Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
@@ -19,7 +19,7 @@
 - `**Status**: open` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/101-compile-opt-level-flag.md` — incorrect directory for an open issue.
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
+**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-10).
 
 ## Summary
 
