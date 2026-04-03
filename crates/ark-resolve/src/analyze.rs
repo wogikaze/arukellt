@@ -1,7 +1,9 @@
 use ark_diagnostics::DiagnosticSink;
 use ark_parser::ast;
 
-use crate::bind::{bind_module, bind_module_skip_dup, inject_prelude_symbols};
+use crate::bind::{
+    bind_module, bind_module_skip_dup, bind_module_with_qualifier, inject_prelude_symbols,
+};
 use crate::module_graph::ModuleGraph;
 use crate::resolve::{ResolvedModule, ResolvedProgram};
 use crate::scope::SymbolTable;
@@ -16,6 +18,10 @@ pub(crate) fn analyze_program(graph: ModuleGraph, sink: &mut DiagnosticSink) -> 
         // skipping duplicates. This ensures private helpers called by pub fns
         // are visible in the merged module scope.
         bind_module_skip_dup(&loaded.ast, &mut symbols, global_scope, sink);
+        // Also register pub items under the qualified name (e.g. `string::split`)
+        // so the resolver symbol table records the full qualified form.
+        // This covers slice 2 of issue #039 (module-qualified name resolution).
+        bind_module_with_qualifier(&loaded.ast, &mut symbols, global_scope, &loaded.name, sink);
     }
     ResolvedProgram {
         entry_module: graph.entry_module,

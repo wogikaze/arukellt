@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink};
 use ark_lexer::Lexer;
-use ark_parser::{ast, parse};
+use ark_parser::{ast, ast::ImportKind, parse};
 use ark_target::TargetId;
 
 use crate::module_graph::ModuleGraph;
@@ -249,30 +249,7 @@ fn load_module_recursive(
     };
 
     for import in &module.imports {
-        if emit_deprecated_std_import(import, sink) {
-            continue;
-        }
-        if emit_target_incompatible_import(import, target, sink) {
-            continue;
-        }
-        let import_path = resolve_import_path(&path, &import.module_name, std_root, sink, target);
-        let effective_name = import.alias.clone().unwrap_or_else(|| {
-            import
-                .module_name
-                .rsplit("::")
-                .next()
-                .unwrap_or(&import.module_name)
-                .to_string()
-        });
-        load_module_recursive(
-            effective_name,
-            import_path,
-            std_root,
-            sink,
-            visiting,
-            loaded,
-            target,
-        );
+        load_single_import(import, &path, std_root, sink, visiting, loaded, target);
     }
 
     visiting.remove(&path);
@@ -284,6 +261,83 @@ fn load_module_recursive(
             ast: module,
         },
     );
+}
+
+/// Resolve and recursively load one import declaration.
+///
+/// Handles all three import kinds:
+/// - `Simple` / `ModulePath`: load the single module file.
+/// - `DestructureImport { names }`: load each `base::name` sub-module separately.
+fn load_single_import(
+    import: &ast::Import,
+    current_path: &Path,
+    std_root: &Path,
+    sink: &mut DiagnosticSink,
+    visiting: &mut HashSet<PathBuf>,
+    loaded: &mut HashMap<PathBuf, LoadedModule>,
+    target: Option<TargetId>,
+) {
+    match &import.kind {
+        ImportKind::DestructureImport { names } => {
+            // `use a::b::{c, d}` → load `a::b::c` and `a::b::d` as separate modules.
+            for name in names {
+                let sub_module = format!("{}::{}", import.module_name, name);
+                // Run the same deprecated / target-incompatible checks on the sub-path.
+                // Build a synthetic import for the sub-module so the check helpers work.
+                let sub_import = ast::Import {
+                    module_name: sub_module.clone(),
+                    alias: None,
+                    kind: ImportKind::ModulePath,
+                    span: import.span,
+                };
+                if emit_deprecated_std_import(&sub_import, sink) {
+                    continue;
+                }
+                if emit_target_incompatible_import(&sub_import, target, sink) {
+                    continue;
+                }
+                let import_path =
+                    resolve_import_path(current_path, &sub_module, std_root, sink, target);
+                load_module_recursive(
+                    name.clone(),
+                    import_path,
+                    std_root,
+                    sink,
+                    visiting,
+                    loaded,
+                    target,
+                );
+            }
+        }
+        _ => {
+            // Simple or ModulePath: load the single target module.
+            if emit_deprecated_std_import(import, sink) {
+                return;
+            }
+            if emit_target_incompatible_import(import, target, sink) {
+                return;
+            }
+            let import_path =
+                resolve_import_path(current_path, &import.module_name, std_root, sink, target);
+            let effective_name = import.alias.clone().unwrap_or_else(|| {
+                import
+                    .module_name
+                    .rsplit("::")
+                    .next()
+                    .unwrap_or(&import.module_name)
+                    .to_string()
+            });
+            load_module_recursive(
+                effective_name,
+                import_path,
+                std_root,
+                sink,
+                visiting,
+                loaded,
+                target,
+            );
+        }
+    }
 }
 
 pub(crate) fn load_program(
@@ -309,26 +363,9 @@ pub(crate) fn load_program_with_target(
     let mut loaded = HashMap::new();
 
     for import in &entry_module.imports {
-        if emit_deprecated_std_import(import, sink) {
-            continue;
-        }
-        if emit_target_incompatible_import(import, target, sink) {
-            continue;
-        }
-        let import_path =
-            resolve_import_path(entry_path, &import.module_name, &std_root, sink, target);
-        let effective_name = import.alias.clone().unwrap_or_else(|| {
-            // For `use std::text`, the effective name should be `text` (last segment)
-            import
-                .module_name
-                .rsplit("::")
-                .next()
-                .unwrap_or(&import.module_name)
-                .to_string()
-        });
-        load_module_recursive(
-            effective_name,
-            import_path,
+        load_single_import(
+            import,
+            entry_path,
             &std_root,
             sink,
             &mut visiting,
@@ -359,5 +396,28 @@ mod tests {
             None,
         );
         assert!(path.ends_with("foo/bar.ark"));
+    }
+
+    #[test]
+    fn resolve_destructure_sub_module_path() {
+        // `use std::collections::{vec}` should resolve `std::collections::vec`
+        // to `std/collections/vec.ark` relative to the std root.
+        let mut sink = DiagnosticSink::new();
+        let path = resolve_import_path(
+            Path::new("/project/main.ark"),
+            "std::collections::vec",
+            Path::new("/project/std"),
+            &mut sink,
+            None,
+        );
+        // Path lands under std/collections/vec.ark (may not exist on disk in test,
+        // but the resolved path should be correct).
+        assert!(
+            path.to_str()
+                .unwrap_or("")
+                .ends_with("collections/vec.ark"),
+            "expected collections/vec.ark path, got {:?}",
+            path
+        );
     }
 }

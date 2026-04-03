@@ -152,6 +152,55 @@ fn bind_module_impl(
     }
 }
 
+/// Binds all `pub` items from a loaded module into `scope` using a module-qualified key.
+///
+/// For example, with `qualifier = "string"` and a module containing `pub fn split`,
+/// this registers `"string::split"` in the symbol table so that the resolver can
+/// confirm `string::split` is a known name.  The typechecker still performs the
+/// authoritative type-level resolution; this entry makes unused-import analysis and
+/// future resolver consumers aware of the qualified form.
+pub(crate) fn bind_module_with_qualifier(
+    module: &ast::Module,
+    symbols: &mut SymbolTable,
+    scope: ScopeId,
+    qualifier: &str,
+    _sink: &mut DiagnosticSink,
+) {
+    for item in &module.items {
+        match item {
+            ast::Item::FnDef(f) if f.is_pub => {
+                let qualified = format!("{}::{}", qualifier, f.name);
+                if symbols.lookup_local(scope, &qualified).is_none() {
+                    symbols.define(
+                        scope,
+                        qualified,
+                        SymbolKind::Function { is_pub: true },
+                        f.span,
+                    );
+                }
+            }
+            ast::Item::StructDef(s) if s.is_pub => {
+                let qualified = format!("{}::{}", qualifier, s.name);
+                if symbols.lookup_local(scope, &qualified).is_none() {
+                    symbols.define(
+                        scope,
+                        qualified,
+                        SymbolKind::Struct { is_pub: true },
+                        s.span,
+                    );
+                }
+            }
+            ast::Item::EnumDef(e) if e.is_pub => {
+                let qualified = format!("{}::{}", qualifier, e.name);
+                if symbols.lookup_local(scope, &qualified).is_none() {
+                    symbols.define(scope, qualified, SymbolKind::Enum { is_pub: true }, e.span);
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
 pub(crate) fn inject_prelude_symbols(symbols: &mut SymbolTable, scope: ScopeId) {
     const PRELUDE_TYPES: &[&str] = &["Option", "Result", "String", "Vec"];
     const PRELUDE_VALUES: &[&str] = &["Some", "None", "Ok", "Err", "true", "false"];
@@ -356,5 +405,68 @@ mod tests {
         let mut sink = DiagnosticSink::new();
         bind_module(&module, &mut symbols, scope, &mut sink);
         assert!(sink.has_errors());
+    }
+
+    #[test]
+    fn bind_module_with_qualifier_registers_qualified_names() {
+        // Given a module with `pub fn split` and `pub fn trim`,
+        // binding with qualifier "string" should register `string::split`
+        // and `string::trim` in the symbol table.
+        let module = ast::Module {
+            docs: vec![],
+            imports: vec![],
+            items: vec![
+                ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
+                    name: "split".into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![],
+                    return_type: None,
+                    body: ast::Block {
+                        stmts: vec![],
+                        tail_expr: None,
+                        span: Span::dummy(),
+                    },
+                    is_pub: true,
+                    span: Span::dummy(),
+                }),
+                ast::Item::FnDef(ast::FnDef {
+                    docs: vec![],
+                    name: "private_helper".into(),
+                    type_params: vec![],
+                    type_param_bounds: vec![],
+                    params: vec![],
+                    return_type: None,
+                    body: ast::Block {
+                        stmts: vec![],
+                        tail_expr: None,
+                        span: Span::dummy(),
+                    },
+                    is_pub: false, // private — should NOT be qualified
+                    span: Span::dummy(),
+                }),
+            ],
+        };
+        let mut symbols = SymbolTable::new();
+        let scope = symbols.create_scope(None);
+        let mut sink = DiagnosticSink::new();
+        bind_module_with_qualifier(&module, &mut symbols, scope, "string", &mut sink);
+
+        // Qualified name for pub function should be present.
+        assert!(
+            symbols.lookup(scope, "string::split").is_some(),
+            "expected `string::split` to be in scope"
+        );
+        // Private function should NOT be registered under the qualified form.
+        assert!(
+            symbols.lookup(scope, "string::private_helper").is_none(),
+            "private function should not appear as `string::private_helper`"
+        );
+        // Unqualified form is NOT added by this function.
+        assert!(
+            symbols.lookup(scope, "split").is_none(),
+            "bind_module_with_qualifier should not add unqualified `split`"
+        );
     }
 }

@@ -1,0 +1,9 @@
+//! String sub-module — minimal stub for issue #039 slice-2 resolver wiring.
+//!
+//! Exposes string-splitting helpers under the `string::` qualifier.
+
+/// Splits `s` on `sep` and returns the resulting parts.
+/// Delegates to the prelude `split` intrinsic.
+pub fn split(s: String, sep: String) -> Vec<String> {
+    __intrinsic_split(s, sep)
+}

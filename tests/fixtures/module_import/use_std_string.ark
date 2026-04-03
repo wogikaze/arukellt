@@ -1,0 +1,9 @@
+// Fixture: use_std_string.ark
+// Slice 2 of issue #039: verify that `use std::text::string` resolves the module
+// and `string::split(...)` is callable via the qualified form.
+use std::text::string
+
+fn main() {
+    let parts = string::split("a,b,c", ",")
+    __intrinsic_println(__intrinsic_i32_to_string(len(parts)))
+}

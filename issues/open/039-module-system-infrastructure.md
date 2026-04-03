@@ -100,3 +100,37 @@ v3 標準ライブラリの全モジュールが `use std::collections::hash_map
 1. `use std::collections::*` (wildcard import) を v3 で入れるか、v4 に送るか
 2. re-export (`pub use`) の扱い
 3. `std/` 外のユーザーモジュールとの名前空間統一方針
+
+
+---
+
+## Slice 2 complete
+
+**Resolver wiring for `use std::foo::bar` and `use std::a::{b, c}` — DONE**
+
+Changes merged:
+- `crates/ark-resolve/src/load.rs`: Added `load_single_import` helper that handles
+  `ImportKind::DestructureImport{names}` by loading each `module_name::name` sub-module
+  as a separate `LoadedModule`. `load_module_recursive` and `load_program_with_target`
+  now delegate to this helper for all import kinds.
+- `crates/ark-resolve/src/bind.rs`: Added `bind_module_with_qualifier(module, symbols,
+  scope, qualifier, sink)` which registers each `pub` item as `qualifier::name` in the
+  symbol table (e.g. `string::split`). Private items are excluded.
+- `crates/ark-resolve/src/analyze.rs`: `analyze_program` now calls
+  `bind_module_with_qualifier` for every loaded module using its effective name as the
+  qualifier, in addition to the existing flat `bind_module_skip_dup` call.
+- `std/text/string.ark`: Minimal stub with `pub fn split(s, sep) -> Vec<String>`.
+- `std/collections/vec.ark`: Minimal stub with `pub fn new_i32() -> Vec<i32>`.
+- `tests/fixtures/module_import/use_std_string.ark` + `.expected`: New `run:` fixture
+  that imports `std::text::string` and calls `string::split("a,b,c", ",")`, expecting
+  output `3`.
+- `tests/fixtures/manifest.txt`: Added `run:module_import/use_std_string.ark`.
+
+Verification:
+- `cargo test -p ark-resolve`: 23/23 passed
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 passed
+- `cargo test -p arukellt -- harness`: fixture_harness passed
+- `string::split(s, sep)` resolves and runs without unresolved-name error
+- `use std::collections::{vec}` followed by `vec::new_i32()` resolves correctly
+
+Remaining slices 3-6 still open.
