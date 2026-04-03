@@ -92,10 +92,20 @@ jobs:
       - name: Build release arukellt
         run: cargo build --release -p arukellt
 
-      - name: T3 fixtures (t3-run + t3-compile)
+      - name: T3 fixtures — run and capture harness output
         env:
           ARUKELLT_TARGET: wasm32-wasi-p2
-        run: cargo test -p arukellt --test harness -- --nocapture
+          ARUKELLT_BIN: ./target/release/arukellt
+        run: |
+          cargo test -p arukellt --test harness -- --nocapture 2>&1 | tee harness-raw.log
+          bash scripts/gen/gen-harness-report.sh harness-raw.log > harness-report.json
+
+      - name: Upload harness report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-report-t3-${{ github.sha }}
+          path: harness-report.json
 
   # ── Layer 3: Fixture suite — T1 supported (non-blocking) ────────────────
   fixture-supported:
