@@ -44,6 +44,7 @@ mise bench:ci
 
 Benchmark output conforms to `schema_version = "arukellt-bench-v1"`.
 The authoritative JSON Schema is [`schema.json`](schema.json).
+The full governance reference is [`docs/benchmarks/governance.md`](../docs/benchmarks/governance.md).
 
 Each run records:
 
@@ -54,6 +55,56 @@ Each run records:
 
 Current JSON is written to `tests/baselines/perf/current.json` and the
 human-readable report to `docs/process/benchmark-results.md`.
+
+### Conceptual field reference
+
+The following table maps conceptual metric names (used in governance docs and
+issue tracking) to their JSON Schema paths:
+
+| Conceptual name        | JSON path                     | Unit    | Description                                  |
+|------------------------|-------------------------------|---------|----------------------------------------------|
+| `compile_time_ms`      | `benchmarks[].compile.median_ms`  | ms  | Median wall-clock compile time               |
+| `runtime_ms`           | `benchmarks[].runtime.median_ms`  | ms  | Median wall-clock execution time             |
+| `wasm_size_bytes`      | `benchmarks[].compile.binary_bytes` | bytes | Output Wasm binary size                  |
+| `peak_memory_bytes`    | `benchmarks[].compile.max_rss_kb * 1024` or `runtime.max_rss_kb * 1024` | bytes | Peak resident set size (compile or runtime phase) |
+| `metadata.mode`        | `mode`                        | enum    | Run mode (`quick`, `full`, `compare`, `ci`, `update-baseline`) |
+| `metadata.generated_at`| `generated_at`               | ISO 8601| Timestamp of the run                         |
+| `metadata.target`      | `target`                      | string  | Compilation target (e.g. `wasm32-wasi-p1`)   |
+| `metadata.environment` | `environment`                 | object  | Platform, kernel, Python version, machine    |
+
+Memory fields are `null` when `/usr/bin/time` is unavailable on the host.
+
+### Fixture naming convention
+
+New benchmarks **must** follow the canonical pattern:
+
+```
+benchmarks/bench_<suite>/<name>.<ext>
+```
+
+or, using the flat convention currently in use:
+
+```
+benchmarks/bench_<suite>_<name>.ark
+```
+
+Mapping to the abstract `<suite>/<name>.<ext>` scheme:
+
+| Abstract       | Concrete (flat)                          | Example                                      |
+|----------------|------------------------------------------|----------------------------------------------|
+| `suite`        | Category prefix (`cpu`, `alloc`, `string`, `recurse`, `parse`) | `cpu` → `bench_cpu_fib.ark`   |
+| `name`         | Snake\_case identifier                   | `binary_tree`, `vec_ops`                     |
+| `ext`          | `.ark` (source), `.expected` (stdout), `.bench.wasm` (prebuilt) | `fib.ark`, `fib.expected` |
+
+Legacy fixtures that predate the `bench_` prefix (e.g. `fib.ark`, `vec_ops.ark`) are
+grandfathered; new fixtures **must** use `bench_<suite>_<name>.ark`.
+
+### Tag / taxonomy guidance
+
+Every benchmark declares a `tags` list.  Use lowercase hyphenated tokens from
+the canonical vocabulary in [`benchmarks/workload-taxonomy.md`](workload-taxonomy.md).
+Tags enable grouped analysis (e.g. "all `allocation-heavy` benchmarks") and
+drive regression triage.  See the full tag reference in that file.
 
 ## Benchmarks
 

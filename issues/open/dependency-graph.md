@@ -52,7 +52,12 @@ graph LR
   I134["134 ark-lexer lib.rs (1698行) をサブモジュールに分割"]
   I135["135 ark-diagnostics lib.rs (1099行) をサブモジュールに分割"]
   I137["137 `std::host::*` namespace 導入と migration / target-gated 診断"]
-  I149["149 基盤: benchmark schema・命名・実行モードの標準化"]
+  I140["140 ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理"]
+  I141["141 計測: cold/warm/incremental compile と phase 別時間分解"]
+  I142["142 計測: startup / throughput / tail latency ベンチ"]
+  I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
+  I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
+  I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
   I150["150 横断 docs: `docs/language/spec.md` 凍結版と `docs/compiler/ir-spec.md` を整備"]
   I151["151 横断 docs: `docs/compiler/error-codes.md` と診断コード一覧の正規化"]
   I153["153 横断検証: bit-exact Wasm 再現ビルドゲートと決定性ルール"]
@@ -92,12 +97,8 @@ graph LR
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I138["138 `std::host` 共通 capability (`stdio` / `fs` / `env` / `process` / `clock` / `random`) を T1/T3 両対応で実装"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
-  I140["140 ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理"]
-  I141["141 計測: cold/warm/incremental compile と phase 別時間分解"]
-  I142["142 計測: startup / throughput / tail latency ベンチ"]
-  I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
-  I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
-  I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
+  I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
+  I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
   I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
   I480["480 Extension README: 設定一覧テーブル追加"]
   I042["042 std::text: String API 拡張、StringBuilder、format ユーティリティ"]
@@ -111,13 +112,11 @@ graph LR
   I053["053 std::wasm: Wasm バイナリ型・opcode・module builder"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
-  I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
-  I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
+  I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
   I052["052 std::process + std::env + std::cli: 実行環境 API"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
-  I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I039 --> I041
   I039 --> I043
@@ -145,12 +144,13 @@ graph LR
   I137 --> I138
   I074 --> I139
   I137 --> I139
-  I149 --> I140
-  I149 --> I141
-  I149 --> I142
-  I149 --> I145
-  I149 --> I146
-  I149 --> I147
+  I141 --> I144
+  I142 --> I144
+  I140 --> I148
+  I141 --> I148
+  I142 --> I148
+  I145 --> I148
+  I146 --> I148
   I153 --> I154
   I479 --> I480
   I039 --> I042
@@ -177,14 +177,12 @@ graph LR
   I138 --> I136
   I077 --> I136
   I139 --> I136
-  I141 --> I144
-  I142 --> I144
-  I149 --> I144
-  I140 --> I148
-  I141 --> I148
-  I142 --> I148
-  I145 --> I148
-  I146 --> I148
+  I140 --> I158
+  I141 --> I158
+  I142 --> I158
+  I145 --> I158
+  I148 --> I158
+  I155 --> I158
   I039 --> I049
   I041 --> I049
   I042 --> I049
@@ -196,12 +194,6 @@ graph LR
   I039 --> I054
   I044 --> I054
   I053 --> I054
-  I140 --> I158
-  I141 --> I158
-  I142 --> I158
-  I145 --> I158
-  I148 --> I158
-  I155 --> I158
 ```
 
 ## Adjacency list
@@ -252,7 +244,12 @@ graph LR
 - **134** depends on: none; blocks: none
 - **135** depends on: none; blocks: none
 - **137** depends on: none; blocks: 077, 136, 138, 139
-- **149** depends on: none; blocks: 140, 141, 142, 144, 145, 146, 147
+- **140** depends on: 149; blocks: 148, 158
+- **141** depends on: 149; blocks: 144, 148, 158
+- **142** depends on: 149; blocks: 144, 148, 158
+- **145** depends on: 149; blocks: 148, 158
+- **146** depends on: 149; blocks: 148
+- **147** depends on: 149; blocks: none
 - **150** depends on: none; blocks: none
 - **151** depends on: none; blocks: none
 - **153** depends on: none; blocks: 154
@@ -292,12 +289,8 @@ graph LR
 - **077** depends on: 074, 137; blocks: 136
 - **138** depends on: 137; blocks: 136
 - **139** depends on: 074, 137; blocks: 136
-- **140** depends on: 149; blocks: 148, 158
-- **141** depends on: 149; blocks: 144, 148, 158
-- **142** depends on: 149; blocks: 144, 148, 158
-- **145** depends on: 149; blocks: 148, 158
-- **146** depends on: 149; blocks: 148
-- **147** depends on: 149; blocks: none
+- **144** depends on: 141, 142, 143, 149; blocks: none
+- **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
 - **154** depends on: 153; blocks: none
 - **480** depends on: 479; blocks: none
 - **042** depends on: 039, 041; blocks: 049, 052, 055
@@ -311,13 +304,11 @@ graph LR
 - **053** depends on: 039, 040, 043; blocks: 054
 - **485** depends on: 475; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
-- **144** depends on: 141, 142, 143, 149; blocks: none
-- **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
+- **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 - **049** depends on: 039, 041, 042; blocks: none
 - **052** depends on: 039, 042; blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
-- **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 
 ### Blocked
 

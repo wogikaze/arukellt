@@ -86,6 +86,12 @@ pub fn char_to_string(c: char) -> String {
     __intrinsic_char_to_string(c)
 }
 
+// to_string — polymorphic builtin dispatched by the compiler.
+// Converts primitive scalars and String to their String representation.
+// Supported argument types: i32, i64, f64, bool, char, String (passthrough).
+// Usage: to_string(42) -> "42", to_string(true) -> "true"
+// Implementation: compiler-handled builtin in crates/ark-wasm/src/emit/t1/operands.rs
+
 // Conversion: from string
 pub fn parse_i32(s: String) -> Result<i32, String> {
     __intrinsic_parse_i32(s)
