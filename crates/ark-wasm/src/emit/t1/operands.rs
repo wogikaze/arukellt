@@ -7348,9 +7348,14 @@ impl EmitCtx {
             UnaryOp::Neg => {
                 let is_f64 = matches!(inner, Operand::ConstF64(_))
                     || matches!(inner, Operand::Place(Place::Local(id)) if self.f64_locals.contains(&id.0));
+                let is_i64 = self.is_i64_operand(inner);
                 if is_f64 {
                     self.emit_operand(f, inner);
                     f.instruction(&Instruction::F64Neg);
+                } else if is_i64 {
+                    f.instruction(&Instruction::I64Const(0));
+                    self.emit_operand(f, inner);
+                    f.instruction(&Instruction::I64Sub);
                 } else {
                     f.instruction(&Instruction::I32Const(0));
                     self.emit_operand(f, inner);
