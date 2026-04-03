@@ -1,8 +1,8 @@
 # canonical stringification surface を `to_string(x)` に統一する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-04-03
+**Updated**: 2026-04-07
 **ID**: 171
 **Depends on**: none
 **Track**: language-design
@@ -64,3 +64,14 @@ LLM と user-facing docs の主導線を安定させるため、canonical string
 - `docs/adr/ADR-012-stringification-surface.md`
 - `std/manifest.toml`
 - `crates/ark-parser/src/parser/expr.rs`
+
+---
+
+## Close evidence — 2026-04-07
+
+- `grep "to_string" docs/language/guide.md` → multiple hits including canonical `#### Stringification — \`to_string(x)\`` section
+- `<!-- fixture: stdlib_core/to_string_i32.ark -->` link in docs/language/guide.md
+- Canonical `to_string(x)` documented for i32/f64/bool/i64/String in guide.md and stdlib/reference.md
+- New fixture: `tests/fixtures/stdlib_core/to_string_i64.ark` (+ `.expected`) added and registered in manifest.txt
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
+- `python3 scripts/check/check-docs-consistency.py`: PASS

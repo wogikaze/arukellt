@@ -212,6 +212,7 @@ run:stdlib_core/range.ark
 run:stdlib_core/to_string_bool.ark
 run:stdlib_core/to_string_f64.ark
 run:stdlib_core/to_string_i32.ark
+run:stdlib_core/to_string_i64.ark
 run:stdlib_csv/csv_basic.ark
 run:stdlib_env/env_basic.ark
 run:stdlib_filter/filter_string.ark

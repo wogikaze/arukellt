@@ -64,7 +64,6 @@ graph LR
   I155["155 横断 docs: selfhosting stdlib checklist と不足 migration guides を整備"]
   I156["156 T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化"]
   I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
-  I171["171 canonical stringification surface を `to_string(x)` に統一する"]
   I260["260 current-state.md の target 表を CI 結果からのみ更新する仕組みを作る"]
   I330["330 Fixture harness を selfhost binary 対応にする"]
   I462["462 拡張機能の設定項目の整理と実装への配線"]
@@ -246,7 +245,6 @@ graph LR
 - **155** depends on: none; blocks: 158
 - **156** depends on: none; blocks: none
 - **157** depends on: none; blocks: none
-- **171** depends on: none; blocks: none
 - **260** depends on: 256, 257; blocks: none
 - **330** depends on: 328; blocks: none
 - **462** depends on: none; blocks: none
