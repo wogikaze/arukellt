@@ -1,3 +1,4 @@
+use std::host::stdio
 fn greet(name: String) -> String {
     let msg = concat("Hello, ", name)
     msg
@@ -5,5 +6,5 @@ fn greet(name: String) -> String {
 
 fn main() {
     let result = greet("world")
-    println(result)
+    stdio::println(result)
 }

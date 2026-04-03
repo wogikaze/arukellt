@@ -257,8 +257,9 @@ suite("Go to Definition (#450 / #453)", () => {
   });
 
   test("local variable definition range is identifier only", async () => {
-    // `result` usage in `println(result)` on line 7 (0-indexed), col 13 is inside `result`
-    const pos = new vscode.Position(7, 13);
+    // `result` usage in `stdio::println(result)` on line 8 (0-indexed), col 20 is inside `result`
+    // basic.ark layout (0-indexed): line 0=use, line 1=fn greet, ..., line 7=let result, line 8=stdio::println(result)
+    const pos = new vscode.Position(8, 20);
     const locs = await vscode.commands.executeCommand(
       "vscode.executeDefinitionProvider",
       doc.uri,
@@ -269,11 +270,11 @@ suite("Go to Definition (#450 / #453)", () => {
     const loc = locs[0];
     const range = loc.targetRange || loc.range;
     assert.ok(range, "Definition result should have a range");
-    // Should point to `let result = ...` on line 6
+    // Should point to `let result = ...` on line 7
     assert.strictEqual(
       range.start.line,
-      6,
-      "Should point to let-binding line (line 6)"
+      7,
+      "Should point to let-binding line (line 7)"
     );
     assert.strictEqual(
       range.start.character,
@@ -295,8 +296,9 @@ suite("Go to Definition (#450 / #453)", () => {
   });
 
   test("function definition range is function name only", async () => {
-    // `greet(...)` call on line 6, col 17 is inside `greet`
-    const pos = new vscode.Position(6, 17);
+    // `greet(...)` call on line 7 (0-indexed), col 17 is inside `greet`
+    // basic.ark: line 7 = `    let result = greet("world")`; greet starts at col 17
+    const pos = new vscode.Position(7, 17);
     const locs = await vscode.commands.executeCommand(
       "vscode.executeDefinitionProvider",
       doc.uri,
@@ -306,8 +308,8 @@ suite("Go to Definition (#450 / #453)", () => {
     const loc = locs[0];
     const range = loc.targetRange || loc.range;
     assert.ok(range, "Definition result should have a range");
-    // fn greet(...) — `greet` starts at col 3 on line 0
-    assert.strictEqual(range.start.line, 0, "Should point to fn greet line (line 0)");
+    // fn greet(...) — `greet` starts at col 3 on line 1 (after `use std::host::stdio` on line 0)
+    assert.strictEqual(range.start.line, 1, "Should point to fn greet line (line 1)");
     assert.strictEqual(
       range.start.character,
       3,
@@ -327,8 +329,8 @@ suite("Go to Definition (#450 / #453)", () => {
   });
 
   test("definition on keyword/whitespace returns nothing", async () => {
-    // Position 0, 0 is the `f` of `fn` keyword — not a bound name
-    const pos = new vscode.Position(0, 0);
+    // Position 1, 0 is the `f` of `fn` keyword on `fn greet(...)` — not a bound name
+    const pos = new vscode.Position(1, 0);
     const locs = await vscode.commands.executeCommand(
       "vscode.executeDefinitionProvider",
       doc.uri,
@@ -356,8 +358,9 @@ suite("Hover (#451 / #453)", () => {
   });
 
   test("string literal position returns no 'string literal' hover noise", async () => {
-    // Line 1: `    let msg = concat("Hello, ", name)` — inside "Hello, " at col 25
-    const pos = new vscode.Position(1, 25);
+    // Line 2: `    let msg = concat("Hello, ", name)` — inside "Hello, " at col 25
+    // basic.ark: line 0=use, line 1=fn greet, line 2=let msg = concat(...)
+    const pos = new vscode.Position(2, 25);
     const hovers = await vscode.commands.executeCommand(
       "vscode.executeHoverProvider",
       doc.uri,
@@ -379,8 +382,9 @@ suite("Hover (#451 / #453)", () => {
   });
 
   test("known function name produces meaningful hover content", async () => {
-    // Line 7: `    println(result)` — `println` starts at col 4
-    const pos = new vscode.Position(7, 4);
+    // Line 8: `    stdio::println(result)` — `println` starts at col 11
+    // basic.ark: line 8 = `    stdio::println(result)`
+    const pos = new vscode.Position(8, 11);
     const hovers = await vscode.commands.executeCommand(
       "vscode.executeHoverProvider",
       doc.uri,
