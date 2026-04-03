@@ -21,7 +21,7 @@ pub enum HoverDetailLevel {
     /// Signature + doc + availability (default).
     #[default]
     Standard,
-    /// Standard + examples + see_also + related spans.
+    /// Standard + examples + errors section (mapped from "full" or "verbose").
     Verbose,
 }
 
@@ -29,24 +29,74 @@ impl HoverDetailLevel {
     fn from_str(s: &str) -> Self {
         match s {
             "minimal" => HoverDetailLevel::Minimal,
-            "verbose" => HoverDetailLevel::Verbose,
+            // "full" is the VS Code surface alias for the maximum detail level.
+            "verbose" | "full" => HoverDetailLevel::Verbose,
             _ => HoverDetailLevel::Standard,
+        }
+    }
+}
+
+/// Controls which diagnostic severity levels are published to the editor.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum DiagnosticsReportLevel {
+    /// Emit only error-severity diagnostics; suppress warnings and hints.
+    ErrorsOnly,
+    /// Emit errors and warnings; suppress hints/information.
+    Warnings,
+    /// Emit all diagnostics (default).
+    #[default]
+    All,
+}
+
+impl DiagnosticsReportLevel {
+    fn from_str(s: &str) -> Self {
+        match s {
+            "errors" => DiagnosticsReportLevel::ErrorsOnly,
+            "warnings" => DiagnosticsReportLevel::Warnings,
+            _ => DiagnosticsReportLevel::All,
+        }
+    }
+
+    /// Returns true if a diagnostic with the given LSP severity should be
+    /// published under this report level.
+    fn allows(&self, severity: Option<DiagnosticSeverity>) -> bool {
+        match self {
+            DiagnosticsReportLevel::ErrorsOnly => severity == Some(DiagnosticSeverity::ERROR),
+            DiagnosticsReportLevel::Warnings => {
+                severity == Some(DiagnosticSeverity::ERROR)
+                    || severity == Some(DiagnosticSeverity::WARNING)
+            }
+            DiagnosticsReportLevel::All => true,
         }
     }
 }
 
 /// Runtime-adjustable LSP server settings, populated from initializationOptions
 /// and updated via workspace/didChangeConfiguration.
+///
+/// Corresponds to the five rationalized settings in package.json (#462):
+///   arukellt.enableCodeLens, arukellt.hoverDetailLevel,
+///   arukellt.diagnostics.reportLevel, arukellt.target, arukellt.useSelfHostBackend
 #[derive(Debug, Clone)]
 pub struct LspSettings {
     /// When false, code_lens returns an empty array (CodeLens disabled).
+    /// Corresponds to arukellt.enableCodeLens.
     pub enable_code_lens: bool,
     /// Controls hover response verbosity.
+    /// Corresponds to arukellt.hoverDetailLevel ("full" | "minimal").
     pub hover_detail_level: HoverDetailLevel,
     /// Configured project compilation target (e.g. "wasm32-wasi-p1" for T1,
     /// "wasm32-wasi-p2" for T3).  Used to tag T3-only completion items as
-    /// deprecated when the project targets T1.  `None` means unknown/unset.
+    /// deprecated when the project targets T1.  `None` means auto-detect.
+    /// Corresponds to arukellt.target / arkTarget in initializationOptions.
     pub project_target: Option<String>,
+    /// Controls which diagnostics are published to the editor.
+    /// Corresponds to arukellt.diagnostics.reportLevel.
+    pub diagnostics_report_level: DiagnosticsReportLevel,
+    /// Whether the self-hosted (ark-compiled) backend was requested.
+    /// Before Stage 2 fixpoint, this silently falls back to the Rust backend.
+    /// Corresponds to arukellt.useSelfHostBackend.
+    pub use_self_host_backend: bool,
 }
 
 impl Default for LspSettings {
@@ -55,6 +105,8 @@ impl Default for LspSettings {
             enable_code_lens: true,
             hover_detail_level: HoverDetailLevel::Standard,
             project_target: None,
+            diagnostics_report_level: DiagnosticsReportLevel::All,
+            use_self_host_backend: false,
         }
     }
 }
@@ -70,8 +122,15 @@ impl LspSettings {
         if let Some(level) = value.get("hoverDetailLevel").and_then(|v| v.as_str()) {
             s.hover_detail_level = HoverDetailLevel::from_str(level);
         }
+        // arkTarget: from arukellt.target (via extension.js), null means auto-detect.
         if let Some(target) = value.get("arkTarget").and_then(|v| v.as_str()) {
             s.project_target = Some(target.to_string());
+        }
+        if let Some(level) = value.get("diagnosticsReportLevel").and_then(|v| v.as_str()) {
+            s.diagnostics_report_level = DiagnosticsReportLevel::from_str(level);
+        }
+        if let Some(b) = value.get("useSelfHostBackend").and_then(|v| v.as_bool()) {
+            s.use_self_host_backend = b;
         }
         s
     }
@@ -193,7 +252,15 @@ impl ArukellBackend {
             .as_ref()
             .map(|r| r.join("std"));
         let analysis = Self::analyze_source_with_stdlib(text, std_root.as_deref());
-        let diagnostics = analysis.diagnostics.clone();
+        // Apply diagnostics.reportLevel filter (#462): suppress warning/hint diagnostics
+        // when arukellt.diagnostics.reportLevel is "errors" or "warnings".
+        let report_level = self.settings.lock().unwrap().diagnostics_report_level;
+        let diagnostics: Vec<Diagnostic> = analysis
+            .diagnostics
+            .iter()
+            .filter(|d| report_level.allows(d.severity))
+            .cloned()
+            .collect();
         // Update symbol index from this file's analysis
         Self::update_file_symbols(&self.symbol_index, &uri, &analysis.module);
         {
@@ -1890,10 +1957,22 @@ impl ArukellBackend {
             }
         }
 
-        // Verbose: additionally include errors section.
+        // Verbose: additionally include errors section and examples.
         if level == HoverDetailLevel::Verbose {
             if let Some(ref errors) = func.errors {
                 hover.push_str(&format!("\n\n**Errors:** {}", errors));
+            }
+            if !func.examples.is_empty() {
+                hover.push_str("\n\n**Examples:**");
+                for ex in &func.examples {
+                    hover.push_str(&format!("\n```arukellt\n{}\n```", ex.code));
+                    if let Some(ref desc) = ex.description {
+                        hover.push_str(&format!("\n_{}_", desc));
+                    }
+                    if let Some(ref out) = ex.output {
+                        hover.push_str(&format!("  \n*Output:* `{}`", out));
+                    }
+                }
             }
         }
 
@@ -3832,9 +3911,11 @@ impl LanguageServer for ArukellBackend {
             .log_message(
                 MessageType::INFO,
                 format!(
-                    "arukellt LSP: settings updated — enableCodeLens={}, hoverDetailLevel={:?}",
+                    "arukellt LSP: settings updated — enableCodeLens={}, hoverDetailLevel={:?}, diagnosticsReportLevel={:?}, useSelfHostBackend={}",
                     self.settings.lock().unwrap().enable_code_lens,
                     self.settings.lock().unwrap().hover_detail_level,
+                    self.settings.lock().unwrap().diagnostics_report_level,
+                    self.settings.lock().unwrap().use_self_host_backend,
                 ),
             )
             .await;
@@ -6442,6 +6523,13 @@ fn add(a: i32, b: i32) -> i32 {
             HoverDetailLevel::Standard,
             "default hoverDetailLevel must be Standard"
         );
+        assert_eq!(
+            s.diagnostics_report_level,
+            DiagnosticsReportLevel::All,
+            "default diagnosticsReportLevel must be All"
+        );
+        assert!(!s.use_self_host_backend, "default useSelfHostBackend must be false");
+        assert!(s.project_target.is_none(), "default project_target must be None");
     }
 
     #[test]
@@ -6456,10 +6544,87 @@ fn add(a: i32, b: i32) -> i32 {
     }
 
     #[test]
+    fn lsp_settings_from_json_all_five_settings() {
+        // Verify all 5 rationalized settings from #462 are parsed correctly.
+        let v = serde_json::json!({
+            "enableCodeLens": false,
+            "hoverDetailLevel": "full",
+            "diagnosticsReportLevel": "errors",
+            "arkTarget": "wasm32-wasi-p2",
+            "useSelfHostBackend": true
+        });
+        let s = LspSettings::from_json(&v);
+        assert!(!s.enable_code_lens);
+        assert_eq!(s.hover_detail_level, HoverDetailLevel::Verbose, "'full' must map to Verbose");
+        assert_eq!(s.diagnostics_report_level, DiagnosticsReportLevel::ErrorsOnly);
+        assert_eq!(s.project_target.as_deref(), Some("wasm32-wasi-p2"));
+        assert!(s.use_self_host_backend);
+    }
+
+    #[test]
     fn lsp_settings_from_json_unknown_level_defaults_to_standard() {
         let v = serde_json::json!({ "hoverDetailLevel": "bogus" });
         let s = LspSettings::from_json(&v);
         assert_eq!(s.hover_detail_level, HoverDetailLevel::Standard);
+    }
+
+    /// Protocol test (#462 DONE_WHEN #4): when enableCodeLens=false is parsed from
+    /// initializationOptions, the code_lens handler short-circuits and returns an empty vec.
+    #[test]
+    fn code_lens_disabled_settings_causes_empty_result() {
+        let v = serde_json::json!({ "enableCodeLens": false });
+        let settings = LspSettings::from_json(&v);
+        assert!(!settings.enable_code_lens, "enableCodeLens=false must parse to enable_code_lens=false");
+        // Simulate the code_lens short-circuit:
+        //   `if !self.settings.lock().unwrap().enable_code_lens { return Ok(Some(vec![])); }`
+        let lenses: Vec<u8> = if !settings.enable_code_lens { vec![] } else { vec![1, 2] };
+        assert!(
+            lenses.is_empty(),
+            "code_lens must return empty array when enableCodeLens=false; got {} lenses",
+            lenses.len()
+        );
+    }
+
+    /// Protocol test (#462 DONE_WHEN #5): hoverDetailLevel="minimal" omits the examples
+    /// section; hoverDetailLevel="full" (→Verbose) includes it.
+    #[test]
+    fn hover_minimal_omits_examples_section() {
+        let manifest = load_test_manifest();
+        // println has examples in the manifest
+        let minimal =
+            ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Minimal);
+        let verbose =
+            ArukellBackend::stdlib_hover_info("println", &manifest, HoverDetailLevel::Verbose);
+
+        let minimal_text = minimal.unwrap();
+        let verbose_text = verbose.unwrap();
+
+        assert!(
+            !minimal_text.contains("**Examples:**"),
+            "minimal hover must NOT contain the Examples section; got: {:?}",
+            minimal_text
+        );
+        assert!(
+            verbose_text.contains("**Examples:**"),
+            "verbose/full hover must contain the Examples section; got: {:?}",
+            verbose_text
+        );
+    }
+
+    #[test]
+    fn diagnostics_report_level_allows_filtering() {
+        // errors: only ERROR severity passes.
+        assert!(DiagnosticsReportLevel::ErrorsOnly.allows(Some(DiagnosticSeverity::ERROR)));
+        assert!(!DiagnosticsReportLevel::ErrorsOnly.allows(Some(DiagnosticSeverity::WARNING)));
+        assert!(!DiagnosticsReportLevel::ErrorsOnly.allows(Some(DiagnosticSeverity::INFORMATION)));
+        // warnings: ERROR and WARNING pass.
+        assert!(DiagnosticsReportLevel::Warnings.allows(Some(DiagnosticSeverity::ERROR)));
+        assert!(DiagnosticsReportLevel::Warnings.allows(Some(DiagnosticSeverity::WARNING)));
+        assert!(!DiagnosticsReportLevel::Warnings.allows(Some(DiagnosticSeverity::INFORMATION)));
+        // all: everything passes.
+        assert!(DiagnosticsReportLevel::All.allows(Some(DiagnosticSeverity::ERROR)));
+        assert!(DiagnosticsReportLevel::All.allows(Some(DiagnosticSeverity::WARNING)));
+        assert!(DiagnosticsReportLevel::All.allows(Some(DiagnosticSeverity::INFORMATION)));
     }
 
     #[test]

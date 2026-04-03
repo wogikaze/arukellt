@@ -21,16 +21,24 @@ Minimal VS Code extension scaffold for Arukellt.
 
 ## Extension Settings
 
+The following five rationalized settings control LSP server behaviour. All settings have `window` scope and can be configured in `.vscode/settings.json` or VS Code's Settings UI.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `arukellt.enableCodeLens` | `boolean` | `true` | Show Run / Debug / Test CodeLens above functions in `.ark` files. Set to `false` to hide all CodeLens entries. Forwarded to the LSP server as `enableCodeLens`. |
+| `arukellt.hoverDetailLevel` | `"full"` \| `"minimal"` | `"full"` | Controls how much information is shown on hover. `"full"`: signature + docs + availability + usage examples. `"minimal"`: type signature only. Forwarded to the LSP server as `hoverDetailLevel`. |
+| `arukellt.diagnostics.reportLevel` | `"errors"` \| `"warnings"` \| `"all"` | `"all"` | Controls which diagnostics appear in the Problems panel. `"errors"`: errors only. `"warnings"`: errors + warnings. `"all"`: all severities including hints. Forwarded to the LSP server as `diagnosticsReportLevel`. |
+| `arukellt.target` | `"wasm32-wasi-p1"` \| `"wasm32-wasi-p2"` \| `null` | `null` | Compilation target for the LSP server and CLI commands. `null` means auto-detect from `ark.toml`. Forwarded to the LSP server as `arkTarget`. |
+| `arukellt.useSelfHostBackend` | `boolean` | `false` | Use the self-hosted (ark-compiled) compiler backend. Requires Stage 2 fixpoint (Issue 459). When `true` before Stage 2, the extension logs a warning and falls back to the Rust backend silently. |
+
+### Other Settings
+
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `arukellt.server.path` | `string` | `"arukellt"` | Path to the `arukellt` binary used to launch the language server. |
 | `arukellt.server.args` | `string[]` | `[]` | Extra arguments inserted before the built-in `lsp` subcommand. |
-| `arukellt.target` | `string` | `"wasm32-wasi-p1"` | Default compilation target for check, compile, and run commands. |
 | `arukellt.emit` | `string` | `"core-wasm"` | Default emit kind for compile commands. |
 | `arukellt.playgroundUrl` | `string` | `"https://arukellt.dev/playground"` | Base URL of the Arukellt web playground. |
-| `arukellt.enableCodeLens` | `boolean` | `true` | Show Run / Debug / Test CodeLens above functions in `.ark` files. Set to `false` to hide all CodeLens entries. |
-| `arukellt.hoverDetailLevel` | `"minimal"` \| `"standard"` \| `"verbose"` | `"standard"` | Controls hover information verbosity. `minimal`: signature only. `standard`: signature + docs + availability. `verbose`: all details. |
-| `arukellt.useSelfHostBackend` | `boolean` | `false` | Use the self-hosted (ark-compiled) compiler backend. Requires Stage 2 fixpoint (Issue 459). Before Stage 2, enabling this logs a warning and falls back to the Rust backend. |
 
 ## Notes
 

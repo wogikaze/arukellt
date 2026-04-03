@@ -191,7 +191,10 @@ function startLanguageServer(context) {
     // apply them on startup without waiting for didChangeConfiguration.
     initializationOptions: {
       enableCodeLens: config.get('enableCodeLens', true),
-      hoverDetailLevel: config.get('hoverDetailLevel', 'standard'),
+      hoverDetailLevel: config.get('hoverDetailLevel', 'full'),
+      // arkTarget: null means auto-detect; non-null value is forwarded as project_target.
+      arkTarget: config.get('target', null),
+      diagnosticsReportLevel: config.get('diagnostics.reportLevel', 'all'),
       useSelfHostBackend: config.get('useSelfHostBackend', false),
     },
     errorHandler: {
@@ -242,7 +245,9 @@ function startLanguageServer(context) {
             settings: {
               arukellt: {
                 enableCodeLens: cfg.get('enableCodeLens', true),
-                hoverDetailLevel: cfg.get('hoverDetailLevel', 'standard'),
+                hoverDetailLevel: cfg.get('hoverDetailLevel', 'full'),
+                arkTarget: cfg.get('target', null),
+                diagnosticsReportLevel: cfg.get('diagnostics.reportLevel', 'all'),
                 useSelfHostBackend: cfg.get('useSelfHostBackend', false),
               },
             },
