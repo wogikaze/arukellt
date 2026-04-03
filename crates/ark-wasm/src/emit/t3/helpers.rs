@@ -2381,102 +2381,177 @@ impl Ctx {
 
             // Emit statements from entry block
             if let Some(block) = func.blocks.first() {
-                for stmt in &block.stmts {
+                let is_main_fn = func.name == "main" || func.name == "_start";
+                let n_stmts = block.stmts.len();
+
+                // ── Opportunistic TCO: let-call-return detection ──
+                // Detect `let x = user_call(args…); return x` patterns where:
+                //   • the last MIR statement binds a user function call to a local, AND
+                //   • the block terminator returns that exact local.
+                //
+                // This covers non-desugared tail calls that the MIR-level
+                // `detect_tail_calls` pass misses because it only rewrites
+                // `Terminator::Return(Some(Operand::Call(…)))`, not the
+                // statement-form binding `MirStmt::Call { dest: Local(id), … }` /
+                // `MirStmt::Assign(Local(id), Rvalue::Use(Operand::Call(…)))` followed
+                // by `Terminator::Return(Some(Operand::Place(Local(id))))`.
+                //
+                // Handles two last-stmt shapes:
+                //   1. MirStmt::Call { dest: Some(Local(id)), func: FnId, args }
+                //   2. MirStmt::Assign(Local(id), Rvalue::Use(Operand::Call(name, args)))
+                let opp_tco_candidate = !is_main_fn && self.opt_level >= 1 && n_stmts > 0 && {
+                    let last = &block.stmts[n_stmts - 1];
+                    let ret_local = match &block.terminator {
+                        Terminator::Return(Some(Operand::Place(Place::Local(id)))) => Some(id.0),
+                        _ => None,
+                    };
+                    if let Some(ret_id) = ret_local {
+                        match last {
+                            MirStmt::Call {
+                                dest: Some(Place::Local(dest_id)),
+                                ..
+                            } => dest_id.0 == ret_id,
+                            MirStmt::Assign(
+                                Place::Local(dest_id),
+                                Rvalue::Use(Operand::Call(_, _)),
+                            ) => dest_id.0 == ret_id,
+                            _ => false,
+                        }
+                    } else {
+                        false
+                    }
+                };
+
+                // Determine how many statements to emit in the main loop.
+                // If opportunistic TCO is a candidate, hold back the last statement
+                // and attempt tail-call emission after the loop.
+                let emit_up_to = if opp_tco_candidate {
+                    n_stmts - 1
+                } else {
+                    n_stmts
+                };
+                for stmt in &block.stmts[..emit_up_to] {
                     self.emit_stmt(&mut w, stmt);
                 }
-                // Handle terminator
-                match &block.terminator {
-                    Terminator::Return(Some(op)) => {
-                        if func.name == "main" || func.name == "_start" {
-                            // WASI _start must be () -> (); emit for side effects but discard result
-                            if !matches!(op, Operand::Unit) {
+
+                // Emit the last statement as a tail call (opportunistic path)
+                // or fall through to the normal terminator handler.
+                let opp_tco_fired = if opp_tco_candidate {
+                    if let Terminator::Return(Some(return_op)) = &block.terminator {
+                        self.try_emit_let_call_tail_return(
+                            &mut w,
+                            &block.stmts[n_stmts - 1],
+                            return_op,
+                        )
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                };
+
+                // If opportunistic TCO did NOT fire, emit the held-back statement now.
+                if opp_tco_candidate && !opp_tco_fired {
+                    self.emit_stmt(&mut w, &block.stmts[n_stmts - 1]);
+                }
+
+                // Handle terminator (skipped when opportunistic TCO fired)
+                if !opp_tco_fired {
+                    match &block.terminator {
+                        Terminator::Return(Some(op)) => {
+                            if is_main_fn {
+                                // WASI _start must be () -> (); emit for side effects but discard result
+                                if !matches!(op, Operand::Unit) {
+                                    self.emit_operand(&mut w, op);
+                                    if self.operand_produces_value(op) {
+                                        w.instruction(&Instruction::Drop);
+                                    }
+                                }
+                            } else if self.opt_level >= 1
+                                && self.try_emit_tail_call_return(&mut w, op)
+                            {
+                                // return_call (or return_call via IfExpr branch) was emitted;
+                                // no Return instruction needed.
+                            } else {
                                 self.emit_operand(&mut w, op);
-                                if self.operand_produces_value(op) {
-                                    w.instruction(&Instruction::Drop);
-                                }
-                            }
-                        } else if self.opt_level >= 1 && self.try_emit_tail_call_return(&mut w, op)
-                        {
-                            // return_call (or return_call via IfExpr branch) was emitted;
-                            // no Return instruction needed.
-                        } else {
-                            self.emit_operand(&mut w, op);
-                            // Box value types when returning from generic function with anyref return
-                            if self.current_fn_return_ty == Type::Any {
-                                let op_vt = self.infer_operand_type(op);
-                                if op_vt == ValType::I32 {
-                                    w.instruction(&Instruction::RefI31);
-                                }
-                            }
-                            w.instruction(&Instruction::Return);
-                        }
-                    }
-                    Terminator::Return(None) => {
-                        w.instruction(&Instruction::Return);
-                    }
-                    Terminator::TailCall {
-                        func: callee_name,
-                        args,
-                    } => {
-                        // Emit `return_call <func>` — tail-call terminator from MIR optimiser.
-                        let canonical = normalize_intrinsic(callee_name).to_string();
-                        if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
-                            let param_types = self.fn_param_types.get(canonical.as_str()).cloned();
-                            for (i, arg) in args.iter().enumerate() {
-                                self.emit_operand(&mut w, arg);
-                                if let Some(ref pts) = param_types
-                                    && i < pts.len()
-                                    && pts[i] == Type::Any
-                                {
-                                    let arg_vt = self.infer_operand_type(arg);
-                                    if arg_vt == ValType::I32 {
+                                // Box value types when returning from generic function with anyref return
+                                if self.current_fn_return_ty == Type::Any {
+                                    let op_vt = self.infer_operand_type(op);
+                                    if op_vt == ValType::I32 {
                                         w.instruction(&Instruction::RefI31);
                                     }
                                 }
+                                w.instruction(&Instruction::Return);
                             }
-                            w.instruction(&Instruction::ReturnCall(fn_idx));
-                        } else {
-                            // Fallback: emit as regular call + return
+                        }
+                        Terminator::Return(None) => {
+                            w.instruction(&Instruction::Return);
+                        }
+                        Terminator::TailCall {
+                            func: callee_name,
+                            args,
+                        } => {
+                            // Emit `return_call <func>` — tail-call terminator from MIR optimiser.
+                            let canonical = normalize_intrinsic(callee_name).to_string();
+                            if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
+                                let param_types =
+                                    self.fn_param_types.get(canonical.as_str()).cloned();
+                                for (i, arg) in args.iter().enumerate() {
+                                    self.emit_operand(&mut w, arg);
+                                    if let Some(ref pts) = param_types
+                                        && i < pts.len()
+                                        && pts[i] == Type::Any
+                                    {
+                                        let arg_vt = self.infer_operand_type(arg);
+                                        if arg_vt == ValType::I32 {
+                                            w.instruction(&Instruction::RefI31);
+                                        }
+                                    }
+                                }
+                                w.instruction(&Instruction::ReturnCall(fn_idx));
+                            } else {
+                                // Fallback: emit as regular call + return
+                                for arg in args {
+                                    self.emit_operand(&mut w, arg);
+                                }
+                                if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
+                                    w.instruction(&Instruction::Call(fn_idx));
+                                }
+                                w.instruction(&Instruction::Return);
+                            }
+                        }
+                        Terminator::TailCallIndirect { callee, args } => {
+                            // Emit `return_call_indirect` — indirect tail-call terminator.
                             for arg in args {
                                 self.emit_operand(&mut w, arg);
                             }
-                            if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
-                                w.instruction(&Instruction::Call(fn_idx));
-                            }
-                            w.instruction(&Instruction::Return);
+                            self.emit_operand(&mut w, callee);
+                            let params: Vec<ValType> = args
+                                .iter()
+                                .map(|a| {
+                                    if self.is_f64_like_operand(a) {
+                                        ValType::F64
+                                    } else if self.is_i64_like_operand(a) {
+                                        ValType::I64
+                                    } else {
+                                        ValType::I32
+                                    }
+                                })
+                                .collect();
+                            let results = vec![ValType::I32];
+                            let type_index = self
+                                .indirect_types
+                                .get(&(params, results))
+                                .copied()
+                                .unwrap_or(0);
+                            w.instruction(&Instruction::ReturnCallIndirect {
+                                type_index,
+                                table_index: 0,
+                            });
                         }
+                        _ => {}
                     }
-                    Terminator::TailCallIndirect { callee, args } => {
-                        // Emit `return_call_indirect` — indirect tail-call terminator.
-                        for arg in args {
-                            self.emit_operand(&mut w, arg);
-                        }
-                        self.emit_operand(&mut w, callee);
-                        let params: Vec<ValType> = args
-                            .iter()
-                            .map(|a| {
-                                if self.is_f64_like_operand(a) {
-                                    ValType::F64
-                                } else if self.is_i64_like_operand(a) {
-                                    ValType::I64
-                                } else {
-                                    ValType::I32
-                                }
-                            })
-                            .collect();
-                        let results = vec![ValType::I32];
-                        let type_index = self
-                            .indirect_types
-                            .get(&(params, results))
-                            .copied()
-                            .unwrap_or(0);
-                        w.instruction(&Instruction::ReturnCallIndirect {
-                            type_index,
-                            table_index: 0,
-                        });
-                    }
-                    _ => {}
-                }
+                } // end if !opp_tco_fired
             }
             w.instruction(&Instruction::End);
             w.flush();
@@ -2687,6 +2762,138 @@ impl Ctx {
                 // only applies to the non-tail-call branch.
                 false
             }
+            _ => false,
+        }
+    }
+
+    /// Opportunistic TCO: detect and emit a `let result = user_call(args); return result`
+    /// pattern that the MIR-level tail-call detection pass missed.
+    ///
+    /// Handles two last-statement shapes:
+    ///   1. `MirStmt::Call { dest: Some(Place::Local(dest_id)), func: FnId, args }`
+    ///   2. `MirStmt::Assign(Place::Local(dest_id), Rvalue::Use(Operand::Call(name, args)))`
+    ///
+    /// In both cases the `return_op` must be `Operand::Place(Place::Local(dest_id))`.
+    ///
+    /// Returns `true` if `return_call` was emitted.  The caller must NOT emit the
+    /// last statement again or any `return` instruction when `true` is returned.
+    pub(super) fn try_emit_let_call_tail_return(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        last_stmt: &MirStmt,
+        return_op: &Operand,
+    ) -> bool {
+        // Confirm the return operand is exactly a plain local read.
+        let ret_local_id = match return_op {
+            Operand::Place(Place::Local(id)) => id.0,
+            _ => return false,
+        };
+
+        match last_stmt {
+            // ── Shape 1: MirStmt::Call { dest: Some(Local(id)), func: FnId, args } ──
+            MirStmt::Call {
+                dest: Some(Place::Local(dest_id)),
+                func: fn_id,
+                args,
+            } if dest_id.0 == ret_local_id => {
+                let fn_idx_mir = fn_id.0 as usize;
+                let fn_name = match self.fn_names.get(fn_idx_mir).cloned() {
+                    Some(n) => n,
+                    None => return false,
+                };
+                let canonical = normalize_intrinsic(&fn_name).to_string();
+                let lookup_name = fn_name.rsplit("::").next().unwrap_or(&fn_name).to_string();
+                let is_lookup_builtin = self.is_builtin_name(&lookup_name);
+                let prefer_user_fn = fn_name.contains("::") && !is_lookup_builtin;
+                let is_http_wrapper = self.http_wrapper_fns.contains(&fn_name);
+                // Skip functions that would be dispatched via the builtin path in emit_stmt.
+                if (self.is_builtin_name(&canonical) || is_lookup_builtin)
+                    && !prefer_user_fn
+                    && !is_http_wrapper
+                {
+                    return false;
+                }
+                // Resolve to Wasm function index (same lookup order as stmts.rs).
+                let (effective_name, fn_idx) = if let Some(&idx) = self.fn_map.get(&fn_name) {
+                    (fn_name.clone(), idx)
+                } else if let Some(&idx) = self.fn_map.get(lookup_name.as_str()) {
+                    (lookup_name.clone(), idx)
+                } else {
+                    return false;
+                };
+                // Type-compatibility check (same as try_emit_tail_call_return).
+                let callee_ret_is_any = self
+                    .fn_ret_types
+                    .get(effective_name.as_str())
+                    .is_some_and(|t| *t == Type::Any);
+                if callee_ret_is_any != (self.current_fn_return_ty == Type::Any) {
+                    return false;
+                }
+                // Emit args with type coercion (mirrors stmts.rs MirStmt::Call emission).
+                let param_types = self.fn_param_types.get(effective_name.as_str()).cloned();
+                for (i, arg) in args.iter().enumerate() {
+                    let need_i64 = param_types
+                        .as_ref()
+                        .and_then(|pt| pt.get(i))
+                        .is_some_and(|t| matches!(t, Type::I64));
+                    let need_f64 = param_types
+                        .as_ref()
+                        .and_then(|pt| pt.get(i))
+                        .is_some_and(|t| matches!(t, Type::F64));
+                    let need_any = param_types
+                        .as_ref()
+                        .and_then(|pt| pt.get(i))
+                        .is_some_and(|t| matches!(t, Type::Any));
+                    self.emit_operand_coerced(f, arg, need_i64, need_f64);
+                    if need_any {
+                        let arg_vt = self.infer_operand_type(arg);
+                        if arg_vt == ValType::I32 {
+                            f.instruction(&Instruction::RefI31);
+                        }
+                    }
+                }
+                f.instruction(&Instruction::ReturnCall(fn_idx));
+                true
+            }
+
+            // ── Shape 2: Assign(Local(id), Use(Operand::Call(name, args))) ──
+            MirStmt::Assign(Place::Local(dest_id), Rvalue::Use(Operand::Call(name, args)))
+                if dest_id.0 == ret_local_id =>
+            {
+                let canonical = normalize_intrinsic(name).to_string();
+                if self.is_builtin_name(&canonical) {
+                    return false;
+                }
+                // Type-compatibility check.
+                let callee_ret_is_any = self
+                    .fn_ret_types
+                    .get(canonical.as_str())
+                    .is_some_and(|t| *t == Type::Any);
+                if callee_ret_is_any != (self.current_fn_return_ty == Type::Any) {
+                    return false;
+                }
+                let fn_idx = match self.fn_map.get(canonical.as_str()).copied() {
+                    Some(i) => i,
+                    None => return false,
+                };
+                // Emit args with anyref boxing (mirrors try_emit_tail_call_return).
+                let param_types = self.fn_param_types.get(canonical.as_str()).cloned();
+                for (i, arg) in args.iter().enumerate() {
+                    self.emit_operand(f, arg);
+                    if let Some(ref pts) = param_types
+                        && i < pts.len()
+                        && pts[i] == Type::Any
+                    {
+                        let arg_vt = self.infer_operand_type(arg);
+                        if arg_vt == ValType::I32 {
+                            f.instruction(&Instruction::RefI31);
+                        }
+                    }
+                }
+                f.instruction(&Instruction::ReturnCall(fn_idx));
+                true
+            }
+
             _ => false,
         }
     }

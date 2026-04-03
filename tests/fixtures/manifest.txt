@@ -678,3 +678,8 @@ run:stdlib_signal/fft.ark
 # tail_call: uses T3/WasmGC emitter (wasm32-wasi-p2) which emits return_call for tail recursion.
 # The 100,000-depth countdown proves TCO prevents stack overflow.
 t3-run:tail_call/deep_recursion.ark
+# opportunistic: proves return_call emission via the let-call-return pattern (#090).
+# countdown_let/sum_let use explicit `let result = f(…); result` — the MIR
+# tail-call pass does NOT rewrite these; the T3 emitter's opportunistic
+# try_emit_let_call_tail_return detects and emits return_call instead.
+t3-run:tail_call/opportunistic.ark

@@ -23,7 +23,6 @@ graph LR
   I087["087 MIR: 関数間インライン展開の強化 — 呼び出し回数・サイズ閾値の最適化"]
   I088["088 T3 Peephole: local.get/set 冗長ペア除去"]
   I089["089 T3: 関数型セクション重複排除 (Type Section Dedup)"]
-  I090["090 T3: 末尾位置の call → return_call 自動変換"]
   I091["091 T3: 同一文字列リテラルのデータセグメント共有"]
   I092["092 T3: 未使用 WASI import の除去"]
   I093["093 T3: 定数条件 if の emit 時除去"]
@@ -204,7 +203,6 @@ graph LR
 - **087** depends on: none; blocks: none
 - **088** depends on: none; blocks: 108
 - **089** depends on: none; blocks: 108
-- **090** depends on: 060; blocks: none
 - **091** depends on: none; blocks: 108
 - **092** depends on: none; blocks: 108
 - **093** depends on: none; blocks: none
