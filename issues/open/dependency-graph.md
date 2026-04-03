@@ -9,7 +9,6 @@ graph LR
   I039["039 std モジュールシステム基盤: `use std::*` import インフラ"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
-  I067["067 Wasm Sign Extension Ops: i32.extend8_s / i32.extend16_s / i64 版"]
   I070["070 Wasm GC i31ref: 小整数 unboxed scalar 最適化"]
   I072["072 Wasm Multi-Value: ブロック / ループの複数値返却フル活用"]
   I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
@@ -176,7 +175,6 @@ graph LR
 - **039** depends on: none; blocks: 041, 042, 043, 044, 045, 046, 047, 048, 049, 050, 051, 052, 053, 054, 055, 056
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
-- **067** depends on: none; blocks: none
 - **070** depends on: none; blocks: none
 - **072** depends on: none; blocks: none
 - **073** depends on: none; blocks: none
