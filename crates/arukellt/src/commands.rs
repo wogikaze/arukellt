@@ -311,6 +311,7 @@ fn collect_ark_files(dir: &std::path::Path) -> Vec<PathBuf> {
 pub(crate) fn cmd_build(
     target: TargetId,
     opt_level_raw: u8,
+    strip_debug: bool,
     mir_select: &str,
     profile_mem: bool,
     time: bool,
@@ -361,6 +362,7 @@ pub(crate) fn cmd_build(
         profile_mem,
         time,
         opt_level_raw,
+        strip_debug,
         vec![],
         mir_select,
         false,
@@ -379,6 +381,7 @@ pub(crate) fn cmd_compile(
     profile_mem: bool,
     time: bool,
     opt_level_raw: u8,
+    strip_debug: bool,
     no_pass: Vec<String>,
     mir_select: &str,
     json: bool,
@@ -452,6 +455,7 @@ pub(crate) fn cmd_compile(
         let mut session = Session::new();
         session.timing_enabled = time;
         session.opt_level = opt_level;
+        session.strip_debug = strip_debug;
         session.disabled_passes = no_pass.clone();
         match session.compile_wit_with_world(&file, world_spec) {
             Ok(wit_text) => {
@@ -481,6 +485,7 @@ pub(crate) fn cmd_compile(
         let mut session = Session::new();
         session.timing_enabled = time;
         session.opt_level = opt_level;
+        session.strip_debug = strip_debug;
         session.disabled_passes = no_pass.clone();
         session.p2_native = p2_native;
         match session.compile_component_with_world(&file, target, world_spec) {
@@ -521,6 +526,7 @@ pub(crate) fn cmd_compile(
     let mut session = Session::new();
     session.timing_enabled = time || json;
     session.opt_level = opt_level;
+    session.strip_debug = strip_debug;
     session.disabled_passes = no_pass;
     let selection = parse_mir_select(mir_select);
 
@@ -637,6 +643,7 @@ pub(crate) fn cmd_run(
     deny_clock: bool,
     deny_random: bool,
     profile_mem: bool,
+    strip_debug: bool,
     mir_select: &str,
     watch: bool,
 ) {
@@ -674,6 +681,7 @@ pub(crate) fn cmd_run(
     }
 
     let mut session = Session::new();
+    session.strip_debug = strip_debug;
     let selection = parse_mir_select(mir_select);
 
     let run_once = |session: &mut Session| -> bool {

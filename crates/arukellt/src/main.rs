@@ -160,6 +160,9 @@ enum Commands {
         /// Show memory profiling info (escape analysis, allocation hints)
         #[arg(long)]
         profile_mem: bool,
+        /// Strip Name Section from compiled Wasm (omit debug symbols)
+        #[arg(long)]
+        strip_debug: bool,
         /// MIR lowering path: legacy or corehir (default)
         #[arg(long = "mir-select", value_name = "PATH", default_value = "corehir")]
         mir_select: String,
@@ -318,6 +321,7 @@ fn main() {
             deny_clock,
             deny_random,
             profile_mem,
+            strip_debug,
             mir_select,
             watch,
         } => {
@@ -329,6 +333,7 @@ fn main() {
                 deny_clock,
                 deny_random,
                 profile_mem,
+                strip_debug,
                 &mir_select,
                 watch,
             );
