@@ -1,0 +1,25 @@
+// Fixture for issue #067: Wasm sign extension ops (i32.extend8_s, i32.extend16_s, etc.)
+// Verifies that narrow signed integers preserve sign when widened to i32/i64.
+use std::host::stdio
+
+fn main() {
+    // i8 negative value: -100i8 widened to i32 must stay negative
+    let a: i8 = -100i8
+    let b: i32 = i8_to_i32(a)
+    stdio::println(b)
+
+    // i8 boundary: -128i8 widened to i32
+    let c: i8 = -128i8
+    let d: i32 = i8_to_i32(c)
+    stdio::println(d)
+
+    // i16 negative value: -1000i16 widened to i32
+    let e: i16 = -1000i16
+    let f: i32 = i16_to_i32(e)
+    stdio::println(f)
+
+    // positive i8 still works correctly
+    let g: i8 = 127i8
+    let h: i32 = i8_to_i32(g)
+    stdio::println(h)
+}

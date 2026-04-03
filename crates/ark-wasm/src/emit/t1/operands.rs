@@ -7478,12 +7478,26 @@ impl EmitCtx {
                 f.instruction(&Instruction::I32Xor);
             }
             UnaryOp::SignExtend8 => {
+                let is_i64 = self.is_i64_operand(inner);
                 self.emit_operand(f, inner);
-                f.instruction(&Instruction::I32Extend8S);
+                if is_i64 {
+                    // i64.extend8_s — sign-extend low 8 bits of an i64 (issue #067)
+                    f.instruction(&Instruction::I64Extend8S);
+                } else {
+                    // i32.extend8_s — sign-extend low 8 bits of an i32 (issue #067)
+                    f.instruction(&Instruction::I32Extend8S);
+                }
             }
             UnaryOp::SignExtend16 => {
+                let is_i64 = self.is_i64_operand(inner);
                 self.emit_operand(f, inner);
-                f.instruction(&Instruction::I32Extend16S);
+                if is_i64 {
+                    // i64.extend16_s — sign-extend low 16 bits of an i64 (issue #067)
+                    f.instruction(&Instruction::I64Extend16S);
+                } else {
+                    // i32.extend16_s — sign-extend low 16 bits of an i32 (issue #067)
+                    f.instruction(&Instruction::I32Extend16S);
+                }
             }
             UnaryOp::SignExtend32 => {
                 self.emit_operand(f, inner);

@@ -186,6 +186,7 @@ run:scalar/f32_basic.ark
 run:scalar/hex_literal.ark
 run:scalar/i16_basic.ark
 run:scalar/i8_sign.ark
+run:scalar/sign_extend.ark
 run:scalar/suffix_literals.ark
 run:scalar/type_annotation.ark
 run:scalar/u16_arithmetic.ark
