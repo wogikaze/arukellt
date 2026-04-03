@@ -80,6 +80,16 @@ trait / method syntax を主導線にする。
 5. `.to_string()` は secondary sugar とみなし、method syntax / trait resolution の stable guidance が固まるまでは canonical 扱いしない。
 6. user-defined `Display` 相当の説明でも、まず `to_string(x)` が portable な形であることを優先する。
 
+## Non-goals
+
+このADRが**扱わない**スコープを明示する。
+
+1. **compiler の `to_string()` dispatch 実装** (#484 スコープ) — ADR は設計決定のみ; `to_string(x)` が型ごとのバックエンド helper にどう dispatch されるかの実装変更は #484 で行う。
+2. **`i32_to_string` / `i64_to_string` 等 primitive helper の削除** — これらは互換 surface として残す。このADRは canonical guidance を変えるのみであり、helper を廃止または削除しない。
+3. **`.to_string()` method syntax の canonical 採用** — メソッド構文による `.to_string()` を primary path とすることは、trait / method syntax resolution が stable になるまで保留 (ADR-004 および #157 参照)。これは除外スコープ。
+4. **Display trait / stdlib モジュール構造の変更** — `Display` trait の設計やstdlib モジュールの再編はこのADRの範囲外。
+5. **docs/quickstart・cookbook・fixture の更新** — 既存ドキュメントや fixture への `to_string(x)` 表記の横断反映は #171 スコープ。
+
 ## 根拠
 
 1. **LLM friendliness**
