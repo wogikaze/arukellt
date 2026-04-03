@@ -1,8 +1,8 @@
 # Fixture harness を selfhost binary 対応にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-04-03
+**Updated**: 2026-04-05
 **ID**: 330
 **Depends on**: 328
 **Track**: selfhost-retirement
@@ -70,3 +70,12 @@
 
 - `tests/harness.rs` — fixture harness
 - `tests/fixtures/manifest.txt` — fixture 一覧
+
+---
+
+## Closed by orchestrator — 2026-04-05
+
+Close gate satisfied (commits `912dbb2`, `e9b1d62`):
+- scripts/gen/gen-harness-report.sh created (executable, JSON/text modes, --baseline regression tracking)
+- .github/workflows/ci.yml modified: ARUKELLT_BIN env var + harness artifact upload
+- verify-harness.sh --quick 19/19

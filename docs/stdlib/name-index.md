@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 299
+- **Canonical names:** 301
 - **Historical/deprecated names:** 3
-- **Total entries:** 302
+- **Total entries:** 304
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -190,6 +190,8 @@ Current public API names, sorted alphabetically.
 | `min` | `prelude` | `stable` | Math |
 | `min_i32` | `std::seq` | `stable` | Seq |
 | `monotonic_now` | `std::host::clock` | `stable` | Host Clock |
+| `next_f64` | `std::host::random` | `stable` | Host Random |
+| `now_ms` | `std::host::clock` | `stable` | Host Clock |
 | `ok` | `prelude` | `stable` | Option Result |
 | `ok_or` | `prelude` | `stable` | Option Result |
 | `pad_left` | `std::text` | `stable` | Text |
@@ -511,6 +513,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `min` | ✅ `stable` | `prelude` | Math |
 | `min_i32` | ✅ `stable` | `std::seq` | Seq |
 | `monotonic_now` | ✅ `stable` | `std::host::clock` | Host Clock |
+| `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
+| `now_ms` | ✅ `stable` | `std::host::clock` | Host Clock |
 | `ok` | ✅ `stable` | `prelude` | Option Result |
 | `ok_or` | ✅ `stable` | `prelude` | Option Result |
 | `pad_left` | ✅ `stable` | `std::text` | Text |

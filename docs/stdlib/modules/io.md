@@ -247,8 +247,8 @@ Return true if the given flag (e.g. "--verbose") was passed as a command-line ar
 ## `std::host::clock`
 
 - Source: [`../../../std/host/clock.ark`](../../../std/host/clock.ark)
-- Manifest-backed functions: 1
-- Stability: stable 1
+- Manifest-backed functions: 2
+- Stability: stable 2
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -261,6 +261,7 @@ Clock reads are host-bound. Pure duration math lives in `std::time`.
 | Name | Signature | Stability | Status | Summary |
 |------|-----------|-----------|--------|---------|
 | `monotonic_now` | `() -> i64` | `stable` | ✅ impl | Returns a monotonic timestamp in nanoseconds. |
+| `now_ms` | `() -> i64` | `stable` | ✅ impl | Returns the current wall-clock time in milliseconds since the Unix epoch. |
 
 #### `monotonic_now`
 
@@ -268,11 +269,17 @@ Return the current monotonic clock value in nanoseconds. Suitable for measuring 
 
 **Availability:** Requires the --allow-clock capability flag at runtime.
 
+#### `now_ms`
+
+Return the current wall-clock time in milliseconds since the Unix epoch.
+
+**Availability:** Requires the --allow-clock capability flag at runtime.
+
 ## `std::host::random`
 
 - Source: [`../../../std/host/random.ark`](../../../std/host/random.ark)
-- Manifest-backed functions: 3
-- Stability: stable 3
+- Manifest-backed functions: 4
+- Stability: stable 4
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -287,6 +294,7 @@ Deterministic seeded utilities live in `std::random`.
 | `random_i32` | `() -> i32` | `stable` | ✅ impl | Returns a host-provided random i32. |
 | `random_i32_range` | `(i32, i32) -> i32` | `stable` | ✅ impl | Returns a host-provided random value in [lo, hi). |
 | `random_bool` | `() -> bool` | `stable` | ✅ impl | Returns a host-provided random boolean. |
+| `next_f64` | `() -> f64` | `stable` | ✅ impl | Returns a host-provided random f64 in the range [0.0, 1.0). |
 
 #### `random_i32`
 
@@ -310,5 +318,11 @@ let n = random::random_i32_range(1, 7)
 #### `random_bool`
 
 Return a random boolean value with equal probability of true and false.
+
+**Availability:** Requires the --allow-random capability flag at runtime.
+
+#### `next_f64`
+
+Return a host-provided random f64 value in the range [0.0, 1.0).
 
 **Availability:** Requires the --allow-random capability flag at runtime.

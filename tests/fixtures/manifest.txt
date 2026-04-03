@@ -9,6 +9,7 @@
 # Fixture manifest — single source of truth for test fixtures.
 # Format: kind:path (relative to tests/fixtures/)
 # Kinds: run, diag, module-run, module-diag, t3-compile, component-compile, compile-error
+run:scalar/f32_local.ark
 # Optimisation tests
 # The harness reads this file instead of globbing.
 # These verify that the T3 WasmGC emitter compiles without errors.
@@ -79,6 +80,9 @@ module-run:modules/visibility_pub_access/main.ark
 # Parser-acceptance fixtures (slice 1 of issue #039): not compiled/run yet — resolver pending
 parse-only:module_import/use_basic.ark
 parse-only:module_import/use_destructure.ark
+# std::host::clock and std::host::random import-acceptance fixtures (#138)
+parse-only:stdlib_host/clock_import.ark
+parse-only:stdlib_host/random_import.ark
 run:module_import/use_std_string.ark
 run:module_import/use_qualified_call_typed.ark
 module-run:stdlib_random/random_range.ark

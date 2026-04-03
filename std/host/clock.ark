@@ -6,3 +6,10 @@
 pub fn monotonic_now() -> i64 {
     __intrinsic_clock_now()
 }
+
+/// Returns the current wall-clock time in milliseconds since the Unix epoch.
+/// Stub: delegates to __intrinsic_clock_now (nanoseconds) until
+/// __intrinsic_clock_now_ms is wired in the T1 emitter.
+pub fn now_ms() -> i64 {
+    __intrinsic_clock_now()
+}

@@ -1,0 +1,8 @@
+// Fixture: random_import.ark
+// Verifies that `use std::host::random` parses and that next_f64 is visible.
+// parse-only: intrinsics are not yet wired to a host implementation.
+use std::host::random
+
+fn main() {
+    // body intentionally empty — only parse/import acceptance is tested
+}

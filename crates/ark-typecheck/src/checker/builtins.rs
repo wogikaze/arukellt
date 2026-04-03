@@ -374,6 +374,16 @@ impl TypeChecker {
             },
         );
         self.fn_sigs.insert(
+            "__intrinsic_clock_now_ms".into(),
+            FnSig {
+                name: "__intrinsic_clock_now_ms".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I64,
+            },
+        );
+        self.fn_sigs.insert(
             "__intrinsic_random_i32".into(),
             FnSig {
                 name: "__intrinsic_random_i32".into(),
@@ -381,6 +391,16 @@ impl TypeChecker {
                 type_param_bounds: vec![],
                 params: vec![],
                 ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_random_next_f64".into(),
+            FnSig {
+                name: "__intrinsic_random_next_f64".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::F64,
             },
         );
         // String intrinsics

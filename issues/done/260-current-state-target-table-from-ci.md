@@ -1,8 +1,8 @@
 # current-state.md の target 表を CI 結果からのみ更新する仕組みを作る
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
-**Updated**: 2026-04-03
+**Updated**: 2026-04-05
 **ID**: 260
 **Depends on**: 256, 257
 **Track**: main
@@ -75,3 +75,13 @@
 ## Completion Note
 
 Closed 2026-04-09. docs/target-contract.md is the target table. generate-docs.py renders it. CI determinism layer verifies SHA256 match. docs/data/project-state.toml is the source for current-state fixture counts. CI is now the authoritative source for target status through ARUKELLT_TARGET env var injection.
+
+---
+
+## Closed by orchestrator — 2026-04-05
+
+Close gate satisfied (commit `432afcc`):
+- .github/workflows/ci.yml has `target-contract-drift-check` job
+- Job runs `scripts/update-target-status.sh --dry-run` + `git diff --exit-code`
+- Triggers on pull_request and push to master
+- YAML validates; verify-harness.sh --quick 19/19

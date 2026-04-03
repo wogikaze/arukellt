@@ -167,7 +167,9 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_fs_write_file" => "fs_write_file",
         "__intrinsic_fs_write_bytes" => "fs_write_bytes",
         "__intrinsic_clock_now" => "clock_now",
+        "__intrinsic_clock_now_ms" => "clock_now_ms",
         "__intrinsic_random_i32" => "random_i32",
+        "__intrinsic_random_next_f64" => "random_next_f64",
         "__intrinsic_sort_i64" => "sort_i64",
         "__intrinsic_sort_f64" => "sort_f64",
         "__intrinsic_map_String_String" => "map_String_String",
@@ -253,6 +255,7 @@ pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink) -> Vec<u8> {
         vec_i64_locals: HashSet::new(),
         vec_f64_locals: HashSet::new(),
         f64_locals: HashSet::new(),
+        f32_locals: HashSet::new(),
         i64_locals: HashSet::new(),
         bool_locals: HashSet::new(),
         char_locals: HashSet::new(),
@@ -311,6 +314,8 @@ struct EmitCtx {
     vec_f64_locals: HashSet<u32>,
     /// Locals known to hold f64 values.
     f64_locals: HashSet<u32>,
+    /// Locals known to hold f32 values.
+    f32_locals: HashSet<u32>,
     /// Locals known to hold i64 values.
     i64_locals: HashSet<u32>,
     /// Locals known to hold bool values.
@@ -670,6 +675,7 @@ impl EmitCtx {
         self.vec_i64_locals.clear();
         self.vec_f64_locals.clear();
         self.f64_locals.clear();
+        self.f32_locals.clear();
         self.i64_locals.clear();
         self.bool_locals.clear();
         self.char_locals.clear();
@@ -680,6 +686,9 @@ impl EmitCtx {
                 }
                 ark_typecheck::types::Type::F64 => {
                     self.f64_locals.insert(local.id.0);
+                }
+                ark_typecheck::types::Type::F32 => {
+                    self.f32_locals.insert(local.id.0);
                 }
                 ark_typecheck::types::Type::I64 | ark_typecheck::types::Type::U64 => {
                     self.i64_locals.insert(local.id.0);
@@ -1284,7 +1293,13 @@ fn cfn_handle_builtin(
         "clock_now" | "clock_time_get" => {
             needed.insert(FN_CLOCK_TIME_GET);
         }
+        "clock_now_ms" => {
+            needed.insert(FN_CLOCK_TIME_GET);
+        }
         "random_i32" | "random_f64" => {
+            needed.insert(FN_RANDOM_GET);
+        }
+        "random_next_f64" => {
             needed.insert(FN_RANDOM_GET);
         }
         "fs_read_file" => {

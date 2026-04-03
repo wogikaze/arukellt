@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 247 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 249 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 47 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -256,6 +256,7 @@ Expected output: `42`
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
+| `now_ms` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now_ms` | Return the current wall-clock time in milliseconds since the Unix epoch. |
 
 ## Host Env
 
@@ -343,6 +344,7 @@ let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `next_f64` | `() -> f64` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
 | `random_bool` | `() -> bool` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random boolean value with equal probability of true and false. |
 | `random_i32` | `() -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a cryptographically-secure random i32 value. |
 | `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
@@ -833,6 +835,8 @@ Expected output: `hello world`
 | `min` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_min` | - |
 | `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
+| `next_f64` | `() -> f64` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
+| `now_ms` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now_ms` | Return the current wall-clock time in milliseconds since the Unix epoch. |
 | `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |

@@ -1311,8 +1311,10 @@ const CLOCK_BUILTINS: &[&str] = &[
 const RANDOM_BUILTINS: &[&str] = &[
     "random_i32",
     "random_f64",
+    "next_f64",
     "__intrinsic_random_i32",
     "__intrinsic_random_f64",
+    "__intrinsic_random_next_f64",
 ];
 
 /// Functions marked `kind = "host_stub"` in std/manifest.toml.

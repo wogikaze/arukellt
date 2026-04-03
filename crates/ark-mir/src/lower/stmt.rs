@@ -90,10 +90,13 @@ impl LowerCtx {
                     if is_string_type(type_expr) {
                         self.string_locals.insert(local_id.0);
                     }
-                    // Track f64-typed locals
+                    // Track f64/f32-typed locals
                     if let ast::TypeExpr::Named { name: tname, .. } = type_expr {
                         if tname == "f64" {
                             self.f64_locals.insert(local_id.0);
+                        }
+                        if tname == "f32" {
+                            self.f32_locals.insert(local_id.0);
                         }
                         if tname == "i64" || tname == "u64" {
                             self.i64_locals.insert(local_id.0);

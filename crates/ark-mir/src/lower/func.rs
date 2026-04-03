@@ -317,13 +317,16 @@ pub fn lower_to_mir(
                 if is_string_type(&param.ty) {
                     ctx.string_locals.insert(pid.0);
                 }
-                // Track i64/f64-typed parameters
+                // Track i64/f64/f32-typed parameters
                 if let ast::TypeExpr::Named { name: tname, .. } = &param.ty {
                     if tname == "i64" || tname == "u64" {
                         ctx.i64_locals.insert(pid.0);
                     }
                     if tname == "f64" {
                         ctx.f64_locals.insert(pid.0);
+                    }
+                    if tname == "f32" {
+                        ctx.f32_locals.insert(pid.0);
                     }
                 }
                 // Track struct-typed parameters
@@ -466,6 +469,8 @@ pub fn lower_to_mir(
                             ark_typecheck::types::Type::String
                         } else if ctx.f64_locals.contains(&id.0) {
                             ark_typecheck::types::Type::F64
+                        } else if ctx.f32_locals.contains(&id.0) {
+                            ark_typecheck::types::Type::F32
                         } else if ctx.i64_locals.contains(&id.0) {
                             ark_typecheck::types::Type::I64
                         } else if ctx.bool_locals.contains(&id.0) {
@@ -555,6 +560,9 @@ pub fn lower_to_mir(
                     if let ast::TypeExpr::Named { name: tname, .. } = &param.ty {
                         if tname == "f64" {
                             ctx.f64_locals.insert(pid.0);
+                        }
+                        if tname == "f32" {
+                            ctx.f32_locals.insert(pid.0);
                         }
                         if ctx.struct_defs.contains_key(tname.as_str()) {
                             ctx.struct_typed_locals.insert(pid.0, tname.clone());
@@ -660,6 +668,8 @@ pub fn lower_to_mir(
                                 ark_typecheck::types::Type::String
                             } else if ctx.f64_locals.contains(&id.0) {
                                 ark_typecheck::types::Type::F64
+                            } else if ctx.f32_locals.contains(&id.0) {
+                                ark_typecheck::types::Type::F32
                             } else if ctx.i64_locals.contains(&id.0) {
                                 ark_typecheck::types::Type::I64
                             } else if ctx.bool_locals.contains(&id.0) {

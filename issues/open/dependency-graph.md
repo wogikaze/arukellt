@@ -60,11 +60,8 @@ graph LR
   I150["150 横断 docs: `docs/language/spec.md` 凍結版と `docs/compiler/ir-spec.md` を整備"]
   I151["151 横断 docs: `docs/compiler/error-codes.md` と診断コード一覧の正規化"]
   I153["153 横断検証: bit-exact Wasm 再現ビルドゲートと決定性ルール"]
-  I155["155 横断 docs: selfhosting stdlib checklist と不足 migration guides を整備"]
   I156["156 T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化"]
   I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
-  I260["260 current-state.md の target 表を CI 結果からのみ更新する仕組みを作る"]
-  I330["330 Fixture harness を selfhost binary 対応にする"]
   I470["470 Playground docs: feature claim は current implementation と一致させる"]
   I471["471 Playground docs: command / workflow / publish claim の現実整合監査"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
@@ -169,7 +166,6 @@ graph LR
   I142 --> I158
   I145 --> I158
   I148 --> I158
-  I155 --> I158
   I039 --> I049
   I041 --> I049
   I042 --> I049
@@ -239,11 +235,8 @@ graph LR
 - **150** depends on: none; blocks: none
 - **151** depends on: none; blocks: none
 - **153** depends on: none; blocks: 154
-- **155** depends on: none; blocks: 158
 - **156** depends on: none; blocks: none
 - **157** depends on: none; blocks: none
-- **260** depends on: 256, 257; blocks: none
-- **330** depends on: 328; blocks: none
 - **470** depends on: 465; blocks: none
 - **471** depends on: 465; blocks: none
 - **472** depends on: 466; blocks: none

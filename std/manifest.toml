@@ -1947,6 +1947,17 @@ doc_category = "host_clock"
 doc = "Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a wall-clock."
 availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capability flag at runtime." }
 
+[[functions]]
+name = "now_ms"
+module = "std::host::clock"
+stability = "stable"
+params = []
+returns = "i64"
+intrinsic = "__intrinsic_clock_now_ms"
+doc_category = "host_clock"
+doc = "Return the current wall-clock time in milliseconds since the Unix epoch."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capability flag at runtime." }
+
 # === std::host::random ===
 
 [[functions]]
@@ -1982,6 +1993,33 @@ returns = "bool"
 intrinsic = "__intrinsic_random_i32"
 doc_category = "host_random"
 doc = "Return a random boolean value with equal probability of true and false."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
+
+[[functions]]
+name = "next_f64"
+module = "std::host::random"
+stability = "stable"
+params = []
+returns = "f64"
+intrinsic = "__intrinsic_random_next_f64"
+doc_category = "host_random"
+doc = "Return a host-provided random f64 value in the range [0.0, 1.0)."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
+
+[[modules]]
+name = "std::host::clock"
+stability = "stable"
+family = "host"
+doc = "Host clock helpers. monotonic_now returns nanoseconds; now_ms returns milliseconds since the Unix epoch."
+availability = { t1 = true, t3 = true, note = "Requires the --allow-clock capability flag at runtime." }
+
+# === std::host::random (module entry) ===
+
+[[modules]]
+name = "std::host::random"
+stability = "stable"
+family = "host"
+doc = "Host random helpers backed by the current entropy intrinsic. next_f64 returns a value in [0.0, 1.0); random_i32 returns a full i32."
 availability = { t1 = true, t3 = true, note = "Requires the --allow-random capability flag at runtime." }
 
 # === std::host::http ===

@@ -416,9 +416,7 @@ mod tests {
         // Path lands under std/collections/vec.ark (may not exist on disk in test,
         // but the resolved path should be correct).
         assert!(
-            path.to_str()
-                .unwrap_or("")
-                .ends_with("collections/vec.ark"),
+            path.to_str().unwrap_or("").ends_with("collections/vec.ark"),
             "expected collections/vec.ark path, got {:?}",
             path
         );

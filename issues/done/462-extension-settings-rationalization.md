@@ -1,8 +1,8 @@
 # 拡張機能の設定項目の整理と実装への配線
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-03
+**Updated**: 2026-04-05
 **ID**: 462
 **Depends on**: none
 **Track**: extension
@@ -282,3 +282,15 @@ fn filter_diagnostics(diags: Vec<Diagnostic>, level: DiagnosticsLevel) -> Vec<Di
 
 - `workspace/didChangeConfiguration` は VS Code が設定変更時に自動送信する。これを受けた LSP サーバーが `ServerState.config` を更新し、次回リクエストから新しい設定が使われるようにする。
 - `useSelfHostBackend: true` の場合に selfhost が未完了なら silent fallback（エラーにしない）とし、Output チャンネルにログを出す。
+
+---
+
+## Closed by orchestrator — 2026-04-05
+
+All 4 decomposed child issues completed:
+- #477 (package.json 5 settings) — done `4e155a3`
+- #478 (extension.js initializationOptions wiring) — done `5537102`
+- #479 (LspConfig struct + init handler) — done `e1c1dd8`
+- #480 (README settings docs table) — done `9b9a990`
+
+Close gate satisfied. Moving to done/.

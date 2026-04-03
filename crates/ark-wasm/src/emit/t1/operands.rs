@@ -53,12 +53,17 @@ impl EmitCtx {
             }
             Operand::BinOp(op, left, right) => {
                 let is_f64 = self.is_f64_operand(left) || self.is_f64_operand(right);
-                let is_i64 = !is_f64 && (self.is_i64_operand(left) || self.is_i64_operand(right));
+                let is_f32 = !is_f64 && (self.is_f32_operand(left) || self.is_f32_operand(right));
+                let is_i64 = !is_f64 && !is_f32 && (self.is_i64_operand(left) || self.is_i64_operand(right));
                 if is_f64 {
                     // Promote both operands to f64 if needed
                     self.emit_f64_operand(f, left);
                     self.emit_f64_operand(f, right);
                     self.emit_binop_f64(f, op);
+                } else if is_f32 {
+                    self.emit_operand(f, left);
+                    self.emit_operand(f, right);
+                    self.emit_binop_f32(f, op);
                 } else if is_i64 {
                     // Promote both operands to i64 if needed
                     self.emit_i64_operand(f, left);
@@ -2670,6 +2675,46 @@ impl EmitCtx {
                             align: 3,
                             memory_index: 0,
                         }));
+                    }
+                    "clock_now_ms" => {
+                        // clock_time_get(clock_id=0 (realtime), precision=0, result_ptr=SCRATCH)
+                        // Returns nanoseconds since Unix epoch; divide by 1,000,000 for ms.
+                        f.instruction(&Instruction::I32Const(0)); // clock_id = REALTIME
+                        f.instruction(&Instruction::I64Const(0)); // precision
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32)); // result buffer
+                        self.call_fn(f, FN_CLOCK_TIME_GET);
+                        f.instruction(&Instruction::Drop); // drop errno
+                        // Load i64 nanoseconds from SCRATCH
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I64Load(MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        }));
+                        // Divide by 1,000,000 to convert ns → ms
+                        f.instruction(&Instruction::I64Const(1_000_000));
+                        f.instruction(&Instruction::I64DivU);
+                    }
+                    "random_next_f64" => {
+                        // random_get(buf_ptr=SCRATCH, buf_len=8) → 8 random bytes
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I32Const(8));
+                        self.call_fn(f, FN_RANDOM_GET);
+                        f.instruction(&Instruction::Drop); // drop errno
+                        // Load i64 from SCRATCH, mask to 52-bit mantissa, set exponent for [1.0,2.0)
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I64Load(MemArg {
+                            offset: 0,
+                            align: 3,
+                            memory_index: 0,
+                        }));
+                        f.instruction(&Instruction::I64Const(0x000F_FFFF_FFFF_FFFFi64)); // 52-bit mask
+                        f.instruction(&Instruction::I64And);
+                        f.instruction(&Instruction::I64Const(0x3FF0_0000_0000_0000u64 as i64)); // exponent 1.0
+                        f.instruction(&Instruction::I64Or);
+                        f.instruction(&Instruction::F64ReinterpretI64); // f64 in [1.0, 2.0)
+                        f.instruction(&Instruction::F64Const(1.0)); // subtract 1.0
+                        f.instruction(&Instruction::F64Sub); // result in [0.0, 1.0)
                     }
                     "random_i32" => {
                         // random_get(buf_ptr=SCRATCH, buf_len=4)
@@ -7173,16 +7218,32 @@ impl EmitCtx {
         };
     }
 
+    pub(super) fn emit_binop_f32(&mut self, f: &mut Function, op: &BinOp) {
+        match op {
+            BinOp::Add => { f.instruction(&Instruction::F32Add); }
+            BinOp::Sub => { f.instruction(&Instruction::F32Sub); }
+            BinOp::Mul => { f.instruction(&Instruction::F32Mul); }
+            BinOp::Div => { f.instruction(&Instruction::F32Div); }
+            BinOp::Eq  => { f.instruction(&Instruction::F32Eq); }
+            BinOp::Ne  => { f.instruction(&Instruction::F32Ne); }
+            BinOp::Lt  => { f.instruction(&Instruction::F32Lt); }
+            BinOp::Le  => { f.instruction(&Instruction::F32Le); }
+            BinOp::Gt  => { f.instruction(&Instruction::F32Gt); }
+            BinOp::Ge  => { f.instruction(&Instruction::F32Ge); }
+            _ => { self.emit_binop(f, op); }
+        }
+    }
+
     pub(super) fn is_f64_operand(&self, op: &Operand) -> bool {
         match op {
-            Operand::ConstF64(_) | Operand::ConstF32(_) => true,
+            Operand::ConstF64(_) => true,
             Operand::Place(Place::Local(id)) => self.f64_locals.contains(&id.0),
             Operand::BinOp(_, l, r) => self.is_f64_operand(l) || self.is_f64_operand(r),
             Operand::UnaryOp(_, inner) => self.is_f64_operand(inner),
             Operand::Call(name, _) => {
                 let normalized = normalize_intrinsic_name(name.as_str());
                 let lookup_name = name.rsplit("::").next().unwrap_or(name.as_str());
-                if matches!(normalized, "sqrt") {
+                if matches!(normalized, "sqrt" | "random_next_f64") {
                     return true;
                 }
                 self.fn_return_types
@@ -7202,6 +7263,32 @@ impl EmitCtx {
         }
     }
 
+    pub(super) fn is_f32_operand(&self, op: &Operand) -> bool {
+        match op {
+            Operand::ConstF32(_) => true,
+            Operand::Place(Place::Local(id)) => self.f32_locals.contains(&id.0),
+            Operand::BinOp(_, l, r) => self.is_f32_operand(l) || self.is_f32_operand(r),
+            Operand::UnaryOp(_, inner) => self.is_f32_operand(inner),
+            Operand::Call(name, _) => {
+                let normalized = normalize_intrinsic_name(name.as_str());
+                let lookup_name = name.rsplit("::").next().unwrap_or(name.as_str());
+                self.fn_return_types
+                    .get(normalized)
+                    .or_else(|| self.fn_return_types.get(lookup_name))
+                    .is_some_and(|t| matches!(t, ark_typecheck::types::Type::F32))
+            }
+            Operand::IfExpr {
+                then_result,
+                else_result,
+                ..
+            } => {
+                then_result.as_ref().is_some_and(|r| self.is_f32_operand(r))
+                    || else_result.as_ref().is_some_and(|r| self.is_f32_operand(r))
+            }
+            _ => false,
+        }
+    }
+
     pub(super) fn is_i64_operand(&self, op: &Operand) -> bool {
         match op {
             Operand::ConstI64(_) | Operand::ConstU64(_) => true,
@@ -7210,7 +7297,7 @@ impl EmitCtx {
             Operand::UnaryOp(_, inner) => self.is_i64_operand(inner),
             Operand::Call(name, _) => {
                 let normalized = normalize_intrinsic_name(name.as_str());
-                if matches!(normalized, "clock_now") {
+                if matches!(normalized, "clock_now" | "clock_now_ms") {
                     return true;
                 }
                 // Check fn_return_types for user-defined functions returning i64
@@ -7348,10 +7435,15 @@ impl EmitCtx {
             UnaryOp::Neg => {
                 let is_f64 = matches!(inner, Operand::ConstF64(_))
                     || matches!(inner, Operand::Place(Place::Local(id)) if self.f64_locals.contains(&id.0));
-                let is_i64 = self.is_i64_operand(inner);
+                let is_f32 = !is_f64 && (matches!(inner, Operand::ConstF32(_))
+                    || matches!(inner, Operand::Place(Place::Local(id)) if self.f32_locals.contains(&id.0)));
+                let is_i64 = !is_f64 && !is_f32 && self.is_i64_operand(inner);
                 if is_f64 {
                     self.emit_operand(f, inner);
                     f.instruction(&Instruction::F64Neg);
+                } else if is_f32 {
+                    self.emit_operand(f, inner);
+                    f.instruction(&Instruction::F32Neg);
                 } else if is_i64 {
                     f.instruction(&Instruction::I64Const(0));
                     self.emit_operand(f, inner);

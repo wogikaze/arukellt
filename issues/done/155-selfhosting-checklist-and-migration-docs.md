@@ -1,8 +1,8 @@
 # 横断 docs: selfhosting stdlib checklist と不足 migration guides を整備
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-04-03
+**Updated**: 2026-04-05
 **ID**: 155
 **Depends on**: —
 **Track**: cross-cutting
@@ -54,3 +54,14 @@
 - `docs/process/roadmap-v3.md`
 - `docs/process/roadmap-v4.md`
 - `docs/process/roadmap-v5.md`
+
+---
+
+## Closed by orchestrator — 2026-04-05
+
+Close gate satisfied (commit `3c2757f`):
+- docs/migration/v2-to-v3.md created
+- docs/migration/v3-to-v4.md created
+- docs/migration/v4-to-v5.md and docs/process/selfhosting-stdlib-checklist.md already existed
+- CHANGELOG.md has header; roadmap-cross-cutting.md links updated
+- verify-harness.sh --quick 19/19
