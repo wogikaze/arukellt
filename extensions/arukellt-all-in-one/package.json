@@ -207,8 +207,8 @@
         },
         "arukellt.playgroundUrl": {
           "type": "string",
-          "default": "https://arukellt.dev/playground",
-          "description": "Base URL of the Arukellt web playground used by the 'Open in Playground' command.",
+          "default": "",
+          "description": "Optional base URL used by the 'Open in Playground' command. Leave empty unless you have a real playground endpoint to open.",
           "scope": "resource"
         },
         "arukellt.enableCodeLens": {

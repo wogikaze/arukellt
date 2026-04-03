@@ -58,12 +58,11 @@ Choose the path that fits your goal.
 | [maturity-matrix.md](maturity-matrix.md) | Feature stability classification — see what's stable vs. experimental |
 | [spec.md](spec.md) | Stability labels per section mark which parts of the spec are provisional |
 
-### 🎮 Try It Interactively
+### 🎮 Playground Status
 
-> **Want to experiment?** The [Playground](../playground/README.md) lets you write, parse, and check Arukellt code in the browser.
+> **Looking for the web playground?** The [Playground](../playground/README.md) currently documents the browser-side engine, UI building blocks, and remaining work toward a repo-visible browser entrypoint.
 
-The playground runs the parser, type checker, and formatter as Wasm in your browser —
-no install needed. Pair it with the [guide](guide.md) for a hands-on learning experience.
+Current repo proof covers parser / formatter / tokenizer Wasm surfaces and component-level UI code. Do not treat the generated docs site as exposing a browser-reachable playground route yet.
 
 ## Classification (ADR-018)
 

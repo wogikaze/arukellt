@@ -43,7 +43,7 @@ snapshot = "examples"
 [[sections]]
 dir = "playground"
 title = "プレイグラウンド"
-description = "ブラウザ上で Arukellt を試せるインタラクティブ環境。"
+description = "ブラウザ向け playground の実装部品、設計、運用ドキュメント。"
 category = "current"
 snapshot = "playground"
 

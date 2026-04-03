@@ -38,7 +38,7 @@ The following five rationalized settings control LSP server behaviour. All setti
 | `arukellt.server.path` | `string` | `"arukellt"` | Path to the `arukellt` binary used to launch the language server. |
 | `arukellt.server.args` | `string[]` | `[]` | Extra arguments inserted before the built-in `lsp` subcommand. |
 | `arukellt.emit` | `string` | `"core-wasm"` | Default emit kind for compile commands. |
-| `arukellt.playgroundUrl` | `string` | `"https://arukellt.dev/playground"` | Base URL of the Arukellt web playground. |
+| `arukellt.playgroundUrl` | `string` | `""` | Optional URL used by `Open in Playground`. Set this only if you have a real playground endpoint to open. |
 
 ## Notes
 

@@ -529,10 +529,10 @@ async function runComponent() {
 
 /**
  * arukellt.openInPlayground
- * Opens the current file's source in the web playground.
+ * Opens the current file's source in a configured playground URL.
  * For files ≤ 2 000 characters the source is appended as ?src=<encoded>.
- * Larger files open the playground base URL (user can paste manually).
- * The playground URL is configurable via arukellt.playgroundUrl (default: https://arukellt.dev/playground).
+ * Larger files open the configured base URL (user can paste manually).
+ * The command is disabled unless arukellt.playgroundUrl is set to a real endpoint.
  */
 async function openInPlayground() {
   const editor = vscode.window.activeTextEditor
@@ -542,7 +542,14 @@ async function openInPlayground() {
   }
   const source = editor.document.getText()
   const config = vscode.workspace.getConfiguration('arukellt', editor.document.uri)
-  const playgroundUrl = config.get('playgroundUrl', 'https://arukellt.dev/playground')
+  const playgroundUrl = config.get('playgroundUrl', '').trim()
+
+  if (!playgroundUrl) {
+    vscode.window.showErrorMessage(
+      'Arukellt: playground URL is not configured. Set arukellt.playgroundUrl to a real endpoint first.'
+    )
+    return
+  }
 
   const MAX_SRC_LENGTH = 2000
   let url

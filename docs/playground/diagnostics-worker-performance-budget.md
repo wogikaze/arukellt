@@ -10,6 +10,8 @@ worker round-trip, incremental parse strategy, and measurement methodology
   ADR-022 (deployment & caching, load-time budgets),
   `docs/playground/deployment-strategy.md` §7 (asset size & load budgets)
 
+> **Status note (2026-04-03):** This draft defines target runtime budgets. It does not prove that the current repo already provides a browser-visible playground route or a local `npm run dev` workflow.
+
 ---
 
 ## 1. Purpose and Scope
@@ -358,12 +360,14 @@ wasm-opt -O2 --debuginfo \
   target/wasm32-unknown-unknown/release/ark_playground_wasm.wasm \
   -o playground/dist/ark-playground-debug.wasm
 
-# 3. Start local dev server
-cd playground && npm run dev
+# 3. Build current TS package artifacts
+cd playground && npm run build
 
-# 4. Open Chrome DevTools → Performance tab
-# 5. Record a session with typing
-# 6. Look for:
+# 4. Open a local browser route only after issues/open/466 and 468 land
+#    (the current repo does not yet define a canonical `npm run dev` workflow)
+# 5. Open Chrome DevTools → Performance tab
+# 6. Record a session with typing
+# 7. Look for:
 #    - "ark:parse-start" → "ark:parse-end" measures in User Timing
 #    - Long tasks on main thread (should be none from Wasm)
 #    - Worker thread activity alignment with debounce

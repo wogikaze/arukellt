@@ -137,11 +137,17 @@ impl LspSettings {
 
     /// Return true when the configured target is T1 (wasm32-wasi-p1).
     /// Accepts "t1", "wasm32-wasi-p1", "p1", "wasmtime" as T1 aliases.
+    #[allow(dead_code)]
     pub fn is_t1_target(&self) -> bool {
-        match self.project_target.as_deref() {
-            Some("t1") | Some("wasm32-wasi-p1") | Some("p1") | Some("wasmtime") => true,
-            _ => false,
-        }
+        Self::target_str_is_t1(self.project_target.as_deref())
+    }
+
+    /// Standalone helper: return true when the given target string is T1.
+    pub fn target_str_is_t1(target: Option<&str>) -> bool {
+        matches!(
+            target,
+            Some("t1") | Some("wasm32-wasi-p1") | Some("p1") | Some("wasmtime")
+        )
     }
 }
 
@@ -1303,10 +1309,7 @@ impl ArukellBackend {
         // Prelude functions from manifest (replaces hardcoded builtins).
         // Determine whether the configured project target is T1 so that
         // T3-only functions can be tagged as deprecated in the completion list.
-        let is_t1_target = matches!(
-            project_target,
-            Some("t1") | Some("wasm32-wasi-p1") | Some("p1") | Some("wasmtime")
-        );
+        let is_t1_target = LspSettings::target_str_is_t1(project_target);
         if let Some(m) = manifest {
             for func in &m.functions {
                 if func.prelude {
@@ -1327,7 +1330,7 @@ impl ArukellBackend {
                         format!("fn {}({})", func.name, params_str)
                     };
                     // A function is t3_only when its availability declares t1=false.
-                    let t3_only = func.availability.as_ref().map_or(false, |a| !a.t1 && a.t3);
+                    let t3_only = func.availability.as_ref().is_some_and(|a| !a.t1 && a.t3);
                     let deprecated = func.deprecated_by.is_some();
                     // Tag T3-only functions as deprecated when project targets T1,
                     // surfacing them as unavailable in the IDE without hiding them.
@@ -3660,17 +3663,9 @@ impl ArukellBackend {
         let chunk = &source[start..end];
 
         // Skip optional `pub ` prefix.
-        let without_pub = if chunk.starts_with("pub ") {
-            &chunk[4..]
-        } else {
-            chunk
-        };
+        let without_pub = chunk.strip_prefix("pub ").unwrap_or(chunk);
         // Skip `fn ` keyword.
-        let without_fn = if without_pub.starts_with("fn ") {
-            &without_pub[3..]
-        } else {
-            without_pub
-        };
+        let without_fn = without_pub.strip_prefix("fn ").unwrap_or(without_pub);
 
         // offset_from_start = number of bytes consumed so far.
         let offset_from_start = (chunk.len() - without_fn.len()) as u32;
@@ -4018,15 +4013,13 @@ impl LanguageServer for ArukellBackend {
                         } else {
                             Self::stdlib_module_hover(text, m)
                         }
-                    } else if let Some(type_info) = Self::type_hover_info(
-                        text,
-                        &analysis.module,
-                        analysis.resolved.as_ref(),
-                        analysis.checker.as_ref(),
-                    ) {
-                        Some(type_info)
                     } else {
-                        None
+                        Self::type_hover_info(
+                            text,
+                            &analysis.module,
+                            analysis.resolved.as_ref(),
+                            analysis.checker.as_ref(),
+                        )
                     };
 
                     if let Some(content) = info {

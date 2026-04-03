@@ -5,6 +5,8 @@
 **Scope**: Playground (web), CI/CD, hosting, caching, preview environments
 **Related ADRs**: ADR-017 (execution model), ADR-021 (share URL format), ADR-022 (deployment & caching)
 
+> **Status note (2026-04-03):** This document records intended deployment architecture, not current repo proof. The current repository does not yet prove a browser-visible playground entrypoint, `npm run dev`, `npm run build:full`, or PR preview deployment workflow. Track current proof work in `issues/open/466-playground-browser-entrypoint-exists.md`, `issues/open/468-playground-build-and-publish-path-proof.md`, and `issues/open/471-playground-docs-command-workflow-reality-audit.md`.
+
 ---
 
 ## 1. Overview
@@ -30,7 +32,7 @@ require no backend (per ADR-021).
 
 ## 2. Hosting Platform
 
-### 2.1 Decision: GitHub Pages (production) + GitHub Actions deploy previews
+### 2.1 Target production host once repo proof exists
 
 **Production hosting**: GitHub Pages, served from a dedicated branch
 (`gh-pages`) or a `docs/` directory on `main`, via the project's existing
@@ -186,7 +188,7 @@ updating the threshold in the CI workflow file.
 
 ## 5. Preview Environments
 
-### 5.1 PR preview deployments
+### 5.1 PR preview deployments (target state, not current repo proof)
 
 Every pull request that modifies `playground/`, `crates/ark-playground-wasm/`,
 or playground-related docs gets an automatic preview deployment.
@@ -218,30 +220,30 @@ provides automatic per-PR preview URLs at no cost).
 ⏱️ Build time: 3m 42s
 ```
 
-### 5.2 Development preview (local)
+### 5.2 Development preview (local target state)
 
-For local development, the playground provides:
+The current repo does **not** yet provide a repo-proved local browser entrypoint or
+`npm run dev` / `npm run build:full` workflow for the playground. Until issues 466 and 468
+land, treat local serving details as implementation work rather than a current contract.
+
+Current repo-backed commands are limited to building the existing packages:
 
 ```bash
-# Start local dev server with hot reload (TS only, Wasm from last build)
-cd playground && npm run dev
+# Build the TypeScript playground package
+cd playground && npm run build
 
-# Full rebuild including Wasm
-cd playground && npm run build:full
-
-# Build Wasm only
-cargo build --target wasm32-unknown-unknown -p ark-playground-wasm && \
-  wasm-opt -Oz target/wasm32-unknown-unknown/release/ark_playground_wasm.wasm \
-  -o playground/dist/ark-playground.wasm
+# Build the Wasm package and JS bindings
+cd crates/ark-playground-wasm && wasm-pack build --target web --release
 ```
 
-The dev server serves from `playground/dist/` with no caching headers,
-enabling instant feedback during development.
+How those artifacts are mounted into a browser-visible local route remains open work.
 
 ### 5.3 Staging
 
-There is no separate staging environment. The preview deployment on the
-`main` branch (production) serves as the canonical staging environment.
+There is no current repo-proved staging environment for the playground. Any preview or
+staging deployment described in this document is target-state only until the corresponding
+workflow and publish path exist in-repo.
+
 Rationale:
 
 - The app is static and client-side only — there is no database migration,

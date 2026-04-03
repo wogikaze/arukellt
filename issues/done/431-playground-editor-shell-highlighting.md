@@ -2,12 +2,20 @@
 
 **Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-03-31
+**Updated**: 2026-04-03
 **ID**: 431
 **Depends on**: 429
 **Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 4
+
+## Status note (2026-04-03)
+
+この issue は historical implementation-parts work としては done のまま保持するが、**current repo で browser-reachable playground が存在する証拠としては使わない**。
+
+- done の範囲は editor shell / highlighting / marker surface の component-level work に限定する。
+- mount 済み browser entrypoint、repo-visible route、publish proof、docs/extension alignment はこの issue の完了証拠ではない。
+- current product-proof tracking は `issues/open/465-playground-false-done-audit-and-status-rollback.md` と `issues/open/466`〜`472` で行う。
 
 ## Summary
 
