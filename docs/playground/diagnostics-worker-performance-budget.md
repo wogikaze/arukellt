@@ -432,7 +432,7 @@ interactive.
 | Document | Scope |
 |----------|-------|
 | ADR-022 §D4 | Wasm ≤ 300 KB, total ≤ 250 KB gzip, TTI ≤ 3 s — **CI-enforced** |
-| `deployment-strategy.md` §7 | Load budgets, cache budgets, Wasm compile time — **CI-enforced (size), advisory (TTI)** |
+| `deployment-strategy.md` §7 | Load budgets, cache budgets, Wasm compile time — **CI-enforced (size) once #468 lands; advisory until then** |
 | **This document** | Parse latency, worker round-trip, render jank, incremental strategy — **advisory (v1), future CI** |
 
 ---

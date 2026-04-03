@@ -119,7 +119,27 @@ the correct hashed assets.
 
 ## 4. CI/CD Pipeline
 
-### 4.1 Build pipeline
+> **Current state (2026-04-03):** The existing `.github/workflows/pages.yml` deploys **only the `./docs/` directory** to GitHub Pages on push to `master`. It does not build the playground, compile Wasm, run size gates, or create PR preview deployments. The build pipeline and workflow job steps described in §4.1–§4.3 are **target-state** (tracked by issues #466 and #468). The only current CI-backed commands for the playground package are:
+>
+> ```bash
+> cd playground && npm run build          # tsc — produces dist/
+> cd playground && npm run build:wasm     # wasm-pack build --target web --release
+> cd playground && npm run build:all      # build:wasm && build
+> cd playground && npm run typecheck      # tsc --noEmit
+> cd playground && npm run test           # node --test dist/tests/*.test.js
+> ```
+>
+> **Current pages.yml steps** (docs deploy only):
+> 1. `actions/checkout@v4`
+> 2. `actions/configure-pages@v5`
+> 3. `actions/upload-pages-artifact@v3` — uploads `./docs`
+> 4. `actions/deploy-pages@v4`
+>
+> Trigger: `push` to `master` on paths `docs/**` or `.github/workflows/pages.yml`; `workflow_dispatch`.
+
+### 4.1 Build pipeline (target state)
+
+The intended playground build pipeline, once issue #468 lands, is:
 
 ```
 ┌─────────────┐    ┌──────────────┐    ┌───────────────┐    ┌──────────────┐
@@ -139,21 +159,23 @@ the correct hashed assets.
                                               ▼
                                     ┌───────────────────┐
                                     │ Deploy to hosting  │
-                                    │ (gh-pages branch)  │
+                                    │ (GitHub Pages)     │
                                     └───────────────────┘
 ```
 
-### 4.2 GitHub Actions workflow
+### 4.2 GitHub Actions workflow (target state)
 
-**Trigger conditions**:
+The target playground CI/CD workflow (does not yet exist in repo):
+
+**Target trigger conditions**:
 
 | Event | Branch/Pattern | Action |
 |-------|---------------|--------|
-| `push` | `main` | Build + deploy to production |
+| `push` | `master` | Build + deploy to production |
 | `pull_request` | any | Build + deploy preview + comment PR with URL |
-| `workflow_dispatch` | `main` | Manual production deploy |
+| `workflow_dispatch` | `master` | Manual production deploy |
 
-**Job steps** (production):
+**Target job steps** (production):
 
 1. **Checkout** — `actions/checkout@v4`
 2. **Rust toolchain** — Install stable Rust + `wasm32-unknown-unknown` target
@@ -163,17 +185,18 @@ the correct hashed assets.
 6. **Size gate** — Assert `.wasm` ≤ 300 KB (headroom above current 247 KB)
 7. **Node.js setup** — `actions/setup-node@v4`
 8. **Install TS deps** — `npm ci` in `playground/`
-9. **Build frontend** — `npm run build` in `playground/` (produces hashed assets)
+9. **Build frontend** — `npm run build` in `playground/` (produces `dist/`)
 10. **Assemble dist** — Copy Wasm + frontend assets into deploy directory, apply content hashes
 11. **Smoke test** — Run headless browser test (Playwright) against built assets
-12. **Deploy** — `peaceiris/actions-gh-pages@v4` to push to `gh-pages` branch
+12. **Deploy** — Push assembled assets to GitHub Pages via `actions/deploy-pages@v4`
 13. **Verify** — `bash scripts/run/verify-harness.sh --quick`
 
-**Estimated CI time**: 3–5 minutes (Rust build cached), 6–8 minutes (cold cache).
+**Estimated CI time** (once implemented): 3–5 minutes (Rust build cached), 6–8 minutes (cold cache).
 
-### 4.3 Size gate
+### 4.3 Size gate (target state)
 
-The CI pipeline enforces a binary size budget on the Wasm module:
+The target CI pipeline will enforce a binary size budget on the Wasm module
+once the playground build workflow exists (issue #468):
 
 | Metric | Current | Budget | Action on exceed |
 |--------|---------|--------|-----------------|
@@ -183,6 +206,9 @@ The CI pipeline enforces a binary size budget on the Wasm module:
 
 Budget bumps require a comment in the PR explaining the size increase and
 updating the threshold in the CI workflow file.
+
+**Current state**: No size gate exists in CI. Size tracking is manual until
+the playground build workflow lands.
 
 ---
 
@@ -353,15 +379,19 @@ CSS-only fix.
 | Transfer size | ≤ 10 KB | Only `index.html` (revalidation); all else cached |
 | Time to Interactive | ≤ 500 ms | Wasm from code cache, JS from disk cache |
 
-### 7.3 Budget enforcement
+### 7.3 Budget enforcement (target state)
 
-Performance budgets are enforced in CI:
+Once the playground build workflow exists (issue #468), performance budgets
+will be enforced in CI:
 
 1. **Binary size gate** (§4.3): Fails build if Wasm exceeds 300 KB
 2. **Bundle size gate**: Fails build if total gzipped payload exceeds 250 KB
 3. **Lighthouse CI** (stretch goal): Run Lighthouse in CI on preview deploy,
    fail if TTI exceeds budget. Initially advisory; promoted to blocking
    once baseline is stable.
+
+**Current state**: No CI enforcement of these budgets exists. Size tracking
+is manual and the playground build workflow has not yet landed.
 
 ### 7.4 Current asset inventory (estimated)
 
@@ -424,23 +454,24 @@ SRI hashes are generated at build time and embedded in `index.html`.
 
 ## 9. Rollback Procedure
 
+> **Note**: This section describes the target-state rollback procedure once the playground build workflow exists. The current `.github/workflows/pages.yml` deploys the `./docs` directory via `actions/deploy-pages@v4` (not via a `gh-pages` branch), so the git-based rollback below applies to docs-only changes until issue #468 lands.
+
 | Step | Action | Time |
 |------|--------|------|
 | 1 | Identify bad deploy (monitoring, user report) | — |
-| 2 | `git revert <commit>` on `main` | 30 s |
+| 2 | `git revert <commit>` on `master` | 30 s |
 | 3 | CI builds and deploys reverted state | 3–5 min |
 | 4 | GitHub Pages CDN propagates | ≤ 10 min |
 | **Total** | | **< 15 min** |
 
-For faster rollback, maintain the previous `gh-pages` branch state as a
-tagged ref (`playground-prev`). Emergency rollback:
+For faster rollback (target state, once playground CI lands), maintain the
+previous known-good deployed state as a tagged ref. Emergency rollback:
 
 ```bash
-git push origin playground-prev:gh-pages --force
+# Target-state only: requires playground deploy workflow (issue #468)
+# Use the GitHub Pages deployment history (via Actions UI) to re-run
+# the previous successful deploy job.
 ```
-
-This bypasses CI and deploys the previous known-good state in < 1 minute
-(plus CDN propagation).
 
 ---
 
@@ -472,19 +503,22 @@ Since the playground has no backend, monitoring is limited to:
 | CDN | Fastly (via GitHub Pages) | Included with GitHub Pages, global PoPs |
 | Cache strategy | Content-hashed filenames | Immutable assets, automatic invalidation |
 | Wasm caching | Hash in filename + browser code cache | Largest asset, most important to cache |
-| Preview deploys | GitHub Actions + per-PR deployment | Pre-merge validation |
+| Preview deploys | GitHub Actions + per-PR deployment (target state — issue #468) | Pre-merge validation |
 | Staging | None (PR previews + production) | No backend state to stage |
 | Performance budget | ≤ 250 KB gzipped, ≤ 3s TTI (4G) | User experience baseline |
-| Size gate | Wasm ≤ 300 KB, total ≤ 250 KB gzip | CI enforcement of budgets |
+| Size gate | Wasm ≤ 300 KB, total ≤ 250 KB gzip (target state — issue #468) | CI enforcement of budgets |
 | CSP | Strict, via meta tag | Security baseline for static app |
 | Rollback | Git revert + CI redeploy (< 15 min) | Simple, reliable |
 
 ---
 
-## Appendix A: File Layout (deployed)
+## Appendix A: File Layout (target-state deployed playground)
+
+> **Note**: This is the intended layout once the playground build workflow lands (issue #468).
+> The current `pages.yml` only deploys `./docs`; no playground assets are currently published.
 
 ```
-/ (gh-pages root or subdirectory)
+/ (GitHub Pages root — playground subdirectory once deployed)
 ├── index.html
 ├── assets/
 │   ├── playground-<hash>.js

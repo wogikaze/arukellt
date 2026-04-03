@@ -27,6 +27,7 @@ playground route.
 | Editor components | ✅ | `playground/src/**` contains editor / diagnostics UI building blocks |
 | Share helpers | ✅ | `playground/src/share.ts` provides fragment helpers |
 | Curated examples catalog | ✅ | `playground/src/examples.ts` contains example metadata |
+<!-- target-state: rows below are not yet repo-proved; each row moves to ✅ when its tracking issue closes -->
 | Browser entrypoint | ❌ repo-proof missing | tracked by `issues/open/466` |
 | Docs route to live playground | ❌ repo-proof missing | tracked by `issues/open/467` |
 | Publish / deploy path | ❌ repo-proof missing | tracked by `issues/open/468` |

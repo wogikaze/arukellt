@@ -60,6 +60,7 @@ Choose the path that fits your goal.
 
 ### 🎮 Playground Status
 
+<!-- target-state: browser playground route (entrypoint, docs route, deploy, type-checking) — tracked by issues/open/466, 467, 468, 472 -->
 > **Looking for the web playground?** The [Playground](../playground/README.md) currently documents the browser-side engine, UI building blocks, and remaining work toward a repo-visible browser entrypoint.
 
 Current repo proof covers parser / formatter / tokenizer Wasm surfaces and component-level UI code. Do not treat the generated docs site as exposing a browser-reachable playground route yet.
