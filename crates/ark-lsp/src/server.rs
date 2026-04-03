@@ -1448,7 +1448,7 @@ impl ArukellBackend {
     fn find_let_in_block(block: &ast::Block, name: &str) -> Option<ark_diagnostics::Span> {
         for stmt in &block.stmts {
             match stmt {
-                ast::Stmt::Let { name: n, span, .. } if n == name => return Some(*span),
+                ast::Stmt::Let { name: n, name_span, .. } if n == name => return Some(*name_span),
                 ast::Stmt::While { body, .. }
                 | ast::Stmt::Loop { body, .. }
                 | ast::Stmt::For { body, .. } => {
@@ -3604,45 +3604,44 @@ impl LanguageServer for ArukellBackend {
         for tok in &analysis.tokens {
             let start = tok.span.start as usize;
             let end = tok.span.end as usize;
-            if start <= target_offset && target_offset <= end && end <= source.len() {
-                let text = &source[start..end];
-                let info = match &tok.kind {
-                    TokenKind::Ident(_) => {
-                        if let Some(type_info) = Self::type_hover_info(
-                            text,
-                            &analysis.module,
-                            analysis.resolved.as_ref(),
-                            analysis.checker.as_ref(),
-                        ) {
-                            type_info
-                        } else if let Some(ref m) = *manifest {
-                            if let Some(stdlib_info) = Self::stdlib_hover_info(text, m) {
-                                stdlib_info
-                            } else if let Some(mod_info) = Self::stdlib_module_hover(text, m) {
-                                mod_info
-                            } else {
-                                format!("identifier `{}`", text)
-                            }
+            if start <= target_offset && target_offset < end && end <= source.len() {
+                // Only provide hover for identifier tokens with semantic info.
+                // Literals, keywords, and punctuation return no hover.
+                // Identifiers with no type/stdlib info also return no hover.
+                if let TokenKind::Ident(_) = &tok.kind {
+                    let text = &source[start..end];
+                    let info = if let Some(type_info) = Self::type_hover_info(
+                        text,
+                        &analysis.module,
+                        analysis.resolved.as_ref(),
+                        analysis.checker.as_ref(),
+                    ) {
+                        Some(type_info)
+                    } else if let Some(ref m) = *manifest {
+                        if let Some(stdlib_info) = Self::stdlib_hover_info(text, m) {
+                            Some(stdlib_info)
+                        } else if let Some(mod_info) = Self::stdlib_module_hover(text, m) {
+                            Some(mod_info)
                         } else {
-                            format!("identifier `{}`", text)
+                            None
                         }
+                    } else {
+                        None
+                    };
+
+                    if let Some(content) = info {
+                        return Ok(Some(Hover {
+                            contents: HoverContents::Markup(MarkupContent {
+                                kind: MarkupKind::Markdown,
+                                value: content,
+                            }),
+                            range: Some(Self::span_to_range(&source, tok.span)),
+                        }));
                     }
-                    TokenKind::IntLit(_) => {
-                        format!("integer literal `{}`", text)
-                    }
-                    TokenKind::FloatLit(_) => {
-                        format!("float literal `{}`", text)
-                    }
-                    TokenKind::StringLit(_) => "string literal".to_string(),
-                    _ => format!("`{}`", text),
-                };
-                return Ok(Some(Hover {
-                    contents: HoverContents::Markup(MarkupContent {
-                        kind: MarkupKind::Markdown,
-                        value: info,
-                    }),
-                    range: Some(Self::span_to_range(&source, tok.span)),
-                }));
+                }
+                // Non-identifier token or identifier with no semantic info:
+                // stop searching and return no hover.
+                return Ok(None);
             }
         }
 
