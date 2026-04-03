@@ -532,7 +532,8 @@ async function runComponent() {
  * Opens the current file's source in a configured playground URL.
  * For files ≤ 2 000 characters the source is appended as ?src=<encoded>.
  * Larger files open the configured base URL (user can paste manually).
- * The command is disabled unless arukellt.playgroundUrl is set to a real endpoint.
+ * Defaults to the repo's own GitHub Pages playground (wogikaze.github.io/arukellt/playground/).
+ * The command errors only if the user explicitly clears arukellt.playgroundUrl to an empty string.
  */
 async function openInPlayground() {
   const editor = vscode.window.activeTextEditor

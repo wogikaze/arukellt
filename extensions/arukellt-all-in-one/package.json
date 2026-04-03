@@ -207,8 +207,8 @@
         },
         "arukellt.playgroundUrl": {
           "type": "string",
-          "default": "",
-          "description": "Optional base URL used by the 'Open in Playground' command. Leave empty unless you have a real playground endpoint to open.",
+          "default": "https://wogikaze.github.io/arukellt/playground/",
+          "description": "Base URL used by the 'Open in Playground' command. Defaults to the repo's own GitHub Pages playground (proved by docs/playground/index.html + .github/workflows/pages.yml). The playground provides an editor shell with parse support. Override only if you self-host a different endpoint.",
           "scope": "resource"
         },
         "arukellt.enableCodeLens": {
