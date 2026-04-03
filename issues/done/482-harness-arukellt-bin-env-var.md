@@ -1,8 +1,8 @@
 # harness.rs: ARUKELLT_BIN 環境変数でバイナリパスを上書きできるようにする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
-**Updated**: 2026-04-03
+**Updated**: 2026-04-28
 **ID**: 482
 **Depends on**: 328
 **Track**: selfhost-retirement
@@ -94,3 +94,9 @@ internal-only (CI / 開発者が使う env var; ユーザーが直接触る surf
   → acceptance 3 の「nonexistent パス指定でエラーが出る」テストが必須
 - CI で `ARUKELLT_BIN` を渡しても regression 追跡なしで「selfhost compat done」と言う
   → CI artifact / regression 追跡は #330 が担当; この issue では扱わない
+
+## Close Evidence
+
+- `crates/arukellt/tests/harness.rs` line 103: `if let Ok(val) = std::env::var("ARUKELLT_BIN") { return PathBuf::from(val); }`
+- `cargo test -p arukellt --test harness`: 1 passed; 0 failed (18.03s)
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 passed

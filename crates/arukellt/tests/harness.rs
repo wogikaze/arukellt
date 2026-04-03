@@ -100,6 +100,9 @@ fn entry_points(fixture_dir: &Path) -> HashSet<String> {
 }
 
 fn arukellt_binary() -> PathBuf {
+    if let Ok(val) = std::env::var("ARUKELLT_BIN") {
+        return PathBuf::from(val);
+    }
     let mut path = std::env::current_exe().unwrap();
     path.pop(); // remove test binary name
     path.pop(); // remove deps/
