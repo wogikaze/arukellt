@@ -10,7 +10,6 @@ graph LR
   I447["447 std::host::sockets::connect: WASI P2 最小実装・T3 限定 compile-time 明確化"]
   I448["448 capability / target-gating のエンドツーエンド実装: load.rs TODO 解消・deny flag fixture 化"]
   I449["449 emitter type_table 一本化: T1/T3 両 emitter から checker fallback を除去する"]
-  I451["451 LSP: Hover をセマンティックな identifier に限定し literal / keyword の無意味表示を除去する"]
   I452["452 LSP: E0100 偽陽性 diagnostics を解消し CLI check と一致させる"]
   I456["456 `arukellt doc` サブコマンドの新設"]
   I460["460 エラーメッセージの文面と補助情報の統一整備"]
@@ -29,9 +28,7 @@ graph LR
   I447 --> I459
   I448 --> I459
   I449 --> I459
-  I451 --> I453
   I452 --> I453
-  I451 --> I454
   I452 --> I454
   I453 --> I458
   I454 --> I463
@@ -43,7 +40,6 @@ graph LR
 - **447** depends on: none; blocks: 459
 - **448** depends on: none; blocks: 457, 459
 - **449** depends on: none; blocks: 459
-- **451** depends on: none; blocks: 453, 454
 - **452** depends on: none; blocks: 453, 454
 - **456** depends on: 455; blocks: none
 - **460** depends on: none; blocks: none

@@ -1,8 +1,8 @@
 # LSP: Hover をセマンティックな identifier に限定し literal / keyword の無意味表示を除去する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-02
+**Updated**: 2026-04-10
 **ID**: 451
 **Depends on**: none
 **Track**: vscode-ide
@@ -197,13 +197,13 @@ fn test_hover_known_function_returns_content() {
 
 ## 完了条件
 
-- [ ] 文字列リテラル上で hover が `null`（VS Code 上で何も表示されない）
-- [ ] 整数・浮動小数点リテラル上で hover が `null`
-- [ ] semantic info のない identifier 上で hover が `null`
-- [ ] `println` 等 stdlib 関数上で hover が有意な内容を返す
-- [ ] 識別子の末尾直後（空白文字位置）で隣接 token の hover が出ない
-- [ ] `test_hover_string_literal_returns_none` 等 LSP テストが pass
-- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass
+- [x] 文字列リテラル上で hover が `null`（VS Code 上で何も表示されない）
+- [x] 整数・浮動小数点リテラル上で hover が `null`
+- [x] semantic info のない identifier 上で hover が `null`
+- [x] `println` 等 stdlib 関数上で hover が有意な内容を返す
+- [x] 識別子の末尾直後（空白文字位置）で隣接 token の hover が出ない
+- [x] `test_hover_string_literal_returns_none` 等 LSP テストが pass
+- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
 
 ---
 
