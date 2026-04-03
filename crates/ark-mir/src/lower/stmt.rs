@@ -330,10 +330,7 @@ impl LowerCtx {
                         }
                     }
                 }
-                if let ast::Expr::Call {
-                    callee,
-                    ..
-                } = init
+                if let ast::Expr::Call { callee, .. } = init
                     && let ast::Expr::Ident { name, .. } = callee.as_ref()
                     && (name == "clone_f64" || name == "zeros")
                 {

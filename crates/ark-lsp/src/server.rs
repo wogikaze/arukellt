@@ -1,5 +1,6 @@
 //! LSP server implementation.
 
+use crate::config::LspConfig;
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer, LspService, Server};
@@ -228,6 +229,10 @@ struct ArukellBackend {
     /// Runtime-adjustable settings (populated from initializationOptions /
     /// workspace/didChangeConfiguration).
     settings: Mutex<LspSettings>,
+    /// Parsed initialization config from the extension's `initializationOptions`
+    /// (#479). Stores the five rationalized settings sent by the extension (#478).
+    /// Behavioral changes driven by these settings are introduced in later issues.
+    lsp_config: Mutex<LspConfig>,
 }
 
 impl ArukellBackend {
@@ -245,6 +250,7 @@ impl ArukellBackend {
                 indexed_files: HashSet::new(),
             }),
             settings: Mutex::new(LspSettings::default()),
+            lsp_config: Mutex::new(LspConfig::default()),
         }
     }
 
@@ -3737,6 +3743,9 @@ impl LanguageServer for ArukellBackend {
         if let Some(ref opts) = params.initialization_options {
             let new_settings = LspSettings::from_json(opts);
             *self.settings.lock().unwrap() = new_settings;
+            // Also populate the structured LspConfig (#479).
+            let new_config = LspConfig::from_initialization_options(opts);
+            *self.lsp_config.lock().unwrap() = new_config;
         }
 
         Ok(InitializeResult {
@@ -5809,6 +5818,7 @@ mod tests {
             imports: vec![ast::Import {
                 module_name: "std::host::stdio".to_string(),
                 alias: None,
+                kind: ast::ImportKind::ModulePath,
                 span: Span::new(0, 0, 16),
             }],
             items: vec![],

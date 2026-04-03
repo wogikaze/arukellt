@@ -2395,8 +2395,7 @@ impl Ctx {
                                     w.instruction(&Instruction::Drop);
                                 }
                             }
-                        } else if self.opt_level >= 1
-                            && self.try_emit_tail_call_return(&mut w, op)
+                        } else if self.opt_level >= 1 && self.try_emit_tail_call_return(&mut w, op)
                         {
                             // return_call (or return_call via IfExpr branch) was emitted;
                             // no Return instruction needed.
@@ -2415,12 +2414,14 @@ impl Ctx {
                     Terminator::Return(None) => {
                         w.instruction(&Instruction::Return);
                     }
-                    Terminator::TailCall { func: callee_name, args } => {
+                    Terminator::TailCall {
+                        func: callee_name,
+                        args,
+                    } => {
                         // Emit `return_call <func>` — tail-call terminator from MIR optimiser.
                         let canonical = normalize_intrinsic(callee_name).to_string();
                         if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
-                            let param_types =
-                                self.fn_param_types.get(canonical.as_str()).cloned();
+                            let param_types = self.fn_param_types.get(canonical.as_str()).cloned();
                             for (i, arg) in args.iter().enumerate() {
                                 self.emit_operand(&mut w, arg);
                                 if let Some(ref pts) = param_types
@@ -2505,8 +2506,7 @@ impl Ctx {
                     let current_ret_is_any = self.current_fn_return_ty == Type::Any;
                     if callee_ret_is_any == current_ret_is_any {
                         if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
-                            let param_types =
-                                self.fn_param_types.get(canonical.as_str()).cloned();
+                            let param_types = self.fn_param_types.get(canonical.as_str()).cloned();
                             for (i, arg) in args.iter().enumerate() {
                                 self.emit_operand(f, arg);
                                 if let Some(ref pts) = param_types
@@ -2641,7 +2641,9 @@ impl Ctx {
                     } else {
                         else_result.as_deref()
                     };
-                    check.map(|r| self.infer_operand_type(r)).unwrap_or(ValType::I32)
+                    check
+                        .map(|r| self.infer_operand_type(r))
+                        .unwrap_or(ValType::I32)
                 };
 
                 // Emit condition + if block with function result type.

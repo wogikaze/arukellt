@@ -72,7 +72,7 @@ graph LR
   I471["471 Playground docs: command / workflow / publish claim の現実整合監査"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
-  I479["479 LSP server: LspConfig struct と設定反映ハンドラ実装"]
+  I480["480 Extension README: 設定一覧テーブル追加"]
   I481["481 scripts/update-target-status.sh: CI 出力から target-contract.md を更新"]
   I486["486 f32 ローカル変数の MIR lowerer 対応 (F32 locals tracking)"]
   I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
@@ -99,7 +99,6 @@ graph LR
   I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
   I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
-  I480["480 Extension README: 設定一覧テーブル追加"]
   I042["042 std::text: String API 拡張、StringBuilder、format ユーティリティ"]
   I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
   I045["045 std::collections: Deque、PriorityQueue"]
@@ -151,7 +150,6 @@ graph LR
   I145 --> I148
   I146 --> I148
   I153 --> I154
-  I479 --> I480
   I039 --> I042
   I041 --> I042
   I039 --> I044
@@ -263,7 +261,7 @@ graph LR
 - **471** depends on: 465; blocks: none
 - **472** depends on: 466; blocks: none
 - **473** depends on: 032, done); blocks: none
-- **479** depends on: 478; blocks: 480
+- **480** depends on: 479; blocks: none
 - **481** depends on: 256, 257; blocks: none
 - **486** depends on: 040; blocks: none
 - **041** depends on: 039; blocks: 042, 044, 045, 046, 047, 048, 049, 050, 056
@@ -290,7 +288,6 @@ graph LR
 - **144** depends on: 141, 142, 143, 149; blocks: none
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
 - **154** depends on: 153; blocks: none
-- **480** depends on: 479; blocks: none
 - **042** depends on: 039, 041; blocks: 049, 052, 055
 - **044** depends on: 039, 041; blocks: 054, 055
 - **045** depends on: 039, 041; blocks: none

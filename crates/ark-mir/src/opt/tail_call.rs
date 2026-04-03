@@ -25,12 +25,10 @@ pub fn detect_tail_calls(func: &mut MirFunction, opt_level: u8) -> usize {
     for block in &mut func.blocks {
         let new_term = match &block.terminator {
             // Direct call in tail position: return call(args…)
-            Terminator::Return(Some(Operand::Call(name, args))) => {
-                Some(Terminator::TailCall {
-                    func: name.clone(),
-                    args: args.clone(),
-                })
-            }
+            Terminator::Return(Some(Operand::Call(name, args))) => Some(Terminator::TailCall {
+                func: name.clone(),
+                args: args.clone(),
+            }),
             // Indirect call in tail position: return callee(args…)
             Terminator::Return(Some(Operand::CallIndirect { callee, args })) => {
                 Some(Terminator::TailCallIndirect {

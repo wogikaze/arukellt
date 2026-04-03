@@ -345,10 +345,9 @@ fn optimize_module_with_passes(
                 crate::mir::dump_mir_phase(module, "after-tail-call-detection");
             }
             // Re-validate after rewriting terminators.
-            validate_module(module)
-                .map_err(|errors| {
-                    format!("MIR validation failed after tail-call detection: {errors:?}")
-                })?;
+            validate_module(module).map_err(|errors| {
+                format!("MIR validation failed after tail-call detection: {errors:?}")
+            })?;
         }
     }
 
@@ -852,7 +851,10 @@ fn rewrite_terminator_with_replacements(
         Terminator::Return(value) => value
             .as_mut()
             .is_some_and(|value| rewrite_operand(value, replacements)),
-        Terminator::Goto(_) | Terminator::Unreachable | Terminator::TailCall { .. } | Terminator::TailCallIndirect { .. } => false,
+        Terminator::Goto(_)
+        | Terminator::Unreachable
+        | Terminator::TailCall { .. }
+        | Terminator::TailCallIndirect { .. } => false,
     }
 }
 
@@ -1034,7 +1036,10 @@ fn collect_terminator_locals(terminator: &Terminator, used: &mut std::collection
                 collect_operand_locals(value, used);
             }
         }
-        Terminator::Goto(_) | Terminator::Unreachable | Terminator::TailCall { .. } | Terminator::TailCallIndirect { .. } => {}
+        Terminator::Goto(_)
+        | Terminator::Unreachable
+        | Terminator::TailCall { .. }
+        | Terminator::TailCallIndirect { .. } => {}
     }
 }
 

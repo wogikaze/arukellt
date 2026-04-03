@@ -33,6 +33,8 @@
 //! (hover, completion, definition, etc.) read from the shared cache,
 //! avoiding redundant compiler passes.
 
+pub mod config;
 mod server;
 
+pub use config::LspConfig;
 pub use server::run_lsp;

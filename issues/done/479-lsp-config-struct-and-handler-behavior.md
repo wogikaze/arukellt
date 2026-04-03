@@ -1,6 +1,6 @@
 # LSP server: LspConfig struct と設定反映ハンドラ実装
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
 **Updated**: 2026-04-03
 **ID**: 479
@@ -103,3 +103,12 @@ user-visible (設定変更が実際の VS Code の動作に影響する)
   → acceptance 2/3/4 の lsp_e2e テストが必須; テストなし merge を禁止
 - extension.js の変更なしに LSP 側だけで「設定が使える」と docs に書かれる
   → docs は #480 担当; #480 の close gate は #479 完了後と明記
+
+## Implementation evidence
+
+- `crates/ark-lsp/src/config.rs` — new file with `LspConfig` struct (5 fields: `enable_code_lens`, `hover_detail_level`, `diagnostics_report_level`, `use_self_host_backend`, `check_on_save`) and `from_initialization_options` constructor + 5 unit tests
+- `crates/ark-lsp/src/server.rs` — added `use crate::config::LspConfig;`, added `lsp_config: Mutex<LspConfig>` field to `ArukellBackend`, initialized in `new()`, parsed from `initializationOptions` in `initialize` handler
+- `crates/ark-lsp/src/lib.rs` — added `pub mod config; pub use config::LspConfig;`
+- Also fixed pre-existing test bug: `ast::Import` missing `kind` field in `completion_marks_imported_modules_as_already_imported` test
+- `cargo test -p ark-lsp`: 31 passed, 0 failed
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 passed
