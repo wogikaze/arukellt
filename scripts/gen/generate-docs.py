@@ -104,7 +104,6 @@ STDLIB_MODULE_PAGES = [
                 ("`bytes_slice(buf, start, end)`", "Extract a sub-range of bytes as a new buffer."),
                 ("`bytes_concat(a, b)`", "Concatenate two byte buffers into a new one."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::bytes
@@ -140,7 +139,6 @@ let s = string_from_bytes(back)  // "hello"
                 ("`sorted_map_insert` / `sorted_map_get`", "Sorted-vector map for ordered iteration."),
                 ("`bitset_mark` / `bitset_test`", "Compact bit-flag set backed by a `Vec<i32>`."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::collections::hash
@@ -167,7 +165,6 @@ let exists = hashmap_contains(map, 42)  // true
                 ("`canonical_abi_version()`", "Returns the canonical ABI version number."),
                 ("`component_model_version()`", "Returns the component model version string."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::component
@@ -198,7 +195,6 @@ let ver = component_model_version()     // e.g. "0.2"
                 ("`error_message(e)`", "Convert a stdlib `Error` variant to a human-readable string."),
                 ("`hash_i32(n)`", "Hash an `i32` to a stable non-negative integer."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::core
@@ -225,7 +221,6 @@ let len = range_len(r)  // 10
             "highlights": [
                 ("`csv_split_line(line)`", "Split a comma-separated line into a `Vec<String>` of fields."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::csv
@@ -252,7 +247,6 @@ let fields = csv_split_line("name,age,city")
                 ("`write_string(path, content)`", "Write or replace a UTF-8 file."),
                 ("`write_bytes(path, buf)`", "Write a byte array to a file."),
             ],
-            "target_constraints": "**wasm32-wasi-p2** required.",
             "typical_usage": """\
 ```ark
 import std::host::fs
@@ -299,10 +293,6 @@ write_string("output.txt", "hello")
                 ("`std::host::clock` — `monotonic_now()`", "High-resolution monotonic timestamp (nanoseconds)."),
                 ("`std::host::random` — `random_i32()`", "Host-entropy random integer."),
             ],
-            "target_constraints": (
-                "**wasm32-wasi-p2** required for all `std::host::*` modules. "
-                "`std::path` has no host constraint and works on all targets."
-            ),
             "typical_usage": """\
 ```ark
 import std::host::stdio
@@ -338,7 +328,6 @@ match content {
                 ("`json_parse_i32(s)` / `json_parse_bool(s)`", "Parse a JSON primitive back to a typed value."),
                 ("`json_null()`", "Returns the JSON `null` literal."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::json
@@ -369,7 +358,6 @@ let parsed = json_parse_i32("42")    // 42
                 ("`parent(path)`", "Returns the parent directory path."),
                 ("`is_absolute(path)`", "Returns `true` when the path starts with `/`."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::path
@@ -400,7 +388,6 @@ let dir  = parent(p)                    // "/home/user"
                 ("`var(name)`", "Look up an environment variable by name, returning `Option<String>`."),
                 ("`has_flag(flag)`", "Check whether a flag is present in the argument vector."),
             ],
-            "target_constraints": "**wasm32-wasi-p2** required for both modules.",
             "typical_usage": """\
 ```ark
 import std::host::env
@@ -433,7 +420,6 @@ println("Running as: " + name)
                 ("`seeded_range(seed, lo, hi)`", "Generate a pseudo-random value in `[lo, hi)`."),
                 ("`shuffle_i32(vec, seed)`", "Return a shuffled copy of a `Vec<i32>`."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::random
@@ -463,7 +449,6 @@ let shuffled = shuffle_i32(vec, 42) // deterministic shuffle
                 ("`seq_reverse(vec)`", "Return a reversed copy of the vector."),
                 ("`seq_contains(vec, value)`", "Linear search for membership."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::seq
@@ -495,7 +480,6 @@ let dedup = unique(nums)            // [3, 1, 4, 5, 9]
                 ("`assert_contains(haystack, needle)`", "Assert that a string contains a substring."),
                 ("`assert_eq_snapshot(actual, expected)`", "Line-by-line string comparison with diff on failure."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::test
@@ -529,7 +513,6 @@ let value = expect_ok_i32(result)  // 42
                 ("`format_i32(n)` / `format_f64(n)`", "Format numeric values as decimal strings."),
                 ("`pad_left(s, width, fill)` / `pad_right(s, width, fill)`", "Fixed-width string padding."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::text
@@ -560,7 +543,6 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
                 ("`duration_us(start, end)`", "Elapsed time in microseconds."),
                 ("`duration_ns(start, end)`", "Elapsed time in nanoseconds (identity: `end - start`)."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::time
@@ -587,7 +569,6 @@ let elapsed = duration_ms(t0, t1)  // milliseconds
             "highlights": [
                 ("`toml_parse_line(line)`", "Parse a `key=value` line and return the value as a string."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::toml
@@ -616,7 +597,6 @@ let value = toml_parse_line("name = \\"arukellt\\"")
                 ("`memory_copy(dst, src, len)`", "Bulk memory copy (like `memory.copy`)."),
                 ("`memory_fill(dst, val, len)`", "Bulk memory fill (like `memory.fill`)."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::wasm
@@ -643,13 +623,68 @@ let i32_type = valtype_i32()       // 0x7f
                 ("`wit_type_bool()` … `wit_type_string()`", "Integer constants for each WIT primitive type."),
                 ("`wit_type_name(id)`", "Map a WIT type constant back to its human-readable name."),
             ],
-            "target_constraints": "All targets. No host capability required.",
             "typical_usage": """\
 ```ark
 import std::wit
 
 let t = wit_type_u32()        // integer constant for u32
 let name = wit_type_name(t)   // "u32"
+```""",
+        },
+    },
+    {
+        "path": "modules/http.md",
+        "title": "std::host::http",
+        "description": "Source-backed docs for HTTP client operations.",
+        "modules": ["std::host::http"],
+        "overview": {
+            "summary": (
+                "The `std::host::http` module provides an HTTP/1.1 client backed by host "
+                "functions registered via the Wasmtime linker (`arukellt_host`). Both T1 "
+                "(wasm32-wasi-p1) and T3 (wasm32-wasi-p2) targets are supported. Only plain "
+                "`http://` URLs are supported — HTTPS is not available."
+            ),
+            "highlights": [
+                ("`request(method, url, body)`", "Send an HTTP request with an explicit method, URL, and body."),
+                ("`get(url)`", "Send an HTTP GET request and return the response body as a string."),
+            ],
+            "typical_usage": """\
+```ark
+import std::host::http
+
+let body = http::get("http://example.com")
+match body {
+    Ok(s)  => println(s),
+    Err(e) => eprintln("error: " + e),
+}
+```""",
+        },
+    },
+    {
+        "path": "modules/sockets.md",
+        "title": "std::host::sockets",
+        "description": "Source-backed docs for TCP socket operations.",
+        "modules": ["std::host::sockets"],
+        "overview": {
+            "summary": (
+                "The `std::host::sockets` module provides TCP socket operations via WASI "
+                "Preview 2 (`wasi:sockets` interfaces). This module is T3-only: it requires "
+                "`wasm32-wasi-p2` (component model) and is not available on T1 "
+                "(wasm32-wasi-p1). A compile-time error (E0500) is emitted by the resolver "
+                "when this module is used on T1."
+            ),
+            "highlights": [
+                ("`connect(host, port)`", "Open a TCP connection; returns `Ok(fd)` or `Err(message)`."),
+            ],
+            "typical_usage": """\
+```ark
+import std::host::sockets
+
+let sock = sockets::connect("localhost", 8080)
+match sock {
+    Ok(fd)  => println("Connected: " + i32_to_string(fd)),
+    Err(e)  => eprintln("Connection failed: " + e),
+}
 ```""",
         },
     },
@@ -1029,7 +1064,11 @@ def format_host_module_badges(
     if not target_list:
         target_list = ["wasm32-wasi-p2"]
 
-    target_str = ", ".join(f"`{t}`" for t in target_list)
+    target_str = f"`{', '.join(target_list)}`"
+
+    # Detect T3-only status from function availability data (manifest-driven).
+    t3_only = _availability_t3_only(functions)
+    t3_badge = " · ⚠️ **T3 only**" if t3_only else ""
 
     # Determine implementation status from function ``kind`` fields.
     stub_count = sum(1 for fn in functions if fn.get("kind") == "host_stub")
@@ -1043,7 +1082,7 @@ def format_host_module_badges(
 
     return [
         "",
-        f"> 🎯 **Target:** {target_str} · {status}",
+        f"> 🎯 **Target:** {target_str}{t3_badge} · {status}",
         "",
     ]
 
@@ -2241,12 +2280,27 @@ def format_signature(params: list[str], returns: str) -> str:
 
 # ── Target-constraint helpers ────────────────────────────────────────────────
 
-def build_target_constraints(module_name: str, funcs: list[dict]) -> str:
-    """Derive a human-readable target-constraint string from manifest ``target`` fields.
+def _availability_t3_only(funcs: list[dict]) -> bool:
+    """Return True when all functions with ``availability`` data have ``t1 = false``.
 
-    Returns a string describing which build targets the given functions support.
-    Uses the old hardcoded fallback text when no function carries explicit ``target``
-    entries (i.e. the module is unconditionally available on all targets).
+    This detects modules whose entire public surface is restricted to the T3
+    (wasm32-wasi-p2 / component model) tier.  Functions with no ``availability``
+    key are ignored (they do not contribute to the verdict either way).
+    """
+    avail_entries = [f["availability"] for f in funcs if f.get("availability")]
+    if not avail_entries:
+        return False
+    return all(not a.get("t1", True) for a in avail_entries)
+
+
+def build_target_constraints(module_name: str, funcs: list[dict]) -> str:
+    """Derive a human-readable target-constraint string from manifest data.
+
+    Reads ``availability`` (t1/t3 tier flags) and ``target`` (platform list) from
+    each manifest function entry.  The ``availability`` field is the primary signal:
+    when all functions with availability data carry ``t1 = false``, the module is
+    T3-only.  The ``target`` list is used as a fallback for explicit platform
+    constraints that are not expressed through availability tiers.
 
     Args:
         module_name: Module name for context (currently unused, reserved for future use).
@@ -2254,19 +2308,24 @@ def build_target_constraints(module_name: str, funcs: list[dict]) -> str:
 
     Returns:
         A Markdown-friendly constraint string such as:
-        - ``"All targets. No host capability required."``
-        - ``"**wasm32-wasi-p2** required."``
+        - ``"All targets (T1 + T3). No host capability required."``
+        - ``"⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."``
         - ``"Targets: wasm32-wasi-p1, wasm32-wasi-p2."``
     """
+    # Primary signal: availability.t1 / availability.t3 tier flags from manifest.
+    if _availability_t3_only(funcs):
+        return "⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."
+
+    # Fallback: collect explicit ``target`` lists from function entries.
     targets: set[str] = set()
     for f in funcs:
         t = f.get("target", [])
         if t:
             targets.update(t)
     if not targets or targets == {"wasm32-wasi-p1", "wasm32-wasi-p2"}:
-        return "All targets. No host capability required."
+        return "All targets (T1 + T3). No host capability required."
     if targets == {"wasm32-wasi-p2"}:
-        return "**wasm32-wasi-p2** required."
+        return "⚠ **T3 only** — `wasm32-wasi-p2` (component model) required."
     return f"Targets: {', '.join(sorted(targets))}."
 
 

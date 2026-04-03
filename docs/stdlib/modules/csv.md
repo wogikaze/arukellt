@@ -15,7 +15,7 @@ The `std::csv` module provides minimal experimental CSV helpers. The current imp
 |-----|---------|
 | `csv_split_line(line)` | Split a comma-separated line into a `Vec<String>` of fields. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

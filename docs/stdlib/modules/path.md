@@ -19,7 +19,7 @@ The `std::path` module provides pure string-based path manipulation helpers. Pat
 | `parent(path)` | Returns the parent directory path. |
 | `is_absolute(path)` | Returns `true` when the path starts with `/`. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

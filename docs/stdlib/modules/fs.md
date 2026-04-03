@@ -17,7 +17,7 @@ The `std::host::fs` module provides host filesystem operations: reading files in
 | `write_string(path, content)` | Write or replace a UTF-8 file. |
 | `write_bytes(path, buf)` | Write a byte array to a file. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

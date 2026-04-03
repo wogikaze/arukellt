@@ -94,7 +94,7 @@ Low-level Wasm introspection and component-model constants.
 | **Curated overview** | `## Overview` in each module page | *When* and *how* to use a module — highlights, constraints, usage patterns. |
 | **Generated reference** | Rest of module pages + [reference.md](reference.md) | Exhaustive API tables from `std/manifest.toml`. Auto-regenerated. |
 
-All 18 module pages carry curated overviews.
+All 20 module pages carry curated overviews.
 
 ## Current Snapshot
 
@@ -103,7 +103,7 @@ All 18 module pages carry curated overviews.
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
 - Prelude values: `Some`, `None`, `Ok`, `Err`, `true`, `false`
 - Categories: `assert` 5, `box` 2, `bytes` 20, `collections` 77, `component` 2, `control` 1, `conversion` 10, `core` 6, `csv` 1, `host_clock` 1, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 3, `host_sockets` 1, `host_stdio` 3, `json` 6, `math` 5, `numeric` 2, `option_result` 14, `path` 6, `random` 3, `seq` 8, `string` 20, `test` 16, `text` 15, `time` 3, `toml` 1, `wasm` 19, `wit` 14
-- Source-backed modules: 26
+- Source-backed modules: 28
 - Source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), `std/*.ark` source files
 
 ## Additional Documents
@@ -137,12 +137,14 @@ All 18 module pages carry curated overviews.
 | [modules/core.md](modules/core.md) | Source-backed docs for ranges, errors, and hashing helpers. |
 | [modules/csv.md](modules/csv.md) | Source-backed docs for CSV parsing helpers. |
 | [modules/fs.md](modules/fs.md) | Source-backed docs for explicit host filesystem operations. |
+| [modules/http.md](modules/http.md) | Source-backed docs for HTTP client operations. |
 | [modules/io.md](modules/io.md) | Source-backed docs for explicit host capabilities and adjacent path helpers. |
 | [modules/json.md](modules/json.md) | Source-backed docs for the current JSON helpers. |
 | [modules/path.md](modules/path.md) | Source-backed docs for path manipulation helpers. |
 | [modules/process.md](modules/process.md) | Source-backed docs for process control and runtime environment helpers. |
 | [modules/random.md](modules/random.md) | Source-backed docs for pseudo-random utilities. |
 | [modules/seq.md](modules/seq.md) | Source-backed docs for eager sequence helpers. |
+| [modules/sockets.md](modules/sockets.md) | Source-backed docs for TCP socket operations. |
 | [modules/test.md](modules/test.md) | Source-backed docs for assertion and expectation helpers. |
 | [modules/text.md](modules/text.md) | Source-backed docs for string and formatting helpers. |
 | [modules/time.md](modules/time.md) | Source-backed docs for pure duration helpers. |

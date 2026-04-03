@@ -20,7 +20,7 @@ The `std::test` module provides typed assertion and expectation helpers for fixt
 | `assert_contains(haystack, needle)` | Assert that a string contains a substring. |
 | `assert_eq_snapshot(actual, expected)` | Line-by-line string comparison with diff on failure. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

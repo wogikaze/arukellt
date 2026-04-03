@@ -19,7 +19,7 @@ The `std::core` family provides the fundamental building blocks shared across th
 | `error_message(e)` | Convert a stdlib `Error` variant to a human-readable string. |
 | `hash_i32(n)` | Hash an `i32` to a stable non-negative integer. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

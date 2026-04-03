@@ -20,7 +20,7 @@ The `std::seq` module provides eager sequence helpers over `Vec<i32>`: search, a
 | `seq_reverse(vec)` | Return a reversed copy of the vector. |
 | `seq_contains(vec, value)` | Linear search for membership. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

@@ -22,7 +22,7 @@ The `std::host` family exposes all runtime-environment capabilities: standard I/
 | `std::host::clock` — `monotonic_now()` | High-resolution monotonic timestamp (nanoseconds). |
 | `std::host::random` — `random_i32()` | Host-entropy random integer. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

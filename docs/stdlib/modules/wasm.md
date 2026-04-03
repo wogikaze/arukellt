@@ -19,7 +19,7 @@ The `std::wasm` module exposes WebAssembly binary-format constants and low-level
 | `memory_copy(dst, src, len)` | Bulk memory copy (like `memory.copy`). |
 | `memory_fill(dst, val, len)` | Bulk memory fill (like `memory.fill`). |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

@@ -20,7 +20,7 @@ The `std::text` module extends the prelude's built-in string type with inspectio
 | `format_i32(n)` / `format_f64(n)` | Format numeric values as decimal strings. |
 | `pad_left(s, width, fill)` / `pad_right(s, width, fill)` | Fixed-width string padding. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

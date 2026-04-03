@@ -19,7 +19,7 @@ The `std::collections` family provides the primary collection data structures fo
 | `sorted_map_insert` / `sorted_map_get` | Sorted-vector map for ordered iteration. |
 | `bitset_mark` / `bitset_test` | Compact bit-flag set backed by a `Vec<i32>`. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

@@ -19,7 +19,7 @@ This page covers two closely related host modules: `std::host::process` for proc
 | `var(name)` | Look up an environment variable by name, returning `Option<String>`. |
 | `has_flag(flag)` | Check whether a flag is present in the argument vector. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

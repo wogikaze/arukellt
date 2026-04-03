@@ -34,12 +34,14 @@ docs/stdlib/modules/component.md | scripts/gen/generate-docs.py | python3 script
 docs/stdlib/modules/core.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/csv.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/fs.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/stdlib/modules/http.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/io.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/json.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/path.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/process.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/random.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/seq.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
+docs/stdlib/modules/sockets.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/test.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/text.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py
 docs/stdlib/modules/time.md | scripts/gen/generate-docs.py | python3 scripts/gen/generate-docs.py

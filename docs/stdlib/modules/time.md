@@ -17,7 +17,7 @@ The `std::time` module provides pure duration arithmetic over caller-supplied ti
 | `duration_us(start, end)` | Elapsed time in microseconds. |
 | `duration_ns(start, end)` | Elapsed time in nanoseconds (identity: `end - start`). |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

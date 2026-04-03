@@ -16,7 +16,7 @@ The `std::wit` module mirrors WebAssembly Interface Types (WIT) primitive type i
 | `wit_type_bool()` … `wit_type_string()` | Integer constants for each WIT primitive type. |
 | `wit_type_name(id)` | Map a WIT type constant back to its human-readable name. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

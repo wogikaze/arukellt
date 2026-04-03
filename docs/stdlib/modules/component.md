@@ -16,7 +16,7 @@ The `std::component` module exposes version constants for the WebAssembly Compon
 | `canonical_abi_version()` | Returns the canonical ABI version number. |
 | `component_model_version()` | Returns the component model version string. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 

@@ -15,7 +15,7 @@ The `std::toml` module provides minimal experimental TOML helpers. The current i
 |-----|---------|
 | `toml_parse_line(line)` | Parse a `key=value` line and return the value as a string. |
 
-**Target constraints:** All targets. No host capability required.
+**Target constraints:** All targets (T1 + T3). No host capability required.
 
 **Typical usage:**
 
