@@ -1,6 +1,6 @@
 # LSP: ローカル変数の Go to Definition を identifier span ベースに修正する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
 **Updated**: 2026-04-02
 **ID**: 450
@@ -195,11 +195,11 @@ fn test_goto_definition_local_variable_has_identifier_span() {
 
 ## 完了条件
 
-- [ ] `let source = 42` の定義に飛んだ時に range が `source` トークンのみを指す（let 文全体にならない）
-- [ ] 関数引数の定義に飛んだ時に range が引数名のみを指す
-- [ ] LSP E2E テスト `test_goto_definition_local_variable_has_identifier_span` が pass
-- [ ] `cargo test --workspace` で全テスト pass
-- [ ] `bash scripts/run/verify-harness.sh` が 13/13 pass
+- [x] `let source = 42` の定義に飛んだ時に range が `source` トークンのみを指す（let 文全体にならない）
+- [x] 関数引数の定義に飛んだ時に range が引数名のみを指す
+- [x] LSP E2E テスト `test_goto_definition_local_variable_has_identifier_span` が pass
+- [x] `cargo test --workspace` で全テスト pass
+- [x] `bash scripts/run/verify-harness.sh` が 13/13 pass
 
 ---
 

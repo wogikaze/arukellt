@@ -26,6 +26,7 @@ RUN_DOCS=false
 RUN_COMPONENT=false
 RUN_OPT_EQUIV=false
 PERF_GATE=false
+RUN_FIXPOINT=false
 
 usage() {
     cat <<'EOF'
@@ -44,7 +45,8 @@ Options:
   --docs       Run markdownlint in addition to default docs checks
   --component  Run the optional component interop smoke test
   --opt-equiv  Run optimization equivalence tests (O0 vs O1)
-  --full       Run all heavy local verification groups
+  --fixpoint   Run selfhost bootstrap fixpoint check (issue #459)
+  --full       Run all heavy local verification groups (includes --fixpoint)
   --perf-gate  Run the perf regression gate (still opt-in)
   --help       Show this help message
 EOF
@@ -61,6 +63,7 @@ for arg in "$@"; do
         --docs) RUN_DOCS=true ;;
         --component) RUN_COMPONENT=true ;;
         --opt-equiv) RUN_OPT_EQUIV=true ;;
+        --fixpoint) RUN_FIXPOINT=true ;;
         --full)
             RUN_CARGO=true
             RUN_FIXTURES=true
@@ -70,6 +73,7 @@ for arg in "$@"; do
             RUN_DOCS=true
             RUN_COMPONENT=true
             RUN_OPT_EQUIV=true
+            RUN_FIXPOINT=true
             ;;
         --perf-gate) PERF_GATE=true ;;
         --help|-h)

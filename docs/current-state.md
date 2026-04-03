@@ -94,8 +94,44 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
 <!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 
+## CLI Command Surface
+
+The `arukellt` binary exposes the following subcommands:
+
+| Command | Description |
+|---------|-------------|
+| `arukellt compile <file>` | Compile an `.ark` file to Wasm (T1 or T3) |
+| `arukellt run <file>` | Compile and run an `.ark` file |
+| `arukellt check <file>` | Type-check without compiling |
+| `arukellt build` | Build the project in the current directory (requires `ark.toml`) |
+| `arukellt fmt [file]` | Format `.ark` source files |
+| `arukellt test <file>` | Run test functions in an `.ark` file |
+| `arukellt lint <file>` | Run static analysis lints |
+| `arukellt targets` | List supported compilation targets |
+| `arukellt analyze` | Wasm binary analysis utilities |
+| `arukellt init [dir]` | Initialize a new Arukellt project |
+| `arukellt script` | Run scripts defined in `ark.toml` |
+| `arukellt doc <symbol>` | Look up stdlib documentation for a symbol or module |
+| `arukellt lsp` | Start the Language Server Protocol server |
+| `arukellt debug-adapter` | Start the Debug Adapter Protocol server |
+| `arukellt compose` | Compose Wasm component binaries |
+
+### `arukellt doc`
+
+Looks up stdlib manifest metadata and displays:
+- Function signature (`fn name(params) -> return`)
+- Module path (e.g. `std::host::stdio`)
+- Stability (`stable`, `provisional`, etc.)
+- Target availability (T1 / T3 flags from `availability` block)
+- Doc description, examples, errors, and `see_also` when present
+
+Flags: `--json` (machine-readable output), `--target <TARGET>` (show availability warning for specific target), `--all` (show intrinsic entries).
+
+Unknown symbols produce a "Did you mean?" list of fuzzy candidates. Module paths (e.g. `std::host::http`) list all functions in the module.
+
 ## Recent Milestones
 
+- **`arukellt doc` subcommand added (issue 456)** — stdlib manifest lookup via `arukellt doc <symbol>`. Supports `--json`, `--target`, and fuzzy-match "did you mean?" for unknown symbols.
 - **GC-native T3 emitter complete** — the v1 GC-native track closed on 2026-03-27
 - **Component / WIT support added in v2** — `--emit component`, `--emit wit`, and `--emit all` are available on `wasm32-wasi-p2`
 - **Stdlib v3 track completed** — the stdlib roadmap items tracked as issues 039–059 now live in `issues/done/`
