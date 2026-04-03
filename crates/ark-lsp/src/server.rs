@@ -505,7 +505,13 @@ impl ArukellBackend {
         }
 
         let cached_module = module.clone();
-        let resolved = ark_resolve::resolve_module(module, &mut sink);
+        // Issue #452 (parity fix): use `resolve_module_with_intrinsic_prelude` instead of
+        // `resolve_module` so that the prelude.ark public wrapper functions (e.g. `concat`,
+        // `i32_to_string`, `starts_with`) are merged into the resolved module's symbol table
+        // and registered in the TypeChecker's fn_sigs during `check_module`.  Without this,
+        // calling any prelude wrapper directly produces a spurious E0100 "unresolved name" in
+        // the LSP but not in `arukellt check` (which calls merge_prelude internally).
+        let resolved = ark_resolve::resolve_module_with_intrinsic_prelude(module, &mut sink);
         let mut checker = ark_typecheck::TypeChecker::new();
         checker.register_builtins();
 
@@ -536,9 +542,11 @@ impl ArukellBackend {
 
         checker.check_module(&resolved, &mut sink);
 
-        // Run lint checks (unused imports and bindings)
-        ark_resolve::check_unused_imports(&resolved.module, &mut sink);
-        ark_resolve::check_unused_bindings(&resolved.module, &mut sink);
+        // Run lint checks on the user's original (non-flattened) module so that
+        // prelude.ark items merged by resolve_module_with_intrinsic_prelude do not
+        // produce false W0006/W0007 lint warnings.
+        ark_resolve::check_unused_imports(&cached_module, &mut sink);
+        ark_resolve::check_unused_bindings(&cached_module, &mut sink);
 
         let diagnostics = Self::collect_lsp_diagnostics(source, &sink);
 
@@ -6271,6 +6279,73 @@ fn add(a: i32, b: i32) -> i32 {
         // Non-stdlib import → None
         let p2 = ArukellBackend::stdlib_file_for_import("my_local_module", &std_root);
         assert!(p2.is_none(), "non-stdlib import should return None");
+    }
+
+    // ---- Issue 452 (CLI parity): prelude wrapper false-positive regression -----
+
+    #[test]
+    fn analyze_source_no_e0100_for_prelude_wrapper_concat() {
+        // Regression / parity test for issue #452.
+        //
+        // Root cause: the LSP called `resolve_module` (= `analyze_module`) which
+        // does NOT call `merge_prelude`.  The CLI calls
+        // `resolve_module_with_intrinsic_prelude` which does call `merge_prelude`,
+        // loading prelude.ark public wrappers (`concat`, `i32_to_string`,
+        // `starts_with`, ...) into the TypeChecker's fn_sigs.  Without those
+        // registrations, calling e.g. `concat(a, b)` produced a spurious E0100
+        // "unresolved name `concat`" in the LSP but not in `arukellt check`.
+        //
+        // Fix: use `resolve_module_with_intrinsic_prelude` in `analyze_source_with_stdlib`.
+        let src = "fn main() {\n    let s = concat(\"hello \", \"world\")\n    let _ = s\n}\n";
+        let analysis = ArukellBackend::analyze_source_with_stdlib(src, None);
+
+        let e0100: Vec<_> = analysis
+            .diagnostics
+            .iter()
+            .filter(|d| {
+                d.code
+                    .as_ref()
+                    .map(|c| {
+                        matches!(c, tower_lsp::lsp_types::NumberOrString::String(s) if s == "E0100")
+                    })
+                    .unwrap_or(false)
+            })
+            .collect();
+
+        assert!(
+            e0100.is_empty(),
+            "E0100 false positive for prelude wrapper `concat` — \
+             LSP must match CLI check (no errors). Got: {:?}",
+            e0100
+        );
+    }
+
+    #[test]
+    fn analyze_source_no_e0100_for_prelude_wrapper_i32_to_string() {
+        // Parity test: `i32_to_string` is a public prelude wrapper (not an intrinsic).
+        // Before the fix it produced E0100 in LSP but not in CLI check.
+        let src =
+            "fn main() {\n    let n: i32 = 42\n    let s = i32_to_string(n)\n    let _ = s\n}\n";
+        let analysis = ArukellBackend::analyze_source_with_stdlib(src, None);
+
+        let e0100: Vec<_> = analysis
+            .diagnostics
+            .iter()
+            .filter(|d| {
+                d.code
+                    .as_ref()
+                    .map(|c| {
+                        matches!(c, tower_lsp::lsp_types::NumberOrString::String(s) if s == "E0100")
+                    })
+                    .unwrap_or(false)
+            })
+            .collect();
+
+        assert!(
+            e0100.is_empty(),
+            "E0100 false positive for prelude wrapper `i32_to_string`. Got: {:?}",
+            e0100
+        );
     }
 
     // ---- Issue 462: LspSettings and hover detail level --------------------------

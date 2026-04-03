@@ -1036,3 +1036,247 @@ fn no_e0100_for_valid_multimodule_stdlib_import() {
 
     session.shutdown();
 }
+
+// ---- Issue 452: CLI-parity tests ----
+//
+// These tests verify that `textDocument/publishDiagnostics` for a given source
+// produces exactly the same set of diagnostic *codes* as `arukellt check` on
+// the same source.  Each test runs the LSP pipeline (via LspSession) and the
+// CLI-like pipeline (via ark-resolve + ark-typecheck) on the same in-memory
+// source, then compares the resulting diagnostic code sets.
+//
+// "CLI-like pipeline" here means:
+//   resolve_module_with_intrinsic_prelude (same as CLI's single-file resolve) +
+//   TypeChecker::register_builtins + check_module + check_unused_imports/bindings
+//
+// This reproduces the divergence root cause: before the fix, the LSP used
+// `resolve_module` (no prelude merge) while the CLI used
+// `resolve_module_with_intrinsic_prelude` (includes merge_prelude).  Functions
+// like `concat`, `i32_to_string`, `starts_with` etc. are public wrapper names
+// defined in prelude.ark — they were unknown to the LSP's TypeChecker, causing
+// spurious E0100 "unresolved name" diagnostics that do not appear in CLI check.
+
+/// Run the CLI-like resolve+typecheck pipeline on in-memory `source` and
+/// return the sorted list of diagnostic code strings (e.g. ["E0100", "W0006"]).
+/// This mirrors exactly what `arukellt check <file>` does for a single-file
+/// program with no cross-file imports.
+fn cli_like_diagnostic_codes(source: &str) -> Vec<String> {
+    use ark_diagnostics::DiagnosticSink;
+    use ark_lexer::Lexer;
+    use ark_parser::parse;
+
+    let mut sink = DiagnosticSink::new();
+    let lexer = Lexer::new(0, source);
+    let tokens: Vec<_> = lexer.collect();
+    let module = parse(&tokens, &mut sink);
+
+    if sink.has_errors() {
+        let mut codes: Vec<String> = sink
+            .diagnostics()
+            .iter()
+            .map(|d| d.code.as_str().to_string())
+            .collect();
+        codes.sort();
+        codes.dedup();
+        return codes;
+    }
+
+    let cached_module = module.clone();
+    // Use resolve_module_with_intrinsic_prelude — this is exactly what the CLI
+    // does for single-file programs (it calls merge_prelude internally) and is
+    // the correct baseline for LSP parity.
+    let resolved = ark_resolve::resolve_module_with_intrinsic_prelude(module, &mut sink);
+    let mut checker = ark_typecheck::TypeChecker::new();
+    checker.register_builtins();
+    checker.check_module(&resolved, &mut sink);
+
+    // Lint checks on the user's original module (same as CLI check).
+    ark_resolve::check_unused_imports(&cached_module, &mut sink);
+    ark_resolve::check_unused_bindings(&cached_module, &mut sink);
+
+    // Filter out E0200 CoreHIR structural errors (CLI check also suppresses these)
+    // and collect unique, sorted codes.
+    let mut codes: Vec<String> = sink
+        .diagnostics()
+        .iter()
+        .filter(|d| d.code.as_str() != "E0200")
+        .map(|d| d.code.as_str().to_string())
+        .collect();
+    codes.sort();
+    codes.dedup();
+    codes
+}
+
+/// Extract sorted, deduped diagnostic code strings from an LSP publishDiagnostics
+/// notification array (as returned by `LspSession::collect_diagnostics_for`).
+fn lsp_diagnostic_codes(diags: &[serde_json::Value]) -> Vec<String> {
+    let mut codes: Vec<String> = diags
+        .iter()
+        .filter_map(|d| d.get("code").and_then(|c| c.as_str()).map(|s| s.to_string()))
+        .collect();
+    codes.sort();
+    codes.dedup();
+    codes
+}
+
+#[test]
+fn parity_valid_prelude_only_program_no_diagnostics() {
+    // Parity test for issue #452.
+    //
+    // A program that calls prelude wrapper functions directly (`concat`,
+    // `i32_to_string`) but does not use any stdlib module imports.
+    // Before the fix: LSP produced E0100 for `concat` and `i32_to_string`
+    // because those public wrappers were not in fn_sigs (only their
+    // __intrinsic_* counterparts were).  CLI check produced zero errors
+    // because merge_prelude loads prelude.ark and registers those wrappers.
+    //
+    // After the fix: both produce zero E-prefixed diagnostics.
+    let src = concat!(
+        "fn greet(name: String) -> String {\n",
+        "    concat(\"Hello, \", concat(name, \"!\"))\n",
+        "}\n",
+        "fn main() {\n",
+        "    let n: i32 = 42\n",
+        "    let s = i32_to_string(n)\n",
+        "    let msg = greet(s)\n",
+        "    let _ = msg\n",
+        "}\n"
+    );
+
+    // CLI-like pipeline: should produce no E0xxx errors.
+    let cli_codes = cli_like_diagnostic_codes(src);
+    let cli_errors: Vec<_> = cli_codes
+        .iter()
+        .filter(|c| c.starts_with('E'))
+        .collect();
+    assert!(
+        cli_errors.is_empty(),
+        "parity: CLI-like pipeline should produce no errors for valid prelude-only program; \
+         got: {:?}",
+        cli_errors
+    );
+
+    // LSP pipeline: must produce the same result.
+    let mut session = LspSession::start();
+    session.initialize();
+
+    let uri = "file:///test/parity_prelude_only.ark";
+    session.open_document(uri, src);
+    let diags = session.collect_diagnostics_for(uri, Duration::from_secs(5));
+    let lsp_codes = lsp_diagnostic_codes(&diags);
+    let lsp_errors: Vec<_> = lsp_codes
+        .iter()
+        .filter(|c| c.starts_with('E'))
+        .collect();
+
+    assert!(
+        lsp_errors.is_empty(),
+        "parity: LSP must not produce E0100 for prelude wrapper functions (`concat`, \
+         `i32_to_string`). Before fix these were false positives because LSP did not \
+         call merge_prelude. Got: {:?}",
+        diags
+    );
+
+    // Both pipelines must agree: same error codes.
+    assert_eq!(
+        cli_errors, lsp_errors,
+        "parity: CLI-like and LSP error codes must be identical for prelude-only program"
+    );
+
+    session.shutdown();
+}
+
+#[test]
+fn parity_real_error_matches_cli() {
+    // Parity test for issue #452.
+    //
+    // A program with a genuine E0100 (calling a truly undefined function `does_not_exist`).
+    // Both CLI check and LSP must produce E0100 for this, confirming that the fix
+    // does not suppress legitimate errors.
+    let src = concat!(
+        "fn main() {\n",
+        "    does_not_exist()\n",
+        "}\n"
+    );
+
+    // CLI-like pipeline: must produce E0100.
+    let cli_codes = cli_like_diagnostic_codes(src);
+    assert!(
+        cli_codes.iter().any(|c| c == "E0100"),
+        "parity: CLI-like pipeline must produce E0100 for undefined `does_not_exist`; \
+         got: {:?}",
+        cli_codes
+    );
+
+    // LSP pipeline: must also produce E0100.
+    let mut session = LspSession::start();
+    session.initialize();
+
+    let uri = "file:///test/parity_real_error.ark";
+    session.open_document(uri, src);
+    let diags = session.collect_diagnostics_for(uri, Duration::from_secs(5));
+    let lsp_codes = lsp_diagnostic_codes(&diags);
+
+    assert!(
+        lsp_codes.iter().any(|c| c == "E0100"),
+        "parity: LSP must produce E0100 for undefined `does_not_exist`; \
+         fix must not suppress legitimate errors. Got: {:?}",
+        diags
+    );
+
+    session.shutdown();
+}
+
+#[test]
+fn parity_prelude_string_ops_no_e0100() {
+    // Parity test for issue #452 — additional prelude wrappers.
+    //
+    // Tests that `starts_with`, `ends_with`, `contains`, `slice`, `trim`,
+    // `bool_to_string`, and `panic` — all public prelude wrappers defined in
+    // prelude.ark but NOT in inject_prelude_symbols — do not produce E0100.
+    let src = concat!(
+        "fn check(s: String) -> bool {\n",
+        "    starts_with(s, \"hello\")\n",
+        "}\n",
+        "fn main() {\n",
+        "    let s = \"hello world\"\n",
+        "    let b = check(s)\n",
+        "    let bs = bool_to_string(b)\n",
+        "    let _ = bs\n",
+        "}\n"
+    );
+
+    // CLI-like pipeline.
+    let cli_codes = cli_like_diagnostic_codes(src);
+    let cli_errors: Vec<_> = cli_codes.iter().filter(|c| c.starts_with('E')).collect();
+    assert!(
+        cli_errors.is_empty(),
+        "parity: CLI-like pipeline must not produce errors for prelude string ops; \
+         got: {:?}",
+        cli_errors
+    );
+
+    // LSP pipeline.
+    let mut session = LspSession::start();
+    session.initialize();
+
+    let uri = "file:///test/parity_string_ops.ark";
+    session.open_document(uri, src);
+    let diags = session.collect_diagnostics_for(uri, Duration::from_secs(5));
+    let lsp_codes = lsp_diagnostic_codes(&diags);
+    let lsp_errors: Vec<_> = lsp_codes.iter().filter(|c| c.starts_with('E')).collect();
+
+    assert!(
+        lsp_errors.is_empty(),
+        "parity: LSP must not produce E0100 for prelude string ops (`starts_with`, \
+         `bool_to_string`). Before fix: false positives. Got: {:?}",
+        diags
+    );
+
+    assert_eq!(
+        cli_errors, lsp_errors,
+        "parity: CLI-like and LSP error codes must be identical for prelude string ops"
+    );
+
+    session.shutdown();
+}
