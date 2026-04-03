@@ -10,10 +10,26 @@ pub struct Module {
     pub items: Vec<Item>,
 }
 
+/// Distinguishes the syntactic form of a `use` or `import` statement.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ImportKind {
+    /// Legacy flat import: `import name [as alias]`
+    Simple,
+    /// Module-path import: `use a::b::c [as alias]`
+    ModulePath,
+    /// Destructuring import: `use a::b::{c, d, e}`
+    DestructureImport {
+        /// The individual names extracted from the brace list.
+        names: Vec<String>,
+    },
+}
+
 #[derive(Debug, Clone)]
 pub struct Import {
     pub module_name: String,
     pub alias: Option<String>,
+    /// How this import was written syntactically.
+    pub kind: ImportKind,
     pub span: Span,
 }
 

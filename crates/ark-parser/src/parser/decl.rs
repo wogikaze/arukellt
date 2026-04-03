@@ -18,21 +18,45 @@ impl Parser<'_> {
         Import {
             module_name: name,
             alias,
+            kind: ImportKind::Simple,
             span: start.merge(self.span()),
         }
     }
 
     /// Parse `use std::foo::bar` or `use std::foo::{bar, baz}`.
-    /// Produces one Import per path segment (destructuring expands to multiple).
+    ///
+    /// - `use a::b::c` → `ImportKind::ModulePath`
+    /// - `use a::b::c [as alias]` → `ImportKind::ModulePath` with alias
+    /// - `use a::b::{c, d}` → `ImportKind::DestructureImport { names: ["c", "d"] }`
     pub(crate) fn parse_use_import(&mut self) -> Import {
         let start = self.span();
         self.expect(&TokenKind::Use);
 
         // Parse path segments separated by ::
         let mut segments = vec![self.expect_ident()];
-        while self.eat(&TokenKind::ColonColon) {
-            // Check for destructuring: use std::foo::{bar, baz}
-            // For now we don't support destructuring — just parse a single path
+        loop {
+            if !self.eat(&TokenKind::ColonColon) {
+                break;
+            }
+            // Destructuring: `use a::b::{c, d}`
+            if *self.peek() == TokenKind::LBrace {
+                self.advance(); // consume `{`
+                let mut names = Vec::new();
+                while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
+                    names.push(self.expect_ident());
+                    if !self.eat(&TokenKind::Comma) {
+                        break;
+                    }
+                }
+                let end = self.expect(&TokenKind::RBrace);
+                let module_name = segments.join("::");
+                return Import {
+                    module_name,
+                    alias: None,
+                    kind: ImportKind::DestructureImport { names },
+                    span: start.merge(end),
+                };
+            }
             segments.push(self.expect_ident());
         }
 
@@ -40,13 +64,13 @@ impl Parser<'_> {
         let alias = if self.eat(&TokenKind::As) {
             Some(self.expect_ident())
         } else {
-            // Default alias is the last segment
             None
         };
 
         Import {
             module_name,
             alias,
+            kind: ImportKind::ModulePath,
             span: start.merge(self.span()),
         }
     }

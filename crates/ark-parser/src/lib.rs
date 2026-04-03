@@ -276,6 +276,43 @@ mod tests {
         assert!(!sink.has_errors());
         assert_eq!(module.imports[0].module_name, "foo");
         assert_eq!(module.imports[0].alias, Some("bar".to_string()));
+        assert!(matches!(module.imports[0].kind, ast::ImportKind::Simple));
+    }
+
+    #[test]
+    fn test_use_module_path_import() {
+        // `use std::text::string` — module-path import
+        let (module, sink) = parse_src("use std::text::string\nfn main() {}");
+        assert!(
+            !sink.has_errors(),
+            "unexpected errors: {:?}",
+            sink.diagnostics()
+        );
+        assert_eq!(module.imports.len(), 1);
+        let imp = &module.imports[0];
+        assert_eq!(imp.module_name, "std::text::string");
+        assert!(imp.alias.is_none());
+        assert!(matches!(imp.kind, ast::ImportKind::ModulePath));
+    }
+
+    #[test]
+    fn test_use_destructure_import() {
+        // `use std::collections::{vec, hash_map}` — destructuring import
+        let (module, sink) = parse_src("use std::collections::{vec, hash_map}\nfn main() {}");
+        assert!(
+            !sink.has_errors(),
+            "unexpected errors: {:?}",
+            sink.diagnostics()
+        );
+        assert_eq!(module.imports.len(), 1);
+        let imp = &module.imports[0];
+        assert_eq!(imp.module_name, "std::collections");
+        assert!(imp.alias.is_none());
+        if let ast::ImportKind::DestructureImport { names } = &imp.kind {
+            assert_eq!(names, &["vec", "hash_map"]);
+        } else {
+            panic!("expected DestructureImport, got {:?}", imp.kind);
+        }
     }
 
     #[test]

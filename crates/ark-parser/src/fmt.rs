@@ -202,11 +202,30 @@ fn sort_imports_in_module(source: &str, module: &ast::Module) -> Option<String> 
 }
 
 fn write_import(out: &mut String, imp: &ast::Import) {
-    out.push_str("use ");
-    out.push_str(&imp.module_name);
-    if let Some(ref alias) = imp.alias {
-        out.push_str(" as ");
-        out.push_str(alias);
+    match &imp.kind {
+        ast::ImportKind::Simple => {
+            out.push_str("import ");
+            out.push_str(&imp.module_name);
+            if let Some(ref alias) = imp.alias {
+                out.push_str(" as ");
+                out.push_str(alias);
+            }
+        }
+        ast::ImportKind::ModulePath => {
+            out.push_str("use ");
+            out.push_str(&imp.module_name);
+            if let Some(ref alias) = imp.alias {
+                out.push_str(" as ");
+                out.push_str(alias);
+            }
+        }
+        ast::ImportKind::DestructureImport { names } => {
+            out.push_str("use ");
+            out.push_str(&imp.module_name);
+            out.push_str("::{");
+            out.push_str(&names.join(", "));
+            out.push('}');
+        }
     }
     out.push('\n');
 }

@@ -11,6 +11,20 @@
 
 ---
 
+## Slice 1 complete — 2026-04-XX
+
+**Parser-only slice (feat(parser): add destructuring import AST + parser)**
+
+Changes landed:
+- `crates/ark-parser/src/ast.rs`: Added `ImportKind` enum (`Simple`, `ModulePath`, `DestructureImport { names: Vec<String> }`) and added `kind: ImportKind` field to `Import` struct.
+- `crates/ark-parser/src/parser/decl.rs`: Extended `parse_use_import()` to handle `{bar, baz}` destructuring brace lists; `parse_import()` sets `ImportKind::Simple`.
+- `crates/ark-parser/src/fmt.rs`: Updated `write_import()` to emit correct syntax per `ImportKind`.
+- `tests/fixtures/module_import/use_basic.ark`: Parser-acceptance fixture for `use std::text::string`.
+- `tests/fixtures/module_import/use_destructure.ark`: Parser-acceptance fixture for `use std::collections::{vec, hash_map}`.
+
+Verification: `cargo test -p ark-parser` → 60 passed, 0 failed.
+Remaining slices: resolver wiring (#2), stdlib path resolution (#3), typecheck (#4), std/ module structure (#5), error diagnostics (#6).
+
 ## Reopened by audit — 2026-04-03
 
 **Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
