@@ -702,6 +702,10 @@ impl Session {
             }
         }
 
+        // Validate MIR immediately after lowering, before any optimization pass.
+        // This ensures structural invariants are caught regardless of MirSelection.
+        validate_mir(&mir)?;
+
         let t_opt = std::time::Instant::now();
         let opt_detail = if matches!(
             selection,
@@ -749,7 +753,6 @@ impl Session {
         };
         let opt_ms = t_opt.elapsed().as_secs_f64() * 1000.0;
 
-        validate_mir(&mir)?;
         ensure_runtime_entry(&mir, selection)?;
         // Both T1 and T3 backends handle high-level IR nodes (IfExpr, LoopExpr, TryExpr)
         // directly. The stricter backend-legal check is deferred until the CoreHIR lowerer
