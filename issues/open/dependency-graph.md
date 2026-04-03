@@ -50,7 +50,6 @@ graph LR
   I132["132 Parser parser.rs (2003行) をサブモジュールに分割"]
   I134["134 ark-lexer lib.rs (1698行) をサブモジュールに分割"]
   I135["135 ark-diagnostics lib.rs (1099行) をサブモジュールに分割"]
-  I138["138 `std::host` 共通 capability (`stdio` / `fs` / `env` / `process` / `clock` / `random`) を T1/T3 両対応で実装"]
   I140["140 ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理"]
   I141["141 計測: cold/warm/incremental compile と phase 別時間分解"]
   I142["142 計測: startup / throughput / tail latency ベンチ"]
@@ -66,7 +65,6 @@ graph LR
   I471["471 Playground docs: command / workflow / publish claim の現実整合監査"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
-  I486["486 f32 ローカル変数の MIR lowerer 対応 (F32 locals tracking)"]
   I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
   I043["043 std::bytes: Bytes、ByteBuf、ByteCursor、endian、hex、base64、leb128"]
   I051["051 std::time + std::random: 時刻・期間・乱数"]
@@ -157,7 +155,6 @@ graph LR
   I043 --> I050
   I039 --> I053
   I043 --> I053
-  I138 --> I136
   I077 --> I136
   I139 --> I136
   I475 --> I485
@@ -225,7 +222,6 @@ graph LR
 - **132** depends on: none; blocks: none
 - **134** depends on: none; blocks: none
 - **135** depends on: none; blocks: none
-- **138** depends on: 137; blocks: 136
 - **140** depends on: 149; blocks: 148, 158
 - **141** depends on: 149; blocks: 144, 148, 158
 - **142** depends on: 149; blocks: 144, 148, 158
@@ -241,7 +237,6 @@ graph LR
 - **471** depends on: 465; blocks: none
 - **472** depends on: 466; blocks: none
 - **473** depends on: 032, done); blocks: none
-- **486** depends on: 040; blocks: none
 - **041** depends on: 039; blocks: 042, 044, 045, 046, 047, 048, 049, 050, 056
 - **043** depends on: 039, 040; blocks: 050, 053
 - **051** depends on: 039, 040; blocks: none

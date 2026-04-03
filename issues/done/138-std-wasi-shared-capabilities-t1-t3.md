@@ -1,8 +1,8 @@
 # `std::host` 共通 capability (`stdio` / `fs` / `env` / `process` / `clock` / `random`) を T1/T3 両対応で実装
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-04-03
+**Updated**: 2026-04-10
 **ID**: 138
 **Depends on**: 137
 **Track**: wasi-feature
