@@ -477,4 +477,112 @@ returns = "()"
             "sockets should have expansion family"
         );
     }
+
+    /// Issue 457 slice 1: every std::host::* function must declare `availability`
+    /// with t1/t3 booleans, and values must match the target-gating in load.rs
+    /// (T3_ONLY_MODULES = ["std::host::sockets"]).
+    #[test]
+    fn host_functions_have_availability() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+
+        // T3-only modules (matches T3_ONLY_MODULES in crates/ark-resolve/src/load.rs)
+        let t3_only: &[&str] = &["std::host::sockets"];
+
+        let host_fns: Vec<&ManifestFunction> = manifest
+            .functions
+            .iter()
+            .filter(|f| {
+                f.module
+                    .as_deref()
+                    .map(|m| m.starts_with("std::host::"))
+                    .unwrap_or(false)
+            })
+            .collect();
+
+        assert!(
+            !host_fns.is_empty(),
+            "expected at least one std::host::* function in manifest"
+        );
+
+        for f in &host_fns {
+            let module = f.module.as_deref().unwrap();
+            let avail = f.availability.as_ref().unwrap_or_else(|| {
+                panic!(
+                    "function '{}' in module '{}' is missing `availability` field (issue 457 slice 1)",
+                    f.name, module
+                )
+            });
+
+            if t3_only.contains(&module) {
+                // T3-only: must be t1=false, t3=true
+                assert!(
+                    !avail.t1,
+                    "function '{}' in T3-only module '{}' should have t1=false",
+                    f.name, module
+                );
+                assert!(
+                    avail.t3,
+                    "function '{}' in T3-only module '{}' should have t3=true",
+                    f.name, module
+                );
+            } else {
+                // All other host modules: must have t3=true (may vary for t1)
+                assert!(
+                    avail.t3,
+                    "function '{}' in module '{}' should have t3=true",
+                    f.name, module
+                );
+            }
+        }
+    }
+
+    /// Issue 457 slice 1: verify specific known availability values match
+    /// the decisions documented in issues 446-448.
+    #[test]
+    fn host_module_availability_values_match_target_gating() {
+        let manifest = StdlibManifest::load_from_repo(&repo_root()).unwrap();
+
+        let check = |name: &str, module: &str, expected_t1: bool, expected_t3: bool| {
+            let f = manifest
+                .functions
+                .iter()
+                .find(|f| f.name == name && f.module.as_deref() == Some(module))
+                .unwrap_or_else(|| panic!("function '{name}' in '{module}' not found in manifest"));
+            let avail = f
+                .availability
+                .as_ref()
+                .unwrap_or_else(|| panic!("'{name}' in '{module}' missing availability"));
+            assert_eq!(
+                avail.t1, expected_t1,
+                "'{name}' t1 mismatch: expected {expected_t1}, got {}",
+                avail.t1
+            );
+            assert_eq!(
+                avail.t3, expected_t3,
+                "'{name}' t3 mismatch: expected {expected_t3}, got {}",
+                avail.t3
+            );
+        };
+
+        // std::host::http — t1=true, t3=true (issue 446)
+        check("request", "std::host::http", true, true);
+        check("get", "std::host::http", true, true);
+
+        // std::host::sockets — t1=false, t3=true (issue 447 T3 impl; E0500 on T1 per 448)
+        check("connect", "std::host::sockets", false, true);
+
+        // std::host::process — t1=true, t3=true (issue 445)
+        check("exit", "std::host::process", true, true);
+
+        // std::host::stdio — t1=true, t3=true
+        check("println", "std::host::stdio", true, true);
+        check("print", "std::host::stdio", true, true);
+        check("eprintln", "std::host::stdio", true, true);
+
+        // std::host::clock — t1=true, t3=true (--allow-clock flag)
+        check("monotonic_now", "std::host::clock", true, true);
+
+        // std::host::random — t1=true, t3=true (--allow-random flag)
+        check("random_i32", "std::host::random", true, true);
+    }
 }
