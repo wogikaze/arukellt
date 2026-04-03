@@ -2,18 +2,19 @@ name: CI
 
 # CI layer structure (ADR-013, issue #242):
 #
-#  Layer        Job name            Merge gate?   Description
-#  ──────────── ─────────────────── ───────────── ────────────────────────────
-#  unit         unit-tests          yes           cargo test (no harness)
-#  fixture/T3   fixture-primary     yes           T3 wasm32-wasi-p2 fixtures (primary target)
-#  fixture/T1   fixture-supported   no            T1 wasm32-wasi-p1 fixtures (supported target)
-#  integration  integration         yes           CLI smoke: compile + run a known file
-#  packaging    packaging           yes           binary help/version output smoke test
-#  determinism  determinism         yes           same input → same output
-#  perf         perf-baseline       push only     baseline snapshot for drift detection
-#  heavy        heavy-checks        push only     size, WAT dump, docs generation
-#  extension    extension-tests     yes           VS Code extension activation + feature tests
-#  lsp-e2e      lsp-e2e             yes           LSP protocol E2E + unit tests
+#  Layer        Job name                      Merge gate?   Description
+#  ──────────── ───────────────────────────── ───────────── ────────────────────────────
+#  unit         unit-tests                    yes           cargo test (no harness)
+#  fixture/T3   fixture-primary               yes           T3 wasm32-wasi-p2 fixtures (primary target)
+#  fixture/T1   fixture-supported             no            T1 wasm32-wasi-p1 fixtures (supported target)
+#  integration  integration                   yes           CLI smoke: compile + run a known file
+#  packaging    packaging                     yes           binary help/version output smoke test
+#  determinism  determinism                   yes           same input → same output
+#  perf         perf-baseline                 push only     baseline snapshot for drift detection
+#  heavy        heavy-checks                  push only     size, WAT dump, docs generation
+#  extension    extension-tests               yes           VS Code extension activation + feature tests
+#  lsp-e2e      lsp-e2e                       yes           LSP protocol E2E + unit tests
+#  drift        target-contract-drift-check   yes           docs/target-contract.md in sync with CI
 #
 # All jobs except perf-baseline and heavy-checks are merge gates.
 # T1 (supported) fixture failures alert but do not block.
@@ -426,6 +427,33 @@ jobs:
 
       - name: LSP E2E tests
         run: cargo test -p ark-lsp --test lsp_e2e -- --test-threads=1
+
+  # ── Layer 12: Target-contract drift check (merge gate) ──────────────────
+  #
+  # Runs scripts/update-target-status.sh --dry-run to preview any proposed
+  # changes, then applies them and uses git diff --exit-code to fail if
+  # docs/target-contract.md is out of sync with CI reality.
+  # Triggers: pull_request (all) + push to master only.
+  target-contract-drift-check:
+    name: "Target contract drift check"
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure update-target-status.sh is executable
+        run: chmod +x scripts/update-target-status.sh
+
+      - name: Preview proposed changes (dry-run — informational)
+        run: echo '{}' | bash scripts/update-target-status.sh --dry-run
+
+      - name: Apply target-status updates
+        run: echo '{}' | bash scripts/update-target-status.sh
+
+      - name: Fail if docs/target-contract.md has uncommitted drift
+        run: git diff --exit-code docs/target-contract.md
 
   # ── Final gate ───────────────────────────────────────────────────────────
   verify:
