@@ -13,13 +13,14 @@ graph LR
   I072["072 Wasm Multi-Value: ブロック / ループの複数値返却フル活用"]
   I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I080["080 MIR: LICM (ループ不変式移動) パス"]
   I082["082 MIR: gc_hint パス — 短命オブジェクトのパターン検出"]
+  I083["083 MIR: ループ展開 (Loop Unrolling) パス"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
   I102["102 コンパイル速度: Lexer / Parser のホットパス最適化"]
+  I103["103 実行時性能: 配列境界チェック除去 (Bounds Check Elimination)"]
   I104["104 実行時性能: GC write barrier 削減 (immutable フィールド検出)"]
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
@@ -63,8 +64,6 @@ graph LR
   I474["474 Async Component Support (v5/T5)"]
   I475["475 `arukellt component` サブコマンド (v3 候補)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
-  I083["083 MIR: ループ展開 (Loop Unrolling) パス"]
-  I103["103 実行時性能: 配列境界チェック除去 (Bounds Check Elimination)"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
@@ -97,8 +96,6 @@ graph LR
   I074 --> I474
   I074 --> I475
   I074 --> I476
-  I080 --> I083
-  I080 --> I103
   I109 --> I112
   I117 --> I118
   I125 --> I126
@@ -159,13 +156,14 @@ graph LR
 - **072** depends on: none; blocks: none
 - **073** depends on: none; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476
-- **080** depends on: none; blocks: 083, 103
 - **082** depends on: none; blocks: none
+- **083** depends on: 080; blocks: none
 - **094** depends on: none; blocks: none
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
 - **102** depends on: 100; blocks: none
+- **103** depends on: 080; blocks: none
 - **104** depends on: none; blocks: none
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
@@ -209,8 +207,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
-- **083** depends on: 080; blocks: none
-- **103** depends on: 080; blocks: none
 - **112** depends on: 109; blocks: none
 - **118** depends on: 117; blocks: none
 - **126** depends on: 125; blocks: none
