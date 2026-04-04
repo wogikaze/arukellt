@@ -722,8 +722,25 @@ impl EmitCtx {
             for stmt in &block.stmts {
                 self.emit_stmt(&mut f, stmt);
             }
-            if let Terminator::Return(Some(op)) = &block.terminator {
-                self.emit_operand(&mut f, op);
+            match &block.terminator {
+                Terminator::Return(Some(op)) => {
+                    self.emit_operand(&mut f, op);
+                }
+                // T1 (wasm32-wasi-p1) has no native tail-call instructions.
+                // Emit TailCall as a regular call so the result sits on the
+                // stack when the function's End is reached.
+                Terminator::TailCall { func: callee, args } => {
+                    let op = Operand::Call(callee.clone(), args.clone());
+                    self.emit_operand(&mut f, &op);
+                }
+                Terminator::TailCallIndirect { callee, args } => {
+                    let op = Operand::CallIndirect {
+                        callee: callee.clone().into(),
+                        args: args.clone(),
+                    };
+                    self.emit_operand(&mut f, &op);
+                }
+                _ => {}
             }
         }
 

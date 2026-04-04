@@ -918,7 +918,12 @@ fn func_body_wraps_http_intrinsic(func: &MirFunction) -> bool {
 /// Scalars live in Wasm locals. Strings, Vecs, structs, and enums use
 /// GC struct/array types. I/O bridges through a small linear memory
 /// region for WASI fd_write.
-pub fn emit(mir: &MirModule, _sink: &mut DiagnosticSink, opt_level: u8, strip_debug: bool) -> Vec<u8> {
+pub fn emit(
+    mir: &MirModule,
+    _sink: &mut DiagnosticSink,
+    opt_level: u8,
+    strip_debug: bool,
+) -> Vec<u8> {
     // struct_layouts is sourced exclusively from mir.type_table (MIR-01 resolved).
     let struct_layouts: HashMap<String, Vec<(String, String)>> = mir.type_table.struct_defs.clone();
     let fn_ret_types: HashMap<String, Type> = mir
@@ -1903,80 +1908,80 @@ impl Ctx {
         // Name section: emit function names for debug/profiling
         // Skip entirely when --strip-debug is requested.
         if !self.strip_name_section {
-        let mut name_section = wasm_encoder::NameSection::new();
-        name_section.module("arukellt");
-        let mut func_names = wasm_encoder::NameMap::new();
-        // Import names (dynamically assigned)
-        if needs_fd_write {
-            func_names.append(self.wasi_fd_write, "wasi:fd_write");
-        }
-        if needs_fs {
-            func_names.append(self.wasi_path_open, "wasi:path_open");
-            func_names.append(self.wasi_fd_read, "wasi:fd_read");
-            func_names.append(self.wasi_fd_close, "wasi:fd_close");
-        }
-        if needs_clock {
-            func_names.append(self.wasi_clock_time_get, "wasi:clock_time_get");
-        }
-        if needs_random {
-            func_names.append(self.wasi_random_get, "wasi:random_get");
-        }
-        if needs_proc_exit {
-            func_names.append(self.wasi_proc_exit, "wasi:proc_exit");
-        }
-        if needs_args {
-            func_names.append(self.wasi_args_sizes_get, "wasi:args_sizes_get");
-            func_names.append(self.wasi_args_get, "wasi:args_get");
-        }
-        if needs_environ {
-            func_names.append(self.wasi_environ_sizes_get, "wasi:environ_sizes_get");
-            func_names.append(self.wasi_environ_get, "wasi:environ_get");
-        }
-        if needs_http {
-            func_names.append(self.host_http_get, "arukellt_host:http_get");
-            func_names.append(self.host_http_request, "arukellt_host:http_request");
-        }
-        if needs_sockets {
-            func_names.append(self.host_sockets_connect, "arukellt_host:sockets_connect");
-        }
-        // Helper function names (sorted by index for NameMap)
-        let mut helpers: Vec<(u32, &str)> = self
-            .fn_map
-            .iter()
-            .filter(|(_, idx)| **idx >= num_imports && **idx < user_base)
-            .map(|(name, idx)| (*idx, name.as_str()))
-            .collect();
-        helpers.sort_by_key(|(idx, _)| *idx);
-        for (idx, name) in helpers {
-            func_names.append(idx, name);
-        }
-        // User function names
-        for (i, &mir_idx) in reachable_user_indices.iter().enumerate() {
-            let wasm_idx = user_base + i as u32;
-            func_names.append(wasm_idx, &mir.functions[mir_idx].name);
-        }
-        name_section.functions(&func_names);
-
-        // Local variable names — only at opt_level 0 (debug builds)
-        if self.opt_level == 0 {
-            let mut all_local_names = wasm_encoder::IndirectNameMap::new();
-            for (i, &mir_idx) in reachable_user_indices.iter().enumerate() {
-                let wasm_func_idx = user_base + i as u32;
-                let func = &mir.functions[mir_idx];
-                let mut local_name_map = wasm_encoder::NameMap::new();
-                for (j, local) in func.locals.iter().enumerate() {
-                    let name = match &local.name {
-                        Some(n) if !n.is_empty() => n.clone(),
-                        _ => format!("local_{}", j),
-                    };
-                    local_name_map.append(j as u32, &name);
-                }
-                all_local_names.append(wasm_func_idx, &local_name_map);
+            let mut name_section = wasm_encoder::NameSection::new();
+            name_section.module("arukellt");
+            let mut func_names = wasm_encoder::NameMap::new();
+            // Import names (dynamically assigned)
+            if needs_fd_write {
+                func_names.append(self.wasi_fd_write, "wasi:fd_write");
             }
-            name_section.locals(&all_local_names);
-        }
+            if needs_fs {
+                func_names.append(self.wasi_path_open, "wasi:path_open");
+                func_names.append(self.wasi_fd_read, "wasi:fd_read");
+                func_names.append(self.wasi_fd_close, "wasi:fd_close");
+            }
+            if needs_clock {
+                func_names.append(self.wasi_clock_time_get, "wasi:clock_time_get");
+            }
+            if needs_random {
+                func_names.append(self.wasi_random_get, "wasi:random_get");
+            }
+            if needs_proc_exit {
+                func_names.append(self.wasi_proc_exit, "wasi:proc_exit");
+            }
+            if needs_args {
+                func_names.append(self.wasi_args_sizes_get, "wasi:args_sizes_get");
+                func_names.append(self.wasi_args_get, "wasi:args_get");
+            }
+            if needs_environ {
+                func_names.append(self.wasi_environ_sizes_get, "wasi:environ_sizes_get");
+                func_names.append(self.wasi_environ_get, "wasi:environ_get");
+            }
+            if needs_http {
+                func_names.append(self.host_http_get, "arukellt_host:http_get");
+                func_names.append(self.host_http_request, "arukellt_host:http_request");
+            }
+            if needs_sockets {
+                func_names.append(self.host_sockets_connect, "arukellt_host:sockets_connect");
+            }
+            // Helper function names (sorted by index for NameMap)
+            let mut helpers: Vec<(u32, &str)> = self
+                .fn_map
+                .iter()
+                .filter(|(_, idx)| **idx >= num_imports && **idx < user_base)
+                .map(|(name, idx)| (*idx, name.as_str()))
+                .collect();
+            helpers.sort_by_key(|(idx, _)| *idx);
+            for (idx, name) in helpers {
+                func_names.append(idx, name);
+            }
+            // User function names
+            for (i, &mir_idx) in reachable_user_indices.iter().enumerate() {
+                let wasm_idx = user_base + i as u32;
+                func_names.append(wasm_idx, &mir.functions[mir_idx].name);
+            }
+            name_section.functions(&func_names);
 
-        module.section(&name_section);
+            // Local variable names — only at opt_level 0 (debug builds)
+            if self.opt_level == 0 {
+                let mut all_local_names = wasm_encoder::IndirectNameMap::new();
+                for (i, &mir_idx) in reachable_user_indices.iter().enumerate() {
+                    let wasm_func_idx = user_base + i as u32;
+                    let func = &mir.functions[mir_idx];
+                    let mut local_name_map = wasm_encoder::NameMap::new();
+                    for (j, local) in func.locals.iter().enumerate() {
+                        let name = match &local.name {
+                            Some(n) if !n.is_empty() => n.clone(),
+                            _ => format!("local_{}", j),
+                        };
+                        local_name_map.append(j as u32, &name);
+                    }
+                    all_local_names.append(wasm_func_idx, &local_name_map);
+                }
+                name_section.locals(&all_local_names);
+            }
+
+            module.section(&name_section);
         } // end !strip_name_section
 
         module.finish()

@@ -154,13 +154,22 @@ fn validate_function(module: &MirModule, func: &MirFunction, errors: &mut Vec<Mi
     }
 
     for block in &func.blocks {
-        validate_block(module, func.id, &function_name, block, &declared, errors);
+        validate_block(
+            module,
+            func.id,
+            func.entry,
+            &function_name,
+            block,
+            &declared,
+            errors,
+        );
     }
 }
 
 fn validate_block(
     module: &MirModule,
     func_id: FnId,
+    func_entry: BlockId,
     function_name: &str,
     block: &crate::mir::BasicBlock,
     declared: &HashSet<crate::mir::LocalId>,
@@ -180,6 +189,7 @@ fn validate_block(
     validate_terminator(
         module,
         func_id,
+        func_entry,
         function_name,
         block.id,
         &block.terminator,
@@ -287,7 +297,8 @@ fn validate_stmt(
 
 fn validate_terminator(
     module: &MirModule,
-    _func_id: FnId,
+    func_id: FnId,
+    func_entry: BlockId,
     function_name: &str,
     block_id: BlockId,
     terminator: &Terminator,
@@ -323,7 +334,7 @@ fn validate_terminator(
     if matches!(terminator, Terminator::Unreachable)
         && module
             .entry_fn
-            .is_some_and(|entry| entry == FnId(block_id.0))
+            .is_some_and(|entry| entry == func_id && block_id == func_entry)
     {
         errors.push(MirValidationError::new(
             function_name.to_string(),

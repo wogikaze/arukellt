@@ -461,7 +461,10 @@ impl LowerCtx {
         match op {
             Operand::ConstI64(_) | Operand::ConstU64(_) => true,
             Operand::Call(name, _) => {
-                if matches!(name.as_str(), "clock_now" | "clock_now_ms" | "monotonic_now" | "now_ms") {
+                if matches!(
+                    name.as_str(),
+                    "clock_now" | "clock_now_ms" | "monotonic_now" | "now_ms"
+                ) {
                     return true;
                 }
                 // Check fn_return_types for user-defined functions returning i64

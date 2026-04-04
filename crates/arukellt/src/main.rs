@@ -311,7 +311,14 @@ fn main() {
             profile_mem,
             time,
         } => {
-            commands::cmd_build(target, opt_level, strip_debug, &mir_select, profile_mem, time);
+            commands::cmd_build(
+                target,
+                opt_level,
+                strip_debug,
+                &mir_select,
+                profile_mem,
+                time,
+            );
         }
         Commands::Run {
             file,

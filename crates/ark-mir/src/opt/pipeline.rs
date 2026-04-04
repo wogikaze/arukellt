@@ -1612,7 +1612,15 @@ fn inter_function_inline(module: &mut MirModule, max_stmts: usize, max_calls: us
         .filter_map(|(name, &idx)| {
             let func = &module.functions[idx];
             if func.blocks.len() == 1 {
-                Some((name.clone(), func.blocks[0].stmts.clone()))
+                let stmts = &func.blocks[0].stmts;
+                // Do not inline if the body contains Return statements — after desugar,
+                // small functions like abs/min/max may have Return inside IfStmt as a
+                // desugar artifact. Inlining such Returns into a caller would emit
+                // Wasm `return` instructions that exit the caller, not the callee.
+                if stmts_contain_return(stmts) {
+                    return None;
+                }
+                Some((name.clone(), stmts.clone()))
             } else {
                 None // Only inline single-block functions for safety
             }
@@ -1640,6 +1648,23 @@ fn inter_function_inline(module: &mut MirModule, max_stmts: usize, max_calls: us
     }
 
     total_inlined
+}
+
+/// Returns true if any statement in the list (or recursively in nested bodies) is a Return.
+/// Used by `inter_function_inline` to avoid inlining functions whose desugared body
+/// contains explicit `Return` statements — those would emit Wasm `return` instructions
+/// that exit the *caller*, not the callee.
+fn stmts_contain_return(stmts: &[MirStmt]) -> bool {
+    stmts.iter().any(|s| match s {
+        MirStmt::Return(_) => true,
+        MirStmt::IfStmt {
+            then_body,
+            else_body,
+            ..
+        } => stmts_contain_return(then_body) || stmts_contain_return(else_body),
+        MirStmt::WhileStmt { body, .. } => stmts_contain_return(body),
+        _ => false,
+    })
 }
 
 fn count_operand_calls(

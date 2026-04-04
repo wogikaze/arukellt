@@ -54,7 +54,8 @@ impl EmitCtx {
             Operand::BinOp(op, left, right) => {
                 let is_f64 = self.is_f64_operand(left) || self.is_f64_operand(right);
                 let is_f32 = !is_f64 && (self.is_f32_operand(left) || self.is_f32_operand(right));
-                let is_i64 = !is_f64 && !is_f32 && (self.is_i64_operand(left) || self.is_i64_operand(right));
+                let is_i64 =
+                    !is_f64 && !is_f32 && (self.is_i64_operand(left) || self.is_i64_operand(right));
                 if is_f64 {
                     // Promote both operands to f64 if needed
                     self.emit_f64_operand(f, left);
@@ -7234,17 +7235,39 @@ impl EmitCtx {
 
     pub(super) fn emit_binop_f32(&mut self, f: &mut Function, op: &BinOp) {
         match op {
-            BinOp::Add => { f.instruction(&Instruction::F32Add); }
-            BinOp::Sub => { f.instruction(&Instruction::F32Sub); }
-            BinOp::Mul => { f.instruction(&Instruction::F32Mul); }
-            BinOp::Div => { f.instruction(&Instruction::F32Div); }
-            BinOp::Eq  => { f.instruction(&Instruction::F32Eq); }
-            BinOp::Ne  => { f.instruction(&Instruction::F32Ne); }
-            BinOp::Lt  => { f.instruction(&Instruction::F32Lt); }
-            BinOp::Le  => { f.instruction(&Instruction::F32Le); }
-            BinOp::Gt  => { f.instruction(&Instruction::F32Gt); }
-            BinOp::Ge  => { f.instruction(&Instruction::F32Ge); }
-            _ => { self.emit_binop(f, op); }
+            BinOp::Add => {
+                f.instruction(&Instruction::F32Add);
+            }
+            BinOp::Sub => {
+                f.instruction(&Instruction::F32Sub);
+            }
+            BinOp::Mul => {
+                f.instruction(&Instruction::F32Mul);
+            }
+            BinOp::Div => {
+                f.instruction(&Instruction::F32Div);
+            }
+            BinOp::Eq => {
+                f.instruction(&Instruction::F32Eq);
+            }
+            BinOp::Ne => {
+                f.instruction(&Instruction::F32Ne);
+            }
+            BinOp::Lt => {
+                f.instruction(&Instruction::F32Lt);
+            }
+            BinOp::Le => {
+                f.instruction(&Instruction::F32Le);
+            }
+            BinOp::Gt => {
+                f.instruction(&Instruction::F32Gt);
+            }
+            BinOp::Ge => {
+                f.instruction(&Instruction::F32Ge);
+            }
+            _ => {
+                self.emit_binop(f, op);
+            }
         }
     }
 
@@ -7449,8 +7472,9 @@ impl EmitCtx {
             UnaryOp::Neg => {
                 let is_f64 = matches!(inner, Operand::ConstF64(_))
                     || matches!(inner, Operand::Place(Place::Local(id)) if self.f64_locals.contains(&id.0));
-                let is_f32 = !is_f64 && (matches!(inner, Operand::ConstF32(_))
-                    || matches!(inner, Operand::Place(Place::Local(id)) if self.f32_locals.contains(&id.0)));
+                let is_f32 = !is_f64
+                    && (matches!(inner, Operand::ConstF32(_))
+                        || matches!(inner, Operand::Place(Place::Local(id)) if self.f32_locals.contains(&id.0)));
                 let is_i64 = !is_f64 && !is_f32 && self.is_i64_operand(inner);
                 if is_f64 {
                     self.emit_operand(f, inner);

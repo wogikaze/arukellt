@@ -11,8 +11,8 @@
 //! This pass works on the tree-structured (non-CFG) MIR where while loops are
 //! represented as `MirStmt::WhileStmt { cond, body }`.
 
-use crate::mir::{MirFunction, MirStmt, Operand, Place, Rvalue};
 use super::OptimizationSummary;
+use crate::mir::{MirFunction, MirStmt, Operand, Place, Rvalue};
 use std::collections::HashSet;
 
 /// Run LICM over all blocks in `function`.
@@ -26,7 +26,10 @@ pub(crate) fn licm(function: &mut MirFunction) -> OptimizationSummary {
                     let (hoisted, remaining) = extract_invariants(body);
                     summary.licm_hoisted += hoisted.len();
                     new_stmts.extend(hoisted);
-                    new_stmts.push(MirStmt::WhileStmt { cond, body: remaining });
+                    new_stmts.push(MirStmt::WhileStmt {
+                        cond,
+                        body: remaining,
+                    });
                 }
                 other => new_stmts.push(other),
             }
