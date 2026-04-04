@@ -2570,34 +2570,34 @@ impl Ctx {
     /// For `Call` operands at opt_level ≥ 1: emit `return_call` (tail call).
     /// For all others: emit normally (pushes result value on stack for the block).
     fn emit_operand_try_tco(&mut self, f: &mut PeepholeWriter<'_>, op: &Operand) {
-        if self.opt_level >= 1 {
-            if let Operand::Call(name, args) = op {
-                let canonical = normalize_intrinsic(name).to_string();
-                if !self.is_builtin_name(&canonical) {
-                    let callee_ret_is_any = self
-                        .fn_ret_types
-                        .get(canonical.as_str())
-                        .is_some_and(|t| *t == Type::Any);
-                    let current_ret_is_any = self.current_fn_return_ty == Type::Any;
-                    if callee_ret_is_any == current_ret_is_any {
-                        if let Some(&fn_idx) = self.fn_map.get(canonical.as_str()) {
-                            let param_types = self.fn_param_types.get(canonical.as_str()).cloned();
-                            for (i, arg) in args.iter().enumerate() {
-                                self.emit_operand(f, arg);
-                                if let Some(ref pts) = param_types
-                                    && i < pts.len()
-                                    && pts[i] == Type::Any
-                                {
-                                    let arg_vt = self.infer_operand_type(arg);
-                                    if arg_vt == ValType::I32 {
-                                        f.instruction(&Instruction::RefI31);
-                                    }
-                                }
+        if self.opt_level >= 1
+            && let Operand::Call(name, args) = op
+        {
+            let canonical = normalize_intrinsic(name).to_string();
+            if !self.is_builtin_name(&canonical) {
+                let callee_ret_is_any = self
+                    .fn_ret_types
+                    .get(canonical.as_str())
+                    .is_some_and(|t| *t == Type::Any);
+                let current_ret_is_any = self.current_fn_return_ty == Type::Any;
+                if callee_ret_is_any == current_ret_is_any
+                    && let Some(&fn_idx) = self.fn_map.get(canonical.as_str())
+                {
+                    let param_types = self.fn_param_types.get(canonical.as_str()).cloned();
+                    for (i, arg) in args.iter().enumerate() {
+                        self.emit_operand(f, arg);
+                        if let Some(ref pts) = param_types
+                            && i < pts.len()
+                            && pts[i] == Type::Any
+                        {
+                            let arg_vt = self.infer_operand_type(arg);
+                            if arg_vt == ValType::I32 {
+                                f.instruction(&Instruction::RefI31);
                             }
-                            f.instruction(&Instruction::ReturnCall(fn_idx));
-                            return;
                         }
                     }
+                    f.instruction(&Instruction::ReturnCall(fn_idx));
+                    return;
                 }
             }
         }
@@ -2732,12 +2732,9 @@ impl Ctx {
                     self.emit_stmt(f, s);
                 }
                 // Emit then-result: tail call → return_call; otherwise push value
-                match then_result.as_deref() {
-                    Some(r) => {
-                        // Try as tail call (return_call), otherwise emit as value
-                        self.emit_operand_try_tco(f, r);
-                    }
-                    None => {}
+                if let Some(r) = then_result.as_deref() {
+                    // Try as tail call (return_call), otherwise emit as value
+                    self.emit_operand_try_tco(f, r);
                 }
 
                 f.instruction(&Instruction::Else);
@@ -2747,11 +2744,8 @@ impl Ctx {
                     self.emit_stmt(f, s);
                 }
                 // Emit else-result: tail call → return_call; otherwise push value
-                match else_result.as_deref() {
-                    Some(r) => {
-                        self.emit_operand_try_tco(f, r);
-                    }
-                    None => {}
+                if let Some(r) = else_result.as_deref() {
+                    self.emit_operand_try_tco(f, r);
                 }
 
                 self.loop_break_extra_depth -= 1;

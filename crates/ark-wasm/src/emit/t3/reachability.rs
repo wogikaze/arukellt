@@ -761,10 +761,10 @@ impl Ctx {
                 self.collect_reachable_from_operand(op, name_to_idx, reachable, queue);
             }
             Terminator::TailCall { func, args } => {
-                if let Some(&idx) = name_to_idx.get(func.as_str()) {
-                    if reachable.insert(idx) {
-                        queue.push_back(idx);
-                    }
+                if let Some(&idx) = name_to_idx.get(func.as_str())
+                    && reachable.insert(idx)
+                {
+                    queue.push_back(idx);
                 }
                 for arg in args {
                     self.collect_reachable_from_operand(arg, name_to_idx, reachable, queue);

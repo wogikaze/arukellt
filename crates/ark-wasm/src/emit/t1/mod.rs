@@ -735,7 +735,7 @@ impl EmitCtx {
                 }
                 Terminator::TailCallIndirect { callee, args } => {
                     let op = Operand::CallIndirect {
-                        callee: callee.clone().into(),
+                        callee: callee.clone(),
                         args: args.clone(),
                     };
                     self.emit_operand(&mut f, &op);
