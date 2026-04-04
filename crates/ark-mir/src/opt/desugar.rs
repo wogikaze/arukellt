@@ -38,47 +38,44 @@ pub fn desugar_exprs(func: &mut MirFunction) -> usize {
                 else_body,
                 else_result,
             })) = std::mem::replace(&mut block.terminator, Terminator::Unreachable)
-            {
-                let (new_cond, mut pre, c1) =
-                    desugar_operand(*cond, &mut next_local, &mut func.locals);
+        {
+            let (new_cond, mut pre, c1) = desugar_operand(*cond, &mut next_local, &mut func.locals);
 
-                let (mut then_stmts, c2) =
-                    desugar_stmt_list(then_body, &mut next_local, &mut func.locals);
-                match then_result {
-                    Some(r) => {
-                        let (new_r, r_pre, _) =
-                            desugar_operand(*r, &mut next_local, &mut func.locals);
-                        then_stmts.extend(r_pre);
-                        then_stmts.push(MirStmt::Return(Some(new_r)));
-                    }
-                    None => {
-                        then_stmts.push(MirStmt::Return(None));
-                    }
+            let (mut then_stmts, c2) =
+                desugar_stmt_list(then_body, &mut next_local, &mut func.locals);
+            match then_result {
+                Some(r) => {
+                    let (new_r, r_pre, _) = desugar_operand(*r, &mut next_local, &mut func.locals);
+                    then_stmts.extend(r_pre);
+                    then_stmts.push(MirStmt::Return(Some(new_r)));
                 }
-
-                let (mut else_stmts, c3) =
-                    desugar_stmt_list(else_body, &mut next_local, &mut func.locals);
-                match else_result {
-                    Some(r) => {
-                        let (new_r, r_pre, _) =
-                            desugar_operand(*r, &mut next_local, &mut func.locals);
-                        else_stmts.extend(r_pre);
-                        else_stmts.push(MirStmt::Return(Some(new_r)));
-                    }
-                    None => {
-                        else_stmts.push(MirStmt::Return(None));
-                    }
+                None => {
+                    then_stmts.push(MirStmt::Return(None));
                 }
-
-                pre.push(MirStmt::IfStmt {
-                    cond: new_cond,
-                    then_body: then_stmts,
-                    else_body: else_stmts,
-                });
-                block.stmts.extend(pre);
-                // terminator was already replaced with Unreachable above
-                counter += 1 + c1 + c2 + c3;
             }
+
+            let (mut else_stmts, c3) =
+                desugar_stmt_list(else_body, &mut next_local, &mut func.locals);
+            match else_result {
+                Some(r) => {
+                    let (new_r, r_pre, _) = desugar_operand(*r, &mut next_local, &mut func.locals);
+                    else_stmts.extend(r_pre);
+                    else_stmts.push(MirStmt::Return(Some(new_r)));
+                }
+                None => {
+                    else_stmts.push(MirStmt::Return(None));
+                }
+            }
+
+            pre.push(MirStmt::IfStmt {
+                cond: new_cond,
+                then_body: then_stmts,
+                else_body: else_stmts,
+            });
+            block.stmts.extend(pre);
+            // terminator was already replaced with Unreachable above
+            counter += 1 + c1 + c2 + c3;
+        }
     }
     counter
 }
