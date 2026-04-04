@@ -30,8 +30,8 @@ pub fn desugar_exprs(func: &mut MirFunction) -> usize {
         //
         // This preserves Return(Some(Call(...))) in each branch so the T3 emitter's
         // tail-call detection (return_call emission) can fire for recursive tail calls.
-        if let Terminator::Return(Some(Operand::IfExpr { .. })) = &block.terminator {
-            if let Terminator::Return(Some(Operand::IfExpr {
+        if let Terminator::Return(Some(Operand::IfExpr { .. })) = &block.terminator
+            && let Terminator::Return(Some(Operand::IfExpr {
                 cond,
                 then_body,
                 then_result,
@@ -79,7 +79,6 @@ pub fn desugar_exprs(func: &mut MirFunction) -> usize {
                 // terminator was already replaced with Unreachable above
                 counter += 1 + c1 + c2 + c3;
             }
-        }
     }
     counter
 }

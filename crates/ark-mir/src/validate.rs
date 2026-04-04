@@ -295,6 +295,7 @@ fn validate_stmt(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn validate_terminator(
     module: &MirModule,
     func_id: FnId,
