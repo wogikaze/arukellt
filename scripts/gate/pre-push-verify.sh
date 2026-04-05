@@ -2,7 +2,8 @@
 # scripts/pre-push-verify.sh — Lightweight pre-push gate (target: 2-5 min).
 #
 # Runs fast checks only. Heavy CI (release build, selfhost, component interop,
-# extension tests, determinism, T1 fixtures) lives in scripts/ci-full-local.sh.
+# extension tests, determinism, fixtures) lives in GitHub Actions and
+# scripts/ci-full-local.sh.
 #
 # Change-based filtering skips irrelevant checks when only docs/issues changed.
 
@@ -35,15 +36,12 @@ has_rust_changes() {
 has_doc_changes() {
     echo "$CHANGED" | grep -qE '^(docs/|issues/|scripts/generate-docs\.py|scripts/generate-issue-index\.sh|std/manifest\.toml|README\.md)' 2>/dev/null
 }
-has_fixture_changes() {
-    echo "$CHANGED" | grep -qE '^(tests/fixtures/|std/)' 2>/dev/null
-}
 has_extension_changes() {
     echo "$CHANGED" | grep -qE '^extensions/' 2>/dev/null
 }
 
 # ── 1. Rust: fmt + clippy + test (skip if only docs/issues changed) ──────────
-if has_rust_changes || has_fixture_changes || [ -z "$CHANGED" ]; then
+if has_rust_changes || [ -z "$CHANGED" ]; then
     echo -e "\n${YELLOW}── Rust checks ──${NC}"
     cargo fmt --check --all
     cargo clippy --workspace --exclude ark-llvm --exclude ark-lsp --all-targets -- -D warnings
@@ -62,15 +60,7 @@ else
     echo -e "\n⊙ No doc changes — skipping docs freshness"
 fi
 
-# ── 3. T3 fixture suite (skip if no Rust/fixture changes) ────────────────────
-if has_rust_changes || has_fixture_changes || [ -z "$CHANGED" ]; then
-    echo -e "\n${YELLOW}── T3 fixtures (wasm32-wasi-p2) ──${NC}"
-    ARUKELLT_TARGET=wasm32-wasi-p2 bash scripts/run/verify-harness.sh --fixtures
-else
-    echo -e "\n⊙ No Rust/fixture changes — skipping T3 fixtures"
-fi
-
-# ── 4. Extension syntax check (only when extension files changed) ─────────────
+# ── 3. Extension syntax check (only when extension files changed) ─────────────
 if has_extension_changes; then
     echo -e "\n${YELLOW}── Extension syntax check ──${NC}"
     if [ -f extensions/arukellt-all-in-one/src/extension.js ]; then
@@ -83,4 +73,4 @@ if has_extension_changes; then
 fi
 
 echo -e "\n${GREEN}=== Pre-push passed ===${NC}"
-echo -e "${GREEN}For full CI checks (release, selfhost, component, extension): bash scripts/gate/ci-full-local.sh${NC}"
+echo -e "${GREEN}Fixture tests run in CI. For full local checks: bash scripts/gate/ci-full-local.sh${NC}"

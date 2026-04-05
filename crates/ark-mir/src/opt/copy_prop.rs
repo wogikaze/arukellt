@@ -1,5 +1,5 @@
 use crate::mir::{MirFunction, MirStmt, Operand, Place, Rvalue};
-use super::helpers::{rewrite_stmt_with_replacements, rewrite_terminator_with_replacements};
+use super::helpers::{collect_assigned_locals, rewrite_stmt_with_replacements, rewrite_terminator_with_replacements};
 use super::OptimizationSummary;
 
 pub(crate) fn copy_prop(function: &mut MirFunction) -> OptimizationSummary {
@@ -17,6 +17,14 @@ pub(crate) fn copy_prop(function: &mut MirFunction) -> OptimizationSummary {
                 continue;
             }
             rewrite_stmt_with_replacements(stmt, &replacements);
+            // After a while loop the modified variables can hold any value —
+            // remove them from the known-copy map so subsequent statements
+            // don't receive stale pre-loop aliases.
+            if let MirStmt::WhileStmt { body, .. } = stmt {
+                for id in collect_assigned_locals(body) {
+                    replacements.remove(&id);
+                }
+            }
         }
         rewrite_terminator_with_replacements(&mut block.terminator, &replacements);
     }

@@ -130,9 +130,6 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build release arukellt
-        run: cargo build --release -p arukellt
-
       - name: T1 fixtures (run + module-run + diag + module-diag)
         env:
           ARUKELLT_TARGET: wasm32-wasi-p1

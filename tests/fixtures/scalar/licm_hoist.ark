@@ -1,7 +1,14 @@
+use std::host::stdio
 fn main() {
-    let i = 0;
+    let base: i32 = 5
+    let mut total: i32 = 0
+    let mut i: i32 = 0
     while i < 3 {
-        i = i + 1;
+        // base + 1 is loop-invariant; LICM should hoist it before the loop.
+        let step: i32 = base + 1
+        total = total + step
+        i = i + 1
     }
-    println(i);
+    // 3 iterations * 6 = 18
+    stdio::println(i32_to_string(total))
 }

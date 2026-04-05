@@ -49,28 +49,43 @@ fn is_pure_rvalue(rvalue: &Rvalue) -> bool {
 
 /// Collect the set of `LocalId` values that are the *destination* of an
 /// assignment anywhere in `stmts` (including nested loops/if bodies).
+/// Also includes locals written by `Call`/`CallBuiltin` destinations.
 fn collect_assigned_locals(stmts: &[MirStmt]) -> HashSet<u32> {
     let mut assigned = HashSet::new();
+    collect_assigned_locals_impl(stmts, &mut assigned);
+    assigned
+}
+
+fn collect_assigned_locals_impl(stmts: &[MirStmt], assigned: &mut HashSet<u32>) {
     for stmt in stmts {
         match stmt {
             MirStmt::Assign(Place::Local(id), _) => {
                 assigned.insert(id.0);
             }
+            MirStmt::Call {
+                dest: Some(Place::Local(id)),
+                ..
+            }
+            | MirStmt::CallBuiltin {
+                dest: Some(Place::Local(id)),
+                ..
+            } => {
+                assigned.insert(id.0);
+            }
             MirStmt::WhileStmt { body, .. } => {
-                assigned.extend(collect_assigned_locals(body));
+                collect_assigned_locals_impl(body, assigned);
             }
             MirStmt::IfStmt {
                 then_body,
                 else_body,
                 ..
             } => {
-                assigned.extend(collect_assigned_locals(then_body));
-                assigned.extend(collect_assigned_locals(else_body));
+                collect_assigned_locals_impl(then_body, assigned);
+                collect_assigned_locals_impl(else_body, assigned);
             }
             _ => {}
         }
     }
-    assigned
 }
 
 /// Returns `true` if `operand` references any local in `locals`.

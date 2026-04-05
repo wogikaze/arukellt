@@ -1,5 +1,46 @@
 use crate::mir::{MirStmt, Operand, Place, Rvalue, Terminator};
 
+/// Collect the set of local IDs that are the *destination* of any assignment
+/// (direct `Assign`, or a `Call`/`CallBuiltin` with a dest) anywhere in
+/// `stmts`, including nested loop and if bodies.
+pub(crate) fn collect_assigned_locals(stmts: &[MirStmt]) -> std::collections::HashSet<u32> {
+    let mut assigned = std::collections::HashSet::new();
+    collect_assigned_locals_impl(stmts, &mut assigned);
+    assigned
+}
+
+fn collect_assigned_locals_impl(stmts: &[MirStmt], assigned: &mut std::collections::HashSet<u32>) {
+    for stmt in stmts {
+        match stmt {
+            MirStmt::Assign(Place::Local(id), _) => {
+                assigned.insert(id.0);
+            }
+            MirStmt::Call {
+                dest: Some(Place::Local(id)),
+                ..
+            }
+            | MirStmt::CallBuiltin {
+                dest: Some(Place::Local(id)),
+                ..
+            } => {
+                assigned.insert(id.0);
+            }
+            MirStmt::WhileStmt { body, .. } => {
+                collect_assigned_locals_impl(body, assigned);
+            }
+            MirStmt::IfStmt {
+                then_body,
+                else_body,
+                ..
+            } => {
+                collect_assigned_locals_impl(then_body, assigned);
+                collect_assigned_locals_impl(else_body, assigned);
+            }
+            _ => {}
+        }
+    }
+}
+
 pub(crate) fn rewrite_stmt_with_replacements(
     stmt: &mut MirStmt,
     replacements: &std::collections::HashMap<u32, Operand>,
@@ -26,9 +67,19 @@ pub(crate) fn rewrite_stmt_with_replacements(
             }
         }
         MirStmt::WhileStmt { cond, body } => {
-            changed |= rewrite_operand(cond, replacements);
+            // Do not propagate constants/copies for variables that are written
+            // inside the loop body.  A pre-loop value such as `i = 0` must not
+            // be substituted into the loop condition or body, because the loop
+            // modifies `i` on every iteration.
+            let loop_modified = collect_assigned_locals(body);
+            let safe: std::collections::HashMap<u32, Operand> = replacements
+                .iter()
+                .filter(|(k, _)| !loop_modified.contains(*k))
+                .map(|(k, v)| (*k, v.clone()))
+                .collect();
+            changed |= rewrite_operand(cond, &safe);
             for stmt in body {
-                changed |= rewrite_stmt_with_replacements(stmt, replacements);
+                changed |= rewrite_stmt_with_replacements(stmt, &safe);
             }
         }
         MirStmt::Break | MirStmt::Continue => {}
