@@ -1083,10 +1083,7 @@ fn collect_assigned_locals(stmts: &[MirStmt]) -> std::collections::HashSet<u32> 
     assigned
 }
 
-fn collect_assigned_locals_impl(
-    stmts: &[MirStmt],
-    assigned: &mut std::collections::HashSet<u32>,
-) {
+fn collect_assigned_locals_impl(stmts: &[MirStmt], assigned: &mut std::collections::HashSet<u32>) {
     for stmt in stmts {
         match stmt {
             MirStmt::Assign(Place::Local(id), _) => {
