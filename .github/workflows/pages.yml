@@ -32,12 +32,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: playground/package-lock.json
 
       - name: Build playground JS
         working-directory: playground
-        run: npm ci && npm run build:app
+        run: npm install --no-audit --no-fund --package-lock=false && npm run build:app
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
