@@ -707,6 +707,7 @@ struct Symbol {
     scope_depth: i32,
     decl_index: i32,
     is_mut: bool,
+    is_pub: bool,
 }
 
 struct Scope {

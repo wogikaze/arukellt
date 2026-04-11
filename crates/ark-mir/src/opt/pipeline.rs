@@ -282,8 +282,13 @@ fn optimize_module_with_passes(
     // This converts expression-form control flow into statement form
     // so the backend can emit structured Wasm control flow.
     let mut desugar_count = 0;
+    let fn_return_types: std::collections::HashMap<String, ark_typecheck::types::Type> = module
+        .functions
+        .iter()
+        .map(|func| (func.name.clone(), func.return_ty.clone()))
+        .collect();
     for func in &mut module.functions {
-        desugar_count += super::desugar::desugar_exprs(func);
+        desugar_count += super::desugar::desugar_exprs(func, &fn_return_types);
     }
     if desugar_count > 0 {
         push_optimization_trace(
@@ -466,23 +471,34 @@ fn const_prop(function: &mut MirFunction) -> OptimizationSummary {
     for block in &mut function.blocks {
         let mut constants = std::collections::HashMap::new();
         for stmt in &mut block.stmts {
-            if let MirStmt::Assign(Place::Local(dest), Rvalue::Use(value)) = stmt
-                && matches!(
-                    value,
-                    Operand::ConstI32(_) | Operand::ConstI64(_) | Operand::ConstBool(_)
-                )
-            {
-                constants.insert(dest.0, value.clone());
-            }
+            // Rewrite before updating so the current stmt benefits from prior constants.
             if rewrite_stmt_with_replacements(stmt, &constants) {
                 summary.const_propagated += 1;
             }
-            // After a while loop the modified variables can hold any value —
-            // remove them so subsequent statements don't get stale pre-loop constants.
-            if let MirStmt::WhileStmt { body, .. } = stmt {
-                for id in collect_assigned_locals(body) {
-                    constants.remove(&id);
+            // Update the constant table based on the (now rewritten) statement.
+            match stmt {
+                MirStmt::Assign(Place::Local(dest), Rvalue::Use(value))
+                    if matches!(
+                        value,
+                        Operand::ConstI32(_) | Operand::ConstI64(_) | Operand::ConstBool(_)
+                    ) =>
+                {
+                    // dest is now a known constant.
+                    constants.insert(dest.0, value.clone());
                 }
+                MirStmt::Assign(Place::Local(dest), _) => {
+                    // dest was overwritten with a non-constant value; kill the stale entry so
+                    // later reads don't get the pre-assignment constant.
+                    constants.remove(&dest.0);
+                }
+                // After a while loop the modified variables can hold any value —
+                // remove them so subsequent statements don't get stale pre-loop constants.
+                MirStmt::WhileStmt { body, .. } => {
+                    for id in collect_assigned_locals(body) {
+                        constants.remove(&id);
+                    }
+                }
+                _ => {}
             }
         }
         if rewrite_terminator_with_replacements(&mut block.terminator, &constants) {
@@ -1459,6 +1475,20 @@ pub fn eliminate_dead_functions(module: &mut MirModule) -> usize {
                 }
                 Terminator::Switch { scrutinee, .. } => {
                     crate::mir::operand_calls(scrutinee, &mut callees);
+                }
+                // TailCall terminators are emitted as regular calls in the T1 backend;
+                // their callees must be treated as reachable.
+                Terminator::TailCall { func: callee, args } => {
+                    callees.push(callee.clone());
+                    for arg in args {
+                        crate::mir::operand_calls(arg, &mut callees);
+                    }
+                }
+                Terminator::TailCallIndirect { callee, args } => {
+                    crate::mir::operand_calls(callee, &mut callees);
+                    for arg in args {
+                        crate::mir::operand_calls(arg, &mut callees);
+                    }
                 }
                 _ => {}
             }

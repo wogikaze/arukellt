@@ -3,19 +3,30 @@
 //!
 //! This pass introduces fresh locals as temporaries for expression results.
 
-use crate::mir::{LocalId, MirFunction, MirLocal, MirStmt, Operand, Place, Rvalue, Terminator};
+use std::collections::HashMap;
+
+use crate::mir::{
+    BinOp, LocalId, MirFunction, MirLocal, MirStmt, Operand, Place, Rvalue, Terminator, UnaryOp,
+};
 use ark_typecheck::types::Type;
 
 /// Desugar all backend-illegal operands in a function.
 /// Returns the number of operands desugared.
-pub fn desugar_exprs(func: &mut MirFunction) -> usize {
+pub fn desugar_exprs(func: &mut MirFunction, fn_return_types: &HashMap<String, Type>) -> usize {
     let mut counter = 0;
     let mut next_local = func.locals.iter().map(|l| l.id.0).max().unwrap_or(0) + 1;
+    let params = func.params.clone();
 
     for block in &mut func.blocks {
         let mut new_stmts = Vec::with_capacity(block.stmts.len());
         for stmt in std::mem::take(&mut block.stmts) {
-            let (desugared, c) = desugar_stmt(stmt, &mut next_local, &mut func.locals);
+            let (desugared, c) = desugar_stmt(
+                stmt,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
             counter += c;
             new_stmts.extend(desugared);
         }
@@ -39,13 +50,30 @@ pub fn desugar_exprs(func: &mut MirFunction) -> usize {
                 else_result,
             })) = std::mem::replace(&mut block.terminator, Terminator::Unreachable)
         {
-            let (new_cond, mut pre, c1) = desugar_operand(*cond, &mut next_local, &mut func.locals);
+            let (new_cond, mut pre, c1) = desugar_operand(
+                *cond,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
 
-            let (mut then_stmts, c2) =
-                desugar_stmt_list(then_body, &mut next_local, &mut func.locals);
+            let (mut then_stmts, c2) = desugar_stmt_list(
+                then_body,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
             match then_result {
                 Some(r) => {
-                    let (new_r, r_pre, _) = desugar_operand(*r, &mut next_local, &mut func.locals);
+                    let (new_r, r_pre, _) = desugar_operand(
+                        *r,
+                        &mut next_local,
+                        &params,
+                        &mut func.locals,
+                        fn_return_types,
+                    );
                     then_stmts.extend(r_pre);
                     then_stmts.push(MirStmt::Return(Some(new_r)));
                 }
@@ -54,11 +82,22 @@ pub fn desugar_exprs(func: &mut MirFunction) -> usize {
                 }
             }
 
-            let (mut else_stmts, c3) =
-                desugar_stmt_list(else_body, &mut next_local, &mut func.locals);
+            let (mut else_stmts, c3) = desugar_stmt_list(
+                else_body,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
             match else_result {
                 Some(r) => {
-                    let (new_r, r_pre, _) = desugar_operand(*r, &mut next_local, &mut func.locals);
+                    let (new_r, r_pre, _) = desugar_operand(
+                        *r,
+                        &mut next_local,
+                        &params,
+                        &mut func.locals,
+                        fn_return_types,
+                    );
                     else_stmts.extend(r_pre);
                     else_stmts.push(MirStmt::Return(Some(new_r)));
                 }
@@ -80,32 +119,288 @@ pub fn desugar_exprs(func: &mut MirFunction) -> usize {
     counter
 }
 
-fn fresh_local(next_id: &mut u32, locals: &mut Vec<MirLocal>, name: &str) -> LocalId {
+fn fresh_local(next_id: &mut u32, locals: &mut Vec<MirLocal>, name: &str, ty: Type) -> LocalId {
     let id = LocalId(*next_id);
     *next_id += 1;
     locals.push(MirLocal {
         id,
         name: Some(name.to_string()),
-        ty: Type::Any,
+        ty,
     });
     id
+}
+
+fn lookup_local_type(params: &[MirLocal], locals: &[MirLocal], id: LocalId) -> Option<Type> {
+    params
+        .iter()
+        .chain(locals.iter())
+        .find(|local| local.id == id)
+        .map(|local| local.ty.clone())
+}
+
+fn canonical_call_name(name: &str) -> &str {
+    let short = name.rsplit("::").next().unwrap_or(name);
+    short.strip_prefix("__intrinsic_").unwrap_or(short)
+}
+
+fn merge_types(lhs: Type, rhs: Type) -> Type {
+    if matches!(lhs, Type::Never | Type::Unit) {
+        return rhs;
+    }
+    if matches!(rhs, Type::Never | Type::Unit) {
+        return lhs;
+    }
+    if lhs == Type::Any {
+        return rhs;
+    }
+    if rhs == Type::Any {
+        return lhs;
+    }
+    if lhs == rhs {
+        return lhs;
+    }
+    match (&lhs, &rhs) {
+        (Type::I64, Type::U64) | (Type::U64, Type::I64) => Type::I64,
+        _ => Type::Any,
+    }
+}
+
+fn infer_call_type(
+    name: &str,
+    args: &[Operand],
+    params: &[MirLocal],
+    locals: &[MirLocal],
+    fn_return_types: &HashMap<String, Type>,
+) -> Type {
+    let canonical = canonical_call_name(name);
+    match name {
+        "std::host::http::get" | "http::get" => {
+            return Type::Result(Box::new(Type::String), Box::new(Type::String));
+        }
+        "std::host::http::request" | "http::request" => {
+            return Type::Result(Box::new(Type::String), Box::new(Type::String));
+        }
+        _ => {}
+    }
+    if let Some(ty) = fn_return_types
+        .get(name)
+        .or_else(|| fn_return_types.get(canonical))
+    {
+        return ty.clone();
+    }
+    match canonical {
+        "String_from" | "String_new" | "concat" | "to_string" | "i32_to_string"
+        | "f64_to_string" | "f32_to_string" | "i64_to_string" | "bool_to_string"
+        | "char_to_string" | "join" | "slice" | "substring" | "trim" | "replace" | "read_line"
+        | "to_lower" | "to_upper" => Type::String,
+        "clone" => args
+            .first()
+            .map(|arg| infer_operand_type(arg, params, locals, fn_return_types))
+            .unwrap_or(Type::Any),
+        "Vec_new_i32" => Type::Vec(Box::new(Type::I32)),
+        "Vec_new_i64" => Type::Vec(Box::new(Type::I64)),
+        "Vec_new_f64" => Type::Vec(Box::new(Type::F64)),
+        "Vec_new_String" => Type::Vec(Box::new(Type::String)),
+        "parse_i32" => Type::Result(Box::new(Type::I32), Box::new(Type::String)),
+        "parse_i64" => Type::Result(Box::new(Type::I64), Box::new(Type::String)),
+        "parse_f64" => Type::Result(Box::new(Type::F64), Box::new(Type::String)),
+        "read_to_string" | "fs_read_file" | "http_get" | "http_request" => {
+            Type::Result(Box::new(Type::String), Box::new(Type::String))
+        }
+        "env_var" | "var" => Type::Option(Box::new(Type::String)),
+        "get" | "get_unchecked" => args
+            .first()
+            .map(|arg| infer_operand_type(arg, params, locals, fn_return_types))
+            .and_then(|ty| match ty {
+                Type::Vec(inner) | Type::Option(inner) => Some(*inner),
+                _ => None,
+            })
+            .unwrap_or(Type::Any),
+        "len"
+        | "arg_count"
+        | "arg_at"
+        | "index_of"
+        | "char_at"
+        | "digit_value"
+        | "get_byte"
+        | "HashMap_i32_i32_len"
+        | "HashMap_i32_i32_contains_key"
+        | "contains_i32"
+        | "contains_String"
+        | "random_i32" => Type::I32,
+        "clock_now" | "clock_now_ms" | "monotonic_now" | "now_ms" => Type::I64,
+        "sqrt" | "random_next_f64" | "next_f64" => Type::F64,
+        "panic" | "assert" | "assert_eq" | "assert_ne" | "assert_eq_str" | "assert_eq_i64"
+        | "exit" | "proc_exit" | "process_exit" | "process_abort" => Type::Never,
+        "println"
+        | "print"
+        | "eprintln"
+        | "print_i32_ln"
+        | "print_bool_ln"
+        | "print_str_ln"
+        | "set"
+        | "sort_i32"
+        | "sort_String"
+        | "sort_i64"
+        | "sort_f64"
+        | "reverse_i32"
+        | "reverse_String"
+        | "remove_i32"
+        | "HashMap_i32_i32_insert"
+        | "push_char" => Type::Unit,
+        _ => Type::Any,
+    }
+}
+
+fn infer_operand_type(
+    op: &Operand,
+    params: &[MirLocal],
+    locals: &[MirLocal],
+    fn_return_types: &HashMap<String, Type>,
+) -> Type {
+    match op {
+        Operand::Place(Place::Local(id)) => {
+            lookup_local_type(params, locals, *id).unwrap_or(Type::Any)
+        }
+        Operand::Place(Place::Index(base, _)) => match base.as_ref() {
+            Place::Local(id) => match lookup_local_type(params, locals, *id).unwrap_or(Type::Any) {
+                Type::Vec(inner) | Type::Array(inner, _) | Type::Slice(inner) => *inner,
+                _ => Type::Any,
+            },
+            _ => Type::Any,
+        },
+        Operand::Place(_) => Type::Any,
+        Operand::ConstI32(_)
+        | Operand::ConstU8(_)
+        | Operand::ConstU16(_)
+        | Operand::ConstU32(_)
+        | Operand::ConstI8(_)
+        | Operand::ConstI16(_) => Type::I32,
+        Operand::ConstI64(_) | Operand::ConstU64(_) => Type::I64,
+        Operand::ConstF32(_) => Type::F32,
+        Operand::ConstF64(_) => Type::F64,
+        Operand::ConstBool(_) => Type::Bool,
+        Operand::ConstChar(_) => Type::Char,
+        Operand::ConstString(_) => Type::String,
+        Operand::Unit => Type::Unit,
+        Operand::BinOp(op, lhs, rhs) => match op {
+            BinOp::Eq
+            | BinOp::Ne
+            | BinOp::Lt
+            | BinOp::Le
+            | BinOp::Gt
+            | BinOp::Ge
+            | BinOp::And
+            | BinOp::Or => Type::Bool,
+            _ => {
+                let lhs_ty = infer_operand_type(lhs, params, locals, fn_return_types);
+                let rhs_ty = infer_operand_type(rhs, params, locals, fn_return_types);
+                merge_types(lhs_ty, rhs_ty)
+            }
+        },
+        Operand::UnaryOp(op, inner) => match op {
+            UnaryOp::Not => Type::Bool,
+            _ => infer_operand_type(inner, params, locals, fn_return_types),
+        },
+        Operand::Call(name, args) => infer_call_type(name, args, params, locals, fn_return_types),
+        Operand::IfExpr {
+            then_result,
+            else_result,
+            ..
+        } => merge_types(
+            then_result
+                .as_deref()
+                .map(|op| infer_operand_type(op, params, locals, fn_return_types))
+                .unwrap_or(Type::Unit),
+            else_result
+                .as_deref()
+                .map(|op| infer_operand_type(op, params, locals, fn_return_types))
+                .unwrap_or(Type::Unit),
+        ),
+        Operand::StructInit { .. } => Type::Any,
+        Operand::FieldAccess { .. } => Type::Any,
+        Operand::EnumInit {
+            enum_name,
+            variant,
+            payload,
+            ..
+        } => match (enum_name.as_str(), variant.as_str(), payload.as_slice()) {
+            ("Option", "Some", [inner]) => Type::Option(Box::new(infer_operand_type(
+                inner,
+                params,
+                locals,
+                fn_return_types,
+            ))),
+            ("Option", "None", _) => Type::Option(Box::new(Type::Any)),
+            ("Result", "Ok", [inner]) => Type::Result(
+                Box::new(infer_operand_type(inner, params, locals, fn_return_types)),
+                Box::new(Type::Any),
+            ),
+            ("Result", "Err", [inner]) => Type::Result(
+                Box::new(Type::Any),
+                Box::new(infer_operand_type(inner, params, locals, fn_return_types)),
+            ),
+            _ => Type::Any,
+        },
+        Operand::EnumTag(_) => Type::I32,
+        Operand::EnumPayload {
+            object,
+            variant_name,
+            ..
+        } => match infer_operand_type(object, params, locals, fn_return_types) {
+            Type::Option(inner) => *inner,
+            Type::Result(ok, _) if variant_name == "Ok" => *ok,
+            Type::Result(_, err) if variant_name == "Err" => *err,
+            _ => Type::Any,
+        },
+        Operand::LoopExpr { result, .. } => {
+            infer_operand_type(result, params, locals, fn_return_types)
+        }
+        Operand::TryExpr { expr, .. } => {
+            match infer_operand_type(expr, params, locals, fn_return_types) {
+                Type::Option(inner) => *inner,
+                Type::Result(ok, _) => *ok,
+                _ => Type::Any,
+            }
+        }
+        Operand::FnRef(_) | Operand::CallIndirect { .. } => Type::Any,
+        Operand::ArrayInit { elements } => elements
+            .first()
+            .map(|el| {
+                Type::Array(
+                    Box::new(infer_operand_type(el, params, locals, fn_return_types)),
+                    elements.len() as u64,
+                )
+            })
+            .unwrap_or_else(|| Type::Array(Box::new(Type::Any), 0)),
+        Operand::IndexAccess { object, .. } => {
+            match infer_operand_type(object, params, locals, fn_return_types) {
+                Type::Vec(inner) | Type::Array(inner, _) | Type::Slice(inner) => *inner,
+                _ => Type::Any,
+            }
+        }
+    }
 }
 
 /// Desugar a single statement, possibly expanding into multiple statements.
 fn desugar_stmt(
     stmt: MirStmt,
     next_id: &mut u32,
+    params: &[MirLocal],
     locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
 ) -> (Vec<MirStmt>, usize) {
     match stmt {
         MirStmt::Assign(place, rvalue) => {
-            let (new_rvalue, pre_stmts, count) = desugar_rvalue(rvalue, next_id, locals);
+            let (new_rvalue, pre_stmts, count) =
+                desugar_rvalue(rvalue, next_id, params, locals, fn_return_types);
             let mut result = pre_stmts;
             result.push(MirStmt::Assign(place, new_rvalue));
             (result, count)
         }
         MirStmt::Call { dest, func, args } => {
-            let (new_args, pre_stmts, count) = desugar_operand_list(args, next_id, locals);
+            let (new_args, pre_stmts, count) =
+                desugar_operand_list(args, next_id, params, locals, fn_return_types);
             let mut result = pre_stmts;
             result.push(MirStmt::Call {
                 dest,
@@ -115,7 +410,8 @@ fn desugar_stmt(
             (result, count)
         }
         MirStmt::CallBuiltin { dest, name, args } => {
-            let (new_args, pre_stmts, count) = desugar_operand_list(args, next_id, locals);
+            let (new_args, pre_stmts, count) =
+                desugar_operand_list(args, next_id, params, locals, fn_return_types);
             let mut result = pre_stmts;
             result.push(MirStmt::CallBuiltin {
                 dest,
@@ -129,9 +425,12 @@ fn desugar_stmt(
             then_body,
             else_body,
         } => {
-            let (new_cond, mut pre, c1) = desugar_operand(cond, next_id, locals);
-            let (new_then, c2) = desugar_stmt_list(then_body, next_id, locals);
-            let (new_else, c3) = desugar_stmt_list(else_body, next_id, locals);
+            let (new_cond, mut pre, c1) =
+                desugar_operand(cond, next_id, params, locals, fn_return_types);
+            let (new_then, c2) =
+                desugar_stmt_list(then_body, next_id, params, locals, fn_return_types);
+            let (new_else, c3) =
+                desugar_stmt_list(else_body, next_id, params, locals, fn_return_types);
             pre.push(MirStmt::IfStmt {
                 cond: new_cond,
                 then_body: new_then,
@@ -140,8 +439,9 @@ fn desugar_stmt(
             (pre, c1 + c2 + c3)
         }
         MirStmt::WhileStmt { cond, body } => {
-            let (new_cond, pre, c1) = desugar_operand(cond, next_id, locals);
-            let (new_body, c2) = desugar_stmt_list(body, next_id, locals);
+            let (new_cond, pre, c1) =
+                desugar_operand(cond, next_id, params, locals, fn_return_types);
+            let (new_body, c2) = desugar_stmt_list(body, next_id, params, locals, fn_return_types);
             // If the condition itself needed desugaring, we can't hoist it out of the loop.
             // In that case the pre-statements go inside the loop too.
             if pre.is_empty() {
@@ -171,7 +471,8 @@ fn desugar_stmt(
             }
         }
         MirStmt::Return(Some(op)) => {
-            let (new_op, mut pre, c) = desugar_operand(op, next_id, locals);
+            let (new_op, mut pre, c) =
+                desugar_operand(op, next_id, params, locals, fn_return_types);
             pre.push(MirStmt::Return(Some(new_op)));
             (pre, c)
         }
@@ -183,12 +484,14 @@ fn desugar_stmt(
 fn desugar_stmt_list(
     stmts: Vec<MirStmt>,
     next_id: &mut u32,
+    params: &[MirLocal],
     locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
 ) -> (Vec<MirStmt>, usize) {
     let mut result = Vec::new();
     let mut total = 0;
     for s in stmts {
-        let (desugared, c) = desugar_stmt(s, next_id, locals);
+        let (desugared, c) = desugar_stmt(s, next_id, params, locals, fn_return_types);
         total += c;
         result.extend(desugared);
     }
@@ -198,25 +501,31 @@ fn desugar_stmt_list(
 fn desugar_rvalue(
     rvalue: Rvalue,
     next_id: &mut u32,
+    params: &[MirLocal],
     locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
 ) -> (Rvalue, Vec<MirStmt>, usize) {
     match rvalue {
         Rvalue::Use(op) => {
-            let (new_op, pre, c) = desugar_operand(op, next_id, locals);
+            let (new_op, pre, c) = desugar_operand(op, next_id, params, locals, fn_return_types);
             (Rvalue::Use(new_op), pre, c)
         }
         Rvalue::BinaryOp(op, lhs, rhs) => {
-            let (new_lhs, mut pre1, c1) = desugar_operand(lhs, next_id, locals);
-            let (new_rhs, pre2, c2) = desugar_operand(rhs, next_id, locals);
+            let (new_lhs, mut pre1, c1) =
+                desugar_operand(lhs, next_id, params, locals, fn_return_types);
+            let (new_rhs, pre2, c2) =
+                desugar_operand(rhs, next_id, params, locals, fn_return_types);
             pre1.extend(pre2);
             (Rvalue::BinaryOp(op, new_lhs, new_rhs), pre1, c1 + c2)
         }
         Rvalue::UnaryOp(op, inner) => {
-            let (new_inner, pre, c) = desugar_operand(inner, next_id, locals);
+            let (new_inner, pre, c) =
+                desugar_operand(inner, next_id, params, locals, fn_return_types);
             (Rvalue::UnaryOp(op, new_inner), pre, c)
         }
         Rvalue::Aggregate(name, ops) => {
-            let (new_ops, pre, c) = desugar_operand_list(ops, next_id, locals);
+            let (new_ops, pre, c) =
+                desugar_operand_list(ops, next_id, params, locals, fn_return_types);
             (Rvalue::Aggregate(name, new_ops), pre, c)
         }
         Rvalue::Ref(p) => (Rvalue::Ref(p), vec![], 0),
@@ -226,13 +535,15 @@ fn desugar_rvalue(
 fn desugar_operand_list(
     ops: Vec<Operand>,
     next_id: &mut u32,
+    params: &[MirLocal],
     locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
 ) -> (Vec<Operand>, Vec<MirStmt>, usize) {
     let mut result = Vec::new();
     let mut pre = Vec::new();
     let mut total = 0;
     for op in ops {
-        let (new_op, op_pre, c) = desugar_operand(op, next_id, locals);
+        let (new_op, op_pre, c) = desugar_operand(op, next_id, params, locals, fn_return_types);
         total += c;
         pre.extend(op_pre);
         result.push(new_op);
@@ -244,7 +555,9 @@ fn desugar_operand_list(
 fn desugar_operand(
     op: Operand,
     next_id: &mut u32,
+    params: &[MirLocal],
     locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
 ) -> (Operand, Vec<MirStmt>, usize) {
     match op {
         Operand::IfExpr {
@@ -255,14 +568,27 @@ fn desugar_operand(
             else_result,
         } => {
             // Recursively desugar subexpressions
-            let (new_cond, mut pre, c1) = desugar_operand(*cond, next_id, locals);
+            let (new_cond, mut pre, c1) =
+                desugar_operand(*cond, next_id, params, locals, fn_return_types);
 
-            let tmp = fresh_local(next_id, locals, "_if_result");
+            let tmp_ty = merge_types(
+                then_result
+                    .as_deref()
+                    .map(|op| infer_operand_type(op, params, locals, fn_return_types))
+                    .unwrap_or(Type::Unit),
+                else_result
+                    .as_deref()
+                    .map(|op| infer_operand_type(op, params, locals, fn_return_types))
+                    .unwrap_or(Type::Unit),
+            );
+            let tmp = fresh_local(next_id, locals, "_if_result", tmp_ty);
 
-            let (mut then_stmts, c2) = desugar_stmt_list(then_body, next_id, locals);
+            let (mut then_stmts, c2) =
+                desugar_stmt_list(then_body, next_id, params, locals, fn_return_types);
             let then_assign = match then_result {
                 Some(r) => {
-                    let (new_r, r_pre, _) = desugar_operand(*r, next_id, locals);
+                    let (new_r, r_pre, _) =
+                        desugar_operand(*r, next_id, params, locals, fn_return_types);
                     then_stmts.extend(r_pre);
                     MirStmt::Assign(Place::Local(tmp), Rvalue::Use(new_r))
                 }
@@ -270,10 +596,12 @@ fn desugar_operand(
             };
             then_stmts.push(then_assign);
 
-            let (mut else_stmts, c3) = desugar_stmt_list(else_body, next_id, locals);
+            let (mut else_stmts, c3) =
+                desugar_stmt_list(else_body, next_id, params, locals, fn_return_types);
             let else_assign = match else_result {
                 Some(r) => {
-                    let (new_r, r_pre, _) = desugar_operand(*r, next_id, locals);
+                    let (new_r, r_pre, _) =
+                        desugar_operand(*r, next_id, params, locals, fn_return_types);
                     else_stmts.extend(r_pre);
                     MirStmt::Assign(Place::Local(tmp), Rvalue::Use(new_r))
                 }
@@ -289,32 +617,41 @@ fn desugar_operand(
             (Operand::Place(Place::Local(tmp)), pre, 1 + c1 + c2 + c3)
         }
         Operand::LoopExpr { init, body, result } => {
-            let (new_init, mut pre, c1) = desugar_operand(*init, next_id, locals);
-            let tmp = fresh_local(next_id, locals, "_loop_result");
+            let result_ty = infer_operand_type(&result, params, locals, fn_return_types);
+            let (new_init, mut pre, c1) =
+                desugar_operand(*init, next_id, params, locals, fn_return_types);
+            let tmp = fresh_local(next_id, locals, "_loop_result", result_ty);
             pre.push(MirStmt::Assign(Place::Local(tmp), Rvalue::Use(new_init)));
 
-            let (new_body, c2) = desugar_stmt_list(body, next_id, locals);
-            // After loop body, assign result to tmp
-            let (new_result, result_pre, c3) = desugar_operand(*result, next_id, locals);
-            let mut loop_body = new_body;
-            loop_body.extend(result_pre);
-            loop_body.push(MirStmt::Assign(Place::Local(tmp), Rvalue::Use(new_result)));
+            // body already contains a WhileStmt (emitted by the lowerer); do NOT
+            // wrap it in another WhileStmt or the outer loop will never exit.
+            let (new_body, c2) = desugar_stmt_list(body, next_id, params, locals, fn_return_types);
+            pre.extend(new_body);
 
-            pre.push(MirStmt::WhileStmt {
-                cond: Operand::ConstBool(true),
-                body: loop_body,
-            });
+            // After the WhileStmt exits (via Break), capture the loop result.
+            let (new_result, result_pre, c3) =
+                desugar_operand(*result, next_id, params, locals, fn_return_types);
+            pre.extend(result_pre);
+            pre.push(MirStmt::Assign(Place::Local(tmp), Rvalue::Use(new_result)));
+
             (Operand::Place(Place::Local(tmp)), pre, 1 + c1 + c2 + c3)
         }
         Operand::TryExpr { expr, from_fn } => {
-            let (new_expr, mut pre, c1) = desugar_operand(*expr, next_id, locals);
-            let expr_tmp = fresh_local(next_id, locals, "_try_expr");
+            let expr_ty = infer_operand_type(&expr, params, locals, fn_return_types);
+            let (new_expr, mut pre, c1) =
+                desugar_operand(*expr, next_id, params, locals, fn_return_types);
+            let expr_tmp = fresh_local(next_id, locals, "_try_expr", expr_ty.clone());
             pre.push(MirStmt::Assign(
                 Place::Local(expr_tmp),
                 Rvalue::Use(new_expr),
             ));
 
-            let ok_tmp = fresh_local(next_id, locals, "_try_ok");
+            let ok_ty = match expr_ty {
+                Type::Option(inner) => *inner,
+                Type::Result(ok, _) => *ok,
+                _ => Type::Any,
+            };
+            let ok_tmp = fresh_local(next_id, locals, "_try_ok", ok_ty);
 
             // tag = EnumTag(expr)
             let tag = Operand::EnumTag(Box::new(Operand::Place(Place::Local(expr_tmp))));
@@ -362,8 +699,10 @@ fn desugar_operand(
         }
         // Recursively desugar nested operands
         Operand::BinOp(op, lhs, rhs) => {
-            let (new_lhs, mut pre, c1) = desugar_operand(*lhs, next_id, locals);
-            let (new_rhs, pre2, c2) = desugar_operand(*rhs, next_id, locals);
+            let (new_lhs, mut pre, c1) =
+                desugar_operand(*lhs, next_id, params, locals, fn_return_types);
+            let (new_rhs, pre2, c2) =
+                desugar_operand(*rhs, next_id, params, locals, fn_return_types);
             pre.extend(pre2);
             (
                 Operand::BinOp(op, Box::new(new_lhs), Box::new(new_rhs)),
@@ -372,11 +711,13 @@ fn desugar_operand(
             )
         }
         Operand::UnaryOp(op, inner) => {
-            let (new_inner, pre, c) = desugar_operand(*inner, next_id, locals);
+            let (new_inner, pre, c) =
+                desugar_operand(*inner, next_id, params, locals, fn_return_types);
             (Operand::UnaryOp(op, Box::new(new_inner)), pre, c)
         }
         Operand::Call(name, args) => {
-            let (new_args, pre, c) = desugar_operand_list(args, next_id, locals);
+            let (new_args, pre, c) =
+                desugar_operand_list(args, next_id, params, locals, fn_return_types);
             (Operand::Call(name, new_args), pre, c)
         }
         Operand::FieldAccess {
@@ -384,7 +725,8 @@ fn desugar_operand(
             struct_name,
             field,
         } => {
-            let (new_obj, pre, c) = desugar_operand(*object, next_id, locals);
+            let (new_obj, pre, c) =
+                desugar_operand(*object, next_id, params, locals, fn_return_types);
             (
                 Operand::FieldAccess {
                     object: Box::new(new_obj),
@@ -396,7 +738,8 @@ fn desugar_operand(
             )
         }
         Operand::EnumTag(inner) => {
-            let (new_inner, pre, c) = desugar_operand(*inner, next_id, locals);
+            let (new_inner, pre, c) =
+                desugar_operand(*inner, next_id, params, locals, fn_return_types);
             (Operand::EnumTag(Box::new(new_inner)), pre, c)
         }
         Operand::EnumPayload {
@@ -405,7 +748,8 @@ fn desugar_operand(
             enum_name,
             variant_name,
         } => {
-            let (new_obj, pre, c) = desugar_operand(*object, next_id, locals);
+            let (new_obj, pre, c) =
+                desugar_operand(*object, next_id, params, locals, fn_return_types);
             (
                 Operand::EnumPayload {
                     object: Box::new(new_obj),
@@ -418,8 +762,10 @@ fn desugar_operand(
             )
         }
         Operand::CallIndirect { callee, args } => {
-            let (new_callee, mut pre, c1) = desugar_operand(*callee, next_id, locals);
-            let (new_args, pre2, c2) = desugar_operand_list(args, next_id, locals);
+            let (new_callee, mut pre, c1) =
+                desugar_operand(*callee, next_id, params, locals, fn_return_types);
+            let (new_args, pre2, c2) =
+                desugar_operand_list(args, next_id, params, locals, fn_return_types);
             pre.extend(pre2);
             (
                 Operand::CallIndirect {

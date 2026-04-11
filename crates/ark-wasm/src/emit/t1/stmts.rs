@@ -7,6 +7,19 @@ impl EmitCtx {
     pub(super) fn emit_stmt(&mut self, f: &mut Function, stmt: &MirStmt) {
         match stmt {
             MirStmt::Assign(Place::Local(id), Rvalue::Use(op)) => {
+                if matches!(op, Operand::Unit) {
+                    if self.f64_locals.contains(&id.0) {
+                        f.instruction(&Instruction::F64Const(0.0));
+                    } else if self.f32_locals.contains(&id.0) {
+                        f.instruction(&Instruction::F32Const(0.0));
+                    } else if self.i64_locals.contains(&id.0) {
+                        f.instruction(&Instruction::I64Const(0));
+                    } else {
+                        f.instruction(&Instruction::I32Const(0));
+                    }
+                    f.instruction(&Instruction::LocalSet(id.0));
+                    return;
+                }
                 self.emit_operand(f, op);
                 f.instruction(&Instruction::LocalSet(id.0));
             }
@@ -243,6 +256,17 @@ impl EmitCtx {
                 if let Some(d) = self.loop_depths.last_mut() {
                     *d -= 1;
                 }
+                // If both branches always return, control never falls through to the
+                // `end` of the if-block. Emit `unreachable` so wasmparser does not
+                // complain about an empty stack when the enclosing function expects a
+                // return value. (wasmparser does not propagate the "unreachable" type
+                // state across an if-else-end with BlockType::Empty.)
+                if !else_body.is_empty()
+                    && Self::stmts_always_return(then_body)
+                    && Self::stmts_always_return(else_body)
+                {
+                    f.instruction(&Instruction::Unreachable);
+                }
             }
             MirStmt::WhileStmt { cond, body } => {
                 f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty)); // break target
@@ -282,6 +306,29 @@ impl EmitCtx {
                     std::mem::discriminant(other)
                 );
             }
+        }
+    }
+
+    /// Returns true if every execution path through `stmts` ends with an explicit
+    /// `Return` (i.e. control never falls through to the next statement).
+    pub(super) fn stmts_always_return(stmts: &[MirStmt]) -> bool {
+        stmts.iter().any(Self::stmt_always_returns)
+    }
+
+    fn stmt_always_returns(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::Return(_) => true,
+            // An if-else where both branches always return also always returns.
+            MirStmt::IfStmt {
+                then_body,
+                else_body,
+                ..
+            } => {
+                !else_body.is_empty()
+                    && Self::stmts_always_return(then_body)
+                    && Self::stmts_always_return(else_body)
+            }
+            _ => false,
         }
     }
 

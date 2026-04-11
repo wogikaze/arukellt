@@ -1073,6 +1073,23 @@ pub(super) fn collect_needed_fns(mir: &MirModule) -> std::collections::HashSet<u
                 ark_mir::mir::Terminator::Return(Some(op)) => {
                     cfn_visit_operand(op, func, mir, &mut needed);
                 }
+                // TailCall terminators are emitted as regular calls by the T1 backend.
+                // Scan them so any stdlib canonical functions in tail position are included.
+                ark_mir::mir::Terminator::TailCall { func: callee, args } => {
+                    let n = normalize_intrinsic_name(
+                        callee.rsplit("::").next().unwrap_or(callee.as_str()),
+                    );
+                    cfn_handle_builtin(n, args, func, mir, &mut needed);
+                    for arg in args {
+                        cfn_visit_operand(arg, func, mir, &mut needed);
+                    }
+                }
+                ark_mir::mir::Terminator::TailCallIndirect { callee, args } => {
+                    cfn_visit_operand(callee, func, mir, &mut needed);
+                    for arg in args {
+                        cfn_visit_operand(arg, func, mir, &mut needed);
+                    }
+                }
                 _ => {}
             }
         }

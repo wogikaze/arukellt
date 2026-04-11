@@ -208,7 +208,8 @@ impl Ctx {
                     // Check if callee has Any-typed (generic) params needing boxing
                     let param_types = self
                         .fn_param_types
-                        .get(canonical.as_str())
+                        .get(name.as_str())
+                        .or_else(|| self.fn_param_types.get(canonical.as_str()))
                         .or_else(|| self.fn_param_types.get(lookup_name))
                         .cloned();
                     for (i, arg) in args.iter().enumerate() {
@@ -227,7 +228,8 @@ impl Ctx {
                     }
                     if let Some(&fn_idx) = self
                         .fn_map
-                        .get(canonical.as_str())
+                        .get(name.as_str())
+                        .or_else(|| self.fn_map.get(canonical.as_str()))
                         .or_else(|| self.fn_map.get(lookup_name))
                     {
                         f.instruction(&Instruction::Call(fn_idx));
@@ -238,13 +240,14 @@ impl Ctx {
                     // Unbox anyref return → concrete type based on arg-inferred substitution
                     if let Some(ret_ty) = self
                         .fn_ret_types
-                        .get(canonical.as_str())
+                        .get(name.as_str())
+                        .or_else(|| self.fn_ret_types.get(canonical.as_str()))
                         .or_else(|| self.fn_ret_types.get(lookup_name))
                         .cloned()
                         && ret_ty == Type::Any
                     {
                         // Infer concrete type from first Any-typed arg
-                        let concrete = self.infer_generic_return_type(&canonical, args);
+                        let concrete = self.infer_generic_return_type(name, args);
                         self.emit_anyref_unbox(f, &concrete);
                     }
                 }

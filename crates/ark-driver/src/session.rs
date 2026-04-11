@@ -709,13 +709,23 @@ impl Session {
         // This ensures structural invariants are caught regardless of MirSelection.
         validate_mir(&mir)?;
 
+        // T3 still relies on high-level operands and currently regresses under the
+        // O1/O2 MIR pipeline; keep MIR at O0 until those passes are made GC-safe.
+        // Backend-local codegen tweaks (e.g. tail-call emission) can still use the
+        // requested opt level.
+        let effective_mir_opt_level = if target == TargetId::Wasm32WasiP2 {
+            OptLevel::O0
+        } else {
+            self.opt_level
+        };
+
         let t_opt = std::time::Instant::now();
         let opt_detail = if matches!(
             selection,
             MirSelection::OptimizedLegacy | MirSelection::OptimizedCoreHir
-        ) && self.opt_level != OptLevel::O0
+        ) && effective_mir_opt_level != OptLevel::O0
         {
-            let summary = if self.opt_level == OptLevel::O1 {
+            let summary = if effective_mir_opt_level == OptLevel::O1 {
                 let o1_passes: &[&str] = &[
                     "const_fold",
                     "branch_fold",
@@ -762,7 +772,8 @@ impl Session {
         // produces its own flat basic-block MIR (currently it falls back to legacy lowering).
 
         // Dead function elimination: remove stdlib functions not reachable from main
-        if self.opt_level != OptLevel::O0 && std::env::var("ARUKELLT_NO_DEAD_FN").is_err() {
+        if effective_mir_opt_level != OptLevel::O0 && std::env::var("ARUKELLT_NO_DEAD_FN").is_err()
+        {
             eliminate_dead_functions(&mut mir);
         }
 

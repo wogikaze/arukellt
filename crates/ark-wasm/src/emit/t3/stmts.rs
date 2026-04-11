@@ -14,7 +14,23 @@ impl Ctx {
     pub(super) fn emit_stmt(&mut self, f: &mut PeepholeWriter<'_>, stmt: &MirStmt) {
         match stmt {
             MirStmt::Assign(Place::Local(id), Rvalue::Use(op)) => {
+                let local_place = Operand::Place(Place::Local(*id));
+                let dest_vt = self.infer_operand_type(&local_place);
+                if matches!(op, Operand::Unit) {
+                    self.emit_default_value(f, &dest_vt);
+                    let local_idx = self.local_wasm_idx(id.0);
+                    f.instruction(&Instruction::LocalSet(local_idx));
+                    return;
+                }
                 self.emit_operand(f, op);
+                let op_vt = self.infer_operand_type(op);
+                let op_is_anyref = Self::is_anyref_valtype(&op_vt);
+                let dest_is_anyref = Self::is_anyref_valtype(&dest_vt);
+                if dest_is_anyref && op_vt == ValType::I32 {
+                    f.instruction(&Instruction::RefI31);
+                } else if op_is_anyref && !dest_is_anyref {
+                    self.emit_anyref_unbox(f, &dest_vt);
+                }
                 // Unbox anyref from __tupleN_any FieldAccess to the destination local's concrete type
                 if let Operand::FieldAccess { struct_name, .. } = op
                     && struct_name.starts_with("__tuple")
@@ -249,6 +265,12 @@ impl Ctx {
                 }
                 self.loop_break_extra_depth -= 1;
                 f.instruction(&Instruction::End);
+                if !else_body.is_empty()
+                    && Self::stmts_always_return(then_body)
+                    && Self::stmts_always_return(else_body)
+                {
+                    f.instruction(&Instruction::Unreachable);
+                }
             }
             MirStmt::WhileStmt { cond, body } => {
                 let saved_depth = self.loop_break_extra_depth;
@@ -359,6 +381,12 @@ impl Ctx {
                         if op_vt == ValType::I32 {
                             f.instruction(&Instruction::RefI31);
                         }
+                    } else {
+                        let op_vt = self.infer_operand_type(op);
+                        if Self::is_anyref_valtype(&op_vt) {
+                            let ret_vt = self.type_to_val(&self.current_fn_return_ty);
+                            self.emit_anyref_unbox(f, &ret_vt);
+                        }
                     }
                 }
                 f.instruction(&Instruction::Return);
@@ -367,6 +395,26 @@ impl Ctx {
                 f.instruction(&Instruction::Return);
             }
             MirStmt::GcHint { .. } => {}
+        }
+    }
+
+    fn stmts_always_return(stmts: &[MirStmt]) -> bool {
+        stmts.iter().any(Self::stmt_always_returns)
+    }
+
+    fn stmt_always_returns(stmt: &MirStmt) -> bool {
+        match stmt {
+            MirStmt::Return(_) => true,
+            MirStmt::IfStmt {
+                then_body,
+                else_body,
+                ..
+            } => {
+                !else_body.is_empty()
+                    && Self::stmts_always_return(then_body)
+                    && Self::stmts_always_return(else_body)
+            }
+            _ => false,
         }
     }
 
@@ -404,6 +452,7 @@ impl Ctx {
                 | "read_line"
                 | "string_len"
                 | "char_at"
+                | "slice"
                 | "substring"
                 | "string_slice"
                 | "contains"
@@ -871,6 +920,7 @@ impl Ctx {
             }
             "string_len"
             | "char_at"
+            | "slice"
             | "substring"
             | "string_slice"
             | "clone"
@@ -1496,7 +1546,7 @@ impl Ctx {
                     f.instruction(&Instruction::I32Const(0));
                 }
             }
-            "substring" | "string_slice" => {
+            "slice" | "substring" | "string_slice" => {
                 // GC-native: new array + array.copy slice
                 if args.len() >= 3 {
                     self.emit_substring_gc(f, &args[0], &args[1], &args[2]);
@@ -2495,6 +2545,7 @@ impl Ctx {
                     | "to_lower"
                     | "trim"
                     | "__intrinsic_replace"
+                    | "slice"
                     | "substring"
                     | "string_slice"
                     | "String_from"
@@ -2579,6 +2630,38 @@ impl Ctx {
                     ValType::I32
                 }
             }
+            Operand::EnumPayload {
+                object,
+                enum_name,
+                variant_name,
+                ..
+            } => {
+                let mut effective_enum_name = enum_name.clone();
+                if matches!(effective_enum_name.as_str(), "Result" | "Option") {
+                    if let ValType::Ref(rt) = self.infer_operand_type(object)
+                        && let HeapType::Concrete(base_idx) = rt.heap_type
+                        && let Some((name, _)) = self
+                            .enum_base_types
+                            .iter()
+                            .find(|(_, idx)| **idx == base_idx)
+                    {
+                        effective_enum_name = name.clone();
+                    } else if effective_enum_name == "Result"
+                        && let Some(name) = self.current_result_enum_name()
+                    {
+                        effective_enum_name = name;
+                    }
+                }
+                if let Some(variants) = self.enum_defs.get(effective_enum_name.as_str())
+                    && let Some((_, fields)) =
+                        variants.iter().find(|(name, _)| name == variant_name)
+                    && let Some(field_ty) = fields.first()
+                {
+                    self.type_name_to_val(field_ty)
+                } else {
+                    ValType::I32
+                }
+            }
             Operand::BinOp(op, lhs, _rhs) => {
                 match op {
                     // Comparison ops always return bool (I32)
@@ -2642,6 +2725,19 @@ impl Ctx {
                 // For i64/f64 we'd need struct boxing — not yet implemented
             }
         }
+    }
+
+    fn is_anyref_valtype(vt: &ValType) -> bool {
+        matches!(
+            vt,
+            ValType::Ref(WasmRefType {
+                heap_type: HeapType::Abstract {
+                    ty: wasm_encoder::AbstractHeapType::Any,
+                    ..
+                },
+                ..
+            })
+        )
     }
 
     /// Emit a default/zero value for a given ValType (used for Unit branches in if-expressions).
