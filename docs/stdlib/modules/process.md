@@ -107,6 +107,7 @@ Look up an environment variable by name. Returns None if the variable is not set
 **Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
 
 *Example — Read the HOME environment variable:*
+
 ```ark
 let home = env::var("HOME")
 match home { Some(p) => println(p), None => println("not set") }

@@ -69,6 +69,7 @@ standard-library surface and must be imported from `std::host::stdio`.
 Write a string to standard output without appending a newline.
 
 *Example — Print without newlines:*
+
 ```ark
 print("hello ")
 print("world")
@@ -79,6 +80,7 @@ print("world")
 Write a string to standard output followed by a newline.
 
 *Example — Basic hello-world output:*
+
 ```ark
 println("Hello, world!")
 ```
@@ -90,6 +92,7 @@ Expected output: `Hello, world!`
 Write a string to standard error followed by a newline.
 
 *Example — Write a diagnostic message to stderr:*
+
 ```ark
 eprintln("Error: something went wrong")
 ```
@@ -123,6 +126,7 @@ Read the entire contents of a file at the given path and return them as a UTF-8 
 **Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
 
 *Example — Read a text file and print it:*
+
 ```ark
 let txt = fs::read_to_string("data.txt")
 match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
@@ -235,6 +239,7 @@ Look up an environment variable by name. Returns None if the variable is not set
 **Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
 
 *Example — Read the HOME environment variable:*
+
 ```ark
 let home = env::var("HOME")
 match home { Some(p) => println(p), None => println("not set") }
@@ -311,6 +316,7 @@ Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i
 **Errors:** Panics at runtime if lo >= hi.
 
 *Example — Roll a six-sided die (1–6):*
+
 ```ark
 let n = random::random_i32_range(1, 7)
 ```

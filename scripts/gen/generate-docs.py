@@ -25,10 +25,14 @@ import argparse
 import os
 import re
 import sys
-import tomllib
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 local compatibility
+    import tomli as tomllib
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 DOCS = ROOT / "docs"
@@ -1028,7 +1032,15 @@ def source_doc_summary(lines: list[str]) -> str:
 def render_source_doc_block(lines: list[str], fallback: str) -> list[str]:
     if not lines:
         return [fallback]
-    return lines.copy()
+    rendered: list[str] = []
+    for line in lines:
+        match = re.match(r"^(#+)(\s+.*)$", line)
+        if match:
+            hashes, rest = match.groups()
+            rendered.append("#" * min(len(hashes) + 2, 6) + rest)
+        else:
+            rendered.append(line)
+    return rendered
 
 
 def format_stability_counts(entries: list[dict]) -> str:
@@ -2096,6 +2108,7 @@ def render_stdlib_module_page(
                     lines.append("")
                     if desc:
                         lines.append(f"*Example — {desc}:*")
+                        lines.append("")
                     lines.extend(["```ark", code, "```"])
                     if ex.get("output"):
                         lines.extend(["", f"Expected output: `{ex['output']}`"])
@@ -2413,7 +2426,7 @@ def _render_reference_function_details(entry: dict) -> list[str]:
     if not errors and not examples:
         return []
 
-    lines: list[str] = ["", f"#### `{name}` — `{module}`"]
+    lines: list[str] = ["", f"### `{name}` — `{module}`"]
     if errors:
         lines.extend(["", f"**Errors:** {errors}"])
     for ex in examples:
@@ -2425,6 +2438,7 @@ def _render_reference_function_details(entry: dict) -> list[str]:
         lines.append("")
         if desc:
             lines.append(f"*Example — {desc}:*")
+            lines.append("")
         lines.extend(["```ark", code, "```"])
         if expected:
             lines.extend([f"", f"Expected output: `{expected}`"])

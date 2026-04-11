@@ -498,6 +498,17 @@ fn const_prop(function: &mut MirFunction) -> OptimizationSummary {
                         constants.remove(&id);
                     }
                 }
+                MirStmt::IfStmt {
+                    then_body,
+                    else_body,
+                    ..
+                } => {
+                    let mut branch_assigned = collect_assigned_locals(then_body);
+                    branch_assigned.extend(collect_assigned_locals(else_body));
+                    for id in branch_assigned {
+                        constants.remove(&id);
+                    }
+                }
                 _ => {}
             }
         }
@@ -1886,5 +1897,56 @@ mod tests {
         let mut module = simple_module();
         let _ = run_single_pass(&mut module, OptimizationPass::ConstFold).unwrap();
         assert!(optimization_trace_snapshot(&module).contains("const_fold"));
+    }
+
+    #[test]
+    fn const_prop_invalidates_locals_assigned_inside_if_branches() {
+        let mut module = MirModule::new();
+        module.entry_fn = Some(FnId(0));
+        module.functions.push(MirFunction {
+            id: FnId(0),
+            name: "main".to_string(),
+            instance: InstanceKey::simple("main"),
+            params: Vec::new(),
+            return_ty: Type::Bool,
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: Some("neg".to_string()),
+                ty: Type::Bool,
+            }],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![
+                    MirStmt::Assign(
+                        Place::Local(LocalId(0)),
+                        Rvalue::Use(Operand::ConstBool(false)),
+                    ),
+                    MirStmt::IfStmt {
+                        cond: Operand::ConstBool(true),
+                        then_body: vec![MirStmt::Assign(
+                            Place::Local(LocalId(0)),
+                            Rvalue::Use(Operand::ConstBool(true)),
+                        )],
+                        else_body: vec![],
+                    },
+                ],
+                terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
+                source: default_block_source(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: default_function_source(),
+            is_exported: false,
+        });
+        sync_module_metadata(&mut module);
+
+        let _ = run_single_pass(&mut module, OptimizationPass::ConstProp).unwrap();
+
+        assert!(matches!(
+            module.functions[0].blocks[0].terminator,
+            Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0)))))
+        ));
     }
 }

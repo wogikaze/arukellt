@@ -34,7 +34,8 @@ Upstream: #475 (CLI 実装) — close 後に着手
 ## Why this is a separate issue
 
 docs が実装前に「`arukellt component` が使える」と案内する構造を防ぐ。
-#475 の実装と同じ PR に docs を混ぜると、
+
+475 の実装と同じ PR に docs を混ぜると、
 実装が部分的でも docs が完成して「done 感」が出てしまう。
 
 ## Visibility

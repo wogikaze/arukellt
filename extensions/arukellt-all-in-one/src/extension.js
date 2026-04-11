@@ -66,9 +66,18 @@ function getCandidatePaths(configuredPath) {
   if (configuredPath && configuredPath !== 'arukellt') {
     candidates.push({ path: configuredPath, source: 'arukellt.server.path setting' })
   }
-  // 2. PATH lookup (default name)
+  // 2. Repo-local builds when running the extension from a source checkout.
+  const exeName = process.platform === 'win32' ? 'arukellt.exe' : 'arukellt'
+  const repoRoot = path.resolve(__dirname, '..', '..', '..')
+  for (const rel of [
+    path.join('target', 'debug', exeName),
+    path.join('target', 'release', exeName),
+  ]) {
+    candidates.push({ path: path.join(repoRoot, rel), source: `repo build: ${rel}` })
+  }
+  // 3. PATH lookup (default name)
   candidates.push({ path: 'arukellt', source: 'PATH' })
-  // 3. Default install locations
+  // 4. Default install locations
   const homeDir = os.homedir()
   const defaultPaths = [
     path.join(homeDir, '.ark', 'bin', 'arukellt'),
@@ -264,14 +273,19 @@ function startLanguageServer(context) {
   })
 }
 
-function restartLanguageServer(context) {
+async function restartLanguageServer(context) {
   restartCount = 0
   if (client) {
-    client.stop().then(() => {
-      client = null
-      startLanguageServer(context)
-      vscode.window.showInformationMessage('Arukellt language server restarted.')
-    })
+    try {
+      await client.stop(5000)
+    } catch (err) {
+      if (outputChannel) {
+        outputChannel.appendLine(`[arukellt] restart: stop failed (${err.message}); starting a fresh client`)
+      }
+    }
+    client = null
+    startLanguageServer(context)
+    vscode.window.showInformationMessage('Arukellt language server restarted.')
   } else {
     startLanguageServer(context)
   }

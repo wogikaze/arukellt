@@ -663,7 +663,12 @@ fn desugar_operand(
                 variant_name: "Err".to_string(),
             };
             let err_return_val = if let Some(ref conv_fn) = from_fn {
-                Operand::Call(conv_fn.clone(), vec![err_payload])
+                Operand::EnumInit {
+                    enum_name: "Result".to_string(),
+                    variant: "Err".to_string(),
+                    tag: 1,
+                    payload: vec![Operand::Call(conv_fn.clone(), vec![err_payload])],
+                }
             } else {
                 // Re-wrap in Err for the calling function's return type
                 Operand::EnumInit {
@@ -778,5 +783,95 @@ fn desugar_operand(
         }
         // All other operands are already backend-legal
         other => (other, vec![], 0),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mir::{
+        BasicBlock, BlockId, FnId, InstanceKey, MirFunction, default_block_source,
+        default_function_source,
+    };
+
+    #[test]
+    fn desugar_tryexpr_with_from_wraps_converted_err_in_result() {
+        let mut func = MirFunction {
+            id: FnId(0),
+            name: "process".to_string(),
+            instance: InstanceKey::simple("process"),
+            params: Vec::new(),
+            return_ty: Type::Result(Box::new(Type::I32), Box::new(Type::Any)),
+            locals: vec![
+                MirLocal {
+                    id: LocalId(0),
+                    name: Some("input".to_string()),
+                    ty: Type::Result(Box::new(Type::String), Box::new(Type::String)),
+                },
+                MirLocal {
+                    id: LocalId(1),
+                    name: Some("value".to_string()),
+                    ty: Type::String,
+                },
+            ],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![MirStmt::Assign(
+                    Place::Local(LocalId(1)),
+                    Rvalue::Use(Operand::TryExpr {
+                        expr: Box::new(Operand::Place(Place::Local(LocalId(0)))),
+                        from_fn: Some("AppError__from".to_string()),
+                    }),
+                )],
+                terminator: Terminator::Return(None),
+                source: default_block_source(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: default_function_source(),
+            is_exported: false,
+        };
+
+        let mut fn_return_types = HashMap::new();
+        fn_return_types.insert("AppError__from".to_string(), Type::Any);
+
+        assert_eq!(desugar_exprs(&mut func, &fn_return_types), 1);
+
+        let then_body = func.blocks[0]
+            .stmts
+            .iter()
+            .find_map(|stmt| match stmt {
+                MirStmt::IfStmt { then_body, .. } => Some(then_body),
+                _ => None,
+            })
+            .expect("desugared try expression should emit an IfStmt");
+
+        match then_body.as_slice() {
+            [
+                MirStmt::Return(Some(Operand::EnumInit {
+                    enum_name,
+                    variant,
+                    tag,
+                    payload,
+                })),
+            ] => {
+                assert_eq!(enum_name, "Result");
+                assert_eq!(variant, "Err");
+                assert_eq!(*tag, 1);
+                match payload.as_slice() {
+                    [Operand::Call(name, args)] => {
+                        assert_eq!(name, "AppError__from");
+                        assert!(matches!(
+                            args.as_slice(),
+                            [Operand::EnumPayload { variant_name, .. }] if variant_name == "Err"
+                        ));
+                    }
+                    other => panic!("expected converted payload call, got {other:?}"),
+                }
+            }
+            other => panic!("expected Err-wrapped early return, got {other:?}"),
+        }
     }
 }

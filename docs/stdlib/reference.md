@@ -166,9 +166,10 @@
 | `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
 
-#### `len` — `prelude`
+### `len` — `prelude`
 
 *Example — Get the length of a vector:*
+
 ```ark
 let v = Vec_new_i32()
 push(v, 10)
@@ -177,9 +178,10 @@ println(i32_to_string(len(v)))
 
 Expected output: `1`
 
-#### `push` — `prelude`
+### `push` — `prelude`
 
 *Example — Build a vector by pushing elements:*
+
 ```ark
 let v = Vec_new_i32()
 push(v, 1)
@@ -214,20 +216,22 @@ push(v, 2)
 | `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
 | `to_string` | `(any) -> String` | `prelude` | `stable` | `builtin` | yes | - | - |
 
-#### `i32_to_string` — `prelude`
+### `i32_to_string` — `prelude`
 
 *Example — Print integer as string:*
+
 ```ark
 println(i32_to_string(42))
 ```
 
 Expected output: `42`
 
-#### `parse_i32` — `prelude`
+### `parse_i32` — `prelude`
 
 **Errors:** Returns Err if the string is not a valid decimal integer or is out of i32 range.
 
 *Example — Parse a numeric string:*
+
 ```ark
 match parse_i32("42") { Ok(n) => println(i32_to_string(n)), Err(e) => eprintln(e) }
 ```
@@ -268,11 +272,12 @@ Expected output: `42`
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
 | `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
 
-#### `var` — `std::host::env`
+### `var` — `std::host::env`
 
 **Errors:** Returns None (not Err) when the variable is absent; no panic is raised.
 
 *Example — Read the HOME environment variable:*
+
 ```ark
 let home = env::var("HOME")
 match home { Some(p) => println(p), None => println("not set") }
@@ -286,21 +291,22 @@ match home { Some(p) => println(p), None => println("not set") }
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
 
-#### `read_to_string` — `std::host::fs`
+### `read_to_string` — `std::host::fs`
 
 **Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
 
 *Example — Read a text file and print it:*
+
 ```ark
 let txt = fs::read_to_string("data.txt")
 match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 ```
 
-#### `write_bytes` — `std::host::fs`
+### `write_bytes` — `std::host::fs`
 
 **Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
 
-#### `write_string` — `std::host::fs`
+### `write_string` — `std::host::fs`
 
 **Errors:** Returns Err if the path is not writable or the directory does not exist.
 
@@ -311,11 +317,12 @@ match txt { Ok(s) => println(s), Err(e) => eprintln(e) }
 | `get` | `(String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_get` | Send an HTTP GET request to the given URL and return the response body as a string. Only plain http:… |
 | `request` | `(String, String, String) -> Result<String, String>` | `std::host::http` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p1, wasm32-wasi-p2)` | no | `__intrinsic_http_request` | Send an HTTP request with a given method, URL, and body. Returns the response body on 2xx, or Err wi… |
 
-#### `get` — `std::host::http`
+### `get` — `std::host::http`
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
 *Example — Fetch a URL and print its body:*
+
 ```ark
 let body = http::get("http://example.com")
 match body {
@@ -324,11 +331,12 @@ match body {
 }
 ```
 
-#### `request` — `std::host::http`
+### `request` — `std::host::http`
 
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
 *Example — POST JSON to an API endpoint:*
+
 ```ark
 let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\"}")
 ```
@@ -349,11 +357,12 @@ let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\
 | `random_i32` | `() -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a cryptographically-secure random i32 value. |
 | `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
 
-#### `random_i32_range` — `std::host::random`
+### `random_i32_range` — `std::host::random`
 
 **Errors:** Panics at runtime if lo >= hi.
 
 *Example — Roll a six-sided die (1–6):*
+
 ```ark
 let n = random::random_i32_range(1, 7)
 ```
@@ -364,11 +373,12 @@ let n = random::random_i32_range(1, 7)
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `connect` | `(String, i32) -> Result<i32, String>` | `std::host::sockets` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_sockets_connect` | Open a TCP connection to the given hostname and port. Returns a socket descriptor on success. |
 
-#### `connect` — `std::host::sockets`
+### `connect` — `std::host::sockets`
 
 **Errors:** Err on DNS resolution failure, connection refused, or network unreachable.
 
 *Example — Connect to a local server on port 8080:*
+
 ```ark
 let sock = sockets::connect("localhost", 8080)
 match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
@@ -382,24 +392,27 @@ match sock { Ok(fd) => println(i32_to_string(fd)), Err(e) => eprintln(e) }
 | `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
 | `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
 
-#### `eprintln` — `std::host::stdio`
+### `eprintln` — `std::host::stdio`
 
 *Example — Write a diagnostic message to stderr:*
+
 ```ark
 eprintln("Error: something went wrong")
 ```
 
-#### `print` — `std::host::stdio`
+### `print` — `std::host::stdio`
 
 *Example — Print without newlines:*
+
 ```ark
 print("hello ")
 print("world")
 ```
 
-#### `println` — `std::host::stdio`
+### `println` — `std::host::stdio`
 
 *Example — Basic hello-world output:*
+
 ```ark
 println("Hello, world!")
 ```
@@ -412,7 +425,7 @@ Expected output: `Hello, world!`
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `send` | `(String, i32, String) -> Result<i32, String>` | `std::host::udp` | `provisional` | `intrinsic_wrapper (wasm32-wasi-p2)` | no | `__intrinsic_udp_send` | Send a UDP datagram to the given hostname and port. Returns the number of bytes sent on success. |
 
-#### `send` — `std::host::udp`
+### `send` — `std::host::udp`
 
 **Errors:** Err on DNS resolution failure, invalid port, or network unreachable.
 
@@ -555,9 +568,10 @@ Expected output: `Hello, world!`
 | `to_upper` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
 | `trim` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_trim` | - |
 
-#### `concat` — `prelude`
+### `concat` — `prelude`
 
 *Example — Join two string literals:*
+
 ```ark
 let s = concat("hello", " world")
 ```

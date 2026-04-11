@@ -19,8 +19,12 @@ from __future__ import annotations
 
 import re
 import sys
-import tomllib
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

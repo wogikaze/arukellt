@@ -64,6 +64,7 @@ Read the entire contents of a file at the given path and return them as a UTF-8 
 **Errors:** Returns Err if the file does not exist, permission is denied, or the content is not valid UTF-8.
 
 *Example — Read a text file and print it:*
+
 ```ark
 let txt = fs::read_to_string("data.txt")
 match txt { Ok(s) => println(s), Err(e) => eprintln(e) }

@@ -60,6 +60,7 @@ Send an HTTP request with a given method, URL, and body. Returns the response bo
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
 *Example — POST JSON to an API endpoint:*
+
 ```ark
 let resp = http::request("POST", "http://api.example.com/data", "{\"key\":\"val\"}")
 ```
@@ -73,6 +74,7 @@ Send an HTTP GET request to the given URL and return the response body as a stri
 **Errors:** Err on DNS failure (dns: <host>: not found), connection refused (connection refused: <url>), timeout (timeout: <url>), HTTP 4xx/5xx (http <status>: <url>), or other I/O failure (error: <msg>).
 
 *Example — Fetch a URL and print its body:*
+
 ```ark
 let body = http::get("http://example.com")
 match body {

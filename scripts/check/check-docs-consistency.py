@@ -14,6 +14,11 @@ import sys
 import re
 from pathlib import Path
 
+try:
+    import tomllib as _tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 local compatibility
+    import tomli as _tomllib
+
 ROOT = Path(__file__).resolve().parent.parent.parent
 MANIFEST = ROOT / "std" / "manifest.toml"
 CURRENT_STATE = ROOT / "docs" / "current-state.md"
@@ -27,8 +32,6 @@ def check_maturity_matrix_freshness() -> int:
     If the TOML [[features]] section changes but the matrix isn't regenerated,
     this check detects the drift before CI does a full regeneration pass.
     """
-    import tomllib as _tomllib
-
     toml_path = ROOT / "docs" / "data" / "language-doc-classifications.toml"
     matrix_path = ROOT / "docs" / "language" / "maturity-matrix.md"
 
@@ -225,8 +228,6 @@ def check_deprecated_badge_presence() -> int:
     in the manifest, the reference page must contain a ⚠️ Deprecated badge.
     Also checks that the Deprecated APIs summary section exists.
     """
-    import tomllib as _tomllib
-
     if not MANIFEST.exists():
         return 0
 
@@ -309,15 +310,13 @@ def check_spec_guide_sync() -> int:
     A missing match means the guide has drifted away from spec coverage and
     a warning is emitted.
     """
-    import tomllib
-
     classifications_path = ROOT / "docs" / "data" / "language-doc-classifications.toml"
     guide_path = ROOT / "docs" / "language" / "guide.md"
 
     if not classifications_path.exists() or not guide_path.exists():
         return 0
 
-    toml_data = tomllib.loads(
+    toml_data = _tomllib.loads(
         classifications_path.read_text(encoding="utf-8")
     )
     features = toml_data.get("features", [])
@@ -470,8 +469,6 @@ def check_spec_guide_feature_drift() -> int:
     ``_FEATURE_DRIFT_TOLERANCE`` uncovered features before failing, to
     accommodate transient gaps when new spec content is added.
     """
-    import tomllib
-
     classifications_path = ROOT / "docs" / "data" / "language-doc-classifications.toml"
     guide_path = ROOT / "docs" / "language" / "guide.md"
     spec_path = ROOT / "docs" / "language" / "spec.md"
@@ -479,7 +476,7 @@ def check_spec_guide_feature_drift() -> int:
     if not all(p.exists() for p in [classifications_path, guide_path, spec_path]):
         return 0
 
-    toml_data = tomllib.loads(
+    toml_data = _tomllib.loads(
         classifications_path.read_text(encoding="utf-8")
     )
     features = toml_data.get("features", [])
@@ -592,8 +589,6 @@ def check_spec_guide_feature_drift() -> int:
 
 def _parse_manifest() -> dict:
     """Load and return parsed manifest.toml."""
-    import tomllib as _tomllib
-
     return _tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
 
 
@@ -840,8 +835,6 @@ def check_host_stub_fixture_coverage() -> int:
     its module.  This ensures CI catches untested host stubs before they
     silently bitrot.
     """
-    import tomllib as _tomllib
-
     if not MANIFEST.exists():
         return 0
 
@@ -917,8 +910,6 @@ def check_stability_implementation_consistency() -> int:
     - A function with ``deprecated_by`` not marked ``stability = "deprecated"``
     - Module-level stability in [[modules]] conflicting with function-level stability
     """
-    import tomllib as _tomllib
-
     if not MANIFEST.exists():
         return 0
 
@@ -1225,8 +1216,6 @@ def check_recipe_fixture_links() -> int:
     - Every 📎 Fixture reference in cookbook.md appears in the manifest
     - Manifest fixture paths are a superset of cookbook references
     """
-    import tomllib as _tomllib
-
     manifest_path = ROOT / "docs" / "stdlib" / "recipe-manifest.toml"
     cookbook_path = ROOT / "docs" / "stdlib" / "cookbook.md"
 
@@ -1310,8 +1299,6 @@ def check_name_index_completeness() -> int:
     - Every non-intrinsic function name from manifest appears in the index
     - Every deprecated function with deprecated_by appears in Historical section
     """
-    import tomllib as _tomllib
-
     name_index_path = ROOT / "docs" / "stdlib" / "name-index.md"
     if not name_index_path.exists():
         errors.append(
@@ -1386,8 +1373,6 @@ def check_manifest_availability_consistency() -> int:
     data-entry mistake — ``t1`` should be ``false`` unless a ``note`` explains
     the T1 support path (e.g. via Wasmtime linker bridge).
     """
-    import tomllib as _tomllib
-
     if not MANIFEST.exists():
         return 0
 
@@ -1423,8 +1408,6 @@ def check_manifest_example_integrity() -> int:
     An ``[[functions.examples]]`` entry with an empty ``code`` string is a
     data-entry mistake — it would produce an empty code block in generated docs.
     """
-    import tomllib as _tomllib
-
     if not MANIFEST.exists():
         return 0
 

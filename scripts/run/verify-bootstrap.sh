@@ -163,13 +163,17 @@ echo
 
 stage0() {
     echo -e "  Compiling main.ark → arukellt-s1.wasm (unified binary)..."
-    if "$COMPILER" compile "${MAIN_SRC}" --target wasm32-wasi-p1 -o "$S1_WASM" 2>/dev/null; then
+    local stderr_file="${BUILD_DIR}/stage0.stderr"
+    if "$COMPILER" compile "${MAIN_SRC}" --target wasm32-wasi-p1 -o "$S1_WASM" 2>"$stderr_file"; then
         local size
         size=$(wc -c < "$S1_WASM")
         echo -e "  ${GREEN}OK${NC}  arukellt-s1.wasm (${size} bytes)"
         return 0
     else
         echo -e "  ${RED}FAIL${NC}  main.ark did not compile" >&2
+        if [[ -s "$stderr_file" ]]; then
+            sed 's/^/    /' "$stderr_file" >&2
+        fi
         return 1
     fi
 }
@@ -210,16 +214,20 @@ if [[ -f "$S1_WASM" ]]; then
 
         local rel_src="${MAIN_SRC#$REPO_ROOT/}"
         local rel_out="${S2_WASM#$REPO_ROOT/}"
+        local stderr_file="${BUILD_DIR}/stage1.stderr"
         echo -e "  Compiling main.ark → arukellt-s2.wasm (via s1)..."
         if timeout 120 wasmtime run --dir="${REPO_ROOT}" \
             "$S1_WASM" -- compile "$rel_src" --target wasm32-wasi-p1 \
-            -o "$rel_out" 2>/dev/null; then
+            -o "$rel_out" 2>"$stderr_file"; then
             local size
             size=$(wc -c < "$S2_WASM")
             echo -e "  ${GREEN}OK${NC}  arukellt-s2.wasm (${size} bytes)"
             return 0
         else
             echo -e "  ${RED}FAIL${NC}  main.ark did not compile with s1" >&2
+            if [[ -s "$stderr_file" ]]; then
+                sed 's/^/    /' "$stderr_file" >&2
+            fi
             echo -e "  ${YELLOW}NOTE${NC}  Self-compilation requires features the selfhost may not yet support."
             return 1
         fi
