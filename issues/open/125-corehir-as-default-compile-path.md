@@ -10,7 +10,6 @@
 
 **Status note**: BLOCKED — CoreHIR path fails 378/410 fixtures. Legacy path must remain default.
 
-
 ---
 
 ## Reopened by audit — 2026-04-03

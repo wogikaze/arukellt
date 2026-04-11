@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 1
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: lsp_e2e.rs has parity_valid_prelude_only_program_no_diagnostics, snapshot_diagnostics_valid_program_zero_errors, parity_real_error_matches_cli — full CLI/LSP parity coverage (test function renamed during implementation)
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

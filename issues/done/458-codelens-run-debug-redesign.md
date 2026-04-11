@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 2
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: CodeLens commands registered at extension.js:668-711, runMain/debugMain/runTest/debugTest
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

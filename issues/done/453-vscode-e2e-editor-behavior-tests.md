@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 4
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: extension.test.js:259 definition range test, :360 hover-string-literal test, :424 zero-diagnostics test; fixtures/basic.ark present
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 
@@ -56,6 +54,7 @@
 `extensions/arukellt-all-in-one/src/test/fixtures/` 以下に以下のファイルを追加する。
 
 **`basic.ark`**:
+
 ```ark
 fn greet(name: String) -> String {
     let msg = concat("Hello, ", name)

@@ -46,7 +46,6 @@
 
 **Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
 
-
 ## Summary
 
 `docs/current-state.md` の target 表は現在手動で管理されており、CI との乖離が生じやすい。この issue では CI 実行結果から target 表を生成・更新するスクリプトを実装し、手動更新を不要にする。

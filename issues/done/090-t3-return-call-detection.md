@@ -8,7 +8,6 @@
 **Track**: backend-opt
 **Blocks v4 exit**: yes
 
-
 ---
 
 ## Completed — 2026-04-29

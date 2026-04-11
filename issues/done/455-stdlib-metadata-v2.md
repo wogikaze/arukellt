@@ -96,7 +96,7 @@ pub struct ManifestAvailability {
 **Priority 3 — `std::host::clock`, `std::host::random`**:
 - 全関数 — doc + availability + capability note
 
-#### TOML 記述例:
+#### TOML 記述例
 
 ```toml
 [[functions]]
@@ -142,8 +142,8 @@ def build_target_constraints(module_name: str, funcs: list[dict]) -> str:
     return f"Targets: {', '.join(sorted(targets))}."
 ```
 
-4. `FUNCTION_REQUIRED_FIELDS` から `doc_category` を必須のまま保ち、`doc` は optional とする（`check-docs-consistency.py` の validation rule は変えない）。
-5. reference.md の各関数エントリに `doc` / `errors` を追加する列または説明行を加える。
+1. `FUNCTION_REQUIRED_FIELDS` から `doc_category` を必須のまま保ち、`doc` は optional とする（`check-docs-consistency.py` の validation rule は変えない）。
+2. reference.md の各関数エントリに `doc` / `errors` を追加する列または説明行を加える。
 
 ### Step 4: LSP hover への target 制約・doc 反映 (`crates/ark-lsp/src/server.rs`)
 

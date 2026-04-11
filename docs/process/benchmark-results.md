@@ -58,4 +58,3 @@ Current benchmark JSON uses `schema_version = arukellt-bench-v1` and stores:
 - per-benchmark `compile` metrics (`median_ms`, `binary_bytes`, `max_rss_kb`)
 - per-benchmark `runtime` metrics (`median_ms`, `max_rss_kb`, correctness)
 - workload tags for taxonomy and future grouped reporting
-

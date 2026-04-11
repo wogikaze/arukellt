@@ -13,7 +13,6 @@
 
 **Evidence**: docs/_sidebar.md: '▶ Try Playground' links to playground/index.html (repo-produced path); no external URL
 
-
 ## Summary
 
 repo 内 docs / site navigation から actual playground entrypoint へ到達できるようにする。entrypoint 自体の存在とは別 issue とし、link / route wiring だけを扱う。

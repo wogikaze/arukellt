@@ -93,6 +93,7 @@ You do **NOT** work on:
    - Would need to create user-visible claim without repo entrypoint evidence
 
 **Output Format:**
+
 ```
 Issue worked: #<ID>
 Acceptance slice: <description>

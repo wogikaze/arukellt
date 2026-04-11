@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 21
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: generate-docs.py generates README/current-state, check-docs-consistency.py passes
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

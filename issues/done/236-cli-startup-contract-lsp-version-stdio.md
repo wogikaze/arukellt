@@ -8,7 +8,6 @@
 **Track**: main
 **Blocks v1 exit**: yes
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -18,7 +17,6 @@
 **Evidence**: arukellt --version and arukellt lsp documented, stdio/stderr separation in place
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

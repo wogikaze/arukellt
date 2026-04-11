@@ -8,7 +8,6 @@
 **Track**: parallel
 **Blocks v1 exit**: no
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -18,7 +17,6 @@
 **Evidence**: showSetupDoctor, showCommandGraph, showEnvironmentDiff commands registered in extension.js
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

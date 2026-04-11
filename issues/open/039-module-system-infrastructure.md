@@ -8,7 +8,6 @@
 **Track**: stdlib
 **Blocks v3 exit**: yes
 
-
 ---
 
 ## Slice 1 complete — 2026-04-XX
@@ -100,7 +99,6 @@ v3 標準ライブラリの全モジュールが `use std::collections::hash_map
 1. `use std::collections::*` (wildcard import) を v3 で入れるか、v4 に送るか
 2. re-export (`pub use`) の扱い
 3. `std/` 外のユーザーモジュールとの名前空間統一方針
-
 
 ---
 

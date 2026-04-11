@@ -8,7 +8,6 @@
 **Track**: runtime-perf
 **Blocks v4 exit**: no
 
-
 ---
 
 ## Reopened by audit — 2026-04-03

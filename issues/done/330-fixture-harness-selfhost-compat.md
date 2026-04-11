@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 23
 
-
 ---
 
 ## Decomposition note — 2026-04-03
@@ -36,7 +35,6 @@
 **Violated acceptance**: - [x] `ARUKELLT_BIN=path/to/selfhost cargo test -p arukellt --test harness` で selfhost compiler が使われる — NOT MET: harness.rs uses current_exe(), not ARUKELLT_BIN
 
 **Evidence**: `crates/arukellt/tests/harness.rs:97-113` — arukellt_binary() reads current_exe(), not ARUKELLT_BIN env var. Setting ARUKELLT_BIN and running `cargo test --test harness` has no effect on which binary is used.
-
 
 ## Reopened by audit — 2026-04-03
 

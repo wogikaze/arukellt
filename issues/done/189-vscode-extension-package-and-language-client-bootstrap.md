@@ -8,7 +8,6 @@
 **Track**: parallel
 **Blocks v1 exit**: no
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -18,7 +17,6 @@
 **Evidence**: extension.js has arukellt lsp launch, language registration in package.json, binary discovery all tracked
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

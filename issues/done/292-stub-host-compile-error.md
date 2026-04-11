@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 12
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: E0500 (incompatible-target) in codes.rs, implemented in load.rs
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 4
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: crates/ark-lsp/tests/lsp_perf.rs exists with 4 perf cases
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

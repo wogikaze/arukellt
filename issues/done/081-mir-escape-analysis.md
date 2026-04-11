@@ -8,7 +8,6 @@
 **Track**: mir-opt
 **Blocks v4 exit**: yes
 
-
 ---
 
 ## Reopened by audit — 2026-04-03
@@ -59,8 +58,8 @@ roadmap-v4.md §10 item 7 で明示的な目標になっている。
 **Accepted criteria**:
 1. ✅ Escape-analysis + SROA pass exists (`escape_analysis_pass` function)
 2. ✅ `OptimizationPass::EscapeAnalysis` variant added and wired in pipeline
-4. ✅ Conservative implementation (escaping candidates skipped)
-5. ⚠️ Opt-level gating: Pass is in `DEFAULT_PASS_ORDER` (runs at any opt-level ≥ 1), not exclusively `--opt-level 2` as specified. Accepted — optimization exists.
+3. ✅ Conservative implementation (escaping candidates skipped)
+4. ⚠️ Opt-level gating: Pass is in `DEFAULT_PASS_ORDER` (runs at any opt-level ≥ 1), not exclusively `--opt-level 2` as specified. Accepted — optimization exists.
 
 **Skipped criteria** (benchmark — cannot verify in CI):
 3. ⏭️ `binary_tree.ark` (depth=15) C比 1.5x 以内 — benchmark acceptance skipped; needs manual verification.

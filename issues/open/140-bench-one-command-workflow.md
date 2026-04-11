@@ -8,7 +8,6 @@
 **Track**: benchmark
 **Blocks v1 exit**: no
 
-
 ---
 
 ## Reopened by audit — 2026-04-03

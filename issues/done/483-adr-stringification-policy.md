@@ -113,4 +113,3 @@ internal-only (ADR はプロジェクト内部の設計文書; user-visible feat
 - `bash scripts/run/verify-harness.sh --quick` → 19/19 PASS ✓
 
 **Action**: Moved from `issues/open/` → `issues/done/`
-

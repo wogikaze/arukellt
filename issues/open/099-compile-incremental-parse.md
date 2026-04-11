@@ -10,7 +10,6 @@
 
 **Status note**: Compiler architecture improvement — deferred to v5+. hello.ark already compiles in 4.2ms.
 
-
 ---
 
 ## Reopened by audit — 2026-04-03

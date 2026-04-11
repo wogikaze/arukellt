@@ -10,7 +10,6 @@
 
 **Status note**: Wasm proposal — deferred to v5+. Not implemented.
 
-
 ---
 
 ## Reopened by audit — 2026-04-03

@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 6
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: tests/fixtures/stdlib_collections/ with seq_basic and seq_edge_cases
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

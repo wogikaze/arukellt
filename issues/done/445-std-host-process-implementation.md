@@ -62,6 +62,7 @@ pub fn abort() {
 - `__intrinsic_process_exit` が MIR に現れた時に WASI `proc_exit` を呼ぶ wasm コードを emit する。
 - T1 は WASI Preview 1 ベース。`proc_exit` は `wasi_unstable` か `wasi_snapshot_preview1` として import される。既存の WASI import パターン（`fd_write` 等）を参照して import section に追加する。
 - emit する wasm 命令列（概略）:
+
   ```
   ;; __intrinsic_process_exit(code: i32)
   (import "wasi_snapshot_preview1" "proc_exit" (func $proc_exit (param i32)))
@@ -70,6 +71,7 @@ pub fn abort() {
   call $proc_exit
   unreachable  ;; proc_exit は noreturn
   ```
+
 - `__intrinsic_process_abort` は `i32.const 134; call $proc_exit; unreachable` に展開する。
 
 ### Step 4: T3 emitter 配線 (`crates/ark-wasm/src/emit/t3/mod.rs`)
@@ -77,6 +79,7 @@ pub fn abort() {
 - WASI Preview 2 の `proc_exit` import path は `wasi:cli/exit@0.2.0` の `exit` 関数（`(func (param i32))`）。
 - 既存 T3 WASI import セクション（stdio の `fd_write` 等）を参照して同様に追加する。
 - emit する wasm 命令列（概略）:
+
   ```
   (import "wasi:cli/exit@0.2.0" "exit" (func $proc_exit (param i32)))
   ;; __intrinsic_process_exit:
@@ -84,6 +87,7 @@ pub fn abort() {
   call $proc_exit
   unreachable
   ```
+
 - `__intrinsic_process_abort` は `i32.const 134; call $proc_exit; unreachable` に展開する。
 
 ### Step 5: MIR ビルトイン展開 (`crates/ark-mir/src/` または emitter の lowering 層)

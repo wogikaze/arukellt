@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 5
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: docs/playground/index.html is real browser entrypoint calling createPlaygroundApp(), pages.yml deploys it
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

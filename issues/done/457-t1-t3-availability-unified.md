@@ -9,7 +9,6 @@
 **Blocks v1 exit**: yes
 **Priority**: 1
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: server.rs:1928-1945 hover shows T3 only warning, completion tags T3-only deprecated on T1
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

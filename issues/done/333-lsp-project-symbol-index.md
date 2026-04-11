@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 1
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: SymbolIndex struct at server.rs:207, symbol_index Mutex at line 227
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

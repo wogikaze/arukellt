@@ -4,7 +4,6 @@
 **Created**: 2026-03-24
 **Updated**: 2026-04-03
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -14,7 +13,6 @@
 **Evidence**: syntax.md is canonical, v0/v1 boundaries documented, all 24 items verified by docs/language/syntax.md
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

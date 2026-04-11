@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **ADR candidate**: yes
 
-
 ---
 
 ## Decomposition note — 2026-04-03

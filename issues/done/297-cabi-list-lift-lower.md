@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 17
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: crates/ark-wasm/src/emit/t3/cabi_adapters.rs has list lift/lower
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

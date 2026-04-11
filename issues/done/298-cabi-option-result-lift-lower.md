@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 19
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: cabi_adapters.rs has OptionType and ResultType lift/lower at lines 58-72
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

@@ -9,7 +9,6 @@
 **Blocks v1 exit**: yes
 **Priority**: 2
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: runtime.rs has register_http_host_fns, http_get_impl; HOST_STUB_BUILTINS is empty
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

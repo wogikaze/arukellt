@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 16
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: sort_imports() exported at fmt.rs:121, standalone test at 1490
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 3
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: InitTemplate enum with Minimal/Cli/WithTests/WasiHost in main.rs, cmd_init in commands.rs
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 
@@ -86,6 +84,7 @@ my-project/
 ```
 
 `src/main.ark`:
+
 ```ark
 use std::host::stdio
 
@@ -104,6 +103,7 @@ my-project/
 ```
 
 `ark.toml`:
+
 ```toml
 [package]
 name = "my-project"
@@ -115,6 +115,7 @@ path = "src/main.ark"
 ```
 
 `src/main.ark`:
+
 ```ark
 use std::host::stdio
 use std::host::process
@@ -142,6 +143,7 @@ my-project/
 ```
 
 `src/lib.ark`:
+
 ```ark
 pub fn add(a: i32, b: i32) -> i32 {
     a + b
@@ -163,6 +165,7 @@ fn test_subtract() {
 ```
 
 `src/main.ark`:
+
 ```ark
 use std::host::stdio
 use crate::lib
@@ -174,6 +177,7 @@ fn main() {
 ```
 
 `ark.toml`:
+
 ```toml
 [package]
 name = "my-project"
@@ -197,6 +201,7 @@ my-project/
 ```
 
 `ark.toml`:
+
 ```toml
 [package]
 name = "my-project"
@@ -209,6 +214,7 @@ target = "wasm32-wasi-p2"
 ```
 
 `src/main.ark`:
+
 ```ark
 // This example requires wasm32-wasi-p2 target.
 // Build with: arukellt run --target wasm32-wasi-p2 src/main.ark

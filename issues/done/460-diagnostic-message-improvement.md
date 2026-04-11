@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 2
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: Diagnostic struct has helps:Vec<String> at sink.rs:96, with_help() at line 152
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

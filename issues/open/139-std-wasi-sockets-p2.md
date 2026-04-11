@@ -10,7 +10,6 @@
 
 **Status note**: P2-only capability. T1 では compile-time error が正しい挙動。
 
-
 ---
 
 ## Reopened by audit — 2026-04-03

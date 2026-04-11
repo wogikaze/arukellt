@@ -8,7 +8,6 @@
 **Track**: pipeline-refactor
 **Blocks v4 exit**: no (compile-time optimization)
 
-
 ---
 
 ## Reopened by audit — 2026-04-03

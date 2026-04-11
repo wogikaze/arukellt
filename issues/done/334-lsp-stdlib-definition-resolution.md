@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 3
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: server.rs:252 computes stdlib root for imports like use std::host::stdio
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

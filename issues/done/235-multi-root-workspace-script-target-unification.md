@@ -8,7 +8,6 @@
 **Track**: main
 **Blocks v1 exit**: no
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -18,7 +17,6 @@
 **Evidence**: workspace_roots in LSP server.rs line 222-223, multi-root support wired
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

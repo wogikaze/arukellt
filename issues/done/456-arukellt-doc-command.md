@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 3
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: crates/arukellt/src/cmd_doc.rs with all features, Commands::Doc in main.rs
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 
@@ -181,6 +179,7 @@ fn find_closest_symbols(query: &str, manifest: &StdlibManifest, limit: usize) ->
 レーベンシュタイン距離の実装は既存 crate (`strsim`) を使うか単純な実装を追加する。
 
 出力例:
+
 ```
 error: symbol 'httq_get' not found
 
@@ -192,6 +191,7 @@ Did you mean?
 #### 2.7: モジュール表示
 
 `symbol = "std::host::http"` の場合:
+
 ```
 module std::host::http
   Stability: experimental

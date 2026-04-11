@@ -11,7 +11,7 @@
 
 ## Summary
 
-現在の hover handler（`crates/ark-lsp/src/server.rs`）はカーソル位置のトークンを種類を問わず hover に変換する。`"hello"` 上でホバーすると `"string literal"` が、整数リテラルでは `"integer literal \`42\`"` が、キーワードや記号では `` "`if`" `` のような意味のない文字列が表示される。これらはすべて除去する。
+現在の hover handler（`crates/ark-lsp/src/server.rs`）はカーソル位置のトークンを種類を問わず hover に変換する。`"hello"` 上でホバーすると `"string literal"` が、整数リテラルでは `"integer literal \`42\`"`が、キーワードや記号では `` "`if`" `` のような意味のない文字列が表示される。これらはすべて除去する。
 
 加えて、identifier ではあるが semantic 情報が取れない場合（型情報なし・stdlib なし）に表示される `"identifier \`x\`"` というフォールバック文字列も除去する（ユーザーには `null` hover が返るべき）。
 
@@ -105,6 +105,7 @@ for tok in &analysis.tokens {
 LSP の `textDocument/hover` はカーソル位置（character offset）を受け取る。トークン境界の扱いを確認する。
 
 現状のコード:
+
 ```rust
 if start <= target_offset && target_offset <= end && end <= source.len() {
 ```
@@ -114,6 +115,7 @@ if start <= target_offset && target_offset <= end && end <= source.len() {
 **採用方針**: `target_offset < end`（strictly less）にする（識別子 `source` の最後の文字 `e` の offset が `end - 1`、その直後の offset は `end` で次のスペースや記号の先頭）。ただし、LSP の標準的な実装では「カーソルが identifier 上にある」を `start <= offset < end` で判定することが多い。完了条件に「識別子の末尾の直後で隣接トークンを誤爆しない」を含める。
 
 修正後の条件:
+
 ```rust
 if start <= target_offset && target_offset < end
 ```

@@ -10,7 +10,6 @@
 
 **Status note**: roadmap-v4 では v4 後半で評価するが、最適化パス安定化までは着手しない。
 
-
 ---
 
 ## Reopened by audit — 2026-04-03

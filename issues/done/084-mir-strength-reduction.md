@@ -8,7 +8,6 @@
 **Track**: mir-opt
 **Blocks v4 exit**: no
 
-
 ---
 
 ## Reopened by audit — 2026-04-03
@@ -48,7 +47,7 @@ Wasm の乗算は i32.mul だが、2のべき乗の場合は i32.shl の方が�
 
 **Accepted criteria**:
 1. ✅ `x * 2^n → x << n`, `x / 2^n → x >> n` implemented
-4. ⚠️ Opt-level gating: Pass is in `DEFAULT_PASS_ORDER` (runs at any opt-level ≥ 1); not exclusively `--opt-level 2`. Accepted — optimization exists.
+2. ⚠️ Opt-level gating: Pass is in `DEFAULT_PASS_ORDER` (runs at any opt-level ≥ 1); not exclusively `--opt-level 2`. Accepted — optimization exists.
 
 **Skipped criteria** (benchmark — cannot verify in CI):
 2. ⏭️ Signed division magic number (Hacker's Delight) — not observed in implementation; only power-of-two shift lowering present. Close accepted since core acceptance criterion (criterion 1) is met.

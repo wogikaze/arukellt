@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 8
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: server.rs:1057 handles use-context completions, test at line 6264 verifies
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

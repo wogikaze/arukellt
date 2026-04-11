@@ -9,7 +9,6 @@
 **Blocks v1 exit**: yes
 **Priority**: 3
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: tests/fixtures/host/sockets and target_gating/t1_import_sockets fixtures exist, HOST_STUB_BUILTINS empty
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

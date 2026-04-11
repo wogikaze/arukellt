@@ -9,7 +9,6 @@
 **Blocks v1 exit**: yes
 **Priority**: 5
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: tests/fixtures/regression/type_table/ fixtures, validate_type_table_consistency() in ark-mir
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

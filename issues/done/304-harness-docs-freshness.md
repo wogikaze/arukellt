@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 24
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: check-docs-freshness.py integrated in verify-harness.sh at line 206-207
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 

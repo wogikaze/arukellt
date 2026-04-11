@@ -13,7 +13,6 @@
 
 **Evidence**: playground/package.json 'build': 'tsc'; .github/workflows/pages.yml builds playground JS, uploads artifact, deploys to GitHub Pages
 
-
 ## Summary
 
 playground の build script、output path、publish path を repo 内の現物で証明できる状態にする。deploy / workflow / output proof のみを扱い、docs claim や extension exposure は別 issue とする。

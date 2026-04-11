@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 3
 
-
 ---
 
 ## False-Done Audit Note — 2026-04-03
@@ -21,7 +20,6 @@
 **Violated acceptance**: - [x] `package.json` に 5 設定が追加されている（型・デフォルト・description・scope 全て設定）— NOT MET: Only 4 settings found (enableCodeLens, hoverDetailLevel, diagnostics.reportLevel, useSelfHostBackend). arukellt.check.onSave is missing.
 
 **Evidence**: `extensions/arukellt-all-in-one/package.json` — grep for arukellt settings shows only 4 new entries added. Issue requires check.onSave per '追加する設定項目' section but it is absent.
-
 
 ## Superseded by decomposition — 2026-04-03
 

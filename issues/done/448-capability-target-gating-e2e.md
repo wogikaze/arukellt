@@ -9,7 +9,6 @@
 **Blocks v1 exit**: yes
 **Priority**: 4
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: E0500 in codes.rs, t1_import_sockets.diag, T3_ONLY_MODULES in load.rs
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 
@@ -84,7 +82,7 @@ if target == TargetId::Wasm32WasiP1 {
 }
 ```
 
-4. `TargetId` の threading: `ark-driver::Session` に `target_id: TargetId` フィールドが既に存在するはずなので、`load_module` へ渡すパスを通す。
+1. `TargetId` の threading: `ark-driver::Session` に `target_id: TargetId` フィールドが既に存在するはずなので、`load_module` へ渡すパスを通す。
 
 ### Step 2: 新 DiagnosticCode `E0500` の追加 (`crates/ark-diagnostics/src/codes.rs`)
 

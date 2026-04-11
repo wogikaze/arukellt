@@ -9,7 +9,6 @@
 **Blocks v1 exit**: no
 **Priority**: 3
 
-
 ---
 
 ## Closed by audit — 2026-04-03
@@ -19,7 +18,6 @@
 **Evidence**: scripts/check/check-selfhost-fixpoint.sh, check-selfhost-parity.sh, check-selfhost-diagnostic-parity.sh all exist
 
 **Action**: Moved from `issues/open/` → `issues/done/` by false-done audit (confirmed truly-done).
-
 
 ## Reopened by audit — 2026-04-03
 
@@ -57,18 +55,18 @@
 `sha256(s1) ≠ sha256(s2)` の原因を特定する。主な候補:
 
 A. **emitter 非決定性**: Rust の `HashMap` 等のハッシュ順序依存で wasm バイト列が変わる。
-   - 確認方法: `s1` を 2 回ビルドして wasm が一致するか確認する。
-   - 修正: emitter で HashMap → BTreeMap 等の順序確定コレクションに置き換える（`crates/ark-wasm/src/emit/`）。
+- 確認方法: `s1` を 2 回ビルドして wasm が一致するか確認する。
+- 修正: emitter で HashMap → BTreeMap 等の順序確定コレクションに置き換える（`crates/ark-wasm/src/emit/`）。
 
 B. **未実装機能**: ark セルフホストコンパイラが一部の言語機能を正しく実装していない。
-   - 確認方法: `arukellt-s1 compile src/compiler/main.ark --target wasm32-wasi-p1 --emit core-wasm` を実行し、警告/エラーを確認する。
-   - 修正: 不一致が出る機能を `src/compiler/*.ark` に実装する。
+- 確認方法: `arukellt-s1 compile src/compiler/main.ark --target wasm32-wasi-p1 --emit core-wasm` を実行し、警告/エラーを確認する。
+- 修正: 不一致が出る機能を `src/compiler/*.ark` に実装する。
 
 C. **型レイアウトの差異**: Issue 449（MIR-01）関連で Rust emitter と ark emitter の type_table 参照結果が異なる。
-   - Issue 449 完了後に再確認する。
+- Issue 449 完了後に再確認する。
 
 D. **コード生成の細部差異**: 定数折りたたみ、インライン化の違い等。
-   - wasm-diff ツールで section ごとに比較する。
+- wasm-diff ツールで section ごとに比較する。
 
 ### Step 2: CI に fixpoint check を追加する
 
