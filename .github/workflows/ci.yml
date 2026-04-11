@@ -264,7 +264,14 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
+      - name: Build debug arukellt
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/target-heavy
+        run: cargo build -p arukellt
+
       - name: Verify harness (size + WAT + docs)
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-heavy/debug/arukellt
         run: bash scripts/run/verify-harness.sh --size --wat --docs
 
   # ── Layer 7b: Component interop (push only) ──────────────────────────────
@@ -364,9 +371,13 @@ jobs:
           echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
 
       - name: Build release arukellt
+        env:
+          CARGO_TARGET_DIR: ${{ runner.temp }}/target-selfhost
         run: cargo build --release -p arukellt
 
       - name: Run full bootstrap (Stage 0 + Stage 1 + Stage 2)
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
         run: |
           # Run full bootstrap — Stage 2 fixpoint may fail (expected until selfhost reaches parity)
           bash scripts/run/verify-bootstrap.sh --check 2>&1 | tee bootstrap-results.txt || true
@@ -375,6 +386,8 @@ jobs:
           grep -q 'stage1-compile: reached' bootstrap-results.txt
 
       - name: Run selfhost fixture parity
+        env:
+          ARUKELLT_BIN: ${{ runner.temp }}/target-selfhost/release/arukellt
         run: bash scripts/check/check-selfhost-parity.sh --fixture 2>&1 | tee parity-results.txt || true
 
       - name: Upload results

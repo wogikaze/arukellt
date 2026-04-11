@@ -13,6 +13,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -48,14 +49,16 @@ def find_arukellt() -> str:
     """Locate the arukellt binary."""
     import shutil
 
-    if found := shutil.which("arukellt"):
-        return found
+    if configured := os.environ.get("ARUKELLT_BIN"):
+        return configured
     for candidate in [
         ROOT / "target" / "debug" / "arukellt",
         ROOT / "target" / "release" / "arukellt",
     ]:
         if candidate.is_file() and candidate.stat().st_mode & 0o111:
             return str(candidate)
+    if found := shutil.which("arukellt"):
+        return found
     return "arukellt"  # fall back; will produce a clear error
 
 
