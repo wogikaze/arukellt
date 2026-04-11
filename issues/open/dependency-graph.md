@@ -28,7 +28,6 @@ graph LR
   I109["109 ベンチマーク: fib / binary_tree / vec_ops / string_concat / json_parse スイート"]
   I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
   I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
-  I115["115 Wasm Name Section: デバッグ用関数名・ローカル名セクション生成"]
   I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
   I119["119 MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応"]
@@ -66,6 +65,7 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
+  I486["486 T3: MIR 最適化の段階的再開 (GC-safe audit + opt-level 復帰)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
@@ -98,6 +98,7 @@ graph LR
   I074 --> I476
   I109 --> I112
   I117 --> I118
+  I122 --> I486
   I125 --> I126
   I141 --> I144
   I142 --> I144
@@ -171,12 +172,11 @@ graph LR
 - **109** depends on: none; blocks: 112
 - **111** depends on: none; blocks: none
 - **113** depends on: 100; blocks: none
-- **115** depends on: none; blocks: none
 - **116** depends on: 114; blocks: none
 - **117** depends on: none; blocks: 118
 - **119** depends on: 101; blocks: none
 - **120** depends on: none; blocks: none
-- **122** depends on: 101; blocks: none
+- **122** depends on: 101; blocks: 486
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
 - **128** depends on: none; blocks: none
@@ -209,6 +209,7 @@ graph LR
 - **476** depends on: 035, done), 074; blocks: none
 - **112** depends on: 109; blocks: none
 - **118** depends on: 117; blocks: none
+- **486** depends on: 122; blocks: none
 - **126** depends on: 125; blocks: none
 - **144** depends on: 141, 142, 143, 149; blocks: none
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
