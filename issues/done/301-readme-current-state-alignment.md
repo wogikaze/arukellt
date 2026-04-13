@@ -1,8 +1,8 @@
 # current-state.md と README.md の整合を取る
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-04-13
+**Updated**: 2026-04-14
 **ID**: 301
 **Depends on**: 303
 **Track**: docs/ops

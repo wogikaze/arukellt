@@ -68,7 +68,6 @@ graph LR
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
   I286["286 current-state.md の bootstrap 節を fixpoint 達成に合わせて更新する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
-  I301["301 current-state.md と README.md の整合を取る"]
   I309["309 Selfhost resolver に module/import resolution を実装する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
@@ -285,7 +284,6 @@ graph LR
 - **283** depends on: 281; blocks: 284
 - **286** depends on: none; blocks: none
 - **289** depends on: 287; blocks: none
-- **301** depends on: 303; blocks: none
 - **309** depends on: 308; blocks: none
 - **312** depends on: 311; blocks: none
 - **382** depends on: 378; blocks: 489

@@ -23,9 +23,9 @@ Known drifted references:
 
 ## Acceptance
 
-- [ ] All cross-references to generator scripts resolve to actual files
-- [ ] `scripts/check/check-docs-consistency.py` invokes generators at correct paths
-- [ ] `grep -rn 'scripts/generate-' .` returns zero hits outside `scripts/gen/` (no stale flat-path refs)
+- [x] All cross-references to generator scripts resolve to actual files
+- [x] `scripts/check/check-docs-consistency.py` invokes generators at correct paths
+- [x] `grep -rn 'scripts/generate-' .` returns zero hits outside `scripts/gen/` (no stale flat-path refs)
 
 ## Primary paths
 
