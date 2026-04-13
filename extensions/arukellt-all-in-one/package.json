@@ -207,8 +207,11 @@
         },
         "arukellt.playgroundUrl": {
           "type": "string",
+          "enum": [
+            "https://wogikaze.github.io/arukellt/playground/"
+          ],
           "default": "https://wogikaze.github.io/arukellt/playground/",
-          "description": "Base URL used by the 'Open in Playground' command. Defaults to the repo's own GitHub Pages playground (proved by docs/playground/index.html + .github/workflows/pages.yml). The playground provides an editor shell with parse support. Override only if you self-host a different endpoint.",
+          "description": "Base URL used by the 'Open in Playground' command. Only the repo-proved route (docs/playground/index.html on GitHub Pages) is supported.",
           "scope": "resource"
         },
         "arukellt.enableCodeLens": {
@@ -457,6 +460,7 @@
   },
   "scripts": {
     "lint": "node -e \"const ext=require('./src/extension.js'); const result=ext.verifyBootstrap(); if(!result.command){process.exit(1)}\"",
+    "test:playground-endpoint": "node ./test/playground-endpoint-guard.js",
     "test": "vscode-test",
     "package": "vsce package",
     "build": "npm run package"

@@ -16,6 +16,9 @@ let testController = null
 let projectTreeProvider = null
 let componentDiagnostics = null
 
+const REPO_PLAYGROUND_URL = 'https://wogikaze.github.io/arukellt/playground/'
+const ALLOWED_PLAYGROUND_BASE_URLS = new Set([REPO_PLAYGROUND_URL])
+
 /**
  * @param {vscode.ExtensionContext} context
  */
@@ -543,13 +546,28 @@ async function runComponent() {
   })
 }
 
+function normalizePlaygroundBaseUrl(value) {
+  if (!value) {
+    return ''
+  }
+  try {
+    const parsed = new URL(value)
+    parsed.search = ''
+    parsed.hash = ''
+    if (!parsed.pathname.endsWith('/')) {
+      parsed.pathname = `${parsed.pathname}/`
+    }
+    return parsed.toString()
+  } catch (_error) {
+    return ''
+  }
+}
+
 /**
  * arukellt.openInPlayground
- * Opens the current file's source in a configured playground URL.
+ * Opens the current file's source in the repo-proved playground endpoint.
  * For files ≤ 2 000 characters the source is appended as ?src=<encoded>.
- * Larger files open the configured base URL (user can paste manually).
- * Defaults to the repo's own GitHub Pages playground (wogikaze.github.io/arukellt/playground/).
- * The command errors only if the user explicitly clears arukellt.playgroundUrl to an empty string.
+ * Larger files open the base URL (user can paste manually).
  */
 async function openInPlayground() {
   const editor = vscode.window.activeTextEditor
@@ -559,27 +577,37 @@ async function openInPlayground() {
   }
   const source = editor.document.getText()
   const config = vscode.workspace.getConfiguration('arukellt', editor.document.uri)
-  const playgroundUrl = config.get('playgroundUrl', '').trim()
+  const playgroundUrl = config.get('playgroundUrl', REPO_PLAYGROUND_URL).trim()
+  const normalizedPlaygroundUrl = normalizePlaygroundBaseUrl(playgroundUrl)
 
-  if (!playgroundUrl) {
+  if (!normalizedPlaygroundUrl) {
     vscode.window.showErrorMessage(
-      'Arukellt: playground URL is not configured. Set arukellt.playgroundUrl to a real endpoint first.'
+      'Arukellt: invalid playground URL. Reset arukellt.playgroundUrl to the default repo endpoint.'
+    )
+    return
+  }
+
+  if (!ALLOWED_PLAYGROUND_BASE_URLS.has(normalizedPlaygroundUrl)) {
+    vscode.window.showErrorMessage(
+      `Arukellt: unsupported playground URL. Only ${REPO_PLAYGROUND_URL} is supported.`
     )
     return
   }
 
   const MAX_SRC_LENGTH = 2000
-  let url
+  let uri
   if (source.length <= MAX_SRC_LENGTH) {
-    url = `${playgroundUrl}?src=${encodeURIComponent(source)}`
+    uri = vscode.Uri.parse(normalizedPlaygroundUrl).with({
+      query: new URLSearchParams({ src: source }).toString(),
+    })
   } else {
-    url = playgroundUrl
+    uri = vscode.Uri.parse(normalizedPlaygroundUrl)
     vscode.window.showInformationMessage(
       'Arukellt: source is too large to encode in a URL. Opening playground — paste your code manually.'
     )
   }
 
-  vscode.env.openExternal(vscode.Uri.parse(url))
+  vscode.env.openExternal(uri)
 }
 
 function showSetupDoctor() {

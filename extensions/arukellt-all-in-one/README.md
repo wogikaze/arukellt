@@ -39,7 +39,7 @@ The following five settings (added in #477/#478/#479) control LSP server behavio
 | `arukellt.server.args` | `string[]` | `[]` | Extra arguments inserted before the built-in `lsp` subcommand. |
 | `arukellt.target` | `"wasm32-wasi-p1"` \| `"wasm32-wasi-p2"` \| `null` | `null` | Compilation target for the LSP server and CLI commands. `null` means auto-detect from `ark.toml`. |
 | `arukellt.emit` | `string` | `"core-wasm"` | Default emit kind for compile commands. |
-| `arukellt.playgroundUrl` | `string` | `"https://wogikaze.github.io/arukellt/playground/"` | Base URL used by the `Open in Playground` command. Defaults to the repo's own GitHub Pages playground, which provides an editor shell with parse support (tokenize/format via WASM when available, stub parse otherwise). Override only if you self-host a different endpoint. |
+| `arukellt.playgroundUrl` | `string` | `"https://wogikaze.github.io/arukellt/playground/"` | Base URL used by the `Open in Playground` command. Only the repo-proved route is supported: `https://wogikaze.github.io/arukellt/playground/` backed by `docs/playground/index.html`. |
 
 ## Notes
 
