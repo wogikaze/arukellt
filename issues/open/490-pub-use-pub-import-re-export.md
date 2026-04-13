@@ -42,3 +42,37 @@ The language specification describes `pub use` / `pub import` syntax for re-expo
 - `pub use` syntax is parsed, resolved, type-checked
 - Positive and negative fixtures exist
 - docs/module-resolution.md reflects implemented status
+
+## Progress note — 2026-04-14 (parser slice)
+
+Parser-level acceptance slice landed in commit `87dcbfb`:
+
+- Added parser support for `pub use <module>::<item>` form in `crates/ark-parser/src/parser/decl.rs` and related AST/format plumbing.
+- Added parser regression proof in `tests/fixtures/module_import/pub_use_basic.ark` and fixture manifest updates.
+
+Remaining for this issue (not yet done):
+
+- Resolver/typecheck semantics for re-export visibility.
+- Positive/negative behavioral fixtures for importer visibility semantics.
+- Docs status cleanup after full implementation.
+
+## Progress note — 2026-04-14 (resolver/typecheck slice)
+
+Resolver/typecheck acceptance slice landed in commit `cf701a9`:
+
+- Wired re-export visibility flow in `crates/ark-resolve/src/load.rs`, `crates/ark-resolve/src/analyze.rs`, and `crates/ark-resolve/src/resolve.rs`.
+- Updated typecheck integration in `crates/ark-typecheck/src/checker/mod.rs` and `crates/ark-typecheck/src/checker/check_expr.rs`.
+- Added positive fixture set `tests/fixtures/modules/pub_use_reexport_visible/*`.
+- Added negative fixture set `tests/fixtures/modules/pub_use_nonpub_hidden/*`.
+
+Observed slice-level behavior evidence:
+
+- Positive fixture run prints expected value (`7`).
+- Negative fixture check emits `E0501` for hidden non-`pub` export path.
+
+Required verification status for close gate remains incomplete due pre-existing repo drift:
+
+- `bash scripts/run/verify-harness.sh --quick` failed on generated docs drift.
+- `bash scripts/run/verify-harness.sh --fixtures` failed on unrelated pre-existing fixture failure (`from_trait/from_auto_convert.ark`).
+
+Issue remains open until full required verification is green and acceptance can be checked end-to-end.

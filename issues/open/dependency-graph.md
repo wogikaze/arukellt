@@ -82,7 +82,6 @@ graph LR
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
-  I469["469 Extension: playground surface は repo で証明できる endpoint だけを指す"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I487["487 Package registry resolution"]
   I490["490 pub use / pub import re-export"]
@@ -253,7 +252,6 @@ graph LR
 - **441** depends on: 333, 335, 340; blocks: none
 - **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
-- **469** depends on: 466, 468; blocks: none
 - **472** depends on: 466; blocks: none
 - **487** depends on: 039; blocks: none
 - **490** depends on: 234; blocks: none

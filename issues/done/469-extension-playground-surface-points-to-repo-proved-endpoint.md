@@ -1,8 +1,8 @@
 # Extension: playground surface は repo で証明できる endpoint だけを指す
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
-**Updated**: 2026-04-13
+**Updated**: 2026-04-14
 **ID**: 469
 **Depends on**: 466, 468
 **Track**: extension
@@ -17,6 +17,19 @@
 **Reason**: Conflicting metadata.
 
 **Action**: Moved from issues/done/ to issues/open/ by false-done audit.
+
+## Closed by orchestration — 2026-04-14
+
+**Reason**: Close gate satisfied with repo-native regression proof and surface consistency.
+
+**Evidence**:
+- `extensions/arukellt-all-in-one/test/playground-endpoint-guard.js` enforces that extension-exposed endpoint equals repo-proved route and requires `docs/playground/index.html` entrypoint proof.
+- `extensions/arukellt-all-in-one/package.json` restricts `arukellt.playgroundUrl` enum/default to the repo-proved URL.
+- `extensions/arukellt-all-in-one/src/extension.js` guards `openInPlayground` against non-allowed URLs.
+- `extensions/arukellt-all-in-one/README.md` now states only the repo-proved route is supported.
+- Verification in slice commit `0426b64`: `bash scripts/run/verify-harness.sh --quick` PASS, `npm --prefix extensions/arukellt-all-in-one run test:playground-endpoint` PASS.
+
+**Action**: Move to `issues/done/` with status `done`.
 
 ## Closed by audit — 2026-04-03
 
