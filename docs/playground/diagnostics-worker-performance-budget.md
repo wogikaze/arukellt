@@ -10,7 +10,7 @@ worker round-trip, incremental parse strategy, and measurement methodology
   ADR-022 (deployment & caching, load-time budgets),
   `docs/playground/deployment-strategy.md` §7 (asset size & load budgets)
 
-> **Status note (2026-04-03):** This draft defines target runtime budgets. It does not prove that the current repo already provides a browser-visible playground route or a local `npm run dev` workflow.
+> **Status note (2026-04-14, updated for #471):** This draft defines target runtime budgets. The browser playground entrypoint exists at `docs/playground/index.html` and the build/deploy path is proved via `pages.yml`. There is no `npm run dev` local dev-server workflow yet.
 
 ---
 
@@ -363,8 +363,10 @@ wasm-opt -O2 --debuginfo \
 # 3. Build current TS package artifacts
 cd playground && npm run build
 
-# 4. Open a local browser route only after issues/open/466 and 468 land
-#    (the current repo does not yet define a canonical `npm run dev` workflow)
+# 4. Open a local browser route:
+#    cd docs && python3 -m http.server
+#    Then navigate to http://localhost:8000/playground/
+#    (There is no `npm run dev` hot-reload workflow yet.)
 # 5. Open Chrome DevTools → Performance tab
 # 6. Record a session with typing
 # 7. Look for:

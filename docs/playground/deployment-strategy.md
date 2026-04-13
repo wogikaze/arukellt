@@ -5,7 +5,16 @@
 **Scope**: Playground (web), CI/CD, hosting, caching, preview environments
 **Related ADRs**: ADR-017 (execution model), ADR-021 (share URL format), ADR-022 (deployment & caching)
 
-> **Status note (2026-04-03):** This document records intended deployment architecture, not current repo proof. The current repository does not yet prove a browser-visible playground entrypoint, `npm run dev`, `npm run build:full`, or PR preview deployment workflow. Track current proof work in `issues/open/466-playground-browser-entrypoint-exists.md`, `issues/open/468-playground-build-and-publish-path-proof.md`, and `issues/open/471-playground-docs-command-workflow-reality-audit.md`.
+> **Status note (2026-04-14, updated for #471):** This document records deployment architecture. The following surfaces are now repo-proved:
+> - Browser entrypoint: `docs/playground/index.html` (issue #466 — done)
+> - Docs route wiring: `docs/_sidebar.md` links to playground page (issue #467 — done)
+> - Build & publish path: `.github/workflows/pages.yml` runs `npm run build:app` and deploys `./docs` including playground assets (issue #468 — done)
+>
+> The following remain **target-state only** (not yet repo-proved):
+> - `npm run dev` (no local dev-server script exists in `playground/package.json`)
+> - `npm run build:full` (does not exist; use `npm run build:app` instead)
+> - PR preview deployment workflow (no per-PR preview exists in any workflow file)
+> - CI size gates (no automated size enforcement in any workflow)
 
 ---
 
@@ -119,23 +128,32 @@ the correct hashed assets.
 
 ## 4. CI/CD Pipeline
 
-> **Current state (2026-04-03):** The existing `.github/workflows/pages.yml` deploys **only the `./docs/` directory** to GitHub Pages on push to `master`. It does not build the playground, compile Wasm, run size gates, or create PR preview deployments. The build pipeline and workflow job steps described in §4.1–§4.3 are **target-state** (tracked by issues #466 and #468). The only current CI-backed commands for the playground package are:
+> **Current state (2026-04-14, updated for #471):** `.github/workflows/pages.yml` builds the playground TypeScript package and deploys the `./docs/` directory (which includes `docs/playground/dist/` and `docs/playground/wasm/`) to GitHub Pages on push to `master`. It does **not** compile Wasm from Rust source, run size gates, or create PR preview deployments. The target-state build pipeline in §4.1–§4.3 (Rust Wasm build, wasm-opt, size gate, smoke test) has not yet landed.
+>
+> **Available `playground/package.json` scripts:**
 >
 > ```bash
 > cd playground && npm run build          # tsc — produces dist/
 > cd playground && npm run build:wasm     # wasm-pack build --target web --release
 > cd playground && npm run build:all      # build:wasm && build
+> cd playground && npm run build:app      # build + copy dist/ and wasm pkg/ into docs/playground/
 > cd playground && npm run typecheck      # tsc --noEmit
 > cd playground && npm run test           # node --test dist/tests/*.test.js
+> cd playground && npm run test:typecheck # tsc --noEmit (alias)
+> cd playground && npm run clean          # rm -rf dist/
 > ```
 >
-> **Current pages.yml steps** (docs deploy only):
+> **Current pages.yml steps** (docs + playground deploy):
 > 1. `actions/checkout@v4`
-> 2. `actions/configure-pages@v5`
-> 3. `actions/upload-pages-artifact@v3` — uploads `./docs`
-> 4. `actions/deploy-pages@v4`
+> 2. `actions/setup-node@v4` (Node.js 20)
+> 3. `npm install && npm run build:app` in `playground/`
+> 4. `actions/configure-pages@v5`
+> 5. `actions/upload-pages-artifact@v3` — uploads `./docs`
+> 6. `actions/deploy-pages@v4`
 >
 > Trigger: `push` to `master` on paths `docs/**` or `.github/workflows/pages.yml`; `workflow_dispatch`.
+>
+> **Scripts that do NOT exist** (referenced in target-state sections): `npm run dev`, `npm run build:full`.
 
 ### 4.1 Build pipeline (target state)
 
@@ -207,8 +225,9 @@ once the playground build workflow exists (issue #468):
 Budget bumps require a comment in the PR explaining the size increase and
 updating the threshold in the CI workflow file.
 
-**Current state**: No size gate exists in CI. Size tracking is manual until
-the playground build workflow lands.
+**Current state**: No size gate exists in CI. The playground build workflow
+(`pages.yml`) runs `npm run build:app` but does not enforce size thresholds.
+Size tracking is manual until a size gate is added to the workflow.
 
 ---
 
@@ -246,31 +265,32 @@ provides automatic per-PR preview URLs at no cost).
 ⏱️ Build time: 3m 42s
 ```
 
-### 5.2 Development preview (local target state)
+### 5.2 Development preview (local)
 
-The current repo does **not** yet provide a repo-proved local browser entrypoint or
-`npm run dev` / `npm run build:full` workflow for the playground. Until issues 466 and 468
-land, treat local serving details as implementation work rather than a current contract.
-
-Current repo-backed commands are limited to building the existing packages:
+The browser entrypoint is `docs/playground/index.html`. To build the playground
+locally and populate assets into the docs directory:
 
 ```bash
-# Build the TypeScript playground package
-cd playground && npm run build
+# Build the TypeScript playground package and copy into docs/playground/dist/
+cd playground && npm run build:app
 
-# Build the Wasm package and JS bindings
+# Build the Wasm package and JS bindings (requires wasm-pack)
 cd crates/ark-playground-wasm && wasm-pack build --target web --release
 ```
 
-How those artifacts are mounted into a browser-visible local route remains open work.
+After running `build:app`, open `docs/playground/index.html` directly in a
+browser (e.g., via `python3 -m http.server` in the `docs/` directory) to see
+the playground with parse/diagnostics. When Wasm modules are available in
+`docs/playground/wasm/`, full parse functionality works; otherwise the page
+degrades gracefully with an informational message.
+
+**Not yet available:** There is no `npm run dev` hot-reload dev-server script
+in `playground/package.json`. A local dev workflow with file watching is
+target-state work, not a current capability.
 
 ### 5.3 Staging
 
-There is no current repo-proved staging environment for the playground. Any preview or
-staging deployment described in this document is target-state only until the corresponding
-workflow and publish path exist in-repo.
-
-Rationale:
+There is no staging environment for the playground. This is by design:
 
 - The app is static and client-side only — there is no database migration,
   server state, or backend configuration to stage
@@ -381,17 +401,15 @@ CSS-only fix.
 
 ### 7.3 Budget enforcement (target state)
 
-Once the playground build workflow exists (issue #468), performance budgets
-will be enforced in CI:
+The playground build workflow exists (`.github/workflows/pages.yml` runs
+`npm run build:app`), but performance budgets are **not yet enforced in CI**:
 
-1. **Binary size gate** (§4.3): Fails build if Wasm exceeds 300 KB
-2. **Bundle size gate**: Fails build if total gzipped payload exceeds 250 KB
-3. **Lighthouse CI** (stretch goal): Run Lighthouse in CI on preview deploy,
-   fail if TTI exceeds budget. Initially advisory; promoted to blocking
-   once baseline is stable.
+1. **Binary size gate** (§4.3): Not yet implemented in any workflow
+2. **Bundle size gate**: Not yet implemented
+3. **Lighthouse CI** (stretch goal): Not yet implemented
 
-**Current state**: No CI enforcement of these budgets exists. Size tracking
-is manual and the playground build workflow has not yet landed.
+**Current state**: No CI enforcement of size budgets exists. The build
+workflow runs `npm run build:app` but does not gate on asset sizes.
 
 ### 7.4 Current asset inventory (estimated)
 
@@ -454,7 +472,7 @@ SRI hashes are generated at build time and embedded in `index.html`.
 
 ## 9. Rollback Procedure
 
-> **Note**: This section describes the target-state rollback procedure once the playground build workflow exists. The current `.github/workflows/pages.yml` deploys the `./docs` directory via `actions/deploy-pages@v4` (not via a `gh-pages` branch), so the git-based rollback below applies to docs-only changes until issue #468 lands.
+> **Note**: This section describes the rollback procedure. The current `.github/workflows/pages.yml` builds playground JS via `npm run build:app` and deploys the `./docs` directory (including `docs/playground/dist/`) via `actions/deploy-pages@v4`. Rollback is a standard git revert + CI redeploy.
 
 | Step | Action | Time |
 |------|--------|------|
@@ -468,9 +486,8 @@ For faster rollback (target state, once playground CI lands), maintain the
 previous known-good deployed state as a tagged ref. Emergency rollback:
 
 ```bash
-# Target-state only: requires playground deploy workflow (issue #468)
-# Use the GitHub Pages deployment history (via Actions UI) to re-run
-# the previous successful deploy job.
+# For faster rollback, use the GitHub Pages deployment history (via Actions UI)
+# to re-run the previous successful deploy job.
 ```
 
 ---
@@ -503,10 +520,10 @@ Since the playground has no backend, monitoring is limited to:
 | CDN | Fastly (via GitHub Pages) | Included with GitHub Pages, global PoPs |
 | Cache strategy | Content-hashed filenames | Immutable assets, automatic invalidation |
 | Wasm caching | Hash in filename + browser code cache | Largest asset, most important to cache |
-| Preview deploys | GitHub Actions + per-PR deployment (target state — issue #468) | Pre-merge validation |
-| Staging | None (PR previews + production) | No backend state to stage |
+| Preview deploys | Per-PR deployment (target state — no workflow exists) | Pre-merge validation |
+| Staging | None (PR previews planned, production only today) | No backend state to stage |
 | Performance budget | ≤ 250 KB gzipped, ≤ 3s TTI (4G) | User experience baseline |
-| Size gate | Wasm ≤ 300 KB, total ≤ 250 KB gzip (target state — issue #468) | CI enforcement of budgets |
+| Size gate | Wasm ≤ 300 KB, total ≤ 250 KB gzip (target state — not yet in CI) | CI enforcement of budgets |
 | CSP | Strict, via meta tag | Security baseline for static app |
 | Rollback | Git revert + CI redeploy (< 15 min) | Simple, reliable |
 
@@ -514,8 +531,9 @@ Since the playground has no backend, monitoring is limited to:
 
 ## Appendix A: File Layout (target-state deployed playground)
 
-> **Note**: This is the intended layout once the playground build workflow lands (issue #468).
-> The current `pages.yml` only deploys `./docs`; no playground assets are currently published.
+> **Note**: This is the intended layout of the deployed playground directory.
+> `pages.yml` deploys `./docs`, and `npm run build:app` populates `docs/playground/dist/`
+> with TypeScript build output. Content-hashed filenames are target-state (not yet implemented).
 
 ```
 / (GitHub Pages root — playground subdirectory once deployed)

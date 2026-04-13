@@ -65,7 +65,6 @@ graph LR
   I206["206 Interactive compiler pipeline + inline profiling"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
-  I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
   I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
   I286["286 current-state.md の bootstrap 節を fixpoint 達成に合わせて更新する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
@@ -80,7 +79,6 @@ graph LR
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I464["464 `arukellt init` のテンプレート拡充と新規ユーザー導線整備"]
   I469["469 Extension: playground surface は repo で証明できる endpoint だけを指す"]
-  I471["471 Playground docs: command / workflow / publish claim の現実整合監査"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I490["490 pub use / pub import re-export"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
@@ -161,7 +159,6 @@ graph LR
   I200 --> I201
   I204 --> I188
   I253 --> I266
-  I282 --> I284
   I283 --> I284
   I437 --> I438
   I039 --> I042
@@ -285,7 +282,6 @@ graph LR
 - **206** depends on: 184, 185, 187; blocks: none
 - **249** depends on: none; blocks: none
 - **253** depends on: none; blocks: 266
-- **282** depends on: 281; blocks: 284
 - **283** depends on: 281; blocks: 284
 - **286** depends on: none; blocks: none
 - **289** depends on: 287; blocks: none
@@ -300,7 +296,6 @@ graph LR
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **464** depends on: none; blocks: 489
 - **469** depends on: 466, 468; blocks: none
-- **471** depends on: 465; blocks: none
 - **472** depends on: 466; blocks: none
 - **490** depends on: 234; blocks: none
 - **473** depends on: 032, done); blocks: none

@@ -1,8 +1,8 @@
 # Playground docs: command / workflow / publish claim の現実整合監査
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
-**Updated**: 2026-04-03
+**Updated**: 2026-04-14
 **ID**: 471
 **Depends on**: 465
 **Track**: docs-audit
@@ -40,9 +40,9 @@ command / workflow reality は feature claim correction と別層であり、分
 
 ## Acceptance criteria
 
-- [ ] playground docs に書かれた command / script はすべて current repo に verbatim で存在する。
-- [ ] workflow / preview deploy / publish path claim は、current workflow file と output path で証明できるものだけに限定されている。
-- [ ] current repo に存在しない script / workflow / preview deploy は、docs から current-state として除かれるか、separate open issue としてのみ参照されている。
+- [x] playground docs に書かれた command / script はすべて current repo に verbatim で存在する。
+- [x] workflow / preview deploy / publish path claim は、current workflow file と output path で証明できるものだけに限定されている。
+- [x] current repo に存在しない script / workflow / preview deploy は、docs から current-state として除かれるか、separate open issue としてのみ参照されている。
 
 ## Required verification
 
