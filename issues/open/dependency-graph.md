@@ -71,7 +71,6 @@ graph LR
   I309["309 Selfhost resolver に module/import resolution を実装する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
-  I424["424 Repo Hygiene: generated index の stale 検出を追加する"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
@@ -287,7 +286,6 @@ graph LR
 - **309** depends on: 308; blocks: none
 - **312** depends on: 311; blocks: none
 - **382** depends on: 378; blocks: 489
-- **424** depends on: 417; blocks: none
 - **437** depends on: 431; blocks: 438, 489
 - **441** depends on: 333, 335, 340; blocks: none
 - **453** depends on: 450, 451, 452; blocks: none

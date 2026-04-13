@@ -150,7 +150,7 @@ def check_issue_index_freshness() -> int:
     """Validate that issue indexes are up to date by comparing with regeneration."""
     index_path = ROOT / "issues" / "open" / "index.md"
     graph_path = ROOT / "issues" / "open" / "dependency-graph.md"
-    generator = ROOT / "scripts" / "generate-issue-index.sh"
+    generator = ROOT / "scripts" / "gen" / "generate-issue-index.sh"
 
     if not generator.exists():
         return 0
