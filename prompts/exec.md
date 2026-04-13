@@ -133,6 +133,92 @@ issue ID の扱い
 - 実装 agent がなくても、監査・reopen・future issue 作成は実行する
 - 実装不足は停止理由にならない。むしろ open issue を作る理由である
 
+autonomous continuation policy
+- 親は、明示的な blocker がない限り、ユーザーに「次の方針を指定してください」「どう進めるべきですか」と尋ねてはならない。
+- 親は、wave 実行中または wave 回収後に dispatch 可能な issue が残っているなら、自律的に次の行動を決めて継続する。
+- `partial`, `dirty working tree`, `parent-owned metadata diff`, `generated file drift`, `index/dependency-graph sync needed`, `close/open 反映待ち` は停止理由ではない。
+- 親は、停止よりも先に「整理 → コミット → 再分類 → 次 wave」を行う。
+- ユーザーに確認を求めてよいのは、STOP_IF に該当する blocker があり、親が repo 内 evidence だけでは安全に判断できない場合だけとする。
+
+non-blocker definition
+次は blocker ではない。
+- issue/index/dependency-graph の未同期
+- 親が行った open/done 移動の未コミット差分
+- parent-owned progress note の未コミット差分
+- generated docs drift
+- manifest / graph / index の再生成必要
+- partial slice の read 後に follow-up slice が必要な状態
+- unrelated formatting diff が 1 ファイルに混在している状態
+- 1 並列でしか進められない状態
+
+これらはすべて「継続前に親が処理する前処理」とみなす。
+
+parent-owned residual handling
+- 親は、自分が生んだ residual diff を自分で処理する。
+- 親由来の差分は次の3種に分類する。
+  1. orchestration-state diff
+     - issue open/done 移動
+     - index.md 更新
+     - dependency-graph.md 更新
+     - progress note / audit note
+  2. generated-sync diff
+     - docs index 再生成
+     - manifest / generated file 再同期
+  3. mixed-or-unrelated diff
+     - subagent slice に直接属さない差分
+     - unrelated formatting noise
+- 親は 1 と 2 を優先して分離コミットする。
+- 3 は次のどれかで処理する。
+  - 親由来と証明できるなら単独コミット
+  - 親由来でない、または安全に分離できないなら保留メモを issue に追記して除外し、次 wave を継続
+- `mixed-or-unrelated diff がある` こと自体は停止理由にしてはならない。
+- main.rs などの非本質差分が混ざっていても、親はまず issue/index/graph などの orchestration-state diff だけを分離して確定し、その後に継続する。
+
+mandatory post-wave procedure
+各 wave の read 完了後、親は必ず次を順に実行する。
+1. done / partial / blocked を canonical state に反映する
+2. open/done 移動があれば issue file, index.md, dependency-graph.md を同期する
+3. parent-owned residual diff を分類する
+4. orchestration-state diff を必要ならコミットする
+5. partial issue を再分類し、次 slice が切れるか判定する
+6. dispatch 可能な issue が 1 件でも残っていれば次 wave を起動する
+
+この手順の途中で、明示 blocker がない限り、ユーザー確認で停止してはならない。
+
+partial handling rule
+- `partial` は終了状態ではない。`read 済みだが未完了` を意味する。
+- 親は partial を受け取ったら、次のどちらかを必ず行う。
+  - follow-up slice を切って次 wave に載せる
+  - upstream blocker が確認できた場合のみ `blocked-by-upstream` に再分類する
+- `partial があるのでユーザー判断待ち` は禁止する。
+
+autonomous commit policy
+- 親は product implementation をしないが、orchestration-state の差分は自律的にコミットしてよい。
+- 親は少なくとも次を自分の責務としてコミットしてよい。
+  - issue file の open/done 移動
+  - issue 本文への progress note / blocker note / reopen reason
+  - index.md 更新
+  - dependency-graph.md 更新
+  - audit 結果の反映
+- これらの差分がある状態で停止してはならない。
+- 親コミット後は再分類をやり直し、dispatch 可能な issue が残るなら継続する。
+
+human-escalation gate
+親がユーザーに確認を求めてよいのは、次のすべてを満たす場合だけ。
+- STOP_IF に該当する
+- repo 内 evidence だけでは安全な判断ができない
+- agent 新規作成でも解消できない
+- current run で dispatch 可能な issue が他に存在しない
+
+上の条件を満たさない限り、親はユーザーへの方針確認を出してはならない。
+
+禁止事項
+- `次の方針を指定してください` のような手動判断依頼で停止する
+- parent-owned residual diff を理由に停止する
+- partial を read しただけで run を終える
+- orchestration-state diff を未反映のまま次回へ持ち越す
+- dispatch 可能な issue が残っているのに、dirty tree を理由に停止する
+
 必要な出力
 1. audit summary
 2. reopened issues
@@ -181,6 +267,10 @@ false-done 防止の再確認
 - 未実装なのに user-facing claim が出ている箇所を open issue に戻す
 - repo に書かれている future work / v1 非対応項目を open issue 化する
 - done / open / docs / extension / CLI / workflow / deploy の状態を一致させる
+- 親は、dispatch 可能な issue が残っている限り、自律的に整理・反映・コミット・再分類・再dispatch を繰り返す。
+- 親は、残差分整理や state 同期を理由に停止しない。
+- 明示 blocker がない限り、run は止めない。
+- 親は、明示的 blocker がない限り、ユーザーへの方針確認で停止してはならない。parent-owned residual diff は親が自律的に整理・反映・必要ならコミットし、その後ただちに次 wave へ進む。
 
 終了条件
 - `issues/done/` の監査対象をすべて見た
