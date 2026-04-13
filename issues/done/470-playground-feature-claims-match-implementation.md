@@ -1,6 +1,6 @@
 # Playground docs: feature claim は current implementation と一致させる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
 **Updated**: 2026-04-03
 **ID**: 470
@@ -41,9 +41,9 @@ feature-claim correction は route wiring や deploy correction と別 issue で
 
 ## Acceptance criteria
 
-- [ ] docs に残る playground capability claim はすべて current repo の callable / mountable surface に紐づいている。
-- [ ] `type checking available` のような claim は、concrete invocation surface と verification command がない限り current-state から除かれている。
-- [ ] browser availability claim は issue 466 が満たされるまでは current-state としては書かれていない。
+- [x] docs に残る playground capability claim はすべて current repo の callable / mountable surface に紐づいている。
+- [x] `type checking available` のような claim は、concrete invocation surface と verification command がない限り current-state から除かれている。
+- [x] browser availability claim は issue 466 が満たされるまでは current-state としては書かれていない。
 
 ## Required verification
 

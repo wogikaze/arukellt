@@ -61,9 +61,10 @@ Choose the path that fits your goal.
 ### 🎮 Playground
 
 <!-- issue-466 ✅ entrypoint live; issue-467 ✅ docs route wired; deploy/type-checking tracked by issues/open/468, 472 -->
-> **[▶ Try the Playground](../playground/index.html)** — parse, format, and tokenize Arukellt code in your browser.
+> **[▶ Try the Playground](../playground/index.html)** — parse Arukellt code in your browser (with diagnostics display).
 
-The playground editor shell supports parse / format / tokenize via the `ark-playground-wasm` engine.
+The playground editor shell supports parse + diagnostics via the `ark-playground-wasm` engine.
+Format and tokenize are available as Wasm API exports but not yet wired in the browser UI.
 See the [Playground docs](../playground/README.md) for architecture details, design policies, and remaining work.
 
 ## Classification (ADR-018)

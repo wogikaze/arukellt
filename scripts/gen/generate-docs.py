@@ -1537,9 +1537,10 @@ def render_language_readme(
         "### 🎮 Playground",
         "",
         "<!-- issue-466 ✅ entrypoint live; issue-467 ✅ docs route wired; deploy/type-checking tracked by issues/open/468, 472 -->",
-        "> **[▶ Try the Playground](../playground/index.html)** — parse, format, and tokenize Arukellt code in your browser.",
+        "> **[▶ Try the Playground](../playground/index.html)** — parse Arukellt code in your browser (with diagnostics display).",
         "",
-        "The playground editor shell supports parse / format / tokenize via the `ark-playground-wasm` engine.",
+        "The playground editor shell supports parse + diagnostics via the `ark-playground-wasm` engine.",
+        "Format and tokenize are available as Wasm API exports but not yet wired in the browser UI.",
         "See the [Playground docs](../playground/README.md) for architecture details, design policies, and remaining work.",
     ])
 
@@ -1651,7 +1652,7 @@ def render_playground_readme(
         "| Editor components | ✅ | `playground/src/**` contains editor / diagnostics UI building blocks |",
         "| Share helpers | ✅ | `playground/src/share.ts` provides fragment helpers |",
         "| Curated examples catalog | ✅ | `playground/src/examples.ts` contains example metadata |",
-        "| Browser entrypoint | ✅ | [`docs/playground/index.html`](index.html) — editor shell with parse / format / tokenize (issue 466) |",
+        "| Browser entrypoint | ✅ | [`docs/playground/index.html`](index.html) — editor shell with parse + diagnostics (issue 466). Format and tokenize are exported by the Wasm API (`lib.rs`) but not yet wired in the browser UI. |",
         "| Docs route to live playground | ✅ | [`playground/index.html`](index.html) — linked from docs site navigation (issue 467) |",
         "| Publish / deploy path | ✅ | `.github/workflows/pages.yml` builds and deploys to GitHub Pages (issue 468) |",
         "<!-- target-state: rows below are not yet repo-proved; each row moves to ✅ when its tracking issue closes -->",
@@ -1661,7 +1662,8 @@ def render_playground_readme(
         "",
         "The current browser-side engine is the `wasm32-unknown-unknown` playground Wasm package plus",
         "TypeScript UI components. The browser entrypoint `docs/playground/index.html` provides an",
-        "editor shell with parse / format / tokenize. The docs site navigation links to it. See",
+        "editor shell with parse + diagnostics display. Format and tokenize are available as Wasm API",
+        "exports but are not yet wired into the browser UI. The docs site navigation links to it. See",
         "[ADR-017](../adr/ADR-017-playground-execution-model.md) for the intended execution model and",
         "[issues/done/465-playground-false-done-audit-and-status-rollback.md](../../issues/done/465-playground-false-done-audit-and-status-rollback.md)",
         "for the current audit status.",
@@ -2265,7 +2267,10 @@ def section_snapshot(section: dict, state: dict, fixture_total: int, manifest_st
             "- ADR-017 defines a client-side browser execution model for playground work.",
             "- Current repo proof: `crates/ark-playground-wasm` exports `parse`, `format`, `tokenize`, and `version`.",
             "- Current repo proof: `playground/src/**` contains editor / diagnostics / share / examples components.",
-            "- Not yet repo-proved here: browser-visible entrypoint, docs route, publish path, or browser type-checking surface.",
+            "- Current repo proof: `docs/playground/index.html` provides a browser entrypoint with parse + diagnostics.",
+            "- Current repo proof: `docs/_sidebar.md` links to the playground page.",
+            "- Current repo proof: `.github/workflows/pages.yml` builds and deploys to GitHub Pages.",
+            "- Not yet repo-proved: browser type-checking surface (tracked by `issues/open/472`).",
         ]
     if snapshot == "migration":
         return [

@@ -29,10 +29,10 @@ policy alone.**
 
 ## 2. Foundational Privacy Principles
 
-1. **User code never leaves the browser** — parsing, formatting, type-checking,
+1. **User code never leaves the browser** — parsing, formatting,
    and diagnostics all execute in a Wasm module running locally in the user's
    browser. No source code is transmitted to any server at any time during
-   normal operation.
+   normal operation. (Type-checking is not yet available; tracked by `issues/open/472`.)
 
 2. **Share URLs are fragment-based** — when a user shares a snippet, the code is
    encoded in the URL fragment (`#`), which is never sent to the HTTP server
@@ -59,7 +59,7 @@ policy alone.**
 |----------|--------|-----------|
 | Source code | User-written or pasted `.ark` source | Never transmitted to any server |
 | Parse trees / AST | Result of parsing user code | Computed and discarded in browser only |
-| Type-check results | Errors, warnings, diagnostics | Computed and rendered in browser only |
+| Type-check results | Errors, warnings, diagnostics | Not yet available (planned; will run in browser only when implemented — tracked by `issues/open/472`) |
 | Formatted output | Result of the formatter | Computed in browser only |
 | Keystrokes / input | User typing behavior, timing | Not captured |
 | Clipboard contents | Paste events | Not intercepted beyond normal editor behavior |
