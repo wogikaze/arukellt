@@ -247,3 +247,17 @@ LLM が混同するのは `std::io` と `wasi:io/streams` が「どちらも IO 
 - ADR-007: コンパイルターゲット整理（T3 = wasm32-wasi-p2 が main target）
 - issue #074: WASI p2 native component 対応
 - `docs/spec/spec-WASI-0.3.0-rc/`: WIT 構文の一次資料
+
+---
+
+## Acceptance slice evidence — 2026-04-14 (docs/import-system contract)
+
+This note records only the issue #123 docs acceptance slice for the import-system contract page.
+It does not claim full issue closure.
+
+- Added: `docs/spec/import-system.md` (Layer S vs Layer C contract; explicit current vs planned/deferred behavior)
+- Linked from canonical ADR: `docs/adr/ADR-009-import-syntax.md` → `../spec/import-system.md`
+- Repo-internal links resolve under docs consistency checks (including ADR-009 -> import-system contract page).
+- Verification for this slice:
+    - `bash scripts/run/verify-harness.sh --quick` (PASS)
+    - `python3 scripts/check/check-docs-consistency.py` (PASS)
