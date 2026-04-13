@@ -1853,6 +1853,168 @@ stability = "stable"
 params = ["bool"]
 returns = "String"
 
+[[functions]]
+name = "repeat"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32"]
+returns = "String"
+
+[[functions]]
+name = "len_chars"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "i32"
+
+[[functions]]
+name = "slice_bytes"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "i32", "i32"]
+returns = "String"
+
+[[functions]]
+name = "from_utf8"
+module = "std::text"
+doc_category = "text"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "String"
+
+[[functions]]
+name = "to_utf8_bytes"
+module = "std::text"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "split"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_split"
+params = ["String", "String"]
+returns = "Vec<String>"
+
+[[functions]]
+name = "join"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_join"
+params = ["Vec<String>", "String"]
+returns = "String"
+
+[[functions]]
+name = "concat"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_concat"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "starts_with"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_starts_with"
+params = ["String", "String"]
+returns = "bool"
+
+[[functions]]
+name = "ends_with"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_ends_with"
+params = ["String", "String"]
+returns = "bool"
+
+[[functions]]
+name = "contains"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_contains"
+params = ["String", "String"]
+returns = "bool"
+
+[[functions]]
+name = "to_lower"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_to_lower"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "to_upper"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+intrinsic = "__intrinsic_to_upper"
+params = ["String"]
+returns = "String"
+
+# --- StringBuilder ---
+
+[[functions]]
+name = "builder_new"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = []
+returns = "String"
+
+[[functions]]
+name = "builder_append"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "builder_append_char"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "char"]
+returns = "String"
+
+[[functions]]
+name = "builder_append_line"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String", "String"]
+returns = "String"
+
+[[functions]]
+name = "builder_build"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "String"
+
+[[functions]]
+name = "builder_len"
+module = "std::text"
+doc_category = "text"
+stability = "stable"
+params = ["String"]
+returns = "i32"
+
 # === std::host::process ===
 
 [[functions]]

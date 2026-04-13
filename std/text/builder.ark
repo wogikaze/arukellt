@@ -1,0 +1,36 @@
+//! StringBuilder — efficient string building through append operations.
+//!
+//! The builder accumulates string fragments and produces a final String
+//! via `builder_build`. Currently implemented as simple concatenation;
+//! a future version may use an internal buffer for better performance.
+
+/// Creates a new empty StringBuilder (represented as a String internally).
+pub fn builder_new() -> String {
+    ""
+}
+
+/// Appends a string to the builder and returns the updated builder.
+pub fn builder_append(sb: String, s: String) -> String {
+    __intrinsic_concat(sb, s)
+}
+
+/// Appends a single character to the builder and returns the updated builder.
+pub fn builder_append_char(sb: String, c: char) -> String {
+    __intrinsic_concat(sb, char_to_string(c))
+}
+
+/// Appends a string followed by a newline to the builder.
+pub fn builder_append_line(sb: String, s: String) -> String {
+    let with_s = __intrinsic_concat(sb, s)
+    __intrinsic_concat(with_s, "\n")
+}
+
+/// Produces the final string from the builder.
+pub fn builder_build(sb: String) -> String {
+    sb
+}
+
+/// Returns the current byte length of the builder's content.
+pub fn builder_len(sb: String) -> i32 {
+    len(sb)
+}

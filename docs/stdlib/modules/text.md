@@ -39,42 +39,41 @@ let label   = pad_right(format_i32(42), 6, " ")  // "42    "
 ## `std::text`
 
 - Source: [`../../../std/text/mod.ark`](../../../std/text/mod.ark)
-- Manifest-backed functions: 15
-- Stability: stable 15
+- Manifest-backed functions: 34
+- Stability: experimental 2, stable 32
 
 Extended string operations beyond the prelude.
 
-The current module focuses on string inspection, trimming, replacement,
-line splitting, padding, and primitive formatting helpers.
+This module provides string inspection, trimming, replacement,
+line splitting, padding, formatting, string building, and
+relocated prelude string functions.
 
-### String queries
+### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `len_bytes` | `(String) -> i32` | `stable` | Returns the length of the string in bytes. |
+| `len_chars` | `(String) -> i32` | `stable` | Returns the number of characters (best-effort Unicode scalar count). |
 | `is_empty` | `(String) -> bool` | `stable` | Returns true when the string has zero bytes. |
-
-### Search
-
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
+| `repeat` | `(String, i32) -> String` | `stable` | - |
+| `split` | `(String, String) -> Vec<String>` | `stable` | Splits s on sep and returns the resulting parts. |
+| `join` | `(Vec<String>, String) -> String` | `stable` | Joins a vector of strings with sep between each element. |
+| `concat` | `(String, String) -> String` | `stable` | Concatenates two strings. |
+| `starts_with` | `(String, String) -> bool` | `stable` | Returns true when s starts with prefix. |
+| `ends_with` | `(String, String) -> bool` | `stable` | Returns true when s ends with suffix. |
+| `to_lower` | `(String) -> String` | `stable` | Converts all ASCII uppercase letters to lowercase. |
+| `to_upper` | `(String) -> String` | `stable` | Converts all ASCII lowercase letters to uppercase. |
+| `slice_bytes` | `(String, i32, i32) -> String` | `stable` | Extracts a byte-range substring. Returns empty string if boundaries are invalid. |
+| `from_utf8` | `(Vec<i32>) -> String` | `experimental` | Converts a byte buffer (Vec<i32>, each 0..255) to a string. |
+| `to_utf8_bytes` | `(String) -> Vec<i32>` | `experimental` | Converts a string to its UTF-8 byte values as Vec<i32>. |
+| `contains` | `(String, String) -> bool` | `stable` | Returns true when the substring appears at least once. |
 | `index_of` | `(String, String) -> i32` | `stable` | Returns the byte index of the first matching substring, or -1. |
-
-### Trim
-
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
 | `trim` | `(String) -> String` | `stable` | Removes ASCII whitespace from both ends of the string. |
 | `trim_start` | `(String) -> String` | `stable` | Removes ASCII whitespace from the start of the string. |
 | `trim_end` | `(String) -> String` | `stable` | Removes ASCII whitespace from the end of the string. |
-
-### Transform
-
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
 | `replace` | `(String, String, String) -> String` | `stable` | Replaces each non-overlapping match of from with to. |
-| `lines` | `(String) -> Vec<String>` | `stable` | Splits the string on \n and returns the resulting lines. |
-| `chars` | `(String) -> Vec<String>` | `stable` | Returns a best-effort character view as a vector of one-byte strings. |
+| `lines` | `(String) -> Vec<String>` | `stable` | Splits the string on newlines and returns the resulting lines. |
+| `chars` | `(String) -> Vec<String>` | `stable` | Returns individual characters as single-byte strings. |
 
 ### Pad
 
@@ -82,12 +81,13 @@ line splitting, padding, and primitive formatting helpers.
 |------|-----------|-----------|---------|
 | `pad_left` | `(String, i32, String) -> String` | `stable` | Left-pads the string with fill until width bytes are reached. |
 | `pad_right` | `(String, i32, String) -> String` | `stable` | Right-pads the string with fill until width bytes are reached. |
-
-### Format
-
-| Name | Signature | Stability | Summary |
-|------|-----------|-----------|---------|
 | `format_i32` | `(i32) -> String` | `stable` | Formats an i32 as a decimal string. |
 | `format_i64` | `(i64) -> String` | `stable` | Formats an i64 as a decimal string. |
 | `format_f64` | `(f64) -> String` | `stable` | Formats an f64 using the intrinsic formatter. |
 | `format_bool` | `(bool) -> String` | `stable` | Formats a boolean as true or false. |
+| `builder_new` | `() -> String` | `stable` | Creates a new empty StringBuilder (represented internally as a String). |
+| `builder_append` | `(String, String) -> String` | `stable` | Appends a string to the builder and returns the updated builder. |
+| `builder_append_char` | `(String, char) -> String` | `stable` | Appends a single character to the builder and returns the updated builder. |
+| `builder_append_line` | `(String, String) -> String` | `stable` | Appends a string followed by a newline to the builder. |
+| `builder_build` | `(String) -> String` | `stable` | Produces the final string from the builder. |
+| `builder_len` | `(String) -> i32` | `stable` | Returns the current byte length of the builder's content. |

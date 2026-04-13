@@ -1,13 +1,41 @@
 //! Extended string operations beyond the prelude.
 //!
-//! The current module focuses on string inspection, trimming, replacement,
-//! line splitting, padding, and primitive formatting helpers.
+//! This module provides string inspection, trimming, replacement,
+//! line splitting, padding, formatting, string building, and
+//! relocated prelude string functions.
 
-// --- String queries ---
+// ─── String queries ─────────────────────────
 
 /// Returns the length of the string in bytes.
 pub fn len_bytes(s: String) -> i32 {
     len(s)
+}
+
+/// Returns the number of characters (best-effort Unicode scalar count).
+pub fn len_chars(s: String) -> i32 {
+    let n = len(s)
+    if n == 0 { return 0 }
+    let mut count = 0
+    let mut i = 0
+    while i < n {
+        let byte_val = char_at(s, i)
+        if byte_val < 128 {
+            count = count + 1
+            i = i + 1
+        } else if byte_val >= 192 {
+            count = count + 1
+            if byte_val < 224 {
+                i = i + 2
+            } else if byte_val < 240 {
+                i = i + 3
+            } else {
+                i = i + 4
+            }
+        } else {
+            i = i + 1
+        }
+    }
+    count
 }
 
 /// Returns true when the string has zero bytes.
@@ -15,7 +43,7 @@ pub fn is_empty(s: String) -> bool {
     len(s) == 0
 }
 
-// --- String construction ---
+// ─── String construction ────────────────────
 
 pub fn repeat(s: String, n: i32) -> String {
     let mut result = ""
@@ -27,12 +55,84 @@ pub fn repeat(s: String, n: i32) -> String {
     result
 }
 
-// --- Search ---
+// ─── Relocated from prelude ─────────────────
+
+/// Splits `s` on `sep` and returns the resulting parts.
+pub fn split(s: String, sep: String) -> Vec<String> {
+    __intrinsic_split(s, sep)
+}
+
+/// Joins a vector of strings with `sep` between each element.
+pub fn join(parts: Vec<String>, sep: String) -> String {
+    __intrinsic_join(parts, sep)
+}
+
+/// Concatenates two strings.
+pub fn concat(a: String, b: String) -> String {
+    __intrinsic_concat(a, b)
+}
+
+/// Returns true when `s` starts with `prefix`.
+pub fn starts_with(s: String, prefix: String) -> bool {
+    __intrinsic_starts_with(s, prefix)
+}
+
+/// Returns true when `s` ends with `suffix`.
+pub fn ends_with(s: String, suffix: String) -> bool {
+    __intrinsic_ends_with(s, suffix)
+}
+
+/// Converts all ASCII uppercase letters to lowercase.
+pub fn to_lower(s: String) -> String {
+    __intrinsic_to_lower(s)
+}
+
+/// Converts all ASCII lowercase letters to uppercase.
+pub fn to_upper(s: String) -> String {
+    __intrinsic_to_upper(s)
+}
+
+// ─── UTF-8 byte operations ──────────────────
+
+/// Extracts a byte-range substring. Returns empty string if boundaries are invalid.
+pub fn slice_bytes(s: String, start: i32, end: i32) -> String {
+    let n = len(s)
+    if start < 0 { return "" }
+    if end > n { return "" }
+    if start > end { return "" }
+    __intrinsic_string_slice(s, start, end)
+}
+
+/// Converts a byte buffer (Vec<i32>, each 0..255) to a string.
+pub fn from_utf8(bytes: Vec<i32>) -> String {
+    let mut result = ""
+    let n = len(bytes)
+    let mut i = 0
+    while i < n {
+        let b = get(bytes, i)
+        result = __intrinsic_concat(result, char_to_string(b))
+        i = i + 1
+    }
+    result
+}
+
+/// Converts a string to its UTF-8 byte values as Vec<i32>.
+pub fn to_utf8_bytes(s: String) -> Vec<i32> {
+    let result = Vec_new_i32()
+    let n = len(s)
+    let mut i = 0
+    while i < n {
+        push(result, char_at(s, i))
+        i = i + 1
+    }
+    result
+}
+
+// ─── Search ─────────────────────────────────
 
 /// Returns true when the substring appears at least once.
 pub fn contains(haystack: String, needle: String) -> bool {
-    let parts = __intrinsic_split(haystack, needle)
-    len(parts) > 1
+    __intrinsic_contains(haystack, needle)
 }
 
 /// Returns the byte index of the first matching substring, or `-1`.
@@ -50,7 +150,7 @@ pub fn index_of(haystack: String, needle: String) -> i32 {
     0 - 1
 }
 
-// --- Trim ---
+// ─── Trim ───────────────────────────────────
 
 /// Removes ASCII whitespace from both ends of the string.
 pub fn trim(s: String) -> String {
@@ -97,51 +197,24 @@ pub fn trim_end(s: String) -> String {
     ""
 }
 
-// --- Transform ---
+// ─── Transform ──────────────────────────────
 
 /// Replaces each non-overlapping match of `from` with `to`.
 pub fn replace(s: String, from: String, to: String) -> String {
-    let from_len = len(from)
-    let s_len = len(s)
-    if from_len == 0 { return s }
-    if from_len > s_len { return s }
-    let mut result = ""
-    let mut i = 0
-    while i <= s_len - from_len {
-        let sub = __intrinsic_string_slice(s, i, i + from_len)
-        if __intrinsic_string_eq(sub, from) {
-            result = __intrinsic_concat(result, to)
-            i = i + from_len
-        } else {
-            result = __intrinsic_concat(result, __intrinsic_string_slice(s, i, i + 1))
-            i = i + 1
-        }
-    }
-    // Append remaining chars
-    if i < s_len {
-        result = __intrinsic_concat(result, __intrinsic_string_slice(s, i, s_len))
-    }
-    result
+    __intrinsic_replace(s, from, to)
 }
 
-/// Splits the string on `\n` and returns the resulting lines.
+/// Splits the string on newlines and returns the resulting lines.
+/// Handles both `\n` and `\r\n` line endings.
 pub fn lines(s: String) -> Vec<String> {
-    // NOTE: Dynamic string alloc + vec push in loops has a known heap bug.
-    // For now, normalize CRLF and delegate to prelude split (single-char only).
-    // Callers with CRLF input should pre-normalize before calling.
-    split(s, "\n")
+    let normalized = replace(s, "\r\n", "\n")
+    split(normalized, "\n")
 }
 
-/// Returns a best-effort character view as a vector of one-byte strings.
+/// Returns individual characters as single-byte strings.
+/// NOTE: Uses split-based approach to avoid heap issues with push in loops.
 pub fn chars(s: String) -> Vec<String> {
-    // NOTE: string slicing + vec push in loops causes heap corruption.
-    // Use split(s, "") or manual iteration in caller code instead.
-    let n = len(s)
-    let result = Vec_new_String()
-    if n > 0 {
-        push(result, slice(s, 0, 1))
-    }
-    result
+    __intrinsic_split(s, "")
 }
 
 // --- Pad ---
@@ -165,7 +238,7 @@ pub fn pad_right(s: String, width: i32, fill: String) -> String {
     __intrinsic_string_slice(padded, 0, width)
 }
 
-// --- Format ---
+// ─── Format ─────────────────────────────────
 
 /// Formats an `i32` as a decimal string.
 pub fn format_i32(n: i32) -> String {
@@ -185,4 +258,37 @@ pub fn format_f64(n: f64) -> String {
 /// Formats a boolean as `true` or `false`.
 pub fn format_bool(b: bool) -> String {
     __intrinsic_bool_to_string(b)
+}
+
+// ─── StringBuilder ──────────────────────────
+
+/// Creates a new empty StringBuilder (represented internally as a String).
+pub fn builder_new() -> String {
+    ""
+}
+
+/// Appends a string to the builder and returns the updated builder.
+pub fn builder_append(sb: String, s: String) -> String {
+    __intrinsic_concat(sb, s)
+}
+
+/// Appends a single character to the builder and returns the updated builder.
+pub fn builder_append_char(sb: String, c: char) -> String {
+    __intrinsic_concat(sb, char_to_string(c))
+}
+
+/// Appends a string followed by a newline to the builder.
+pub fn builder_append_line(sb: String, s: String) -> String {
+    let with_s = __intrinsic_concat(sb, s)
+    __intrinsic_concat(with_s, "\n")
+}
+
+/// Produces the final string from the builder.
+pub fn builder_build(sb: String) -> String {
+    sb
+}
+
+/// Returns the current byte length of the builder's content.
+pub fn builder_len(sb: String) -> i32 {
+    len(sb)
 }

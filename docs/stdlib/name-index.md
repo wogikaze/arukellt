@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 317
+- **Canonical names:** 336
 - **Historical/deprecated names:** 3
-- **Total entries:** 320
+- **Total entries:** 339
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -59,6 +59,12 @@ Current public API names, sorted alphabetically.
 | `bitset_unmark` | `std::collections::ordered` | `stable` | Collections |
 | `bool_to_string` | `prelude` | `stable` | Conversion |
 | `Box_new` | `prelude` | `stable` | Box |
+| `builder_append` | `std::text` | `stable` | Text |
+| `builder_append_char` | `std::text` | `stable` | Text |
+| `builder_append_line` | `std::text` | `stable` | Text |
+| `builder_build` | `std::text` | `stable` | Text |
+| `builder_len` | `std::text` | `stable` | Text |
+| `builder_new` | `std::text` | `stable` | Text |
 | `byte_length` | `std::bytes` | `stable` | Bytes |
 | `bytes_concat` | `std::bytes` | `stable` | Bytes |
 | `bytes_eq` | `std::bytes` | `stable` | Bytes |
@@ -82,8 +88,10 @@ Current public API names, sorted alphabetically.
 | `combine` | `std::core::hash` | `stable` | Core |
 | `component_model_version` | `std::component` | `experimental` | Component |
 | `concat` | `prelude` | `stable` | String |
+| `concat` | `std::text` | `stable` | Text |
 | `connect` | `std::host::sockets` | `provisional` | Host Sockets |
 | `contains` | `prelude` | `stable` | String |
+| `contains` | `std::text` | `stable` | Text |
 | `contains_i32` | `prelude` | `stable` | Collections |
 | `contains_String` | `prelude` | `stable` | Collections |
 | `cos_approx` | `std::signal` | `stable` | Signal |
@@ -100,6 +108,7 @@ Current public API names, sorted alphabetically.
 | `duration_ns` | `std::time` | `stable` | Time |
 | `duration_us` | `std::time` | `stable` | Time |
 | `ends_with` | `prelude` | `stable` | String |
+| `ends_with` | `std::text` | `stable` | Text |
 | `eprintln` | `std::host::stdio` | `stable` | Host Stdio |
 | `eq` | `prelude` | `stable` | String |
 | `err` | `prelude` | `stable` | Option Result |
@@ -129,6 +138,7 @@ Current public API names, sorted alphabetically.
 | `format_f64` | `std::text` | `stable` | Text |
 | `format_i32` | `std::text` | `stable` | Text |
 | `format_i64` | `std::text` | `stable` | Text |
+| `from_utf8` | `std::text` | `experimental` | Text |
 | `get` | `prelude` | `stable` | Collections |
 | `get` | `std::host::http` | `provisional` | Host Http |
 | `get_unchecked` | `prelude` | `stable` | Collections |
@@ -170,6 +180,7 @@ Current public API names, sorted alphabetically.
 | `is_power_of_two` | `std::signal` | `stable` | Signal |
 | `is_some` | `prelude` | `stable` | Option Result |
 | `join` | `prelude` | `stable` | String |
+| `join` | `std::text` | `stable` | Text |
 | `join` | `std::path` | `stable` | Path |
 | `json_null` | `std::json` | `experimental` | Json |
 | `json_parse_bool` | `std::json` | `experimental` | Json |
@@ -181,6 +192,7 @@ Current public API names, sorted alphabetically.
 | `leb128_encode_u32` | `std::bytes` | `stable` | Bytes |
 | `len` | `prelude` | `stable` | Collections |
 | `len_bytes` | `std::text` | `stable` | Text |
+| `len_chars` | `std::text` | `stable` | Text |
 | `lines` | `std::text` | `stable` | Text |
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `map_f64_f64` | `prelude` | `stable` | Collections |
@@ -237,6 +249,7 @@ Current public API names, sorted alphabetically.
 | `range_new` | `std::core` | `stable` | Core |
 | `read_to_string` | `std::host::fs` | `stable` | Host Fs |
 | `remove_i32` | `prelude` | `stable` | Collections |
+| `repeat` | `std::text` | `stable` | Text |
 | `replace` | `prelude` | `stable` | String |
 | `replace` | `std::text` | `stable` | Text |
 | `request` | `std::host::http` | `provisional` | Host Http |
@@ -262,6 +275,7 @@ Current public API names, sorted alphabetically.
 | `shuffle_i32` | `std::random` | `stable` | Random |
 | `sin_approx` | `std::signal` | `stable` | Signal |
 | `slice` | `prelude` | `stable` | String |
+| `slice_bytes` | `std::text` | `stable` | Text |
 | `sort_f64` | `prelude` | `stable` | Collections |
 | `sort_i32` | `prelude` | `stable` | Collections |
 | `sort_i64` | `prelude` | `stable` | Collections |
@@ -273,9 +287,11 @@ Current public API names, sorted alphabetically.
 | `sorted_map_len` | `std::collections::ordered` | `stable` | Collections |
 | `sorted_map_new` | `std::collections::ordered` | `stable` | Collections |
 | `split` | `prelude` | `stable` | String |
+| `split` | `std::text` | `stable` | Text |
 | `sqrt` | `prelude` | `stable` | Math |
 | `sqrt` | `std::core::math` | `stable` | Core |
 | `starts_with` | `prelude` | `stable` | String |
+| `starts_with` | `std::text` | `stable` | Text |
 | `String_from` | `prelude` | `stable` | String |
 | `string_from_bytes` | `std::bytes` | `stable` | Bytes |
 | `String_new` | `prelude` | `stable` | String |
@@ -284,8 +300,11 @@ Current public API names, sorted alphabetically.
 | `sum_i32` | `std::seq` | `stable` | Seq |
 | `tau` | `std::signal` | `stable` | Signal |
 | `to_lower` | `prelude` | `stable` | String |
+| `to_lower` | `std::text` | `stable` | Text |
 | `to_string` | `prelude` | `stable` | Conversion |
 | `to_upper` | `prelude` | `stable` | String |
+| `to_upper` | `std::text` | `stable` | Text |
+| `to_utf8_bytes` | `std::text` | `experimental` | Text |
 | `toml_parse_line` | `std::toml` | `experimental` | Toml |
 | `trim` | `prelude` | `stable` | String |
 | `trim` | `std::text` | `stable` | Text |
@@ -397,6 +416,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `bitset_unmark` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `bool_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
+| `builder_append` | ✅ `stable` | `std::text` | Text |
+| `builder_append_char` | ✅ `stable` | `std::text` | Text |
+| `builder_append_line` | ✅ `stable` | `std::text` | Text |
+| `builder_build` | ✅ `stable` | `std::text` | Text |
+| `builder_len` | ✅ `stable` | `std::text` | Text |
+| `builder_new` | ✅ `stable` | `std::text` | Text |
 | `byte_length` | ✅ `stable` | `std::bytes` | Bytes |
 | `bytes_concat` | ✅ `stable` | `std::bytes` | Bytes |
 | `bytes_eq` | ✅ `stable` | `std::bytes` | Bytes |
@@ -420,8 +445,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `combine` | ✅ `stable` | `std::core::hash` | Core |
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
 | `concat` | ✅ `stable` | `prelude` | String |
+| `concat` | ✅ `stable` | `std::text` | Text |
 | `connect` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
 | `contains` | ✅ `stable` | `prelude` | String |
+| `contains` | ✅ `stable` | `std::text` | Text |
 | `contains_i32` | ✅ `stable` | `prelude` | Collections |
 | `contains_String` | ✅ `stable` | `prelude` | Collections |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
@@ -438,6 +465,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `duration_ns` | ✅ `stable` | `std::time` | Time |
 | `duration_us` | ✅ `stable` | `std::time` | Time |
 | `ends_with` | ✅ `stable` | `prelude` | String |
+| `ends_with` | ✅ `stable` | `std::text` | Text |
 | `eprintln` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `eq` | ✅ `stable` | `prelude` | String |
 | `err` | ✅ `stable` | `prelude` | Option Result |
@@ -468,6 +496,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `format_f64` | ✅ `stable` | `std::text` | Text |
 | `format_i32` | ✅ `stable` | `std::text` | Text |
 | `format_i64` | ✅ `stable` | `std::text` | Text |
+| `from_utf8` | ✅ `experimental` | `std::text` | Text |
 | `get` | ✅ `stable` | `prelude` | Collections |
 | `get` | ✅ `provisional` | `std::host::http` | Host Http |
 | `get_unchecked` | ✅ `stable` | `prelude` | Collections |
@@ -509,6 +538,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `is_power_of_two` | ✅ `stable` | `std::signal` | Signal |
 | `is_some` | ✅ `stable` | `prelude` | Option Result |
 | `join` | ✅ `stable` | `prelude` | String |
+| `join` | ✅ `stable` | `std::text` | Text |
 | `join` | ✅ `stable` | `std::path` | Path |
 | `json_null` | ✅ `experimental` | `std::json` | Json |
 | `json_parse_bool` | ✅ `experimental` | `std::json` | Json |
@@ -520,6 +550,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `leb128_encode_u32` | ✅ `stable` | `std::bytes` | Bytes |
 | `len` | ✅ `stable` | `prelude` | Collections |
 | `len_bytes` | ✅ `stable` | `std::text` | Text |
+| `len_chars` | ✅ `stable` | `std::text` | Text |
 | `lines` | ✅ `stable` | `std::text` | Text |
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | `map_f64_f64` | ✅ `stable` | `prelude` | Collections |
@@ -576,6 +607,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read_to_string` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `remove_i32` | ✅ `stable` | `prelude` | Collections |
+| `repeat` | ✅ `stable` | `std::text` | Text |
 | `replace` | ✅ `stable` | `prelude` | String |
 | `replace` | ✅ `stable` | `std::text` | Text |
 | `request` | ✅ `provisional` | `std::host::http` | Host Http |
@@ -601,6 +633,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `shuffle_i32` | ✅ `stable` | `std::random` | Random |
 | `sin_approx` | ✅ `stable` | `std::signal` | Signal |
 | `slice` | ✅ `stable` | `prelude` | String |
+| `slice_bytes` | ✅ `stable` | `std::text` | Text |
 | `sort_f64` | ✅ `stable` | `prelude` | Collections |
 | `sort_i32` | ✅ `stable` | `prelude` | Collections |
 | `sort_i64` | ✅ `stable` | `prelude` | Collections |
@@ -612,9 +645,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `sorted_map_len` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `sorted_map_new` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `split` | ✅ `stable` | `prelude` | String |
+| `split` | ✅ `stable` | `std::text` | Text |
 | `sqrt` | ✅ `stable` | `prelude` | Math |
 | `sqrt` | ✅ `stable` | `std::core::math` | Core |
 | `starts_with` | ✅ `stable` | `prelude` | String |
+| `starts_with` | ✅ `stable` | `std::text` | Text |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `string_from_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `String_new` | ✅ `stable` | `prelude` | String |
@@ -623,8 +658,11 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `sum_i32` | ✅ `stable` | `std::seq` | Seq |
 | `tau` | ✅ `stable` | `std::signal` | Signal |
 | `to_lower` | ✅ `stable` | `prelude` | String |
+| `to_lower` | ✅ `stable` | `std::text` | Text |
 | `to_string` | ✅ `stable` | `prelude` | Conversion |
 | `to_upper` | ✅ `stable` | `prelude` | String |
+| `to_upper` | ✅ `stable` | `std::text` | Text |
+| `to_utf8_bytes` | ✅ `experimental` | `std::text` | Text |
 | `toml_parse_line` | ✅ `experimental` | `std::toml` | Toml |
 | `trim` | ✅ `stable` | `prelude` | String |
 | `trim` | ✅ `stable` | `std::text` | Text |

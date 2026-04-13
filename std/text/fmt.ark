@@ -1,0 +1,52 @@
+//! Format utilities — primitive-to-string conversion and padding.
+
+/// Formats an `i32` as a decimal string.
+pub fn format_i32(n: i32) -> String {
+    __intrinsic_i32_to_string(n)
+}
+
+/// Formats an `i64` as a decimal string.
+pub fn format_i64(n: i64) -> String {
+    __intrinsic_i64_to_string(n)
+}
+
+/// Formats an `f64` using the intrinsic formatter.
+pub fn format_f64(n: f64) -> String {
+    __intrinsic_f64_to_string(n)
+}
+
+/// Formats a boolean as `true` or `false`.
+pub fn format_bool(b: bool) -> String {
+    __intrinsic_bool_to_string(b)
+}
+
+/// Left-pads the string with `fill` until `width` bytes are reached.
+pub fn pad_left(s: String, width: i32, fill: String) -> String {
+    let slen = len(s)
+    if slen >= width { return s }
+    let mut padding = ""
+    let mut i = 0
+    let need = width - slen
+    while i < need {
+        padding = __intrinsic_concat(padding, fill)
+        i = i + 1
+    }
+    let padded = __intrinsic_concat(padding, s)
+    let plen = len(padded)
+    __intrinsic_string_slice(padded, plen - width, plen)
+}
+
+/// Right-pads the string with `fill` until `width` bytes are reached.
+pub fn pad_right(s: String, width: i32, fill: String) -> String {
+    let slen = len(s)
+    if slen >= width { return s }
+    let mut padding = ""
+    let mut i = 0
+    let need = width - slen
+    while i < need {
+        padding = __intrinsic_concat(padding, fill)
+        i = i + 1
+    }
+    let padded = __intrinsic_concat(s, padding)
+    __intrinsic_string_slice(padded, 0, width)
+}

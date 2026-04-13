@@ -7,9 +7,9 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 265 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 282 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 47 | API may change without notice. Functionality is available but not finalized. |
+| [experimental](#experimental-apis) | 49 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -619,18 +619,37 @@ Expected output: `hello world`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `builder_append` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_append_char` | `(String, char) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_append_line` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_build` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_len` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_new` | `() -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
+| `concat` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_concat` | - |
+| `contains` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_contains` | - |
+| `ends_with` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_ends_with` | - |
 | `format_bool` | `(bool) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `format_f64` | `(f64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `format_i32` | `(i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `format_i64` | `(i64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `builtin` | no | - | - |
 | `index_of` | `(String, String) -> i32` | `std::text` | `stable` | `builtin` | no | `__intrinsic_index_of` | - |
 | `is_empty` | `(String) -> bool` | `std::text` | `stable` | `builtin` | no | - | - |
+| `join` | `(Vec<String>, String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_join` | - |
 | `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
+| `len_chars` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
 | `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
 | `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `repeat` | `(String, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `split` | `(String, String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | `__intrinsic_split` | - |
+| `starts_with` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_starts_with` | - |
+| `to_lower` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_to_lower` | - |
+| `to_upper` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_to_upper` | - |
+| `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `builtin` | no | - | - |
 | `trim` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `trim_end` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `trim_start` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
@@ -753,6 +772,12 @@ Expected output: `hello world`
 | `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `bool_to_string` | `(bool) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_bool_to_string` | - |
+| `builder_append` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_append_char` | `(String, char) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_append_line` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_build` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_len` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
+| `builder_new` | `() -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `builtin` | no | - | - |
@@ -774,7 +799,9 @@ Expected output: `hello world`
 | `cmp_i32` | `(i32, i32) -> Ordering` | `std::core` | `stable` | `builtin` | no | - | - |
 | `combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `concat` | `(String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
+| `concat` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_concat` | - |
 | `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
+| `contains` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_contains` | - |
 | `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
 | `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
 | `cos_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
@@ -790,6 +817,7 @@ Expected output: `hello world`
 | `duration_ns` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
 | `duration_us` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
 | `ends_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_ends_with` | - |
+| `ends_with` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_ends_with` | - |
 | `eprintln` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_eprintln` | Write a string to standard error followed by a newline. |
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
 | `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
@@ -853,11 +881,13 @@ Expected output: `hello world`
 | `is_power_of_two` | `(i32) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `is_some` | `(Option<T>) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
+| `join` | `(Vec<String>, String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_join` | - |
 | `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
+| `len_chars` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
 | `lines` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
 | `magnitude` | `(Vec<f64>, Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
@@ -912,6 +942,7 @@ Expected output: `hello world`
 | `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` | - |
+| `repeat` | `(String, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |
 | `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `reverse_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` | - |
@@ -924,6 +955,7 @@ Expected output: `hello world`
 | `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `builtin` | no | - | - |
 | `sin_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
+| `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_String` | - |
 | `sort_f64` | `(Vec<f64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` | - |
 | `sort_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i32` | - |
@@ -935,17 +967,21 @@ Expected output: `hello world`
 | `sorted_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_split` | - |
+| `split` | `(String, String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | `__intrinsic_split` | - |
 | `sqrt` | `(f64) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sqrt` | - |
 | `sqrt` | `(f64) -> f64` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
+| `starts_with` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_starts_with` | - |
 | `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `tau` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `to_lower` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
+| `to_lower` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_to_lower` | - |
 | `to_string` | `(any) -> String` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `to_upper` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_upper` | - |
+| `to_upper` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_to_upper` | - |
 | `trim` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_trim` | - |
 | `trim` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `trim_end` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
@@ -996,6 +1032,7 @@ Expected output: `hello world`
 | `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - | - |
 | `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - | - |
 | `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
+| `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `builtin` | no | - | - |
 | `json_null` | `() -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `builtin` | no | - | - |
@@ -1015,6 +1052,7 @@ Expected output: `hello world`
 | `section_start` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_table` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_type` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `builtin` | no | - | - |
 | `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - | - |
 | `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
