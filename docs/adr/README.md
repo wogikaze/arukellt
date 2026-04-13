@@ -35,3 +35,4 @@
 | [ADR-020-t2-io-surface.md](ADR-020-t2-io-surface.md) | ADR-020: T2 (wasm32-freestanding) I/O Surface Design — Console/DOM Bridge Contract | Archive | Status: DECIDED |
 | [ADR-021-playground-share-url-format.md](ADR-021-playground-share-url-format.md) | ADR-021: Playground Share URL Format — Encoding, Versioning, and Round-Trip Contract | Archive | Status: DECIDED |
 | [ADR-022-playground-deployment-and-caching.md](ADR-022-playground-deployment-and-caching.md) | ADR-022: Playground Deployment and Asset Caching Strategy | Archive | Status: DECIDED |
+| [ADR-023-package-registry-resolution.md](ADR-023-package-registry-resolution.md) | ADR-023: Package Registry Resolution Design | Archive | Status: DECIDED |

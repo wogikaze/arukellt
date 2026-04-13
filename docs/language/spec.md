@@ -758,6 +758,7 @@ Qualified access via `stdio::println(…)`.
 
 Per ADR-009, `import` is reserved for future Component Model / WIT
 boundary imports (v4+). Source module imports should prefer `use`.
+Normative layer contract: [../spec/import-system.md](../spec/import-system.md).
 
 ### 7.2 Module Structure
 

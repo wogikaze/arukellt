@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-04-13
-**Updated**: 2026-04-13
+**Updated**: 2026-04-14
 **ID**: 487
 **Depends on**: 039
 **Track**: compiler, module-system
@@ -19,7 +19,9 @@ Module resolution supports local paths and workspace members, but remote package
 
 ## Acceptance
 
-- [ ] Package registry resolution design documented in ADR
+- [x] Package registry resolution design documented in ADR
+  - Evidence: `docs/adr/ADR-023-package-registry-resolution.md` created 2026-04-14
+  - Evidence (acceptance slice): ADR defines registry lookup flow, failure diagnostics (E0120-E0124), and explicit non-goals.
 - [ ] Registry lookup integrated into resolver import path
 - [ ] Error diagnostic when registry package is not found
 - [ ] At least 1 fixture tests registry resolution (local mock acceptable)
