@@ -1554,6 +1554,425 @@ fn desugar_if_operand(
     }
 }
 
+// ── TryExpr-only desugar helpers (used at lowering time) ───────────────────
+
+/// Desugar only `Operand::TryExpr` nodes in a function (leave IfExpr/LoopExpr intact).
+/// Used at lowering time so that the MIR is TryExpr-free before the backend.
+pub fn desugar_try_exprs(func: &mut MirFunction, fn_return_types: &HashMap<String, Type>) -> usize {
+    let mut counter = 0;
+    let mut next_local = func.locals.iter().map(|l| l.id.0).max().unwrap_or(0) + 1;
+    let params = func.params.clone();
+
+    for block in &mut func.blocks {
+        let mut new_stmts = Vec::with_capacity(block.stmts.len());
+        for stmt in std::mem::take(&mut block.stmts) {
+            let (desugared, c) = desugar_try_stmt(
+                stmt,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
+            counter += c;
+            new_stmts.extend(desugared);
+        }
+        block.stmts = new_stmts;
+
+        // Desugar Terminator::Return(Some(TryExpr))
+        if let Terminator::Return(Some(Operand::TryExpr { .. })) = &block.terminator
+            && let Terminator::Return(Some(Operand::TryExpr { expr, from_fn })) =
+                std::mem::replace(&mut block.terminator, Terminator::Unreachable)
+        {
+            let expr_ty = infer_operand_type(&expr, &params, &func.locals, fn_return_types);
+            let (new_expr, mut pre, c1) = desugar_try_operand(
+                *expr,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
+            let expr_tmp = fresh_local(
+                &mut next_local,
+                &mut func.locals,
+                "_try_expr",
+                expr_ty.clone(),
+            );
+            pre.push(MirStmt::Assign(
+                Place::Local(expr_tmp),
+                Rvalue::Use(new_expr),
+            ));
+
+            let ok_ty = match expr_ty {
+                Type::Option(inner) => *inner,
+                Type::Result(ok, _) => *ok,
+                _ => Type::Any,
+            };
+            let ok_tmp = fresh_local(&mut next_local, &mut func.locals, "_try_ok", ok_ty);
+
+            let tag = Operand::EnumTag(Box::new(Operand::Place(Place::Local(expr_tmp))));
+            let err_payload = Operand::EnumPayload {
+                object: Box::new(Operand::Place(Place::Local(expr_tmp))),
+                index: 0,
+                enum_name: "Result".to_string(),
+                variant_name: "Err".to_string(),
+            };
+            let err_return_val = if let Some(ref conv_fn) = from_fn {
+                Operand::EnumInit {
+                    enum_name: "Result".to_string(),
+                    variant: "Err".to_string(),
+                    tag: 1,
+                    payload: vec![Operand::Call(conv_fn.clone(), vec![err_payload])],
+                }
+            } else {
+                Operand::EnumInit {
+                    enum_name: "Result".to_string(),
+                    variant: "Err".to_string(),
+                    tag: 1,
+                    payload: vec![err_payload],
+                }
+            };
+            let ok_payload = Operand::EnumPayload {
+                object: Box::new(Operand::Place(Place::Local(expr_tmp))),
+                index: 0,
+                enum_name: "Result".to_string(),
+                variant_name: "Ok".to_string(),
+            };
+
+            pre.push(MirStmt::IfStmt {
+                cond: Operand::BinOp(BinOp::Ne, Box::new(tag), Box::new(Operand::ConstI32(0))),
+                then_body: vec![MirStmt::Return(Some(err_return_val))],
+                else_body: vec![MirStmt::Assign(
+                    Place::Local(ok_tmp),
+                    Rvalue::Use(ok_payload),
+                )],
+            });
+            // The unwrapped ok value is the result — return it
+            pre.push(MirStmt::Return(Some(Operand::Place(Place::Local(ok_tmp)))));
+
+            block.stmts.extend(pre);
+            counter += 1 + c1;
+        }
+    }
+    counter
+}
+
+fn desugar_try_stmt(
+    stmt: MirStmt,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Vec<MirStmt>, usize) {
+    match stmt {
+        MirStmt::Assign(place, rvalue) => {
+            let (new_rvalue, pre_stmts, count) =
+                desugar_try_rvalue(rvalue, next_id, params, locals, fn_return_types);
+            let mut result = pre_stmts;
+            result.push(MirStmt::Assign(place, new_rvalue));
+            (result, count)
+        }
+        MirStmt::Call { dest, func, args } => {
+            let (new_args, pre_stmts, count) =
+                desugar_try_operand_list(args, next_id, params, locals, fn_return_types);
+            let mut result = pre_stmts;
+            result.push(MirStmt::Call {
+                dest,
+                func,
+                args: new_args,
+            });
+            (result, count)
+        }
+        MirStmt::CallBuiltin { dest, name, args } => {
+            let (new_args, pre_stmts, count) =
+                desugar_try_operand_list(args, next_id, params, locals, fn_return_types);
+            let mut result = pre_stmts;
+            result.push(MirStmt::CallBuiltin {
+                dest,
+                name,
+                args: new_args,
+            });
+            (result, count)
+        }
+        MirStmt::IfStmt {
+            cond,
+            then_body,
+            else_body,
+        } => {
+            let (new_cond, mut pre, c1) =
+                desugar_try_operand(cond, next_id, params, locals, fn_return_types);
+            let (new_then, c2) =
+                desugar_try_stmt_list(then_body, next_id, params, locals, fn_return_types);
+            let (new_else, c3) =
+                desugar_try_stmt_list(else_body, next_id, params, locals, fn_return_types);
+            pre.push(MirStmt::IfStmt {
+                cond: new_cond,
+                then_body: new_then,
+                else_body: new_else,
+            });
+            (pre, c1 + c2 + c3)
+        }
+        MirStmt::WhileStmt { cond, body } => {
+            let (new_cond, pre, c1) =
+                desugar_try_operand(cond, next_id, params, locals, fn_return_types);
+            let (new_body, c2) =
+                desugar_try_stmt_list(body, next_id, params, locals, fn_return_types);
+            if pre.is_empty() {
+                (
+                    vec![MirStmt::WhileStmt {
+                        cond: new_cond,
+                        body: new_body,
+                    }],
+                    c1 + c2,
+                )
+            } else {
+                let mut loop_body = pre;
+                loop_body.push(MirStmt::IfStmt {
+                    cond: Operand::UnaryOp(UnaryOp::Not, Box::new(new_cond)),
+                    then_body: vec![MirStmt::Break],
+                    else_body: vec![],
+                });
+                loop_body.extend(new_body);
+                (
+                    vec![MirStmt::WhileStmt {
+                        cond: Operand::ConstBool(true),
+                        body: loop_body,
+                    }],
+                    c1 + c2,
+                )
+            }
+        }
+        MirStmt::Return(Some(op)) => {
+            let (new_op, mut pre, c) =
+                desugar_try_operand(op, next_id, params, locals, fn_return_types);
+            pre.push(MirStmt::Return(Some(new_op)));
+            (pre, c)
+        }
+        other => (vec![other], 0),
+    }
+}
+
+fn desugar_try_stmt_list(
+    stmts: Vec<MirStmt>,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Vec<MirStmt>, usize) {
+    let mut result = Vec::new();
+    let mut total = 0;
+    for s in stmts {
+        let (desugared, c) = desugar_try_stmt(s, next_id, params, locals, fn_return_types);
+        total += c;
+        result.extend(desugared);
+    }
+    (result, total)
+}
+
+fn desugar_try_rvalue(
+    rvalue: Rvalue,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Rvalue, Vec<MirStmt>, usize) {
+    match rvalue {
+        Rvalue::Use(op) => {
+            let (new_op, pre, c) =
+                desugar_try_operand(op, next_id, params, locals, fn_return_types);
+            (Rvalue::Use(new_op), pre, c)
+        }
+        Rvalue::BinaryOp(op, lhs, rhs) => {
+            let (new_lhs, mut pre1, c1) =
+                desugar_try_operand(lhs, next_id, params, locals, fn_return_types);
+            let (new_rhs, pre2, c2) =
+                desugar_try_operand(rhs, next_id, params, locals, fn_return_types);
+            pre1.extend(pre2);
+            (Rvalue::BinaryOp(op, new_lhs, new_rhs), pre1, c1 + c2)
+        }
+        Rvalue::UnaryOp(op, inner) => {
+            let (new_inner, pre, c) =
+                desugar_try_operand(inner, next_id, params, locals, fn_return_types);
+            (Rvalue::UnaryOp(op, new_inner), pre, c)
+        }
+        Rvalue::Aggregate(name, ops) => {
+            let (new_ops, pre, c) =
+                desugar_try_operand_list(ops, next_id, params, locals, fn_return_types);
+            (Rvalue::Aggregate(name, new_ops), pre, c)
+        }
+        Rvalue::Ref(p) => (Rvalue::Ref(p), vec![], 0),
+    }
+}
+
+fn desugar_try_operand_list(
+    ops: Vec<Operand>,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Vec<Operand>, Vec<MirStmt>, usize) {
+    let mut result = Vec::new();
+    let mut pre = Vec::new();
+    let mut total = 0;
+    for op in ops {
+        let (new_op, op_pre, c) = desugar_try_operand(op, next_id, params, locals, fn_return_types);
+        total += c;
+        pre.extend(op_pre);
+        result.push(new_op);
+    }
+    (result, pre, total)
+}
+
+/// Convert a TryExpr operand into pre-statements + a simple operand.
+/// IfExpr and LoopExpr are left untouched.
+fn desugar_try_operand(
+    op: Operand,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Operand, Vec<MirStmt>, usize) {
+    match op {
+        Operand::TryExpr { expr, from_fn } => {
+            let expr_ty = infer_operand_type(&expr, params, locals, fn_return_types);
+            let (new_expr, mut pre, c1) =
+                desugar_try_operand(*expr, next_id, params, locals, fn_return_types);
+            let expr_tmp = fresh_local(next_id, locals, "_try_expr", expr_ty.clone());
+            pre.push(MirStmt::Assign(
+                Place::Local(expr_tmp),
+                Rvalue::Use(new_expr),
+            ));
+
+            let ok_ty = match expr_ty {
+                Type::Option(inner) => *inner,
+                Type::Result(ok, _) => *ok,
+                _ => Type::Any,
+            };
+            let ok_tmp = fresh_local(next_id, locals, "_try_ok", ok_ty);
+
+            let tag = Operand::EnumTag(Box::new(Operand::Place(Place::Local(expr_tmp))));
+            let err_payload = Operand::EnumPayload {
+                object: Box::new(Operand::Place(Place::Local(expr_tmp))),
+                index: 0,
+                enum_name: "Result".to_string(),
+                variant_name: "Err".to_string(),
+            };
+            let err_return_val = if let Some(ref conv_fn) = from_fn {
+                Operand::EnumInit {
+                    enum_name: "Result".to_string(),
+                    variant: "Err".to_string(),
+                    tag: 1,
+                    payload: vec![Operand::Call(conv_fn.clone(), vec![err_payload])],
+                }
+            } else {
+                Operand::EnumInit {
+                    enum_name: "Result".to_string(),
+                    variant: "Err".to_string(),
+                    tag: 1,
+                    payload: vec![err_payload],
+                }
+            };
+            let ok_payload = Operand::EnumPayload {
+                object: Box::new(Operand::Place(Place::Local(expr_tmp))),
+                index: 0,
+                enum_name: "Result".to_string(),
+                variant_name: "Ok".to_string(),
+            };
+
+            pre.push(MirStmt::IfStmt {
+                cond: Operand::BinOp(BinOp::Ne, Box::new(tag), Box::new(Operand::ConstI32(0))),
+                then_body: vec![MirStmt::Return(Some(err_return_val))],
+                else_body: vec![MirStmt::Assign(
+                    Place::Local(ok_tmp),
+                    Rvalue::Use(ok_payload),
+                )],
+            });
+
+            (Operand::Place(Place::Local(ok_tmp)), pre, 1 + c1)
+        }
+        // Recursively desugar TryExpr inside nested operands
+        Operand::BinOp(op, lhs, rhs) => {
+            let (new_lhs, mut pre, c1) =
+                desugar_try_operand(*lhs, next_id, params, locals, fn_return_types);
+            let (new_rhs, pre2, c2) =
+                desugar_try_operand(*rhs, next_id, params, locals, fn_return_types);
+            pre.extend(pre2);
+            (
+                Operand::BinOp(op, Box::new(new_lhs), Box::new(new_rhs)),
+                pre,
+                c1 + c2,
+            )
+        }
+        Operand::UnaryOp(op, inner) => {
+            let (new_inner, pre, c) =
+                desugar_try_operand(*inner, next_id, params, locals, fn_return_types);
+            (Operand::UnaryOp(op, Box::new(new_inner)), pre, c)
+        }
+        Operand::Call(name, args) => {
+            let (new_args, pre, c) =
+                desugar_try_operand_list(args, next_id, params, locals, fn_return_types);
+            (Operand::Call(name, new_args), pre, c)
+        }
+        Operand::FieldAccess {
+            object,
+            struct_name,
+            field,
+        } => {
+            let (new_obj, pre, c) =
+                desugar_try_operand(*object, next_id, params, locals, fn_return_types);
+            (
+                Operand::FieldAccess {
+                    object: Box::new(new_obj),
+                    struct_name,
+                    field,
+                },
+                pre,
+                c,
+            )
+        }
+        Operand::EnumTag(inner) => {
+            let (new_inner, pre, c) =
+                desugar_try_operand(*inner, next_id, params, locals, fn_return_types);
+            (Operand::EnumTag(Box::new(new_inner)), pre, c)
+        }
+        Operand::EnumPayload {
+            object,
+            index,
+            enum_name,
+            variant_name,
+        } => {
+            let (new_obj, pre, c) =
+                desugar_try_operand(*object, next_id, params, locals, fn_return_types);
+            (
+                Operand::EnumPayload {
+                    object: Box::new(new_obj),
+                    index,
+                    enum_name,
+                    variant_name,
+                },
+                pre,
+                c,
+            )
+        }
+        Operand::CallIndirect { callee, args } => {
+            let (new_callee, mut pre, c1) =
+                desugar_try_operand(*callee, next_id, params, locals, fn_return_types);
+            let (new_args, pre2, c2) =
+                desugar_try_operand_list(args, next_id, params, locals, fn_return_types);
+            pre.extend(pre2);
+            (
+                Operand::CallIndirect {
+                    callee: Box::new(new_callee),
+                    args: new_args,
+                },
+                pre,
+                c1 + c2,
+            )
+        }
+        // Leave all other operands (including IfExpr, LoopExpr) untouched
+        other => (other, vec![], 0),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
