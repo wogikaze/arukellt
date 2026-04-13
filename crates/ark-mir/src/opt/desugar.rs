@@ -119,6 +119,106 @@ pub fn desugar_exprs(func: &mut MirFunction, fn_return_types: &HashMap<String, T
     counter
 }
 
+/// Desugar only `Operand::IfExpr` nodes in a function (leave LoopExpr/TryExpr intact).
+/// Used at lowering time so that the MIR is IfExpr-free before the optimisation pipeline.
+pub fn desugar_if_exprs(func: &mut MirFunction, fn_return_types: &HashMap<String, Type>) -> usize {
+    let mut counter = 0;
+    let mut next_local = func.locals.iter().map(|l| l.id.0).max().unwrap_or(0) + 1;
+    let params = func.params.clone();
+
+    for block in &mut func.blocks {
+        let mut new_stmts = Vec::with_capacity(block.stmts.len());
+        for stmt in std::mem::take(&mut block.stmts) {
+            let (desugared, c) = desugar_if_stmt(
+                stmt,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
+            counter += c;
+            new_stmts.extend(desugared);
+        }
+        block.stmts = new_stmts;
+
+        // Desugar Terminator::Return(Some(IfExpr)) — same as in desugar_exprs
+        if let Terminator::Return(Some(Operand::IfExpr { .. })) = &block.terminator
+            && let Terminator::Return(Some(Operand::IfExpr {
+                cond,
+                then_body,
+                then_result,
+                else_body,
+                else_result,
+            })) = std::mem::replace(&mut block.terminator, Terminator::Unreachable)
+        {
+            let (new_cond, mut pre, c1) = desugar_if_operand(
+                *cond,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
+
+            let (mut then_stmts, c2) = desugar_if_stmt_list(
+                then_body,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
+            match then_result {
+                Some(r) => {
+                    let (new_r, r_pre, _) = desugar_if_operand(
+                        *r,
+                        &mut next_local,
+                        &params,
+                        &mut func.locals,
+                        fn_return_types,
+                    );
+                    then_stmts.extend(r_pre);
+                    then_stmts.push(MirStmt::Return(Some(new_r)));
+                }
+                None => {
+                    then_stmts.push(MirStmt::Return(None));
+                }
+            }
+
+            let (mut else_stmts, c3) = desugar_if_stmt_list(
+                else_body,
+                &mut next_local,
+                &params,
+                &mut func.locals,
+                fn_return_types,
+            );
+            match else_result {
+                Some(r) => {
+                    let (new_r, r_pre, _) = desugar_if_operand(
+                        *r,
+                        &mut next_local,
+                        &params,
+                        &mut func.locals,
+                        fn_return_types,
+                    );
+                    else_stmts.extend(r_pre);
+                    else_stmts.push(MirStmt::Return(Some(new_r)));
+                }
+                None => {
+                    else_stmts.push(MirStmt::Return(None));
+                }
+            }
+
+            pre.push(MirStmt::IfStmt {
+                cond: new_cond,
+                then_body: then_stmts,
+                else_body: else_stmts,
+            });
+            block.stmts.extend(pre);
+            counter += 1 + c1 + c2 + c3;
+        }
+    }
+    counter
+}
+
 fn fresh_local(next_id: &mut u32, locals: &mut Vec<MirLocal>, name: &str, ty: Type) -> LocalId {
     let id = LocalId(*next_id);
     *next_id += 1;
@@ -782,6 +882,325 @@ fn desugar_operand(
             )
         }
         // All other operands are already backend-legal
+        other => (other, vec![], 0),
+    }
+}
+
+// ── IfExpr-only desugar helpers (used at lowering time) ────────────────────
+
+/// Desugar a single statement, expanding only IfExpr operands.
+fn desugar_if_stmt(
+    stmt: MirStmt,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Vec<MirStmt>, usize) {
+    match stmt {
+        MirStmt::Assign(place, rvalue) => {
+            let (new_rvalue, pre_stmts, count) =
+                desugar_if_rvalue(rvalue, next_id, params, locals, fn_return_types);
+            let mut result = pre_stmts;
+            result.push(MirStmt::Assign(place, new_rvalue));
+            (result, count)
+        }
+        MirStmt::Call { dest, func, args } => {
+            let (new_args, pre_stmts, count) =
+                desugar_if_operand_list(args, next_id, params, locals, fn_return_types);
+            let mut result = pre_stmts;
+            result.push(MirStmt::Call {
+                dest,
+                func,
+                args: new_args,
+            });
+            (result, count)
+        }
+        MirStmt::CallBuiltin { dest, name, args } => {
+            let (new_args, pre_stmts, count) =
+                desugar_if_operand_list(args, next_id, params, locals, fn_return_types);
+            let mut result = pre_stmts;
+            result.push(MirStmt::CallBuiltin {
+                dest,
+                name,
+                args: new_args,
+            });
+            (result, count)
+        }
+        MirStmt::IfStmt {
+            cond,
+            then_body,
+            else_body,
+        } => {
+            let (new_cond, mut pre, c1) =
+                desugar_if_operand(cond, next_id, params, locals, fn_return_types);
+            let (new_then, c2) =
+                desugar_if_stmt_list(then_body, next_id, params, locals, fn_return_types);
+            let (new_else, c3) =
+                desugar_if_stmt_list(else_body, next_id, params, locals, fn_return_types);
+            pre.push(MirStmt::IfStmt {
+                cond: new_cond,
+                then_body: new_then,
+                else_body: new_else,
+            });
+            (pre, c1 + c2 + c3)
+        }
+        MirStmt::WhileStmt { cond, body } => {
+            let (new_cond, pre, c1) =
+                desugar_if_operand(cond, next_id, params, locals, fn_return_types);
+            let (new_body, c2) =
+                desugar_if_stmt_list(body, next_id, params, locals, fn_return_types);
+            if pre.is_empty() {
+                (
+                    vec![MirStmt::WhileStmt {
+                        cond: new_cond,
+                        body: new_body,
+                    }],
+                    c1 + c2,
+                )
+            } else {
+                let mut loop_body = pre;
+                loop_body.push(MirStmt::IfStmt {
+                    cond: Operand::UnaryOp(crate::mir::UnaryOp::Not, Box::new(new_cond)),
+                    then_body: vec![MirStmt::Break],
+                    else_body: vec![],
+                });
+                loop_body.extend(new_body);
+                (
+                    vec![MirStmt::WhileStmt {
+                        cond: Operand::ConstBool(true),
+                        body: loop_body,
+                    }],
+                    c1 + c2,
+                )
+            }
+        }
+        MirStmt::Return(Some(op)) => {
+            let (new_op, mut pre, c) =
+                desugar_if_operand(op, next_id, params, locals, fn_return_types);
+            pre.push(MirStmt::Return(Some(new_op)));
+            (pre, c)
+        }
+        other => (vec![other], 0),
+    }
+}
+
+fn desugar_if_stmt_list(
+    stmts: Vec<MirStmt>,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Vec<MirStmt>, usize) {
+    let mut result = Vec::new();
+    let mut total = 0;
+    for s in stmts {
+        let (desugared, c) = desugar_if_stmt(s, next_id, params, locals, fn_return_types);
+        total += c;
+        result.extend(desugared);
+    }
+    (result, total)
+}
+
+fn desugar_if_rvalue(
+    rvalue: Rvalue,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Rvalue, Vec<MirStmt>, usize) {
+    match rvalue {
+        Rvalue::Use(op) => {
+            let (new_op, pre, c) =
+                desugar_if_operand(op, next_id, params, locals, fn_return_types);
+            (Rvalue::Use(new_op), pre, c)
+        }
+        Rvalue::BinaryOp(op, lhs, rhs) => {
+            let (new_lhs, mut pre1, c1) =
+                desugar_if_operand(lhs, next_id, params, locals, fn_return_types);
+            let (new_rhs, pre2, c2) =
+                desugar_if_operand(rhs, next_id, params, locals, fn_return_types);
+            pre1.extend(pre2);
+            (Rvalue::BinaryOp(op, new_lhs, new_rhs), pre1, c1 + c2)
+        }
+        Rvalue::UnaryOp(op, inner) => {
+            let (new_inner, pre, c) =
+                desugar_if_operand(inner, next_id, params, locals, fn_return_types);
+            (Rvalue::UnaryOp(op, new_inner), pre, c)
+        }
+        Rvalue::Aggregate(name, ops) => {
+            let (new_ops, pre, c) =
+                desugar_if_operand_list(ops, next_id, params, locals, fn_return_types);
+            (Rvalue::Aggregate(name, new_ops), pre, c)
+        }
+        Rvalue::Ref(p) => (Rvalue::Ref(p), vec![], 0),
+    }
+}
+
+fn desugar_if_operand_list(
+    ops: Vec<Operand>,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Vec<Operand>, Vec<MirStmt>, usize) {
+    let mut result = Vec::new();
+    let mut pre = Vec::new();
+    let mut total = 0;
+    for op in ops {
+        let (new_op, op_pre, c) =
+            desugar_if_operand(op, next_id, params, locals, fn_return_types);
+        total += c;
+        pre.extend(op_pre);
+        result.push(new_op);
+    }
+    (result, pre, total)
+}
+
+/// Convert an IfExpr operand into pre-statements + a simple operand.
+/// LoopExpr and TryExpr are left untouched.
+fn desugar_if_operand(
+    op: Operand,
+    next_id: &mut u32,
+    params: &[MirLocal],
+    locals: &mut Vec<MirLocal>,
+    fn_return_types: &HashMap<String, Type>,
+) -> (Operand, Vec<MirStmt>, usize) {
+    match op {
+        Operand::IfExpr {
+            cond,
+            then_body,
+            then_result,
+            else_body,
+            else_result,
+        } => {
+            let (new_cond, mut pre, c1) =
+                desugar_if_operand(*cond, next_id, params, locals, fn_return_types);
+
+            let tmp_ty = merge_types(
+                then_result
+                    .as_deref()
+                    .map(|op| infer_operand_type(op, params, locals, fn_return_types))
+                    .unwrap_or(Type::Unit),
+                else_result
+                    .as_deref()
+                    .map(|op| infer_operand_type(op, params, locals, fn_return_types))
+                    .unwrap_or(Type::Unit),
+            );
+            let tmp = fresh_local(next_id, locals, "_if_result", tmp_ty);
+
+            let (mut then_stmts, c2) =
+                desugar_if_stmt_list(then_body, next_id, params, locals, fn_return_types);
+            let then_assign = match then_result {
+                Some(r) => {
+                    let (new_r, r_pre, _) =
+                        desugar_if_operand(*r, next_id, params, locals, fn_return_types);
+                    then_stmts.extend(r_pre);
+                    MirStmt::Assign(Place::Local(tmp), Rvalue::Use(new_r))
+                }
+                None => MirStmt::Assign(Place::Local(tmp), Rvalue::Use(Operand::Unit)),
+            };
+            then_stmts.push(then_assign);
+
+            let (mut else_stmts, c3) =
+                desugar_if_stmt_list(else_body, next_id, params, locals, fn_return_types);
+            let else_assign = match else_result {
+                Some(r) => {
+                    let (new_r, r_pre, _) =
+                        desugar_if_operand(*r, next_id, params, locals, fn_return_types);
+                    else_stmts.extend(r_pre);
+                    MirStmt::Assign(Place::Local(tmp), Rvalue::Use(new_r))
+                }
+                None => MirStmt::Assign(Place::Local(tmp), Rvalue::Use(Operand::Unit)),
+            };
+            else_stmts.push(else_assign);
+
+            pre.push(MirStmt::IfStmt {
+                cond: new_cond,
+                then_body: then_stmts,
+                else_body: else_stmts,
+            });
+            (Operand::Place(Place::Local(tmp)), pre, 1 + c1 + c2 + c3)
+        }
+        // Recursively desugar IfExpr inside nested operands
+        Operand::BinOp(op, lhs, rhs) => {
+            let (new_lhs, mut pre, c1) =
+                desugar_if_operand(*lhs, next_id, params, locals, fn_return_types);
+            let (new_rhs, pre2, c2) =
+                desugar_if_operand(*rhs, next_id, params, locals, fn_return_types);
+            pre.extend(pre2);
+            (
+                Operand::BinOp(op, Box::new(new_lhs), Box::new(new_rhs)),
+                pre,
+                c1 + c2,
+            )
+        }
+        Operand::UnaryOp(op, inner) => {
+            let (new_inner, pre, c) =
+                desugar_if_operand(*inner, next_id, params, locals, fn_return_types);
+            (Operand::UnaryOp(op, Box::new(new_inner)), pre, c)
+        }
+        Operand::Call(name, args) => {
+            let (new_args, pre, c) =
+                desugar_if_operand_list(args, next_id, params, locals, fn_return_types);
+            (Operand::Call(name, new_args), pre, c)
+        }
+        Operand::FieldAccess {
+            object,
+            struct_name,
+            field,
+        } => {
+            let (new_obj, pre, c) =
+                desugar_if_operand(*object, next_id, params, locals, fn_return_types);
+            (
+                Operand::FieldAccess {
+                    object: Box::new(new_obj),
+                    struct_name,
+                    field,
+                },
+                pre,
+                c,
+            )
+        }
+        Operand::EnumTag(inner) => {
+            let (new_inner, pre, c) =
+                desugar_if_operand(*inner, next_id, params, locals, fn_return_types);
+            (Operand::EnumTag(Box::new(new_inner)), pre, c)
+        }
+        Operand::EnumPayload {
+            object,
+            index,
+            enum_name,
+            variant_name,
+        } => {
+            let (new_obj, pre, c) =
+                desugar_if_operand(*object, next_id, params, locals, fn_return_types);
+            (
+                Operand::EnumPayload {
+                    object: Box::new(new_obj),
+                    index,
+                    enum_name,
+                    variant_name,
+                },
+                pre,
+                c,
+            )
+        }
+        Operand::CallIndirect { callee, args } => {
+            let (new_callee, mut pre, c1) =
+                desugar_if_operand(*callee, next_id, params, locals, fn_return_types);
+            let (new_args, pre2, c2) =
+                desugar_if_operand_list(args, next_id, params, locals, fn_return_types);
+            pre.extend(pre2);
+            (
+                Operand::CallIndirect {
+                    callee: Box::new(new_callee),
+                    args: new_args,
+                },
+                pre,
+                c1 + c2,
+            )
+        }
+        // Leave all other operands (including LoopExpr, TryExpr) untouched
         other => (other, vec![], 0),
     }
 }

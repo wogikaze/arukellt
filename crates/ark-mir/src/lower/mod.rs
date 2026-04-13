@@ -337,16 +337,37 @@ pub fn clone_as_legacy(module: &MirModule) -> MirModule {
     cloned
 }
 
+/// Desugar all `Operand::IfExpr` nodes in a single MIR function into
+/// `MirStmt::IfStmt` sequences with temporary locals.
+///
+/// This is the lowering-time counterpart of the optimisation-time desugar
+/// pass.  Running it at lowering time means the MIR handed to the backend
+/// is already free of `IfExpr` nodes, satisfying `is_backend_legal_module`.
+pub fn lower_if_expr(func: &mut MirFunction) {
+    let fn_return_types: std::collections::HashMap<String, ark_typecheck::types::Type> =
+        std::collections::HashMap::new();
+    crate::opt::desugar::desugar_if_exprs(func, &fn_return_types);
+}
+
+/// Apply [`lower_if_expr`] to every function in a module.
+pub fn lower_if_exprs(module: &mut MirModule) {
+    for func in &mut module.functions {
+        lower_if_expr(func);
+    }
+}
+
 pub fn lower_corehir_with_fallback(
     core_hir: &Program,
     module: &ast::Module,
     checker: &TypeChecker,
     sink: &mut DiagnosticSink,
 ) -> Result<MirModule, String> {
-    match lower_hir_to_mir(core_hir, checker, sink) {
-        Ok(mir) if !mir.functions.is_empty() => Ok(mir),
-        Ok(_) | Err(_) => Ok(lower_corehir_via_legacy(module, checker, sink)),
-    }
+    let mut mir = match lower_hir_to_mir(core_hir, checker, sink) {
+        Ok(mir) if !mir.functions.is_empty() => mir,
+        Ok(_) | Err(_) => lower_corehir_via_legacy(module, checker, sink),
+    };
+    lower_if_exprs(&mut mir);
+    Ok(mir)
 }
 
 #[allow(deprecated)]
@@ -998,3 +1019,204 @@ impl LowerCtx {
 // Re-export the main lowering function from func submodule (deprecated, use CoreHIR path)
 #[allow(deprecated)]
 pub use func::lower_to_mir;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mir::{
+        BasicBlock, BlockId, FnId, InstanceKey, LocalId, MirFunction, MirLocal, MirStmt, Operand,
+        Place, Rvalue, Terminator, default_block_source, default_function_source,
+        is_backend_legal_module,
+    };
+    use ark_typecheck::types::Type;
+
+    fn make_if_expr_function() -> MirFunction {
+        // fn test() -> i32 { if true { 1 } else { 2 } }
+        // Lowered as: Assign(result, Use(IfExpr { cond: true, then: 1, else: 2 }))
+        MirFunction {
+            id: FnId(1),
+            name: "test".to_string(),
+            instance: InstanceKey::simple("test"),
+            params: vec![],
+            return_ty: Type::I32,
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: Some("result".to_string()),
+                ty: Type::I32,
+            }],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![MirStmt::Assign(
+                    Place::Local(LocalId(0)),
+                    Rvalue::Use(Operand::IfExpr {
+                        cond: Box::new(Operand::ConstBool(true)),
+                        then_body: vec![],
+                        then_result: Some(Box::new(Operand::ConstI32(1))),
+                        else_body: vec![],
+                        else_result: Some(Box::new(Operand::ConstI32(2))),
+                    }),
+                )],
+                terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
+                source: default_block_source(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: default_function_source(),
+            is_exported: false,
+        }
+    }
+
+    #[test]
+    fn lower_if_expr_removes_ifexpr_operand() {
+        let mut func = make_if_expr_function();
+        // Before: function contains IfExpr (backend-illegal)
+        let has_if_expr_before = func.blocks[0]
+            .stmts
+            .iter()
+            .any(|s| matches!(s, MirStmt::Assign(_, Rvalue::Use(Operand::IfExpr { .. }))));
+        assert!(has_if_expr_before, "pre-condition: IfExpr must be present");
+
+        lower_if_expr(&mut func);
+
+        // After: no IfExpr operands remain; an IfStmt should be present instead
+        let has_if_expr_after = func.blocks[0]
+            .stmts
+            .iter()
+            .any(|s| matches!(s, MirStmt::Assign(_, Rvalue::Use(Operand::IfExpr { .. }))));
+        assert!(!has_if_expr_after, "IfExpr must be desugared away");
+
+        let has_if_stmt = func.blocks[0]
+            .stmts
+            .iter()
+            .any(|s| matches!(s, MirStmt::IfStmt { .. }));
+        assert!(has_if_stmt, "IfStmt must be present after desugaring");
+    }
+
+    #[test]
+    fn lower_if_exprs_produces_backend_legal_module() {
+        let func = make_if_expr_function();
+        let mut module = MirModule::new();
+        module.functions.push(func);
+        module.entry_fn = Some(FnId(1));
+
+        // Before lowering: backend-illegal due to IfExpr
+        assert!(
+            !is_backend_legal_module(&module),
+            "pre-condition: module must be backend-illegal"
+        );
+
+        lower_if_exprs(&mut module);
+
+        // After lowering: backend-legal (IfExpr removed)
+        assert!(
+            is_backend_legal_module(&module),
+            "module must be backend-legal after lower_if_exprs"
+        );
+    }
+
+    #[test]
+    fn lower_if_expr_handles_nested_if() {
+        // if true { if false { 1 } else { 2 } } else { 3 }
+        let nested = Operand::IfExpr {
+            cond: Box::new(Operand::ConstBool(true)),
+            then_body: vec![],
+            then_result: Some(Box::new(Operand::IfExpr {
+                cond: Box::new(Operand::ConstBool(false)),
+                then_body: vec![],
+                then_result: Some(Box::new(Operand::ConstI32(1))),
+                else_body: vec![],
+                else_result: Some(Box::new(Operand::ConstI32(2))),
+            })),
+            else_body: vec![],
+            else_result: Some(Box::new(Operand::ConstI32(3))),
+        };
+
+        let mut func = MirFunction {
+            id: FnId(1),
+            name: "nested".to_string(),
+            instance: InstanceKey::simple("nested"),
+            params: vec![],
+            return_ty: Type::I32,
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: Some("r".to_string()),
+                ty: Type::I32,
+            }],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![MirStmt::Assign(Place::Local(LocalId(0)), Rvalue::Use(nested))],
+                terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
+                source: default_block_source(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: default_function_source(),
+            is_exported: false,
+        };
+
+        lower_if_expr(&mut func);
+
+        // No IfExpr operands should remain anywhere in the function
+        let mut module = MirModule::new();
+        module.functions.push(func);
+        module.entry_fn = Some(FnId(1));
+        assert!(
+            is_backend_legal_module(&module),
+            "nested IfExpr must be fully desugared"
+        );
+    }
+
+    #[test]
+    fn lower_if_expr_preserves_loop_and_try() {
+        // Ensure LoopExpr and TryExpr are NOT desugared by lower_if_expr
+        let mut func = MirFunction {
+            id: FnId(1),
+            name: "mixed".to_string(),
+            instance: InstanceKey::simple("mixed"),
+            params: vec![],
+            return_ty: Type::I32,
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: Some("x".to_string()),
+                ty: Type::I32,
+            }],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![MirStmt::Assign(
+                    Place::Local(LocalId(0)),
+                    Rvalue::Use(Operand::LoopExpr {
+                        init: Box::new(Operand::ConstI32(0)),
+                        body: vec![MirStmt::Break],
+                        result: Box::new(Operand::ConstI32(42)),
+                    }),
+                )],
+                terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
+                source: default_block_source(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: default_function_source(),
+            is_exported: false,
+        };
+
+        lower_if_expr(&mut func);
+
+        // LoopExpr should still be present (not desugared)
+        let has_loop = func.blocks[0].stmts.iter().any(|s| {
+            matches!(
+                s,
+                MirStmt::Assign(_, Rvalue::Use(Operand::LoopExpr { .. }))
+            )
+        });
+        assert!(
+            has_loop,
+            "LoopExpr must be preserved by lower_if_expr"
+        );
+    }
+}
