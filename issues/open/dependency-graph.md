@@ -65,7 +65,8 @@ graph LR
   I206["206 Interactive compiler pipeline + inline profiling"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
-  I281["281 CoreHIR lowering: IfExpr を制御フローに desugar する"]
+  I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
+  I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
   I286["286 current-state.md の bootstrap 節を fixpoint 達成に合わせて更新する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
   I301["301 current-state.md と README.md の整合を取る"]
@@ -82,7 +83,6 @@ graph LR
   I470["470 Playground docs: feature claim は current implementation と一致させる"]
   I471["471 Playground docs: command / workflow / publish claim の現実整合監査"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
-  I488["488 Generator and checker path drift"]
   I490["490 pub use / pub import re-export"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I041["041 std::core: Error 型、ordering、range、cmp、math、convert、hash"]
@@ -106,8 +106,7 @@ graph LR
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
   I266["266 selfhost 完了条件を定義し文書に固定する"]
-  I282["282 CoreHIR lowering: LoopExpr を制御フローに desugar する"]
-  I283["283 CoreHIR lowering: TryExpr を制御フローに desugar する"]
+  I284["284 CoreHIR path をデフォルトに昇格する"]
   I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I042["042 std::text: String API 拡張、StringBuilder、format ユーティリティ"]
   I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
@@ -124,14 +123,13 @@ graph LR
   I205["205 Docs / codebase intelligence surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
   I267["267 verify-bootstrap.sh を達成判定本体へ昇格させる"]
-  I284["284 CoreHIR path をデフォルトに昇格する"]
+  I285["285 Legacy lowering path を隔離・撤去する"]
   I489["489 Playground user-visible entrypoint wiring"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
   I052["052 std::process + std::env + std::cli: 実行環境 API"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
-  I285["285 Legacy lowering path を隔離・撤去する"]
   I057["057 Prelude 再構成と API 移行"]
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -164,8 +162,8 @@ graph LR
   I200 --> I201
   I204 --> I188
   I253 --> I266
-  I281 --> I282
-  I281 --> I283
+  I282 --> I284
+  I283 --> I284
   I437 --> I438
   I039 --> I042
   I041 --> I042
@@ -198,9 +196,7 @@ graph LR
   I188 --> I205
   I188 --> I214
   I266 --> I267
-  I281 --> I284
-  I282 --> I284
-  I283 --> I284
+  I284 --> I285
   I382 --> I489
   I437 --> I489
   I438 --> I489
@@ -217,7 +213,6 @@ graph LR
   I044 --> I054
   I053 --> I054
   I267 --> I268
-  I284 --> I285
   I039 --> I057
   I041 --> I057
   I042 --> I057
@@ -291,7 +286,8 @@ graph LR
 - **206** depends on: 184, 185, 187; blocks: none
 - **249** depends on: none; blocks: none
 - **253** depends on: none; blocks: 266
-- **281** depends on: none; blocks: 282, 283, 284
+- **282** depends on: 281; blocks: 284
+- **283** depends on: 281; blocks: 284
 - **286** depends on: none; blocks: none
 - **289** depends on: 287; blocks: none
 - **301** depends on: 303; blocks: none
@@ -308,7 +304,6 @@ graph LR
 - **470** depends on: 465; blocks: none
 - **471** depends on: 465; blocks: none
 - **472** depends on: 466; blocks: none
-- **488** depends on: none; blocks: none
 - **490** depends on: 234; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **041** depends on: 039; blocks: 042, 044, 045, 046, 047, 048, 049, 050, 056, 057
@@ -332,8 +327,7 @@ graph LR
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
 - **266** depends on: 253; blocks: 267, 269
-- **282** depends on: 281; blocks: 284
-- **283** depends on: 281; blocks: 284
+- **284** depends on: 281, 282, 283, 306; blocks: 285
 - **438** depends on: 437; blocks: 489
 - **042** depends on: 039, 041; blocks: 049, 052, 055, 057
 - **044** depends on: 039, 041; blocks: 054, 055, 057
@@ -350,14 +344,13 @@ graph LR
 - **205** depends on: 185, 188; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
 - **267** depends on: 266; blocks: 268
-- **284** depends on: 281, 282, 283, 306; blocks: 285
+- **285** depends on: 284; blocks: none
 - **489** depends on: 382, 437, 438, 464; blocks: none
 - **049** depends on: 039, 041, 042; blocks: 057
 - **052** depends on: 039, 042; blocks: 057
 - **055** depends on: 039, 042, 044; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **268** depends on: 267; blocks: 269
-- **285** depends on: 284; blocks: none
 - **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: none
 - **269** depends on: 266, 268; blocks: none
 

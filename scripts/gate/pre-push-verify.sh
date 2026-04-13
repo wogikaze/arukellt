@@ -34,7 +34,7 @@ has_rust_changes() {
     echo "$CHANGED" | grep -qE '^(crates/|src/|tests/|benches/|examples/|build\.rs|Cargo\.toml|Cargo\.lock)' 2>/dev/null
 }
 has_doc_changes() {
-    echo "$CHANGED" | grep -qE '^(docs/|issues/|scripts/generate-docs\.py|scripts/generate-issue-index\.sh|std/manifest\.toml|README\.md)' 2>/dev/null
+    echo "$CHANGED" | grep -qE '^(docs/|issues/|scripts/gen/generate-docs\.py|scripts/gen/generate-issue-index\.sh|std/manifest\.toml|README\.md)' 2>/dev/null
 }
 has_extension_changes() {
     echo "$CHANGED" | grep -qE '^extensions/' 2>/dev/null

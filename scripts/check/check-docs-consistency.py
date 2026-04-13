@@ -51,7 +51,7 @@ def check_maturity_matrix_freshness() -> int:
         errors.append(
             f"maturity matrix stale: TOML has {len(features)} features "
             f"but maturity-matrix.md has {len(feature_rows)} rows; "
-            "run `python3 scripts/generate-docs.py`"
+            "run `python3 scripts/gen/generate-docs.py`"
         )
         return 1
 
@@ -59,7 +59,7 @@ def check_maturity_matrix_freshness() -> int:
     if "language-doc-classifications.toml" not in matrix_text:
         errors.append(
             "maturity matrix missing TOML source marker; "
-            "regenerate with `python3 scripts/generate-docs.py`"
+            "regenerate with `python3 scripts/gen/generate-docs.py`"
         )
         return 1
 
@@ -71,7 +71,7 @@ def check_generated_docs() -> int:
     cmd = [sys.executable, str(ROOT / "scripts" / "gen" / "generate-docs.py"), "--check"]
     result = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
     if result.returncode != 0:
-        errors.append("generated docs are out of date; run `python3 scripts/generate-docs.py`")
+        errors.append("generated docs are out of date; run `python3 scripts/gen/generate-docs.py`")
         if result.stdout.strip():
             for line in result.stdout.strip().splitlines():
                 errors.append(f"  {line}")
@@ -179,13 +179,13 @@ def check_issue_index_freshness() -> int:
     if new_index != old_index:
         errors.append(
             "issue index stale: issues/open/index.md differs after regeneration; "
-            "run `bash scripts/generate-issue-index.sh`"
+            "run `bash scripts/gen/generate-issue-index.sh`"
         )
         stale = 1
     if new_graph != old_graph:
         errors.append(
             "dependency graph stale: issues/open/dependency-graph.md differs after regeneration; "
-            "run `bash scripts/generate-issue-index.sh`"
+            "run `bash scripts/gen/generate-issue-index.sh`"
         )
         stale = 1
 
@@ -214,7 +214,7 @@ def check_host_badge_presence() -> int:
     if missing:
         errors.append(
             f"host badge drift: {', '.join(missing)} contain std::host:: modules "
-            f"but lack target/status badges; regenerate with `python3 scripts/generate-docs.py`"
+            f"but lack target/status badges; regenerate with `python3 scripts/gen/generate-docs.py`"
         )
         return 1
 
@@ -267,7 +267,7 @@ def check_deprecated_badge_presence() -> int:
     if missing_badges:
         errors.append(
             f"deprecated badge drift: {', '.join(missing_badges)} have deprecated_by in manifest "
-            f"but lack ⚠️ Deprecated badge in reference.md; regenerate with `python3 scripts/generate-docs.py`"
+            f"but lack ⚠️ Deprecated badge in reference.md; regenerate with `python3 scripts/gen/generate-docs.py`"
         )
         failed = 1
 
@@ -657,7 +657,7 @@ def check_target_metadata_in_reference() -> int:
         errors.append(
             f"target metadata drift in reference.md: "
             + "; ".join(missing)
-            + "; regenerate with `python3 scripts/generate-docs.py`"
+            + "; regenerate with `python3 scripts/gen/generate-docs.py`"
         )
         return 1
 
@@ -712,7 +712,7 @@ def check_stability_metadata_in_reference() -> int:
         errors.append(
             f"stability metadata drift in reference.md: "
             + "; ".join(mismatches)
-            + "; regenerate with `python3 scripts/generate-docs.py`"
+            + "; regenerate with `python3 scripts/gen/generate-docs.py`"
         )
         return 1
 
@@ -820,7 +820,7 @@ def check_cross_page_metadata_consistency() -> int:
         errors.append(
             f"cross-page metadata inconsistency: "
             + "; ".join(inconsistencies)
-            + "; regenerate with `python3 scripts/generate-docs.py`"
+            + "; regenerate with `python3 scripts/gen/generate-docs.py`"
         )
         return 1
 
@@ -1302,7 +1302,7 @@ def check_name_index_completeness() -> int:
     name_index_path = ROOT / "docs" / "stdlib" / "name-index.md"
     if not name_index_path.exists():
         errors.append(
-            "name-index.md does not exist; run `python3 scripts/generate-docs.py`"
+            "name-index.md does not exist; run `python3 scripts/gen/generate-docs.py`"
         )
         return 1
 
@@ -1330,7 +1330,7 @@ def check_name_index_completeness() -> int:
             f"name-index.md missing {len(missing)} function(s): "
             + ", ".join(missing[:10])
             + (f" (and {len(missing) - 10} more)" if len(missing) > 10 else "")
-            + "; regenerate with `python3 scripts/generate-docs.py`"
+            + "; regenerate with `python3 scripts/gen/generate-docs.py`"
         )
         return 1
 
@@ -1343,7 +1343,7 @@ def check_name_index_completeness() -> int:
         if "## Historical / Deprecated Names" not in index_text:
             errors.append(
                 "name-index.md missing '## Historical / Deprecated Names' section; "
-                "regenerate with `python3 scripts/generate-docs.py`"
+                "regenerate with `python3 scripts/gen/generate-docs.py`"
             )
             return 1
 
@@ -1358,7 +1358,7 @@ def check_name_index_completeness() -> int:
             errors.append(
                 f"name-index.md historical section missing {len(missing_deprecated)} "
                 f"deprecated name(s): {', '.join(missing_deprecated)}; "
-                "regenerate with `python3 scripts/generate-docs.py`"
+                "regenerate with `python3 scripts/gen/generate-docs.py`"
             )
             return 1
 
