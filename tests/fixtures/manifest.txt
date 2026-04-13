@@ -89,6 +89,7 @@ run:module_import/use_whole_module.ark
 run:module_import/use_destructure_typed.ark
 diag:module_import/use_module_not_found.ark
 diag:module_import/use_symbol_not_found.ark
+run:module_import/use_prelude_coexist.ark
 module-run:stdlib_random/random_range.ark
 module-run:stdlib_random/random_seed.ark
 module-run:stdlib_random/shuffle.ark

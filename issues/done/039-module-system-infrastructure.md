@@ -1,8 +1,9 @@
 # std モジュールシステム基盤: `use std::*` import インフラ
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-04
+**Updated**: 2026-04-14
+**Closed**: 2026-04-14
 **ID**: 039
 **Depends on**: —
 **Track**: stdlib
