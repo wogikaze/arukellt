@@ -130,6 +130,20 @@ Verification:
 - `cargo test -p arukellt -- harness`: fixture_harness passed
 - `string::split(s, sep)` resolves and runs without unresolved-name error
 - `use std::collections::{vec}` followed by `vec::new_i32()` resolves correctly
+- `use std::text` whole-module import resolves: `text::is_empty` and `text::len_bytes`
+  callable via qualified form (fixture `use_whole_module.ark` — output `yes\n5`)
+
+Whole-module fixture added 2026-04-13:
+- `tests/fixtures/module_import/use_whole_module.ark` + `.expected`: `run:` fixture that
+  imports `std::text` as a whole module and invokes `text::is_empty("")` and
+  `text::len_bytes("hello")` via qualified calls — verifies acceptance criterion #3
+  (`use std::bytes`-style whole-module import).
+- `tests/fixtures/manifest.txt`: Added `run:module_import/use_whole_module.ark`.
+
+3 `run:` module_import fixtures now passing:
+  1. `use_std_string.ark` — `use std::text::string` + `string::split()`
+  2. `use_qualified_call_typed.ark` — typed `string::split()` call
+  3. `use_whole_module.ark` — `use std::text` whole-module import
 
 Remaining slices 3-6 still open.
 

@@ -85,6 +85,7 @@ parse-only:stdlib_host/clock_import.ark
 parse-only:stdlib_host/random_import.ark
 run:module_import/use_std_string.ark
 run:module_import/use_qualified_call_typed.ark
+run:module_import/use_whole_module.ark
 module-run:stdlib_random/random_range.ark
 module-run:stdlib_random/random_seed.ark
 module-run:stdlib_random/shuffle.ark
