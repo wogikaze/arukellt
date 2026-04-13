@@ -67,6 +67,7 @@ graph LR
   I206["206 Interactive compiler pipeline + inline profiling"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
+  I267["267 verify-bootstrap.sh を達成判定本体へ昇格させる"]
   I284["284 CoreHIR path をデフォルトに昇格する"]
   I286["286 current-state.md の bootstrap 節を fixpoint 達成に合わせて更新する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
@@ -108,7 +109,7 @@ graph LR
   I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
-  I266["266 selfhost 完了条件を定義し文書に固定する"]
+  I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
@@ -120,11 +121,9 @@ graph LR
   I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I205["205 Docs / codebase intelligence surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
-  I267["267 verify-bootstrap.sh を達成判定本体へ昇格させる"]
+  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I489["489 Playground user-visible entrypoint wiring"]
   I057["057 Prelude 再構成と API 移行"]
-  I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
-  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I032 --> I473
   I041 --> I042
@@ -160,7 +159,7 @@ graph LR
   I153 --> I154
   I200 --> I201
   I204 --> I188
-  I253 --> I266
+  I267 --> I268
   I284 --> I285
   I437 --> I438
   I041 --> I049
@@ -181,7 +180,7 @@ graph LR
   I148 --> I158
   I188 --> I205
   I188 --> I214
-  I266 --> I267
+  I268 --> I269
   I382 --> I489
   I437 --> I489
   I438 --> I489
@@ -192,9 +191,6 @@ graph LR
   I048 --> I057
   I049 --> I057
   I052 --> I057
-  I267 --> I268
-  I266 --> I269
-  I268 --> I269
   I036 --> I037
 ```
 
@@ -260,7 +256,8 @@ graph LR
 - **204** depends on: 202, 203; blocks: 188
 - **206** depends on: 184, 185, 187; blocks: none
 - **249** depends on: none; blocks: none
-- **253** depends on: none; blocks: 266
+- **253** depends on: none; blocks: none
+- **267** depends on: 266; blocks: 268
 - **284** depends on: 281, 282, 283, 306; blocks: 285
 - **286** depends on: none; blocks: none
 - **289** depends on: 287; blocks: none
@@ -302,7 +299,7 @@ graph LR
 - **154** depends on: 153; blocks: none
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
-- **266** depends on: 253; blocks: 267, 269
+- **268** depends on: 267; blocks: 269
 - **285** depends on: 284; blocks: none
 - **438** depends on: 437; blocks: 489
 - **049** depends on: 039, 041, 042; blocks: 057
@@ -314,11 +311,9 @@ graph LR
 - **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 - **205** depends on: 185, 188; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
-- **267** depends on: 266; blocks: 268
+- **269** depends on: 266, 268; blocks: none
 - **489** depends on: 382, 437, 438, 464; blocks: none
 - **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: none
-- **268** depends on: 267; blocks: 269
-- **269** depends on: 266, 268; blocks: none
 
 ### Blocked
 

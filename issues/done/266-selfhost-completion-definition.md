@@ -1,8 +1,8 @@
 # selfhost 完了条件を定義し文書に固定する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
-**Updated**: 2026-04-13
+**Updated**: 2026-04-14
 **ID**: 266
 **Depends on**: 253
 **Track**: main
