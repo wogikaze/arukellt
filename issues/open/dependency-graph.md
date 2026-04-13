@@ -74,7 +74,6 @@ graph LR
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
   I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
-  I286["286 current-state.md の bootstrap 節を fixpoint 達成に合わせて更新する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
   I309["309 Selfhost resolver に module/import resolution を実装する"]
   I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
@@ -246,7 +245,6 @@ graph LR
 - **253** depends on: none; blocks: none
 - **268** depends on: 267; blocks: 269
 - **285** depends on: 284; blocks: none
-- **286** depends on: none; blocks: none
 - **289** depends on: 287; blocks: none
 - **309** depends on: 308; blocks: none
 - **312** depends on: 311; blocks: none
