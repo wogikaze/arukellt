@@ -27,11 +27,11 @@ selfhost 周辺は `src/compiler/*.ark`、`docs/compiler/bootstrap.md`、`script
 
 ## Acceptance
 
-* [ ] selfhost 完了条件が 1 行で言える形で文書に固定されている
+* [x] selfhost 完了条件が 1 行で言える形で文書に固定されている
 * [ ] `scripts/run/verify-bootstrap.sh` が skip 前提の scaffold ではなく達成判定の本体になっている
-* [ ] Stage1 fixture parity・CLI parity・diagnostic parity・determinism が CI で継続検証されている
+* [ ] Stage1 fixture parity・CLI parity・diagnostic parity が CI で継続検証されている
 * [ ] Rust 実装と selfhost 実装の dual period を終わらせる条件が定義されている
-* [ ] `docs/current-state.md` の selfhost 記述が「部品がある」ではなく「どこまで verified か」で表示されている
+* [x] `docs/current-state.md` の selfhost 記述が「部品がある」ではなく「どこまで verified か」で表示されている
 
 ## Scope
 

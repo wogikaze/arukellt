@@ -216,11 +216,11 @@ The v4 optimization pipeline is fully implemented and active. See [docs/compiler
 
 ## Self-Hosting Bootstrap Status
 
-> See [docs/compiler/bootstrap.md](docs/compiler/bootstrap.md) for the full
-> criteria checklist and bootstrap procedure.
+> **Completion criterion:** `scripts/run/verify-bootstrap.sh` exits 0 (no
+> SKIP) **and** `scripts/check/check-selfhost-parity.sh` exits 0.
+> See [docs/compiler/bootstrap.md](docs/compiler/bootstrap.md) for full details.
 
-The selfhost compiler lives in `src/compiler/*.ark`.
-Each stage below represents a concrete, CI-verified milestone.
+Verification status of each bootstrap stage (source: `src/compiler/*.ark`):
 
 | Stage | Description | Status |
 |-------|-------------|--------|

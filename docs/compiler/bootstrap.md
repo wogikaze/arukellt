@@ -239,8 +239,15 @@ hard-fail when the bootstrap stage has not yet been run.  When wired into
 
 ## Selfhost Completion Criteria
 
-The selfhost compiler is **complete** when **all** of the following conditions
-are satisfied simultaneously and verified by CI on every merge to `master`:
+> **Canonical one-line criterion:** The selfhost compiler is complete when
+> `scripts/run/verify-bootstrap.sh` exits 0 with all stages passing (no
+> SKIP), **and** `scripts/check/check-selfhost-parity.sh` exits 0.
+
+This is the single measurable gate for selfhost completion.  Both commands
+must succeed on the same commit; there is no manual judgement step.
+
+The criterion decomposes into these sub-conditions, all of which must hold
+simultaneously and be verified by CI on every merge to `master`:
 
 | Criterion | Description | Verification script/command |
 |-----------|-------------|----------------------------|
@@ -252,14 +259,10 @@ are satisfied simultaneously and verified by CI on every merge to `master`:
 | **Diagnostic parity** | Error message text, line/column positions, and exit codes match for all error fixtures | `scripts/check/check-selfhost-parity.sh --diag` |
 | **Determinism** | Running Stage 0 twice on the same input produces identical bytes | part of `verify-bootstrap.sh` Stage 2 |
 
-**One-line definition:** The selfhost compiler is complete when
-`scripts/run/verify-bootstrap.sh` exits 0 with all stages passing (no SKIP),
-**and** `scripts/check/check-selfhost-parity.sh` exits 0.
-
-### Current Status (Updated Automatically)
+### Current Verification Status
 
 See [docs/current-state.md — Self-Hosting Bootstrap Status](../current-state.md#self-hosting-bootstrap-status)
-for the latest stage-by-stage status. That section is the authoritative source.
+for the authoritative stage-by-stage verification status.
 
 ### What is *not* required for "complete"
 
