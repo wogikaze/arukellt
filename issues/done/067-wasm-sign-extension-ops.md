@@ -1,6 +1,6 @@
 # Wasm Sign Extension Ops: i32.extend8_s / i32.extend16_s / i64 版
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 067

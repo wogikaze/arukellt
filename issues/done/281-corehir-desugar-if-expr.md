@@ -1,6 +1,6 @@
 # CoreHIR lowering: IfExpr を制御フローに desugar する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
 **Updated**: 2026-04-13
 **ID**: 281

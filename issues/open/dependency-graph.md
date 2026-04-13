@@ -85,6 +85,13 @@ graph LR
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I487["487 Package registry resolution"]
   I490["490 pub use / pub import re-export"]
+  I491["491 491 — Playground CI performance budget enforcement"]
+  I492["492 492 — T3 tail-call: implement return_call_ref"]
+  I493["493 493 — Selfhost MIR lowering: control-flow coverage (match/loop/closure)"]
+  I494["494 494 — Selfhost MIR: SSA formation pass"]
+  I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
+  I496["496 496 — Selfhost typechecker: match exhaustiveness checking"]
+  I497["497 497 — CLI test runner: add --filter for single-test execution"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
   I052["052 std::process + std::env + std::cli: 実行環境 API"]
@@ -255,6 +262,13 @@ graph LR
 - **472** depends on: 466; blocks: none
 - **487** depends on: 039; blocks: none
 - **490** depends on: 234; blocks: none
+- **491** depends on: none; blocks: none
+- **492** depends on: none; blocks: none
+- **493** depends on: none; blocks: none
+- **494** depends on: none; blocks: none
+- **495** depends on: none; blocks: none
+- **496** depends on: none; blocks: none
+- **497** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **049** depends on: 039, 041, 042; blocks: 057
 - **052** depends on: 039, 042; blocks: 057
