@@ -23,13 +23,17 @@ impl Parser<'_> {
         }
     }
 
-    /// Parse `use std::foo::bar` or `use std::foo::{bar, baz}`.
+    /// Parse `use std::foo::bar`, `pub use std::foo::bar`, or `use std::foo::{bar, baz}`.
     ///
     /// - `use a::b::c` → `ImportKind::ModulePath`
+    /// - `pub use a::b::c` → `ImportKind::PublicModulePath`
     /// - `use a::b::c [as alias]` → `ImportKind::ModulePath` with alias
     /// - `use a::b::{c, d}` → `ImportKind::DestructureImport { names: ["c", "d"] }`
-    pub(crate) fn parse_use_import(&mut self) -> Import {
+    pub(crate) fn parse_use_import(&mut self, is_pub: bool) -> Import {
         let start = self.span();
+        if is_pub {
+            self.expect(&TokenKind::Pub);
+        }
         self.expect(&TokenKind::Use);
 
         // Parse path segments separated by ::
@@ -70,7 +74,11 @@ impl Parser<'_> {
         Import {
             module_name,
             alias,
-            kind: ImportKind::ModulePath,
+            kind: if is_pub {
+                ImportKind::PublicModulePath
+            } else {
+                ImportKind::ModulePath
+            },
             span: start.merge(self.span()),
         }
     }

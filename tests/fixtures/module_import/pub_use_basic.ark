@@ -1,0 +1,9 @@
+// Fixture: pub_use_basic.ark
+// Tests that `pub use std::text::string` is accepted by the parser.
+// This is parser-only acceptance for issue #490; resolver/typecheck re-export
+// semantics are intentionally out of scope for this fixture.
+pub use std::text::string
+
+fn main() {
+    // body intentionally empty — only parser acceptance is tested
+}

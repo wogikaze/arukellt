@@ -43,6 +43,13 @@ impl<'a> Parser<'a> {
             .unwrap_or(&TokenKind::Eof)
     }
 
+    fn peek_n(&self, n: usize) -> &TokenKind {
+        self.tokens
+            .get(self.pos + n)
+            .map(|t| &t.kind)
+            .unwrap_or(&TokenKind::Eof)
+    }
+
     fn span(&self) -> Span {
         self.tokens
             .get(self.pos)
@@ -166,7 +173,12 @@ impl<'a> Parser<'a> {
                 if !item_docs.is_empty() {
                     self.emit_doc_comment_error("doc comments on imports are not supported");
                 }
-                imports.push(self.parse_use_import());
+                imports.push(self.parse_use_import(false));
+            } else if *self.peek() == TokenKind::Pub && *self.peek_n(1) == TokenKind::Use {
+                if !item_docs.is_empty() {
+                    self.emit_doc_comment_error("doc comments on imports are not supported");
+                }
+                imports.push(self.parse_use_import(true));
             } else {
                 match self.parse_item(item_docs) {
                     Some(item) => items.push(item),

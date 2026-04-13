@@ -80,6 +80,7 @@ module-run:modules/visibility_pub_access/main.ark
 # Parser-acceptance fixtures (slice 1 of issue #039): not compiled/run yet — resolver pending
 parse-only:module_import/use_basic.ark
 parse-only:module_import/use_destructure.ark
+parse-only:module_import/pub_use_basic.ark
 # std::host::clock and std::host::random import-acceptance fixtures (#138)
 parse-only:stdlib_host/clock_import.ark
 parse-only:stdlib_host/random_import.ark

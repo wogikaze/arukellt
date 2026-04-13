@@ -296,6 +296,21 @@ mod tests {
     }
 
     #[test]
+    fn test_pub_use_module_path_import() {
+        let (module, sink) = parse_src("pub use std::text::string\nfn main() {}");
+        assert!(
+            !sink.has_errors(),
+            "unexpected errors: {:?}",
+            sink.diagnostics()
+        );
+        assert_eq!(module.imports.len(), 1);
+        let imp = &module.imports[0];
+        assert_eq!(imp.module_name, "std::text::string");
+        assert!(imp.alias.is_none());
+        assert!(matches!(imp.kind, ast::ImportKind::PublicModulePath));
+    }
+
+    #[test]
     fn test_use_destructure_import() {
         // `use std::collections::{vec, hash_map}` — destructuring import
         let (module, sink) = parse_src("use std::collections::{vec, hash_map}\nfn main() {}");

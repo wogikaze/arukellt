@@ -145,7 +145,7 @@ fn sort_imports_in_module(source: &str, module: &ast::Module) -> Option<String> 
     let mut last_import_line = None;
     for (i, line) in lines.iter().enumerate() {
         let trimmed = line.trim();
-        if trimmed.starts_with("use ") {
+        if trimmed.starts_with("use ") || trimmed.starts_with("pub use ") {
             if first_import_line.is_none() {
                 first_import_line = Some(i);
             }
@@ -213,6 +213,14 @@ fn write_import(out: &mut String, imp: &ast::Import) {
         }
         ast::ImportKind::ModulePath => {
             out.push_str("use ");
+            out.push_str(&imp.module_name);
+            if let Some(ref alias) = imp.alias {
+                out.push_str(" as ");
+                out.push_str(alias);
+            }
+        }
+        ast::ImportKind::PublicModulePath => {
+            out.push_str("pub use ");
             out.push_str(&imp.module_name);
             if let Some(ref alias) = imp.alias {
                 out.push_str(" as ");
@@ -480,11 +488,38 @@ impl<'a> Printer<'a> {
 
     fn print_import(&mut self, imp: &ast::Import) {
         self.push_indent();
-        self.out.push_str("use ");
-        self.out.push_str(&imp.module_name);
-        if let Some(alias) = &imp.alias {
-            self.out.push_str(" as ");
-            self.out.push_str(alias);
+        match &imp.kind {
+            ast::ImportKind::Simple => {
+                self.out.push_str("import ");
+                self.out.push_str(&imp.module_name);
+                if let Some(alias) = &imp.alias {
+                    self.out.push_str(" as ");
+                    self.out.push_str(alias);
+                }
+            }
+            ast::ImportKind::ModulePath => {
+                self.out.push_str("use ");
+                self.out.push_str(&imp.module_name);
+                if let Some(alias) = &imp.alias {
+                    self.out.push_str(" as ");
+                    self.out.push_str(alias);
+                }
+            }
+            ast::ImportKind::PublicModulePath => {
+                self.out.push_str("pub use ");
+                self.out.push_str(&imp.module_name);
+                if let Some(alias) = &imp.alias {
+                    self.out.push_str(" as ");
+                    self.out.push_str(alias);
+                }
+            }
+            ast::ImportKind::DestructureImport { names } => {
+                self.out.push_str("use ");
+                self.out.push_str(&imp.module_name);
+                self.out.push_str("::{");
+                self.out.push_str(&names.join(", "));
+                self.out.push('}');
+            }
         }
         self.out.push('\n');
     }

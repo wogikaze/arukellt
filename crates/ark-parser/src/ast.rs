@@ -17,6 +17,8 @@ pub enum ImportKind {
     Simple,
     /// Module-path import: `use a::b::c [as alias]`
     ModulePath,
+    /// Public module-path import: `pub use a::b::c [as alias]`
+    PublicModulePath,
     /// Destructuring import: `use a::b::{c, d, e}`
     DestructureImport {
         /// The individual names extracted from the brace list.
