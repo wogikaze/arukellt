@@ -1,8 +1,8 @@
 # verify-bootstrap.sh を達成判定本体へ昇格させる
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
-**Updated**: 2026-04-13
+**Updated**: 2026-04-14
 **ID**: 267
 **Depends on**: 266
 **Track**: main

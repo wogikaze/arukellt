@@ -7,7 +7,7 @@
 #   2  Compare sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)
 #
 # Usage:
-#   scripts/run/verify-bootstrap.sh                # all stages (skip unavailable)
+#   scripts/run/verify-bootstrap.sh                # all stages (fail on first unreached)
 #   scripts/run/verify-bootstrap.sh --stage1-only  # only Stage 0 (Rust → s1)
 #   scripts/run/verify-bootstrap.sh --stage N      # run single stage
 #   scripts/run/verify-bootstrap.sh --help
@@ -104,19 +104,7 @@ run_stage() {
     echo
 }
 
-skip_stage() {
-    local stage="$1"
-    local label="$2"
-    local reason="$3"
 
-    if [[ -n "$ONLY_STAGE" && "$ONLY_STAGE" != "$stage" ]]; then
-        return
-    fi
-
-    echo -e "${CYAN}── Stage ${stage}: ${label} ──${NC}"
-    echo -e "  ${YELLOW}SKIP${NC}  ${reason}"
-    echo
-}
 
 # ── Artifact paths ────────────────────────────────────────────────────────────
 
@@ -205,68 +193,89 @@ fi
 
 # ── Stage 1: Compile selfhost sources with arukellt-s1.wasm → s2 ─────────────
 
-if [[ -f "$S1_WASM" ]]; then
-    stage1() {
-        if ! command -v wasmtime &>/dev/null; then
-            echo "  wasmtime not found in PATH" >&2
-            return 1
-        fi
+stage1() {
+    if [[ ! -f "$S1_WASM" ]]; then
+        echo -e "  ${RED}FAIL${NC}  Cannot run Stage 1: arukellt-s1.wasm not available" >&2
+        echo "  Cause: Stage 0 did not produce a unified binary." >&2
+        echo "  Hint:  Fix Stage 0 compilation errors first, then re-run." >&2
+        return 1
+    fi
 
-        local rel_src="${MAIN_SRC#$REPO_ROOT/}"
-        local rel_out="${S2_WASM#$REPO_ROOT/}"
-        local stderr_file="${BUILD_DIR}/stage1.stderr"
-        echo -e "  Compiling main.ark → arukellt-s2.wasm (via s1)..."
-        if timeout 120 wasmtime run --dir="${REPO_ROOT}" \
-            "$S1_WASM" -- compile "$rel_src" --target wasm32-wasi-p1 \
-            -o "$rel_out" 2>"$stderr_file"; then
-            local size
-            size=$(wc -c < "$S2_WASM")
-            echo -e "  ${GREEN}OK${NC}  arukellt-s2.wasm (${size} bytes)"
-            return 0
-        else
-            echo -e "  ${RED}FAIL${NC}  main.ark did not compile with s1" >&2
-            if [[ -s "$stderr_file" ]]; then
-                sed 's/^/    /' "$stderr_file" >&2
-            fi
-            echo -e "  ${YELLOW}NOTE${NC}  Self-compilation requires features the selfhost may not yet support."
-            return 1
+    if ! command -v wasmtime &>/dev/null; then
+        echo -e "  ${RED}FAIL${NC}  wasmtime not found in PATH" >&2
+        echo "  Hint:  Install wasmtime: curl https://wasmtime.dev/install.sh -sSf | bash" >&2
+        return 1
+    fi
+
+    local rel_src="${MAIN_SRC#$REPO_ROOT/}"
+    local rel_out="${S2_WASM#$REPO_ROOT/}"
+    local stderr_file="${BUILD_DIR}/stage1.stderr"
+    echo -e "  Compiling main.ark → arukellt-s2.wasm (via s1)..."
+    if timeout 120 wasmtime run --dir="${REPO_ROOT}" \
+        "$S1_WASM" -- compile "$rel_src" --target wasm32-wasi-p1 \
+        -o "$rel_out" 2>"$stderr_file"; then
+        local size
+        size=$(wc -c < "$S2_WASM")
+        echo -e "  ${GREEN}OK${NC}  arukellt-s2.wasm (${size} bytes)"
+        return 0
+    else
+        local exit_code=$?
+        echo -e "  ${RED}FAIL${NC}  main.ark did not compile with s1 (exit ${exit_code})" >&2
+        if [[ -s "$stderr_file" ]]; then
+            echo "  stderr:" >&2
+            sed 's/^/    /' "$stderr_file" >&2
         fi
-    }
-    run_stage 1 "Compile selfhost sources (arukellt-s1.wasm)" stage1
-else
-    skip_stage 1 "Compile selfhost sources (arukellt-s1.wasm)" \
-        "arukellt-s1.wasm not available (Stage 0 did not produce a unified binary)"
-fi
+        echo -e "  ${YELLOW}NOTE${NC}  Self-compilation requires features the selfhost may not yet support."
+        return 1
+    fi
+}
+run_stage 1 "Compile selfhost sources (arukellt-s1.wasm)" stage1
 
 # ── Stage 2: Fixpoint check — sha256(s1) == sha256(s2) ───────────────────────
 
-if [[ -f "$S1_WASM" && -f "$S2_WASM" ]]; then
-    stage2() {
-        local hash1 hash2
-        hash1="$(sha256sum "$S1_WASM" | awk '{print $1}')"
-        hash2="$(sha256sum "$S2_WASM" | awk '{print $1}')"
+stage2() {
+    local missing=0
+    if [[ ! -f "$S1_WASM" ]]; then
+        echo -e "  ${RED}Missing: arukellt-s1.wasm (Stage 0 output)${NC}" >&2
+        missing=1
+    fi
+    if [[ ! -f "$S2_WASM" ]]; then
+        echo -e "  ${RED}Missing: arukellt-s2.wasm (Stage 1 output)${NC}" >&2
+        missing=1
+    fi
+    if [[ "$missing" -ne 0 ]]; then
+        echo -e "  ${RED}FAIL${NC}  Cannot run fixpoint check: prerequisite artifacts missing" >&2
+        echo "  Hint:  Fix earlier stage failures first." >&2
+        return 1
+    fi
 
-        echo "  s1: ${hash1}"
-        echo "  s2: ${hash2}"
+    local hash1 hash2
+    hash1="$(sha256sum "$S1_WASM" | awk '{print $1}')"
+    hash2="$(sha256sum "$S2_WASM" | awk '{print $1}')"
 
-        if [[ "$hash1" = "$hash2" ]]; then
-            echo -e "  ${GREEN}Fixpoint reached — binaries are identical${NC}"
-            return 0
-        else
-            echo -e "  ${RED}Fixpoint NOT reached — binaries differ${NC}"
-            echo
-            echo "  Debug steps:"
-            echo "    1. Run scripts/run/compare-outputs.sh <phase> <fixture> for each phase"
-            echo "    2. Find the first phase where outputs diverge"
-            echo "    3. Fix the selfhost source and re-run this script"
-            return 1
-        fi
-    }
-    run_stage 2 "Fixpoint check (sha256 comparison)" stage2
-else
-    skip_stage 2 "Fixpoint check (sha256 comparison)" \
-        "Requires both arukellt-s1.wasm and arukellt-s2.wasm"
-fi
+    echo "  s1: ${hash1}"
+    echo "  s2: ${hash2}"
+
+    if [[ "$hash1" = "$hash2" ]]; then
+        echo -e "  ${GREEN}Fixpoint reached — binaries are identical${NC}"
+        return 0
+    else
+        echo -e "  ${RED}Fixpoint NOT reached — binaries differ${NC}"
+        echo
+        local s1_size s2_size
+        s1_size=$(wc -c < "$S1_WASM")
+        s2_size=$(wc -c < "$S2_WASM")
+        echo "  s1 size: ${s1_size} bytes"
+        echo "  s2 size: ${s2_size} bytes"
+        echo
+        echo "  Debug steps:"
+        echo "    1. Run scripts/run/compare-outputs.sh <phase> <fixture> for each phase"
+        echo "    2. Find the first phase where outputs diverge"
+        echo "    3. Fix the selfhost source and re-run this script"
+        return 1
+    fi
+}
+run_stage 2 "Fixpoint check (sha256 comparison)" stage2
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
