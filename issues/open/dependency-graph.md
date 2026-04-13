@@ -68,7 +68,7 @@ graph LR
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
   I267["267 verify-bootstrap.sh を達成判定本体へ昇格させる"]
-  I284["284 CoreHIR path をデフォルトに昇格する"]
+  I285["285 Legacy lowering path を隔離・撤去する"]
   I286["286 current-state.md の bootstrap 節を fixpoint 達成に合わせて更新する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
   I309["309 Selfhost resolver に module/import resolution を実装する"]
@@ -78,7 +78,6 @@ graph LR
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
-  I464["464 `arukellt init` のテンプレート拡充と新規ユーザー導線整備"]
   I469["469 Extension: playground surface は repo で証明できる endpoint だけを指す"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I487["487 Package registry resolution"]
@@ -110,7 +109,6 @@ graph LR
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
   I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
-  I285["285 Legacy lowering path を隔離・撤去する"]
   I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
   I052["052 std::process + std::env + std::cli: 実行環境 API"]
@@ -160,7 +158,6 @@ graph LR
   I200 --> I201
   I204 --> I188
   I267 --> I268
-  I284 --> I285
   I437 --> I438
   I041 --> I049
   I042 --> I049
@@ -184,7 +181,6 @@ graph LR
   I382 --> I489
   I437 --> I489
   I438 --> I489
-  I464 --> I489
   I041 --> I057
   I042 --> I057
   I044 --> I057
@@ -258,7 +254,7 @@ graph LR
 - **249** depends on: none; blocks: none
 - **253** depends on: none; blocks: none
 - **267** depends on: 266; blocks: 268
-- **284** depends on: 281, 282, 283, 306; blocks: 285
+- **285** depends on: 284; blocks: none
 - **286** depends on: none; blocks: none
 - **289** depends on: 287; blocks: none
 - **309** depends on: 308; blocks: none
@@ -268,7 +264,6 @@ graph LR
 - **441** depends on: 333, 335, 340; blocks: none
 - **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
-- **464** depends on: none; blocks: 489
 - **469** depends on: 466, 468; blocks: none
 - **472** depends on: 466; blocks: none
 - **487** depends on: 039; blocks: none
@@ -300,7 +295,6 @@ graph LR
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
 - **268** depends on: 267; blocks: 269
-- **285** depends on: 284; blocks: none
 - **438** depends on: 437; blocks: 489
 - **049** depends on: 039, 041, 042; blocks: 057
 - **052** depends on: 039, 042; blocks: 057

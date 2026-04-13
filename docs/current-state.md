@@ -8,10 +8,11 @@
 
 ## Pipeline
 
-Two lowering paths are available, selected via `--mir-select`:
+The **corehir** path is the default for all CLI commands (`compile`, `build`, `run`, `check`).
+The legacy path remains available as an opt-in fallback via `--mir-select legacy`.
 
-- **legacy** (default for `compile`): `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm`
-- **corehir** (default for `check`): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
+- **corehir** (default): `Lexer → Parser → Resolver → TypeChecker → CoreHIR → MIR → Wasm`
+- **legacy** (opt-in fallback): `Lexer → Parser → Resolver → TypeChecker → MIR → Wasm`
 - Component path (v2): `... → MIR → WasmEmit → WIT generation → wasm-tools component embed/new`
 - Shared orchestration entry point: `ark-driver::Session`
 - Developer dump support: `ARUKELLT_DUMP_PHASES=parse,resolve,corehir,mir,optimized-mir,backend-plan`
