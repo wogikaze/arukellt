@@ -162,6 +162,9 @@ pub struct TypeChecker {
     /// Used to distinguish "module not found" from "symbol not found in module"
     /// when resolving `QualifiedIdent` expressions.
     pub(crate) known_modules: HashSet<String>,
+    /// Qualified names that came from non-`pub` item imports
+    /// (`use module::item`) and therefore must not resolve via plain-name fallback.
+    pub(crate) blocked_nonpub_item_qualified: HashSet<String>,
 }
 
 /// Immutable semantic model produced by type checking.
@@ -324,6 +327,7 @@ impl TypeChecker {
             checking_entry_module: false,
             entry_fn_names: HashSet::new(),
             known_modules: HashSet::new(),
+            blocked_nonpub_item_qualified: HashSet::new(),
         }
     }
 
@@ -374,6 +378,8 @@ impl TypeChecker {
         // inserts qualified names into the symbol table; here we mirror that
         // in the fn_sigs type table so type inference sees the canonical key.
         self.register_qualified_module_sigs(&program.modules);
+        self.register_nonpub_item_import_fallback_blocks(&program.modules);
+        self.register_pub_use_reexport_sigs(&program.modules);
 
         #[allow(deprecated)]
         let flat = ark_resolve::resolved_program_to_module(program);
@@ -384,6 +390,8 @@ impl TypeChecker {
             private_imported_names: self.private_imported_fns.clone(),
             entry_fn_names: self.entry_fn_names.clone(),
             loaded_module_names: self.known_modules.clone(),
+            pub_use_reexport_fn_aliases: std::collections::HashMap::new(),
+            nonpub_item_import_blocked_qualified: self.blocked_nonpub_item_qualified.clone(),
         };
         self.check_module(&resolved, sink);
     }
@@ -432,6 +440,117 @@ impl TypeChecker {
                     }
                 }
             }
+        }
+    }
+
+    fn register_nonpub_item_import_fallback_blocks(
+        &mut self,
+        modules: &[ark_resolve::LoadedModule],
+    ) {
+        let loaded_names: HashSet<&str> = modules.iter().map(|m| m.name.as_str()).collect();
+        for module in modules {
+            for import in &module.ast.imports {
+                if !matches!(import.kind, ast::ImportKind::ModulePath) {
+                    continue;
+                }
+
+                let Some((_, source_item)) = import.module_name.rsplit_once("::") else {
+                    continue;
+                };
+
+                let import_leaf = import
+                    .alias
+                    .as_deref()
+                    .unwrap_or_else(|| import.module_name.rsplit("::").next().unwrap_or(""));
+
+                // Module import path (`use a::b`) loads a module named `b` (or alias).
+                // Item import path fallback (`use a::b::item`) does not load a module
+                // under `item`; detect that shape to block cross-module fallback.
+                if loaded_names.contains(import_leaf) {
+                    continue;
+                }
+
+                let exported_name = import.alias.as_deref().unwrap_or(source_item);
+                self.blocked_nonpub_item_qualified
+                    .insert(format!("{}::{}", module.name, exported_name));
+            }
+        }
+    }
+
+    /// Register `pub use source::item` re-exports as
+    /// `reexporter_module::item` (or alias) in `fn_sigs`.
+    fn register_pub_use_reexport_sigs(&mut self, modules: &[ark_resolve::LoadedModule]) {
+        let by_name: HashMap<&str, &ark_resolve::LoadedModule> =
+            modules.iter().map(|m| (m.name.as_str(), m)).collect();
+
+        for reexporter in modules {
+            for import in &reexporter.ast.imports {
+                if !matches!(import.kind, ast::ImportKind::PublicModulePath) {
+                    continue;
+                }
+
+                let Some((source_module, source_item)) = import.module_name.rsplit_once("::")
+                else {
+                    continue;
+                };
+
+                let Some(source_loaded) = by_name.get(source_module) else {
+                    continue;
+                };
+
+                let Some(source_fn) = source_loaded.ast.items.iter().find_map(|item| match item {
+                    ast::Item::FnDef(f) if f.is_pub && f.name == source_item => Some(f),
+                    _ => None,
+                }) else {
+                    continue;
+                };
+
+                let exported_name = import.alias.as_deref().unwrap_or(source_item);
+                let qualified_key = format!("{}::{}", reexporter.name, exported_name);
+                if self.fn_sigs.contains_key(&qualified_key) {
+                    continue;
+                }
+
+                let params: Vec<crate::types::Type> = source_fn
+                    .params
+                    .iter()
+                    .map(|p| self.resolve_type_expr(&p.ty))
+                    .collect();
+                let ret = source_fn
+                    .return_type
+                    .as_ref()
+                    .map(|t| self.resolve_type_expr(t))
+                    .unwrap_or(crate::types::Type::Unit);
+
+                self.fn_sigs.insert(
+                    qualified_key.clone(),
+                    FnSig {
+                        name: qualified_key,
+                        type_params: source_fn.type_params.clone(),
+                        type_param_bounds: source_fn.type_param_bounds.clone(),
+                        params,
+                        ret,
+                    },
+                );
+            }
+        }
+    }
+
+    fn register_reexported_fn_sig_aliases(&mut self, aliases: &HashMap<String, String>) {
+        for (qualified_export, source_plain_name) in aliases {
+            if self.fn_sigs.contains_key(qualified_export) {
+                continue;
+            }
+            let Some(source_sig) = self.fn_sigs.get(source_plain_name).cloned() else {
+                continue;
+            };
+            self.fn_sigs.insert(
+                qualified_export.clone(),
+                FnSig {
+                    name: qualified_export.clone(),
+                    ..source_sig
+                },
+            );
         }
     }
 
@@ -496,6 +615,9 @@ impl TypeChecker {
         // "symbol not found in module" (E0501).
         for name in &resolved.loaded_module_names {
             self.known_modules.insert(name.clone());
+        }
+        for name in &resolved.nonpub_item_import_blocked_qualified {
+            self.blocked_nonpub_item_qualified.insert(name.clone());
         }
         // Register user-defined structs and enums in two passes to support
         // self-referential and mutually-recursive type definitions.
@@ -648,6 +770,8 @@ impl TypeChecker {
                 }
             }
         }
+
+        self.register_reexported_fn_sig_aliases(&resolved.pub_use_reexport_fn_aliases);
 
         // Type check function bodies
         for item in &resolved.module.items {
@@ -826,6 +950,104 @@ mod tests {
         assert!(
             !checker.fn_sigs.contains_key("string::internal_helper"),
             "private fn must not be registered under qualified key"
+        );
+    }
+
+    #[test]
+    fn register_pub_use_reexport_sigs_inserts_reexported_qualified_key() {
+        let span = Span::dummy();
+        let mut checker = TypeChecker::new();
+
+        let mut facade = make_loaded_module("facade", "local");
+        facade.ast.imports.push(ast::Import {
+            module_name: "source::split".to_string(),
+            alias: None,
+            kind: ast::ImportKind::PublicModulePath,
+            span,
+        });
+
+        let source = make_loaded_module("source", "split");
+        let modules = vec![facade, source];
+
+        checker.register_qualified_module_sigs(&modules);
+        checker.register_pub_use_reexport_sigs(&modules);
+
+        assert!(
+            checker.fn_sigs.contains_key("facade::split"),
+            "expected pub use re-export to register `facade::split`"
+        );
+    }
+
+    #[test]
+    fn register_pub_use_reexport_sigs_skips_non_pub_use() {
+        let span = Span::dummy();
+        let mut checker = TypeChecker::new();
+
+        let mut facade = make_loaded_module("facade", "local");
+        facade.ast.imports.push(ast::Import {
+            module_name: "source::split".to_string(),
+            alias: None,
+            kind: ast::ImportKind::ModulePath,
+            span,
+        });
+
+        let source = make_loaded_module("source", "split");
+        let modules = vec![facade, source];
+
+        checker.register_qualified_module_sigs(&modules);
+        checker.register_pub_use_reexport_sigs(&modules);
+
+        assert!(
+            !checker.fn_sigs.contains_key("facade::split"),
+            "non-pub use must not register `facade::split`"
+        );
+    }
+
+    #[test]
+    fn register_nonpub_item_import_fallback_blocks_item_import_pair() {
+        let span = Span::dummy();
+        let mut checker = TypeChecker::new();
+
+        let mut facade = make_loaded_module("facade", "local");
+        facade.ast.imports.push(ast::Import {
+            module_name: "source::split".to_string(),
+            alias: None,
+            kind: ast::ImportKind::ModulePath,
+            span,
+        });
+        let source = make_loaded_module("source", "split");
+
+        checker.register_nonpub_item_import_fallback_blocks(&[facade, source]);
+
+        assert!(
+            checker
+                .blocked_nonpub_item_qualified
+                .contains("facade::split"),
+            "non-pub item import must block `facade::split` plain-name fallback"
+        );
+    }
+
+    #[test]
+    fn register_nonpub_item_import_fallback_skips_module_import_shape() {
+        let span = Span::dummy();
+        let mut checker = TypeChecker::new();
+
+        let mut user = make_loaded_module("user", "local");
+        user.ast.imports.push(ast::Import {
+            module_name: "std::host::stdio".to_string(),
+            alias: None,
+            kind: ast::ImportKind::ModulePath,
+            span,
+        });
+        let stdio = make_loaded_module("stdio", "println");
+
+        checker.register_nonpub_item_import_fallback_blocks(&[user, stdio]);
+
+        assert!(
+            !checker
+                .blocked_nonpub_item_qualified
+                .contains("user::stdio"),
+            "module import shape must not block `user::stdio`"
         );
     }
 

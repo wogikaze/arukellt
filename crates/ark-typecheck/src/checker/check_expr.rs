@@ -873,7 +873,8 @@ impl TypeChecker {
                         params: sig.params,
                         ret: Box::new(sig.ret),
                     }
-                } else if let Some(sig) = self.fn_sigs.get(name).cloned()
+                } else if !self.blocked_nonpub_item_qualified.contains(&qualified)
+                    && let Some(sig) = self.fn_sigs.get(name).cloned()
                     && !(self.checking_entry_module
                         && self.private_imported_fns.contains(name.as_str()))
                 {
@@ -902,25 +903,16 @@ impl TypeChecker {
                     Type::Error
                 } else if self.known_modules.contains(module.as_str()) {
                     // Module is loaded but the symbol doesn't exist in it.
-                    sink.emit(
-                        Diagnostic::new(DiagnosticCode::E0501)
-                            .with_label(
-                                *span,
-                                format!(
-                                    "symbol `{}` not found in module `{}`",
-                                    name, module
-                                ),
-                            ),
-                    );
+                    sink.emit(Diagnostic::new(DiagnosticCode::E0501).with_label(
+                        *span,
+                        format!("symbol `{}` not found in module `{}`", name, module),
+                    ));
                     Type::Error
                 } else if !self.enum_defs.contains_key(module.as_str()) {
                     // Not a known module and not an enum — module not found.
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0104)
-                            .with_label(
-                                *span,
-                                format!("module `{}` not found", module),
-                            ),
+                            .with_label(*span, format!("module `{}` not found", module)),
                     );
                     Type::Error
                 } else {

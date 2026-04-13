@@ -65,12 +65,14 @@ diag:v0_constraints/no_method_call.ark
 diag:v0_constraints/no_operator_overload.ark
 module-diag:modules/circular/main.ark
 module-diag:modules/pub_private/main.ark
+module-diag:modules/pub_use_nonpub_hidden/main.ark
 module-diag:modules/use_not_found/main.ark
 module-diag:modules/visibility_enforce/main.ark
 module-run:modules/import_basic/main.ark
 module-run:modules/module_alias/main.ark
 module-run:modules/multi_import/main.ark
 module-run:modules/prelude_via_import/main.ark
+module-run:modules/pub_use_reexport_visible/main.ark
 module-run:modules/use_and_import/main.ark
 module-run:modules/use_local_module/main.ark
 module-run:modules/use_qualified_call/main.ark

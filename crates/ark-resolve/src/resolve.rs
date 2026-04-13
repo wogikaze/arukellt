@@ -54,6 +54,12 @@ pub struct ResolvedModule {
     /// Used by the type checker to distinguish "module not found" from
     /// "symbol not found in module".
     pub loaded_module_names: std::collections::HashSet<String>,
+    /// Re-exported fn aliases from `pub use source::item` represented as
+    /// `qualified_exported_name -> source_plain_fn_name`.
+    pub pub_use_reexport_fn_aliases: std::collections::HashMap<String, String>,
+    /// Qualified names from non-`pub` item imports (`use source::item`) that
+    /// must not resolve via plain-name fallback.
+    pub nonpub_item_import_blocked_qualified: std::collections::HashSet<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -237,11 +243,61 @@ pub fn resolved_program_entry(program: ResolvedProgram) -> ResolvedModule {
     }
 
     // Collect loaded module qualifier names.
-    let loaded_module_names: std::collections::HashSet<String> = program
+    let loaded_module_names: std::collections::HashSet<String> =
+        program.modules.iter().map(|m| m.name.clone()).collect();
+
+    let loaded_names: std::collections::HashSet<&str> =
+        program.modules.iter().map(|m| m.name.as_str()).collect();
+    let loaded_by_name: std::collections::HashMap<&str, &LoadedModule> = program
         .modules
         .iter()
-        .map(|m| m.name.clone())
+        .map(|m| (m.name.as_str(), m))
         .collect();
+
+    let mut pub_use_reexport_fn_aliases = std::collections::HashMap::new();
+    let mut nonpub_item_import_blocked_qualified = std::collections::HashSet::new();
+
+    for module in &program.modules {
+        for import in &module.ast.imports {
+            let Some((source_module, source_item)) = import.module_name.rsplit_once("::") else {
+                continue;
+            };
+
+            let import_leaf = import
+                .alias
+                .as_deref()
+                .unwrap_or_else(|| import.module_name.rsplit("::").next().unwrap_or(""));
+            let is_module_import_shape = loaded_names.contains(import_leaf);
+
+            match import.kind {
+                ast::ImportKind::PublicModulePath if !is_module_import_shape => {
+                    let Some(source_loaded) = loaded_by_name.get(source_module) else {
+                        continue;
+                    };
+
+                    let is_pub_fn = source_loaded.ast.items.iter().any(|item| {
+                        matches!(
+                            item,
+                            ast::Item::FnDef(f) if f.is_pub && f.name == source_item
+                        )
+                    });
+                    if is_pub_fn {
+                        let exported_name = import.alias.as_deref().unwrap_or(source_item);
+                        pub_use_reexport_fn_aliases.insert(
+                            format!("{}::{}", module.name, exported_name),
+                            source_item.to_string(),
+                        );
+                    }
+                }
+                ast::ImportKind::ModulePath if !is_module_import_shape => {
+                    let exported_name = import.alias.as_deref().unwrap_or(source_item);
+                    nonpub_item_import_blocked_qualified
+                        .insert(format!("{}::{}", module.name, exported_name));
+                }
+                _ => {}
+            }
+        }
+    }
 
     ResolvedModule {
         module: resolved_program_to_module(&program),
@@ -250,6 +306,8 @@ pub fn resolved_program_entry(program: ResolvedProgram) -> ResolvedModule {
         private_imported_names,
         entry_fn_names,
         loaded_module_names,
+        pub_use_reexport_fn_aliases,
+        nonpub_item_import_blocked_qualified,
     }
 }
 

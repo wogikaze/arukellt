@@ -1,0 +1,7 @@
+import facade
+use std::host::stdio
+
+fn main() {
+    let v = facade::answer()
+    stdio::println(i32_to_string(v))
+}

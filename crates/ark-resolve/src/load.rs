@@ -320,16 +320,40 @@ fn load_single_import(
             if emit_target_incompatible_import(import, target, sink) {
                 return;
             }
-            let import_path =
-                resolve_import_path(current_path, &import.module_name, std_root, sink, target);
-            let effective_name = import.alias.clone().unwrap_or_else(|| {
-                import
-                    .module_name
+            let mut target_module_name = import.module_name.clone();
+            let mut item_import_fallback = false;
+            let mut import_path =
+                resolve_import_path(current_path, &target_module_name, std_root, sink, target);
+
+            // `use a::b::item` / `pub use a::b::item` item-import fallback:
+            // if `a::b::item` is not a loadable module path, try loading `a::b`.
+            if !import_path.exists()
+                && let Some((parent_module, _item_name)) = target_module_name.rsplit_once("::")
+            {
+                let parent_path =
+                    resolve_import_path(current_path, parent_module, std_root, sink, target);
+                if parent_path.exists() {
+                    target_module_name = parent_module.to_string();
+                    import_path = parent_path;
+                    item_import_fallback = true;
+                }
+            }
+
+            let effective_name = if item_import_fallback {
+                target_module_name
                     .rsplit("::")
                     .next()
-                    .unwrap_or(&import.module_name)
+                    .unwrap_or(&target_module_name)
                     .to_string()
-            });
+            } else {
+                import.alias.clone().unwrap_or_else(|| {
+                    target_module_name
+                        .rsplit("::")
+                        .next()
+                        .unwrap_or(&target_module_name)
+                        .to_string()
+                })
+            };
             load_module_recursive(
                 effective_name,
                 import_path,
