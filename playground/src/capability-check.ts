@@ -354,9 +354,10 @@ export function capabilityWarningsToDiagnostics(
     ],
     notes: [w.capability.reason],
     suggestion:
-      "This code can be parsed and type-checked, but cannot be " +
-      "executed in the playground. Use a local Arukellt installation " +
-      "to run programs that require host capabilities.",
+      "This code can be parsed, but cannot be " +
+      "executed in the playground. Type-checking is not yet available " +
+      "in the browser (tracked by issue 472). Use a local Arukellt " +
+      "installation to run programs that require host capabilities.",
   }));
 }
 
