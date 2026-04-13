@@ -180,3 +180,45 @@ Verification:
 - `string::split(s, sep)` typechecks and runs without error when `use std::text::string` in scope
 
 Remaining slices 4-6 still open.
+
+## Slice 3 continued — Error diagnostics for module-qualified calls
+
+**E0501 diagnostic + negative fixtures — DONE**
+
+Changes merged:
+- `crates/ark-diagnostics/src/codes.rs`: Added `E0501` ("symbol not found in module",
+  typecheck phase). Registered in `DIAGNOSTIC_CODES` array and `spec()` match.
+- `crates/ark-resolve/src/resolve.rs`: Added `loaded_module_names: HashSet<String>` field
+  to `ResolvedModule`. `resolved_program_entry` populates it from the program's loaded
+  modules. This propagates qualifier names to the typechecker.
+- `crates/ark-resolve/src/analyze.rs`: Default `loaded_module_names` to empty for
+  single-module resolution path.
+- `crates/ark-typecheck/src/checker/mod.rs`: Added `known_modules: HashSet<String>` field
+  to `TypeChecker`. `check_module` propagates `loaded_module_names` into `known_modules`.
+  `register_qualified_module_sigs` also inserts each module name into `known_modules`.
+- `crates/ark-typecheck/src/checker/check_expr.rs`: `QualifiedIdent` synthesis now
+  differentiates errors: if module qualifier is in `known_modules` but symbol not found →
+  E0501; if module qualifier is unknown and not an enum → E0104 "module not found".
+- `tests/fixtures/module_import/use_destructure_typed.ark` + `.expected`: Positive
+  `run:` fixture using `use std::text::{string}` destructure import with type-checked call.
+- `tests/fixtures/module_import/use_module_not_found.ark` + `.diag`: Negative `diag:`
+  fixture triggering E0104 for unknown module qualifier.
+- `tests/fixtures/module_import/use_symbol_not_found.ark` + `.diag`: Negative `diag:`
+  fixture triggering E0501 for known module with unknown symbol.
+- `tests/fixtures/modules/pub_private/main.diag`: Updated expected diagnostic from
+  E0100 to E0501 (more precise: private fn in known module → symbol not found).
+- `tests/fixtures/selfhost/resolver_visibility_error/main.diag`: Same update.
+- `docs/compiler/error-codes.md`: Added E0501 section and summary table entry.
+- `docs/current-state.md`: Added E0501 to diagnostics list.
+- `docs/data/project-state.toml`: Added E0501 entry.
+- Unit tests (2 new in `checker::tests`):
+  - `qualified_ident_unknown_module_emits_e0104`
+  - `qualified_ident_unknown_symbol_emits_e0501`
+
+Verification:
+- `cargo test -p ark-typecheck`: 12/12 passed (10 pre-existing + 2 new)
+- `cargo test -p ark-resolve`: 23/23 passed
+- `cargo test -p arukellt -- fixture_harness`: fixture_harness passed (639 pass, 0 fail)
+- `bash scripts/run/verify-harness.sh --quick`: 17/19 passed (2 pre-existing unrelated)
+
+Remaining slices 4-6 still open.

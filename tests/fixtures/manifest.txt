@@ -86,6 +86,9 @@ parse-only:stdlib_host/random_import.ark
 run:module_import/use_std_string.ark
 run:module_import/use_qualified_call_typed.ark
 run:module_import/use_whole_module.ark
+run:module_import/use_destructure_typed.ark
+diag:module_import/use_module_not_found.ark
+diag:module_import/use_symbol_not_found.ark
 module-run:stdlib_random/random_range.ark
 module-run:stdlib_random/random_seed.ark
 module-run:stdlib_random/shuffle.ark

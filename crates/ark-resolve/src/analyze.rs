@@ -42,6 +42,7 @@ pub(crate) fn analyze_module(module: ast::Module, sink: &mut DiagnosticSink) -> 
         global_scope,
         private_imported_names: std::collections::HashSet::new(),
         entry_fn_names: std::collections::HashSet::new(),
+        loaded_module_names: std::collections::HashSet::new(),
     }
 }
 

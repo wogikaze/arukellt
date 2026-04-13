@@ -50,6 +50,10 @@ pub struct ResolvedModule {
     /// Function/method names defined in the entry module (not imported).
     /// Used to scope visibility enforcement to only entry-module code.
     pub entry_fn_names: std::collections::HashSet<String>,
+    /// Qualifier names of loaded modules (e.g. "string", "text").
+    /// Used by the type checker to distinguish "module not found" from
+    /// "symbol not found in module".
+    pub loaded_module_names: std::collections::HashSet<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -232,12 +236,20 @@ pub fn resolved_program_entry(program: ResolvedProgram) -> ResolvedModule {
         }
     }
 
+    // Collect loaded module qualifier names.
+    let loaded_module_names: std::collections::HashSet<String> = program
+        .modules
+        .iter()
+        .map(|m| m.name.clone())
+        .collect();
+
     ResolvedModule {
         module: resolved_program_to_module(&program),
         symbols: program.symbols,
         global_scope: program.global_scope,
         private_imported_names,
         entry_fn_names,
+        loaded_module_names,
     }
 }
 

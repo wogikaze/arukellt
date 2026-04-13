@@ -65,6 +65,8 @@ pub enum DiagnosticCode {
     // E05xx: Target / capability compatibility errors
     /// Module requires a different target (e.g. wasm32-wasi-p2 only)
     E0500,
+    /// Symbol not found in module
+    E0501,
 
     // W0xxx: Warnings / validation gate
     W0001,
@@ -114,6 +116,7 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::E0401,
     DiagnosticCode::E0402,
     DiagnosticCode::E0500,
+    DiagnosticCode::E0501,
     DiagnosticCode::W0001,
     DiagnosticCode::W0002,
     DiagnosticCode::W0003,
@@ -362,6 +365,13 @@ impl DiagnosticCode {
                 message: "module requires a different target",
                 severity: Severity::Error,
                 phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0501 => DiagnosticSpec {
+                code: self,
+                id: "E0501",
+                message: "symbol not found in module",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::TypeCheck,
             },
             Self::W0001 => DiagnosticSpec {
                 code: self,

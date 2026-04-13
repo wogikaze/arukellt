@@ -900,6 +900,29 @@ impl TypeChecker {
                 } else if let Some(diag) = moved_qualified_diagnostic(module, name, *span) {
                     sink.emit(diag);
                     Type::Error
+                } else if self.known_modules.contains(module.as_str()) {
+                    // Module is loaded but the symbol doesn't exist in it.
+                    sink.emit(
+                        Diagnostic::new(DiagnosticCode::E0501)
+                            .with_label(
+                                *span,
+                                format!(
+                                    "symbol `{}` not found in module `{}`",
+                                    name, module
+                                ),
+                            ),
+                    );
+                    Type::Error
+                } else if !self.enum_defs.contains_key(module.as_str()) {
+                    // Not a known module and not an enum — module not found.
+                    sink.emit(
+                        Diagnostic::new(DiagnosticCode::E0104)
+                            .with_label(
+                                *span,
+                                format!("module `{}` not found", module),
+                            ),
+                    );
+                    Type::Error
                 } else {
                     sink.emit(
                         Diagnostic::new(DiagnosticCode::E0100)

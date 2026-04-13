@@ -124,6 +124,12 @@ severity = "error"
 phase = "resolve"
 summary = "module requires a different target (e.g. `std::host::sockets` on T1 emits E0500; use `--target wasm32-wasi-p2`)"
 
+[[diagnostics]]
+code = "E0501"
+severity = "error"
+phase = "typecheck"
+summary = "symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module)"
+
 [component]
 status = "Implemented in v2 on `wasm32-wasi-p2` for supported WIT-compatible exports"
 summary = "Only user `pub fn` with WIT-compatible types are exported"

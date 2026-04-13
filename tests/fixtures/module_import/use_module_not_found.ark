@@ -1,0 +1,8 @@
+// Fixture: use_module_not_found.ark
+// Negative test for issue #039: calling a function on a module that was never
+// imported should produce E0104 (module not found).
+use std::text::string
+
+fn main() {
+    let x = nonexistent_mod::some_fn("test")
+}

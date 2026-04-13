@@ -542,6 +542,21 @@ Switch to a target that supports the module, or remove the import.
 
 ---
 
+### E0501 — symbol not found in module
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | typecheck |
+| **Message** | symbol not found in module |
+
+A qualified call references a function or symbol that does not exist in the
+imported module. For example, `string::nonexistent(...)` will trigger this
+error if `nonexistent` is not a public function in `std::text::string`.
+Check the spelling or verify the function is exported by the module.
+
+---
+
 ## Warnings — `W0xxx`
 
 ### W0001 — possible unintended sharing of reference type
@@ -721,6 +736,7 @@ one, please file a bug report.
 | E0401 | error | backend-validate | canonical ABI not implemented for compound type |
 | E0402 | error | backend-validate | WIT resource type not implemented in current version |
 | E0500 | error | resolve | module requires a different target |
+| E0501 | error | typecheck | symbol not found in module |
 | W0001 | warning | typecheck | possible unintended sharing of reference type |
 | W0002 | warning | target | deprecated target alias |
 | W0003 | warning | resolve | ambiguous import |

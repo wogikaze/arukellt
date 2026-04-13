@@ -1,0 +1,8 @@
+// Fixture: use_symbol_not_found.ark
+// Negative test for issue #039: calling a function that does not exist in a
+// loaded module should produce E0501 (symbol not found in module).
+use std::text::string
+
+fn main() {
+    let x = string::nonexistent_function("test")
+}

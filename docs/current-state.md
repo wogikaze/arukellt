@@ -91,6 +91,7 @@ Linear memory is retained only for WASI I/O marshaling (1 page, 64 KB).
 - `W0004`: generated Wasm failed backend validation (error, `backend-validate`)
 - `W0005`: non-exportable function skipped from component exports (warning, `component`)
 - `E0500`: module requires a different target (e.g. `std::host::sockets` on T1 emits E0500; use `--target wasm32-wasi-p2`) (error, `resolve`)
+- `E0501`: symbol not found in module (e.g. `string::nonexistent_fn()` when the function is not exported by the imported module) (error, `typecheck`)
 - Structured diagnostic snapshots are available for tests/docs via `ARUKELLT_DUMP_DIAGNOSTICS=1`
 <!-- END GENERATED:CURRENT_STATE_DIAGNOSTICS -->
 

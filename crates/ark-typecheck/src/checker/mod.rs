@@ -158,6 +158,10 @@ pub struct TypeChecker {
     /// Function names defined in the entry module (not imported). Used to determine
     /// when to enforce cross-module visibility.
     pub(crate) entry_fn_names: HashSet<String>,
+    /// Module qualifier names that have been loaded via `use std::...`.
+    /// Used to distinguish "module not found" from "symbol not found in module"
+    /// when resolving `QualifiedIdent` expressions.
+    pub(crate) known_modules: HashSet<String>,
 }
 
 /// Immutable semantic model produced by type checking.
@@ -319,6 +323,7 @@ impl TypeChecker {
             private_imported_fns: HashSet::new(),
             checking_entry_module: false,
             entry_fn_names: HashSet::new(),
+            known_modules: HashSet::new(),
         }
     }
 
@@ -378,6 +383,7 @@ impl TypeChecker {
             global_scope: program.global_scope,
             private_imported_names: self.private_imported_fns.clone(),
             entry_fn_names: self.entry_fn_names.clone(),
+            loaded_module_names: self.known_modules.clone(),
         };
         self.check_module(&resolved, sink);
     }
@@ -393,6 +399,7 @@ impl TypeChecker {
     fn register_qualified_module_sigs(&mut self, modules: &[ark_resolve::LoadedModule]) {
         for loaded in modules {
             let qualifier = &loaded.name;
+            self.known_modules.insert(qualifier.clone());
             for item in &loaded.ast.items {
                 if let ast::Item::FnDef(f) = item {
                     if !f.is_pub {
@@ -483,6 +490,12 @@ impl TypeChecker {
         // Propagate entry-module function names for visibility scoping.
         for name in &resolved.entry_fn_names {
             self.entry_fn_names.insert(name.clone());
+        }
+        // Propagate loaded module qualifier names so that QualifiedIdent
+        // diagnostics can distinguish "module not found" (E0104) from
+        // "symbol not found in module" (E0501).
+        for name in &resolved.loaded_module_names {
+            self.known_modules.insert(name.clone());
         }
         // Register user-defined structs and enums in two passes to support
         // self-referential and mutually-recursive type definitions.
@@ -851,6 +864,70 @@ mod tests {
             matches!(ty, crate::types::Type::Function { .. }),
             "expected Function type, got {:?}",
             ty
+        );
+    }
+
+    /// Slice-3 continuation (#039): `QualifiedIdent` with an unknown module
+    /// emits E0104 "module not found".
+    #[test]
+    fn qualified_ident_unknown_module_emits_e0104() {
+        use ark_diagnostics::Span;
+        let mut checker = TypeChecker::new();
+        // Register "string" as a known module but NOT "nonexistent"
+        checker.known_modules.insert("string".to_string());
+
+        let mut env = TypeEnv::new();
+        let mut sink = DiagnosticSink::new();
+        let expr = ast::Expr::QualifiedIdent {
+            module: "nonexistent".to_string(),
+            name: "foo".to_string(),
+            span: Span::dummy(),
+        };
+        let ty = checker.synthesize_expr(&expr, &mut env, &mut sink);
+        assert_eq!(ty, crate::types::Type::Error);
+        assert_eq!(sink.diagnostics().len(), 1);
+        assert_eq!(
+            sink.diagnostics()[0].code,
+            DiagnosticCode::E0104,
+            "expected E0104 for unknown module, got {:?}",
+            sink.diagnostics()[0].code
+        );
+    }
+
+    /// Slice-3 continuation (#039): `QualifiedIdent` with a known module but
+    /// unknown symbol emits E0501 "symbol not found in module".
+    #[test]
+    fn qualified_ident_unknown_symbol_emits_e0501() {
+        use ark_diagnostics::Span;
+        let mut checker = TypeChecker::new();
+        // Register "string" as a known module with one fn
+        checker.known_modules.insert("string".to_string());
+        checker.fn_sigs.insert(
+            "string::split".to_string(),
+            FnSig {
+                name: "string::split".to_string(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![crate::types::Type::String, crate::types::Type::String],
+                ret: crate::types::Type::I32,
+            },
+        );
+
+        let mut env = TypeEnv::new();
+        let mut sink = DiagnosticSink::new();
+        let expr = ast::Expr::QualifiedIdent {
+            module: "string".to_string(),
+            name: "nonexistent_fn".to_string(),
+            span: Span::dummy(),
+        };
+        let ty = checker.synthesize_expr(&expr, &mut env, &mut sink);
+        assert_eq!(ty, crate::types::Type::Error);
+        assert_eq!(sink.diagnostics().len(), 1);
+        assert_eq!(
+            sink.diagnostics()[0].code,
+            DiagnosticCode::E0501,
+            "expected E0501 for unknown symbol in known module, got {:?}",
+            sink.diagnostics()[0].code
         );
     }
 }
