@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 249 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 265 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 47 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -242,12 +242,28 @@ Expected output: `42`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `abs` | `(i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
+| `abs_i32` | `(i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
+| `clamp` | `(i32, i32, i32) -> i32` | `std::core::cmp` | `stable` | `builtin` | no | - | - |
+| `cmp` | `(i32, i32) -> Ordering` | `std::core::cmp` | `stable` | `builtin` | no | - | - |
+| `cmp_i32` | `(i32, i32) -> Ordering` | `std::core` | `stable` | `builtin` | no | - | - |
+| `combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
 | `hash_combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `hash_i32` | `(i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
+| `hash_string` | `(String) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
+| `max` | `(i32, i32) -> i32` | `std::core::cmp` | `stable` | `builtin` | no | - | - |
+| `max` | `(i32, i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
+| `max_i32` | `(i32, i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
+| `min` | `(i32, i32) -> i32` | `std::core::cmp` | `stable` | `builtin` | no | - | - |
+| `min` | `(i32, i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
+| `min_i32` | `(i32, i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
+| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
+| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
+| `sqrt` | `(f64) -> f64` | `std::core::math` | `stable` | `builtin` | no | - | - |
 
 ## Csv
 
@@ -706,6 +722,8 @@ Expected output: `hello world`
 | `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
 | `abs` | `(i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_abs` | - |
+| `abs` | `(i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
+| `abs_i32` | `(i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
 | `approx_eq` | `(f64, f64, f64) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
@@ -747,10 +765,14 @@ Expected output: `hello world`
 | `char_at` | `(String, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_at` | - |
 | `char_to_string` | `(char) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_char_to_string` | - |
 | `chars` | `(String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | - | - |
+| `clamp` | `(i32, i32, i32) -> i32` | `std::core::cmp` | `stable` | `builtin` | no | - | - |
 | `clamp_i32` | `(i32, i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
 | `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `clone` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_clone` | - |
 | `clone_f64` | `(Vec<f64>) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `cmp` | `(i32, i32) -> Ordering` | `std::core::cmp` | `stable` | `builtin` | no | - | - |
+| `cmp_i32` | `(i32, i32) -> Ordering` | `std::core` | `stable` | `builtin` | no | - | - |
+| `combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `concat` | `(String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
 | `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
 | `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
@@ -801,6 +823,7 @@ Expected output: `hello world`
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
 | `hash_combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `hash_i32` | `(i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
+| `hash_string` | `(String) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_get` | `(Vec<i32>, i32) -> i32` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashmap_new` | `() -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
@@ -845,8 +868,14 @@ Expected output: `hello world`
 | `map_option_i32_i32` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` | - |
 | `map_result_i32_i32` | `(Result<i32, E>, fn(i32) -> i32) -> Result<i32, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `max` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_max` | - |
+| `max` | `(i32, i32) -> i32` | `std::core::cmp` | `stable` | `builtin` | no | - | - |
+| `max` | `(i32, i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
+| `max_i32` | `(i32, i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `max_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `min` | `(i32, i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_min` | - |
+| `min` | `(i32, i32) -> i32` | `std::core::cmp` | `stable` | `builtin` | no | - | - |
+| `min` | `(i32, i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
+| `min_i32` | `(i32, i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
 | `next_f64` | `() -> f64` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
@@ -877,6 +906,8 @@ Expected output: `hello world`
 | `random_i32` | `() -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a cryptographically-secure random i32 value. |
 | `random_i32_range` | `(i32, i32) -> i32` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_i32` | Return a random i32 in the half-open range [lo, hi). Both bounds must be valid i32 values with lo < … |
 | `range_contains` | `(Range, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
+| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `std::core` | `stable` | `builtin` | no | - | - |
+| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
@@ -905,6 +936,7 @@ Expected output: `hello world`
 | `sorted_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `split` | `(String, String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_split` | - |
 | `sqrt` | `(f64) -> f64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sqrt` | - |
+| `sqrt` | `(f64) -> f64` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
 | `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |

@@ -1397,6 +1397,30 @@ params = ["Range"]
 returns = "i32"
 
 [[functions]]
+name = "range_inclusive_new"
+module = "std::core"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "RangeInclusive"
+
+[[functions]]
+name = "range_inclusive_contains"
+module = "std::core"
+doc_category = "core"
+stability = "stable"
+params = ["RangeInclusive", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "cmp_i32"
+module = "std::core"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "Ordering"
+
+[[functions]]
 name = "error_message"
 module = "std::core::error"
 doc_category = "core"
@@ -1405,11 +1429,115 @@ params = ["Error"]
 returns = "String"
 
 [[functions]]
+name = "cmp"
+module = "std::core::cmp"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "Ordering"
+
+[[functions]]
+name = "min"
+module = "std::core::cmp"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "max"
+module = "std::core::cmp"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "clamp"
+module = "std::core::cmp"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "abs"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32"]
+returns = "i32"
+
+[[functions]]
+name = "min"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "max"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "sqrt"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["f64"]
+returns = "f64"
+
+[[functions]]
+name = "abs_i32"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32"]
+returns = "i32"
+
+[[functions]]
+name = "min_i32"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
+name = "max_i32"
+module = "std::core::math"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
+returns = "i32"
+
+[[functions]]
 name = "hash_i32"
 module = "std::core::hash"
 doc_category = "core"
 stability = "stable"
 params = ["i32"]
+returns = "i32"
+
+[[functions]]
+name = "hash_string"
+module = "std::core::hash"
+doc_category = "core"
+stability = "stable"
+params = ["String"]
+returns = "i32"
+
+[[functions]]
+name = "combine"
+module = "std::core::hash"
+doc_category = "core"
+stability = "stable"
+params = ["i32", "i32"]
 returns = "i32"
 
 [[functions]]

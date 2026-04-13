@@ -1,7 +1,7 @@
 //! Fundamental types and helpers shared across the standard library.
 //!
-//! The current manifest-backed surface focuses on range construction and
-//! membership checks.
+//! This module exposes foundational types (`Ordering`, `Range`) and helpers
+//! that other stdlib modules build upon.
 
 /// Ordering relationship between two values.
 pub enum Ordering {
@@ -47,6 +47,17 @@ pub fn range_inclusive_new(start: i32, end: i32) -> RangeInclusive {
 
 pub fn range_inclusive_contains(r: RangeInclusive, value: i32) -> bool {
     value >= r.start && value <= r.end
+}
+
+/// Compares two integers and returns their ordering relationship.
+pub fn cmp_i32(a: i32, b: i32) -> Ordering {
+    if a < b {
+        Ordering::Less
+    } else if a > b {
+        Ordering::Greater
+    } else {
+        Ordering::Equal
+    }
 }
 
 pub fn identity(x: i32) -> i32 {

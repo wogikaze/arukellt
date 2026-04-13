@@ -2,9 +2,9 @@ use std::core::math
 use std::host::stdio
 
 fn main() {
-    stdio::println(i32_to_string(math::abs(-42)))
-    stdio::println(i32_to_string(math::min(10, 3)))
-    stdio::println(i32_to_string(math::max(10, 3)))
+    stdio::println(i32_to_string(math::abs_i32(-42)))
+    stdio::println(i32_to_string(math::min_i32(10, 3)))
+    stdio::println(i32_to_string(math::max_i32(10, 3)))
     stdio::println(i32_to_string(math::clamp(15, 0, 10)))
     stdio::println(i32_to_string(math::clamp(-5, 0, 10)))
     stdio::println(i32_to_string(math::pow_i32(2, 10)))

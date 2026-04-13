@@ -1,8 +1,8 @@
 # std::core: Error 型、ordering、range、cmp、math、convert、hash
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-14
 **ID**: 041
 **Depends on**: 039
 **Track**: stdlib
@@ -19,6 +19,12 @@
 - File was located at `issues/done/041-std-core.md` — incorrect directory for an open issue.
 
 **Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
+
+## Completion — 2026-04-14
+
+- Implemented `std::core` foundational surface in source (`Error`, `Ordering`, `Range`, cmp/math/hash helpers).
+- Added/updated stdlib fixtures under `tests/fixtures/stdlib_core/` including wildcard import coverage.
+- Updated `std/manifest.toml` registrations for the expanded `std::core` API.
 
 ## Summary
 

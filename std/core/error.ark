@@ -3,29 +3,37 @@
 /// Shared error variants used across stdlib modules.
 pub enum Error {
     InvalidArgument(String),
-    IndexOutOfBounds(i32),
-    ParseError(String),
+    IndexOutOfBounds { index: i32, len: i32 },
+    ParseError { kind: String, input: String },
+    Utf8Error,
     IoError(String),
     NotFound(String),
     AlreadyExists(String),
     PermissionDenied(String),
     Timeout,
     WasmError(String),
-    Custom(String),
+    ComponentError(String),
 }
 
 /// Converts an `Error` value into a human-readable message.
 pub fn error_message(e: Error) -> String {
     match e {
         Error::InvalidArgument(msg) => __intrinsic_concat("InvalidArgument: ", msg),
-        Error::IndexOutOfBounds(idx) => __intrinsic_concat("IndexOutOfBounds: ", __intrinsic_i32_to_string(idx)),
-        Error::ParseError(msg) => __intrinsic_concat("ParseError: ", msg),
+        Error::IndexOutOfBounds { index, len } => {
+            let with_index = __intrinsic_concat("IndexOutOfBounds: index=", __intrinsic_i32_to_string(index))
+            __intrinsic_concat(__intrinsic_concat(with_index, " len="), __intrinsic_i32_to_string(len))
+        },
+        Error::ParseError { kind, input } => {
+            let head = __intrinsic_concat("ParseError: ", kind)
+            __intrinsic_concat(__intrinsic_concat(head, " input="), input)
+        },
+        Error::Utf8Error => "Utf8Error",
         Error::IoError(msg) => __intrinsic_concat("IoError: ", msg),
         Error::NotFound(msg) => __intrinsic_concat("NotFound: ", msg),
         Error::AlreadyExists(msg) => __intrinsic_concat("AlreadyExists: ", msg),
         Error::PermissionDenied(msg) => __intrinsic_concat("PermissionDenied: ", msg),
         Error::Timeout => "Timeout",
         Error::WasmError(msg) => __intrinsic_concat("WasmError: ", msg),
-        Error::Custom(msg) => msg,
+        Error::ComponentError(msg) => __intrinsic_concat("ComponentError: ", msg),
     }
 }

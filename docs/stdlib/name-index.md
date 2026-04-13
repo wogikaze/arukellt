@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 301
+- **Canonical names:** 317
 - **Historical/deprecated names:** 3
-- **Total entries:** 304
+- **Total entries:** 320
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -23,6 +23,8 @@ Current public API names, sorted alphabetically.
 |------|--------|-----------|----------|
 | `abort` | `std::host::process` | `stable` | Host Process |
 | `abs` | `prelude` | `stable` | Math |
+| `abs` | `std::core::math` | `stable` | Core |
+| `abs_i32` | `std::core::math` | `stable` | Core |
 | `any_i32` | `prelude` | `stable` | Collections |
 | `approx_eq` | `std::signal` | `stable` | Signal |
 | `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
@@ -70,10 +72,14 @@ Current public API names, sorted alphabetically.
 | `char_at` | `prelude` | `stable` | String |
 | `char_to_string` | `prelude` | `stable` | Conversion |
 | `chars` | `std::text` | `stable` | Text |
+| `clamp` | `std::core::cmp` | `stable` | Core |
 | `clamp_i32` | `prelude` | `stable` | Math |
 | `clear` | `prelude` | `stable` | Collections |
 | `clone` | `prelude` | `stable` | String |
 | `clone_f64` | `std::signal` | `stable` | Signal |
+| `cmp` | `std::core::cmp` | `stable` | Core |
+| `cmp_i32` | `std::core` | `stable` | Core |
+| `combine` | `std::core::hash` | `stable` | Core |
 | `component_model_version` | `std::component` | `experimental` | Component |
 | `concat` | `prelude` | `stable` | String |
 | `connect` | `std::host::sockets` | `provisional` | Host Sockets |
@@ -129,6 +135,7 @@ Current public API names, sorted alphabetically.
 | `has_flag` | `std::host::env` | `stable` | Host Env |
 | `hash_combine` | `std::core::hash` | `stable` | Core |
 | `hash_i32` | `std::core::hash` | `stable` | Core |
+| `hash_string` | `std::core::hash` | `stable` | Core |
 | `hashmap_contains` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get` | `std::collections::hash` | `stable` | Collections |
 | `HashMap_i32_i32_contains_key` | `prelude` | `stable` | Collections |
@@ -184,10 +191,16 @@ Current public API names, sorted alphabetically.
 | `map_result_i32_i32` | `prelude` | `stable` | Option Result |
 | `map_String_String` | `prelude` | `stable` | Collections |
 | `max` | `prelude` | `stable` | Math |
+| `max` | `std::core::cmp` | `stable` | Core |
+| `max` | `std::core::math` | `stable` | Core |
+| `max_i32` | `std::core::math` | `stable` | Core |
 | `max_i32` | `std::seq` | `stable` | Seq |
 | `memory_copy` | `std::wasm` | `experimental` | Wasm |
 | `memory_fill` | `std::wasm` | `experimental` | Wasm |
 | `min` | `prelude` | `stable` | Math |
+| `min` | `std::core::cmp` | `stable` | Core |
+| `min` | `std::core::math` | `stable` | Core |
+| `min_i32` | `std::core::math` | `stable` | Core |
 | `min_i32` | `std::seq` | `stable` | Seq |
 | `monotonic_now` | `std::host::clock` | `stable` | Host Clock |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
@@ -218,6 +231,8 @@ Current public API names, sorted alphabetically.
 | `random_i32` | `std::host::random` | `stable` | Host Random |
 | `random_i32_range` | `std::host::random` | `stable` | Host Random |
 | `range_contains` | `std::core` | `stable` | Core |
+| `range_inclusive_contains` | `std::core` | `stable` | Core |
+| `range_inclusive_new` | `std::core` | `stable` | Core |
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
 | `read_to_string` | `std::host::fs` | `stable` | Host Fs |
@@ -259,6 +274,7 @@ Current public API names, sorted alphabetically.
 | `sorted_map_new` | `std::collections::ordered` | `stable` | Collections |
 | `split` | `prelude` | `stable` | String |
 | `sqrt` | `prelude` | `stable` | Math |
+| `sqrt` | `std::core::math` | `stable` | Core |
 | `starts_with` | `prelude` | `stable` | String |
 | `String_from` | `prelude` | `stable` | String |
 | `string_from_bytes` | `std::bytes` | `stable` | Bytes |
@@ -345,6 +361,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 |------|--------|--------|---------------------|
 | `abort` | ✅ `stable` | `std::host::process` | Host Process |
 | `abs` | ✅ `stable` | `prelude` | Math |
+| `abs` | ✅ `stable` | `std::core::math` | Core |
+| `abs_i32` | ✅ `stable` | `std::core::math` | Core |
 | `any_i32` | ✅ `stable` | `prelude` | Collections |
 | `approx_eq` | ✅ `stable` | `std::signal` | Signal |
 | `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
@@ -392,10 +410,14 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `char_at` | ✅ `stable` | `prelude` | String |
 | `char_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `chars` | ✅ `stable` | `std::text` | Text |
+| `clamp` | ✅ `stable` | `std::core::cmp` | Core |
 | `clamp_i32` | ✅ `stable` | `prelude` | Math |
 | `clear` | ✅ `stable` | `prelude` | Collections |
 | `clone` | ✅ `stable` | `prelude` | String |
 | `clone_f64` | ✅ `stable` | `std::signal` | Signal |
+| `cmp` | ✅ `stable` | `std::core::cmp` | Core |
+| `cmp_i32` | ✅ `stable` | `std::core` | Core |
+| `combine` | ✅ `stable` | `std::core::hash` | Core |
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
 | `concat` | ✅ `stable` | `prelude` | String |
 | `connect` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
@@ -452,6 +474,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `has_flag` | ✅ `stable` | `std::host::env` | Host Env |
 | `hash_combine` | ✅ `stable` | `std::core::hash` | Core |
 | `hash_i32` | ✅ `stable` | `std::core::hash` | Core |
+| `hash_string` | ✅ `stable` | `std::core::hash` | Core |
 | `hashmap_contains` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_get` | ✅ `stable` | `std::collections::hash` | Collections |
 | `HashMap_i32_i32_contains_key` | ✅ `stable` | `prelude` | Collections |
@@ -507,10 +530,16 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `map_result_i32_i32` | ✅ `stable` | `prelude` | Option Result |
 | `map_String_String` | ✅ `stable` | `prelude` | Collections |
 | `max` | ✅ `stable` | `prelude` | Math |
+| `max` | ✅ `stable` | `std::core::cmp` | Core |
+| `max` | ✅ `stable` | `std::core::math` | Core |
+| `max_i32` | ✅ `stable` | `std::core::math` | Core |
 | `max_i32` | ✅ `stable` | `std::seq` | Seq |
 | `memory_copy` | ✅ `experimental` | `std::wasm` | Wasm |
 | `memory_fill` | ✅ `experimental` | `std::wasm` | Wasm |
 | `min` | ✅ `stable` | `prelude` | Math |
+| `min` | ✅ `stable` | `std::core::cmp` | Core |
+| `min` | ✅ `stable` | `std::core::math` | Core |
+| `min_i32` | ✅ `stable` | `std::core::math` | Core |
 | `min_i32` | ✅ `stable` | `std::seq` | Seq |
 | `monotonic_now` | ✅ `stable` | `std::host::clock` | Host Clock |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
@@ -541,6 +570,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `random_i32` | ✅ `stable` | `std::host::random` | Host Random |
 | `random_i32_range` | ✅ `stable` | `std::host::random` | Host Random |
 | `range_contains` | ✅ `stable` | `std::core` | Core |
+| `range_inclusive_contains` | ✅ `stable` | `std::core` | Core |
+| `range_inclusive_new` | ✅ `stable` | `std::core` | Core |
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read_to_string` | ✅ `stable` | `std::host::fs` | Host Fs |
@@ -582,6 +613,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `sorted_map_new` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `split` | ✅ `stable` | `prelude` | String |
 | `sqrt` | ✅ `stable` | `prelude` | Math |
+| `sqrt` | ✅ `stable` | `std::core::math` | Core |
 | `starts_with` | ✅ `stable` | `prelude` | String |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `string_from_bytes` | ✅ `stable` | `std::bytes` | Bytes |

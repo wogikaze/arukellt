@@ -1,3 +1,4 @@
 InvalidArgument: bad input
 Timeout
-something went wrong
+IndexOutOfBounds: index=7 len=3
+ComponentError: something went wrong

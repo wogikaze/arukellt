@@ -38,13 +38,13 @@ let len = range_len(r)  // 10
 ## `std::core`
 
 - Source: [`../../../std/core/mod.ark`](../../../std/core/mod.ark)
-- Manifest-backed functions: 3
-- Stability: stable 3
+- Manifest-backed functions: 6
+- Stability: stable 6
 
 Fundamental types and helpers shared across the standard library.
 
-The current manifest-backed surface focuses on range construction and
-membership checks.
+This module exposes foundational types (`Ordering`, `Range`) and helpers
+that other stdlib modules build upon.
 
 ### Public Types
 
@@ -61,6 +61,9 @@ membership checks.
 | `range_new` | `(i32, i32) -> Range` | `stable` | Builds a half-open range [start, end). |
 | `range_contains` | `(Range, i32) -> bool` | `stable` | Returns true when value lies inside the half-open range. |
 | `range_len` | `(Range) -> i32` | `stable` | Returns the non-negative length of the half-open range. |
+| `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `stable` | - |
+| `range_inclusive_contains` | `(RangeInclusive, i32) -> bool` | `stable` | - |
+| `cmp_i32` | `(i32, i32) -> Ordering` | `stable` | Compares two integers and returns their ordering relationship. |
 
 ## `std::core::error`
 
@@ -85,8 +88,8 @@ Shared error types for manifest-backed stdlib modules.
 ## `std::core::hash`
 
 - Source: [`../../../std/core/hash.ark`](../../../std/core/hash.ark)
-- Manifest-backed functions: 2
-- Stability: stable 2
+- Manifest-backed functions: 4
+- Stability: stable 4
 
 Small hashing helpers used by the current collection implementations.
 
@@ -95,4 +98,6 @@ Small hashing helpers used by the current collection implementations.
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `hash_i32` | `(i32) -> i32` | `stable` | Hashes an i32 into a stable non-negative integer. |
+| `hash_string` | `(String) -> i32` | `stable` | Hashes a string into a stable non-negative integer. |
+| `combine` | `(i32, i32) -> i32` | `stable` | - |
 | `hash_combine` | `(i32, i32) -> i32` | `stable` | - |

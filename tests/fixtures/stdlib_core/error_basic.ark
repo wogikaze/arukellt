@@ -10,7 +10,11 @@ fn main() {
     let msg2 = error::error_message(e2)
     stdio::println(msg2)
 
-    let e3 = Error::Custom("something went wrong")
+    let e3 = Error::IndexOutOfBounds { index: 7, len: 3 }
     let msg3 = error::error_message(e3)
     stdio::println(msg3)
+
+    let e4 = Error::ComponentError("something went wrong")
+    let msg4 = error::error_message(e4)
+    stdio::println(msg4)
 }
