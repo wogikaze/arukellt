@@ -1,8 +1,8 @@
 # `arukellt init` のテンプレート拡充と新規ユーザー導線整備
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-13
+**Updated**: 2026-04-14
 **ID**: 464
 **Depends on**: none
 **Track**: cli, dx

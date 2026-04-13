@@ -107,6 +107,9 @@ enum Commands {
         /// Project template to use
         #[arg(long, value_name = "TEMPLATE", default_value = "minimal")]
         template: InitTemplate,
+        /// List available project templates
+        #[arg(long)]
+        list_templates: bool,
     },
     /// Build the project in the current directory (requires ark.toml)
     Build {
@@ -297,8 +300,12 @@ fn main() {
                 json,
             );
         }
-        Commands::Init { path, template } => {
-            commands::cmd_init(path, template);
+        Commands::Init { path, template, list_templates } => {
+            if list_templates {
+                commands::cmd_list_templates();
+            } else {
+                commands::cmd_init(path, template);
+            }
         }
         Commands::Fmt { files, check } => {
             commands::cmd_fmt(files, check);

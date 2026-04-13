@@ -110,7 +110,7 @@ The `arukellt` binary exposes the following subcommands:
 | `arukellt lint <file>` | Run static analysis lints |
 | `arukellt targets` | List supported compilation targets |
 | `arukellt analyze` | Wasm binary analysis utilities |
-| `arukellt init [dir]` | Initialize a new Arukellt project |
+| `arukellt init [dir]` | Initialize a new Arukellt project (`--template minimal\|cli\|with-tests\|wasi-host`, `--list-templates`) |
 | `arukellt script` | Run scripts defined in `ark.toml` |
 | `arukellt doc <symbol>` | Look up stdlib documentation for a symbol or module |
 | `arukellt lsp` | Start the Language Server Protocol server |

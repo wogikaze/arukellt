@@ -197,6 +197,13 @@ fn main() {
     }
 }
 
+pub(crate) fn cmd_list_templates() {
+    println!("minimal    - Minimal Hello World project (default)");
+    println!("cli        - CLI tool with argument parsing");
+    println!("with-tests - Project with test functions");
+    println!("wasi-host  - WASI host API usage example (wasm32-wasi-p2)");
+}
+
 fn write_init_files(
     manifest_path: &std::path::Path,
     manifest_content: &str,

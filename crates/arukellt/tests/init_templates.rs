@@ -302,3 +302,30 @@ fn init_fails_with_invalid_template() {
         "arukellt init --template invalid_template_name should fail with clap error"
     );
 }
+
+// --- --list-templates ---
+
+#[test]
+fn init_list_templates_outputs_all_templates() {
+    let output = Command::new(arukellt_bin())
+        .args(["init", "--list-templates"])
+        .output()
+        .expect("arukellt init --list-templates failed to spawn");
+
+    assert!(
+        output.status.success(),
+        "arukellt init --list-templates should succeed"
+    );
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("minimal"), "should list minimal template");
+    assert!(stdout.contains("cli"), "should list cli template");
+    assert!(
+        stdout.contains("with-tests"),
+        "should list with-tests template"
+    );
+    assert!(
+        stdout.contains("wasi-host"),
+        "should list wasi-host template"
+    );
+}
