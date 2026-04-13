@@ -356,6 +356,25 @@ pub fn lower_if_exprs(module: &mut MirModule) {
     }
 }
 
+/// Desugar all `Operand::LoopExpr` nodes in a single MIR function into
+/// `MirStmt::WhileStmt` + temporary-local sequences.
+///
+/// This is the lowering-time counterpart of the optimisation-time desugar
+/// pass.  Running it at lowering time means the MIR handed to the backend
+/// is already free of `LoopExpr` nodes, satisfying `is_backend_legal_module`.
+pub fn lower_loop_expr(func: &mut MirFunction) {
+    let fn_return_types: std::collections::HashMap<String, ark_typecheck::types::Type> =
+        std::collections::HashMap::new();
+    crate::opt::desugar::desugar_loop_exprs(func, &fn_return_types);
+}
+
+/// Apply [`lower_loop_expr`] to every function in a module.
+pub fn lower_loop_exprs(module: &mut MirModule) {
+    for func in &mut module.functions {
+        lower_loop_expr(func);
+    }
+}
+
 pub fn lower_corehir_with_fallback(
     core_hir: &Program,
     module: &ast::Module,
@@ -367,6 +386,7 @@ pub fn lower_corehir_with_fallback(
         Ok(_) | Err(_) => lower_corehir_via_legacy(module, checker, sink),
     };
     lower_if_exprs(&mut mir);
+    lower_loop_exprs(&mut mir);
     Ok(mir)
 }
 
@@ -1146,7 +1166,10 @@ mod tests {
             }],
             blocks: vec![BasicBlock {
                 id: BlockId(0),
-                stmts: vec![MirStmt::Assign(Place::Local(LocalId(0)), Rvalue::Use(nested))],
+                stmts: vec![MirStmt::Assign(
+                    Place::Local(LocalId(0)),
+                    Rvalue::Use(nested),
+                )],
                 terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
                 source: default_block_source(),
             }],
@@ -1208,15 +1231,163 @@ mod tests {
         lower_if_expr(&mut func);
 
         // LoopExpr should still be present (not desugared)
-        let has_loop = func.blocks[0].stmts.iter().any(|s| {
-            matches!(
-                s,
-                MirStmt::Assign(_, Rvalue::Use(Operand::LoopExpr { .. }))
-            )
-        });
+        let has_loop = func.blocks[0]
+            .stmts
+            .iter()
+            .any(|s| matches!(s, MirStmt::Assign(_, Rvalue::Use(Operand::LoopExpr { .. }))));
+        assert!(has_loop, "LoopExpr must be preserved by lower_if_expr");
+    }
+
+    fn make_loop_expr_function() -> MirFunction {
+        // fn counter() -> i32 { loop { init=0, body=[while cond { ... break }], result=x } }
+        MirFunction {
+            id: FnId(2),
+            name: "counter".to_string(),
+            instance: InstanceKey::simple("counter"),
+            params: vec![],
+            return_ty: Type::I32,
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: Some("result".to_string()),
+                ty: Type::I32,
+            }],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![MirStmt::Assign(
+                    Place::Local(LocalId(0)),
+                    Rvalue::Use(Operand::LoopExpr {
+                        init: Box::new(Operand::ConstI32(0)),
+                        body: vec![MirStmt::WhileStmt {
+                            cond: Operand::ConstBool(true),
+                            body: vec![MirStmt::Break],
+                        }],
+                        result: Box::new(Operand::ConstI32(42)),
+                    }),
+                )],
+                terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
+                source: default_block_source(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: default_function_source(),
+            is_exported: false,
+        }
+    }
+
+    #[test]
+    fn lower_loop_expr_removes_loopexpr_operand() {
+        let mut func = make_loop_expr_function();
+        // Before: function contains LoopExpr (backend-illegal)
+        let has_loop_before = func.blocks[0]
+            .stmts
+            .iter()
+            .any(|s| matches!(s, MirStmt::Assign(_, Rvalue::Use(Operand::LoopExpr { .. }))));
+        assert!(has_loop_before, "pre-condition: LoopExpr must be present");
+
+        lower_loop_expr(&mut func);
+
+        // After: no LoopExpr operands remain
+        let has_loop_after = func.blocks[0]
+            .stmts
+            .iter()
+            .any(|s| matches!(s, MirStmt::Assign(_, Rvalue::Use(Operand::LoopExpr { .. }))));
+        assert!(!has_loop_after, "LoopExpr must be desugared away");
+
+        // A WhileStmt should be present (from the loop body)
+        let has_while = func.blocks[0]
+            .stmts
+            .iter()
+            .any(|s| matches!(s, MirStmt::WhileStmt { .. }));
+        assert!(has_while, "WhileStmt must be present after desugaring");
+    }
+
+    #[test]
+    fn lower_loop_exprs_produces_backend_legal_module() {
+        let func = make_loop_expr_function();
+        let mut module = MirModule::new();
+        module.functions.push(func);
+        module.entry_fn = Some(FnId(2));
+
+        // Before lowering: backend-illegal due to LoopExpr
         assert!(
-            has_loop,
-            "LoopExpr must be preserved by lower_if_expr"
+            !is_backend_legal_module(&module),
+            "pre-condition: module must be backend-illegal"
+        );
+
+        lower_loop_exprs(&mut module);
+
+        // After lowering: backend-legal (LoopExpr removed)
+        assert!(
+            is_backend_legal_module(&module),
+            "module must be backend-legal after lower_loop_exprs"
+        );
+    }
+
+    #[test]
+    fn lower_loop_expr_preserves_if_and_try() {
+        // Ensure IfExpr and TryExpr are NOT desugared by lower_loop_expr
+        let mut func = MirFunction {
+            id: FnId(1),
+            name: "mixed_if".to_string(),
+            instance: InstanceKey::simple("mixed_if"),
+            params: vec![],
+            return_ty: Type::I32,
+            locals: vec![MirLocal {
+                id: LocalId(0),
+                name: Some("x".to_string()),
+                ty: Type::I32,
+            }],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![MirStmt::Assign(
+                    Place::Local(LocalId(0)),
+                    Rvalue::Use(Operand::IfExpr {
+                        cond: Box::new(Operand::ConstBool(true)),
+                        then_body: vec![],
+                        then_result: Some(Box::new(Operand::ConstI32(1))),
+                        else_body: vec![],
+                        else_result: Some(Box::new(Operand::ConstI32(2))),
+                    }),
+                )],
+                terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0))))),
+                source: default_block_source(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: default_function_source(),
+            is_exported: false,
+        };
+
+        lower_loop_expr(&mut func);
+
+        // IfExpr should still be present (not desugared by loop pass)
+        let has_if = func.blocks[0]
+            .stmts
+            .iter()
+            .any(|s| matches!(s, MirStmt::Assign(_, Rvalue::Use(Operand::IfExpr { .. }))));
+        assert!(has_if, "IfExpr must be preserved by lower_loop_expr");
+    }
+
+    #[test]
+    fn lower_combined_if_then_loop_produces_legal_module() {
+        // Module with both IfExpr and LoopExpr — both passes needed
+        let mut module = MirModule::new();
+        module.functions.push(make_if_expr_function());
+        module.functions.push(make_loop_expr_function());
+        module.entry_fn = Some(FnId(1));
+
+        assert!(!is_backend_legal_module(&module));
+
+        lower_if_exprs(&mut module);
+        lower_loop_exprs(&mut module);
+
+        assert!(
+            is_backend_legal_module(&module),
+            "combined if+loop lowering must produce backend-legal module"
         );
     }
 }

@@ -1,8 +1,8 @@
 # CoreHIR lowering: LoopExpr を制御フローに desugar する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-04-13
+**Updated**: 2026-04-14
 **ID**: 282
 **Depends on**: 281
 **Track**: corehir
