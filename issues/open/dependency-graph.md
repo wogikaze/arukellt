@@ -63,7 +63,6 @@ graph LR
   I153["153 横断検証: bit-exact Wasm 再現ビルドゲートと決定性ルール"]
   I156["156 T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化"]
   I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
-  I160["160 160: セルフホスト必要 stdlib チェックリストの確認"]
   I170["170 v5 Migration guide"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
   I195["195 Partial execution preview + local semantic insight"]
@@ -236,7 +235,6 @@ graph LR
 - **153** depends on: none; blocks: 154
 - **156** depends on: none; blocks: none
 - **157** depends on: none; blocks: none
-- **160** depends on: none; blocks: none
 - **170** depends on: 165, 166, 169; blocks: none
 - **194** depends on: 193; blocks: none
 - **195** depends on: none; blocks: none

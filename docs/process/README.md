@@ -31,7 +31,7 @@
 | [roadmap-v4.md](roadmap-v4.md) | v4: 最適化 (4 軸定量目標) | 状態: 未着手 — v3 完了後に着手可能 |
 | [roadmap-v5.md](roadmap-v5.md) | v5: セルフホスト | 状態: 未着手 — v4 完了後に着手可能 |
 | [roadmap.md](roadmap.md) | Arukellt v1–v5 ロードマップ概要 | Current state source of truth: 実装の現在地と open work はまず docs/current-state.md と issues/open/index.md を参照してください。 |
-| [selfhosting-stdlib-checklist.md](selfhosting-stdlib-checklist.md) | Self-Hosting Stdlib Checklist | Tracks every stdlib function the Arukellt compiler needs to self-host. |
+| [selfhosting-stdlib-checklist.md](selfhosting-stdlib-checklist.md) | Selfhosting Stdlib Checklist (Verified) | Last verified: 2026-04-14 |
 | [snapshot-baseline-policy.md](snapshot-baseline-policy.md) | Snapshot vs Baseline Policy | This document defines the responsibilities and update workflows for |
 | [v0-completion-report.md](v0-completion-report.md) | Archived v0 completion report | この文書は過去の設計・進捗レポートです。現在の実装確認には使わないでください。 |
 | [v0-scope.md](v0-scope.md) | v0 スコープ定義 | arukellt v0 は「LLM フレンドリな言語」の最小限の実装。 |
