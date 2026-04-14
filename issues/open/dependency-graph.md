@@ -11,18 +11,15 @@ graph LR
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
-  I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
   I070["070 Wasm GC i31ref: 小整数 unboxed scalar 最適化"]
   I072["072 Wasm Multi-Value: ブロック / ループの複数値返却フル活用"]
   I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I083["083 MIR: ループ展開 (Loop Unrolling) パス"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
-  I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
@@ -99,18 +96,15 @@ graph LR
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
-- **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
 - **070** depends on: none; blocks: none
 - **072** depends on: none; blocks: none
 - **073** depends on: none; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476
-- **083** depends on: 080; blocks: none
 - **094** depends on: none; blocks: none
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
-- **108** depends on: 091, 092, 088, 089; blocks: none
 - **118** depends on: 117; blocks: none
 - **120** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126

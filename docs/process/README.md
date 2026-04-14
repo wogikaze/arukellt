@@ -38,4 +38,4 @@
 | [v0-status.md](v0-status.md) | Archived v0 status | この文書は過去の詳細 status メモです。現在の実装確認には使わないでください。 |
 | [v1-non-goals.md](v1-non-goals.md) | v1 Non-Goals | Archive / current-first note: |
 | [v1-status.md](v1-status.md) | V1 Completion Report | Historical report: this page records the v1 exit state as it stood on 2026-03-27. |
-| [wasm-size-reduction.md](wasm-size-reduction.md) | Wasm Binary Size Reduction Tracking | Status: active |
+| [wasm-size-reduction.md](wasm-size-reduction.md) | Wasm Binary Size Reduction Tracking | Status: achieved |
