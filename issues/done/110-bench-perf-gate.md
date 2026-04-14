@@ -38,3 +38,17 @@ roadmap-v4.md §6 item 8 および §7 で明示的に要求されている。
 ## 参照
 
 - roadmap-v4.md §6 item 8, §7, §8
+
+## Closed — 2026-04-14
+
+**Commit**: see bench(perf-gate) commit
+
+**Changes**:
+- `scripts/check/perf-gate.sh`: fixed path to benchmark_runner.py (`scripts/util/` not `scripts/`)
+- `scripts/update-baselines.sh`: created, executable, supports `--dry-run`
+- `tests/baselines/perf/`: directory with baselines.json (5 benchmarks), current.json, hello-wasm-size.json
+
+**Verification**:
+- `verify-harness.sh --quick`: 19/19 passed ✓
+- `scripts/update-baselines.sh --dry-run`: exits 0 ✓
+- `verify-harness.sh --perf-gate`: outputs CI-friendly regression messages ✓

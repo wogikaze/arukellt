@@ -21,7 +21,7 @@ for arg in "$@"; do
     esac
 done
 
-exec python3 "$ROOT/scripts/benchmark_runner.py" \
+exec python3 "$ROOT/scripts/util/benchmark_runner.py" \
     --mode "$MODE" \
     --baseline "$ROOT/tests/baselines/perf/baselines.json" \
     --output-json "$ROOT/tests/baselines/perf/current.json" \
