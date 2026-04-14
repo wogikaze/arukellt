@@ -34,7 +34,7 @@ The legacy path remains available as an opt-in fallback via `--mir-select legacy
 
 - Unit tests: current count is verified by `cargo test --workspace --exclude ark-llvm`
 - Fixture harness: 641 passed, 0 failed, 28 skipped (manifest-driven)
-- Fixture manifest: 669 entries
+- Fixture manifest: 733 entries
 - Wasm validation is a hard error (W0004)
 - Verification entry point: `bash scripts/run/verify-harness.sh (fast local gate; use --full for full local verification)` — **19/19 checks pass**
 <!-- END GENERATED:CURRENT_STATE_TEST_HEALTH -->

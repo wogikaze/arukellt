@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 505
+- **Canonical names:** 511
 - **Historical/deprecated names:** 3
-- **Total entries:** 508
+- **Total entries:** 514
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -131,6 +131,7 @@ Current public API names, sorted alphabetically.
 | `cmp_i32` | `std::core` | `stable` | Core |
 | `combine` | `std::core::hash` | `stable` | Core |
 | `component_model_version` | `std::component` | `experimental` | Component |
+| `components` | `std::path` | `stable` | Path |
 | `concat` | `prelude` | `stable` | String |
 | `concat` | `std::text` | `stable` | Text |
 | `connect` | `std::host::sockets` | `provisional` | Host Sockets |
@@ -179,6 +180,7 @@ Current public API names, sorted alphabetically.
 | `eq` | `prelude` | `stable` | String |
 | `err` | `prelude` | `stable` | Option Result |
 | `error_message` | `std::core::error` | `stable` | Core |
+| `exists` | `std::fs` | `stable` | Fs |
 | `exit` | `std::host::process` | `stable` | Host Process |
 | `exit` | `std::process` | `stable` | Process |
 | `expect` | `prelude` | `stable` | Option Result |
@@ -338,6 +340,7 @@ Current public API names, sorted alphabetically.
 | `min_i32` | `std::seq` | `stable` | Seq |
 | `monotonic_now` | `std::host::clock` | `stable` | Host Clock |
 | `next_f64` | `std::host::random` | `stable` | Host Random |
+| `normalize` | `std::path` | `stable` | Path |
 | `now_ms` | `std::host::clock` | `stable` | Host Clock |
 | `ok` | `prelude` | `stable` | Option Result |
 | `ok_or` | `prelude` | `stable` | Option Result |
@@ -382,6 +385,7 @@ Current public API names, sorted alphabetically.
 | `range_new` | `std::core` | `stable` | Core |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
 | `read_stdin_line` | `std::io` | `stable` | Io |
+| `read_string` | `std::fs` | `stable` | Fs |
 | `read_to_string` | `std::host::fs` | `stable` | Host Fs |
 | `read_u16_le` | `std::bytes` | `stable` | Bytes |
 | `read_u32_be` | `std::bytes` | `stable` | Bytes |
@@ -442,6 +446,7 @@ Current public API names, sorted alphabetically.
 | `stderr` | `std::io` | `stable` | Io |
 | `stdin` | `std::io` | `stable` | Io |
 | `stdout` | `std::io` | `stable` | Io |
+| `stem` | `std::path` | `stable` | Path |
 | `String_from` | `prelude` | `stable` | String |
 | `string_from_bytes` | `std::bytes` | `stable` | Bytes |
 | `String_new` | `prelude` | `stable` | String |
@@ -518,6 +523,7 @@ Current public API names, sorted alphabetically.
 | `with_extension` | `std::path` | `stable` | Path |
 | `write_all` | `std::io` | `stable` | Io |
 | `write_bytes` | `std::host::fs` | `stable` | Host Fs |
+| `write_string` | `std::fs` | `stable` | Fs |
 | `write_string` | `std::host::fs` | `stable` | Host Fs |
 | `write_string` | `std::io` | `stable` | Io |
 | `writer_flush` | `std::io` | `stable` | Io |
@@ -657,6 +663,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `cmp_i32` | ✅ `stable` | `std::core` | Core |
 | `combine` | ✅ `stable` | `std::core::hash` | Core |
 | `component_model_version` | ✅ `experimental` | `std::component` | Component |
+| `components` | ✅ `stable` | `std::path` | Path |
 | `concat` | ✅ `stable` | `prelude` | String |
 | `concat` | ✅ `stable` | `std::text` | Text |
 | `connect` | ✅ `provisional` | `std::host::sockets` | Host Sockets |
@@ -705,6 +712,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `eq` | ✅ `stable` | `prelude` | String |
 | `err` | ✅ `stable` | `prelude` | Option Result |
 | `error_message` | ✅ `stable` | `std::core::error` | Core |
+| `exists` | ✅ `stable` | `std::fs` | Fs |
 | `exit` | ✅ `stable` | `std::host::process` | Host Process |
 | `exit` | ✅ `stable` | `std::process` | Process |
 | `expect` | ✅ `stable` | `prelude` | Option Result |
@@ -865,6 +873,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `min_i32` | ✅ `stable` | `std::seq` | Seq |
 | `monotonic_now` | ✅ `stable` | `std::host::clock` | Host Clock |
 | `next_f64` | ✅ `stable` | `std::host::random` | Host Random |
+| `normalize` | ✅ `stable` | `std::path` | Path |
 | `now_ms` | ✅ `stable` | `std::host::clock` | Host Clock |
 | `ok` | ✅ `stable` | `prelude` | Option Result |
 | `ok_or` | ✅ `stable` | `prelude` | Option Result |
@@ -909,6 +918,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_stdin_line` | ✅ `stable` | `std::io` | Io |
+| `read_string` | ✅ `stable` | `std::fs` | Fs |
 | `read_to_string` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `read_u16_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u32_be` | ✅ `stable` | `std::bytes` | Bytes |
@@ -969,6 +979,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `stderr` | ✅ `stable` | `std::io` | Io |
 | `stdin` | ✅ `stable` | `std::io` | Io |
 | `stdout` | ✅ `stable` | `std::io` | Io |
+| `stem` | ✅ `stable` | `std::path` | Path |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `string_from_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `String_new` | ✅ `stable` | `prelude` | String |
@@ -1047,6 +1058,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `with_extension` | ✅ `stable` | `std::path` | Path |
 | `write_all` | ✅ `stable` | `std::io` | Io |
 | `write_bytes` | ✅ `stable` | `std::host::fs` | Host Fs |
+| `write_string` | ✅ `stable` | `std::fs` | Fs |
 | `write_string` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::io` | Io |
 | `writer_flush` | ✅ `stable` | `std::io` | Io |

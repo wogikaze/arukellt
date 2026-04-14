@@ -1,7 +1,7 @@
 # 496 — Selfhost typechecker: match exhaustiveness checking
 
 **Track:** selfhost
-**Status:** open
+**Status:** done
 **Created:** 2026-04-14
 **Updated:** 2026-04-14
 **Source:** audit — issues/done/210-selfhost-typechecker-typed-fns.md "Out of scope (deferred)"
@@ -26,10 +26,10 @@ No open issue tracks this.
 
 ## Acceptance
 
-- [ ] Selfhost typechecker reports a diagnostic when a match is non-exhaustive
-- [ ] Selfhost typechecker accepts exhaustive matches without false positives
-- [ ] At least one positive and one negative fixture exercise exhaustiveness
-- [ ] `cargo test` passes
+- [x] Selfhost typechecker reports a diagnostic when a match is non-exhaustive
+- [x] Selfhost typechecker accepts exhaustive matches without false positives
+- [x] At least one positive and one negative fixture exercise exhaustiveness
+- [x] `cargo test` passes
 
 ## Required verification
 

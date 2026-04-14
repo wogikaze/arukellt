@@ -76,6 +76,76 @@ pub fn parent(p: String) -> String {
     }
 }
 
+/// Returns the file stem (the file name without the final extension).
+///
+/// Examples:
+///   stem("hello.txt")    -> "hello"
+///   stem("foo.tar.gz")   -> "foo.tar"
+///   stem("noext")        -> "noext"
+///   stem(".hidden")      -> ".hidden"   (leading dot is not an extension)
+pub fn stem(p: String) -> String {
+    let name = file_name(p)
+    let dot_idx = last_index_of(name, ".")
+    if dot_idx <= 0 {
+        name
+    } else {
+        slice(name, 0, dot_idx)
+    }
+}
+
+/// Resolves `.` and `..` components and collapses redundant `/` separators.
+///
+/// Examples:
+///   normalize("/foo/./bar/../baz")  -> "/foo/baz"
+///   normalize("a/b/../c")          -> "a/c"
+///   normalize("/foo//bar")         -> "/foo/bar"
+pub fn normalize(p: String) -> String {
+    let parts: Vec<String> = __intrinsic_split(p, "/")
+    let out: Vec<String> = __intrinsic_Vec_new_String()
+    let n = len(parts)
+    let mut i = 0
+    while i < n {
+        let part = get_unchecked(parts, i)
+        if eq(part, ".") || text::is_empty(part) {
+            // skip current dir markers and empty segments from // or leading /
+        } else if eq(part, "..") {
+            if len(out) > 0 {
+                let _ = pop(out)
+            }
+        } else {
+            push(out, part)
+        }
+        i = i + 1
+    }
+    let joined = __intrinsic_join(out, "/")
+    if is_absolute(p) {
+        concat("/", joined)
+    } else {
+        joined
+    }
+}
+
+/// Returns the non-empty path segments split by `/`.
+///
+/// Examples:
+///   components("/usr/local/bin")  -> ["usr", "local", "bin"]
+///   components("a/b/c")          -> ["a", "b", "c"]
+///   components("")               -> []
+pub fn components(p: String) -> Vec<String> {
+    let raw: Vec<String> = __intrinsic_split(p, "/")
+    let out: Vec<String> = __intrinsic_Vec_new_String()
+    let n = len(raw)
+    let mut i = 0
+    while i < n {
+        let part = get_unchecked(raw, i)
+        if !text::is_empty(part) {
+            push(out, part)
+        }
+        i = i + 1
+    }
+    out
+}
+
 pub fn last_index_of(s: String, needle: String) -> i32 {
     let n = len(s)
     let nlen = len(needle)

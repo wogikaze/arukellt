@@ -1,6 +1,6 @@
 # std::path + std::fs: パス操作とファイル I/O
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 049

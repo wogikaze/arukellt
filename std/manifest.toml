@@ -2222,6 +2222,69 @@ stability = "stable"
 params = ["String"]
 returns = "bool"
 
+[[functions]]
+name = "stem"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "String"
+doc = "Returns the file stem (file name without final extension). E.g. stem(\"hello.txt\") -> \"hello\"."
+
+[[functions]]
+name = "normalize"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "String"
+doc = "Resolves `.` and `..` components and collapses redundant `/` separators."
+
+[[functions]]
+name = "components"
+module = "std::path"
+doc_category = "path"
+stability = "stable"
+params = ["String"]
+returns = "Vec<String>"
+doc = "Returns the non-empty path segments as a vector. E.g. components(\"/usr/bin\") -> [\"usr\", \"bin\"]."
+
+# === std::fs ===
+
+[[functions]]
+name = "read_string"
+module = "std::fs"
+doc_category = "fs"
+stability = "stable"
+params = ["String"]
+returns = "Result<String, String>"
+intrinsic = "__intrinsic_fs_read_file"
+doc = "Read the entire contents of a file into a UTF-8 string."
+errors = "Returns Err if the file does not exist, permission is denied, or content is not valid UTF-8."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "write_string"
+module = "std::fs"
+doc_category = "fs"
+stability = "stable"
+params = ["String", "String"]
+returns = "Result<(), String>"
+intrinsic = "__intrinsic_fs_write_file"
+doc = "Write a UTF-8 string to a file, creating or truncating it."
+errors = "Returns Err if the path is not writable or the parent directory does not exist."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
+[[functions]]
+name = "exists"
+module = "std::fs"
+doc_category = "fs"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+doc = "Returns true if a file at the given path appears to exist and is readable. Stub: uses a read probe."
+availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
+
 # === std::host::fs ===
 
 [[functions]]

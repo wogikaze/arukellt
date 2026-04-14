@@ -1,0 +1,42 @@
+// Test: selfhost typechecker - exhaustive match expressions are accepted.
+// Exercises: match on bool with true/false arms, match with wildcard arm,
+//            match as expression assigned to a variable.
+
+use std::host::stdio
+
+fn classify_bool(b: bool) -> i32 {
+    match b {
+        true => 1,
+        false => 0,
+    }
+}
+
+fn classify_int(n: i32) -> i32 {
+    match n {
+        0 => 10,
+        1 => 20,
+        _ => 99,
+    }
+}
+
+fn main() {
+    // bool match with both true and false arms — exhaustive
+    stdio::println(to_string(classify_bool(true)))
+    stdio::println(to_string(classify_bool(false)))
+
+    // int match with wildcard arm — exhaustive
+    stdio::println(to_string(classify_int(0)))
+    stdio::println(to_string(classify_int(1)))
+    stdio::println(to_string(classify_int(5)))
+
+    // Match as expression assigned to a variable, with wildcard
+    let x = 3
+    let r = match x {
+        0 => 100,
+        1 => 200,
+        _ => 300,
+    }
+    stdio::println(to_string(r))
+
+    stdio::println(String_from("exhaustive match OK"))
+}

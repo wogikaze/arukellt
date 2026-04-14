@@ -12,7 +12,6 @@ graph LR
   I036["036 jco JavaScript interop smoke test"]
   I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
-  I049["049 std::path + std::fs: パス操作とファイル I/O"]
   I053["053 std::wasm: Wasm バイナリ型・opcode・module builder"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
@@ -73,7 +72,6 @@ graph LR
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
-  I496["496 496 — Selfhost typechecker: match exhaustiveness checking"]
   I498["498 498 — Playground CI: Lighthouse performance audit"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I500["500 500 — Playground WASM: expose typecheck API surface"]
@@ -104,7 +102,6 @@ graph LR
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I032 --> I473
   I044 --> I057
-  I049 --> I057
   I044 --> I054
   I053 --> I054
   I074 --> I077
@@ -154,7 +151,6 @@ graph LR
 - **036** depends on: 033; blocks: none
 - **044** depends on: 039, 041; blocks: 054, 057
 - **047** depends on: 039, 041; blocks: none
-- **049** depends on: 039, 041, 042; blocks: 057
 - **053** depends on: 039, 040, 043; blocks: 054
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
@@ -215,7 +211,6 @@ graph LR
 - **472** depends on: 466; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
-- **496** depends on: none; blocks: none
 - **498** depends on: none; blocks: none
 - **499** depends on: none; blocks: none
 - **500** depends on: none; blocks: none

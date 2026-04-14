@@ -236,20 +236,23 @@ let fields = csv_split_line("name,age,city")
     },
     {
         "path": "modules/fs.md",
-        "title": "std::host::fs",
+        "title": "std::host::fs / std::fs",
         "description": "Source-backed docs for explicit host filesystem operations.",
-        "modules": ["std::host::fs"],
+        "modules": ["std::host::fs", "std::fs"],
         "overview": {
             "summary": (
                 "The `std::host::fs` module provides host filesystem operations: reading files "
-                "into strings and writing string or byte content to files. These are host-bound "
-                "APIs backed by WASI filesystem intrinsics. Pure path manipulation lives in "
-                "`std::path`; for the full host family overview, see [io.md](io.md)."
+                "into strings and writing string or byte content to files. The `std::fs` module "
+                "provides the same operations with a slightly different API surface and adds an "
+                "`exists` probe. Both are host-bound APIs backed by WASI filesystem intrinsics. "
+                "Pure path manipulation lives in `std::path`; for the full host family overview, "
+                "see [io.md](io.md)."
             ),
             "highlights": [
-                ("`read_to_string(path)`", "Read a whole file as a UTF-8 string, returning `Result<String, String>`."),
+                ("`read_to_string(path)` / `read_string(path)`", "Read a whole file as a UTF-8 string, returning `Result<String, String>`."),
                 ("`write_string(path, content)`", "Write or replace a UTF-8 file."),
                 ("`write_bytes(path, buf)`", "Write a byte array to a file."),
+                ("`exists(path)`", "Probe whether a file at the given path exists and is readable."),
             ],
             "typical_usage": """\
 ```ark
@@ -272,6 +275,7 @@ write_string("output.txt", "hello")
         "modules": [
             "std::host::stdio",
             "std::host::fs",
+            "std::fs",
             "std::path",
             "std::host::process",
             "std::host::env",

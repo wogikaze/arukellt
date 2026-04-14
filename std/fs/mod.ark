@@ -1,0 +1,33 @@
+//! Filesystem operations backed by low-level WASI/host intrinsics.
+//!
+//! Paths are plain `String` values using `/` as the separator (POSIX/WASI
+//! convention). For pure path manipulation helpers see `std::path`.
+//!
+//! **Stub notice**: `exists` is a best-effort approximation that probes
+//! readability. Directories and write-only files may not be detected
+//! correctly. Full WASI P2 `wasi:filesystem/types` intrinsics are
+//! planned for a later release.
+
+/// Reads the entire contents of a file into a UTF-8 string.
+///
+/// Returns `Err` if the file does not exist, the path is not readable,
+/// or the content is not valid UTF-8.
+pub fn read_string(path: String) -> Result<String, String> {
+    __intrinsic_fs_read_file(path)
+}
+
+/// Writes a UTF-8 string to a file, creating or truncating it.
+///
+/// Returns `Err` if the path is not writable or the parent directory
+/// does not exist.
+pub fn write_string(path: String, contents: String) -> Result<(), String> {
+    __intrinsic_fs_write_file(path, contents)
+}
+
+/// Returns `true` if a file at `path` appears to exist and is readable.
+///
+/// **Stub**: implemented as a read probe — returns `false` for
+/// non-existent paths and also for directories or write-only files.
+pub fn exists(path: String) -> bool {
+    is_ok(__intrinsic_fs_read_file(path))
+}

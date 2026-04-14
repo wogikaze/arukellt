@@ -28,6 +28,14 @@ fn NK_EXPR_STMT() -> i32 { 37 }
 fn NK_FN_DECL() -> i32 { 50 }
 fn NK_IF_EXPR() -> i32 { 13 }
 fn NK_ASSIGN() -> i32 { 18 }
+fn NK_MATCH_EXPR() -> i32 { 14 }
+fn NK_MATCH_ARM() -> i32 { 26 }
+
+// ── Pattern Kind Tags (from parser.ark) ──────────────────────────────────────
+
+fn NK_PAT_WILDCARD() -> i32 { 71 }
+fn NK_PAT_IDENT() -> i32 { 70 }
+fn NK_PAT_LITERAL() -> i32 { 72 }
 
 // ── Operator Tags (from parser.ark) ──────────────────────────────────────────
 
@@ -452,6 +460,58 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         // Resolve return type through instantiation and substitution
         let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
         return resolve_type(infer_env, inst_ret)
+    }
+
+    // Match expression
+    if node.kind == NK_MATCH_EXPR() {
+        let child_count = len(node.children)
+        let arm_count = child_count - 1
+        if arm_count < 1 { return TypeInfo_simple(TY_UNKNOWN()) }
+
+        let scrutinee_node = get_unchecked(node.children, 0)
+        let scrutinee_ty = infer_expr(env, scope, fn_sigs, scrutinee_node)
+
+        let mut result_ty = TypeInfo_simple(TY_UNKNOWN())
+        let mut has_wildcard = false
+        let mut has_bool_true = false
+        let mut has_bool_false = false
+
+        let mut idx = 0
+        while idx < arm_count {
+            let arm = get_unchecked(node.children, idx + 1)
+            let arm_child_count = len(arm.children)
+            if arm_child_count < 2 {
+                idx = idx + 1
+                continue
+            }
+            let pat = get_unchecked(arm.children, 0)
+
+            // Catch-all patterns make the match exhaustive
+            if pat.kind == NK_PAT_WILDCARD() { has_wildcard = true }
+            if pat.kind == NK_PAT_IDENT() { has_wildcard = true }
+
+            // Track bool literal coverage
+            if pat.kind == NK_PAT_LITERAL() {
+                if eq(clone(pat.text), String_from("true")) { has_bool_true = true }
+                if eq(clone(pat.text), String_from("false")) { has_bool_false = true }
+            }
+
+            // Body is the last child of the arm
+            let body = get_unchecked(arm.children, arm_child_count - 1)
+            let arm_ty = infer_expr(env, scope, fn_sigs, body)
+            if idx == 0 { result_ty = arm_ty }
+
+            idx = idx + 1
+        }
+
+        // Exhaustiveness check for bool scrutinee
+        if !has_wildcard && scrutinee_ty.tag == TY_BOOL() {
+            if !has_bool_true || !has_bool_false {
+                type_error(env, String_from("non-exhaustive match: bool requires `true` and `false` arms or a wildcard"))
+            }
+        }
+
+        return result_ty
     }
 
     TypeInfo_simple(TY_UNKNOWN())

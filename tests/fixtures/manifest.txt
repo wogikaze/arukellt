@@ -218,6 +218,10 @@ run:selfhost/resolver_visibility_ok/main.ark
 run:selfhost/typecheck_infer.ark
 run:selfhost/typecheck_infer_expr.ark
 run:selfhost/typecheck_generic_call.ark
+run:selfhost/typecheck_match_exhaustive.ark
+diag:selfhost/typecheck_match_nonexhaustive.ark
+run:selfhost/typecheck_match_exhaustive.ark
+diag:selfhost/typecheck_match_nonexhaustive.ark
 run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
 run:stdlib_bytes/buf_basic.ark
@@ -315,6 +319,9 @@ run:stdlib_collections_ordered/index_set.ark
 run:stdlib_collections_ordered/bitset_ops.ark
 run:stdlib_path/path_basic.ark
 run:stdlib_path/path_edge_cases.ark
+run:stdlib_path/path_join.ark
+run:stdlib_path/path_stem_ext.ark
+run:stdlib_path/path_normalize.ark
 run:stdlib_process/exit_zero.ark
 run:stdlib_seq/seq_basic.ark
 run:stdlib_seq/seq_edge_cases.ark

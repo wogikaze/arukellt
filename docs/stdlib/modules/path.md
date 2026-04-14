@@ -37,8 +37,8 @@ let dir  = parent(p)                    // "/home/user"
 ## `std::path`
 
 - Source: [`../../../std/path/mod.ark`](../../../std/path/mod.ark)
-- Manifest-backed functions: 6
-- Stability: stable 6
+- Manifest-backed functions: 9
+- Stability: stable 9
 
 Pure string-based path manipulation helpers.
 
@@ -55,3 +55,18 @@ separator to match POSIX and WASI conventions.
 | `with_extension` | `(String, String) -> String` | `stable` | Replaces the current extension, or appends one when missing. |
 | `is_absolute` | `(String) -> bool` | `stable` | Returns true when the path starts with /. |
 | `parent` | `(String) -> String` | `stable` | Returns the parent directory path, or an empty string at the root. |
+| `stem` | `(String) -> String` | `stable` | Returns the file stem (the file name without the final extension). |
+| `normalize` | `(String) -> String` | `stable` | Resolves . and .. components and collapses redundant / separators. |
+| `components` | `(String) -> Vec<String>` | `stable` | Returns the non-empty path segments split by /. |
+
+#### `stem`
+
+Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello".
+
+#### `normalize`
+
+Resolves `.` and `..` components and collapses redundant `/` separators.
+
+#### `components`
+
+Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"].

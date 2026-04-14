@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 394 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 400 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 106 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -391,6 +391,22 @@ Expected output: `42`
 | `var` | `(String) -> Option<String>` | `std::env` | `stable` | `builtin` | no | - | Look up an environment variable by name. |
 | `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
 
+## Fs
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Returns true if a file at the given path appears to exist and is readable. Stub: uses a read probe. |
+| `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
+| `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
+
+### `read_string` — `std::fs`
+
+**Errors:** Returns Err if the file does not exist, permission is denied, or content is not valid UTF-8.
+
+### `write_string` — `std::fs`
+
+**Errors:** Returns Err if the path is not writable or the parent directory does not exist.
+
 ## Host Clock
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
@@ -665,11 +681,14 @@ Expected output: `Hello, world!`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `components` | `(String) -> Vec<String>` | `std::path` | `stable` | `builtin` | no | - | Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"]. |
 | `extension` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `is_absolute` | `(String) -> bool` | `std::path` | `stable` | `builtin` | no | - | - |
 | `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `normalize` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | Resolves . and .. components and collapses redundant / separators. |
 | `parent` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `stem` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello". |
 | `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 
 ## Process
@@ -1017,6 +1036,7 @@ Expected output: `hello world`
 | `cmp` | `(i32, i32) -> Ordering` | `std::core::cmp` | `stable` | `builtin` | no | - | - |
 | `cmp_i32` | `(i32, i32) -> Ordering` | `std::core` | `stable` | `builtin` | no | - | - |
 | `combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
+| `components` | `(String) -> Vec<String>` | `std::path` | `stable` | `builtin` | no | - | Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"]. |
 | `concat` | `(String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_concat` | Concatenate two strings and return the result. |
 | `concat` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_concat` | - |
 | `contains` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains` | - |
@@ -1057,6 +1077,7 @@ Expected output: `hello world`
 | `eq` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_eq` | - |
 | `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
+| `exists` | `(String) -> bool` | `std::fs` | `stable` | `builtin` | no | - | Returns true if a file at the given path appears to exist and is readable. Stub: uses a read probe. |
 | `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
 | `exit` | `(i32) -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. |
 | `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
@@ -1173,6 +1194,7 @@ Expected output: `hello world`
 | `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `monotonic_now` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now` | Return the current monotonic clock value in nanoseconds. Suitable for measuring elapsed time; not a … |
 | `next_f64` | `() -> f64` | `std::host::random` | `stable` | `builtin` | no | `__intrinsic_random_next_f64` | Return a host-provided random f64 value in the range [0.0, 1.0). |
+| `normalize` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | Resolves . and .. components and collapses redundant / separators. |
 | `now_ms` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now_ms` | Return the current wall-clock time in milliseconds since the Unix epoch. |
 | `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
@@ -1216,6 +1238,7 @@ Expected output: `hello world`
 | `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
 | `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
 | `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `read_string` | `(String) -> Result<String, String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file into a UTF-8 string. |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
 | `read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
@@ -1263,6 +1286,7 @@ Expected output: `hello world`
 | `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `stem` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello". |
 | `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
@@ -1299,6 +1323,7 @@ Expected output: `hello world`
 | `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
+| `write_string` | `(String, String) -> Result<(), String>` | `std::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to a file, creating or truncating it. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
 | `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |

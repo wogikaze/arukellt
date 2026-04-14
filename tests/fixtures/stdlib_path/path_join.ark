@@ -1,0 +1,28 @@
+use std::path
+use std::host::stdio
+
+fn main() {
+    // join: basic
+    stdio::println(path::join("/home/user", "data.txt"))
+    stdio::println(path::join("/foo/", "bar"))
+    stdio::println(path::join("", "baz"))
+    stdio::println(path::join("/a", ""))
+
+    // parent
+    stdio::println(path::parent("/home/user/file.txt"))
+    stdio::println(path::parent("/a/b/c"))
+
+    // is_absolute
+    stdio::println(bool_to_string(path::is_absolute("/foo/bar")))
+    stdio::println(bool_to_string(path::is_absolute("relative")))
+    stdio::println(bool_to_string(path::is_absolute("")))
+
+    // file_name
+    stdio::println(path::file_name("/home/user/readme.md"))
+    stdio::println(path::file_name("alone.txt"))
+
+    // extension
+    stdio::println(path::extension("hello.txt"))
+    stdio::println(path::extension("archive.tar.gz"))
+    stdio::println(path::extension("noext"))
+}

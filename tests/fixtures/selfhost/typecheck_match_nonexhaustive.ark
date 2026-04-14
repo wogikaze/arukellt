@@ -1,0 +1,24 @@
+// Test: non-exhaustive match on enum produces diagnostic.
+// The match on Direction is missing the West arm — non-exhaustive.
+
+use std::host::stdio
+
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+fn describe(d: Direction) -> i32 {
+    match d {
+        Direction::North => 1,
+        Direction::South => 2,
+        Direction::East => 3,
+        // Missing: Direction::West — non-exhaustive match
+    }
+}
+
+fn main() {
+    stdio::println(to_string(describe(Direction::North)))
+}

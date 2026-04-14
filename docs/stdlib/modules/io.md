@@ -148,11 +148,57 @@ Write a byte sequence (Vec<i32> where each element is 0–255) to the given file
 
 **Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
 
+## `std::fs`
+
+- Source: [`../../../std/fs/mod.ark`](../../../std/fs/mod.ark)
+- Manifest-backed functions: 3
+- Stability: stable 3
+
+Filesystem operations backed by low-level WASI/host intrinsics.
+
+Paths are plain `String` values using `/` as the separator (POSIX/WASI
+convention). For pure path manipulation helpers see `std::path`.
+
+**Stub notice**: `exists` is a best-effort approximation that probes
+readability. Directories and write-only files may not be detected
+correctly. Full WASI P2 `wasi:filesystem/types` intrinsics are
+planned for a later release.
+
+### Public API
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `read_string` | `(String) -> Result<String, String>` | `stable` | Reads the entire contents of a file into a UTF-8 string. |
+| `write_string` | `(String, String) -> Result<(), String>` | `stable` | Writes a UTF-8 string to a file, creating or truncating it. |
+| `exists` | `(String) -> bool` | `stable` | Returns true if a file at path appears to exist and is readable. |
+
+#### `read_string`
+
+Read the entire contents of a file into a UTF-8 string.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the file does not exist, permission is denied, or content is not valid UTF-8.
+
+#### `write_string`
+
+Write a UTF-8 string to a file, creating or truncating it.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
+**Errors:** Returns Err if the path is not writable or the parent directory does not exist.
+
+#### `exists`
+
+Returns true if a file at the given path appears to exist and is readable. Stub: uses a read probe.
+
+**Availability:** Requires the --dir capability flag at runtime.
+
 ## `std::path`
 
 - Source: [`../../../std/path/mod.ark`](../../../std/path/mod.ark)
-- Manifest-backed functions: 6
-- Stability: stable 6
+- Manifest-backed functions: 9
+- Stability: stable 9
 
 Pure string-based path manipulation helpers.
 
@@ -169,6 +215,21 @@ separator to match POSIX and WASI conventions.
 | `with_extension` | `(String, String) -> String` | `stable` | Replaces the current extension, or appends one when missing. |
 | `is_absolute` | `(String) -> bool` | `stable` | Returns true when the path starts with /. |
 | `parent` | `(String) -> String` | `stable` | Returns the parent directory path, or an empty string at the root. |
+| `stem` | `(String) -> String` | `stable` | Returns the file stem (the file name without the final extension). |
+| `normalize` | `(String) -> String` | `stable` | Resolves . and .. components and collapses redundant / separators. |
+| `components` | `(String) -> Vec<String>` | `stable` | Returns the non-empty path segments split by /. |
+
+#### `stem`
+
+Returns the file stem (file name without final extension). E.g. stem("hello.txt") -> "hello".
+
+#### `normalize`
+
+Resolves `.` and `..` components and collapses redundant `/` separators.
+
+#### `components`
+
+Returns the non-empty path segments as a vector. E.g. components("/usr/bin") -> ["usr", "bin"].
 
 ## `std::host::process`
 
