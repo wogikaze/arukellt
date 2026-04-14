@@ -1789,6 +1789,22 @@ stability = "stable"
 params = ["bool", "String"]
 returns = "()"
 
+[[functions]]
+name = "bench"
+module = "std::test"
+doc_category = "test"
+stability = "experimental"
+params = ["String", "i32", "fn() -> ()"]
+returns = "()"
+doc = "Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout is unaffected, so fixture expected files remain deterministic."
+availability = { t1 = true, t3 = true }
+
+[[modules]]
+name = "std::test"
+stability = "stable"
+doc = "Typed assertion and expectation helpers for fixture and test code. Includes equality assertions for all primitive types, Result/Option unwrap helpers, string containment checks, snapshot comparison, and bench-lite for quick timing."
+availability = { t1 = true, t3 = true }
+
 # === std::text (extended) ===
 
 [[functions]]

@@ -11,10 +11,8 @@ graph LR
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
-  I048["048 std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
   I053["053 std::wasm: Wasm バイナリ型・opcode・module builder"]
-  I056["056 std::test: assert、snapshot テスト、bench-lite"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
   I070["070 Wasm GC i31ref: 小整数 unboxed scalar 最適化"]
@@ -105,7 +103,6 @@ graph LR
   I489["489 Playground user-visible entrypoint wiring"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I032 --> I473
-  I048 --> I057
   I049 --> I057
   I053 --> I054
   I074 --> I077
@@ -154,10 +151,8 @@ graph LR
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
 - **047** depends on: 039, 041; blocks: none
-- **048** depends on: 039, 041; blocks: 057
 - **049** depends on: 039, 041, 042; blocks: 057
 - **053** depends on: 039, 040, 043; blocks: 054
-- **056** depends on: 039, 041; blocks: none
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
 - **070** depends on: none; blocks: none

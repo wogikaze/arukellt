@@ -134,3 +134,24 @@ pub fn assert_msg(cond: bool, message: String) {
         panic(concat("assertion failed: ", message))
     }
 }
+
+// === bench-lite ===
+
+/// Run `f` exactly `iterations` times and write a timing summary to stderr.
+///
+/// Outputs a line of the form:
+///   bench: <name>: total=<ns>ns iters=<n>
+///
+/// Timing uses the monotonic clock intrinsic. Output goes to stderr so that
+/// fixture stdout remains deterministic.
+pub fn bench(name: String, iterations: i32, f: fn() -> ()) {
+    let start: i64 = __intrinsic_clock_now()
+    let mut i: i32 = 0
+    while i < iterations {
+        f()
+        i = i + 1
+    }
+    let elapsed: i64 = __intrinsic_clock_now() - start
+    let msg = concat("bench: ", concat(name, concat(": total=", concat(i64_to_string(elapsed), concat("ns iters=", i32_to_string(iterations))))))
+    __intrinsic_eprintln(msg)
+}

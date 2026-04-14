@@ -40,8 +40,8 @@ let value = expect_ok_i32(result)  // 42
 ## `std::test`
 
 - Source: [`../../../std/test/mod.ark`](../../../std/test/mod.ark)
-- Manifest-backed functions: 16
-- Stability: stable 16
+- Manifest-backed functions: 17
+- Stability: experimental 1, stable 16
 
 Testing utilities for fixture and example code.
 
@@ -68,3 +68,8 @@ The current module provides typed assertions and expectation helpers for
 | `assert_contains` | `(String, String) -> ()` | `stable` | Assert that a string contains a given substring. |
 | `assert_eq_snapshot` | `(String, String) -> ()` | `stable` | Assert that two strings are equal, showing a line-by-line comparison on failure. |
 | `assert_msg` | `(bool, String) -> ()` | `stable` | Assert that a boolean condition holds, with a custom failure message. |
+| `bench` | `(String, i32, fn() -> ()) -> ()` | `experimental` | Run f exactly iterations times and write a timing summary to stderr. |
+
+#### `bench`
+
+Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout is unaffected, so fixture expected files remain deterministic.

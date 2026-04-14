@@ -100,6 +100,7 @@ module-run:stdlib_random/random_seed.ark
 module-run:stdlib_random/shuffle.ark
 module-run:stdlib_test/assert_eq.ark
 module-run:stdlib_test/assert_ne.ark
+module-run:stdlib_test/bench_basic.ark
 module-run:stdlib_test/expect_option.ark
 module-run:stdlib_test/expect_result.ark
 module-run:stdlib_time/duration.ark

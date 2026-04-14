@@ -9,7 +9,7 @@
 |------|-------|-------------|
 | [stable](#stable-apis) | 394 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 105 | API may change without notice. Functionality is available but not finalized. |
+| [experimental](#experimental-apis) | 106 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -791,6 +791,7 @@ Expected output: `hello world`
 | `assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
 | `assert_ne_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
 | `assert_true` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `bench` | `(String, i32, fn() -> ()) -> ()` | `std::test` | `experimental` | `builtin` | no | - | Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout… |
 | `expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `stable` | `builtin` | no | - | - |
 | `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
 | `expect_ok_i32` | `(Result<i32, String>) -> i32` | `std::test` | `stable` | `builtin` | no | - | - |
@@ -1329,6 +1330,7 @@ Expected output: `hello world`
 | `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
 | `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
 | `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `bench` | `(String, i32, fn() -> ()) -> ()` | `std::test` | `experimental` | `builtin` | no | - | Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout… |
 | `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
 | `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of set bits in a BitSet. |
 | `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the intersection of two BitSets. |

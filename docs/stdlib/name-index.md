@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 504
+- **Canonical names:** 505
 - **Historical/deprecated names:** 3
-- **Total entries:** 507
+- **Total entries:** 508
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -60,6 +60,7 @@ Current public API names, sorted alphabetically.
 | `assert_true` | `std::test` | `stable` | Test |
 | `base64_decode` | `std::bytes` | `stable` | Bytes |
 | `base64_encode` | `std::bytes` | `stable` | Bytes |
+| `bench` | `std::test` | `experimental` | Test |
 | `binary_search` | `std::seq` | `stable` | Seq |
 | `bitset_clear` | `std::collections::ordered` | `experimental` | Collections |
 | `bitset_count` | `std::collections::ordered` | `experimental` | Collections |
@@ -585,6 +586,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `assert_true` | ✅ `stable` | `std::test` | Test |
 | `base64_decode` | ✅ `stable` | `std::bytes` | Bytes |
 | `base64_encode` | ✅ `stable` | `std::bytes` | Bytes |
+| `bench` | ✅ `experimental` | `std::test` | Test |
 | `binary_search` | ✅ `stable` | `std::seq` | Seq |
 | `bitset_clear` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `bitset_count` | ✅ `experimental` | `std::collections::ordered` | Collections |
