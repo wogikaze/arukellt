@@ -49,7 +49,6 @@ graph LR
   I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I128["128 T3 GC エミッター (t3_wasm_gc.rs 8678行) をサブモジュールに分割"]
   I129["129 T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割"]
   I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
   I132["132 Parser parser.rs (2003行) をサブモジュールに分割"]
@@ -214,7 +213,6 @@ graph LR
 - **122** depends on: 101; blocks: 486
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **128** depends on: none; blocks: none
 - **129** depends on: none; blocks: none
 - **130** depends on: none; blocks: none
 - **132** depends on: none; blocks: none
