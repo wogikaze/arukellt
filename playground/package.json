@@ -60,7 +60,7 @@
     "build": "tsc",
     "build:wasm": "cd ../crates/ark-playground-wasm && wasm-pack build --target web --release",
     "build:all": "npm run build:wasm && npm run build",
-    "build:app": "npm run build && mkdir -p ../docs/playground/dist && cp -r dist/. ../docs/playground/dist/ && mkdir -p ../docs/playground/wasm && (cp -r ../crates/ark-playground-wasm/pkg/. ../docs/playground/wasm/ 2>/dev/null || true)",
+    "build:app": "npm run build && mkdir -p ../docs/playground/dist && cp -r dist/. ../docs/playground/dist/ && mkdir -p ../docs/playground/wasm && (cp -r ../crates/ark-playground-wasm/pkg/. ../docs/playground/wasm/ 2>/dev/null || true) && (bash ../scripts/gen/stamp-playground-assets.sh 2>/dev/null || true)",
     "typecheck": "tsc --noEmit",
     "test": "node --test dist/tests/*.test.js",
     "test:typecheck": "tsc --noEmit",

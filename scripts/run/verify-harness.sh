@@ -31,6 +31,7 @@ RUN_SELFHOST_FIXTURE_PARITY=false
 RUN_SELFHOST_DIAG_PARITY=false
 RUN_LSP_PERF=false
 RUN_MEMORY_GATE=false
+RUN_REPRO=false
 
 usage() {
     cat <<'EOF'
@@ -54,8 +55,10 @@ Options:
   --selfhost-diag-parity     Run selfhost diagnostic parity check
   --lsp-perf   Run LSP performance smoke tests (issue #463)
   --memory-gate  Run the RSS memory gate (compiler RSS <= 100 MB on hello.ark)
+  --repro      Run the reproducible build gate (double-compile byte-exact check)
   --full       Run all heavy local verification groups (includes --fixpoint,
-               --selfhost-fixture-parity, --selfhost-diag-parity, --lsp-perf)
+               --selfhost-fixture-parity, --selfhost-diag-parity, --lsp-perf,
+               --repro)
   --perf-gate  Run the perf regression gate (still opt-in)
   --help       Show this help message
 EOF
@@ -77,6 +80,7 @@ for arg in "$@"; do
         --selfhost-diag-parity)    RUN_SELFHOST_DIAG_PARITY=true ;;
         --lsp-perf) RUN_LSP_PERF=true ;;
         --memory-gate) RUN_MEMORY_GATE=true ;;
+        --repro) RUN_REPRO=true ;;
         --full)
             RUN_CARGO=true
             RUN_FIXTURES=true
@@ -91,6 +95,7 @@ for arg in "$@"; do
             RUN_SELFHOST_DIAG_PARITY=true
             RUN_LSP_PERF=true
             RUN_MEMORY_GATE=true
+            RUN_REPRO=true
             ;;
         --perf-gate) PERF_GATE=true ;;
         --help|-h)
@@ -106,7 +111,7 @@ for arg in "$@"; do
 done
 
 echo -e "${YELLOW}Running harness verification...${NC}"
-if [ "$RUN_CARGO" = false ] && [ "$RUN_FIXTURES" = false ] && [ "$RUN_BASELINE" = false ] && [ "$RUN_SIZE" = false ] && [ "$RUN_WAT" = false ] && [ "$RUN_DOCS" = false ] && [ "$RUN_COMPONENT" = false ] && [ "$RUN_OPT_EQUIV" = false ] && [ "$PERF_GATE" = false ] && [ "$RUN_FIXPOINT" = false ] && [ "$RUN_SELFHOST_FIXTURE_PARITY" = false ] && [ "$RUN_SELFHOST_DIAG_PARITY" = false ] && [ "$RUN_LSP_PERF" = false ]; then
+if [ "$RUN_CARGO" = false ] && [ "$RUN_FIXTURES" = false ] && [ "$RUN_BASELINE" = false ] && [ "$RUN_SIZE" = false ] && [ "$RUN_WAT" = false ] && [ "$RUN_DOCS" = false ] && [ "$RUN_COMPONENT" = false ] && [ "$RUN_OPT_EQUIV" = false ] && [ "$PERF_GATE" = false ] && [ "$RUN_FIXPOINT" = false ] && [ "$RUN_SELFHOST_FIXTURE_PARITY" = false ] && [ "$RUN_SELFHOST_DIAG_PARITY" = false ] && [ "$RUN_LSP_PERF" = false ] && [ "$RUN_REPRO" = false ]; then
     echo -e "${YELLOW}Mode: fast local gate${NC}"
 else
     selected=()
@@ -124,6 +129,7 @@ else
     [ "$RUN_SELFHOST_DIAG_PARITY" = true ] && selected+=(selfhost-diag-parity)
     [ "$RUN_LSP_PERF" = true ] && selected+=(lsp-perf)
     [ "$RUN_MEMORY_GATE" = true ] && selected+=(memory-gate)
+    [ "$RUN_REPRO" = true ] && selected+=(repro)
     echo -e "${YELLOW}Mode: fast local gate + ${selected[*]}${NC}"
 fi
 
@@ -487,6 +493,21 @@ if [ "$RUN_MEMORY_GATE" = true ]; then
         else
             check_skip "compiler RSS gate (could not read RSS from /usr/bin/time output)"
         fi
+    fi
+fi
+
+if [ "$RUN_REPRO" = true ]; then
+    printf '\n%s\n' "${YELLOW}[repro] Running reproducible build gate...${NC}"
+    _repro_out=""
+    _repro_rc=0
+    _repro_out=$(bash scripts/gate/check-reproducible-build.sh 2>&1) || _repro_rc=$?
+    if [ "$_repro_rc" -eq 0 ]; then
+        check_pass "reproducible build: double-compile outputs are bit-exact"
+    elif [ "$_repro_rc" -eq 2 ]; then
+        check_skip "reproducible build (arukellt binary not found — build first)"
+    else
+        check_fail "reproducible build: double-compile outputs differ"
+        printf '%s\n' "$_repro_out" | tail -30
     fi
 fi
 

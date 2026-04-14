@@ -202,6 +202,39 @@ v5 完了時に揃っているべきドキュメントの全リスト:
 - 同一入力 → 同一 `.wasm` (bit-exact) を verify-harness.sh のゲートとして追加 (v4 で実装)
 - 非決定的な要素 (HashMap iteration 順序等) は全て deterministic に固定する
 
+#### 決定性の運用ルール
+
+以下の要素が非決定化の原因になるため、コードレビューで対処する:
+
+| カテゴリ | 非決定的要素 | 運用ルール |
+|----------|--------------|------------|
+| データ構造 | `HashMap` / `HashSet` **iteration 順** | BTreeMap / IndexMap (insertion-order) を使うか、collect 後に `sort()` してからイテレートする |
+| emitter | 関数の出力順 | `MirModule.functions` を `name` で stable sort してから emit する |
+| emitter | 型定義の出力順 | `struct_defs` / `enum_defs` を `id` か `name` で stable sort してから emit する |
+| emitter | import セクション | 同一 import を重複排除した上で `module::name` でソートする |
+| データ構造 | ポインタ派生ハッシュ (`std::ptr::hash` 等) | 禁止。値ベースのハッシュのみ許可 |
+| 並列処理 | rayon / スレッドの実行順序 | 並列収集後は必ず stable sort して順序を固定する |
+| 環境 | ビルド時刻・PID のバイナリへの埋め込み | 禁止。CI では `SOURCE_DATE_EPOCH` を設定してビルドする |
+
+#### 再現ビルドゲートの使い方
+
+```bash
+# 単独実行
+bash scripts/gate/check-reproducible-build.sh
+
+# 詳細ログ付き
+bash scripts/gate/check-reproducible-build.sh --verbose
+
+# 別 fixture / target を指定
+bash scripts/gate/check-reproducible-build.sh --fixture src/compiler/main.ark --target wasm32-wasi-p1
+
+# verify-harness から呼び出す
+bash scripts/run/verify-harness.sh --repro
+bash scripts/run/verify-harness.sh --full  # --repro を含む
+```
+
+差分が出た場合、スクリプトは SHA-256 チェックサム・WAT diff（wabt が存在する場合）・バイナリ diff を出力する。
+
 ### セルフホスト検証
 
 - `scripts/run/verify-bootstrap.sh`: Stage 0 → Stage 1 → Stage 2 → fixpoint 確認

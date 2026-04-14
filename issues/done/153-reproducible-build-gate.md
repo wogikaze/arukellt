@@ -1,8 +1,8 @@
 # 横断検証: bit-exact Wasm 再現ビルドゲートと決定性ルール
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-29
-**Updated**: 2026-04-03
+**Updated**: 2026-04-15
 **ID**: 153
 **Depends on**: —
 **Track**: cross-cutting
@@ -46,3 +46,14 @@
 - `scripts/run/verify-harness.sh`
 - `scripts/run/wat-roundtrip.sh`
 - `docs/compiler/pipeline.md`
+
+---
+
+## 完了サマリ (2026-04-15)
+
+全ての受け入れ条件を達成した:
+
+1. ✅ `scripts/gate/check-reproducible-build.sh` — 同一 fixture を 2 回コンパイルして sha256 を比較
+2. ✅ `docs/process/roadmap-cross-cutting.md` §6.5「再現ビルド検証 — 決定性の運用ルール」を追加 (関数順・型順・HashMap iteration 順等の表)
+3. ✅ 差分時に WAT diff + バイナリ diff を出力 (wasm2wat があれば WAT、常に `cmp -l` で差分)
+4. ✅ `scripts/run/verify-harness.sh --repro` および `--full` から呼び出し可能

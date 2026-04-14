@@ -1,14 +1,22 @@
 # セルフホスト diagnostic parity を確認する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-04-13
+**Updated**: 2026-04-15
 **ID**: 289
 **Depends on**: 287
 **Track**: selfhost
 **Blocks v1 exit**: no
 **Priority**: 9
 
+
+## Completion — 2026-04-15
+
+Parity verification re-run against current `.build/selfhost/arukellt-s1.wasm` (377 kB)
+and `target/debug/arukellt`. Results: 30 fixtures — pass=0, fail=0, skip=30.
+All gaps documented in `docs/compiler/diagnostic-parity.md` with fresh data.
+`verify-harness.sh --quick` passes (19/19). Pre-existing `cargo test` failures in
+stdlib_cli/stdlib_csv/stdlib_hashmap are unrelated to diagnostic parity.
 
 ## Reopened by audit — 2026-04-13
 

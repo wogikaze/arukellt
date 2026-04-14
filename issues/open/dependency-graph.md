@@ -32,15 +32,13 @@ graph LR
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I140["140 ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理"]
   I141["141 計測: cold/warm/incremental compile と phase 別時間分解"]
   I142["142 計測: startup / throughput / tail latency ベンチ"]
   I143["143 計測: allocation / live-set / GC pause / RSS telemetry"]
   I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
   I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
-  I153["153 横断検証: bit-exact Wasm 再現ビルドゲートと決定性ルール"]
-  I156["156 T3 backend-opt: `struct.get` → 即時 `struct.set` 系の read-modify-write 最適化"]
+  I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
   I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
   I170["170 v5 Migration guide"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
@@ -53,9 +51,8 @@ graph LR
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
-  I289["289 セルフホスト diagnostic parity を確認する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
-  I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
+  I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
@@ -75,17 +72,15 @@ graph LR
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
-  I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
   I501["501 T2 (`wasm32-freestanding`) Wasm Emitter Implementation"]
-  I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
+  I489["489 Playground user-visible entrypoint wiring"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I205["205 Docs / codebase intelligence surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
-  I489["489 Playground user-visible entrypoint wiring"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I032 --> I473
   I074 --> I077
@@ -98,21 +93,19 @@ graph LR
   I141 --> I144
   I142 --> I144
   I143 --> I144
-  I140 --> I148
   I141 --> I148
   I142 --> I148
   I143 --> I148
   I145 --> I148
   I146 --> I148
-  I153 --> I154
   I200 --> I201
   I204 --> I188
   I382 --> I501
-  I437 --> I438
+  I382 --> I489
+  I438 --> I489
   I077 --> I136
   I139 --> I136
   I475 --> I485
-  I140 --> I158
   I141 --> I158
   I142 --> I158
   I143 --> I158
@@ -120,9 +113,6 @@ graph LR
   I148 --> I158
   I188 --> I205
   I188 --> I214
-  I382 --> I489
-  I437 --> I489
-  I438 --> I489
   I036 --> I037
 ```
 
@@ -154,15 +144,13 @@ graph LR
 - **120** depends on: none; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **140** depends on: 149; blocks: 148, 158
 - **141** depends on: 149; blocks: 144, 148, 158
 - **142** depends on: 149; blocks: 144, 148, 158
 - **143** depends on: 149; blocks: 144, 148, 158
 - **145** depends on: 149; blocks: 148, 158
 - **146** depends on: 149; blocks: 148
 - **147** depends on: 149; blocks: none
-- **153** depends on: none; blocks: 154
-- **156** depends on: none; blocks: none
+- **154** depends on: 153; blocks: none
 - **157** depends on: none; blocks: none
 - **170** depends on: 165, 166, 169; blocks: none
 - **194** depends on: 193; blocks: none
@@ -175,9 +163,8 @@ graph LR
 - **253** depends on: none; blocks: none
 - **269** depends on: 266, 268; blocks: none
 - **285** depends on: 284; blocks: none
-- **289** depends on: 287; blocks: none
 - **382** depends on: 378; blocks: 489, 501
-- **437** depends on: 431; blocks: 438, 489
+- **438** depends on: 437; blocks: 489
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
@@ -197,17 +184,15 @@ graph LR
 - **126** depends on: 125; blocks: none
 - **144** depends on: 141, 142, 143, 149; blocks: none
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
-- **154** depends on: 153; blocks: none
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
 - **501** depends on: 382; blocks: none
-- **438** depends on: 437; blocks: 489
+- **489** depends on: 382, 437, 438, 464; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
 - **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 - **205** depends on: 185, 188; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
-- **489** depends on: 382, 437, 438, 464; blocks: none
 
 ### Blocked
 

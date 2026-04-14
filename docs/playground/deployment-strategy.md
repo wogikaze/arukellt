@@ -5,15 +5,17 @@
 **Scope**: Playground (web), CI/CD, hosting, caching, preview environments
 **Related ADRs**: ADR-017 (execution model), ADR-021 (share URL format), ADR-022 (deployment & caching)
 
-> **Status note (2026-04-14, updated for #471):** This document records deployment architecture. The following surfaces are now repo-proved:
+> **Status note (2026-04-14, updated for #437):** This document records deployment architecture. The following surfaces are now repo-proved:
 > - Browser entrypoint: `docs/playground/index.html` (issue #466 — done)
 > - Docs route wiring: `docs/_sidebar.md` links to playground page (issue #467 — done)
 > - Build & publish path: `.github/workflows/pages.yml` runs `npm run build:app` and deploys `./docs` including playground assets (issue #468 — done)
+> - Wasm content-hash cache busting: `scripts/gen/stamp-playground-assets.sh` produces `ark_playground_wasm_bg-<hash12>.wasm` and `wasm/asset-manifest.json`; `docs/playground/index.html` reads the manifest at runtime to load the content-addressed Wasm URL (issue #437 — done)
 >
 > The following remain **target-state only** (not yet repo-proved):
 > - `npm run dev` (no local dev-server script exists in `playground/package.json`)
 > - `npm run build:full` (does not exist; use `npm run build:app` instead)
 > - PR preview deployment workflow (no per-PR preview exists in any workflow file)
+> - JS bundle content-hash filenames (requires a real bundler, e.g., esbuild/Vite; JS files are served under fixed names with GitHub Pages ~10-minute TTL)
 >
 > The following are now **repo-proved** (added by issue #491):
 > - CI Wasm size gate: `.github/workflows/playground-ci.yml` job `playground-wasm-size` (≤ 300 KB)

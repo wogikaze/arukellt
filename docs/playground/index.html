@@ -126,9 +126,24 @@
 
     try {
       const { createPlayground } = await import('./dist/index.js');
+
+      // Resolve the Wasm URL: prefer the content-hashed filename from
+      // asset-manifest.json (written by scripts/gen/stamp-playground-assets.sh
+      // during build) for proper browser cache busting.  Falls back to the
+      // fixed filename when the manifest is absent (e.g., local dev without
+      // wasm-pack).
+      let wasmUrl = './wasm/ark_playground_wasm_bg.wasm';
+      try {
+        const resp = await fetch('./wasm/asset-manifest.json');
+        if (resp.ok) {
+          const manifest = await resp.json();
+          if (manifest && manifest.wasmUrl) { wasmUrl = manifest.wasmUrl; }
+        }
+      } catch { /* manifest absent — use fixed URL */ }
+
       const pg = await createPlayground(
         './wasm/ark_playground_wasm.js',
-        { wasmUrl: './wasm/ark_playground_wasm_bg.wasm' },
+        { wasmUrl },
       );
       parseFn = (source) => pg.parse(source);
     } catch {
