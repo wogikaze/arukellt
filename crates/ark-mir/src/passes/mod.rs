@@ -34,6 +34,7 @@ pub mod bce;
 pub mod const_fold;
 pub mod dead_block_elim;
 pub mod gc_hint;
+pub mod loop_unroll;
 pub mod type_narrowing;
 
 /// Summary returned by a single pass invocation.
@@ -65,5 +66,6 @@ pub fn run_all(module: &mut MirModule, level: OptLevel) -> Vec<PassStats> {
         bce::run(module, level),
         type_narrowing::run(module, level),
         gc_hint::run(module, level),
+        loop_unroll::run(module, level),
     ]
 }
