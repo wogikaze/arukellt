@@ -35,17 +35,30 @@ COMPARE=false
 USE_SELFHOST=false
 COMPARE_LANGS=""
 
-for arg in "$@"; do
+# Use positional index loop so we can consume the next arg for space-separated
+# options like --compare-lang c,rust
+set -- "$@"
+while [[ $# -gt 0 ]]; do
+  arg="$1"
   case "$arg" in
     --quick) MODE="quick";  COMPILE_ITERS=1;  RUNTIME_ITERS=1;  WARMUPS=0 ;;
     --full)  MODE="full";   COMPILE_ITERS=10; RUNTIME_ITERS=10; WARMUPS=1 ;;
     --target=*) TARGET="${arg#--target=}" ;;
+    --target) shift; TARGET="$1" ;;
     --compare) COMPARE=true ;;
     --compare-lang=*) COMPARE_LANGS="${arg#--compare-lang=}" ;;
-    --compare-lang) COMPARE_LANGS="c,rust,go" ;;  # bare flag defaults to all three
+    --compare-lang)
+      # Support both --compare-lang=c,rust and --compare-lang c,rust
+      if [[ $# -gt 1 && "${2}" != --* ]]; then
+        shift; COMPARE_LANGS="$1"
+      else
+        COMPARE_LANGS="c,rust,go"  # bare flag defaults to all three
+      fi
+      ;;
     --selfhost) USE_SELFHOST=true ;;
     *) echo "Unknown flag: $arg" >&2; exit 1 ;;
   esac
+  shift
 done
 
 MODE_DESC="quick"
@@ -385,6 +398,29 @@ if [[ -n "$COMPARE_LANGS" ]]; then
 
   IFS=',' read -ra LANG_LIST <<< "$COMPARE_LANGS"
 
+  # Warn if required toolchain is missing (but continue — affected benchmarks
+  # will be shown as "(no cc)" / "(no rustc)" / "(no go)" in the table).
+  for lang in "${LANG_LIST[@]}"; do
+    case "$lang" in
+      c)
+        if ! command -v cc >/dev/null 2>&1 && ! command -v gcc >/dev/null 2>&1; then
+          echo "NOTE: cc/gcc not found — C reference benchmarks will be skipped."
+          echo "      Install gcc or clang to enable C comparison (e.g. apt install gcc)."
+        fi
+        ;;
+      rust)
+        if ! command -v rustc >/dev/null 2>&1; then
+          echo "NOTE: rustc not found — Rust reference benchmarks will be skipped."
+        fi
+        ;;
+      go)
+        if ! command -v go >/dev/null 2>&1; then
+          echo "NOTE: go not found — Go reference benchmarks will be skipped."
+        fi
+        ;;
+    esac
+  done
+
   # Print header
   printf "%-16s %12s" "benchmark" "ark(ms)"
   for lang in "${LANG_LIST[@]}"; do
@@ -410,7 +446,6 @@ if [[ -n "$COMPARE_LANGS" ]]; then
     if [[ -n "$WASMTIME" && -f "$BENCH_WASM" ]]; then
       local_samples=""
       for (( _i=0; _i<3; _i++ )); do
-        local _t0 _t1
         _t0=$(ms_now)
         wasmtime run "$BENCH_WASM" >/dev/null 2>&1 || true
         _t1=$(ms_now)
