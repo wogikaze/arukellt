@@ -39,8 +39,9 @@ graph LR
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
-  I109["109 ベンチマーク: fib / binary_tree / vec_ops / string_concat / json_parse スイート"]
+  I110["110 CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック"]
   I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
+  I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
   I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
@@ -101,8 +102,6 @@ graph LR
   I474["474 Async Component Support (v5/T5)"]
   I475["475 `arukellt component` サブコマンド (v3 候補)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
-  I110["110 CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック"]
-  I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I486["486 T3: MIR 最適化の段階的再開 (GC-safe audit + opt-level 復帰)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
@@ -133,8 +132,6 @@ graph LR
   I074 --> I474
   I074 --> I475
   I074 --> I476
-  I109 --> I110
-  I109 --> I112
   I117 --> I118
   I122 --> I486
   I125 --> I126
@@ -203,8 +200,9 @@ graph LR
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
-- **109** depends on: none; blocks: 110, 112
+- **110** depends on: 109; blocks: none
 - **111** depends on: none; blocks: none
+- **112** depends on: 109; blocks: none
 - **113** depends on: 100; blocks: none
 - **116** depends on: 114; blocks: none
 - **117** depends on: none; blocks: 118
@@ -265,8 +263,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
-- **110** depends on: 109; blocks: none
-- **112** depends on: 109; blocks: none
 - **118** depends on: 117; blocks: none
 - **486** depends on: 122; blocks: none
 - **126** depends on: 125; blocks: none
