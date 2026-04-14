@@ -10,7 +10,7 @@
 /** Severity level of a diagnostic. */
 export type Severity = "error" | "warning" | "help";
 /** Phase in the compiler pipeline that produced the diagnostic. */
-export type Phase = "lex" | "parse";
+export type Phase = "lex" | "parse" | "typecheck";
 /** A source span label attached to a diagnostic. */
 export interface DiagnosticLabel {
     /** File identifier (always `0` in the playground — single-file mode). */
@@ -108,6 +108,15 @@ export interface TokenizeResponse {
     /** Lexer diagnostics. */
     diagnostics: Diagnostic[];
 }
+/** Response from `typecheck()`. */
+export interface TypecheckResponse {
+    /** `true` if type-checking succeeded without errors. */
+    ok: boolean;
+    /** All diagnostics from lex, parse, resolve, and type-check phases. */
+    diagnostics: Diagnostic[];
+    /** Number of error-severity diagnostics. */
+    error_count: number;
+}
 /** Options for initialising the playground. */
 export interface PlaygroundOptions {
     /**
@@ -143,6 +152,8 @@ export interface Playground {
     format(source: string): FormatResponse;
     /** Tokenize Arukellt source. */
     tokenize(source: string): TokenizeResponse;
+    /** Type-check Arukellt source and return diagnostics. */
+    typecheck(source: string): TypecheckResponse;
     /** Return the Wasm module version. */
     version(): string;
     /** Release the Wasm module resources. */
@@ -161,6 +172,8 @@ export interface WorkerPlayground {
     format(source: string): Promise<FormatResponse>;
     /** Tokenize Arukellt source. */
     tokenize(source: string): Promise<TokenizeResponse>;
+    /** Type-check Arukellt source and return diagnostics. */
+    typecheck(source: string): Promise<TypecheckResponse>;
     /** Return the Wasm module version. */
     version(): Promise<string>;
     /** Terminate the worker and release resources. */
@@ -182,6 +195,10 @@ export type WorkerRequest = {
 } | {
     id: number;
     cmd: "tokenize";
+    source: string;
+} | {
+    id: number;
+    cmd: "typecheck";
     source: string;
 } | {
     id: number;

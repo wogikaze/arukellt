@@ -118,8 +118,8 @@ fn main() {
 |-------|--------------|-------------------|--------|
 | Error code | `E0200` | *(none)* | ❌ |
 | Line number | *(no span on primary)* | *(none)* | — |
-| Severity | `error` | *(no error emitted)* | ❌ |
-| Detected? | ✅ Yes | ❌ **No** | ❌ |
+| Severity | `error` | `error` | ✅ |
+| Detected? | ✅ Yes | ✅ Yes | ✅ |
 
 **Rust output:**
 
@@ -135,14 +135,13 @@ error[E0200|typecheck]: expected `i32`, found `String`
 **Selfhost output:**
 
 ```
-compilation succeeded (phase 6)
-ok: 417 bytes
+tests/fixtures/diagnostics/type_mismatch.ark: error: 1 type error(s)
 ```
 
-**Notes:** The selfhost typechecker does **not** detect the type mismatch.
-It compiles the file successfully through all 6 phases. This indicates the
-selfhost typechecker does not yet enforce type compatibility on let-bindings
-with explicit type annotations.
+**Notes:** The selfhost typechecker detects the type mismatch and reports it
+at the typecheck phase. However, it emits only a plain-text count line — no
+error code (`E0200`), no line/column span, no detail on what types were
+expected vs. found.
 
 ---
 
@@ -359,15 +358,15 @@ ok: 413 bytes
 | # | Case | Error Code | Rust detects? | Selfhost detects? | Code match | Line match | Severity match |
 |---|------|-----------|---------------|-------------------|------------|------------|----------------|
 | 1 | Undefined variable | E0100 | ✅ | ✅ | ❌ | ❌ | ✅ |
-| 2 | Type mismatch | E0200 | ✅ | ❌ | ❌ | ❌ | ❌ |
+| 2 | Type mismatch | E0200 | ✅ | ✅ | ❌ | ❌ | ✅ |
 | 3 | Unexpected token | E0001 | ✅ | ✅ | ❌ | ❌ | ✅ |
 | 4 | Missing brace | E0002 | ✅ | ✅ | ❌ | ❌ | ✅ |
 | 5 | Duplicate definition | E0101 | ✅ | ✅ | ❌ | ❌ | ✅ |
 | 6 | Wrong arg count | E0202 | ✅ | ❌ | ❌ | ❌ | ❌ |
 | 7 | Immutable mutation | E0207 | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-**Full parity check** (`scripts/check/check-selfhost-parity.sh --diag`):
-23 diagnostic fixtures tested — 0 pass, 0 fail, **23 skip** (selfhost does
+**Full parity check** (`scripts/check/check-selfhost-diagnostic-parity.sh`):
+30 diagnostic fixtures tested — 0 pass, 0 fail, **30 skip** (selfhost does
 not emit the expected `error[Exxxx|phase]:` pattern for any fixture).
 
 ## Divergence List
@@ -389,19 +388,18 @@ not emit the expected `error[Exxxx|phase]:` pattern for any fixture).
    numeric token kind IDs (e.g. `73`, `0`) instead of human-readable names
    (`Semi`, `Eof`, `RBrace`).
 
-### Detection divergences (specific error types not caught)
+### Detection divergences (error types not caught by selfhost)
 
 | Error class | Rust code | Selfhost status | Phase |
 |-------------|-----------|----------------|-------|
-| Type mismatch | E0200 | **Not detected** — compiles successfully | typecheck |
 | Wrong argument count | E0202 | **Not detected** — compiles successfully | typecheck |
 | Immutable mutation | E0207 | **Not detected** — compiles successfully | typecheck |
-| Missing type annotation | E0201 | Detected as **parse error** (not typecheck) | parse (wrong phase) |
 | Non-exhaustive match | E0204 | **Not detected** — compiles successfully | typecheck |
 | Mismatched match arms | E0205 | **Not detected** — compiles successfully | typecheck |
 | `?` type mismatch | E0210 | **Not detected** — compiles successfully | typecheck |
 | Unused binding | W0007 | **Not emitted** (no warning support) | typecheck |
 | Unused import | W0006 | **Not emitted** (no warning support) | resolve |
+| Mutable sharing | W0001 | **Not emitted** (no warning support) | typecheck |
 
 ### What works
 
@@ -411,6 +409,8 @@ not emit the expected `error[Exxxx|phase]:` pattern for any fixture).
 | Duplicate definition | E0101 | ✅ Detected at resolve phase |
 | Unexpected token | E0001 | ✅ Detected at parse phase |
 | Missing brace / token | E0002 | ✅ Detected at parse phase |
+| Type mismatch | E0200 | ✅ Detected at typecheck phase (plain count only) |
+| Missing type annotation | E0201 | ✅ Detected at typecheck phase (plain text) |
 
 ## Parity Gap Assessment
 
@@ -420,10 +420,11 @@ The selfhost compiler's diagnostic system is at an **early stage**:
   or source locations.
 - **Resolve errors:** Core cases (undefined name, duplicate def) are detected
   and reported. Missing error codes and locations.
-- **Typecheck errors:** **Not implemented.** The selfhost typechecker does not
-  reject type mismatches, wrong argument counts, immutability violations, or
-  exhaustiveness failures. These programs compile to Wasm successfully (and
-  may produce incorrect runtime behavior).
+- **Typecheck errors:** **Partially implemented.** Type mismatch (`E0200`) and
+  missing type annotation (`E0201`) are now detected and reported at the
+  typecheck phase, though only as a plain count line without error code, span,
+  or detail. Wrong argument count, immutability violations, exhaustiveness
+  failures, and match arm type mismatches still compile to Wasm successfully.
 - **Warnings:** Not supported at all. No `W0xxx` diagnostic pathway exists.
 
 ### Priority order for closing the gap
@@ -439,10 +440,12 @@ The selfhost compiler's diagnostic system is at an **early stage**:
 ## Verification
 
 ```
-scripts/check/check-selfhost-parity.sh --diag
-  → diag-parity: pass=0 fail=0 skip=23 total=23
+bash scripts/check/check-selfhost-diagnostic-parity.sh
+  → diag-parity: pass=0 fail=0 skip=30 total=30
   → Exit 0 (no regressions; skips are expected at this stage)
 ```
+
+*Last verified: 2026-04-15 against `.build/selfhost/arukellt-s1.wasm` (377 kB) and `target/debug/arukellt`.*
 
 ## See Also
 

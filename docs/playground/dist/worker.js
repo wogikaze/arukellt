@@ -47,6 +47,7 @@ async function handleMessage(msg) {
                 parse: mod.parse,
                 format: mod.format,
                 tokenize: mod.tokenize,
+                typecheck: mod.typecheck,
                 version: mod.version,
             };
             return { id, ok: true, result: null };
@@ -65,6 +66,10 @@ async function handleMessage(msg) {
             }
             case "tokenize": {
                 const json = wasmExports.tokenize(msg.source);
+                return { id, ok: true, result: JSON.parse(json) };
+            }
+            case "typecheck": {
+                const json = wasmExports.typecheck(msg.source);
                 return { id, ok: true, result: JSON.parse(json) };
             }
             case "version": {

@@ -52,6 +52,11 @@ export async function createPlayground(wasmModulePath, opts) {
             const json = wasm.tokenize(source);
             return JSON.parse(json);
         },
+        typecheck(source) {
+            ensureAlive();
+            const json = wasm.typecheck(source);
+            return JSON.parse(json);
+        },
         version() {
             ensureAlive();
             return wasm.version();

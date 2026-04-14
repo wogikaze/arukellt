@@ -97,6 +97,11 @@ export async function createWorkerPlayground(opts) {
                 throw new Error("Worker playground has been destroyed");
             return send({ cmd: "tokenize", source });
         },
+        async typecheck(source) {
+            if (destroyed)
+                throw new Error("Worker playground has been destroyed");
+            return send({ cmd: "typecheck", source });
+        },
         async version() {
             if (destroyed)
                 throw new Error("Worker playground has been destroyed");

@@ -87,20 +87,16 @@ run = "cargo check --workspace"
 description = "Type-check all crates"
 
 [tasks.bench]
-run = "bash scripts/run/run-benchmarks.sh --full"
-description = "Run default local benchmark workflow"
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode full"
+description = "Run default local benchmark workflow (release build + compile/runtime/size/memory)"
 
 [tasks."bench:quick"]
-run = "bash scripts/run/run-benchmarks.sh --quick"
-description = "Run quick benchmark smoke workflow"
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode quick"
+description = "Run quick single-sample benchmark smoke workflow"
 
 [tasks."bench:compare"]
-run = "bash scripts/run/run-benchmarks.sh --quick --compare"
-description = "Run benchmarks with Rust and selfhost compilers, show comparison"
-
-[tasks."bench:selfhost"]
-run = "bash scripts/run/run-benchmarks.sh --quick --selfhost"
-description = "Run benchmarks using selfhost compiler only"
+run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode compare"
+description = "Run benchmarks and compare current results against stored baseline"
 
 [tasks."bench:update-baseline"]
 run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode update-baseline"
@@ -108,4 +104,4 @@ description = "Update benchmark baselines from current measurements"
 
 [tasks."bench:ci"]
 run = "cargo build --release -p arukellt && python3 scripts/util/benchmark_runner.py --mode ci"
-description = "Run benchmark regression gate for CI"
+description = "Run benchmark regression gate for CI (fail on threshold regression)"
