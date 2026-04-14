@@ -454,6 +454,8 @@ pub(super) struct Ctx {
     // HashMap GC type indices
     hashmap_i32_i32_ty: u32,
     hashmap_str_i32_ty: u32,
+    hashmap_i32_str_ty: u32,  // HashMap<i32, String> (issue #044)
+    hashmap_str_str_ty: u32,  // HashMap<String, String> (issue #044)
     // Well-known function type indices
     fd_write_ty: u32,
     // User struct GC type indices
@@ -986,6 +988,8 @@ pub fn emit(
         vec_string_ty: 0,
         hashmap_i32_i32_ty: 0,
         hashmap_str_i32_ty: 0,
+        hashmap_i32_str_ty: 0,
+        hashmap_str_str_ty: 0,
         fd_write_ty: 0,
         struct_gc_types: HashMap::new(),
         struct_layouts,

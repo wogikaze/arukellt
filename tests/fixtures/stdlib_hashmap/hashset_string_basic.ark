@@ -1,0 +1,28 @@
+use std::host::stdio
+use std::collections::hash
+
+fn main() {
+    let s = hash::hashset_str_new()
+
+    // insert new elements
+    stdio::println(bool_to_string(hash::hashset_str_insert(s, "apple")))
+    stdio::println(bool_to_string(hash::hashset_str_insert(s, "banana")))
+    stdio::println(bool_to_string(hash::hashset_str_insert(s, "cherry")))
+
+    // duplicate insert returns false
+    stdio::println(bool_to_string(hash::hashset_str_insert(s, "apple")))
+
+    // len
+    stdio::println(i32_to_string(hash::hashset_str_len(s)))
+
+    // contains
+    stdio::println(bool_to_string(hash::hashset_str_contains(s, "banana")))
+    stdio::println(bool_to_string(hash::hashset_str_contains(s, "mango")))
+
+    // remove
+    stdio::println(bool_to_string(hash::hashset_str_remove(s, "banana")))
+    stdio::println(bool_to_string(hash::hashset_str_remove(s, "mango")))
+
+    // len after remove
+    stdio::println(i32_to_string(hash::hashset_str_len(s)))
+}

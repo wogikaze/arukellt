@@ -332,3 +332,100 @@ pub fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
     }
     result
 }
+
+// ─── HashSet<String> API (backed by Vec<String>, linear scan) ────────────────
+
+/// Create a new empty HashSet<String>.
+pub fn hashset_str_new() -> Vec<String> {
+    Vec_new_String()
+}
+
+/// Insert a string into the set. Returns true if newly added, false if already present.
+pub fn hashset_str_insert(s: Vec<String>, value: String) -> bool {
+    let n: i32 = len(s)
+    let mut i: i32 = 0
+    let mut found: bool = false
+    while i < n {
+        if eq(get_unchecked(s, i), value) {
+            found = true
+            i = n
+        } else {
+            i = i + 1
+        }
+    }
+    if found {
+        false
+    } else {
+        push(s, value)
+        true
+    }
+}
+
+/// Return true if the set contains the given string.
+pub fn hashset_str_contains(s: Vec<String>, value: String) -> bool {
+    let n: i32 = len(s)
+    let mut i: i32 = 0
+    let mut found: bool = false
+    while i < n {
+        if eq(get_unchecked(s, i), value) {
+            found = true
+            i = n
+        } else {
+            i = i + 1
+        }
+    }
+    found
+}
+
+/// Remove a string from the set. Returns true if it was present, false otherwise.
+pub fn hashset_str_remove(s: Vec<String>, value: String) -> bool {
+    let n: i32 = len(s)
+    let mut i: i32 = 0
+    let mut found: bool = false
+    while i < n {
+        if eq(get_unchecked(s, i), value) {
+            found = true
+            i = n
+        } else {
+            i = i + 1
+        }
+    }
+    if !found {
+        false
+    } else {
+        // collect elements to keep
+        let tmp: Vec<String> = Vec_new_String()
+        let mut j: i32 = 0
+        while j < n {
+            let elem: String = get_unchecked(s, j)
+            if !eq(elem, value) {
+                push(tmp, elem)
+            }
+            j = j + 1
+        }
+        // drain s
+        let mut k: i32 = 0
+        while k < n {
+            let _ = pop(s)
+            k = k + 1
+        }
+        // refill s from tmp
+        let m: i32 = len(tmp)
+        let mut l: i32 = 0
+        while l < m {
+            push(s, get_unchecked(tmp, l))
+            l = l + 1
+        }
+        true
+    }
+}
+
+/// Return the number of elements in the string set.
+pub fn hashset_str_len(s: Vec<String>) -> i32 {
+    len(s)
+}
+
+/// Return true if the string set is empty.
+pub fn hashset_str_is_empty(s: Vec<String>) -> bool {
+    len(s) == 0
+}

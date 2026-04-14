@@ -1351,6 +1351,96 @@ prelude = true
 stability = "stable"
 doc_category = "collections"
 
+[[functions]]
+name = "HashMap_new_i32_String"
+kind = "builtin"
+params = []
+returns = "HashMap<i32, String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_String_insert"
+kind = "builtin"
+params = ["HashMap<i32, String>", "i32", "String"]
+returns = "unit"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_String_get"
+kind = "builtin"
+params = ["HashMap<i32, String>", "i32"]
+returns = "Option<String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_String_contains_key"
+kind = "builtin"
+params = ["HashMap<i32, String>", "i32"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_i32_String_len"
+kind = "builtin"
+params = ["HashMap<i32, String>"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_new_String_String"
+kind = "builtin"
+params = []
+returns = "HashMap<String, String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_String_insert"
+kind = "builtin"
+params = ["HashMap<String, String>", "String", "String"]
+returns = "unit"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_String_get"
+kind = "builtin"
+params = ["HashMap<String, String>", "String"]
+returns = "Option<String>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_String_contains_key"
+kind = "builtin"
+params = ["HashMap<String, String>", "String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_String_len"
+kind = "builtin"
+params = ["HashMap<String, String>"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
 # ── Intrinsics (no public wrapper) ───────────
 # __intrinsic_string_is_empty is in PRELUDE_FUNCTIONS but has no
 # prelude.ark wrapper or FnSig in checker.rs. Listed for completeness.

@@ -1193,6 +1193,110 @@ impl TypeChecker {
             },
         );
 
+        // --- HashMap<i32, String> (issue #044) ---
+        self.fn_sigs.insert(
+            "HashMap_new_i32_String".into(),
+            FnSig {
+                name: "HashMap_new_i32_String".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_i32_String_insert".into(),
+            FnSig {
+                name: "HashMap_i32_String_insert".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32, Type::String],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_i32_String_get".into(),
+            FnSig {
+                name: "HashMap_i32_String_get".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::Option(Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_i32_String_contains_key".into(),
+            FnSig {
+                name: "HashMap_i32_String_contains_key".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I32],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_i32_String_len".into(),
+            FnSig {
+                name: "HashMap_i32_String_len".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
+
+        // --- HashMap<String, String> (issue #044) ---
+        self.fn_sigs.insert(
+            "HashMap_new_String_String".into(),
+            FnSig {
+                name: "HashMap_new_String_String".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![],
+                ret: Type::I32,
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_String_String_insert".into(),
+            FnSig {
+                name: "HashMap_String_String_insert".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::String, Type::String],
+                ret: Type::Unit,
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_String_String_get".into(),
+            FnSig {
+                name: "HashMap_String_String_get".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::String],
+                ret: Type::Option(Box::new(Type::String)),
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_String_String_contains_key".into(),
+            FnSig {
+                name: "HashMap_String_String_contains_key".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::String],
+                ret: Type::Bool,
+            },
+        );
+        self.fn_sigs.insert(
+            "HashMap_String_String_len".into(),
+            FnSig {
+                name: "HashMap_String_String_len".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
+
         // --- std::host::env builtins ---
         for name in &["args", "env::args"] {
             self.fn_sigs.insert(

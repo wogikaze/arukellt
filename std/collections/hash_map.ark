@@ -40,3 +40,63 @@ pub fn hashmap_str_i32_len(m: HashMap<String, i32>) -> i32 {
 pub fn hashmap_str_i32_is_empty(m: HashMap<String, i32>) -> bool {
     HashMap_String_i32_len(m) == 0
 }
+
+/// Create a new HashMap<i32, String>.
+pub fn hashmap_i32_str_new() -> HashMap<i32, String> {
+    HashMap_new_i32_String()
+}
+
+/// Insert into a HashMap<i32, String>.
+pub fn hashmap_i32_str_insert(m: HashMap<i32, String>, key: i32, value: String) {
+    HashMap_i32_String_insert(m, key, value)
+}
+
+/// Get from a HashMap<i32, String>.
+pub fn hashmap_i32_str_get(m: HashMap<i32, String>, key: i32) -> Option<String> {
+    HashMap_i32_String_get(m, key)
+}
+
+/// Check containment in a HashMap<i32, String>.
+pub fn hashmap_i32_str_contains(m: HashMap<i32, String>, key: i32) -> bool {
+    HashMap_i32_String_contains_key(m, key)
+}
+
+/// Return the number of entries in a HashMap<i32, String>.
+pub fn hashmap_i32_str_len(m: HashMap<i32, String>) -> i32 {
+    HashMap_i32_String_len(m)
+}
+
+/// Returns true if the HashMap<i32, String> has no entries.
+pub fn hashmap_i32_str_is_empty(m: HashMap<i32, String>) -> bool {
+    HashMap_i32_String_len(m) == 0
+}
+
+/// Create a new HashMap<String, String>.
+pub fn hashmap_str_str_new() -> HashMap<String, String> {
+    HashMap_new_String_String()
+}
+
+/// Insert into a HashMap<String, String>.
+pub fn hashmap_str_str_insert(m: HashMap<String, String>, key: String, value: String) {
+    HashMap_String_String_insert(m, key, value)
+}
+
+/// Get from a HashMap<String, String>.
+pub fn hashmap_str_str_get(m: HashMap<String, String>, key: String) -> Option<String> {
+    HashMap_String_String_get(m, key)
+}
+
+/// Check containment in a HashMap<String, String>.
+pub fn hashmap_str_str_contains(m: HashMap<String, String>, key: String) -> bool {
+    HashMap_String_String_contains_key(m, key)
+}
+
+/// Return the number of entries in a HashMap<String, String>.
+pub fn hashmap_str_str_len(m: HashMap<String, String>) -> i32 {
+    HashMap_String_String_len(m)
+}
+
+/// Returns true if the HashMap<String, String> has no entries.
+pub fn hashmap_str_str_is_empty(m: HashMap<String, String>) -> bool {
+    HashMap_String_String_len(m) == 0
+}

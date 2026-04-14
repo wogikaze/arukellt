@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 575
+- **Canonical names:** 585
 - **Historical/deprecated names:** 3
-- **Total entries:** 578
+- **Total entries:** 588
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -239,10 +239,16 @@ Current public API names, sorted alphabetically.
 | `HashMap_i32_i32_insert` | `prelude` | `stable` | Collections |
 | `HashMap_i32_i32_len` | `prelude` | `stable` | Collections |
 | `HashMap_i32_i32_new` | `prelude` | `stable` | Collections |
+| `HashMap_i32_String_contains_key` | `prelude` | `stable` | Collections |
+| `HashMap_i32_String_get` | `prelude` | `stable` | Collections |
+| `HashMap_i32_String_insert` | `prelude` | `stable` | Collections |
+| `HashMap_i32_String_len` | `prelude` | `stable` | Collections |
 | `hashmap_is_empty` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_keys` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_new` | `std::collections::hash` | `stable` | Collections |
+| `HashMap_new_i32_String` | `prelude` | `stable` | Collections |
 | `HashMap_new_String_i32` | `prelude` | `stable` | Collections |
+| `HashMap_new_String_String` | `prelude` | `stable` | Collections |
 | `hashmap_remove` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_set` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_size` | `std::collections::hash` | `stable` | Collections |
@@ -250,6 +256,10 @@ Current public API names, sorted alphabetically.
 | `HashMap_String_i32_get` | `prelude` | `stable` | Collections |
 | `HashMap_String_i32_insert` | `prelude` | `stable` | Collections |
 | `HashMap_String_i32_len` | `prelude` | `stable` | Collections |
+| `HashMap_String_String_contains_key` | `prelude` | `stable` | Collections |
+| `HashMap_String_String_get` | `prelude` | `stable` | Collections |
+| `HashMap_String_String_insert` | `prelude` | `stable` | Collections |
+| `HashMap_String_String_len` | `prelude` | `stable` | Collections |
 | `hashmap_values` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
 | `hashset_contains` | `std::collections::hash` | `stable` | Collections |
@@ -836,10 +846,16 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `HashMap_i32_i32_insert` | ✅ `stable` | `prelude` | Collections |
 | `HashMap_i32_i32_len` | ✅ `stable` | `prelude` | Collections |
 | `HashMap_i32_i32_new` | ✅ `stable` | `prelude` | Collections |
+| `HashMap_i32_String_contains_key` | ✅ `stable` | `prelude` | Collections |
+| `HashMap_i32_String_get` | ✅ `stable` | `prelude` | Collections |
+| `HashMap_i32_String_insert` | ✅ `stable` | `prelude` | Collections |
+| `HashMap_i32_String_len` | ✅ `stable` | `prelude` | Collections |
 | `hashmap_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_keys` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_new` | ✅ `stable` | `std::collections::hash` | Collections |
+| `HashMap_new_i32_String` | ✅ `stable` | `prelude` | Collections |
 | `HashMap_new_String_i32` | ✅ `stable` | `prelude` | Collections |
+| `HashMap_new_String_String` | ✅ `stable` | `prelude` | Collections |
 | `hashmap_remove` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_set` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_size` | ✅ `stable` | `std::collections::hash` | Collections |
@@ -847,6 +863,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `HashMap_String_i32_get` | ✅ `stable` | `prelude` | Collections |
 | `HashMap_String_i32_insert` | ✅ `stable` | `prelude` | Collections |
 | `HashMap_String_i32_len` | ✅ `stable` | `prelude` | Collections |
+| `HashMap_String_String_contains_key` | ✅ `stable` | `prelude` | Collections |
+| `HashMap_String_String_get` | ✅ `stable` | `prelude` | Collections |
+| `HashMap_String_String_insert` | ✅ `stable` | `prelude` | Collections |
+| `HashMap_String_String_len` | ✅ `stable` | `prelude` | Collections |
 | `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashset_contains` | ✅ `stable` | `std::collections::hash` | Collections |

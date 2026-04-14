@@ -1,8 +1,8 @@
 # std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-06-29
 **ID**: 044
 **Depends on**: 039, 041
 **Track**: stdlib

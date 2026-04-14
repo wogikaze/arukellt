@@ -261,6 +261,9 @@ run:stdlib_hashmap/hashmap_extended.ark
 run:stdlib_hashmap/hashset_basic.ark
 run:stdlib_hashmap/hashset_ops.ark
 run:stdlib_hashmap/hashmap_string_i32.ark
+run:stdlib_hashmap/hashmap_i32_string.ark
+run:stdlib_hashmap/hashmap_string_string.ark
+run:stdlib_hashmap/hashset_string_basic.ark
 run:stdlib_hof_i64_f64/filter_f64.ark
 run:stdlib_hof_i64_f64/filter_i64.ark
 run:stdlib_hof_i64_f64/fold_i64.ark
@@ -500,6 +503,9 @@ t3-compile:regression/type_table/struct_field_access.ark
 t3-compile:stdlib_filter/filter_string.ark
 t3-compile:stdlib_hashmap/hashmap_basic.ark
 t3-compile:stdlib_hashmap/hashmap_string_i32.ark
+t3-compile:stdlib_hashmap/hashmap_i32_string.ark
+t3-compile:stdlib_hashmap/hashmap_string_string.ark
+t3-compile:stdlib_hashmap/hashset_string_basic.ark
 t3-compile:stdlib_http_compile.ark
 t3-compile:stdlib_io/eprintln.ark
 t3-compile:stdlib_io/f64_to_string.ark
@@ -666,6 +672,9 @@ t3-run:stdlib_env/env_var_lookup.ark
 t3-run:stdlib_filter/filter_string.ark
 t3-run:stdlib_hashmap/hashmap_basic.ark
 t3-run:stdlib_hashmap/hashmap_string_i32.ark
+t3-run:stdlib_hashmap/hashmap_i32_string.ark
+t3-run:stdlib_hashmap/hashmap_string_string.ark
+t3-run:stdlib_hashmap/hashset_string_basic.ark
 t3-run:stdlib_io/clock_random.ark
 t3-run:stdlib_io/eprintln.ark
 t3-run:stdlib_io/f64_to_string.ark

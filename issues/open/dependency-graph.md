@@ -10,7 +10,8 @@ graph LR
   I032["032 WIT resource type support (own/borrow)"]
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
-  I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
+  I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
+  I057["057 Prelude 再構成と API 移行"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
   I070["070 Wasm GC i31ref: 小整数 unboxed scalar 最適化"]
@@ -68,8 +69,6 @@ graph LR
   I498["498 498 — Playground CI: Lighthouse performance audit"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
-  I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
-  I057["057 Prelude 再構成と API 移行"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
   I139["139 WASI P2: `std::host::sockets` facade と T3 実行検証"]
@@ -93,8 +92,6 @@ graph LR
   I489["489 Playground user-visible entrypoint wiring"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I032 --> I473
-  I044 --> I054
-  I044 --> I057
   I074 --> I077
   I074 --> I124
   I074 --> I139
@@ -140,7 +137,8 @@ graph LR
 - **032** depends on: 030; blocks: 473
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
-- **044** depends on: 039, 041; blocks: 054, 057
+- **054** depends on: 039, 044, 053; blocks: none
+- **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: none
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
 - **070** depends on: none; blocks: none
@@ -198,8 +196,6 @@ graph LR
 - **498** depends on: none; blocks: none
 - **499** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
-- **054** depends on: 039, 044, 053; blocks: none
-- **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: none
 - **077** depends on: 074, 137; blocks: 136
 - **124** depends on: 074; blocks: none
 - **139** depends on: 074, 137; blocks: 136

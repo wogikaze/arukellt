@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 400 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 410 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 170 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -124,16 +124,26 @@
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `HashMap_String_String_contains_key` | `(HashMap<String, String>, String) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_String_get` | `(HashMap<String, String>, String) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_String_insert` | `(HashMap<String, String>, String, String) -> unit` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_String_len` | `(HashMap<String, String>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_String_i32_contains_key` | `(HashMap<String, i32>, String) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_String_i32_get` | `(HashMap<String, i32>, String) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_String_i32_insert` | `(HashMap<String, i32>, String, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_String_i32_len` | `(HashMap<String, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_String_contains_key` | `(HashMap<i32, String>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_String_get` | `(HashMap<i32, String>, i32) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_String_insert` | `(HashMap<i32, String>, i32, String) -> unit` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_String_len` | `(HashMap<i32, String>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_new_String_String` | `() -> HashMap<String, String>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_new_String_i32` | `() -> HashMap<String, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_new_i32_String` | `() -> HashMap<i32, String>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
 | `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` | - |
 | `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` | - |
@@ -997,16 +1007,26 @@ Expected output: `hello world`
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_String_contains_key` | `(HashMap<String, String>, String) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_String_get` | `(HashMap<String, String>, String) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_String_insert` | `(HashMap<String, String>, String, String) -> unit` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_String_len` | `(HashMap<String, String>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_String_i32_contains_key` | `(HashMap<String, i32>, String) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_String_i32_get` | `(HashMap<String, i32>, String) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_String_i32_insert` | `(HashMap<String, i32>, String, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_String_i32_len` | `(HashMap<String, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_String_contains_key` | `(HashMap<i32, String>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_String_get` | `(HashMap<i32, String>, i32) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_String_insert` | `(HashMap<i32, String>, i32, String) -> unit` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_i32_String_len` | `(HashMap<i32, String>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_new_String_String` | `() -> HashMap<String, String>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_new_String_i32` | `() -> HashMap<String, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_new_i32_String` | `() -> HashMap<i32, String>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `String_from` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
 | `String_new` | `() -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
 | `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
