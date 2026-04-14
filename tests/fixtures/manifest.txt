@@ -362,6 +362,8 @@ run:stdlib_text/utf8_byte_semantics.ark
 run:stdlib_text/builder_basic.ark
 run:stdlib_text/string_chars.ark
 run:stdlib_text/string_api.ark
+run:stdlib_migration/old_api_compat.ark
+run:stdlib_migration/new_api_basic.ark
 run:stdlib_toml/toml_basic.ark
 run:stdlib_toml/toml_extended.ark
 run:stdlib_vec/any_find.ark

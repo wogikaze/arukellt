@@ -11,7 +11,6 @@ graph LR
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
-  I057["057 Prelude 再構成と API 移行"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
   I070["070 Wasm GC i31ref: 小整数 unboxed scalar 最適化"]
@@ -134,7 +133,6 @@ graph LR
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
-- **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: none
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
 - **070** depends on: none; blocks: none

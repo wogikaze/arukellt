@@ -1,3 +1,33 @@
+// =============================================================================
+// Arukellt Standard Prelude — auto-imported into every Arukellt module
+// =============================================================================
+//
+// ## Tiny Prelude (canonical v3+ surface — ≤ 15 symbols)
+//
+// The intended minimal prelude for Arukellt programs going forward:
+//
+//   Types / compiler builtins (handled by ark-typecheck, not listed here):
+//     Option, Result, String, Bytes, Vec
+//     Some, None, Ok, Err
+//
+//   Functions provided by THIS file (the canonical tiny set):
+//     panic, assert
+//     String_from, String_new
+//     i32_to_string, bool_to_string  (essential conversions)
+//     plus len, push, pop, get, set, get_unchecked (compiler intrinsics)
+//
+// ## Legacy / Compat Section (deprecated in v3 — removed in v4)
+//
+// **Monomorphic Vec constructors** (`Vec_new_i32`, `Vec_new_i64`, …) and all
+// monomorphic higher-order functions (`map_i32_i32`, `filter_i32`, …) are
+// **deprecated**.  They remain auto-imported in v3 for backward compatibility
+// and will be removed in v4.
+//
+// Migration guide: docs/migration/v2-to-v3.md
+// Prelude design:  docs/stdlib/prelude.md
+//
+// =============================================================================
+
 // String construction
 pub fn String_from(s: String) -> String {
     __intrinsic_string_from(s)
@@ -13,6 +43,7 @@ pub fn eq(a: String, b: String) -> bool {
 }
 
 // String operations
+// @deprecated v3: use `use std::text; text::concat(a, b)` instead.
 pub fn concat(a: String, b: String) -> String {
     __intrinsic_concat(a, b)
 }
@@ -201,19 +232,28 @@ pub fn panic(s: String) {
     __intrinsic_panic(s);
 }
 
-// Vec constructors
+// =============================================================================
+// LEGACY COMPAT — @deprecated in v3, will be removed in v4
+// Use explicit std::* module imports instead (see docs/migration/v2-to-v3.md).
+// =============================================================================
+
+// Vec constructors (deprecated)
+// @deprecated v3: use `use std::collections::vec; vec::new_i32()` instead.
 pub fn Vec_new_i32() -> Vec<i32> {
     __intrinsic_Vec_new_i32()
 }
 
+// @deprecated v3: use `use std::collections::vec; vec::new_i64()` instead.
 pub fn Vec_new_i64() -> Vec<i64> {
     __intrinsic_Vec_new_i64()
 }
 
+// @deprecated v3: use `use std::collections::vec; vec::new_f64()` instead.
 pub fn Vec_new_f64() -> Vec<f64> {
     __intrinsic_Vec_new_f64()
 }
 
+// @deprecated v3: use `use std::collections::vec; vec::new_string()` instead.
 pub fn Vec_new_String() -> Vec<String> {
     __intrinsic_Vec_new_String()
 }
@@ -231,7 +271,8 @@ pub fn Vec_new_f64_with_cap(cap: i32) -> Vec<f64> {
     __intrinsic_Vec_new_f64_with_cap(cap)
 }
 
-// Vec sorting (Ark-native bubble sort)
+// Vec sorting (deprecated)
+// @deprecated v3: use `use std::seq; seq::sort_i32(v)` instead.
 pub fn sort_i32(v: Vec<i32>) {
     let n: i32 = len(v)
     let mut i: i32 = 0
@@ -253,15 +294,18 @@ pub fn sort_String(v: Vec<String>) {
     __intrinsic_sort_String(v);
 }
 
-// Vec higher-order
+// Vec higher-order (deprecated)
+// @deprecated v3: use `use std::seq; seq::map(seq::from_vec(v), f)` instead.
 pub fn map_i32_i32(v: Vec<i32>, f: fn(i32) -> i32) -> Vec<i32> {
     __intrinsic_map_i32_i32(v, f)
 }
 
+// @deprecated v3: use `use std::seq; seq::filter(seq::from_vec(v), f)` instead.
 pub fn filter_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Vec<i32> {
     __intrinsic_filter_i32(v, f)
 }
 
+// @deprecated v3: use `use std::seq; seq::fold(seq::from_vec(v), init, f)` instead.
 pub fn fold_i32_i32(v: Vec<i32>, init: i32, f: fn(i32, i32) -> i32) -> i32 {
     __intrinsic_fold_i32_i32(v, init, f)
 }
@@ -279,10 +323,12 @@ pub fn find_i32(v: Vec<i32>, f: fn(i32) -> bool) -> Option<i32> {
 }
 
 // String: split/join/push_char
+// @deprecated v3: use `use std::text; text::split(s, sep)` instead.
 pub fn split(s: String, delim: String) -> Vec<String> {
     __intrinsic_split(s, delim)
 }
 
+// @deprecated v3: use `use std::text; text::join(parts, sep)` instead.
 pub fn join(v: Vec<String>, sep: String) -> String {
     __intrinsic_join(v, sep)
 }
