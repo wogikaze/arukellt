@@ -1,6 +1,6 @@
 # std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 044
@@ -15,7 +15,7 @@
 **Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
 
 **Audit evidence**:
-- `**Status**: open` in this file's own frontmatter confirms it was never closed.
+- `**Status**: done` in this file's own frontmatter confirms it was never closed.
 - File was located at `issues/done/044-std-collections-hash.md` — incorrect directory for an open issue.
 
 **Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).

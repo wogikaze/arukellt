@@ -54,7 +54,14 @@ pub(crate) fn run_wasm_p1(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
     use wasmtime_wasi::preview1::WasiP1Ctx;
     use wasmtime_wasi::{DirPerms, FilePerms, WasiCtxBuilder};
 
-    let engine = Engine::default();
+    // T1 WASM uses fixed linear-memory addresses (SCRATCH=16, NWRITTEN=8) as scratch
+    // registers in inline-emitted code. Cranelift's dead-store elimination can incorrectly
+    // remove these stores, corrupting loop counters and causing ~50% flaky failures at
+    // runtime (wasm func 16, instruction 0xb51 i32.load). Disabling optimization prevents
+    // this miscompilation until the T1 emitter is fixed to use WASM locals instead.
+    let mut config = Config::new();
+    config.cranelift_opt_level(OptLevel::None);
+    let engine = Engine::new(&config).map_err(|e| format!("engine creation error: {:?}", e))?;
     let module = wasmtime::Module::new(&engine, wasm_bytes)
         .map_err(|e| format!("wasm compile error: {:?}", e))?;
 

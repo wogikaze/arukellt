@@ -10,7 +10,6 @@ graph LR
   I032["032 WIT resource type support (own/borrow)"]
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
-  I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
   I045["045 std::collections: Deque、PriorityQueue"]
   I046["046 std::collections: BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet"]
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
@@ -18,6 +17,7 @@ graph LR
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
   I052["052 std::process + std::env + std::cli: 実行環境 API"]
   I053["053 std::wasm: Wasm バイナリ型・opcode・module builder"]
+  I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I056["056 std::test: assert、snapshot テスト、bench-lite"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
@@ -86,7 +86,6 @@ graph LR
   I496["496 496 — Selfhost typechecker: match exhaustiveness checking"]
   I498["498 498 — Playground CI: Lighthouse performance audit"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
-  I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I057["057 Prelude 再構成と API 移行"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
@@ -112,12 +111,9 @@ graph LR
   I489["489 Playground user-visible entrypoint wiring"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
   I032 --> I473
-  I044 --> I055
-  I044 --> I057
   I048 --> I057
   I049 --> I057
   I052 --> I057
-  I044 --> I054
   I053 --> I054
   I074 --> I077
   I074 --> I124
@@ -164,7 +160,6 @@ graph LR
 - **032** depends on: 030; blocks: 473
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
-- **044** depends on: 039, 041; blocks: 054, 055, 057
 - **045** depends on: 039, 041; blocks: none
 - **046** depends on: 039, 041; blocks: none
 - **047** depends on: 039, 041; blocks: none
@@ -172,6 +167,7 @@ graph LR
 - **049** depends on: 039, 041, 042; blocks: 057
 - **052** depends on: 039, 042; blocks: 057
 - **053** depends on: 039, 040, 043; blocks: 054
+- **055** depends on: 039, 042, 044; blocks: none
 - **056** depends on: 039, 041; blocks: none
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
@@ -240,7 +236,6 @@ graph LR
 - **496** depends on: none; blocks: none
 - **498** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
-- **055** depends on: 039, 042, 044; blocks: none
 - **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **077** depends on: 074, 137; blocks: 136
