@@ -649,14 +649,6 @@ impl EmitCtx {
         // Populate struct-typed locals from MIR metadata
         self.local_struct_names = func.struct_typed_locals.clone();
 
-        // DEBUG: dump locals for diagnostic purposes
-        if std::env::var("ARUKELLT_DUMP_LOCALS").is_ok() {
-            eprintln!("[locals] fn={} num_params={} locals=[{}]",
-                func.name, num_params,
-                func.locals.iter().map(|l| format!("{}:{:?}", l.id.0, l.ty)).collect::<Vec<_>>().join(", ")
-            );
-        }
-
         // Build locals list with proper types for non-parameter locals
         let mut locals = Vec::new();
         if num_locals > num_params {

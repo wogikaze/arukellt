@@ -663,7 +663,7 @@ impl LowerCtx {
                         ark_typecheck::types::Type::I32
                     }
                 } else {
-                    ark_typecheck::types::Type::I32
+                    ark_typecheck::types::Type::Unit
                 };
                 let num_locals = sub_ctx.next_local;
                 let entry = BlockId(0);
