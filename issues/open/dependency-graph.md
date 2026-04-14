@@ -31,7 +31,6 @@ graph LR
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
-  I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
   I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
   I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
@@ -169,7 +168,6 @@ graph LR
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
-- **111** depends on: none; blocks: none
 - **113** depends on: 100; blocks: none
 - **116** depends on: 114; blocks: none
 - **117** depends on: none; blocks: 118
