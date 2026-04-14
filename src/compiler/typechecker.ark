@@ -101,6 +101,7 @@ struct TypeEnv {
     next_id: i32,
     errors: Vec<String>,
     error_count: i32,
+    mono_instances: Vec<MonoInstance>,
 }
 
 fn TypeEnv_new() -> TypeEnv {
@@ -109,7 +110,56 @@ fn TypeEnv_new() -> TypeEnv {
         next_id: 0,
         errors: Vec_new_String(),
         error_count: 0,
+        mono_instances: Vec_new_MonoInstance(),
     }
+}
+
+// ── Monomorphization Instance Tracking ──────────────────────────────────────
+
+struct MonoInstance {
+    fn_name: String,
+    mangled_name: String,
+}
+
+fn mono_type_key(ty: TypeInfo) -> String {
+    if ty.tag == TY_TYPE_VAR() { return concat(String_from("?"), clone(ty.name)) }
+    if ty.tag == TY_STRUCT() || ty.tag == TY_ENUM() { return clone(ty.name) }
+    type_tag_name(ty.tag)
+}
+
+fn record_mono_instance(env: TypeEnv, fn_name: String, resolved_types: Vec<TypeInfo>) {
+    let mut mangled = clone(fn_name)
+    let count = len(resolved_types)
+    let mut i = 0
+    while i < count {
+        let ty = get_unchecked(resolved_types, i)
+        mangled = concat(mangled, concat(String_from("__"), mono_type_key(ty)))
+        i = i + 1
+    }
+    // Dedup: skip if already recorded
+    let mi_count = len(env.mono_instances)
+    let mut j = 0
+    while j < mi_count {
+        let mi = get_unchecked(env.mono_instances, j)
+        if eq(clone(mi.mangled_name), clone(mangled)) {
+            return
+        }
+        j = j + 1
+    }
+    push(env.mono_instances, MonoInstance { fn_name: fn_name, mangled_name: mangled })
+}
+
+fn has_mono_instance_for(mono_instances: Vec<MonoInstance>, fn_name: String) -> bool {
+    let count = len(mono_instances)
+    let mut i = 0
+    while i < count {
+        let mi = get_unchecked(mono_instances, i)
+        if eq(clone(mi.fn_name), clone(fn_name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
 }
 
 fn fresh_var(env: TypeEnv) -> TypeInfo {
@@ -149,6 +199,22 @@ fn unify(env: TypeEnv, a: TypeInfo, b: TypeInfo) -> TypeInfo {
         if a.tag == TY_STRUCT() || a.tag == TY_ENUM() {
             if !eq(clone(a.name), clone(b.name)) {
                 type_error(env, concat(String_from("type mismatch: "), concat(clone(a.name), concat(String_from(" vs "), clone(b.name)))))
+            }
+        }
+        // Compare type arguments for generic types (e.g., Vec<i32> vs Vec<String>)
+        let ac = len(a.type_args)
+        let bc = len(b.type_args)
+        if ac > 0 && bc > 0 {
+            if ac != bc {
+                type_error(env, concat(String_from("generic arity mismatch: "), type_tag_name(a.tag)))
+            } else {
+                let mut k = 0
+                while k < ac {
+                    let ta = get_unchecked(a.type_args, k)
+                    let tb = get_unchecked(b.type_args, k)
+                    unify(env, ta, tb)
+                    k = k + 1
+                }
             }
         }
         return a
@@ -215,7 +281,48 @@ fn resolve_type_name(name: String) -> TypeInfo {
     if eq(clone(name), "bool") { return TypeInfo_simple(TY_BOOL()) }
     if eq(clone(name), "String") { return TypeInfo_simple(TY_STRING()) }
     if eq(clone(name), "char") { return TypeInfo_simple(TY_CHAR()) }
+    if eq(clone(name), "Vec") { return TypeInfo_simple(TY_VEC()) }
+    if eq(clone(name), "Option") { return TypeInfo_simple(TY_OPTION()) }
+    if eq(clone(name), "Result") { return TypeInfo_simple(TY_RESULT()) }
+    if eq(clone(name), "HashMap") { return TypeInfo_simple(TY_HASHMAP()) }
     TypeInfo_named(TY_STRUCT(), name)
+}
+
+// ── Generic Type Annotation Resolution ───────────────────────────────────────
+
+// Resolve a type annotation AST node to TypeInfo, handling Vec<T>, Option<T>, etc.
+fn resolve_type_ann_node(ann: AstNode) -> TypeInfo {
+    if ann.kind == 91 {  // NK_TYPE_GENERIC
+        let base_ty = resolve_type_name(clone(ann.text))
+        // children: [0]=base, [1..]=type arguments
+        let child_count = len(ann.children)
+        let mut k = 1
+        while k < child_count {
+            let arg_child = get_unchecked(ann.children, k)
+            let arg_ty = resolve_type_ann_node(arg_child)
+            push(base_ty.type_args, arg_ty)
+            k = k + 1
+        }
+        return base_ty
+    }
+    resolve_type_name(clone(ann.text))
+}
+
+// Resolve a type annotation node with generic type param awareness.
+fn resolve_type_ann_node_generic(ann: AstNode, type_params: Vec<String>) -> TypeInfo {
+    if ann.kind == 91 {  // NK_TYPE_GENERIC
+        let base_ty = resolve_type_name(clone(ann.text))
+        let child_count = len(ann.children)
+        let mut k = 1
+        while k < child_count {
+            let arg_child = get_unchecked(ann.children, k)
+            let arg_ty = resolve_type_ann_node_generic(arg_child, type_params)
+            push(base_ty.type_args, arg_ty)
+            k = k + 1
+        }
+        return base_ty
+    }
+    resolve_type_name_generic(clone(ann.text), type_params)
 }
 
 // ── Generic-Aware Type Resolution ────────────────────────────────────────────
@@ -459,7 +566,19 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
 
         // Resolve return type through instantiation and substitution
         let inst_ret = instantiate_type(sig.return_type, var_names, var_types)
-        return resolve_type(infer_env, inst_ret)
+        let ret_ty = resolve_type(infer_env, inst_ret)
+
+        // Record monomorphization instance: collect resolved concrete type args
+        let resolved_type_args = Vec_new_TypeInfo()
+        let mut rv = 0
+        while rv < tp_count {
+            let tv_raw = get_unchecked(var_types, rv)
+            let resolved_tv = resolve_type(infer_env, tv_raw)
+            push(resolved_type_args, resolved_tv)
+            rv = rv + 1
+        }
+        record_mono_instance(env, clone(callee.text), resolved_type_args)
+        return ret_ty
     }
 
     // Match expression
@@ -529,10 +648,10 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             bind_ty = infer_expr(env, scope, fn_sigs, init)
         }
 
-        // Unify with explicit type annotation if present
+        // Unify with explicit type annotation if present (handles Vec<i32>, Vec<String>, etc.)
         if len(node.type_ann) > 0 {
             let ann = get_unchecked(node.type_ann, 0)
-            let ann_ty = resolve_type_name(clone(ann.text))
+            let ann_ty = resolve_type_ann_node(ann)
             bind_ty = unify(env, bind_ty, ann_ty)
         }
 
@@ -612,7 +731,7 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
             let mut param_ty = TypeInfo_simple(TY_UNKNOWN())
             if len(param.type_ann) > 0 {
                 let type_node = get_unchecked(param.type_ann, 0)
-                param_ty = resolve_type_name_generic(clone(type_node.text), type_params)
+                param_ty = resolve_type_ann_node_generic(type_node, type_params)
             }
             scope_define(scope, clone(param.text), param_ty)
             p = p + 1
@@ -632,6 +751,7 @@ struct TypeCheckResult {
     error_count: i32,
     errors: Vec<String>,
     typed_fns: Vec<TypedFn>,
+    mono_instances: Vec<MonoInstance>,
 }
 
 struct TypedFn {
@@ -644,6 +764,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         error_count: 0,
         errors: Vec_new_String(),
         typed_fns: Vec_new_TypedFn(),
+        mono_instances: Vec_new_MonoInstance(),
     }
     let env = TypeEnv_new()
     result.error_count = resolve_ctx.error_count
@@ -679,7 +800,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                     let mut pty = TypeInfo_simple(TY_UNKNOWN())
                     if len(param.type_ann) > 0 {
                         let type_node = get_unchecked(param.type_ann, 0)
-                        pty = resolve_type_name_generic(clone(type_node.text), type_params)
+                        pty = resolve_type_ann_node_generic(type_node, type_params)
                     }
                     push(param_types, pty)
                     p = p + 1
@@ -694,7 +815,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                 if eq(clone(ann.text), "__return") {
                     if len(ann.children) > 0 {
                         let ret_node = get_unchecked(ann.children, 0)
-                        return_type = resolve_type_name_generic(clone(ret_node.text), type_params)
+                        return_type = resolve_type_ann_node_generic(ret_node, type_params)
                     }
                 }
                 j = j + 1
@@ -725,7 +846,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                 if eq(clone(ann.text), "__return") {
                     if len(ann.children) > 0 {
                         let ret_node = get_unchecked(ann.children, 0)
-                        return_type = resolve_type_name(clone(ret_node.text))
+                        return_type = resolve_type_ann_node(ret_node)
                     }
                 }
                 j = j + 1
@@ -748,6 +869,9 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         e = e + 1
     }
 
+    // Collect monomorphization instances from inference
+    result.mono_instances = env.mono_instances
+
     result
 }
 
@@ -756,6 +880,16 @@ pub fn dump_typed_hir(result: TypeCheckResult) {
     stdio::eprintln(concat(String_from("typed functions: "), to_string(fn_count)))
     if result.error_count > 0 {
         stdio::eprintln(concat(to_string(result.error_count), String_from(" type error(s)")))
+    }
+    let mi_count = len(result.mono_instances)
+    if mi_count > 0 {
+        stdio::eprintln(concat(String_from("mono instances: "), to_string(mi_count)))
+        let mut k = 0
+        while k < mi_count {
+            let mi = get_unchecked(result.mono_instances, k)
+            stdio::eprintln(concat(String_from("  "), clone(mi.mangled_name)))
+            k = k + 1
+        }
     }
 }
 

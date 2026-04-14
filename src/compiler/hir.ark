@@ -63,8 +63,22 @@ fn type_name(ty: HirType) -> String {
     if ty.tag == TY_CHAR() { return String_from("char") }
     if ty.tag == TY_UNIT() { return String_from("()") }
     if ty.tag == TY_NEVER() { return String_from("!") }
-    if ty.tag == TY_VEC() { return String_from("Vec") }
-    if ty.tag == TY_OPTION() { return String_from("Option") }
+    if ty.tag == TY_VEC() {
+        let c = len(ty.type_args)
+        if c > 0 {
+            let elem = get_unchecked(ty.type_args, 0)
+            return concat(String_from("Vec<"), concat(type_name(elem), String_from(">")))
+        }
+        return String_from("Vec")
+    }
+    if ty.tag == TY_OPTION() {
+        let c = len(ty.type_args)
+        if c > 0 {
+            let elem = get_unchecked(ty.type_args, 0)
+            return concat(String_from("Option<"), concat(type_name(elem), String_from(">")))
+        }
+        return String_from("Option")
+    }
     if ty.tag == TY_RESULT() { return String_from("Result") }
     if ty.tag == TY_FN() { return String_from("fn") }
     if ty.tag == TY_STRUCT() { return clone(ty.name) }
@@ -76,7 +90,18 @@ fn type_name(ty: HirType) -> String {
 fn types_equal(a: HirType, b: HirType) -> bool {
     if a.tag != b.tag { return false }
     if a.tag == TY_STRUCT() || a.tag == TY_ENUM() {
-        return eq(clone(a.name), clone(b.name))
+        if !eq(clone(a.name), clone(b.name)) { return false }
+    }
+    // Compare type_args (e.g., Vec<i32> vs Vec<String>)
+    let ac = len(a.type_args)
+    let bc = len(b.type_args)
+    if ac != bc { return false }
+    let mut i = 0
+    while i < ac {
+        let ta = get_unchecked(a.type_args, i)
+        let tb = get_unchecked(b.type_args, i)
+        if !types_equal(ta, tb) { return false }
+        i = i + 1
     }
     true
 }

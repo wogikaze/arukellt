@@ -218,10 +218,16 @@ fn intern_string(m: MirModule, s: String) -> i32 {
 
 // ── HIR→MIR Lowering ────────────────────────────────────────────────────────
 
+struct MonoInstance {
+    fn_name: String,
+    mangled_name: String,
+}
+
 struct TypeCheckResult {
     error_count: i32,
     errors: Vec<String>,
     typed_fns: Vec<TypedFn>,
+    mono_instances: Vec<MonoInstance>,
 }
 
 struct TypedFn {

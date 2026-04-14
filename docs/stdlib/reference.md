@@ -9,7 +9,7 @@
 |------|-------|-------------|
 | [stable](#stable-apis) | 400 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 128 | API may change without notice. Functionality is available but not finalized. |
+| [experimental](#experimental-apis) | 170 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -902,8 +902,47 @@ Expected output: `hello world`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `functype_get_param` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the valtype constant for the i-th parameter of a FuncType. |
+| `functype_get_result` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the valtype constant for the i-th result of a FuncType. |
+| `functype_new` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants). |
+| `functype_param_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of parameter types in a FuncType. |
+| `functype_result_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of result types in a FuncType. |
+| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>. |
+| `leb128_size_u32` | `(i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of bytes needed to encode x as unsigned LEB128. |
+| `limits_bounded` | `(i32, i32) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a Limits with both minimum and maximum. |
+| `limits_has_max` | `(Vec<i32>) -> bool` | `std::wasm` | `experimental` | `builtin` | no | - | Return true if this Limits has a maximum. |
+| `limits_max` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the maximum of a Limits (only valid if limits_has_max is true). |
+| `limits_min` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the minimum of a Limits. |
+| `limits_unbounded` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a Limits with only a minimum (no maximum). |
 | `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
 | `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
+| `module_add_export_func` | `(Vec<i32>, String, i32) -> ()` | `std::wasm` | `experimental` | `builtin` | no | - | Add a function export to the module. |
+| `module_add_func` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Add a function with the given type index to the module. Returns its function index. |
+| `module_add_memory` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Add a memory with the given Limits to the module. Returns its memory index. |
+| `module_add_type` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Register a FuncType in the module type section. Returns its index. |
+| `module_encode_header` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Return the Wasm binary magic+version header (8 bytes). |
+| `module_export_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of exports added to the module builder. |
+| `module_func_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of functions added to the module builder. |
+| `module_mem_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of memories added to the module builder. |
+| `module_new` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Create a new empty WasmModuleBuilder. |
+| `module_type_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of registered types in the module builder. |
+| `op_call` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: call (0x10). |
+| `op_end` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: end (0x0b). |
+| `op_i32_add` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.add (0x6a). |
+| `op_i32_const` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.const (0x41). |
+| `op_i32_eq` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.eq (0x46). |
+| `op_i32_eqz` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.eqz (0x45). |
+| `op_i32_mul` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.mul (0x6c). |
+| `op_i32_sub` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.sub (0x6b). |
+| `op_i64_const` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i64.const (0x42). |
+| `op_local_get` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: local.get (0x20). |
+| `op_local_set` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: local.set (0x21). |
+| `op_local_tee` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: local.tee (0x22). |
+| `op_nop` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: nop (0x01). |
+| `op_return` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: return (0x0f). |
+| `op_unreachable` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: unreachable (0x00). |
+| `reftype_externref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for externref. |
+| `reftype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for funcref. |
 | `section_code` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_data` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_element` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
@@ -915,10 +954,13 @@ Expected output: `hello world`
 | `section_start` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_table` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_type` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_externref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Value type byte for externref (0x6f). Reference-types proposal. |
 | `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Value type byte for funcref (0x70). Reference-types proposal. |
 | `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `valtype_i64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_v128` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Value type byte for SIMD v128 (0x7b). Requires SIMD proposal. |
 | `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 
@@ -1410,6 +1452,11 @@ Expected output: `hello world`
 | `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
 | `csv_stringify_row` | `(Vec<String>) -> String` | `std::csv` | `experimental` | `builtin` | no | - | Serialize a row of fields to a CSV line. |
 | `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `builtin` | no | - | - |
+| `functype_get_param` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the valtype constant for the i-th parameter of a FuncType. |
+| `functype_get_result` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the valtype constant for the i-th result of a FuncType. |
+| `functype_new` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants). |
+| `functype_param_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of parameter types in a FuncType. |
+| `functype_result_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of result types in a FuncType. |
 | `index_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Get a value from an IndexMap<i32,i32>. Returns 0 if not found. |
 | `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert a key-value pair into an IndexMap<i32,i32>. |
 | `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return all keys of an IndexMap<i32,i32> in insertion order. |
@@ -1442,9 +1489,43 @@ Expected output: `hello world`
 | `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>. |
+| `leb128_size_u32` | `(i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Return the number of bytes needed to encode x as unsigned LEB128. |
+| `limits_bounded` | `(i32, i32) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a Limits with both minimum and maximum. |
+| `limits_has_max` | `(Vec<i32>) -> bool` | `std::wasm` | `experimental` | `builtin` | no | - | Return true if this Limits has a maximum. |
+| `limits_max` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the maximum of a Limits (only valid if limits_has_max is true). |
+| `limits_min` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the minimum of a Limits. |
+| `limits_unbounded` | `(i32) -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Construct a Limits with only a minimum (no maximum). |
 | `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
 | `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
+| `module_add_export_func` | `(Vec<i32>, String, i32) -> ()` | `std::wasm` | `experimental` | `builtin` | no | - | Add a function export to the module. |
+| `module_add_func` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Add a function with the given type index to the module. Returns its function index. |
+| `module_add_memory` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Add a memory with the given Limits to the module. Returns its memory index. |
+| `module_add_type` | `(Vec<i32>, Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Register a FuncType in the module type section. Returns its index. |
+| `module_encode_header` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Return the Wasm binary magic+version header (8 bytes). |
+| `module_export_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of exports added to the module builder. |
+| `module_func_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of functions added to the module builder. |
+| `module_mem_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of memories added to the module builder. |
+| `module_new` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | Create a new empty WasmModuleBuilder. |
+| `module_type_count` | `(Vec<i32>) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the number of registered types in the module builder. |
+| `op_call` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: call (0x10). |
+| `op_end` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: end (0x0b). |
+| `op_i32_add` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.add (0x6a). |
+| `op_i32_const` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.const (0x41). |
+| `op_i32_eq` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.eq (0x46). |
+| `op_i32_eqz` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.eqz (0x45). |
+| `op_i32_mul` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.mul (0x6c). |
+| `op_i32_sub` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i32.sub (0x6b). |
+| `op_i64_const` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: i64.const (0x42). |
+| `op_local_get` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: local.get (0x20). |
+| `op_local_set` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: local.set (0x21). |
+| `op_local_tee` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: local.tee (0x22). |
+| `op_nop` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: nop (0x01). |
+| `op_return` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: return (0x0f). |
+| `op_unreachable` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Wasm opcode: unreachable (0x00). |
 | `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse the first JSON value in a string. |
+| `reftype_externref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for externref. |
+| `reftype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Reference type byte for funcref. |
 | `rope_delete` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Delete bytes [start, end) from the Rope, returning the new Rope. |
 | `rope_from_string` | `(String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Create a Rope from an existing String. |
 | `rope_insert` | `(String, i32, String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Insert text at byte position pos, returning the new Rope. |
@@ -1481,10 +1562,13 @@ Expected output: `hello world`
 | `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - | - |
 | `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `builtin` | no | - | Serialize a TomlValue back to text. |
 | `toml_table_keys` | `(TomlValue) -> Vec<String>` | `std::toml` | `experimental` | `builtin` | no | - | Return all keys of a TOML table as a string vector. |
+| `valtype_externref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Value type byte for externref (0x6f). Reference-types proposal. |
 | `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_funcref` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Value type byte for funcref (0x70). Reference-types proposal. |
 | `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `valtype_i64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `valtype_v128` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Value type byte for SIMD v128 (0x7b). Requires SIMD proposal. |
 | `wasm_magic` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `wasm_version` | `() -> Vec<i32>` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `wit_type_bool` | `() -> i32` | `std::wit` | `experimental` | `builtin` | no | - | - |
