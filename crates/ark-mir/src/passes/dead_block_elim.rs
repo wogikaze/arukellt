@@ -8,6 +8,7 @@
 //! **Safe to run multiple times**: yes (idempotent — already-removed blocks stay gone)
 
 use crate::mir::MirModule;
+use crate::opt::{OptimizationPass, run_single_pass};
 use crate::opt_level::OptLevel;
 use super::PassStats;
 
@@ -21,13 +22,10 @@ pub fn run(module: &mut MirModule, level: OptLevel) -> PassStats {
     if !level.at_least(MIN_LEVEL) {
         return PassStats::default();
     }
-    let mut total = 0usize;
-    for function in &mut module.functions {
-        let summary = crate::opt::dead_block_elim::dead_block_elim(function);
-        total += summary.dead_blocks_removed;
-    }
+    let summary = run_single_pass(module, OptimizationPass::DeadBlockElim)
+        .unwrap_or_default();
     PassStats {
         name: "dead_block_elim",
-        changed: total,
+        changed: summary.dead_blocks_removed,
     }
 }

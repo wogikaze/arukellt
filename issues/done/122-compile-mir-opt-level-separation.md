@@ -1,8 +1,8 @@
 # MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-14
 **ID**: 122
 **Depends on**: 101
 **Track**: mir-opt

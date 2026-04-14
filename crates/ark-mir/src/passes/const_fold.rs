@@ -8,6 +8,7 @@
 //! **Safe to run multiple times**: yes (idempotent)
 
 use crate::mir::MirModule;
+use crate::opt::{OptimizationPass, run_single_pass};
 use crate::opt_level::OptLevel;
 use super::PassStats;
 
@@ -21,13 +22,10 @@ pub fn run(module: &mut MirModule, level: OptLevel) -> PassStats {
     if !level.at_least(MIN_LEVEL) {
         return PassStats::default();
     }
-    let mut total = 0usize;
-    for function in &mut module.functions {
-        let summary = crate::opt::const_fold::const_fold(function);
-        total += summary.const_folded;
-    }
+    let summary = run_single_pass(module, OptimizationPass::ConstFold)
+        .unwrap_or_default();
     PassStats {
         name: "const_fold",
-        changed: total,
+        changed: summary.const_folded,
     }
 }
