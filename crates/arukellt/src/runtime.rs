@@ -61,6 +61,10 @@ pub(crate) fn run_wasm_p1(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
     // updated to use proper WASM locals instead of fixed absolute addresses.
     let mut config = Config::new();
     config.cranelift_opt_level(OptLevel::None);
+    // Explicitly enable the Bulk Memory proposal (memory.copy, memory.fill, etc.).
+    // This is true by default in wasmtime 30, but we set it explicitly so the
+    // T1 emitter's use of MemoryCopy / MemoryFill is fully documented.
+    config.wasm_bulk_memory(true);
     let engine = Engine::new(&config).map_err(|e| format!("engine creation error: {:?}", e))?;
     let module = wasmtime::Module::new(&engine, wasm_bytes)
         .map_err(|e| format!("wasm compile error: {:?}", e))?;
@@ -141,6 +145,9 @@ pub(crate) fn run_wasm_gc(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
     // GC cycle.  The null collector never frees objects; this is acceptable for
     // short-lived program runs.  Track: upgrade wasmtime once ≥30 is tested.
     config.collector(Collector::Null);
+    // Explicitly enable the Bulk Memory proposal (memory.copy, memory.fill, etc.).
+    // This is true by default in wasmtime 30, but we set it explicitly.
+    config.wasm_bulk_memory(true);
 
     let engine =
         Engine::new(&config).map_err(|e| format!("engine creation error (GC): {:?}", e))?;

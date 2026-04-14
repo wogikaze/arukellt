@@ -120,6 +120,27 @@ impl EmitCtx {
                         let call_op = Operand::Call(name.to_string(), args.clone());
                         self.emit_operand(f, &call_op);
                     }
+                    "memory_copy" => {
+                        // memory.copy: (dst, src, len) — bulk copy within linear memory
+                        if args.len() >= 3 {
+                            self.emit_operand(f, &args[0]); // dst
+                            self.emit_operand(f, &args[1]); // src
+                            self.emit_operand(f, &args[2]); // len
+                            f.instruction(&Instruction::MemoryCopy {
+                                src_mem: 0,
+                                dst_mem: 0,
+                            });
+                        }
+                    }
+                    "memory_fill" => {
+                        // memory.fill: (ptr, val, len) — bulk fill within linear memory
+                        if args.len() >= 3 {
+                            self.emit_operand(f, &args[0]); // ptr
+                            self.emit_operand(f, &args[1]); // val
+                            self.emit_operand(f, &args[2]); // len
+                            f.instruction(&Instruction::MemoryFill(0));
+                        }
+                    }
                     "exit" | "proc_exit" | "process_exit" => {
                         // process::exit(code: i32) -> ! — call WASI proc_exit and terminate
                         if let Some(arg) = args.first() {

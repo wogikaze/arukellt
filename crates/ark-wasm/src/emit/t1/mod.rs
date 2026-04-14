@@ -199,6 +199,9 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_process_abort" => "process_abort",
         "__intrinsic_http_get" => "http_get",
         "__intrinsic_http_request" => "http_request",
+        // Bulk memory intrinsics (issue #066)
+        "__intrinsic_memory_copy" => "memory_copy",
+        "__intrinsic_memory_fill" => "memory_fill",
         // Scalar type conversion intrinsics (issue #040)
         "__intrinsic_u8_to_i32" => "u8_to_i32",
         "__intrinsic_i32_to_u8" => "i32_to_u8",

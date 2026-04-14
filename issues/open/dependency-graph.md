@@ -11,7 +11,6 @@ graph LR
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
-  I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
   I070["070 Wasm GC i31ref: 小整数 unboxed scalar 最適化"]
   I072["072 Wasm Multi-Value: ブロック / ループの複数値返却フル活用"]
   I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
@@ -24,8 +23,8 @@ graph LR
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
   I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
-  I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
+  I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
   I170["170 v5 Migration guide"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
   I195["195 Partial execution preview + local semantic insight"]
@@ -54,7 +53,7 @@ graph LR
   I475["475 `arukellt component` サブコマンド (v3 候補)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
-  I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
+  I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
@@ -62,7 +61,6 @@ graph LR
   I501["501 T2 (`wasm32-freestanding`) Wasm Emitter Implementation"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
-  I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I205["205 Docs / codebase intelligence surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
@@ -74,7 +72,7 @@ graph LR
   I074 --> I475
   I074 --> I476
   I125 --> I126
-  I146 --> I148
+  I148 --> I158
   I200 --> I201
   I204 --> I188
   I285 --> I508
@@ -83,7 +81,6 @@ graph LR
   I077 --> I136
   I139 --> I136
   I475 --> I485
-  I148 --> I158
   I188 --> I205
   I188 --> I214
   I036 --> I037
@@ -96,7 +93,6 @@ graph LR
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
-- **066** depends on: none; blocks: none
 - **070** depends on: none; blocks: none
 - **072** depends on: none; blocks: none
 - **073** depends on: none; blocks: none
@@ -109,8 +105,8 @@ graph LR
 - **120** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
 - **144** depends on: 141, 142, 143, 149; blocks: none
-- **146** depends on: 149; blocks: 148
 - **147** depends on: 149; blocks: none
+- **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
 - **170** depends on: 165, 166, 169; blocks: none
 - **194** depends on: 193; blocks: none
 - **195** depends on: none; blocks: none
@@ -139,7 +135,7 @@ graph LR
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
 - **126** depends on: 125; blocks: none
-- **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
+- **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
 - **508** depends on: 285; blocks: none
@@ -147,7 +143,6 @@ graph LR
 - **501** depends on: 382; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
-- **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 - **205** depends on: 185, 188; blocks: none
 - **214** depends on: 184, 185, 186, 187, 188; blocks: none
 
