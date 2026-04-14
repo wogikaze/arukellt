@@ -19,7 +19,7 @@ use ark_parser::{ast, parse};
 #[allow(deprecated)]
 use ark_resolve::resolved_program_entry;
 use ark_resolve::{ResolvedModule, ResolvedProgram};
-use ark_target::{EmitKind, TargetId, build_backend_plan};
+use ark_target::{EmitKind, TargetId, WasiVersion, build_backend_plan};
 use ark_typecheck::{CheckOutput, TypeChecker};
 
 use crate::pipeline::{
@@ -162,7 +162,12 @@ pub struct Session {
     pub opt_level: OptLevel,
     pub disabled_passes: Vec<String>,
     /// When true, component wrapping skips the P1 adapter (~100 KB savings).
+    /// Set via `--p2-native` or `--wasi-version p2`.
     pub p2_native: bool,
+    /// WASI version selected by `--wasi-version`.  Stored for diagnostics and
+    /// future use when the T3 emitter gains a P2 import-table switch
+    /// (see `issues/open/510-t3-p2-import-table-switch.md`).
+    pub wasi_version: WasiVersion,
     /// When true, the Wasm Name Section is omitted from emission (--strip-debug).
     pub strip_debug: bool,
     /// Lint rules to suppress (allow) — diagnostics with these codes are dropped.
@@ -240,6 +245,7 @@ impl Session {
             opt_level: OptLevel::O1,
             disabled_passes: Vec::new(),
             p2_native: false,
+            wasi_version: WasiVersion::P1,
             strip_debug: false,
             lint_allow: Vec::new(),
             lint_deny: Vec::new(),

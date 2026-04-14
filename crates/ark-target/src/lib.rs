@@ -310,6 +310,48 @@ impl FromStr for EmitKind {
     }
 }
 
+/// WASI interface version for the `--wasi-version` compile flag.
+///
+/// Controls whether the P1 adapter is skipped during component wrapping.
+/// Full P2 import-table switching in the T3 emitter is deferred; see
+/// `issues/open/510-t3-p2-import-table-switch.md` for the specific switch
+/// points that need to change before native P2 components work end-to-end.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum WasiVersion {
+    /// WASI Preview 1 — `wasi_snapshot_preview1` imports (default).
+    #[default]
+    P1,
+    /// WASI Preview 2 native — skips the ~100 KB P1 adapter during component
+    /// wrapping.  Requires `--target wasm32-wasi-p2`.
+    ///
+    /// **NOTE**: The T3 emitter still generates `wasi_snapshot_preview1`
+    /// import names.  A full end-to-end P2 component requires the import-table
+    /// switch tracked in `issues/open/510-t3-p2-import-table-switch.md`.
+    P2,
+}
+
+impl std::fmt::Display for WasiVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            WasiVersion::P1 => write!(f, "p1"),
+            WasiVersion::P2 => write!(f, "p2"),
+        }
+    }
+}
+
+impl std::str::FromStr for WasiVersion {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "p1" => Ok(WasiVersion::P1),
+            "p2" => Ok(WasiVersion::P2),
+            _ => Err(format!(
+                "unknown WASI version `{s}`. Available: p1, p2"
+            )),
+        }
+    }
+}
+
 /// Format a help table of all targets and their status.
 pub fn targets_help() -> String {
     let mut out = String::from("Available targets:\n");
@@ -424,5 +466,23 @@ mod tests {
         assert_eq!(TargetId::Wasm32WasiP1.to_string(), "wasm32-wasi-p1");
         assert_eq!(TargetId::Wasm32WasiP2.to_string(), "wasm32-wasi-p2");
         assert_eq!(TargetId::Native.to_string(), "native");
+    }
+
+    #[test]
+    fn wasi_version_parses() {
+        assert_eq!("p1".parse::<WasiVersion>().unwrap(), WasiVersion::P1);
+        assert_eq!("p2".parse::<WasiVersion>().unwrap(), WasiVersion::P2);
+        assert!("p3".parse::<WasiVersion>().is_err());
+    }
+
+    #[test]
+    fn wasi_version_display() {
+        assert_eq!(WasiVersion::P1.to_string(), "p1");
+        assert_eq!(WasiVersion::P2.to_string(), "p2");
+    }
+
+    #[test]
+    fn wasi_version_default_is_p1() {
+        assert_eq!(WasiVersion::default(), WasiVersion::P1);
     }
 }

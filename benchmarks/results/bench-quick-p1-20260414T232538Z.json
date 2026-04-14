@@ -1,0 +1,233 @@
+{
+  "schema_version": "arukellt-bench-v1",
+  "generated_at": "2026-04-14T23:25:38Z",
+  "mode": "quick",
+  "mode_description": "single-sample local smoke benchmark",
+  "target": "wasm32-wasi-p1",
+  "thresholds": {
+    "compile_ms": 20,
+    "run_ms": 10,
+    "binary_bytes": 15
+  },
+  "compiler": {
+    "path": "target/release/arukellt",
+    "kind": "rust"
+  },
+  "environment": {
+    "platform": "Linux",
+    "machine": "x86_64",
+    "kernel": "6.6.87.2-microsoft-standard-WSL2"
+  },
+  "tooling": {
+    "wasmtime": { "name": "wasmtime", "available": true, "path": "/home/wogikaze/.wasmtime/bin/wasmtime" },
+    "hyperfine": { "name": "hyperfine", "available": false, "path": null },
+    "time": { "name": "/usr/bin/time", "available": true, "path": "/usr/bin/time" }
+  },
+  "benchmarks": [
+    {
+  "name": "fib",
+  "source": "benchmarks/fib.ark",
+  "expected": "benchmarks/fib.expected",
+  "description": "Iterative Fibonacci(35)",
+  "tags": ["cpu-bound","loop","scalar"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [20],
+    "median_ms": 20,
+    "max_rss_kb": 11904,
+    "binary_bytes": 923,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/fib.ark -o /home/wogikaze/arukellt/benchmarks/results/fib.wasm --target wasm32-wasi-p1",
+    "phase_ms": {"lex": 0.0, "parse": 0.0, "resolve": 1.1565359999999991, "typecheck": 0.9838099999999999, "lower": 4.096065, "opt": 0.767861, "emit": 0.24838, "total": 7.555405}
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [18],
+    "median_ms": 18,
+    "p50_ms": 18.0,
+    "p95_ms": 18.0,
+    "p99_ms": 18.0,
+    "stddev_ms": null,
+    "startup_ms": 47,
+    "guest_ms": 0,
+    "max_rss_kb": 18944,
+    "stdout": "9227465",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/fib.wasm"
+  }
+},{
+  "name": "binary_tree",
+  "source": "benchmarks/binary_tree.ark",
+  "expected": "benchmarks/binary_tree.expected",
+  "description": "Recursive node counting (depth 20)",
+  "tags": ["recursion-heavy","allocation-light","call-heavy"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [17],
+    "median_ms": 17,
+    "max_rss_kb": 11776,
+    "binary_bytes": 899,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/binary_tree.ark -o /home/wogikaze/arukellt/benchmarks/results/binary_tree.wasm --target wasm32-wasi-p1",
+    "phase_ms": {"lex": 0.0, "parse": 0.0, "resolve": 1.427869999999999, "typecheck": 1.248771, "lower": 3.9574320000000003, "opt": 0.860807, "emit": 0.316077, "total": 8.105955}
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [18],
+    "median_ms": 18,
+    "p50_ms": 18.0,
+    "p95_ms": 18.0,
+    "p99_ms": 18.0,
+    "stddev_ms": null,
+    "startup_ms": 47,
+    "guest_ms": 0,
+    "max_rss_kb": 19456,
+    "stdout": "2097151",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/binary_tree.wasm"
+  }
+},{
+  "name": "vec_ops",
+  "source": "benchmarks/vec_ops.ark",
+  "expected": "benchmarks/vec_ops.expected",
+  "description": "Vec push/sum/contains (1k elements)",
+  "tags": ["allocation-heavy","container","iteration"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [18],
+    "median_ms": 18,
+    "max_rss_kb": 11904,
+    "binary_bytes": 1891,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/vec_ops.ark -o /home/wogikaze/arukellt/benchmarks/results/vec_ops.wasm --target wasm32-wasi-p1",
+    "phase_ms": {"lex": 0.0, "parse": 0.0, "resolve": 1.399003, "typecheck": 1.030612, "lower": 3.9064649999999994, "opt": 1.085252, "emit": 0.30337400000000003, "total": 8.163623999999999}
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [14],
+    "median_ms": 14,
+    "p50_ms": 14.0,
+    "p95_ms": 14.0,
+    "p99_ms": 14.0,
+    "stddev_ms": null,
+    "startup_ms": 47,
+    "guest_ms": 0,
+    "max_rss_kb": 18944,
+    "stdout": "1000\n499500\nfound 500\nnot found 9999",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/vec_ops.wasm"
+  }
+},{
+  "name": "string_concat",
+  "source": "benchmarks/string_concat.ark",
+  "expected": "benchmarks/string_concat.expected",
+  "description": "String concat in loop (100 iterations)",
+  "tags": ["string-heavy","allocation-heavy","gc-pressure"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [18],
+    "median_ms": 18,
+    "max_rss_kb": 11648,
+    "binary_bytes": 1162,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/string_concat.ark -o /home/wogikaze/arukellt/benchmarks/results/string_concat.wasm --target wasm32-wasi-p1",
+    "phase_ms": {"lex": 0.0, "parse": 0.0, "resolve": 1.4406239999999997, "typecheck": 1.16388, "lower": 4.287306, "opt": 0.903688, "emit": 0.27987900000000004, "total": 8.39396}
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [18],
+    "median_ms": 18,
+    "p50_ms": 18.0,
+    "p95_ms": 18.0,
+    "p99_ms": 18.0,
+    "stddev_ms": null,
+    "startup_ms": 47,
+    "guest_ms": 0,
+    "max_rss_kb": 19200,
+    "stdout": "100",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/string_concat.wasm"
+  }
+},{
+  "name": "vec_push_pop",
+  "source": "benchmarks/vec_push_pop.ark",
+  "expected": "benchmarks/vec_push_pop.expected",
+  "description": "Vec 100K push then 100K pop",
+  "tags": ["allocation-heavy","container","throughput"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [21],
+    "median_ms": 21,
+    "max_rss_kb": 11648,
+    "binary_bytes": 1547,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/vec_push_pop.ark -o /home/wogikaze/arukellt/benchmarks/results/vec_push_pop.wasm --target wasm32-wasi-p1",
+    "phase_ms": {"lex": 0.0, "parse": 0.0, "resolve": 1.2881459999999993, "typecheck": 1.025378, "lower": 4.7051050000000005, "opt": 0.850588, "emit": 0.29246300000000003, "total": 8.534426}
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [19],
+    "median_ms": 19,
+    "p50_ms": 19.0,
+    "p95_ms": 19.0,
+    "p99_ms": 19.0,
+    "stddev_ms": null,
+    "startup_ms": 47,
+    "guest_ms": 0,
+    "max_rss_kb": 20480,
+    "stdout": "100000\n0",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/vec_push_pop.wasm"
+  }
+},{
+  "name": "json_parse",
+  "source": "benchmarks/json_parse.ark",
+  "expected": "benchmarks/json_parse.expected",
+  "description": "JSON token scan (~10KB string)",
+  "tags": ["string-heavy","parse","allocation-heavy"],
+  "metrics": ["compile","runtime","size","memory"],
+  "compile": {
+    "status": "ok",
+    "iterations": 1,
+    "samples_ms": [19],
+    "median_ms": 19,
+    "max_rss_kb": 12032,
+    "binary_bytes": 1457,
+    "command": "/home/wogikaze/arukellt/target/release/arukellt compile benchmarks/json_parse.ark -o /home/wogikaze/arukellt/benchmarks/results/json_parse.wasm --target wasm32-wasi-p1",
+    "phase_ms": {"lex": 0.0, "parse": 0.0, "resolve": 1.3615249999999985, "typecheck": 1.326368, "lower": 3.9618400000000005, "opt": 1.342638, "emit": 0.343099, "total": 8.858016999999998}
+  },
+  "runtime": {
+    "status": "ok",
+    "iterations": 1,
+    "warmups": 0,
+    "samples_ms": [17],
+    "median_ms": 17,
+    "p50_ms": 17.0,
+    "p95_ms": 17.0,
+    "p99_ms": 17.0,
+    "stddev_ms": null,
+    "startup_ms": 47,
+    "guest_ms": 0,
+    "max_rss_kb": 20864,
+    "stdout": "9600\n400\n1200",
+    "correctness": "pass",
+    "command": "wasmtime run /home/wogikaze/arukellt/benchmarks/results/json_parse.wasm"
+  }
+}
+  ]
+}

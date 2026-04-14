@@ -51,6 +51,7 @@ graph LR
   I474["474 Async Component Support (v5/T5)"]
   I475["475 `arukellt component` サブコマンド (v3 候補)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
+  I510["510 T3 emitter: WASI P2 import-table switch (full P2-native component)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I201["201 Advanced debug intelligence"]
@@ -70,6 +71,7 @@ graph LR
   I074 --> I474
   I074 --> I475
   I074 --> I476
+  I074 --> I510
   I125 --> I126
   I148 --> I158
   I200 --> I201
@@ -95,7 +97,7 @@ graph LR
 - **070** depends on: none; blocks: none
 - **072** depends on: none; blocks: none
 - **073** depends on: none; blocks: none
-- **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476
+- **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476, 510
 - **094** depends on: none; blocks: none
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
@@ -132,6 +134,7 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
+- **510** depends on: 074; blocks: none
 - **126** depends on: 125; blocks: none
 - **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 - **201** depends on: 200; blocks: none

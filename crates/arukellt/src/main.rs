@@ -11,7 +11,7 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 use ark_diagnostics::{DiagnosticSink, SourceMap, alias_warning_diagnostic, render_diagnostics};
-use ark_target::{EmitKind, TargetId, parse_target};
+use ark_target::{EmitKind, TargetId, WasiVersion, parse_target};
 
 #[derive(Parser)]
 #[command(name = "arukellt", version, about = "The Arukellt compiler")]
@@ -95,6 +95,12 @@ enum Commands {
         /// Generate P2-native component (skip P1 adapter, ~100KB smaller)
         #[arg(long)]
         p2_native: bool,
+        /// WASI version for component output: p1 (default) or p2.
+        /// `--wasi-version p2` is equivalent to `--p2-native` and requires
+        /// `--target wasm32-wasi-p2`.  Full P2 import-table switching in the
+        /// T3 emitter is deferred; see issues/open/510-t3-p2-import-table-switch.md.
+        #[arg(long, value_name = "VERSION")]
+        wasi_version: Option<WasiVersion>,
         /// Output results as JSON
         #[arg(long)]
         json: bool,
@@ -282,10 +288,13 @@ fn main() {
             mir_select,
             world,
             p2_native,
+            wasi_version,
             json,
         } => {
             let profile = target.profile();
             let emit_kind = emit_kind.unwrap_or(profile.default_emit_kind);
+            // --wasi-version p2 is equivalent to --p2-native
+            let p2_native = p2_native || wasi_version == Some(WasiVersion::P2);
             commands::cmd_compile(
                 file,
                 output,

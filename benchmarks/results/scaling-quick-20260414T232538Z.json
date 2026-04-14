@@ -1,0 +1,10 @@
+{
+  "schema_version": "arukellt-scaling-v1",
+  "generated_at": "2026-04-14T23:25:38Z",
+  "mode": "quick",
+  "scaling_points": 3,
+  "cliff_threshold": 3,
+  "benchmarks": [
+    {"benchmark":"fib","size_points":[{"size_label":"n=10","compile_ms":15,"runtime_ms":28,"binary_bytes":923},{"size_label":"n=30","compile_ms":15,"runtime_ms":19,"binary_bytes":923},{"size_label":"n=40","compile_ms":15,"runtime_ms":18,"binary_bytes":923}],"compile_slope":1.0,"runtime_slope":0.64},{"benchmark":"binary_tree","size_points":[{"size_label":"depth=8","compile_ms":15,"runtime_ms":17,"binary_bytes":899},{"size_label":"depth=16","compile_ms":17,"runtime_ms":19,"binary_bytes":899},{"size_label":"depth=22","compile_ms":17,"runtime_ms":35,"binary_bytes":899}],"compile_slope":1.13,"runtime_slope":2.06},{"benchmark":"string_concat","size_points":[{"size_label":"n=10","compile_ms":14,"runtime_ms":19,"binary_bytes":1161},{"size_label":"n=100","compile_ms":15,"runtime_ms":13,"binary_bytes":1162},{"size_label":"n=500","compile_ms":15,"runtime_ms":19,"binary_bytes":1162}],"compile_slope":1.07,"runtime_slope":1.0},{"benchmark":"vec_ops","size_points":[{"size_label":"n=100","compile_ms":17,"runtime_ms":19,"binary_bytes":1891},{"size_label":"n=1000","compile_ms":16,"runtime_ms":13,"binary_bytes":1891},{"size_label":"n=8000","compile_ms":16,"runtime_ms":21,"binary_bytes":1891}],"compile_slope":0.94,"runtime_slope":1.11}
+  ]
+}
