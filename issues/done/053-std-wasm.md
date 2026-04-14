@@ -1,8 +1,8 @@
 # std::wasm: Wasm バイナリ型・opcode・module builder
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-14
 **ID**: 053
 **Depends on**: 039, 040, 043
 **Track**: stdlib

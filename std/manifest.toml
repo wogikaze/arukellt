@@ -3594,6 +3594,384 @@ stability = "experimental"
 params = ["i32", "i32", "i32"]
 returns = "()"
 
+[[functions]]
+name = "valtype_v128"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Value type byte for SIMD v128 (0x7b). Requires SIMD proposal."
+
+[[functions]]
+name = "valtype_funcref"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Value type byte for funcref (0x70). Reference-types proposal."
+
+[[functions]]
+name = "valtype_externref"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Value type byte for externref (0x6f). Reference-types proposal."
+
+[[functions]]
+name = "reftype_funcref"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Reference type byte for funcref."
+
+[[functions]]
+name = "reftype_externref"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Reference type byte for externref."
+
+[[functions]]
+name = "functype_new"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Construct a FuncType from param types and result types (both as Vec<i32> of valtype constants)."
+
+[[functions]]
+name = "functype_param_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of parameter types in a FuncType."
+
+[[functions]]
+name = "functype_result_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of result types in a FuncType."
+
+[[functions]]
+name = "functype_get_param"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get the valtype constant for the i-th parameter of a FuncType."
+
+[[functions]]
+name = "functype_get_result"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get the valtype constant for the i-th result of a FuncType."
+
+[[functions]]
+name = "limits_unbounded"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32"]
+returns = "Vec<i32>"
+doc = "Construct a Limits with only a minimum (no maximum)."
+
+[[functions]]
+name = "limits_bounded"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32", "i32"]
+returns = "Vec<i32>"
+doc = "Construct a Limits with both minimum and maximum."
+
+[[functions]]
+name = "limits_min"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the minimum of a Limits."
+
+[[functions]]
+name = "limits_has_max"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "bool"
+doc = "Return true if this Limits has a maximum."
+
+[[functions]]
+name = "limits_max"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the maximum of a Limits (only valid if limits_has_max is true)."
+
+[[functions]]
+name = "module_new"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new empty WasmModuleBuilder."
+
+[[functions]]
+name = "module_add_type"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "i32"
+doc = "Register a FuncType in the module type section. Returns its index."
+
+[[functions]]
+name = "module_add_func"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Add a function with the given type index to the module. Returns its function index."
+
+[[functions]]
+name = "module_add_memory"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "i32"
+doc = "Add a memory with the given Limits to the module. Returns its memory index."
+
+[[functions]]
+name = "module_add_export_func"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>", "String", "i32"]
+returns = "()"
+doc = "Add a function export to the module."
+
+[[functions]]
+name = "module_type_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the number of registered types in the module builder."
+
+[[functions]]
+name = "module_func_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the number of functions added to the module builder."
+
+[[functions]]
+name = "module_mem_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the number of memories added to the module builder."
+
+[[functions]]
+name = "module_export_count"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Get the number of exports added to the module builder."
+
+[[functions]]
+name = "module_encode_header"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Return the Wasm binary magic+version header (8 bytes)."
+
+[[functions]]
+name = "leb128_encode_u32"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32"]
+returns = "Vec<i32>"
+doc = "Encode a u32 as unsigned LEB128. Returns the bytes as Vec<i32>."
+
+[[functions]]
+name = "leb128_size_u32"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = ["i32"]
+returns = "i32"
+doc = "Return the number of bytes needed to encode x as unsigned LEB128."
+
+[[functions]]
+name = "op_unreachable"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: unreachable (0x00)."
+
+[[functions]]
+name = "op_nop"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: nop (0x01)."
+
+[[functions]]
+name = "op_end"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: end (0x0b)."
+
+[[functions]]
+name = "op_return"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: return (0x0f)."
+
+[[functions]]
+name = "op_call"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: call (0x10)."
+
+[[functions]]
+name = "op_local_get"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: local.get (0x20)."
+
+[[functions]]
+name = "op_local_set"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: local.set (0x21)."
+
+[[functions]]
+name = "op_local_tee"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: local.tee (0x22)."
+
+[[functions]]
+name = "op_i32_const"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.const (0x41)."
+
+[[functions]]
+name = "op_i64_const"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i64.const (0x42)."
+
+[[functions]]
+name = "op_i32_eqz"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.eqz (0x45)."
+
+[[functions]]
+name = "op_i32_eq"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.eq (0x46)."
+
+[[functions]]
+name = "op_i32_add"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.add (0x6a)."
+
+[[functions]]
+name = "op_i32_sub"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.sub (0x6b)."
+
+[[functions]]
+name = "op_i32_mul"
+module = "std::wasm"
+doc_category = "wasm"
+stability = "experimental"
+params = []
+returns = "i32"
+doc = "Wasm opcode: i32.mul (0x6c)."
+
 # === std::wit ===
 
 [[functions]]

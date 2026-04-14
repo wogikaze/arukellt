@@ -1,0 +1,17 @@
+use std::wasm
+use std::host::stdio
+
+fn main() {
+    stdio::println(i32_to_string(wasm::op_unreachable()))
+    stdio::println(i32_to_string(wasm::op_nop()))
+    stdio::println(i32_to_string(wasm::op_end()))
+    stdio::println(i32_to_string(wasm::op_return()))
+    stdio::println(i32_to_string(wasm::op_call()))
+    stdio::println(i32_to_string(wasm::op_local_get()))
+    stdio::println(i32_to_string(wasm::op_local_set()))
+    stdio::println(i32_to_string(wasm::op_i32_const()))
+    stdio::println(i32_to_string(wasm::op_i32_add()))
+    stdio::println(i32_to_string(wasm::op_i32_sub()))
+    stdio::println(i32_to_string(wasm::op_i32_eqz()))
+    stdio::println(i32_to_string(wasm::op_i32_eq()))
+}

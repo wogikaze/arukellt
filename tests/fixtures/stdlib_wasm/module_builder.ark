@@ -1,0 +1,32 @@
+use std::wasm
+use std::host::stdio
+
+fn main() {
+    // module_new returns a builder with zero entries
+    let m: Vec<i32> = wasm::module_new()
+    stdio::println(i32_to_string(wasm::module_type_count(m)))
+    stdio::println(i32_to_string(wasm::module_func_count(m)))
+
+    // Build a FuncType: () -> i32
+    let params: Vec<i32> = Vec_new_i32()
+    let results: Vec<i32> = Vec_new_i32()
+    push(results, wasm::valtype_i32())
+    let ft: Vec<i32> = wasm::functype_new(params, results)
+    stdio::println(i32_to_string(wasm::functype_param_count(ft)))
+    stdio::println(i32_to_string(wasm::functype_result_count(ft)))
+    stdio::println(i32_to_string(wasm::functype_get_result(ft, 0)))
+
+    // add_type and add_func stubs
+    let ti: i32 = wasm::module_add_type(m, ft)
+    let fi: i32 = wasm::module_add_func(m, ti)
+    stdio::println(i32_to_string(ti))
+    stdio::println(i32_to_string(fi))
+    stdio::println(i32_to_string(wasm::module_type_count(m)))
+    stdio::println(i32_to_string(wasm::module_func_count(m)))
+
+    // encode_header returns magic+version (8 bytes)
+    let hdr: Vec<i32> = wasm::module_encode_header()
+    stdio::println(i32_to_string(get_unchecked(hdr, 0)))
+    stdio::println(i32_to_string(get_unchecked(hdr, 1)))
+    stdio::println(i32_to_string(get_unchecked(hdr, 4)))
+}

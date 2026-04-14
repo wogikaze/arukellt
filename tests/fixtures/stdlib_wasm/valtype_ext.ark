@@ -1,0 +1,17 @@
+use std::wasm
+use std::host::stdio
+
+fn main() {
+    // Original value types
+    stdio::println(i32_to_string(wasm::valtype_i32()))
+    stdio::println(i32_to_string(wasm::valtype_i64()))
+    stdio::println(i32_to_string(wasm::valtype_f32()))
+    stdio::println(i32_to_string(wasm::valtype_f64()))
+    // Extended value types
+    stdio::println(i32_to_string(wasm::valtype_v128()))
+    stdio::println(i32_to_string(wasm::valtype_funcref()))
+    stdio::println(i32_to_string(wasm::valtype_externref()))
+    // RefType constants
+    stdio::println(i32_to_string(wasm::reftype_funcref()))
+    stdio::println(i32_to_string(wasm::reftype_externref()))
+}

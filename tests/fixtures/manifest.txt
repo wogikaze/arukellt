@@ -379,6 +379,10 @@ run:stdlib_vec_ops/reverse_string.ark
 run:stdlib_vec_ops/sum_i32.ark
 run:stdlib_wasm/memory_ops.ark
 run:stdlib_wasm/wasm_basic.ark
+run:stdlib_wasm/valtype_ext.ark
+run:stdlib_wasm/opcode_basic.ark
+run:stdlib_wasm/leb128_basic.ark
+run:stdlib_wasm/module_builder.ark
 run:stdlib_wit/wit_basic.ark
 run:stdlib_wit/wit_types.ark
 run:string_interp/fstring_basic.ark
