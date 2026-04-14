@@ -29,7 +29,7 @@ graph LR
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
-  I117["117 Component Model: WIT 生成品質の向上と往復検証"]
+  I118["118 Component Model: 複数エクスポート world の自動生成"]
   I119["119 MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
@@ -73,7 +73,6 @@ graph LR
   I474["474 Async Component Support (v5/T5)"]
   I475["475 `arukellt component` サブコマンド (v3 候補)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
-  I118["118 Component Model: 複数エクスポート world の自動生成"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
@@ -96,7 +95,6 @@ graph LR
   I074 --> I474
   I074 --> I475
   I074 --> I476
-  I117 --> I118
   I125 --> I126
   I141 --> I144
   I142 --> I144
@@ -154,7 +152,7 @@ graph LR
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
-- **117** depends on: none; blocks: 118
+- **118** depends on: 117; blocks: none
 - **119** depends on: 101; blocks: none
 - **120** depends on: none; blocks: none
 - **123** depends on: none; blocks: none
@@ -198,7 +196,6 @@ graph LR
 - **474** depends on: 035, done), 074; blocks: none
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
-- **118** depends on: 117; blocks: none
 - **126** depends on: 125; blocks: none
 - **144** depends on: 141, 142, 143, 149; blocks: none
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158

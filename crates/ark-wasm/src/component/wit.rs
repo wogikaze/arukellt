@@ -780,6 +780,204 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_wit_accuracy_export_option() {
+        let expected =
+            include_str!("../../../../tests/fixtures/component/export_option.expected.wit");
+        let world = WitWorld {
+            name: "export_option".to_string(),
+            functions: vec![WitFunction {
+                name: "maybe_double".to_string(),
+                params: vec![("n".to_string(), WitType::S32)],
+                result: Some(WitType::Option(Box::new(WitType::S32))),
+            }],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: None,
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "export_option WIT output does not match expected"
+        );
+    }
+
+    #[test]
+    fn test_wit_accuracy_export_result() {
+        let expected =
+            include_str!("../../../../tests/fixtures/component/export_result.expected.wit");
+        let world = WitWorld {
+            name: "export_result".to_string(),
+            functions: vec![WitFunction {
+                name: "safe_div".to_string(),
+                params: vec![
+                    ("a".to_string(), WitType::S32),
+                    ("b".to_string(), WitType::S32),
+                ],
+                result: Some(WitType::Result {
+                    ok: Some(Box::new(WitType::S32)),
+                    err: Some(Box::new(WitType::StringType)),
+                }),
+            }],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: None,
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "export_result WIT output does not match expected"
+        );
+    }
+
+    #[test]
+    fn test_wit_accuracy_export_tuple() {
+        let expected =
+            include_str!("../../../../tests/fixtures/component/export_tuple.expected.wit");
+        let world = WitWorld {
+            name: "export_tuple".to_string(),
+            functions: vec![WitFunction {
+                name: "swap".to_string(),
+                params: vec![
+                    ("a".to_string(), WitType::S32),
+                    ("b".to_string(), WitType::S32),
+                ],
+                result: Some(WitType::Tuple(vec![WitType::S32, WitType::S32])),
+            }],
+            imports: vec![],
+            records: vec![],
+            enums: vec![],
+            variants: vec![],
+            resources: vec![],
+            world_spec: None,
+        };
+        let got = generate_wit(&world).unwrap();
+        assert_eq!(
+            got, expected,
+            "export_tuple WIT output does not match expected"
+        );
+    }
+
+    /// Validate that generate_wit produces WIT that parses without error.
+    /// Uses the internal wit_parse module (which skips world blocks but validates
+    /// that the surrounding package header and overall structure are accepted).
+    #[test]
+    fn test_generated_wit_is_parseable() {
+        use super::super::wit_parse::parse_wit;
+
+        let worlds = vec![
+            WitWorld {
+                name: "option_world".to_string(),
+                functions: vec![WitFunction {
+                    name: "maybe_double".to_string(),
+                    params: vec![("n".to_string(), WitType::S32)],
+                    result: Some(WitType::Option(Box::new(WitType::S32))),
+                }],
+                imports: vec![],
+                records: vec![],
+                enums: vec![],
+                variants: vec![],
+                resources: vec![],
+                world_spec: None,
+            },
+            WitWorld {
+                name: "result_world".to_string(),
+                functions: vec![WitFunction {
+                    name: "safe_div".to_string(),
+                    params: vec![
+                        ("a".to_string(), WitType::S32),
+                        ("b".to_string(), WitType::S32),
+                    ],
+                    result: Some(WitType::Result {
+                        ok: Some(Box::new(WitType::S32)),
+                        err: Some(Box::new(WitType::StringType)),
+                    }),
+                }],
+                imports: vec![],
+                records: vec![],
+                enums: vec![],
+                variants: vec![],
+                resources: vec![],
+                world_spec: None,
+            },
+            WitWorld {
+                name: "record_world".to_string(),
+                functions: vec![WitFunction {
+                    name: "distance_sq".to_string(),
+                    params: vec![("p".to_string(), WitType::Record("Point".to_string()))],
+                    result: Some(WitType::S32),
+                }],
+                imports: vec![],
+                records: vec![WitRecord {
+                    name: "Point".to_string(),
+                    fields: vec![
+                        ("x".to_string(), WitType::S32),
+                        ("y".to_string(), WitType::S32),
+                    ],
+                }],
+                enums: vec![],
+                variants: vec![],
+                resources: vec![],
+                world_spec: None,
+            },
+            WitWorld {
+                name: "variant_world".to_string(),
+                functions: vec![WitFunction {
+                    name: "area".to_string(),
+                    params: vec![("s".to_string(), WitType::Variant("Shape".to_string()))],
+                    result: Some(WitType::F64),
+                }],
+                imports: vec![],
+                records: vec![],
+                enums: vec![],
+                variants: vec![WitVariant {
+                    name: "Shape".to_string(),
+                    cases: vec![
+                        ("Circle".to_string(), Some(WitType::F64)),
+                        ("Square".to_string(), Some(WitType::F64)),
+                    ],
+                }],
+                resources: vec![],
+                world_spec: None,
+            },
+            WitWorld {
+                name: "tuple_world".to_string(),
+                functions: vec![WitFunction {
+                    name: "swap".to_string(),
+                    params: vec![
+                        ("a".to_string(), WitType::S32),
+                        ("b".to_string(), WitType::S32),
+                    ],
+                    result: Some(WitType::Tuple(vec![WitType::S32, WitType::S32])),
+                }],
+                imports: vec![],
+                records: vec![],
+                enums: vec![],
+                variants: vec![],
+                resources: vec![],
+                world_spec: None,
+            },
+        ];
+
+        for world in &worlds {
+            let wit_text = generate_wit(world).unwrap();
+            let parse_result = parse_wit(&wit_text);
+            assert!(
+                parse_result.is_ok(),
+                "generated WIT for world '{}' failed to parse: {:?}\n---\n{}",
+                world.name,
+                parse_result.err(),
+                wit_text
+            );
+        }
+    }
+
     // ── WitError display tests ────────────────────────────────────────────────
 
     #[test]
