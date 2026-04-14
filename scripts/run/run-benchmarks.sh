@@ -34,6 +34,7 @@ WARMUPS=0
 COMPARE=false
 USE_SELFHOST=false
 COMPARE_LANGS=""
+SCALING=false
 
 # Use positional index loop so we can consume the next arg for space-separated
 # options like --compare-lang c,rust
@@ -56,6 +57,7 @@ while [[ $# -gt 0 ]]; do
       fi
       ;;
     --selfhost) USE_SELFHOST=true ;;
+    --scaling) SCALING=true ;;
     --help|-h)
       cat <<'USAGE'
 Usage: bash scripts/run/run-benchmarks.sh [OPTIONS]
@@ -73,6 +75,7 @@ Options:
   --full                       10-iteration run  (10 compile iters, 10 runtime iters, 1 warmup)
   --compare                    Run Rust & selfhost compilers, print comparison table
   --selfhost                   Use selfhost (wasm) compiler instead of Rust compiler
+  --scaling                    Run input-size sweep and emit scaling curve report (3 pts quick, 5 pts full)
   --compare-lang [c,rust,go]   Also time reference implementations in C/Rust/Go
   --target <TARGET>            Wasm target triple (default: wasm32-wasi-p1)
   -h, --help                   Show this help text
@@ -579,6 +582,208 @@ except Exception:
     fi
   fi
 done
+
+# --- --scaling: input-size sweep and scaling curve report --------------------
+# Runs a set of parameterized benchmarks across multiple input sizes.
+# quick = 3 size points; full = 5 size points.
+# Emits a text table and a JSON file to benchmarks/results/.
+#
+# Template substitution strategy: for each "sweepable" benchmark we define
+# the template token (a literal substring in the .ark source) and the list of
+# size values that will be substituted into a tmp source file.
+if [[ "$SCALING" == "true" ]]; then
+  echo ""
+  echo "=== Scaling Curve Sweep (mode: $MODE) ==="
+
+  # Number of size points: 3 for quick, 5 for full
+  if [[ "$MODE" == "full" ]]; then
+    SCALING_POINTS=5
+  else
+    SCALING_POINTS=3
+  fi
+
+  # Define sweepable benchmarks:
+  # Each entry = "name|token_in_source|label1:val1,label2:val2,..."
+  # The token is the literal string in the .ark that encodes the size parameter.
+  # It is replaced with each val in turn to produce a tmp .ark file.
+  declare -a SCALING_BENCH_DEFS=(
+    "fib|fib(35)|n=10:fib(10),n=20:fib(20),n=30:fib(30),n=35:fib(35),n=40:fib(40)"
+    "binary_tree|depth: i32 = 20|depth=8:depth: i32 = 8,depth=12:depth: i32 = 12,depth=16:depth: i32 = 16,depth=20:depth: i32 = 20,depth=22:depth: i32 = 22"
+    "string_concat|i < 100|n=10:i < 10,n=50:i < 50,n=100:i < 100,n=250:i < 250,n=500:i < 500"
+    "vec_ops|i < 1000|n=100:i < 100,n=500:i < 500,n=1000:i < 1000,n=3000:i < 3000,n=8000:i < 8000"
+  )
+
+  SCALING_TMP_DIR="$RESULTS_DIR/scaling_tmp"
+  mkdir -p "$SCALING_TMP_DIR"
+
+  # Accumulate JSON entries for all benchmarks
+  SCALING_BENCH_JSON_ARR=""
+  SCALING_BENCH_SEP=""
+
+  CLIFF_THRESHOLD=3  # ratio > 3x between adjacent sizes is a cliff
+
+  for bench_def in "${SCALING_BENCH_DEFS[@]}"; do
+    IFS='|' read -r bench_name token_literal sizes_spec <<< "$bench_def"
+
+    SRC="$ROOT/benchmarks/${bench_name}.ark"
+    if [[ ! -f "$SRC" ]]; then
+      echo "  [scaling] SKIP $bench_name — source not found"
+      continue
+    fi
+
+    # Parse sizes_spec into parallel label/value arrays
+    IFS=',' read -ra PAIR_LIST <<< "$sizes_spec"
+    LABELS=()
+    TOKENS=()
+    for pair in "${PAIR_LIST[@]}"; do
+      IFS=':' read -r lbl tok <<< "$pair"
+      LABELS+=("$lbl")
+      TOKENS+=("$tok")
+    done
+    TOTAL_POINTS=${#LABELS[@]}
+
+    # Select which points to use based on SCALING_POINTS
+    # Always include first, last, and evenly-spaced intermediates
+    SELECTED_INDICES=()
+    if [[ $SCALING_POINTS -ge $TOTAL_POINTS ]]; then
+      for (( idx=0; idx<TOTAL_POINTS; idx++ )); do
+        SELECTED_INDICES+=($idx)
+      done
+    else
+      # Pick SCALING_POINTS evenly spaced from TOTAL_POINTS
+      for (( k=0; k<SCALING_POINTS; k++ )); do
+        idx=$(python3 -c "print(round($k * ($TOTAL_POINTS - 1) / ($SCALING_POINTS - 1)))" 2>/dev/null || echo $k)
+        SELECTED_INDICES+=($idx)
+      done
+    fi
+
+    echo ""
+    echo "--- scaling: $bench_name (${#SELECTED_INDICES[@]} points) ---"
+    printf "  %-12s %12s %12s %12s\n" "size" "compile_ms" "runtime_ms" "binary_B"
+
+    PREV_COMPILE=0
+    PREV_RUNTIME=0
+    POINT_JSON_ARR=""
+    POINT_SEP=""
+
+    for idx in "${SELECTED_INDICES[@]}"; do
+      lbl="${LABELS[$idx]}"
+      tok="${TOKENS[$idx]}"
+
+      # Generate temp source by substituting token_literal → tok
+      TMP_SRC="$SCALING_TMP_DIR/${bench_name}_${lbl//=/_}.ark"
+      sed "s|${token_literal}|${tok}|g" "$SRC" > "$TMP_SRC"
+
+      TMP_WASM="$SCALING_TMP_DIR/${bench_name}_${lbl//=/_}.wasm"
+
+      # Compile
+      if [[ "$USE_SELFHOST" == "true" ]]; then
+        _rel_src="${TMP_SRC#$ROOT/}"
+        _rel_out="${TMP_WASM#$ROOT/}"
+        _rel_wasm="${SELFHOST_WASM#$ROOT/}"
+        t0=$(ms_now)
+        (cd "$ROOT" && wasmtime run --dir=. "$_rel_wasm" -- compile "$_rel_src" --target "$TARGET" -o "$_rel_out") >/dev/null 2>&1 || true
+        t1=$(ms_now)
+      else
+        t0=$(ms_now)
+        "$COMPILER" compile "$TMP_SRC" -o "$TMP_WASM" --target "$TARGET" >/dev/null 2>&1 || true
+        t1=$(ms_now)
+      fi
+      SCALE_COMPILE_MS=$(( t1 - t0 ))
+      SCALE_BINARY_BYTES=0
+      [[ -f "$TMP_WASM" ]] && SCALE_BINARY_BYTES=$(wc -c < "$TMP_WASM" | tr -d ' ')
+
+      # Runtime
+      SCALE_RUNTIME_MS=0
+      if [[ -n "$WASMTIME" && -f "$TMP_WASM" ]]; then
+        t0=$(ms_now)
+        $WASMTIME run "$TMP_WASM" >/dev/null 2>&1 || true
+        t1=$(ms_now)
+        SCALE_RUNTIME_MS=$(( t1 - t0 ))
+      fi
+
+      printf "  %-12s %12s %12s %12s" "$lbl" "$SCALE_COMPILE_MS" "$SCALE_RUNTIME_MS" "$SCALE_BINARY_BYTES"
+
+      # Cliff detection: compare with previous point
+      if [[ $PREV_COMPILE -gt 0 && $SCALE_COMPILE_MS -gt 0 ]]; then
+        COMPILE_RATIO=$(python3 -c "print(f'{$SCALE_COMPILE_MS / $PREV_COMPILE:.2f}')" 2>/dev/null || echo "?")
+        if python3 -c "import sys; sys.exit(0 if $SCALE_COMPILE_MS / $PREV_COMPILE > $CLIFF_THRESHOLD else 1)" 2>/dev/null; then
+          printf "  ⚠ compile-cliff x%s" "$COMPILE_RATIO"
+        fi
+      fi
+      if [[ $PREV_RUNTIME -gt 0 && $SCALE_RUNTIME_MS -gt 0 ]]; then
+        RUNTIME_RATIO=$(python3 -c "print(f'{$SCALE_RUNTIME_MS / $PREV_RUNTIME:.2f}')" 2>/dev/null || echo "?")
+        if python3 -c "import sys; sys.exit(0 if $SCALE_RUNTIME_MS / $PREV_RUNTIME > $CLIFF_THRESHOLD else 1)" 2>/dev/null; then
+          printf "  ⚠ runtime-cliff x%s" "$RUNTIME_RATIO"
+        fi
+      fi
+      printf "\n"
+
+      PREV_COMPILE=$SCALE_COMPILE_MS
+      PREV_RUNTIME=$SCALE_RUNTIME_MS
+
+      # Accumulate JSON for this point
+      POINT_JSON_ARR="${POINT_JSON_ARR}${POINT_SEP}{\"size_label\":\"${lbl}\",\"compile_ms\":${SCALE_COMPILE_MS},\"runtime_ms\":${SCALE_RUNTIME_MS},\"binary_bytes\":${SCALE_BINARY_BYTES}}"
+      POINT_SEP=","
+    done
+
+    # Compute compile slope (ratio last/first)
+    COMPILE_SLOPE="null"
+    RUNTIME_SLOPE="null"
+    if [[ ${#SELECTED_INDICES[@]} -ge 2 ]]; then
+      FIRST_IDX="${SELECTED_INDICES[0]}"
+      LAST_IDX="${SELECTED_INDICES[-1]}"
+      _FIRST_LBL="${LABELS[$FIRST_IDX]}"
+      _LAST_LBL="${LABELS[$LAST_IDX]}"
+      # re-read compile values from the accumulated JSON
+      COMPILE_SLOPE=$(python3 -c "
+import json, sys
+pts = json.loads('[' + sys.argv[1] + ']')
+first_c = next((p['compile_ms'] for p in pts if p['compile_ms'] > 0), 0)
+last_c  = next((p['compile_ms'] for p in reversed(pts) if p['compile_ms'] > 0), 0)
+if first_c > 0 and last_c > 0:
+    print(round(last_c / first_c, 2))
+else:
+    print('null')
+" "$POINT_JSON_ARR" 2>/dev/null || echo "null")
+      RUNTIME_SLOPE=$(python3 -c "
+import json, sys
+pts = json.loads('[' + sys.argv[1] + ']')
+first_r = next((p['runtime_ms'] for p in pts if p['runtime_ms'] > 0), 0)
+last_r  = next((p['runtime_ms'] for p in reversed(pts) if p['runtime_ms'] > 0), 0)
+if first_r > 0 and last_r > 0:
+    print(round(last_r / first_r, 2))
+else:
+    print('null')
+" "$POINT_JSON_ARR" 2>/dev/null || echo "null")
+      echo "  slope (last/first): compile=${COMPILE_SLOPE}x  runtime=${RUNTIME_SLOPE}x"
+    fi
+
+    SCALING_BENCH_JSON_ARR="${SCALING_BENCH_JSON_ARR}${SCALING_BENCH_SEP}{\"benchmark\":\"${bench_name}\",\"size_points\":[${POINT_JSON_ARR}],\"compile_slope\":${COMPILE_SLOPE},\"runtime_slope\":${RUNTIME_SLOPE}}"
+    SCALING_BENCH_SEP=","
+  done
+
+  # Write scaling JSON report
+  SCALING_RESULT_FILE="$RESULTS_DIR/scaling-${MODE}-$(date -u +%Y%m%dT%H%M%SZ).json"
+  cat > "$SCALING_RESULT_FILE" <<SCALINGJSON
+{
+  "schema_version": "arukellt-scaling-v1",
+  "generated_at": "$(now_iso)",
+  "mode": "$MODE",
+  "scaling_points": $SCALING_POINTS,
+  "cliff_threshold": $CLIFF_THRESHOLD,
+  "benchmarks": [
+    $SCALING_BENCH_JSON_ARR
+  ]
+}
+SCALINGJSON
+
+  # Clean up tmp sources
+  rm -rf "$SCALING_TMP_DIR"
+
+  echo ""
+  echo "Scaling results written to: $SCALING_RESULT_FILE"
+fi
 
 # --- --compare-lang: time reference implementations --------------------------
 # Helper: time a single executable using hyperfine (3 runs) or the shell timer.
