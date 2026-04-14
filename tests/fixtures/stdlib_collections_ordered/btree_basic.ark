@@ -1,0 +1,18 @@
+use std::collections::ordered
+use std::host::stdio
+
+fn main() {
+    let m: Vec<i32> = ordered::btree_new()
+    ordered::btree_insert(m, 30, 300)
+    ordered::btree_insert(m, 10, 100)
+    ordered::btree_insert(m, 20, 200)
+    stdio::println(i32_to_string(ordered::btree_len(m)))
+    stdio::println(i32_to_string(ordered::btree_get(m, 10)))
+    stdio::println(i32_to_string(ordered::btree_get(m, 20)))
+    stdio::println(i32_to_string(ordered::btree_get(m, 30)))
+    stdio::println(bool_to_string(ordered::btree_contains_key(m, 20)))
+    stdio::println(bool_to_string(ordered::btree_contains_key(m, 99)))
+    ordered::btree_remove(m, 20)
+    stdio::println(i32_to_string(ordered::btree_len(m)))
+    stdio::println(bool_to_string(ordered::btree_contains_key(m, 20)))
+}

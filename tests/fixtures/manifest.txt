@@ -304,6 +304,12 @@ run:stdlib_option_result/result_err_match.ark
 run:stdlib_option_result/result_ok_unwrap.ark
 run:stdlib_option_result/some_unwrap.ark
 run:stdlib_ordered/ordered_basic.ark
+run:stdlib_collections_ordered/btree_basic.ark
+run:stdlib_collections_ordered/btree_keys.ark
+run:stdlib_collections_ordered/btree_set.ark
+run:stdlib_collections_ordered/index_map_order.ark
+run:stdlib_collections_ordered/index_set.ark
+run:stdlib_collections_ordered/bitset_ops.ark
 run:stdlib_path/path_basic.ark
 run:stdlib_path/path_edge_cases.ark
 run:stdlib_process/exit_zero.ark

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 472
+- **Canonical names:** 499
 - **Historical/deprecated names:** 3
-- **Total entries:** 475
+- **Total entries:** 502
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -61,12 +61,30 @@ Current public API names, sorted alphabetically.
 | `base64_decode` | `std::bytes` | `stable` | Bytes |
 | `base64_encode` | `std::bytes` | `stable` | Bytes |
 | `binary_search` | `std::seq` | `stable` | Seq |
+| `bitset_clear` | `std::collections::ordered` | `experimental` | Collections |
+| `bitset_count` | `std::collections::ordered` | `experimental` | Collections |
+| `bitset_intersection` | `std::collections::ordered` | `experimental` | Collections |
 | `bitset_mark` | `std::collections::ordered` | `stable` | Collections |
 | `bitset_new` | `std::collections::ordered` | `stable` | Collections |
+| `bitset_set` | `std::collections::ordered` | `experimental` | Collections |
 | `bitset_test` | `std::collections::ordered` | `stable` | Collections |
+| `bitset_union` | `std::collections::ordered` | `experimental` | Collections |
 | `bitset_unmark` | `std::collections::ordered` | `stable` | Collections |
+| `bitset_with_capacity` | `std::collections::ordered` | `experimental` | Collections |
 | `bool_to_string` | `prelude` | `stable` | Conversion |
 | `Box_new` | `prelude` | `stable` | Box |
+| `btree_contains_key` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_get` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_insert` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_keys` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_len` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_new` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_range` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_remove` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_set_contains` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_set_insert` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_set_len` | `std::collections::ordered` | `experimental` | Collections |
+| `btree_set_new` | `std::collections::ordered` | `experimental` | Collections |
 | `buf_extend` | `std::bytes` | `stable` | Bytes |
 | `buf_freeze` | `std::bytes` | `stable` | Bytes |
 | `buf_len` | `std::bytes` | `stable` | Bytes |
@@ -243,8 +261,17 @@ Current public API names, sorted alphabetically.
 | `i64_to_string` | `prelude` | `stable` | Conversion |
 | `i8_to_i32` | `prelude` | `stable` | Scalar Conversion |
 | `ifft` | `std::signal` | `stable` | Signal |
+| `index_map_get` | `std::collections::ordered` | `experimental` | Collections |
+| `index_map_insert` | `std::collections::ordered` | `experimental` | Collections |
+| `index_map_keys` | `std::collections::ordered` | `experimental` | Collections |
+| `index_map_len` | `std::collections::ordered` | `experimental` | Collections |
+| `index_map_new` | `std::collections::ordered` | `experimental` | Collections |
 | `index_of` | `prelude` | `stable` | String |
 | `index_of` | `std::text` | `stable` | Text |
+| `index_set_contains` | `std::collections::ordered` | `experimental` | Collections |
+| `index_set_insert` | `std::collections::ordered` | `experimental` | Collections |
+| `index_set_len` | `std::collections::ordered` | `experimental` | Collections |
+| `index_set_new` | `std::collections::ordered` | `experimental` | Collections |
 | `is_absolute` | `std::path` | `stable` | Path |
 | `is_array` | `std::json` | `experimental` | Json |
 | `is_bool` | `std::json` | `experimental` | Json |
@@ -554,12 +581,30 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `base64_decode` | ✅ `stable` | `std::bytes` | Bytes |
 | `base64_encode` | ✅ `stable` | `std::bytes` | Bytes |
 | `binary_search` | ✅ `stable` | `std::seq` | Seq |
+| `bitset_clear` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `bitset_count` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `bitset_intersection` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `bitset_mark` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `bitset_new` | ✅ `stable` | `std::collections::ordered` | Collections |
+| `bitset_set` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `bitset_test` | ✅ `stable` | `std::collections::ordered` | Collections |
+| `bitset_union` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `bitset_unmark` | ✅ `stable` | `std::collections::ordered` | Collections |
+| `bitset_with_capacity` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `bool_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
+| `btree_contains_key` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_keys` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_range` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_remove` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_set_contains` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_set_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_set_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `btree_set_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `buf_extend` | ✅ `stable` | `std::bytes` | Bytes |
 | `buf_freeze` | ✅ `stable` | `std::bytes` | Bytes |
 | `buf_len` | ✅ `stable` | `std::bytes` | Bytes |
@@ -737,8 +782,17 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `i64_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `i8_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `ifft` | ✅ `stable` | `std::signal` | Signal |
+| `index_map_get` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `index_map_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `index_map_keys` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `index_map_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `index_map_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `index_of` | ✅ `stable` | `prelude` | String |
 | `index_of` | ✅ `stable` | `std::text` | Text |
+| `index_set_contains` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `index_set_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `index_set_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `index_set_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `is_absolute` | ✅ `stable` | `std::path` | Path |
 | `is_array` | ✅ `experimental` | `std::json` | Json |
 | `is_bool` | ✅ `experimental` | `std::json` | Json |

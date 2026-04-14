@@ -1,0 +1,33 @@
+use std::collections::ordered
+use std::host::stdio
+
+fn main() {
+    // Test bitset_set / bitset_clear / bitset_test
+    let bs: Vec<i32> = ordered::bitset_new()
+    ordered::bitset_set(bs, 5)
+    ordered::bitset_set(bs, 42)
+    ordered::bitset_set(bs, 100)
+    stdio::println(bool_to_string(ordered::bitset_test(bs, 5)))
+    stdio::println(bool_to_string(ordered::bitset_test(bs, 6)))
+    ordered::bitset_clear(bs, 5)
+    stdio::println(bool_to_string(ordered::bitset_test(bs, 5)))
+    stdio::println(i32_to_string(ordered::bitset_count(bs)))
+
+    // Test union
+    let a: Vec<i32> = ordered::bitset_with_capacity(64)
+    ordered::bitset_set(a, 1)
+    ordered::bitset_set(a, 3)
+    let b: Vec<i32> = ordered::bitset_with_capacity(64)
+    ordered::bitset_set(b, 2)
+    ordered::bitset_set(b, 3)
+    let u: Vec<i32> = ordered::bitset_union(a, b)
+    stdio::println(i32_to_string(ordered::bitset_count(u)))
+    stdio::println(bool_to_string(ordered::bitset_test(u, 1)))
+    stdio::println(bool_to_string(ordered::bitset_test(u, 2)))
+    stdio::println(bool_to_string(ordered::bitset_test(u, 3)))
+
+    // Test intersection
+    let x: Vec<i32> = ordered::bitset_intersection(a, b)
+    stdio::println(i32_to_string(ordered::bitset_count(x)))
+    stdio::println(bool_to_string(ordered::bitset_test(x, 3)))
+}

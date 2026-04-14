@@ -4543,3 +4543,248 @@ stability = "experimental"
 params = ["String"]
 returns = "Result<Vec<String>, String>"
 doc = "Parse a CSV document and return the header row fields."
+
+# ── std::collections::ordered module functions ────────────────────────────────
+
+[[functions]]
+name = "btree_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new BTreeMap<i32,i32> (sorted-vector backed)."
+
+[[functions]]
+name = "btree_insert"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "()"
+doc = "Insert a key-value pair into a BTreeMap<i32,i32>."
+
+[[functions]]
+name = "btree_get"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get a value from a BTreeMap<i32,i32>. Returns 0 if not found."
+
+[[functions]]
+name = "btree_remove"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Remove a key from a BTreeMap<i32,i32>."
+
+[[functions]]
+name = "btree_contains_key"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Check if a BTreeMap<i32,i32> contains a key."
+
+[[functions]]
+name = "btree_len"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of entries in a BTreeMap<i32,i32>."
+
+[[functions]]
+name = "btree_keys"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Return all keys of a BTreeMap<i32,i32> in sorted order."
+
+[[functions]]
+name = "btree_range"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "Vec<i32>"
+doc = "Return keys in [start, end) range from a BTreeMap<i32,i32>."
+
+[[functions]]
+name = "btree_set_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new BTreeSet<i32> (sorted unique values)."
+
+[[functions]]
+name = "btree_set_insert"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Insert into a BTreeSet<i32>. Returns true if the value was newly inserted."
+
+[[functions]]
+name = "btree_set_contains"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Check if a BTreeSet<i32> contains a value."
+
+[[functions]]
+name = "btree_set_len"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of elements in a BTreeSet<i32>."
+
+[[functions]]
+name = "index_map_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new IndexMap<i32,i32> (insertion-order map)."
+
+[[functions]]
+name = "index_map_insert"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32", "i32"]
+returns = "()"
+doc = "Insert a key-value pair into an IndexMap<i32,i32>."
+
+[[functions]]
+name = "index_map_get"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get a value from an IndexMap<i32,i32>. Returns 0 if not found."
+
+[[functions]]
+name = "index_map_len"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of entries in an IndexMap<i32,i32>."
+
+[[functions]]
+name = "index_map_keys"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Return all keys of an IndexMap<i32,i32> in insertion order."
+
+[[functions]]
+name = "index_set_new"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new IndexSet<i32> (insertion-order unique values)."
+
+[[functions]]
+name = "index_set_insert"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Insert into an IndexSet<i32>. Returns true if the value was newly inserted."
+
+[[functions]]
+name = "index_set_contains"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Check if an IndexSet<i32> contains a value."
+
+[[functions]]
+name = "index_set_len"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of elements in an IndexSet<i32>."
+
+[[functions]]
+name = "bitset_set"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Set a bit in a BitSet (alias for bitset_mark)."
+
+[[functions]]
+name = "bitset_clear"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Clear a bit in a BitSet (alias for bitset_unmark)."
+
+[[functions]]
+name = "bitset_with_capacity"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["i32"]
+returns = "Vec<i32>"
+doc = "Create a new BitSet with the given capacity in bits."
+
+[[functions]]
+name = "bitset_count"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of set bits in a BitSet."
+
+[[functions]]
+name = "bitset_union"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Return the union of two BitSets."
+
+[[functions]]
+name = "bitset_intersection"
+module = "std::collections::ordered"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Return the intersection of two BitSets."

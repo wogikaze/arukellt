@@ -1,0 +1,24 @@
+use std::collections::ordered
+use std::host::stdio
+
+fn main() {
+    let m: Vec<i32> = ordered::btree_new()
+    ordered::btree_insert(m, 30, 300)
+    ordered::btree_insert(m, 10, 100)
+    ordered::btree_insert(m, 50, 500)
+    ordered::btree_insert(m, 20, 200)
+    ordered::btree_insert(m, 40, 400)
+    let keys: Vec<i32> = ordered::btree_keys(m)
+    let mut i: i32 = 0
+    while i < len(keys) {
+        stdio::println(i32_to_string(get_unchecked(keys, i)))
+        i = i + 1
+    }
+    let range: Vec<i32> = ordered::btree_range(m, 20, 45)
+    stdio::println(i32_to_string(len(range)))
+    let mut j: i32 = 0
+    while j < len(range) {
+        stdio::println(i32_to_string(get_unchecked(range, j)))
+        j = j + 1
+    }
+}

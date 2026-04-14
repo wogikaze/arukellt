@@ -10,7 +10,6 @@ graph LR
   I032["032 WIT resource type support (own/borrow)"]
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
-  I046["046 std::collections: BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet"]
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I048["048 std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
@@ -35,7 +34,6 @@ graph LR
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
-  I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
   I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
@@ -155,7 +153,6 @@ graph LR
 - **032** depends on: 030; blocks: 473
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
-- **046** depends on: 039, 041; blocks: none
 - **047** depends on: 039, 041; blocks: none
 - **048** depends on: 039, 041; blocks: 057
 - **049** depends on: 039, 041, 042; blocks: 057
@@ -180,7 +177,6 @@ graph LR
 - **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
 - **111** depends on: none; blocks: none
-- **112** depends on: 109; blocks: none
 - **113** depends on: 100; blocks: none
 - **116** depends on: 114; blocks: none
 - **117** depends on: none; blocks: 118

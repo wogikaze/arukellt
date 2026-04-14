@@ -9,7 +9,7 @@
 |------|-------|-------------|
 | [stable](#stable-apis) | 389 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 78 | API may change without notice. Functionality is available but not finalized. |
+| [experimental](#experimental-apis) | 105 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -149,10 +149,28 @@
 | `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
 | `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
 | `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
+| `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of set bits in a BitSet. |
+| `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the intersection of two BitSets. |
 | `bitset_mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `bitset_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bitset_set` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Set a bit in a BitSet (alias for bitset_mark). |
 | `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the union of two BitSets. |
 | `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
+| `bitset_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new BitSet with the given capacity in bits. |
+| `btree_contains_key` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Check if a BTreeMap<i32,i32> contains a key. |
+| `btree_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Get a value from a BTreeMap<i32,i32>. Returns 0 if not found. |
+| `btree_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert a key-value pair into a BTreeMap<i32,i32>. |
+| `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return all keys of a BTreeMap<i32,i32> in sorted order. |
+| `btree_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of entries in a BTreeMap<i32,i32>. |
+| `btree_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new BTreeMap<i32,i32> (sorted-vector backed). |
+| `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return keys in [start, end) range from a BTreeMap<i32,i32>. |
+| `btree_remove` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Remove a key from a BTreeMap<i32,i32>. |
+| `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Check if a BTreeSet<i32> contains a value. |
+| `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert into a BTreeSet<i32>. Returns true if the value was newly inserted. |
+| `btree_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of elements in a BTreeSet<i32>. |
+| `btree_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new BTreeSet<i32> (sorted unique values). |
 | `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
 | `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
@@ -205,6 +223,15 @@
 | `hashset_remove` | `(Vec<i32>, i32) -> bool` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
 | `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::hash` | `stable` | `builtin` | no | - | - |
+| `index_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Get a value from an IndexMap<i32,i32>. Returns 0 if not found. |
+| `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert a key-value pair into an IndexMap<i32,i32>. |
+| `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return all keys of an IndexMap<i32,i32> in insertion order. |
+| `index_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of entries in an IndexMap<i32,i32>. |
+| `index_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new IndexMap<i32,i32> (insertion-order map). |
+| `index_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Check if an IndexSet<i32> contains a value. |
+| `index_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert into an IndexSet<i32>. Returns true if the value was newly inserted. |
+| `index_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of elements in an IndexSet<i32>. |
+| `index_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new IndexSet<i32> (insertion-order unique values). |
 | `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
 | `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
@@ -1292,6 +1319,24 @@ Expected output: `hello world`
 | `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
 | `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
 | `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
+| `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of set bits in a BitSet. |
+| `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the intersection of two BitSets. |
+| `bitset_set` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Set a bit in a BitSet (alias for bitset_mark). |
+| `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the union of two BitSets. |
+| `bitset_with_capacity` | `(i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new BitSet with the given capacity in bits. |
+| `btree_contains_key` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Check if a BTreeMap<i32,i32> contains a key. |
+| `btree_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Get a value from a BTreeMap<i32,i32>. Returns 0 if not found. |
+| `btree_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert a key-value pair into a BTreeMap<i32,i32>. |
+| `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return all keys of a BTreeMap<i32,i32> in sorted order. |
+| `btree_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of entries in a BTreeMap<i32,i32>. |
+| `btree_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new BTreeMap<i32,i32> (sorted-vector backed). |
+| `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return keys in [start, end) range from a BTreeMap<i32,i32>. |
+| `btree_remove` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Remove a key from a BTreeMap<i32,i32>. |
+| `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Check if a BTreeSet<i32> contains a value. |
+| `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert into a BTreeSet<i32>. Returns true if the value was newly inserted. |
+| `btree_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of elements in a BTreeSet<i32>. |
+| `btree_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new BTreeSet<i32> (sorted unique values). |
 | `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - | - |
 | `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - | - |
 | `csv_count_rows` | `(String) -> i32` | `std::csv` | `experimental` | `builtin` | no | - | Count the number of non-empty lines in a CSV string. |
@@ -1302,6 +1347,15 @@ Expected output: `hello world`
 | `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
 | `csv_stringify_row` | `(Vec<String>) -> String` | `std::csv` | `experimental` | `builtin` | no | - | Serialize a row of fields to a CSV line. |
 | `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `builtin` | no | - | - |
+| `index_map_get` | `(Vec<i32>, i32) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Get a value from an IndexMap<i32,i32>. Returns 0 if not found. |
+| `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert a key-value pair into an IndexMap<i32,i32>. |
+| `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return all keys of an IndexMap<i32,i32> in insertion order. |
+| `index_map_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of entries in an IndexMap<i32,i32>. |
+| `index_map_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new IndexMap<i32,i32> (insertion-order map). |
+| `index_set_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Check if an IndexSet<i32> contains a value. |
+| `index_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert into an IndexSet<i32>. Returns true if the value was newly inserted. |
+| `index_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of elements in an IndexSet<i32>. |
+| `index_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new IndexSet<i32> (insertion-order unique values). |
 | `is_array` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `is_bool` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `is_null` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |

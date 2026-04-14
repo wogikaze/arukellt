@@ -1,0 +1,13 @@
+use std::collections::ordered
+use std::host::stdio
+
+fn main() {
+    let s: Vec<i32> = ordered::index_set_new()
+    stdio::println(bool_to_string(ordered::index_set_insert(s, 30)))
+    stdio::println(bool_to_string(ordered::index_set_insert(s, 10)))
+    stdio::println(bool_to_string(ordered::index_set_insert(s, 20)))
+    stdio::println(bool_to_string(ordered::index_set_insert(s, 10)))
+    stdio::println(i32_to_string(ordered::index_set_len(s)))
+    stdio::println(bool_to_string(ordered::index_set_contains(s, 10)))
+    stdio::println(bool_to_string(ordered::index_set_contains(s, 99)))
+}
