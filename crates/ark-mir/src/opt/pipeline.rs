@@ -1,6 +1,6 @@
 use crate::mir::{
     BinOp, BlockId, LocalId, MirFunction, MirModule, MirStmt, Operand, Place, Rvalue, Terminator,
-    UnaryOp, push_optimization_trace, stmt_calls,
+    UnaryOp, push_optimization_trace, push_pass_reduction, stmt_calls,
 };
 use crate::validate::validate_module;
 use std::collections::{HashSet, VecDeque};
@@ -197,10 +197,21 @@ pub fn run_single_pass(
 ) -> Result<OptimizationSummary, String> {
     validate_module(module)
         .map_err(|errors| format!("MIR validation failed before {}: {errors:?}", pass.as_str()))?;
+    let stmts_before: usize = module
+        .functions
+        .iter()
+        .map(|f| f.blocks.iter().map(|b| b.stmts.len()).sum::<usize>())
+        .sum();
     let mut summary = OptimizationSummary::default();
     for function in &mut module.functions {
         summary.absorb(run_pass(function, pass));
     }
+    let stmts_after: usize = module
+        .functions
+        .iter()
+        .map(|f| f.blocks.iter().map(|b| b.stmts.len()).sum::<usize>())
+        .sum();
+    push_pass_reduction(module, pass.as_str(), stmts_before, stmts_after);
     push_optimization_trace(module, pass.as_str());
     validate_module(module)
         .map_err(|errors| format!("MIR validation failed after {}: {errors:?}", pass.as_str()))?;

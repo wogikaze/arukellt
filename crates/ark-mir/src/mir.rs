@@ -62,6 +62,22 @@ pub struct MirSourceMap {
     pub stmt_spans: HashMap<(FnId, BlockId, usize), Span>,
 }
 
+/// Per-pass instruction reduction statistics recorded in `MirStats::pass_reductions`.
+#[derive(Debug, Clone, Default)]
+pub struct ReductionStats {
+    /// Total instruction (statement) count before the pass ran.
+    pub instructions_before: usize,
+    /// Total instruction (statement) count after the pass ran.
+    pub instructions_after: usize,
+}
+
+impl ReductionStats {
+    /// Net instructions eliminated (positive = reduced, negative = added).
+    pub fn eliminated(&self) -> isize {
+        self.instructions_before as isize - self.instructions_after as isize
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct MirStats {
     pub instance_keys: Vec<InstanceKey>,
@@ -70,6 +86,8 @@ pub struct MirStats {
     pub validation_runs: u32,
     pub provenance: Option<String>,
     pub optimization_trace: Vec<String>,
+    /// Per-pass reduction stats: (pass_name, before/after instruction counts).
+    pub pass_reductions: Vec<(String, ReductionStats)>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -120,6 +138,19 @@ pub fn push_optimization_trace(module: &mut MirModule, label: impl Into<String>)
     module.stats.optimization_trace.push(label.into());
 }
 
+/// Record per-pass instruction reduction stats.
+pub fn push_pass_reduction(
+    module: &mut MirModule,
+    pass_name: impl Into<String>,
+    instructions_before: usize,
+    instructions_after: usize,
+) {
+    module.stats.pass_reductions.push((
+        pass_name.into(),
+        ReductionStats { instructions_before, instructions_after },
+    ));
+}
+
 pub fn optimization_trace(module: &MirModule) -> &[String] {
     &module.stats.optimization_trace
 }
@@ -160,7 +191,261 @@ pub fn dump_phases_requested() -> Option<String> {
     std::env::var("ARUKELLT_DUMP_PHASES").ok()
 }
 
+// ── Human-readable MIR text formatters ────────────────────────────────────
+
+fn binop_sym(op: BinOp) -> &'static str {
+    match op {
+        BinOp::Add => "+",
+        BinOp::Sub => "-",
+        BinOp::Mul => "*",
+        BinOp::Div => "/",
+        BinOp::Mod => "%",
+        BinOp::Eq => "==",
+        BinOp::Ne => "!=",
+        BinOp::Lt => "<",
+        BinOp::Le => "<=",
+        BinOp::Gt => ">",
+        BinOp::Ge => ">=",
+        BinOp::And => "&&",
+        BinOp::Or => "||",
+        BinOp::BitAnd => "&",
+        BinOp::BitOr => "|",
+        BinOp::BitXor => "^",
+        BinOp::Shl => "<<",
+        BinOp::Shr => ">>",
+    }
+}
+
+fn unaryop_sym(op: UnaryOp) -> &'static str {
+    match op {
+        UnaryOp::Neg => "-",
+        UnaryOp::Not => "!",
+        UnaryOp::BitNot => "~",
+        UnaryOp::SignExtend8 => "sext8",
+        UnaryOp::SignExtend16 => "sext16",
+        UnaryOp::SignExtend32 => "sext32",
+    }
+}
+
+fn fmt_place(place: &Place) -> String {
+    match place {
+        Place::Local(id) => format!("_{}", id.0),
+        Place::Field(base, field) => format!("{}.{}", fmt_place(base), field),
+        Place::Index(base, idx) => format!("{}[{}]", fmt_place(base), fmt_operand(idx)),
+    }
+}
+
+fn fmt_operand(op: &Operand) -> String {
+    match op {
+        Operand::Place(p) => fmt_place(p),
+        Operand::ConstI32(v) => format!("{}", v),
+        Operand::ConstI64(v) => format!("{}i64", v),
+        Operand::ConstF32(v) => format!("{}f32", v),
+        Operand::ConstF64(v) => format!("{}", v),
+        Operand::ConstBool(v) => v.to_string(),
+        Operand::ConstChar(v) => format!("'{}'", v),
+        Operand::ConstString(v) => format!("{:?}", v),
+        Operand::ConstU8(v) => format!("{}u8", v),
+        Operand::ConstU16(v) => format!("{}u16", v),
+        Operand::ConstU32(v) => format!("{}u32", v),
+        Operand::ConstU64(v) => format!("{}u64", v),
+        Operand::ConstI8(v) => format!("{}i8", v),
+        Operand::ConstI16(v) => format!("{}i16", v),
+        Operand::Unit => "()".to_string(),
+        Operand::BinOp(op, lhs, rhs) => {
+            format!("({} {} {})", fmt_operand(lhs), binop_sym(*op), fmt_operand(rhs))
+        }
+        Operand::UnaryOp(op, inner) => {
+            format!("({} {})", unaryop_sym(*op), fmt_operand(inner))
+        }
+        Operand::Call(name, args) => {
+            let args_str = args.iter().map(fmt_operand).collect::<Vec<_>>().join(", ");
+            format!("{}({})", name, args_str)
+        }
+        Operand::FnRef(name) => format!("&fn:{}", name),
+        Operand::CallIndirect { callee, args } => {
+            let args_str = args.iter().map(fmt_operand).collect::<Vec<_>>().join(", ");
+            format!("call_indirect {}({})", fmt_operand(callee), args_str)
+        }
+        Operand::StructInit { name, fields } => {
+            format!("{} {{ {}_fields }}", name, fields.len())
+        }
+        Operand::FieldAccess { object, field, .. } => {
+            format!("{}.{}", fmt_operand(object), field)
+        }
+        Operand::EnumInit { enum_name, variant, .. } => {
+            format!("{}::{}", enum_name, variant)
+        }
+        Operand::EnumTag(inner) => format!("tag({})", fmt_operand(inner)),
+        Operand::EnumPayload { object, index, .. } => {
+            format!("payload({}, {})", fmt_operand(object), index)
+        }
+        Operand::ArrayInit { elements } => format!("[{}; ...]", elements.len()),
+        Operand::IndexAccess { object, index } => {
+            format!("{}[{}]", fmt_operand(object), fmt_operand(index))
+        }
+        Operand::IfExpr { .. } => "<if-expr>".to_string(),
+        Operand::LoopExpr { .. } => "<loop-expr>".to_string(),
+        Operand::TryExpr { .. } => "<try-expr>".to_string(),
+    }
+}
+
+fn fmt_rvalue(rv: &Rvalue) -> String {
+    match rv {
+        Rvalue::Use(op) => fmt_operand(op),
+        Rvalue::BinaryOp(op, lhs, rhs) => {
+            format!("{} {} {}", fmt_operand(lhs), binop_sym(*op), fmt_operand(rhs))
+        }
+        Rvalue::UnaryOp(op, inner) => {
+            format!("{} {}", unaryop_sym(*op), fmt_operand(inner))
+        }
+        Rvalue::Aggregate(kind, fields) => {
+            let fields_str = fields.iter().map(fmt_operand).collect::<Vec<_>>().join(", ");
+            match kind {
+                AggregateKind::Tuple => format!("({})", fields_str),
+                AggregateKind::Array => format!("[{}]", fields_str),
+                AggregateKind::Struct(name) => format!("{} {{ {} }}", name, fields_str),
+                AggregateKind::EnumVariant(e, v) => format!("{}::{} {{ {} }}", e, v, fields_str),
+            }
+        }
+        Rvalue::Ref(place) => format!("&{}", fmt_place(place)),
+    }
+}
+
+fn fmt_terminatort(term: &Terminator) -> String {
+    match term {
+        Terminator::Goto(bb) => format!("goto bb{}", bb.0),
+        Terminator::Return(None) => "return".to_string(),
+        Terminator::Return(Some(op)) => format!("return {}", fmt_operand(op)),
+        Terminator::Unreachable => "unreachable".to_string(),
+        Terminator::If { cond, then_block, else_block, .. } => {
+            format!(
+                "if {} → bb{} else bb{}",
+                fmt_operand(cond),
+                then_block.0,
+                else_block.0
+            )
+        }
+        Terminator::Switch { scrutinee, arms, default } => {
+            let arms_str = arms
+                .iter()
+                .map(|(val, bb)| format!("{} => bb{}", val, bb.0))
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!(
+                "switch {} [ {}_ => bb{} ]",
+                fmt_operand(scrutinee),
+                if arms_str.is_empty() {
+                    String::new()
+                } else {
+                    format!("{}, ", arms_str)
+                },
+                default.0
+            )
+        }
+        Terminator::TailCall { func, args } => {
+            let args_str = args.iter().map(fmt_operand).collect::<Vec<_>>().join(", ");
+            format!("tail_call {}({})", func, args_str)
+        }
+        Terminator::TailCallIndirect { callee, args } => {
+            let args_str = args.iter().map(fmt_operand).collect::<Vec<_>>().join(", ");
+            format!("tail_call_indirect {}({})", fmt_operand(callee), args_str)
+        }
+    }
+}
+
+fn fmt_stmt_indented(stmt: &MirStmt, depth: usize) -> String {
+    let pad = "  ".repeat(depth);
+    match stmt {
+        MirStmt::Assign(place, rv) => {
+            format!("{}{} = {}", pad, fmt_place(place), fmt_rvalue(rv))
+        }
+        MirStmt::Call { dest, func, args } => {
+            let args_str = args.iter().map(fmt_operand).collect::<Vec<_>>().join(", ");
+            let dest_str = dest
+                .as_ref()
+                .map(|p| format!("{} = ", fmt_place(p)))
+                .unwrap_or_default();
+            format!("{}{}call fn#{}({})", pad, dest_str, func.0, args_str)
+        }
+        MirStmt::CallBuiltin { dest, name, args } => {
+            let args_str = args.iter().map(fmt_operand).collect::<Vec<_>>().join(", ");
+            let dest_str = dest
+                .as_ref()
+                .map(|p| format!("{} = ", fmt_place(p)))
+                .unwrap_or_default();
+            format!("{}{}builtin {}({})", pad, dest_str, name, args_str)
+        }
+        MirStmt::IfStmt { cond, then_body, else_body } => {
+            let mut s = format!("{}if {} {{", pad, fmt_operand(cond));
+            for inner in then_body {
+                s += &format!("\n{}", fmt_stmt_indented(inner, depth + 1));
+            }
+            if !else_body.is_empty() {
+                s += &format!("\n{}}} else {{", pad);
+                for inner in else_body {
+                    s += &format!("\n{}", fmt_stmt_indented(inner, depth + 1));
+                }
+            }
+            s += &format!("\n{}}}", pad);
+            s
+        }
+        MirStmt::WhileStmt { cond, body } => {
+            let mut s = format!("{}while {} {{", pad, fmt_operand(cond));
+            for inner in body {
+                s += &format!("\n{}", fmt_stmt_indented(inner, depth + 1));
+            }
+            s += &format!("\n{}}}", pad);
+            s
+        }
+        MirStmt::Break => format!("{}break", pad),
+        MirStmt::Continue => format!("{}continue", pad),
+        MirStmt::Return(None) => format!("{}return", pad),
+        MirStmt::Return(Some(op)) => format!("{}return {}", pad, fmt_operand(op)),
+        MirStmt::GcHint { local, hint } => format!("{}gc_hint _{} {:?}", pad, local.0, hint),
+    }
+}
+
+/// Render a single MIR function as human-readable text.
+pub fn format_mir_function_text(func: &MirFunction) -> String {
+    let params: Vec<String> = func
+        .params
+        .iter()
+        .map(|p| {
+            let name = p.name.as_deref().unwrap_or("_");
+            format!("{}: {}", name, p.ty)
+        })
+        .collect();
+    let mut out = format!("fn {}({}) -> {}:", func.name, params.join(", "), func.return_ty);
+    for block in &func.blocks {
+        let marker = if block.id == func.entry { " [entry]" } else { "" };
+        out += &format!("\n  bb{}{}:", block.id.0, marker);
+        for stmt in &block.stmts {
+            out += &format!("\n{}", fmt_stmt_indented(stmt, 2));
+        }
+        out += &format!("\n    {}", fmt_terminatort(&block.terminator));
+    }
+    out
+}
+
+/// Render the entire MIR module as human-readable text.
+pub fn mir_module_text(module: &MirModule) -> String {
+    let mut out = format!(
+        "// MIR module: {} fn(s), passes: [{}]",
+        module.functions.len(),
+        module.stats.optimization_trace.join(", ")
+    );
+    for func in &module.functions {
+        out += "\n\n";
+        out += &format_mir_function_text(func);
+    }
+    out
+}
+
 /// Dump MIR module summary to stderr for a given phase label.
+/// When `ARUKELLT_DUMP_PHASES=optimized-mir`, also emits full human-readable
+/// MIR text at the `pre-opt` and `post-opt` phases.
+/// When `ARUKELLT_DUMP_PHASES=all`, emits full text at every phase.
 pub fn dump_mir_phase(module: &MirModule, label: &str) {
     eprintln!("[arukellt:mir] {}: {}", label, mir_size_summary(module));
     for func in &module.functions {
@@ -171,6 +456,19 @@ pub fn dump_mir_phase(module: &MirModule, label: &str) {
             func.blocks.len(),
             stmt_count
         );
+    }
+    let dump_val = dump_phases_requested();
+    let emit_full = match dump_val.as_deref() {
+        Some("all") => true,
+        Some("optimized-mir") => matches!(label, "pre-opt" | "post-opt"),
+        _ => false,
+    };
+    if emit_full {
+        eprintln!("[arukellt:mir] --- {} begin ---", label);
+        for line in mir_module_text(module).lines() {
+            eprintln!("[arukellt:mir] {}", line);
+        }
+        eprintln!("[arukellt:mir] --- {} end ---", label);
     }
 }
 

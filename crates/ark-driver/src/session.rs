@@ -7,10 +7,10 @@ use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
 use ark_hir::Program;
 use ark_lexer::Lexer;
 use ark_mir::{
-    MirModule, MirProvenance, compare_lowering_paths, eliminate_dead_functions,
-    lower_check_output_to_mir, lower_legacy_only, module_snapshot, optimization_pass_catalog,
-    optimize_module, optimize_module_named, runtime_entry_name, set_mir_provenance,
-    validate_backend_legal_module, validate_module,
+    MirModule, MirProvenance, compare_lowering_paths, dump_mir_phase, dump_phases_requested,
+    eliminate_dead_functions, lower_check_output_to_mir, lower_legacy_only, module_snapshot,
+    optimization_pass_catalog, optimize_module, optimize_module_named, runtime_entry_name,
+    set_mir_provenance, validate_backend_legal_module, validate_module,
 };
 use ark_parser::{ast, parse};
 #[allow(deprecated)]
@@ -709,15 +709,21 @@ impl Session {
         // This ensures structural invariants are caught regardless of MirSelection.
         validate_mir(&mir)?;
 
-        // T3 still relies on high-level operands and currently regresses under the
-        // O1/O2 MIR pipeline; keep MIR at O0 until those passes are made GC-safe.
-        // Backend-local codegen tweaks (e.g. tail-call emission) can still use the
-        // requested opt level.
-        let effective_mir_opt_level = if target == TargetId::Wasm32WasiP2 {
-            OptLevel::O0
-        } else {
-            self.opt_level
-        };
+        // T3 MIR opt-level: blanket O0 removed 2026-04-15 (issue #486).
+        // All passes in crates/ark-mir/src/passes/ are safe for T3 because they
+        // operate on pure scalars / CFG structure and bypass desugar_exprs.
+        // The opt/pipeline.rs batch path (optimize_module_named etc.) always runs
+        // desugar_exprs first, which converts high-level MIR nodes (IfExpr, TryExpr)
+        // that T3 relies on into statement form — that conversion breaks T3 Wasm
+        // type emission.  T3 therefore uses the passes/ standalone path.
+        // For non-T3, the existing batch pipeline runs as before.
+        // See crates/ark-mir/src/passes/README.md §T3 safety classification.
+        let effective_mir_opt_level = self.opt_level;
+
+        // T3-safe passes live in the passes/ directory and bypass desugar.
+        // All O2 passes in opt/pipeline.rs remain gated (they go through the batch
+        // pipeline which triggers desugar).  Unlock conditions documented in README.
+        let t3_standalone_only = target == TargetId::Wasm32WasiP2;
 
         let t_opt = std::time::Instant::now();
         let opt_detail = if matches!(
@@ -725,42 +731,67 @@ impl Session {
             MirSelection::OptimizedLegacy | MirSelection::OptimizedCoreHir
         ) && effective_mir_opt_level != OptLevel::O0
         {
-            let summary = if effective_mir_opt_level == OptLevel::O1 {
-                let o1_passes: &[&str] = &[
-                    "const_fold",
-                    "branch_fold",
-                    "cfg_simplify",
-                    "copy_prop",
-                    "const_prop",
-                    "dead_local_elim",
-                    "dead_block_elim",
-                    "unreachable_cleanup",
-                    "cse",
-                ];
-                let passes: Vec<&str> = o1_passes
-                    .iter()
-                    .filter(|p| !self.disabled_passes.iter().any(|d| d == *p))
-                    .copied()
-                    .collect();
-                optimize_module_named(&mut mir, &passes)
-            } else if self.disabled_passes.is_empty() {
-                optimize_module(&mut mir)
+            if t3_standalone_only {
+                // T3 safe path: call passes/ standalone functions directly, bypassing
+                // optimize_module_with_passes which always invokes desugar_exprs.
+                // desugar_exprs converts IfExpr/TryExpr high-level nodes that T3 needs;
+                // running it produces Wasm type-mismatch errors at the T3 emitter.
+                // Only passes registered in passes/ (const_fold, dead_block_elim) run.
+                // Other O1/O2 passes remain gated until passes/ is extended.
+                let passes_level = match effective_mir_opt_level {
+                    OptLevel::O1 => ark_mir::OptLevel::O1,
+                    OptLevel::O2 => ark_mir::OptLevel::O2,
+                    OptLevel::O0 => unreachable!("gated above"),
+                };
+                let stats = ark_mir::passes::run_all(&mut mir, passes_level);
+                mark_selection(&mut mir, selection);
+                // T3 path: emit optimized-MIR dump if requested (bypasses pipeline dump).
+                if dump_phases_requested()
+                    .as_deref()
+                    .is_some_and(|d| d == "optimized-mir" || d == "all")
+                {
+                    dump_mir_phase(&mir, "post-opt");
+                }
+                let total: usize = stats.iter().map(|s| s.changed).sum();
+                format!("t3_passes={}", total)
             } else {
-                let all_passes = optimization_pass_catalog();
-                let passes: Vec<&str> = all_passes
-                    .iter()
-                    .filter(|p| !self.disabled_passes.iter().any(|d| d == *p))
-                    .copied()
-                    .collect();
-                optimize_module_named(&mut mir, &passes)
-            };
-            let summary = summary
-                .map_err(|message| format!("internal error: optimizer failed: {message}"))?;
-            mark_selection(&mut mir, selection);
-            format!(
-                "rounds={}, const_fold={}, dce={}",
-                summary.rounds, summary.const_folded, summary.dead_locals_removed
-            )
+                let summary = if effective_mir_opt_level == OptLevel::O1 {
+                    let o1_passes: &[&str] = &[
+                        "const_fold",
+                        "branch_fold",
+                        "cfg_simplify",
+                        "copy_prop",
+                        "const_prop",
+                        "dead_local_elim",
+                        "dead_block_elim",
+                        "unreachable_cleanup",
+                        "cse",
+                    ];
+                    let passes: Vec<&str> = o1_passes
+                        .iter()
+                        .filter(|p| !self.disabled_passes.iter().any(|d| d == *p))
+                        .copied()
+                        .collect();
+                    optimize_module_named(&mut mir, &passes)
+                } else if self.disabled_passes.is_empty() {
+                    optimize_module(&mut mir)
+                } else {
+                    let all_passes = optimization_pass_catalog();
+                    let passes: Vec<&str> = all_passes
+                        .iter()
+                        .filter(|p| !self.disabled_passes.iter().any(|d| d == *p))
+                        .copied()
+                        .collect();
+                    optimize_module_named(&mut mir, &passes)
+                };
+                let summary = summary
+                    .map_err(|message| format!("internal error: optimizer failed: {message}"))?;
+                mark_selection(&mut mir, selection);
+                format!(
+                    "rounds={}, const_fold={}, dce={}",
+                    summary.rounds, summary.const_folded, summary.dead_locals_removed
+                )
+            }
         } else {
             String::new()
         };
@@ -771,8 +802,11 @@ impl Session {
         // directly. The stricter backend-legal check is deferred until the CoreHIR lowerer
         // produces its own flat basic-block MIR (currently it falls back to legacy lowering).
 
-        // Dead function elimination: remove stdlib functions not reachable from main
-        if effective_mir_opt_level != OptLevel::O0 && std::env::var("ARUKELLT_NO_DEAD_FN").is_err()
+        // Dead function elimination: remove stdlib functions not reachable from main.
+        // Skipped for T3 until entry-point reachability includes all WASI exports.
+        if effective_mir_opt_level != OptLevel::O0
+            && !t3_standalone_only
+            && std::env::var("ARUKELLT_NO_DEAD_FN").is_err()
         {
             eliminate_dead_functions(&mut mir);
         }
