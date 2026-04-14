@@ -2604,11 +2604,17 @@ impl Ctx {
             }
             w.instruction(&Instruction::End);
             w.flush();
-            w.tee_count()
+            (w.tee_count(), w.rmw_count())
         };
+        let (tee_count, rmw_count) = tee_count;
         if tee_count > 0 {
             // Peephole applied: `tee_count` local.set/get pairs → local.tee
             let _ = tee_count;
+        }
+        if rmw_count > 0 {
+            // RMW peephole applied: `rmw_count` struct.get/struct.set no-op
+            // sequences eliminated (issue #156).
+            let _ = rmw_count;
         }
         codes.function(&f);
     }

@@ -1,0 +1,38 @@
+// Regression / optimization fixture for issue #156:
+// T3 WasmGC RMW peephole — struct.get immediately followed by struct.set on
+// the same struct and same field.
+//
+// `c.val = c.val` compiles to:
+//   local.get $c       ; struct.set receiver
+//   local.get $c       ; FieldAccess object
+//   struct.get $T $val
+//   struct.set $T $val
+// which is a semantic no-op.  The PeepholeWriter RMW pass eliminates all 4
+// instructions when opt_level >= 1.
+//
+// The fixture verifies the program still produces the correct output after
+// the optimization fires.
+use std::host::stdio
+
+struct Counter {
+    val: i32,
+}
+
+fn main() {
+    let c = Counter { val: 42 }
+    // Identity assignment — RMW no-op; peephole should eliminate 4 instructions.
+    c.val = c.val
+    stdio::println(i32_to_string(c.val))
+
+    // Multiple fields: verify each no-op is independently eliminated.
+    let p = Point { x: 10, y: 20 }
+    p.x = p.x
+    p.y = p.y
+    stdio::println(i32_to_string(p.x))
+    stdio::println(i32_to_string(p.y))
+}
+
+struct Point {
+    x: i32,
+    y: i32,
+}

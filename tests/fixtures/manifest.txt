@@ -732,6 +732,7 @@ t3-run:stdlib_vec_ops/sum_i32.ark
 t3-run:string_interp/fstring_basic.ark
 t3-run:string_interp/fstring_expr.ark
 t3-run:struct_mutation/field_assign.ark
+t3-run:structs/rmw_noop.ark
 t3-run:structs/basic_struct.ark
 t3-run:structs/constructor_fn.ark
 t3-run:structs/field_access.ark
