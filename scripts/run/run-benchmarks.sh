@@ -56,6 +56,36 @@ while [[ $# -gt 0 ]]; do
       fi
       ;;
     --selfhost) USE_SELFHOST=true ;;
+    --help|-h)
+      cat <<'USAGE'
+Usage: bash scripts/run/run-benchmarks.sh [OPTIONS]
+
+Subcommands (via mise):
+  mise bench                   Full benchmark: release build + all metrics (10 iters)
+  mise bench:quick             Single-sample smoke benchmark
+  mise bench:compare           Benchmark + show diff against stored baseline
+  mise bench:selfhost          Benchmark using selfhost compiler only
+  mise bench:update-baseline   Replace baseline with current measurements
+  mise bench:ci                Compare + fail on threshold regression (CI gate)
+
+Options:
+  --quick                      Single-sample run (1 compile iter, 1 runtime iter, 0 warmups)
+  --full                       10-iteration run  (10 compile iters, 10 runtime iters, 1 warmup)
+  --compare                    Run Rust & selfhost compilers, print comparison table
+  --selfhost                   Use selfhost (wasm) compiler instead of Rust compiler
+  --compare-lang [c,rust,go]   Also time reference implementations in C/Rust/Go
+  --target <TARGET>            Wasm target triple (default: wasm32-wasi-p1)
+  -h, --help                   Show this help text
+
+Optional tools (skipped if absent):
+  wasmtime   — required for runtime benchmarks
+  hyperfine  — improves timing accuracy; falls back to built-in shell timer
+  /usr/bin/time — enables RSS memory measurement
+
+Results are written to benchmarks/results/ as JSON (schema: arukellt-bench-v1).
+USAGE
+      exit 0
+      ;;
     *) echo "Unknown flag: $arg" >&2; exit 1 ;;
   esac
   shift
