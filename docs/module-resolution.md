@@ -238,7 +238,10 @@ The module's exported functions become accessible via the alias `stdio::`.
 - `pub(crate)` is reserved syntax but not enforced in v1
 
 **Import re-export**: A `pub use` or `pub import` makes the imported module's
-public items re-exported (not yet implemented; tracked in #234).
+public items re-exported through the re-exporting module's public API.
+Importers of the facade module can access re-exported items as if they were
+defined in the facade. Non-`pub` uses remain module-private and are not
+visible to importers (implemented in #490).
 
 ## 8. Resolution in the Extension and LSP
 

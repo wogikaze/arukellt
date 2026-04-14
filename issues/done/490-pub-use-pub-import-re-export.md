@@ -1,8 +1,8 @@
 # pub use / pub import re-export
 
-**Status**: open
+**Status**: closed
 **Created**: 2026-04-13
-**Updated**: 2026-04-13
+**Updated**: 2026-04-14
 **ID**: 490
 **Depends on**: 234
 **Track**: compiler, module-system
@@ -19,11 +19,11 @@ The language specification describes `pub use` / `pub import` syntax for re-expo
 
 ## Acceptance
 
-- [ ] `pub use <module>::<item>` syntax is parsed and resolved
-- [ ] Re-exported items are visible to importers of the re-exporting module
-- [ ] Non-`pub` uses remain module-private (existing behavior maintained)
-- [ ] At least 1 positive fixture (re-export works) and 1 negative fixture (non-pub use not visible)
-- [ ] `docs/module-resolution.md` updated to remove "not yet implemented" qualifier
+- [x] `pub use <module>::<item>` syntax is parsed and resolved
+- [x] Re-exported items are visible to importers of the re-exporting module
+- [x] Non-`pub` uses remain module-private (existing behavior maintained)
+- [x] At least 1 positive fixture (re-export works) and 1 negative fixture (non-pub use not visible)
+- [x] `docs/module-resolution.md` updated to remove "not yet implemented" qualifier
 
 ## Primary paths
 
