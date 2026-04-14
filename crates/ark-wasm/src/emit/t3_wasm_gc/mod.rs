@@ -503,6 +503,9 @@ pub(super) struct Ctx {
     err_float_string_seg: Option<u32>,
     // Pre-registered indirect call type indices
     indirect_types: HashMap<(Vec<ValType>, Vec<ValType>), u32>,
+    // Per-function map: local_id → fn_name for locals assigned a FnRef operand.
+    // Used to emit return_call_ref when a tail call goes through such a local.
+    pub(super) fn_ref_locals: HashMap<u32, String>,
     // Scratch local base index (set per-function, for GC string ops)
     scratch_base: u32,
     // Whether the current function being emitted is _start/main (drops return value)
@@ -1023,6 +1026,7 @@ pub fn emit(
         err_string_seg: None,
         err_float_string_seg: None,
         indirect_types: HashMap::new(),
+        fn_ref_locals: HashMap::new(),
         scratch_base: 0,
         is_start_fn: false,
         loop_break_extra_depth: 0,

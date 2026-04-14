@@ -6,7 +6,7 @@
 
 pub mod t1;
 pub use t1 as t1_wasm32_p1;
-pub mod t3;
+pub mod t3_wasm_gc;
 
 use ark_diagnostics::{DiagnosticSink, wasm_validation_diagnostic};
 use ark_mir::mir::MirModule;
@@ -59,7 +59,7 @@ pub fn emit_with_plan(
 ) -> Vec<u8> {
     let bytes = match plan.runtime_model {
         RuntimeModel::T1LinearP1 => t1_wasm32_p1::emit(mir, sink),
-        RuntimeModel::T3WasmGcP2 => t3::emit(mir, sink, opt_level, strip_debug),
+        RuntimeModel::T3WasmGcP2 => t3_wasm_gc::emit(mir, sink, opt_level, strip_debug),
         RuntimeModel::T4LlvmScaffold => {
             sink.emit(wasm_validation_diagnostic(
                 "native backend plan cannot be emitted via ark-wasm".to_string(),

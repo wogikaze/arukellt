@@ -1682,6 +1682,7 @@ impl Ctx {
         self.struct_vec_locals.clear();
         self.local_struct.clear();
         self.local_enum.clear();
+        self.fn_ref_locals.clear();
         self.current_fn_type_params = func.type_params.clone();
         self.current_fn_return_ty = func.return_ty.clone();
         self.current_fn_ret_type_name = self.fn_ret_type_names.get(&func.name).cloned();
@@ -2022,6 +2023,11 @@ impl Ctx {
                                             .or_insert_with(|| ret_name.clone());
                                     }
                                 }
+                            }
+                            Operand::FnRef(name) => {
+                                // Record that this local holds a named function reference,
+                                // to enable return_call_ref emission in tail position.
+                                self.fn_ref_locals.insert(dst.0, name.clone());
                             }
                             _ => {}
                         }
@@ -2653,6 +2659,44 @@ impl Ctx {
                 if self.current_fn_return_ty == Type::Any {
                     return false; // boxing/unboxing required; skip TCO
                 }
+                // If the callee is a local that was assigned a FnRef, or is a FnRef
+                // directly, emit return_call_ref instead of return_call_indirect.
+                let fn_name_opt: Option<String> = match callee.as_ref() {
+                    Operand::FnRef(name) => Some(name.clone()),
+                    Operand::Place(Place::Local(local_id)) => {
+                        self.fn_ref_locals.get(&local_id.0).cloned()
+                    }
+                    _ => None,
+                };
+                if let Some(fn_name) = fn_name_opt {
+                    if let Some(&fn_idx) = self.fn_map.get(fn_name.as_str()) {
+                        let params: Vec<ValType> = args
+                            .iter()
+                            .map(|a| {
+                                if self.is_f64_like_operand(a) {
+                                    ValType::F64
+                                } else if self.is_i64_like_operand(a) {
+                                    ValType::I64
+                                } else {
+                                    ValType::I32
+                                }
+                            })
+                            .collect();
+                        let results = vec![ValType::I32];
+                        let type_index = self
+                            .indirect_types
+                            .get(&(params, results))
+                            .copied()
+                            .unwrap_or(0);
+                        for arg in args.iter() {
+                            self.emit_operand(f, arg);
+                        }
+                        f.instruction(&Instruction::RefFunc(fn_idx));
+                        f.instruction(&Instruction::ReturnCallRef(type_index));
+                        return true;
+                    }
+                }
+                // Fallback: table-based indirect tail call.
                 for arg in args.iter() {
                     self.emit_operand(f, arg);
                 }
