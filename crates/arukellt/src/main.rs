@@ -194,6 +194,9 @@ enum Commands {
         /// List tests without running them
         #[arg(long)]
         list: bool,
+        /// Only run tests whose name contains this substring
+        #[arg(long, value_name = "NAME")]
+        filter: Option<String>,
     },
     /// List available compile targets
     Targets,
@@ -364,8 +367,9 @@ fn main() {
             target,
             json,
             list,
+            filter,
         } => {
-            commands::cmd_test(file, target, json, list);
+            commands::cmd_test(file, target, json, list, filter);
         }
         Commands::Targets => {
             commands::cmd_targets();

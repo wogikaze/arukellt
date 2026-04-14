@@ -737,7 +737,6 @@ function registerCommands(context) {
 
   // arukellt.runTest: launched from CodeLens on a test function.
   // Receives (fileUri, fnName) from the LSP server.
-  // Note: `arukellt test` does not yet support --filter; all tests in the file are run.
   context.subscriptions.push(vscode.commands.registerCommand('arukellt.runTest', (fileUri, fnName) => {
     const { command } = resolveServerCommand()
     const filePath = fileUri ? vscode.Uri.parse(fileUri).fsPath : (vscode.window.activeTextEditor ? vscode.window.activeTextEditor.document.uri.fsPath : '')
@@ -746,8 +745,8 @@ function registerCommands(context) {
       return
     }
     const terminal = vscode.window.createTerminal(`Arukellt: Run Test${fnName ? ` (${fnName})` : ''}`)
-    // arukellt test does not support --filter yet; run all tests in the file.
-    terminal.sendText(`${command} test "${filePath}"`)
+    const filterArg = fnName ? ` --filter "${fnName}"` : ''
+    terminal.sendText(`${command} test "${filePath}"${filterArg}`)
     terminal.show()
   }))
 

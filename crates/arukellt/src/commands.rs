@@ -887,7 +887,7 @@ struct TestSuiteResult {
     total_duration_ms: f64,
 }
 
-pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) {
+pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool, filter: Option<String>) {
     let mut session = Session::new();
     let tests = match session.find_tests(&file) {
         Ok(t) => t,
@@ -895,6 +895,12 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool) 
             eprintln!("error discovering tests: {}", e);
             process::exit(1);
         }
+    };
+
+    let tests = if let Some(ref pat) = filter {
+        tests.into_iter().filter(|t| t.contains(pat.as_str())).collect::<Vec<_>>()
+    } else {
+        tests
     };
 
     if list {
