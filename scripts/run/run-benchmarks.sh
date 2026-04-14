@@ -176,6 +176,25 @@ print(round(statistics.stdev(vals), 3))
 " 2>/dev/null || echo "null"
 }
 
+# Compute coefficient of variation (stddev/mean*100) from whitespace-separated numbers on stdin.
+cov_calc() {
+  python3 -c "
+import sys, statistics
+vals = [float(x) for x in sys.stdin.read().split() if x]
+if len(vals) < 2:
+    print('null'); sys.exit(0)
+mean = statistics.mean(vals)
+if mean == 0:
+    print('null'); sys.exit(0)
+stdev = statistics.stdev(vals)
+print(round(stdev / mean * 100, 2))
+" 2>/dev/null || echo "null"
+}
+
+# CoV threshold (%): benchmarks with cv_pct > CV_THRESHOLD are flagged variance_unstable=true.
+# Override via env: BENCH_CV_THRESHOLD=10 bash scripts/run/run-benchmarks.sh
+CV_THRESHOLD="${BENCH_CV_THRESHOLD:-5}"
+
 # Threshold for performance warning (percentage)
 PERF_WARN_THRESHOLD=200
 
@@ -269,6 +288,23 @@ else
   echo "NOTE: /usr/bin/time not found — RSS memory measurement will be skipped"
 fi
 
+# --- detect taskset for CPU affinity pinning ---------------------------------
+TASKSET_BIN="$(command -v taskset 2>/dev/null || true)"
+if [[ -n "$TASKSET_BIN" ]]; then
+  echo "NOTE: taskset found — pinning benchmark runs to CPU core 0 for reproducibility."
+else
+  echo "NOTE: taskset not found — CPU affinity pinning skipped (install util-linux for better reproducibility)."
+fi
+
+# with_affinity: wraps a command with 'taskset -c 0' when taskset is available.
+with_affinity() {
+  if [[ -n "$TASKSET_BIN" ]]; then
+    "$TASKSET_BIN" -c 0 "$@"
+  else
+    "$@"
+  fi
+}
+
 if [[ -z "$WASMTIME" ]]; then
   echo "NOTE: wasmtime not found — runtime benchmarks will be skipped"
 fi
@@ -339,14 +375,14 @@ for bench in "${BENCH_NAMES[@]}"; do
     if [[ -n "$TIME_BIN" ]]; then
       _rss_file=$(mktemp /tmp/ark-bench-rss-XXXXXX.txt)
       t0=$(ms_now)
-      "$TIME_BIN" -f "%M" -o "$_rss_file" bash -c "$COMPILE_CMD" >/dev/null 2>&1 || true
+      with_affinity "$TIME_BIN" -f "%M" -o "$_rss_file" bash -c "$COMPILE_CMD" >/dev/null 2>&1 || true
       t1=$(ms_now)
       _rss_val=$(cat "$_rss_file" 2>/dev/null | tr -d '[:space:]')
       rm -f "$_rss_file"
       [[ "$_rss_val" =~ ^[0-9]+$ ]] && COMPILE_RSS_SAMPLES="$COMPILE_RSS_SAMPLES $_rss_val"
     else
       t0=$(ms_now)
-      eval $COMPILE_CMD >/dev/null 2>&1 || true
+      with_affinity bash -c "$COMPILE_CMD" >/dev/null 2>&1 || true
       t1=$(ms_now)
     fi
     elapsed=$(( t1 - t0 ))
@@ -365,6 +401,13 @@ import sys
 vals = sys.stdin.read().split()
 print('[' + ','.join(vals) + ']')
 " 2>/dev/null || echo "[]")
+
+  # ---- compile variance (CoV) -----------------------------------------------
+  COMPILE_CV_PCT=$(echo "$COMPILE_SAMPLES" | cov_calc)
+  COMPILE_VARIANCE_UNSTABLE="false"
+  if [[ "$COMPILE_CV_PCT" != "null" ]]; then
+    COMPILE_VARIANCE_UNSTABLE=$(python3 -c "print('true' if float('$COMPILE_CV_PCT') > $CV_THRESHOLD else 'false')" 2>/dev/null || echo "false")
+  fi
 
   # ---- per-phase compile latency breakdown ----------------------------------
   # Uses `arukellt compile --json` to get machine-readable phase timings
@@ -415,6 +458,8 @@ print(json.dumps(phase) if phase else 'null')
   RUNTIME_P95="null"
   RUNTIME_P99="null"
   RUNTIME_STDDEV="null"
+  RUNTIME_CV_PCT="null"
+  RUNTIME_VARIANCE_UNSTABLE="false"
   RUNTIME_STARTUP_MS="$GLOBAL_STARTUP_MS"
   RUNTIME_GUEST_MS="null"
   STDOUT_ESCAPED='""'
@@ -441,14 +486,14 @@ print(json.dumps(phase) if phase else 'null')
       if [[ -n "$TIME_BIN" ]]; then
         _rss_file=$(mktemp /tmp/ark-bench-rss-XXXXXX.txt)
         t0=$(ms_now)
-        CAPTURED_STDOUT=$("$TIME_BIN" -f "%M" -o "$_rss_file" $RUN_CMD 2>/dev/null) || true
+        CAPTURED_STDOUT=$(with_affinity "$TIME_BIN" -f "%M" -o "$_rss_file" $RUN_CMD 2>/dev/null) || true
         t1=$(ms_now)
         _rss_val=$(cat "$_rss_file" 2>/dev/null | tr -d '[:space:]')
         rm -f "$_rss_file"
         [[ "$_rss_val" =~ ^[0-9]+$ ]] && RUNTIME_RSS_SAMPLES="$RUNTIME_RSS_SAMPLES $_rss_val"
       else
         t0=$(ms_now)
-        CAPTURED_STDOUT=$($RUN_CMD 2>/dev/null) || true
+        CAPTURED_STDOUT=$(with_affinity bash -c "$RUN_CMD" 2>/dev/null) || true
         t1=$(ms_now)
       fi
       elapsed=$(( t1 - t0 ))
@@ -471,6 +516,12 @@ print('[' + ','.join(vals) + ']')
     RUNTIME_P95=$(echo "$RUNTIME_SAMPLES" | percentile 95)
     RUNTIME_P99=$(echo "$RUNTIME_SAMPLES" | percentile 99)
     RUNTIME_STDDEV=$(echo "$RUNTIME_SAMPLES" | stddev_calc)
+
+    # ---- runtime variance (CoV) -----------------------------------------------
+    RUNTIME_CV_PCT=$(echo "$RUNTIME_SAMPLES" | cov_calc)
+    if [[ "$RUNTIME_CV_PCT" != "null" ]]; then
+      RUNTIME_VARIANCE_UNSTABLE=$(python3 -c "print('true' if float('$RUNTIME_CV_PCT') > $CV_THRESHOLD else 'false')" 2>/dev/null || echo "false")
+    fi
 
     # startup_ms comes from the global no-op fixture measurement
     RUNTIME_STARTUP_MS="$GLOBAL_STARTUP_MS"
@@ -510,6 +561,8 @@ print('[' + ','.join(vals) + ']')
     "iterations": $COMPILE_ITERS,
     "samples_ms": $COMPILE_SAMPLES_JSON,
     "median_ms": $COMPILE_MEDIAN,
+    "cv_pct": $COMPILE_CV_PCT,
+    "variance_unstable": $COMPILE_VARIANCE_UNSTABLE,
     "max_rss_kb": $COMPILE_RSS_MEDIAN,
     "binary_bytes": $BINARY_BYTES,
     "command": "$COMPILE_CMD",
@@ -525,6 +578,8 @@ print('[' + ','.join(vals) + ']')
     "p95_ms": $RUNTIME_P95,
     "p99_ms": $RUNTIME_P99,
     "stddev_ms": $RUNTIME_STDDEV,
+    "cv_pct": $RUNTIME_CV_PCT,
+    "variance_unstable": $RUNTIME_VARIANCE_UNSTABLE,
     "startup_ms": $RUNTIME_STARTUP_MS,
     "guest_ms": $RUNTIME_GUEST_MS,
     "max_rss_kb": $RUNTIME_RSS_MEDIAN,
@@ -538,7 +593,15 @@ JSONEOF
   BENCHMARKS_JSON="${BENCHMARKS_JSON}${SEP}${ENTRY}"
   SEP=","
 
-  echo "  compile: ${COMPILE_MEDIAN}ms  binary: ${BINARY_BYTES}B  compile_rss: ${COMPILE_RSS_MEDIAN}KB  run: ${RUNTIME_MEDIAN}ms  p95: ${RUNTIME_P95}ms  p99: ${RUNTIME_P99}ms  guest: ${RUNTIME_GUEST_MS}ms  run_rss: ${RUNTIME_RSS_MEDIAN}KB  correctness: ${CORRECTNESS}"
+  echo "  compile: ${COMPILE_MEDIAN}ms  cov:${COMPILE_CV_PCT}%  binary: ${BINARY_BYTES}B  compile_rss: ${COMPILE_RSS_MEDIAN}KB  run: ${RUNTIME_MEDIAN}ms  cov:${RUNTIME_CV_PCT}%  p95: ${RUNTIME_P95}ms  p99: ${RUNTIME_P99}ms  guest: ${RUNTIME_GUEST_MS}ms  run_rss: ${RUNTIME_RSS_MEDIAN}KB  correctness: ${CORRECTNESS}"
+
+  # ---- variance warnings ----------------------------------------------------
+  if [[ "$COMPILE_VARIANCE_UNSTABLE" == "true" ]]; then
+    echo "  ⚠ HIGH VARIANCE (compile): CoV=${COMPILE_CV_PCT}% > ${CV_THRESHOLD}% threshold — re-run with more iterations or on a quieter machine."
+  fi
+  if [[ "$RUNTIME_VARIANCE_UNSTABLE" == "true" ]]; then
+    echo "  ⚠ HIGH VARIANCE (runtime): CoV=${RUNTIME_CV_PCT}% > ${CV_THRESHOLD}% threshold — re-run with more iterations or on a quieter machine."
+  fi
 
   # Print phase breakdown if available
   if [[ "$PHASE_MS_JSON" != "null" ]]; then
@@ -963,6 +1026,10 @@ cat > "$RESULT_FILE" <<TOPJSON
     "compile_ms": 20,
     "run_ms": 10,
     "binary_bytes": 15
+  },
+  "variance_controls": {
+    "cv_threshold_pct": $CV_THRESHOLD,
+    "cpu_affinity_pinned": $( [[ -n "$TASKSET_BIN" ]] && echo "true" || echo "false" )
   },
   "compiler": {
     "path": "$([[ "$USE_SELFHOST" == "true" ]] && echo "$SELFHOST_WASM" || echo "target/release/arukellt")",
