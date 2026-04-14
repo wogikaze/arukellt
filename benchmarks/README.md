@@ -39,6 +39,44 @@ mise bench:ci
 | `compare` | `mise bench:compare` | 5 | 5 | 20 | 1 | Measure and compare against stored baseline |
 | `ci` | `mise bench:ci` | 5 | 5 | 20 | 1 | Compare + fail on threshold regression (CI gate) |
 | `update-baseline` | `mise bench:update-baseline` | 5 | 5 | 20 | 1 | Replace baseline with current measurements |
+| `reproducibility` | `--mode reproducibility` | 5 | 5 | 20 | 1 | Run benchmarks twice and compare the two passes for reproducibility |
+| `scaling` | `--mode scaling` | 3 | 1 | 5 | 0 | Measure latency at 3 input-size points (10 %, 50 %, 100 %) against `bench_parse_tree_distance` to detect O(n²) cliffs |
+
+## Scaling Curve Mode
+
+`--mode scaling` measures compile and runtime latency of the
+`bench_parse_tree_distance` benchmark at three input sizes (10 %, 50 %,
+100 % of the 1 200-node default) to expose super-linear complexity growth.
+
+```bash
+python3 scripts/util/benchmark_runner.py --mode scaling
+```
+
+Output printed to stdout includes:
+- An **input-size vs latency table** (`n`, `compile_ms`, `run_ms`, `binary_bytes`)
+- An **estimated scaling class** (`O(n)`, `O(n log n)`, `O(n²)`, …) derived
+  from the log-log slope between the first and last measured points
+- Any **cliff warnings** where the time ratio between adjacent size steps
+  exceeds 1.5 × the O(n²) expected ratio
+
+The JSON report is written to `tests/baselines/perf/scaling.json` (override
+with `--scaling-output-json`).
+
+### Scaling class estimation method
+
+The slope is computed as $\log(t_1/t_0) / \log(n_1/n_0)$ where $(n_0,t_0)$
+and $(n_1,t_1)$ are the first and last measured points.  Thresholds:
+
+| Slope range | Class |
+|-------------|-------|
+| < 0.5       | O(1) or sub-linear |
+| 0.5 – 1.3   | O(n) |
+| 1.3 – 1.7   | O(n log n) |
+| 1.7 – 2.3   | O(n²) |
+| > 2.3       | super-quadratic |
+
+> **Manual interpretation**: The classification is a heuristic estimate.
+> Treat it as a starting point for deeper profiling, not a definitive result.
 
 ## Result Schema
 
@@ -49,8 +87,8 @@ The full governance reference is [`docs/benchmarks/governance.md`](../docs/bench
 Each run records:
 
 - **Run metadata**: mode, target, environment, tool availability
-- **Compile metrics**: `median_ms`, `binary_bytes`, `max_rss_kb`
-- **Runtime metrics**: `median_ms`, `max_rss_kb`, correctness status
+- **Compile metrics**: `median_ms`, `stddev_ms`, `cv_pct`, `variance_unstable`, `binary_bytes`, `max_rss_kb`
+- **Runtime metrics**: `median_ms`, `stddev_ms`, `cv_pct`, `variance_unstable`, `max_rss_kb`, correctness status
 - **Taxonomy tags**: workload classification for grouped analysis
 
 Current JSON is written to `tests/baselines/perf/current.json` and the
@@ -75,7 +113,7 @@ issue tracking) to their JSON Schema paths:
 | `wasm_section_code_bytes` | `benchmarks[].compile.wasm_sections.code` | bytes | Code section size (function bodies)  |
 | `wasm_section_data_bytes` | `benchmarks[].compile.wasm_sections.data` | bytes | Data section size (static strings)   |
 | `peak_memory_bytes`    | `benchmarks[].compile.max_rss_kb * 1024` or `runtime.max_rss_kb * 1024` | bytes | Peak resident set size (compile or runtime phase) |
-| `metadata.mode`        | `mode`                        | enum    | Run mode (`quick`, `full`, `compare`, `ci`, `update-baseline`) |
+| `metadata.mode`        | `mode`                        | enum    | Run mode (`quick`, `full`, `compare`, `ci`, `update-baseline`, `reproducibility`) |
 | `metadata.generated_at`| `generated_at`               | ISO 8601| Timestamp of the run                         |
 | `metadata.target`      | `target`                      | string  | Compilation target (e.g. `wasm32-wasi-p1`)   |
 | `metadata.environment` | `environment`                 | object  | Platform, kernel, Python version, machine    |
@@ -100,6 +138,8 @@ Every benchmark run measures runtime latency with multiple iterations and report
 | `p95_ms`      | `runtime.p95_ms`               | 95th-percentile latency (ms)                            |
 | `p99_ms`      | `runtime.p99_ms`               | 99th-percentile / tail latency (ms)                     |
 | `stddev_ms`   | `runtime.stddev_ms`            | Sample standard deviation (ms)                          |
+| `cv_pct`      | `runtime.cv_pct`               | Coefficient of variation = stddev/mean×100 (%)          |
+| `variance_unstable` | `runtime.variance_unstable` | `true` when CV > 5% (noisy / unstable measurement)  |
 | `startup_ms`  | `runtime.startup_ms`           | wasmtime startup overhead, from no-op probe (ms)        |
 | `guest_ms`    | `runtime.guest_ms`             | Guest execution time estimate: median − startup (ms)    |
 
@@ -322,6 +362,72 @@ Baseline stored in `tests/baselines/perf/baselines.json`._
 | Compile time | +20 %                  |
 | Runtime      | +10 %                  |
 | Binary size  | +15 %                  |
+
+## Variance and Reproducibility
+
+### Coefficient of Variation (CV)
+
+Every run computes the **coefficient of variation** (`cv_pct = stddev / mean × 100`)
+for both compile and runtime measurements:
+
+| Field                | JSON path                         | Description                                        |
+|----------------------|-----------------------------------|----------------------------------------------------|
+| `cv_pct` (compile)   | `benchmarks[].compile.cv_pct`    | CV of compile samples in percent                   |
+| `cv_pct` (runtime)   | `benchmarks[].runtime.cv_pct`    | CV of runtime samples in percent                   |
+| `variance_unstable`  | `benchmarks[].compile.variance_unstable` / `runtime.variance_unstable` | `true` when CV > 5% |
+
+Benchmarks flagged as unstable (`variance_unstable: true`) should be treated with
+caution when comparing against a baseline.
+
+**What causes high variance?**
+
+- CPU frequency scaling / turbo boost — pin with `cpupower frequency-set -g performance`
+- Thermal throttling — ensure adequate cooling; run `stress` to pre-warm then abort
+- Background processes — close browsers and IDEs during CI benchmarks
+- Insufficient iterations — increase `--runtime-latency-iterations` or run `--mode full`
+
+### Reliable Measurement Conditions
+
+For results that can be trusted:
+
+1. **CPU governor**: set to `performance` mode (`cpupower` or `/sys/devices/system/cpu/*/scaling_governor`)
+2. **Warmup**: use at least 1 warmup iteration (`--runtime-warmups 1`, which is the default for `full`/`compare`/`ci`)
+3. **Iterations**: at least 5 runtime iterations for a meaningful median; 20 for reliable p99
+4. **Quiet machine**: run on a machine with minimal background load
+5. **Check CV**: if `variance_unstable` is `true` for a benchmark, the reported median may not be reliable
+
+The `quick` mode (1 iteration, 0 warmup) is only suitable for detecting obvious
+regressions; do not compare `quick` results against `full` baselines.
+
+### Reproducibility Mode
+
+```bash
+python3 scripts/util/benchmark_runner.py --mode reproducibility \
+    --no-write-markdown --no-write-json
+```
+
+This runs the full benchmark suite **twice** sequentially and compares the two
+passes.  If any metric deviates by more than **10%** between the two runs, the
+benchmark is flagged as non-reproducible and the process exits with status 1.
+
+The report is written to `tests/baselines/perf/reproducibility.json` by default.
+Use `--repro-output-json <path>` to override.
+
+This mode **does not** modify the baseline or the main current results JSON — it is
+a standalone diagnostic preset that runs independently of the existing `compare` mode.
+
+The reproducibility threshold (10%) is intentionally wider than the CI regression
+threshold (10–20%) because two sequential runs may legitimately differ by a few
+percent due to system scheduling, not a real regression.
+
+### Conceptual field reference (variance fields)
+
+| Conceptual name             | JSON path                                   | Unit | Description                                         |
+|-----------------------------|---------------------------------------------|------|-----------------------------------------------------|
+| `compile_cv_pct`            | `benchmarks[].compile.cv_pct`              | %    | CV of compile-time samples                          |
+| `runtime_cv_pct`            | `benchmarks[].runtime.cv_pct`              | %    | CV of runtime-duration samples                      |
+| `compile_variance_unstable` | `benchmarks[].compile.variance_unstable`   | bool | `true` when compile CV > 5%                         |
+| `runtime_variance_unstable` | `benchmarks[].runtime.variance_unstable`   | bool | `true` when runtime CV > 5%                         |
 
 ## Comparing Across Commits
 

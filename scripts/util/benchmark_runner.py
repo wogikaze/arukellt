@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import platform
 import shutil
@@ -27,6 +28,10 @@ THRESHOLDS = {
     "run_ms": 10,
     "binary_bytes": 15,
 }
+
+# Variance thresholds
+CV_THRESHOLD = 5.0   # percent — benchmarks with CV > this are flagged as unstable
+REPRO_THRESHOLD = 10  # percent — reproducibility check: two sequential runs must agree within this
 
 WASM_SECTION_ID_NAMES: dict[int, str] = {
     0: "custom",
@@ -130,6 +135,20 @@ MODE_PRESETS: dict[str, dict[str, Any]] = {
         "runtime_warmups": 1,
         "runtime_latency_iterations": 20,
         "description": "measure current results and replace baseline",
+    },
+    "reproducibility": {
+        "compile_iterations": 5,
+        "runtime_iterations": 5,
+        "runtime_warmups": 1,
+        "runtime_latency_iterations": 20,
+        "description": "run benchmarks twice sequentially and compare for reproducibility",
+    },
+    "scaling": {
+        "compile_iterations": 3,
+        "runtime_iterations": 1,
+        "runtime_warmups": 0,
+        "runtime_latency_iterations": 5,
+        "description": "measure compile/runtime latency at 3 input-size points (10%, 50%, 100%) to detect scaling cliffs",
     },
 }
 
@@ -335,14 +354,17 @@ def measure_wasm_size_attribution(wasm_path: Path) -> dict[str, Any]:
 
 
 def compute_percentiles(samples_ms: list[float]) -> dict[str, float | None]:
-    """Compute p50/p95/p99 and stddev from timing samples in milliseconds.
+    """Compute p50/p95/p99, stddev, and CV from timing samples in milliseconds.
 
-    Returns a dict with p50_ms, p95_ms, p99_ms, stddev_ms (all in ms, or None when
-    there are insufficient samples).
+    Returns a dict with p50_ms, p95_ms, p99_ms, stddev_ms, cv_pct (all in ms or
+    percent, or None when there are insufficient samples).
+
+    cv_pct (coefficient of variation) = stddev / mean * 100.  When cv_pct exceeds
+    CV_THRESHOLD the benchmark should be treated as unstable.
     """
     n = len(samples_ms)
     if n == 0:
-        return {"p50_ms": None, "p95_ms": None, "p99_ms": None, "stddev_ms": None}
+        return {"p50_ms": None, "p95_ms": None, "p99_ms": None, "stddev_ms": None, "cv_pct": None}
     sorted_s = sorted(samples_ms)
 
     def _percentile(p: float) -> float:
@@ -352,11 +374,15 @@ def compute_percentiles(samples_ms: list[float]) -> dict[str, float | None]:
         frac = idx - lo
         return round(sorted_s[lo] * (1.0 - frac) + sorted_s[hi] * frac, 3)
 
+    stdev_val = round(statistics.stdev(samples_ms), 3) if n >= 2 else 0.0
+    mean_val = statistics.mean(samples_ms)
+    cv_pct = round(stdev_val / mean_val * 100.0, 2) if mean_val > 0 else None
     return {
         "p50_ms": _percentile(50.0),
         "p95_ms": _percentile(95.0),
         "p99_ms": _percentile(99.0),
-        "stddev_ms": round(statistics.stdev(samples_ms), 3) if n >= 2 else 0.0,
+        "stddev_ms": stdev_val,
+        "cv_pct": cv_pct,
     }
 
 
@@ -409,11 +435,17 @@ def measure_compile(
     wasm_sections: dict[str, Any] | None = (
         measure_wasm_size_attribution(wasm_path) if wasm_path.exists() else None
     )
+    compile_samples_ms = [sample["elapsed_ms"] for sample in samples]
+    compile_percs = compute_percentiles(compile_samples_ms)
+    compile_cv_pct = compile_percs.get("cv_pct")
     result: dict[str, Any] = {
         "status": "ok",
         "iterations": iterations,
-        "samples_ms": [sample["elapsed_ms"] for sample in samples],
+        "samples_ms": compile_samples_ms,
         "median_ms": summarize_samples(samples, "elapsed_ms"),
+        "stddev_ms": compile_percs.get("stddev_ms"),
+        "cv_pct": compile_cv_pct,
+        "variance_unstable": compile_cv_pct is not None and compile_cv_pct > CV_THRESHOLD,
         "max_rss_kb": summarize_samples(samples, "max_rss_kb"),
         "binary_bytes": binary_bytes,
         "command": last_output["command"] if last_output else None,
@@ -493,6 +525,7 @@ def measure_runtime(
         correctness = "pass" if stdout == expected_text else "fail"
     raw_ms = [sample["elapsed_ms"] for sample in samples]
     percs = compute_percentiles(raw_ms)
+    cv_pct = percs.get("cv_pct")
     return {
         "status": "ok",
         "iterations": iterations,
@@ -503,6 +536,8 @@ def measure_runtime(
         "p95_ms": percs["p95_ms"],
         "p99_ms": percs["p99_ms"],
         "stddev_ms": percs["stddev_ms"],
+        "cv_pct": cv_pct,
+        "variance_unstable": cv_pct is not None and cv_pct > CV_THRESHOLD,
         "max_rss_kb": summarize_samples(samples, "max_rss_kb"),
         "stdout": stdout,
         "correctness": correctness,
@@ -824,6 +859,364 @@ def compare_results(current: dict[str, Any], baseline: dict[str, Any] | None) ->
     }
 
 
+def compare_reproducibility(run1: dict[str, Any], run2: dict[str, Any]) -> dict[str, Any]:
+    """Compare two sequential benchmark runs for reproducibility.
+
+    Uses REPRO_THRESHOLD (default 10%) to flag benchmarks where the two runs
+    deviate by more than the allowed amount.  Binary size deviations are compared
+    at the same threshold.
+    """
+    rows1 = bench_by_name(run1)
+    rows2 = bench_by_name(run2)
+    compared: list[dict[str, Any]] = []
+    totals = {"pass": 0, "fail": 0, "skipped": 0}
+    for name, r1 in rows1.items():
+        r2 = rows2.get(name)
+        if r2 is None:
+            compared.append({"name": name, "reproducible": None, "metrics": {}})
+            totals["skipped"] += 3
+            continue
+        metrics = {
+            "compile_ms": compare_metric(
+                r2.get("compile", {}).get("median_ms"),
+                r1.get("compile", {}).get("median_ms"),
+                REPRO_THRESHOLD,
+            ),
+            "run_ms": compare_metric(
+                r2.get("runtime", {}).get("median_ms"),
+                r1.get("runtime", {}).get("median_ms"),
+                REPRO_THRESHOLD,
+            ),
+            "binary_bytes": compare_metric(
+                r2.get("compile", {}).get("binary_bytes"),
+                r1.get("compile", {}).get("binary_bytes"),
+                REPRO_THRESHOLD,
+            ),
+        }
+        for metric in metrics.values():
+            totals[metric["status"]] += 1
+        reproducible = all(m["status"] != "fail" for m in metrics.values())
+        compared.append({"name": name, "reproducible": reproducible, "metrics": metrics})
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "mode": "reproducibility",
+        "run1_generated_at": run1.get("generated_at"),
+        "run2_generated_at": run2.get("generated_at"),
+        "threshold_pct": REPRO_THRESHOLD,
+        "benchmarks": compared,
+        "totals": totals,
+        "reproducible": totals["fail"] == 0,
+    }
+
+
+def render_reproducibility_text(report: dict[str, Any]) -> str:
+    """Render a human-readable text report for a reproducibility run."""
+    lines: list[str] = []
+    lines.append("═══════════════════════════════════════════")
+    lines.append(" Arukellt Benchmark Reproducibility Report")
+    lines.append("═══════════════════════════════════════════")
+    lines.append(f"Run 1 : {report.get('run1_generated_at', 'n/a')}")
+    lines.append(f"Run 2 : {report.get('run2_generated_at', 'n/a')}")
+    lines.append(f"Threshold : {report['threshold_pct']}%")
+    lines.append("")
+    lines.append("── Results ───────────────────────────────")
+    for bench in report["benchmarks"]:
+        flag = "REPRODUCIBLE" if bench.get("reproducible") else "UNSTABLE"
+        if bench.get("reproducible") is None:
+            flag = "SKIP"
+        m = bench.get("metrics", {})
+        lines.append(
+            f"{bench['name']}: {flag}"
+            f"  compile {format_delta(m.get('compile_ms', {}))},"
+            f"  run {format_delta(m.get('run_ms', {}))},"
+            f"  size {format_delta(m.get('binary_bytes', {}))}"
+        )
+    totals = report["totals"]
+    lines.append("")
+    overall = "PASS — all benchmarks reproducible within threshold" if report["reproducible"] else "FAIL — some benchmarks exceeded reproducibility threshold"
+    lines.append(f"Overall  : {overall}")
+    lines.append(f"Summary  : pass={totals['pass']} fail={totals['fail']} skipped={totals['skipped']}")
+    lines.append("")
+    lines.append("Done.")
+    return "\n".join(lines) + "\n"
+
+
+# ---------------------------------------------------------------------------
+# Scaling-curve infrastructure
+# ---------------------------------------------------------------------------
+
+SCALING_INPUT_PATH = ROOT / "benchmarks" / "bench_parse_tree_distance.input.txt"
+SCALING_SUBJECT = "bench_parse_tree_distance"
+# Three input-size fractions: 10 %, 50 %, 100 % of full input.
+SCALING_FRACTIONS = [0.10, 0.50, 1.00]
+
+
+def _generate_scaling_subset(original_lines: list[str], frac: float) -> str:
+    """Return a scaled-down version of the distance-matrix input file.
+
+    The first line contains n (number of nodes).  Each subsequent line i holds
+    the upper-triangle row: d[i][i+1], …, d[i][n-1].  For a subset of
+    ``m = round(n * frac)`` nodes we take the first m-1 rows and truncate
+    each row to its first ``m - i - 1`` values.
+    """
+    n_orig = int(original_lines[0].strip())
+    n_sub = max(2, round(n_orig * frac))
+    out_lines = [f"{n_sub}\n"]
+    for row in range(n_sub - 1):  # rows 0 … n_sub-2
+        values = original_lines[1 + row].split()
+        take = n_sub - row - 1
+        out_lines.append(" ".join(values[:take]) + "\n")
+    return "".join(out_lines)
+
+
+def _estimate_scaling_class(sizes: list[int], latencies: list[float | None]) -> str:
+    """Estimate the asymptotic scaling class from (size, latency) pairs.
+
+    Uses the log-log slope between the first and last valid measurement points.
+    Slope thresholds (approximate):
+      < 0.5   → O(1) or sub-linear
+      0.5-1.3 → O(n)
+      1.3-1.7 → O(n log n)
+      1.7-2.3 → O(n²)
+      > 2.3   → super-quadratic
+    """
+    valid = [(s, t) for s, t in zip(sizes, latencies) if t is not None and t > 0]
+    if len(valid) < 2:
+        return "unknown (insufficient data)"
+    s0, t0 = valid[0]
+    s1, t1 = valid[-1]
+    if s0 <= 0 or s1 <= s0 or t0 <= 0:
+        return "unknown"
+    slope = math.log(t1 / t0) / math.log(s1 / s0)
+    if slope < 0.5:
+        return "O(1) or sub-linear"
+    if slope < 1.3:
+        return "O(n)"
+    if slope < 1.7:
+        return "O(n log n)"
+    if slope < 2.3:
+        return "O(n\u00b2)"  # O(n²)
+    return f"super-quadratic (slope\u2248{slope:.2f})"
+
+
+def _detect_scaling_cliffs(
+    points: list[dict[str, Any]],
+) -> list[str]:
+    """Return warning strings for any adjacent-pair runtime cliff.
+
+    A cliff is flagged when the time ratio exceeds 1.5 × the expected ratio
+    under the estimated scaling class (O(n²) expected: size_ratio²; O(n):
+    size_ratio).  We use size_ratio² as a conservative threshold so that a
+    true O(n) benchmark does not trigger a false positive.
+    """
+    warnings: list[str] = []
+    for i in range(1, len(points)):
+        prev, curr = points[i - 1], points[i]
+        t_prev = prev.get("run_ms")
+        t_curr = curr.get("run_ms")
+        if not t_prev or not t_curr or t_prev <= 0:
+            continue
+        size_ratio = curr["input_size"] / prev["input_size"]
+        time_ratio = t_curr / t_prev
+        # Flag if growth is faster than O(n²) by a 1.5× margin
+        if time_ratio > (size_ratio ** 2) * 1.5:
+            warnings.append(
+                f"Cliff at n={prev['input_size']}→{curr['input_size']}: "
+                f"size\u00d7{size_ratio:.1f} but time\u00d7{time_ratio:.2f}"
+            )
+    return warnings
+
+
+def measure_scaling(
+    compiler: Path,
+    *,
+    target: str,
+    wasmtime_bin: str | None,
+    time_bin: str | None,
+    work_dir: Path,
+) -> dict[str, Any]:
+    """Measure compile/runtime latency at SCALING_FRACTIONS of the full input.
+
+    Compiles the subject benchmark once (the WASM is independent of the input
+    data).  For each input-size fraction the benchmark input file is
+    temporarily replaced with a subset; the original file is always restored
+    in a ``finally`` block.
+    """
+    if not SCALING_INPUT_PATH.exists():
+        raise FileNotFoundError(f"Scaling input not found: {SCALING_INPUT_PATH}")
+
+    original_lines = SCALING_INPUT_PATH.read_text().splitlines(keepends=True)
+    n_orig = int(original_lines[0].strip())
+    sizes = [max(2, round(n_orig * f)) for f in SCALING_FRACTIONS]
+
+    case = next(c for c in BENCHMARKS if c.name == SCALING_SUBJECT)
+    expected_text = maybe_read_expected(ROOT / case.expected)
+
+    # Compile once — the source does not change between size points.
+    compile_result = measure_compile(
+        compiler,
+        case,
+        target=target,
+        iterations=3,
+        time_bin=time_bin,
+        work_dir=work_dir,
+    )
+
+    points: list[dict[str, Any]] = []
+    original_content = SCALING_INPUT_PATH.read_text()
+
+    try:
+        for size, frac in zip(sizes, SCALING_FRACTIONS):
+            subset_content = _generate_scaling_subset(original_lines, frac)
+            SCALING_INPUT_PATH.write_text(subset_content)
+
+            if compile_result["status"] == "ok":
+                runtime_result = measure_runtime(
+                    Path(compile_result["wasm_path"]),
+                    expected_text=None,  # output differs per subset; skip correctness check
+                    iterations=5,
+                    warmups=1,
+                    wasmtime_bin=wasmtime_bin,
+                    time_bin=time_bin,
+                    runtime_args=case.runtime_args,
+                )
+            else:
+                runtime_result = {"status": "compile_error", "median_ms": None}
+
+            points.append(
+                {
+                    "input_size": size,
+                    "fraction": round(frac, 2),
+                    "compile_ms": compile_result.get("median_ms"),
+                    "binary_bytes": compile_result.get("binary_bytes"),
+                    "run_ms": runtime_result.get("median_ms"),
+                    "run_status": runtime_result.get("status", "unknown"),
+                }
+            )
+    finally:
+        SCALING_INPUT_PATH.write_text(original_content)
+
+    run_sizes = [p["input_size"] for p in points]
+    run_latencies = [p.get("run_ms") for p in points]
+    scaling_class = _estimate_scaling_class(run_sizes, run_latencies)
+    cliff_warnings = _detect_scaling_cliffs(points)
+
+    return {
+        "subject": SCALING_SUBJECT,
+        "compile_status": compile_result["status"],
+        "compile_ms": compile_result.get("median_ms"),
+        "binary_bytes": compile_result.get("binary_bytes"),
+        "sizes": sizes,
+        "fractions": [round(f, 2) for f in SCALING_FRACTIONS],
+        "scaling_class": {
+            "run": scaling_class,
+            "compile": "O(1) — compile time is independent of input data",
+        },
+        "cliff_warnings": cliff_warnings,
+        "points": points,
+    }
+
+
+def render_scaling_text(report: dict[str, Any]) -> str:
+    """Render a human-readable text report for a scaling-curve run."""
+    lines: list[str] = []
+    lines.append("\u2550" * 45)
+    lines.append(" Arukellt Benchmark Scaling Curve Report")
+    lines.append("\u2550" * 45)
+    lines.append(f"Subject  : {report['subject']}")
+    lines.append(f"Generated: {report.get('generated_at', 'n/a')}")
+    lines.append(f"Compile  : {report.get('compile_status', 'n/a')}"
+                 f"  ({format_ms(report.get('compile_ms'))} ms median)")
+    lines.append("")
+    lines.append("\u2500\u2500 Input-size vs Latency " + "\u2500" * 22)
+    header = f"  {'n':>8}  {'compile_ms':>12}  {'run_ms':>10}  {'binary_bytes':>14}"
+    lines.append(header)
+    lines.append("  " + "\u2500" * (len(header) - 2))
+    for pt in report["points"]:
+        lines.append(
+            f"  {pt['input_size']:>8d}"
+            f"  {format_ms(pt.get('compile_ms')):>12}"
+            f"  {format_ms(pt.get('run_ms')):>10}"
+            f"  {format_int(pt.get('binary_bytes')):>14}"
+        )
+    lines.append("")
+    lines.append("\u2500\u2500 Scaling Classification " + "\u2500" * 21)
+    sc = report.get("scaling_class", {})
+    lines.append(f"  runtime : {sc.get('run', 'unknown')}")
+    lines.append(f"  compile : {sc.get('compile', 'unknown')}")
+    lines.append("")
+    lines.append("\u2500\u2500 Cliff Warnings " + "\u2500" * 28)
+    warnings = report.get("cliff_warnings", [])
+    if warnings:
+        for w in warnings:
+            lines.append(f"  WARNING: {w}")
+    else:
+        lines.append("  None detected.")
+    lines.append("")
+    lines.append("Done.")
+    return "\n".join(lines) + "\n"
+
+
+def _run_scaling(args: argparse.Namespace) -> None:
+    """Execute a scaling-curve measurement and write a JSON + text report."""
+    compiler = resolve_compiler(args.arukellt)
+    tools = {
+        "wasmtime": tool_info("wasmtime"),
+        "time": tool_info("/usr/bin/time") if Path("/usr/bin/time").exists() else tool_info("time"),
+    }
+    sys.stdout.write("Running scaling curve measurement (3 input-size points)...\n")
+    sys.stdout.flush()
+    with tempfile.TemporaryDirectory(prefix="arukellt-bench-scaling-") as tmp_dir:
+        report = measure_scaling(
+            compiler,
+            target=args.target,
+            wasmtime_bin=tools["wasmtime"]["path"],
+            time_bin=tools["time"]["path"],
+            work_dir=Path(tmp_dir),
+        )
+    report["schema_version"] = SCHEMA_VERSION
+    report["generated_at"] = iso_now()
+    report["mode"] = "scaling"
+    report["environment"] = environment_info()
+
+    sys.stdout.write(render_scaling_text(report))
+
+    scaling_json_path = Path(
+        args.scaling_output_json
+        if args.scaling_output_json
+        else str(Path(args.output_json).parent / "scaling.json")
+    )
+    if not args.no_write_json:
+        write_json(scaling_json_path, report)
+        label = rel(scaling_json_path) if scaling_json_path.is_relative_to(ROOT) else str(scaling_json_path)
+        sys.stdout.write(f"Scaling report written to: {label}\n")
+    if args.print_json:
+        sys.stdout.write(json.dumps(report, indent=2) + "\n")
+
+
+def variance_report_lines(current: dict[str, Any]) -> list[str]:
+    """Return lines for a variance/CV section to embed in text or markdown reports."""
+    lines: list[str] = []
+    has_cv = any(
+        bench.get("compile", {}).get("cv_pct") is not None
+        or bench.get("runtime", {}).get("cv_pct") is not None
+        for bench in current.get("benchmarks", [])
+    )
+    if not has_cv:
+        return lines
+    lines.append("── Variance / CV Report ─────────────────")
+    for bench in current.get("benchmarks", []):
+        c_cv = bench.get("compile", {}).get("cv_pct")
+        r_cv = bench.get("runtime", {}).get("cv_pct")
+        c_flag = f"  compile_cv={c_cv:.2f}%" if c_cv is not None else ""
+        c_unstable = " [UNSTABLE]" if bench.get("compile", {}).get("variance_unstable") else ""
+        r_flag = f"  runtime_cv={r_cv:.2f}%" if r_cv is not None else ""
+        r_unstable = " [UNSTABLE]" if bench.get("runtime", {}).get("variance_unstable") else ""
+        if c_cv is not None or r_cv is not None:
+            lines.append(f"{bench['name']}:{c_flag}{c_unstable}{r_flag}{r_unstable}")
+    return lines
+
+
 def format_ms(value: Any) -> str:
     return "n/a" if value is None else f"{value:.3f}"
 
@@ -964,6 +1357,35 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append(f"| Run time | +{THRESHOLDS['run_ms']}% |")
     lines.append(f"| Binary size | +{THRESHOLDS['binary_bytes']}% |")
     lines.append("")
+    # Variance / CV table
+    has_cv = any(
+        bench.get("compile", {}).get("cv_pct") is not None
+        or bench.get("runtime", {}).get("cv_pct") is not None
+        for bench in current.get("benchmarks", [])
+    )
+    if has_cv:
+        lines.append("## Variance / Coefficient of Variation")
+        lines.append("")
+        lines.append(
+            f"Benchmarks with CV > {CV_THRESHOLD}% are flagged as **unstable** — "
+            "high variance may indicate OS scheduling noise, thermal throttling, "
+            "or a flaky workload. Run with more iterations or pin CPU frequency for reliable results."
+        )
+        lines.append("")
+        lines.append("| Benchmark | Compile CV% | Compile Stable | Runtime CV% | Runtime Stable |")
+        lines.append("|-----------|-------------|----------------|-------------|----------------|")
+        for bench in current["benchmarks"]:
+            c = bench.get("compile", {})
+            r = bench.get("runtime", {})
+            c_cv = c.get("cv_pct")
+            r_cv = r.get("cv_pct")
+            c_stable = "✗ unstable" if c.get("variance_unstable") else ("✓" if c_cv is not None else "n/a")
+            r_stable = "✗ unstable" if r.get("variance_unstable") else ("✓" if r_cv is not None else "n/a")
+            lines.append(
+                f"| {bench['name']} | {f'{c_cv:.2f}' if c_cv is not None else 'n/a'} | {c_stable} "
+                f"| {f'{r_cv:.2f}' if r_cv is not None else 'n/a'} | {r_stable} |"
+            )
+        lines.append("")
     lines.append("## Baseline Comparison")
     lines.append("")
     if not comparison["baseline_available"]:
@@ -1188,6 +1610,12 @@ def render_text(current: dict[str, Any], comparison: dict[str, Any], baseline_pa
     else:
         lines.append("")
         lines.append(f"Baseline : missing ({rel(baseline_path) if baseline_path else 'n/a'})")
+    # Variance / CV section
+    var_lines = variance_report_lines(current)
+    if var_lines:
+        lines.append("")
+        for vl in var_lines:
+            lines.append(vl)
     lines.append("")
     lines.append("Done.")
     return "\n".join(lines) + "\n"
@@ -1219,11 +1647,50 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-write-json", action="store_true")
     parser.add_argument("--fail-on-regression", action="store_true")
     parser.add_argument("--print-json", action="store_true")
+    parser.add_argument("--repro-output-json",
+                        help="Path to write reproducibility report JSON (--mode reproducibility only).")
+    parser.add_argument("--scaling-output-json",
+                        help="Path to write scaling-curve report JSON (--mode scaling only).")
     return parser.parse_args()
+
+
+def _run_reproducibility(args: argparse.Namespace) -> None:
+    """Execute two benchmark passes and compare for reproducibility.
+
+    Does NOT touch the existing compare mode or baseline infrastructure.
+    Writes a separate JSON report and prints a text summary.
+    """
+    sys.stdout.write("Running reproducibility pass 1 of 2...\n")
+    sys.stdout.flush()
+    run1 = collect_results(args)
+    sys.stdout.write("Running reproducibility pass 2 of 2...\n")
+    sys.stdout.flush()
+    run2 = collect_results(args)
+    report = compare_reproducibility(run1, run2)
+    text = render_reproducibility_text(report)
+    sys.stdout.write(text)
+    repro_json_path = Path(
+        args.repro_output_json
+        if args.repro_output_json
+        else str(Path(args.output_json).parent / "reproducibility.json")
+    )
+    if not args.no_write_json:
+        write_json(repro_json_path, report)
+        sys.stdout.write(f"Reproducibility report written to: {rel(repro_json_path) if repro_json_path.is_relative_to(ROOT) else str(repro_json_path)}\n")
+    if args.print_json:
+        sys.stdout.write(json.dumps(report, indent=2) + "\n")
+    if not report["reproducible"]:
+        raise SystemExit(1)
 
 
 def main() -> None:
     args = parse_args()
+    if args.mode == "reproducibility":
+        _run_reproducibility(args)
+        return
+    if args.mode == "scaling":
+        _run_scaling(args)
+        return
     current = collect_results(args)
     baseline_path = Path(args.baseline)
     baseline = load_json(baseline_path)

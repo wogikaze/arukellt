@@ -22,7 +22,6 @@ graph LR
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
   I170["170 v5 Migration guide"]
@@ -104,7 +103,6 @@ graph LR
 - **118** depends on: 117; blocks: none
 - **120** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **144** depends on: 141, 142, 143, 149; blocks: none
 - **147** depends on: 149; blocks: none
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
 - **170** depends on: 165, 166, 169; blocks: none

@@ -24,7 +24,7 @@
     },
     "mode": {
       "type": "string",
-      "enum": ["quick", "full", "compare", "ci", "update-baseline"],
+      "enum": ["quick", "full", "compare", "ci", "update-baseline", "reproducibility", "scaling"],
       "description": "Execution mode used for this run."
     },
     "mode_description": {
@@ -158,6 +158,18 @@
           "type": "number",
           "description": "Median compile time in milliseconds."
         },
+        "stddev_ms": {
+          "type": ["number", "null"],
+          "description": "Sample standard deviation of compile time samples in milliseconds."
+        },
+        "cv_pct": {
+          "type": ["number", "null"],
+          "description": "Coefficient of variation (stddev/mean*100) of compile time samples in percent. High CV indicates unstable measurements."
+        },
+        "variance_unstable": {
+          "type": "boolean",
+          "description": "True when cv_pct exceeds the CV_THRESHOLD (default 5%). Benchmarks flagged here should be re-run with more iterations or on a quieter machine."
+        },
         "max_rss_kb": {
           "type": ["number", "null"],
           "description": "Peak resident set size in KiB (null if unavailable)."
@@ -259,6 +271,14 @@
         "stddev_ms": {
           "type": ["number", "null"],
           "description": "Sample standard deviation of runtime samples in milliseconds."
+        },
+        "cv_pct": {
+          "type": ["number", "null"],
+          "description": "Coefficient of variation (stddev/mean*100) of runtime samples in percent. High CV indicates unstable measurements."
+        },
+        "variance_unstable": {
+          "type": "boolean",
+          "description": "True when cv_pct exceeds the CV_THRESHOLD (default 5%). Benchmarks flagged here should be re-run with more iterations or on a quieter machine."
         },
         "startup_ms": {
           "type": ["number", "null"],
