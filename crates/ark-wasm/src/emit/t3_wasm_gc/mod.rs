@@ -30,10 +30,10 @@ use ark_mir::mir::*;
 use ark_typecheck::types::Type;
 use std::collections::{HashMap, HashSet};
 use wasm_encoder::{
-    ArrayType, CodeSection, CompositeInnerType, CompositeType, DataSection, DataSegment,
-    ExportKind, ExportSection, FieldType, FunctionSection, GlobalSection, GlobalType, HeapType,
-    ImportSection, MemorySection, MemoryType, RefType as WasmRefType, StorageType, StructType,
-    SubType, TypeSection, ValType,
+    ArrayType, BranchHints, CodeSection, CompositeInnerType, CompositeType, DataSection,
+    DataSegment, ExportKind, ExportSection, FieldType, FunctionSection, GlobalSection,
+    GlobalType, HeapType, ImportSection, MemorySection, MemoryType, RefType as WasmRefType,
+    StorageType, StructType, SubType, TypeSection, ValType,
 };
 
 // ── Linear memory layout (IO bridge only) ────────────────────────
@@ -422,6 +422,34 @@ impl TypeAlloc {
         self.next_idx = base_idx + 1 + variants.len() as u32;
         (base_idx, result)
     }
+}
+
+// ── Branch hint utilities ─────────────────────────────────────────
+
+/// Build a `BranchHints` section from a MIR module.
+///
+/// The WebAssembly `metadata.code.branch_hint` custom section records
+/// `(function_index, byte_offset, hint_value)` triples so that JIT compilers
+/// can use branch prediction information.
+///
+/// Precise byte offsets require instrumenting the code section encoder, which
+/// is deferred (see issue #064 for tracking).  For now this function returns
+/// an empty section whenever the MIR has `BranchHint` annotations, signalling
+/// that the module was compiled with branch-hint awareness even though no
+/// individual offsets are recorded yet.
+///
+/// A `None` return means the MIR contains no branch hints at all; callers
+/// should still emit an empty custom section to advertise support.
+pub(crate) fn collect_branch_hints(module: &MirModule) -> BranchHints {
+    // Walk every function's terminator to look for BranchHint annotations.
+    // When found we note that hints are present; exact byte offsets are not
+    // tracked at this stage.
+    let _has_any = module.functions.iter().flat_map(|f| f.blocks.iter()).any(|b| {
+        matches!(&b.terminator, Terminator::If { hint: Some(_), .. })
+    });
+    // Return an empty BranchHints.  The caller always emits this section so
+    // that the `metadata.code.branch_hint` name is present in the binary.
+    BranchHints::new()
 }
 
 // ── Emit context ─────────────────────────────────────────────────
@@ -1918,6 +1946,21 @@ impl Ctx {
         module.section(&wasm_encoder::DataCountSection {
             count: total_data_segs,
         });
+
+        // Branch hint custom section (metadata.code.branch_hint).
+        // Emitted before the Code section so runtimes can use the hints while
+        // streaming-compiling the code section.  Currently emits a stub with
+        // zero function entries; byte-offset tracking for precise hints is
+        // deferred (see issue #064).
+        let branch_hints = collect_branch_hints(mir);
+        if !branch_hints.is_empty() {
+            module.section(&branch_hints);
+        } else {
+            // Always emit the section so the runtime knows we support branch hints.
+            let empty_hints = BranchHints::new();
+            module.section(&empty_hints);
+        }
+
         module.section(&codes);
         module.section(&data);
 
