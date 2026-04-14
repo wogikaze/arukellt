@@ -1,0 +1,54 @@
+use std::json
+use std::host::stdio
+
+fn main() {
+    // json_get: access object field
+    match json::parse("{\"name\":\"alice\",\"age\":30}") {
+        Ok(obj) => {
+            match json::json_get(obj, "name") {
+                Some(v) => {
+                    match json::json_as_string(v) {
+                        Some(s) => stdio::println(s),
+                        None => stdio::println("not string"),
+                    }
+                }
+                None => stdio::println("key not found"),
+            }
+            match json::json_get(obj, "age") {
+                Some(v) => {
+                    match json::json_as_i32(v) {
+                        Some(n) => stdio::println(i32_to_string(n)),
+                        None => stdio::println("not number"),
+                    }
+                }
+                None => stdio::println("key not found"),
+            }
+        }
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    // json_get_index: access array element
+    match json::parse("[10,20,30]") {
+        Ok(arr) => {
+            match json::json_get_index(arr, 0) {
+                Some(v) => {
+                    match json::json_as_i32(v) {
+                        Some(n) => stdio::println(i32_to_string(n)),
+                        None => stdio::println("not number"),
+                    }
+                }
+                None => stdio::println("index not found"),
+            }
+            match json::json_get_index(arr, 2) {
+                Some(v) => {
+                    match json::json_as_i32(v) {
+                        Some(n) => stdio::println(i32_to_string(n)),
+                        None => stdio::println("not number"),
+                    }
+                }
+                None => stdio::println("index not found"),
+            }
+        }
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+}

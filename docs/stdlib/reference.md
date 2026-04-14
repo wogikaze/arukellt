@@ -7,9 +7,9 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 370 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 389 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 49 | API may change without notice. Functionality is available but not finalized. |
+| [experimental](#experimental-apis) | 78 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -109,15 +109,31 @@
 | `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `u32_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 
+## Cli
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `arg_at` | `(i32) -> Option<String>` | `std::cli` | `stable` | `builtin` | no | - | Return the argument at index, or None when out of range. |
+| `arg_count` | `() -> i32` | `std::cli` | `stable` | `builtin` | no | - | Return the number of process arguments. |
+| `flag` | `(Vec<String>, String) -> bool` | `std::cli` | `stable` | `builtin` | no | - | Return true when args contains name verbatim. |
+| `has_flag` | `(String) -> bool` | `std::cli` | `stable` | `builtin` | no | - | Return true when the process argument vector contains the flag verbatim. |
+| `option` | `(Vec<String>, String) -> Option<String>` | `std::cli` | `stable` | `builtin` | no | - | Return the value associated with the named option, or None. |
+| `parse_args` | `() -> Vec<String>` | `std::cli` | `stable` | `builtin` | no | - | Return the full process argument vector. |
+
 ## Collections
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `HashMap_String_i32_contains_key` | `(HashMap<String, i32>, String) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_i32_get` | `(HashMap<String, i32>, String) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_i32_insert` | `(HashMap<String, i32>, String, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_i32_len` | `(HashMap<String, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_new_String_i32` | `() -> HashMap<String, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
 | `Vec_new_f64` | `() -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64` | - |
 | `Vec_new_f64_with_cap` | `(i32) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_f64_with_cap` | - |
@@ -329,7 +345,24 @@ Expected output: `42`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `csv_count_rows` | `(String) -> i32` | `std::csv` | `experimental` | `builtin` | no | - | Count the number of non-empty lines in a CSV string. |
+| `csv_get_row_raw` | `(String, i32) -> String` | `std::csv` | `experimental` | `builtin` | no | - | Return the raw text of row at row_index (0-based, skipping empty lines). |
+| `csv_parse_row` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse a single CSV line into fields (handles RFC 4180 quoting). |
+| `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse row at row_index from a multi-row CSV string. |
+| `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse a CSV document and return the header row fields. |
 | `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
+| `csv_stringify_row` | `(Vec<String>) -> String` | `std::csv` | `experimental` | `builtin` | no | - | Serialize a row of fields to a CSV line. |
+
+## Env
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `arg_at` | `(i32) -> Option<String>` | `std::env` | `stable` | `builtin` | no | - | Return the argument at the given index, or None when out of range. |
+| `arg_count` | `() -> i32` | `std::env` | `stable` | `builtin` | no | - | Return the number of process arguments (excluding argv[0]). |
+| `args` | `() -> Vec<String>` | `std::env` | `stable` | `builtin` | no | - | Return the process argument vector (excluding argv[0]). |
+| `get_var` | `(String) -> Option<String>` | `std::env` | `stable` | `builtin` | no | - | Alias for env::var. |
+| `var` | `(String) -> Option<String>` | `std::env` | `stable` | `builtin` | no | - | Look up an environment variable by name. |
+| `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
 
 ## Host Clock
 
@@ -542,12 +575,28 @@ Expected output: `Hello, world!`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `is_array` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_bool` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_null` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_number` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_object` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_string` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_as_bool` | `(JsonValue) -> Option<bool>` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_as_f64` | `(JsonValue) -> Option<f64>` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_as_i32` | `(JsonValue) -> Option<i32>` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_as_string` | `(JsonValue) -> Option<String>` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_encode_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | Encode a plain string as a JSON string literal with escape sequences. |
+| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `std::json` | `experimental` | `builtin` | no | - | Look up a named field in a JSON object value. |
+| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `std::json` | `experimental` | `builtin` | no | - | Return the element at index in a JSON array value. |
 | `json_null` | `() -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_stringify_bool` | `(bool) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_stringify_i32` | `(i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse the first JSON value in a string. |
+| `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
+| `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue with basic formatting. |
 
 ## Math
 
@@ -595,6 +644,13 @@ Expected output: `Hello, world!`
 | `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `parent` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+
+## Process
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `abort` | `() -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process immediately (exit code 134, SIGABRT convention). |
+| `exit` | `(i32) -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. |
 
 ## Random
 
@@ -759,7 +815,14 @@ Expected output: `hello world`
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `std::toml` | `experimental` | `builtin` | no | - | - |
+| `toml_as_int` | `(TomlValue) -> Option<i32>` | `std::toml` | `experimental` | `builtin` | no | - | - |
+| `toml_as_string` | `(TomlValue) -> Option<String>` | `std::toml` | `experimental` | `builtin` | no | - | - |
+| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `std::toml` | `experimental` | `builtin` | no | - | Look up a key in a TOML table value. |
+| `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `builtin` | no | - | Parse a TOML document (key=value pairs). |
 | `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - | - |
+| `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `builtin` | no | - | Serialize a TomlValue back to text. |
+| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `std::toml` | `experimental` | `builtin` | no | - | Return all keys of a TOML table as a string vector. |
 
 ## Wasm
 
@@ -818,11 +881,16 @@ Expected output: `hello world`
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `Box_new` | `(T) -> Box<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_i32_contains_key` | `(HashMap<String, i32>, String) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_i32_get` | `(HashMap<String, i32>, String) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_i32_insert` | `(HashMap<String, i32>, String, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_String_i32_len` | `(HashMap<String, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_contains_key` | `(HashMap<i32, i32>, i32) -> bool` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_get` | `(HashMap<i32, i32>, i32) -> Option<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_insert` | `(HashMap<i32, i32>, i32, i32) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_len` | `(HashMap<i32, i32>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `HashMap_i32_i32_new` | `() -> HashMap<i32, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `HashMap_new_String_i32` | `() -> HashMap<String, i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `String_from` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_from` | - |
 | `String_new` | `() -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_new` | - |
 | `Vec_new_String` | `() -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_Vec_new_String` | - |
@@ -833,14 +901,20 @@ Expected output: `hello world`
 | `Vec_with_capacity_String` | `(i32) -> Vec<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `abort` | `() -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_abort` | Abort the process immediately with an abnormal-termination signal (non-zero exit). |
+| `abort` | `() -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process immediately (exit code 134, SIGABRT convention). |
 | `abs` | `(i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_abs` | - |
 | `abs` | `(i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `abs_i32` | `(i32) -> i32` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
 | `approx_eq` | `(f64, f64, f64) -> bool` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `arg_at` | `(i32) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_at` | Return the command-line argument at the given zero-based index, or None if out of bounds. |
+| `arg_at` | `(i32) -> Option<String>` | `std::env` | `stable` | `builtin` | no | - | Return the argument at the given index, or None when out of range. |
+| `arg_at` | `(i32) -> Option<String>` | `std::cli` | `stable` | `builtin` | no | - | Return the argument at index, or None when out of range. |
 | `arg_count` | `() -> i32` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_arg_count` | Return the number of command-line arguments (including the program name). |
+| `arg_count` | `() -> i32` | `std::env` | `stable` | `builtin` | no | - | Return the number of process arguments (excluding argv[0]). |
+| `arg_count` | `() -> i32` | `std::cli` | `stable` | `builtin` | no | - | Return the number of process arguments. |
 | `args` | `() -> Vec<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_args` | Return the command-line arguments as a list of strings. The first element is the program name. |
+| `args` | `() -> Vec<String>` | `std::env` | `stable` | `builtin` | no | - | Return the process argument vector (excluding argv[0]). |
 | `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `assert` | `(bool) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_assert` | - |
 | `assert_contains` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
@@ -951,6 +1025,7 @@ Expected output: `hello world`
 | `err` | `(Result<T, E>) -> Option<E>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `error_message` | `(Error) -> String` | `std::core::error` | `stable` | `builtin` | no | - | - |
 | `exit` | `(i32) -> ()` | `std::host::process` | `stable` | `builtin` | no | `__intrinsic_process_exit` | Terminate the process with the given exit code. 0 indicates success; non-zero indicates failure. |
+| `exit` | `(i32) -> ()` | `std::process` | `stable` | `builtin` | no | - | Terminate the process with the given exit code. |
 | `expect` | `(Option<T>, String) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `expect_err_string` | `(Result<i32, String>) -> String` | `std::test` | `stable` | `builtin` | no | - | - |
 | `expect_none_i32` | `(Option<i32>) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
@@ -968,6 +1043,7 @@ Expected output: `hello world`
 | `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
 | `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` | - |
 | `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i32` | - |
+| `flag` | `(Vec<String>, String) -> bool` | `std::cli` | `stable` | `builtin` | no | - | Return true when args contains name verbatim. |
 | `flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` | - |
 | `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` | - |
@@ -977,7 +1053,9 @@ Expected output: `hello world`
 | `format_i64` | `(i64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `get` | `(Vec<T>, i32) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `get_unchecked` | `(Vec<T>, i32) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `get_var` | `(String) -> Option<String>` | `std::env` | `stable` | `builtin` | no | - | Alias for env::var. |
 | `has_flag` | `(String) -> bool` | `std::host::env` | `stable` | `builtin` | no | - | Return true if the given flag (e.g. "--verbose") was passed as a command-line argument. |
+| `has_flag` | `(String) -> bool` | `std::cli` | `stable` | `builtin` | no | - | Return true when the process argument vector contains the flag verbatim. |
 | `hash_combine` | `(i32, i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `hash_i32` | `(i32) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
 | `hash_string` | `(String) -> i32` | `std::core::hash` | `stable` | `builtin` | no | - | - |
@@ -1062,10 +1140,12 @@ Expected output: `hello world`
 | `now_ms` | `() -> i64` | `std::host::clock` | `stable` | `builtin` | no | `__intrinsic_clock_now_ms` | Return the current wall-clock time in milliseconds since the Unix epoch. |
 | `ok` | `(Result<T, E>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `ok_or` | `(Option<T>, E) -> Result<T, E>` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `option` | `(Vec<String>, String) -> Option<String>` | `std::cli` | `stable` | `builtin` | no | - | Return the value associated with the named option, or None. |
 | `pad_left` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `panic` | `(String) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_panic` | - |
 | `parent` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `parse_args` | `() -> Vec<String>` | `std::cli` | `stable` | `builtin` | no | - | Return the full process argument vector. |
 | `parse_f64` | `(String) -> Result<f64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_f64` | - |
 | `parse_i32` | `(String) -> Result<i32, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i32` | Parse a decimal string as an i32 integer. Returns Ok(n) on success, or Err with a description on fai… |
 | `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
@@ -1176,6 +1256,8 @@ Expected output: `hello world`
 | `unwrap_or` | `(Option<T>, T) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `unwrap_or_else` | `(Option<T>, fn() -> T) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
+| `var` | `(String) -> Option<String>` | `std::env` | `stable` | `builtin` | no | - | Look up an environment variable by name. |
+| `var_or_default` | `(String, String) -> String` | `std::env` | `stable` | `builtin` | no | - | Return the environment variable value, or the default when absent. |
 | `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
@@ -1212,8 +1294,27 @@ Expected output: `hello world`
 | `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
 | `canonical_abi_version` | `() -> i32` | `std::component` | `experimental` | `builtin` | no | - | - |
 | `component_model_version` | `() -> String` | `std::component` | `experimental` | `builtin` | no | - | - |
+| `csv_count_rows` | `(String) -> i32` | `std::csv` | `experimental` | `builtin` | no | - | Count the number of non-empty lines in a CSV string. |
+| `csv_get_row_raw` | `(String, i32) -> String` | `std::csv` | `experimental` | `builtin` | no | - | Return the raw text of row at row_index (0-based, skipping empty lines). |
+| `csv_parse_row` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse a single CSV line into fields (handles RFC 4180 quoting). |
+| `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse row at row_index from a multi-row CSV string. |
+| `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse a CSV document and return the header row fields. |
 | `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
+| `csv_stringify_row` | `(Vec<String>) -> String` | `std::csv` | `experimental` | `builtin` | no | - | Serialize a row of fields to a CSV line. |
 | `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `builtin` | no | - | - |
+| `is_array` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_bool` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_null` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_number` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_object` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `is_string` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_as_bool` | `(JsonValue) -> Option<bool>` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_as_f64` | `(JsonValue) -> Option<f64>` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_as_i32` | `(JsonValue) -> Option<i32>` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_as_string` | `(JsonValue) -> Option<String>` | `std::json` | `experimental` | `builtin` | no | - | - |
+| `json_encode_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | Encode a plain string as a JSON string literal with escape sequences. |
+| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `std::json` | `experimental` | `builtin` | no | - | Look up a named field in a JSON object value. |
+| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `std::json` | `experimental` | `builtin` | no | - | Return the element at index in a JSON array value. |
 | `json_null` | `() -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_parse_bool` | `(String) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `json_parse_i32` | `(String) -> i32` | `std::json` | `experimental` | `builtin` | no | - | - |
@@ -1222,6 +1323,7 @@ Expected output: `hello world`
 | `json_stringify_string` | `(String) -> String` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
 | `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
+| `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse the first JSON value in a string. |
 | `section_code` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_data` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_element` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
@@ -1233,8 +1335,17 @@ Expected output: `hello world`
 | `section_start` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_table` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_type` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
+| `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue with basic formatting. |
 | `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `builtin` | no | - | - |
+| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `std::toml` | `experimental` | `builtin` | no | - | - |
+| `toml_as_int` | `(TomlValue) -> Option<i32>` | `std::toml` | `experimental` | `builtin` | no | - | - |
+| `toml_as_string` | `(TomlValue) -> Option<String>` | `std::toml` | `experimental` | `builtin` | no | - | - |
+| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `std::toml` | `experimental` | `builtin` | no | - | Look up a key in a TOML table value. |
+| `toml_parse` | `(String) -> Result<TomlValue, String>` | `std::toml` | `experimental` | `builtin` | no | - | Parse a TOML document (key=value pairs). |
 | `toml_parse_line` | `(String) -> String` | `std::toml` | `experimental` | `builtin` | no | - | - |
+| `toml_stringify` | `(TomlValue) -> String` | `std::toml` | `experimental` | `builtin` | no | - | Serialize a TomlValue back to text. |
+| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `std::toml` | `experimental` | `builtin` | no | - | Return all keys of a TOML table as a string vector. |
 | `valtype_f32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `valtype_f64` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `valtype_i32` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |

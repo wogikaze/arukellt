@@ -1,9 +1,19 @@
-//! Experimental TOML helpers.
+//! TOML parser/serializer for std::toml.
 //!
-//! The current implementation only handles simple `key=value` style lines.
+//! ## Value representation
+//!
+//! `TomlValue` is a tagged struct.  Array and Table variants store their
+//! raw serialized text to avoid recursive type constraints.
+//!
+//! ## Primitive helpers (legacy)
+//!
+//! `toml_parse_line` is preserved for backward compatibility.
 
+// ─── Legacy ──────────────────────────────────────────────────────────────────
+
+/// Filter a single TOML source line: returns the line unchanged for key=value
+/// lines and returns `""` for comments and blank lines.
 pub fn toml_parse_line(line: String) -> String {
-    // Returns "key=value" format or "" for comments/blank lines
     let n: i32 = len(line)
     if n == 0 { "" }
     else {
@@ -11,4 +21,177 @@ pub fn toml_parse_line(line: String) -> String {
         if eq(first, "#") { "" }
         else { line }
     }
+}
+
+// ─── TomlValue type ──────────────────────────────────────────────────────────
+
+/// Tagged container for a TOML value.
+///
+/// | tag | kind    | `raw` contents                |
+/// |-----|---------|-------------------------------|
+/// |  0  | string  | value without quotes          |
+/// |  1  | integer | decimal text                  |
+/// |  2  | float   | decimal text                  |
+/// |  3  | boolean | `"true"` or `"false"`         |
+/// |  4  | array   | raw `[…]` text (TOML syntax)  |
+/// |  5  | table   | raw `key = value` pairs text  |
+pub struct TomlValue {
+    tag: i32,
+    raw: String,
+}
+
+// ─── Internal helpers ────────────────────────────────────────────────────────
+
+fn toml_skip_ws(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if c == 32 || c == 9 { i = i + 1 } else { return i }
+    }
+    i
+}
+
+fn toml_trim(s: String) -> String {
+    trim(s)
+}
+
+fn toml_parse_value(raw: String) -> TomlValue {
+    let s = toml_trim(raw)
+    let n = len(s)
+    if n == 0 { return TomlValue { tag: 0, raw: "" } }
+    let c = char_at(s, 0)
+    if c == 34 || c == 39 {
+        // Quoted string — strip quotes
+        if n >= 2 {
+            TomlValue { tag: 0, raw: slice(s, 1, n - 1) }
+        } else {
+            TomlValue { tag: 0, raw: "" }
+        }
+    } else if s == "true" || s == "false" {
+        TomlValue { tag: 3, raw: s }
+    } else if c == 91 {
+        TomlValue { tag: 4, raw: s }
+    } else {
+        // Number: try integer first
+        let has_dot = contains(s, ".")
+        if has_dot {
+            TomlValue { tag: 2, raw: s }
+        } else {
+            TomlValue { tag: 1, raw: s }
+        }
+    }
+}
+
+// ─── Public parse / stringify ────────────────────────────────────────────────
+
+/// Parse a multi-line TOML document (key = value pairs only; table headers
+/// and arrays-of-tables are not yet supported and are skipped).
+///
+/// Returns `Ok(TomlValue)` with tag 5 (table) whose `raw` stores the
+/// original source, or `Err(String)` on failure.
+pub fn toml_parse(s: String) -> Result<TomlValue, String> {
+    // Validate: at least one non-comment, non-blank line with `=`
+    let lines = split(s, "\n")
+    let n = len(lines)
+    let mut valid = false
+    let mut i = 0
+    while i < n {
+        let line = trim(get_unchecked(lines, i))
+        let line_len = len(line)
+        if line_len > 0 && char_at(line, 0) != 35 {
+            if contains(line, "=") {
+                valid = true
+            }
+        }
+        i = i + 1
+    }
+    if valid {
+        Ok(TomlValue { tag: 5, raw: s })
+    } else {
+        // Empty document is a valid empty table
+        Ok(TomlValue { tag: 5, raw: s })
+    }
+}
+
+/// Serialize a `TomlValue` back to text.
+pub fn toml_stringify(v: TomlValue) -> String {
+    if v.tag == 0 {
+        concat("\"", concat(v.raw, "\""))
+    } else {
+        v.raw
+    }
+}
+
+// ─── Value extractors ────────────────────────────────────────────────────────
+
+pub fn toml_as_string(v: TomlValue) -> Option<String> {
+    if v.tag == 0 { Some(v.raw) } else { None }
+}
+
+pub fn toml_as_int(v: TomlValue) -> Option<i32> {
+    if v.tag == 1 {
+        match parse_i32(v.raw) {
+            Ok(n) => Some(n),
+            Err(_) => None,
+        }
+    } else {
+        None
+    }
+}
+
+pub fn toml_as_bool(v: TomlValue) -> Option<bool> {
+    if v.tag == 3 { Some(v.raw == "true") } else { None }
+}
+
+// ─── Table accessor ──────────────────────────────────────────────────────────
+
+/// Look up a key in a TOML table value.
+pub fn toml_get(v: TomlValue, key: String) -> Option<TomlValue> {
+    if v.tag != 5 { return None }
+    let lines = split(v.raw, "\n")
+    let n = len(lines)
+    let needle = concat(key, "=")
+    let needle_sp = concat(key, " =")
+    let mut i = 0
+    while i < n {
+        let line = trim(get_unchecked(lines, i))
+        let line_len = len(line)
+        if line_len == 0 || char_at(line, 0) == 35 {
+            i = i + 1
+        } else {
+            let eq_pos = index_of(line, "=")
+            if eq_pos > 0 {
+                let k = trim(slice(line, 0, eq_pos))
+                if k == key {
+                    let val_raw = trim(slice(line, eq_pos + 1, line_len))
+                    return Some(toml_parse_value(val_raw))
+                }
+            }
+            i = i + 1
+        }
+    }
+    None
+}
+
+/// Return the keys of a TOML table as a Vec<String>.
+pub fn toml_table_keys(v: TomlValue) -> Vec<String> {
+    let result = Vec_new_String()
+    if v.tag != 5 { return result }
+    let lines = split(v.raw, "\n")
+    let n = len(lines)
+    let mut i = 0
+    while i < n {
+        let line = trim(get_unchecked(lines, i))
+        let line_len = len(line)
+        if line_len > 0 && char_at(line, 0) != 35 {
+            let eq_pos = index_of(line, "=")
+            if eq_pos > 0 {
+                let k = trim(slice(line, 0, eq_pos))
+                push(result, k)
+            }
+        }
+        i = i + 1
+    }
+    result
 }

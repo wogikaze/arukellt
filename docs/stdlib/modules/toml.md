@@ -31,15 +31,51 @@ let value = toml_parse_line("name = \"arukellt\"")
 ## `std::toml`
 
 - Source: [`../../../std/toml/mod.ark`](../../../std/toml/mod.ark)
-- Manifest-backed functions: 1
-- Stability: experimental 1
+- Manifest-backed functions: 8
+- Stability: experimental 8
 
-Experimental TOML helpers.
+TOML parser/serializer for std::toml.
 
-The current implementation only handles simple `key=value` style lines.
+#### Value representation
+
+`TomlValue` is a tagged struct.  Array and Table variants store their
+raw serialized text to avoid recursive type constraints.
+
+#### Primitive helpers (legacy)
+
+`toml_parse_line` is preserved for backward compatibility.
+
+### Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `TomlValue` | `struct` | Tagged container for a TOML value. |
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `toml_parse_line` | `(String) -> String` | `experimental` | - |
+| `toml_parse_line` | `(String) -> String` | `experimental` | Filter a single TOML source line: returns the line unchanged for key=value |
+| `toml_parse` | `(String) -> Result<TomlValue, String>` | `experimental` | Parse a multi-line TOML document (key = value pairs only; table headers |
+| `toml_stringify` | `(TomlValue) -> String` | `experimental` | Serialize a TomlValue back to text. |
+| `toml_as_string` | `(TomlValue) -> Option<String>` | `experimental` | - |
+| `toml_as_int` | `(TomlValue) -> Option<i32>` | `experimental` | - |
+| `toml_as_bool` | `(TomlValue) -> Option<bool>` | `experimental` | - |
+| `toml_get` | `(TomlValue, String) -> Option<TomlValue>` | `experimental` | Look up a key in a TOML table value. |
+| `toml_table_keys` | `(TomlValue) -> Vec<String>` | `experimental` | Return the keys of a TOML table as a Vec<String>. |
+
+#### `toml_parse`
+
+Parse a TOML document (key=value pairs).
+
+#### `toml_stringify`
+
+Serialize a TomlValue back to text.
+
+#### `toml_get`
+
+Look up a key in a TOML table value.
+
+#### `toml_table_keys`
+
+Return all keys of a TOML table as a string vector.

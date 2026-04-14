@@ -1,0 +1,32 @@
+use std::json
+use std::host::stdio
+
+fn main() {
+    // stringify null → "null"
+    match json::parse("null") {
+        Ok(v) => stdio::println(json::stringify(v)),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    // stringify bool
+    match json::parse("true") {
+        Ok(v) => stdio::println(json::stringify(v)),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    // stringify number
+    match json::parse("123") {
+        Ok(v) => stdio::println(json::stringify(v)),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    // stringify string (round-trip)
+    match json::parse("\"world\"") {
+        Ok(v) => stdio::println(json::stringify(v)),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    // json_encode_string produces valid JSON string literal
+    stdio::println(json::json_encode_string("hello"))
+    stdio::println(json::json_encode_string("a\"b"))
+}

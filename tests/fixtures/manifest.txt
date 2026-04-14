@@ -225,6 +225,7 @@ run:stdlib_bytes/leb128.ark
 run:stdlib_bytes/endian.ark
 run:stdlib_bytes/bytes_slice.ark
 run:stdlib_cli/cli_basic.ark
+run:stdlib_cli/cli_flag_check.ark
 run:stdlib_compiler/compiler_basic.ark
 run:stdlib_component/component_helpers.ark
 run:stdlib_core/convert.ark
@@ -239,6 +240,7 @@ run:stdlib_core/to_string_f64.ark
 run:stdlib_core/to_string_i32.ark
 run:stdlib_core/to_string_i64.ark
 run:stdlib_csv/csv_basic.ark
+run:stdlib_csv/csv_parse_row.ark
 run:stdlib_env/env_basic.ark
 run:stdlib_filter/filter_string.ark
 run:stdlib_hash/hash_basic.ark
@@ -246,6 +248,7 @@ run:stdlib_hashmap/hashmap_basic.ark
 run:stdlib_hashmap/hashmap_extended.ark
 run:stdlib_hashmap/hashset_basic.ark
 run:stdlib_hashmap/hashset_ops.ark
+run:stdlib_hashmap/hashmap_string_i32.ark
 run:stdlib_hof_i64_f64/filter_f64.ark
 run:stdlib_hof_i64_f64/filter_i64.ark
 run:stdlib_hof_i64_f64/fold_i64.ark
@@ -271,8 +274,19 @@ run:stdlib_io_rw/writer_basic.ark
 run:stdlib_io_rw/stdout_write.ark
 run:stdlib_io_rw/buffered_basic.ark
 run:stdlib_io_rw/copy_stream.ark
+run:stdlib_process/exit_nonzero.ark
+run:stdlib_process/exit_zero.ark
+run:stdlib_process/process_exit.ark
+run:stdlib_env/env_basic.ark
+run:stdlib_env/env_var_default.ark
+run:stdlib_env/env_var_lookup.ark
 run:stdlib_json/json_basic.ark
+run:stdlib_json/json_escape.ark
+run:stdlib_json/json_nested.ark
+run:stdlib_json/json_parse.ark
+run:stdlib_json/json_pretty.ark
 run:stdlib_json/json_roundtrip.ark
+run:stdlib_json/json_stringify.ark
 run:stdlib_linear/linear_basic.ark
 run:stdlib_linear/deque_ops.ark
 run:stdlib_linear/pq_ops.ark
@@ -323,6 +337,7 @@ run:stdlib_text/builder_basic.ark
 run:stdlib_text/string_chars.ark
 run:stdlib_text/string_api.ark
 run:stdlib_toml/toml_basic.ark
+run:stdlib_toml/toml_extended.ark
 run:stdlib_vec/any_find.ark
 run:stdlib_vec/vec_filter.ark
 run:stdlib_vec/vec_fold.ark
@@ -457,6 +472,7 @@ t3-compile:regression/type_table/enum_match_variants.ark
 t3-compile:regression/type_table/struct_field_access.ark
 t3-compile:stdlib_filter/filter_string.ark
 t3-compile:stdlib_hashmap/hashmap_basic.ark
+t3-compile:stdlib_hashmap/hashmap_string_i32.ark
 t3-compile:stdlib_http_compile.ark
 t3-compile:stdlib_io/eprintln.ark
 t3-compile:stdlib_io/f64_to_string.ark
@@ -622,6 +638,7 @@ t3-run:operators/unary.ark
 t3-run:stdlib_env/env_var_lookup.ark
 t3-run:stdlib_filter/filter_string.ark
 t3-run:stdlib_hashmap/hashmap_basic.ark
+t3-run:stdlib_hashmap/hashmap_string_i32.ark
 t3-run:stdlib_io/clock_random.ark
 t3-run:stdlib_io/eprintln.ark
 t3-run:stdlib_io/f64_to_string.ark

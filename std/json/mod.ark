@@ -1,25 +1,42 @@
-//! Experimental JSON helpers.
+//! JSON parser/serializer for std::json.
 //!
-//! The current module focuses on primitive stringify and parse helpers.
+//! ## Value representation
+//!
+//! `JsonValue` is a tagged struct.  Array and Object variants store their
+//! raw JSON text to avoid recursive type constraints (STOP_IF: use
+//! iteration with explicit stack).  Use `json_get` / `json_get_index` to
+//! access nested values — those functions re-parse the raw text on demand.
+//!
+//! ## Primitive helpers (legacy)
+//!
+//! The original stringify/parse helpers are preserved for backward
+//! compatibility with existing fixtures.
 
+// ─── Legacy primitive helpers ────────────────────────────────────────────────
+
+/// Stringify an i32 as a JSON number.
 pub fn json_stringify_i32(val: i32) -> String {
     i32_to_string(val)
 }
 
+/// Stringify a bool as a JSON boolean literal.
 pub fn json_stringify_bool(val: bool) -> String {
     if val { "true" } else { "false" }
 }
 
+/// Stringify a string by wrapping it in double quotes.
+/// NOTE: does not escape special characters — use `json_encode_string` instead.
 pub fn json_stringify_string(val: String) -> String {
     concat("\"", concat(val, "\""))
 }
 
+/// Return the JSON null literal.
 pub fn json_null() -> String {
     "null"
 }
 
+/// Parse a decimal integer from a JSON number string.
 pub fn json_parse_i32(s: String) -> i32 {
-    // Manual integer parsing
     let n: i32 = len(s)
     let mut result: i32 = 0
     let mut i: i32 = 0
@@ -49,6 +66,338 @@ pub fn json_parse_i32(s: String) -> i32 {
     if neg { 0 - result } else { result }
 }
 
+/// Parse "true"/"false" into a bool.
 pub fn json_parse_bool(s: String) -> bool {
     eq(s, "true")
+}
+
+// ─── JsonValue type ──────────────────────────────────────────────────────────
+
+/// Tagged container for a JSON value.
+///
+/// | tag | kind   | `raw` contents                     |
+/// |-----|--------|------------------------------------|
+/// |  0  | null   | `"null"`                           |
+/// |  1  | bool   | `"true"` or `"false"`              |
+/// |  2  | number | decimal representation              |
+/// |  3  | string | full JSON literal incl. quotes     |
+/// |  4  | array  | full JSON `[…]` text               |
+/// |  5  | object | full JSON `{…}` text               |
+pub struct JsonValue {
+    tag: i32,
+    raw: String,
+}
+
+// ─── Internal parsing helpers ────────────────────────────────────────────────
+
+fn skip_ws(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if c == 32 || c == 9 || c == 10 || c == 13 {
+            i = i + 1
+        } else {
+            return i
+        }
+    }
+    i
+}
+
+fn find_closing(s: String, pos: i32, open_ch: i32, close_ch: i32) -> i32 {
+    let n = len(s)
+    let mut i = pos
+    let mut depth = 1
+    let mut in_str = false
+    let mut esc = false
+    while i < n {
+        let c = char_at(s, i)
+        if esc {
+            esc = false
+        } else if in_str {
+            if c == 92 { esc = true }
+            else if c == 34 { in_str = false }
+        } else {
+            if c == 34 { in_str = true }
+            else if c == open_ch { depth = depth + 1 }
+            else if c == close_ch {
+                depth = depth - 1
+                if depth == 0 { return i + 1 }
+            }
+        }
+        i = i + 1
+    }
+    n
+}
+
+fn find_string_end(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut i = pos
+    let mut esc = false
+    while i < n {
+        let c = char_at(s, i)
+        if esc { esc = false }
+        else if c == 92 { esc = true }
+        else if c == 34 { return i + 1 }
+        i = i + 1
+    }
+    n
+}
+
+fn find_number_end(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    let mut i = pos
+    while i < n {
+        let c = char_at(s, i)
+        if (c >= 48 && c <= 57) || c == 46 || c == 43 || c == 45 || c == 101 || c == 69 {
+            i = i + 1
+        } else {
+            return i
+        }
+    }
+    i
+}
+
+fn find_value_end(s: String, pos: i32) -> i32 {
+    let n = len(s)
+    if pos >= n { return n }
+    let c = char_at(s, pos)
+    if c == 34 {
+        find_string_end(s, pos + 1)
+    } else if c == 91 {
+        find_closing(s, pos + 1, 91, 93)
+    } else if c == 123 {
+        find_closing(s, pos + 1, 123, 125)
+    } else {
+        let mut i = pos
+        while i < n {
+            let ch = char_at(s, i)
+            if ch == 32 || ch == 9 || ch == 10 || ch == 13 ||
+               ch == 44 || ch == 93 || ch == 125 {
+                return i
+            }
+            i = i + 1
+        }
+        i
+    }
+}
+
+// ─── Public parse / stringify ────────────────────────────────────────────────
+
+/// Parse the first JSON value in `s`.
+pub fn parse(s: String) -> Result<JsonValue, String> {
+    let pos = skip_ws(s, 0)
+    let n = len(s)
+    if pos >= n {
+        return Err("empty input")
+    }
+    let c = char_at(s, pos)
+    if c == 110 {
+        if n >= pos + 4 {
+            if slice(s, pos, pos + 4) == "null" {
+                return Ok(JsonValue { tag: 0, raw: "null" })
+            }
+        }
+        Err("invalid null")
+    } else if c == 116 {
+        if n >= pos + 4 {
+            if slice(s, pos, pos + 4) == "true" {
+                return Ok(JsonValue { tag: 1, raw: "true" })
+            }
+        }
+        Err("invalid true")
+    } else if c == 102 {
+        if n >= pos + 5 {
+            if slice(s, pos, pos + 5) == "false" {
+                return Ok(JsonValue { tag: 1, raw: "false" })
+            }
+        }
+        Err("invalid false")
+    } else if c == 34 {
+        let end = find_string_end(s, pos + 1)
+        Ok(JsonValue { tag: 3, raw: slice(s, pos, end) })
+    } else if c == 91 {
+        let end = find_closing(s, pos + 1, 91, 93)
+        Ok(JsonValue { tag: 4, raw: slice(s, pos, end) })
+    } else if c == 123 {
+        let end = find_closing(s, pos + 1, 123, 125)
+        Ok(JsonValue { tag: 5, raw: slice(s, pos, end) })
+    } else if (c >= 48 && c <= 57) || c == 45 {
+        let end = find_number_end(s, pos)
+        Ok(JsonValue { tag: 2, raw: slice(s, pos, end) })
+    } else {
+        Err("unexpected character")
+    }
+}
+
+/// Serialize a `JsonValue` back to its JSON text.
+pub fn stringify(v: JsonValue) -> String {
+    v.raw
+}
+
+/// Serialize with indentation (basic pass-through; full indentation deferred).
+pub fn stringify_pretty(v: JsonValue, indent: i32) -> String {
+    v.raw
+}
+
+// ─── Type predicates ─────────────────────────────────────────────────────────
+
+pub fn is_null(v: JsonValue) -> bool { v.tag == 0 }
+pub fn is_bool(v: JsonValue) -> bool { v.tag == 1 }
+pub fn is_number(v: JsonValue) -> bool { v.tag == 2 }
+pub fn is_string(v: JsonValue) -> bool { v.tag == 3 }
+pub fn is_array(v: JsonValue) -> bool { v.tag == 4 }
+pub fn is_object(v: JsonValue) -> bool { v.tag == 5 }
+
+// ─── Value extractors ────────────────────────────────────────────────────────
+
+pub fn json_as_bool(v: JsonValue) -> Option<bool> {
+    if v.tag == 1 { Some(v.raw == "true") } else { None }
+}
+
+pub fn json_as_string(v: JsonValue) -> Option<String> {
+    if v.tag == 3 {
+        let n = len(v.raw)
+        if n < 2 { return Some("") }
+        Some(json_decode_string(slice(v.raw, 1, n - 1)))
+    } else {
+        None
+    }
+}
+
+pub fn json_as_i32(v: JsonValue) -> Option<i32> {
+    if v.tag == 2 {
+        match parse_i32(v.raw) {
+            Ok(n) => Some(n),
+            Err(_) => None,
+        }
+    } else {
+        None
+    }
+}
+
+pub fn json_as_f64(v: JsonValue) -> Option<f64> {
+    if v.tag == 2 {
+        match parse_f64(v.raw) {
+            Ok(n) => Some(n),
+            Err(_) => None,
+        }
+    } else {
+        None
+    }
+}
+
+// ─── Object / array accessors ────────────────────────────────────────────────
+
+/// Look up a named field in a JSON object value.
+pub fn json_get(v: JsonValue, key: String) -> Option<JsonValue> {
+    if v.tag != 5 { return None }
+    let raw = v.raw
+    let n = len(raw)
+    let needle = concat("\"", concat(key, "\""))
+    let needle_len = len(needle)
+    let mut i = 1
+    let mut in_str = false
+    let mut esc = false
+    while i < n - 1 {
+        let c = char_at(raw, i)
+        if esc {
+            esc = false
+            i = i + 1
+        } else if in_str {
+            if c == 92 { esc = true }
+            else if c == 34 { in_str = false }
+            i = i + 1
+        } else if c == 34 {
+            if i + needle_len <= n {
+                if slice(raw, i, i + needle_len) == needle {
+                    let after = skip_ws(raw, i + needle_len)
+                    if after < n && char_at(raw, after) == 58 {
+                        let value_start = skip_ws(raw, after + 1)
+                        match parse(slice(raw, value_start, n)) {
+                            Ok(val) => return Some(val),
+                            Err(_) => return None,
+                        }
+                    }
+                }
+            }
+            let end = find_string_end(raw, i + 1)
+            i = end
+        } else {
+            i = i + 1
+        }
+    }
+    None
+}
+
+/// Return the element at `index` from a JSON array value.
+pub fn json_get_index(v: JsonValue, index: i32) -> Option<JsonValue> {
+    if v.tag != 4 { return None }
+    let raw = v.raw
+    let n = len(raw)
+    let mut i = skip_ws(raw, 1)
+    let mut current = 0
+    while i < n - 1 {
+        i = skip_ws(raw, i)
+        if i >= n { return None }
+        let c = char_at(raw, i)
+        if c == 93 { return None }
+        let elem_end = find_value_end(raw, i)
+        if current == index {
+            match parse(slice(raw, i, elem_end)) {
+                Ok(val) => return Some(val),
+                Err(_) => return None,
+            }
+        }
+        current = current + 1
+        i = skip_ws(raw, elem_end)
+        if i < n && char_at(raw, i) == 44 {
+            i = i + 1
+        }
+    }
+    None
+}
+
+// ─── String encoding ─────────────────────────────────────────────────────────
+
+fn json_decode_string(s: String) -> String {
+    let n = len(s)
+    let mut result = ""
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c == 92 && i + 1 < n {
+            let nxt = char_at(s, i + 1)
+            if nxt == 34 { result = concat(result, "\"") }
+            else if nxt == 92 { result = concat(result, "\\") }
+            else if nxt == 110 { result = concat(result, "\n") }
+            else if nxt == 116 { result = concat(result, "\t") }
+            else if nxt == 114 { result = concat(result, "\r") }
+            else { result = concat(result, slice(s, i + 1, i + 2)) }
+            i = i + 2
+        } else {
+            result = concat(result, slice(s, i, i + 1))
+            i = i + 1
+        }
+    }
+    result
+}
+
+/// Encode a plain string as a JSON string literal with surrounding quotes
+/// and escape sequences for `"`, `\`, `\n`, `\r`, `\t`.
+pub fn json_encode_string(s: String) -> String {
+    let n = len(s)
+    let mut result = "\""
+    let mut i = 0
+    while i < n {
+        let c = char_at(s, i)
+        if c == 34 { result = concat(result, "\\\"") }
+        else if c == 92 { result = concat(result, "\\\\") }
+        else if c == 10 { result = concat(result, "\\n") }
+        else if c == 13 { result = concat(result, "\\r") }
+        else if c == 9 { result = concat(result, "\\t") }
+        else { result = concat(result, slice(s, i, i + 1)) }
+        i = i + 1
+    }
+    concat(result, "\"")
 }

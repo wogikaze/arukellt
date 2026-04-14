@@ -1,0 +1,39 @@
+use std::json
+use std::host::stdio
+
+fn main() {
+    // stringify_pretty passes through raw text in initial implementation
+    match json::parse("null") {
+        Ok(v) => stdio::println(json::stringify_pretty(v, 2)),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    match json::parse("true") {
+        Ok(v) => stdio::println(json::stringify_pretty(v, 2)),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    match json::parse("\"hello\"") {
+        Ok(v) => stdio::println(json::stringify_pretty(v, 2)),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    // is_* type predicates
+    match json::parse("42") {
+        Ok(v) => {
+            stdio::println(bool_to_string(json::is_number(v)))
+            stdio::println(bool_to_string(json::is_null(v)))
+        }
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    match json::parse("[1,2,3]") {
+        Ok(v) => stdio::println(bool_to_string(json::is_array(v))),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+
+    match json::parse("{\"k\":1}") {
+        Ok(v) => stdio::println(bool_to_string(json::is_object(v))),
+        Err(e) => stdio::println(concat("error:", e)),
+    }
+}

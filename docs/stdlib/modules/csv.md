@@ -31,16 +31,45 @@ let fields = csv_split_line("name,age,city")
 ## `std::csv`
 
 - Source: [`../../../std/csv/mod.ark`](../../../std/csv/mod.ark)
-- Manifest-backed functions: 1
-- Stability: experimental 1
+- Manifest-backed functions: 7
+- Stability: experimental 7
 
-Experimental CSV helpers.
+CSV parser/serializer for std::csv.
 
-The current implementation only exposes line splitting and does not yet
-handle full RFC 4180 quoting rules.
+Supports RFC 4180 quoted fields and basic multi-row documents.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `csv_split_line` | `(String) -> Vec<String>` | `experimental` | - |
+| `csv_split_line` | `(String) -> Vec<String>` | `experimental` | Split a single CSV line on commas (no quote handling). |
+| `csv_parse_row` | `(String) -> Vec<String>` | `experimental` | Parse a single CSV line into fields, handling RFC 4180 quoted fields. |
+| `csv_stringify_row` | `(Vec<String>) -> String` | `experimental` | Serialize a row of fields back to a CSV line. |
+| `csv_count_rows` | `(String) -> i32` | `experimental` | Count the number of non-empty lines in a CSV string. |
+| `csv_get_row_raw` | `(String, i32) -> String` | `experimental` | Return the raw text of row row_index (0-based, skipping empty lines). |
+| `csv_parse_row_at` | `(String, i32) -> Vec<String>` | `experimental` | Parse row row_index from a multi-row CSV string. |
+| `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `experimental` | Parse a CSV document with a header row. |
+
+#### `csv_parse_row`
+
+Parse a single CSV line into fields (handles RFC 4180 quoting).
+
+#### `csv_stringify_row`
+
+Serialize a row of fields to a CSV line.
+
+#### `csv_count_rows`
+
+Count the number of non-empty lines in a CSV string.
+
+#### `csv_get_row_raw`
+
+Return the raw text of row at row_index (0-based, skipping empty lines).
+
+#### `csv_parse_row_at`
+
+Parse row at row_index from a multi-row CSV string.
+
+#### `csv_parse_with_header`
+
+Parse a CSV document and return the header row fields.

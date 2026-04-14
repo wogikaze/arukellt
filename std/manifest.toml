@@ -1304,6 +1304,53 @@ prelude = true
 stability = "stable"
 doc_category = "collections"
 
+# ── HashMap<String, i32> ───────────────────────
+
+[[functions]]
+name = "HashMap_new_String_i32"
+kind = "builtin"
+params = []
+returns = "HashMap<String, i32>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_i32_insert"
+kind = "builtin"
+params = ["HashMap<String, i32>", "String", "i32"]
+returns = "()"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_i32_get"
+kind = "builtin"
+params = ["HashMap<String, i32>", "String"]
+returns = "Option<i32>"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_i32_contains_key"
+kind = "builtin"
+params = ["HashMap<String, i32>", "String"]
+returns = "bool"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
+[[functions]]
+name = "HashMap_String_i32_len"
+kind = "builtin"
+params = ["HashMap<String, i32>"]
+returns = "i32"
+prelude = true
+stability = "stable"
+doc_category = "collections"
+
 # ── Intrinsics (no public wrapper) ───────────
 # __intrinsic_string_is_empty is in PRELUDE_FUNCTIONS but has no
 # prelude.ark wrapper or FnSig in checker.rs. Listed for completeness.
@@ -4110,3 +4157,389 @@ stability = "stable"
 params = ["Vec<i32>"]
 returns = "()"
 doc = "Reset the priority queue to empty (preserves allocated storage)."
+
+# ── std::process ──────────────────────────────────────────────────────────────
+
+[[functions]]
+name = "exit"
+module = "std::process"
+doc_category = "process"
+stability = "stable"
+params = ["i32"]
+returns = "()"
+doc = "Terminate the process with the given exit code."
+
+[[functions]]
+name = "abort"
+module = "std::process"
+doc_category = "process"
+stability = "stable"
+params = []
+returns = "()"
+doc = "Terminate the process immediately (exit code 134, SIGABRT convention)."
+
+# ── std::env ─────────────────────────────────────────────────────────────────
+
+[[functions]]
+name = "args"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = []
+returns = "Vec<String>"
+doc = "Return the process argument vector (excluding argv[0])."
+
+[[functions]]
+name = "arg_count"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = []
+returns = "i32"
+doc = "Return the number of process arguments (excluding argv[0])."
+
+[[functions]]
+name = "arg_at"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = ["i32"]
+returns = "Option<String>"
+doc = "Return the argument at the given index, or None when out of range."
+
+[[functions]]
+name = "var"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = ["String"]
+returns = "Option<String>"
+doc = "Look up an environment variable by name."
+
+[[functions]]
+name = "get_var"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = ["String"]
+returns = "Option<String>"
+doc = "Alias for env::var."
+
+[[functions]]
+name = "var_or_default"
+module = "std::env"
+doc_category = "env"
+stability = "stable"
+params = ["String", "String"]
+returns = "String"
+doc = "Return the environment variable value, or the default when absent."
+
+# ── std::cli ─────────────────────────────────────────────────────────────────
+
+[[functions]]
+name = "parse_args"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = []
+returns = "Vec<String>"
+doc = "Return the full process argument vector."
+
+[[functions]]
+name = "arg_count"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = []
+returns = "i32"
+doc = "Return the number of process arguments."
+
+[[functions]]
+name = "arg_at"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = ["i32"]
+returns = "Option<String>"
+doc = "Return the argument at index, or None when out of range."
+
+[[functions]]
+name = "has_flag"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = ["String"]
+returns = "bool"
+doc = "Return true when the process argument vector contains the flag verbatim."
+
+[[functions]]
+name = "flag"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = ["Vec<String>", "String"]
+returns = "bool"
+doc = "Return true when args contains name verbatim."
+
+[[functions]]
+name = "option"
+module = "std::cli"
+doc_category = "cli"
+stability = "stable"
+params = ["Vec<String>", "String"]
+returns = "Option<String>"
+doc = "Return the value associated with the named option, or None."
+
+# ── std::json module functions ────────────────────────────────────────────────
+
+[[functions]]
+name = "parse"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "Result<JsonValue, String>"
+doc = "Parse the first JSON value in a string."
+
+[[functions]]
+name = "stringify"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "String"
+doc = "Serialize a JsonValue back to its JSON text."
+
+[[functions]]
+name = "stringify_pretty"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue", "i32"]
+returns = "String"
+doc = "Serialize a JsonValue with basic formatting."
+
+[[functions]]
+name = "is_null"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_bool"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_number"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_string"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_array"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "is_object"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "bool"
+
+[[functions]]
+name = "json_as_bool"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "Option<bool>"
+
+[[functions]]
+name = "json_as_string"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "Option<String>"
+
+[[functions]]
+name = "json_as_i32"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "Option<i32>"
+
+[[functions]]
+name = "json_as_f64"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue"]
+returns = "Option<f64>"
+
+[[functions]]
+name = "json_get"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue", "String"]
+returns = "Option<JsonValue>"
+doc = "Look up a named field in a JSON object value."
+
+[[functions]]
+name = "json_get_index"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["JsonValue", "i32"]
+returns = "Option<JsonValue>"
+doc = "Return the element at index in a JSON array value."
+
+[[functions]]
+name = "json_encode_string"
+module = "std::json"
+doc_category = "json"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Encode a plain string as a JSON string literal with escape sequences."
+
+# ── std::toml module functions ────────────────────────────────────────────────
+
+[[functions]]
+name = "toml_parse"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["String"]
+returns = "Result<TomlValue, String>"
+doc = "Parse a TOML document (key=value pairs)."
+
+[[functions]]
+name = "toml_stringify"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "String"
+doc = "Serialize a TomlValue back to text."
+
+[[functions]]
+name = "toml_get"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue", "String"]
+returns = "Option<TomlValue>"
+doc = "Look up a key in a TOML table value."
+
+[[functions]]
+name = "toml_table_keys"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "Vec<String>"
+doc = "Return all keys of a TOML table as a string vector."
+
+[[functions]]
+name = "toml_as_string"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "Option<String>"
+
+[[functions]]
+name = "toml_as_int"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "Option<i32>"
+
+[[functions]]
+name = "toml_as_bool"
+module = "std::toml"
+doc_category = "toml"
+stability = "experimental"
+params = ["TomlValue"]
+returns = "Option<bool>"
+
+# ── std::csv module functions ─────────────────────────────────────────────────
+
+[[functions]]
+name = "csv_parse_row"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String"]
+returns = "Vec<String>"
+doc = "Parse a single CSV line into fields (handles RFC 4180 quoting)."
+
+[[functions]]
+name = "csv_stringify_row"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["Vec<String>"]
+returns = "String"
+doc = "Serialize a row of fields to a CSV line."
+
+[[functions]]
+name = "csv_count_rows"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String"]
+returns = "i32"
+doc = "Count the number of non-empty lines in a CSV string."
+
+[[functions]]
+name = "csv_get_row_raw"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "String"
+doc = "Return the raw text of row at row_index (0-based, skipping empty lines)."
+
+[[functions]]
+name = "csv_parse_row_at"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String", "i32"]
+returns = "Vec<String>"
+doc = "Parse row at row_index from a multi-row CSV string."
+
+[[functions]]
+name = "csv_parse_with_header"
+module = "std::csv"
+doc_category = "csv"
+stability = "experimental"
+params = ["String"]
+returns = "Result<Vec<String>, String>"
+doc = "Parse a CSV document and return the header row fields."

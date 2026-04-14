@@ -36,20 +36,76 @@ let parsed = json_parse_i32("42")    // 42
 ## `std::json`
 
 - Source: [`../../../std/json/mod.ark`](../../../std/json/mod.ark)
-- Manifest-backed functions: 6
-- Stability: experimental 6
+- Manifest-backed functions: 22
+- Stability: experimental 22
 
-Experimental JSON helpers.
+JSON parser/serializer for std::json.
 
-The current module focuses on primitive stringify and parse helpers.
+#### Value representation
+
+`JsonValue` is a tagged struct.  Array and Object variants store their
+raw JSON text to avoid recursive type constraints (STOP_IF: use
+iteration with explicit stack).  Use `json_get` / `json_get_index` to
+access nested values — those functions re-parse the raw text on demand.
+
+#### Primitive helpers (legacy)
+
+The original stringify/parse helpers are preserved for backward
+compatibility with existing fixtures.
+
+### Public Types
+
+| Name | Kind | Summary |
+|------|------|---------|
+| `JsonValue` | `struct` | Tagged container for a JSON value. |
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
-| `json_stringify_i32` | `(i32) -> String` | `experimental` | - |
-| `json_stringify_bool` | `(bool) -> String` | `experimental` | - |
-| `json_stringify_string` | `(String) -> String` | `experimental` | - |
-| `json_null` | `() -> String` | `experimental` | - |
-| `json_parse_i32` | `(String) -> i32` | `experimental` | - |
-| `json_parse_bool` | `(String) -> bool` | `experimental` | - |
+| `json_stringify_i32` | `(i32) -> String` | `experimental` | Stringify an i32 as a JSON number. |
+| `json_stringify_bool` | `(bool) -> String` | `experimental` | Stringify a bool as a JSON boolean literal. |
+| `json_stringify_string` | `(String) -> String` | `experimental` | Stringify a string by wrapping it in double quotes. |
+| `json_null` | `() -> String` | `experimental` | Return the JSON null literal. |
+| `json_parse_i32` | `(String) -> i32` | `experimental` | Parse a decimal integer from a JSON number string. |
+| `json_parse_bool` | `(String) -> bool` | `experimental` | Parse "true"/"false" into a bool. |
+| `parse` | `(String) -> Result<JsonValue, String>` | `experimental` | Parse the first JSON value in s. |
+| `stringify` | `(JsonValue) -> String` | `experimental` | Serialize a JsonValue back to its JSON text. |
+| `stringify_pretty` | `(JsonValue, i32) -> String` | `experimental` | Serialize with indentation (basic pass-through; full indentation deferred). |
+| `is_null` | `(JsonValue) -> bool` | `experimental` | - |
+| `is_bool` | `(JsonValue) -> bool` | `experimental` | - |
+| `is_number` | `(JsonValue) -> bool` | `experimental` | - |
+| `is_string` | `(JsonValue) -> bool` | `experimental` | - |
+| `is_array` | `(JsonValue) -> bool` | `experimental` | - |
+| `is_object` | `(JsonValue) -> bool` | `experimental` | - |
+| `json_as_bool` | `(JsonValue) -> Option<bool>` | `experimental` | - |
+| `json_as_string` | `(JsonValue) -> Option<String>` | `experimental` | - |
+| `json_as_i32` | `(JsonValue) -> Option<i32>` | `experimental` | - |
+| `json_as_f64` | `(JsonValue) -> Option<f64>` | `experimental` | - |
+| `json_get` | `(JsonValue, String) -> Option<JsonValue>` | `experimental` | Look up a named field in a JSON object value. |
+| `json_get_index` | `(JsonValue, i32) -> Option<JsonValue>` | `experimental` | Return the element at index from a JSON array value. |
+| `json_encode_string` | `(String) -> String` | `experimental` | Encode a plain string as a JSON string literal with surrounding quotes |
+
+#### `parse`
+
+Parse the first JSON value in a string.
+
+#### `stringify`
+
+Serialize a JsonValue back to its JSON text.
+
+#### `stringify_pretty`
+
+Serialize a JsonValue with basic formatting.
+
+#### `json_get`
+
+Look up a named field in a JSON object value.
+
+#### `json_get_index`
+
+Return the element at index in a JSON array value.
+
+#### `json_encode_string`
+
+Encode a plain string as a JSON string literal with escape sequences.
