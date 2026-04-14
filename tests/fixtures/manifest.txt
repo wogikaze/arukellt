@@ -405,6 +405,7 @@ run:structs/struct_in_vec.ark
 run:structs/struct_update.ark
 run:t3/arithmetic.ark
 run:t3/hello.ark
+run:t3/string_intern.ark
 run:test_assert/assert_pass.ark
 run:trait/basic_impl.ark
 run:trait/method_chain.ark
@@ -575,6 +576,7 @@ t3-compile:structs/struct_in_vec.ark
 t3-compile:structs/struct_update.ark
 t3-compile:t3/arithmetic.ark
 t3-compile:t3/hello.ark
+t3-compile:t3/string_intern.ark
 t3-compile:trait/basic_impl.ark
 t3-compile:trait/method_chain.ark
 t3-compile:trait/operator_overload.ark
@@ -743,6 +745,7 @@ t3-run:structs/struct_in_vec.ark
 t3-run:structs/struct_update.ark
 t3-run:t3/arithmetic.ark
 t3-run:t3/hello.ark
+t3-run:t3/string_intern.ark
 t3-run:trait/basic_impl.ark
 t3-run:trait/method_chain.ark
 t3-run:trait/operator_overload.ark

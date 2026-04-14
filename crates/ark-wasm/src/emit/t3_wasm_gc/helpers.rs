@@ -3070,4 +3070,75 @@ mod tests {
             "return_call_indirect (0x13) should not appear when callee is a FnRef"
         );
     }
+
+    /// Verify that identical string literals appearing twice in the same module are
+    /// deduplicated to a single passive data segment in the emitted Wasm binary.
+    ///
+    /// At opt_level >= 1 the T3 emitter uses `alloc_string_data` with a cache
+    /// (`string_seg_cache`) so two occurrences of `"intern_dedup"` produce exactly
+    /// one passive data segment containing those bytes.
+    #[test]
+    fn same_string_literal_deduplicates_data_segments() {
+        use ark_mir::mir::{BasicBlock, BlockId, FnId, InstanceKey, MirFunction, MirModule,
+                           MirStmt, Operand, SourceInfo, Terminator};
+        use ark_typecheck::types::Type;
+
+        // Build a minimal module: one function that uses "intern_dedup" twice.
+        // Two CallBuiltin("println") statements with the same ConstString operand.
+        let func = MirFunction {
+            id: FnId(0),
+            name: "main".to_string(),
+            instance: InstanceKey::simple("main"),
+            params: Vec::new(),
+            return_ty: Type::I32,
+            locals: Vec::new(),
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![
+                    MirStmt::CallBuiltin {
+                        dest: None,
+                        name: "println".to_string(),
+                        args: vec![Operand::ConstString("intern_dedup".to_string())],
+                    },
+                    MirStmt::CallBuiltin {
+                        dest: None,
+                        name: "println".to_string(),
+                        args: vec![Operand::ConstString("intern_dedup".to_string())],
+                    },
+                ],
+                terminator: Terminator::Return(Some(Operand::ConstI32(0))),
+                source: SourceInfo::unknown(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: Vec::new(),
+            source: SourceInfo::unknown(),
+            is_exported: false,
+        };
+
+        let mut mir = MirModule::new();
+        mir.functions.push(func);
+        mir.entry_fn = Some(FnId(0));
+
+        let mut sink = DiagnosticSink::new();
+        // opt_level = 1: string interning + data-segment deduplication enabled.
+        let wasm = super::super::emit(&mir, &mut sink, 1, true);
+
+        // Count how many times the UTF-8 bytes of "intern_dedup" appear in the
+        // emitted binary.  If deduplication works, the string bytes appear exactly
+        // once in the data section even though the source uses the literal twice.
+        let needle = b"intern_dedup";
+        let occurrences = wasm
+            .windows(needle.len())
+            .filter(|w| *w == needle)
+            .count();
+
+        assert_eq!(
+            occurrences, 1,
+            "expected 'intern_dedup' bytes to appear exactly once in wasm binary \
+             (data-segment deduplication), but found {} occurrence(s)",
+            occurrences
+        );
+    }
 }

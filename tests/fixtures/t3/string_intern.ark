@@ -1,0 +1,6 @@
+use std::host::stdio
+
+fn main() {
+    stdio::println("arukellt")
+    stdio::println("arukellt")
+}
