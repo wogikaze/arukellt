@@ -2,12 +2,55 @@
 
 **Status**: open
 **Created**: 2026-04-03
-**Updated**: 2026-04-03
+**Updated**: 2026-04-14
 **ID**: 472
 **Depends on**: 466
 **Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 8
+
+## Progress Note — 2026-04-14 (impl-playground audit)
+
+**Audit result: CHECKER SURFACE ABSENT — issue remains open**
+
+Verification commands run:
+
+```
+grep -rn "typecheck|type_check|TypeCheck|checker|Checker" crates/ark-playground-wasm/src/
+# → no output (FAIL)
+
+grep -rn "typecheck|type_check|TypeCheck|checker|Checker" playground/src/
+# → no output (FAIL)
+```
+
+Findings:
+
+- `crates/ark-playground-wasm/src/lib.rs` exports exactly four functions:
+  `parse`, `format`, `tokenize`, `version`.
+  The module doc comment explicitly states: "Provides JS-callable APIs for **parsing and formatting**".
+  No `typecheck` export exists. No `ark-typecheck` crate is referenced anywhere in this file.
+
+- `playground/src/` contains no invocation of any checker surface
+  (no import, no call, no binding to a typecheck function).
+
+- Issue 466 (browser entrypoint) is done and confirmed:
+  `docs/playground/index.html` calls `createPlaygroundApp()`, which is backed
+  only by the four wasm exports above. No checker is wired.
+
+Acceptance criteria status:
+
+- [ ] callable checker surface exists in repo — **NO** (absent)
+- [ ] entrypoint invokes checker surface — **NO** (no wiring)
+- [ ] command/test/fixture verifies checker behavior — **NO** (nothing to test)
+
+**This issue must NOT be closed until `ark-typecheck` (or equivalent) is exported
+from `crates/ark-playground-wasm/src/lib.rs` and invoked from `playground/src/`.**
+
+Gap to close:
+1. Add `#[wasm_bindgen] pub fn typecheck(source: &str) -> String` to `crates/ark-playground-wasm/src/lib.rs`,
+   backed by a real invocation of `ark-typecheck`.
+2. Add a corresponding invocation in `playground/src/` (e.g., in `playground-app.ts` or `worker-client.ts`).
+3. Add a native-target test in `lib.rs` that exercises `typecheck` on known-valid and known-invalid input.
 
 ## Summary
 
