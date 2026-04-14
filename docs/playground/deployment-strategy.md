@@ -14,7 +14,13 @@
 > - `npm run dev` (no local dev-server script exists in `playground/package.json`)
 > - `npm run build:full` (does not exist; use `npm run build:app` instead)
 > - PR preview deployment workflow (no per-PR preview exists in any workflow file)
-> - CI size gates (no automated size enforcement in any workflow)
+>
+> The following are now **repo-proved** (added by issue #491):
+> - CI Wasm size gate: `.github/workflows/playground-ci.yml` job `playground-wasm-size` (≤ 300 KB)
+> - CI bundle size gate: `.github/workflows/playground-ci.yml` job `playground-bundle-size` (≤ 512 KB)
+>
+> The following are **explicitly deferred** (not in scope for #491):
+> - Lighthouse CI performance audit: deferred to issue #498
 
 ---
 
@@ -211,23 +217,35 @@ The target playground CI/CD workflow (does not yet exist in repo):
 
 **Estimated CI time** (once implemented): 3–5 minutes (Rust build cached), 6–8 minutes (cold cache).
 
-### 4.3 Size gate (target state)
+### 4.3 Size gate
 
-The target CI pipeline will enforce a binary size budget on the Wasm module
-once the playground build workflow exists (issue #468):
+> **Enforcement status (updated 2026-04-14, issue #491):**
+> - **Enforced in CI:** Wasm binary size gate and JS bundle size gate — both in `.github/workflows/playground-ci.yml`.
+> - **Explicitly deferred:** Lighthouse CI performance audit — tracked in issue #498.
 
-| Metric | Current | Budget | Action on exceed |
-|--------|---------|--------|-----------------|
-| `.wasm` post-opt | 247 KB | 300 KB | CI fails, requires explicit budget bump |
-| Gzipped `.wasm` | ~100 KB (est.) | 150 KB | CI warns |
-| Total initial payload (gzipped) | ~180 KB (est.) | 250 KB | CI fails |
+The CI pipeline enforces binary size budgets with two dedicated jobs in
+`.github/workflows/playground-ci.yml`. These jobs trigger on push to `master`
+and on pull requests touching `playground/**`, `crates/ark-playground-wasm/**`,
+or `docs/playground/**`.
+
+| Metric | Current | Budget | CI job | Action on exceed |
+|--------|---------|--------|--------|------------------|
+| `.wasm` post-opt (uncompressed) | ≈247 KB | **300 KB** | `playground-wasm-size` | CI fails — update `PLAYGROUND_WASM_LIMIT` in workflow and document reason |
+| JS bundle (uncompressed total) | ≈90 KB | **512 KB** | `playground-bundle-size` | CI fails — update `PLAYGROUND_BUNDLE_LIMIT` in workflow and document reason |
+| Gzipped `.wasm` | ~100 KB (est.) | 150 KB | _(not yet automated)_ | Manual tracking |
+| Total initial payload (gzipped) | ~180 KB (est.) | 250 KB | _(not yet automated)_ | Manual tracking |
 
 Budget bumps require a comment in the PR explaining the size increase and
-updating the threshold in the CI workflow file.
+updating the threshold environment variable in `.github/workflows/playground-ci.yml`.
 
-**Current state**: No size gate exists in CI. The playground build workflow
-(`pages.yml`) runs `npm run build:app` but does not enforce size thresholds.
-Size tracking is manual until a size gate is added to the workflow.
+**Automated checks** (`scripts/check/check-playground-size.sh`):
+- Called by both CI jobs; also runnable locally.
+- `--wasm <file>` mode: checks a single `.wasm` file against `PLAYGROUND_WASM_LIMIT`.
+- `--bundle-dir <dir>` mode: sums all `.js` files in the directory against `PLAYGROUND_BUNDLE_LIMIT`.
+
+**Lighthouse CI (deferred):** A Lighthouse-based performance and accessibility
+audit is a desirable follow-on but was deferred because the playground headless
+test infrastructure does not yet exist. Tracked in issue #498.
 
 ---
 

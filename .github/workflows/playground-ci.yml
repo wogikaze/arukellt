@@ -1,0 +1,96 @@
+name: Playground CI
+
+# CI size gates for the browser playground.
+#
+#  Job                     Gate type   Merge gate?   Threshold
+#  ─────────────────────── ─────────── ─────────────────────────────────────
+#  playground-bundle-size  size        yes           JS bundle ≤ 512 KB
+#  playground-wasm-size    size        yes           Wasm binary ≤ 300 KB
+#
+# See docs/playground/deployment-strategy.md §4.3 for threshold rationale.
+# To raise a threshold: update the env var below and document the reason in the PR.
+#
+# NOT YET IMPLEMENTED (tracked separately):
+#  - Lighthouse CI performance audit: see issues/open/498-playground-lighthouse-ci.md
+
+on:
+  push:
+    branches: [master, "feature/**"]
+    paths:
+      - "playground/**"
+      - "crates/ark-playground-wasm/**"
+      - "docs/playground/**"
+      - ".github/workflows/playground-ci.yml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "playground/**"
+      - "crates/ark-playground-wasm/**"
+      - "docs/playground/**"
+
+jobs:
+
+  # ── Playground JS bundle size gate (merge gate) ───────────────────────────
+  playground-bundle-size:
+    name: "Playground bundle size gate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build playground JS bundle
+        working-directory: playground
+        run: npm install --no-audit --no-fund --package-lock=false && npm run build:app
+
+      - name: Bundle size gate (≤ 512 KB total JS)
+        # PLAYGROUND_BUNDLE_LIMIT: 524288 bytes = 512 KB
+        # This checks the sum of all .js files in docs/playground/dist/.
+        # Raise the limit (and document the reason) when a deliberate size
+        # increase is warranted; see deployment-strategy.md §4.3.
+        env:
+          PLAYGROUND_BUNDLE_LIMIT: '524288'
+        run: bash scripts/check/check-playground-size.sh --bundle-dir docs/playground/dist
+
+  # ── Playground Wasm binary size gate (merge gate) ─────────────────────────
+  playground-wasm-size:
+    name: "Playground wasm size gate"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain + wasm32 target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-playground-wasm-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-playground-wasm-
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build playground wasm
+        working-directory: crates/ark-playground-wasm
+        run: wasm-pack build --target web --release
+
+      - name: Wasm size gate (≤ 300 KB)
+        # PLAYGROUND_WASM_LIMIT: 307200 bytes = 300 KB
+        # Current wasm binary post wasm-opt is ≈247 KB (headroom: ~53 KB).
+        # Raise the limit (and document the reason) when a deliberate size
+        # increase is warranted; see deployment-strategy.md §4.3.
+        env:
+          PLAYGROUND_WASM_LIMIT: '307200'
+        run: |
+          WASM_FILE=$(ls crates/ark-playground-wasm/pkg/*.wasm | head -1)
+          bash scripts/check/check-playground-size.sh --wasm "$WASM_FILE"

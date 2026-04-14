@@ -84,11 +84,11 @@ graph LR
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I490["490 pub use / pub import re-export"]
-  I491["491 491 — Playground CI performance budget enforcement"]
   I493["493 493 — Selfhost MIR lowering: control-flow coverage (match/loop/closure)"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I496["496 496 — Selfhost typechecker: match exhaustiveness checking"]
+  I498["498 498 — Playground CI: Lighthouse performance audit"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I057["057 Prelude 再構成と API 移行"]
@@ -242,11 +242,11 @@ graph LR
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **472** depends on: 466; blocks: none
 - **490** depends on: 234; blocks: none
-- **491** depends on: none; blocks: none
 - **493** depends on: none; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
 - **496** depends on: none; blocks: none
+- **498** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **055** depends on: 039, 042, 044; blocks: none
 - **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: none
