@@ -1574,6 +1574,12 @@ stability = "stable"
 params = ["i64", "i64"]
 returns = "i64"
 
+[[modules]]
+name = "std::time"
+stability = "stable"
+doc = "Pure duration arithmetic over caller-supplied i64 nanosecond timestamps. Host clock reads live in std::host::clock; this module only provides the arithmetic."
+availability = { t1 = true, t3 = true }
+
 # === std::random ===
 
 [[functions]]
@@ -1599,6 +1605,12 @@ doc_category = "random"
 stability = "stable"
 params = ["Vec<i32>", "i32"]
 returns = "Vec<i32>"
+
+[[modules]]
+name = "std::random"
+stability = "stable"
+doc = "Deterministic pseudo-random helpers backed by xorshift32. All functions take an explicit seed so results are reproducible. Host-entropy random numbers live in std::host::random."
+availability = { t1 = true, t3 = true }
 
 # === std::test ===
 

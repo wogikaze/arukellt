@@ -1,0 +1,19 @@
+use std::random
+use std::host::stdio
+
+fn main() {
+    // seeded_random returns a non-zero i32 for any non-zero seed
+    let a = random::seeded_random(1)
+    assert(a != 0)
+
+    // seeded_random is deterministic
+    let b = random::seeded_random(1)
+    assert_eq(a, b)
+
+    // seeded_range: result is in [lo, hi)
+    let r = random::seeded_range(42, 0, 10)
+    assert(r >= 0)
+    assert(r < 10)
+
+    stdio::println("random_basic ok")
+}
