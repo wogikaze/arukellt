@@ -74,7 +74,7 @@ graph LR
   I206["206 Interactive compiler pipeline + inline profiling"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
-  I268["268 Stage1 fixture parity・CLI parity・diagnostic parity を CI で継続検証する"]
+  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
   I309["309 Selfhost resolver に module/import resolution を実装する"]
@@ -113,7 +113,6 @@ graph LR
   I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
-  I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
@@ -153,7 +152,6 @@ graph LR
   I153 --> I154
   I200 --> I201
   I204 --> I188
-  I268 --> I269
   I437 --> I438
   I077 --> I136
   I139 --> I136
@@ -242,7 +240,7 @@ graph LR
 - **206** depends on: 184, 185, 187; blocks: none
 - **249** depends on: none; blocks: none
 - **253** depends on: none; blocks: none
-- **268** depends on: 267; blocks: 269
+- **269** depends on: 266, 268; blocks: none
 - **285** depends on: 284; blocks: none
 - **289** depends on: 287; blocks: none
 - **309** depends on: 308; blocks: none
@@ -281,7 +279,6 @@ graph LR
 - **154** depends on: 153; blocks: none
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
-- **269** depends on: 266, 268; blocks: none
 - **438** depends on: 437; blocks: 489
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
