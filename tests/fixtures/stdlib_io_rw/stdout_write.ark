@@ -1,0 +1,27 @@
+use std::io
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    // stdout writer: write_str should print immediately
+    let w: Vec<i32> = io::stdout()
+    let r: Result<i32, String> = io::writer_write_str(w, "stdout line\n")
+    match r {
+        Ok(_) => (),
+        Err(e) => stdio::println(e),
+    }
+
+    // writer_to_bytes on stdout writer returns empty
+    let b: Vec<i32> = io::writer_to_bytes(w)
+    stdio::println(i32_to_string(bytes::bytes_len(b)))
+
+    // write_string (returns ())
+    let w2: Vec<i32> = io::writer_new()
+    let r2: Result<(), String> = io::write_string(w2, "buffered")
+    match r2 {
+        Ok(_) => stdio::println("write ok"),
+        Err(e) => stdio::println(e),
+    }
+    let b2: Vec<i32> = io::writer_to_bytes(w2)
+    stdio::println(bytes::string_from_bytes(b2))
+}

@@ -1,0 +1,406 @@
+//! std::io — I/O abstraction layer.
+//!
+//! Provides Reader, Writer, and buffered I/O over in-memory byte buffers,
+//! plus standard I/O (stdin/stdout/stderr) backed by host intrinsics.
+//!
+//! # STOP_IF notes
+//!
+//! - Bytes type = Vec<i32> (byte values masked to 0–255).
+//! - WASI stdin reading intrinsic is not available in the current runtime.
+//!   `stdin()` returns an empty Reader. `read_stdin_line()` returns `Ok("")`.
+//! - stdout/stderr Writers emit synchronously via print intrinsics (no
+//!   kernel-level fd buffering). `writer_flush` is therefore a no-op.
+//!
+//! # Type aliases (runtime representation)
+//!
+//! - `Reader`    = `Vec<i32>`: `[cursor, b0, b1, ..., bn]`
+//! - `Writer`    = `Vec<i32>`: `[fd_tag, b0, b1, ..., bn]`
+//!   - fd_tag: `0`=memory, `1`=stdout, `2`=stderr
+//! - `BufReader` = `Vec<i32>`: `[cursor, buf_cap, b0, b1, ..., bn]`
+//! - `BufWriter` = `Vec<i32>`: `[fd_tag, buf_cap, b0, b1, ..., bn]`
+
+// ─── Reader ──────────────────────────────────────────────────────────────────
+
+/// Creates a Reader over the given byte buffer.
+///
+/// Reader layout: `[cursor=0, b0, b1, …, bn]`
+pub fn reader_from_bytes(data: Vec<i32>) -> Vec<i32> {
+    let r: Vec<i32> = Vec_new_i32()
+    push(r, 0)          // cursor starts at 0
+    let n: i32 = len(data)
+    let mut i: i32 = 0
+    while i < n {
+        push(r, get_unchecked(data, i))
+        i = i + 1
+    }
+    r
+}
+
+/// Returns true when the Reader cursor is at or past the end of available data.
+pub fn reader_eof(r: Vec<i32>) -> bool {
+    let cursor: i32 = get_unchecked(r, 0)
+    let total: i32 = len(r) - 1
+    cursor >= total
+}
+
+/// Reads up to `n` bytes from the Reader, advancing its cursor.
+///
+/// Returns the bytes actually read (fewer than `n` when near EOF).
+pub fn reader_read(r: Vec<i32>, n: i32) -> Result<Vec<i32>, String> {
+    let cursor: i32 = get_unchecked(r, 0)
+    let total: i32 = len(r) - 1
+    let available: i32 = total - cursor
+    let count: i32 = if n < available { n } else { available }
+    let out: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < count {
+        push(out, get_unchecked(r, 1 + cursor + i))
+        i = i + 1
+    }
+    set(r, 0, cursor + count)
+    Ok(out)
+}
+
+/// Reads exactly `n` bytes; returns `Err` if fewer than `n` bytes remain.
+pub fn reader_read_exact(r: Vec<i32>, n: i32) -> Result<Vec<i32>, String> {
+    let cursor: i32 = get_unchecked(r, 0)
+    let total: i32 = len(r) - 1
+    let available: i32 = total - cursor
+    if available < n {
+        let msg: String = __intrinsic_concat(
+            "UnexpectedEof: need ",
+            __intrinsic_i32_to_string(n))
+        let msg2: String = __intrinsic_concat(msg, " have ")
+        Err(__intrinsic_concat(msg2, __intrinsic_i32_to_string(available)))
+    } else {
+        let out: Vec<i32> = Vec_new_i32()
+        let mut i: i32 = 0
+        while i < n {
+            push(out, get_unchecked(r, 1 + cursor + i))
+            i = i + 1
+        }
+        set(r, 0, cursor + n)
+        Ok(out)
+    }
+}
+
+/// Reads all remaining bytes from the Reader.
+pub fn reader_read_all(r: Vec<i32>) -> Result<Vec<i32>, String> {
+    let cursor: i32 = get_unchecked(r, 0)
+    let total: i32 = len(r) - 1
+    let remaining: i32 = total - cursor
+    reader_read(r, remaining)
+}
+
+/// Reads bytes until a newline (`0x0A`) or EOF, returning the line as a String.
+///
+/// The newline character is consumed but not included in the returned string.
+pub fn reader_read_line(r: Vec<i32>) -> Result<String, String> {
+    let cursor: i32 = get_unchecked(r, 0)
+    let total: i32 = len(r) - 1
+    let mut line: String = ""
+    let mut pos: i32 = cursor
+    let mut stop: bool = false
+    while pos < total {
+        let b: i32 = get_unchecked(r, 1 + pos)
+        pos = pos + 1
+        if b == 10 {
+            stop = true
+            pos = total     // exit loop on newline
+        } else {
+            line = __intrinsic_concat(line, char_to_string(b))
+        }
+    }
+    set(r, 0, pos)
+    Ok(line)
+}
+
+// ─── Standard I/O (stdin / stdout / stderr) ──────────────────────────────────
+
+/// Returns a Reader representing stdin.
+///
+/// NOTE: WASI stdin reading is not available in the current runtime.
+/// The returned Reader is always empty. Use `read_stdin_line()` for a
+/// future-compatible placeholder.
+pub fn stdin() -> Vec<i32> {
+    let r: Vec<i32> = Vec_new_i32()
+    push(r, 0)              // cursor = 0, no data
+    r
+}
+
+/// Returns a Writer that emits to stdout.
+pub fn stdout() -> Vec<i32> {
+    let w: Vec<i32> = Vec_new_i32()
+    push(w, 1)              // fd_tag = 1 (stdout)
+    w
+}
+
+/// Returns a Writer that emits to stderr.
+pub fn stderr() -> Vec<i32> {
+    let w: Vec<i32> = Vec_new_i32()
+    push(w, 2)              // fd_tag = 2 (stderr)
+    w
+}
+
+/// Reads a line from stdin.
+///
+/// NOTE: WASI stdin reading is not available in the current runtime.
+/// Always returns `Ok("")`.
+pub fn read_stdin_line() -> Result<String, String> {
+    Ok("")
+}
+
+/// Prints a byte buffer directly to stdout (no trailing newline).
+pub fn print_bytes(data: Vec<i32>) {
+    let n: i32 = len(data)
+    let mut s: String = ""
+    let mut i: i32 = 0
+    while i < n {
+        s = __intrinsic_concat(s, char_to_string(get_unchecked(data, i) & 255))
+        i = i + 1
+    }
+    __intrinsic_print(s)
+}
+
+// ─── Writer ──────────────────────────────────────────────────────────────────
+
+/// Creates an in-memory Writer.
+pub fn writer_new() -> Vec<i32> {
+    let w: Vec<i32> = Vec_new_i32()
+    push(w, 0)              // fd_tag = 0 (memory)
+    w
+}
+
+/// Writes `data` bytes to the Writer. Returns the number of bytes written.
+///
+/// - Memory writers buffer the bytes.
+/// - stdout/stderr writers emit synchronously via print intrinsics.
+pub fn writer_write(w: Vec<i32>, data: Vec<i32>) -> Result<i32, String> {
+    let tag: i32 = get_unchecked(w, 0)
+    let n: i32 = len(data)
+    if tag == 0 {
+        let mut i: i32 = 0
+        while i < n {
+            push(w, get_unchecked(data, i) & 255)
+            i = i + 1
+        }
+        Ok(n)
+    } else {
+        let mut s: String = ""
+        let mut i: i32 = 0
+        while i < n {
+            s = __intrinsic_concat(s, char_to_string(get_unchecked(data, i) & 255))
+            i = i + 1
+        }
+        if tag == 1 {
+            __intrinsic_print(s)
+        } else {
+            __intrinsic_eprintln(s)
+        }
+        Ok(n)
+    }
+}
+
+/// Writes a string to the Writer. Returns the number of bytes written.
+pub fn writer_write_str(w: Vec<i32>, s: String) -> Result<i32, String> {
+    let tag: i32 = get_unchecked(w, 0)
+    let n: i32 = len(s)
+    if tag == 0 {
+        let mut i: i32 = 0
+        while i < n {
+            push(w, char_at(s, i) & 255)
+            i = i + 1
+        }
+        Ok(n)
+    } else if tag == 1 {
+        __intrinsic_print(s)
+        Ok(n)
+    } else {
+        __intrinsic_eprintln(s)
+        Ok(n)
+    }
+}
+
+/// Writes all bytes in `data`; returns `()` on success.
+pub fn write_all(w: Vec<i32>, data: Vec<i32>) -> Result<(), String> {
+    match writer_write(w, data) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
+}
+
+/// Writes a string; returns `()` on success.
+pub fn write_string(w: Vec<i32>, s: String) -> Result<(), String> {
+    match writer_write_str(w, s) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e),
+    }
+}
+
+/// Flushes the Writer.
+///
+/// stdout/stderr Writers already emit synchronously, so this is always a no-op.
+/// Memory Writers buffer locally; no underlying fd to flush.
+pub fn writer_flush(w: Vec<i32>) -> Result<(), String> {
+    Ok(())
+}
+
+/// Alias for `writer_flush`.
+pub fn flush(w: Vec<i32>) -> Result<(), String> {
+    writer_flush(w)
+}
+
+/// Returns the buffered bytes of a memory Writer.
+///
+/// For stdout/stderr Writers, returns an empty Vec (bytes were already emitted).
+pub fn writer_to_bytes(w: Vec<i32>) -> Vec<i32> {
+    let out: Vec<i32> = Vec_new_i32()
+    let tag: i32 = get_unchecked(w, 0)
+    if tag == 0 {
+        let total: i32 = len(w)
+        let mut i: i32 = 1
+        while i < total {
+            push(out, get_unchecked(w, i))
+            i = i + 1
+        }
+    }
+    out
+}
+
+// ─── Buffered I/O ─────────────────────────────────────────────────────────────
+
+/// Creates a BufReader wrapping a Reader, with a read-ahead hint of `cap` bytes.
+///
+/// BufReader layout: `[cursor=0, buf_cap, b0, b1, …, bn]`
+/// (The cap hint is stored but does not change in-memory behavior.)
+pub fn buf_reader_new(r: Vec<i32>, cap: i32) -> Vec<i32> {
+    let br: Vec<i32> = Vec_new_i32()
+    push(br, 0)         // cursor
+    push(br, cap)       // buf_cap hint
+    let r_total: i32 = len(r) - 1   // r layout: [cursor, b0..bn]
+    let mut i: i32 = 0
+    while i < r_total {
+        push(br, get_unchecked(r, 1 + i))
+        i = i + 1
+    }
+    br
+}
+
+/// Alias for `buf_reader_new` (issue API name).
+pub fn buffered_reader(r: Vec<i32>, buf_size: i32) -> Vec<i32> {
+    buf_reader_new(r, buf_size)
+}
+
+/// Reads a line from a BufReader.
+///
+/// BufReader bytes start at index 2. Newline is consumed but not included.
+pub fn buf_reader_read_line(br: Vec<i32>) -> Result<String, String> {
+    let cursor: i32 = get_unchecked(br, 0)
+    let total: i32 = len(br) - 2    // bytes are at 2..len(br)
+    let mut line: String = ""
+    let mut pos: i32 = cursor
+    while pos < total {
+        let b: i32 = get_unchecked(br, 2 + pos)
+        pos = pos + 1
+        if b == 10 {
+            pos = total         // exit loop on newline
+        } else {
+            line = __intrinsic_concat(line, char_to_string(b))
+        }
+    }
+    set(br, 0, pos)
+    Ok(line)
+}
+
+/// Creates a BufWriter wrapping a Writer, with a flush threshold of `cap` bytes.
+///
+/// BufWriter layout: `[fd_tag, buf_cap, b0, b1, …, bn]`
+/// Auto-flushes when the buffer reaches `cap`.
+pub fn buf_writer_new(w: Vec<i32>, cap: i32) -> Vec<i32> {
+    let bw: Vec<i32> = Vec_new_i32()
+    let tag: i32 = get_unchecked(w, 0)
+    push(bw, tag)       // inherit the underlying fd_tag
+    push(bw, cap)       // buf_cap
+    bw
+}
+
+/// Alias for `buf_writer_new` (issue API name).
+pub fn buffered_writer(w: Vec<i32>, buf_size: i32) -> Vec<i32> {
+    buf_writer_new(w, buf_size)
+}
+
+/// Writes a string to a BufWriter.
+///
+/// Auto-flushes to the underlying output when the buffer reaches buf_cap.
+pub fn buf_writer_write_str(bw: Vec<i32>, s: String) -> Result<i32, String> {
+    let cap: i32 = get_unchecked(bw, 1)
+    let n: i32 = len(s)
+    let mut i: i32 = 0
+    while i < n {
+        push(bw, char_at(s, i) & 255)
+        i = i + 1
+    }
+    // Auto-flush when buffered content reaches cap
+    let buf_size: i32 = len(bw) - 2
+    if buf_size >= cap {
+        let _: Result<(), String> = buf_writer_flush(bw)
+    }
+    Ok(n)
+}
+
+/// Flushes the BufWriter: emits all buffered bytes to the underlying output.
+///
+/// - stdout/stderr: prints buffered content, then clears the buffer.
+/// - memory: clears the buffer (bytes are considered consumed by the caller).
+pub fn buf_writer_flush(bw: Vec<i32>) -> Result<(), String> {
+    let tag: i32 = get_unchecked(bw, 0)
+    let cap: i32 = get_unchecked(bw, 1)
+    let buf_size: i32 = len(bw) - 2
+    if buf_size > 0 {
+        if tag == 1 {
+            // Build string from buffered bytes and print to stdout
+            let mut s: String = ""
+            let mut i: i32 = 0
+            while i < buf_size {
+                s = __intrinsic_concat(s, char_to_string(get_unchecked(bw, 2 + i) & 255))
+                i = i + 1
+            }
+            __intrinsic_print(s)
+        } else if tag == 2 {
+            // Build string from buffered bytes and print to stderr
+            let mut s: String = ""
+            let mut i: i32 = 0
+            while i < buf_size {
+                s = __intrinsic_concat(s, char_to_string(get_unchecked(bw, 2 + i) & 255))
+                i = i + 1
+            }
+            __intrinsic_eprintln(s)
+        }
+        // Clear the buffer; preserve tag and cap header
+        clear(bw)
+        push(bw, tag)
+        push(bw, cap)
+    }
+    Ok(())
+}
+
+// ─── Copy utility ─────────────────────────────────────────────────────────────
+
+/// Copies all remaining bytes from a Reader to a Writer.
+///
+/// Returns the total number of bytes transferred.
+pub fn copy_bytes(from: Vec<i32>, to: Vec<i32>) -> Result<i32, String> {
+    let cursor: i32 = get_unchecked(from, 0)
+    let total: i32 = len(from) - 1
+    let remaining: i32 = total - cursor
+    let r: Result<Vec<i32>, String> = reader_read(from, remaining)
+    match r {
+        Ok(data) => writer_write(to, data),
+        Err(e) => Err(e),
+    }
+}
+
+/// Alias for `copy_bytes` (issue API name).
+pub fn copy(r: Vec<i32>, w: Vec<i32>) -> Result<i32, String> {
+    copy_bytes(r, w)
+}

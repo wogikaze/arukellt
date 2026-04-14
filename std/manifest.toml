@@ -3702,3 +3702,229 @@ doc_category = "signal"
 stability = "stable"
 params = ["f64", "f64", "f64"]
 returns = "bool"
+
+# === std::io ===
+
+[[functions]]
+name = "reader_from_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "reader_eof"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+
+[[functions]]
+name = "reader_read"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Result<Vec<i32>, String>"
+
+[[functions]]
+name = "reader_read_exact"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Result<Vec<i32>, String>"
+
+[[functions]]
+name = "reader_read_all"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<Vec<i32>, String>"
+
+[[functions]]
+name = "reader_read_line"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<String, String>"
+
+[[functions]]
+name = "stdin"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "stdout"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "stderr"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "read_stdin_line"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Result<String, String>"
+
+[[functions]]
+name = "print_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "()"
+
+[[functions]]
+name = "writer_new"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "writer_write"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Result<i32, String>"
+
+[[functions]]
+name = "writer_write_str"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "String"]
+returns = "Result<i32, String>"
+
+[[functions]]
+name = "write_all"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "write_string"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "String"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "writer_flush"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "flush"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "writer_to_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_reader_new"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buffered_reader"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_reader_read_line"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<String, String>"
+
+[[functions]]
+name = "buf_writer_new"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buffered_writer"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_writer_write_str"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "String"]
+returns = "Result<i32, String>"
+
+[[functions]]
+name = "buf_writer_flush"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Result<(), String>"
+
+[[functions]]
+name = "copy_bytes"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Result<i32, String>"
+
+[[functions]]
+name = "copy"
+module = "std::io"
+doc_category = "io"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Result<i32, String>"

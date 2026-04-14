@@ -66,6 +66,7 @@ diag:v0_constraints/no_operator_overload.ark
 module-diag:modules/circular/main.ark
 module-diag:modules/pub_private/main.ark
 module-diag:modules/pub_use_nonpub_hidden/main.ark
+module-diag:modules/registry_not_found/main.ark
 module-diag:modules/use_not_found/main.ark
 module-diag:modules/visibility_enforce/main.ark
 module-run:modules/import_basic/main.ark
@@ -264,6 +265,11 @@ run:stdlib_io/println_multi.ark
 run:stdlib_io/to_string.ark
 run:stdlib_io/to_string_char_local.ark
 run:stdlib_io2/io_basic.ark
+run:stdlib_io_rw/reader_basic.ark
+run:stdlib_io_rw/writer_basic.ark
+run:stdlib_io_rw/stdout_write.ark
+run:stdlib_io_rw/buffered_basic.ark
+run:stdlib_io_rw/copy_stream.ark
 run:stdlib_json/json_basic.ark
 run:stdlib_json/json_roundtrip.ark
 run:stdlib_linear/linear_basic.ark
