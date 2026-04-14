@@ -2,6 +2,18 @@
 //!
 //! The current implementation uses open addressing with linear probing and a
 //! monomorphic `i32 -> i32` map representation.
+//!
+//! # STOP_IF note
+//!
+//! True generic HashMap<K,V> / HashSet<T> require trait-based hashing and
+//! equality which are not yet supported at the Arukellt runtime level.
+//! All new functions below are monomorphic (i32 key / i32 value / i32 element)
+//! per the impl-stdlib STOP_IF policy documented in issue #044.
+//!
+//! # Layout
+//!
+//! `Vec<i32>` backing store: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
+//! flags: 0 = empty, 1 = occupied
 
 pub fn hashmap_new() -> Vec<i32> {
     // Layout: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
@@ -107,4 +119,216 @@ pub fn hashmap_set(m: Vec<i32>, key: i32, value: i32) {
 
 pub fn hashmap_size(m: Vec<i32>) -> i32 {
     get_unchecked(m, 1)
+}
+
+// ─── Extended HashMap API (monomorphic i32→i32) ───────────────────────────
+
+/// Create a new HashMap with a specific initial capacity.
+/// Capacity is rounded up to the given value; must be >= 1.
+pub fn hashmap_with_capacity(cap: i32) -> Vec<i32> {
+    let m: Vec<i32> = Vec_new_i32()
+    push(m, cap)
+    push(m, 0)
+    let mut i: i32 = 0
+    while i < cap * 3 {
+        push(m, 0)
+        i = i + 1
+    }
+    m
+}
+
+/// Look up a key and return Some(value) or None.
+pub fn hashmap_get_option(m: Vec<i32>, key: i32) -> Option<i32> {
+    let cap: i32 = get_unchecked(m, 0)
+    let h: i32 = hash_i32(key)
+    let mut idx: i32 = h % cap
+    let mut probes: i32 = 0
+    let mut result: Option<i32> = None
+    while probes < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + idx)
+        if flag == 0 {
+            probes = cap
+        } else {
+            let k: i32 = get_unchecked(m, 2 + idx)
+            if k == key {
+                result = Some(get_unchecked(m, 2 + cap + idx))
+                probes = cap
+            } else {
+                idx = (idx + 1) % cap
+                probes = probes + 1
+            }
+        }
+    }
+    result
+}
+
+/// Return true if the map contains no entries.
+pub fn hashmap_is_empty(m: Vec<i32>) -> bool {
+    hashmap_size(m) == 0
+}
+
+/// Remove all entries from the map, resetting size to 0.
+pub fn hashmap_clear(m: Vec<i32>) {
+    let cap: i32 = get_unchecked(m, 0)
+    set(m, 1, 0)
+    let mut i: i32 = 0
+    while i < cap {
+        set(m, 2 + cap * 2 + i, 0)
+        i = i + 1
+    }
+}
+
+/// Return a Vec<i32> of all keys currently in the map.
+pub fn hashmap_keys(m: Vec<i32>) -> Vec<i32> {
+    let cap: i32 = get_unchecked(m, 0)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + i)
+        if flag == 1 {
+            push(result, get_unchecked(m, 2 + i))
+        }
+        i = i + 1
+    }
+    result
+}
+
+/// Return a Vec<i32> of all values currently in the map.
+pub fn hashmap_values(m: Vec<i32>) -> Vec<i32> {
+    let cap: i32 = get_unchecked(m, 0)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < cap {
+        let flag: i32 = get_unchecked(m, 2 + cap * 2 + i)
+        if flag == 1 {
+            push(result, get_unchecked(m, 2 + cap + i))
+        }
+        i = i + 1
+    }
+    result
+}
+
+/// Remove a key from the map and return its previous value, or None if absent.
+/// Removal is implemented by collecting all live entries, clearing the map,
+/// and re-inserting everything except the removed key (O(n) but correct).
+pub fn hashmap_remove(m: Vec<i32>, key: i32) -> Option<i32> {
+    if !hashmap_contains(m, key) {
+        None
+    } else {
+        let old_val: i32 = hashmap_get(m, key)
+        let ks: Vec<i32> = hashmap_keys(m)
+        let vs: Vec<i32> = hashmap_values(m)
+        hashmap_clear(m)
+        let n: i32 = len(ks)
+        let mut i: i32 = 0
+        while i < n {
+            let k: i32 = get_unchecked(ks, i)
+            let v: i32 = get_unchecked(vs, i)
+            if k != key {
+                hashmap_set(m, k, v)
+            }
+            i = i + 1
+        }
+        Some(old_val)
+    }
+}
+
+// ─── HashSet API (monomorphic i32, backed by HashMap<i32,i32>) ──────────────
+
+/// Create a new empty HashSet.
+pub fn hashset_new() -> Vec<i32> {
+    hashmap_new()
+}
+
+/// Insert a value into the set. Returns true if the value was newly added,
+/// false if it was already present.
+pub fn hashset_insert(s: Vec<i32>, value: i32) -> bool {
+    if hashmap_contains(s, value) {
+        false
+    } else {
+        hashmap_set(s, value, 1)
+        true
+    }
+}
+
+/// Return true if the set contains the given value.
+pub fn hashset_contains(s: Vec<i32>, value: i32) -> bool {
+    hashmap_contains(s, value)
+}
+
+/// Remove a value from the set. Returns true if the value was present, false otherwise.
+pub fn hashset_remove(s: Vec<i32>, value: i32) -> bool {
+    if hashmap_contains(s, value) {
+        let _ = hashmap_remove(s, value)
+        true
+    } else {
+        false
+    }
+}
+
+/// Return the number of elements in the set.
+pub fn hashset_len(s: Vec<i32>) -> i32 {
+    hashmap_size(s)
+}
+
+/// Return true if the set is empty.
+pub fn hashset_is_empty(s: Vec<i32>) -> bool {
+    hashmap_is_empty(s)
+}
+
+/// Return all elements of the set as a Vec<i32>.
+pub fn hashset_to_vec(s: Vec<i32>) -> Vec<i32> {
+    hashmap_keys(s)
+}
+
+/// Return the union of two sets (all elements present in a or b).
+pub fn hashset_union(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+    let result: Vec<i32> = hashset_new()
+    let ak: Vec<i32> = hashmap_keys(a)
+    let na: i32 = len(ak)
+    let mut i: i32 = 0
+    while i < na {
+        let _ = hashset_insert(result, get_unchecked(ak, i))
+        i = i + 1
+    }
+    let bk: Vec<i32> = hashmap_keys(b)
+    let nb: i32 = len(bk)
+    let mut j: i32 = 0
+    while j < nb {
+        let _ = hashset_insert(result, get_unchecked(bk, j))
+        j = j + 1
+    }
+    result
+}
+
+/// Return the intersection of two sets (elements present in both a and b).
+pub fn hashset_intersection(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+    let result: Vec<i32> = hashset_new()
+    let ak: Vec<i32> = hashmap_keys(a)
+    let n: i32 = len(ak)
+    let mut i: i32 = 0
+    while i < n {
+        let k: i32 = get_unchecked(ak, i)
+        if hashmap_contains(b, k) {
+            let _ = hashset_insert(result, k)
+        }
+        i = i + 1
+    }
+    result
+}
+
+/// Return the difference a - b (elements in a that are not in b).
+pub fn hashset_difference(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+    let result: Vec<i32> = hashset_new()
+    let ak: Vec<i32> = hashmap_keys(a)
+    let n: i32 = len(ak)
+    let mut i: i32 = 0
+    while i < n {
+        let k: i32 = get_unchecked(ak, i)
+        if !hashmap_contains(b, k) {
+            let _ = hashset_insert(result, k)
+        }
+        i = i + 1
+    }
+    result
 }

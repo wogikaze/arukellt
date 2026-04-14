@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 361
+- **Canonical names:** 378
 - **Historical/deprecated names:** 3
-- **Total entries:** 364
+- **Total entries:** 381
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -161,16 +161,33 @@ Current public API names, sorted alphabetically.
 | `hash_combine` | `std::core::hash` | `stable` | Core |
 | `hash_i32` | `std::core::hash` | `stable` | Core |
 | `hash_string` | `std::core::hash` | `stable` | Core |
+| `hashmap_clear` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_contains` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_get` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_get_option` | `std::collections::hash` | `stable` | Collections |
 | `HashMap_i32_i32_contains_key` | `prelude` | `stable` | Collections |
 | `HashMap_i32_i32_get` | `prelude` | `stable` | Collections |
 | `HashMap_i32_i32_insert` | `prelude` | `stable` | Collections |
 | `HashMap_i32_i32_len` | `prelude` | `stable` | Collections |
 | `HashMap_i32_i32_new` | `prelude` | `stable` | Collections |
+| `hashmap_is_empty` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_keys` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_new` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_remove` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_set` | `std::collections::hash` | `stable` | Collections |
 | `hashmap_size` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_values` | `std::collections::hash` | `stable` | Collections |
+| `hashmap_with_capacity` | `std::collections::hash` | `stable` | Collections |
+| `hashset_contains` | `std::collections::hash` | `stable` | Collections |
+| `hashset_difference` | `std::collections::hash` | `stable` | Collections |
+| `hashset_insert` | `std::collections::hash` | `stable` | Collections |
+| `hashset_intersection` | `std::collections::hash` | `stable` | Collections |
+| `hashset_is_empty` | `std::collections::hash` | `stable` | Collections |
+| `hashset_len` | `std::collections::hash` | `stable` | Collections |
+| `hashset_new` | `std::collections::hash` | `stable` | Collections |
+| `hashset_remove` | `std::collections::hash` | `stable` | Collections |
+| `hashset_to_vec` | `std::collections::hash` | `stable` | Collections |
+| `hashset_union` | `std::collections::hash` | `stable` | Collections |
 | `hex_decode` | `std::bytes` | `stable` | Bytes |
 | `hex_encode` | `std::bytes` | `stable` | Bytes |
 | `i16_to_i32` | `prelude` | `stable` | Scalar Conversion |
@@ -544,16 +561,33 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `hash_combine` | ✅ `stable` | `std::core::hash` | Core |
 | `hash_i32` | ✅ `stable` | `std::core::hash` | Core |
 | `hash_string` | ✅ `stable` | `std::core::hash` | Core |
+| `hashmap_clear` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_contains` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_get` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashmap_get_option` | ✅ `stable` | `std::collections::hash` | Collections |
 | `HashMap_i32_i32_contains_key` | ✅ `stable` | `prelude` | Collections |
 | `HashMap_i32_i32_get` | ✅ `stable` | `prelude` | Collections |
 | `HashMap_i32_i32_insert` | ✅ `stable` | `prelude` | Collections |
 | `HashMap_i32_i32_len` | ✅ `stable` | `prelude` | Collections |
 | `HashMap_i32_i32_new` | ✅ `stable` | `prelude` | Collections |
+| `hashmap_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashmap_keys` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_new` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashmap_remove` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_set` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hashmap_size` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashmap_values` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashmap_with_capacity` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_contains` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_difference` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_insert` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_intersection` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_is_empty` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_len` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_new` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_remove` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_to_vec` | ✅ `stable` | `std::collections::hash` | Collections |
+| `hashset_union` | ✅ `stable` | `std::collections::hash` | Collections |
 | `hex_decode` | ✅ `stable` | `std::bytes` | Bytes |
 | `hex_encode` | ✅ `stable` | `std::bytes` | Bytes |
 | `i16_to_i32` | ✅ `stable` | `prelude` | Scalar Conversion |

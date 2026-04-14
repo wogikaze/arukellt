@@ -57,13 +57,25 @@ future versions.
 ## `std::collections::hash`
 
 - Source: [`../../../std/collections/hash.ark`](../../../std/collections/hash.ark)
-- Manifest-backed functions: 5
-- Stability: stable 5
+- Manifest-backed functions: 22
+- Stability: stable 22
 
 Hash-based collection helpers.
 
 The current implementation uses open addressing with linear probing and a
 monomorphic `i32 -> i32` map representation.
+
+### STOP_IF note
+
+True generic HashMap<K,V> / HashSet<T> require trait-based hashing and
+equality which are not yet supported at the Arukellt runtime level.
+All new functions below are monomorphic (i32 key / i32 value / i32 element)
+per the impl-stdlib STOP_IF policy documented in issue #044.
+
+### Layout
+
+`Vec<i32>` backing store: [capacity, size, ...keys(cap), ...values(cap), ...flags(cap)]
+flags: 0 = empty, 1 = occupied
 
 ### Public API
 
@@ -74,6 +86,23 @@ monomorphic `i32 -> i32` map representation.
 | `hashmap_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
 | `hashmap_set` | `(Vec<i32>, i32, i32) -> ()` | `stable` | - |
 | `hashmap_size` | `(Vec<i32>) -> i32` | `stable` | - |
+| `hashmap_with_capacity` | `(i32) -> Vec<i32>` | `stable` | Create a new HashMap with a specific initial capacity. |
+| `hashmap_get_option` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | Look up a key and return Some(value) or None. |
+| `hashmap_is_empty` | `(Vec<i32>) -> bool` | `stable` | Return true if the map contains no entries. |
+| `hashmap_clear` | `(Vec<i32>) -> ()` | `stable` | Remove all entries from the map, resetting size to 0. |
+| `hashmap_keys` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return a Vec<i32> of all keys currently in the map. |
+| `hashmap_values` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return a Vec<i32> of all values currently in the map. |
+| `hashmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `stable` | Remove a key from the map and return its previous value, or None if absent. |
+| `hashset_new` | `() -> Vec<i32>` | `stable` | Create a new empty HashSet. |
+| `hashset_insert` | `(Vec<i32>, i32) -> bool` | `stable` | Insert a value into the set. Returns true if the value was newly added, |
+| `hashset_contains` | `(Vec<i32>, i32) -> bool` | `stable` | Return true if the set contains the given value. |
+| `hashset_remove` | `(Vec<i32>, i32) -> bool` | `stable` | Remove a value from the set. Returns true if the value was present, false otherwise. |
+| `hashset_len` | `(Vec<i32>) -> i32` | `stable` | Return the number of elements in the set. |
+| `hashset_is_empty` | `(Vec<i32>) -> bool` | `stable` | Return true if the set is empty. |
+| `hashset_to_vec` | `(Vec<i32>) -> Vec<i32>` | `stable` | Return all elements of the set as a Vec<i32>. |
+| `hashset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the union of two sets (all elements present in a or b). |
+| `hashset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the intersection of two sets (elements present in both a and b). |
+| `hashset_difference` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `stable` | Return the difference a - b (elements in a that are not in b). |
 
 ## `std::collections::linear`
 

@@ -87,7 +87,6 @@ graph LR
   I487["487 Package registry resolution"]
   I490["490 pub use / pub import re-export"]
   I491["491 491 — Playground CI performance budget enforcement"]
-  I492["492 492 — T3 tail-call: implement return_call_ref"]
   I493["493 493 — Selfhost MIR lowering: control-flow coverage (match/loop/closure)"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
@@ -248,7 +247,6 @@ graph LR
 - **487** depends on: 039; blocks: none
 - **490** depends on: 234; blocks: none
 - **491** depends on: none; blocks: none
-- **492** depends on: none; blocks: none
 - **493** depends on: none; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none

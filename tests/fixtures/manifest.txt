@@ -241,6 +241,9 @@ run:stdlib_env/env_basic.ark
 run:stdlib_filter/filter_string.ark
 run:stdlib_hash/hash_basic.ark
 run:stdlib_hashmap/hashmap_basic.ark
+run:stdlib_hashmap/hashmap_extended.ark
+run:stdlib_hashmap/hashset_basic.ark
+run:stdlib_hashmap/hashset_ops.ark
 run:stdlib_hof_i64_f64/filter_f64.ark
 run:stdlib_hof_i64_f64/filter_i64.ark
 run:stdlib_hof_i64_f64/fold_i64.ark

@@ -2825,6 +2825,146 @@ stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
 
+# --- Extended HashMap API (#044 — monomorphic i32→i32 fallback per STOP_IF) ---
+
+[[functions]]
+name = "hashmap_with_capacity"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashmap_get_option"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+
+[[functions]]
+name = "hashmap_is_empty"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+
+[[functions]]
+name = "hashmap_clear"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "()"
+
+[[functions]]
+name = "hashmap_keys"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashmap_values"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashmap_remove"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+
+# --- HashSet API (#044 — monomorphic i32 element, backed by HashMap<i32,i32>) ---
+
+[[functions]]
+name = "hashset_new"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashset_insert"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_contains"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_remove"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_len"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "hashset_is_empty"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+
+[[functions]]
+name = "hashset_to_vec"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashset_union"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashset_intersection"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "hashset_difference"
+module = "std::collections::hash"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "Vec<i32>"
+
 # === std::collections::linear ===
 
 [[functions]]
