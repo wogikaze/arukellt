@@ -1,6 +1,6 @@
 # std::json + std::toml + std::csv: データ形式パーサ
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 055

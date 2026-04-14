@@ -1,6 +1,6 @@
 # std::process + std::env + std::cli: 実行環境 API
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 052
