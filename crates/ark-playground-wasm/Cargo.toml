@@ -11,6 +11,8 @@ crate-type = ["cdylib", "rlib"]
 ark-lexer = { workspace = true }
 ark-parser = { workspace = true }
 ark-diagnostics = { workspace = true }
+ark-resolve = { workspace = true }
+ark-typecheck = { workspace = true }
 wasm-bindgen = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

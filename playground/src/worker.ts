@@ -36,6 +36,7 @@ interface WasmExports {
   parse: (source: string) => string;
   format: (source: string) => string;
   tokenize: (source: string) => string;
+  typecheck: (source: string) => string;
   version: () => string;
 }
 
@@ -70,6 +71,7 @@ async function handleMessage(msg: WorkerRequest): Promise<WorkerResponse> {
         parse: mod.parse,
         format: mod.format,
         tokenize: mod.tokenize,
+        typecheck: mod.typecheck,
         version: mod.version,
       };
 
@@ -91,6 +93,10 @@ async function handleMessage(msg: WorkerRequest): Promise<WorkerResponse> {
       }
       case "tokenize": {
         const json = wasmExports.tokenize(msg.source);
+        return { id, ok: true, result: JSON.parse(json) };
+      }
+      case "typecheck": {
+        const json = wasmExports.typecheck(msg.source);
         return { id, ok: true, result: JSON.parse(json) };
       }
       case "version": {

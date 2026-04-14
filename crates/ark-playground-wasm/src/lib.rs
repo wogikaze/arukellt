@@ -8,6 +8,7 @@
 //! - [`parse`]: Tokenize + parse source → JSON with AST summary and diagnostics.
 //! - [`format`]: Format source → JSON with formatted text or error.
 //! - [`tokenize`]: Tokenize source → JSON with token stream and diagnostics.
+//! - [`typecheck`]: Parse + resolve + type-check source → JSON with diagnostic array.
 //! - [`version`]: Return the crate version string.
 
 use wasm_bindgen::prelude::*;
@@ -99,6 +100,13 @@ struct TokenizeResponse {
     ok: bool,
     tokens: Vec<JsToken>,
     diagnostics: Vec<JsDiagnostic>,
+}
+
+#[derive(Serialize)]
+struct TypecheckResponse {
+    ok: bool,
+    diagnostics: Vec<JsDiagnostic>,
+    error_count: usize,
 }
 
 // ---------------------------------------------------------------------------
@@ -301,6 +309,89 @@ pub fn tokenize(source: &str) -> String {
         .unwrap_or_else(|e| format!(r#"{{"ok":false,"error":"serialization failed: {}"}}"#, e))
 }
 
+/// Type-check Arukellt source code, returning a JSON object with diagnostics.
+///
+/// Runs the full parse → resolve → type-check pipeline and returns all
+/// diagnostics from all phases.
+///
+/// # Returns
+///
+/// JSON string with shape:
+/// ```json
+/// {
+///   "ok": true,
+///   "diagnostics": [],
+///   "error_count": 0
+/// }
+/// ```
+/// or on errors:
+/// ```json
+/// {
+///   "ok": false,
+///   "diagnostics": [{"code": "E0100", "severity": "error", "phase": "typecheck", "message": "...", "labels": [], "notes": [], "suggestion": null}],
+///   "error_count": 1
+/// }
+/// ```
+#[wasm_bindgen]
+pub fn typecheck(source: &str) -> String {
+    let (tokens, lex_diagnostics) = ark_lexer::tokenize(0, source);
+    let mut sink = ark_diagnostics::DiagnosticSink::new();
+    let module = ark_parser::parse(&tokens, &mut sink);
+
+    let mut all_diagnostics: Vec<JsDiagnostic> =
+        lex_diagnostics.iter().map(convert_diagnostic).collect();
+    all_diagnostics.extend(sink.diagnostics().iter().map(convert_diagnostic));
+
+    let lex_parse_error_count =
+        lex_diagnostics.iter().filter(|d| d.is_error()).count() + sink.error_count();
+
+    if lex_parse_error_count > 0 {
+        let resp = TypecheckResponse {
+            ok: false,
+            diagnostics: all_diagnostics,
+            error_count: lex_parse_error_count,
+        };
+        return serde_json::to_string(&resp).unwrap_or_else(|e| {
+            format!(r#"{{"ok":false,"error":"serialization failed: {}"}}"#, e)
+        });
+    }
+
+    let resolved = ark_resolve::resolve_module(module, &mut sink);
+    all_diagnostics.extend(sink.diagnostics().iter().map(convert_diagnostic));
+    let resolve_error_count = sink.error_count();
+
+    if resolve_error_count > 0 {
+        let resp = TypecheckResponse {
+            ok: false,
+            diagnostics: all_diagnostics,
+            error_count: resolve_error_count,
+        };
+        return serde_json::to_string(&resp).unwrap_or_else(|e| {
+            format!(r#"{{"ok":false,"error":"serialization failed: {}"}}"#, e)
+        });
+    }
+
+    let mut tc_sink = ark_diagnostics::DiagnosticSink::new();
+    let mut checker = ark_typecheck::TypeChecker::new();
+    checker.register_builtins();
+    checker.check_core_hir_module(&resolved, &mut tc_sink);
+
+    let tc_diagnostics: Vec<JsDiagnostic> =
+        tc_sink.diagnostics().iter().map(convert_diagnostic).collect();
+    let tc_error_count = tc_sink.error_count();
+
+    all_diagnostics.extend(tc_diagnostics);
+    let total_errors = lex_parse_error_count + resolve_error_count + tc_error_count;
+
+    let resp = TypecheckResponse {
+        ok: total_errors == 0,
+        diagnostics: all_diagnostics,
+        error_count: total_errors,
+    };
+    serde_json::to_string(&resp)
+        .unwrap_or_else(|e| format!(r#"{{"ok":false,"error":"serialization failed: {}"}}"#, e))
+}
+
 /// Return the crate version.
 #[wasm_bindgen]
 pub fn version() -> String {
@@ -408,5 +499,30 @@ mod tests {
         let json2 = parse(formatted);
         let v2: serde_json::Value = serde_json::from_str(&json2).unwrap();
         assert_eq!(v2["ok"], true);
+    }
+
+    #[test]
+    fn typecheck_valid_source() {
+        let json = typecheck("fn main() {}");
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["ok"], true, "typecheck of valid source should succeed: {}", json);
+        assert_eq!(v["error_count"], 0);
+        assert!(v["diagnostics"].as_array().unwrap().is_empty());
+    }
+
+    #[test]
+    fn typecheck_returns_json_array_of_diagnostics() {
+        let json = typecheck("fn main() {}");
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(v["diagnostics"].is_array(), "diagnostics should be a JSON array");
+    }
+
+    #[test]
+    fn typecheck_parse_error_propagates() {
+        let json = typecheck("fn {}");
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["ok"], false);
+        assert!(v["error_count"].as_u64().unwrap() > 0);
+        assert!(!v["diagnostics"].as_array().unwrap().is_empty());
     }
 }

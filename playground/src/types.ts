@@ -16,7 +16,7 @@
 export type Severity = "error" | "warning" | "help";
 
 /** Phase in the compiler pipeline that produced the diagnostic. */
-export type Phase = "lex" | "parse";
+export type Phase = "lex" | "parse" | "typecheck";
 
 /** A source span label attached to a diagnostic. */
 export interface DiagnosticLabel {
@@ -137,6 +137,16 @@ export interface TokenizeResponse {
   diagnostics: Diagnostic[];
 }
 
+/** Response from `typecheck()`. */
+export interface TypecheckResponse {
+  /** `true` if type-checking succeeded without errors. */
+  ok: boolean;
+  /** All diagnostics from lex, parse, resolve, and type-check phases. */
+  diagnostics: Diagnostic[];
+  /** Number of error-severity diagnostics. */
+  error_count: number;
+}
+
 // ---------------------------------------------------------------------------
 // Configuration and playground interface
 // ---------------------------------------------------------------------------
@@ -178,6 +188,8 @@ export interface Playground {
   format(source: string): FormatResponse;
   /** Tokenize Arukellt source. */
   tokenize(source: string): TokenizeResponse;
+  /** Type-check Arukellt source and return diagnostics. */
+  typecheck(source: string): TypecheckResponse;
   /** Return the Wasm module version. */
   version(): string;
   /** Release the Wasm module resources. */
@@ -197,6 +209,8 @@ export interface WorkerPlayground {
   format(source: string): Promise<FormatResponse>;
   /** Tokenize Arukellt source. */
   tokenize(source: string): Promise<TokenizeResponse>;
+  /** Type-check Arukellt source and return diagnostics. */
+  typecheck(source: string): Promise<TypecheckResponse>;
   /** Return the Wasm module version. */
   version(): Promise<string>;
   /** Terminate the worker and release resources. */
@@ -213,6 +227,7 @@ export type WorkerRequest =
   | { id: number; cmd: "parse"; source: string }
   | { id: number; cmd: "format"; source: string }
   | { id: number; cmd: "tokenize"; source: string }
+  | { id: number; cmd: "typecheck"; source: string }
   | { id: number; cmd: "version" };
 
 /** Responses sent from worker → main thread. */

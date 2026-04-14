@@ -13,6 +13,7 @@ import type {
   ParseResponse,
   FormatResponse,
   TokenizeResponse,
+  TypecheckResponse,
 } from "./types.js";
 
 /**
@@ -26,6 +27,7 @@ interface WasmModule {
   parse: (source: string) => string;
   format: (source: string) => string;
   tokenize: (source: string) => string;
+  typecheck: (source: string) => string;
   version: () => string;
 }
 
@@ -83,6 +85,12 @@ export async function createPlayground(
       ensureAlive();
       const json = wasm.tokenize(source);
       return JSON.parse(json) as TokenizeResponse;
+    },
+
+    typecheck(source: string): TypecheckResponse {
+      ensureAlive();
+      const json = wasm.typecheck(source);
+      return JSON.parse(json) as TypecheckResponse;
     },
 
     version(): string {

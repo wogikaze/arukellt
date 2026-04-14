@@ -223,6 +223,8 @@ dependencies = [
  "ark-diagnostics",
  "ark-lexer",
  "ark-parser",
+ "ark-resolve",
+ "ark-typecheck",
  "serde",
  "serde_json",
  "wasm-bindgen",

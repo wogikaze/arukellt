@@ -69,12 +69,10 @@ graph LR
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
-  I472["472 Playground: type-checker product claim を独立 issue に分離する"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I498["498 498 — Playground CI: Lighthouse performance audit"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
-  I500["500 500 — Playground WASM: expose typecheck API surface"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I057["057 Prelude 再構成と API 移行"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
@@ -208,12 +206,10 @@ graph LR
 - **441** depends on: 333, 335, 340; blocks: none
 - **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
-- **472** depends on: 466; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
 - **498** depends on: none; blocks: none
 - **499** depends on: none; blocks: none
-- **500** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **057** depends on: 039, 041, 042, 044, 048, 049, 052; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none

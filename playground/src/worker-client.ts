@@ -14,6 +14,7 @@ import type {
   ParseResponse,
   FormatResponse,
   TokenizeResponse,
+  TypecheckResponse,
   WorkerResponse,
 } from "./types.js";
 
@@ -117,6 +118,11 @@ export async function createWorkerPlayground(
     async tokenize(source: string): Promise<TokenizeResponse> {
       if (destroyed) throw new Error("Worker playground has been destroyed");
       return send<TokenizeResponse>({ cmd: "tokenize", source });
+    },
+
+    async typecheck(source: string): Promise<TypecheckResponse> {
+      if (destroyed) throw new Error("Worker playground has been destroyed");
+      return send<TypecheckResponse>({ cmd: "typecheck", source });
     },
 
     async version(): Promise<string> {

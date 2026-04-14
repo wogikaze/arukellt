@@ -1,7 +1,7 @@
 # 500 — Playground WASM: expose typecheck API surface
 
 **Track:** playground
-**Status:** open
+**Status:** done
 **Created:** 2026-04-14
 **Updated:** 2026-04-14
 **Source:** audit — issues/open/472-playground-type-checker-product-claim.md
@@ -29,10 +29,10 @@ playground frontend, which is the prerequisite for closing #472.
 
 ## Acceptance
 
-- [ ] `crates/ark-playground-wasm/src/lib.rs` exports `pub fn typecheck(source: &str) -> String` backed by a real `ark-typecheck` call
-- [ ] `playground/src/` calls the typecheck export and surfaces the result
-- [ ] At least one native-target test exercises the typecheck WASM export
-- [ ] `bash scripts/run/verify-harness.sh --quick` passes
+- [x] `crates/ark-playground-wasm/src/lib.rs` exports `pub fn typecheck(source: &str) -> String` backed by a real `ark-typecheck` call
+- [x] `playground/src/` calls the typecheck export and surfaces the result
+- [x] At least one native-target test exercises the typecheck WASM export
+- [x] `bash scripts/run/verify-harness.sh --quick` passes
 
 ## Required verification
 

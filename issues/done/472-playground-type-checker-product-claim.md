@@ -1,6 +1,6 @@
 # Playground: type-checker product claim を独立 issue に分離する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-03
 **Updated**: 2026-04-14
 **ID**: 472
@@ -84,9 +84,17 @@ type-checker claim は parser / format / diagnostics とは別の product claim 
 
 ## Acceptance criteria
 
-- [ ] current repo に callable checker surface が存在し、その source path が issue 本文に明記されている。
-- [ ] issue 466 の browser entrypoint から、その checker surface が実際に invoke されることを repo files で確認できる。
-- [ ] checker result を機械的に検証する command / test / fixture が repo に存在する。
+- [x] current repo に callable checker surface が存在し、その source path が issue 本文に明記されている。
+- [x] issue 466 の browser entrypoint から、その checker surface が実際に invoke されることを repo files で確認できる。
+- [x] checker result を機械的に検証する command / test / fixture が repo に存在する。
+
+## Close evidence (2026-04-14)
+
+- Checker source: `crates/ark-playground-wasm/src/lib.rs` — `pub fn typecheck(source: &str) -> String` backed by `ark_typecheck::TypeChecker::new()` + `register_builtins()` + `check_core_hir_module()`
+- Frontend wiring: `playground/src/worker.ts`, `playground/src/playground.ts`, `playground/src/worker-client.ts` all expose and invoke `typecheck`
+- Type definitions: `playground/src/types.ts` adds `TypecheckResponse` + updates `Playground`, `WorkerPlayground`, `WorkerRequest`
+- Tests: `crates/ark-playground-wasm/src/lib.rs` — `typecheck_valid_source`, `typecheck_returns_json_array_of_diagnostics`, `typecheck_parse_error_propagates` all pass
+- Verification: `bash scripts/run/verify-harness.sh --quick` — 19/19 passed; `cargo test -p ark-playground-wasm` — 13/13 passed
 
 ## Required verification
 
