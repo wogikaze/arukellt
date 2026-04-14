@@ -75,7 +75,12 @@ pub(crate) fn analyze_program(graph: ModuleGraph, sink: &mut DiagnosticSink) -> 
     let global_scope = symbols.create_scope(None);
     inject_prelude_symbols(&mut symbols, global_scope);
     bind_module(&graph.entry_module, &mut symbols, global_scope, sink);
-    for loaded in graph.loaded.values() {
+    // Sort by path to ensure deterministic function ordering across compilations.
+    // Without sorting, HashMap iteration order is non-deterministic (randomized seed),
+    // causing stdlib functions to be assigned different WASM indices each run.
+    let mut sorted_loaded: Vec<_> = graph.loaded.into_values().collect();
+    sorted_loaded.sort_by(|a, b| a.path.cmp(&b.path));
+    for loaded in &sorted_loaded {
         // Issue 208: include ALL items (not just pub) from user-local modules,
         // skipping duplicates. This ensures private helpers called by pub fns
         // are visible in the merged module scope.
@@ -85,7 +90,7 @@ pub(crate) fn analyze_program(graph: ModuleGraph, sink: &mut DiagnosticSink) -> 
         // This covers slice 2 of issue #039 (module-qualified name resolution).
         bind_module_with_qualifier(&loaded.ast, &mut symbols, global_scope, &loaded.name, sink);
     }
-    let modules: Vec<_> = graph.loaded.into_values().collect();
+    let modules = sorted_loaded;
 
     // Register `pub use module::item` re-exports under the re-exporting
     // module qualifier (e.g. `api::split`) so importers can resolve them.

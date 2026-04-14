@@ -54,11 +54,11 @@ pub(crate) fn run_wasm_p1(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
     use wasmtime_wasi::preview1::WasiP1Ctx;
     use wasmtime_wasi::{DirPerms, FilePerms, WasiCtxBuilder};
 
-    // T1 WASM uses fixed linear-memory addresses (SCRATCH=16, NWRITTEN=8) as scratch
-    // registers in inline-emitted code. Cranelift's dead-store elimination can incorrectly
-    // remove these stores, corrupting loop counters and causing ~50% flaky failures at
-    // runtime (wasm func 16, instruction 0xb51 i32.load). Disabling optimization prevents
-    // this miscompilation until the T1 emitter is fixed to use WASM locals instead.
+    // Disable Cranelift optimization as a precaution for T1's fixed linear-memory
+    // scratch registers (SCRATCH=16, NWRITTEN=8). The primary flakiness root cause
+    // was non-deterministic compilation (HashMap ordering in ark-resolve::analyze)
+    // fixed in analyze.rs, but OptLevel::None is kept until the T1 emitter is
+    // updated to use proper WASM locals instead of fixed absolute addresses.
     let mut config = Config::new();
     config.cranelift_opt_level(OptLevel::None);
     let engine = Engine::new(&config).map_err(|e| format!("engine creation error: {:?}", e))?;
