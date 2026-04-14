@@ -32,7 +32,6 @@ graph LR
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
-  I116["116 Wasm WAT ラウンドトリップ検証 (wat2wasm ⇄ wasm2wat)"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
   I119["119 MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
@@ -169,7 +168,6 @@ graph LR
 - **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
 - **113** depends on: 100; blocks: none
-- **116** depends on: 114; blocks: none
 - **117** depends on: none; blocks: 118
 - **119** depends on: 101; blocks: none
 - **120** depends on: none; blocks: none
