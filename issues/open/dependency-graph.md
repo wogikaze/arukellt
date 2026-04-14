@@ -10,7 +10,6 @@ graph LR
   I032["032 WIT resource type support (own/borrow)"]
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
-  I045["045 std::collections: Deque、PriorityQueue"]
   I046["046 std::collections: BTreeMap、BTreeSet、IndexMap、IndexSet、BitSet"]
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I048["048 std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム"]
@@ -160,7 +159,6 @@ graph LR
 - **032** depends on: 030; blocks: 473
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
-- **045** depends on: 039, 041; blocks: none
 - **046** depends on: 039, 041; blocks: none
 - **047** depends on: 039, 041; blocks: none
 - **048** depends on: 039, 041; blocks: 057
