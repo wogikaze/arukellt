@@ -158,6 +158,75 @@ fn main() {}
 
 > **Fix:** `std::io` moved to `std::host::stdio`.
 
+### E0120 — registry unreachable
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | resolve |
+| **Message** | registry unreachable |
+
+The registry endpoint was not reachable (network error or timeout). In v1, only
+local file-based mock registries (`file://./path`) are supported; HTTP(S)
+endpoints emit this error.
+
+### E0121 — package not found in registry
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | resolve |
+| **Message** | package not found in registry |
+
+The declared package was not found in the configured registry. Occurs when the
+local mock directory (or network registry) does not contain the requested
+package.
+
+```toml
+# ark.toml — package declared but not present in registry
+[dependencies]
+my-lib = "1.0.0"
+```
+
+### E0122 — version not found in registry
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | resolve |
+| **Message** | version not found in registry |
+
+The package exists in the registry but the requested version is not available.
+
+### E0123 — integrity check failed
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | resolve |
+| **Message** | integrity check failed for downloaded package |
+
+The SHA-256 checksum of the downloaded package archive does not match the
+checksum recorded in the registry manifest.
+
+### E0124 — no registry configured
+
+| | |
+|---|---|
+| **Severity** | error |
+| **Phase** | resolve |
+| **Message** | no registry configured |
+
+A registry dependency was declared in `[dependencies]` but no `[registry]`
+section exists in `ark.toml`.
+
+```toml
+# ark.toml — add this section to fix E0124
+[registry]
+url = "file://./mock_reg"   # local mock
+# url = "https://registry.arukellt.dev/v1"  # public registry (planned)
+```
+
 ---
 
 ## Type Checking Errors — `E02xx`

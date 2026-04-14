@@ -64,7 +64,7 @@ ark-playground-wasm = { path = "crates/ark-playground-wasm" }
 # Shared dependencies
 wasm-encoder = "0.225"
 wasmparser = "0.225"
-wasmtime = "29"
+wasmtime = "30"
 ariadne = "0.5"
 clap = { version = "4", features = ["derive"] }
 thiserror = "2"

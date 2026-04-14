@@ -3,10 +3,12 @@ use std::path::{Path, PathBuf};
 
 use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink};
 use ark_lexer::Lexer;
+use ark_manifest::Manifest;
 use ark_parser::{ast, ast::ImportKind, parse};
 use ark_target::TargetId;
 
 use crate::module_graph::ModuleGraph;
+use crate::registry::{RegistryConfig, REGISTRY_ERROR_SENTINEL, resolve_registry_path};
 use crate::resolve::LoadedModule;
 
 // TODO(issue-077, issue-139): Target-gating for WASI P2-only modules is now
@@ -212,9 +214,13 @@ fn load_module_recursive(
     visiting: &mut HashSet<PathBuf>,
     loaded: &mut HashMap<PathBuf, LoadedModule>,
     target: Option<TargetId>,
+    registry: Option<&RegistryConfig>,
 ) {
-    // Skip host_stub sentinel path (error already emitted by resolve_import_path)
-    if path.as_os_str() == "<host_stub>" || path.as_os_str() == "<target-incompatible>" {
+    // Skip sentinel paths — errors were already emitted upstream.
+    if path.as_os_str() == "<host_stub>"
+        || path.as_os_str() == "<target-incompatible>"
+        || path.as_os_str() == REGISTRY_ERROR_SENTINEL
+    {
         return;
     }
     if loaded.contains_key(&path) {
@@ -252,7 +258,7 @@ fn load_module_recursive(
     };
 
     for import in &module.imports {
-        load_single_import(import, &path, std_root, sink, visiting, loaded, target);
+        load_single_import(import, &path, std_root, sink, visiting, loaded, target, registry);
     }
 
     visiting.remove(&path);
@@ -279,6 +285,7 @@ fn load_single_import(
     visiting: &mut HashSet<PathBuf>,
     loaded: &mut HashMap<PathBuf, LoadedModule>,
     target: Option<TargetId>,
+    registry: Option<&RegistryConfig>,
 ) {
     match &import.kind {
         ImportKind::DestructureImport { names } => {
@@ -309,6 +316,7 @@ fn load_single_import(
                     visiting,
                     loaded,
                     target,
+                    registry,
                 );
             }
         }
@@ -324,6 +332,18 @@ fn load_single_import(
             let mut item_import_fallback = false;
             let mut import_path =
                 resolve_import_path(current_path, &target_module_name, std_root, sink, target);
+
+            // Registry fallback: if the path was not resolved locally or in
+            // stdlib, and the module is a declared registry dependency, invoke
+            // the registry resolver (ADR-023, E012x range).
+            if !import_path.exists() {
+                if let Some(reg) = registry {
+                    if reg.is_registry_dep(&target_module_name) {
+                        import_path =
+                            resolve_registry_path(&target_module_name, reg, import.span, sink);
+                    }
+                }
+            }
 
             // `use a::b::item` / `pub use a::b::item` item-import fallback:
             // if `a::b::item` is not a loadable module path, try loading `a::b`.
@@ -362,6 +382,7 @@ fn load_single_import(
                 visiting,
                 loaded,
                 target,
+                registry,
             );
         }
     }
@@ -385,6 +406,13 @@ pub(crate) fn load_program_with_target(
         .map(|p| p.join("std"))
         .unwrap_or_else(|| PathBuf::from("std"));
 
+    // Build registry config from the nearest ark.toml, if one exists.
+    let registry_config: Option<RegistryConfig> = entry_path
+        .parent()
+        .and_then(|dir| Manifest::find_and_load(dir).ok())
+        .map(|(root, manifest)| RegistryConfig::from_manifest(&manifest, &root));
+    let registry = registry_config.as_ref();
+
     let entry_module = parse_module_file(entry_path, sink)?;
     let mut visiting = HashSet::new();
     let mut loaded = HashMap::new();
@@ -398,6 +426,7 @@ pub(crate) fn load_program_with_target(
             &mut visiting,
             &mut loaded,
             target,
+            registry,
         );
     }
 

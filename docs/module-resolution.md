@@ -1,7 +1,7 @@
 # Module, Package, Workspace, and Dependency Resolution
 
-> **Status**: Provisional (v1 scope). Workspace and registry dependency features
-> are scaffolded but not fully implemented.
+> **Status**: v1. Workspace features are scaffolded. Package registry resolution
+> is implemented in `crates/ark-resolve/src/registry.rs` (ADR-023).
 >
 > This document is the authoritative specification for how Arukellt resolves
 > modules, packages, workspaces, and dependencies. The implementation lives in
@@ -145,10 +145,10 @@ Dependencies are declared in the `[dependencies]` table:
 ```toml
 [dependencies]
 my-lib = { path = "../my-lib" }    # local path dependency (v1)
-some-pkg = "1.2.3"                 # registry version (future)
+some-pkg = "1.2.3"                 # registry version (v1)
 ```
 
-### 5.2 Resolution priority (planned)
+### 5.2 Resolution priority
 
 When the same package name appears in multiple sources, resolution priority is:
 
@@ -156,8 +156,8 @@ When the same package name appears in multiple sources, resolution priority is:
 2. **Workspace member** (`workspace = true`) — shared version within workspace
 3. **Registry** (`"1.2.3"`) — lowest priority
 
-In v1, only local path dependencies are supported. Registry support requires
-a package registry, which is not yet implemented.
+In v1, local path and registry dependencies are both supported.
+See §5.4 for registry configuration.
 
 ### 5.3 Local path resolution
 
@@ -167,7 +167,35 @@ A path dependency `{ path = "../my-lib" }` is resolved relative to the
 The dependency's `ark.toml` is loaded from the resolved path. Its `[bin]`
 entry point becomes the importable module.
 
-### 5.4 Circular dependency detection
+### 5.4 Registry dependency resolution
+
+When a `[dependencies]` entry is a bare version string (`some-pkg = "1.2.3"`),
+the resolver treats it as a registry dependency (ADR-023). Resolution proceeds
+after local-path and stdlib lookups fail:
+
+1. The resolver reads the nearest `ark.toml`.
+2. If its `[registry]` section is present, it queries the configured endpoint.
+3. For local development and testing, use a file-based mock:
+
+```toml
+[registry]
+url = "file://./mock_reg"
+```
+
+The mock directory must contain `<package-name>.ark` or
+`<package-name>/mod.ark`. Network (HTTP) registries are a planned follow-up.
+
+**Failure diagnostics** (all compile-time, per ADR-023 §2):
+
+| Code | Condition |
+|------|-----------|
+| E0120 | Registry unreachable (network / not yet supported in v1) |
+| E0121 | Package not found in registry |
+| E0122 | Version not found in registry |
+| E0123 | Integrity check failed for downloaded package |
+| E0124 | No `[registry]` section in `ark.toml` |
+
+### 5.5 Circular dependency detection
 
 Circular path dependencies are detected at load time. A circular dependency
 graph produces compile error E0108 (circular dependency).
@@ -235,6 +263,11 @@ agree on which project is active.
 | E0109 | ManifestNotFound | `arukellt build` with no `ark.toml` in tree |
 | E0110 | ManifestParseError | `ark.toml` has a syntax error |
 | E0111 | MissingBinSection | `ark.toml` has no `[bin]` section |
+| E0120 | RegistryUnreachable | Registry endpoint not accessible |
+| E0121 | PackageNotFound | Package not found in registry |
+| E0122 | VersionNotFound | Version not found in registry |
+| E0123 | IntegrityFailed | Checksum mismatch after download |
+| E0124 | RegistryNotConfigured | No `[registry]` section in `ark.toml` |
 
 ## 10. Open Work
 
@@ -243,5 +276,4 @@ agree on which project is active.
 | #234 | Visibility enforcement as compiler error | Open |
 | #235 | Multi-root workspace tool layer unification | Open |
 | v2 | Multi-package workspace support | Planned |
-| v2 | Registry dependency resolution | Planned |
 | v4 | Component Model boundary imports (`import` keyword v4) | Planned |

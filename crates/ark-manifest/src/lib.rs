@@ -18,6 +18,8 @@ pub struct Manifest {
     pub world: Option<WorldSection>,
     #[serde(default)]
     pub lint: Option<LintConfig>,
+    #[serde(default)]
+    pub registry: Option<RegistrySection>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -56,6 +58,19 @@ pub enum DependencySpec {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WorldSection {
     pub name: String,
+}
+
+/// [registry] section — package registry configuration.
+///
+/// The `url` field specifies the registry endpoint. Use `file://<path>` for a
+/// local directory-based mock registry (useful for offline testing).
+/// HTTP(S) URLs refer to a real registry service.
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct RegistrySection {
+    /// Registry URL. May be:
+    /// - `https://registry.arukellt.dev/v1` (default)
+    /// - `file://./path/to/local/dir` (local mock, relative to manifest dir)
+    pub url: Option<String>,
 }
 
 /// [lint] section — per-project lint rule severity overrides.

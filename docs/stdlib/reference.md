@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 324 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 352 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 49 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -487,6 +487,39 @@ Expected output: `Hello, world!`
 
 **Errors:** Err on DNS resolution failure, invalid port, or network unreachable.
 
+## Io
+
+| Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
+|------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `buf_reader_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buf_reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buf_writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buf_writer_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buffered_reader` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buffered_writer` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `copy` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `copy_bytes` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `builtin` | no | - | - |
+| `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_eof` | `(Vec<i32>) -> bool` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_from_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_read` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_read_all` | `(Vec<i32>) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_read_exact` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_new` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_to_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_write` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+
 ## Json
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
@@ -824,7 +857,14 @@ Expected output: `hello world`
 | `buf_push_u32_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 32-bit value in little-endian byte order onto a ByteBuf. |
 | `buf_push_u64_le` | `(Vec<i32>, i64) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64. |
 | `buf_push_u8` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a single byte (0-255) onto a ByteBuf. |
+| `buf_reader_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buf_reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `buf_with_capacity` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime. |
+| `buf_writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buf_writer_new` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buf_writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buffered_reader` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `buffered_writer` | `(Vec<i32>, i32) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `builder_append` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `builder_append_char` | `(String, char) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `builder_append_line` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
@@ -858,6 +898,8 @@ Expected output: `hello world`
 | `contains` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_contains` | - |
 | `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
 | `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
+| `copy` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `copy_bytes` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `cos_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
@@ -897,6 +939,7 @@ Expected output: `hello world`
 | `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
 | `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` | - |
 | `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i32` | - |
+| `flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` | - |
 | `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` | - |
 | `format_bool` | `(bool) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
@@ -1006,6 +1049,7 @@ Expected output: `hello world`
 | `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
 | `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
 | `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
+| `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `builtin` | no | - | - |
 | `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |
 | `product_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
 | `push` | `(Vec<T>, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
@@ -1019,12 +1063,19 @@ Expected output: `hello world`
 | `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
 | `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
+| `read_stdin_line` | `() -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
 | `read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
 | `read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
 | `read_u64_le` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `builtin` | no | - | Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow. |
 | `read_u8` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read one byte from a ByteCursor and advance the position. Returns -1 on underflow. |
+| `reader_eof` | `(Vec<i32>) -> bool` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_from_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_read` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_read_all` | `(Vec<i32>) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_read_exact` | `(Vec<i32>, i32) -> Result<Vec<i32>, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `reader_read_line` | `(Vec<i32>) -> Result<String, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` | - |
 | `repeat` | `(String, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |
@@ -1056,6 +1107,9 @@ Expected output: `hello world`
 | `sqrt` | `(f64) -> f64` | `std::core::math` | `stable` | `builtin` | no | - | - |
 | `starts_with` | `(String, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_starts_with` | - |
 | `starts_with` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_starts_with` | - |
+| `stderr` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `stdin` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `stdout` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
@@ -1087,8 +1141,15 @@ Expected output: `hello world`
 | `unwrap_or_else` | `(Option<T>, fn() -> T) -> T` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `var` | `(String) -> Option<String>` | `std::host::env` | `stable` | `builtin` | no | `__intrinsic_env_var` | Look up an environment variable by name. Returns None if the variable is not set. |
 | `with_extension` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `write_all` | `(Vec<i32>, Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
+| `write_string` | `(Vec<i32>, String) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_new` | `() -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_to_bytes` | `(Vec<i32>) -> Vec<i32>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_write` | `(Vec<i32>, Vec<i32>) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
+| `writer_write_str` | `(Vec<i32>, String) -> Result<i32, String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `zeros` | `(i32) -> Vec<f64>` | `std::signal` | `stable` | `builtin` | no | - | - |
 
 ## Provisional APIs

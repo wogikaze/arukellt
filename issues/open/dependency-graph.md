@@ -83,7 +83,6 @@ graph LR
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
-  I487["487 Package registry resolution"]
   I490["490 pub use / pub import re-export"]
   I491["491 491 — Playground CI performance budget enforcement"]
   I493["493 493 — Selfhost MIR lowering: control-flow coverage (match/loop/closure)"]
@@ -242,7 +241,6 @@ graph LR
 - **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **472** depends on: 466; blocks: none
-- **487** depends on: 039; blocks: none
 - **490** depends on: 234; blocks: none
 - **491** depends on: none; blocks: none
 - **493** depends on: none; blocks: none

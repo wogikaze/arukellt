@@ -24,7 +24,7 @@ toml = { workspace = true }
 clap = { workspace = true }
 wasmtime = { workspace = true }
 wasmparser = { workspace = true }
-wasmtime-wasi = "29"
+wasmtime-wasi = "30"
 serde = { workspace = true }
 serde_json = { workspace = true }
 strsim = "0.11"

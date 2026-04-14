@@ -2527,11 +2527,18 @@ impl Ctx {
                             }
                         }
                         Terminator::TailCallIndirect { callee, args } => {
-                            // Emit `return_call_indirect` — indirect tail-call terminator.
-                            for arg in args {
-                                self.emit_operand(&mut w, arg);
-                            }
-                            self.emit_operand(&mut w, callee);
+                            // If the callee is a typed GC function reference (FnRef directly
+                            // or a local whose assigned value was tracked in fn_ref_locals),
+                            // emit `ref.func $fn + return_call_ref $type` instead of the
+                            // table-based `return_call_indirect`.  This is the correct
+                            // lowering for the Wasm function-references / GC proposal.
+                            let fn_name_opt: Option<String> = match callee.as_ref() {
+                                Operand::FnRef(name) => Some(name.clone()),
+                                Operand::Place(Place::Local(local_id)) => {
+                                    self.fn_ref_locals.get(&local_id.0).cloned()
+                                }
+                                _ => None,
+                            };
                             let params: Vec<ValType> = args
                                 .iter()
                                 .map(|a| {
@@ -2550,10 +2557,26 @@ impl Ctx {
                                 .get(&(params, results))
                                 .copied()
                                 .unwrap_or(0);
-                            w.instruction(&Instruction::ReturnCallIndirect {
-                                type_index,
-                                table_index: 0,
-                            });
+                            if let Some(fn_name) = fn_name_opt
+                                && let Some(&fn_idx) = self.fn_map.get(fn_name.as_str())
+                            {
+                                // return_call_ref: push args, then funcref, then return_call_ref.
+                                for arg in args {
+                                    self.emit_operand(&mut w, arg);
+                                }
+                                w.instruction(&Instruction::RefFunc(fn_idx));
+                                w.instruction(&Instruction::ReturnCallRef(type_index));
+                            } else {
+                                // Fallback: table-based return_call_indirect.
+                                for arg in args {
+                                    self.emit_operand(&mut w, arg);
+                                }
+                                self.emit_operand(&mut w, callee);
+                                w.instruction(&Instruction::ReturnCallIndirect {
+                                    type_index,
+                                    table_index: 0,
+                                });
+                            }
                         }
                         _ => {}
                     }
@@ -2934,5 +2957,91 @@ impl Ctx {
 
             _ => false,
         }
+    }
+}
+
+// ── Unit tests ─────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use ark_diagnostics::DiagnosticSink;
+    use ark_mir::mir::{
+        BasicBlock, BlockId, FnId, InstanceKey, MirFunction, MirModule, Operand,
+        SourceInfo, Terminator,
+    };
+    use ark_typecheck::types::Type;
+
+    fn make_simple_func(id: u32, name: &str, ret_ty: Type, terminator: Terminator) -> MirFunction {
+        MirFunction {
+            id: FnId(id),
+            name: name.to_string(),
+            instance: InstanceKey::simple(name),
+            params: Vec::new(),
+            return_ty: ret_ty,
+            locals: Vec::new(),
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: Vec::new(),
+                terminator,
+                source: SourceInfo::unknown(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: Vec::new(),
+            source: SourceInfo::unknown(),
+            is_exported: false,
+        }
+    }
+
+    /// Verify that `Terminator::TailCallIndirect { callee: FnRef(name), args }` causes the
+    /// T3 emitter to produce a `return_call_ref` instruction (opcode 0x15) instead of
+    /// `return_call_indirect` (opcode 0x13) when the callee is a typed GC function reference.
+    #[test]
+    fn tail_call_indirect_fn_ref_emits_return_call_ref() {
+        // Build a two-function module:
+        //   target_fn() -> i32   (just returns 0)
+        //   caller_fn() -> i32   (TailCallIndirect via FnRef("target_fn"))
+        // caller_fn is the module entry so both functions are reachable.
+        let mut mir = MirModule::new();
+        // target_fn at vector index 0 → use FnId(0)
+        mir.functions.push(make_simple_func(
+            0,
+            "target_fn",
+            Type::I32,
+            Terminator::Return(Some(Operand::ConstI32(0))),
+        ));
+        // caller_fn at vector index 1 → use FnId(1)
+        mir.functions.push(make_simple_func(
+            1,
+            "caller_fn",
+            Type::I32,
+            Terminator::TailCallIndirect {
+                callee: Box::new(Operand::FnRef("target_fn".into())),
+                args: Vec::new(),
+            },
+        ));
+        // entry_fn index 1 → caller_fn is the module root; reachability will
+        // follow FnRef("target_fn") and include target_fn as well.
+        mir.entry_fn = Some(FnId(1));
+
+        let mut sink = DiagnosticSink::new();
+        let wasm = super::super::emit(&mir, &mut sink, 1, true);
+
+        // return_call_ref uses opcode 0x15.
+        assert!(
+            wasm.contains(&0x15),
+            "expected return_call_ref (0x15) in emitted wasm for TailCallIndirect+FnRef"
+        );
+        // Confirm return_call_indirect (0x13) was NOT used for this call.
+        // (0x15 must appear and 0x13 must not appear from the fn-ref path;
+        //  the exact count depends on helper function count, so we just
+        //  check that the fn-ref path did not produce 0x13.)
+        // NB: It is acceptable for 0x13 to appear in stdlib helpers, but
+        //     our two-function-only module has no helpers, so 0x13 = 0.
+        assert!(
+            !wasm.contains(&0x13),
+            "return_call_indirect (0x13) should not appear when callee is a FnRef"
+        );
     }
 }

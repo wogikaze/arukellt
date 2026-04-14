@@ -1,0 +1,9 @@
+[package]
+name = "registry-not-found-test"
+version = "0.1.0"
+
+[dependencies]
+my_reg_pkg = "1.0.0"
+
+[registry]
+url = "file://./mock_reg"

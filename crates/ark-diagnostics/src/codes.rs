@@ -30,6 +30,18 @@ pub enum DiagnosticCode {
     /// Module not found
     E0104,
 
+    // E012x: Package registry resolution errors
+    /// Registry unreachable (network error or timeout)
+    E0120,
+    /// Package not found in registry
+    E0121,
+    /// Version not found in registry
+    E0122,
+    /// Integrity check failed for downloaded package
+    E0123,
+    /// No registry configured
+    E0124,
+
     // E02xx: Type errors
     E0200,
     E0201,
@@ -92,6 +104,11 @@ pub const DIAGNOSTIC_CODES: &[DiagnosticCode] = &[
     DiagnosticCode::E0102,
     DiagnosticCode::E0103,
     DiagnosticCode::E0104,
+    DiagnosticCode::E0120,
+    DiagnosticCode::E0121,
+    DiagnosticCode::E0122,
+    DiagnosticCode::E0123,
+    DiagnosticCode::E0124,
     DiagnosticCode::E0200,
     DiagnosticCode::E0201,
     DiagnosticCode::E0202,
@@ -195,6 +212,41 @@ impl DiagnosticCode {
                 code: self,
                 id: "E0104",
                 message: "module not found",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0120 => DiagnosticSpec {
+                code: self,
+                id: "E0120",
+                message: "registry unreachable",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0121 => DiagnosticSpec {
+                code: self,
+                id: "E0121",
+                message: "package not found in registry",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0122 => DiagnosticSpec {
+                code: self,
+                id: "E0122",
+                message: "version not found in registry",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0123 => DiagnosticSpec {
+                code: self,
+                id: "E0123",
+                message: "integrity check failed for downloaded package",
+                severity: Severity::Error,
+                phase: DiagnosticPhase::Resolve,
+            },
+            Self::E0124 => DiagnosticSpec {
+                code: self,
+                id: "E0124",
+                message: "no registry configured",
                 severity: Severity::Error,
                 phase: DiagnosticPhase::Resolve,
             },

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 378
+- **Canonical names:** 406
 - **Historical/deprecated names:** 3
-- **Total entries:** 381
+- **Total entries:** 409
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -69,7 +69,14 @@ Current public API names, sorted alphabetically.
 | `buf_push_u32_le` | `std::bytes` | `stable` | Bytes |
 | `buf_push_u64_le` | `std::bytes` | `stable` | Bytes |
 | `buf_push_u8` | `std::bytes` | `stable` | Bytes |
+| `buf_reader_new` | `std::io` | `stable` | Io |
+| `buf_reader_read_line` | `std::io` | `stable` | Io |
 | `buf_with_capacity` | `std::bytes` | `stable` | Bytes |
+| `buf_writer_flush` | `std::io` | `stable` | Io |
+| `buf_writer_new` | `std::io` | `stable` | Io |
+| `buf_writer_write_str` | `std::io` | `stable` | Io |
+| `buffered_reader` | `std::io` | `stable` | Io |
+| `buffered_writer` | `std::io` | `stable` | Io |
 | `builder_append` | `std::text` | `stable` | Text |
 | `builder_append_char` | `std::text` | `stable` | Text |
 | `builder_append_line` | `std::text` | `stable` | Text |
@@ -106,6 +113,8 @@ Current public API names, sorted alphabetically.
 | `contains` | `std::text` | `stable` | Text |
 | `contains_i32` | `prelude` | `stable` | Collections |
 | `contains_String` | `prelude` | `stable` | Collections |
+| `copy` | `std::io` | `stable` | Io |
+| `copy_bytes` | `std::io` | `stable` | Io |
 | `cos_approx` | `std::signal` | `stable` | Signal |
 | `count_eq` | `std::seq` | `stable` | Seq |
 | `csv_split_line` | `std::csv` | `experimental` | Csv |
@@ -147,6 +156,7 @@ Current public API names, sorted alphabetically.
 | `filter_i64` | `prelude` | `stable` | Collections |
 | `filter_String` | `prelude` | `stable` | Collections |
 | `find_i32` | `prelude` | `stable` | Collections |
+| `flush` | `std::io` | `stable` | Io |
 | `fold_i32_i32` | `prelude` | `stable` | Collections |
 | `fold_i64_i64` | `prelude` | `stable` | Collections |
 | `format_bool` | `std::text` | `stable` | Text |
@@ -271,6 +281,7 @@ Current public API names, sorted alphabetically.
 | `pq_pop` | `std::collections::linear` | `stable` | Collections |
 | `pq_push` | `std::collections::linear` | `stable` | Collections |
 | `print` | `std::host::stdio` | `stable` | Host Stdio |
+| `print_bytes` | `std::io` | `stable` | Io |
 | `println` | `std::host::stdio` | `stable` | Host Stdio |
 | `product_i32` | `prelude` | `stable` | Collections |
 | `push` | `prelude` | `stable` | Collections |
@@ -284,12 +295,19 @@ Current public API names, sorted alphabetically.
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
 | `read_bytes` | `std::bytes` | `stable` | Bytes |
+| `read_stdin_line` | `std::io` | `stable` | Io |
 | `read_to_string` | `std::host::fs` | `stable` | Host Fs |
 | `read_u16_le` | `std::bytes` | `stable` | Bytes |
 | `read_u32_be` | `std::bytes` | `stable` | Bytes |
 | `read_u32_le` | `std::bytes` | `stable` | Bytes |
 | `read_u64_le` | `std::bytes` | `stable` | Bytes |
 | `read_u8` | `std::bytes` | `stable` | Bytes |
+| `reader_eof` | `std::io` | `stable` | Io |
+| `reader_from_bytes` | `std::io` | `stable` | Io |
+| `reader_read` | `std::io` | `stable` | Io |
+| `reader_read_all` | `std::io` | `stable` | Io |
+| `reader_read_exact` | `std::io` | `stable` | Io |
+| `reader_read_line` | `std::io` | `stable` | Io |
 | `remove_i32` | `prelude` | `stable` | Collections |
 | `repeat` | `std::text` | `stable` | Text |
 | `replace` | `prelude` | `stable` | String |
@@ -334,6 +352,9 @@ Current public API names, sorted alphabetically.
 | `sqrt` | `std::core::math` | `stable` | Core |
 | `starts_with` | `prelude` | `stable` | String |
 | `starts_with` | `std::text` | `stable` | Text |
+| `stderr` | `std::io` | `stable` | Io |
+| `stdin` | `std::io` | `stable` | Io |
+| `stdout` | `std::io` | `stable` | Io |
 | `String_from` | `prelude` | `stable` | String |
 | `string_from_bytes` | `std::bytes` | `stable` | Bytes |
 | `String_new` | `prelude` | `stable` | String |
@@ -396,8 +417,15 @@ Current public API names, sorted alphabetically.
 | `wit_type_u64` | `std::wit` | `experimental` | Wit |
 | `wit_type_u8` | `std::wit` | `experimental` | Wit |
 | `with_extension` | `std::path` | `stable` | Path |
+| `write_all` | `std::io` | `stable` | Io |
 | `write_bytes` | `std::host::fs` | `stable` | Host Fs |
 | `write_string` | `std::host::fs` | `stable` | Host Fs |
+| `write_string` | `std::io` | `stable` | Io |
+| `writer_flush` | `std::io` | `stable` | Io |
+| `writer_new` | `std::io` | `stable` | Io |
+| `writer_to_bytes` | `std::io` | `stable` | Io |
+| `writer_write` | `std::io` | `stable` | Io |
+| `writer_write_str` | `std::io` | `stable` | Io |
 | `zeros` | `std::signal` | `stable` | Signal |
 
 ---
@@ -468,7 +496,14 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `buf_push_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `buf_push_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `buf_push_u8` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_reader_new` | ✅ `stable` | `std::io` | Io |
+| `buf_reader_read_line` | ✅ `stable` | `std::io` | Io |
 | `buf_with_capacity` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_writer_flush` | ✅ `stable` | `std::io` | Io |
+| `buf_writer_new` | ✅ `stable` | `std::io` | Io |
+| `buf_writer_write_str` | ✅ `stable` | `std::io` | Io |
+| `buffered_reader` | ✅ `stable` | `std::io` | Io |
+| `buffered_writer` | ✅ `stable` | `std::io` | Io |
 | `builder_append` | ✅ `stable` | `std::text` | Text |
 | `builder_append_char` | ✅ `stable` | `std::text` | Text |
 | `builder_append_line` | ✅ `stable` | `std::text` | Text |
@@ -505,6 +540,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `contains` | ✅ `stable` | `std::text` | Text |
 | `contains_i32` | ✅ `stable` | `prelude` | Collections |
 | `contains_String` | ✅ `stable` | `prelude` | Collections |
+| `copy` | ✅ `stable` | `std::io` | Io |
+| `copy_bytes` | ✅ `stable` | `std::io` | Io |
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
 | `count_eq` | ✅ `stable` | `std::seq` | Seq |
 | `csv_split_line` | ✅ `experimental` | `std::csv` | Csv |
@@ -547,6 +584,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `filter_i64` | ✅ `stable` | `prelude` | Collections |
 | `filter_String` | ✅ `stable` | `prelude` | Collections |
 | `find_i32` | ✅ `stable` | `prelude` | Collections |
+| `flush` | ✅ `stable` | `std::io` | Io |
 | `fold_i32_i32` | ✅ `stable` | `prelude` | Collections |
 | `fold_i64_i64` | ✅ `stable` | `prelude` | Collections |
 | `format_bool` | ✅ `stable` | `std::text` | Text |
@@ -671,6 +709,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `pq_pop` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_push` | ✅ `stable` | `std::collections::linear` | Collections |
 | `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
+| `print_bytes` | ✅ `stable` | `std::io` | Io |
 | `println` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `product_i32` | ✅ `stable` | `prelude` | Collections |
 | `push` | ✅ `stable` | `prelude` | Collections |
@@ -684,12 +723,19 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
 | `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
+| `read_stdin_line` | ✅ `stable` | `std::io` | Io |
 | `read_to_string` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `read_u16_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u32_be` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_u8` | ✅ `stable` | `std::bytes` | Bytes |
+| `reader_eof` | ✅ `stable` | `std::io` | Io |
+| `reader_from_bytes` | ✅ `stable` | `std::io` | Io |
+| `reader_read` | ✅ `stable` | `std::io` | Io |
+| `reader_read_all` | ✅ `stable` | `std::io` | Io |
+| `reader_read_exact` | ✅ `stable` | `std::io` | Io |
+| `reader_read_line` | ✅ `stable` | `std::io` | Io |
 | `remove_i32` | ✅ `stable` | `prelude` | Collections |
 | `repeat` | ✅ `stable` | `std::text` | Text |
 | `replace` | ✅ `stable` | `prelude` | String |
@@ -734,6 +780,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `sqrt` | ✅ `stable` | `std::core::math` | Core |
 | `starts_with` | ✅ `stable` | `prelude` | String |
 | `starts_with` | ✅ `stable` | `std::text` | Text |
+| `stderr` | ✅ `stable` | `std::io` | Io |
+| `stdin` | ✅ `stable` | `std::io` | Io |
+| `stdout` | ✅ `stable` | `std::io` | Io |
 | `String_from` | ✅ `stable` | `prelude` | String |
 | `string_from_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `String_new` | ✅ `stable` | `prelude` | String |
@@ -798,6 +847,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `wit_type_u64` | ✅ `experimental` | `std::wit` | Wit |
 | `wit_type_u8` | ✅ `experimental` | `std::wit` | Wit |
 | `with_extension` | ✅ `stable` | `std::path` | Path |
+| `write_all` | ✅ `stable` | `std::io` | Io |
 | `write_bytes` | ✅ `stable` | `std::host::fs` | Host Fs |
 | `write_string` | ✅ `stable` | `std::host::fs` | Host Fs |
+| `write_string` | ✅ `stable` | `std::io` | Io |
+| `writer_flush` | ✅ `stable` | `std::io` | Io |
+| `writer_new` | ✅ `stable` | `std::io` | Io |
+| `writer_to_bytes` | ✅ `stable` | `std::io` | Io |
+| `writer_write` | ✅ `stable` | `std::io` | Io |
+| `writer_write_str` | ✅ `stable` | `std::io` | Io |
 | `zeros` | ✅ `stable` | `std::signal` | Signal |

@@ -7,6 +7,7 @@ mod analyze;
 mod bind;
 mod load;
 mod module_graph;
+mod registry;
 mod resolve;
 mod scope;
 mod symbols;
