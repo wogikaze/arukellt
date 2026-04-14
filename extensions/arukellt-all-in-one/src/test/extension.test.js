@@ -279,9 +279,10 @@ suite("Language Registration", () => {
 // #453 — Go to Definition E2E (verifies #450 identifier-only span)
 // ============================================================
 
-suite.skip("Go to Definition (#450 / #453)", () => {
+suite("Go to Definition (#450 / #453)", () => {
   let doc;
-  suiteSetup(async () => {
+  suiteSetup(async function () {
+    if (!fs.existsSync(repoDebugBinary)) { this.skip(); return; }
     const fixturePath = path.join(__dirname, "fixtures", "basic.ark");
     doc = await vscode.workspace.openTextDocument(fixturePath);
     await vscode.window.showTextDocument(doc);
@@ -381,9 +382,10 @@ suite.skip("Go to Definition (#450 / #453)", () => {
 // #453 — Hover E2E (verifies #451 semantic-only hover filter)
 // ============================================================
 
-suite.skip("Hover (#451 / #453)", () => {
+suite("Hover (#451 / #453)", () => {
   let doc;
-  suiteSetup(async () => {
+  suiteSetup(async function () {
+    if (!fs.existsSync(repoDebugBinary)) { this.skip(); return; }
     const fixturePath = path.join(__dirname, "fixtures", "basic.ark");
     doc = await vscode.workspace.openTextDocument(fixturePath);
     await vscode.window.showTextDocument(doc);
@@ -442,7 +444,11 @@ suite.skip("Hover (#451 / #453)", () => {
 // #453 — Diagnostics E2E (verifies #452 false-positive removal)
 // ============================================================
 
-suite.skip("Diagnostics (#452 / #453)", () => {
+suite("Diagnostics (#452 / #453)", () => {
+  suiteSetup(async function () {
+    if (!fs.existsSync(repoDebugBinary)) { this.skip(); return; }
+  });
+
   test("valid ark file produces no diagnostics", async () => {
     const fixturePath = path.join(__dirname, "fixtures", "basic.ark");
     const doc = await vscode.workspace.openTextDocument(fixturePath);

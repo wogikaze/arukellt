@@ -1,8 +1,8 @@
 # VSCode API を使った editor behavior E2E テストを追加する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-02
-**Updated**: 2026-04-13
+**Updated**: 2026-04-15
 **ID**: 453
 **Depends on**: 450, 451, 452
 **Track**: vscode-ide
@@ -11,6 +11,12 @@
 
 ---
 
+
+## Closed — 2026-04-15
+
+**Reason**: All three E2E suites un-skipped. `suite.skip` removed from "Go to Definition (#450 / #453)", "Hover (#451 / #453)", and "Diagnostics (#452 / #453)". Binary-availability guard added to each `suiteSetup` so tests self-skip when the debug binary is absent. `basic.ark` fixture confirmed present. `verify-harness.sh --quick`: 19/19 passed.
+
+**Action**: Moved from `issues/open/` → `issues/done/`.
 
 ## Reopened by audit — 2026-04-13
 

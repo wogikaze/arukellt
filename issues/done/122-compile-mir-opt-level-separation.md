@@ -10,15 +10,20 @@
 
 ---
 
-## Reopened by audit — 2026-04-03
+## Closed — 2026-04-14
 
-**Reason**: This issue has `Status: open` in its frontmatter but was filed under `issues/done/`. The issue was never marked done; it was misplaced. All acceptance criteria remain unverified by repo evidence.
+All acceptance criteria verified by repo evidence.
 
-**Audit evidence**:
-- `**Status**: open` in this file's own frontmatter confirms it was never closed.
-- File was located at `issues/done/122-compile-mir-opt-level-separation.md` — incorrect directory for an open issue.
+**Evidence**:
+- `crates/ark-mir/src/passes/const_fold.rs` and `dead_block_elim.rs` — each pass in its own file with unified `fn run(module: &mut MirModule, level: OptLevel) -> PassStats` signature
+- `crates/ark-mir/src/passes/mod.rs` — `PassStats` type and `run_all` orchestrator
+- `crates/ark-mir/src/opt_level.rs` — `OptLevel` enum (`None`, `O1`, `O2`, `O3`)
+- `crates/ark-mir/src/passes/README.md` — full pass catalogue, opt-level table, `--no-pass` docs
+- `crates/arukellt/src/main.rs` — `--no-pass=<NAME>` and `--opt-level` flags declared on `Compile` subcommand
+- `crates/arukellt/src/commands.rs` — `session.disabled_passes = no_pass` wired in `cmd_compile`
+- `crates/ark-driver/src/session.rs` — `disabled_passes` honoured in the pass pipeline filter
 
-**Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
+**Verification**: `bash scripts/run/verify-harness.sh --quick` → 19/19 PASS; `cargo test -p ark-mir` → 49/49 PASS
 
 ## Summary
 
@@ -29,10 +34,10 @@ roadmap-v4.md §6 item 1 で要求されている
 
 ## 受け入れ条件
 
-1. `crates/ark-mir/src/passes/` ディレクトリを新設し、各パスを独立ファイルに移動
-2. `fn run(module: &mut MirModule, level: OptLevel) -> PassStats` シグネチャの統一
-3. `--no-pass=<name>` フラグで個別パスを無効化できる
-4. `passes/README.md` に各パスの説明・適用条件・依存関係を記載
+- [x] `crates/ark-mir/src/passes/` ディレクトリを新設し、各パスを独立ファイルに移動
+- [x] `fn run(module: &mut MirModule, level: OptLevel) -> PassStats` シグネチャの統一
+- [x] `--no-pass=<name>` フラグで個別パスを無効化できる
+- [x] `passes/README.md` に各パスの説明・適用条件・依存関係を記載
 
 ## 参照
 

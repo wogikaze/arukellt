@@ -1,0 +1,5 @@
+package arukellt:app;
+
+world export-result {
+    export safe-div: func(a: s32, b: s32) -> result<s32, string>;
+}

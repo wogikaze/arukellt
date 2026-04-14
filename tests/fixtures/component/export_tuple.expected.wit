@@ -1,0 +1,5 @@
+package arukellt:app;
+
+world export-tuple {
+    export swap: func(a: s32, b: s32) -> tuple<s32, s32>;
+}

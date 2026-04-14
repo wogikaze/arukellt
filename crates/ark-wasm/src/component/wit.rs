@@ -343,19 +343,34 @@ pub fn generate_wit(world: &WitWorld) -> Result<String, WitError> {
     Ok(out)
 }
 
-/// Convert PascalCase/snake_case to kebab-case for WIT identifiers.
+/// Convert PascalCase/snake_case/camelCase to kebab-case for WIT identifiers.
+///
+/// Rules:
+/// - `_` → `-` (leading underscores are dropped)
+/// - uppercase letter after a non-separator character → insert `-` before it
+/// - no double dashes: an uppercase letter immediately following `_` does not
+///   generate an extra `-` (e.g., `snake_Upper` → `snake-upper`)
 fn to_kebab_case(s: &str) -> String {
     let mut result = String::new();
+    let mut last_was_sep = false;
     for (i, ch) in s.chars().enumerate() {
         if ch == '_' {
-            result.push('-');
+            // Drop leading underscores; otherwise emit a single dash.
+            if !result.is_empty() {
+                result.push('-');
+                last_was_sep = true;
+            }
         } else if ch.is_uppercase() {
-            if i > 0 {
+            // Insert a dash before uppercase unless this is the first character
+            // or the previous character was already a separator.
+            if i > 0 && !last_was_sep {
                 result.push('-');
             }
             result.push(ch.to_lowercase().next().unwrap());
+            last_was_sep = false;
         } else {
             result.push(ch);
+            last_was_sep = false;
         }
     }
     result
@@ -430,6 +445,23 @@ mod tests {
         assert_eq!(to_kebab_case("hello_world"), "hello-world");
         assert_eq!(to_kebab_case("MyStruct"), "my-struct");
         assert_eq!(to_kebab_case("simple"), "simple");
+    }
+
+    #[test]
+    fn test_kebab_case_consistency() {
+        // camelCase
+        assert_eq!(to_kebab_case("camelCase"), "camel-case");
+        assert_eq!(to_kebab_case("myFunction"), "my-function");
+        // snake_case
+        assert_eq!(to_kebab_case("safe_div"), "safe-div");
+        assert_eq!(to_kebab_case("maybe_double"), "maybe-double");
+        // snake_UpperCase mix — must not produce double dash
+        assert_eq!(to_kebab_case("snake_Upper"), "snake-upper");
+        assert_eq!(to_kebab_case("my_Point"), "my-point");
+        // leading underscore — stripped
+        assert_eq!(to_kebab_case("_internal"), "internal");
+        // already kebab
+        assert_eq!(to_kebab_case("distance-sq"), "distance-sq");
     }
 
     #[test]
