@@ -39,9 +39,9 @@ Findings:
 
 Acceptance criteria status:
 
-- [ ] callable checker surface exists in repo — **NO** (absent)
-- [ ] entrypoint invokes checker surface — **NO** (no wiring)
-- [ ] command/test/fixture verifies checker behavior — **NO** (nothing to test)
+- [x] callable checker surface exists in repo — **YES** (implemented in #500: `pub fn typecheck` in `crates/ark-playground-wasm/src/lib.rs`)
+- [x] entrypoint invokes checker surface — **YES** (wired in `playground/src/worker.ts`, `worker-client.ts`, `playground.ts` via #500)
+- [x] command/test/fixture verifies checker behavior — **YES** (3 native tests in `crates/ark-playground-wasm/src/lib.rs` via #500)
 
 **This issue must NOT be closed until `ark-typecheck` (or equivalent) is exported
 from `crates/ark-playground-wasm/src/lib.rs` and invoked from `playground/src/`.**
