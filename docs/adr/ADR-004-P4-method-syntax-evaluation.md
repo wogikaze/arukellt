@@ -1,7 +1,7 @@
 # ADR-004 P4: Method Syntax Evaluation
 
-**Status**: DEFERRED
-**Date**: 2025-07-22
+**Status**: DEFERRED — evaluation deferred pending trigger
+**Date**: 2026-04-15
 **Relates to**: ADR-004 (trait strategy), Issue #157
 
 ---
@@ -151,27 +151,104 @@ Rationale:
 
 ---
 
-## 7. Decision
+## 7. Formal Evaluation Decision
 
-**DEFERRED**
+**Decision: DEFERRED — evaluation deferred pending trigger**
 
-### Start Condition
+The ADR-004 P4 evaluation cannot begin until the trigger condition below is
+satisfied. Until that point no implementation or design commitment should be
+made. This section formalizes the trigger, scope, and decision tree so the
+evaluation can proceed without ambiguity when the trigger fires.
 
-- v5 self-hosting is complete.
-- Stdlib API surface is stable (no major renames or signature changes planned).
-- P3 (traits) has landed or a decision has been made on trait timing.
+---
 
-### Exit Condition
+### 7.1 Trigger Condition (Start Condition)
 
-When this evaluation is revisited, the outcome must be one of:
+Evaluation begins when **all** of the following are true:
 
-- **Adopt UFCS**: implement the minimal desugaring described in §4.
-- **Adopt full method syntax**: require `impl` blocks (depends on P3).
-- **Reject**: document why function-centric API is sufficient long-term.
+| # | Condition | Measurable criterion |
+|---|-----------|----------------------|
+| T1 | All v4 MIR optimization passes are stable | Every issue with `Track: mir-opt` and `Blocks v4 exit: yes` (or equivalent) is in `issues/done/`; the full verify-harness pass rate at `--opt-level 1` is ≥ baseline. |
+| T2 | Core v4 pass suite is regression-free for ≥ 2 consecutive CI runs | `bash scripts/run/verify-harness.sh` exits 0 on two successive runs with MIR opt enabled. |
+| T3 | Stdlib API surface is stable | No issues with `Track: stdlib` open that plan name/signature changes to the methods in the evaluation scope. |
 
-### References
+**Current status (2026-04-15):** Trigger NOT met.
+- Issue #082 (mir-gc-hint) and #083 (mir-loop-unrolling) are still `Status: open`.
+- Evaluation must not begin until these and any other `mir-opt` v4-exit issues close.
+
+---
+
+### 7.2 Evaluation Scope
+
+The evaluation is explicitly **limited** to the minimum method set. These are the
+only operations assessed for method-call syntax adoption in P4:
+
+| Method | Free-function equivalent | Priority |
+|--------|--------------------------|----------|
+| `.push(x)` | `push(v, x)` — `Vec<T>` | High |
+| `.pop()` | `pop(v)` — `Vec<T>` | High |
+| `.len()` | `len(v)` — `Vec<T>`, `String` | High |
+| `.map(f)` | `map_T_U(v, f)` — `Vec<T>` | High |
+| `.filter(f)` | `filter_T(v, f)` — `Vec<T>` | High |
+| `.to_lower()` | `to_lower(s)` — `String` | Medium |
+| `.split(d)` | `split(s, d)` — `String` | Medium |
+| `.join(d)` | `join(parts, d)` — `Vec<String>` | Medium |
+
+Full trait system (`impl` blocks, trait objects, operator overloading) is **out
+of scope** for P4. P3 (traits) is evaluated separately.
+
+---
+
+### 7.3 Entry/Exit Decision Tree
+
+```
+Trigger fires (T1+T2+T3 met)
+│
+├─ Evaluate: can type-directed name resolution be added in a
+│   bounded-scope PR without breaking existing tests?
+│   │
+│   ├─ YES ──→ Prototype UFCS desugaring (§4) for scope in §7.2
+│   │           │
+│   │           ├─ All fixture tests still pass? ──→ ADOPT-UFCS
+│   │           └─ Regressions found   ──────────→ DEFER-AGAIN /
+│   │                                               REJECT and document
+│   │
+│   └─ NO  ──→ DEFER: complexity cost exceeds benefit for P4 scope.
+│               Record blocking issues and next-review milestone.
+│
+└─ Evaluate: is function-centric API sufficient for the remaining
+    v5 self-hosting goals without method-call sugar?
+    │
+    ├─ YES ──→ REJECT: close P4; record that UFCS is a post-v5 option.
+    └─ NO  ──→ Must resolve via one of the above paths.
+```
+
+The outcome of this decision tree must be one of:
+
+- **`ADOPT-UFCS`**: implement the minimal desugaring described in §4. Record as
+  an ADR-004 amendment. File implementation issues against `ark-parser`,
+  `ark-resolve`, and `ark-typecheck`.
+- **`ADOPT-FULL`**: require `impl` blocks (depends on P3 landing). Only valid
+  if P3 has landed or has a firm schedule.
+- **`DEFER-AGAIN`**: complexity cost is too high; set a new explicit trigger and
+  update this document.
+- **`REJECT`**: document why the function-centric API is sufficient long-term.
+  Close this ADR as a final REJECTED decision.
+
+---
+
+### 7.4 When to Re-open This ADR
+
+Re-open (change status from `DEFERRED` to `IN REVIEW`) only when:
+- All trigger conditions in §7.1 are satisfied, **and**
+- A reviewer is assigned to drive the decision within one sprint.
+
+---
+
+### 7.5 References
 
 - `docs/adr/ADR-004-trait-strategy.md` — original trait deferral
+- `docs/process/roadmap-v4.md` §6 item 9, §12 item 1 — mandate for this evaluation
 - `docs/language/spec.md` §2.8, §3.6 — trait/method syntax spec
 - `std/prelude.ark` — current function-centric stdlib
-- `issues/open/157-adr004-method-syntax-evaluation.md` — tracking issue
+- `issues/done/157-adr004-method-syntax-evaluation.md` — tracking issue (closed)

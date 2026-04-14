@@ -15,7 +15,7 @@
 | [ADR-0001-harness-bootstrap.md](ADR-0001-harness-bootstrap.md) | ADR-0001: Harness Bootstrap Strategy | Archive | Status: Accepted |
 | [ADR-002-memory-model.md](ADR-002-memory-model.md) | ADR-002: GC vs non-GC | Archive | ステータス: DECIDED — ベンチマーク実測（2026-03-25）により 選択肢 A: Wasm GC 前提を採用 |
 | [ADR-003-generics-strategy.md](ADR-003-generics-strategy.md) | ADR-003: generics 戦略 | Archive | ステータス: DECIDED |
-| [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: Method Syntax Evaluation | Archive | Status: DEFERRED |
+| [ADR-004-P4-method-syntax-evaluation.md](ADR-004-P4-method-syntax-evaluation.md) | ADR-004 P4: Method Syntax Evaluation | Archive | Status: DEFERRED — evaluation deferred pending trigger |
 | [ADR-004-trait-strategy.md](ADR-004-trait-strategy.md) | ADR-004: trait を v0 に入れるか | Archive | ステータス: DECIDED |
 | [ADR-005-llvm-scope.md](ADR-005-llvm-scope.md) | ADR-005: LLVM IR バックエンドの役割制限 | Archive | ステータス: DECIDED |
 | [ADR-006-abi-policy.md](ADR-006-abi-policy.md) | ADR-006: 公開 ABI の上限 | Archive | ステータス: DECIDED |

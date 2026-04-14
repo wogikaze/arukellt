@@ -84,30 +84,35 @@ MODE_PRESETS: dict[str, dict[str, Any]] = {
         "compile_iterations": 1,
         "runtime_iterations": 1,
         "runtime_warmups": 0,
+        "runtime_latency_iterations": 5,
         "description": "single-sample local smoke benchmark",
     },
     "full": {
         "compile_iterations": 5,
         "runtime_iterations": 5,
         "runtime_warmups": 1,
+        "runtime_latency_iterations": 20,
         "description": "default local benchmark profile",
     },
     "compare": {
         "compile_iterations": 5,
         "runtime_iterations": 5,
         "runtime_warmups": 1,
+        "runtime_latency_iterations": 20,
         "description": "measure current results and compare with baseline",
     },
     "ci": {
         "compile_iterations": 5,
         "runtime_iterations": 5,
         "runtime_warmups": 1,
+        "runtime_latency_iterations": 20,
         "description": "compare current results with baseline and fail on regression",
     },
     "update-baseline": {
         "compile_iterations": 5,
         "runtime_iterations": 5,
         "runtime_warmups": 1,
+        "runtime_latency_iterations": 20,
         "description": "measure current results and replace baseline",
     },
 }
@@ -225,6 +230,32 @@ def summarize_samples(samples: list[dict[str, Any]], field: str) -> float | int 
 
 def ensure_parent(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+
+
+def compute_percentiles(samples_ms: list[float]) -> dict[str, float | None]:
+    """Compute p50/p95/p99 and stddev from timing samples in milliseconds.
+
+    Returns a dict with p50_ms, p95_ms, p99_ms, stddev_ms (all in ms, or None when
+    there are insufficient samples).
+    """
+    n = len(samples_ms)
+    if n == 0:
+        return {"p50_ms": None, "p95_ms": None, "p99_ms": None, "stddev_ms": None}
+    sorted_s = sorted(samples_ms)
+
+    def _percentile(p: float) -> float:
+        idx = (n - 1) * p / 100.0
+        lo = int(idx)
+        hi = min(lo + 1, n - 1)
+        frac = idx - lo
+        return round(sorted_s[lo] * (1.0 - frac) + sorted_s[hi] * frac, 3)
+
+    return {
+        "p50_ms": _percentile(50.0),
+        "p95_ms": _percentile(95.0),
+        "p99_ms": _percentile(99.0),
+        "stddev_ms": round(statistics.stdev(samples_ms), 3) if n >= 2 else 0.0,
+    }
 
 
 def measure_compile(
@@ -353,17 +384,59 @@ def measure_runtime(
     correctness = "skipped"
     if expected_text is not None and stdout is not None:
         correctness = "pass" if stdout == expected_text else "fail"
+    raw_ms = [sample["elapsed_ms"] for sample in samples]
+    percs = compute_percentiles(raw_ms)
     return {
         "status": "ok",
         "iterations": iterations,
         "warmups": warmups,
-        "samples_ms": [sample["elapsed_ms"] for sample in samples],
+        "samples_ms": raw_ms,
         "median_ms": summarize_samples(samples, "elapsed_ms"),
+        "p50_ms": percs["p50_ms"],
+        "p95_ms": percs["p95_ms"],
+        "p99_ms": percs["p99_ms"],
+        "stddev_ms": percs["stddev_ms"],
         "max_rss_kb": summarize_samples(samples, "max_rss_kb"),
         "stdout": stdout,
         "correctness": correctness,
         "command": last_output["command"] if last_output else command_display(runtime_cmd),
     }
+
+
+def measure_startup_probe(
+    compiler: Path,
+    *,
+    target: str,
+    latency_iterations: int,
+    wasmtime_bin: str | None,
+    time_bin: str | None,
+    work_dir: Path,
+) -> float | None:
+    """Compile and time the startup fixture (benchmarks/startup.ark) to measure
+    wasmtime instantiation + process overhead separately from guest execution.
+
+    Returns median wall-clock time in ms, or None if unavailable.
+    """
+    startup_source = ROOT / "benchmarks" / "startup.ark"
+    if not startup_source.exists() or wasmtime_bin is None:
+        return None
+    wasm_path = work_dir / "startup-probe.wasm"
+    compile_out = run_measured(
+        [str(compiler), "compile", "--target", target, "-o", str(wasm_path), str(startup_source)],
+        cwd=ROOT,
+        time_bin=None,
+    )
+    if compile_out["returncode"] != 0 or not wasm_path.exists():
+        return None
+    runtime_cmd = [wasmtime_bin, str(wasm_path)]
+    probe_samples: list[float] = []
+    for _ in range(latency_iterations):
+        out = run_measured(runtime_cmd, cwd=ROOT, time_bin=time_bin)
+        if out["returncode"] == 0:
+            probe_samples.append(out["elapsed_ms"])
+    if not probe_samples:
+        return None
+    return round(float(statistics.median(probe_samples)), 3)
 
 
 def tool_info(name: str) -> dict[str, Any]:
@@ -395,9 +468,24 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
     }
     time_bin = tools["time"]["path"]
     wasmtime_bin = tools["wasmtime"]["path"]
+    latency_iters = (
+        args.runtime_latency_iterations
+        if args.runtime_latency_iterations is not None
+        else preset["runtime_latency_iterations"]
+    )
 
     with tempfile.TemporaryDirectory(prefix="arukellt-bench-") as tmp_dir:
         work_dir = Path(tmp_dir)
+        # Measure the startup probe once for the whole run; used to separate
+        # wasmtime instantiation overhead from guest execution time.
+        startup_ms = measure_startup_probe(
+            compiler,
+            target=args.target,
+            latency_iterations=latency_iters,
+            wasmtime_bin=wasmtime_bin,
+            time_bin=time_bin,
+            work_dir=work_dir,
+        )
         benchmarks: list[dict[str, Any]] = []
         for case in BENCHMARKS:
             expected_text = maybe_read_expected(ROOT / case.expected)
@@ -414,12 +502,18 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
                 runtime_result = measure_runtime(
                     Path(compile_result["wasm_path"]),
                     expected_text,
-                    iterations=args.runtime_iterations or preset["runtime_iterations"],
+                    iterations=latency_iters,
                     warmups=args.runtime_warmups if args.runtime_warmups is not None else preset["runtime_warmups"],
                     wasmtime_bin=wasmtime_bin,
                     time_bin=time_bin,
                     runtime_args=case.runtime_args,
                 )
+                # Annotate with startup overhead and derived guest execution time.
+                if startup_ms is not None and runtime_result["status"] == "ok":
+                    median = runtime_result.get("median_ms")
+                    runtime_result["startup_ms"] = startup_ms
+                    if median is not None:
+                        runtime_result["guest_ms"] = round(max(median - startup_ms, 0.0), 3)
             else:
                 runtime_result = {
                     "status": "skipped",
@@ -428,6 +522,10 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
                     "warmups": 0,
                     "samples_ms": [],
                     "median_ms": None,
+                    "p50_ms": None,
+                    "p95_ms": None,
+                    "p99_ms": None,
+                    "stddev_ms": None,
                     "max_rss_kb": None,
                     "stdout": None,
                     "correctness": "skipped",
@@ -686,9 +784,38 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append("Current benchmark JSON uses `schema_version = arukellt-bench-v1` and stores:")
     lines.append("- run metadata (`mode`, `target`, `environment`, tool availability)")
     lines.append("- per-benchmark `compile` metrics (`median_ms`, `binary_bytes`, `max_rss_kb`)")
-    lines.append("- per-benchmark `runtime` metrics (`median_ms`, `max_rss_kb`, correctness)")
+    lines.append("- per-benchmark `runtime` metrics (`median_ms`, `p50_ms`, `p95_ms`, `p99_ms`, `stddev_ms`, `startup_ms`, `guest_ms`, `max_rss_kb`, correctness)")
     lines.append("- workload tags for taxonomy and future grouped reporting")
     lines.append("")
+    # Runtime latency breakdown table
+    has_latency = any(
+        bench["runtime"].get("p50_ms") is not None or bench["runtime"].get("startup_ms") is not None
+        for bench in current["benchmarks"]
+    )
+    if has_latency:
+        lines.append("## Runtime Latency Breakdown (ms)")
+        lines.append("")
+        lines.append("Startup latency is the median time to instantiate and exit the `startup.ark` no-op fixture.")
+        lines.append("Guest execution time = median total − startup overhead.")
+        lines.append("")
+        lines.append("| Benchmark | startup | guest | p50 | p95 | p99 | stddev |")
+        lines.append("|-----------|---------|-------|-----|-----|-----|--------|")
+        for bench in current["benchmarks"]:
+            rt = bench["runtime"]
+            if rt.get("status") != "ok":
+                continue
+            lines.append(
+                "| {name} | {startup} | {guest} | {p50} | {p95} | {p99} | {stddev} |".format(
+                    name=bench["name"],
+                    startup=format_ms(rt.get("startup_ms")),
+                    guest=format_ms(rt.get("guest_ms")),
+                    p50=format_ms(rt.get("p50_ms")),
+                    p95=format_ms(rt.get("p95_ms")),
+                    p99=format_ms(rt.get("p99_ms")),
+                    stddev=format_ms(rt.get("stddev_ms")),
+                )
+            )
+        lines.append("")
     return "\n".join(lines) + "\n"
 
 
@@ -733,6 +860,27 @@ def render_text(current: dict[str, Any], comparison: dict[str, Any], baseline_pa
             lines.append(
                 f"  runtime : {format_ms(runtime_row.get('median_ms'))} ms  rss={format_int(runtime_row.get('max_rss_kb'))} KB  correctness={runtime_row.get('correctness')}"
             )
+            startup = runtime_row.get("startup_ms")
+            guest = runtime_row.get("guest_ms")
+            p50 = runtime_row.get("p50_ms")
+            p95 = runtime_row.get("p95_ms")
+            p99 = runtime_row.get("p99_ms")
+            stddev = runtime_row.get("stddev_ms")
+            if startup is not None or p50 is not None:
+                latency_parts = []
+                if startup is not None:
+                    latency_parts.append(f"startup={format_ms(startup)}")
+                if guest is not None:
+                    latency_parts.append(f"guest={format_ms(guest)}")
+                if p50 is not None:
+                    latency_parts.append(f"p50={format_ms(p50)}")
+                if p95 is not None:
+                    latency_parts.append(f"p95={format_ms(p95)}")
+                if p99 is not None:
+                    latency_parts.append(f"p99={format_ms(p99)}")
+                if stddev is not None:
+                    latency_parts.append(f"stddev={format_ms(stddev)}")
+                lines.append(f"  latency : {', '.join(latency_parts)}")
         elif runtime_row["status"] == "skipped":
             lines.append(f"  runtime : SKIP ({runtime_row.get('reason', 'not available')})")
         else:
@@ -779,6 +927,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--compile-iterations", type=int)
     parser.add_argument("--runtime-iterations", type=int)
     parser.add_argument("--runtime-warmups", type=int)
+    parser.add_argument("--runtime-latency-iterations", type=int,
+                        help="Iterations for runtime latency / percentile measurement (overrides mode preset).")
     parser.add_argument("--no-write-markdown", action="store_true")
     parser.add_argument("--no-write-json", action="store_true")
     parser.add_argument("--fail-on-regression", action="store_true")

@@ -32,13 +32,13 @@ mise bench:ci
 
 ## Standard Modes
 
-| Mode | Command | Compile iters | Runtime iters | Warmups | Purpose |
-|------|---------|:---:|:---:|:---:|---------|
-| `quick` | `mise bench:quick` | 1 | 1 | 0 | Single-sample smoke run for local edits |
-| `full` | `mise bench` | 5 | 5 | 1 | Default local benchmark with statistical sampling |
-| `compare` | `mise bench:compare` | 5 | 5 | 1 | Measure and compare against stored baseline |
-| `ci` | `mise bench:ci` | 5 | 5 | 1 | Compare + fail on threshold regression (CI gate) |
-| `update-baseline` | `mise bench:update-baseline` | 5 | 5 | 1 | Replace baseline with current measurements |
+| Mode | Command | Compile iters | Runtime iters | Latency iters | Warmups | Purpose |
+|------|---------|:---:|:---:|:---:|:---:|---------|
+| `quick` | `mise bench:quick` | 1 | 1 | 5 | 0 | Single-sample smoke run for local edits |
+| `full` | `mise bench` | 5 | 5 | 20 | 1 | Default local benchmark with statistical sampling |
+| `compare` | `mise bench:compare` | 5 | 5 | 20 | 1 | Measure and compare against stored baseline |
+| `ci` | `mise bench:ci` | 5 | 5 | 20 | 1 | Compare + fail on threshold regression (CI gate) |
+| `update-baseline` | `mise bench:update-baseline` | 5 | 5 | 20 | 1 | Replace baseline with current measurements |
 
 ## Result Schema
 
@@ -65,6 +65,12 @@ issue tracking) to their JSON Schema paths:
 |------------------------|-------------------------------|---------|----------------------------------------------|
 | `compile_time_ms`      | `benchmarks[].compile.median_ms`  | ms  | Median wall-clock compile time               |
 | `runtime_ms`           | `benchmarks[].runtime.median_ms`  | ms  | Median wall-clock execution time             |
+| `runtime_p50_ms`       | `benchmarks[].runtime.p50_ms`    | ms  | 50th-percentile runtime latency              |
+| `runtime_p95_ms`       | `benchmarks[].runtime.p95_ms`    | ms  | 95th-percentile runtime latency              |
+| `runtime_p99_ms`       | `benchmarks[].runtime.p99_ms`    | ms  | 99th-percentile (tail) runtime latency       |
+| `runtime_stddev_ms`    | `benchmarks[].runtime.stddev_ms` | ms  | Sample standard deviation of runtime samples |
+| `startup_ms`           | `benchmarks[].runtime.startup_ms`| ms  | wasmtime instantiation + process overhead (startup.ark probe) |
+| `guest_ms`             | `benchmarks[].runtime.guest_ms`  | ms  | Estimated guest-only time (median − startup) |
 | `wasm_size_bytes`      | `benchmarks[].compile.binary_bytes` | bytes | Output Wasm binary size                  |
 | `peak_memory_bytes`    | `benchmarks[].compile.max_rss_kb * 1024` or `runtime.max_rss_kb * 1024` | bytes | Peak resident set size (compile or runtime phase) |
 | `metadata.mode`        | `mode`                        | enum    | Run mode (`quick`, `full`, `compare`, `ci`, `update-baseline`) |
@@ -73,6 +79,42 @@ issue tracking) to their JSON Schema paths:
 | `metadata.environment` | `environment`                 | object  | Platform, kernel, Python version, machine    |
 
 Memory fields are `null` when `/usr/bin/time` is unavailable on the host.
+Percentile and startup fields are `null` when wasmtime is unavailable.
+
+### Runtime Latency Metrics
+
+Every benchmark run measures runtime latency with multiple iterations and reports:
+
+- **p50/p95/p99**: percentile latencies computed from all timed iterations.
+- **stddev**: sample standard deviation across iterations.
+- **startup_ms**: median time for `benchmarks/startup.ark` (empty `fn main() {}`),
+  representing wasmtime instantiation + process launch overhead.
+- **guest_ms**: `median_ms − startup_ms` (floored at 0) — estimated pure guest
+  execution time.
+
+| Field         | JSON key                        | Description                                             |
+|---------------|---------------------------------|---------------------------------------------------------|
+| `p50_ms`      | `runtime.p50_ms`               | 50th-percentile latency (ms)                            |
+| `p95_ms`      | `runtime.p95_ms`               | 95th-percentile latency (ms)                            |
+| `p99_ms`      | `runtime.p99_ms`               | 99th-percentile / tail latency (ms)                     |
+| `stddev_ms`   | `runtime.stddev_ms`            | Sample standard deviation (ms)                          |
+| `startup_ms`  | `runtime.startup_ms`           | wasmtime startup overhead, from no-op probe (ms)        |
+| `guest_ms`    | `runtime.guest_ms`             | Guest execution time estimate: median − startup (ms)    |
+
+Iteration counts by mode:
+
+| Mode            | `runtime_latency_iterations` | Note                                  |
+|-----------------|:----------------------------:|---------------------------------------|
+| `quick`         | 5                            | Enough for basic p95 estimate         |
+| `full`          | 20                           | Robust p99 estimate                   |
+| `compare` / `ci`/ `update-baseline` | 20       | Same as full                          |
+
+Override with `--runtime-latency-iterations N`.
+
+When `hyperfine` is not available (and wasmtime does not expose structured latency
+output natively), the runner falls back to a Python timing loop using
+`time.perf_counter()` around repeated `wasmtime run` invocations.  All percentile
+and standard-deviation computations are performed in pure Python (`statistics` module).
 
 ### Compile Latency Breakdown
 

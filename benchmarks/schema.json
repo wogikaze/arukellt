@@ -213,6 +213,30 @@
           "type": "number",
           "description": "Median runtime in milliseconds."
         },
+        "p50_ms": {
+          "type": ["number", "null"],
+          "description": "50th-percentile (p50) runtime in milliseconds."
+        },
+        "p95_ms": {
+          "type": ["number", "null"],
+          "description": "95th-percentile (p95) runtime in milliseconds."
+        },
+        "p99_ms": {
+          "type": ["number", "null"],
+          "description": "99th-percentile (p99) runtime in milliseconds."
+        },
+        "stddev_ms": {
+          "type": ["number", "null"],
+          "description": "Sample standard deviation of runtime samples in milliseconds."
+        },
+        "startup_ms": {
+          "type": ["number", "null"],
+          "description": "Median wasmtime instantiation + process startup overhead (ms), measured via the startup.ark no-op fixture."
+        },
+        "guest_ms": {
+          "type": ["number", "null"],
+          "description": "Estimated guest-only execution time: median_ms minus startup_ms (floored at 0)."
+        },
         "max_rss_kb": {
           "type": ["number", "null"],
           "description": "Peak resident set size in KiB (null if unavailable)."
