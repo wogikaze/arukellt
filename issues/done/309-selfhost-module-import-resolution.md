@@ -1,34 +1,25 @@
 # Selfhost resolver に module/import resolution を実装する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-04-13
+**Updated**: 2026-04-14
+**Closed**: 2026-04-14
 **ID**: 309
 **Depends on**: 308
 **Track**: selfhost-frontend
 **Blocks v1 exit**: no
 **Priority**: 4
 
-
-## Reopened by audit — 2026-04-13
-
-**Reason**: Selfhost still single-file load.
-
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
-
 ## Summary
 
 selfhost resolver (`src/compiler/resolver.ark`) の名前解決を flat namespace から module/import 対応に引き上げる。現在は全 symbol が一つの scope chain に乗り、`use` / `import` 文は登録されるだけで実際のモジュールから symbol を引くことができない。stdlib module (`stdio`, `fs`, `process`, `env`) も builtin として手動登録されており、manifest 駆動の module 解決にはなっていない。
 
-## Current state
+## Implementation
 
-- `src/compiler/resolver.ark` (517 行): 9 種の symbol kind、scope chain walk、builtin 手動登録
-- `use` 文は `NK_USE_DECL` として parse・登録されるが、対象 module のファイル読み込みや symbol import が行われない
-- qualified name (`module::item`) の解決がない
-- builtin として `stdio`, `fs`, `process`, `env` を手動登録 (manifest.toml 非連動)
-- glob import (`use foo::*`) なし
-- re-export (`pub use`) なし
-- 循環 import 検出なし
+- `src/compiler/resolver.ark`: `resolve_program()`, `ModuleDecls` struct, `register_module_export()`, NK_PATH() visibility-aware qualified resolution
+- `src/compiler/driver.ark`: `load_imported_modules()`, `load_single_module()`, `LoadState` with circular import detection, `is_stdlib_path()`, `parent_dir()`
+- Fixtures: `tests/fixtures/selfhost/resolver_import_basic/`, `resolver_circular_import/`, `resolver_stdlib_module/`
+- All three fixture sets pass; manifest.txt updated
 
 ## Acceptance
 
@@ -37,6 +28,15 @@ selfhost resolver (`src/compiler/resolver.ark`) の名前解決を flat namespac
 - [x] `.ark` ファイル単位の module スコープ分離が動作する
 - [x] 循環 import が検出され compile error になる
 - [x] stdlib module が manifest.toml に基づいて解決される
+
+## Close evidence
+
+- `src/compiler/resolver.ark` — `resolve_program()` with module decl registration, NK_PATH() visibility check
+- `src/compiler/driver.ark` — `load_single_module()` reads .ark files from disk, parses them; circular detection via loading_stack
+- `tests/fixtures/selfhost/resolver_import_basic/main.ark` passes (output: 42\n42)
+- `tests/fixtures/selfhost/resolver_circular_import/main.ark` passes (diag: circular import detected)
+- `tests/fixtures/selfhost/resolver_stdlib_module/main.ark` passes (output: stdlib module resolved)
+- `bash scripts/run/verify-harness.sh --quick` → 19/19 PASS
 
 ## References
 
