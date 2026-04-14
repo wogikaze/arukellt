@@ -218,6 +218,8 @@ run:selfhost/resolver_visibility_ok/main.ark
 run:selfhost/typecheck_infer.ark
 run:selfhost/typecheck_infer_expr.ark
 run:selfhost/typecheck_generic_call.ark
+run:selfhost/typecheck_mono_instances.ark
+run:selfhost/typecheck_mono_vec.ark
 run:selfhost/typecheck_match_exhaustive.ark
 diag:selfhost/typecheck_match_nonexhaustive.ark
 run:selfhost/typecheck_match_exhaustive.ark

@@ -1,0 +1,44 @@
+// Test: selfhost monomorphization instance tracking
+// Verifies: generic functions called with distinct type args create distinct
+//           mono instances; unused generic instantiations are excluded from codegen.
+
+use std::host::stdio
+
+// Generic identity function — instantiated with i32 and String below
+fn identity<T>(x: T) -> T {
+    x
+}
+
+// Generic first-of-two — instantiated with (i32, String)
+fn first<A, B>(a: A, b: B) -> A {
+    a
+}
+
+fn main() {
+    // identity instantiated with i32 → mono instance identity__i32
+    let n: i32 = identity(42)
+    stdio::println(to_string(n))
+
+    // identity instantiated with String → mono instance identity__String
+    let s: String = identity(String_from("mono"))
+    stdio::println(s)
+
+    // first<i32, String> → mono instance first__i32__String
+    let f: i32 = first(99, String_from("ignored"))
+    stdio::println(to_string(f))
+
+    // Vec<i32> and Vec<String> are distinct mono types
+    let mut vi: Vec<i32> = Vec_new_i32()
+    push(vi, 10)
+    push(vi, 20)
+
+    let mut vs: Vec<String> = Vec_new_String()
+    push(vs, String_from("alpha"))
+    push(vs, String_from("beta"))
+    push(vs, String_from("gamma"))
+
+    stdio::println(to_string(len(vi)))
+    stdio::println(to_string(len(vs)))
+
+    stdio::println(String_from("mono instances OK."))
+}

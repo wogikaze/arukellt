@@ -58,7 +58,6 @@ graph LR
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I289["289 セルフホスト diagnostic parity を確認する"]
-  I312["312 Selfhost に generic instantiation と monomorphization を実装する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
   I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
@@ -189,7 +188,6 @@ graph LR
 - **269** depends on: 266, 268; blocks: none
 - **285** depends on: 284; blocks: none
 - **289** depends on: 287; blocks: none
-- **312** depends on: 311; blocks: none
 - **382** depends on: 378; blocks: 489
 - **437** depends on: 431; blocks: 438, 489
 - **441** depends on: 333, 335, 340; blocks: none
