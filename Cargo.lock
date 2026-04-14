@@ -158,6 +158,7 @@ name = "ark-lexer"
 version = "0.1.0"
 dependencies = [
  "ark-diagnostics",
+ "memchr",
 ]
 
 [[package]]

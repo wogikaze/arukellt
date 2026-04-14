@@ -7,6 +7,7 @@ pub mod escape;
 pub mod lower;
 pub mod mir;
 pub mod opt;
+pub mod opt_level;
 pub mod passes;
 pub mod validate;
 
@@ -18,4 +19,6 @@ pub use opt::{
     optimize_module_named_only, optimize_module_named_until, optimize_module_named_without,
     optimize_module_none, pass_pipeline_snapshot, run_single_pass,
 };
+pub use opt_level::OptLevel;
+pub use passes::PassStats;
 pub use validate::{MirValidationError, validate_backend_legal_module, validate_module};

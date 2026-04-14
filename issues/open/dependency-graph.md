@@ -24,7 +24,6 @@ graph LR
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
-  I102["102 コンパイル速度: Lexer / Parser のホットパス最適化"]
   I103["103 実行時性能: 配列境界チェック除去 (Bounds Check Elimination)"]
   I104["104 実行時性能: GC write barrier 削減 (immutable フィールド検出)"]
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
@@ -61,13 +60,13 @@ graph LR
   I289["289 セルフホスト diagnostic parity を確認する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
-  I441["441 VSCode Extension: Workspace / Package / ark.toml を理解した project-aware editor にする"]
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I498["498 498 — Playground CI: Lighthouse performance audit"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
+  I502["502 LSP: Full Multi-Root Workspace and Cross-Package Resolution"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
@@ -83,6 +82,7 @@ graph LR
   I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
+  I501["501 T2 (`wasm32-freestanding`) Wasm Emitter Implementation"]
   I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
@@ -113,6 +113,7 @@ graph LR
   I153 --> I154
   I200 --> I201
   I204 --> I188
+  I382 --> I501
   I437 --> I438
   I077 --> I136
   I139 --> I136
@@ -151,7 +152,6 @@ graph LR
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
-- **102** depends on: 100; blocks: none
 - **103** depends on: 080; blocks: none
 - **104** depends on: none; blocks: none
 - **105** depends on: none; blocks: none
@@ -186,15 +186,15 @@ graph LR
 - **269** depends on: 266, 268; blocks: none
 - **285** depends on: 284; blocks: none
 - **289** depends on: 287; blocks: none
-- **382** depends on: 378; blocks: 489
+- **382** depends on: 378; blocks: 489, 501
 - **437** depends on: 431; blocks: 438, 489
-- **441** depends on: 333, 335, 340; blocks: none
 - **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
 - **498** depends on: none; blocks: none
 - **499** depends on: none; blocks: none
+- **502** depends on: 441; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **077** depends on: 074, 137; blocks: 136
 - **124** depends on: 074; blocks: none
@@ -210,6 +210,7 @@ graph LR
 - **154** depends on: 153; blocks: none
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
+- **501** depends on: 382; blocks: none
 - **438** depends on: 437; blocks: 489
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
