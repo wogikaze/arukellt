@@ -50,7 +50,6 @@ graph LR
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
-  I438["438 Playground: privacy / telemetry / error reporting を実装方針付きで定める"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
@@ -72,8 +71,8 @@ graph LR
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
-  I501["501 T2 (`wasm32-freestanding`) Wasm Emitter Implementation"]
   I489["489 Playground user-visible entrypoint wiring"]
+  I501["501 T2 (`wasm32-freestanding`) Wasm Emitter Implementation"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
@@ -96,9 +95,8 @@ graph LR
   I146 --> I148
   I200 --> I201
   I204 --> I188
-  I382 --> I501
   I382 --> I489
-  I438 --> I489
+  I382 --> I501
   I077 --> I136
   I139 --> I136
   I475 --> I485
@@ -157,7 +155,6 @@ graph LR
 - **269** depends on: 266, 268; blocks: none
 - **285** depends on: 284; blocks: none
 - **382** depends on: 378; blocks: 489, 501
-- **438** depends on: 437; blocks: 489
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
@@ -179,8 +176,8 @@ graph LR
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
-- **501** depends on: 382; blocks: none
 - **489** depends on: 382, 437, 438, 464; blocks: none
+- **501** depends on: 382; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
 - **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none

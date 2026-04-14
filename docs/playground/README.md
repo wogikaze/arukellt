@@ -32,6 +32,7 @@ and the live browser entrypoint at [`playground/index.html`](index.html).
 | Browser entrypoint | ✅ | [`docs/playground/index.html`](index.html) — editor shell with parse + diagnostics (issue 466). Format and tokenize are exported by the Wasm API (`lib.rs`) but not yet wired in the browser UI. |
 | Docs route to live playground | ✅ | [`playground/index.html`](index.html) — linked from docs site navigation (issue 467) |
 | Publish / deploy path | ✅ | `.github/workflows/pages.yml` builds and deploys to GitHub Pages (issue 468) |
+| Privacy / telemetry guardrail | ✅ | `playground/src/telemetry.ts` — `TELEMETRY_DISABLED=true`; `reportError`/`reportWasmLoadError`/`reportCompilerPanic` log locally only. Policy: [`privacy-telemetry-policy.md`](privacy-telemetry-policy.md) (issue 438) |
 <!-- target-state: rows below are not yet repo-proved; each row moves to ✅ when its tracking issue closes -->
 | Type-checking in browser UI | ❌ repo-proof missing | tracked by `issues/open/472` |
 

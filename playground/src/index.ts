@@ -76,6 +76,14 @@ export {
   getCapabilityInfo,
 } from "./capability-check.js";
 
+// Re-export telemetry guardrails (v1: disabled; see docs/playground/privacy-telemetry-policy.md).
+export {
+  TELEMETRY_DISABLED,
+  reportError,
+  reportWasmLoadError,
+  reportCompilerPanic,
+} from "./telemetry.js";
+
 // Re-export share link encoder/decoder (ADR-021).
 export {
   encodeSharePayload,
