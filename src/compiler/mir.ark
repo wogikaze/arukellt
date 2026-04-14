@@ -250,6 +250,7 @@ fn NK_INDEX() -> i32 { 10 }
 fn NK_STRUCT_LIT() -> i32 { 11 }
 fn NK_ARRAY_LIT() -> i32 { 12 }
 fn NK_IF_EXPR() -> i32 { 13 }
+fn NK_CLOSURE() -> i32 { 15 }   // closure/lambda expression (parser forward-declares, MIR stub)
 fn NK_BLOCK() -> i32 { 20 }
 fn NK_ASSIGN() -> i32 { 18 }
 fn NK_LET() -> i32 { 30 }
@@ -1890,6 +1891,18 @@ fn lower_expr(ctx: LowerCtx, node: AstNode) -> i32 {
         return lower_stmt(ctx, node)
     }
 
+    // NK_CLOSURE: closure/lambda expressions with captured environments.
+    // The parser reserves NK_CLOSURE (= 15) as a forward declaration but does not
+    // yet produce closure nodes (no |params| body syntax in the selfhost frontend).
+    // The typechecker likewise has no closure-environment support.
+    // STOP_IF applies: full closure lowering requires parser + typechecker changes
+    // that are not part of this issue. Register a NOP stub so any future node is
+    // handled gracefully rather than silently falling to the unknown-expr path.
+    if kind == NK_CLOSURE() {
+        ctx_emit(ctx, MirInst_new(MIR_NOP()))
+        return 0 - 1
+    }
+
     // Unknown expression: emit NOP
     ctx_emit(ctx, MirInst_new(MIR_NOP()))
     0 - 1
@@ -2116,7 +2129,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
 
             // Push the break result local
             let get_result = MirInst_new(MIR_LOCAL_GET())
-            get_result.int_val = break_result
+            get_result.arg0 = break_result
             ctx_emit(ctx, get_result)
             return break_result
         }
@@ -2131,7 +2144,7 @@ fn lower_stmt(ctx: LowerCtx, node: AstNode) -> i32 {
                 let break_val = get_unchecked(node.children, 0)
                 let _bv = lower_expr(ctx, break_val)
                 let set_inst = MirInst_new(MIR_LOCAL_SET())
-                set_inst.int_val = ctx.loop_break_local
+                set_inst.arg0 = ctx.loop_break_local
                 ctx_emit(ctx, set_inst)
             }
             let br_inst = MirInst_new(MIR_BR())

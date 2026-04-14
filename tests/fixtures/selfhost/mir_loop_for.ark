@@ -1,0 +1,48 @@
+// Test: selfhost MIR loop/for lowering
+// Exercises: for..in range loop with back-edge header,
+//            loop { break } with plain exit,
+//            break with no value (loop terminated by condition).
+
+use std::host::stdio
+
+fn sum_range(n: i32) -> i32 {
+    let mut total = 0
+    for i in 0..n {
+        total = total + i
+    }
+    total
+}
+
+fn count_up(limit: i32) -> i32 {
+    let mut n = 0
+    loop {
+        if n >= limit {
+            break
+        }
+        n = n + 1
+    }
+    n
+}
+
+fn for_product(a: i32, b: i32) -> i32 {
+    let mut product = 0
+    let mut i = 0
+    while i < b {
+        product = product + a
+        i = i + 1
+    }
+    product
+}
+
+fn main() {
+    // for..in range loop
+    stdio::println(to_string(sum_range(5)))
+    stdio::println(to_string(sum_range(10)))
+
+    // loop { break } — plain conditional exit
+    stdio::println(to_string(count_up(7)))
+    stdio::println(to_string(count_up(0)))
+
+    // while loop as cross-check
+    stdio::println(to_string(for_product(3, 4)))
+}

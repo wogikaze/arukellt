@@ -1,0 +1,45 @@
+// Test: selfhost MIR match expression lowering
+// Exercises: integer literal arms, wildcard pattern, match as expression,
+//            nested if/else chain lowering for multiple arms.
+
+use std::host::stdio
+
+fn grade(score: i32) -> i32 {
+    match score {
+        90 => 4,
+        80 => 3,
+        70 => 2,
+        60 => 1,
+        _ => 0,
+    }
+}
+
+fn classify(n: i32) -> i32 {
+    match n {
+        0 => 10,
+        1 => 20,
+        _ => 99,
+    }
+}
+
+fn main() {
+    // Literal match arms — each branch
+    stdio::println(to_string(grade(90)))
+    stdio::println(to_string(grade(80)))
+    stdio::println(to_string(grade(70)))
+    stdio::println(to_string(grade(55)))
+
+    // Match as expression assigned to a variable
+    let x = 2
+    let result = match x {
+        1 => 100,
+        2 => 200,
+        _ => 0,
+    }
+    stdio::println(to_string(result))
+
+    // Classify: wildcard arm covers unlisted values
+    stdio::println(to_string(classify(0)))
+    stdio::println(to_string(classify(1)))
+    stdio::println(to_string(classify(7)))
+}

@@ -207,6 +207,8 @@ run:scalar/u8_basic.ark
 run:scalar/u8_overflow.ark
 run:scalar/licm_hoist.ark
 run:selfhost/mir_lowering.ark
+run:selfhost/mir_match.ark
+run:selfhost/mir_loop_for.ark
 run:selfhost/parser_new_syntax.ark
 module-diag:selfhost/resolver_circular_import/main.ark
 run:selfhost/resolver_import_basic/main.ark

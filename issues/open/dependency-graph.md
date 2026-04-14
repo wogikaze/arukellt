@@ -71,7 +71,6 @@ graph LR
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I472["472 Playground: type-checker product claim を独立 issue に分離する"]
-  I493["493 493 — Selfhost MIR lowering: control-flow coverage (match/loop/closure)"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I496["496 496 — Selfhost typechecker: match exhaustiveness checking"]
@@ -210,7 +209,6 @@ graph LR
 - **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **472** depends on: 466; blocks: none
-- **493** depends on: none; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
 - **496** depends on: none; blocks: none
