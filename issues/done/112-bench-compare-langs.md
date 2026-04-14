@@ -35,3 +35,13 @@ roadmap-v4.md §5.4 で選定した比較言語 (C gcc-O2 / Rust --release / Go 
 ## 参照
 
 - roadmap-v4.md §5.4
+
+## Closed — 2026-04-14
+
+Completed by `impl-benchmark` agent.
+
+- Fixed `--compare-lang VALUE` (space-separated) argument parsing
+- Fixed `local` keyword used outside function in compare-lang timing loop
+- Added graceful toolchain availability checks (cc/gcc/rustc/go)
+- C references (fib.c, binary_tree.c) and README comparison section were already present from #109
+- Commit: b9db40c
