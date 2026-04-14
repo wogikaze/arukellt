@@ -45,9 +45,9 @@ mod tests {
         MirModule {
             functions: vec![func],
             entry_fn: None,
-            structs: vec![],
-            enums: vec![],
-            strings: vec![],
+            struct_defs: HashMap::new(),
+            enum_defs: HashMap::new(),
+            imports: vec![],
             source_map: MirSourceMap::default(),
             stats: MirStats::default(),
             type_table: TypeTable::default(),
