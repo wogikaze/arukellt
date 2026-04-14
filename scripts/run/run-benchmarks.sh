@@ -295,6 +295,45 @@ vals = sys.stdin.read().split()
 print('[' + ','.join(vals) + ']')
 " 2>/dev/null || echo "[]")
 
+  # ---- per-phase compile latency breakdown ----------------------------------
+  # Uses `arukellt compile --json` to get machine-readable phase timings
+  # (lex, parse, resolve, typecheck, lower, opt, emit, total).
+  # Skipped for selfhost runs where the --json flag is unavailable.
+  PHASE_MS_JSON="null"
+  if [[ "$USE_SELFHOST" != "true" && -x "$COMPILER" ]]; then
+    _phase_raw=$("$COMPILER" compile "$SRC" --target "$TARGET" --json 2>/dev/null || true)
+    if [[ -n "$_phase_raw" ]]; then
+      PHASE_MS_JSON=$(python3 -c "
+import json, sys
+raw = sys.argv[1]
+try:
+    data = json.loads(raw)
+except Exception:
+    print('null')
+    sys.exit(0)
+timing = data.get('timing')
+if not timing:
+    print('null')
+    sys.exit(0)
+phase = {}
+mapping = {
+    'lex_ms':       'lex',
+    'parse_ms':     'parse',
+    'resolve_ms':   'resolve',
+    'typecheck_ms': 'typecheck',
+    'lower_ms':     'lower',
+    'opt_ms':       'opt',
+    'emit_ms':      'emit',
+    'total_ms':     'total',
+}
+for src_key, dst_key in mapping.items():
+    if src_key in timing and timing[src_key] is not None:
+        phase[dst_key] = timing[src_key]
+print(json.dumps(phase) if phase else 'null')
+" "$_phase_raw" 2>/dev/null || echo 'null')
+    fi
+  fi
+
   # ---- runtime timing -------------------------------------------------------
   RUNTIME_STATUS="skipped"
   RUNTIME_SAMPLES_JSON="[]"
@@ -379,7 +418,8 @@ print('[' + ','.join(vals) + ']')
     "median_ms": $COMPILE_MEDIAN,
     "max_rss_kb": $COMPILE_RSS_MEDIAN,
     "binary_bytes": $BINARY_BYTES,
-    "command": "$COMPILE_CMD"
+    "command": "$COMPILE_CMD",
+    "phase_ms": $PHASE_MS_JSON
   },
   "runtime": {
     "status": "$RUNTIME_STATUS",
@@ -399,6 +439,21 @@ JSONEOF
   SEP=","
 
   echo "  compile: ${COMPILE_MEDIAN}ms  binary: ${BINARY_BYTES}B  compile_rss: ${COMPILE_RSS_MEDIAN}KB  run: ${RUNTIME_MEDIAN}ms  run_rss: ${RUNTIME_RSS_MEDIAN}KB  correctness: ${CORRECTNESS}"
+
+  # Print phase breakdown if available
+  if [[ "$PHASE_MS_JSON" != "null" ]]; then
+    python3 -c "
+import json, sys
+try:
+    p = json.loads(sys.argv[1])
+    if isinstance(p, dict):
+        parts = [f'{k}:{v:.1f}ms' for k, v in p.items() if k != 'total']
+        total = p.get('total')
+        print('  phases: ' + '  '.join(parts) + (f'  total:{total:.1f}ms' if total is not None else ''))
+except Exception:
+    pass
+" "$PHASE_MS_JSON" 2>/dev/null || true
+  fi
 
   # ---- compare mode: run selfhost compiler on same benchmark ----------------
   if [[ "$COMPARE" == "true" && "$USE_SELFHOST" != "true" ]]; then
