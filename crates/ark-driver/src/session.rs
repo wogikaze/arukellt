@@ -6,12 +6,15 @@ use std::time::SystemTime;
 use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
 use ark_hir::Program;
 use ark_lexer::Lexer;
-use ark_mir::{
+use ark_mir::
+{
     MirModule, MirProvenance, compare_lowering_paths, dump_mir_phase, dump_phases_requested,
-    eliminate_dead_functions, lower_check_output_to_mir, lower_legacy_only, module_snapshot,
+    eliminate_dead_functions, lower_check_output_to_mir, module_snapshot,
     optimization_pass_catalog, optimize_module, optimize_module_named, runtime_entry_name,
     set_mir_provenance, validate_backend_legal_module, validate_module,
 };
+#[allow(deprecated)]
+use ark_mir::lower_legacy_only;
 use ark_parser::{ast, parse};
 #[allow(deprecated)]
 use ark_resolve::resolved_program_entry;
@@ -43,12 +46,20 @@ pub struct AnalysisResult {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MirSelection {
+    /// Deprecated: routes through the legacy AST lowerer (`lower_to_mir`).
+    /// Use `CoreHir` / `OptimizedCoreHir` instead. Legacy variants will be
+    /// removed once the CoreHIR lowerer (`lower_hir_to_mir`) is fully
+    /// implemented (see issues/open/508-legacy-path-removal-unblocked-by.md).
+    #[deprecated(since = "0.1.0", note = "use CoreHir or OptimizedCoreHir instead")]
     Legacy,
     CoreHir,
+    /// Deprecated: see `Legacy`.
+    #[deprecated(since = "0.1.0", note = "use OptimizedCoreHir instead")]
     OptimizedLegacy,
     OptimizedCoreHir,
 }
 
+#[allow(deprecated)] // refers to deprecated variants Legacy and OptimizedLegacy
 impl MirSelection {
     pub fn as_str(self) -> &'static str {
         match self {
@@ -193,6 +204,7 @@ fn validate_backend_ready_mir(module: &MirModule) -> Result<(), String> {
     validate_backend_legal_module(module).map_err(render_mir_validation_errors)
 }
 
+#[allow(deprecated)] // handles legacy variants for backward compat during deprecation period
 fn mark_selection(module: &mut MirModule, selection: MirSelection) {
     match selection {
         MirSelection::Legacy => set_mir_provenance(module, MirProvenance::LegacyAst),
@@ -435,9 +447,12 @@ impl Session {
     }
 
     /// Run frontend with optional selection hint to avoid double lowering.
-    /// When `hint` is `Some(Legacy)`, only legacy lowering runs.
-    /// When `hint` is `Some(CoreHir)`, only CoreHIR lowering runs (with legacy fallback).
+    /// When `hint` is `Some(Legacy)`, only legacy lowering runs [DEPRECATED].
+    /// When `hint` is `Some(CoreHir)`, CoreHIR lowering runs; currently this
+    /// falls back to the legacy AST lowerer because `lower_hir_to_mir` is still
+    /// a placeholder (see issues/open/508-legacy-path-removal-unblocked-by.md).
     /// When `hint` is `None`, both paths are lowered (needed for `compare_mir_paths`).
+    #[allow(deprecated)] // accepts deprecated Legacy/OptimizedLegacy during deprecation period
     fn run_frontend_for(
         &mut self,
         path: &Path,
@@ -625,6 +640,7 @@ impl Session {
         self.lower_mir_selected(path, MirSelection::CoreHir)
     }
 
+    #[allow(deprecated)] // handles deprecated Legacy/OptimizedLegacy during deprecation period
     pub fn lower_mir_selected(
         &mut self,
         path: &Path,
@@ -674,6 +690,7 @@ impl Session {
         self.compile_with_entry(path, target, selection, None)
     }
 
+    #[allow(deprecated)] // handles deprecated Legacy/OptimizedLegacy during deprecation period
     pub fn compile_with_entry(
         &mut self,
         path: &Path,
@@ -1057,6 +1074,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn mir_selection_labels_are_stable() {
         assert_eq!(MirSelection::Legacy.as_str(), "legacy");
         assert_eq!(MirSelection::CoreHir.as_str(), "corehir");

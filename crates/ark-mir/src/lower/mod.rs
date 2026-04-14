@@ -283,6 +283,11 @@ pub fn lower_hir_to_mir(
     Ok(mir)
 }
 
+/// Routes to the legacy AST lowerer. Deprecated — use `lower_check_output_to_mir`.
+#[deprecated(
+    since = "0.1.0",
+    note = "Use lower_check_output_to_mir instead."
+)]
 pub fn lower_any_to_mir(
     module: &ast::Module,
     checker: &TypeChecker,
@@ -291,6 +296,12 @@ pub fn lower_any_to_mir(
     lower_hir_fallback(module, checker, sink)
 }
 
+/// Routes to the legacy AST lowerer as the CoreHIR implementation. Deprecated — use
+/// `lower_check_output_to_mir` which will use the real CoreHIR lowerer when available.
+#[deprecated(
+    since = "0.1.0",
+    note = "Use lower_check_output_to_mir instead."
+)]
 pub fn lower_corehir_via_legacy(
     module: &ast::Module,
     checker: &TypeChecker,
@@ -400,8 +411,13 @@ pub fn lower_corehir_with_fallback(
     checker: &TypeChecker,
     sink: &mut DiagnosticSink,
 ) -> Result<MirModule, String> {
+    // NOTE: lower_hir_to_mir is currently a placeholder that returns empty MIR.
+    // The fallback to the legacy AST lowerer (lower_hir_fallback) is therefore
+    // always taken. This will change once the CoreHIR lowerer is fully implemented.
+    // See issues/open/508-legacy-path-removal-unblocked-by.md.
     let mut mir = match lower_hir_to_mir(core_hir, checker, sink) {
         Ok(mir) if !mir.functions.is_empty() => mir,
+        #[allow(deprecated)]
         Ok(_) | Err(_) => lower_corehir_via_legacy(module, checker, sink),
     };
     lower_if_exprs(&mut mir);
@@ -756,12 +772,18 @@ pub fn lowering_probe_full(
     ))
 }
 
-#[allow(deprecated)]
+#[deprecated(
+    since = "0.1.0",
+    note = "Use lower_check_output_to_mir instead. Direct legacy lowering will be removed \
+            once the CoreHIR lowerer is fully implemented \
+            (see issues/open/508-legacy-path-removal-unblocked-by.md)."
+)]
 pub fn lower_legacy_only(
     module: &ast::Module,
     checker: &TypeChecker,
     sink: &mut DiagnosticSink,
 ) -> MirModule {
+    #[allow(deprecated)]
     let mut mir = lower_to_mir(module, checker, sink);
     set_mir_provenance(&mut mir, MirProvenance::LegacyAst);
     mir
@@ -785,11 +807,16 @@ pub fn lower_prefer_corehir(
     lower_corehir_only(module, output, checker, sink)
 }
 
+#[deprecated(
+    since = "0.1.0",
+    note = "Use lower_check_output_to_mir or lower_corehir_only instead."
+)]
 pub fn lower_prefer_legacy(
     module: &ast::Module,
     checker: &TypeChecker,
     sink: &mut DiagnosticSink,
 ) -> MirModule {
+    #[allow(deprecated)]
     lower_legacy_only(module, checker, sink)
 }
 

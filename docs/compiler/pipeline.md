@@ -46,6 +46,20 @@ Lex
 
 これは「今すぐ全部が独立した public surface」という意味ではなく、責務分割の目印です。
 
+## MIR lowering: legacy fallback state (2026-04-15)
+
+The `LowerToMIR` step is currently implemented entirely via the **legacy AST lowerer**
+(`lower_to_mir` in `crates/ark-mir/src/lower/func.rs`). The CoreHIR lowerer
+(`lower_hir_to_mir`) is a placeholder returning empty MIR; every compilation therefore
+falls back to the legacy path.
+
+- `MirSelection::Legacy` and `OptimizedLegacy` are **deprecated** (since 0.1.0)
+- The `test` command compiles with `MirSelection::OptimizedCoreHir` unconditionally
+  (both CoreHir and Legacy currently use legacy internally)
+- Removal of `lower_to_mir` is blocked until `lower_hir_to_mir` is implemented:
+  see [legacy-path-status.md](legacy-path-status.md) and
+  `issues/open/508-legacy-path-removal-unblocked-by.md`
+
 ## 現在の crate map
 
 - `crates/ark-lexer`

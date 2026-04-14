@@ -11,6 +11,7 @@ pub mod opt_level;
 pub mod passes;
 pub mod validate;
 
+#[allow(deprecated)]
 pub use lower::{compare_lowering_paths, lower_check_output_to_mir, lower_legacy_only};
 pub use mir::*;
 pub use opt::{

@@ -74,6 +74,31 @@ issue tracking) to their JSON Schema paths:
 
 Memory fields are `null` when `/usr/bin/time` is unavailable on the host.
 
+### Compile Latency Breakdown
+
+Every benchmark run collects per-phase compile latency using `arukellt compile --time`.
+Phase timings are stored under `benchmarks[].compile.phase_ms` as median values (ms)
+across all compile iterations.
+
+| Phase       | JSON key                              | Description                          |
+|-------------|---------------------------------------|--------------------------------------|
+| `lex`       | `compile.phase_ms.lex`               | Lexer (tokenisation)                 |
+| `parse`     | `compile.phase_ms.parse`             | Parser (AST construction)            |
+| `resolve`   | `compile.phase_ms.resolve`           | Name resolution                      |
+| `typecheck` | `compile.phase_ms.typecheck`         | Type-checking                        |
+| `lower`     | `compile.phase_ms.lower`             | HIR → MIR lowering                   |
+| `opt`       | `compile.phase_ms.opt`               | MIR optimisation passes              |
+| `emit`      | `compile.phase_ms.emit`              | Wasm/component emission              |
+| `total`     | `compile.phase_ms.total`             | Total as reported by the compiler    |
+
+The `compile.median_ms` (wall-clock) will be slightly higher than `phase_ms.total`
+due to process startup and I/O overhead.
+
+Phase breakdown is included automatically in all modes (`quick`, `full`, `compare`,
+`ci`, `update-baseline`) — no extra flags are needed.  The markdown report
+(`docs/process/benchmark-results.md`) renders a **Compile Latency Breakdown** table
+alongside the standard benchmark matrix.
+
 ### Fixture naming convention
 
 New benchmarks **must** follow the canonical pattern:

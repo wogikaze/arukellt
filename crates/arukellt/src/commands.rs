@@ -941,11 +941,11 @@ pub(crate) fn cmd_test(file: PathBuf, target: TargetId, json: bool, list: bool, 
     let mut failed = 0;
     let t_suite_start = std::time::Instant::now();
 
-    let selection = if std::env::var("ARK_USE_COREHIR").is_ok() {
-        MirSelection::OptimizedCoreHir
-    } else {
-        MirSelection::OptimizedLegacy
-    };
+    // Always use CoreHir: both Legacy and CoreHir currently fall back to the legacy
+    // AST lowerer (lower_hir_to_mir is still a stub), so the output is identical.
+    // Legacy variant is deprecated — use CoreHir unconditionally.
+    // ARK_USE_COREHIR env var is no longer needed and is ignored.
+    let selection = MirSelection::OptimizedCoreHir;
 
     for test_name in tests {
         if !json {

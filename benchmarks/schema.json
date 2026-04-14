@@ -167,6 +167,21 @@
         "command": {
           "type": "string",
           "description": "Full command line used for compilation."
+        },
+        "phase_ms": {
+          "type": "object",
+          "description": "Per-phase median compile latency in milliseconds, from `arukellt compile --time`. Keys: lex, parse, resolve, typecheck, lower, opt, emit, total.",
+          "properties": {
+            "lex":        { "type": "number", "description": "Lexer phase time (ms)." },
+            "parse":      { "type": "number", "description": "Parser phase time (ms)." },
+            "resolve":    { "type": "number", "description": "Name resolution phase time (ms)." },
+            "typecheck":  { "type": "number", "description": "Type-check phase time (ms)." },
+            "lower":      { "type": "number", "description": "HIR→MIR lowering phase time (ms)." },
+            "opt":        { "type": "number", "description": "MIR optimisation phase time (ms)." },
+            "emit":       { "type": "number", "description": "Wasm emission phase time (ms)." },
+            "total":      { "type": "number", "description": "Total as reported by the compiler (ms)." }
+          },
+          "additionalProperties": { "type": "number" }
         }
       }
     },

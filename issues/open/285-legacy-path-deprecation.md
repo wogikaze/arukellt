@@ -1,10 +1,11 @@
 # Legacy lowering path を隔離・撤去する
 
-**Status**: open
+**Status**: open (partially complete — blocked by CoreHIR lowerer stub)
 **Created**: 2026-03-31
-**Updated**: 2026-04-13
+**Updated**: 2026-04-15
 **ID**: 285
 **Depends on**: 284
+**Blocks**: 508
 **Track**: corehir
 **Blocks v1 exit**: no
 **Priority**: 5
@@ -15,6 +16,29 @@
 **Reason**: Legacy fallback still active.
 
 **Action**: Moved from issues/done/ to issues/open/ by false-done audit.
+
+## Progress update — 2026-04-15
+
+Deprecation marking work complete. Full removal blocked by CoreHIR stub.
+See `issues/open/508-legacy-path-removal-unblocked-by.md`.
+
+**Completed:**
+- `lower_to_mir()` already had `#[deprecated]` ✓
+- `lower_legacy_only`, `lower_prefer_legacy`, `lower_any_to_mir`, `lower_corehir_via_legacy`
+  all marked `#[deprecated]` ✓
+- `MirSelection::Legacy` and `OptimizedLegacy` marked `#[deprecated]` ✓
+- `--mir-select legacy` CLI emits deprecation warning ✓
+- test command default changed from `OptimizedLegacy` to `OptimizedCoreHir` ✓
+- `ARK_USE_COREHIR` env var no longer needed, ignored ✓
+- `docs/compiler/legacy-path-status.md` created documenting pipeline state ✓
+- `docs/compiler/pipeline.md` updated with legacy fallback section ✓
+- `issues/open/508-legacy-path-removal-unblocked-by.md` created ✓
+- `lower_corehir_with_fallback` annotated with blocker comment ✓
+
+**Blocked:**
+The `lower_to_mir` function body (legacy AST lowering) cannot be removed because
+`lower_hir_to_mir` is still a stub returning empty MIR. Removing it would break
+all fixtures (>> 10). See issue #508.
 
 ## Summary
 
@@ -29,11 +53,13 @@ CoreHIR がデフォルトになった後、legacy path (`lower_to_mir` in `func
 ## Acceptance
 
 - [x] `lower_to_mir()` に `#[deprecated]` マークを付与
-- [x] `lower_corehir_with_fallback` のフォールバック経路を除去
+- [ ] `lower_corehir_with_fallback` のフォールバック経路を除去 — **blocked by #508**
 - [x] `--mir-select legacy` 使用時に deprecation warning を出す（1 リリース後に除去）
-- [x] 全 fixture が legacy なしで pass する
+- [ ] 全 fixture が legacy なしで pass する — **blocked by #508**
 
 ## References
 
 - `crates/ark-mir/src/lower/func.rs`
 - `crates/ark-mir/src/lower/mod.rs`
+- `docs/compiler/legacy-path-status.md`
+- `issues/open/508-legacy-path-removal-unblocked-by.md`

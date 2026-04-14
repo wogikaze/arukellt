@@ -143,6 +143,22 @@ def command_display(cmd: list[str]) -> str:
     return " ".join(str(part) for part in cmd)
 
 
+PHASE_PATTERN = __import__("re").compile(r"\[arukellt\]\s+(\w+):\s+([\d.]+)ms")
+
+
+def parse_phase_timings(stderr_text: str) -> dict[str, float]:
+    """Parse per-phase timings from `arukellt compile --time` stderr output.
+
+    Returns a dict mapping phase name → time in milliseconds.
+    Phases: lex, parse, resolve, typecheck, lower, opt, emit, total.
+    Returns an empty dict if no phase lines are found.
+    """
+    result: dict[str, float] = {}
+    for match in PHASE_PATTERN.finditer(stderr_text):
+        result[match.group(1)] = float(match.group(2))
+    return result
+
+
 def maybe_read_expected(path: Path) -> str | None:
     if not path.exists():
         return None
@@ -222,6 +238,7 @@ def measure_compile(
 ) -> dict[str, Any]:
     wasm_path = work_dir / f"{case.name}.wasm"
     samples: list[dict[str, Any]] = []
+    phase_samples: dict[str, list[float]] = {}
     last_output: dict[str, Any] | None = None
     for _ in range(iterations):
         try:
@@ -229,7 +246,7 @@ def measure_compile(
         except FileNotFoundError:
             pass
         output = run_measured(
-            [str(compiler), "compile", "--target", target, "-o", str(wasm_path), str(ROOT / case.source)],
+            [str(compiler), "compile", "--time", "--target", target, "-o", str(wasm_path), str(ROOT / case.source)],
             cwd=ROOT,
             time_bin=time_bin,
         )
@@ -246,8 +263,17 @@ def measure_compile(
                 "stderr_head": output["stderr"].splitlines()[:10],
             }
         samples.append(output)
+        for phase, ms in parse_phase_timings(output["stderr"]).items():
+            phase_samples.setdefault(phase, []).append(ms)
     binary_bytes = wasm_path.stat().st_size if wasm_path.exists() else None
-    return {
+    # Compute per-phase medians
+    phase_ms: dict[str, float] | None = None
+    if phase_samples:
+        phase_ms = {
+            phase: round(float(statistics.median(vals)), 3)
+            for phase, vals in phase_samples.items()
+        }
+    result: dict[str, Any] = {
         "status": "ok",
         "iterations": iterations,
         "samples_ms": [sample["elapsed_ms"] for sample in samples],
@@ -257,6 +283,9 @@ def measure_compile(
         "command": last_output["command"] if last_output else None,
         "wasm_path": str(wasm_path),
     }
+    if phase_ms is not None:
+        result["phase_ms"] = phase_ms
+    return result
 
 
 def measure_runtime(
@@ -597,6 +626,32 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
             )
         )
     lines.append("")
+    # Compile latency breakdown table
+    phase_order = ["lex", "parse", "resolve", "typecheck", "lower", "opt", "emit", "total"]
+    present_phases: list[str] = []
+    for bench in current["benchmarks"]:
+        pm = bench["compile"].get("phase_ms") or {}
+        for ph in phase_order:
+            if ph in pm and ph not in present_phases:
+                present_phases.append(ph)
+        for ph in pm:
+            if ph not in phase_order and ph not in present_phases:
+                present_phases.append(ph)
+    if present_phases:
+        lines.append("## Compile Latency Breakdown (ms)")
+        lines.append("")
+        header = "| Benchmark | " + " | ".join(present_phases) + " |"
+        separator = "|-----------|" + "|".join("-" * (len(ph) + 2) for ph in present_phases) + "|"
+        lines.append(header)
+        lines.append(separator)
+        for bench in current["benchmarks"]:
+            pm = bench["compile"].get("phase_ms") or {}
+            row = "| {} | {} |".format(
+                bench["name"],
+                " | ".join(format_ms(pm.get(ph)) for ph in present_phases),
+            )
+            lines.append(row)
+        lines.append("")
     lines.append("## Threshold Policy")
     lines.append("")
     lines.append("| Metric | Allowed regression |")
@@ -659,6 +714,17 @@ def render_text(current: dict[str, Any], comparison: dict[str, Any], baseline_pa
             lines.append(
                 f"  compile : {format_ms(compile_row.get('median_ms'))} ms  size={format_int(compile_row.get('binary_bytes'))} B  rss={format_int(compile_row.get('max_rss_kb'))} KB"
             )
+            phase_ms = compile_row.get("phase_ms")
+            if phase_ms:
+                phase_order = ["lex", "parse", "resolve", "typecheck", "lower", "opt", "emit", "total"]
+                parts = []
+                for ph in phase_order:
+                    if ph in phase_ms:
+                        parts.append(f"{ph}={format_ms(phase_ms[ph])}")
+                for ph in phase_ms:
+                    if ph not in phase_order:
+                        parts.append(f"{ph}={format_ms(phase_ms[ph])}")
+                lines.append(f"  phases  : {', '.join(parts)}")
         else:
             lines.append("  compile : ERROR")
             for line in compile_row.get("stderr_head", []):
