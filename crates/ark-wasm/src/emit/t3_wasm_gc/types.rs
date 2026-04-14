@@ -387,6 +387,18 @@ impl Ctx {
         self.struct_gc_types
             .insert("__hashmap_i32_i32".to_string(), self.hashmap_i32_i32_ty);
 
+        // HashMap<String, i32>: struct { keys: ref $arr_string, values: ref $arr_i32, count: i32 }
+        self.hashmap_str_i32_ty = self.types.add_struct(
+            "$hashmap_str_i32",
+            &[
+                mutable_field(StorageType::Val(ref_nullable(self.arr_string_ty))),
+                mutable_field(StorageType::Val(ref_nullable(self.arr_i32_ty))),
+                mutable_field(StorageType::Val(ValType::I32)),
+            ],
+        );
+        self.struct_gc_types
+            .insert("__hashmap_str_i32".to_string(), self.hashmap_str_i32_ty);
+
         // ── User-defined structs ──
         // Topologically sort structs so field-type dependencies are registered first
         let struct_defs = &mir.type_table.struct_defs;

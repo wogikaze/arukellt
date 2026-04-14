@@ -318,6 +318,11 @@ pub(crate) fn inject_prelude_symbols(symbols: &mut SymbolTable, scope: ScopeId) 
         "HashMap_i32_i32_get",
         "HashMap_i32_i32_contains_key",
         "HashMap_i32_i32_len",
+        "HashMap_new_String_i32",
+        "HashMap_String_i32_insert",
+        "HashMap_String_i32_get",
+        "HashMap_String_i32_contains_key",
+        "HashMap_String_i32_len",
         // Scalar type conversion functions (issue #040)
         "u8_to_i32",
         "u16_to_i32",

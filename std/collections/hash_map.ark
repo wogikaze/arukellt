@@ -1,0 +1,42 @@
+/// std::collections::hash_map — HashMap API wrappers
+///
+/// Provides user-facing wrappers around the monomorphic HashMap intrinsics.
+/// For HashMap<i32,i32>:  use HashMap_i32_i32_new / HashMap_i32_i32_insert etc.
+/// For HashMap<String,i32>: use the functions below.
+
+use std::collections::hash
+
+/// Create a new HashMap<i32, i32> (alias for HashMap_i32_i32_new).
+pub fn hashmap_i32_i32_new() -> HashMap<i32, i32> {
+    HashMap_i32_i32_new()
+}
+
+/// Create a new HashMap<String, i32>.
+pub fn hashmap_str_i32_new() -> HashMap<String, i32> {
+    HashMap_new_String_i32()
+}
+
+/// Insert into a HashMap<String, i32>.
+pub fn hashmap_str_i32_insert(m: HashMap<String, i32>, key: String, value: i32) {
+    HashMap_String_i32_insert(m, key, value)
+}
+
+/// Get from a HashMap<String, i32>.
+pub fn hashmap_str_i32_get(m: HashMap<String, i32>, key: String) -> Option<i32> {
+    HashMap_String_i32_get(m, key)
+}
+
+/// Check containment in a HashMap<String, i32>.
+pub fn hashmap_str_i32_contains(m: HashMap<String, i32>, key: String) -> bool {
+    HashMap_String_i32_contains_key(m, key)
+}
+
+/// Return the number of entries in a HashMap<String, i32>.
+pub fn hashmap_str_i32_len(m: HashMap<String, i32>) -> i32 {
+    HashMap_String_i32_len(m)
+}
+
+/// Returns true if the HashMap<String, i32> has no entries.
+pub fn hashmap_str_i32_is_empty(m: HashMap<String, i32>) -> bool {
+    HashMap_String_i32_len(m) == 0
+}

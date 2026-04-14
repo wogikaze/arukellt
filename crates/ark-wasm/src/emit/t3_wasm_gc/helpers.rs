@@ -1981,6 +1981,16 @@ impl Ctx {
                                             .entry(dst.0)
                                             .or_insert_with(|| "Option".to_string());
                                     }
+                                    "HashMap_new_String_i32" => {
+                                        extra_struct
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "__hashmap_str_i32".to_string());
+                                    }
+                                    "HashMap_String_i32_get" => {
+                                        extra_enum
+                                            .entry(dst.0)
+                                            .or_insert_with(|| "Option".to_string());
+                                    }
                                     // get_unchecked on Vec<Struct> → result is a struct
                                     "get_unchecked" | "get" => {
                                         if let Some(first_arg) = args.first()
@@ -2127,6 +2137,16 @@ impl Ctx {
                                     .or_insert_with(|| "__hashmap_i32_i32".to_string());
                             }
                             "HashMap_i32_i32_get" => {
+                                extra_enum
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "Option".to_string());
+                            }
+                            "HashMap_new_String_i32" => {
+                                extra_struct
+                                    .entry(dst.0)
+                                    .or_insert_with(|| "__hashmap_str_i32".to_string());
+                            }
+                            "HashMap_String_i32_get" => {
                                 extra_enum
                                     .entry(dst.0)
                                     .or_insert_with(|| "Option".to_string());

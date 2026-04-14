@@ -2850,6 +2850,336 @@ impl Ctx {
         f.instruction(&Instruction::LocalGet(self.si(9)));
     }
 
+    /// HashMap_new_String_i32() → hashmap_str_i32 struct
+    /// Creates keys: arr_string[16] (null fill), values: arr_i32[16] (0 fill), count: 0
+    pub(super) fn emit_hashmap_str_i32_new(&mut self, f: &mut PeepholeWriter<'_>) {
+        let hm_ty = self.hashmap_str_i32_ty;
+        let arr_str_ty = self.arr_string_ty;
+        let arr_i32_ty = self.arr_i32_ty;
+        let sty = self.string_ty;
+        // keys array: fill with ref.null $string
+        f.instruction(&Instruction::RefNull(HeapType::Concrete(sty)));
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::ArrayNew(arr_str_ty));
+        // values array: fill with 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::I32Const(16));
+        f.instruction(&Instruction::ArrayNew(arr_i32_ty));
+        // count = 0
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::StructNew(hm_ty));
+    }
+
+    /// HashMap_String_i32_insert(map, key: String, value: i32)
+    /// Linear scan: if key exists update value, else append.
+    /// Scratch mapping (avoids clobbering by emit_string_eq_gc which uses si(0),si(1),(4),(5),(9)):
+    ///   si(2)=count, si(3)=loop_i, si(8)=key, si(9)=found(=string_eq result), si(10)=map_anyref
+    pub(super) fn emit_hashmap_str_i32_insert(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
+        if args.len() < 3 {
+            return;
+        }
+        let hm_ty = self.hashmap_str_i32_ty;
+        let arr_str_ty = self.arr_string_ty;
+        let arr_i32_ty = self.arr_i32_ty;
+
+        // map → si(10)
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        // key → si(8)
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(self.si(8)));
+
+        // count = map.count → si(2)
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 2,
+        });
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+
+        // i = 0 → si(3), found = 0 → si(9)
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+
+        // Search + update loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // if i >= count: break
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // push keys[i] then search key, call string_eq (sets si(9) to result, pushes result)
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 0,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::ArrayGet(arr_str_ty));
+        f.instruction(&Instruction::LocalGet(self.si(8)));
+        self.emit_string_eq_gc(f); // → i32 on stack; si(9) holds result
+
+        // if equal: update values[i] = value, break
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 1,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_i32_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        self.emit_operand(f, &args[2]); // value
+        f.instruction(&Instruction::ArraySet(arr_i32_ty));
+        // si(9) already = 1 from string_eq
+        f.instruction(&Instruction::Br(2)); // break outer block
+        f.instruction(&Instruction::End);
+
+        // i++
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+        f.instruction(&Instruction::Br(0)); // continue loop
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // If not found (si(9)==0): append
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::I32Eqz);
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+
+        // keys[count] = key
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 0,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::LocalGet(self.si(8)));
+        f.instruction(&Instruction::ArraySet(arr_str_ty));
+
+        // values[count] = value
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 1,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_i32_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        self.emit_operand(f, &args[2]); // value
+        f.instruction(&Instruction::ArraySet(arr_i32_ty));
+
+        // map.count = count + 1
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::StructSet {
+            struct_type_index: hm_ty,
+            field_index: 2,
+        });
+
+        f.instruction(&Instruction::End); // end if (append)
+    }
+
+    /// HashMap_String_i32_get(map, key: String) → Option<i32>
+    /// Scratch: si(2)=count/result, si(3)=loop_i, si(8)=key, si(9)=found, si(10)=map_anyref
+    pub(super) fn emit_hashmap_str_i32_get(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
+        if args.len() < 2 {
+            if let Some(&base_ty) = self.enum_base_types.get("Option") {
+                f.instruction(&Instruction::StructNew(base_ty + 2));
+            } else {
+                f.instruction(&Instruction::I32Const(0));
+            }
+            return;
+        }
+        let hm_ty = self.hashmap_str_i32_ty;
+        let arr_str_ty = self.arr_string_ty;
+        let arr_i32_ty = self.arr_i32_ty;
+        let option_base = *self.enum_base_types.get("Option").unwrap_or(&0);
+        let option_some_ty = option_base + 1;
+        let option_none_ty = option_base + 2;
+
+        // map → si(10)
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        // key → si(8)
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(self.si(8)));
+
+        // count = map.count → si(2)
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 2,
+        });
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+
+        // i = 0 → si(3), found = 0 → si(9)
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+
+        // Search loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        // if i >= count: break
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // compare keys[i] with key
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 0,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::ArrayGet(arr_str_ty));
+        f.instruction(&Instruction::LocalGet(self.si(8)));
+        self.emit_string_eq_gc(f); // si(9) = result
+
+        // if equal: result = values[i] → si(2), break
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 1,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_i32_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::ArrayGet(arr_i32_ty));
+        f.instruction(&Instruction::LocalSet(self.si(2))); // overwrite count with result
+        // si(9) already = 1
+        f.instruction(&Instruction::Br(2));
+        f.instruction(&Instruction::End);
+
+        // i++
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        // Return Option<i32>
+        let option_ref = ref_nullable(option_base);
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Result(option_ref)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::StructNew(option_some_ty));
+        f.instruction(&Instruction::Else);
+        f.instruction(&Instruction::StructNew(option_none_ty));
+        f.instruction(&Instruction::End);
+    }
+
+    /// HashMap_String_i32_contains_key(map, key: String) → bool (i32)
+    /// Scratch: si(2)=count, si(3)=loop_i, si(8)=key, si(9)=found, si(10)=map_anyref
+    pub(super) fn emit_hashmap_str_i32_contains_key(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        args: &[Operand],
+    ) {
+        if args.len() < 2 {
+            f.instruction(&Instruction::I32Const(0));
+            return;
+        }
+        let hm_ty = self.hashmap_str_i32_ty;
+        let arr_str_ty = self.arr_string_ty;
+
+        // map → si(10)
+        self.emit_operand(f, &args[0]);
+        f.instruction(&Instruction::LocalSet(self.si(10)));
+
+        // key → si(8)
+        self.emit_operand(f, &args[1]);
+        f.instruction(&Instruction::LocalSet(self.si(8)));
+
+        // count = map.count → si(2)
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 2,
+        });
+        f.instruction(&Instruction::LocalSet(self.si(2)));
+
+        // i = 0 → si(3), found = 0 → si(9)
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+        f.instruction(&Instruction::I32Const(0));
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+
+        // Search loop
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        f.instruction(&Instruction::Loop(wasm_encoder::BlockType::Empty));
+
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::LocalGet(self.si(2)));
+        f.instruction(&Instruction::I32GeU);
+        f.instruction(&Instruction::BrIf(1));
+
+        // compare keys[i] with key
+        f.instruction(&Instruction::LocalGet(self.si(10)));
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(hm_ty)));
+        f.instruction(&Instruction::StructGet {
+            struct_type_index: hm_ty,
+            field_index: 0,
+        });
+        f.instruction(&Instruction::RefCastNonNull(HeapType::Concrete(arr_str_ty)));
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::ArrayGet(arr_str_ty));
+        f.instruction(&Instruction::LocalGet(self.si(8)));
+        self.emit_string_eq_gc(f); // si(9) = result
+
+        f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
+        // si(9) already = 1
+        f.instruction(&Instruction::Br(2));
+        f.instruction(&Instruction::End);
+
+        // i++
+        f.instruction(&Instruction::LocalGet(self.si(3)));
+        f.instruction(&Instruction::I32Const(1));
+        f.instruction(&Instruction::I32Add);
+        f.instruction(&Instruction::LocalSet(self.si(3)));
+        f.instruction(&Instruction::Br(0));
+        f.instruction(&Instruction::End); // end loop
+        f.instruction(&Instruction::End); // end block
+
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+    }
+
     pub(super) fn emit_push(&mut self, f: &mut PeepholeWriter<'_>, args: &[Operand]) {
         if args.len() < 2 {
             return;
