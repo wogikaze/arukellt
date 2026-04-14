@@ -30,6 +30,7 @@ RUN_FIXPOINT=false
 RUN_SELFHOST_FIXTURE_PARITY=false
 RUN_SELFHOST_DIAG_PARITY=false
 RUN_LSP_PERF=false
+RUN_MEMORY_GATE=false
 
 usage() {
     cat <<'EOF'
@@ -52,6 +53,7 @@ Options:
   --selfhost-fixture-parity  Run selfhost fixture output parity check
   --selfhost-diag-parity     Run selfhost diagnostic parity check
   --lsp-perf   Run LSP performance smoke tests (issue #463)
+  --memory-gate  Run the RSS memory gate (compiler RSS <= 100 MB on hello.ark)
   --full       Run all heavy local verification groups (includes --fixpoint,
                --selfhost-fixture-parity, --selfhost-diag-parity, --lsp-perf)
   --perf-gate  Run the perf regression gate (still opt-in)
@@ -74,6 +76,7 @@ for arg in "$@"; do
         --selfhost-fixture-parity) RUN_SELFHOST_FIXTURE_PARITY=true ;;
         --selfhost-diag-parity)    RUN_SELFHOST_DIAG_PARITY=true ;;
         --lsp-perf) RUN_LSP_PERF=true ;;
+        --memory-gate) RUN_MEMORY_GATE=true ;;
         --full)
             RUN_CARGO=true
             RUN_FIXTURES=true
@@ -87,6 +90,7 @@ for arg in "$@"; do
             RUN_SELFHOST_FIXTURE_PARITY=true
             RUN_SELFHOST_DIAG_PARITY=true
             RUN_LSP_PERF=true
+            RUN_MEMORY_GATE=true
             ;;
         --perf-gate) PERF_GATE=true ;;
         --help|-h)
@@ -119,6 +123,7 @@ else
     [ "$RUN_SELFHOST_FIXTURE_PARITY" = true ] && selected+=(selfhost-fixture-parity)
     [ "$RUN_SELFHOST_DIAG_PARITY" = true ] && selected+=(selfhost-diag-parity)
     [ "$RUN_LSP_PERF" = true ] && selected+=(lsp-perf)
+    [ "$RUN_MEMORY_GATE" = true ] && selected+=(memory-gate)
     echo -e "${YELLOW}Mode: fast local gate + ${selected[*]}${NC}"
 fi
 
@@ -449,6 +454,40 @@ if [ "$RUN_LSP_PERF" = true ]; then
     printf '\n%s\n' "${YELLOW}[lsp-perf] Running LSP performance smoke tests...${NC}"
     run_check "LSP performance smoke" \
         "$MISE cargo test --release -p ark-lsp --test lsp_perf -- --nocapture"
+fi
+
+if [ "$RUN_MEMORY_GATE" = true ]; then
+    printf '\n%s\n' "${YELLOW}[memory-gate] Running compiler RSS memory gate...${NC}"
+    RSS_THRESHOLD_KB=102400  # 100 MB in KiB
+    MG_COMPILER="${ARUKELLT_BIN:-}"
+    if [ -z "$MG_COMPILER" ]; then
+        if [ -x "./target/release/arukellt" ]; then
+            MG_COMPILER="./target/release/arukellt"
+        elif [ -x "./target/debug/arukellt" ]; then
+            MG_COMPILER="./target/debug/arukellt"
+        fi
+    fi
+    if [ ! -x "/usr/bin/time" ]; then
+        check_skip "compiler RSS gate (/usr/bin/time not available)"
+    elif [ -z "$MG_COMPILER" ] || [ ! -x "$MG_COMPILER" ]; then
+        check_skip "compiler RSS gate (arukellt binary not found — build first)"
+    else
+        _mg_rss_file=$(mktemp /tmp/ark-memory-gate-XXXXXX.txt)
+        /usr/bin/time -f "%M" -o "$_mg_rss_file" \
+            "$MG_COMPILER" compile tests/fixtures/hello/hello.ark \
+            --target wasm32-wasi-p1 -o /dev/null >/dev/null 2>&1 || true
+        _mg_rss=$(cat "$_mg_rss_file" 2>/dev/null | tr -d '[:space:]')
+        rm -f "$_mg_rss_file"
+        if [[ "$_mg_rss" =~ ^[0-9]+$ ]]; then
+            if [ "$_mg_rss" -le "$RSS_THRESHOLD_KB" ]; then
+                check_pass "compiler RSS gate: ${_mg_rss} KiB <= ${RSS_THRESHOLD_KB} KiB (100 MB)"
+            else
+                check_fail "compiler RSS gate: ${_mg_rss} KiB > ${RSS_THRESHOLD_KB} KiB (100 MB threshold)"
+            fi
+        else
+            check_skip "compiler RSS gate (could not read RSS from /usr/bin/time output)"
+        fi
+    fi
 fi
 
 printf '\n%s\n' "${YELLOW}========================================${NC}"

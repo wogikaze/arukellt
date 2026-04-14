@@ -1,7 +1,7 @@
 # 494 — Selfhost MIR: SSA formation pass
 
 **Track:** selfhost
-**Status:** open
+**Status:** BLOCKED — see #503
 **Created:** 2026-04-14
 **Updated:** 2026-04-14
 **Source:** audit — issues/done/211-selfhost-mir-lower-fn-bodies.md "Out of scope (deferred)"
@@ -15,6 +15,7 @@ MIR pipeline.
 ## Depends on
 
 - #493 (selfhost MIR control-flow coverage)
+- **#503 (selfhost MIR CFG + dominance-frontier infrastructure) — BLOCKING**
 
 ## Primary paths
 

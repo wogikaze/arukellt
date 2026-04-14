@@ -195,6 +195,17 @@ else
   echo "NOTE: hyperfine not found — using built-in shell timing (skipped: hyperfine)"
 fi
 
+TIME_BIN=""
+TOOLING_TIME="false"
+TOOLING_TIME_PATH="null"
+if [[ -x "/usr/bin/time" ]]; then
+  TIME_BIN="/usr/bin/time"
+  TOOLING_TIME="true"
+  TOOLING_TIME_PATH="\"/usr/bin/time\""
+else
+  echo "NOTE: /usr/bin/time not found — RSS memory measurement will be skipped"
+fi
+
 if [[ -z "$WASMTIME" ]]; then
   echo "NOTE: wasmtime not found — runtime benchmarks will be skipped"
 fi
@@ -221,15 +232,30 @@ for bench in "${BENCH_NAMES[@]}"; do
     COMPILE_CMD="$COMPILER compile $SRC -o $WASM_OUT --target $TARGET"
   fi
   COMPILE_SAMPLES=""
+  COMPILE_RSS_SAMPLES=""
   for (( i=0; i<COMPILE_ITERS; i++ )); do
     rm -f "$WASM_OUT"
-    t0=$(ms_now)
-    eval $COMPILE_CMD >/dev/null 2>&1 || true
-    t1=$(ms_now)
+    if [[ -n "$TIME_BIN" ]]; then
+      _rss_file=$(mktemp /tmp/ark-bench-rss-XXXXXX.txt)
+      t0=$(ms_now)
+      "$TIME_BIN" -f "%M" -o "$_rss_file" bash -c "$COMPILE_CMD" >/dev/null 2>&1 || true
+      t1=$(ms_now)
+      _rss_val=$(cat "$_rss_file" 2>/dev/null | tr -d '[:space:]')
+      rm -f "$_rss_file"
+      [[ "$_rss_val" =~ ^[0-9]+$ ]] && COMPILE_RSS_SAMPLES="$COMPILE_RSS_SAMPLES $_rss_val"
+    else
+      t0=$(ms_now)
+      eval $COMPILE_CMD >/dev/null 2>&1 || true
+      t1=$(ms_now)
+    fi
     elapsed=$(( t1 - t0 ))
     COMPILE_SAMPLES="$COMPILE_SAMPLES $elapsed"
   done
   COMPILE_MEDIAN=$(echo "$COMPILE_SAMPLES" | median)
+  COMPILE_RSS_MEDIAN="null"
+  if [[ -n "$COMPILE_RSS_SAMPLES" ]]; then
+    COMPILE_RSS_MEDIAN=$(echo "$COMPILE_RSS_SAMPLES" | median)
+  fi
   BINARY_BYTES=0
   [[ -f "$WASM_OUT" ]] && BINARY_BYTES=$(wc -c < "$WASM_OUT" | tr -d ' ')
 
@@ -243,6 +269,7 @@ print('[' + ','.join(vals) + ']')
   RUNTIME_STATUS="skipped"
   RUNTIME_SAMPLES_JSON="[]"
   RUNTIME_MEDIAN="0"
+  RUNTIME_RSS_MEDIAN="null"
   RUNTIME_ITERS_DONE=0
   STDOUT_ESCAPED='""'
   CORRECTNESS="fail"
@@ -262,16 +289,31 @@ print('[' + ','.join(vals) + ']')
     done
 
     RUNTIME_SAMPLES=""
+    RUNTIME_RSS_SAMPLES=""
     CAPTURED_STDOUT=""
     for (( i=0; i<RUNTIME_ITERS; i++ )); do
-      t0=$(ms_now)
-      CAPTURED_STDOUT=$($RUN_CMD 2>/dev/null) || true
-      t1=$(ms_now)
+      if [[ -n "$TIME_BIN" ]]; then
+        _rss_file=$(mktemp /tmp/ark-bench-rss-XXXXXX.txt)
+        t0=$(ms_now)
+        CAPTURED_STDOUT=$("$TIME_BIN" -f "%M" -o "$_rss_file" $RUN_CMD 2>/dev/null) || true
+        t1=$(ms_now)
+        _rss_val=$(cat "$_rss_file" 2>/dev/null | tr -d '[:space:]')
+        rm -f "$_rss_file"
+        [[ "$_rss_val" =~ ^[0-9]+$ ]] && RUNTIME_RSS_SAMPLES="$RUNTIME_RSS_SAMPLES $_rss_val"
+      else
+        t0=$(ms_now)
+        CAPTURED_STDOUT=$($RUN_CMD 2>/dev/null) || true
+        t1=$(ms_now)
+      fi
       elapsed=$(( t1 - t0 ))
       RUNTIME_SAMPLES="$RUNTIME_SAMPLES $elapsed"
     done
     RUNTIME_ITERS_DONE=$RUNTIME_ITERS
     RUNTIME_MEDIAN=$(echo "$RUNTIME_SAMPLES" | median)
+    RUNTIME_RSS_MEDIAN="null"
+    if [[ -n "$RUNTIME_RSS_SAMPLES" ]]; then
+      RUNTIME_RSS_MEDIAN=$(echo "$RUNTIME_RSS_SAMPLES" | median)
+    fi
     RUNTIME_SAMPLES_JSON=$(echo "$RUNTIME_SAMPLES" | python3 -c "
 import sys
 vals = sys.stdin.read().split()
@@ -305,7 +347,7 @@ print('[' + ','.join(vals) + ']')
     "iterations": $COMPILE_ITERS,
     "samples_ms": $COMPILE_SAMPLES_JSON,
     "median_ms": $COMPILE_MEDIAN,
-    "max_rss_kb": null,
+    "max_rss_kb": $COMPILE_RSS_MEDIAN,
     "binary_bytes": $BINARY_BYTES,
     "command": "$COMPILE_CMD"
   },
@@ -315,7 +357,7 @@ print('[' + ','.join(vals) + ']')
     "warmups": $WARMUPS,
     "samples_ms": $RUNTIME_SAMPLES_JSON,
     "median_ms": $RUNTIME_MEDIAN,
-    "max_rss_kb": null,
+    "max_rss_kb": $RUNTIME_RSS_MEDIAN,
     "stdout": $STDOUT_ESCAPED,
     "correctness": "$CORRECTNESS",
     "command": "$RUN_CMD"
@@ -326,7 +368,7 @@ JSONEOF
   BENCHMARKS_JSON="${BENCHMARKS_JSON}${SEP}${ENTRY}"
   SEP=","
 
-  echo "  compile: ${COMPILE_MEDIAN}ms  binary: ${BINARY_BYTES}B  run: ${RUNTIME_MEDIAN}ms  correctness: ${CORRECTNESS}"
+  echo "  compile: ${COMPILE_MEDIAN}ms  binary: ${BINARY_BYTES}B  compile_rss: ${COMPILE_RSS_MEDIAN}KB  run: ${RUNTIME_MEDIAN}ms  run_rss: ${RUNTIME_RSS_MEDIAN}KB  correctness: ${CORRECTNESS}"
 
   # ---- compare mode: run selfhost compiler on same benchmark ----------------
   if [[ "$COMPARE" == "true" && "$USE_SELFHOST" != "true" ]]; then
@@ -546,7 +588,8 @@ cat > "$RESULT_FILE" <<TOPJSON
   },
   "tooling": {
     "wasmtime": { "name": "wasmtime", "available": $TOOLING_WASMTIME, "path": $TOOLING_WASMTIME_PATH },
-    "hyperfine": { "name": "hyperfine", "available": $TOOLING_HYPERFINE, "path": $TOOLING_HYPERFINE_PATH }
+    "hyperfine": { "name": "hyperfine", "available": $TOOLING_HYPERFINE, "path": $TOOLING_HYPERFINE_PATH },
+    "time": { "name": "/usr/bin/time", "available": $TOOLING_TIME, "path": $TOOLING_TIME_PATH }
   },
   "benchmarks": [
     $BENCHMARKS_JSON

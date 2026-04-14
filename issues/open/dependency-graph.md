@@ -29,11 +29,9 @@ graph LR
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
-  I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
   I117["117 Component Model: WIT 生成品質の向上と往復検証"]
   I119["119 MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
-  I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
   I140["140 ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理"]
@@ -62,11 +60,13 @@ graph LR
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
   I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
+  I486["486 T3: MIR 最適化の段階的再開 (GC-safe audit + opt-level 復帰)"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I498["498 498 — Playground CI: Lighthouse performance audit"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I502["502 LSP: Full Multi-Root Workspace and Cross-Package Resolution"]
+  I503["503 Issue #503 — Selfhost MIR: CFG and Dominance-Frontier Infrastructure for SSA"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
@@ -75,7 +75,6 @@ graph LR
   I475["475 `arukellt component` サブコマンド (v3 候補)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
-  I486["486 T3: MIR 最適化の段階的再開 (GC-safe audit + opt-level 復帰)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
   I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
@@ -99,7 +98,6 @@ graph LR
   I074 --> I475
   I074 --> I476
   I117 --> I118
-  I122 --> I486
   I125 --> I126
   I141 --> I144
   I142 --> I144
@@ -157,11 +155,9 @@ graph LR
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
-- **113** depends on: 100; blocks: none
 - **117** depends on: none; blocks: 118
 - **119** depends on: 101; blocks: none
 - **120** depends on: none; blocks: none
-- **122** depends on: 101; blocks: 486
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
 - **140** depends on: 149; blocks: 148, 158
@@ -190,11 +186,13 @@ graph LR
 - **437** depends on: 431; blocks: 438, 489
 - **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
+- **486** depends on: 122; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
 - **498** depends on: none; blocks: none
 - **499** depends on: none; blocks: none
 - **502** depends on: 441; blocks: none
+- **503** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **077** depends on: 074, 137; blocks: 136
 - **124** depends on: 074; blocks: none
@@ -203,7 +201,6 @@ graph LR
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
 - **118** depends on: 117; blocks: none
-- **486** depends on: 122; blocks: none
 - **126** depends on: 125; blocks: none
 - **144** depends on: 141, 142, 143, 149; blocks: none
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
