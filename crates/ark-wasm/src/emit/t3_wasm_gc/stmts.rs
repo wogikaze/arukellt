@@ -59,6 +59,22 @@ impl Ctx {
                     if let Some(ref sname) = struct_name
                         && let Some(&ty_idx) = self.struct_gc_types.get(sname)
                     {
+                        // Guard: a field declared immutable in the WasmGC type definition
+                        // must never appear as a struct.set target — that would produce an
+                        // invalid Wasm module.  If we reach here, the immutability analysis
+                        // in `collect_mutable_struct_fields` missed a write site (ICE).
+                        if self
+                            .immutable_struct_fields
+                            .contains(&(sname.clone(), field_name.clone()))
+                        {
+                            panic!(
+                                "ICE: attempt to emit struct.set on field `{}.{}` that was \
+                                 declared immutable in the WasmGC type definition. \
+                                 This indicates a bug in the immutable-field analysis \
+                                 (issue #104).",
+                                sname, field_name
+                            );
+                        }
                         let field_idx = self
                             .struct_layouts
                             .get(sname)

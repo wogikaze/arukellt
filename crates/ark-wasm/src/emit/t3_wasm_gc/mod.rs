@@ -461,6 +461,11 @@ pub(super) struct Ctx {
     // User struct GC type indices
     pub(super) struct_gc_types: HashMap<String, u32>,
     struct_layouts: HashMap<String, Vec<(String, String)>>,
+    /// Set of (struct_name, field_name) pairs that were declared immutable in
+    /// the WasmGC type definition (never written after construction).  Used by
+    /// the statement emitter to emit a compile-time ICE instead of invalid Wasm
+    /// when struct.set is attempted on an immutable field.
+    pub(super) immutable_struct_fields: HashSet<(String, String)>,
     // Enum GC type indices: subtype hierarchy
     pub(super) enum_base_types: HashMap<String, u32>,
     pub(super) enum_variant_types: HashMap<String, HashMap<String, u32>>,
@@ -993,6 +998,7 @@ pub fn emit(
         fd_write_ty: 0,
         struct_gc_types: HashMap::new(),
         struct_layouts,
+        immutable_struct_fields: HashSet::new(),
         enum_base_types: HashMap::new(),
         enum_variant_types: HashMap::new(),
         enum_variant_field_types: HashMap::new(),

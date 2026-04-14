@@ -319,6 +319,19 @@ impl Ctx {
     pub(super) fn register_gc_types(&mut self, mir: &MirModule) {
         // Determine which user-struct fields are mutated after construction.
         let mutable_fields = collect_mutable_struct_fields(mir);
+
+        // Populate immutable_struct_fields: all user-defined struct fields NOT in
+        // the mutable set are safe to declare as WasmGC immutable fields, eliminating
+        // write barriers for those fields.  We also stash this set in Ctx so the
+        // statement emitter can guard against invalid struct.set attempts (ICE #3).
+        for (sname, fields) in &mir.type_table.struct_defs {
+            for (fname, _) in fields {
+                if !mutable_fields.contains(&(sname.clone(), fname.clone())) {
+                    self.immutable_struct_fields
+                        .insert((sname.clone(), fname.clone()));
+                }
+            }
+        }
         // ── String: bare packed i8 array (no wrapper struct) ──
         // (type $string (array (mut i8)))
         self.string_ty = self
@@ -568,5 +581,151 @@ impl Ctx {
                     .insert((ename.clone(), vname.clone()), field_types.clone());
             }
         }
+    }
+}
+
+// ── Unit tests ──────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::collect_mutable_struct_fields;
+    use ark_mir::mir::*;
+    use std::collections::HashMap;
+
+    fn empty_module() -> MirModule {
+        MirModule {
+            functions: vec![],
+            entry_fn: None,
+            type_table: TypeTable::default(),
+            struct_defs: HashMap::new(),
+            enum_defs: HashMap::new(),
+            imports: vec![],
+            source_map: MirSourceMap::default(),
+            stats: MirStats::default(),
+        }
+    }
+
+    fn simple_func(
+        blocks: Vec<BasicBlock>,
+        struct_typed_locals: HashMap<u32, String>,
+    ) -> MirFunction {
+        MirFunction {
+            id: FnId(0),
+            name: "test_fn".to_string(),
+            instance: InstanceKey::simple("test_fn"),
+            params: vec![],
+            return_ty: ark_typecheck::types::Type::Unit,
+            locals: vec![],
+            blocks,
+            entry: BlockId(0),
+            struct_typed_locals,
+            enum_typed_locals: HashMap::new(),
+            type_params: vec![],
+            source: SourceInfo::unknown(),
+            is_exported: false,
+        }
+    }
+
+    fn block(id: u32, stmts: Vec<MirStmt>) -> BasicBlock {
+        BasicBlock {
+            id: BlockId(id),
+            stmts,
+            terminator: Terminator::Return(None),
+            source: SourceInfo::unknown(),
+        }
+    }
+
+    /// A module with no functions should produce an empty mutable-fields set.
+    #[test]
+    fn empty_module_has_no_mutable_fields() {
+        let mir = empty_module();
+        let mutable = collect_mutable_struct_fields(&mir);
+        assert!(mutable.is_empty());
+    }
+
+    /// A field that is only mentioned in a StructInit (construction) but never
+    /// written afterwards must NOT appear in the mutable set — it should be
+    /// declared immutable in the WasmGC type.
+    #[test]
+    fn init_only_field_is_not_mutable() {
+        // Simulates: let p = Point { x: 10, y: 20 }
+        // with no subsequent writes to x or y.
+        let mut mir = empty_module();
+        let stmts = vec![MirStmt::Assign(
+            Place::Local(LocalId(0)),
+            Rvalue::Use(Operand::StructInit {
+                name: "Point".to_string(),
+                fields: vec![
+                    ("x".to_string(), Operand::ConstI32(10)),
+                    ("y".to_string(), Operand::ConstI32(20)),
+                ],
+            }),
+        )];
+        let mut locals = HashMap::new();
+        locals.insert(0u32, "Point".to_string());
+        mir.functions.push(simple_func(vec![block(0, stmts)], locals));
+
+        let mutable = collect_mutable_struct_fields(&mir);
+        assert!(
+            !mutable.contains(&("Point".to_string(), "x".to_string())),
+            "x is init-only, should not be mutable"
+        );
+        assert!(
+            !mutable.contains(&("Point".to_string(), "y".to_string())),
+            "y is init-only, should not be mutable"
+        );
+    }
+
+    /// A field that is written after construction (field assign) MUST appear in
+    /// the mutable set so it is declared as a mutable WasmGC field.
+    #[test]
+    fn post_construction_write_marks_field_mutable() {
+        // Simulates: p.x = 100 (after construction)
+        let mut mir = empty_module();
+        let mut locals = HashMap::new();
+        locals.insert(0u32, "Point".to_string());
+        let stmts = vec![MirStmt::Assign(
+            Place::Field(
+                Box::new(Place::Local(LocalId(0))),
+                "x".to_string(),
+            ),
+            Rvalue::Use(Operand::ConstI32(100)),
+        )];
+        mir.functions.push(simple_func(vec![block(0, stmts)], locals));
+
+        let mutable = collect_mutable_struct_fields(&mir);
+        assert!(
+            mutable.contains(&("Point".to_string(), "x".to_string())),
+            "x is assigned after construction, must be mutable"
+        );
+        assert!(
+            !mutable.contains(&("Point".to_string(), "y".to_string())),
+            "y is never assigned, should remain immutable"
+        );
+    }
+
+    /// A field written only inside a nested IfStmt body must still be detected
+    /// as mutable (the analysis recurses into nested statement bodies).
+    #[test]
+    fn field_write_inside_if_body_is_detected() {
+        let mut mir = empty_module();
+        let mut locals = HashMap::new();
+        locals.insert(1u32, "Node".to_string());
+        let inner_write = MirStmt::Assign(
+            Place::Field(Box::new(Place::Local(LocalId(1))), "val".to_string()),
+            Rvalue::Use(Operand::ConstI32(42)),
+        );
+        let stmts = vec![MirStmt::IfStmt {
+            cond: Operand::ConstBool(true),
+            then_body: vec![inner_write],
+            else_body: vec![],
+        }];
+        mir.functions.push(simple_func(vec![block(0, stmts)], locals));
+
+        let mutable = collect_mutable_struct_fields(&mir);
+        assert!(
+            mutable.contains(&("Node".to_string(), "val".to_string())),
+            "write inside if-body must be detected"
+        );
     }
 }

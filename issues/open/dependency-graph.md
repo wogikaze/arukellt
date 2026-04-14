@@ -23,7 +23,6 @@ graph LR
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
-  I104["104 実行時性能: GC write barrier 削減 (immutable フィールド検出)"]
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
@@ -128,7 +127,6 @@ graph LR
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
-- **104** depends on: none; blocks: none
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
