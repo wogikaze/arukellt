@@ -9,9 +9,12 @@ name: Playground CI
 #
 # See docs/playground/deployment-strategy.md §4.3 for threshold rationale.
 # To raise a threshold: update the env var below and document the reason in the PR.
+#  playground-lighthouse       perf/a11y   no (warn)     LCP ≤ 2.5 s, CLS ≤ 0.1, accessibility ≥ 90
 #
-# NOT YET IMPLEMENTED (tracked separately):
-#  - Lighthouse CI performance audit: see issues/open/498-playground-lighthouse-ci.md
+# Lighthouse CI audit runs against a locally-served build of docs/playground/.
+# Budgets are enforced via .github/lighthouserc.json (treosh/lighthouse-ci-action).
+# Performance score is warn-only (CI env latency is noisy); LCP, CLS, and
+# accessibility are hard-error thresholds.
 
 on:
   push:
@@ -94,3 +97,41 @@ jobs:
         run: |
           WASM_FILE=$(ls crates/ark-playground-wasm/pkg/*.wasm | head -1)
           bash scripts/check/check-playground-size.sh --wasm "$WASM_FILE"
+
+  # ── Playground Lighthouse CI (Core Web Vitals + accessibility) ─────────────
+  playground-lighthouse:
+    name: "Playground Lighthouse audit"
+    runs-on: ubuntu-latest
+    # Audits the built playground against Core Web Vitals and accessibility
+    # budgets defined in .github/lighthouserc.json.
+    # Precondition: docs/playground/index.html must exist (proved by issue #466).
+    # Budgets: LCP ≤ 2.5 s, CLS ≤ 0.1 (hard-error); accessibility ≥ 90 (hard-error);
+    #          performance score ≥ 0.70 (warn only — CI env latency is noisy).
+    # See docs/playground/deployment-strategy.md §4.3 for threshold rationale.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build playground JS bundle
+        working-directory: playground
+        run: npm install --no-audit --no-fund --package-lock=false && npm run build:app
+
+      - name: Serve playground static site (background)
+        # Serves docs/playground/ at http://localhost:3000/
+        run: npx --yes serve@14 docs/playground -l 3000 --no-clipboard &
+
+      - name: Wait for server to be ready
+        run: npx --yes wait-on@7 http://localhost:3000 --timeout 30000
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            http://localhost:3000/
+          configPath: '.github/lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: false

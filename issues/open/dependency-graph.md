@@ -23,18 +23,14 @@ graph LR
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
-  I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
-  I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I142["142 計測: startup / throughput / tail latency ベンチ"]
   I143["143 計測: allocation / live-set / GC pause / RSS telemetry"]
   I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
   I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
-  I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
   I170["170 v5 Migration guide"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
   I195["195 Partial execution preview + local semantic insight"]
@@ -50,7 +46,6 @@ graph LR
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
-  I498["498 498 — Playground CI: Lighthouse performance audit"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I502["502 LSP: Full Multi-Root Workspace and Cross-Package Resolution"]
   I503["503 Issue #503 — Selfhost MIR: CFG and Dominance-Frontier Infrastructure for SSA"]
@@ -85,9 +80,7 @@ graph LR
   I074 --> I475
   I074 --> I476
   I125 --> I126
-  I142 --> I144
   I143 --> I144
-  I142 --> I148
   I143 --> I148
   I145 --> I148
   I146 --> I148
@@ -99,7 +92,6 @@ graph LR
   I077 --> I136
   I139 --> I136
   I475 --> I485
-  I142 --> I158
   I143 --> I158
   I145 --> I158
   I148 --> I158
@@ -127,18 +119,14 @@ graph LR
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
-- **105** depends on: none; blocks: none
-- **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
 - **118** depends on: 117; blocks: none
 - **120** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **142** depends on: 149; blocks: 144, 148, 158
 - **143** depends on: 149; blocks: 144, 148, 158
 - **145** depends on: 149; blocks: 148, 158
 - **146** depends on: 149; blocks: 148
 - **147** depends on: 149; blocks: none
-- **157** depends on: none; blocks: none
 - **170** depends on: 165, 166, 169; blocks: none
 - **194** depends on: 193; blocks: none
 - **195** depends on: none; blocks: none
@@ -154,7 +142,6 @@ graph LR
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
-- **498** depends on: none; blocks: none
 - **499** depends on: none; blocks: none
 - **502** depends on: 441; blocks: none
 - **503** depends on: none; blocks: none

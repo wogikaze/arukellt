@@ -21,8 +21,8 @@
 > - CI Wasm size gate: `.github/workflows/playground-ci.yml` job `playground-wasm-size` (≤ 300 KB)
 > - CI bundle size gate: `.github/workflows/playground-ci.yml` job `playground-bundle-size` (≤ 512 KB)
 >
-> The following are **explicitly deferred** (not in scope for #491):
-> - Lighthouse CI performance audit: deferred to issue #498
+> The following are now **repo-proved** (added by issue #498):
+> - Lighthouse CI performance audit: `.github/workflows/playground-ci.yml` job `playground-lighthouse` (LCP ≤ 2.5 s, CLS ≤ 0.1, accessibility ≥ 90)
 
 ---
 
@@ -221,9 +221,9 @@ The target playground CI/CD workflow (does not yet exist in repo):
 
 ### 4.3 Size gate
 
-> **Enforcement status (updated 2026-04-14, issue #491):**
+> **Enforcement status (updated 2026-04-15, issues #491, #498):**
 > - **Enforced in CI:** Wasm binary size gate and JS bundle size gate — both in `.github/workflows/playground-ci.yml`.
-> - **Explicitly deferred:** Lighthouse CI performance audit — tracked in issue #498.
+> - **Enforced in CI:** Lighthouse CI performance audit — `.github/workflows/playground-ci.yml` job `playground-lighthouse`; budgets in `.github/lighthouserc.json`.
 
 The CI pipeline enforces binary size budgets with two dedicated jobs in
 `.github/workflows/playground-ci.yml`. These jobs trigger on push to `master`
@@ -245,9 +245,18 @@ updating the threshold environment variable in `.github/workflows/playground-ci.
 - `--wasm <file>` mode: checks a single `.wasm` file against `PLAYGROUND_WASM_LIMIT`.
 - `--bundle-dir <dir>` mode: sums all `.js` files in the directory against `PLAYGROUND_BUNDLE_LIMIT`.
 
-**Lighthouse CI (deferred):** A Lighthouse-based performance and accessibility
-audit is a desirable follow-on but was deferred because the playground headless
-test infrastructure does not yet exist. Tracked in issue #498.
+**Lighthouse CI budgets** (`.github/lighthouserc.json`, enforced by `playground-lighthouse` CI job, issue #498):
+
+| Metric | Budget | Threshold type | CI behaviour on exceed |
+|--------|--------|---------------|------------------------|
+| Largest Contentful Paint (LCP) | ≤ 2.5 s | hard-error | CI fails |
+| Cumulative Layout Shift (CLS) | ≤ 0.1 | hard-error | CI fails |
+| Accessibility score | ≥ 90 | hard-error | CI fails |
+| Performance score | ≥ 70 | warn only | CI warns (CI env latency is noisy) |
+
+The `playground-lighthouse` job builds the JS bundle, serves `docs/playground/` on
+`localhost:3000` via `npx serve`, then runs `treosh/lighthouse-ci-action@v11` against it.
+To update a threshold: edit `.github/lighthouserc.json` and document the reason in the PR.
 
 ---
 
