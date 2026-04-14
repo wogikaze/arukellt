@@ -1,8 +1,8 @@
 # ark-lexer lib.rs (1698行) をサブモジュールに分割
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-14
 **ID**: 134
 **Depends on**: —
 **Track**: code-structure

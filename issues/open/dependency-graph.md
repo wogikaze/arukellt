@@ -36,8 +36,6 @@ graph LR
   I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I134["134 ark-lexer lib.rs (1698行) をサブモジュールに分割"]
-  I135["135 ark-diagnostics lib.rs (1099行) をサブモジュールに分割"]
   I140["140 ベンチ統合: `mise bench` 1コマンド導線と subcommand 整理"]
   I141["141 計測: cold/warm/incremental compile と phase 別時間分解"]
   I142["142 計測: startup / throughput / tail latency ベンチ"]
@@ -169,8 +167,6 @@ graph LR
 - **122** depends on: 101; blocks: 486
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **134** depends on: none; blocks: none
-- **135** depends on: none; blocks: none
 - **140** depends on: 149; blocks: 148, 158
 - **141** depends on: 149; blocks: 144, 148, 158
 - **142** depends on: 149; blocks: 144, 148, 158
