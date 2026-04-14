@@ -42,7 +42,7 @@ pub enum TokenKind {
     Use,
 
     // Reserved keywords (future)
-    Reserved(String),
+    Reserved(&'static str),
 
     // Literals
     IntLit(i64),

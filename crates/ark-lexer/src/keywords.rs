@@ -30,8 +30,17 @@ pub(crate) fn lookup_keyword(text: &str) -> Option<TokenKind> {
         "use" => Some(TokenKind::Use),
         "true" => Some(TokenKind::BoolLit(true)),
         "false" => Some(TokenKind::BoolLit(false)),
-        "async" | "await" | "dyn" | "where" | "type" | "const" | "unsafe" | "extern" | "mod"
-        | "super" | "Self" => Some(TokenKind::Reserved(text.to_owned())),
+        "async" => Some(TokenKind::Reserved("async")),
+        "await" => Some(TokenKind::Reserved("await")),
+        "dyn" => Some(TokenKind::Reserved("dyn")),
+        "where" => Some(TokenKind::Reserved("where")),
+        "type" => Some(TokenKind::Reserved("type")),
+        "const" => Some(TokenKind::Reserved("const")),
+        "unsafe" => Some(TokenKind::Reserved("unsafe")),
+        "extern" => Some(TokenKind::Reserved("extern")),
+        "mod" => Some(TokenKind::Reserved("mod")),
+        "super" => Some(TokenKind::Reserved("super")),
+        "Self" => Some(TokenKind::Reserved("Self")),
         _ => None,
     }
 }

@@ -5,3 +5,4 @@ edition.workspace = true
 
 [dependencies]
 ark-diagnostics = { workspace = true }
+memchr = { workspace = true }

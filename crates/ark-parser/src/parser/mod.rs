@@ -152,7 +152,7 @@ impl<'a> Parser<'a> {
 
             // Check for reserved keyword violations
             if let TokenKind::Reserved(kw) = self.peek() {
-                let kw = kw.clone();
+                let kw = *kw;
                 let sp = self.span();
                 let code = DiagnosticCode::E0003;
                 self.sink.emit(

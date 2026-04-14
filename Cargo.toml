@@ -66,6 +66,7 @@ wasm-encoder = "0.225"
 wasmparser = "0.225"
 wasmtime = "30"
 ariadne = "0.5"
+memchr = "2"
 clap = { version = "4", features = ["derive"] }
 thiserror = "2"
 serde = { version = "1.0", features = ["derive"] }

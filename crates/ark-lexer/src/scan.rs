@@ -1,6 +1,7 @@
 //! Lexer / scanner implementation for Arukellt source code.
 
 use ark_diagnostics::{Diagnostic, DiagnosticCode, DiagnosticSink, Span};
+use memchr::{memchr2, memchr3};
 
 use crate::keywords::lookup_keyword;
 use crate::token::{FStringPart, Token, TokenKind};
@@ -248,11 +249,11 @@ impl<'src> Lexer<'src> {
     }
 
     fn skip_line_comment(&mut self) {
-        while let Some(b) = self.peek() {
-            if b == b'\n' || b == b'\r' {
-                break;
-            }
-            self.pos += 1;
+        // Fast-scan to next newline using memchr instead of byte-by-byte loop.
+        let remaining = &self.bytes[self.pos..];
+        match memchr2(b'\n', b'\r', remaining) {
+            Some(i) => self.pos += i,
+            None => self.pos = self.source.len(),
         }
     }
 
@@ -264,11 +265,11 @@ impl<'src> Lexer<'src> {
             _ => unreachable!("lex_doc_comment called on a non-doc comment"),
         };
         let comment_start = self.pos;
-        while let Some(b) = self.peek() {
-            if b == b'\n' || b == b'\r' {
-                break;
-            }
-            self.pos += 1;
+        // Fast-scan to next newline using memchr.
+        let remaining = &self.bytes[self.pos..];
+        match memchr2(b'\n', b'\r', remaining) {
+            Some(i) => self.pos += i,
+            None => self.pos = self.source.len(),
         }
         let text = self.source[comment_start..self.pos]
             .strip_prefix(' ')
@@ -540,6 +541,24 @@ impl<'src> Lexer<'src> {
         let mut has_error = false;
 
         loop {
+            // Fast-scan past regular chars (not ", \, \n, \r) in bulk.
+            let remaining = &self.bytes[self.pos..];
+            let chunk_end = memchr3(b'"', b'\\', b'\n', remaining)
+                .unwrap_or(remaining.len());
+            // Check for \r boundary at chunk_end (it would stop the string too)
+            let chunk_end = if chunk_end > 0 && remaining.get(chunk_end.saturating_sub(1)) == Some(&b'\r') {
+                chunk_end - 1
+            } else if remaining.first() == Some(&b'\r') {
+                0
+            } else {
+                chunk_end
+            };
+
+            if chunk_end > 0 {
+                value.push_str(&self.source[self.pos..self.pos + chunk_end]);
+                self.pos += chunk_end;
+            }
+
             match self.peek() {
                 None | Some(b'\n') | Some(b'\r') => {
                     let span = self.span(start);

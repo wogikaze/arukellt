@@ -87,7 +87,7 @@ mod tests {
         for kw in reserved {
             assert_eq!(
                 kinds(kw),
-                vec![TokenKind::Reserved(kw.to_string()), TokenKind::Eof],
+                vec![TokenKind::Reserved(kw), TokenKind::Eof],
                 "failed for reserved keyword: {kw}"
             );
         }

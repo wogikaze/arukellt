@@ -15,7 +15,7 @@ impl Parser<'_> {
         while *self.peek() != TokenKind::RBrace && *self.peek() != TokenKind::Eof {
             // Check for reserved keyword violations inside blocks
             if let TokenKind::Reserved(kw) = self.peek() {
-                let kw = kw.clone();
+                let kw = *kw;
                 let sp = self.span();
                 let code = DiagnosticCode::E0003;
                 self.sink.emit(
