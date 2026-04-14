@@ -16,7 +16,6 @@ graph LR
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I048["048 std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
-  I050["050 std::io: Reader、Writer、stdin/stdout/stderr、buffered I/O"]
   I051["051 std::time + std::random: 時刻・期間・乱数"]
   I052["052 std::process + std::env + std::cli: 実行環境 API"]
   I053["053 std::wasm: Wasm バイナリ型・opcode・module builder"]
@@ -176,7 +175,6 @@ graph LR
 - **047** depends on: 039, 041; blocks: none
 - **048** depends on: 039, 041; blocks: 057
 - **049** depends on: 039, 041, 042; blocks: 057
-- **050** depends on: 039, 041, 043; blocks: none
 - **051** depends on: 039, 040; blocks: none
 - **052** depends on: 039, 042; blocks: 057
 - **053** depends on: 039, 040, 043; blocks: 054

@@ -1,9 +1,9 @@
 # 492 — T3 tail-call: implement return_call_ref
 
 **Track:** wasm-backend
-**Status:** open
+**Status:** done
 **Created:** 2026-04-14
-**Updated:** 2026-04-14
+**Updated:** 2026-04-15
 **Source:** audit — issues/done/060-wasm-tail-call.md AC3
 
 ## Summary
@@ -24,9 +24,9 @@ No open issue tracks this remaining gap.
 
 ## Acceptance
 
-- [ ] T3 emitter emits `return_call_ref` for indirect tail calls when the source uses a function-reference tail position
-- [ ] At least one positive fixture exercises `return_call_ref`
-- [ ] `cargo test` passes
+- [x] T3 emitter emits `return_call_ref` for indirect tail calls when the source uses a function-reference tail position
+- [x] At least one positive fixture exercises `return_call_ref`
+- [x] `cargo test` passes
 
 ## Required verification
 
