@@ -1743,6 +1743,14 @@ fn inter_function_inline(module: &mut MirModule, max_stmts: usize, max_calls: us
                 if stmts_contain_return(stmts) {
                     return None;
                 }
+                // Do not inline if the body references any local variables.
+                // The inliner does not yet remap callee LocalId values into the caller's
+                // local space, so splicing in such a body produces "use of undeclared
+                // local N" MIR validation errors.  Skip any candidate whose body
+                // touches a local until full local-remapping is implemented.
+                if stmts_use_any_local(stmts) {
+                    return None;
+                }
                 Some((name.clone(), stmts.clone()))
             } else {
                 None // Only inline single-block functions for safety
@@ -1788,6 +1796,119 @@ fn stmts_contain_return(stmts: &[MirStmt]) -> bool {
         MirStmt::WhileStmt { body, .. } => stmts_contain_return(body),
         _ => false,
     })
+}
+
+/// Returns true if any statement in the list (or recursively in nested bodies) references
+/// a local variable via `Place::Local`.
+///
+/// `inter_function_inline` uses this to guard against inlining callee bodies that reference
+/// callee-scope `LocalId`s into a caller that does not declare those locals.  Without
+/// remapping, inlining such bodies would produce "use of undeclared local N" MIR validation
+/// errors.  Until the inliner implements full local remapping, it is safe to skip any
+/// candidate whose body touches any local.
+fn stmts_use_any_local(stmts: &[MirStmt]) -> bool {
+    stmts.iter().any(|s| stmt_uses_any_local(s))
+}
+
+fn stmt_uses_any_local(stmt: &MirStmt) -> bool {
+    match stmt {
+        MirStmt::Assign(place, rvalue) => place_uses_local(place) || rvalue_uses_local(rvalue),
+        MirStmt::Call { dest, args, .. } => {
+            dest.as_ref().map_or(false, place_uses_local)
+                || args.iter().any(operand_uses_local)
+        }
+        MirStmt::CallBuiltin { dest, args, .. } => {
+            dest.as_ref().map_or(false, place_uses_local)
+                || args.iter().any(operand_uses_local)
+        }
+        MirStmt::IfStmt {
+            cond,
+            then_body,
+            else_body,
+        } => {
+            operand_uses_local(cond)
+                || stmts_use_any_local(then_body)
+                || stmts_use_any_local(else_body)
+        }
+        MirStmt::WhileStmt { cond, body } => {
+            operand_uses_local(cond) || stmts_use_any_local(body)
+        }
+        MirStmt::Return(Some(op)) => operand_uses_local(op),
+        MirStmt::Return(None) | MirStmt::Break | MirStmt::Continue => false,
+        MirStmt::GcHint { .. } => true, // always references a local
+    }
+}
+
+fn place_uses_local(place: &Place) -> bool {
+    match place {
+        Place::Local(_) => true,
+        Place::Field(inner, _) => place_uses_local(inner),
+        Place::Index(inner, idx) => place_uses_local(inner) || operand_uses_local(idx),
+    }
+}
+
+fn rvalue_uses_local(rvalue: &Rvalue) -> bool {
+    match rvalue {
+        Rvalue::Use(op) => operand_uses_local(op),
+        Rvalue::BinaryOp(_, a, b) => operand_uses_local(a) || operand_uses_local(b),
+        Rvalue::UnaryOp(_, op) => operand_uses_local(op),
+        Rvalue::Aggregate(_, ops) => ops.iter().any(operand_uses_local),
+        Rvalue::Ref(place) => place_uses_local(place),
+    }
+}
+
+fn operand_uses_local(op: &Operand) -> bool {
+    match op {
+        Operand::Place(place) => place_uses_local(place),
+        Operand::BinOp(_, a, b) => operand_uses_local(a) || operand_uses_local(b),
+        Operand::UnaryOp(_, inner) => operand_uses_local(inner),
+        Operand::Call(_, args) => args.iter().any(operand_uses_local),
+        Operand::IfExpr {
+            cond,
+            then_body,
+            then_result,
+            else_body,
+            else_result,
+        } => {
+            operand_uses_local(cond)
+                || stmts_use_any_local(then_body)
+                || then_result.as_deref().map_or(false, operand_uses_local)
+                || stmts_use_any_local(else_body)
+                || else_result.as_deref().map_or(false, operand_uses_local)
+        }
+        Operand::StructInit { fields, .. } => fields.iter().any(|(_, v)| operand_uses_local(v)),
+        Operand::FieldAccess { object, .. } => operand_uses_local(object),
+        Operand::EnumInit { payload, .. } => payload.iter().any(operand_uses_local),
+        Operand::EnumTag(inner) => operand_uses_local(inner),
+        Operand::EnumPayload { object, .. } => operand_uses_local(object),
+        Operand::LoopExpr { init, body, result } => {
+            operand_uses_local(init) || stmts_use_any_local(body) || operand_uses_local(result)
+        }
+        Operand::TryExpr { expr, .. } => operand_uses_local(expr),
+        Operand::CallIndirect { callee, args } => {
+            operand_uses_local(callee) || args.iter().any(operand_uses_local)
+        }
+        Operand::ArrayInit { elements } => elements.iter().any(operand_uses_local),
+        Operand::IndexAccess { object, index } => {
+            operand_uses_local(object) || operand_uses_local(index)
+        }
+        // Pure constants and references to named functions reference no locals.
+        Operand::ConstI32(_)
+        | Operand::ConstI64(_)
+        | Operand::ConstF32(_)
+        | Operand::ConstF64(_)
+        | Operand::ConstBool(_)
+        | Operand::ConstChar(_)
+        | Operand::ConstString(_)
+        | Operand::ConstU8(_)
+        | Operand::ConstU16(_)
+        | Operand::ConstU32(_)
+        | Operand::ConstU64(_)
+        | Operand::ConstI8(_)
+        | Operand::ConstI16(_)
+        | Operand::Unit
+        | Operand::FnRef(_) => false,
+    }
 }
 
 fn count_operand_calls(
@@ -1965,5 +2086,100 @@ mod tests {
             module.functions[0].blocks[0].terminator,
             Terminator::Return(Some(Operand::Place(Place::Local(LocalId(0)))))
         ));
+    }
+
+    /// Regression test: `inter_function_inline` must NOT inline a callee whose body
+    /// references locals into a caller that does not declare those locals.
+    ///
+    /// Before the `stmts_use_any_local` guard was added, the O2 pipeline (which calls
+    /// `inter_function_inline`) would splice callee-local `LocalId` references into the
+    /// caller without remapping, producing "use of undeclared local N" MIR validation
+    /// errors.  This test ensures `optimize_module` (O2 full pipeline) succeeds on a
+    /// module where a small callee uses a param local and a caller invokes it via
+    /// `CallBuiltin`.
+    #[test]
+    fn inline_skips_callee_with_locals_no_undeclared_local_error() {
+        use crate::mir::{BlockId, default_block_source, default_function_source, sync_module_metadata};
+
+        // Callee: fn helper(x: i32) -> i32 { return x + 1; }
+        // The body uses local 0 (the parameter).  It must NOT be inlined into main.
+        let callee = MirFunction {
+            id: FnId(1),
+            name: "helper".to_string(),
+            instance: InstanceKey::simple("helper"),
+            params: vec![MirLocal {
+                id: LocalId(0),
+                name: Some("x".to_string()),
+                ty: Type::I32,
+            }],
+            return_ty: Type::I32,
+            locals: vec![],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![],
+                terminator: Terminator::Return(Some(Operand::BinOp(
+                    BinOp::Add,
+                    Box::new(Operand::Place(Place::Local(LocalId(0)))),
+                    Box::new(Operand::ConstI32(1)),
+                ))),
+                source: default_block_source(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: default_function_source(),
+            is_exported: false,
+        };
+
+        // Caller: fn main() { helper(42); }
+        // Calls helper via CallBuiltin (as the inliner looks for CallBuiltin sites).
+        let caller = MirFunction {
+            id: FnId(0),
+            name: "main".to_string(),
+            instance: InstanceKey::simple("main"),
+            params: vec![],
+            return_ty: Type::Unit,
+            locals: vec![],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts: vec![MirStmt::CallBuiltin {
+                    dest: None,
+                    name: "helper".to_string(),
+                    args: vec![Operand::ConstI32(42)],
+                }],
+                terminator: Terminator::Return(None),
+                source: default_block_source(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: Default::default(),
+            type_params: vec![],
+            source: default_function_source(),
+            is_exported: false,
+        };
+
+        let mut module = MirModule::new();
+        module.entry_fn = Some(FnId(0));
+        module.functions.push(caller);
+        module.functions.push(callee);
+        sync_module_metadata(&mut module);
+
+        // The O2 pipeline includes inter_function_inline.  Without the guard,
+        // the callee's `LocalId(0)` (from the param) would be spliced into main
+        // where local 0 is not declared, and optimize_module would return an error.
+        let result = optimize_module(&mut module);
+        assert!(
+            result.is_ok(),
+            "O2 pipeline must not produce undeclared-local errors from inter_function_inline: {:?}",
+            result.err()
+        );
+
+        // The CallBuiltin must still be present in main (not inlined away).
+        let main_stmts = &module.functions[0].blocks[0].stmts;
+        assert!(
+            main_stmts.iter().any(|s| matches!(s, MirStmt::CallBuiltin { name, .. } if name == "helper")),
+            "CallBuiltin to 'helper' must not have been inlined (it references a local)"
+        );
     }
 }
