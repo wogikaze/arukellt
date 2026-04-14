@@ -68,6 +68,7 @@ struct DriverConfig {
     dump_wasm: bool,
     parse_only: bool,
     check_only: bool,
+    source_dir: String,
 }
 
 pub fn DriverConfig_default() -> DriverConfig {
@@ -82,6 +83,7 @@ pub fn DriverConfig_default() -> DriverConfig {
         dump_wasm: false,
         parse_only: false,
         check_only: false,
+        source_dir: String_from("."),
     }
 }
 
@@ -89,6 +91,147 @@ pub fn DriverConfig_default() -> DriverConfig {
 
 fn load_source(path: String) -> Result<String, String> {
     fs::read_to_string(path)
+}
+
+// ── Module Loading ───────────────────────────────────────────────────────────
+// Loads imported modules referenced by `use` declarations.
+// Handles local .ark files, circular import detection, and stdlib recognition.
+
+/// Returns true if the use path is a stdlib import (starts with "std::").
+fn is_stdlib_path(path: String) -> bool {
+    let n = len(path)
+    if n < 5 {
+        return false
+    }
+    eq(substring(path, 0, 5), String_from("std::"))
+}
+
+/// Returns the parent directory of a file path (everything before the last '/').
+fn parent_dir(path: String) -> String {
+    let n = len(path)
+    let mut last_slash = 0 - 1
+    let mut i = n - 1
+    while i >= 0 {
+        if eq(substring(path, i, i + 1), String_from("/")) {
+            last_slash = i
+            i = 0 - 1  // break
+        } else {
+            i = i - 1
+        }
+    }
+    if last_slash < 0 {
+        String_from(".")
+    } else if last_slash == 0 {
+        String_from("/")
+    } else {
+        substring(path, 0, last_slash)
+    }
+}
+
+// Module loading state: tracks loaded and in-progress modules for cycle detection.
+// ModuleDecls is defined here (structurally identical to resolver::ModuleDecls)
+// because the Ark parser does not support qualified type names in generic params.
+struct ModuleDecls {
+    name: String,
+    decls: Vec<AstNode>,
+}
+
+struct LoadState {
+    loaded_names: Vec<String>,
+    loading_stack: Vec<String>,
+    modules: Vec<ModuleDecls>,
+    errors: Vec<String>,
+}
+
+fn LoadState_new() -> LoadState {
+    LoadState {
+        loaded_names: Vec_new_String(),
+        loading_stack: Vec_new_String(),
+        modules: Vec_new_ModuleDecls(),
+        errors: Vec_new_String(),
+    }
+}
+
+/// Check if a name is in a string vector.
+fn vec_has(v: Vec<String>, name: String) -> bool {
+    let count = len(v)
+    let mut i = 0
+    while i < count {
+        if eq(clone(get_unchecked(v, i)), clone(name)) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+/// Scan declarations for use statements and load referenced local modules.
+/// Recursively loads transitive imports. Detects circular imports.
+fn load_imported_modules(decls: Vec<AstNode>, base_dir: String, state: LoadState) {
+    let count = len(decls)
+    let mut i = 0
+    while i < count {
+        let d = get_unchecked(decls, i)
+        if d.kind == 54 {  // NK_USE
+            let use_path = clone(d.text)
+            if !is_stdlib_path(clone(use_path)) {
+                load_single_module(clone(use_path), clone(base_dir), state)
+            }
+        }
+        i = i + 1
+    }
+}
+
+/// Load a single module by name from the given directory.
+fn load_single_module(module_name: String, base_dir: String, state: LoadState) {
+    // Already loaded — skip
+    if vec_has(state.loaded_names, clone(module_name)) {
+        return
+    }
+
+    // Circular import detection
+    if vec_has(state.loading_stack, clone(module_name)) {
+        push(state.errors, concat(
+            String_from("circular import detected: "),
+            clone(module_name)
+        ))
+        return
+    }
+
+    // Push onto loading stack
+    push(state.loading_stack, clone(module_name))
+
+    // Construct file path: base_dir/module_name.ark
+    let file_path = concat(clone(base_dir), concat(String_from("/"), concat(clone(module_name), String_from(".ark"))))
+    let source_result = fs::read_to_string(file_path)
+    match source_result {
+        Ok(source) => {
+            // Lex
+            let tokens = lexer::tokenize(clone(source))
+            // Parse
+            let p = parser::Parser_new(tokens)
+            let mod_decls = parser::parse_module(p)
+
+            // Record as loaded
+            push(state.loaded_names, clone(module_name))
+            push(state.modules, ModuleDecls { name: clone(module_name), decls: clone(mod_decls) })
+
+            // Recursively load imports from this module
+            load_imported_modules(mod_decls, clone(base_dir), state)
+        },
+        Err(e) => {
+            push(state.errors, concat(
+                String_from("failed to load module `"),
+                concat(clone(module_name), concat(String_from("`: "), e))
+            ))
+        },
+    }
+
+    // Pop from loading stack
+    let stack_len = len(state.loading_stack)
+    if stack_len > 0 {
+        pop(state.loading_stack)
+    }
 }
 
 // ── Pipeline Orchestration ───────────────────────────────────────────────────
@@ -155,7 +298,23 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
     }
 
     // Phase 3: Resolve (name binding)
-    let resolve_ctx = resolver::resolve_module(decls)
+    // Load imported modules from use declarations
+    let load_state = LoadState_new()
+    load_imported_modules(decls, clone(config.source_dir), load_state)
+
+    // Report module loading errors
+    if len(load_state.errors) > 0 {
+        let mut result = CompileResult_err(PHASE_RESOLVE(), String_from("module loading error(s)"))
+        let mut le = 0
+        while le < len(load_state.errors) {
+            push(result.error_messages, clone(get_unchecked(load_state.errors, le)))
+            le = le + 1
+        }
+        result.error_count = len(load_state.errors)
+        return result
+    }
+
+    let resolve_ctx = resolver::resolve_program(decls, load_state.modules)
 
     if config.dump_hir {
         stdio::eprintln(String_from("=== HIR (post-resolve) ==="))
@@ -233,6 +392,8 @@ pub fn compile_source(source: String, config: DriverConfig) -> CompileResult {
 
 pub fn compile_file(path: String, config: DriverConfig) -> CompileResult {
     let cloned_path = clone(path)
+    // Set source_dir from the file's parent directory for module resolution
+    config.source_dir = parent_dir(clone(cloned_path))
     let source_result = load_source(cloned_path)
     match source_result {
         Ok(source) => {

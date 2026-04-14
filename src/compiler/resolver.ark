@@ -377,10 +377,58 @@ struct AstNode {
     is_pub: bool,
 }
 
+// ── Module Declarations (for multi-file resolution) ──────────────────────────
+
+pub struct ModuleDecls {
+    name: String,
+    decls: Vec<AstNode>,
+}
+
+pub fn ModuleDecls_new(name: String, decls: Vec<AstNode>) -> ModuleDecls {
+    ModuleDecls { name: name, decls: decls }
+}
+
 // ── Resolve Module ───────────────────────────────────────────────────────────
 
+/// Resolve a single module without any imported module declarations.
+/// Backward-compatible wrapper; prefer resolve_program for multi-file compilation.
 pub fn resolve_module(decls: Vec<AstNode>) -> ResolveCtx {
+    resolve_program(decls, Vec_new_ModuleDecls())
+}
+
+/// Resolve a program consisting of a main module and zero or more imported modules.
+/// Each imported module's pub symbols are registered under "module_name::symbol_name"
+/// so that qualified name resolution (e.g. mymath::add) works.
+pub fn resolve_program(decls: Vec<AstNode>, modules: Vec<ModuleDecls>) -> ResolveCtx {
     let ctx = ResolveCtx_new()
+
+    // Register symbols from imported modules.
+    let mod_count = len(modules)
+    let mut mi = 0
+    while mi < mod_count {
+        let m = get_unchecked(modules, mi)
+        // Define the module name in global scope (override the hardcoded builtin if present)
+        let existing = lookup(ctx, clone(m.name))
+        if existing < 0 {
+            define(ctx, clone(m.name), SYM_MODULE())
+        }
+        // Scan module decls for fn/struct/enum and register them as module exports
+        let mdecl_count = len(m.decls)
+        let mut di = 0
+        while di < mdecl_count {
+            let d = get_unchecked(m.decls, di)
+            if d.kind == NK_FN_DECL() {
+                register_module_export(ctx, clone(m.name), clone(d.text), SYM_FN(), d.is_pub)
+            } else if d.kind == NK_STRUCT_DECL() {
+                register_module_export(ctx, clone(m.name), clone(d.text), SYM_STRUCT(), d.is_pub)
+            } else if d.kind == NK_ENUM_DECL() {
+                register_module_export(ctx, clone(m.name), clone(d.text), SYM_ENUM(), d.is_pub)
+            }
+            di = di + 1
+        }
+        mi = mi + 1
+    }
+
     let count = len(decls)
 
     // First pass: register all top-level names, preserving pub/private visibility.
@@ -786,4 +834,83 @@ fn main() {
     stdio::println(concat(String_from("unregistered access OK (graceful): "), bool_to_string(unknown_ok)))
 
     stdio::println(String_from("Visibility OK."))
+
+    // ── Module Import Resolution Tests ───────────────────────────────────────
+    // Test resolve_program: register imported module declarations and verify
+    // qualified name resolution works.
+
+    let mut mod_decls: Vec<AstNode> = Vec_new_AstNode()
+    // Simulate a pub fn "add" in module "mymath"
+    let add_fn = AstNode {
+        kind: NK_FN_DECL(),
+        span: Span { start: 0, end: 0 },
+        text: String_from("add"),
+        int_val: 0,
+        float_val: 0.0,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: true,
+    }
+    push(mod_decls, add_fn)
+    // Simulate a private fn "internal" in module "mymath"
+    let priv_fn_decl = AstNode {
+        kind: NK_FN_DECL(),
+        span: Span { start: 0, end: 0 },
+        text: String_from("internal"),
+        int_val: 0,
+        float_val: 0.0,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: false,
+    }
+    push(mod_decls, priv_fn_decl)
+
+    let mut modules: Vec<ModuleDecls> = Vec_new_ModuleDecls()
+    push(modules, ModuleDecls_new(String_from("mymath"), mod_decls))
+
+    // Main module: use mymath, call mymath::add
+    let mut main_decls: Vec<AstNode> = Vec_new_AstNode()
+    let use_node = AstNode {
+        kind: NK_USE(),
+        span: Span { start: 0, end: 0 },
+        text: String_from("mymath"),
+        int_val: 0,
+        float_val: 0.0,
+        op: 0,
+        children: Vec_new_AstNode(),
+        type_ann: Vec_new_AstNode(),
+        is_mut: false,
+        is_pub: false,
+    }
+    push(main_decls, use_node)
+
+    let mctx = resolve_program(main_decls, modules)
+
+    // mymath::add should be resolvable
+    let add_idx = lookup(mctx, String_from("mymath::add"))
+    let add_found = add_idx >= 0
+    stdio::println(concat(String_from("mymath::add resolved: "), bool_to_string(add_found)))
+
+    // mymath::add should be pub
+    let add_pub = lookup_is_pub(mctx, String_from("mymath::add"))
+    stdio::println(concat(String_from("mymath::add is pub: "), bool_to_string(add_pub)))
+
+    // mymath::internal should be registered but private
+    let internal_idx = lookup(mctx, String_from("mymath::internal"))
+    let internal_found = internal_idx >= 0
+    stdio::println(concat(String_from("mymath::internal registered: "), bool_to_string(internal_found)))
+    let internal_pub = lookup_is_pub(mctx, String_from("mymath::internal"))
+    let internal_private = !internal_pub
+    stdio::println(concat(String_from("mymath::internal is private: "), bool_to_string(internal_private)))
+
+    // Module "mymath" itself should be in scope
+    let mod_kind = lookup_kind(mctx, String_from("mymath"))
+    let mod_is_module = mod_kind == SYM_MODULE()
+    stdio::println(concat(String_from("mymath is SYM_MODULE: "), bool_to_string(mod_is_module)))
+
+    stdio::println(String_from("Module Import OK."))
 }

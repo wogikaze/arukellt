@@ -1,0 +1,8 @@
+// Regression fixture for issue #309:
+// Stdlib module resolution — use std::host::stdio resolves correctly.
+
+use std::host::stdio
+
+fn main() {
+    stdio::println(String_from("stdlib module resolved"))
+}

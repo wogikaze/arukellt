@@ -300,7 +300,11 @@ fn main() {
                 json,
             );
         }
-        Commands::Init { path, template, list_templates } => {
+        Commands::Init {
+            path,
+            template,
+            list_templates,
+        } => {
             if list_templates {
                 commands::cmd_list_templates();
             } else {
