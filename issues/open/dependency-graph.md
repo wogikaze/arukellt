@@ -58,7 +58,6 @@ graph LR
   I289["289 セルフホスト diagnostic parity を確認する"]
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
-  I453["453 VSCode API を使った editor behavior E2E テストを追加する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I486["486 T3: MIR 最適化の段階的再開 (GC-safe audit + opt-level 復帰)"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
@@ -184,7 +183,6 @@ graph LR
 - **289** depends on: 287; blocks: none
 - **382** depends on: 378; blocks: 489, 501
 - **437** depends on: 431; blocks: 438, 489
-- **453** depends on: 450, 451, 452; blocks: none
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **486** depends on: 122; blocks: none
 - **494** depends on: none; blocks: none
