@@ -125,6 +125,9 @@ pub(crate) fn run_wasm_gc(wasm_bytes: &[u8], caps: &RuntimeCaps) -> Result<(), S
 
     let mut config = Config::new();
     config.wasm_gc(true);
+    // Enable the function-references proposal: required for ref.func and
+    // return_call_ref instructions used by the T3 indirect tail-call path.
+    config.wasm_function_references(true);
     // Use the null (non-collecting) GC to work around a wasmtime 29.x DRC bug
     // where `struct.get` results pushed onto the Wasm value stack are not
     // registered in the VMGcRefActivationsTable, causing a panic on the next
