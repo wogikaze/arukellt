@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 352 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 370 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 49 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -140,13 +140,24 @@
 | `clear` | `(Vec<T>) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `contains_String` | `(Vec<String>, String) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_String` | - |
 | `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
+| `deque_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
+| `deque_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
+| `deque_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
 | `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | Return true if the deque contains no elements. |
 | `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Return the number of elements in the deque. |
 | `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | Create a new empty Deque backed by a ring buffer (i32, monomorphic). |
 | `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Remove and return the back element. Panics if empty. |
 | `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Remove and return the front element. Panics if empty. |
 | `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Append a value to the back of the deque. |
 | `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Prepend a value to the front of the deque. |
+| `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | Copy all deque elements (front to back) into a new Vec<i32>. |
 | `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
 | `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
 | ~~`filter_i32`~~ ⚠️ Deprecated → `filter<i32>` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `prelude` | `deprecated` | `prelude_wrapper` | yes | `__intrinsic_filter_i32` | - |
@@ -184,12 +195,19 @@
 | `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` | - |
 | `map_i64_i64` | `(Vec<i64>, fn(i64) -> i64) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i64_i64` | - |
 | `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
+| `pq_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
 | `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | Return true if the priority queue contains no elements. |
 | `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Return the number of elements in the priority queue. |
 | `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | Create a new empty PriorityQueue min-heap (i32, monomorphic). |
 | `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Return the minimum element without removing it. Panics if empty. |
 | `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Remove and return the minimum element. Panics if empty. |
 | `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Insert a value into the priority queue. |
 | `product_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
 | `push` | `(Vec<T>, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | Append an element to the end of a Vec, mutating it in place. |
 | `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` | - |
@@ -905,13 +923,24 @@ Expected output: `hello world`
 | `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
 | `cursor_pos` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the current byte position of a ByteCursor. |
 | `cursor_remaining` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the number of bytes remaining in a ByteCursor. |
+| `deque_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Peek at the back element without removing it. Returns 0 when empty. |
+| `deque_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Reset the deque to empty (preserves allocated capacity). |
+| `deque_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Peek at the front element without removing it. Returns 0 when empty. |
 | `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | Return true if the deque contains no elements. |
 | `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Return the number of elements in the deque. |
 | `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | Create a new empty Deque backed by a ring buffer (i32, monomorphic). |
 | `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_pop_back` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Remove and return the back element. Panics if empty. |
 | `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_pop_front` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Remove and return the front element. Panics if empty. |
 | `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Append a value to the back of the deque. |
 | `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Prepend a value to the front of the deque. |
+| `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | Copy all deque elements (front to back) into a new Vec<i32>. |
 | `duration_ms` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
 | `duration_ns` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
 | `duration_us` | `(i64, i64) -> i64` | `std::time` | `stable` | `builtin` | no | - | - |
@@ -1042,12 +1071,19 @@ Expected output: `hello world`
 | `parse_i64` | `(String) -> Result<i64, String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_parse_i64` | - |
 | `pi` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `pop` | `(Vec<T>) -> Option<T>` | `prelude` | `stable` | `builtin` | yes | - | Remove and return the last element of a Vec. Returns None if the Vec is empty. |
+| `pq_clear` | `(Vec<i32>) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Reset the priority queue to empty (preserves allocated storage). |
 | `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | Return true if the priority queue contains no elements. |
 | `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Return the number of elements in the priority queue. |
 | `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | Create a new empty PriorityQueue min-heap (i32, monomorphic). |
 | `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_peek` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Return the minimum element without removing it. Panics if empty. |
 | `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_pop` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | Remove and return the minimum element. Panics if empty. |
 | `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
+| `pq_push` | `(Vec<i32>, i32) -> ()` | `std::collections::linear` | `stable` | `builtin` | no | - | Insert a value into the priority queue. |
 | `print` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_print` | Write a string to standard output without appending a newline. |
 | `print_bytes` | `(Vec<i32>) -> ()` | `std::io` | `stable` | `builtin` | no | - | - |
 | `println` | `(String) -> ()` | `std::host::stdio` | `stable` | `builtin` | no | `__intrinsic_println` | Write a string to standard output followed by a newline. |

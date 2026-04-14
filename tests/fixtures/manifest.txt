@@ -274,6 +274,8 @@ run:stdlib_io_rw/copy_stream.ark
 run:stdlib_json/json_basic.ark
 run:stdlib_json/json_roundtrip.ark
 run:stdlib_linear/linear_basic.ark
+run:stdlib_linear/deque_ops.ark
+run:stdlib_linear/pq_ops.ark
 run:stdlib_map/map_string.ark
 run:stdlib_math/abs_min_max.ark
 run:stdlib_math/clamp_i32.ark

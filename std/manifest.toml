@@ -3940,3 +3940,173 @@ doc_category = "io"
 stability = "stable"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Result<i32, String>"
+
+# ── std::collections::linear (Deque and PriorityQueue, i32 monomorphic) ──────
+# Generics not yet available; these are i32-only per STOP_IF in issue #045.
+# All Deque functions use a Vec<i32> as a ring-buffer:
+#   layout [head, tail, count, cap, ...data(cap)]
+
+[[functions]]
+name = "deque_new"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new empty Deque backed by a ring buffer (i32, monomorphic)."
+
+[[functions]]
+name = "deque_push_front"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Prepend a value to the front of the deque."
+
+[[functions]]
+name = "deque_push_back"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Append a value to the back of the deque."
+
+[[functions]]
+name = "deque_pop_front"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Remove and return the front element. Panics if empty."
+
+[[functions]]
+name = "deque_pop_back"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Remove and return the back element. Panics if empty."
+
+[[functions]]
+name = "deque_front"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Peek at the front element without removing it. Returns 0 when empty."
+
+[[functions]]
+name = "deque_back"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Peek at the back element without removing it. Returns 0 when empty."
+
+[[functions]]
+name = "deque_len"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of elements in the deque."
+
+[[functions]]
+name = "deque_is_empty"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+doc = "Return true if the deque contains no elements."
+
+[[functions]]
+name = "deque_clear"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "()"
+doc = "Reset the deque to empty (preserves allocated capacity)."
+
+[[functions]]
+name = "deque_to_vec"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+doc = "Copy all deque elements (front to back) into a new Vec<i32>."
+
+# PriorityQueue — binary min-heap backed by Vec<i32>
+# layout: [count, ...heap_data]
+
+[[functions]]
+name = "pq_new"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new empty PriorityQueue min-heap (i32, monomorphic)."
+
+[[functions]]
+name = "pq_push"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "()"
+doc = "Insert a value into the priority queue."
+
+[[functions]]
+name = "pq_pop"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Remove and return the minimum element. Panics if empty."
+
+[[functions]]
+name = "pq_peek"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the minimum element without removing it. Panics if empty."
+
+[[functions]]
+name = "pq_len"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of elements in the priority queue."
+
+[[functions]]
+name = "pq_is_empty"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "bool"
+doc = "Return true if the priority queue contains no elements."
+
+[[functions]]
+name = "pq_clear"
+module = "std::collections::linear"
+doc_category = "collections"
+stability = "stable"
+params = ["Vec<i32>"]
+returns = "()"
+doc = "Reset the priority queue to empty (preserves allocated storage)."

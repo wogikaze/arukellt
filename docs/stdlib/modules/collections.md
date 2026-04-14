@@ -107,8 +107,8 @@ flags: 0 = empty, 1 = occupied
 ## `std::collections::linear`
 
 - Source: [`../../../std/collections/linear.ark`](../../../std/collections/linear.ark)
-- Manifest-backed functions: 13
-- Stability: stable 13
+- Manifest-backed functions: 31
+- Stability: stable 31
 
 Linear collection helpers such as deque and priority queue.
 
@@ -120,23 +120,118 @@ vectors.
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `deque_new` | `() -> Vec<i32>` | `stable` | - |
+| `deque_new` | `() -> Vec<i32>` | `stable` | - |
+| `deque_push_back` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `deque_push_back` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `deque_push_front` | `(Vec<i32>, i32) -> ()` | `stable` | - |
+| `deque_push_front` | `(Vec<i32>, i32) -> ()` | `stable` | - |
+| `deque_pop_front` | `(Vec<i32>) -> i32` | `stable` | - |
 | `deque_pop_front` | `(Vec<i32>) -> i32` | `stable` | - |
 | `deque_pop_back` | `(Vec<i32>) -> i32` | `stable` | - |
+| `deque_pop_back` | `(Vec<i32>) -> i32` | `stable` | - |
+| `deque_len` | `(Vec<i32>) -> i32` | `stable` | - |
 | `deque_len` | `(Vec<i32>) -> i32` | `stable` | - |
 | `deque_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
+| `deque_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
+
+#### `deque_new`
+
+Create a new empty Deque backed by a ring buffer (i32, monomorphic).
+
+#### `deque_push_back`
+
+Append a value to the back of the deque.
+
+#### `deque_push_front`
+
+Prepend a value to the front of the deque.
+
+#### `deque_pop_front`
+
+Remove and return the front element. Panics if empty.
+
+#### `deque_pop_back`
+
+Remove and return the back element. Panics if empty.
+
+#### `deque_len`
+
+Return the number of elements in the deque.
+
+#### `deque_is_empty`
+
+Return true if the deque contains no elements.
 
 ### PriorityQueue (min-heap)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `pq_new` | `() -> Vec<i32>` | `stable` | - |
+| `pq_new` | `() -> Vec<i32>` | `stable` | - |
+| `pq_push` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `pq_push` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `pq_pop` | `(Vec<i32>) -> i32` | `stable` | - |
+| `pq_pop` | `(Vec<i32>) -> i32` | `stable` | - |
+| `pq_peek` | `(Vec<i32>) -> i32` | `stable` | - |
 | `pq_peek` | `(Vec<i32>) -> i32` | `stable` | - |
 | `pq_len` | `(Vec<i32>) -> i32` | `stable` | - |
+| `pq_len` | `(Vec<i32>) -> i32` | `stable` | - |
 | `pq_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
+| `pq_is_empty` | `(Vec<i32>) -> bool` | `stable` | - |
+| `pq_clear` | `(Vec<i32>) -> ()` | `stable` | - |
+
+#### `pq_new`
+
+Create a new empty PriorityQueue min-heap (i32, monomorphic).
+
+#### `pq_push`
+
+Insert a value into the priority queue.
+
+#### `pq_pop`
+
+Remove and return the minimum element. Panics if empty.
+
+#### `pq_peek`
+
+Return the minimum element without removing it. Panics if empty.
+
+#### `pq_len`
+
+Return the number of elements in the priority queue.
+
+#### `pq_is_empty`
+
+Return true if the priority queue contains no elements.
+
+#### `pq_clear`
+
+Reset the priority queue to empty (preserves allocated storage).
+
+### Additional Deque accessors
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `deque_front` | `(Vec<i32>) -> i32` | `stable` | Peek at the front element without removing it. |
+| `deque_back` | `(Vec<i32>) -> i32` | `stable` | Peek at the back element without removing it. |
+| `deque_clear` | `(Vec<i32>) -> ()` | `stable` | Reset the deque to empty (preserves capacity). |
+| `deque_to_vec` | `(Vec<i32>) -> Vec<i32>` | `stable` | Copy all deque elements (front to back) into a new Vec<i32>. |
+
+#### `deque_front`
+
+Peek at the front element without removing it. Returns 0 when empty.
+
+#### `deque_back`
+
+Peek at the back element without removing it. Returns 0 when empty.
+
+#### `deque_clear`
+
+Reset the deque to empty (preserves allocated capacity).
+
+#### `deque_to_vec`
+
+Copy all deque elements (front to back) into a new Vec<i32>.
 
 ## `std::collections::ordered`
 

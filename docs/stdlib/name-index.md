@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 406
+- **Canonical names:** 424
 - **Historical/deprecated names:** 3
-- **Total entries:** 409
+- **Total entries:** 427
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -121,13 +121,24 @@ Current public API names, sorted alphabetically.
 | `cursor_new` | `std::bytes` | `stable` | Bytes |
 | `cursor_pos` | `std::bytes` | `stable` | Bytes |
 | `cursor_remaining` | `std::bytes` | `stable` | Bytes |
+| `deque_back` | `std::collections::linear` | `stable` | Collections |
+| `deque_clear` | `std::collections::linear` | `stable` | Collections |
+| `deque_front` | `std::collections::linear` | `stable` | Collections |
+| `deque_is_empty` | `std::collections::linear` | `stable` | Collections |
 | `deque_is_empty` | `std::collections::linear` | `stable` | Collections |
 | `deque_len` | `std::collections::linear` | `stable` | Collections |
+| `deque_len` | `std::collections::linear` | `stable` | Collections |
+| `deque_new` | `std::collections::linear` | `stable` | Collections |
 | `deque_new` | `std::collections::linear` | `stable` | Collections |
 | `deque_pop_back` | `std::collections::linear` | `stable` | Collections |
+| `deque_pop_back` | `std::collections::linear` | `stable` | Collections |
+| `deque_pop_front` | `std::collections::linear` | `stable` | Collections |
 | `deque_pop_front` | `std::collections::linear` | `stable` | Collections |
 | `deque_push_back` | `std::collections::linear` | `stable` | Collections |
+| `deque_push_back` | `std::collections::linear` | `stable` | Collections |
 | `deque_push_front` | `std::collections::linear` | `stable` | Collections |
+| `deque_push_front` | `std::collections::linear` | `stable` | Collections |
+| `deque_to_vec` | `std::collections::linear` | `stable` | Collections |
 | `duration_ms` | `std::time` | `stable` | Time |
 | `duration_ns` | `std::time` | `stable` | Time |
 | `duration_us` | `std::time` | `stable` | Time |
@@ -274,11 +285,18 @@ Current public API names, sorted alphabetically.
 | `parse_i64` | `prelude` | `stable` | Conversion |
 | `pi` | `std::signal` | `stable` | Signal |
 | `pop` | `prelude` | `stable` | Collections |
+| `pq_clear` | `std::collections::linear` | `stable` | Collections |
+| `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
 | `pq_is_empty` | `std::collections::linear` | `stable` | Collections |
 | `pq_len` | `std::collections::linear` | `stable` | Collections |
+| `pq_len` | `std::collections::linear` | `stable` | Collections |
+| `pq_new` | `std::collections::linear` | `stable` | Collections |
 | `pq_new` | `std::collections::linear` | `stable` | Collections |
 | `pq_peek` | `std::collections::linear` | `stable` | Collections |
+| `pq_peek` | `std::collections::linear` | `stable` | Collections |
 | `pq_pop` | `std::collections::linear` | `stable` | Collections |
+| `pq_pop` | `std::collections::linear` | `stable` | Collections |
+| `pq_push` | `std::collections::linear` | `stable` | Collections |
 | `pq_push` | `std::collections::linear` | `stable` | Collections |
 | `print` | `std::host::stdio` | `stable` | Host Stdio |
 | `print_bytes` | `std::io` | `stable` | Io |
@@ -548,13 +566,24 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `cursor_new` | ✅ `stable` | `std::bytes` | Bytes |
 | `cursor_pos` | ✅ `stable` | `std::bytes` | Bytes |
 | `cursor_remaining` | ✅ `stable` | `std::bytes` | Bytes |
+| `deque_back` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_clear` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_front` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_len` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_len` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_new` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_new` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_pop_back` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_pop_back` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_pop_front` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_pop_front` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_push_back` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_push_back` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_push_front` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_push_front` | ✅ `stable` | `std::collections::linear` | Collections |
+| `deque_to_vec` | ✅ `stable` | `std::collections::linear` | Collections |
 | `duration_ms` | ✅ `stable` | `std::time` | Time |
 | `duration_ns` | ✅ `stable` | `std::time` | Time |
 | `duration_us` | ✅ `stable` | `std::time` | Time |
@@ -702,11 +731,18 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `parse_i64` | ✅ `stable` | `prelude` | Conversion |
 | `pi` | ✅ `stable` | `std::signal` | Signal |
 | `pop` | ✅ `stable` | `prelude` | Collections |
+| `pq_clear` | ✅ `stable` | `std::collections::linear` | Collections |
+| `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_len` | ✅ `stable` | `std::collections::linear` | Collections |
+| `pq_len` | ✅ `stable` | `std::collections::linear` | Collections |
+| `pq_new` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_new` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_peek` | ✅ `stable` | `std::collections::linear` | Collections |
+| `pq_peek` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_pop` | ✅ `stable` | `std::collections::linear` | Collections |
+| `pq_pop` | ✅ `stable` | `std::collections::linear` | Collections |
+| `pq_push` | ✅ `stable` | `std::collections::linear` | Collections |
 | `pq_push` | ✅ `stable` | `std::collections::linear` | Collections |
 | `print` | ✅ `stable` | `std::host::stdio` | Host Stdio |
 | `print_bytes` | ✅ `stable` | `std::io` | Io |

@@ -1,0 +1,29 @@
+use std::collections::linear
+use std::host::stdio
+
+fn main() {
+    let d: Vec<i32> = linear::deque_new()
+
+    // front/back on single element
+    linear::deque_push_back(d, 42)
+    stdio::println(i32_to_string(linear::deque_front(d)))
+    stdio::println(i32_to_string(linear::deque_back(d)))
+
+    // push more and check front/back
+    linear::deque_push_back(d, 99)
+    linear::deque_push_front(d, 1)
+    stdio::println(i32_to_string(linear::deque_front(d)))
+    stdio::println(i32_to_string(linear::deque_back(d)))
+    stdio::println(i32_to_string(linear::deque_len(d)))
+
+    // deque_to_vec
+    let v: Vec<i32> = linear::deque_to_vec(d)
+    stdio::println(i32_to_string(len(v)))
+    stdio::println(i32_to_string(get_unchecked(v, 0)))
+    stdio::println(i32_to_string(get_unchecked(v, 2)))
+
+    // deque_clear
+    linear::deque_clear(d)
+    stdio::println(i32_to_string(linear::deque_len(d)))
+    stdio::println(bool_to_string(linear::deque_is_empty(d)))
+}

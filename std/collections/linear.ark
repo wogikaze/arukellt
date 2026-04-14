@@ -147,3 +147,47 @@ pub fn pq_len(pq: Vec<i32>) -> i32 {
 pub fn pq_is_empty(pq: Vec<i32>) -> bool {
     get_unchecked(pq, 0) == 0
 }
+
+pub fn pq_clear(pq: Vec<i32>) {
+    set(pq, 0, 0)
+}
+
+// --- Additional Deque accessors ---
+
+/// Peek at the front element without removing it.
+/// Returns 0 when the deque is empty (check deque_is_empty first).
+pub fn deque_front(d: Vec<i32>) -> i32 {
+    let head: i32 = get_unchecked(d, 0)
+    get_unchecked(d, 4 + head)
+}
+
+/// Peek at the back element without removing it.
+/// Returns 0 when the deque is empty (check deque_is_empty first).
+pub fn deque_back(d: Vec<i32>) -> i32 {
+    let tail: i32 = get_unchecked(d, 1)
+    let cap: i32 = get_unchecked(d, 3)
+    let back_idx: i32 = (tail - 1 + cap) % cap
+    get_unchecked(d, 4 + back_idx)
+}
+
+/// Reset the deque to empty (preserves capacity).
+pub fn deque_clear(d: Vec<i32>) {
+    set(d, 0, 0)
+    set(d, 1, 0)
+    set(d, 2, 0)
+}
+
+/// Copy all deque elements (front to back) into a new Vec<i32>.
+pub fn deque_to_vec(d: Vec<i32>) -> Vec<i32> {
+    let head: i32 = get_unchecked(d, 0)
+    let count: i32 = get_unchecked(d, 2)
+    let cap: i32 = get_unchecked(d, 3)
+    let result: Vec<i32> = Vec_new_i32()
+    let mut i: i32 = 0
+    while i < count {
+        let idx: i32 = (head + i) % cap
+        push(result, get_unchecked(d, 4 + idx))
+        i = i + 1
+    }
+    result
+}
