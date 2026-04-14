@@ -30,6 +30,7 @@
 use crate::mir::MirModule;
 pub use crate::opt_level::OptLevel;
 
+pub mod bce;
 pub mod const_fold;
 pub mod dead_block_elim;
 
@@ -59,5 +60,6 @@ pub fn run_all(module: &mut MirModule, level: OptLevel) -> Vec<PassStats> {
     vec![
         const_fold::run(module, level),
         dead_block_elim::run(module, level),
+        bce::run(module, level),
     ]
 }

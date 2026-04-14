@@ -23,7 +23,6 @@ graph LR
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
-  I103["103 実行時性能: 配列境界チェック除去 (Bounds Check Elimination)"]
   I104["104 実行時性能: GC write barrier 削減 (immutable フィールド検出)"]
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
@@ -32,7 +31,6 @@ graph LR
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I141["141 計測: cold/warm/incremental compile と phase 別時間分解"]
   I142["142 計測: startup / throughput / tail latency ベンチ"]
   I143["143 計測: allocation / live-set / GC pause / RSS telemetry"]
   I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
@@ -90,10 +88,8 @@ graph LR
   I074 --> I475
   I074 --> I476
   I125 --> I126
-  I141 --> I144
   I142 --> I144
   I143 --> I144
-  I141 --> I148
   I142 --> I148
   I143 --> I148
   I145 --> I148
@@ -106,7 +102,6 @@ graph LR
   I077 --> I136
   I139 --> I136
   I475 --> I485
-  I141 --> I158
   I142 --> I158
   I143 --> I158
   I145 --> I158
@@ -135,7 +130,6 @@ graph LR
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
-- **103** depends on: 080; blocks: none
 - **104** depends on: none; blocks: none
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
@@ -144,7 +138,6 @@ graph LR
 - **120** depends on: none; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **141** depends on: 149; blocks: 144, 148, 158
 - **142** depends on: 149; blocks: 144, 148, 158
 - **143** depends on: 149; blocks: 144, 148, 158
 - **145** depends on: 149; blocks: 148, 158
