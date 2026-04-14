@@ -1,8 +1,8 @@
 # T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-14
 **ID**: 129
 **Depends on**: —
 **Track**: code-structure
@@ -83,3 +83,18 @@ crates/ark-wasm/src/emit/
 ## 参照
 
 - `crates/ark-wasm/src/emit/t1_wasm32_p1.rs`
+
+---
+
+## Closed — 2026-04-14
+
+The split was implemented in commit `85ecfae` (alongside #128 T3 split).
+
+**Closure evidence**:
+- `t1_wasm32_p1.rs` deleted — replaced by `crates/ark-wasm/src/emit/t1/` directory
+- Directory `t1/` contains 6 submodules: `mod.rs`, `helpers.rs`, `operands.rs`, `sections.rs`, `stdlib.rs`, `stmts.rs`
+- `emit/mod.rs` exposes `pub use t1 as t1_wasm32_p1` to preserve the external module alias
+- `pub fn emit()` in `t1/mod.rs` signature unchanged
+- `cargo build --workspace --exclude ark-llvm --exclude ark-lsp`: PASS
+- `bash scripts/run/verify-harness.sh --quick`: 19/19 PASS
+- 6 pre-existing failures in `cargo test -p arukellt --test harness` (stdlib_io_rw + from_trait T3) are unrelated to this split

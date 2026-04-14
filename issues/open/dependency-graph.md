@@ -37,7 +37,6 @@ graph LR
   I105["105 実行時性能: 数値型の Narrowing — i32 優先使用"]
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
-  I110["110 CI perf gate: コンパイル時間・実行時間・バイナリサイズ閾値チェック"]
   I111["111 ツール: Wasm バイナリサイズ内訳分析ツール"]
   I112["112 ベンチマーク比較: C/Rust/Go/Grain との自動比較スクリプト"]
   I113["113 計測: コンパイラ RSS + 実行時 GC ヒープ計測統合"]
@@ -48,7 +47,6 @@ graph LR
   I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I129["129 T1 エミッター (t1_wasm32_p1.rs 9465行) をサブモジュールに分割"]
   I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
   I132["132 Parser parser.rs (2003行) をサブモジュールに分割"]
   I134["134 ark-lexer lib.rs (1698行) をサブモジュールに分割"]
@@ -193,7 +191,6 @@ graph LR
 - **105** depends on: none; blocks: none
 - **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
-- **110** depends on: 109; blocks: none
 - **111** depends on: none; blocks: none
 - **112** depends on: 109; blocks: none
 - **113** depends on: 100; blocks: none
@@ -204,7 +201,6 @@ graph LR
 - **122** depends on: 101; blocks: 486
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **129** depends on: none; blocks: none
 - **130** depends on: none; blocks: none
 - **132** depends on: none; blocks: none
 - **134** depends on: none; blocks: none
