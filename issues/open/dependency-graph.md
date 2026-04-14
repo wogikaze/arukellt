@@ -14,9 +14,7 @@ graph LR
   I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I048["048 std::seq: Seq\<T\> 遅延シーケンスとアルゴリズム"]
   I049["049 std::path + std::fs: パス操作とファイル I/O"]
-  I052["052 std::process + std::env + std::cli: 実行環境 API"]
   I053["053 std::wasm: Wasm バイナリ型・opcode・module builder"]
-  I055["055 std::json + std::toml + std::csv: データ形式パーサ"]
   I056["056 std::test: assert、snapshot テスト、bench-lite"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
@@ -46,7 +44,6 @@ graph LR
   I122["122 MIR 最適化パスの --opt-level 分離と passes/ ディレクトリ構造確立"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I130["130 MIR lower.rs (4360行) をサブモジュールに分割"]
   I132["132 Parser parser.rs (2003行) をサブモジュールに分割"]
   I134["134 ark-lexer lib.rs (1698行) をサブモジュールに分割"]
   I135["135 ark-diagnostics lib.rs (1099行) をサブモジュールに分割"]
@@ -112,7 +109,6 @@ graph LR
   I032 --> I473
   I048 --> I057
   I049 --> I057
-  I052 --> I057
   I053 --> I054
   I074 --> I077
   I074 --> I124
@@ -163,9 +159,7 @@ graph LR
 - **047** depends on: 039, 041; blocks: none
 - **048** depends on: 039, 041; blocks: 057
 - **049** depends on: 039, 041, 042; blocks: 057
-- **052** depends on: 039, 042; blocks: 057
 - **053** depends on: 039, 040, 043; blocks: 054
-- **055** depends on: 039, 042, 044; blocks: none
 - **056** depends on: 039, 041; blocks: none
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none
@@ -195,7 +189,6 @@ graph LR
 - **122** depends on: 101; blocks: 486
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **130** depends on: none; blocks: none
 - **132** depends on: none; blocks: none
 - **134** depends on: none; blocks: none
 - **135** depends on: none; blocks: none
