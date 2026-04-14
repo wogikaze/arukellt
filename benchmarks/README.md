@@ -72,6 +72,8 @@ issue tracking) to their JSON Schema paths:
 | `startup_ms`           | `benchmarks[].runtime.startup_ms`| ms  | wasmtime instantiation + process overhead (startup.ark probe) |
 | `guest_ms`             | `benchmarks[].runtime.guest_ms`  | ms  | Estimated guest-only time (median − startup) |
 | `wasm_size_bytes`      | `benchmarks[].compile.binary_bytes` | bytes | Output Wasm binary size                  |
+| `wasm_section_code_bytes` | `benchmarks[].compile.wasm_sections.code` | bytes | Code section size (function bodies)  |
+| `wasm_section_data_bytes` | `benchmarks[].compile.wasm_sections.data` | bytes | Data section size (static strings)   |
 | `peak_memory_bytes`    | `benchmarks[].compile.max_rss_kb * 1024` or `runtime.max_rss_kb * 1024` | bytes | Peak resident set size (compile or runtime phase) |
 | `metadata.mode`        | `mode`                        | enum    | Run mode (`quick`, `full`, `compare`, `ci`, `update-baseline`) |
 | `metadata.generated_at`| `generated_at`               | ISO 8601| Timestamp of the run                         |
@@ -140,6 +142,41 @@ Phase breakdown is included automatically in all modes (`quick`, `full`, `compar
 `ci`, `update-baseline`) — no extra flags are needed.  The markdown report
 (`docs/process/benchmark-results.md`) renders a **Compile Latency Breakdown** table
 alongside the standard benchmark matrix.
+
+### Wasm Section Breakdown
+
+Every successful compile also records the byte sizes of each section in the output
+`.wasm` binary under `compile.wasm_sections`.  Section sizes are extracted by
+parsing the Wasm binary format directly using pure-Python LEB128 decoding — no
+external tools are required.
+
+| Field                           | JSON key                              | Description                                         |
+|---------------------------------|---------------------------------------|-----------------------------------------------------|
+| `type`                          | `compile.wasm_sections.type`         | Type section (function signatures) in bytes         |
+| `import`                        | `compile.wasm_sections.import`       | Import section in bytes                             |
+| `function`                      | `compile.wasm_sections.function`     | Function index section in bytes                     |
+| `code`                          | `compile.wasm_sections.code`         | Code section (function bodies) in bytes — largest   |
+| `data`                          | `compile.wasm_sections.data`         | Data section (static strings/bytes) in bytes        |
+| `export`                        | `compile.wasm_sections.export`       | Export section in bytes                             |
+| `custom_total`                  | `compile.wasm_sections.custom_total` | Sum of all custom sections in bytes                 |
+| `symbol_attribution`            | `compile.wasm_sections.symbol_attribution` | Always `"unavailable"` — no name section emitted |
+
+**Section diff in compare reports**: when running `mise bench:compare` or `mise bench:ci`,
+the runner computes a per-section delta vs baseline and surfaces it in both the text
+output (`sections: code=+1234(+2.1%) ...`) and the markdown report
+(`### Wasm Section Δ vs Baseline` table).
+
+**Function-level attribution** is `"unavailable"` because the Arukellt Wasm emitter
+does not emit a `name` custom section.  To inspect named symbols, install
+[`wabt`](https://github.com/WebAssembly/wabt) and run:
+
+```bash
+wasm-objdump -x <output>.wasm
+```
+
+`wasm-objdump` availability is recorded in `tooling.wasm-objdump` in the JSON
+output.  Its absence does not affect benchmark operation; section sizes are always
+collected via pure-Python parsing.
 
 ### Fixture naming convention
 
@@ -274,6 +311,7 @@ Baseline stored in `tests/baselines/perf/baselines.json`._
 - `wasmtime`: required for runtime timing and output verification. If missing, runtime metrics are marked skipped.
 - `/usr/bin/time`: used to capture max RSS for compile/run memory telemetry. If missing, memory fields are `null`.
 - `hyperfine`: optional. Availability is recorded, but the canonical runner currently uses an internal timer so the workflow still works without it.
+- `wasm-objdump` (from [`wabt`](https://github.com/WebAssembly/wabt)): optional. Availability is recorded in `tooling.wasm-objdump`. Section breakdown is collected via pure-Python parsing regardless of whether this tool is present; install `wabt` only when you need deeper symbol inspection (`wasm-objdump -x`).
 
 ## Threshold Policy
 

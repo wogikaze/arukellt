@@ -129,6 +129,9 @@
         },
         "runtime": {
           "$ref": "#/definitions/runtime_metrics"
+        },
+        "memory": {
+          "$ref": "#/definitions/memory_metrics"
         }
       }
     },
@@ -182,6 +185,34 @@
             "total":      { "type": "number", "description": "Total as reported by the compiler (ms)." }
           },
           "additionalProperties": { "type": "number" }
+        },
+        "wasm_sections": {
+          "type": "object",
+          "description": "WebAssembly binary section sizes in bytes, parsed directly from the .wasm output file using pure-Python LEB128 decoding. Keys correspond to Wasm section names (type, import, function, table, memory, global, export, start, element, code, data, datacount) plus custom_total for all custom sections combined. symbol_attribution is always 'unavailable' because the Arukellt emitter does not emit a name section.",
+          "properties": {
+            "type":        { "type": "integer", "description": "Type section size in bytes." },
+            "import":      { "type": "integer", "description": "Import section size in bytes." },
+            "function":    { "type": "integer", "description": "Function section size in bytes." },
+            "table":       { "type": "integer", "description": "Table section size in bytes." },
+            "memory":      { "type": "integer", "description": "Memory section size in bytes." },
+            "global":      { "type": "integer", "description": "Global section size in bytes." },
+            "export":      { "type": "integer", "description": "Export section size in bytes." },
+            "start":       { "type": "integer", "description": "Start section size in bytes." },
+            "element":     { "type": "integer", "description": "Element section size in bytes." },
+            "code":        { "type": "integer", "description": "Code section size in bytes (function bodies)." },
+            "data":        { "type": "integer", "description": "Data section size in bytes." },
+            "datacount":   { "type": "integer", "description": "DataCount section size in bytes." },
+            "custom_total":{ "type": "integer", "description": "Sum of all custom section payload sizes in bytes." },
+            "symbol_attribution": {
+              "type": "string",
+              "description": "Function-level symbol attribution status. Always 'unavailable' because the Arukellt emitter does not produce a name custom section."
+            },
+            "error": {
+              "type": "string",
+              "description": "Error message when section parsing failed."
+            }
+          },
+          "additionalProperties": false
         }
       }
     },
@@ -253,6 +284,40 @@
         "command": {
           "type": "string",
           "description": "Full command line used for runtime execution."
+        }
+      }
+    },
+    "memory_metrics": {
+      "type": "object",
+      "description": "Consolidated memory and GC telemetry for one benchmark. GC pause fields are 'unavailable' because the wasmtime CLI does not expose GC pause statistics. Live-set and allocation-rate metrics likewise require runtime instrumentation not available via the standard CLI.",
+      "properties": {
+        "compiler_rss_peak_kb": {
+          "type": ["integer", "null"],
+          "description": "Peak RSS of the compiler process in KiB, from /usr/bin/time -f %M (null when the tool is absent)."
+        },
+        "runtime_rss_peak_kb": {
+          "type": ["integer", "null"],
+          "description": "Peak RSS of the wasmtime process in KiB (null when the tool is absent)."
+        },
+        "gc_pause_total_ms": {
+          "type": ["number", "string"],
+          "description": "Sum of all GC pause durations in milliseconds, or 'unavailable' when the runtime does not expose this metric."
+        },
+        "gc_pause_max_ms": {
+          "type": ["number", "string"],
+          "description": "Maximum single GC pause in milliseconds, or 'unavailable' when the runtime does not expose this metric."
+        },
+        "gc_pause_count": {
+          "type": ["integer", "string"],
+          "description": "Number of GC pause events, or 'unavailable' when the runtime does not expose this metric."
+        },
+        "gc_note": {
+          "type": "string",
+          "description": "Human-readable explanation of why GC pause data is unavailable (if applicable)."
+        },
+        "alloc_note": {
+          "type": "string",
+          "description": "Human-readable explanation of why allocation-rate / live-set data is unavailable (if applicable)."
         }
       }
     }

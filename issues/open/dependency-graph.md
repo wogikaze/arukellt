@@ -17,7 +17,6 @@ graph LR
   I072["072 Wasm Multi-Value: ブロック / ループの複数値返却フル活用"]
   I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
-  I082["082 MIR: gc_hint パス — 短命オブジェクトのパターン検出"]
   I083["083 MIR: ループ展開 (Loop Unrolling) パス"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
@@ -27,8 +26,7 @@ graph LR
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I143["143 計測: allocation / live-set / GC pause / RSS telemetry"]
-  I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
+  I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
   I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
   I170["170 v5 Migration guide"]
@@ -59,7 +57,6 @@ graph LR
   I475["475 `arukellt component` サブコマンド (v3 候補)"]
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
-  I144["144 計測: 入力サイズ sweep とスケーリングカーブ可視化"]
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
@@ -80,9 +77,6 @@ graph LR
   I074 --> I475
   I074 --> I476
   I125 --> I126
-  I143 --> I144
-  I143 --> I148
-  I145 --> I148
   I146 --> I148
   I200 --> I201
   I204 --> I188
@@ -92,8 +86,6 @@ graph LR
   I077 --> I136
   I139 --> I136
   I475 --> I485
-  I143 --> I158
-  I145 --> I158
   I148 --> I158
   I188 --> I205
   I188 --> I214
@@ -113,7 +105,6 @@ graph LR
 - **072** depends on: none; blocks: none
 - **073** depends on: none; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476
-- **082** depends on: none; blocks: none
 - **083** depends on: 080; blocks: none
 - **094** depends on: none; blocks: none
 - **095** depends on: none; blocks: none
@@ -123,8 +114,7 @@ graph LR
 - **118** depends on: 117; blocks: none
 - **120** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **143** depends on: 149; blocks: 144, 148, 158
-- **145** depends on: 149; blocks: 148, 158
+- **144** depends on: 141, 142, 143, 149; blocks: none
 - **146** depends on: 149; blocks: 148
 - **147** depends on: 149; blocks: none
 - **170** depends on: 165, 166, 169; blocks: none
@@ -155,7 +145,6 @@ graph LR
 - **475** depends on: 035, done), 074; blocks: 485
 - **476** depends on: 035, done), 074; blocks: none
 - **126** depends on: 125; blocks: none
-- **144** depends on: 141, 142, 143, 149; blocks: none
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214

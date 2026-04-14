@@ -28,6 +28,22 @@ THRESHOLDS = {
     "binary_bytes": 15,
 }
 
+WASM_SECTION_ID_NAMES: dict[int, str] = {
+    0: "custom",
+    1: "type",
+    2: "import",
+    3: "function",
+    4: "table",
+    5: "memory",
+    6: "global",
+    7: "export",
+    8: "start",
+    9: "element",
+    10: "code",
+    11: "data",
+    12: "datacount",
+}
+
 
 @dataclass(frozen=True)
 class BenchmarkCase:
@@ -232,6 +248,92 @@ def ensure_parent(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
+def _read_uleb128(data: bytes, offset: int) -> tuple[int, int]:
+    """Read an unsigned LEB128 integer from *data* starting at *offset*.
+
+    Returns ``(value, new_offset)`` where *new_offset* points to the first
+    byte after the encoded integer.  Terminates on the first byte whose
+    high bit is clear.
+    """
+    result = 0
+    shift = 0
+    while offset < len(data):
+        byte = data[offset]
+        offset += 1
+        result |= (byte & 0x7F) << shift
+        if not (byte & 0x80):
+            break
+        shift += 7
+    return result, offset
+
+
+def parse_wasm_sections(wasm_bytes: bytes) -> dict[str, int]:
+    """Parse a WebAssembly binary and return a mapping of section-name → payload size (bytes).
+
+    Implemented with Python built-in ``bytes`` indexing and LEB128 decoding —
+    no external tools (``wasm-objdump`` etc.) are required.
+
+    The size reported for each section is the *payload* size from the LEB128
+    length field (i.e. the content bytes, not including the 1-byte section-id
+    or the variable-length size prefix itself).
+
+    Custom sections (id == 0) are aggregated under ``"custom_total"`` because
+    they may appear multiple times (e.g. name section, producers section).
+
+    Returns an empty dict if the Wasm magic / version header is absent.
+    """
+    WASM_MAGIC = b"\x00asm\x01\x00\x00\x00"
+    if len(wasm_bytes) < 8 or wasm_bytes[:8] != WASM_MAGIC:
+        return {}
+    offset = 8
+    sections: dict[str, int] = {}
+    while offset < len(wasm_bytes):
+        if offset >= len(wasm_bytes):
+            break
+        section_id = wasm_bytes[offset]
+        offset += 1
+        if offset >= len(wasm_bytes):
+            break
+        section_size, offset = _read_uleb128(wasm_bytes, offset)
+        section_name = WASM_SECTION_ID_NAMES.get(section_id)
+        if section_name == "custom":
+            sections["custom_total"] = sections.get("custom_total", 0) + section_size
+        elif section_name:
+            sections[section_name] = sections.get(section_name, 0) + section_size
+        offset += section_size
+    return sections
+
+
+def measure_wasm_size_attribution(wasm_path: Path) -> dict[str, Any]:
+    """Return section-level Wasm size attribution for *wasm_path*.
+
+    Parses the Wasm binary format directly using pure Python — no external
+    tools are required.  If ``wasm-objdump`` (part of ``wabt``) is available,
+    it can be used for deeper symbol inspection; install wabt and run::
+
+        wasm-objdump -x <file>.wasm
+
+    Function-level symbol attribution requires a ``name`` custom section.
+    The standard Arukellt Wasm emitter does not emit name sections, so
+    ``symbol_attribution`` is always ``"unavailable"``.
+
+    Returns a dict with integer section byte counts plus ``symbol_attribution``.
+    If the file cannot be parsed, includes an ``"error"`` key instead.
+    """
+    if not wasm_path.exists():
+        return {"error": "wasm file not found", "symbol_attribution": "unavailable"}
+    try:
+        wasm_bytes = wasm_path.read_bytes()
+    except OSError as exc:
+        return {"error": str(exc), "symbol_attribution": "unavailable"}
+    sections = parse_wasm_sections(wasm_bytes)
+    if not sections:
+        return {"error": "not a valid wasm binary", "symbol_attribution": "unavailable"}
+    result: dict[str, Any] = dict(sections)
+    result["symbol_attribution"] = "unavailable"
+    return result
+
+
 def compute_percentiles(samples_ms: list[float]) -> dict[str, float | None]:
     """Compute p50/p95/p99 and stddev from timing samples in milliseconds.
 
@@ -304,6 +406,9 @@ def measure_compile(
             phase: round(float(statistics.median(vals)), 3)
             for phase, vals in phase_samples.items()
         }
+    wasm_sections: dict[str, Any] | None = (
+        measure_wasm_size_attribution(wasm_path) if wasm_path.exists() else None
+    )
     result: dict[str, Any] = {
         "status": "ok",
         "iterations": iterations,
@@ -316,6 +421,8 @@ def measure_compile(
     }
     if phase_ms is not None:
         result["phase_ms"] = phase_ms
+    if wasm_sections is not None:
+        result["wasm_sections"] = wasm_sections
     return result
 
 
@@ -403,6 +510,41 @@ def measure_runtime(
     }
 
 
+def measure_memory(
+    compile_result: dict[str, Any],
+    runtime_result: dict[str, Any],
+) -> dict[str, Any]:
+    """Consolidate memory/GC telemetry for a benchmark.
+
+    Compiler and runtime peak RSS are sourced from the already-collected
+    compile and runtime measurement dicts.
+
+    GC pause telemetry is not exposed by the wasmtime CLI; those fields are
+    explicitly recorded as "unavailable".  Live-set / allocation-rate metrics
+    likewise require runtime instrumentation that is not available via the
+    standard wasmtime CLI, so only RSS peak is collected.
+
+    STOP-IF note (issue #143):
+      wasmtime does not expose GC pause stats → all gc_pause_* = "unavailable".
+      This is intentional and must remain documented here.
+    """
+    return {
+        "compiler_rss_peak_kb": compile_result.get("max_rss_kb"),
+        "runtime_rss_peak_kb": runtime_result.get("max_rss_kb"),
+        "gc_pause_total_ms": "unavailable",
+        "gc_pause_max_ms": "unavailable",
+        "gc_pause_count": "unavailable",
+        "gc_note": (
+            "wasmtime CLI does not expose GC pause telemetry; "
+            "collect via --profile or future WASM GC instrumentation"
+        ),
+        "alloc_note": (
+            "live-set and allocation-rate metrics require runtime instrumentation "
+            "not available via standard wasmtime CLI; only RSS peak is collected"
+        ),
+    }
+
+
 def measure_startup_probe(
     compiler: Path,
     *,
@@ -465,6 +607,7 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
         "wasmtime": tool_info("wasmtime"),
         "hyperfine": tool_info("hyperfine"),
         "time": tool_info("/usr/bin/time") if Path("/usr/bin/time").exists() else tool_info("time"),
+        "wasm-objdump": tool_info("wasm-objdump"),
     }
     time_bin = tools["time"]["path"]
     wasmtime_bin = tools["wasmtime"]["path"]
@@ -531,6 +674,7 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
                     "correctness": "skipped",
                     "command": None,
                 }
+            memory_result = measure_memory(compile_result, runtime_result)
             benchmarks.append(
                 {
                     "name": case.name,
@@ -545,6 +689,7 @@ def collect_results(args: argparse.Namespace) -> dict[str, Any]:
                         if key != "wasm_path"
                     },
                     "runtime": runtime_result,
+                    "memory": memory_result,
                 }
             )
     return {
@@ -646,7 +791,31 @@ def compare_results(current: dict[str, Any], baseline: dict[str, Any] | None) ->
             }
         for metric in metric_rows.values():
             totals[metric["status"]] += 1
-        compared.append({"name": name, "metrics": metric_rows})
+        # Wasm section-level diff (only when both sides have wasm_sections data)
+        section_diff: dict[str, Any] = {}
+        if baseline_row is not None:
+            current_sections = row.get("compile", {}).get("wasm_sections") or {}
+            baseline_sections = baseline_row.get("compile", {}).get("wasm_sections") or {}
+            all_keys = set(current_sections.keys()) | set(baseline_sections.keys())
+            for key in sorted(all_keys):
+                if key in ("symbol_attribution", "error"):
+                    continue
+                c_val = current_sections.get(key)
+                b_val = baseline_sections.get(key)
+                if isinstance(c_val, int) and isinstance(b_val, int):
+                    delta = c_val - b_val
+                    delta_pct = round(delta / b_val * 100.0, 2) if b_val else None
+                    section_diff[key] = {
+                        "current": c_val,
+                        "baseline": b_val,
+                        "delta": delta,
+                        "delta_pct": delta_pct,
+                    }
+                elif isinstance(c_val, int):
+                    section_diff[key] = {"current": c_val, "baseline": None, "delta": None, "delta_pct": None}
+                elif isinstance(b_val, int):
+                    section_diff[key] = {"current": None, "baseline": b_val, "delta": None, "delta_pct": None}
+        compared.append({"name": name, "metrics": metric_rows, "wasm_section_diff": section_diff})
     return {
         "baseline_available": True,
         "baseline_schema_version": baseline.get("schema_version") if isinstance(baseline, dict) else None,
@@ -750,6 +919,43 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
             )
             lines.append(row)
         lines.append("")
+    # Wasm Section Breakdown table
+    key_sections = ["type", "import", "function", "code", "data", "export", "custom_total"]
+    any_sections = any(
+        bench["compile"].get("wasm_sections") for bench in current["benchmarks"]
+    )
+    if any_sections:
+        present_sections = [s for s in key_sections if any(
+            isinstance(bench["compile"].get("wasm_sections", {}).get(s), int)
+            for bench in current["benchmarks"]
+        )]
+        if present_sections:
+            lines.append("## Wasm Section Breakdown (bytes)")
+            lines.append("")
+            lines.append(
+                "Section sizes parsed directly from the .wasm binary header using pure-Python "
+                "LEB128 decoding (no external tools required). `symbol_attribution` is "
+                "`unavailable` — the Arukellt emitter does not emit a name section so "
+                "function-level attribution is not available; use `wasm-objdump` from "
+                "`wabt` for deeper inspection."
+            )
+            lines.append("")
+            header = "| Benchmark | " + " | ".join(present_sections) + " | symbol_attribution |"
+            separator = "|-----------|"
+            separator += "|".join("-" * (len(s) + 2) for s in present_sections)
+            separator += "|-------------------|"
+            lines.append(header)
+            lines.append(separator)
+            for bench in current["benchmarks"]:
+                ws = bench["compile"].get("wasm_sections") or {}
+                sym = ws.get("symbol_attribution", "unavailable")
+                row = "| {} | {} | {} |".format(
+                    bench["name"],
+                    " | ".join(format_int(ws.get(s)) for s in present_sections),
+                    sym,
+                )
+                lines.append(row)
+            lines.append("")
     lines.append("## Threshold Policy")
     lines.append("")
     lines.append("| Metric | Allowed regression |")
@@ -774,6 +980,38 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
                 f"| {bench['name']} | {format_delta(bench['metrics']['compile_ms'])} | {format_delta(bench['metrics']['run_ms'])} | {format_delta(bench['metrics']['binary_bytes'])} | {overall} |"
             )
         lines.append("")
+        # Section-level diff table in compare report
+        benches_with_section_diff = [b for b in comparison["benchmarks"] if b.get("wasm_section_diff")]
+        if benches_with_section_diff:
+            all_sec_keys: list[str] = []
+            for b in benches_with_section_diff:
+                for k in b["wasm_section_diff"]:
+                    if k not in all_sec_keys:
+                        all_sec_keys.append(k)
+            lines.append("### Wasm Section Δ vs Baseline (bytes)")
+            lines.append("")
+            lines.append("Positive delta = size grew. Negative = shrank. `n/a` = section absent in one side.")
+            lines.append("")
+            header = "| Benchmark | " + " | ".join(all_sec_keys) + " |"
+            separator = "|-----------|"
+            separator += "|".join("-" * (len(k) + 2) for k in all_sec_keys)
+            separator += "|"
+            lines.append(header)
+            lines.append(separator)
+            for bench in benches_with_section_diff:
+                sd = bench["wasm_section_diff"]
+                cells = []
+                for k in all_sec_keys:
+                    entry = sd.get(k)
+                    if entry is None:
+                        cells.append("n/a")
+                    elif entry.get("delta_pct") is not None:
+                        sign = "+" if entry["delta_pct"] >= 0 else ""
+                        cells.append(f"{entry['delta']:+d} ({sign}{entry['delta_pct']:.1f}%)")
+                    else:
+                        cells.append(format_int(entry.get("current")))
+                lines.append(f"| {bench['name']} | {' | '.join(cells)} |")
+            lines.append("")
         totals = comparison["totals"]
         lines.append(f"- Pass: {totals['pass']}")
         lines.append(f"- Fail: {totals['fail']}")
@@ -785,7 +1023,29 @@ def render_markdown(current: dict[str, Any], comparison: dict[str, Any], baselin
     lines.append("- run metadata (`mode`, `target`, `environment`, tool availability)")
     lines.append("- per-benchmark `compile` metrics (`median_ms`, `binary_bytes`, `max_rss_kb`)")
     lines.append("- per-benchmark `runtime` metrics (`median_ms`, `p50_ms`, `p95_ms`, `p99_ms`, `stddev_ms`, `startup_ms`, `guest_ms`, `max_rss_kb`, correctness)")
+    lines.append("- per-benchmark `memory` metrics (`compiler_rss_peak_kb`, `runtime_rss_peak_kb`, `gc_pause_*` — GC fields are `\"unavailable\"` because wasmtime CLI does not expose GC pause telemetry)")
     lines.append("- workload tags for taxonomy and future grouped reporting")
+    lines.append("")
+    # Memory telemetry table
+    lines.append("## Memory / GC Telemetry")
+    lines.append("")
+    lines.append("GC pause fields are `unavailable` — wasmtime CLI does not expose GC pause stats.")
+    lines.append("RSS peaks are sourced from `/usr/bin/time -f %M` (null when the tool is absent).")
+    lines.append("")
+    lines.append("| Benchmark | Tags | Compiler RSS KB | Runtime RSS KB | GC pauses |")
+    lines.append("|-----------|------|-----------------|----------------|-----------|")
+    for bench in current["benchmarks"]:
+        mem = bench.get("memory") or {}
+        gc_field = mem.get("gc_pause_count", "unavailable")
+        lines.append(
+            "| {name} | {tags} | {crss} | {rrss} | {gc} |".format(
+                name=bench["name"],
+                tags=", ".join(bench["tags"]),
+                crss=format_int(mem.get("compiler_rss_peak_kb")),
+                rrss=format_int(mem.get("runtime_rss_peak_kb")),
+                gc=gc_field,
+            )
+        )
     lines.append("")
     # Runtime latency breakdown table
     has_latency = any(
@@ -852,6 +1112,16 @@ def render_text(current: dict[str, Any], comparison: dict[str, Any], baseline_pa
                     if ph not in phase_order:
                         parts.append(f"{ph}={format_ms(phase_ms[ph])}")
                 lines.append(f"  phases  : {', '.join(parts)}")
+            wasm_sections = compile_row.get("wasm_sections")
+            if wasm_sections and not wasm_sections.get("error"):
+                sec_keys = ["type", "import", "function", "code", "data", "export"]
+                sec_parts = [
+                    f"{k}={wasm_sections[k]}"
+                    for k in sec_keys
+                    if isinstance(wasm_sections.get(k), int)
+                ]
+                if sec_parts:
+                    lines.append(f"  sections: {', '.join(sec_parts)}")
         else:
             lines.append("  compile : ERROR")
             for line in compile_row.get("stderr_head", []):
@@ -887,6 +1157,13 @@ def render_text(current: dict[str, Any], comparison: dict[str, Any], baseline_pa
             lines.append("  runtime : ERROR")
             for line in runtime_row.get("stderr_head", []):
                 lines.append(f"    {line}")
+        mem_row = bench.get("memory") or {}
+        if mem_row:
+            lines.append(
+                f"  memory  : compiler_rss={format_int(mem_row.get('compiler_rss_peak_kb'))} KB"
+                f"  runtime_rss={format_int(mem_row.get('runtime_rss_peak_kb'))} KB"
+                f"  gc_pauses={mem_row.get('gc_pause_count', 'unavailable')}"
+            )
     if comparison["baseline_available"]:
         lines.append("")
         lines.append("── Baseline Comparison ───────────────────")
@@ -897,6 +1174,15 @@ def render_text(current: dict[str, Any], comparison: dict[str, Any], baseline_pa
             lines.append(
                 f"{bench['name']}: compile {format_delta(bench['metrics']['compile_ms'])}, run {format_delta(bench['metrics']['run_ms'])}, size {format_delta(bench['metrics']['binary_bytes'])} => {overall}"
             )
+            section_diff = bench.get("wasm_section_diff") or {}
+            if section_diff:
+                diff_parts = []
+                for key, entry in sorted(section_diff.items()):
+                    if entry.get("delta_pct") is not None:
+                        sign = "+" if entry["delta_pct"] >= 0 else ""
+                        diff_parts.append(f"{key}={entry['delta']:+d}({sign}{entry['delta_pct']:.1f}%)")
+                if diff_parts:
+                    lines.append(f"  sections: {', '.join(diff_parts)}")
         totals = comparison["totals"]
         lines.append(f"Summary  : pass={totals['pass']} fail={totals['fail']} skipped={totals['skipped']}")
     else:
