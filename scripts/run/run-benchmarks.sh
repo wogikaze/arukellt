@@ -143,6 +143,36 @@ print(int(statistics.median(vals)))
 
 json_escape() { python3 -c "import json,sys; print(json.dumps(sys.stdin.read().rstrip('\n')))" 2>/dev/null || echo '""'; }
 
+# Compute a percentile from whitespace-separated numbers on stdin.
+# Usage: echo "1 2 3 4 5" | percentile 95
+percentile() {
+  local pct="$1"
+  python3 -c "
+import sys, statistics
+vals = sorted(float(x) for x in sys.stdin.read().split() if x)
+if not vals:
+    print('null'); sys.exit(0)
+n = len(vals)
+if n == 1:
+    print(round(vals[0], 3)); sys.exit(0)
+idx = (${pct} / 100) * (n - 1)
+lo, hi = int(idx), min(int(idx) + 1, n - 1)
+result = vals[lo] + (vals[hi] - vals[lo]) * (idx - lo)
+print(round(result, 3))
+" 2>/dev/null || echo "null"
+}
+
+# Compute sample standard deviation from whitespace-separated numbers on stdin.
+stddev_calc() {
+  python3 -c "
+import sys, statistics
+vals = [float(x) for x in sys.stdin.read().split() if x]
+if len(vals) < 2:
+    print('null'); sys.exit(0)
+print(round(statistics.stdev(vals), 3))
+" 2>/dev/null || echo "null"
+}
+
 # Threshold for performance warning (percentage)
 PERF_WARN_THRESHOLD=200
 
@@ -238,6 +268,44 @@ fi
 
 if [[ -z "$WASMTIME" ]]; then
   echo "NOTE: wasmtime not found — runtime benchmarks will be skipped"
+fi
+
+# --- measure startup overhead ------------------------------------------------
+# Compile and run benchmarks/startup.ark (a no-op fixture) to capture the
+# wasmtime instantiation + process startup cost.  The median of
+# RUNTIME_ITERS samples (floored at 2) is stored in GLOBAL_STARTUP_MS
+# and subtracted from each benchmark's median to produce guest_ms.
+GLOBAL_STARTUP_MS="null"
+_STARTUP_ITERS=$(( RUNTIME_ITERS > 2 ? RUNTIME_ITERS : 2 ))
+_STARTUP_SRC="$ROOT/benchmarks/startup.ark"
+_STARTUP_WASM="$RESULTS_DIR/startup_overhead.wasm"
+if [[ -n "$WASMTIME" && -f "$_STARTUP_SRC" ]]; then
+  echo "--- measuring startup overhead (no-op fixture, ${_STARTUP_ITERS} samples) ---"
+  # compile the no-op fixture once
+  if [[ "$USE_SELFHOST" == "true" ]]; then
+    _rel_src="benchmarks/startup.ark"
+    _rel_out="${_STARTUP_WASM#$ROOT/}"
+    _rel_wasm="${SELFHOST_WASM#$ROOT/}"
+    (cd "$ROOT" && wasmtime run --dir=. "$_rel_wasm" -- compile "$_rel_src" --target "$TARGET" -o "$_rel_out") >/dev/null 2>&1 || true
+  else
+    "$COMPILER" compile "$_STARTUP_SRC" -o "$_STARTUP_WASM" --target "$TARGET" >/dev/null 2>&1 || true
+  fi
+
+  if [[ -f "$_STARTUP_WASM" ]]; then
+    _startup_samples=""
+    _startup_run_cmd="wasmtime run $_STARTUP_WASM"
+    [[ "$TARGET" == "wasm32-wasi-p2" ]] && _startup_run_cmd="wasmtime run --wasm gc $_STARTUP_WASM"
+    for (( _si=0; _si<_STARTUP_ITERS; _si++ )); do
+      _st0=$(ms_now)
+      $WASMTIME run "$_STARTUP_WASM" >/dev/null 2>&1 || true
+      _st1=$(ms_now)
+      _startup_samples="$_startup_samples $(( _st1 - _st0 ))"
+    done
+    GLOBAL_STARTUP_MS=$(echo "$_startup_samples" | median)
+    echo "  startup overhead: ${GLOBAL_STARTUP_MS}ms (median of ${_STARTUP_ITERS} samples)"
+  else
+    echo "  startup.ark compile skipped — no wasmtime or compiler not ready"
+  fi
 fi
 
 # --- run benchmarks ----------------------------------------------------------
@@ -340,6 +408,12 @@ print(json.dumps(phase) if phase else 'null')
   RUNTIME_MEDIAN="0"
   RUNTIME_RSS_MEDIAN="null"
   RUNTIME_ITERS_DONE=0
+  RUNTIME_P50="null"
+  RUNTIME_P95="null"
+  RUNTIME_P99="null"
+  RUNTIME_STDDEV="null"
+  RUNTIME_STARTUP_MS="$GLOBAL_STARTUP_MS"
+  RUNTIME_GUEST_MS="null"
   STDOUT_ESCAPED='""'
   CORRECTNESS="fail"
   RUN_CMD=""
@@ -389,6 +463,23 @@ vals = sys.stdin.read().split()
 print('[' + ','.join(vals) + ']')
 " 2>/dev/null || echo "[]")
 
+    # ---- percentile + stddev computation ------------------------------------
+    RUNTIME_P50=$(echo "$RUNTIME_SAMPLES" | percentile 50)
+    RUNTIME_P95=$(echo "$RUNTIME_SAMPLES" | percentile 95)
+    RUNTIME_P99=$(echo "$RUNTIME_SAMPLES" | percentile 99)
+    RUNTIME_STDDEV=$(echo "$RUNTIME_SAMPLES" | stddev_calc)
+
+    # startup_ms comes from the global no-op fixture measurement
+    RUNTIME_STARTUP_MS="$GLOBAL_STARTUP_MS"
+
+    # guest_ms = median_ms - startup_ms, floored at 0
+    RUNTIME_GUEST_MS="null"
+    if [[ "$RUNTIME_STARTUP_MS" != "null" && "$RUNTIME_STARTUP_MS" =~ ^[0-9]+$ ]]; then
+      _guest=$(( RUNTIME_MEDIAN - RUNTIME_STARTUP_MS ))
+      [[ $_guest -lt 0 ]] && _guest=0
+      RUNTIME_GUEST_MS=$_guest
+    fi
+
     STDOUT_ESCAPED=$(echo "$CAPTURED_STDOUT" | json_escape)
 
     # correctness check
@@ -427,6 +518,12 @@ print('[' + ','.join(vals) + ']')
     "warmups": $WARMUPS,
     "samples_ms": $RUNTIME_SAMPLES_JSON,
     "median_ms": $RUNTIME_MEDIAN,
+    "p50_ms": $RUNTIME_P50,
+    "p95_ms": $RUNTIME_P95,
+    "p99_ms": $RUNTIME_P99,
+    "stddev_ms": $RUNTIME_STDDEV,
+    "startup_ms": $RUNTIME_STARTUP_MS,
+    "guest_ms": $RUNTIME_GUEST_MS,
     "max_rss_kb": $RUNTIME_RSS_MEDIAN,
     "stdout": $STDOUT_ESCAPED,
     "correctness": "$CORRECTNESS",
@@ -438,7 +535,7 @@ JSONEOF
   BENCHMARKS_JSON="${BENCHMARKS_JSON}${SEP}${ENTRY}"
   SEP=","
 
-  echo "  compile: ${COMPILE_MEDIAN}ms  binary: ${BINARY_BYTES}B  compile_rss: ${COMPILE_RSS_MEDIAN}KB  run: ${RUNTIME_MEDIAN}ms  run_rss: ${RUNTIME_RSS_MEDIAN}KB  correctness: ${CORRECTNESS}"
+  echo "  compile: ${COMPILE_MEDIAN}ms  binary: ${BINARY_BYTES}B  compile_rss: ${COMPILE_RSS_MEDIAN}KB  run: ${RUNTIME_MEDIAN}ms  p95: ${RUNTIME_P95}ms  p99: ${RUNTIME_P99}ms  guest: ${RUNTIME_GUEST_MS}ms  run_rss: ${RUNTIME_RSS_MEDIAN}KB  correctness: ${CORRECTNESS}"
 
   # Print phase breakdown if available
   if [[ "$PHASE_MS_JSON" != "null" ]]; then
