@@ -1,6 +1,6 @@
 # std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>
 
-**Status**: done
+**Status**: open
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 044
@@ -19,6 +19,15 @@
 - File was located at `issues/done/044-std-collections-hash.md` — incorrect directory for an open issue.
 
 **Action**: Moved from `issues/done/` → `issues/open/` by false-done audit (2026-04-03).
+
+## Blocked — 2026-04-04
+
+**Blocked by**: compiler generic monomorphization (#312)
+
+True generic `HashMap<K,V>` and `HashSet<T>` require the compiler to be able to
+monomorphize generic type parameters at call sites.  
+The impl-stdlib agent hit this blocker (STOP_IF) during Wave 2 dispatch.  
+**Do not re-dispatch until #312 (selfhost generic monomorphization) is done.**
 
 ## Summary
 
