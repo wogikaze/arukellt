@@ -709,3 +709,6 @@ t3-run:tail_call/deep_recursion.ark
 # tail-call pass does NOT rewrite these; the T3 emitter's opportunistic
 # try_emit_let_call_tail_return detects and emits return_call instead.
 t3-run:tail_call/opportunistic.ark
+# tail_call_ref: proves return_call_ref emission for indirect tail calls
+# via typed GC function references (FnRef local in tail position, #492).
+t3-run:tail_call_ref/basic.ark
