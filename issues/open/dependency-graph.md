@@ -29,7 +29,6 @@ graph LR
   I106["106 実行時性能: 静的文字列インターニング (data segment 参照)"]
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
-  I119["119 MIR: ARUKELLT_DUMP_PHASES=optimized-mir 対応"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
@@ -58,13 +57,14 @@ graph LR
   I382["382 Playground: wasm32-freestanding (T2) target の downstream 実装を開始する"]
   I437["437 Playground: deployment / preview environment / asset cache 戦略を整える"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
-  I486["486 T3: MIR 最適化の段階的再開 (GC-safe audit + opt-level 復帰)"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I498["498 498 — Playground CI: Lighthouse performance audit"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I502["502 LSP: Full Multi-Root Workspace and Cross-Package Resolution"]
   I503["503 Issue #503 — Selfhost MIR: CFG and Dominance-Frontier Infrastructure for SSA"]
+  I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
+  I505["505 T3: br_table enum dispatch — feasible IfStmt-chain optimization"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
@@ -151,7 +151,6 @@ graph LR
 - **106** depends on: none; blocks: none
 - **108** depends on: 091, 092, 088, 089; blocks: none
 - **118** depends on: 117; blocks: none
-- **119** depends on: 101; blocks: none
 - **120** depends on: none; blocks: none
 - **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
@@ -180,13 +179,14 @@ graph LR
 - **382** depends on: 378; blocks: 489, 501
 - **437** depends on: 431; blocks: 438, 489
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
-- **486** depends on: 122; blocks: none
 - **494** depends on: none; blocks: none
 - **495** depends on: none; blocks: none
 - **498** depends on: none; blocks: none
 - **499** depends on: none; blocks: none
 - **502** depends on: 441; blocks: none
 - **503** depends on: none; blocks: none
+- **504** depends on: none; blocks: none
+- **505** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **077** depends on: 074, 137; blocks: 136
 - **124** depends on: 074; blocks: none

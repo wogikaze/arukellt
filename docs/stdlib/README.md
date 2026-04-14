@@ -116,6 +116,7 @@ All 20 module pages carry curated overviews.
 | [module-system.md](module-system.md) | Arukellt supports two import syntaxes for bringing modules into scope. |
 | [name-index.md](name-index.md) | Do not edit manually — changes will be overwritten on the next regeneration. |
 | [ownership-map.md](ownership-map.md) | Defines the ownership, maintenance tier, and release gate responsibilities |
+| [prelude.md](prelude.md) | Status: stable |
 
 ### Policies & Deprecation
 

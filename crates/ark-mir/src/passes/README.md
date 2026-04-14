@@ -83,3 +83,54 @@ pipeline level; their `run` function itself is always safe to call.
 4. If the pass also belongs in the batch pipeline, add the variant to
    `OptimizationPass` in `opt/pipeline.rs` and wire it in `run_pass`.
 
+---
+
+## T3 safety classification (wasm32-wasi-p2)
+
+Updated: 2026-04-15 (issue #486).  The blanket T3 `O0` MIR override in
+`crates/ark-driver/src/session.rs` was replaced with per-pass gating.
+
+### GC-safe: enabled for T3 at O1
+
+All O1 passes are GC-safe — they operate on IR structure or pure arithmetic
+and never touch GC reference types (`anyref`, `eqref`, struct types, i31ref):
+
+| Pass | Reason safe |
+|------|-------------|
+| `const_fold` | Pure constant arithmetic; no GC refs |
+| `branch_fold` | Structural CFG replacement; no GC refs |
+| `cfg_simplify` | Collapses empty goto blocks; structural only |
+| `copy_prop` | Aliases scalar locals; T3 GC refs have distinct types |
+| `const_prop` | Substitutes constants only |
+| `dead_local_elim` | Removes write-only locals; GC refs are always read |
+| `dead_block_elim` | CFG trimming; structural only |
+| `unreachable_cleanup` | Strips after unreachable; structural only |
+| `cse` | Deduplicates pure `BinaryOp`/`UnaryOp`; clears on all calls |
+
+Safe O2 arithmetic passes also enabled for T3:
+
+| Pass | Reason safe |
+|------|-------------|
+| `algebraic_simplify` | Pure arithmetic identities (`x * 1 → x`); no GC refs |
+| `strength_reduction` | Power-of-2 shift substitution; no GC refs |
+| `string_concat_opt` | String-specific; no GC ref involvement |
+
+### GC-gated: disabled for T3 (O2/O3 passes only)
+
+These passes remain disabled for T3 via `T3_GATED_PASSES` in `session.rs`
+until each is independently verified GC-safe.  Unlock each by removing it
+from `T3_GATED_PASSES` after adding a regression fixture that proves no Wasm
+validation failure occurs across the `tests/fixtures/` suite.
+
+| Pass | Reason unsafe for T3 | Unlock condition |
+|------|----------------------|-----------------|
+| `escape_analysis` | SROA unboxes GC-managed struct allocations → T3 emitter receives scalars instead of GC struct refs; Wasm validation fails | Teach SROA to skip GC-typed allocations (`StructInit` where type is GC-managed) |
+| `type_narrowing` | Narrows `i64` → `i32`; T3 may use i64 for GC operand widths or struct field offsets; narrowing corrupts downstream T3 emitter expectations | Verify T3 emitter uses explicit type coercions rather than relying on local type for GC ops |
+| `loop_unroll` | Unrolled loop bodies may contain GC allocations whose lifetime / drop order is altered in ways the T3 GC runtime does not expect | Audit T3 loop unroll interaction with GC allocation paths |
+| `licm` | Hoisting GC allocations out of loops changes allocation site semantics; the T3 GC runtime may not track hoisted GC roots correctly | Add GC-root lifetime tracking to LICM before re-enabling for T3 |
+| `bounds_check_elim` | GC array accesses in T3 Wasm are bounds-checked at the Wasm engine level; removing MIR-level checks changes observable trapping behavior | Verify T3 arrays use engine-level trapping and add invariant annotation before removing MIR checks |
+| `inline_small_leaf` | Inlining changes GC object lifetime patterns — objects that were dropped at callee return are now kept alive until the caller's frame exits | Add GC-aware liveness check before inlining a callee that allocates GC objects |
+| `aggregate_simplify` | Collapses single-element aggregates; if the aggregate is a GC struct, collapsing it removes the heap allocation the T3 emitter expects | Teach pass to skip GC-typed single-field structs |
+| `gc_hint` | Annotates GC allocation sites for the runtime; T3 GC runtime does not yet consume these annotations, so they may produce invalid Wasm | Wire T3 GC runtime to consume `gc_hint` annotations, then re-enable |
+| `branch_hint_infer` | O3 hint pass; T3 Wasm engine ignores branch hints — no benefit and untested for T3 | Re-evaluate when T3 target gains profile-guided execution support |
+
