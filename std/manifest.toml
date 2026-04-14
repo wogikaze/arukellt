@@ -3249,6 +3249,51 @@ returns = "i32"
 # === std::seq ===
 
 [[functions]]
+name = "map_i32_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "fn(i32) -> i32"]
+returns = "Vec<i32>"
+doc = "Apply f to every element of v and collect the results."
+
+[[functions]]
+name = "filter_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "fn(i32) -> bool"]
+returns = "Vec<i32>"
+doc = "Keep only elements of v for which f returns true."
+
+[[functions]]
+name = "take_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+doc = "Return the first n elements of v."
+
+[[functions]]
+name = "skip_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+doc = "Return all elements of v after skipping the first n."
+
+[[functions]]
+name = "fold_i32_i32"
+module = "std::seq"
+doc_category = "seq"
+stability = "stable"
+params = ["Vec<i32>", "i32", "fn(i32, i32) -> i32"]
+returns = "i32"
+doc = "Reduce v to a single value using f, starting from init."
+
+[[functions]]
 name = "binary_search"
 module = "std::seq"
 doc_category = "seq"

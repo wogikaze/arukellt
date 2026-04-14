@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 499
+- **Canonical names:** 504
 - **Historical/deprecated names:** 3
-- **Total entries:** 502
+- **Total entries:** 507
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -195,12 +195,14 @@ Current public API names, sorted alphabetically.
 | `fft` | `std::signal` | `stable` | Signal |
 | `file_name` | `std::path` | `stable` | Path |
 | `filter_f64` | `prelude` | `stable` | Collections |
+| `filter_i32` | `std::seq` | `stable` | Seq |
 | `filter_i64` | `prelude` | `stable` | Collections |
 | `filter_String` | `prelude` | `stable` | Collections |
 | `find_i32` | `prelude` | `stable` | Collections |
 | `flag` | `std::cli` | `stable` | Cli |
 | `flush` | `std::io` | `stable` | Io |
 | `fold_i32_i32` | `prelude` | `stable` | Collections |
+| `fold_i32_i32` | `std::seq` | `stable` | Seq |
 | `fold_i64_i64` | `prelude` | `stable` | Collections |
 | `format_bool` | `std::text` | `stable` | Text |
 | `format_f64` | `std::text` | `stable` | Text |
@@ -315,6 +317,7 @@ Current public API names, sorted alphabetically.
 | `magnitude` | `std::signal` | `stable` | Signal |
 | `map_f64_f64` | `prelude` | `stable` | Collections |
 | `map_i32_i32` | `prelude` | `stable` | Collections |
+| `map_i32_i32` | `std::seq` | `stable` | Seq |
 | `map_i64_i64` | `prelude` | `stable` | Collections |
 | `map_option_i32_i32` | `prelude` | `stable` | Option Result |
 | `map_option_String_String` | `prelude` | `stable` | Option Result |
@@ -416,6 +419,7 @@ Current public API names, sorted alphabetically.
 | `set` | `prelude` | `stable` | Collections |
 | `shuffle_i32` | `std::random` | `stable` | Random |
 | `sin_approx` | `std::signal` | `stable` | Signal |
+| `skip_i32` | `std::seq` | `stable` | Seq |
 | `slice` | `prelude` | `stable` | String |
 | `slice_bytes` | `std::text` | `stable` | Text |
 | `sort_f64` | `prelude` | `stable` | Collections |
@@ -445,6 +449,7 @@ Current public API names, sorted alphabetically.
 | `substring` | `prelude` | `stable` | String |
 | `sum_i32` | `prelude` | `stable` | Collections |
 | `sum_i32` | `std::seq` | `stable` | Seq |
+| `take_i32` | `std::seq` | `stable` | Seq |
 | `tau` | `std::signal` | `stable` | Signal |
 | `to_lower` | `prelude` | `stable` | String |
 | `to_lower` | `std::text` | `stable` | Text |
@@ -715,6 +720,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `fft` | ✅ `stable` | `std::signal` | Signal |
 | `file_name` | ✅ `stable` | `std::path` | Path |
 | `filter_f64` | ✅ `stable` | `prelude` | Collections |
+| `filter_i32` | ✅ `stable` | `std::seq` | Seq |
 | ~~`filter_i32`~~ | ⚠️ deprecated | `prelude` | → `filter<i32>` · [migration guide](migration-guidance.md) |
 | `filter_i64` | ✅ `stable` | `prelude` | Collections |
 | `filter_String` | ✅ `stable` | `prelude` | Collections |
@@ -722,6 +728,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `flag` | ✅ `stable` | `std::cli` | Cli |
 | `flush` | ✅ `stable` | `std::io` | Io |
 | `fold_i32_i32` | ✅ `stable` | `prelude` | Collections |
+| `fold_i32_i32` | ✅ `stable` | `std::seq` | Seq |
 | `fold_i64_i64` | ✅ `stable` | `prelude` | Collections |
 | `format_bool` | ✅ `stable` | `std::text` | Text |
 | `format_f64` | ✅ `stable` | `std::text` | Text |
@@ -836,6 +843,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `magnitude` | ✅ `stable` | `std::signal` | Signal |
 | `map_f64_f64` | ✅ `stable` | `prelude` | Collections |
 | `map_i32_i32` | ✅ `stable` | `prelude` | Collections |
+| `map_i32_i32` | ✅ `stable` | `std::seq` | Seq |
 | `map_i64_i64` | ✅ `stable` | `prelude` | Collections |
 | `map_option_i32_i32` | ✅ `stable` | `prelude` | Option Result |
 | `map_option_String_String` | ✅ `stable` | `prelude` | Option Result |
@@ -937,6 +945,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `set` | ✅ `stable` | `prelude` | Collections |
 | `shuffle_i32` | ✅ `stable` | `std::random` | Random |
 | `sin_approx` | ✅ `stable` | `std::signal` | Signal |
+| `skip_i32` | ✅ `stable` | `std::seq` | Seq |
 | `slice` | ✅ `stable` | `prelude` | String |
 | `slice_bytes` | ✅ `stable` | `std::text` | Text |
 | `sort_f64` | ✅ `stable` | `prelude` | Collections |
@@ -966,6 +975,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `substring` | ✅ `stable` | `prelude` | String |
 | `sum_i32` | ✅ `stable` | `prelude` | Collections |
 | `sum_i32` | ✅ `stable` | `std::seq` | Seq |
+| `take_i32` | ✅ `stable` | `std::seq` | Seq |
 | `tau` | ✅ `stable` | `std::signal` | Signal |
 | `to_lower` | ✅ `stable` | `prelude` | String |
 | `to_lower` | ✅ `stable` | `std::text` | Text |

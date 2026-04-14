@@ -1,0 +1,47 @@
+use std::seq
+use std::host::stdio
+
+fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn mul(a: i32, b: i32) -> i32 {
+    a * b
+}
+
+fn main() {
+    let v: Vec<i32> = Vec_new_i32()
+    push(v, 1)
+    push(v, 2)
+    push(v, 3)
+    push(v, 4)
+    push(v, 5)
+
+    // take: first 3 elements
+    let taken: Vec<i32> = seq::take_i32(v, 3)
+    stdio::println(i32_to_string(len(taken)))
+    stdio::println(i32_to_string(get_unchecked(taken, 0)))
+    stdio::println(i32_to_string(get_unchecked(taken, 2)))
+
+    // skip: skip first 2 elements
+    let skipped: Vec<i32> = seq::skip_i32(v, 2)
+    stdio::println(i32_to_string(len(skipped)))
+    stdio::println(i32_to_string(get_unchecked(skipped, 0)))
+    stdio::println(i32_to_string(get_unchecked(skipped, 2)))
+
+    // fold: sum
+    let total: i32 = seq::fold_i32_i32(v, 0, add)
+    stdio::println(i32_to_string(total))
+
+    // fold: product
+    let product: i32 = seq::fold_i32_i32(v, 1, mul)
+    stdio::println(i32_to_string(product))
+
+    // take more than length: should return all
+    let all: Vec<i32> = seq::take_i32(v, 100)
+    stdio::println(i32_to_string(len(all)))
+
+    // skip more than length: should return empty
+    let empty: Vec<i32> = seq::skip_i32(v, 100)
+    stdio::println(i32_to_string(len(empty)))
+}

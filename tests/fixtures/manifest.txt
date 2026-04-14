@@ -315,6 +315,8 @@ run:stdlib_path/path_edge_cases.ark
 run:stdlib_process/exit_zero.ark
 run:stdlib_seq/seq_basic.ark
 run:stdlib_seq/seq_edge_cases.ark
+run:stdlib_seq/seq_map_filter.ark
+run:stdlib_seq/seq_take_skip_fold.ark
 run:stdlib_sort/sort_f64.ark
 run:stdlib_sort/sort_i64.ark
 run:stdlib_string/clone.ark

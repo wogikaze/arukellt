@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 389 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 394 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 105 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -712,11 +712,16 @@ Expected output: `Hello, world!`
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Keep only elements of v for which f returns true. |
+| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | Reduce v to a single value using f, starting from init. |
+| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Apply f to every element of v and collect the results. |
 | `max_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `min_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `seq_contains` | `(Vec<i32>, i32) -> bool` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `seq_reverse` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Return all elements of v after skipping the first n. |
 | `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Return the first n elements of v. |
 | `unique` | `(Vec<i32>) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | - |
 
 ## Signal
@@ -1068,11 +1073,13 @@ Expected output: `hello world`
 | `file_name` | `(String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
 | `filter_String` | `(Vec<String>, fn(String) -> bool) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_String` | - |
 | `filter_f64` | `(Vec<f64>, fn(f64) -> bool) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_f64` | - |
+| `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Keep only elements of v for which f returns true. |
 | `filter_i64` | `(Vec<i64>, fn(i64) -> bool) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_filter_i64` | - |
 | `find_i32` | `(Vec<i32>, fn(i32) -> bool) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_find_i32` | - |
 | `flag` | `(Vec<String>, String) -> bool` | `std::cli` | `stable` | `builtin` | no | - | Return true when args contains name verbatim. |
 | `flush` | `(Vec<i32>) -> Result<(), String>` | `std::io` | `stable` | `builtin` | no | - | - |
 | `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i32_i32` | - |
+| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | Reduce v to a single value using f, starting from init. |
 | `fold_i64_i64` | `(Vec<i64>, i64, fn(i64, i64) -> i64) -> i64` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_fold_i64_i64` | - |
 | `format_bool` | `(bool) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `format_f64` | `(f64) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
@@ -1148,6 +1155,7 @@ Expected output: `hello world`
 | `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
 | `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
 | `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i32_i32` | - |
+| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Apply f to every element of v and collect the results. |
 | `map_i64_i64` | `(Vec<i64>, fn(i64) -> i64) -> Vec<i64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_i64_i64` | - |
 | `map_option_String_String` | `(Option<String>, fn(String) -> String) -> Option<String>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `map_option_i32_i32` | `(Option<i32>, fn(i32) -> i32) -> Option<i32>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_option_i32_i32` | - |
@@ -1232,6 +1240,7 @@ Expected output: `hello world`
 | `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `shuffle_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::random` | `stable` | `builtin` | no | - | - |
 | `sin_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
+| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Return all elements of v after skipping the first n. |
 | `slice` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_string_slice` | - |
 | `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_String` | - |
@@ -1257,6 +1266,7 @@ Expected output: `hello world`
 | `substring` | `(String, i32, i32) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_substring` | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `prelude` | `stable` | `prelude_wrapper` | yes | - | - |
 | `sum_i32` | `(Vec<i32>) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `std::seq` | `stable` | `builtin` | no | - | Return the first n elements of v. |
 | `tau` | `() -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `to_lower` | `(String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_to_lower` | - |
 | `to_lower` | `(String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_to_lower` | - |

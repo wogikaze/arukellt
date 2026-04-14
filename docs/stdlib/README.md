@@ -98,11 +98,11 @@ All 20 module pages carry curated overviews.
 
 ## Current Snapshot
 
-- Manifest-backed public functions: **475**
+- Manifest-backed public functions: **507**
 - Prelude wrappers: 122
 - Prelude types: `Option`, `Result`, `String`, `Vec`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`
 - Prelude values: `Some`, `None`, `Ok`, `Err`, `true`, `false`
-- Categories: `assert` 5, `box` 2, `bytes` 45, `cli` 6, `collections` 117, `component` 2, `control` 1, `conversion` 10, `core` 22, `csv` 7, `env` 6, `host_clock` 2, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 4, `host_sockets` 1, `host_stdio` 3, `host_udp` 1, `io` 28, `json` 22, `math` 5, `numeric` 2, `option_result` 14, `path` 6, `process` 2, `random` 3, `scalar_conversion` 14, `seq` 8, `signal` 11, `string` 20, `test` 16, `text` 34, `time` 3, `toml` 8, `wasm` 19, `wit` 14
+- Categories: `assert` 5, `box` 2, `bytes` 45, `cli` 6, `collections` 144, `component` 2, `control` 1, `conversion` 10, `core` 22, `csv` 7, `env` 6, `host_clock` 2, `host_env` 5, `host_fs` 3, `host_http` 2, `host_process` 2, `host_random` 4, `host_sockets` 1, `host_stdio` 3, `host_udp` 1, `io` 28, `json` 22, `math` 5, `numeric` 2, `option_result` 14, `path` 6, `process` 2, `random` 3, `scalar_conversion` 14, `seq` 13, `signal` 11, `string` 20, `test` 16, `text` 34, `time` 3, `toml` 8, `wasm` 19, `wit` 14
 - Source-backed modules: 28
 - Source of truth: [../current-state.md](../current-state.md), [`../../std/manifest.toml`](../../std/manifest.toml), `std/*.ark` source files
 

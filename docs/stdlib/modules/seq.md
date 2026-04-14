@@ -38,18 +38,24 @@ let dedup = unique(nums)            // [3, 1, 4, 5, 9]
 ## `std::seq`
 
 - Source: [`../../../std/seq/mod.ark`](../../../std/seq/mod.ark)
-- Manifest-backed functions: 8
-- Stability: stable 8
+- Manifest-backed functions: 13
+- Stability: stable 13
 
 Eager sequence helpers over `Vec<i32>`.
 
-Lazy pipelines and closure-heavy adapters are deferred. The current module
-focuses on search, aggregation, and deduplication helpers.
+Provides map/filter/take/skip/fold as functional stubs over Vec<i32>,
+alongside search, aggregation, and deduplication helpers.
+Lazy generic Seq<T> pipelines are deferred to a future release.
 
 ### Public API
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
+| `map_i32_i32` | `(Vec<i32>, fn(i32) -> i32) -> Vec<i32>` | `stable` | Apply f to every element of v and collect the results. |
+| `filter_i32` | `(Vec<i32>, fn(i32) -> bool) -> Vec<i32>` | `stable` | Keep only elements of v for which f returns true. |
+| `take_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Return the first n elements of v. |
+| `skip_i32` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Return all elements of v after skipping the first n. |
+| `fold_i32_i32` | `(Vec<i32>, i32, fn(i32, i32) -> i32) -> i32` | `stable` | Reduce v to a single value using f, starting from init. |
 | `binary_search` | `(Vec<i32>, i32) -> i32` | `stable` | - |
 | `min_i32` | `(Vec<i32>) -> i32` | `stable` | - |
 | `max_i32` | `(Vec<i32>) -> i32` | `stable` | - |
@@ -58,3 +64,23 @@ focuses on search, aggregation, and deduplication helpers.
 | `seq_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
 | `unique` | `(Vec<i32>) -> Vec<i32>` | `stable` | - |
 | `count_eq` | `(Vec<i32>, i32) -> i32` | `stable` | - |
+
+#### `map_i32_i32`
+
+Apply f to every element of v and collect the results.
+
+#### `filter_i32`
+
+Keep only elements of v for which f returns true.
+
+#### `take_i32`
+
+Return the first n elements of v.
+
+#### `skip_i32`
+
+Return all elements of v after skipping the first n.
+
+#### `fold_i32_i32`
+
+Reduce v to a single value using f, starting from init.

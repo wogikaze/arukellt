@@ -236,8 +236,8 @@ Copy all deque elements (front to back) into a new Vec<i32>.
 ## `std::collections::ordered`
 
 - Source: [`../../../std/collections/ordered.ark`](../../../std/collections/ordered.ark)
-- Manifest-backed functions: 10
-- Stability: stable 10
+- Manifest-backed functions: 37
+- Stability: experimental 27, stable 10
 
 Ordered collection helpers backed by sorted vectors.
 
@@ -254,6 +254,131 @@ The current surface provides a sorted map and bitset-style utilities.
 | `sorted_map_contains` | `(Vec<i32>, i32) -> bool` | `stable` | - |
 | `sorted_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `stable` | - |
 
+### BTreeMap API (sorted-vector backed, i32 key, i32 value)
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `btree_new` | `() -> Vec<i32>` | `experimental` | - |
+| `btree_insert` | `(Vec<i32>, i32, i32) -> ()` | `experimental` | - |
+| `btree_get` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
+| `btree_remove` | `(Vec<i32>, i32) -> ()` | `experimental` | - |
+| `btree_contains_key` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
+| `btree_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+| `btree_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | - |
+| `btree_range` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `experimental` | - |
+
+#### `btree_new`
+
+Create a new BTreeMap<i32,i32> (sorted-vector backed).
+
+#### `btree_insert`
+
+Insert a key-value pair into a BTreeMap<i32,i32>.
+
+#### `btree_get`
+
+Get a value from a BTreeMap<i32,i32>. Returns 0 if not found.
+
+#### `btree_remove`
+
+Remove a key from a BTreeMap<i32,i32>.
+
+#### `btree_contains_key`
+
+Check if a BTreeMap<i32,i32> contains a key.
+
+#### `btree_len`
+
+Return the number of entries in a BTreeMap<i32,i32>.
+
+#### `btree_keys`
+
+Return all keys of a BTreeMap<i32,i32> in sorted order.
+
+#### `btree_range`
+
+Return keys in [start, end) range from a BTreeMap<i32,i32>.
+
+### BTreeSet API (sorted unique values, i32)
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `btree_set_new` | `() -> Vec<i32>` | `experimental` | - |
+| `btree_set_insert` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
+| `btree_set_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
+| `btree_set_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+
+#### `btree_set_new`
+
+Create a new BTreeSet<i32> (sorted unique values).
+
+#### `btree_set_insert`
+
+Insert into a BTreeSet<i32>. Returns true if the value was newly inserted.
+
+#### `btree_set_contains`
+
+Check if a BTreeSet<i32> contains a value.
+
+#### `btree_set_len`
+
+Return the number of elements in a BTreeSet<i32>.
+
+### IndexMap API (insertion-order map, i32 key, i32 value)
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `index_map_new` | `() -> Vec<i32>` | `experimental` | - |
+| `index_map_insert` | `(Vec<i32>, i32, i32) -> ()` | `experimental` | - |
+| `index_map_get` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
+| `index_map_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+| `index_map_keys` | `(Vec<i32>) -> Vec<i32>` | `experimental` | - |
+
+#### `index_map_new`
+
+Create a new IndexMap<i32,i32> (insertion-order map).
+
+#### `index_map_insert`
+
+Insert a key-value pair into an IndexMap<i32,i32>.
+
+#### `index_map_get`
+
+Get a value from an IndexMap<i32,i32>. Returns 0 if not found.
+
+#### `index_map_len`
+
+Return the number of entries in an IndexMap<i32,i32>.
+
+#### `index_map_keys`
+
+Return all keys of an IndexMap<i32,i32> in insertion order.
+
+### IndexSet API (insertion-order unique values, i32)
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `index_set_new` | `() -> Vec<i32>` | `experimental` | - |
+| `index_set_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
+| `index_set_insert` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
+| `index_set_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+
+#### `index_set_new`
+
+Create a new IndexSet<i32> (insertion-order unique values).
+
+#### `index_set_contains`
+
+Check if an IndexSet<i32> contains a value.
+
+#### `index_set_insert`
+
+Insert into an IndexSet<i32>. Returns true if the value was newly inserted.
+
+#### `index_set_len`
+
+Return the number of elements in an IndexSet<i32>.
+
 ### BitSet
 
 | Name | Signature | Stability | Summary |
@@ -262,3 +387,33 @@ The current surface provides a sorted map and bitset-style utilities.
 | `bitset_mark` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `stable` | - |
 | `bitset_test` | `(Vec<i32>, i32) -> bool` | `stable` | - |
+| `bitset_set` | `(Vec<i32>, i32) -> ()` | `experimental` | - |
+| `bitset_clear` | `(Vec<i32>, i32) -> ()` | `experimental` | - |
+| `bitset_with_capacity` | `(i32) -> Vec<i32>` | `experimental` | - |
+| `bitset_count` | `(Vec<i32>) -> i32` | `experimental` | - |
+| `bitset_union` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | - |
+| `bitset_intersection` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `experimental` | - |
+
+#### `bitset_set`
+
+Set a bit in a BitSet (alias for bitset_mark).
+
+#### `bitset_clear`
+
+Clear a bit in a BitSet (alias for bitset_unmark).
+
+#### `bitset_with_capacity`
+
+Create a new BitSet with the given capacity in bits.
+
+#### `bitset_count`
+
+Return the number of set bits in a BitSet.
+
+#### `bitset_union`
+
+Return the union of two BitSets.
+
+#### `bitset_intersection`
+
+Return the intersection of two BitSets.
