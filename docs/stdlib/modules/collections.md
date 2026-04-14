@@ -37,22 +37,102 @@ let exists = hashmap_contains(map, 42)  // true
 ## `std::collections::compiler`
 
 - Source: [`../../../std/collections/compiler.ark`](../../../std/collections/compiler.ark)
-- Manifest-backed functions: 4
-- Stability: experimental 4
+- Manifest-backed functions: 18
+- Stability: experimental 18
 
 Experimental compiler-oriented collections.
 
-The current source-backed surface is intentionally small and may change in
-future versions.
+Provides Arena, SlotMap, and Interner suitable for compiler/IDE toolchain
+use. All APIs are Experimental and may change in v4+.
 
 ### Arena (bump allocator)
 
 | Name | Signature | Stability | Summary |
 |------|-----------|-----------|---------|
 | `arena_new` | `() -> Vec<i32>` | `experimental` | - |
+| `arena_new` | `() -> Vec<i32>` | `experimental` | - |
+| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
 | `arena_alloc` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
 | `arena_get` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
+| `arena_get` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
 | `arena_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+| `arena_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+
+#### `arena_new`
+
+Create a new Arena (bump allocator for stable i32 IDs).
+
+#### `arena_alloc`
+
+Allocate a value in the Arena, returning a stable ArenaId.
+
+#### `arena_get`
+
+Get the value at the given ArenaId.
+
+#### `arena_len`
+
+Return the number of allocated entries in the Arena.
+
+### SlotMap (deletion-safe handle map, monomorphic i32 values)
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `slotmap_new` | `() -> Vec<i32>` | `experimental` | - |
+| `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `experimental` | - |
+| `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `experimental` | - |
+| `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `experimental` | - |
+| `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `experimental` | - |
+| `slotmap_len` | `(Vec<i32>) -> i32` | `experimental` | - |
+
+#### `slotmap_new`
+
+Create a new SlotMap (deletion-safe handle map for i32 values).
+
+#### `slotmap_insert`
+
+Insert a value into the SlotMap, returning a stable SlotKey.
+
+#### `slotmap_get`
+
+Get the value at the given SlotKey, or None if removed.
+
+#### `slotmap_remove`
+
+Remove and return the value at the given SlotKey, or None if already removed.
+
+#### `slotmap_contains`
+
+Return true if the SlotKey is present and active.
+
+#### `slotmap_len`
+
+Return the number of active entries in the SlotMap.
+
+### Interner (value <-> Symbol bidirectional map, String values)
+
+| Name | Signature | Stability | Summary |
+|------|-----------|-----------|---------|
+| `interner_new` | `() -> Vec<String>` | `experimental` | - |
+| `interner_intern` | `(Vec<String>, String) -> i32` | `experimental` | - |
+| `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `experimental` | - |
+| `interner_len` | `(Vec<String>) -> i32` | `experimental` | - |
+
+#### `interner_new`
+
+Create a new Interner (value<->Symbol bidirectional map).
+
+#### `interner_intern`
+
+Intern a String, returning its stable Symbol (i32 ID). Deduplicates.
+
+#### `interner_lookup`
+
+Look up the String for a given Symbol, or None if out of range.
+
+#### `interner_len`
+
+Return the number of interned strings.
 
 ## `std::collections::hash`
 

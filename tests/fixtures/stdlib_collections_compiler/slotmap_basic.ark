@@ -1,0 +1,24 @@
+use std::collections::compiler
+use std::host::stdio
+
+fn main() {
+    let m: Vec<i32> = compiler::slotmap_new()
+    stdio::println(i32_to_string(compiler::slotmap_len(m)))
+
+    let k0: i32 = compiler::slotmap_insert(m, 42)
+    let k1: i32 = compiler::slotmap_insert(m, 99)
+    stdio::println(i32_to_string(compiler::slotmap_len(m)))
+
+    stdio::println(bool_to_string(compiler::slotmap_contains(m, k0)))
+    stdio::println(bool_to_string(compiler::slotmap_contains(m, k1)))
+
+    let removed: Option<i32> = compiler::slotmap_remove(m, k0)
+    match removed {
+        Some(v) => stdio::println(i32_to_string(v)),
+        None => stdio::println("not found"),
+    }
+
+    stdio::println(i32_to_string(compiler::slotmap_len(m)))
+    stdio::println(bool_to_string(compiler::slotmap_contains(m, k0)))
+    stdio::println(bool_to_string(compiler::slotmap_contains(m, k1)))
+}

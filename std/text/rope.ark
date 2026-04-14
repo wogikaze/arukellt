@@ -1,0 +1,70 @@
+//! Rope — large text editing buffer (Experimental).
+//!
+//! Stub implementation backed by a flat String.
+//! Provides O(n) insert/delete; a balanced tree implementation is planned.
+//!
+//! All APIs are Experimental and may change in v4+.
+
+/// Create a new empty Rope.
+pub fn rope_new() -> String {
+    String_new()
+}
+
+/// Create a Rope from an existing String.
+pub fn rope_from_string(s: String) -> String {
+    clone(s)
+}
+
+/// Return the byte length of the Rope contents.
+pub fn rope_len(r: String) -> i32 {
+    len(r)
+}
+
+/// Convert the Rope back to a String.
+pub fn rope_to_string(r: String) -> String {
+    clone(r)
+}
+
+/// Insert `text` at byte position `pos`, returning the new Rope.
+pub fn rope_insert(r: String, pos: i32, text: String) -> String {
+    let n: i32 = len(r)
+    let safe_pos: i32 = if pos < 0 {
+        0
+    } else if pos > n {
+        n
+    } else {
+        pos
+    }
+    let before: String = slice(r, 0, safe_pos)
+    let after: String = slice(r, safe_pos, n)
+    concat(concat(before, text), after)
+}
+
+/// Delete bytes in `[start, end)`, returning the new Rope.
+pub fn rope_delete(r: String, start: i32, end: i32) -> String {
+    let n: i32 = len(r)
+    let safe_start: i32 = if start < 0 { 0 } else if start > n { n } else { start }
+    let safe_end: i32 = if end < safe_start { safe_start } else if end > n { n } else { end }
+    let before: String = slice(r, 0, safe_start)
+    let after: String = slice(r, safe_end, n)
+    concat(before, after)
+}
+
+/// Extract the substring `[start, end)` from the Rope.
+pub fn rope_slice(r: String, start: i32, end: i32) -> String {
+    slice(r, start, end)
+}
+
+/// Count the number of lines (number of '\n' + 1).
+pub fn rope_line_count(r: String) -> i32 {
+    let n: i32 = len(r)
+    let mut count: i32 = 1
+    let mut i: i32 = 0
+    while i < n {
+        if char_at(r, i) == 10 {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    count
+}

@@ -9,7 +9,7 @@
 |------|-------|-------------|
 | [stable](#stable-apis) | 400 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 106 | API may change without notice. Functionality is available but not finalized. |
+| [experimental](#experimental-apis) | 128 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -145,9 +145,13 @@
 | `Vec_with_capacity_i32` | `(i32) -> Vec<i32>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `any_i32` | `(Vec<i32>, fn(i32) -> bool) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_any_i32` | - |
 | `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Allocate a value in the Arena, returning a stable ArenaId. |
 | `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Get the value at the given ArenaId. |
 | `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return the number of allocated entries in the Arena. |
 | `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new Arena (bump allocator for stable i32 IDs). |
 | `as_slice` | `(Vec<T>) -> Vec<T>` | `prelude` | `stable` | `builtin` | yes | - | - |
 | `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
 | `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of set bits in a BitSet. |
@@ -232,6 +236,10 @@
 | `index_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert into an IndexSet<i32>. Returns true if the value was newly inserted. |
 | `index_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of elements in an IndexSet<i32>. |
 | `index_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new IndexSet<i32> (insertion-order unique values). |
+| `interner_intern` | `(Vec<String>, String) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Intern a String, returning its stable Symbol (i32 ID). Deduplicates. |
+| `interner_len` | `(Vec<String>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return the number of interned strings. |
+| `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Look up the String for a given Symbol, or None if out of range. |
+| `interner_new` | `() -> Vec<String>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new Interner (value<->Symbol bidirectional map). |
 | `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | `map_String_String` | `(Vec<String>, fn(String) -> String) -> Vec<String>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_String_String` | - |
 | `map_f64_f64` | `(Vec<f64>, fn(f64) -> f64) -> Vec<f64>` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_map_f64_f64` | - |
@@ -257,6 +265,12 @@
 | `reverse_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_String` | - |
 | `reverse_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_reverse_i32` | - |
 | `set` | `(Vec<T>, i32, T) -> ()` | `prelude` | `stable` | `builtin` | yes | - | - |
+| `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return true if the SlotKey is present and active. |
+| `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Get the value at the given SlotKey, or None if removed. |
+| `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Insert a value into the SlotMap, returning a stable SlotKey. |
+| `slotmap_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return the number of active entries in the SlotMap. |
+| `slotmap_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new SlotMap (deletion-safe handle map for i32 values). |
+| `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Remove and return the value at the given SlotKey, or None if already removed. |
 | `sort_String` | `(Vec<String>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_String` | - |
 | `sort_f64` | `(Vec<f64>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_f64` | - |
 | `sort_i32` | `(Vec<i32>) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_sort_i32` | - |
@@ -845,6 +859,14 @@ Expected output: `hello world`
 | `pad_right` | `(String, i32, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `repeat` | `(String, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `replace` | `(String, String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
+| `rope_delete` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Delete bytes [start, end) from the Rope, returning the new Rope. |
+| `rope_from_string` | `(String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Create a Rope from an existing String. |
+| `rope_insert` | `(String, i32, String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Insert text at byte position pos, returning the new Rope. |
+| `rope_len` | `(String) -> i32` | `std::text::rope` | `experimental` | `builtin` | no | - | Return the byte length of the Rope. |
+| `rope_line_count` | `(String) -> i32` | `std::text::rope` | `experimental` | `builtin` | no | - | Count the number of lines (newlines + 1) in the Rope. |
+| `rope_new` | `() -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Create a new empty Rope. |
+| `rope_slice` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Extract the substring [start, end) from the Rope. |
+| `rope_to_string` | `(String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Convert the Rope to a String. |
 | `slice_bytes` | `(String, i32, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `split` | `(String, String) -> Vec<String>` | `std::text` | `stable` | `builtin` | no | `__intrinsic_split` | - |
 | `starts_with` | `(String, String) -> bool` | `std::text` | `stable` | `builtin` | no | `__intrinsic_starts_with` | - |
@@ -1352,9 +1374,13 @@ Expected output: `hello world`
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
 | `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_alloc` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Allocate a value in the Arena, returning a stable ArenaId. |
 | `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_get` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Get the value at the given ArenaId. |
 | `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return the number of allocated entries in the Arena. |
 | `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | - |
+| `arena_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new Arena (bump allocator for stable i32 IDs). |
 | `bench` | `(String, i32, fn() -> ()) -> ()` | `std::test` | `experimental` | `builtin` | no | - | Run f for iterations iterations and write a timing summary (total ns + iter count) to stderr. Stdout… |
 | `bitset_clear` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Clear a bit in a BitSet (alias for bitset_unmark). |
 | `bitset_count` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of set bits in a BitSet. |
@@ -1393,6 +1419,10 @@ Expected output: `hello world`
 | `index_set_insert` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Insert into an IndexSet<i32>. Returns true if the value was newly inserted. |
 | `index_set_len` | `(Vec<i32>) -> i32` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Return the number of elements in an IndexSet<i32>. |
 | `index_set_new` | `() -> Vec<i32>` | `std::collections::ordered` | `experimental` | `builtin` | no | - | Create a new IndexSet<i32> (insertion-order unique values). |
+| `interner_intern` | `(Vec<String>, String) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Intern a String, returning its stable Symbol (i32 ID). Deduplicates. |
+| `interner_len` | `(Vec<String>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return the number of interned strings. |
+| `interner_lookup` | `(Vec<String>, i32) -> Option<String>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Look up the String for a given Symbol, or None if out of range. |
+| `interner_new` | `() -> Vec<String>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new Interner (value<->Symbol bidirectional map). |
 | `is_array` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `is_bool` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
 | `is_null` | `(JsonValue) -> bool` | `std::json` | `experimental` | `builtin` | no | - | - |
@@ -1415,6 +1445,14 @@ Expected output: `hello world`
 | `memory_copy` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_copy` | - |
 | `memory_fill` | `(i32, i32, i32) -> ()` | `std::wasm` | `experimental` | `intrinsic_wrapper` | no | `__intrinsic_memory_fill` | - |
 | `parse` | `(String) -> Result<JsonValue, String>` | `std::json` | `experimental` | `builtin` | no | - | Parse the first JSON value in a string. |
+| `rope_delete` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Delete bytes [start, end) from the Rope, returning the new Rope. |
+| `rope_from_string` | `(String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Create a Rope from an existing String. |
+| `rope_insert` | `(String, i32, String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Insert text at byte position pos, returning the new Rope. |
+| `rope_len` | `(String) -> i32` | `std::text::rope` | `experimental` | `builtin` | no | - | Return the byte length of the Rope. |
+| `rope_line_count` | `(String) -> i32` | `std::text::rope` | `experimental` | `builtin` | no | - | Count the number of lines (newlines + 1) in the Rope. |
+| `rope_new` | `() -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Create a new empty Rope. |
+| `rope_slice` | `(String, i32, i32) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Extract the substring [start, end) from the Rope. |
+| `rope_to_string` | `(String) -> String` | `std::text::rope` | `experimental` | `builtin` | no | - | Convert the Rope to a String. |
 | `section_code` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_data` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_element` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
@@ -1426,6 +1464,12 @@ Expected output: `hello world`
 | `section_start` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_table` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
 | `section_type` | `() -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | - |
+| `slotmap_contains` | `(Vec<i32>, i32) -> bool` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return true if the SlotKey is present and active. |
+| `slotmap_get` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Get the value at the given SlotKey, or None if removed. |
+| `slotmap_insert` | `(Vec<i32>, i32) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Insert a value into the SlotMap, returning a stable SlotKey. |
+| `slotmap_len` | `(Vec<i32>) -> i32` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Return the number of active entries in the SlotMap. |
+| `slotmap_new` | `() -> Vec<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Create a new SlotMap (deletion-safe handle map for i32 values). |
+| `slotmap_remove` | `(Vec<i32>, i32) -> Option<i32>` | `std::collections::compiler` | `experimental` | `builtin` | no | - | Remove and return the value at the given SlotKey, or None if already removed. |
 | `stringify` | `(JsonValue) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue back to its JSON text. |
 | `stringify_pretty` | `(JsonValue, i32) -> String` | `std::json` | `experimental` | `builtin` | no | - | Serialize a JsonValue with basic formatting. |
 | `to_utf8_bytes` | `(String) -> Vec<i32>` | `std::text` | `experimental` | `builtin` | no | - | - |

@@ -234,6 +234,9 @@ run:stdlib_bytes/bytes_slice.ark
 run:stdlib_cli/cli_basic.ark
 run:stdlib_cli/cli_flag_check.ark
 run:stdlib_compiler/compiler_basic.ark
+run:stdlib_collections_compiler/slotmap_basic.ark
+run:stdlib_collections_compiler/interner_basic.ark
+run:stdlib_collections_compiler/rope_basic.ark
 run:stdlib_component/component_helpers.ark
 run:stdlib_core/convert.ark
 run:stdlib_core/error_basic.ark

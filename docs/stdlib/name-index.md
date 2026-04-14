@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 511
+- **Canonical names:** 533
 - **Historical/deprecated names:** 3
-- **Total entries:** 514
+- **Total entries:** 536
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -29,8 +29,12 @@ Current public API names, sorted alphabetically.
 | `any_i32` | `prelude` | `stable` | Collections |
 | `approx_eq` | `std::signal` | `stable` | Signal |
 | `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
+| `arena_alloc` | `std::collections::compiler` | `experimental` | Collections |
+| `arena_get` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_get` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_len` | `std::collections::compiler` | `experimental` | Collections |
+| `arena_len` | `std::collections::compiler` | `experimental` | Collections |
+| `arena_new` | `std::collections::compiler` | `experimental` | Collections |
 | `arena_new` | `std::collections::compiler` | `experimental` | Collections |
 | `arg_at` | `std::host::env` | `stable` | Host Env |
 | `arg_at` | `std::env` | `stable` | Env |
@@ -277,6 +281,10 @@ Current public API names, sorted alphabetically.
 | `index_set_insert` | `std::collections::ordered` | `experimental` | Collections |
 | `index_set_len` | `std::collections::ordered` | `experimental` | Collections |
 | `index_set_new` | `std::collections::ordered` | `experimental` | Collections |
+| `interner_intern` | `std::collections::compiler` | `experimental` | Collections |
+| `interner_len` | `std::collections::compiler` | `experimental` | Collections |
+| `interner_lookup` | `std::collections::compiler` | `experimental` | Collections |
+| `interner_new` | `std::collections::compiler` | `experimental` | Collections |
 | `is_absolute` | `std::path` | `stable` | Path |
 | `is_array` | `std::json` | `experimental` | Json |
 | `is_bool` | `std::json` | `experimental` | Json |
@@ -405,6 +413,14 @@ Current public API names, sorted alphabetically.
 | `request` | `std::host::http` | `provisional` | Host Http |
 | `reverse_i32` | `prelude` | `stable` | Collections |
 | `reverse_String` | `prelude` | `stable` | Collections |
+| `rope_delete` | `std::text::rope` | `experimental` | Text |
+| `rope_from_string` | `std::text::rope` | `experimental` | Text |
+| `rope_insert` | `std::text::rope` | `experimental` | Text |
+| `rope_len` | `std::text::rope` | `experimental` | Text |
+| `rope_line_count` | `std::text::rope` | `experimental` | Text |
+| `rope_new` | `std::text::rope` | `experimental` | Text |
+| `rope_slice` | `std::text::rope` | `experimental` | Text |
+| `rope_to_string` | `std::text::rope` | `experimental` | Text |
 | `section_code` | `std::wasm` | `experimental` | Wasm |
 | `section_data` | `std::wasm` | `experimental` | Wasm |
 | `section_element` | `std::wasm` | `experimental` | Wasm |
@@ -427,6 +443,12 @@ Current public API names, sorted alphabetically.
 | `skip_i32` | `std::seq` | `stable` | Seq |
 | `slice` | `prelude` | `stable` | String |
 | `slice_bytes` | `std::text` | `stable` | Text |
+| `slotmap_contains` | `std::collections::compiler` | `experimental` | Collections |
+| `slotmap_get` | `std::collections::compiler` | `experimental` | Collections |
+| `slotmap_insert` | `std::collections::compiler` | `experimental` | Collections |
+| `slotmap_len` | `std::collections::compiler` | `experimental` | Collections |
+| `slotmap_new` | `std::collections::compiler` | `experimental` | Collections |
+| `slotmap_remove` | `std::collections::compiler` | `experimental` | Collections |
 | `sort_f64` | `prelude` | `stable` | Collections |
 | `sort_i32` | `prelude` | `stable` | Collections |
 | `sort_i64` | `prelude` | `stable` | Collections |
@@ -561,8 +583,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `any_i32` | ✅ `stable` | `prelude` | Collections |
 | `approx_eq` | ✅ `stable` | `std::signal` | Signal |
 | `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `arena_alloc` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `arena_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `arena_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `arena_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arena_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `arg_at` | ✅ `stable` | `std::host::env` | Host Env |
 | `arg_at` | ✅ `stable` | `std::env` | Env |
@@ -810,6 +836,10 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `index_set_insert` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `index_set_len` | ✅ `experimental` | `std::collections::ordered` | Collections |
 | `index_set_new` | ✅ `experimental` | `std::collections::ordered` | Collections |
+| `interner_intern` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `interner_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `interner_lookup` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `interner_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `is_absolute` | ✅ `stable` | `std::path` | Path |
 | `is_array` | ✅ `experimental` | `std::json` | Json |
 | `is_bool` | ✅ `experimental` | `std::json` | Json |
@@ -938,6 +968,14 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `request` | ✅ `provisional` | `std::host::http` | Host Http |
 | `reverse_i32` | ✅ `stable` | `prelude` | Collections |
 | `reverse_String` | ✅ `stable` | `prelude` | Collections |
+| `rope_delete` | ✅ `experimental` | `std::text::rope` | Text |
+| `rope_from_string` | ✅ `experimental` | `std::text::rope` | Text |
+| `rope_insert` | ✅ `experimental` | `std::text::rope` | Text |
+| `rope_len` | ✅ `experimental` | `std::text::rope` | Text |
+| `rope_line_count` | ✅ `experimental` | `std::text::rope` | Text |
+| `rope_new` | ✅ `experimental` | `std::text::rope` | Text |
+| `rope_slice` | ✅ `experimental` | `std::text::rope` | Text |
+| `rope_to_string` | ✅ `experimental` | `std::text::rope` | Text |
 | `section_code` | ✅ `experimental` | `std::wasm` | Wasm |
 | `section_data` | ✅ `experimental` | `std::wasm` | Wasm |
 | `section_element` | ✅ `experimental` | `std::wasm` | Wasm |
@@ -960,6 +998,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `skip_i32` | ✅ `stable` | `std::seq` | Seq |
 | `slice` | ✅ `stable` | `prelude` | String |
 | `slice_bytes` | ✅ `stable` | `std::text` | Text |
+| `slotmap_contains` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `slotmap_get` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `slotmap_insert` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `slotmap_len` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `slotmap_new` | ✅ `experimental` | `std::collections::compiler` | Collections |
+| `slotmap_remove` | ✅ `experimental` | `std::collections::compiler` | Collections |
 | `sort_f64` | ✅ `stable` | `prelude` | Collections |
 | `sort_i32` | ✅ `stable` | `prelude` | Collections |
 | `sort_i64` | ✅ `stable` | `prelude` | Collections |

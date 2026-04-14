@@ -11,7 +11,6 @@ graph LR
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
   I044["044 std::collections::hash: HashMap\<K,V\> 汎用化と HashSet\<T\>"]
-  I047["047 std::collections: Arena、SlotMap、Interner ／ std::text: Rope"]
   I053["053 std::wasm: Wasm バイナリ型・opcode・module builder"]
   I064["064 Wasm Branch Hinting: カスタムセクションによるブランチ予測ヒント"]
   I066["066 Wasm Bulk Memory: memory.copy / memory.fill / table.copy フル対応"]
@@ -147,7 +146,6 @@ graph LR
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
 - **044** depends on: 039, 041; blocks: 054, 057
-- **047** depends on: 039, 041; blocks: none
 - **053** depends on: 039, 040, 043; blocks: 054
 - **064** depends on: none; blocks: none
 - **066** depends on: none; blocks: none

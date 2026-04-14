@@ -4912,3 +4912,209 @@ stability = "experimental"
 params = ["Vec<i32>", "Vec<i32>"]
 returns = "Vec<i32>"
 doc = "Return the intersection of two BitSets."
+
+# ─────────────────────────────────────────────
+# std::collections::compiler — Arena, SlotMap, Interner
+# ─────────────────────────────────────────────
+
+[[functions]]
+name = "arena_new"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new Arena (bump allocator for stable i32 IDs)."
+
+[[functions]]
+name = "arena_alloc"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Allocate a value in the Arena, returning a stable ArenaId."
+
+[[functions]]
+name = "arena_get"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Get the value at the given ArenaId."
+
+[[functions]]
+name = "arena_len"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of allocated entries in the Arena."
+
+[[functions]]
+name = "slotmap_new"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<i32>"
+doc = "Create a new SlotMap (deletion-safe handle map for i32 values)."
+
+[[functions]]
+name = "slotmap_insert"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "i32"
+doc = "Insert a value into the SlotMap, returning a stable SlotKey."
+
+[[functions]]
+name = "slotmap_get"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+doc = "Get the value at the given SlotKey, or None if removed."
+
+[[functions]]
+name = "slotmap_remove"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "Option<i32>"
+doc = "Remove and return the value at the given SlotKey, or None if already removed."
+
+[[functions]]
+name = "slotmap_contains"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>", "i32"]
+returns = "bool"
+doc = "Return true if the SlotKey is present and active."
+
+[[functions]]
+name = "slotmap_len"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<i32>"]
+returns = "i32"
+doc = "Return the number of active entries in the SlotMap."
+
+[[functions]]
+name = "interner_new"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = []
+returns = "Vec<String>"
+doc = "Create a new Interner (value<->Symbol bidirectional map)."
+
+[[functions]]
+name = "interner_intern"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<String>", "String"]
+returns = "i32"
+doc = "Intern a String, returning its stable Symbol (i32 ID). Deduplicates."
+
+[[functions]]
+name = "interner_lookup"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<String>", "i32"]
+returns = "Option<String>"
+doc = "Look up the String for a given Symbol, or None if out of range."
+
+[[functions]]
+name = "interner_len"
+module = "std::collections::compiler"
+doc_category = "collections"
+stability = "experimental"
+params = ["Vec<String>"]
+returns = "i32"
+doc = "Return the number of interned strings."
+
+# ─────────────────────────────────────────────
+# std::text::rope — Rope for large text editing
+# ─────────────────────────────────────────────
+
+[[functions]]
+name = "rope_new"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = []
+returns = "String"
+doc = "Create a new empty Rope."
+
+[[functions]]
+name = "rope_from_string"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Create a Rope from an existing String."
+
+[[functions]]
+name = "rope_len"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "i32"
+doc = "Return the byte length of the Rope."
+
+[[functions]]
+name = "rope_to_string"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "String"
+doc = "Convert the Rope to a String."
+
+[[functions]]
+name = "rope_insert"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String", "i32", "String"]
+returns = "String"
+doc = "Insert text at byte position pos, returning the new Rope."
+
+[[functions]]
+name = "rope_delete"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String", "i32", "i32"]
+returns = "String"
+doc = "Delete bytes [start, end) from the Rope, returning the new Rope."
+
+[[functions]]
+name = "rope_slice"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String", "i32", "i32"]
+returns = "String"
+doc = "Extract the substring [start, end) from the Rope."
+
+[[functions]]
+name = "rope_line_count"
+module = "std::text::rope"
+doc_category = "text"
+stability = "experimental"
+params = ["String"]
+returns = "i32"
+doc = "Count the number of lines (newlines + 1) in the Rope."
