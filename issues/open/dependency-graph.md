@@ -28,14 +28,12 @@ graph LR
   I108["108 実行時性能: hello.wasm 1KB 以下 達成プラン"]
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
-  I123["123 import 構文と WIT パッケージ識別子の統一方針決定"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
   I142["142 計測: startup / throughput / tail latency ベンチ"]
   I143["143 計測: allocation / live-set / GC pause / RSS telemetry"]
   I145["145 計測: Wasm サイズ内訳 diff と top contributors 追跡"]
   I146["146 基盤: benchmark variance 制御と再現性プロファイル"]
   I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
-  I154["154 横断基盤: `scripts/run/verify-bootstrap.sh` と fixpoint 検証 scaffold"]
   I157["157 ADR-004 P4: メソッド構文 / trait 再評価"]
   I170["170 v5 Migration guide"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
@@ -70,6 +68,7 @@ graph LR
   I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
+  I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
   I489["489 Playground user-visible entrypoint wiring"]
   I501["501 T2 (`wasm32-freestanding`) Wasm Emitter Implementation"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
@@ -94,6 +93,7 @@ graph LR
   I146 --> I148
   I200 --> I201
   I204 --> I188
+  I285 --> I508
   I382 --> I489
   I382 --> I501
   I077 --> I136
@@ -132,14 +132,12 @@ graph LR
 - **108** depends on: 091, 092, 088, 089; blocks: none
 - **118** depends on: 117; blocks: none
 - **120** depends on: none; blocks: none
-- **123** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
 - **142** depends on: 149; blocks: 144, 148, 158
 - **143** depends on: 149; blocks: 144, 148, 158
 - **145** depends on: 149; blocks: 148, 158
 - **146** depends on: 149; blocks: 148
 - **147** depends on: 149; blocks: none
-- **154** depends on: 153; blocks: none
 - **157** depends on: none; blocks: none
 - **170** depends on: 165, 166, 169; blocks: none
 - **194** depends on: 193; blocks: none
@@ -151,7 +149,7 @@ graph LR
 - **249** depends on: none; blocks: none
 - **253** depends on: none; blocks: none
 - **269** depends on: 266, 268; blocks: none
-- **285** depends on: 284; blocks: none
+- **285** depends on: 284; blocks: 508
 - **382** depends on: 378; blocks: 489, 501
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **494** depends on: none; blocks: none
@@ -174,6 +172,7 @@ graph LR
 - **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
+- **508** depends on: 285; blocks: none
 - **489** depends on: 382, 437, 438, 464; blocks: none
 - **501** depends on: 382; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
