@@ -7,7 +7,7 @@
 
 | Tier | Count | Description |
 |------|-------|-------------|
-| [stable](#stable-apis) | 282 | Backward-compatible within a major version. Safe for production use. |
+| [stable](#stable-apis) | 307 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
 | [experimental](#experimental-apis) | 49 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
@@ -63,19 +63,44 @@
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `base64_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Decode a standard base64 string into a byte buffer. Silently skips invalid characters. |
+| `base64_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | Encode a byte buffer as standard base64 (RFC 4648, with padding). |
+| `buf_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Append all bytes from a Bytes slice onto a ByteBuf. |
+| `buf_freeze` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is… |
+| `buf_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the number of bytes in a ByteBuf. |
+| `buf_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a new empty ByteBuf (represented as Vec<i32>). |
+| `buf_push_u16_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 16-bit value in little-endian byte order onto a ByteBuf. |
+| `buf_push_u32_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 32-bit value in little-endian byte order onto a ByteBuf. |
+| `buf_push_u64_le` | `(Vec<i32>, i64) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64. |
+| `buf_push_u8` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a single byte (0-255) onto a ByteBuf. |
+| `buf_with_capacity` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime. |
 | `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_from_array` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8>… |
 | `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_push` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_slice` | `(Vec<i32>, i32, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
+| `cursor_pos` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the current byte position of a ByteCursor. |
+| `cursor_remaining` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the number of bytes remaining in a ByteCursor. |
 | `hex_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `hex_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `leb128_decode_i32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor. |
+| `leb128_decode_u32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor. |
+| `leb128_decode_u64` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `builtin` | no | - | Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor. |
 | `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `leb128_encode_u64` | `(i64) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type… |
+| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
+| `read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u64_le` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `builtin` | no | - | Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow. |
+| `read_u8` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read one byte from a ByteCursor and advance the position. Returns -1 on underflow. |
 | `string_from_bytes` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `u16_from_le_bytes` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `u16_to_le_bytes` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
@@ -766,12 +791,23 @@ Expected output: `hello world`
 | `assert_ne_i32` | `(i32, i32) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
 | `assert_ne_string` | `(String, String) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
 | `assert_true` | `(bool) -> ()` | `std::test` | `stable` | `builtin` | no | - | - |
+| `base64_decode` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Decode a standard base64 string into a byte buffer. Silently skips invalid characters. |
+| `base64_encode` | `(Vec<i32>) -> String` | `std::bytes` | `stable` | `builtin` | no | - | Encode a byte buffer as standard base64 (RFC 4648, with padding). |
 | `binary_search` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
 | `bitset_mark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `bitset_new` | `() -> Vec<i32>` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `bitset_test` | `(Vec<i32>, i32) -> bool` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `bitset_unmark` | `(Vec<i32>, i32) -> ()` | `std::collections::ordered` | `stable` | `builtin` | no | - | - |
 | `bool_to_string` | `(bool) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_bool_to_string` | - |
+| `buf_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Append all bytes from a Bytes slice onto a ByteBuf. |
+| `buf_freeze` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is… |
+| `buf_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the number of bytes in a ByteBuf. |
+| `buf_new` | `() -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a new empty ByteBuf (represented as Vec<i32>). |
+| `buf_push_u16_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 16-bit value in little-endian byte order onto a ByteBuf. |
+| `buf_push_u32_le` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 32-bit value in little-endian byte order onto a ByteBuf. |
+| `buf_push_u64_le` | `(Vec<i32>, i64) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64. |
+| `buf_push_u8` | `(Vec<i32>, i32) -> ()` | `std::bytes` | `stable` | `builtin` | no | - | Push a single byte (0-255) onto a ByteBuf. |
+| `buf_with_capacity` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime. |
 | `builder_append` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `builder_append_char` | `(String, char) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `builder_append_line` | `(String, String) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
@@ -781,6 +817,7 @@ Expected output: `hello world`
 | `byte_length` | `(String) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_concat` | `(Vec<i32>, Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_eq` | `(Vec<i32>, Vec<i32>) -> bool` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `bytes_from_array` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8>… |
 | `bytes_from_string` | `(String) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_get` | `(Vec<i32>, i32) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `bytes_len` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | - |
@@ -806,6 +843,9 @@ Expected output: `hello world`
 | `contains_i32` | `(Vec<i32>, i32) -> bool` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_contains_i32` | - |
 | `cos_approx` | `(f64) -> f64` | `std::signal` | `stable` | `builtin` | no | - | - |
 | `count_eq` | `(Vec<i32>, i32) -> i32` | `std::seq` | `stable` | `builtin` | no | - | - |
+| `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes. |
+| `cursor_pos` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the current byte position of a ByteCursor. |
+| `cursor_remaining` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Return the number of bytes remaining in a ByteCursor. |
 | `deque_is_empty` | `(Vec<i32>) -> bool` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
 | `deque_len` | `(Vec<i32>) -> i32` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
 | `deque_new` | `() -> Vec<i32>` | `std::collections::linear` | `stable` | `builtin` | no | - | - |
@@ -883,8 +923,12 @@ Expected output: `hello world`
 | `join` | `(Vec<String>, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_join` | - |
 | `join` | `(Vec<String>, String) -> String` | `std::text` | `stable` | `builtin` | no | `__intrinsic_join` | - |
 | `join` | `(String, String) -> String` | `std::path` | `stable` | `builtin` | no | - | - |
+| `leb128_decode_i32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor. |
+| `leb128_decode_u32` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor. |
+| `leb128_decode_u64` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `builtin` | no | - | Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor. |
 | `leb128_encode_i32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
 | `leb128_encode_u32` | `(i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | - |
+| `leb128_encode_u64` | `(i64) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type… |
 | `len` | `(Vec<T>) -> i32` | `prelude` | `stable` | `builtin` | yes | - | Return the number of elements in a Vec. |
 | `len_bytes` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
 | `len_chars` | `(String) -> i32` | `std::text` | `stable` | `builtin` | no | - | - |
@@ -940,7 +984,13 @@ Expected output: `hello world`
 | `range_inclusive_new` | `(i32, i32) -> RangeInclusive` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_len` | `(Range) -> i32` | `std::core` | `stable` | `builtin` | no | - | - |
 | `range_new` | `(i32, i32) -> Range` | `std::core` | `stable` | `builtin` | no | - | - |
+| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `std::bytes` | `stable` | `builtin` | no | - | Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow. |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
+| `read_u16_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read two bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u32_be` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes big-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u32_le` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read four bytes little-endian from a ByteCursor. Returns -1 on underflow. |
+| `read_u64_le` | `(Vec<i32>) -> i64` | `std::bytes` | `stable` | `builtin` | no | - | Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow. |
+| `read_u8` | `(Vec<i32>) -> i32` | `std::bytes` | `stable` | `builtin` | no | - | Read one byte from a ByteCursor and advance the position. Returns -1 on underflow. |
 | `remove_i32` | `(Vec<i32>, i32) -> ()` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_remove_i32` | - |
 | `repeat` | `(String, i32) -> String` | `std::text` | `stable` | `builtin` | no | - | - |
 | `replace` | `(String, String, String) -> String` | `prelude` | `stable` | `prelude_wrapper` | yes | `__intrinsic_replace` | - |

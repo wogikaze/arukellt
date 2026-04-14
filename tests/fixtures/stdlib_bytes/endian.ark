@@ -1,0 +1,27 @@
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    // u16 little-endian roundtrip
+    let le16: Vec<i32> = bytes::u16_to_le_bytes(0x0201)
+    stdio::println(i32_to_string(bytes::bytes_get(le16, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(le16, 1)))
+    let rt16: i32 = bytes::u16_from_le_bytes(le16)
+    stdio::println(i32_to_string(rt16))
+
+    // u32 little-endian roundtrip
+    let le32: Vec<i32> = bytes::u32_to_le_bytes(305419896)
+    stdio::println(i32_to_string(bytes::bytes_len(le32)))
+    stdio::println(i32_to_string(bytes::bytes_get(le32, 0)))
+    let rt32: i32 = bytes::u32_from_le_bytes(le32)
+    stdio::println(i32_to_string(rt32))
+
+    // u32 big-endian roundtrip
+    let be32: Vec<i32> = bytes::u32_to_be_bytes(16909060)
+    stdio::println(i32_to_string(bytes::bytes_get(be32, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(be32, 1)))
+    stdio::println(i32_to_string(bytes::bytes_get(be32, 2)))
+    stdio::println(i32_to_string(bytes::bytes_get(be32, 3)))
+    let rt32be: i32 = bytes::u32_from_be_bytes(be32)
+    stdio::println(i32_to_string(rt32be))
+}

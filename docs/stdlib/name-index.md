@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 336
+- **Canonical names:** 361
 - **Historical/deprecated names:** 3
-- **Total entries:** 339
+- **Total entries:** 364
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -52,6 +52,8 @@ Current public API names, sorted alphabetically.
 | `assert_ne_i32` | `std::test` | `stable` | Test |
 | `assert_ne_string` | `std::test` | `stable` | Test |
 | `assert_true` | `std::test` | `stable` | Test |
+| `base64_decode` | `std::bytes` | `stable` | Bytes |
+| `base64_encode` | `std::bytes` | `stable` | Bytes |
 | `binary_search` | `std::seq` | `stable` | Seq |
 | `bitset_mark` | `std::collections::ordered` | `stable` | Collections |
 | `bitset_new` | `std::collections::ordered` | `stable` | Collections |
@@ -59,6 +61,15 @@ Current public API names, sorted alphabetically.
 | `bitset_unmark` | `std::collections::ordered` | `stable` | Collections |
 | `bool_to_string` | `prelude` | `stable` | Conversion |
 | `Box_new` | `prelude` | `stable` | Box |
+| `buf_extend` | `std::bytes` | `stable` | Bytes |
+| `buf_freeze` | `std::bytes` | `stable` | Bytes |
+| `buf_len` | `std::bytes` | `stable` | Bytes |
+| `buf_new` | `std::bytes` | `stable` | Bytes |
+| `buf_push_u16_le` | `std::bytes` | `stable` | Bytes |
+| `buf_push_u32_le` | `std::bytes` | `stable` | Bytes |
+| `buf_push_u64_le` | `std::bytes` | `stable` | Bytes |
+| `buf_push_u8` | `std::bytes` | `stable` | Bytes |
+| `buf_with_capacity` | `std::bytes` | `stable` | Bytes |
 | `builder_append` | `std::text` | `stable` | Text |
 | `builder_append_char` | `std::text` | `stable` | Text |
 | `builder_append_line` | `std::text` | `stable` | Text |
@@ -68,6 +79,7 @@ Current public API names, sorted alphabetically.
 | `byte_length` | `std::bytes` | `stable` | Bytes |
 | `bytes_concat` | `std::bytes` | `stable` | Bytes |
 | `bytes_eq` | `std::bytes` | `stable` | Bytes |
+| `bytes_from_array` | `std::bytes` | `stable` | Bytes |
 | `bytes_from_string` | `std::bytes` | `stable` | Bytes |
 | `bytes_get` | `std::bytes` | `stable` | Bytes |
 | `bytes_len` | `std::bytes` | `stable` | Bytes |
@@ -97,6 +109,9 @@ Current public API names, sorted alphabetically.
 | `cos_approx` | `std::signal` | `stable` | Signal |
 | `count_eq` | `std::seq` | `stable` | Seq |
 | `csv_split_line` | `std::csv` | `experimental` | Csv |
+| `cursor_new` | `std::bytes` | `stable` | Bytes |
+| `cursor_pos` | `std::bytes` | `stable` | Bytes |
+| `cursor_remaining` | `std::bytes` | `stable` | Bytes |
 | `deque_is_empty` | `std::collections::linear` | `stable` | Collections |
 | `deque_len` | `std::collections::linear` | `stable` | Collections |
 | `deque_new` | `std::collections::linear` | `stable` | Collections |
@@ -188,8 +203,12 @@ Current public API names, sorted alphabetically.
 | `json_stringify_bool` | `std::json` | `experimental` | Json |
 | `json_stringify_i32` | `std::json` | `experimental` | Json |
 | `json_stringify_string` | `std::json` | `experimental` | Json |
+| `leb128_decode_i32` | `std::bytes` | `stable` | Bytes |
+| `leb128_decode_u32` | `std::bytes` | `stable` | Bytes |
+| `leb128_decode_u64` | `std::bytes` | `stable` | Bytes |
 | `leb128_encode_i32` | `std::bytes` | `stable` | Bytes |
 | `leb128_encode_u32` | `std::bytes` | `stable` | Bytes |
+| `leb128_encode_u64` | `std::bytes` | `stable` | Bytes |
 | `len` | `prelude` | `stable` | Collections |
 | `len_bytes` | `std::text` | `stable` | Text |
 | `len_chars` | `std::text` | `stable` | Text |
@@ -247,7 +266,13 @@ Current public API names, sorted alphabetically.
 | `range_inclusive_new` | `std::core` | `stable` | Core |
 | `range_len` | `std::core` | `stable` | Core |
 | `range_new` | `std::core` | `stable` | Core |
+| `read_bytes` | `std::bytes` | `stable` | Bytes |
 | `read_to_string` | `std::host::fs` | `stable` | Host Fs |
+| `read_u16_le` | `std::bytes` | `stable` | Bytes |
+| `read_u32_be` | `std::bytes` | `stable` | Bytes |
+| `read_u32_le` | `std::bytes` | `stable` | Bytes |
+| `read_u64_le` | `std::bytes` | `stable` | Bytes |
+| `read_u8` | `std::bytes` | `stable` | Bytes |
 | `remove_i32` | `prelude` | `stable` | Collections |
 | `repeat` | `std::text` | `stable` | Text |
 | `replace` | `prelude` | `stable` | String |
@@ -409,6 +434,8 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `assert_ne_i32` | ✅ `stable` | `std::test` | Test |
 | `assert_ne_string` | ✅ `stable` | `std::test` | Test |
 | `assert_true` | ✅ `stable` | `std::test` | Test |
+| `base64_decode` | ✅ `stable` | `std::bytes` | Bytes |
+| `base64_encode` | ✅ `stable` | `std::bytes` | Bytes |
 | `binary_search` | ✅ `stable` | `std::seq` | Seq |
 | `bitset_mark` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `bitset_new` | ✅ `stable` | `std::collections::ordered` | Collections |
@@ -416,6 +443,15 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `bitset_unmark` | ✅ `stable` | `std::collections::ordered` | Collections |
 | `bool_to_string` | ✅ `stable` | `prelude` | Conversion |
 | `Box_new` | ✅ `stable` | `prelude` | Box |
+| `buf_extend` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_freeze` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_len` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_new` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_push_u16_le` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_push_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_push_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_push_u8` | ✅ `stable` | `std::bytes` | Bytes |
+| `buf_with_capacity` | ✅ `stable` | `std::bytes` | Bytes |
 | `builder_append` | ✅ `stable` | `std::text` | Text |
 | `builder_append_char` | ✅ `stable` | `std::text` | Text |
 | `builder_append_line` | ✅ `stable` | `std::text` | Text |
@@ -425,6 +461,7 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `byte_length` | ✅ `stable` | `std::bytes` | Bytes |
 | `bytes_concat` | ✅ `stable` | `std::bytes` | Bytes |
 | `bytes_eq` | ✅ `stable` | `std::bytes` | Bytes |
+| `bytes_from_array` | ✅ `stable` | `std::bytes` | Bytes |
 | `bytes_from_string` | ✅ `stable` | `std::bytes` | Bytes |
 | `bytes_get` | ✅ `stable` | `std::bytes` | Bytes |
 | `bytes_len` | ✅ `stable` | `std::bytes` | Bytes |
@@ -454,6 +491,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `cos_approx` | ✅ `stable` | `std::signal` | Signal |
 | `count_eq` | ✅ `stable` | `std::seq` | Seq |
 | `csv_split_line` | ✅ `experimental` | `std::csv` | Csv |
+| `cursor_new` | ✅ `stable` | `std::bytes` | Bytes |
+| `cursor_pos` | ✅ `stable` | `std::bytes` | Bytes |
+| `cursor_remaining` | ✅ `stable` | `std::bytes` | Bytes |
 | `deque_is_empty` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_len` | ✅ `stable` | `std::collections::linear` | Collections |
 | `deque_new` | ✅ `stable` | `std::collections::linear` | Collections |
@@ -546,8 +586,12 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `json_stringify_bool` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_i32` | ✅ `experimental` | `std::json` | Json |
 | `json_stringify_string` | ✅ `experimental` | `std::json` | Json |
+| `leb128_decode_i32` | ✅ `stable` | `std::bytes` | Bytes |
+| `leb128_decode_u32` | ✅ `stable` | `std::bytes` | Bytes |
+| `leb128_decode_u64` | ✅ `stable` | `std::bytes` | Bytes |
 | `leb128_encode_i32` | ✅ `stable` | `std::bytes` | Bytes |
 | `leb128_encode_u32` | ✅ `stable` | `std::bytes` | Bytes |
+| `leb128_encode_u64` | ✅ `stable` | `std::bytes` | Bytes |
 | `len` | ✅ `stable` | `prelude` | Collections |
 | `len_bytes` | ✅ `stable` | `std::text` | Text |
 | `len_chars` | ✅ `stable` | `std::text` | Text |
@@ -605,7 +649,13 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `range_inclusive_new` | ✅ `stable` | `std::core` | Core |
 | `range_len` | ✅ `stable` | `std::core` | Core |
 | `range_new` | ✅ `stable` | `std::core` | Core |
+| `read_bytes` | ✅ `stable` | `std::bytes` | Bytes |
 | `read_to_string` | ✅ `stable` | `std::host::fs` | Host Fs |
+| `read_u16_le` | ✅ `stable` | `std::bytes` | Bytes |
+| `read_u32_be` | ✅ `stable` | `std::bytes` | Bytes |
+| `read_u32_le` | ✅ `stable` | `std::bytes` | Bytes |
+| `read_u64_le` | ✅ `stable` | `std::bytes` | Bytes |
+| `read_u8` | ✅ `stable` | `std::bytes` | Bytes |
 | `remove_i32` | ✅ `stable` | `prelude` | Collections |
 | `repeat` | ✅ `stable` | `std::text` | Text |
 | `replace` | ✅ `stable` | `prelude` | String |

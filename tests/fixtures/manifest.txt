@@ -215,6 +215,13 @@ run:selfhost/typecheck_infer_expr.ark
 run:selfhost/typecheck_generic_call.ark
 run:stdlib_bytes/bytes_basic.ark
 run:stdlib_bytes/bytes_helpers.ark
+run:stdlib_bytes/buf_basic.ark
+run:stdlib_bytes/cursor_read.ark
+run:stdlib_bytes/hex.ark
+run:stdlib_bytes/base64.ark
+run:stdlib_bytes/leb128.ark
+run:stdlib_bytes/endian.ark
+run:stdlib_bytes/bytes_slice.ark
 run:stdlib_cli/cli_basic.ark
 run:stdlib_compiler/compiler_basic.ark
 run:stdlib_component/component_helpers.ark

@@ -1,0 +1,39 @@
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    // base64_encode
+    let b: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(b, 77)
+    bytes::bytes_push(b, 97)
+    bytes::bytes_push(b, 110)
+    let enc: String = bytes::base64_encode(b)
+    stdio::println(enc)
+
+    // base64_decode roundtrip
+    let dec: Vec<i32> = bytes::base64_decode(enc)
+    stdio::println(i32_to_string(bytes::bytes_len(dec)))
+    stdio::println(bool_to_string(bytes::bytes_eq(b, dec)))
+
+    // padding: 1 byte -> 2 chars + ==
+    let one: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(one, 77)
+    let enc1: String = bytes::base64_encode(one)
+    stdio::println(enc1)
+
+    // padding: 2 bytes -> 3 chars + =
+    let two: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(two, 77)
+    bytes::bytes_push(two, 97)
+    let enc2: String = bytes::base64_encode(two)
+    stdio::println(enc2)
+
+    // empty
+    let empty_enc: String = bytes::base64_encode(bytes::bytes_new())
+    stdio::println(bool_to_string(eq(empty_enc, "")))
+
+    // decode "TQ==" -> [77]
+    let back: Vec<i32> = bytes::base64_decode("TQ==")
+    stdio::println(i32_to_string(bytes::bytes_len(back)))
+    stdio::println(i32_to_string(bytes::bytes_get(back, 0)))
+}

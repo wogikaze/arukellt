@@ -1,0 +1,57 @@
+use std::bytes
+use std::host::stdio
+
+fn main() {
+    // Build a Bytes value and wrap in cursor
+    let data: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data, 10)
+    bytes::bytes_push(data, 20)
+    bytes::bytes_push(data, 30)
+    bytes::bytes_push(data, 40)
+    bytes::bytes_push(data, 50)
+    bytes::bytes_push(data, 60)
+    bytes::bytes_push(data, 70)
+    bytes::bytes_push(data, 80)
+
+    let c: Vec<i32> = bytes::cursor_new(data)
+    stdio::println(i32_to_string(bytes::cursor_pos(c)))
+    stdio::println(i32_to_string(bytes::cursor_remaining(c)))
+
+    // read_u8
+    let b0: i32 = bytes::read_u8(c)
+    stdio::println(i32_to_string(b0))
+    stdio::println(i32_to_string(bytes::cursor_pos(c)))
+    stdio::println(i32_to_string(bytes::cursor_remaining(c)))
+
+    // read_u16_le: reads bytes [20, 30] -> 20 + 30*256 = 7700
+    let u16v: i32 = bytes::read_u16_le(c)
+    stdio::println(i32_to_string(u16v))
+    stdio::println(i32_to_string(bytes::cursor_remaining(c)))
+
+    // read_u32_be: reads bytes [40, 50, 60, 70] -> big-endian
+    let u32be: i32 = bytes::read_u32_be(c)
+    stdio::println(i32_to_string(u32be))
+
+    // New cursor for u32 LE test: bytes [4,3,2,1] -> 16909060
+    let data2: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data2, 4)
+    bytes::bytes_push(data2, 3)
+    bytes::bytes_push(data2, 2)
+    bytes::bytes_push(data2, 1)
+    let c2: Vec<i32> = bytes::cursor_new(data2)
+    let u32v: i32 = bytes::read_u32_le(c2)
+    stdio::println(i32_to_string(u32v))
+
+    // read_bytes
+    let data3: Vec<i32> = bytes::bytes_new()
+    bytes::bytes_push(data3, 1)
+    bytes::bytes_push(data3, 2)
+    bytes::bytes_push(data3, 3)
+    bytes::bytes_push(data3, 4)
+    let c3: Vec<i32> = bytes::cursor_new(data3)
+    let chunk: Vec<i32> = bytes::read_bytes(c3, 2)
+    stdio::println(i32_to_string(bytes::bytes_len(chunk)))
+    stdio::println(i32_to_string(bytes::bytes_get(chunk, 0)))
+    stdio::println(i32_to_string(bytes::bytes_get(chunk, 1)))
+    stdio::println(i32_to_string(bytes::cursor_remaining(c3)))
+}

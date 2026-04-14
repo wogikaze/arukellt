@@ -38,13 +38,26 @@ let s = string_from_bytes(back)  // "hello"
 ## `std::bytes`
 
 - Source: [`../../../std/bytes/mod.ark`](../../../std/bytes/mod.ark)
-- Manifest-backed functions: 20
-- Stability: stable 20
+- Manifest-backed functions: 45
+- Stability: stable 45
 
 Binary data helpers built on `Vec<i32>`.
 
-Each element is treated as a byte in the `0..=255` range. The current
-module focuses on buffer helpers plus hex and LEB128 encoding.
+Each element is treated as a byte in the `0..=255` range.
+
+### Type aliases (runtime representation)
+
+- `Bytes`      = `Vec<i32>` (treated as immutable)
+- `ByteBuf`    = `Vec<i32>` (mutable buffer)
+- `ByteCursor` = `Vec<i32>` where index 0 is the cursor position and
+indices 1..n hold the data bytes
+
+### Limitations
+
+u8/u16/u32/u64 are not first-class types in the current runtime.
+All byte values are represented as i32 (masked to 0-255 on write).
+64-bit values use i64.
+Vec<u8> is unavailable; Vec<i32> is used throughout.
 
 ### Byte buffer creation
 
@@ -85,3 +98,128 @@ module focuses on buffer helpers plus hex and LEB128 encoding.
 | `u32_from_le_bytes` | `(Vec<i32>) -> i32` | `stable` | - |
 | `u32_to_be_bytes` | `(i32) -> Vec<i32>` | `stable` | - |
 | `u32_from_be_bytes` | `(Vec<i32>) -> i32` | `stable` | - |
+| `bytes_from_array` | `(Vec<i32>) -> Vec<i32>` | `stable` | - |
+| `buf_new` | `() -> Vec<i32>` | `stable` | - |
+| `buf_with_capacity` | `(i32) -> Vec<i32>` | `stable` | Allocate a ByteBuf with a preallocated capacity hint. |
+| `buf_push_u8` | `(Vec<i32>, i32) -> ()` | `stable` | - |
+| `buf_push_u16_le` | `(Vec<i32>, i32) -> ()` | `stable` | - |
+| `buf_push_u32_le` | `(Vec<i32>, i32) -> ()` | `stable` | - |
+| `buf_push_u64_le` | `(Vec<i32>, i64) -> ()` | `stable` | Push a 64-bit little-endian value. |
+| `buf_extend` | `(Vec<i32>, Vec<i32>) -> ()` | `stable` | - |
+| `buf_freeze` | `(Vec<i32>) -> Vec<i32>` | `stable` | Freeze a ByteBuf into an immutable Bytes value. |
+| `buf_len` | `(Vec<i32>) -> i32` | `stable` | - |
+| `cursor_new` | `(Vec<i32>) -> Vec<i32>` | `stable` | - |
+| `cursor_pos` | `(Vec<i32>) -> i32` | `stable` | - |
+| `cursor_remaining` | `(Vec<i32>) -> i32` | `stable` | - |
+| `read_u8` | `(Vec<i32>) -> i32` | `stable` | Read one byte from the cursor and advance its position. |
+| `read_u16_le` | `(Vec<i32>) -> i32` | `stable` | Read two bytes little-endian from the cursor. |
+| `read_u32_le` | `(Vec<i32>) -> i32` | `stable` | Read four bytes little-endian from the cursor. |
+| `read_u64_le` | `(Vec<i32>) -> i64` | `stable` | Read eight bytes little-endian from the cursor as i64. |
+| `read_u32_be` | `(Vec<i32>) -> i32` | `stable` | Read four bytes big-endian from the cursor. |
+| `read_bytes` | `(Vec<i32>, i32) -> Vec<i32>` | `stable` | Read n bytes from the cursor into a new byte buffer. |
+| `base64_encode` | `(Vec<i32>) -> String` | `stable` | - |
+| `base64_decode` | `(String) -> Vec<i32>` | `stable` | - |
+| `leb128_decode_u32` | `(Vec<i32>) -> i32` | `stable` | Decode an unsigned LEB128 u32 from a ByteCursor. |
+| `leb128_decode_i32` | `(Vec<i32>) -> i32` | `stable` | Decode a signed LEB128 i32 from a ByteCursor. |
+| `leb128_encode_u64` | `(i64) -> Vec<i32>` | `stable` | - |
+| `leb128_decode_u64` | `(Vec<i32>) -> i64` | `stable` | Decode an unsigned LEB128 u64 from a ByteCursor. |
+
+#### `bytes_from_array`
+
+Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8> is not a distinct type; Vec<i32> is used.
+
+#### `buf_new`
+
+Create a new empty ByteBuf (represented as Vec<i32>).
+
+#### `buf_with_capacity`
+
+Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime.
+
+#### `buf_push_u8`
+
+Push a single byte (0-255) onto a ByteBuf.
+
+#### `buf_push_u16_le`
+
+Push a 16-bit value in little-endian byte order onto a ByteBuf.
+
+#### `buf_push_u32_le`
+
+Push a 32-bit value in little-endian byte order onto a ByteBuf.
+
+#### `buf_push_u64_le`
+
+Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64.
+
+#### `buf_extend`
+
+Append all bytes from a Bytes slice onto a ByteBuf.
+
+#### `buf_freeze`
+
+Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is identity.
+
+#### `buf_len`
+
+Return the number of bytes in a ByteBuf.
+
+#### `cursor_new`
+
+Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes.
+
+#### `cursor_pos`
+
+Return the current byte position of a ByteCursor.
+
+#### `cursor_remaining`
+
+Return the number of bytes remaining in a ByteCursor.
+
+#### `read_u8`
+
+Read one byte from a ByteCursor and advance the position. Returns -1 on underflow.
+
+#### `read_u16_le`
+
+Read two bytes little-endian from a ByteCursor. Returns -1 on underflow.
+
+#### `read_u32_le`
+
+Read four bytes little-endian from a ByteCursor. Returns -1 on underflow.
+
+#### `read_u64_le`
+
+Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow.
+
+#### `read_u32_be`
+
+Read four bytes big-endian from a ByteCursor. Returns -1 on underflow.
+
+#### `read_bytes`
+
+Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow.
+
+#### `base64_encode`
+
+Encode a byte buffer as standard base64 (RFC 4648, with padding).
+
+#### `base64_decode`
+
+Decode a standard base64 string into a byte buffer. Silently skips invalid characters.
+
+#### `leb128_decode_u32`
+
+Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor.
+
+#### `leb128_decode_i32`
+
+Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor.
+
+#### `leb128_encode_u64`
+
+Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type.
+
+#### `leb128_decode_u64`
+
+Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor.

@@ -1,7 +1,20 @@
 //! Binary data helpers built on `Vec<i32>`.
 //!
-//! Each element is treated as a byte in the `0..=255` range. The current
-//! module focuses on buffer helpers plus hex and LEB128 encoding.
+//! Each element is treated as a byte in the `0..=255` range.
+//!
+//! # Type aliases (runtime representation)
+//!
+//! - `Bytes`      = `Vec<i32>` (treated as immutable)
+//! - `ByteBuf`    = `Vec<i32>` (mutable buffer)
+//! - `ByteCursor` = `Vec<i32>` where index 0 is the cursor position and
+//!                  indices 1..n hold the data bytes
+//!
+//! # Limitations
+//!
+//! u8/u16/u32/u64 are not first-class types in the current runtime.
+//! All byte values are represented as i32 (masked to 0-255 on write).
+//! 64-bit values use i64.
+//! Vec<u8> is unavailable; Vec<i32> is used throughout.
 
 // --- Byte buffer creation ---
 
@@ -274,4 +287,441 @@ pub fn u32_from_be_bytes(b: Vec<i32>) -> i32 {
     let b2: i32 = get_unchecked(b, 2) & 255
     let b3: i32 = get_unchecked(b, 3) & 255
     b0 * 16777216 + b1 * 65536 + b2 * 256 + b3
+}
+
+// ─── bytes_from_array ───────────────────────────────────────────────────────
+// NOTE: Vec<u8> is not a distinct type in the current runtime; xs is Vec<i32>
+// with byte values in 0..=255.
+
+pub fn bytes_from_array(xs: Vec<i32>) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let n = len(xs)
+    let mut i = 0
+    while i < n {
+        push(result, get_unchecked(xs, i) & 255)
+        i = i + 1
+    }
+    result
+}
+
+// ─── ByteBuf ─────────────────────────────────────────────────────────────────
+// ByteBuf is represented as Vec<i32> (mutable accumulator for byte output).
+
+pub fn buf_new() -> Vec<i32> {
+    Vec_new_i32()
+}
+
+/// Allocate a ByteBuf with a preallocated capacity hint.
+/// Capacity is advisory only; the current runtime does not expose
+/// Vec::with_capacity, so this behaves identically to buf_new().
+pub fn buf_with_capacity(cap: i32) -> Vec<i32> {
+    Vec_new_i32()
+}
+
+pub fn buf_push_u8(buf: Vec<i32>, x: i32) {
+    push(buf, x & 255)
+}
+
+pub fn buf_push_u16_le(buf: Vec<i32>, x: i32) {
+    push(buf, x & 255)
+    push(buf, (x >> 8) & 255)
+}
+
+pub fn buf_push_u32_le(buf: Vec<i32>, x: i32) {
+    push(buf, x & 255)
+    push(buf, (x >> 8) & 255)
+    push(buf, (x >> 16) & 255)
+    push(buf, (x >> 24) & 255)
+}
+
+/// Push a 64-bit little-endian value.
+/// x is passed as i64; bytes are extracted with 8-bit masks.
+pub fn buf_push_u64_le(buf: Vec<i32>, x: i64) {
+    let mask: i64 = i32_to_i64(255)
+    push(buf, i64_to_i32(x & mask))
+    push(buf, i64_to_i32((x >> i32_to_i64(8)) & mask))
+    push(buf, i64_to_i32((x >> i32_to_i64(16)) & mask))
+    push(buf, i64_to_i32((x >> i32_to_i64(24)) & mask))
+    push(buf, i64_to_i32((x >> i32_to_i64(32)) & mask))
+    push(buf, i64_to_i32((x >> i32_to_i64(40)) & mask))
+    push(buf, i64_to_i32((x >> i32_to_i64(48)) & mask))
+    push(buf, i64_to_i32((x >> i32_to_i64(56)) & mask))
+}
+
+pub fn buf_extend(buf: Vec<i32>, bytes: Vec<i32>) {
+    let n = len(bytes)
+    let mut i = 0
+    while i < n {
+        push(buf, get_unchecked(bytes, i))
+        i = i + 1
+    }
+}
+
+/// Freeze a ByteBuf into an immutable Bytes value.
+/// In the current runtime both types are Vec<i32>, so this is identity.
+pub fn buf_freeze(buf: Vec<i32>) -> Vec<i32> {
+    buf
+}
+
+pub fn buf_len(buf: Vec<i32>) -> i32 {
+    len(buf)
+}
+
+// ─── ByteCursor ──────────────────────────────────────────────────────────────
+// Layout: c[0] = current position (i32), c[1..] = data bytes (i32 each).
+// Cursor reads advance the position stored at index 0 via `set`.
+
+pub fn cursor_new(data: Vec<i32>) -> Vec<i32> {
+    let c: Vec<i32> = Vec_new_i32()
+    push(c, 0)
+    let n = len(data)
+    let mut i = 0
+    while i < n {
+        push(c, get_unchecked(data, i))
+        i = i + 1
+    }
+    c
+}
+
+pub fn cursor_pos(c: Vec<i32>) -> i32 {
+    get_unchecked(c, 0)
+}
+
+pub fn cursor_remaining(c: Vec<i32>) -> i32 {
+    len(c) - 1 - get_unchecked(c, 0)
+}
+
+/// Read one byte from the cursor and advance its position.
+/// Returns -1 if no bytes remain (error sentinel).
+pub fn read_u8(c: Vec<i32>) -> i32 {
+    let pos = get_unchecked(c, 0)
+    if cursor_remaining(c) < 1 {
+        0 - 1
+    } else {
+        let byte = get_unchecked(c, pos + 1)
+        set(c, 0, pos + 1)
+        byte
+    }
+}
+
+/// Read two bytes little-endian from the cursor.
+/// Returns -1 if fewer than 2 bytes remain.
+pub fn read_u16_le(c: Vec<i32>) -> i32 {
+    if cursor_remaining(c) < 2 {
+        0 - 1
+    } else {
+        let b0 = read_u8(c) & 255
+        let b1 = read_u8(c) & 255
+        b0 + b1 * 256
+    }
+}
+
+/// Read four bytes little-endian from the cursor.
+/// Returns -1 if fewer than 4 bytes remain.
+pub fn read_u32_le(c: Vec<i32>) -> i32 {
+    if cursor_remaining(c) < 4 {
+        0 - 1
+    } else {
+        let b0 = read_u8(c) & 255
+        let b1 = read_u8(c) & 255
+        let b2 = read_u8(c) & 255
+        let b3 = read_u8(c) & 255
+        b0 + b1 * 256 + b2 * 65536 + b3 * 16777216
+    }
+}
+
+/// Read eight bytes little-endian from the cursor as i64.
+/// Returns -1 (as i64) if fewer than 8 bytes remain.
+pub fn read_u64_le(c: Vec<i32>) -> i64 {
+    if cursor_remaining(c) < 8 {
+        i32_to_i64(0) - i32_to_i64(1)
+    } else {
+        let b0 = i32_to_i64(read_u8(c) & 255)
+        let b1 = i32_to_i64(read_u8(c) & 255)
+        let b2 = i32_to_i64(read_u8(c) & 255)
+        let b3 = i32_to_i64(read_u8(c) & 255)
+        let b4 = i32_to_i64(read_u8(c) & 255)
+        let b5 = i32_to_i64(read_u8(c) & 255)
+        let b6 = i32_to_i64(read_u8(c) & 255)
+        let b7 = i32_to_i64(read_u8(c) & 255)
+        let k256: i64 = i32_to_i64(256)
+        let k65536: i64 = i32_to_i64(65536)
+        let k16m: i64 = i32_to_i64(16777216)
+        let k32: i64 = k65536 * k65536
+        let k40: i64 = k32 * k256
+        let k48: i64 = k32 * k65536
+        let k56: i64 = k48 * k256
+        b0 + b1 * k256 + b2 * k65536 + b3 * k16m
+            + b4 * k32 + b5 * k40 + b6 * k48 + b7 * k56
+    }
+}
+
+/// Read four bytes big-endian from the cursor.
+/// Returns -1 if fewer than 4 bytes remain.
+pub fn read_u32_be(c: Vec<i32>) -> i32 {
+    if cursor_remaining(c) < 4 {
+        0 - 1
+    } else {
+        let b0 = read_u8(c) & 255
+        let b1 = read_u8(c) & 255
+        let b2 = read_u8(c) & 255
+        let b3 = read_u8(c) & 255
+        b0 * 16777216 + b1 * 65536 + b2 * 256 + b3
+    }
+}
+
+/// Read n bytes from the cursor into a new byte buffer.
+/// Returns an empty buffer if fewer than n bytes remain.
+pub fn read_bytes(c: Vec<i32>, n: i32) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    if cursor_remaining(c) < n {
+        result
+    } else {
+        let mut i = 0
+        while i < n {
+            push(result, read_u8(c))
+            i = i + 1
+        }
+        result
+    }
+}
+
+// ─── Base64 encoding ─────────────────────────────────────────────────────────
+
+fn base64_alphabet() -> String {
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+}
+
+fn base64_char(idx: i32) -> String {
+    let alpha = base64_alphabet()
+    slice(alpha, idx, idx + 1)
+}
+
+fn base64_val(ch: String) -> i32 {
+    let c = slice(ch, 0, 1)
+    if eq(c, "A") { 0 }
+    else if eq(c, "B") { 1 }
+    else if eq(c, "C") { 2 }
+    else if eq(c, "D") { 3 }
+    else if eq(c, "E") { 4 }
+    else if eq(c, "F") { 5 }
+    else if eq(c, "G") { 6 }
+    else if eq(c, "H") { 7 }
+    else if eq(c, "I") { 8 }
+    else if eq(c, "J") { 9 }
+    else if eq(c, "K") { 10 }
+    else if eq(c, "L") { 11 }
+    else if eq(c, "M") { 12 }
+    else if eq(c, "N") { 13 }
+    else if eq(c, "O") { 14 }
+    else if eq(c, "P") { 15 }
+    else if eq(c, "Q") { 16 }
+    else if eq(c, "R") { 17 }
+    else if eq(c, "S") { 18 }
+    else if eq(c, "T") { 19 }
+    else if eq(c, "U") { 20 }
+    else if eq(c, "V") { 21 }
+    else if eq(c, "W") { 22 }
+    else if eq(c, "X") { 23 }
+    else if eq(c, "Y") { 24 }
+    else if eq(c, "Z") { 25 }
+    else if eq(c, "a") { 26 }
+    else if eq(c, "b") { 27 }
+    else if eq(c, "c") { 28 }
+    else if eq(c, "d") { 29 }
+    else if eq(c, "e") { 30 }
+    else if eq(c, "f") { 31 }
+    else if eq(c, "g") { 32 }
+    else if eq(c, "h") { 33 }
+    else if eq(c, "i") { 34 }
+    else if eq(c, "j") { 35 }
+    else if eq(c, "k") { 36 }
+    else if eq(c, "l") { 37 }
+    else if eq(c, "m") { 38 }
+    else if eq(c, "n") { 39 }
+    else if eq(c, "o") { 40 }
+    else if eq(c, "p") { 41 }
+    else if eq(c, "q") { 42 }
+    else if eq(c, "r") { 43 }
+    else if eq(c, "s") { 44 }
+    else if eq(c, "t") { 45 }
+    else if eq(c, "u") { 46 }
+    else if eq(c, "v") { 47 }
+    else if eq(c, "w") { 48 }
+    else if eq(c, "x") { 49 }
+    else if eq(c, "y") { 50 }
+    else if eq(c, "z") { 51 }
+    else if eq(c, "0") { 52 }
+    else if eq(c, "1") { 53 }
+    else if eq(c, "2") { 54 }
+    else if eq(c, "3") { 55 }
+    else if eq(c, "4") { 56 }
+    else if eq(c, "5") { 57 }
+    else if eq(c, "6") { 58 }
+    else if eq(c, "7") { 59 }
+    else if eq(c, "8") { 60 }
+    else if eq(c, "9") { 61 }
+    else if eq(c, "+") { 62 }
+    else if eq(c, "/") { 63 }
+    else { 0 - 1 }
+}
+
+pub fn base64_encode(b: Vec<i32>) -> String {
+    let mut result = ""
+    let n = len(b)
+    let mut i = 0
+    while i < n {
+        let b0 = get_unchecked(b, i) & 255
+        let b1 = if i + 1 < n { get_unchecked(b, i + 1) & 255 } else { 0 }
+        let b2 = if i + 2 < n { get_unchecked(b, i + 2) & 255 } else { 0 }
+
+        let idx0 = b0 >> 2
+        let idx1 = ((b0 & 3) << 4) | (b1 >> 4)
+        let idx2 = ((b1 & 15) << 2) | (b2 >> 6)
+        let idx3 = b2 & 63
+
+        result = concat(result, base64_char(idx0))
+        result = concat(result, base64_char(idx1))
+        if i + 1 < n {
+            result = concat(result, base64_char(idx2))
+        } else {
+            result = concat(result, "=")
+        }
+        if i + 2 < n {
+            result = concat(result, base64_char(idx3))
+        } else {
+            result = concat(result, "=")
+        }
+        i = i + 3
+    }
+    result
+}
+
+pub fn base64_decode(s: String) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let n = len(s)
+    let mut i = 0
+    while i + 3 < n {
+        let c0 = base64_val(slice(s, i, i + 1))
+        let c1 = base64_val(slice(s, i + 1, i + 2))
+        let c2 = base64_val(slice(s, i + 2, i + 3))
+        let c3 = base64_val(slice(s, i + 3, i + 4))
+
+        if c0 >= 0 {
+            if c1 >= 0 {
+                push(result, (c0 << 2) | (c1 >> 4))
+                if c2 >= 0 {
+                    push(result, ((c1 & 15) << 4) | (c2 >> 2))
+                    if c3 >= 0 {
+                        push(result, ((c2 & 3) << 6) | c3)
+                    }
+                }
+            }
+        }
+        i = i + 4
+    }
+    result
+}
+
+// ─── LEB128 decode ───────────────────────────────────────────────────────────
+
+/// Decode an unsigned LEB128 u32 from a ByteCursor.
+/// Returns 0 if the cursor is empty or the encoding is malformed/overlong.
+/// Advances the cursor position by the number of bytes consumed.
+pub fn leb128_decode_u32(c: Vec<i32>) -> i32 {
+    let mut result = 0
+    let mut shift = 0
+    let mut done = false
+    while done == false {
+        if cursor_remaining(c) < 1 {
+            done = true
+        } else {
+            let byte = read_u8(c)
+            result = result | ((byte & 127) << shift)
+            shift = shift + 7
+            if (byte & 128) == 0 {
+                done = true
+            }
+            if shift >= 35 {
+                done = true
+            }
+        }
+    }
+    result
+}
+
+/// Decode a signed LEB128 i32 from a ByteCursor.
+/// Advances the cursor position.
+pub fn leb128_decode_i32(c: Vec<i32>) -> i32 {
+    let mut result = 0
+    let mut shift = 0
+    let mut last_byte = 0
+    let mut done = false
+    while done == false {
+        if cursor_remaining(c) < 1 {
+            done = true
+        } else {
+            let byte = read_u8(c)
+            last_byte = byte
+            result = result | ((byte & 127) << shift)
+            shift = shift + 7
+            if (byte & 128) == 0 {
+                done = true
+            }
+            if shift >= 35 {
+                done = true
+            }
+        }
+    }
+    if shift < 32 {
+        if (last_byte & 64) != 0 {
+            result = result | (0 - 1 << shift)
+        }
+    }
+    result
+}
+
+// ─── LEB128 u64 ──────────────────────────────────────────────────────────────
+// NOTE: u64 is not a distinct type; i64 is used throughout.
+
+pub fn leb128_encode_u64(x: i64) -> Vec<i32> {
+    let result: Vec<i32> = Vec_new_i32()
+    let mut val: i64 = x
+    let mut done: bool = false
+    while done == false {
+        let byte: i32 = i64_to_i32(val & i32_to_i64(127))
+        val = val >> i32_to_i64(7)
+        if val != i32_to_i64(0) {
+            push(result, byte | 128)
+        } else {
+            push(result, byte)
+            done = true
+        }
+    }
+    result
+}
+
+/// Decode an unsigned LEB128 u64 from a ByteCursor.
+/// Returns the decoded value as i64.
+pub fn leb128_decode_u64(c: Vec<i32>) -> i64 {
+    let mut result: i64 = i32_to_i64(0)
+    let mut shift: i64 = i32_to_i64(0)
+    let mut done: bool = false
+    while done == false {
+        if cursor_remaining(c) < 1 {
+            done = true
+        } else {
+            let byte = read_u8(c)
+            let chunk = i32_to_i64(byte & 127) << shift
+            result = result | chunk
+            shift = shift + i32_to_i64(7)
+            if (byte & 128) == 0 {
+                done = true
+            }
+            if shift >= i32_to_i64(70) {
+                done = true
+            }
+        }
+    }
+    result
 }

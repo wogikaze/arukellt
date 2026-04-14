@@ -2558,6 +2558,231 @@ stability = "stable"
 params = ["Vec<i32>"]
 returns = "i32"
 
+[[functions]]
+name = "bytes_from_array"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Create an immutable Bytes value from an array of byte values (Vec<i32>, values 0-255). NOTE: Vec<u8> is not a distinct type; Vec<i32> is used."
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_new"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Create a new empty ByteBuf (represented as Vec<i32>)."
+params = []
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_with_capacity"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Create a new ByteBuf with a capacity hint. Capacity is advisory only in the current runtime."
+params = ["i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_push_u8"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Push a single byte (0-255) onto a ByteBuf."
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "buf_push_u16_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Push a 16-bit value in little-endian byte order onto a ByteBuf."
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "buf_push_u32_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Push a 32-bit value in little-endian byte order onto a ByteBuf."
+params = ["Vec<i32>", "i32"]
+returns = "()"
+
+[[functions]]
+name = "buf_push_u64_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Push a 64-bit value in little-endian byte order onto a ByteBuf. x is i64."
+params = ["Vec<i32>", "i64"]
+returns = "()"
+
+[[functions]]
+name = "buf_extend"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Append all bytes from a Bytes slice onto a ByteBuf."
+params = ["Vec<i32>", "Vec<i32>"]
+returns = "()"
+
+[[functions]]
+name = "buf_freeze"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Freeze a ByteBuf into an immutable Bytes value. In the current runtime both are Vec<i32>, so this is identity."
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "buf_len"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Return the number of bytes in a ByteBuf."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "cursor_new"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Create a ByteCursor from a Bytes value. Index 0 is the position; remaining indices are data bytes."
+params = ["Vec<i32>"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "cursor_pos"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Return the current byte position of a ByteCursor."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "cursor_remaining"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Return the number of bytes remaining in a ByteCursor."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_u8"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read one byte from a ByteCursor and advance the position. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_u16_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read two bytes little-endian from a ByteCursor. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_u32_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read four bytes little-endian from a ByteCursor. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_u64_le"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read eight bytes little-endian from a ByteCursor as i64. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i64"
+
+[[functions]]
+name = "read_u32_be"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read four bytes big-endian from a ByteCursor. Returns -1 on underflow."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "read_bytes"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Read n bytes from a ByteCursor into a new Bytes buffer. Returns empty buffer on underflow."
+params = ["Vec<i32>", "i32"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "base64_encode"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Encode a byte buffer as standard base64 (RFC 4648, with padding)."
+params = ["Vec<i32>"]
+returns = "String"
+
+[[functions]]
+name = "base64_decode"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Decode a standard base64 string into a byte buffer. Silently skips invalid characters."
+params = ["String"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "leb128_decode_u32"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Decode an unsigned LEB128 u32 from a ByteCursor. Advances the cursor."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "leb128_decode_i32"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Decode a signed LEB128 i32 from a ByteCursor. Advances the cursor."
+params = ["Vec<i32>"]
+returns = "i32"
+
+[[functions]]
+name = "leb128_encode_u64"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Encode a 64-bit unsigned value as LEB128 bytes. x is passed as i64. NOTE: u64 is not a distinct type."
+params = ["i64"]
+returns = "Vec<i32>"
+
+[[functions]]
+name = "leb128_decode_u64"
+module = "std::bytes"
+doc_category = "bytes"
+stability = "stable"
+doc = "Decode an unsigned LEB128 u64 from a ByteCursor. Returns i64. Advances the cursor."
+params = ["Vec<i32>"]
+returns = "i64"
+
 # === std::collections::hash ===
 
 [[functions]]
