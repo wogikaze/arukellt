@@ -114,16 +114,82 @@ drive regression triage.  See the full tag reference in that file.
 | binary_tree | `binary_tree.ark` | Recursive node counting (depth 20) | `recursion-heavy`, `call-heavy` |
 | vec_ops | `vec_ops.ark` | Vec push/sum/contains (1k elements) | `allocation-heavy`, `container`, `iteration` |
 | string_concat | `string_concat.ark` | String concat in loop (100 iterations) | `string-heavy`, `allocation-heavy`, `gc-pressure` |
+| vec_push_pop | `vec_push_pop.ark` | 100K Vec push then 100K pop | `allocation-heavy`, `container`, `throughput` |
+| json_parse | `json_parse.ark` | JSON token scan on ~10KB string | `string-heavy`, `parse`, `allocation-heavy` |
 | parse_tree_distance | `bench_parse_tree_distance.ark` | Packed-tree distance validator on a 1200-node star matrix | `parse`, `allocation-heavy`, `container`, `iteration` |
 
-A complex parser workload lives at [`docs/sample/parser.ark`](../docs/sample/parser.ark)
-and serves as a real-world stress test for the compiler and runtime.
+### Deferred benchmarks
+
+The following benchmarks require `f64` floating-point support which is not yet
+available in the Ark compiler codegen.  Stubs will be added once float
+literals and arithmetic are wired through the emitter.
+
+| Benchmark | File | Reason deferred |
+|-----------|------|----------------|
+| nbody | `nbody.ark` (pending) | Requires `f64` arithmetic — not yet wired in codegen |
+| mandelbrot | `mandelbrot.ark` (pending) | Requires `f64` arithmetic — not yet wired in codegen |
+
+## Reference Implementations
+
+C and Rust reference implementations are provided for cross-language comparison.
+Use `--compare-lang c,rust,go` with `scripts/run/run-benchmarks.sh` to compile
+and time them automatically.
+
+| Benchmark | C ref | Rust ref | Notes |
+|-----------|-------|----------|-------|
+| fib | `fib.c` | `fib.rs` | Iterative; identical algorithm to `.ark` |
+| binary_tree | `binary_tree.c` | `binary_tree.rs` | Recursive; identical algorithm to `.ark` |
+
+### Building reference implementations manually
+
+```bash
+# C
+cc -O2 -o /tmp/fib        benchmarks/fib.c
+cc -O2 -o /tmp/btree      benchmarks/binary_tree.c
+
+# Rust
+rustc -O -o /tmp/fib_rs   benchmarks/fib.rs
+rustc -O -o /tmp/btree_rs benchmarks/binary_tree.rs
+```
+
+### Cross-language comparison via the runner
+
+```bash
+# Compare Ark (Wasm/wasmtime) vs C and Rust native binaries (3-run median)
+bash scripts/run/run-benchmarks.sh --compare-lang c,rust
+
+# Include Go reference implementations (if .go files are present)
+bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go
+
+# Combine with full-mode for more iterations
+bash scripts/run/run-benchmarks.sh --full --compare-lang c,rust
+```
+
+The comparison table prints `ark(ms)`, one column per reference language, and a
+`ratio(best)` column showing how many times slower Ark is relative to the
+fastest native reference.
+
+## Results Placeholder
+
+Run `bash scripts/run/run-benchmarks.sh` to generate current measurements.
+The JSON output lands in `benchmarks/results/`.
+
+| Benchmark | ark compile (ms) | ark run (ms) | c run (ms) | rust run (ms) | ark/c ratio | ark/rust ratio |
+|-----------|:----------------:|:------------:|:----------:|:-------------:|:-----------:|:--------------:|
+| fib | — | — | — | — | — | — |
+| binary_tree | — | — | — | — | — | — |
+| vec_ops | — | — | N/A | N/A | — | — |
+| string_concat | — | — | N/A | N/A | — | — |
+| vec_push_pop | — | — | N/A | N/A | — | — |
+| json_parse | — | — | N/A | N/A | — | — |
+
+_Populated by running `mise bench` or `bash scripts/run/run-benchmarks.sh --full --compare-lang c,rust`.  
+Baseline stored in `tests/baselines/perf/baselines.json`._
 
 ### Legacy Fixtures
 
 | Fixture | File | Description |
 |---------|------|-------------|
-
 | string_ops | `string_ops.ark` | Basic string concat |
 | struct_create | `struct_create.ark` | Struct field creation |
 

@@ -4,11 +4,19 @@
 # times both phases, and emits JSON matching benchmarks/schema.json.
 #
 # Usage:
-#   bash scripts/run/run-benchmarks.sh            # quick (1 iteration, default)
-#   bash scripts/run/run-benchmarks.sh --quick     # same as above
-#   bash scripts/run/run-benchmarks.sh --full      # 10 iterations per benchmark
-#   bash scripts/run/run-benchmarks.sh --compare   # run both Rust & selfhost, show diff
+#   bash scripts/run/run-benchmarks.sh                          # quick (1 iteration, default)
+#   bash scripts/run/run-benchmarks.sh --quick                  # same as above
+#   bash scripts/run/run-benchmarks.sh --full                   # 10 iterations per benchmark
+#   bash scripts/run/run-benchmarks.sh --compare                # run both Rust & selfhost, show diff
+#   bash scripts/run/run-benchmarks.sh --compare-lang c,rust    # time reference implementations
+#   bash scripts/run/run-benchmarks.sh --compare-lang c,rust,go # time C, Rust, and Go refs
 #   ARUKELLT_BIN=/path/to/arukellt bash scripts/run/run-benchmarks.sh  # custom compiler
+#
+# --compare-lang:
+#   Looks for benchmarks/<name>.<ext> (.c, .rs, .go) for each benchmark.
+#   Compiles those reference programs (cc, rustc, go build) and times them
+#   with hyperfine (3 runs) if available, otherwise with the built-in timer.
+#   Results are printed in a comparison table at the end.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -25,6 +33,7 @@ RUNTIME_ITERS=1
 WARMUPS=0
 COMPARE=false
 USE_SELFHOST=false
+COMPARE_LANGS=""
 
 for arg in "$@"; do
   case "$arg" in
@@ -32,6 +41,8 @@ for arg in "$@"; do
     --full)  MODE="full";   COMPILE_ITERS=10; RUNTIME_ITERS=10; WARMUPS=1 ;;
     --target=*) TARGET="${arg#--target=}" ;;
     --compare) COMPARE=true ;;
+    --compare-lang=*) COMPARE_LANGS="${arg#--compare-lang=}" ;;
+    --compare-lang) COMPARE_LANGS="c,rust,go" ;;  # bare flag defaults to all three
     --selfhost) USE_SELFHOST=true ;;
     *) echo "Unknown flag: $arg" >&2; exit 1 ;;
   esac
@@ -42,18 +53,22 @@ MODE_DESC="quick"
 [[ "$MODE" == "quick" ]] && MODE_DESC="single-sample local smoke benchmark"
 
 # --- benchmark cases ---------------------------------------------------------
-BENCH_NAMES=(fib binary_tree vec_ops string_concat)
+BENCH_NAMES=(fib binary_tree vec_ops string_concat vec_push_pop json_parse)
 declare -A BENCH_DESC=(
   [fib]="Iterative Fibonacci(35)"
   [binary_tree]="Recursive node counting (depth 20)"
   [vec_ops]="Vec push/sum/contains (1k elements)"
   [string_concat]="String concat in loop (100 iterations)"
+  [vec_push_pop]="Vec 100K push then 100K pop"
+  [json_parse]="JSON token scan (~10KB string)"
 )
 declare -A BENCH_TAGS=(
   [fib]='["cpu-bound","loop","scalar"]'
   [binary_tree]='["recursion-heavy","allocation-light","call-heavy"]'
   [vec_ops]='["allocation-heavy","container","iteration"]'
   [string_concat]='["string-heavy","allocation-heavy","gc-pressure"]'
+  [vec_push_pop]='["allocation-heavy","container","throughput"]'
+  [json_parse]='["string-heavy","parse","allocation-heavy"]'
 )
 
 # --- helpers -----------------------------------------------------------------
@@ -327,6 +342,127 @@ JSONEOF
     fi
   fi
 done
+
+# --- --compare-lang: time reference implementations --------------------------
+# Helper: time a single executable using hyperfine (3 runs) or the shell timer.
+# Sets LANG_MEDIAN_MS for the caller.
+time_ref_binary() {
+  local exe="$1"
+  LANG_MEDIAN_MS=0
+  if [[ ! -x "$exe" ]]; then return 1; fi
+
+  if [[ -n "$HYPERFINE" ]]; then
+    local hf_out
+    hf_out=$(hyperfine --runs 3 --export-json /dev/stdout "$exe" 2>/dev/null || true)
+    LANG_MEDIAN_MS=$(python3 -c "
+import json,sys
+data = json.loads('$hf_out') if '$hf_out' else {}
+r = data.get('results',[{}])[0]
+print(int(r.get('median',0)*1000))
+" 2>/dev/null || echo 0)
+  else
+    local samples=""
+    for (( _i=0; _i<3; _i++ )); do
+      local _t0 _t1
+      _t0=$(ms_now)
+      "$exe" >/dev/null 2>&1 || true
+      _t1=$(ms_now)
+      samples="$samples $(( _t1 - _t0 ))"
+    done
+    LANG_MEDIAN_MS=$(echo "$samples" | median)
+  fi
+  return 0
+}
+
+if [[ -n "$COMPARE_LANGS" ]]; then
+  echo ""
+  echo "=== Language Comparison (--compare-lang $COMPARE_LANGS) ==="
+
+  # Map language token → file extension and compiler command
+  declare -A LANG_EXT=([c]="c" [rust]="rs" [go]="go")
+  declare -A LANG_CC=([c]="cc" [rust]="rustc" [go]="go")
+  declare -A LANG_FLAGS=([c]="-O2 -o" [rust]="-O -o" [go]="build -o")
+
+  IFS=',' read -ra LANG_LIST <<< "$COMPARE_LANGS"
+
+  # Print header
+  printf "%-16s %12s" "benchmark" "ark(ms)"
+  for lang in "${LANG_LIST[@]}"; do
+    printf " %10s" "$lang(ms)"
+  done
+  printf " %10s\n" "ratio(best)"
+
+  printf "%-16s %12s" "--------" "-------"
+  for lang in "${LANG_LIST[@]}"; do
+    printf " %10s" "-------"
+  done
+  printf " %10s\n" "---------"
+
+  LANG_TMP="$RESULTS_DIR/lang_refs"
+  mkdir -p "$LANG_TMP"
+
+  for bench in "${BENCH_NAMES[@]}"; do
+    BENCH_WASM_MEDIAN="${RUNTIME_MEDIAN:-0}"
+
+    # re-run to get runtime median for this bench (already printed above but not retained)
+    BENCH_WASM="$RESULTS_DIR/${bench}.wasm"
+    ARK_RUNTIME_MS=0
+    if [[ -n "$WASMTIME" && -f "$BENCH_WASM" ]]; then
+      local_samples=""
+      for (( _i=0; _i<3; _i++ )); do
+        local _t0 _t1
+        _t0=$(ms_now)
+        wasmtime run "$BENCH_WASM" >/dev/null 2>&1 || true
+        _t1=$(ms_now)
+        local_samples="$local_samples $(( _t1 - _t0 ))"
+      done
+      ARK_RUNTIME_MS=$(echo "$local_samples" | median)
+    fi
+
+    printf "%-16s %12s" "$bench" "$ARK_RUNTIME_MS"
+
+    BEST_LANG_MS=$ARK_RUNTIME_MS
+
+    for lang in "${LANG_LIST[@]}"; do
+      ext="${LANG_EXT[$lang]:-}"
+      src="$ROOT/benchmarks/${bench}.${ext}"
+      ref_bin="$LANG_TMP/${bench}_${lang}"
+
+      if [[ -z "$ext" || ! -f "$src" ]]; then
+        printf " %10s" "(no ref)"
+        continue
+      fi
+
+      # Compile the reference binary (once)
+      if [[ ! -x "$ref_bin" ]]; then
+        case "$lang" in
+          c)    cc -O2 -o "$ref_bin" "$src" 2>/dev/null || { printf " %10s" "(cc err)"; continue; } ;;
+          rust) rustc -O -o "$ref_bin" "$src" 2>/dev/null || { printf " %10s" "(rustc err)"; continue; } ;;
+          go)   (cd "$LANG_TMP" && go build -o "$ref_bin" "$src") 2>/dev/null || { printf " %10s" "(go err)"; continue; } ;;
+        esac
+      fi
+
+      time_ref_binary "$ref_bin"
+      printf " %10s" "$LANG_MEDIAN_MS"
+      if [[ "$LANG_MEDIAN_MS" -gt 0 ]]; then
+        if [[ "$BEST_LANG_MS" -eq 0 || "$LANG_MEDIAN_MS" -lt "$BEST_LANG_MS" ]]; then
+          BEST_LANG_MS=$LANG_MEDIAN_MS
+        fi
+      fi
+    done
+
+    if [[ "$BEST_LANG_MS" -gt 0 && "$ARK_RUNTIME_MS" -gt 0 ]]; then
+      ratio=$(python3 -c "print(f'{$ARK_RUNTIME_MS/$BEST_LANG_MS:.2f}x')" 2>/dev/null || echo "?")
+    else
+      ratio="N/A"
+    fi
+    printf " %10s\n" "$ratio"
+  done
+
+  # Clean up compiled reference binaries
+  rm -rf "$LANG_TMP"
+  echo ""
+fi
 
 # --- comparison summary table ------------------------------------------------
 if [[ "$COMPARE" == "true" && -n "${COMPARE_DATA:-}" ]]; then
