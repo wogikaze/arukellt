@@ -891,14 +891,26 @@ impl ArukellBackend {
             &mut loaded,
         );
 
-        let mut resolved = ark_resolve::resolve_module_with_intrinsic_prelude(module, &mut sink);
-        resolved.module = Self::merge_workspace_modules(&cached_module, &loaded, std_root);
+        let merged_module = Self::merge_workspace_modules(&cached_module, &loaded, std_root);
+        let mut resolved =
+            ark_resolve::resolve_module_with_intrinsic_prelude(merged_module.clone(), &mut sink);
+
+        let mut program_modules: Vec<_> = loaded.values().cloned().collect();
+        program_modules.sort_by(|a, b| a.path.cmp(&b.path));
+        let program = ark_resolve::ResolvedProgram {
+            entry_module: cached_module.clone(),
+            modules: program_modules,
+            symbols: resolved.symbols.clone(),
+            global_scope: resolved.global_scope,
+        };
+
+        resolved.module = merged_module;
         resolved.loaded_module_names = loaded.values().map(|m| m.name.clone()).collect();
         resolved.private_imported_names = Self::private_imported_names(&loaded, std_root);
 
         let mut checker = ark_typecheck::TypeChecker::new();
         checker.register_builtins();
-        checker.check_module(&resolved, &mut sink);
+        checker.check_program(&program, &mut sink);
 
         ark_resolve::check_unused_imports(&cached_module, &mut sink);
         ark_resolve::check_unused_bindings(&cached_module, &mut sink);

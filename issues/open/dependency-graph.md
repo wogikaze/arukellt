@@ -33,7 +33,6 @@ graph LR
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I494["494 494 — Selfhost MIR: SSA formation pass"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
-  I502["502 LSP: Full Multi-Root Workspace and Cross-Package Resolution"]
   I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
   I505["505 T3: br_table enum dispatch — feasible IfStmt-chain optimization"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
@@ -108,7 +107,6 @@ graph LR
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **494** depends on: 493, 503; blocks: none
 - **499** depends on: none; blocks: none
-- **502** depends on: 441; blocks: none
 - **504** depends on: none; blocks: 495
 - **505** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none

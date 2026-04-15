@@ -1,8 +1,8 @@
 # LSP: Full Multi-Root Workspace and Cross-Package Resolution
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-14
-**Updated**: 2026-04-14
+**Updated**: 2026-04-15
 **ID**: 502
 **Depends on**: 441
 **Track**: vscode-ide
@@ -58,11 +58,11 @@ any `ark.toml` in the workspace changes.
 
 ## Acceptance
 
-- [ ] `ark.toml` dependency graph is walked and all package roots are discovered
-- [ ] Symbol index covers all discovered packages, not just the primary root
-- [ ] Cross-package go-to-definition resolves symbols from dependency packages
-- [ ] Import resolution searches dependency package source directories
-- [ ] Workspace changes (any `ark.toml` in the tree) rebuild the full multi-root index
+- [x] `ark.toml` dependency graph is walked and all package roots are discovered
+- [x] Symbol index covers all discovered packages, not just the primary root
+- [x] Cross-package go-to-definition resolves symbols from dependency packages
+- [x] Import resolution searches dependency package source directories
+- [x] Workspace changes (any `ark.toml` in the tree) rebuild the full multi-root index
 
 ## PRIMARY_PATHS
 
@@ -92,12 +92,11 @@ any `ark.toml` in the workspace changes.
 - `docs/ark-toml.md`
 - Spawned from: `issues/done/441-vscode-project-aware-workspace-package-ark-toml.md`
 
-## Partial slice note — 2026-04-15
+## Completion Note
 
-Wave 1 added a path-dependency discovery + multi-root indexing slice in the worktree, but
-the issue remains open because:
-- required LSP verification was blocked by unrelated workspace compile failures
-- the slice was not committed
-
-Do not close #502 from this slice alone. Resume from the partial indexing work only after the
-blocking compile state is cleared and the regression tests can be run to completion.
+Closed 2026-04-15. `ark-lsp` now discovers path-dependency package roots from all workspace
+folders, rebuilds the symbol index across those package roots on watched `ark.toml` changes,
+and analyzes opened documents against dependency package source directories so cross-package
+definition lookup and import diagnostics work in multi-root workspaces. Regression coverage was
+added for both dependency-package go-to-definition and dependency import diagnostics under
+`tests/package-workspace/multi-root-indexing/` and `crates/ark-lsp/tests/lsp_e2e.rs`.
