@@ -2043,21 +2043,202 @@ impl ArukellBackend {
     }
 
     /// Find the identifier token at the given byte offset.
-    fn find_ident_at_offset<'a>(
+    fn find_ident_token_at_offset<'a>(
         source: &'a str,
         tokens: &[ark_lexer::Token],
         offset: usize,
-    ) -> Option<&'a str> {
+    ) -> Option<(&'a str, usize, usize)> {
         for tok in tokens {
             let start = tok.span.start as usize;
             let end = tok.span.end as usize;
             if start <= offset && offset <= end && end <= source.len() {
                 if let TokenKind::Ident(_) = &tok.kind {
-                    return Some(&source[start..end]);
+                    return Some((&source[start..end], start, end));
                 }
             }
         }
         None
+    }
+
+    fn find_ident_at_offset<'a>(
+        source: &'a str,
+        tokens: &[ark_lexer::Token],
+        offset: usize,
+    ) -> Option<&'a str> {
+        Self::find_ident_token_at_offset(source, tokens, offset).map(|(name, _, _)| name)
+    }
+
+    /// Resolve a qualified identifier under the cursor, returning `(module, name)`
+    /// for references like `shared::helper`.
+    fn find_qualified_reference_at_offset(
+        module: &ast::Module,
+        offset: u32,
+    ) -> Option<(String, String)> {
+        for item in &module.items {
+            match item {
+                ast::Item::FnDef(f) => {
+                    if let Some(found) = Self::find_qualified_reference_in_block(&f.body, offset) {
+                        return Some(found);
+                    }
+                }
+                ast::Item::ImplBlock(ib) => {
+                    for method in &ib.methods {
+                        if let Some(found) =
+                            Self::find_qualified_reference_in_block(&method.body, offset)
+                        {
+                            return Some(found);
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        None
+    }
+
+    fn find_qualified_reference_in_block(
+        block: &ast::Block,
+        offset: u32,
+    ) -> Option<(String, String)> {
+        if block.span.start > offset || offset > block.span.end {
+            return None;
+        }
+
+        for stmt in &block.stmts {
+            if let Some(found) = Self::find_qualified_reference_in_stmt(stmt, offset) {
+                return Some(found);
+            }
+        }
+
+        block
+            .tail_expr
+            .as_ref()
+            .and_then(|expr| Self::find_qualified_reference_in_expr(expr, offset))
+    }
+
+    fn find_qualified_reference_in_stmt(
+        stmt: &ast::Stmt,
+        offset: u32,
+    ) -> Option<(String, String)> {
+        match stmt {
+            ast::Stmt::Let { init, span, .. } => {
+                if span.start > offset || offset > span.end {
+                    return None;
+                }
+                Self::find_qualified_reference_in_expr(init, offset)
+            }
+            ast::Stmt::Expr(expr) => Self::find_qualified_reference_in_expr(expr, offset),
+            ast::Stmt::While {
+                cond, body, span, ..
+            } => {
+                if span.start > offset || offset > span.end {
+                    return None;
+                }
+                Self::find_qualified_reference_in_expr(cond, offset)
+                    .or_else(|| Self::find_qualified_reference_in_block(body, offset))
+            }
+            ast::Stmt::Loop { body, span, .. } | ast::Stmt::For { body, span, .. } => {
+                if span.start > offset || offset > span.end {
+                    return None;
+                }
+                Self::find_qualified_reference_in_block(body, offset)
+            }
+        }
+    }
+
+    fn find_qualified_reference_in_expr(
+        expr: &ast::Expr,
+        offset: u32,
+    ) -> Option<(String, String)> {
+        let span = expr.span();
+        if span.start > offset || offset > span.end {
+            return None;
+        }
+
+        match expr {
+            ast::Expr::QualifiedIdent { module, name, .. } => {
+                Some((module.clone(), name.clone()))
+            }
+            ast::Expr::Call { callee, args, .. } => Self::find_qualified_reference_in_expr(
+                callee, offset,
+            )
+            .or_else(|| {
+                args.iter()
+                    .find_map(|arg| Self::find_qualified_reference_in_expr(arg, offset))
+            }),
+            ast::Expr::Binary { left, right, .. } => Self::find_qualified_reference_in_expr(
+                left, offset,
+            )
+            .or_else(|| Self::find_qualified_reference_in_expr(right, offset)),
+            ast::Expr::Unary { operand, .. }
+            | ast::Expr::Try { expr: operand, .. }
+            | ast::Expr::FieldAccess { object: operand, .. } => {
+                Self::find_qualified_reference_in_expr(operand, offset)
+            }
+            ast::Expr::Index { object, index, .. } => Self::find_qualified_reference_in_expr(
+                object, offset,
+            )
+            .or_else(|| Self::find_qualified_reference_in_expr(index, offset)),
+            ast::Expr::If {
+                cond,
+                then_block,
+                else_block,
+                ..
+            } => Self::find_qualified_reference_in_expr(cond, offset)
+                .or_else(|| Self::find_qualified_reference_in_block(then_block, offset))
+                .or_else(|| {
+                    else_block
+                        .as_ref()
+                        .and_then(|block| Self::find_qualified_reference_in_block(block, offset))
+                }),
+            ast::Expr::Match {
+                scrutinee, arms, ..
+            } => Self::find_qualified_reference_in_expr(scrutinee, offset).or_else(|| {
+                arms.iter()
+                    .find_map(|arm| Self::find_qualified_reference_in_expr(&arm.body, offset))
+            }),
+            ast::Expr::Block(block) | ast::Expr::Loop { body: block, .. } => {
+                Self::find_qualified_reference_in_block(block, offset)
+            }
+            ast::Expr::Tuple { elements, .. } | ast::Expr::Array { elements, .. } => elements
+                .iter()
+                .find_map(|expr| Self::find_qualified_reference_in_expr(expr, offset)),
+            ast::Expr::ArrayRepeat { value, count, .. } => {
+                Self::find_qualified_reference_in_expr(value, offset)
+                    .or_else(|| Self::find_qualified_reference_in_expr(count, offset))
+            }
+            ast::Expr::StructInit { fields, base, .. } => fields
+                .iter()
+                .find_map(|(_, value)| Self::find_qualified_reference_in_expr(value, offset))
+                .or_else(|| {
+                    base.as_ref()
+                        .and_then(|expr| Self::find_qualified_reference_in_expr(expr, offset))
+                }),
+            ast::Expr::Closure { body, .. } => Self::find_qualified_reference_in_expr(body, offset),
+            ast::Expr::Return { value, .. } | ast::Expr::Break { value, .. } => value
+                .as_ref()
+                .and_then(|expr| Self::find_qualified_reference_in_expr(expr, offset)),
+            ast::Expr::Assign { target, value, .. } => {
+                Self::find_qualified_reference_in_expr(target, offset)
+                    .or_else(|| Self::find_qualified_reference_in_expr(value, offset))
+            }
+            _ => None,
+        }
+    }
+
+    fn definition_location_in_file(path: &std::path::Path, name: &str) -> Option<Location> {
+        let target_source = std::fs::read_to_string(path).ok()?;
+        let uri = Url::from_file_path(path).ok()?;
+
+        let mut sink = DiagnosticSink::new();
+        let lexer = Lexer::new(0, &target_source);
+        let tokens: Vec<_> = lexer.collect();
+        let target_module = parse(&tokens, &mut sink);
+        let span = Self::find_definition_span(&target_module, name)?;
+        let range = Self::span_to_range(&target_source, span);
+
+        Some(Location { uri, range })
     }
 
     /// Walk AST items to find the definition site of a name. Returns the span
@@ -4513,6 +4694,30 @@ impl LanguageServer for ArukellBackend {
 
         let target_offset = Self::position_to_offset(&source, pos);
 
+        if let Some((module_name, qualified_name)) =
+            Self::find_qualified_reference_at_offset(&analysis.module, target_offset as u32)
+            && let Ok(current_path) = uri.to_file_path()
+        {
+            let package_roots = Self::discover_document_package_roots(&current_path);
+            let package_sources = Self::package_source_dirs(&package_roots);
+            let std_root = self
+                .project_root
+                .lock()
+                .expect("project_root lock poisoned")
+                .as_ref()
+                .map(|root| root.join("std"));
+
+            if let Some(target_path) = Self::resolve_workspace_import_path(
+                &current_path,
+                &module_name,
+                std_root.as_deref(),
+                &package_sources,
+            ) && let Some(location) = Self::definition_location_in_file(&target_path, &qualified_name)
+            {
+                return Ok(Some(GotoDefinitionResponse::Scalar(location)));
+            }
+        }
+
         let name = match Self::find_ident_at_offset(&source, &analysis.tokens, target_offset) {
             Some(n) => n.to_string(),
             None => return Ok(None),
@@ -4560,17 +4765,18 @@ impl LanguageServer for ArukellBackend {
             }
 
             // Cross-file symbol with known span — load source and resolve
-            if let Ok(target_source) = entry
-                .uri
-                .to_file_path()
-                .map_err(|_| ())
-                .and_then(|p| std::fs::read_to_string(&p).map_err(|_| ()))
-            {
-                let range = Self::span_to_range(&target_source, entry.span);
-                return Ok(Some(GotoDefinitionResponse::Scalar(Location {
-                    uri: entry.uri.clone(),
-                    range,
-                })));
+            if let Ok(path) = entry.uri.to_file_path() {
+                if let Some(location) = Self::definition_location_in_file(&path, &name) {
+                    return Ok(Some(GotoDefinitionResponse::Scalar(location)));
+                }
+
+                if let Ok(target_source) = std::fs::read_to_string(&path) {
+                    let range = Self::span_to_range(&target_source, entry.span);
+                    return Ok(Some(GotoDefinitionResponse::Scalar(Location {
+                        uri: entry.uri.clone(),
+                        range,
+                    })));
+                }
             }
         }
 

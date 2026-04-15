@@ -511,6 +511,30 @@ fn definition_resolves_symbol_from_path_dependency_package() {
 }
 
 #[test]
+fn definition_prefers_path_dependency_for_qualified_symbol_over_local_same_name() {
+    let mut session = LspSession::start();
+    let workspace_root = package_workspace_root("multi-root-indexing/app");
+    let main_file = workspace_root.join("src/main.ark");
+    let dep_file = package_workspace_root("multi-root-indexing/shared-lib").join("src/lib.ark");
+
+    session.initialize_with_root(&path_to_file_uri(&workspace_root));
+    session.open_document(
+        &path_to_file_uri(&main_file),
+        "use shared\n\nfn helper() -> Int {\n    0\n}\n\nfn main() {\n    shared::helper()\n}\n",
+    );
+
+    let result = session.request_definition(&path_to_file_uri(&main_file), 7, 12);
+    let target_uri = result.get("uri").and_then(|v| v.as_str());
+    assert_eq!(
+        target_uri,
+        Some(path_to_file_uri(&dep_file).as_str()),
+        "qualified dependency call should resolve into the path dependency, not the local same-name symbol"
+    );
+
+    session.shutdown();
+}
+
+#[test]
 fn path_dependency_import_does_not_emit_unresolved_diagnostics() {
     let mut session = LspSession::start();
     let workspace_root = package_workspace_root("multi-root-indexing/app");
