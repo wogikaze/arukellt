@@ -42,6 +42,16 @@ This issue stays open because the slice did not produce close evidence:
 - the reported failures included unrelated dirty-tree/workspace problems plus
   pre-existing `ark-wasm` validation breakage when exercising the new path
 
+Wave 2 added targeted validation evidence on top of the same commit:
+
+- `cargo test -p arukellt --test t2_scaffold -- --nocapture` now passes
+- the targeted test validates the emitted `wasm32-freestanding` output with
+  `wasmparser::Validator::validate_all`
+
+The issue still remains open because the issue-level close gate has not yet been
+raised to a repo-wide green proof (`bash scripts/run/verify-harness.sh --quick`)
+and the acceptance text still expects the T2 path to be fully reflected there.
+
 ## Current state
 
 - `crates/ark-target/src/lib.rs`: `wasm32-freestanding` registered, `implemented: false`
