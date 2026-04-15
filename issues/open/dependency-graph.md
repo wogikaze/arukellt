@@ -31,8 +31,6 @@ graph LR
   I285["285 Legacy lowering path を隔離・撤去する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
   I489["489 Playground user-visible entrypoint wiring"]
-  I494["494 494 — Selfhost MIR: SSA formation pass"]
-  I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I501["501 T2 (`wasm32-freestanding`) Wasm Emitter Implementation"]
   I502["502 LSP: Full Multi-Root Workspace and Cross-Package Resolution"]
@@ -51,6 +49,8 @@ graph LR
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
+  I494["494 494 — Selfhost MIR: SSA formation pass"]
+  I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
   I205["205 Docs / codebase intelligence surfaces"]
@@ -70,6 +70,8 @@ graph LR
   I200 --> I201
   I204 --> I188
   I285 --> I508
+  I503 --> I494
+  I504 --> I495
   I077 --> I136
   I139 --> I136
   I475 --> I485
@@ -107,13 +109,11 @@ graph LR
 - **285** depends on: 284; blocks: 508
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
 - **489** depends on: 437, 438, 464; blocks: none
-- **494** depends on: none; blocks: none
-- **495** depends on: none; blocks: none
 - **499** depends on: none; blocks: none
 - **501** depends on: none; blocks: none
 - **502** depends on: 441; blocks: none
-- **503** depends on: none; blocks: none
-- **504** depends on: none; blocks: none
+- **503** depends on: none; blocks: 494
+- **504** depends on: none; blocks: 495
 - **505** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **077** depends on: 074, 137; blocks: 136
@@ -127,6 +127,8 @@ graph LR
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
 - **508** depends on: 285; blocks: none
+- **494** depends on: 493, 503; blocks: none
+- **495** depends on: 312, 504; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none
 - **205** depends on: 185, 188; blocks: none

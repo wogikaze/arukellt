@@ -51,6 +51,85 @@
       margin: 0 auto;
     }
 
+    .playground-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: 12px;
+      padding: 12px 16px;
+      background: #181825;
+      border: 1px solid #313244;
+      border-radius: 10px;
+    }
+
+    .playground-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .playground-field > span {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9399b2;
+    }
+
+    .playground-select,
+    .playground-share-url {
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border: 1px solid #45475a;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      min-width: 0;
+    }
+
+    .playground-select {
+      min-width: 240px;
+    }
+
+    .playground-share-row {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .playground-share-url {
+      flex: 1;
+      width: 100%;
+    }
+
+    .playground-share-button {
+      border: 1px solid #89b4fa55;
+      background: #89b4fa22;
+      color: #cdd6f4;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .playground-share-button:hover {
+      background: #89b4fa33;
+    }
+
+    .playground-share-status {
+      flex-basis: 100%;
+      font-size: 0.82rem;
+      color: #9399b2;
+      min-height: 1.2em;
+    }
+
+    .playground-share-status.error {
+      color: #f38ba8;
+    }
+
     /* Override playground-app component styles to fit the dark theme */
     .ark-playground-app {
       display: flex;
@@ -85,6 +164,31 @@
   </header>
 
   <div id="error-banner" role="alert"></div>
+  <section class="playground-toolbar" aria-label="Playground controls">
+    <label class="playground-field" for="example-select">
+      <span>Example</span>
+      <select id="example-select" class="playground-select">
+        <option value="">Custom source</option>
+      </select>
+    </label>
+    <div class="playground-share-row">
+      <label class="playground-field" for="share-url">
+        <span>Share URL</span>
+        <input
+          id="share-url"
+          class="playground-share-url"
+          type="text"
+          readonly
+          spellcheck="false"
+          aria-label="Shareable URL"
+        >
+      </label>
+      <button id="copy-share-link" class="playground-share-button" type="button">
+        Copy link
+      </button>
+    </div>
+    <div id="share-status" class="playground-share-status" aria-live="polite"></div>
+  </section>
   <div id="playground"></div>
 
   <script type="module">
@@ -99,6 +203,17 @@
      */
 
     import { createPlaygroundApp } from './dist/playground-app.js';
+    import {
+      getExampleList,
+      getExample,
+    } from './dist/examples.js';
+    import {
+      parseFragment,
+      decodeSharePayload,
+      checkVersionMismatch,
+      encodeSharePayload,
+      encodeSharePayloadWithVersion,
+    } from './dist/share.js';
     import { injectTheme, DEFAULT_THEME_CSS } from './dist/theme.js';
 
     // Inject the default theme into the page.
@@ -106,6 +221,26 @@
 
     const container = document.getElementById('playground');
     const errorBanner = document.getElementById('error-banner');
+    const exampleSelect = document.getElementById('example-select');
+    const shareUrlInput = document.getElementById('share-url');
+    const copyShareLinkButton = document.getElementById('copy-share-link');
+    const shareStatus = document.getElementById('share-status');
+
+    const examples = getExampleList();
+    for (const example of examples) {
+      const option = document.createElement('option');
+      option.value = example.id;
+      option.textContent = example.name;
+      exampleSelect.appendChild(option);
+    }
+
+    let shareUrlTimer = undefined;
+    let shareUrlRevision = 0;
+    let fragmentRevision = 0;
+    let currentExampleId = "";
+    let currentVersion = undefined;
+    let currentShareUrl = window.location.href;
+    let app = undefined;
 
     /**
      * Minimal parse stub — returns no diagnostics.
@@ -116,6 +251,149 @@
      */
     function stubParse(_source) {
       return { ok: true, diagnostics: [], module: null };
+    }
+
+    function setShareStatus(message, isError = false) {
+      if (!shareStatus) return;
+      shareStatus.textContent = message;
+      shareStatus.classList.toggle('error', isError);
+    }
+
+    function setExampleSelection(exampleId) {
+      currentExampleId = exampleId;
+      exampleSelect.value = exampleId;
+    }
+
+    function setShareUrl(url) {
+      currentShareUrl = url;
+      shareUrlInput.value = url;
+      shareUrlInput.title = url;
+    }
+
+    async function updateShareUrl() {
+      if (!app) return;
+      const revision = ++shareUrlRevision;
+      const payload = currentExampleId
+        ? { src: app.editor.getValue(), ex: currentExampleId }
+        : { src: app.editor.getValue() };
+      const result = currentVersion
+        ? await encodeSharePayloadWithVersion(payload, currentVersion)
+        : await encodeSharePayload(payload);
+      if (revision !== shareUrlRevision) return;
+
+      const url = new URL(window.location.href);
+      url.hash = result.fragment.slice(1);
+      setShareUrl(url.toString());
+
+      if (result.exceedsHardLimit) {
+        setShareStatus('Share URL exceeds the browser limit.', true);
+      } else if (result.exceedsTarget) {
+        setShareStatus('Share URL is longer than the target budget.');
+      } else {
+        setShareStatus('Share URL updated.');
+      }
+    }
+
+    function scheduleShareUrlUpdate() {
+      if (shareUrlTimer !== undefined) {
+        clearTimeout(shareUrlTimer);
+      }
+      shareUrlTimer = setTimeout(() => {
+        updateShareUrl().catch(() => {
+          setShareStatus('Unable to update share URL.', true);
+        });
+      }, 100);
+    }
+
+    async function copyShareUrl() {
+      await updateShareUrl();
+
+      try {
+        await navigator.clipboard.writeText(currentShareUrl);
+        setShareStatus('Share link copied.');
+      } catch {
+        shareUrlInput.focus();
+        shareUrlInput.select();
+        setShareStatus('Clipboard access was blocked. Copy the selected URL.');
+      }
+    }
+
+    function loadExample(exampleId, pushHash = true) {
+      const example = getExample(exampleId);
+      if (!example) {
+        setShareStatus(`Unknown example: ${exampleId}`, true);
+        return;
+      }
+
+      app.editor.setValue(example.source);
+      app.parse();
+      setExampleSelection(example.id);
+      scheduleShareUrlUpdate();
+      setShareStatus(`Loaded example: ${example.name}`);
+
+      if (pushHash) {
+        const nextHash = `#example/${example.id}`;
+        if (window.location.hash !== nextHash) {
+          window.location.hash = nextHash;
+        }
+      }
+    }
+
+    async function loadShareFragment(fragment, pushHash = true) {
+      const decoded = await decodeSharePayload(fragment);
+      if (!decoded.ok) {
+        setShareStatus(decoded.error, true);
+        return;
+      }
+
+      const payload = decoded.payload;
+      app.editor.setValue(payload.src);
+      app.parse();
+
+      const exampleId = payload.ex && getExample(payload.ex) ? payload.ex : "";
+      setExampleSelection(exampleId);
+      scheduleShareUrlUpdate();
+
+      if (currentVersion) {
+        const mismatch = checkVersionMismatch(payload, currentVersion);
+        if (mismatch.message) {
+          setShareStatus(mismatch.message);
+        } else if (exampleId) {
+          setShareStatus(`Loaded shared example: ${exampleId}`);
+        } else {
+          setShareStatus('Loaded shared snippet.');
+        }
+      } else {
+        setShareStatus('Loaded shared snippet.');
+      }
+
+      if (pushHash) {
+        const nextHash = fragment.startsWith('#') ? fragment : `#${fragment}`;
+        if (window.location.hash !== nextHash) {
+          window.location.hash = nextHash;
+        }
+      }
+    }
+
+    async function applyFragment(fragment, pushHash = false) {
+      const revision = ++fragmentRevision;
+      const action = parseFragment(fragment);
+
+      if (action.type === 'none' || action.type === 'unknown') {
+        return;
+      }
+
+      if (action.type === 'example') {
+        loadExample(action.id, pushHash);
+        return;
+      }
+
+      if (action.type === 'share') {
+        await loadShareFragment(fragment, pushHash);
+        if (revision !== fragmentRevision) {
+          return;
+        }
+      }
     }
 
     // Try to load the real Wasm-backed playground.
@@ -146,6 +424,7 @@
         { wasmUrl },
       );
       parseFn = (source) => pg.parse(source);
+      currentVersion = pg.version();
     } catch {
       // Wasm not yet available — editor runs with stub parse (no diagnostics).
       if (errorBanner) {
@@ -156,7 +435,7 @@
       }
     }
 
-    createPlaygroundApp(container, {
+    app = createPlaygroundApp(container, {
       initialValue: [
         'fn main() {',
         '    // Write Arukellt code here.',
@@ -167,6 +446,39 @@
       ].join('\n'),
       parse: parseFn,
     });
+
+    exampleSelect.addEventListener('change', () => {
+      if (exampleSelect.value) {
+        loadExample(exampleSelect.value);
+      } else {
+        currentExampleId = "";
+        scheduleShareUrlUpdate();
+        setShareStatus('Custom source.');
+      }
+    });
+
+    copyShareLinkButton.addEventListener('click', () => {
+      copyShareUrl().catch(() => {
+        setShareStatus('Unable to copy the share link.', true);
+      });
+    });
+
+    app.editor.onChange(() => {
+      if (currentExampleId) {
+        currentExampleId = "";
+        exampleSelect.value = "";
+      }
+      scheduleShareUrlUpdate();
+    });
+
+    window.addEventListener('hashchange', () => {
+      applyFragment(window.location.hash).catch(() => {
+        setShareStatus('Unable to load the selected fragment.', true);
+      });
+    });
+
+    await applyFragment(window.location.hash);
+    scheduleShareUrlUpdate();
   </script>
 </body>
 </html>

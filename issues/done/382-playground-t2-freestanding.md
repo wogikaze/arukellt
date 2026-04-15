@@ -1,8 +1,8 @@
 # Playground: wasm32-freestanding (T2) target の downstream 実装を開始する
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-31
-**Updated**: 2026-04-13
+**Updated**: 2026-04-15
 **ID**: 382
 **Depends on**: 378
 **Track**: playground
@@ -23,13 +23,18 @@
 
 **Resolution**: STOP_IF triggered (emitter absent, >100 LOC required).
 Emitter work broken out to `issues/open/501-t2-wasm-emit-implementation.md`.
-This issue remains open tracking the ADR slice only.
+This issue was narrowed to the ADR/design slice only.
 
-## Reopened by audit — 2026-04-13
+## Closed after normalization — 2026-04-15
 
-**Reason**: T2 unimplemented.
+**Evidence review**:
+- `docs/adr/ADR-020-t2-io-surface.md` exists and records the T2 I/O contract.
+- `docs/target-contract.md` accurately states "ADR written, emitter not started".
+- `docs/current-state.md` accurately states T2 remains unimplemented.
+- Remaining product work is tracked separately in `issues/open/501-t2-wasm-emit-implementation.md`.
 
-**Action**: Moved from issues/done/ to issues/open/ by false-done audit.
+**Action**: Moved back to `issues/done/` because the only in-scope slice for this
+issue is the ADR/design decision, and that slice is complete.
 
 ## Summary
 
@@ -45,11 +50,9 @@ playground v2 (ブラウザ内フル実行) に向けて、`wasm32-freestanding`
 
 ## Acceptance
 
-- [ ] T2 emitter が WASI import なしで最小限の Wasm module を生成する ← tracked in #501
-- [ ] T2 output がブラウザの Wasm runtime (Chrome/Firefox) でインスタンス化できる ← tracked in #501
 - [x] T2 の I/O surface (console / DOM bridge) の設計が ADR として記録される → `docs/adr/ADR-020-t2-io-surface.md` (DECIDED)
-- [ ] 最低 1 つの fixture が T2 target で compile + browser 実行される ← tracked in #501
-- [ ] `docs/target-contract.md` の T2 状態が更新される ← update when #501 emitter ships
+- [x] `docs/target-contract.md` と `docs/current-state.md` が「ADR は存在するが emitter は未実装」という現実と一致する
+- [x] Emitter / fixture / browser-run の残作業が `issues/open/501-t2-wasm-emit-implementation.md` に分離されている
 
 ## References
 

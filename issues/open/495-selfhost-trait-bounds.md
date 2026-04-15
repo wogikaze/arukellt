@@ -1,10 +1,13 @@
 # 495 — Selfhost typechecker: trait bounds and constraint solving
 
-**Track:** selfhost
-**Status:** open
-**Created:** 2026-04-14
-**Updated:** 2026-04-14
-**Source:** audit — issues/done/210-selfhost-typechecker-typed-fns.md "Out of scope (deferred)"
+**Status**: blocked-by-upstream
+**Created**: 2026-04-14
+**Updated**: 2026-04-15
+**ID**: 495
+**Depends on**: 312, 504
+**Track**: selfhost
+**Blocks v1 exit**: no
+**Source**: audit — issues/done/210-selfhost-typechecker-typed-fns.md "Out of scope (deferred)"
 
 ## Summary
 

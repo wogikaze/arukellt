@@ -1,6 +1,12 @@
 # Issue #503 — Selfhost MIR: CFG and Dominance-Frontier Infrastructure for SSA
 
-## Status: OPEN
+**Status**: open
+**Created**: 2026-04-14
+**Updated**: 2026-04-15
+**ID**: 503
+**Depends on**: none
+**Track**: selfhost
+**Blocks v1 exit**: no
 
 **Blocker for:** #494 (Selfhost MIR SSA formation pass — phi-node insertion)
 

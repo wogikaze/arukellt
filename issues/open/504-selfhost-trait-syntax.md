@@ -1,10 +1,13 @@
 # 504 — Selfhost: trait/interface syntax and impl-block infrastructure
 
-**Track:** selfhost
-**Status:** open
-**Created:** 2026-04-15
-**Updated:** 2026-04-15
-**Source:** STOP_IF blocker detected while working #495-selfhost-trait-bounds
+**Status**: open
+**Created**: 2026-04-15
+**Updated**: 2026-04-15
+**ID**: 504
+**Depends on**: none
+**Track**: selfhost
+**Blocks v1 exit**: no
+**Source**: STOP_IF blocker detected while working #495-selfhost-trait-bounds
 
 ## Summary
 

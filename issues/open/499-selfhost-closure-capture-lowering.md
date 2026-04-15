@@ -1,10 +1,13 @@
 # 499 — Selfhost compiler: closure capture environment lowering
 
-**Track:** selfhost
-**Status:** open
-**Created:** 2026-04-14
-**Updated:** 2026-04-14
-**Source:** audit — issues/done/493-selfhost-mir-control-flow-coverage.md STOP_IF
+**Status**: open
+**Created**: 2026-04-14
+**Updated**: 2026-04-15
+**ID**: 499
+**Depends on**: none
+**Track**: selfhost
+**Blocks v1 exit**: no
+**Source**: audit — issues/done/493-selfhost-mir-control-flow-coverage.md STOP_IF
 
 ## Summary
 
