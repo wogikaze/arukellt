@@ -51,3 +51,6 @@ crates/ark-playground-wasm/pkg/
 # docs/playground/dist/ is intentionally NOT ignored — CI builds it before pages upload
 docs/playground/wasm/
 docs/playground/dist/benchmarks/results/
+
+# codex local settings
+.codex
