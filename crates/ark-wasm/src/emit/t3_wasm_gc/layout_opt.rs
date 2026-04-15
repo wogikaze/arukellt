@@ -304,3 +304,141 @@ fn count_stmt_no_locals(freq: &mut HashMap<(String, String), usize>, stmt: &MirS
     let empty = std::collections::HashMap::new();
     count_stmt(freq, stmt, &empty);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{compute_field_reorder, reorder_layout};
+    use ark_mir::mir::*;
+    use ark_typecheck::types::Type;
+    use std::collections::HashMap;
+
+    fn point_module(stmts: Vec<MirStmt>) -> MirModule {
+        let mut mir = MirModule::new();
+        let layout = vec![
+            ("cold_a".to_string(), "i32".to_string()),
+            ("hot".to_string(), "i32".to_string()),
+            ("cold_b".to_string(), "i32".to_string()),
+        ];
+        mir.type_table
+            .struct_defs
+            .insert("Point".to_string(), layout.clone());
+        mir.struct_defs.insert("Point".to_string(), layout);
+        mir.functions.push(MirFunction {
+            id: FnId(0),
+            name: "main".to_string(),
+            instance: InstanceKey::simple("main"),
+            params: vec![],
+            return_ty: Type::Unit,
+            locals: vec![
+                MirLocal {
+                    id: LocalId(0),
+                    name: Some("point".to_string()),
+                    ty: Type::I32,
+                },
+                MirLocal {
+                    id: LocalId(1),
+                    name: Some("tmp".to_string()),
+                    ty: Type::I32,
+                },
+            ],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts,
+                terminator: Terminator::Return(None),
+                source: SourceInfo::unknown(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: HashMap::from([(0, "Point".to_string())]),
+            enum_typed_locals: HashMap::new(),
+            type_params: vec![],
+            source: SourceInfo::unknown(),
+            is_exported: false,
+        });
+        mir.entry_fn = Some(FnId(0));
+        mir
+    }
+
+    fn hot_field_read() -> MirStmt {
+        MirStmt::Assign(
+            Place::Local(LocalId(1)),
+            Rvalue::Use(Operand::FieldAccess {
+                object: Box::new(Operand::Place(Place::Local(LocalId(0)))),
+                struct_name: "Point".to_string(),
+                field: "hot".to_string(),
+            }),
+        )
+    }
+
+    #[test]
+    fn compute_field_reorder_moves_hot_field_to_front() {
+        let mir = point_module(vec![
+            MirStmt::Assign(
+                Place::Local(LocalId(0)),
+                Rvalue::Use(Operand::StructInit {
+                    name: "Point".to_string(),
+                    fields: vec![
+                        ("cold_a".to_string(), Operand::ConstI32(1)),
+                        ("hot".to_string(), Operand::ConstI32(2)),
+                        ("cold_b".to_string(), Operand::ConstI32(3)),
+                    ],
+                }),
+            ),
+            hot_field_read(),
+            hot_field_read(),
+            hot_field_read(),
+            MirStmt::Assign(
+                Place::Local(LocalId(1)),
+                Rvalue::Use(Operand::FieldAccess {
+                    object: Box::new(Operand::Place(Place::Local(LocalId(0)))),
+                    struct_name: "Point".to_string(),
+                    field: "cold_a".to_string(),
+                }),
+            ),
+        ]);
+
+        let remap = compute_field_reorder(&mir, &[0], &mir.type_table.struct_defs);
+        let point_remap = remap.get("Point").expect("Point remap");
+        assert_eq!(point_remap, &vec![1, 0, 2]);
+
+        let reordered = reorder_layout(&mir.type_table.struct_defs["Point"], point_remap);
+        let field_names: Vec<&str> = reordered.iter().map(|(name, _)| name.as_str()).collect();
+        assert_eq!(field_names, vec!["hot", "cold_a", "cold_b"]);
+    }
+
+    #[test]
+    fn compute_field_reorder_is_stable_for_equal_frequencies() {
+        let mir = point_module(vec![
+            MirStmt::Assign(
+                Place::Local(LocalId(0)),
+                Rvalue::Use(Operand::StructInit {
+                    name: "Point".to_string(),
+                    fields: vec![
+                        ("cold_a".to_string(), Operand::ConstI32(1)),
+                        ("hot".to_string(), Operand::ConstI32(2)),
+                        ("cold_b".to_string(), Operand::ConstI32(3)),
+                    ],
+                }),
+            ),
+            hot_field_read(),
+            MirStmt::Assign(
+                Place::Local(LocalId(1)),
+                Rvalue::Use(Operand::FieldAccess {
+                    object: Box::new(Operand::Place(Place::Local(LocalId(0)))),
+                    struct_name: "Point".to_string(),
+                    field: "cold_a".to_string(),
+                }),
+            ),
+            MirStmt::Assign(
+                Place::Local(LocalId(1)),
+                Rvalue::Use(Operand::FieldAccess {
+                    object: Box::new(Operand::Place(Place::Local(LocalId(0)))),
+                    struct_name: "Point".to_string(),
+                    field: "cold_b".to_string(),
+                }),
+            ),
+        ]);
+
+        let remap = compute_field_reorder(&mir, &[0], &mir.type_table.struct_defs);
+        assert!(remap.is_empty(), "equal-frequency fields should keep definition order");
+    }
+}
