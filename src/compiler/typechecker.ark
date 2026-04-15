@@ -30,7 +30,6 @@ fn NK_IF_EXPR() -> i32 { 13 }
 fn NK_ASSIGN() -> i32 { 18 }
 fn NK_MATCH_EXPR() -> i32 { 14 }
 fn NK_MATCH_ARM() -> i32 { 26 }
-fn NK_TYPE_PARAM() -> i32 { 96 }
 
 // ── Pattern Kind Tags (from parser.ark) ──────────────────────────────────────
 
@@ -341,80 +340,6 @@ fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo
     resolve_type_name(name)
 }
 
-struct TypeParamInfo {
-    name: String,
-    bound: TypeInfo,
-}
-
-fn TypeParamInfo_new(name: String, bound: TypeInfo) -> TypeParamInfo {
-    TypeParamInfo { name: name, bound: bound }
-}
-
-fn collect_type_param_names(type_ann: Vec<AstNode>) -> Vec<String> {
-    let names = Vec_new_String()
-    let ann_count = len(type_ann)
-    let mut i = 0
-    while i < ann_count {
-        let ann = get_unchecked(type_ann, i)
-        if !eq(clone(ann.text), "__return") {
-            push(names, clone(ann.text))
-        }
-        i = i + 1
-    }
-    names
-}
-
-fn collect_type_params(type_ann: Vec<AstNode>) -> Vec<TypeParamInfo> {
-    let names = collect_type_param_names(type_ann)
-    let params = Vec_new_TypeParamInfo()
-    let ann_count = len(type_ann)
-    let mut i = 0
-    while i < ann_count {
-        let ann = get_unchecked(type_ann, i)
-        if !eq(clone(ann.text), "__return") {
-            let mut bound = TypeInfo_simple(TY_UNKNOWN())
-            if len(ann.children) > 0 {
-                let bound_node = get_unchecked(ann.children, 0)
-                bound = resolve_type_ann_node_generic(bound_node, names)
-            }
-            push(params, TypeParamInfo_new(clone(ann.text), bound))
-        }
-        i = i + 1
-    }
-    params
-}
-
-fn type_param_names(type_params: Vec<TypeParamInfo>) -> Vec<String> {
-    let names = Vec_new_String()
-    let count = len(type_params)
-    let mut i = 0
-    while i < count {
-        let tp = get_unchecked(type_params, i)
-        push(names, clone(tp.name))
-        i = i + 1
-    }
-    names
-}
-
-fn type_info_display(ty: TypeInfo) -> String {
-    if ty.tag == TY_UNKNOWN() { return String_from("_") }
-    if ty.tag == TY_TYPE_VAR() { return clone(ty.name) }
-    if ty.tag == TY_STRUCT() || ty.tag == TY_ENUM() { return clone(ty.name) }
-    if ty.tag == TY_VEC() { return String_from("Vec") }
-    if ty.tag == TY_OPTION() { return String_from("Option") }
-    if ty.tag == TY_RESULT() { return String_from("Result") }
-    if ty.tag == TY_HASHMAP() { return String_from("HashMap") }
-    type_tag_name(ty.tag)
-}
-
-fn type_param_display(tp: TypeParamInfo) -> String {
-    let mut out = clone(tp.name)
-    if tp.bound.tag != TY_UNKNOWN() {
-        out = concat(out, concat(String_from(": "), type_info_display(tp.bound)))
-    }
-    out
-}
-
 fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     let count = len(fn_sigs)
     let mut i = 0
@@ -425,7 +350,7 @@ fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
         }
         i = i + 1
     }
-    FnSig { name: String_new(), param_types: Vec_new_TypeInfo(), return_type: TypeInfo_simple(TY_UNKNOWN()), type_params: Vec_new_TypeParamInfo() }
+    FnSig { name: String_new(), param_types: Vec_new_TypeInfo(), return_type: TypeInfo_simple(TY_UNKNOWN()), type_params: Vec_new_String() }
 }
 
 fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> TypeInfo {
@@ -456,7 +381,7 @@ struct FnSig {
     name: String,
     param_types: Vec<TypeInfo>,
     return_type: TypeInfo,
-    type_params: Vec<TypeParamInfo>,
+    type_params: Vec<String>,
 }
 
 struct StructInfo {
@@ -614,13 +539,12 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
         let infer_env = TypeEnv_new()
         let var_names = Vec_new_String()
         let var_types = Vec_new_TypeInfo()
-        let sig_type_param_names = type_param_names(sig.type_params)
 
         // Create fresh type vars for each type param
         let tp_count = len(sig.type_params)
         let mut k = 0
         while k < tp_count {
-            let tp_name = get_unchecked(sig_type_param_names, k)
+            let tp_name = get_unchecked(sig.type_params, k)
             let tv = fresh_var(infer_env)
             push(var_names, clone(tp_name))
             push(var_types, tv)
@@ -787,8 +711,16 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
     let scope = LocalScope_new()
 
     // Collect generic type param names from type_ann (entries that are not __return)
-    let type_params = collect_type_params(fn_node.type_ann)
-    let type_param_name_list = type_param_names(type_params)
+    let type_params = Vec_new_String()
+    let ann_count = len(fn_node.type_ann)
+    let mut j = 0
+    while j < ann_count {
+        let ann = get_unchecked(fn_node.type_ann, j)
+        if !eq(clone(ann.text), "__return") {
+            push(type_params, clone(ann.text))
+        }
+        j = j + 1
+    }
 
     // Register parameter types from children (all except last child = body block)
     let child_count = len(fn_node.children)
@@ -799,7 +731,7 @@ fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
             let mut param_ty = TypeInfo_simple(TY_UNKNOWN())
             if len(param.type_ann) > 0 {
                 let type_node = get_unchecked(param.type_ann, 0)
-                param_ty = resolve_type_ann_node_generic(type_node, type_param_name_list)
+                param_ty = resolve_type_ann_node_generic(type_node, type_params)
             }
             scope_define(scope, clone(param.text), param_ty)
             p = p + 1
@@ -825,7 +757,6 @@ struct TypeCheckResult {
 struct TypedFn {
     name: String,
     return_type: TypeInfo,
-    type_params: Vec<TypeParamInfo>,
 }
 
 pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeCheckResult {
@@ -847,10 +778,17 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
     while i < decl_count {
         let node = get_unchecked(decls, i)
         if node.kind == NK_FN_DECL() {
-            // Collect generic type params, preserving any bounds for dumps.
-            let type_params = collect_type_params(node.type_ann)
-            let type_param_name_list = type_param_names(type_params)
+            // Collect generic type param names from type_ann
+            let type_params = Vec_new_String()
             let ann_count = len(node.type_ann)
+            let mut j = 0
+            while j < ann_count {
+                let ann = get_unchecked(node.type_ann, j)
+                if !eq(clone(ann.text), "__return") {
+                    push(type_params, clone(ann.text))
+                }
+                j = j + 1
+            }
 
             // Extract parameter types from children (all except last = body block)
             let param_types = Vec_new_TypeInfo()
@@ -862,7 +800,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                     let mut pty = TypeInfo_simple(TY_UNKNOWN())
                     if len(param.type_ann) > 0 {
                         let type_node = get_unchecked(param.type_ann, 0)
-                        pty = resolve_type_ann_node_generic(type_node, type_param_name_list)
+                        pty = resolve_type_ann_node_generic(type_node, type_params)
                     }
                     push(param_types, pty)
                     p = p + 1
@@ -877,7 +815,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                 if eq(clone(ann.text), "__return") {
                     if len(ann.children) > 0 {
                         let ret_node = get_unchecked(ann.children, 0)
-                        return_type = resolve_type_ann_node_generic(ret_node, type_param_name_list)
+                        return_type = resolve_type_ann_node_generic(ret_node, type_params)
                     }
                 }
                 j = j + 1
@@ -899,7 +837,6 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
         let node = get_unchecked(decls, i)
         if node.kind == NK_FN_DECL() {
             let fn_name = clone(node.text)
-            let type_params = collect_type_params(node.type_ann)
             let mut return_type = TypeInfo_simple(TY_UNIT())
             // Search type_ann for the __return marker
             let ann_count = len(node.type_ann)
@@ -914,7 +851,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                 }
                 j = j + 1
             }
-            push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type, type_params: type_params })
+            push(result.typed_fns, TypedFn { name: fn_name, return_type: return_type })
 
             // Infer expression types within the function body
             check_fn_body(env, fn_sigs, node)
@@ -941,28 +878,6 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
 pub fn dump_typed_hir(result: TypeCheckResult) {
     let fn_count = len(result.typed_fns)
     stdio::eprintln(concat(String_from("typed functions: "), to_string(fn_count)))
-    let mut i = 0
-    while i < fn_count {
-        let fn_node = get_unchecked(result.typed_fns, i)
-        let mut line = concat(String_from("  fn "), clone(fn_node.name))
-        let tp_count = len(fn_node.type_params)
-        if tp_count > 0 {
-            line = concat(line, String_from("<"))
-            let mut j = 0
-            while j < tp_count {
-                if j > 0 {
-                    line = concat(line, String_from(", "))
-                }
-                let tp = get_unchecked(fn_node.type_params, j)
-                line = concat(line, type_param_display(tp))
-                j = j + 1
-            }
-            line = concat(line, String_from(">"))
-        }
-        line = concat(line, concat(String_from(" -> "), type_info_display(fn_node.return_type)))
-        stdio::eprintln(line)
-        i = i + 1
-    }
     if result.error_count > 0 {
         stdio::eprintln(concat(to_string(result.error_count), String_from(" type error(s)")))
     }
@@ -1068,8 +983,8 @@ fn main() {
     let test_sigs = Vec_new_FnSig()
     let id_params = Vec_new_TypeInfo()
     push(id_params, TypeInfo_named(TY_TYPE_VAR(), String_from("T")))
-    let id_tp = Vec_new_TypeParamInfo()
-    push(id_tp, TypeParamInfo_new(String_from("T"), TypeInfo_simple(TY_UNKNOWN())))
+    let id_tp = Vec_new_String()
+    push(id_tp, String_from("T"))
     push(test_sigs, FnSig {
         name: String_from("identity"),
         param_types: id_params,

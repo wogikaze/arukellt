@@ -69,7 +69,6 @@ fn NK_TYPE_FN() -> i32 { 92 }
 fn NK_TYPE_TUPLE() -> i32 { 93 }
 fn NK_TYPE_OPTION() -> i32 { 94 }
 fn NK_TYPE_RESULT() -> i32 { 95 }
-fn NK_TYPE_PARAM() -> i32 { 96 }
 
 // Binary operators
 fn OP_ADD() -> i32 { 1 }
@@ -460,21 +459,6 @@ fn parse_type(p: Parser) -> AstNode {
     // Fallback: error
     error(p, concat(String_from("expected type, got "), to_string(t.kind)))
     AstNode_leaf(NK_TYPE_NAMED(), String_from("_error"), tok_span(t))
-}
-
-fn parse_type_param(p: Parser) -> AstNode {
-    skip_newlines(p)
-    let name = expect_token(p, TK_IDENT())
-    let node = AstNode_leaf(NK_TYPE_PARAM(), clone(name.text), tok_span(name))
-
-    if peek_kind(p) == TK_COLON() {
-        p.pos = p.pos + 1
-        skip_newlines(p)
-        let bound = parse_type(p)
-        push(node.children, bound)
-    }
-
-    node
 }
 
 // ── Pattern Parsing ──────────────────────────────────────────────────────────
@@ -1154,7 +1138,7 @@ fn parse_decl(p: Parser) -> AstNode {
     parse_stmt(p)
 }
 
-fn parse_fn_signature(p: Parser) -> AstNode {
+fn parse_fn_decl(p: Parser) -> AstNode {
     let t = expect_token(p, TK_FN())
     let node = AstNode_new(NK_FN_DECL(), tok_span(t))
     let name = expect_token(p, TK_IDENT())
@@ -1168,7 +1152,8 @@ fn parse_fn_signature(p: Parser) -> AstNode {
             if !first { expect_token(p, TK_COMMA()) }
             first = false
             skip_newlines(p)
-            let gpn = parse_type_param(p)
+            let gp = expect_token(p, TK_IDENT())
+            let gpn = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
             push(node.type_ann, gpn)
         }
         expect_token(p, TK_GT())
@@ -1204,12 +1189,6 @@ fn parse_fn_signature(p: Parser) -> AstNode {
         push(node.type_ann, ret_node)
     }
 
-    node
-}
-
-fn parse_fn_decl(p: Parser) -> AstNode {
-    let node = parse_fn_signature(p)
-
     // Body
     skip_newlines(p)
     let body = parse_block(p)
@@ -1231,7 +1210,8 @@ fn parse_struct_decl(p: Parser) -> AstNode {
             if !first { expect_token(p, TK_COMMA()) }
             first = false
             skip_newlines(p)
-            let gpn = parse_type_param(p)
+            let gp = expect_token(p, TK_IDENT())
+            let gpn = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
             push(node.type_ann, gpn)
         }
         expect_token(p, TK_GT())
@@ -1278,7 +1258,8 @@ fn parse_enum_decl(p: Parser) -> AstNode {
             if !first { expect_token(p, TK_COMMA()) }
             first = false
             skip_newlines(p)
-            let gpn = parse_type_param(p)
+            let gp = expect_token(p, TK_IDENT())
+            let gpn = AstNode_leaf(NK_TYPE_NAMED(), clone(gp.text), tok_span(gp))
             push(node.type_ann, gpn)
         }
         expect_token(p, TK_GT())
@@ -1327,7 +1308,7 @@ fn parse_trait_decl(p: Parser) -> AstNode {
     while !at(p, TK_RBRACE()) && !at_eof(p) {
         skip_newlines(p)
         if at(p, TK_RBRACE()) { break }
-        let member = parse_fn_signature(p)
+        let member = parse_fn_decl(p)
         push(node.children, member)
         skip_newlines(p)
     }
@@ -1338,20 +1319,8 @@ fn parse_trait_decl(p: Parser) -> AstNode {
 fn parse_impl_decl(p: Parser) -> AstNode {
     let t = expect_token(p, TK_IMPL())
     let node = AstNode_new(NK_IMPL_DECL(), tok_span(t))
-
-    // Support both `impl Foo { ... }` and `impl Trait for Type { ... }`.
-    let first_ty = parse_type(p)
-    node.text = clone(first_ty.text)
-    if peek_kind(p) == TK_FOR() {
-        p.pos = p.pos + 1
-        skip_newlines(p)
-        let self_ty = parse_type(p)
-        push(node.type_ann, first_ty)
-        push(node.type_ann, self_ty)
-        node.text = clone(self_ty.text)
-    } else {
-        push(node.type_ann, first_ty)
-    }
+    let name = expect_token(p, TK_IDENT())
+    node.text = clone(name.text)
     skip_newlines(p)
     expect_token(p, TK_LBRACE())
     skip_newlines(p)
@@ -1452,7 +1421,6 @@ fn node_kind_name(kind: i32) -> String {
     if kind == NK_TYPE_GENERIC() { return String_from("TypeGeneric") }
     if kind == NK_TYPE_FN() { return String_from("TypeFn") }
     if kind == NK_TYPE_TUPLE() { return String_from("TypeTuple") }
-    if kind == NK_TYPE_PARAM() { return String_from("TypeParam") }
     String_from("Unknown")
 }
 

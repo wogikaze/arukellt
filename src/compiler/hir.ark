@@ -36,11 +36,6 @@ struct HirType {
     return_type_tag: i32,
 }
 
-struct HirTypeParam {
-    name: String,
-    bound: HirType,
-}
-
 fn HirType_simple(tag: i32) -> HirType {
     HirType {
         tag: tag, name: String_new(),
@@ -174,7 +169,6 @@ struct HirFunction {
     params: Vec<HirParam>,
     return_type: HirType,
     body: HirNode,
-    type_params: Vec<HirTypeParam>,
     is_pub: bool,
 }
 
@@ -188,7 +182,6 @@ struct HirField {
 struct HirStructDef {
     name: String,
     fields: Vec<HirField>,
-    type_params: Vec<HirTypeParam>,
     is_pub: bool,
 }
 
@@ -200,20 +193,6 @@ struct HirVariant {
 struct HirEnumDef {
     name: String,
     variants: Vec<HirVariant>,
-    type_params: Vec<HirTypeParam>,
-    is_pub: bool,
-}
-
-struct HirTraitDef {
-    name: String,
-    methods: Vec<HirFunction>,
-    is_pub: bool,
-}
-
-struct HirImplBlock {
-    trait_name: String,
-    self_type: HirType,
-    methods: Vec<HirFunction>,
     is_pub: bool,
 }
 
@@ -223,8 +202,6 @@ struct HirModule {
     functions: Vec<HirFunction>,
     structs: Vec<HirStructDef>,
     enums: Vec<HirEnumDef>,
-    traits: Vec<HirTraitDef>,
-    impls: Vec<HirImplBlock>,
     imports: Vec<String>,
 }
 
@@ -233,8 +210,6 @@ fn HirModule_new() -> HirModule {
         functions: Vec_new_HirFunction(),
         structs: Vec_new_HirStructDef(),
         enums: Vec_new_HirEnumDef(),
-        traits: Vec_new_HirTraitDef(),
-        impls: Vec_new_HirImplBlock(),
         imports: Vec_new_String(),
     }
 }
