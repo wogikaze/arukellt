@@ -37,7 +37,7 @@ strongest practical proof of compiler correctness short of formal verification.
 # Build the Rust compiler first
 cargo build --release
 
-# Stage 0 only — Rust compiles selfhost sources
+# Stage 0 only — Rust compiles selfhost sources (partial smoke only)
 scripts/run/verify-bootstrap.sh --stage1-only
 
 # Full fixpoint verification (Stages 0 → 1 → 2)
@@ -64,8 +64,9 @@ The Stage 0 artifact (`arukellt-s1.wasm`) is executed under wasmtime to
 compile the same selfhost sources again.  The output is
 `.bootstrap-build/arukellt-s2.wasm`.
 
-> **Note:** Stage 1 is skipped automatically when the selfhost compiler
-> is not yet mature enough to produce a unified binary.
+If Stage 1 cannot produce `arukellt-s2.wasm`, `scripts/run/verify-bootstrap.sh`
+fails the bootstrap gate explicitly. A partial command such as `--stage1-only`
+remains available for smoke checks, but it does not report bootstrap attainment.
 
 ### Stage 2 — Fixpoint check
 
@@ -183,12 +184,13 @@ The bootstrap check is available via `scripts/run/verify-bootstrap.sh`:
 
 | Context | Command | Notes |
 |---------|---------|-------|
-| PR checks | `scripts/run/verify-bootstrap.sh --stage1-only` | Fast — Rust compilation only |
-| Merge to main | `scripts/run/verify-bootstrap.sh` | Full fixpoint when available |
+| PR checks | `scripts/run/verify-bootstrap.sh --stage1-only` | Fast partial smoke; does not prove bootstrap attainment |
+| Merge to main | `scripts/run/verify-bootstrap.sh` | Full Stage 0 → 1 → 2 bootstrap attainment gate |
 | Local dev | `scripts/run/verify-bootstrap.sh --stage 0` | Single stage |
 
-The `--stage1-only` flag is suitable for PR checks (faster), while full
-fixpoint verification runs on merge to main.
+The `--stage1-only` flag is suitable for fast smoke checks, while only the full
+Stage 0 → 1 → 2 run is the bootstrap attainment gate. `--check` is a
+machine-readable form of that full gate and rejects partial-mode flags.
 
 ## Verification Scripts
 

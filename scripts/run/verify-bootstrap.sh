@@ -7,12 +7,12 @@
 #   2  Compare sha256(arukellt-s1.wasm) == sha256(arukellt-s2.wasm)
 #
 # Usage:
-#   scripts/run/verify-bootstrap.sh                # all stages (fail on first unreached)
-#   scripts/run/verify-bootstrap.sh --stage1-only  # only Stage 0 (Rust → s1)
-#   scripts/run/verify-bootstrap.sh --stage N      # run single stage
+#   scripts/run/verify-bootstrap.sh                # full bootstrap attainment gate
+#   scripts/run/verify-bootstrap.sh --stage1-only  # partial Stage 0 smoke only
+#   scripts/run/verify-bootstrap.sh --stage N      # partial single-stage run
 #   scripts/run/verify-bootstrap.sh --help
 #
-# Exit: 0 if all enabled stages pass, 1 on first failure.
+# Exit: 0 if the requested verification scope passes, 1 otherwise.
 
 set -euo pipefail
 
@@ -59,7 +59,7 @@ Options:
   --stage1-only      Only run Stage 0 (Rust compiles selfhost → s1)
   --stage N          Run single stage N
   --fixture-parity   Run fixture parity check after Stage 0
-  --check            Machine-readable exit: 0 = fixpoint reached, 1 = not reached
+    --check            Machine-readable full bootstrap gate; incompatible with partial modes
   --help, -h         Show this help
 EOF
 }
@@ -84,6 +84,24 @@ done
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 FAILURES=0
+STAGE0_STATUS="not-run"
+STAGE1_STATUS="not-run"
+STAGE2_STATUS="not-run"
+
+mark_stage_status() {
+    local stage="$1"
+    local status="$2"
+
+    case "$stage" in
+        0) STAGE0_STATUS="$status" ;;
+        1) STAGE1_STATUS="$status" ;;
+        2) STAGE2_STATUS="$status" ;;
+    esac
+}
+
+is_partial_mode() {
+    [[ -n "$ONLY_STAGE" || "$STAGE1_ONLY" = true || "$FIXTURE_PARITY" = true ]]
+}
 
 run_stage() {
     local stage="$1"
@@ -91,13 +109,16 @@ run_stage() {
     shift 2
 
     if [[ -n "$ONLY_STAGE" && "$ONLY_STAGE" != "$stage" ]]; then
+        mark_stage_status "$stage" "not-requested"
         return
     fi
 
     echo -e "${CYAN}── Stage ${stage}: ${label} ──${NC}"
     if "$@"; then
+        mark_stage_status "$stage" "reached"
         echo -e "  ${GREEN}PASS${NC}  Stage ${stage}"
     else
+        mark_stage_status "$stage" "not-reached"
         echo -e "  ${RED}FAIL${NC}  Stage ${stage}"
         FAILURES=$((FAILURES + 1))
     fi
@@ -114,18 +135,18 @@ trap 'rm -rf "$BUILD_DIR"' EXIT
 
 S1_WASM="${BUILD_DIR}/arukellt-s1.wasm"
 S2_WASM="${BUILD_DIR}/arukellt-s2.wasm"
-
-# Individual component artifacts (current scaffold)
-LEXER_SRC="${SELFHOST_DIR}/lexer.ark"
-LEXER_WASM="${SELFHOST_DIR}/lexer.wasm"
-PARSER_SRC="${SELFHOST_DIR}/parser.ark"
-PARSER_WASM="${SELFHOST_DIR}/parser.wasm"
 MAIN_SRC="${SELFHOST_DIR}/main.ark"
 
 # ── Pre-flight ────────────────────────────────────────────────────────────────
 
 echo -e "${YELLOW}Bootstrap verification${NC}"
 echo
+
+if [[ "$CHECK_MODE" = true ]] && is_partial_mode; then
+    echo -e "${RED}ERROR:${NC} --check requires the full Stage 0 → 1 → 2 bootstrap gate." >&2
+    echo "       Remove --stage, --stage1-only, and --fixture-parity when using --check." >&2
+    exit 1
+fi
 
 if [[ ! -d "$SELFHOST_DIR" ]]; then
     echo -e "${RED}ERROR: selfhost sources not found at ${SELFHOST_DIR}${NC}" >&2
@@ -183,10 +204,11 @@ fi
 
 if [[ "$STAGE1_ONLY" = true || "$FIXTURE_PARITY" = true ]]; then
     if [[ "$FAILURES" -gt 0 ]]; then
-        echo -e "${RED}Bootstrap verification FAILED (${FAILURES} stage(s))${NC}"
+        echo -e "${RED}Bootstrap partial verification FAILED (${FAILURES} stage(s))${NC}"
         exit 1
     else
-        echo -e "${GREEN}Bootstrap verification PASSED${NC}"
+        echo -e "${GREEN}Bootstrap partial verification PASSED${NC}"
+        echo "  Scope: requested partial verification completed; bootstrap attainment was not evaluated."
         exit 0
     fi
 fi
@@ -225,7 +247,7 @@ stage1() {
             echo "  stderr:" >&2
             sed 's/^/    /' "$stderr_file" >&2
         fi
-        echo -e "  ${YELLOW}NOTE${NC}  Self-compilation requires features the selfhost may not yet support."
+        echo -e "  ${YELLOW}ATTAINMENT UNMET${NC}  Stage 1 did not produce arukellt-s2.wasm." >&2
         return 1
     fi
 }
@@ -279,37 +301,38 @@ run_stage 2 "Fixpoint check (sha256 comparison)" stage2
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
+if [[ -n "$ONLY_STAGE" ]]; then
+    for stage in 0 1 2; do
+        if [[ "$stage" != "$ONLY_STAGE" ]]; then
+            mark_stage_status "$stage" "not-requested"
+        fi
+    done
+fi
+
 if [[ "$CHECK_MODE" = true ]]; then
-    # Machine-readable: just report achieved/not-achieved per criteria
-    echo "selfhost-check:"
-    echo "  stage0-compile: $([ -f "$S1_WASM" ] && echo reached || echo not-reached)"
-    echo "  stage1-compile: $([ -f "$S2_WASM" ] && echo reached || echo not-reached)"
-    if [[ -f "$S1_WASM" && -f "$S2_WASM" ]]; then
-        h1="$(sha256sum "$S1_WASM" | awk '{print $1}')"
-        h2="$(sha256sum "$S2_WASM" | awk '{print $1}')"
-        echo "  fixpoint: $([ "$h1" = "$h2" ] && echo reached || echo not-reached)"
-    else
-        echo "  fixpoint: not-reached"
+    echo "bootstrap-check:"
+    echo "  stage0-compile: ${STAGE0_STATUS}"
+    echo "  stage1-self-compile: ${STAGE1_STATUS}"
+    echo "  stage2-fixpoint: ${STAGE2_STATUS}"
+    if [[ "$FAILURES" -eq 0 ]]; then
+        echo "  attainment: reached"
+        exit 0
     fi
-    # Run parity checks if check-selfhost-parity.sh exists
-    if [[ -x "${REPO_ROOT}/scripts/check/check-selfhost-parity.sh" && -f "$S1_WASM" ]]; then
-        parity_out=$(SELFHOST_WASM="$S1_WASM" "${REPO_ROOT}/scripts/check/check-selfhost-parity.sh" 2>&1 || true)
-        echo "  $(echo "$parity_out" | grep 'fixture-parity:' | head -1 || echo 'fixture-parity: not-verified')"
-        echo "  $(echo "$parity_out" | grep 'cli-parity:' | head -1 || echo 'cli-parity: not-verified')"
-        echo "  $(echo "$parity_out" | grep 'diag-parity:' | head -1 || echo 'diag-parity: not-verified')"
-    else
-        echo "  fixture-parity: not-verified"
-        echo "  cli-parity: not-verified"
-        echo "  diagnostic-parity: not-verified"
-    fi
-    echo "  determinism: not-verified"
-    exit "$FAILURES"
+
+    echo "  attainment: not-reached"
+    exit 1
 fi
 
 if [[ "$FAILURES" -gt 0 ]]; then
     echo -e "${RED}Bootstrap verification FAILED (${FAILURES} stage(s))${NC}"
     exit 1
 else
+    if is_partial_mode; then
+        echo -e "${GREEN}Bootstrap partial verification PASSED${NC}"
+        echo "  Scope: requested subset completed; bootstrap attainment was not evaluated."
+        exit 0
+    fi
+
     echo -e "${GREEN}Bootstrap verification PASSED${NC}"
     exit 0
 fi
