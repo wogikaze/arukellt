@@ -59,6 +59,7 @@ fn MIR_ARRAY_LEN() -> i32 { 66 }
 fn MIR_DROP() -> i32 { 70 }
 fn MIR_NOP() -> i32 { 71 }
 fn MIR_UNREACHABLE() -> i32 { 72 }
+fn MIR_PHI() -> i32 { 73 }
 
 // ── MIR Value Type Tags ─────────────────────────────────────────────────────
 
@@ -87,6 +88,35 @@ fn MirInst_new(op: i32) -> MirInst {
         int_val: 0, float_val: 0.0, str_val: String_new(),
         val_type: VT_VOID(),
     }
+}
+
+struct MirPhiArg {
+    pred_block: i32,
+    local: i32,
+}
+
+fn MirPhiArg_new(pred_block: i32, local: i32) -> MirPhiArg {
+    MirPhiArg { pred_block: pred_block, local: local }
+}
+
+struct MirPhi {
+    op: i32,
+    dest: i32,
+    val_type: i32,
+    args: Vec<MirPhiArg>,
+}
+
+fn MirPhi_new(dest: i32, val_type: i32) -> MirPhi {
+    MirPhi {
+        op: MIR_PHI(),
+        dest: dest,
+        val_type: val_type,
+        args: Vec_new_MirPhiArg(),
+    }
+}
+
+fn mir_phi_add_arg(phi: MirPhi, pred_block: i32, local: i32) {
+    push(phi.args, MirPhiArg_new(pred_block, local))
 }
 
 fn MirInst_const_i32(val: i32, dest: i32) -> MirInst {
@@ -125,6 +155,7 @@ fn MirInst_binop(op: i32, dest: i32, a: i32, b: i32) -> MirInst {
 
 struct MirBlock {
     id: i32,
+    phis: Vec<MirPhi>,
     instructions: Vec<MirInst>,
     terminator: i32,
     succ0: i32,
@@ -138,6 +169,7 @@ struct MirBlock {
 fn MirBlock_new(id: i32) -> MirBlock {
     MirBlock {
         id: id,
+        phis: Vec_new_MirPhi(),
         instructions: Vec_new_MirInst(),
         terminator: MIR_RETURN(),
         succ0: 0 - 1,
@@ -481,6 +513,11 @@ fn alloc_block(f: MirFunction) -> i32 {
 fn emit_inst(f: MirFunction, block_id: i32, inst: MirInst) {
     let block = get_unchecked(f.blocks, block_id)
     push(block.instructions, inst)
+}
+
+fn emit_phi(f: MirFunction, block_id: i32, phi: MirPhi) {
+    let block = get_unchecked(f.blocks, block_id)
+    push(block.phis, phi)
 }
 
 // ── MIR Module ───────────────────────────────────────────────────────────────
@@ -2925,8 +2962,28 @@ pub fn dump_mir(m: MirModule) {
         let mut b = 0
         while b < block_count {
             let block = get_unchecked(f.blocks, b)
+            let phi_count = len(block.phis)
             let inst_count = len(block.instructions)
-            stdio::eprintln(concat(String_from("    bb"), concat(to_string(b), concat(String_from(": "), concat(to_string(inst_count), concat(String_from(" instructions succs="), concat(mir_format_edges(block.succ0, block.succ1), concat(String_from(" preds="), concat(mir_format_block_ids(block.preds), concat(String_from(" idom="), concat(mir_format_edge(block.idom), concat(String_from(" df="), mir_format_block_ids(block.dom_frontier)))))))))))))
+            let mut block_msg = concat(String_from("    bb"), to_string(b))
+            block_msg = concat(block_msg, String_from(": phis="))
+            block_msg = concat(block_msg, to_string(phi_count))
+            block_msg = concat(block_msg, String_from(" instructions="))
+            block_msg = concat(block_msg, to_string(inst_count))
+            block_msg = concat(block_msg, String_from(" succs="))
+            block_msg = concat(block_msg, mir_format_edges(block.succ0, block.succ1))
+            block_msg = concat(block_msg, String_from(" preds="))
+            block_msg = concat(block_msg, mir_format_block_ids(block.preds))
+            block_msg = concat(block_msg, String_from(" idom="))
+            block_msg = concat(block_msg, mir_format_edge(block.idom))
+            block_msg = concat(block_msg, String_from(" df="))
+            block_msg = concat(block_msg, mir_format_block_ids(block.dom_frontier))
+            stdio::eprintln(block_msg)
+            let mut p = 0
+            while p < phi_count {
+                let phi = get_unchecked(block.phis, p)
+                stdio::eprintln(concat(String_from("      "), mir_format_phi(phi)))
+                p = p + 1
+            }
             let mut j = 0
             while j < inst_count {
                 let inst = get_unchecked(block.instructions, j)
@@ -2982,7 +3039,45 @@ fn mir_op_name(op: i32) -> String {
     if op == MIR_DROP() { return String_from("drop") }
     if op == MIR_NOP() { return String_from("nop") }
     if op == MIR_UNREACHABLE() { return String_from("unreachable") }
+    if op == MIR_PHI() { return String_from("phi") }
     String_from("?op")
+}
+
+fn mir_value_type_name(vt: i32) -> String {
+    if vt == VT_I32() { return String_from("i32") }
+    if vt == VT_I64() { return String_from("i64") }
+    if vt == VT_F64() { return String_from("f64") }
+    if vt == VT_REF() { return String_from("ref") }
+    if vt == VT_VOID() { return String_from("void") }
+    String_from("?")
+}
+
+fn mir_format_phi_args(args: Vec<MirPhiArg>) -> String {
+    let count = len(args)
+    let mut out = String_from("[")
+    let mut i = 0
+    while i < count {
+        let arg = get_unchecked(args, i)
+        if i > 0 {
+            out = concat(out, String_from(", "))
+        }
+        out = concat(out, String_from("bb"))
+        out = concat(out, to_string(arg.pred_block))
+        out = concat(out, String_from(" -> %"))
+        out = concat(out, to_string(arg.local))
+        i = i + 1
+    }
+    concat(out, String_from("]"))
+}
+
+fn mir_format_phi(phi: MirPhi) -> String {
+    let mut out = mir_op_name(phi.op)
+    out = concat(out, String_from(" %"))
+    out = concat(out, to_string(phi.dest))
+    out = concat(out, String_from(" = "))
+    out = concat(out, mir_format_phi_args(phi.args))
+    out = concat(out, String_from(" : "))
+    concat(out, mir_value_type_name(phi.val_type))
 }
 
 fn mir_format_block_ids(ids: Vec<i32>) -> String {
@@ -3059,6 +3154,103 @@ fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expec
     }
 }
 
+fn mir_expect_phi(f: MirFunction, block_id: i32, expected_dest: i32, expected_vt: i32, expected_count: i32, expected_pred0: i32, expected_local0: i32, expected_pred1: i32, expected_local1: i32) {
+    let block = get_unchecked(f.blocks, block_id)
+    let actual_count = len(block.phis)
+    if actual_count != 1 {
+        let mut msg = concat(String_from("phi check failed for bb"), to_string(block_id))
+        msg = concat(msg, String_from(": expected phi count=1 actual="))
+        msg = concat(msg, to_string(actual_count))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    let phi = get_unchecked(block.phis, 0)
+    if phi.op != MIR_PHI() || phi.dest != expected_dest || phi.val_type != expected_vt {
+        let mut msg = concat(String_from("phi check failed for bb"), to_string(block_id))
+        msg = concat(msg, String_from(": expected dest=%"))
+        msg = concat(msg, to_string(expected_dest))
+        msg = concat(msg, String_from(" type="))
+        msg = concat(msg, mir_value_type_name(expected_vt))
+        msg = concat(msg, String_from(" actual="))
+        msg = concat(msg, mir_format_phi(phi))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    let arg_count = len(phi.args)
+    if arg_count != expected_count {
+        let mut msg = concat(String_from("phi arg count check failed for bb"), to_string(block_id))
+        msg = concat(msg, String_from(": expected="))
+        msg = concat(msg, to_string(expected_count))
+        msg = concat(msg, String_from(" actual="))
+        msg = concat(msg, to_string(arg_count))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 0 {
+        let arg0 = get_unchecked(phi.args, 0)
+        if arg0.pred_block != expected_pred0 || arg0.local != expected_local0 {
+            let msg = concat(String_from("phi arg0 check failed for bb"), concat(to_string(block_id), concat(String_from(": actual="), mir_format_phi(phi))))
+            stdio::eprintln(msg)
+            process::exit(1)
+        }
+    }
+    if expected_count > 1 {
+        let arg1 = get_unchecked(phi.args, 1)
+        if arg1.pred_block != expected_pred1 || arg1.local != expected_local1 {
+            let msg = concat(String_from("phi arg1 check failed for bb"), concat(to_string(block_id), concat(String_from(": actual="), mir_format_phi(phi))))
+            stdio::eprintln(msg)
+            process::exit(1)
+        }
+    }
+}
+
+pub fn run_phi_representation_smoke() {
+    let m = MirModule_new()
+    let f = MirFunction_new(String_from("phi_repr_sample"))
+    let cond = alloc_local(f, String_from("cond"), VT_I32())
+    let then_val = alloc_local(f, String_from("then_val"), VT_I32())
+    let else_val = alloc_local(f, String_from("else_val"), VT_I32())
+    let join_val = alloc_local(f, String_from("join_val"), VT_I32())
+    f.return_type = VT_I32()
+
+    let entry = alloc_block(f)
+    let then_bb = alloc_block(f)
+    let else_bb = alloc_block(f)
+    let join_bb = alloc_block(f)
+
+    emit_inst(f, entry, MirInst_const_i32(1, cond))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = then_bb
+    entry_block.succ1 = else_bb
+
+    emit_inst(f, then_bb, MirInst_const_i32(10, then_val))
+    let then_block = get_unchecked(f.blocks, then_bb)
+    then_block.succ0 = join_bb
+
+    emit_inst(f, else_bb, MirInst_const_i32(20, else_val))
+    let else_block = get_unchecked(f.blocks, else_bb)
+    else_block.succ0 = join_bb
+
+    let phi = MirPhi_new(join_val, VT_I32())
+    mir_phi_add_arg(phi, then_bb, then_val)
+    mir_phi_add_arg(phi, else_bb, else_val)
+    emit_phi(f, join_bb, phi)
+
+    let ret_inst = MirInst_new(MIR_RETURN())
+    ret_inst.arg0 = join_val
+    emit_inst(f, join_bb, ret_inst)
+
+    mir_compute_dominance_for_function(f)
+    mir_expect_preds(f, join_bb, 2, then_bb, else_bb)
+    mir_expect_frontier(f, then_bb, 1, join_bb, 0)
+    mir_expect_frontier(f, else_bb, 1, join_bb, 0)
+    mir_expect_phi(f, join_bb, join_val, VT_I32(), 2, then_bb, then_val, else_bb, else_val)
+
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR phi representation self-check OK."))
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -3127,4 +3319,5 @@ fn main() {
     stdio::println(String_from("MIR predecessor self-check OK."))
     stdio::println(String_from("MIR dominance self-check OK."))
     stdio::println(String_from("MIR module OK."))
+    run_phi_representation_smoke()
 }
