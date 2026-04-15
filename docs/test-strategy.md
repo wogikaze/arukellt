@@ -7,16 +7,16 @@ their responsibilities, and how they map to the CI pipeline.
 
 | Category | Scope | Gate level | Runner |
 |----------|-------|-----------|--------|
-| **unit** | Individual functions / modules in compiler crates | merge-blocking | `cargo test --workspace --lib` |
-| **fixture** | End-to-end `.ark` → stdout/diagnostic correctness | merge-blocking | `cargo test -p arukellt --test harness` |
-| **target-contract** | Per-target fixture subset via `ARUKELLT_TARGET` | merge-blocking | `target-behavior` CI matrix |
-| **component-interop** | Component Model emit + host interop | smoke (opt-in) | `verify-harness.sh --component` |
-| **package-workspace** | `ark.toml`, workspace resolution, manifest | merge-blocking | unit tests in `ark-manifest` / `ark-resolve` |
-| **bootstrap** | Selfhost Stage 0→1→2 fixpoint | informational | `scripts/run/verify-bootstrap.sh` |
-| **editor-tooling** | VS Code extension activate / LSP handshake | smoke (CI-gated) | `@vscode/test-cli` via `xvfb-run` |
-| **determinism** | Same input → same output | smoke | `tests/baselines/` comparison |
-| **perf** | Compile/run time regression | non-blocking | `scripts/util/benchmark_runner.py` |
-| **diagnostics-snapshot** | Error message stability | informational | `tests/snapshots/diagnostics/` |
+| **unit** | Individual functions / modules in compiler crates | merge-blocking | `unit-tests` job: clippy, rustfmt, `cargo test --workspace --lib --bins` |
+| **fixture** | End-to-end `.ark` → stdout/diagnostic correctness | mixed: T3 merge-blocking, T1 non-blocking | `fixture-primary` and `fixture-supported` jobs |
+| **target-contract** | Per-target behavior and CI/doc target drift | mixed: T3 merge-blocking, T1 non-blocking, drift merge-blocking | `fixture-primary`, `fixture-supported`, and `target-contract-drift-check` |
+| **component-interop** | Component Model emit + host interop | push-only informational | `component-interop` job: `bash scripts/run/verify-harness.sh --component` |
+| **package-workspace** | `ark.toml`, workspace resolution, manifest | merge-blocking, but currently piggybacks another layer | `unit-tests` job via `ark-manifest` / `ark-resolve` tests; no dedicated CI job yet |
+| **bootstrap** | Selfhost Stage 0→1→2 bootstrap and parity evidence | mixed: Stage 0/1 merge-blocking, Stage 2/parity informational | `selfhost-bootstrap` job |
+| **editor-tooling** | VS Code extension activation and LSP protocol behavior | merge-blocking | `extension-tests` and `lsp-e2e` jobs |
+| **determinism** | Same input → same output | merge-blocking | `determinism` job |
+| **perf** | Compile/run time regression | push-only informational | `perf-baseline` job |
+| **diagnostics-snapshot** | Error message stability | merge-blocking when exercised by fixture diagnostics; no dedicated CI job | `fixture-primary` / `fixture-supported` for manifest-driven diagnostics |
 
 ## Regression layer mapping
 
@@ -42,19 +42,33 @@ bench                   → perf
 
 ## CI job structure
 
-### Merge-blocking jobs
+The workflow in `.github/workflows/ci.yml` is the canonical CI layer list. The
+current structure is already broader than the older `correctness` /
+`target-behavior` wording, so this document tracks the jobs that actually exist
+today.
 
-1. **correctness** — `verify-harness.sh --cargo --size --wat --docs`
-   - Runs: cargo fmt, clippy, workspace unit tests, size gate, WAT roundtrip, markdownlint
-2. **target-behavior (wasm32-wasi-p1)** — T1 fixture subset
-3. **target-behavior (wasm32-wasi-p2)** — T3 fixture subset
+| CI layer / job | Gate level | Primary categories covered | Notes |
+|----------------|------------|----------------------------|-------|
+| **Unit tests** (`unit-tests`) | merge-blocking | unit, package-workspace | Also runs clippy and rustfmt so compiler / manifest regressions fail in the first layer. |
+| **Fixture suite - T3 primary** (`fixture-primary`) | merge-blocking | fixture, target-contract | Primary target behavior gate for `wasm32-wasi-p2`. |
+| **Fixture suite - T1 supported** (`fixture-supported`) | non-blocking | fixture, target-contract | Supported target alerting lane for `wasm32-wasi-p1`. |
+| **Integration - CLI smoke** (`integration`) | merge-blocking | integration | Confirms release CLI can compile and run a known program. |
+| **Packaging - binary smoke** (`packaging`) | merge-blocking | packaging CI layer | Verifies release binary entrypoints; this is a workflow layer rather than a top-level test category. |
+| **Determinism - same input same output** (`determinism`) | merge-blocking | determinism | Byte-for-byte compile reproducibility gate. |
+| **Heavy checks (size, WAT, docs)** (`heavy-checks`) | push-only | docs/size/WAT auxiliary checks | Executes `verify-harness.sh --size --wat --docs`; useful for drift detection, not a merge gate. |
+| **Component interop** (`component-interop`) | push-only | component-interop | Optional component smoke coverage. |
+| **Perf baseline snapshot** (`perf-baseline`) | push-only | perf | Collects baseline JSON artifacts. |
+| **Selfhost bootstrap (full)** (`selfhost-bootstrap`) | merge-blocking with informational sub-results | bootstrap | Stage 0 and Stage 1 must pass; Stage 2 fixpoint and parity evidence are collected without failing the job. |
+| **VS Code extension tests** (`extension-tests`) | merge-blocking | editor-tooling | Extension activation and feature workflow coverage. |
+| **LSP E2E tests** (`lsp-e2e`) | merge-blocking | editor-tooling | Protocol-level LSP regression lane. |
+| **Target contract drift check** (`target-contract-drift-check`) | merge-blocking | target-contract | Fails when `docs/target-contract.md` drifts from CI-described target truth. |
+| **Final Gate** (`verify`) | merge-blocking aggregator | required merge gates | Summary gate over the required blocking layers. |
 
-### Non-blocking / optional jobs
-
-1. **perf-baseline** — push-only baseline collection
-2. **editor-smoke** — VS Code extension tests (CI-gated, `xvfb-run npm test`)
-3. *(planned)* **bootstrap-check** — selfhost fixpoint verification
-4. *(planned)* **determinism-check** — binary reproducibility
+Not every category has its own dedicated job yet. In particular,
+`package-workspace` and `diagnostics-snapshot` still ride inside broader jobs,
+while `component-interop` and `perf` remain push-only lanes. That is current
+truth, and the names above are the ones to use when identifying which CI layer
+failed.
 
 ## Adding a new test
 
@@ -72,11 +86,11 @@ When adding a feature:
 |----------|-------|--------|
 | unit | ~150 tests across workspace crates | active |
 | fixture | 434 manifest entries | active |
-| target-contract | 247 (T1) + 182 (T3) via ARUKELLT_TARGET | active |
+| target-contract | 247 (T1) + 182 (T3) via ARUKELLT_TARGET, plus drift enforcement in `target-contract-drift-check` | active |
 | component-interop | 6 component-compile + 1 jco smoke | partial |
-| package-workspace | ark-manifest unit tests | partial |
-| bootstrap | Stage 0 compiles, Stage 1/2 conditional | scaffold |
-| editor-tooling | 25 automated tests | CI-gated (extension-tests job) |
-| determinism | baseline JSON comparison | partial |
+| package-workspace | ark-manifest / ark-resolve tests in `unit-tests` | partial |
+| bootstrap | `selfhost-bootstrap` enforces Stage 0/1 and records Stage 2/parity evidence | partial |
+| editor-tooling | 25 automated tests across `extension-tests` and `lsp-e2e` | active |
+| determinism | dedicated `determinism` CI job | active |
 | perf | 5 benchmark fixtures | active |
 | diagnostics-snapshot | MIR + diagnostics snapshots | partial |

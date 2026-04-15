@@ -1,23 +1,25 @@
 name: CI
 
-# CI layer structure (ADR-013, issue #242):
+# CI layer structure aligned with docs/test-strategy.md:
 #
-#  Layer        Job name                      Merge gate?   Description
-#  ──────────── ───────────────────────────── ───────────── ────────────────────────────
-#  unit         unit-tests                    yes           cargo test (no harness)
-#  fixture/T3   fixture-primary               yes           T3 wasm32-wasi-p2 fixtures (primary target)
-#  fixture/T1   fixture-supported             no            T1 wasm32-wasi-p1 fixtures (supported target)
-#  integration  integration                   yes           CLI smoke: compile + run a known file
-#  packaging    packaging                     yes           binary help/version output smoke test
-#  determinism  determinism                   yes           same input → same output
-#  perf         perf-baseline                 push only     baseline snapshot for drift detection
-#  heavy        heavy-checks                  push only     size, WAT dump, docs generation
-#  extension    extension-tests               yes           VS Code extension activation + feature tests
-#  lsp-e2e      lsp-e2e                       yes           LSP protocol E2E + unit tests
-#  drift        target-contract-drift-check   yes           docs/target-contract.md in sync with CI
+#  Category / layer        Job id                        Merge gate?   Description
+#  ─────────────────────── ───────────────────────────── ───────────── ───────────────────────────────────────
+#  unit                    unit-tests                    yes           clippy + rustfmt + workspace unit/bin tests
+#  fixture / target(T3)    fixture-primary               yes           T3 wasm32-wasi-p2 fixture behavior gate
+#  fixture / target(T1)    fixture-supported             no            T1 wasm32-wasi-p1 supported-target alert lane
+#  integration             integration                   yes           CLI compile/run smoke on known examples
+#  packaging layer         packaging                     yes           release binary entrypoint smoke
+#  determinism             determinism                   yes           byte-exact repeat compile check
+#  docs/size/WAT layer     heavy-checks                  push only     verify-harness auxiliary checks
+#  component-interop       component-interop             push only     component emit / host interop smoke
+#  perf                    perf-baseline                 push only     baseline snapshot collection
+#  bootstrap               selfhost-bootstrap            yes*          Stage 0/1 required; Stage 2/parity informational
+#  editor-tooling          extension-tests               yes           VS Code extension workflow tests
+#  editor-tooling          lsp-e2e                       yes           LSP protocol unit + end-to-end tests
+#  target-contract drift   target-contract-drift-check   yes           docs/target-contract.md matches CI truth
 #
-# All jobs except perf-baseline and heavy-checks are merge gates.
-# T1 (supported) fixture failures alert but do not block.
+# * `selfhost-bootstrap` is merge-blocking for Stage 0/1 attainment only.
+# All push-only lanes are informational. `fixture-supported` alerts but does not block.
 
 on:
   push:
