@@ -37,6 +37,18 @@ but the slice did **not** reach done state:
 Keep #504 open. Resume with a new slice only after the blocking compile state is cleared and the
 parser/HIR changes can be verified and committed.
 
+## Partial slice note — 2026-04-15 (Wave 2)
+
+Wave 2 landed commit `a0279a1a93a2589264461ab873637b0cc1c19e22`, which added:
+
+- parser support for `impl Trait for Type { ... }`
+- HIR support for bounded generic parameters such as `fn f<T: Foo>(x: T)`
+- a dedicated parse/HIR smoke fixture for the new syntax
+
+This issue remains open because the parser/HIR slice did not include typechecker
+impl registration / bound satisfaction, and the issue-level `--cargo` verification
+is still blocked by unrelated pre-existing failures outside this slice.
+
 ## Depends on
 
 - None (foundational)

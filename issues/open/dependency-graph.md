@@ -23,14 +23,17 @@ graph LR
   I204["204 Project explain / build explain / script sandbox surface"]
   I206["206 Interactive compiler pipeline + inline profiling"]
   I249["249 migration guide v4→v5: self-hosted compiler bootstrap"]
+  I251["251 ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする"]
+  I252["252 テスト戦略を fixture harness 中心から、品質面全体を覆う検証体系へ再編する"]
   I253["253 セルフホスト達成条件を厳密化し、「できたかどうか」を曖昧にしない"]
+  I254["254 VS Code 拡張を、手動確認前提の bootstrap から、E2E で壊れにくい製品面へ引き上げる"]
+  I255["255 デバッグ体験を「DAP の箱がある」状態から、実際に使える end-to-end workflow にする"]
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
+  I494["494 494 — Selfhost MIR: SSA formation pass"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
-  I501["501 T2 (`wasm32-freestanding`) Wasm Emitter Implementation"]
   I502["502 LSP: Full Multi-Root Workspace and Cross-Package Resolution"]
-  I503["503 Issue #503 — Selfhost MIR: CFG and Dominance-Frontier Infrastructure for SSA"]
   I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
   I505["505 T3: br_table enum dispatch — feasible IfStmt-chain optimization"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
@@ -45,7 +48,6 @@ graph LR
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
-  I494["494 494 — Selfhost MIR: SSA formation pass"]
   I495["495 495 — Selfhost typechecker: trait bounds and constraint solving"]
   I136["136 ADR-011 に沿った `std::host` layer の段階的ロールアウト"]
   I485["485 docs: arukellt component サブコマンド CLI リファレンス"]
@@ -66,7 +68,6 @@ graph LR
   I200 --> I201
   I204 --> I188
   I285 --> I508
-  I503 --> I494
   I504 --> I495
   I077 --> I136
   I139 --> I136
@@ -97,14 +98,17 @@ graph LR
 - **204** depends on: 202, 203; blocks: 188
 - **206** depends on: 184, 185, 187; blocks: none
 - **249** depends on: none; blocks: none
+- **251** depends on: none; blocks: none
+- **252** depends on: none; blocks: none
 - **253** depends on: none; blocks: none
+- **254** depends on: none; blocks: none
+- **255** depends on: none; blocks: none
 - **269** depends on: 266, 268; blocks: none
 - **285** depends on: 284; blocks: 508
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
+- **494** depends on: 493, 503; blocks: none
 - **499** depends on: none; blocks: none
-- **501** depends on: none; blocks: none
 - **502** depends on: 441; blocks: none
-- **503** depends on: none; blocks: 494
 - **504** depends on: none; blocks: 495
 - **505** depends on: none; blocks: none
 - **473** depends on: 032, done); blocks: none
@@ -119,7 +123,6 @@ graph LR
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
 - **508** depends on: 285; blocks: none
-- **494** depends on: 493, 503; blocks: none
 - **495** depends on: 312, 504; blocks: none
 - **136** depends on: 137, 138, 077, 139; blocks: none
 - **485** depends on: 475; blocks: none

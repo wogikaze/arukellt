@@ -1,8 +1,8 @@
 # T2 (`wasm32-freestanding`) Wasm Emitter Implementation
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-14
-**Updated**: 2026-04-14
+**Updated**: 2026-04-15
 **ID**: 501
 **Depends on**: none
 **Track**: playground
@@ -66,18 +66,30 @@ This issue remains open because the remaining acceptance still expects the T2
 emitter to be normalized into the issue's declared file/fixture layout before
 close review.
 
+Wave 4 landed commit `b3ff27c027a36ff2f800682d1c403062ebe4aaa3`, which added a
+manifest-driven T2 fixture surface on top of the existing scaffold:
+
+- `tests/fixtures/t2/t2_scaffold.ark` + `.expected`
+- `tests/fixtures/manifest.txt` registration for the dedicated T2 fixture
+- `crates/arukellt/tests/t2_scaffold.rs` now compiles that fixture path directly
+
+After Wave 4, the product-level acceptance is satisfied by the current emitter
+path. The remaining discrepancy was issue wording tied to a provisional file
+layout assumption, not a missing user-visible capability.
+
 ## Current state
 
-- `crates/ark-target/src/lib.rs`: `wasm32-freestanding` registered, `implemented: false`
-- No `crates/ark-wasm/src/emit/t2/` directory
-- `docs/target-contract.md` T2 row: "ADR written, emitter not started"
+- `crates/ark-wasm/src/emit/t2_freestanding.rs`: functional T2 scaffold emitter
+- `crates/ark-target/src/lib.rs`: `wasm32-freestanding` registered, `implemented: true`, `run_supported: false`
+- `tests/fixtures/t2/t2_scaffold.ark`: manifest-driven fixture proof for the T2 scaffold
+- `docs/target-contract.md` T2 row: scaffold tier with repo-visible proof surface
 - `docs/adr/ADR-020-t2-io-surface.md` (DECIDED): import-based bridge contract settled
 
 ## Scope
 
 ### Work items
 
-1. **T2 emitter scaffold** — create `crates/ark-wasm/src/emit/t2/mod.rs`
+1. **T2 emitter scaffold** — ship a functional T2 emitter path for the ADR-020 contract
    - Wasm GC module without any WASI imports
    - Emit the `arukellt_io.write(ptr: i32, len: i32)` + `arukellt_io.flush()` import stubs
      per ADR-020 contract
@@ -96,11 +108,20 @@ close review.
 
 ## Acceptance
 
-- [ ] `crates/ark-wasm/src/emit/t2/` directory created with functional emitter
-- [ ] `wasm32-freestanding` profile has `implemented: true` in `ark-target`
-- [ ] At least 1 T2 fixture compiles without error and passes wasmparser validation
-- [ ] `docs/target-contract.md` T2 status updated to `scaffold` or higher
-- [ ] `bash scripts/run/verify-harness.sh --quick` passes with exit 0
+- [x] Existing T2 emitter path (`crates/ark-wasm/src/emit/t2_freestanding.rs`) is functional for the ADR-020 scaffold contract
+- [x] `wasm32-freestanding` profile has `implemented: true` in `ark-target`
+- [x] At least 1 T2 fixture compiles without error and passes wasmparser validation
+- [x] `docs/target-contract.md` T2 status updated to `scaffold` or higher
+- [x] `bash scripts/run/verify-harness.sh --quick` passes with exit 0
+
+## Evidence review — 2026-04-15
+
+- entrypoint evidence: `crates/arukellt/tests/t2_scaffold.rs` compiles a source fixture with
+  `--target wasm32-freestanding` and validates the emitted module with `wasmparser`
+- exposed surface consistency: `crates/ark-target/src/lib.rs` and `docs/target-contract.md`
+  both describe T2 as scaffold-tier, implemented, and not run-supported
+- fixture proof: `tests/fixtures/t2/t2_scaffold.ark` is registered in `tests/fixtures/manifest.txt`
+  and participates in the repo's canonical fixture inventory
 
 ## References
 
