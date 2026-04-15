@@ -60,15 +60,26 @@ suiteSetup(async () => {
 });
 
 suiteTeardown(async () => {
-  if (originalServerPath === undefined) {
-    return;
-  }
+  const ext = getExtension();
   const cfg = vscode.workspace.getConfiguration("arukellt");
-  await cfg.update(
-    "server.path",
-    originalServerPath,
-    vscode.ConfigurationTarget.Global
-  );
+
+  try {
+    if (originalServerPath !== undefined) {
+      await cfg.update(
+        "server.path",
+        originalServerPath,
+        vscode.ConfigurationTarget.Global
+      );
+    }
+
+    if (vscode.debug.activeDebugSession) {
+      await vscode.debug.stopDebugging(vscode.debug.activeDebugSession);
+    }
+  } finally {
+    if (ext.isActive) {
+      await ext.exports.shutdownForTests?.();
+    }
+  }
 });
 
 // ============================================================

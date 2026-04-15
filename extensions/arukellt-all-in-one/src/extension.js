@@ -6,6 +6,8 @@ const fs = require('fs')
 const { LanguageClient, TransportKind } = require('vscode-languageclient/node')
 
 let client = null
+let isDeactivating = false
+let suppressClientRestart = false
 let outputChannel = null
 let compilerChannel = null
 let testChannel = null
@@ -61,15 +63,18 @@ function activate(context) {
 
   return {
     __getTestState: getTestState,
+    shutdownForTests,
     verifyBootstrap,
   }
 }
 
-function deactivate() {
-  if (!client) {
-    return undefined
+async function deactivate() {
+  isDeactivating = true
+  try {
+    await shutdownLanguageClient({ timeoutMs: 5000, logFailure: false })
+  } finally {
+    isDeactivating = false
   }
-  return client.stop()
 }
 
 function getConfiguration() {
@@ -233,6 +238,9 @@ function startLanguageServer(context) {
         return { action: 2 /* Shutdown */ }
       },
       closed() {
+        if (isDeactivating || suppressClientRestart) {
+          return { action: 2 /* DoNotRestart */ }
+        }
         if (restartCount < 5) {
           restartCount++
           updateLanguageStatus('warning', `Restarting (attempt ${restartCount})…`)
@@ -296,11 +304,11 @@ async function stopClientWithTimeout(currentClient, timeoutMs) {
   let timeoutHandle = null
   try {
     await Promise.race([
-      currentClient.stop(),
+      currentClient.stop(timeoutMs),
       new Promise((_, reject) => {
         timeoutHandle = setTimeout(() => {
-          reject(new Error(`timed out after ${timeoutMs}ms`))
-        }, timeoutMs)
+          reject(new Error(`timed out after ${timeoutMs + 250}ms`))
+        }, timeoutMs + 250)
       }),
     ])
   } finally {
@@ -310,18 +318,37 @@ async function stopClientWithTimeout(currentClient, timeoutMs) {
   }
 }
 
-async function restartLanguageServer(context) {
-  restartCount = 0
+async function shutdownLanguageClient(options = {}) {
+  const timeoutMs = options.timeoutMs ?? 2000
+  const logFailure = options.logFailure ?? true
+  const logContext = options.logContext ?? 'shutdown'
   const currentClient = client
   client = null
-  if (currentClient) {
-    try {
-      await stopClientWithTimeout(currentClient, 5000)
-    } catch (err) {
-      if (outputChannel) {
-        outputChannel.appendLine(`[arukellt] restart: stop failed (${err.message}); starting a fresh client`)
-      }
+  if (!currentClient) {
+    return
+  }
+
+  const previousSuppressRestart = suppressClientRestart
+  suppressClientRestart = true
+  try {
+    await stopClientWithTimeout(currentClient, timeoutMs)
+  } catch (err) {
+    if (logFailure && outputChannel) {
+      outputChannel.appendLine(`[arukellt] ${logContext}: stop failed (${err.message})`)
     }
+  } finally {
+    suppressClientRestart = previousSuppressRestart
+  }
+}
+
+async function shutdownForTests() {
+  await shutdownLanguageClient({ timeoutMs: 5000, logFailure: false, logContext: 'test shutdown' })
+}
+
+async function restartLanguageServer(context) {
+  restartCount = 0
+  if (client) {
+    await shutdownLanguageClient({ timeoutMs: 5000, logFailure: true, logContext: 'restart' })
     startLanguageServer(context)
     vscode.window.showInformationMessage('Arukellt language server restarted.')
   } else {
