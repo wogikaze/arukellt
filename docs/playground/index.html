@@ -284,14 +284,6 @@
       const url = new URL(window.location.href);
       url.hash = result.fragment.slice(1);
       setShareUrl(url.toString());
-
-      if (result.exceedsHardLimit) {
-        setShareStatus('Share URL exceeds the browser limit.', true);
-      } else if (result.exceedsTarget) {
-        setShareStatus('Share URL is longer than the target budget.');
-      } else {
-        setShareStatus('Share URL updated.');
-      }
     }
 
     function scheduleShareUrlUpdate() {
@@ -339,10 +331,17 @@
       }
     }
 
-    async function loadShareFragment(fragment, pushHash = true) {
+    async function loadShareFragment(fragment, revision, pushHash = true) {
       const decoded = await decodeSharePayload(fragment);
       if (!decoded.ok) {
+        if (revision !== fragmentRevision) {
+          return;
+        }
         setShareStatus(decoded.error, true);
+        return;
+      }
+
+      if (revision !== fragmentRevision) {
         return;
       }
 
@@ -389,10 +388,7 @@
       }
 
       if (action.type === 'share') {
-        await loadShareFragment(fragment, pushHash);
-        if (revision !== fragmentRevision) {
-          return;
-        }
+        await loadShareFragment(fragment, revision, pushHash);
       }
     }
 

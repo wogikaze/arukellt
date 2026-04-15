@@ -53,6 +53,8 @@ export { createDiagnosticsPanel, offsetToLineCol, buildDiagnosticOverlay, DIAGNO
 export { createPlaygroundApp } from "./playground-app.js";
 // Re-export capability detection.
 export { checkCapabilities, capabilityWarningsToDiagnostics, UNSUPPORTED_CAPABILITIES, getCapabilityInfo, } from "./capability-check.js";
+// Re-export telemetry guardrails (v1: disabled; see docs/playground/privacy-telemetry-policy.md).
+export { TELEMETRY_DISABLED, reportError, reportWasmLoadError, reportCompilerPanic, } from "./telemetry.js";
 // Re-export share link encoder/decoder (ADR-021).
 export { encodeSharePayload, decodeSharePayload, parseFragment, checkVersionMismatch, encodeSharePayloadWithVersion, CURRENT_SHARE_VERSION, SHARE_URL_TARGET_LENGTH, SHARE_URL_HARD_LIMIT, REPRODUCIBILITY_CONTRACT, } from "./share.js";
 // Re-export examples catalog.

@@ -46,6 +46,7 @@ export { DEFAULT_THEME_CSS, injectTheme } from "./theme.js";
 export { createDiagnosticsPanel, offsetToLineCol, buildDiagnosticOverlay, DIAGNOSTICS_CSS, injectDiagnosticStyles, } from "./diagnostics.js";
 export { createPlaygroundApp } from "./playground-app.js";
 export { checkCapabilities, capabilityWarningsToDiagnostics, UNSUPPORTED_CAPABILITIES, getCapabilityInfo, } from "./capability-check.js";
+export { TELEMETRY_DISABLED, reportError, reportWasmLoadError, reportCompilerPanic, } from "./telemetry.js";
 export { encodeSharePayload, decodeSharePayload, parseFragment, checkVersionMismatch, encodeSharePayloadWithVersion, CURRENT_SHARE_VERSION, SHARE_URL_TARGET_LENGTH, SHARE_URL_HARD_LIMIT, REPRODUCIBILITY_CONTRACT, } from "./share.js";
 export { EXAMPLES, FIXTURE_BASE_PATH, getExample, getExampleList, getExamplesByTag, getFixtureMap, } from "./examples.js";
 export type { PlaygroundOptions, WorkerPlaygroundOptions, Playground, WorkerPlayground, ParseResponse, FormatResponse, TokenizeResponse, Diagnostic, DiagnosticLabel, Severity, Phase, ModuleSummary, ModuleItem, ModuleImport, ItemKind, Token, WorkerRequest, WorkerResponse, } from "./types.js";
