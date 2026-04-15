@@ -6,6 +6,7 @@
 
 use serde_json::{Value, json};
 use std::io::{BufRead, BufReader, Read, Write};
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::mpsc;
 use std::time::Duration;
@@ -486,6 +487,63 @@ fn definition_resolves_local_symbol() {
 }
 
 #[test]
+fn definition_resolves_symbol_from_path_dependency_package() {
+    let mut session = LspSession::start();
+    let workspace_root = package_workspace_root("multi-root-indexing/app");
+    let main_file = workspace_root.join("src/main.ark");
+    let dep_file = package_workspace_root("multi-root-indexing/shared-lib").join("src/lib.ark");
+
+    session.initialize_with_root(&path_to_file_uri(&workspace_root));
+    session.open_document(
+        &path_to_file_uri(&main_file),
+        &std::fs::read_to_string(&main_file).expect("read app source"),
+    );
+
+    let result = session.request_definition(&path_to_file_uri(&main_file), 3, 12);
+    let target_uri = result.get("uri").and_then(|v| v.as_str());
+    assert_eq!(
+        target_uri,
+        Some(path_to_file_uri(&dep_file).as_str()),
+        "definition should resolve into the indexed dependency package root"
+    );
+
+    session.shutdown();
+}
+
+#[test]
+fn path_dependency_import_does_not_emit_unresolved_diagnostics() {
+    let mut session = LspSession::start();
+    let workspace_root = package_workspace_root("multi-root-indexing/app");
+    let main_file = workspace_root.join("src/main.ark");
+    let main_uri = path_to_file_uri(&main_file);
+
+    session.initialize_with_root(&path_to_file_uri(&workspace_root));
+    session.open_document(
+        &main_uri,
+        &std::fs::read_to_string(&main_file).expect("read app source"),
+    );
+
+    let diags = session.collect_diagnostics_for(&main_uri, Duration::from_secs(5));
+    let unresolved: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            d.get("code")
+                .and_then(|c| c.as_str())
+                .map(|code| matches!(code, "E0100" | "E0104" | "E0501"))
+                .unwrap_or(false)
+        })
+        .collect();
+
+    assert!(
+        unresolved.is_empty(),
+        "path dependency import should resolve without unresolved-name diagnostics, got: {:?}",
+        unresolved
+    );
+
+    session.shutdown();
+}
+
+#[test]
 fn shutdown_sequence_works() {
     let mut session = LspSession::start();
     session.initialize();
@@ -804,6 +862,31 @@ fn workspace_root_uri() -> String {
         // Windows absolute path: file:///C:/...
         format!("file:///{}", path_str.replace('\\', "/"))
     }
+}
+
+fn path_to_file_uri(path: &Path) -> String {
+    let path_str = path
+        .canonicalize()
+        .unwrap_or_else(|_| path.to_path_buf())
+        .to_str()
+        .expect("path is valid UTF-8")
+        .to_string();
+    if path_str.starts_with('/') {
+        format!("file://{}", path_str)
+    } else {
+        format!("file:///{}", path_str.replace('\\', "/"))
+    }
+}
+
+fn package_workspace_root(relative: &str) -> PathBuf {
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    std::path::Path::new(manifest_dir)
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("tests/package-workspace")
+        .join(relative)
 }
 
 #[test]

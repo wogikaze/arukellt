@@ -255,15 +255,7 @@ impl ArukellBackend {
     }
 
     async fn refresh_diagnostics(&self, uri: Url, text: &str) {
-        // Compute the stdlib root so that imports like `use std::host::stdio` are
-        // resolved during diagnostics analysis (fix for E0100 false positives, #452).
-        let std_root: Option<std::path::PathBuf> = self
-            .project_root
-            .lock()
-            .expect("project_root lock poisoned")
-            .as_ref()
-            .map(|r| r.join("std"));
-        let analysis = Self::analyze_source_with_stdlib(text, std_root.as_deref());
+        let analysis = self.analyze_source_for_uri(&uri, text);
         // Apply diagnostics.reportLevel filter (#462): suppress warning/hint diagnostics
         // when arukellt.diagnostics.reportLevel is "errors" or "warnings".
         let report_level = self.settings.lock().unwrap().diagnostics_report_level;
@@ -282,6 +274,17 @@ impl ArukellBackend {
         self.client
             .publish_diagnostics(uri, diagnostics, None)
             .await;
+    }
+
+    fn analyze_source_for_uri(&self, uri: &Url, source: &str) -> CachedAnalysis {
+        let source_path = uri.to_file_path().ok();
+        let std_root = self
+            .project_root
+            .lock()
+            .expect("project_root lock poisoned")
+            .as_ref()
+            .map(|r| r.join("std"));
+        Self::analyze_source_with_workspace(source, source_path.as_deref(), std_root.as_deref())
     }
 
     /// Extract top-level symbols from an AST module and update the index.
@@ -466,6 +469,280 @@ impl ArukellBackend {
         }
     }
 
+    fn discover_document_package_roots(source_path: &std::path::Path) -> Vec<PathBuf> {
+        let manifest_start = source_path.parent().unwrap_or(source_path);
+        let Some(project_root) = ark_manifest::Manifest::find_root(manifest_start) else {
+            return Vec::new();
+        };
+
+        ark_manifest::Manifest::discover_path_dependency_roots(&project_root)
+            .unwrap_or_else(|_| vec![project_root])
+    }
+
+    fn package_source_dirs(package_roots: &[PathBuf]) -> HashMap<String, PathBuf> {
+        let mut dirs = HashMap::new();
+
+        for root in package_roots {
+            let Ok(manifest) = ark_manifest::Manifest::load_from_dir(root) else {
+                continue;
+            };
+            dirs.insert(manifest.package.name, root.join("src"));
+        }
+
+        dirs
+    }
+
+    fn resolve_dependency_module_file(
+        module_name: &str,
+        package_sources: &HashMap<String, PathBuf>,
+    ) -> Option<PathBuf> {
+        let mut parts = module_name.split("::");
+        let package_name = parts.next()?;
+        let src_dir = package_sources.get(package_name)?;
+        let remainder: Vec<&str> = parts.collect();
+
+        let candidates = if remainder.is_empty() {
+            vec![
+                src_dir.join("lib.ark"),
+                src_dir.join("mod.ark"),
+                src_dir.join(format!("{}.ark", package_name)),
+            ]
+        } else {
+            let rel = remainder.join("/");
+            vec![src_dir.join(format!("{}.ark", rel)), src_dir.join(rel).join("mod.ark")]
+        };
+
+        candidates.into_iter().find(|path| path.exists())
+    }
+
+    fn resolve_workspace_import_path(
+        current_path: &std::path::Path,
+        module_name: &str,
+        std_root: Option<&std::path::Path>,
+        package_sources: &HashMap<String, PathBuf>,
+    ) -> Option<PathBuf> {
+        if let Some(std_root) = std_root
+            && let Some(path) = Self::stdlib_file_for_import(module_name, std_root)
+        {
+            return Some(path);
+        }
+
+        let rel = module_name.replace("::", "/");
+        let parent = current_path.parent().unwrap_or_else(|| std::path::Path::new("."));
+        let local_file = parent.join(format!("{}.ark", rel));
+        if local_file.exists() {
+            return Some(local_file);
+        }
+
+        let local_mod = parent.join(&rel).join("mod.ark");
+        if local_mod.exists() {
+            return Some(local_mod);
+        }
+
+        Self::resolve_dependency_module_file(module_name, package_sources)
+    }
+
+    fn resolve_import_targets(
+        import: &ast::Import,
+        current_path: &std::path::Path,
+        std_root: Option<&std::path::Path>,
+        package_sources: &HashMap<String, PathBuf>,
+    ) -> Vec<(String, PathBuf)> {
+        match &import.kind {
+            ast::ImportKind::DestructureImport { names } => names
+                .iter()
+                .filter_map(|name| {
+                    let submodule = format!("{}::{}", import.module_name, name);
+                    Self::resolve_workspace_import_path(
+                        current_path,
+                        &submodule,
+                        std_root,
+                        package_sources,
+                    )
+                    .map(|path| (name.clone(), path))
+                })
+                .collect(),
+            _ => {
+                let mut target_module_name = import.module_name.clone();
+                let mut item_import_fallback = false;
+                let mut import_path = Self::resolve_workspace_import_path(
+                    current_path,
+                    &target_module_name,
+                    std_root,
+                    package_sources,
+                );
+
+                if import_path.is_none()
+                    && let Some((parent_module, _)) = target_module_name.rsplit_once("::")
+                {
+                    let parent_path = Self::resolve_workspace_import_path(
+                        current_path,
+                        parent_module,
+                        std_root,
+                        package_sources,
+                    );
+                    if parent_path.is_some() {
+                        target_module_name = parent_module.to_string();
+                        import_path = parent_path;
+                        item_import_fallback = true;
+                    }
+                }
+
+                import_path
+                    .map(|path| {
+                        let effective_name = if item_import_fallback {
+                            target_module_name
+                                .rsplit("::")
+                                .next()
+                                .unwrap_or(&target_module_name)
+                                .to_string()
+                        } else {
+                            import.alias.clone().unwrap_or_else(|| {
+                                target_module_name
+                                    .rsplit("::")
+                                    .next()
+                                    .unwrap_or(&target_module_name)
+                                    .to_string()
+                            })
+                        };
+                        vec![(effective_name, path)]
+                    })
+                    .unwrap_or_default()
+            }
+        }
+    }
+
+    fn load_workspace_modules(
+        module: &ast::Module,
+        current_path: &std::path::Path,
+        std_root: Option<&std::path::Path>,
+        package_sources: &HashMap<String, PathBuf>,
+        visited: &mut HashSet<PathBuf>,
+        loaded: &mut HashMap<PathBuf, ark_resolve::LoadedModule>,
+    ) {
+        for import in &module.imports {
+            for (effective_name, import_path) in
+                Self::resolve_import_targets(import, current_path, std_root, package_sources)
+            {
+                let canonical = std::fs::canonicalize(&import_path).unwrap_or(import_path.clone());
+                if !visited.insert(canonical.clone()) {
+                    continue;
+                }
+
+                let Ok(source) = std::fs::read_to_string(&import_path) else {
+                    continue;
+                };
+
+                let mut module_sink = DiagnosticSink::new();
+                let lexer = Lexer::new(0, &source);
+                let tokens: Vec<_> = lexer.collect();
+                let imported_module = parse(&tokens, &mut module_sink);
+                if module_sink.has_errors() {
+                    continue;
+                }
+
+                Self::load_workspace_modules(
+                    &imported_module,
+                    &import_path,
+                    std_root,
+                    package_sources,
+                    visited,
+                    loaded,
+                );
+
+                loaded.insert(
+                    canonical,
+                    ark_resolve::LoadedModule {
+                        name: effective_name,
+                        path: import_path,
+                        ast: imported_module,
+                    },
+                );
+            }
+        }
+    }
+
+    fn merge_workspace_modules(
+        entry_module: &ast::Module,
+        loaded: &HashMap<PathBuf, ark_resolve::LoadedModule>,
+        std_root: Option<&std::path::Path>,
+    ) -> ast::Module {
+        let mut merged = entry_module.clone();
+        let mut seen_names = HashSet::new();
+
+        for item in &merged.items {
+            match item {
+                ast::Item::FnDef(f) => {
+                    seen_names.insert(f.name.clone());
+                }
+                ast::Item::StructDef(s) => {
+                    seen_names.insert(s.name.clone());
+                }
+                ast::Item::EnumDef(e) => {
+                    seen_names.insert(e.name.clone());
+                }
+                ast::Item::TraitDef(t) => {
+                    seen_names.insert(t.name.clone());
+                }
+                ast::Item::ImplBlock(_) => {}
+            }
+        }
+
+        let mut modules: Vec<_> = loaded.values().cloned().collect();
+        modules.sort_by(|a, b| a.path.cmp(&b.path));
+
+        for loaded_module in modules {
+            let is_stdlib = std_root.is_some_and(|root| loaded_module.path.starts_with(root));
+            for item in loaded_module.ast.items {
+                let (name, is_pub) = match &item {
+                    ast::Item::FnDef(f) => (Some(f.name.clone()), f.is_pub),
+                    ast::Item::StructDef(s) => (Some(s.name.clone()), s.is_pub),
+                    ast::Item::EnumDef(e) => (Some(e.name.clone()), e.is_pub),
+                    ast::Item::TraitDef(t) => (Some(t.name.clone()), t.is_pub),
+                    ast::Item::ImplBlock(_) => (None, false),
+                };
+
+                if is_stdlib && !is_pub {
+                    continue;
+                }
+
+                if let Some(name) = name {
+                    if seen_names.contains(&name) {
+                        continue;
+                    }
+                    seen_names.insert(name);
+                }
+
+                merged.items.push(item);
+            }
+        }
+
+        merged
+    }
+
+    fn private_imported_names(
+        loaded: &HashMap<PathBuf, ark_resolve::LoadedModule>,
+        std_root: Option<&std::path::Path>,
+    ) -> HashSet<String> {
+        let mut names = HashSet::new();
+
+        for loaded_module in loaded.values() {
+            if std_root.is_some_and(|root| loaded_module.path.starts_with(root)) {
+                continue;
+            }
+
+            for item in &loaded_module.ast.items {
+                if let ast::Item::FnDef(f) = item
+                    && !f.is_pub
+                {
+                    names.insert(f.name.clone());
+                }
+            }
+        }
+
+        names
+    }
+
     /// Collect all .ark files under a directory.
     fn walk_ark_files(dir: &PathBuf) -> Vec<PathBuf> {
         let mut files = Vec::new();
@@ -569,6 +846,72 @@ impl ArukellBackend {
     /// features.
     fn analyze_source(source: &str) -> CachedAnalysis {
         Self::analyze_source_with_stdlib(source, None)
+    }
+
+    fn analyze_source_with_workspace(
+        source: &str,
+        source_path: Option<&std::path::Path>,
+        std_root: Option<&std::path::Path>,
+    ) -> CachedAnalysis {
+        let Some(source_path) = source_path.filter(|path| path.exists()) else {
+            return Self::analyze_source_with_stdlib(source, std_root);
+        };
+
+        let mut sink = DiagnosticSink::new();
+        let lexer = Lexer::new(0, source);
+        let tokens: Vec<_> = lexer.collect();
+        let module = parse(&tokens, &mut sink);
+
+        if sink.has_errors() {
+            let diagnostics = Self::collect_lsp_diagnostics(source, &sink);
+            return CachedAnalysis {
+                tokens,
+                module,
+                resolved: None,
+                checker: None,
+                diagnostics,
+            };
+        }
+
+        let cached_module = module.clone();
+        let package_roots = Self::discover_document_package_roots(source_path);
+        if package_roots.is_empty() {
+            return Self::analyze_source_with_stdlib(source, std_root);
+        }
+
+        let package_sources = Self::package_source_dirs(&package_roots);
+        let mut loaded = HashMap::new();
+        let mut visited = HashSet::new();
+        Self::load_workspace_modules(
+            &cached_module,
+            source_path,
+            std_root,
+            &package_sources,
+            &mut visited,
+            &mut loaded,
+        );
+
+        let mut resolved = ark_resolve::resolve_module_with_intrinsic_prelude(module, &mut sink);
+        resolved.module = Self::merge_workspace_modules(&cached_module, &loaded, std_root);
+        resolved.loaded_module_names = loaded.values().map(|m| m.name.clone()).collect();
+        resolved.private_imported_names = Self::private_imported_names(&loaded, std_root);
+
+        let mut checker = ark_typecheck::TypeChecker::new();
+        checker.register_builtins();
+        checker.check_module(&resolved, &mut sink);
+
+        ark_resolve::check_unused_imports(&cached_module, &mut sink);
+        ark_resolve::check_unused_bindings(&cached_module, &mut sink);
+
+        let diagnostics = Self::collect_lsp_diagnostics(source, &sink);
+
+        CachedAnalysis {
+            tokens,
+            module: cached_module,
+            resolved: Some(resolved),
+            checker: Some(checker),
+            diagnostics,
+        }
     }
 
     /// Resolve `std::X::Y` → `{std_root}/X/Y.ark` given the stdlib root directory

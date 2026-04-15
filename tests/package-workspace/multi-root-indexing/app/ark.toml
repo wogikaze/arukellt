@@ -1,0 +1,10 @@
+[package]
+name = "app"
+version = "0.1.0"
+
+[bin]
+name = "app"
+path = "src/main.ark"
+
+[dependencies]
+shared = { path = "../shared-lib" }

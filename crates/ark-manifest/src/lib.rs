@@ -165,6 +165,39 @@ impl Manifest {
         Ok((root, manifest))
     }
 
+    /// Discover the starting package root plus all cycle-safe path dependency
+    /// package roots reachable through `[dependencies]`.
+    pub fn discover_path_dependency_roots(root: &Path) -> Result<Vec<PathBuf>, ManifestError> {
+        let mut ordered_roots = Vec::new();
+        let mut visited = std::collections::HashSet::new();
+        let mut pending = vec![root.to_path_buf()];
+
+        while let Some(next_root) = pending.pop() {
+            let canonical = std::fs::canonicalize(&next_root).unwrap_or_else(|_| next_root.clone());
+            if !visited.insert(canonical) {
+                continue;
+            }
+
+            let normalized_root =
+                std::fs::canonicalize(&next_root).unwrap_or_else(|_| next_root.clone());
+            let manifest = Self::load_from_dir(&normalized_root)?;
+            ordered_roots.push(normalized_root.clone());
+
+            for dep in manifest.dependencies.values() {
+                let DependencySpec::Path { path } = dep else {
+                    continue;
+                };
+
+                let dep_start = normalized_root.join(path);
+                if let Some(dep_root) = Self::find_root(&dep_start) {
+                    pending.push(dep_root);
+                }
+            }
+        }
+
+        Ok(ordered_roots)
+    }
+
     /// Return the [bin] section, or a clear error if missing.
     pub fn require_bin(&self) -> Result<&BinSection, ManifestError> {
         self.bin
@@ -176,6 +209,7 @@ impl Manifest {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
     use std::io::Write;
     use tempfile::TempDir;
 
@@ -335,6 +369,118 @@ version = "0.1.0"
                 .unwrap_or(dir.path().to_path_buf())
         );
         assert_eq!(m.package.name, "test");
+    }
+
+    #[test]
+    fn test_discover_path_dependency_roots_walks_nested_dependencies() {
+        let dir = tempfile::tempdir().unwrap();
+        let app = dir.path().join("app");
+        let dep = dir.path().join("dep");
+        let leaf = dir.path().join("leaf");
+
+        fs::create_dir_all(app.join("src")).unwrap();
+        fs::create_dir_all(dep.join("src")).unwrap();
+        fs::create_dir_all(leaf.join("src")).unwrap();
+
+        fs::write(
+            app.join("ark.toml"),
+            r#"
+[package]
+name = "app"
+version = "0.1.0"
+
+[dependencies]
+dep = { path = "../dep" }
+"#,
+        )
+        .unwrap();
+        fs::write(app.join("src/main.ark"), "fn main() {}\n").unwrap();
+
+        fs::write(
+            dep.join("ark.toml"),
+            r#"
+[package]
+name = "dep"
+version = "0.1.0"
+
+[dependencies]
+leaf = { path = "../leaf" }
+"#,
+        )
+        .unwrap();
+        fs::write(
+            dep.join("src/lib.ark"),
+            "pub fn dep_helper() -> Int { 1 }\n",
+        )
+        .unwrap();
+
+        fs::write(
+            leaf.join("ark.toml"),
+            r#"
+[package]
+name = "leaf"
+version = "0.1.0"
+"#,
+        )
+        .unwrap();
+        fs::write(
+            leaf.join("src/leaf.ark"),
+            "pub fn leaf_helper() -> Int { 2 }\n",
+        )
+        .unwrap();
+
+        let roots = Manifest::discover_path_dependency_roots(&app).unwrap();
+        assert_eq!(roots.len(), 3);
+        assert_eq!(roots[0], app);
+        assert!(roots.contains(&dep));
+        assert!(roots.contains(&leaf));
+    }
+
+    #[test]
+    fn test_discover_path_dependency_roots_is_cycle_safe() {
+        let dir = tempfile::tempdir().unwrap();
+        let app = dir.path().join("app");
+        let dep = dir.path().join("dep");
+
+        fs::create_dir_all(app.join("src")).unwrap();
+        fs::create_dir_all(dep.join("src")).unwrap();
+
+        fs::write(
+            app.join("ark.toml"),
+            r#"
+[package]
+name = "app"
+version = "0.1.0"
+
+[dependencies]
+dep = { path = "../dep" }
+"#,
+        )
+        .unwrap();
+        fs::write(app.join("src/main.ark"), "fn main() {}\n").unwrap();
+
+        fs::write(
+            dep.join("ark.toml"),
+            r#"
+[package]
+name = "dep"
+version = "0.1.0"
+
+[dependencies]
+app = { path = "../app" }
+"#,
+        )
+        .unwrap();
+        fs::write(
+            dep.join("src/lib.ark"),
+            "pub fn dep_helper() -> Int { 1 }\n",
+        )
+        .unwrap();
+
+        let roots = Manifest::discover_path_dependency_roots(&app).unwrap();
+        assert_eq!(roots.len(), 2);
+        assert_eq!(roots[0], app);
+        assert!(roots.contains(&dep));
     }
 
     #[test]
