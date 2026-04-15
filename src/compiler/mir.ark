@@ -130,6 +130,9 @@ struct MirBlock {
     succ0: i32,
     succ1: i32,
     preds: Vec<i32>,
+    idom: i32,
+    dom_set: Vec<i32>,
+    dom_frontier: Vec<i32>,
 }
 
 fn MirBlock_new(id: i32) -> MirBlock {
@@ -140,19 +143,105 @@ fn MirBlock_new(id: i32) -> MirBlock {
         succ0: 0 - 1,
         succ1: 0 - 1,
         preds: Vec_new_i32(),
+        idom: 0 - 1,
+        dom_set: Vec_new_i32(),
+        dom_frontier: Vec_new_i32(),
     }
 }
 
-fn mir_add_block_pred(block: MirBlock, pred_id: i32) {
-    let pred_count = len(block.preds)
+struct MirDomInfo {
+    idom: Vec<i32>,
+    frontier_offsets: Vec<i32>,
+    frontier_lengths: Vec<i32>,
+    frontier_blocks: Vec<i32>,
+}
+
+fn MirDomInfo_new() -> MirDomInfo {
+    MirDomInfo {
+        idom: Vec_new_i32(),
+        frontier_offsets: Vec_new_i32(),
+        frontier_lengths: Vec_new_i32(),
+        frontier_blocks: Vec_new_i32(),
+    }
+}
+
+fn mir_push_unique_i32(ids: Vec<i32>, block_id: i32) {
+    let pred_count = len(ids)
     let mut i = 0
     while i < pred_count {
-        if get_unchecked(block.preds, i) == pred_id {
+        if get_unchecked(ids, i) == block_id {
             return
         }
         i = i + 1
     }
-    push(block.preds, pred_id)
+    push(ids, block_id)
+}
+
+fn mir_add_block_pred(block: MirBlock, pred_id: i32) {
+    mir_push_unique_i32(block.preds, pred_id)
+}
+
+fn mir_copy_block_ids(ids: Vec<i32>) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let count = len(ids)
+    let mut i = 0
+    while i < count {
+        push(out, get_unchecked(ids, i))
+        i = i + 1
+    }
+    out
+}
+
+fn mir_collect_all_block_ids(f: MirFunction) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let count = len(f.blocks)
+    let mut i = 0
+    while i < count {
+        push(out, i)
+        i = i + 1
+    }
+    out
+}
+
+fn mir_block_ids_contains(ids: Vec<i32>, block_id: i32) -> bool {
+    let count = len(ids)
+    let mut i = 0
+    while i < count {
+        if get_unchecked(ids, i) == block_id {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn mir_same_block_id_set(a: Vec<i32>, b: Vec<i32>) -> bool {
+    let count = len(a)
+    if count != len(b) {
+        return false
+    }
+    let mut i = 0
+    while i < count {
+        if get_unchecked(a, i) != get_unchecked(b, i) {
+            return false
+        }
+        i = i + 1
+    }
+    true
+}
+
+fn mir_intersect_block_id_sets(a: Vec<i32>, b: Vec<i32>) -> Vec<i32> {
+    let out = Vec_new_i32()
+    let count = len(a)
+    let mut i = 0
+    while i < count {
+        let block_id = get_unchecked(a, i)
+        if mir_block_ids_contains(b, block_id) {
+            push(out, block_id)
+        }
+        i = i + 1
+    }
+    out
 }
 
 fn mir_add_pred_edge(f: MirFunction, pred_id: i32, succ_id: i32) {
@@ -194,6 +283,154 @@ fn mir_compute_predecessors(m: MirModule) {
     while i < fn_count {
         let f = get_unchecked(m.functions, i)
         mir_compute_predecessors_for_function(f)
+        i = i + 1
+    }
+}
+
+fn mir_compute_dominance_for_function(f: MirFunction) {
+    mir_compute_predecessors_for_function(f)
+
+    let block_count = len(f.blocks)
+    if block_count == 0 {
+        return
+    }
+
+    let all_block_ids = mir_collect_all_block_ids(f)
+    let mut i = 0
+    while i < block_count {
+        let block = get_unchecked(f.blocks, i)
+        block.idom = 0 - 1
+        block.dom_frontier = Vec_new_i32()
+        if i == 0 {
+            block.dom_set = Vec_new_i32()
+            push(block.dom_set, block.id)
+        } else {
+            block.dom_set = mir_copy_block_ids(all_block_ids)
+        }
+        i = i + 1
+    }
+
+    let mut changed = true
+    while changed {
+        changed = false
+        let mut b = 1
+        while b < block_count {
+            let block = get_unchecked(f.blocks, b)
+            let pred_count = len(block.preds)
+            let mut new_set = Vec_new_i32()
+
+            if pred_count == 0 {
+                push(new_set, block.id)
+            } else {
+                let first_pred = get_unchecked(block.preds, 0)
+                let first_pred_block = get_unchecked(f.blocks, first_pred)
+                new_set = mir_copy_block_ids(first_pred_block.dom_set)
+
+                let mut pred_idx = 1
+                while pred_idx < pred_count {
+                    let pred_id = get_unchecked(block.preds, pred_idx)
+                    let pred_block = get_unchecked(f.blocks, pred_id)
+                    new_set = mir_intersect_block_id_sets(new_set, pred_block.dom_set)
+                    pred_idx = pred_idx + 1
+                }
+            }
+
+            mir_push_unique_i32(new_set, block.id)
+            if !mir_same_block_id_set(block.dom_set, new_set) {
+                block.dom_set = new_set
+                changed = true
+            }
+
+            b = b + 1
+        }
+    }
+
+    i = 0
+    while i < block_count {
+        let block = get_unchecked(f.blocks, i)
+        block.idom = 0 - 1
+        if i != 0 {
+            let strict_count = len(block.dom_set)
+            let mut dom_idx = 0
+            while dom_idx < strict_count {
+                let candidate = get_unchecked(block.dom_set, dom_idx)
+                if candidate != block.id {
+                    let candidate_block = get_unchecked(f.blocks, candidate)
+                    let mut is_idom = true
+                    let mut other_idx = 0
+                    while other_idx < strict_count {
+                        let other = get_unchecked(block.dom_set, other_idx)
+                        if other != block.id && other != candidate {
+                            if !mir_block_ids_contains(candidate_block.dom_set, other) {
+                                is_idom = false
+                            }
+                        }
+                        other_idx = other_idx + 1
+                    }
+                    if is_idom {
+                        block.idom = candidate
+                    }
+                }
+                dom_idx = dom_idx + 1
+            }
+        }
+        i = i + 1
+    }
+
+    i = 0
+    while i < block_count {
+        let block = get_unchecked(f.blocks, i)
+        block.dom_frontier = Vec_new_i32()
+        i = i + 1
+    }
+
+    i = 0
+    while i < block_count {
+        let block = get_unchecked(f.blocks, i)
+        let pred_count = len(block.preds)
+        if pred_count >= 2 {
+            let mut pred_idx = 0
+            while pred_idx < pred_count {
+                let mut runner = get_unchecked(block.preds, pred_idx)
+                while runner >= 0 && runner != block.idom {
+                    let runner_block = get_unchecked(f.blocks, runner)
+                    mir_push_unique_i32(runner_block.dom_frontier, block.id)
+                    runner = runner_block.idom
+                }
+                pred_idx = pred_idx + 1
+            }
+        }
+        i = i + 1
+    }
+}
+
+fn mir_collect_dom_info_for_function(f: MirFunction) -> MirDomInfo {
+    let info = MirDomInfo_new()
+    let block_count = len(f.blocks)
+    let mut i = 0
+    while i < block_count {
+        let block = get_unchecked(f.blocks, i)
+        push(info.idom, block.idom)
+        push(info.frontier_offsets, len(info.frontier_blocks))
+        push(info.frontier_lengths, len(block.dom_frontier))
+
+        let frontier_count = len(block.dom_frontier)
+        let mut j = 0
+        while j < frontier_count {
+            push(info.frontier_blocks, get_unchecked(block.dom_frontier, j))
+            j = j + 1
+        }
+        i = i + 1
+    }
+    info
+}
+
+fn mir_compute_dominance(m: MirModule) {
+    let fn_count = len(m.functions)
+    let mut i = 0
+    while i < fn_count {
+        let f = get_unchecked(m.functions, i)
+        mir_compute_dominance_for_function(f)
         i = i + 1
     }
 }
@@ -2669,14 +2906,14 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
         i = i + 1
     }
 
-    mir_compute_predecessors(ctx.module)
+    mir_compute_dominance(ctx.module)
     ctx.module
 }
 
 // ── MIR Dump ─────────────────────────────────────────────────────────────────
 
 pub fn dump_mir(m: MirModule) {
-    mir_compute_predecessors(m)
+    mir_compute_dominance(m)
     let fn_count = len(m.functions)
     stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
     let mut i = 0
@@ -2689,7 +2926,7 @@ pub fn dump_mir(m: MirModule) {
         while b < block_count {
             let block = get_unchecked(f.blocks, b)
             let inst_count = len(block.instructions)
-            stdio::eprintln(concat(String_from("    bb"), concat(to_string(b), concat(String_from(": "), concat(to_string(inst_count), concat(String_from(" instructions succs="), concat(mir_format_edges(block.succ0, block.succ1), concat(String_from(" preds="), mir_format_block_ids(block.preds)))))))))
+            stdio::eprintln(concat(String_from("    bb"), concat(to_string(b), concat(String_from(": "), concat(to_string(inst_count), concat(String_from(" instructions succs="), concat(mir_format_edges(block.succ0, block.succ1), concat(String_from(" preds="), concat(mir_format_block_ids(block.preds), concat(String_from(" idom="), concat(mir_format_edge(block.idom), concat(String_from(" df="), mir_format_block_ids(block.dom_frontier)))))))))))))
             let mut j = 0
             while j < inst_count {
                 let inst = get_unchecked(block.instructions, j)
@@ -2793,6 +3030,35 @@ fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected
     }
 }
 
+fn mir_expect_idom(f: MirFunction, block_id: i32, expected_idom: i32) {
+    let block = get_unchecked(f.blocks, block_id)
+    if block.idom != expected_idom {
+        let msg = concat(String_from("idom check failed for bb"), concat(to_string(block_id), concat(String_from(": expected="), concat(mir_format_edge(expected_idom), concat(String_from(" actual="), mir_format_edge(block.idom))))) )
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
+fn mir_expect_frontier(f: MirFunction, block_id: i32, expected_count: i32, expected0: i32, expected1: i32) {
+    let block = get_unchecked(f.blocks, block_id)
+    let actual_count = len(block.dom_frontier)
+    if actual_count != expected_count {
+        let msg = concat(String_from("frontier check failed for bb"), concat(to_string(block_id), concat(String_from(": expected count="), concat(to_string(expected_count), concat(String_from(" actual="), concat(to_string(actual_count), concat(String_from(" frontier="), mir_format_block_ids(block.dom_frontier))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 0 && get_unchecked(block.dom_frontier, 0) != expected0 {
+        let msg = concat(String_from("frontier check failed for bb"), concat(to_string(block_id), concat(String_from(": expected frontier="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), mir_format_block_ids(block.dom_frontier)))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 1 && get_unchecked(block.dom_frontier, 1) != expected1 {
+        let msg = concat(String_from("frontier check failed for bb"), concat(to_string(block_id), concat(String_from(": expected frontier="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), mir_format_block_ids(block.dom_frontier)))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -2827,11 +3093,25 @@ fn main() {
     emit_inst(f, join_bb, MirInst_binop(MIR_ADD(), tmp, pa, pb))
     emit_inst(f, join_bb, MirInst_new(MIR_RETURN()))
 
-    mir_compute_predecessors_for_function(f)
+    mir_compute_dominance_for_function(f)
     mir_expect_preds(f, entry, 0, 0, 0)
     mir_expect_preds(f, then_bb, 1, entry, 0)
     mir_expect_preds(f, else_bb, 1, entry, 0)
     mir_expect_preds(f, join_bb, 2, then_bb, else_bb)
+    mir_expect_idom(f, entry, 0 - 1)
+    mir_expect_idom(f, then_bb, entry)
+    mir_expect_idom(f, else_bb, entry)
+    mir_expect_idom(f, join_bb, entry)
+    mir_expect_frontier(f, entry, 0, 0, 0)
+    mir_expect_frontier(f, then_bb, 1, join_bb, 0)
+    mir_expect_frontier(f, else_bb, 1, join_bb, 0)
+    mir_expect_frontier(f, join_bb, 0, 0, 0)
+
+    let dom_info = mir_collect_dom_info_for_function(f)
+    if len(dom_info.idom) != 4 {
+        stdio::eprintln(String_from("dominance snapshot check failed: expected 4 idom entries"))
+        process::exit(1)
+    }
 
     push(m.functions, f)
 
@@ -2845,5 +3125,6 @@ fn main() {
 
     dump_mir(m)
     stdio::println(String_from("MIR predecessor self-check OK."))
+    stdio::println(String_from("MIR dominance self-check OK."))
     stdio::println(String_from("MIR module OK."))
 }
