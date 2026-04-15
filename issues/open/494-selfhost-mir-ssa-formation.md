@@ -1,6 +1,6 @@
 # 494 — Selfhost MIR: SSA formation pass
 
-**Status**: blocked-by-upstream
+**Status**: open
 **Created**: 2026-04-14
 **Updated**: 2026-04-15
 **ID**: 494
@@ -18,7 +18,13 @@ MIR pipeline.
 ## Depends on
 
 - #493 (selfhost MIR control-flow coverage)
-- **#503 (selfhost MIR CFG + dominance-frontier infrastructure) — BLOCKING**
+- #503 (selfhost MIR CFG + dominance-frontier infrastructure) — completed 2026-04-15
+
+## Unblocked by 503 completion — 2026-04-15
+
+Issue #503 now provides predecessor lists, immediate-dominator state, and
+dominance-frontier data in `src/compiler/mir.ark`. This issue can proceed to the
+remaining SSA-specific work: phi-node representation, insertion, and renaming.
 
 ## Primary paths
 
