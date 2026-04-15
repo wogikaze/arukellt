@@ -5,11 +5,24 @@
 
 use ark_mir::mir::*;
 use ark_typecheck::types::Type;
+use std::collections::BTreeMap;
 use wasm_encoder::{HeapType, Instruction, MemArg, RefType as WasmRefType, ValType};
 
 use super::i31ref as i31;
 use super::peephole::PeepholeWriter;
 use super::{Ctx, SCRATCH, normalize_intrinsic, ref_nullable};
+
+struct EnumDispatchArm<'a> {
+    tag: u32,
+    body: &'a [MirStmt],
+}
+
+struct LinearEnumDispatch<'a> {
+    enum_local: LocalId,
+    variant_count: usize,
+    explicit_arms: Vec<EnumDispatchArm<'a>>,
+    default_body: Option<&'a [MirStmt]>,
+}
 
 impl Ctx {
     pub(super) fn emit_stmt(&mut self, f: &mut PeepholeWriter<'_>, stmt: &MirStmt) {
@@ -269,6 +282,13 @@ impl Ctx {
                     }
                     return;
                 }
+                if self.opt_level >= 1
+                    && let Some(dispatch) =
+                        self.match_linear_enum_dispatch(cond, then_body, else_body)
+                {
+                    self.emit_linear_enum_dispatch(f, &dispatch);
+                    return;
+                }
                 self.emit_operand(f, cond);
                 f.instruction(&Instruction::If(wasm_encoder::BlockType::Empty));
                 self.loop_break_extra_depth += 1;
@@ -420,6 +440,176 @@ impl Ctx {
         stmts.iter().any(Self::stmt_always_returns)
     }
 
+    fn match_linear_enum_dispatch<'a>(
+        &self,
+        cond: &'a Operand,
+        then_body: &'a [MirStmt],
+        else_body: &'a [MirStmt],
+    ) -> Option<LinearEnumDispatch<'a>> {
+        let mut enum_local = None;
+        let mut variant_count = None;
+        let mut explicit_arms = Vec::new();
+        let mut current_cond = cond;
+        let mut current_then_body = then_body;
+        let mut current_else_body = else_body;
+
+        loop {
+            let (local_id, enum_variants, tag) = self.match_enum_tag_eq_cond(current_cond)?;
+            match enum_local {
+                Some(existing) if existing != local_id => return None,
+                None => enum_local = Some(local_id),
+                _ => {}
+            }
+            match variant_count {
+                Some(existing) if existing != enum_variants => return None,
+                None => variant_count = Some(enum_variants),
+                _ => {}
+            }
+            explicit_arms.push(EnumDispatchArm {
+                tag,
+                body: current_then_body,
+            });
+
+            if current_else_body.is_empty() {
+                break;
+            }
+            if let [
+                MirStmt::IfStmt {
+                    cond,
+                    then_body,
+                    else_body,
+                },
+            ] = current_else_body
+            {
+                current_cond = cond;
+                current_then_body = then_body;
+                current_else_body = else_body;
+                continue;
+            }
+            break;
+        }
+
+        if explicit_arms.len() < 3 {
+            return None;
+        }
+
+        let variant_count = variant_count?;
+        if variant_count == 0 {
+            return None;
+        }
+
+        let mut seen = BTreeMap::new();
+        for arm in explicit_arms {
+            if arm.tag as usize >= variant_count {
+                return None;
+            }
+            if seen.insert(arm.tag, arm.body).is_some() {
+                return None;
+            }
+        }
+
+        let default_body = if current_else_body.is_empty() {
+            None
+        } else {
+            Some(current_else_body)
+        };
+        if default_body.is_none() && seen.len() != variant_count {
+            return None;
+        }
+
+        let explicit_arms = seen
+            .into_iter()
+            .map(|(tag, body)| EnumDispatchArm { tag, body })
+            .collect();
+
+        Some(LinearEnumDispatch {
+            enum_local: enum_local?,
+            variant_count,
+            explicit_arms,
+            default_body,
+        })
+    }
+
+    fn match_enum_tag_eq_cond(&self, cond: &Operand) -> Option<(LocalId, usize, u32)> {
+        if let Operand::BinOp(BinOp::Eq, lhs, rhs) = cond {
+            self.match_enum_tag_eq_operands(lhs, rhs)
+                .or_else(|| self.match_enum_tag_eq_operands(rhs, lhs))
+        } else {
+            None
+        }
+    }
+
+    fn match_enum_tag_eq_operands(
+        &self,
+        tag_operand: &Operand,
+        value_operand: &Operand,
+    ) -> Option<(LocalId, usize, u32)> {
+        let Operand::EnumTag(inner) = tag_operand else {
+            return None;
+        };
+        let Operand::ConstI32(tag) = value_operand else {
+            return None;
+        };
+        let tag = u32::try_from(*tag).ok()?;
+        let Operand::Place(Place::Local(local_id)) = inner.as_ref() else {
+            return None;
+        };
+        let enum_name = self.infer_enum_name(inner.as_ref());
+        let variant_count = self.enum_defs.get(enum_name.as_str())?.len();
+        Some((*local_id, variant_count, tag))
+    }
+
+    fn emit_linear_enum_dispatch(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        dispatch: &LinearEnumDispatch<'_>,
+    ) {
+        let explicit_count = dispatch.explicit_arms.len();
+        let default_target = explicit_count as u32;
+        let body_count = explicit_count + 1;
+        let mut table_targets = vec![default_target; dispatch.variant_count];
+        for (index, arm) in dispatch.explicit_arms.iter().enumerate() {
+            table_targets[arm.tag as usize] = index as u32;
+        }
+
+        self.emit_operand(
+            f,
+            &Operand::EnumTag(Box::new(Operand::Place(Place::Local(dispatch.enum_local)))),
+        );
+        f.instruction(&Instruction::LocalSet(self.si(9)));
+
+        f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        for _ in 0..body_count {
+            f.instruction(&Instruction::Block(wasm_encoder::BlockType::Empty));
+        }
+        f.instruction(&Instruction::LocalGet(self.si(9)));
+        f.instruction(&Instruction::BrTable(
+            std::borrow::Cow::Owned(table_targets),
+            default_target,
+        ));
+
+        let saved_depth = self.loop_break_extra_depth;
+        for (index, arm) in dispatch.explicit_arms.iter().enumerate() {
+            f.instruction(&Instruction::End);
+            self.loop_break_extra_depth = saved_depth + (body_count - index) as u32;
+            for stmt in arm.body {
+                self.emit_stmt(f, stmt);
+            }
+            self.loop_break_extra_depth = saved_depth;
+            f.instruction(&Instruction::Br((body_count - index - 1) as u32));
+        }
+
+        f.instruction(&Instruction::End);
+        self.loop_break_extra_depth = saved_depth + 1;
+        if let Some(default_body) = dispatch.default_body {
+            for stmt in default_body {
+                self.emit_stmt(f, stmt);
+            }
+        }
+        self.loop_break_extra_depth = saved_depth;
+        f.instruction(&Instruction::End);
+    }
+
     fn stmt_always_returns(stmt: &MirStmt) -> bool {
         match stmt {
             MirStmt::Return(_) => true,
@@ -492,6 +682,9 @@ impl Ctx {
                 | "proc_exit"
                 | "process_exit"
                 | "process_abort"
+                | "fd_seek"
+                | "fd_tell"
+                | "fd_fdstat_get"
                 | "args"
                 | "HashMap_new_i32_i32"
                 | "HashMap_new_i32_String"
@@ -1265,6 +1458,55 @@ impl Ctx {
                 f.instruction(&Instruction::I32Const(134));
                 f.instruction(&Instruction::Call(self.wasi_proc_exit));
                 f.instruction(&Instruction::Unreachable);
+            }
+            "fd_seek" => {
+                // WASI fd_seek(fd, offset, whence, newoffset_ptr) -> errno
+                self.emit_operand(f, &args[0]); // fd
+                self.emit_operand(f, &args[1]); // offset (i64)
+                self.emit_operand(f, &args[2]); // whence
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_fd_seek));
+                f.instruction(&Instruction::Drop); // drop errno
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "fd_tell" => {
+                // WASI fd_tell(fd, offset_ptr) -> errno
+                self.emit_operand(f, &args[0]); // fd
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_fd_tell));
+                f.instruction(&Instruction::Drop); // drop errno
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
+            }
+            "fd_fdstat_get" => {
+                // WASI fd_fdstat_get(fd, stat_ptr) -> errno
+                self.emit_operand(f, &args[0]); // fd
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_fd_fdstat_get));
+                if let Some(Place::Local(id)) = dest {
+                    f.instruction(&Instruction::LocalSet(self.local_wasm_idx(id.0)));
+                } else {
+                    f.instruction(&Instruction::Drop);
+                }
             }
             "args" => {
                 self.emit_args_builtin(f);
@@ -2052,6 +2294,37 @@ impl Ctx {
                 f.instruction(&Instruction::F64ConvertI64U);
                 f.instruction(&Instruction::F64Const((1u64 << 53) as f64));
                 f.instruction(&Instruction::F64Div);
+            }
+            "fd_seek" => {
+                self.emit_operand(f, &args[0]);
+                self.emit_operand(f, &args[1]);
+                self.emit_operand(f, &args[2]);
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_fd_seek));
+                f.instruction(&Instruction::Drop);
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+            }
+            "fd_tell" => {
+                self.emit_operand(f, &args[0]);
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_fd_tell));
+                f.instruction(&Instruction::Drop);
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::I64Load(MemArg {
+                    offset: 0,
+                    align: 3,
+                    memory_index: 0,
+                }));
+            }
+            "fd_fdstat_get" => {
+                self.emit_operand(f, &args[0]);
+                f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                f.instruction(&Instruction::Call(self.wasi_fd_fdstat_get));
             }
             "arg_count" => {
                 self.emit_arg_count_builtin(f);

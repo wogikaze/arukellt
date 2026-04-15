@@ -2999,8 +2999,8 @@ impl Ctx {
 mod tests {
     use ark_diagnostics::DiagnosticSink;
     use ark_mir::mir::{
-        BasicBlock, BlockId, FnId, InstanceKey, MirFnSig, MirFunction, MirModule, Operand,
-        SourceInfo, Terminator,
+        BasicBlock, BinOp, BlockId, FnId, InstanceKey, LocalId, MirFnSig, MirFunction, MirLocal,
+        MirModule, MirStmt, Operand, Place, Rvalue, SourceInfo, Terminator,
     };
     use ark_typecheck::types::Type;
     use wasmparser::{BlockType, Operator, Parser, Payload};
@@ -3026,6 +3026,134 @@ mod tests {
             source: SourceInfo::unknown(),
             is_exported: false,
         }
+    }
+
+    fn count_br_tables(wasm: &[u8]) -> usize {
+        let mut count = 0;
+        for payload in Parser::new(0).parse_all(wasm) {
+            let Ok(payload) = payload else {
+                continue;
+            };
+            if let Payload::CodeSectionEntry(body) = payload {
+                let mut reader = body.get_operators_reader().expect("operators reader");
+                while !reader.eof() {
+                    if matches!(reader.read().expect("operator"), Operator::BrTable { .. }) {
+                        count += 1;
+                    }
+                }
+            }
+        }
+        count
+    }
+
+    fn make_enum_dispatch_module(mismatch_last_arm: bool) -> MirModule {
+        let mut mir = MirModule::new();
+        let enum_variants = vec![
+            ("Red".to_string(), vec![]),
+            ("Yellow".to_string(), vec![]),
+            ("Green".to_string(), vec![]),
+        ];
+        mir.enum_defs
+            .insert("Traffic".to_string(), enum_variants.clone());
+        mir.type_table
+            .enum_defs
+            .insert("Traffic".to_string(), enum_variants);
+
+        let branch_body = |value: i32| {
+            vec![MirStmt::Assign(
+                Place::Local(LocalId(1)),
+                Rvalue::Use(Operand::ConstI32(value)),
+            )]
+        };
+
+        let last_cond = if mismatch_last_arm {
+            Operand::BinOp(
+                BinOp::Eq,
+                Box::new(Operand::EnumTag(Box::new(Operand::Place(Place::Local(
+                    LocalId(0),
+                ))))),
+                Box::new(Operand::ConstI32(2)),
+            )
+        } else {
+            Operand::BinOp(
+                BinOp::Eq,
+                Box::new(Operand::EnumTag(Box::new(Operand::Place(Place::Local(
+                    LocalId(0),
+                ))))),
+                Box::new(Operand::ConstI32(1)),
+            )
+        };
+
+        let stmts = vec![
+            MirStmt::Assign(
+                Place::Local(LocalId(0)),
+                Rvalue::Use(Operand::EnumInit {
+                    enum_name: "Traffic".to_string(),
+                    variant: "Yellow".to_string(),
+                    tag: 1,
+                    payload: vec![],
+                }),
+            ),
+            MirStmt::IfStmt {
+                cond: Operand::BinOp(
+                    BinOp::Eq,
+                    Box::new(Operand::EnumTag(Box::new(Operand::Place(Place::Local(
+                        LocalId(0),
+                    ))))),
+                    Box::new(Operand::ConstI32(2)),
+                ),
+                then_body: branch_body(30),
+                else_body: vec![MirStmt::IfStmt {
+                    cond: Operand::BinOp(
+                        BinOp::Eq,
+                        Box::new(Operand::EnumTag(Box::new(Operand::Place(Place::Local(
+                            LocalId(0),
+                        ))))),
+                        Box::new(Operand::ConstI32(0)),
+                    ),
+                    then_body: branch_body(10),
+                    else_body: vec![MirStmt::IfStmt {
+                        cond: last_cond,
+                        then_body: branch_body(20),
+                        else_body: vec![],
+                    }],
+                }],
+            },
+        ];
+
+        mir.functions.push(MirFunction {
+            id: FnId(0),
+            name: "dispatch".to_string(),
+            instance: InstanceKey::simple("dispatch"),
+            params: Vec::new(),
+            return_ty: Type::I32,
+            locals: vec![
+                MirLocal {
+                    id: LocalId(0),
+                    name: Some("signal".to_string()),
+                    ty: Type::Any,
+                },
+                MirLocal {
+                    id: LocalId(1),
+                    name: Some("result".to_string()),
+                    ty: Type::I32,
+                },
+            ],
+            blocks: vec![BasicBlock {
+                id: BlockId(0),
+                stmts,
+                terminator: Terminator::Return(Some(Operand::Place(Place::Local(LocalId(1))))),
+                source: SourceInfo::unknown(),
+            }],
+            entry: BlockId(0),
+            struct_typed_locals: Default::default(),
+            enum_typed_locals: [(0, "Traffic".to_string())].into_iter().collect(),
+            type_params: Vec::new(),
+            source: SourceInfo::unknown(),
+            is_exported: false,
+        });
+        mir.entry_fn = Some(FnId(0));
+        mir
     }
 
     /// Verify that `Terminator::TailCallIndirect { callee: FnRef(name), args }` causes the
@@ -3230,6 +3358,32 @@ mod tests {
         assert_eq!(
             struct_new_count, 1,
             "expected tuple-valued if-expression to materialize the tuple only once after the block"
+        );
+    }
+
+    #[test]
+    fn enum_if_chain_emits_br_table_at_o1() {
+        let mir = make_enum_dispatch_module(false);
+        let mut sink = DiagnosticSink::new();
+        let wasm = super::super::emit(&mir, &mut sink, 1, true);
+
+        assert_eq!(
+            count_br_tables(&wasm),
+            1,
+            "expected exactly one br_table for a 3-arm linear enum dispatch at opt_level=1"
+        );
+    }
+
+    #[test]
+    fn enum_if_chain_falls_back_when_pattern_does_not_match() {
+        let mir = make_enum_dispatch_module(true);
+        let mut sink = DiagnosticSink::new();
+        let wasm = super::super::emit(&mir, &mut sink, 1, true);
+
+        assert_eq!(
+            count_br_tables(&wasm),
+            0,
+            "non-matching enum IfStmt chains must keep the existing if/else lowering"
         );
     }
 }
