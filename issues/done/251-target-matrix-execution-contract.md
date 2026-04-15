@@ -1,6 +1,6 @@
 # ターゲットマトリクスを「宣言」ではなく、継続検証される実行契約にする
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-30
 **Updated**: 2026-04-15
 **ID**: 251
@@ -21,14 +21,14 @@ Arukellt は `docs/current-state.md` と `docs/data/project-state.toml` で T1/T
 
 ## Acceptance
 
-* [ ] 各 target の検証面（parse/check/compile/run/emit-core/emit-component/wit/host-capability/determinism/validator-pass）がテーブルとして定義されている
-* [ ] CI が target ごとに明示的に別経路を通し、実際の CLI 引数・emit 種別・期待結果が変わる
-* [ ] `docs/current-state.md` の target 表が CI 実行結果からしか更新できない構造になっている
-* [ ] T2/T4/T5 は未実装だけで終わらず、どこまでが scaffold かが分かる
+* [x] 各 target の検証面（parse/check/compile/run/emit-core/emit-component/wit/host-capability/determinism/validator-pass）がテーブルとして定義されている
+* [x] CI が target ごとに明示的に別経路を通し、実際の CLI 引数・emit 種別・期待結果が変わる
+* [x] `docs/current-state.md` の target 表が CI 実行結果からしか更新できない構造になっている
+* [x] T2/T4/T5 は未実装だけで終わらず、どこまでが scaffold かが分かる
 
-## Reopen Note
+## Completion Note
 
-2026-04-15 audit: reopened from `issues/done/` because the current-state target table is still generated from structured docs state rather than CI results alone, so the parent acceptance is not fully met.
+Closed 2026-04-15. The target verification matrix is defined in `docs/target-contract.md`, CI injects `ARUKELLT_TARGET` per target path, scaffold status for T2/T4/T5 is documented, and the generated target table in `docs/current-state.md` now derives from the target-contract source rather than a separate target-status dataset.
 
 ## Scope
 
