@@ -16,7 +16,7 @@
 
 ## Parent note — 2026-04-15
 
-The remaining `--wit` pipeline gap is tracked concretely in [#028b](028b-wit-import-pipeline-wiring.md).
+The remaining `--wit` pipeline gap is tracked concretely in [#028b](../done/028b-wit-import-pipeline-wiring.md).
 Treat this issue as blocked on #028b for the import-binding path; other CLI/docs claims still
 require evidence review before close.
 
