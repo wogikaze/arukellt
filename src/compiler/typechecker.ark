@@ -102,6 +102,7 @@ struct TypeEnv {
     errors: Vec<String>,
     error_count: i32,
     mono_instances: Vec<MonoInstance>,
+    trait_impls: Vec<TraitImplInfo>,
 }
 
 fn TypeEnv_new() -> TypeEnv {
@@ -111,7 +112,13 @@ fn TypeEnv_new() -> TypeEnv {
         errors: Vec_new_String(),
         error_count: 0,
         mono_instances: Vec_new_MonoInstance(),
+        trait_impls: Vec_new_TraitImplInfo(),
     }
+}
+
+struct TraitImplInfo {
+    trait_name: String,
+    self_ty: TypeInfo,
 }
 
 // ── Monomorphization Instance Tracking ──────────────────────────────────────
@@ -272,6 +279,57 @@ fn type_tag_name(tag: i32) -> String {
     String_from("?")
 }
 
+fn type_display_name(ty: TypeInfo) -> String {
+    if !eq(clone(ty.name), String_from("")) {
+        return clone(ty.name)
+    }
+    type_tag_name(ty.tag)
+}
+
+fn same_named_type(a: TypeInfo, b: TypeInfo) -> bool {
+    if a.tag != b.tag { return false }
+    if !eq(clone(a.name), String_from("")) || !eq(clone(b.name), String_from("")) {
+        return eq(clone(a.name), clone(b.name))
+    }
+    true
+}
+
+fn register_trait_impl(env: TypeEnv, trait_name: String, self_ty: TypeInfo) {
+    let count = len(env.trait_impls)
+    let mut i = 0
+    while i < count {
+        let existing = get_unchecked(env.trait_impls, i)
+        if eq(clone(existing.trait_name), clone(trait_name)) && same_named_type(existing.self_ty, self_ty) {
+            return
+        }
+        i = i + 1
+    }
+    push(env.trait_impls, TraitImplInfo { trait_name: trait_name, self_ty: self_ty })
+}
+
+fn type_satisfies_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) -> bool {
+    let resolved_ty = resolve_type(env, ty)
+    if resolved_ty.tag == TY_TYPE_VAR() { return true }
+
+    let count = len(env.trait_impls)
+    let mut i = 0
+    while i < count {
+        let impl_info = get_unchecked(env.trait_impls, i)
+        if eq(clone(impl_info.trait_name), clone(bound.name)) && same_named_type(impl_info.self_ty, resolved_ty) {
+            return true
+        }
+        i = i + 1
+    }
+    false
+}
+
+fn enforce_trait_bound(env: TypeEnv, ty: TypeInfo, bound: TypeInfo) {
+    if type_satisfies_trait_bound(env, ty, bound) { return }
+    let ty_name = type_display_name(resolve_type(env, ty))
+    let bound_name = type_display_name(bound)
+    type_error(env, concat(String_from("trait bound not satisfied: "), concat(ty_name, concat(String_from(" does not implement "), bound_name))))
+}
+
 // ── Type Annotation Resolution ───────────────────────────────────────────────
 
 fn resolve_type_name(name: String) -> TypeInfo {
@@ -340,6 +398,11 @@ fn resolve_type_name_generic(name: String, type_params: Vec<String>) -> TypeInfo
     resolve_type_name(name)
 }
 
+struct TypeParamBounds {
+    name: String,
+    bounds: Vec<TypeInfo>,
+}
+
 fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
     let count = len(fn_sigs)
     let mut i = 0
@@ -350,7 +413,88 @@ fn lookup_fn_sig(fn_sigs: Vec<FnSig>, name: String) -> FnSig {
         }
         i = i + 1
     }
-    FnSig { name: String_new(), param_types: Vec_new_TypeInfo(), return_type: TypeInfo_simple(TY_UNKNOWN()), type_params: Vec_new_String() }
+    FnSig {
+        name: String_new(),
+        param_types: Vec_new_TypeInfo(),
+        return_type: TypeInfo_simple(TY_UNKNOWN()),
+        type_params: Vec_new_String(),
+        type_param_bounds: Vec_new_TypeParamBounds(),
+    }
+}
+
+fn collect_type_param_bounds(type_ann: Vec<AstNode>) -> Vec<TypeParamBounds> {
+    let infos = Vec_new_TypeParamBounds()
+    let ann_count = len(type_ann)
+    let mut i = 0
+    while i < ann_count {
+        let ann = get_unchecked(type_ann, i)
+        if !eq(clone(ann.text), String_from("__return")) {
+            let info = TypeParamBounds {
+                name: clone(ann.text),
+                bounds: Vec_new_TypeInfo(),
+            }
+            let child_count = len(ann.children)
+            let mut j = 0
+            while j < child_count {
+                let bound_node = get_unchecked(ann.children, j)
+                push(info.bounds, resolve_type_ann_node(bound_node))
+                j = j + 1
+            }
+            push(infos, info)
+        }
+        i = i + 1
+    }
+    infos
+}
+
+fn collect_type_param_names(bound_infos: Vec<TypeParamBounds>) -> Vec<String> {
+    let names = Vec_new_String()
+    let count = len(bound_infos)
+    let mut i = 0
+    while i < count {
+        let info = get_unchecked(bound_infos, i)
+        push(names, clone(info.name))
+        i = i + 1
+    }
+    names
+}
+
+fn maybe_register_impl_decl(env: TypeEnv, node: AstNode) {
+    if node.kind == NK_FN_DECL() { return }
+    if eq(clone(node.text), String_from("")) { return }
+    if len(node.type_ann) < 1 { return }
+
+    let child_count = len(node.children)
+    if child_count < 1 { return }
+
+    let mut i = 0
+    while i < child_count {
+        let child = get_unchecked(node.children, i)
+        if child.kind != NK_FN_DECL() {
+            return
+        }
+        i = i + 1
+    }
+
+    let self_ty_node = get_unchecked(node.type_ann, 0)
+    register_trait_impl(env, clone(node.text), resolve_type_ann_node(self_ty_node))
+}
+
+fn enforce_fn_sig_bounds(env: TypeEnv, infer_env: TypeEnv, sig: FnSig, var_types: Vec<TypeInfo>) {
+    let tp_count = len(sig.type_param_bounds)
+    let mut i = 0
+    while i < tp_count {
+        let tp = get_unchecked(sig.type_param_bounds, i)
+        let resolved_ty = resolve_type(infer_env, get_unchecked(var_types, i))
+        let bound_count = len(tp.bounds)
+        let mut j = 0
+        while j < bound_count {
+            let bound = get_unchecked(tp.bounds, j)
+            enforce_trait_bound(env, resolved_ty, bound)
+            j = j + 1
+        }
+        i = i + 1
+    }
 }
 
 fn instantiate_type(ty: TypeInfo, names: Vec<String>, types: Vec<TypeInfo>) -> TypeInfo {
@@ -382,6 +526,7 @@ struct FnSig {
     param_types: Vec<TypeInfo>,
     return_type: TypeInfo,
     type_params: Vec<String>,
+    type_param_bounds: Vec<TypeParamBounds>,
 }
 
 struct StructInfo {
@@ -577,6 +722,7 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
             push(resolved_type_args, resolved_tv)
             rv = rv + 1
         }
+        enforce_fn_sig_bounds(env, infer_env, sig, var_types)
         record_mono_instance(env, clone(callee.text), resolved_type_args)
         return ret_ty
     }
@@ -710,17 +856,9 @@ fn check_stmt(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
 fn check_fn_body(env: TypeEnv, fn_sigs: Vec<FnSig>, fn_node: AstNode) {
     let scope = LocalScope_new()
 
-    // Collect generic type param names from type_ann (entries that are not __return)
-    let type_params = Vec_new_String()
-    let ann_count = len(fn_node.type_ann)
-    let mut j = 0
-    while j < ann_count {
-        let ann = get_unchecked(fn_node.type_ann, j)
-        if !eq(clone(ann.text), "__return") {
-            push(type_params, clone(ann.text))
-        }
-        j = j + 1
-    }
+    // Collect generic type param names and bounds from type annotations.
+    let type_param_bounds = collect_type_param_bounds(fn_node.type_ann)
+    let type_params = collect_type_param_names(type_param_bounds)
 
     // Register parameter types from children (all except last child = body block)
     let child_count = len(fn_node.children)
@@ -772,23 +910,24 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
 
     let decl_count = len(decls)
 
-    // Pass 1: Build function signature registry (needed for call-site inference)
-    let fn_sigs = Vec_new_FnSig()
     let mut i = 0
     while i < decl_count {
         let node = get_unchecked(decls, i)
+        maybe_register_impl_decl(env, node)
+        i = i + 1
+    }
+
+    // Pass 1: Build function signature registry (needed for call-site inference)
+    let fn_sigs = Vec_new_FnSig()
+    i = 0
+    while i < decl_count {
+        let node = get_unchecked(decls, i)
         if node.kind == NK_FN_DECL() {
-            // Collect generic type param names from type_ann
-            let type_params = Vec_new_String()
+            // Collect generic type param names and bounds from type annotations.
+            let type_param_bounds = collect_type_param_bounds(node.type_ann)
+            let type_params = collect_type_param_names(type_param_bounds)
             let ann_count = len(node.type_ann)
             let mut j = 0
-            while j < ann_count {
-                let ann = get_unchecked(node.type_ann, j)
-                if !eq(clone(ann.text), "__return") {
-                    push(type_params, clone(ann.text))
-                }
-                j = j + 1
-            }
 
             // Extract parameter types from children (all except last = body block)
             let param_types = Vec_new_TypeInfo()
@@ -826,6 +965,7 @@ pub fn typecheck_module(decls: Vec<AstNode>, resolve_ctx: ResolveCtx) -> TypeChe
                 param_types: param_types,
                 return_type: return_type,
                 type_params: type_params,
+                type_param_bounds: type_param_bounds,
             })
         }
         i = i + 1

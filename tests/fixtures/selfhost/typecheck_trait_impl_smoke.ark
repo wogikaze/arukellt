@@ -1,0 +1,23 @@
+use std::host::stdio
+
+struct MyStruct {
+    value: i32,
+}
+
+trait Foo {
+    fn id(x: MyStruct) -> i32
+}
+
+impl Foo for MyStruct {
+    fn id(x: MyStruct) -> i32 { x.value }
+}
+
+fn take_foo<T: Foo>(x: T) -> T {
+    x
+}
+
+fn main() {
+    let item = take_foo(MyStruct { value: 7 })
+    stdio::println(to_string(item.value))
+    stdio::println(String_from("issue504 trait impl ok"))
+}
