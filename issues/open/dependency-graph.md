@@ -16,7 +16,6 @@ graph LR
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
   I096["096 コンパイル速度: 未使用 stdlib 関数の遅延解決 (lazy-resolve)"]
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
-  I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
   I170["170 v5 Migration guide"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
@@ -94,7 +93,6 @@ graph LR
 - **095** depends on: none; blocks: none
 - **096** depends on: none; blocks: none
 - **099** depends on: none; blocks: none
-- **120** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
 - **170** depends on: 165, 166, 169; blocks: none
 - **194** depends on: 193; blocks: none
