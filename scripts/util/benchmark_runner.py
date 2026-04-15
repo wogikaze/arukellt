@@ -154,6 +154,13 @@ MODE_PRESETS: dict[str, dict[str, Any]] = {
         "runtime_latency_iterations": 5,
         "description": "measure compile/runtime latency at 3 input-size points (10%, 50%, 100%) to detect scaling cliffs",
     },
+    "trend": {
+        "compile_iterations": 1,
+        "runtime_iterations": 1,
+        "runtime_warmups": 0,
+        "runtime_latency_iterations": 5,
+        "description": "show trend report from historical results (no new benchmark run)",
+    },
 }
 
 
@@ -1198,6 +1205,172 @@ def _run_scaling(args: argparse.Namespace) -> None:
         sys.stdout.write(json.dumps(report, indent=2) + "\n")
 
 
+def render_trend_report(
+    history: list[dict[str, Any]],
+    mode: str,
+    target: str,
+    n: int = HISTORY_N,
+) -> str:
+    """Render a human-readable time-series trend report from historical benchmark data.
+
+    Shows per-benchmark time-series tables (compile_ms, run_ms, binary_bytes)
+    and trend labels (improving / stable / degrading) for each metric.
+    Includes a moving median summary at the end.
+    """
+    lines: list[str] = []
+    lines.append("\u2550" * 50)
+    lines.append(" Arukellt Benchmark Trend Report")
+    lines.append("\u2550" * 50)
+
+    if not history:
+        lines.append(f"No history found for mode={mode}, target={target}.")
+        lines.append("Run benchmarks first to build history:")
+        lines.append("  python3 scripts/util/benchmark_runner.py --mode full")
+        return "\n".join(lines) + "\n"
+
+    window = history[:n]
+    lines.append(f"History  : {len(window)} run(s)  mode={mode}  target={target}")
+    lines.append(f"Directory: {rel(RESULTS_DIR)}")
+    lines.append("")
+
+    # Collect all benchmark names across runs
+    bench_names: list[str] = []
+    for run in window:
+        for b in run.get("benchmarks", []):
+            if b["name"] not in bench_names:
+                bench_names.append(b["name"])
+    bench_names.sort()
+
+    METRIC_COLS = [
+        ("compile_ms",   "compile_ms",    12),
+        ("run_ms",       "run_ms",        10),
+        ("binary_bytes", "binary_bytes",  14),
+    ]
+
+    for bname in bench_names:
+        sep = "\u2500" * max(0, 44 - len(bname))
+        lines.append(f"\u2500\u2500 {bname} {sep}")
+        lines.append(
+            f"  {'Timestamp':<22}"
+            f"  {'compile_ms':>12}"
+            f"  {'run_ms':>10}"
+            f"  {'binary_bytes':>14}"
+        )
+        lines.append("  " + "\u2500" * 62)
+
+        # Data rows, newest-first
+        for run in window:
+            ts = run.get("generated_at", "unknown")[:16]
+            bmap = {b["name"]: b for b in run.get("benchmarks", [])}
+            b = bmap.get(bname)
+            if b is None:
+                continue
+            c_ms = _bench_metric_value(b, "compile_ms")
+            r_ms = _bench_metric_value(b, "run_ms")
+            bb = _bench_metric_value(b, "binary_bytes")
+            lines.append(
+                f"  {ts:<22}"
+                f"  {format_ms(c_ms):>12}"
+                f"  {format_ms(r_ms):>10}"
+                f"  {format_int(bb):>14}"
+            )
+
+        # Trend labels (oldest-first computation)
+        lines.append("")
+        for metric_key, label_key, _width in METRIC_COLS:
+            vals_oldest_first: list[float] = []
+            for run in reversed(window):
+                bmap = {b["name"]: b for b in run.get("benchmarks", [])}
+                b = bmap.get(bname)
+                if b is not None:
+                    v = _bench_metric_value(b, metric_key)
+                    if v is not None:
+                        vals_oldest_first.append(v)
+            label = _trend_label(vals_oldest_first)
+            lines.append(f"  trend ({label_key}): {label}")
+        lines.append("")
+
+    # Moving median summary
+    moving_med = compute_moving_median(history, n=n)
+    if moving_med:
+        lines.append(f"\u2500\u2500 Moving Median (last {min(len(history), n)} run(s)) " + "\u2500" * 18)
+        lines.append(
+            f"  {'Benchmark':<20}"
+            f"  {'compile_ms':>12}"
+            f"  {'run_ms':>10}"
+            f"  {'binary_bytes':>14}"
+        )
+        lines.append("  " + "\u2500" * 62)
+        for bname, meds in sorted(moving_med.items()):
+            lines.append(
+                f"  {bname:<20}"
+                f"  {format_ms(meds.get('compile_ms')):>12}"
+                f"  {format_ms(meds.get('run_ms')):>10}"
+                f"  {format_int(meds.get('binary_bytes')):>14}"
+            )
+        lines.append("")
+
+    lines.append("Done.")
+    return "\n".join(lines) + "\n"
+
+
+def _run_trend(args: argparse.Namespace) -> None:
+    """Load benchmark history from benchmarks/results/ and print a trend report.
+
+    Does NOT run any new benchmarks.  Scans mode prefixes in preference order
+    (full → compare → quick) and uses the first non-empty history found.
+    Writes a lightweight trend summary JSON to benchmarks/results/.
+    """
+    n = args.history_n
+    target = args.target
+
+    history: list[dict[str, Any]] = []
+    mode_used = "full"
+    for candidate_mode in ("full", "compare", "quick"):
+        h = load_history(candidate_mode, target, limit=n)
+        if h:
+            history = h
+            mode_used = candidate_mode
+            break
+
+    sys.stdout.write(render_trend_report(history, mode=mode_used, target=target, n=n))
+
+    if not history:
+        return
+
+    if not args.no_write_json:
+        trend_path = RESULTS_DIR / f"trend-{_target_short(target)}-latest.json"
+        trend_data: dict[str, Any] = {
+            "schema_version": SCHEMA_VERSION,
+            "generated_at": iso_now(),
+            "mode": "trend",
+            "target": target,
+            "history_depth": len(history),
+            "history_mode": mode_used,
+            "moving_median": compute_moving_median(history, n=n),
+            "bench_trends": {},
+        }
+        bench_names_seen: list[str] = sorted({
+            b["name"] for run in history for b in run.get("benchmarks", [])
+        })
+        for bname in bench_names_seen:
+            btrends: dict[str, str] = {}
+            for metric_key in ("compile_ms", "run_ms", "binary_bytes"):
+                vals: list[float] = []
+                for run in reversed(history[:n]):
+                    bmap = {b["name"]: b for b in run.get("benchmarks", [])}
+                    b = bmap.get(bname)
+                    if b is not None:
+                        v = _bench_metric_value(b, metric_key)
+                        if v is not None:
+                            vals.append(v)
+                btrends[metric_key] = _trend_label(vals)
+            trend_data["bench_trends"][bname] = btrends
+        write_json(trend_path, trend_data)
+        label = rel(trend_path) if trend_path.is_relative_to(ROOT) else str(trend_path)
+        sys.stdout.write(f"Trend summary written to: {label}\n")
+
+
 def variance_report_lines(current: dict[str, Any]) -> list[str]:
     """Return lines for a variance/CV section to embed in text or markdown reports."""
     lines: list[str] = []
@@ -1879,6 +2052,9 @@ def main() -> None:
         return
     if args.mode == "scaling":
         _run_scaling(args)
+        return
+    if args.mode == "trend":
+        _run_trend(args)
         return
     current = collect_results(args)
     baseline_path = Path(args.baseline)

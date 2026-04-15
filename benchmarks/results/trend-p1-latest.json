@@ -1,0 +1,72 @@
+{
+  "schema_version": "arukellt-bench-v1",
+  "generated_at": "2026-04-15T00:35:46+00:00",
+  "mode": "trend",
+  "target": "wasm32-wasi-p1",
+  "history_depth": 4,
+  "history_mode": "quick",
+  "moving_median": {
+    "binary_tree": {
+      "compile_ms": 14.0,
+      "run_ms": 18.0,
+      "binary_bytes": 899.0
+    },
+    "fib": {
+      "compile_ms": 14.5,
+      "run_ms": 15.5,
+      "binary_bytes": 923.0
+    },
+    "json_parse": {
+      "compile_ms": 14,
+      "run_ms": 16,
+      "binary_bytes": 1457
+    },
+    "string_concat": {
+      "compile_ms": 16.5,
+      "run_ms": 15.5,
+      "binary_bytes": 1162.0
+    },
+    "vec_ops": {
+      "compile_ms": 16.5,
+      "run_ms": 13.5,
+      "binary_bytes": 1891.0
+    },
+    "vec_push_pop": {
+      "compile_ms": 14,
+      "run_ms": 16,
+      "binary_bytes": 1547
+    }
+  },
+  "bench_trends": {
+    "binary_tree": {
+      "compile_ms": "degrading",
+      "run_ms": "improving",
+      "binary_bytes": "degrading"
+    },
+    "fib": {
+      "compile_ms": "degrading",
+      "run_ms": "improving",
+      "binary_bytes": "degrading"
+    },
+    "json_parse": {
+      "compile_ms": "degrading",
+      "run_ms": "stable",
+      "binary_bytes": "stable"
+    },
+    "string_concat": {
+      "compile_ms": "improving",
+      "run_ms": "improving",
+      "binary_bytes": "degrading"
+    },
+    "vec_ops": {
+      "compile_ms": "improving",
+      "run_ms": "improving",
+      "binary_bytes": "degrading"
+    },
+    "vec_push_pop": {
+      "compile_ms": "degrading",
+      "run_ms": "degrading",
+      "binary_bytes": "stable"
+    }
+  }
+}
