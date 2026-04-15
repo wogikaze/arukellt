@@ -4,6 +4,7 @@
 // with explicit control flow, preparing for Wasm emission.
 
 use std::host::stdio
+use std::host::process
 
 // ── MIR Instruction Tags ─────────────────────────────────────────────────────
 
@@ -128,6 +129,7 @@ struct MirBlock {
     terminator: i32,
     succ0: i32,
     succ1: i32,
+    preds: Vec<i32>,
 }
 
 fn MirBlock_new(id: i32) -> MirBlock {
@@ -137,6 +139,62 @@ fn MirBlock_new(id: i32) -> MirBlock {
         terminator: MIR_RETURN(),
         succ0: 0 - 1,
         succ1: 0 - 1,
+        preds: Vec_new_i32(),
+    }
+}
+
+fn mir_add_block_pred(block: MirBlock, pred_id: i32) {
+    let pred_count = len(block.preds)
+    let mut i = 0
+    while i < pred_count {
+        if get_unchecked(block.preds, i) == pred_id {
+            return
+        }
+        i = i + 1
+    }
+    push(block.preds, pred_id)
+}
+
+fn mir_add_pred_edge(f: MirFunction, pred_id: i32, succ_id: i32) {
+    if succ_id < 0 {
+        return
+    }
+    let block_count = len(f.blocks)
+    if succ_id >= block_count {
+        return
+    }
+    let succ = get_unchecked(f.blocks, succ_id)
+    mir_add_block_pred(succ, pred_id)
+}
+
+fn mir_compute_predecessors_for_function(f: MirFunction) {
+    let block_count = len(f.blocks)
+    let mut i = 0
+    while i < block_count {
+        let block = get_unchecked(f.blocks, i)
+        block.preds = Vec_new_i32()
+        i = i + 1
+    }
+
+    i = 0
+    while i < block_count {
+        let block = get_unchecked(f.blocks, i)
+        let pred_id = block.id
+        mir_add_pred_edge(f, pred_id, block.succ0)
+        if block.succ1 != block.succ0 {
+            mir_add_pred_edge(f, pred_id, block.succ1)
+        }
+        i = i + 1
+    }
+}
+
+fn mir_compute_predecessors(m: MirModule) {
+    let fn_count = len(m.functions)
+    let mut i = 0
+    while i < fn_count {
+        let f = get_unchecked(m.functions, i)
+        mir_compute_predecessors_for_function(f)
+        i = i + 1
     }
 }
 
@@ -2611,12 +2669,14 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
         i = i + 1
     }
 
+    mir_compute_predecessors(ctx.module)
     ctx.module
 }
 
 // ── MIR Dump ─────────────────────────────────────────────────────────────────
 
 pub fn dump_mir(m: MirModule) {
+    mir_compute_predecessors(m)
     let fn_count = len(m.functions)
     stdio::eprintln(concat(String_from("MIR module: "), concat(to_string(fn_count), String_from(" function(s)"))))
     let mut i = 0
@@ -2629,7 +2689,7 @@ pub fn dump_mir(m: MirModule) {
         while b < block_count {
             let block = get_unchecked(f.blocks, b)
             let inst_count = len(block.instructions)
-            stdio::eprintln(concat(String_from("    bb"), concat(to_string(b), concat(String_from(": "), concat(to_string(inst_count), String_from(" instructions"))))))
+            stdio::eprintln(concat(String_from("    bb"), concat(to_string(b), concat(String_from(": "), concat(to_string(inst_count), concat(String_from(" instructions succs="), concat(mir_format_edges(block.succ0, block.succ1), concat(String_from(" preds="), mir_format_block_ids(block.preds)))))))))
             let mut j = 0
             while j < inst_count {
                 let inst = get_unchecked(block.instructions, j)
@@ -2688,23 +2748,90 @@ fn mir_op_name(op: i32) -> String {
     String_from("?op")
 }
 
+fn mir_format_block_ids(ids: Vec<i32>) -> String {
+    let count = len(ids)
+    let mut out = String_from("[")
+    let mut i = 0
+    while i < count {
+        if i > 0 {
+            out = concat(out, String_from(","))
+        }
+        out = concat(out, to_string(get_unchecked(ids, i)))
+        i = i + 1
+    }
+    concat(out, String_from("]"))
+}
+
+fn mir_format_edge(edge: i32) -> String {
+    if edge < 0 {
+        return String_from("-")
+    }
+    to_string(edge)
+}
+
+fn mir_format_edges(succ0: i32, succ1: i32) -> String {
+    concat(String_from("["), concat(mir_format_edge(succ0), concat(String_from(","), concat(mir_format_edge(succ1), String_from("]")))))
+}
+
+fn mir_expect_preds(f: MirFunction, block_id: i32, expected_count: i32, expected0: i32, expected1: i32) {
+    let block = get_unchecked(f.blocks, block_id)
+    let actual_count = len(block.preds)
+    if actual_count != expected_count {
+        let msg = concat(String_from("pred check failed for bb"), concat(to_string(block_id), concat(String_from(": expected count="), concat(to_string(expected_count), concat(String_from(" actual="), concat(to_string(actual_count), concat(String_from(" preds="), mir_format_block_ids(block.preds))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 0 && get_unchecked(block.preds, 0) != expected0 {
+        let msg = concat(String_from("pred check failed for bb"), concat(to_string(block_id), concat(String_from(": expected preds="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), mir_format_block_ids(block.preds)))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+    if expected_count > 1 && get_unchecked(block.preds, 1) != expected1 {
+        let msg = concat(String_from("pred check failed for bb"), concat(to_string(block_id), concat(String_from(": expected preds="), concat(String_from("["), concat(to_string(expected0), concat(String_from(","), concat(to_string(expected1), concat(String_from("] actual="), mir_format_block_ids(block.preds)))))))))
+        stdio::eprintln(msg)
+        process::exit(1)
+    }
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
     let m = MirModule_new()
 
-    // Build a simple function: fn add(a: i32, b: i32) -> i32 { a + b }
-    let f = MirFunction_new(String_from("add"))
+    // Build a simple diamond-shaped CFG to self-check predecessor computation.
+    let f = MirFunction_new(String_from("cfg_pred_sample"))
     let pa = alloc_local(f, String_from("a"), VT_I32())
     let pb = alloc_local(f, String_from("b"), VT_I32())
     let tmp = alloc_local(f, String_from("_t0"), VT_I32())
     f.return_type = VT_I32()
 
     let entry = alloc_block(f)
+    let then_bb = alloc_block(f)
+    let else_bb = alloc_block(f)
+    let join_bb = alloc_block(f)
+
     emit_inst(f, entry, MirInst_new(MIR_LOCAL_GET()))
     emit_inst(f, entry, MirInst_new(MIR_LOCAL_GET()))
-    emit_inst(f, entry, MirInst_binop(MIR_ADD(), tmp, pa, pb))
-    emit_inst(f, entry, MirInst_new(MIR_RETURN()))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = then_bb
+    entry_block.succ1 = else_bb
+
+    emit_inst(f, then_bb, MirInst_new(MIR_LOCAL_GET()))
+    let then_block = get_unchecked(f.blocks, then_bb)
+    then_block.succ0 = join_bb
+
+    emit_inst(f, else_bb, MirInst_new(MIR_LOCAL_GET()))
+    let else_block = get_unchecked(f.blocks, else_bb)
+    else_block.succ0 = join_bb
+
+    emit_inst(f, join_bb, MirInst_binop(MIR_ADD(), tmp, pa, pb))
+    emit_inst(f, join_bb, MirInst_new(MIR_RETURN()))
+
+    mir_compute_predecessors_for_function(f)
+    mir_expect_preds(f, entry, 0, 0, 0)
+    mir_expect_preds(f, then_bb, 1, entry, 0)
+    mir_expect_preds(f, else_bb, 1, entry, 0)
+    mir_expect_preds(f, join_bb, 2, then_bb, else_bb)
 
     push(m.functions, f)
 
@@ -2717,5 +2844,6 @@ fn main() {
     stdio::println(concat(String_from("intern 'hello' again: "), to_string(s2)))
 
     dump_mir(m)
+    stdio::println(String_from("MIR predecessor self-check OK."))
     stdio::println(String_from("MIR module OK."))
 }
