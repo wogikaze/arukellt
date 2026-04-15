@@ -720,6 +720,29 @@ fn parse_expr_bp(p: Parser, min_bp: i32) -> AstNode {
     lhs
 }
 
+fn parse_closure_expr(p: Parser, start: Token) -> AstNode {
+    let node = AstNode_new(NK_CLOSURE(), tok_span(start))
+    let mut first = true
+    skip_newlines(p)
+    while !at(p, TK_PIPE()) && !at_eof(p) {
+        if !first {
+            expect_token(p, TK_COMMA())
+            skip_newlines(p)
+        }
+        first = false
+        let param_tok = expect_token(p, TK_IDENT())
+        let param = AstNode_leaf(NK_IDENT(), clone(param_tok.text), tok_span(param_tok))
+        push(node.children, param)
+        skip_newlines(p)
+    }
+    expect_token(p, TK_PIPE())
+    skip_newlines(p)
+    let body = parse_expr_or_block(p)
+    node.span = Span_new(start.start, body.span.end)
+    push(node.children, body)
+    node
+}
+
 fn parse_prefix(p: Parser) -> AstNode {
     skip_newlines(p)
     let t = cur(p)
@@ -733,6 +756,11 @@ fn parse_prefix(p: Parser) -> AstNode {
         node.op = token_to_unop(t.kind)
         push(node.children, operand)
         return node
+    }
+
+    if t.kind == TK_PIPE() {
+        p.pos = p.pos + 1
+        return parse_closure_expr(p, t)
     }
 
     // Literals
@@ -1540,6 +1568,86 @@ pub fn issue504_parser_self_check() -> String {
     String_from("issue504 parser ok: impl Foo for MyStruct / fn f<T: Foo>(x: T)")
 }
 
+pub fn issue499_parser_self_check() -> String {
+    let tokens = Vec_new_Token()
+
+    // fn main() { let add = |x, y| x + y }
+    push(tokens, Token_new(TK_FN(), String_from("fn"), 0, 2))
+    push(tokens, Token_new(TK_IDENT(), String_from("main"), 3, 7))
+    push(tokens, Token_new(TK_LPAREN(), String_from("("), 7, 8))
+    push(tokens, Token_new(TK_RPAREN(), String_from(")"), 8, 9))
+    push(tokens, Token_new(TK_LBRACE(), String_from("{"), 10, 11))
+    push(tokens, Token_new(TK_LET(), String_from("let"), 12, 15))
+    push(tokens, Token_new(TK_IDENT(), String_from("add"), 16, 19))
+    push(tokens, Token_new(TK_EQ(), String_from("="), 20, 21))
+    push(tokens, Token_new(TK_PIPE(), String_from("|"), 22, 23))
+    push(tokens, Token_new(TK_IDENT(), String_from("x"), 23, 24))
+    push(tokens, Token_new(TK_COMMA(), String_from(","), 24, 25))
+    push(tokens, Token_new(TK_IDENT(), String_from("y"), 26, 27))
+    push(tokens, Token_new(TK_PIPE(), String_from("|"), 27, 28))
+    push(tokens, Token_new(TK_IDENT(), String_from("x"), 29, 30))
+    push(tokens, Token_new(TK_PLUS(), String_from("+"), 31, 32))
+    push(tokens, Token_new(TK_IDENT(), String_from("y"), 33, 34))
+    push(tokens, Token_new(TK_RBRACE(), String_from("}"), 35, 36))
+    push(tokens, Token_new(TK_EOF(), String_from(""), 36, 36))
+
+    let p = Parser_new(tokens)
+    let decls = parse_module(p)
+    if len(p.errors) != 0 {
+        return concat(String_from("issue499 parser fail: parse errors="), to_string(len(p.errors)))
+    }
+    if len(decls) != 1 {
+        return concat(String_from("issue499 parser fail: decl count="), to_string(len(decls)))
+    }
+
+    let fn_decl = get_unchecked(decls, 0)
+    if fn_decl.kind != NK_FN_DECL() {
+        return String_from("issue499 parser fail: expected fn decl")
+    }
+    if len(fn_decl.children) != 1 {
+        return concat(String_from("issue499 parser fail: fn child count="), to_string(len(fn_decl.children)))
+    }
+
+    let body = get_unchecked(fn_decl.children, 0)
+    if body.kind != NK_BLOCK() {
+        return String_from("issue499 parser fail: expected block body")
+    }
+    if len(body.children) != 1 {
+        return concat(String_from("issue499 parser fail: stmt count="), to_string(len(body.children)))
+    }
+
+    let let_stmt = get_unchecked(body.children, 0)
+    if let_stmt.kind != NK_LET() {
+        return String_from("issue499 parser fail: expected let stmt")
+    }
+    if len(let_stmt.children) != 1 {
+        return concat(String_from("issue499 parser fail: let child count="), to_string(len(let_stmt.children)))
+    }
+
+    let closure = get_unchecked(let_stmt.children, 0)
+    if closure.kind != NK_CLOSURE() {
+        return String_from("issue499 parser fail: expected closure expr")
+    }
+    if len(closure.children) != 3 {
+        return concat(String_from("issue499 parser fail: closure child count="), to_string(len(closure.children)))
+    }
+
+    let param0 = get_unchecked(closure.children, 0)
+    let param1 = get_unchecked(closure.children, 1)
+    let closure_body = get_unchecked(closure.children, 2)
+    if !eq(clone(param0.text), String_from("x")) {
+        return String_from("issue499 parser fail: first param")
+    }
+    if !eq(clone(param1.text), String_from("y")) {
+        return String_from("issue499 parser fail: second param")
+    }
+    if closure_body.kind != NK_BINARY() || closure_body.op != OP_ADD() {
+        return String_from("issue499 parser fail: closure body")
+    }
+
+    String_from("issue499 parser ok: let add = |x, y| x + y")
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -1581,5 +1689,6 @@ fn main() {
     } else {
         stdio::println(String_from("No parse errors."))
     }
+    stdio::println(issue499_parser_self_check())
     stdio::println(issue504_parser_self_check())
 }
