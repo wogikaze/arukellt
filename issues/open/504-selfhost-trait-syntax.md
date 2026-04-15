@@ -9,17 +9,18 @@
 ## Summary
 
 Issue #495 (selfhost typechecker: trait bounds and constraint solving) hit a
-hard STOP_IF condition: the selfhost language toolchain has no trait or
-interface syntax at any layer.
+hard STOP_IF condition: the selfhost language toolchain does not yet support
+the full trait-bound / `impl Foo for Bar` surface needed by #495.
 
-Audit across the selfhost compiler (`src/compiler/`):
-- `lexer.ark` — no `trait`, `impl`, or `where` keywords
-- `parser.ark` — no grammar rules for trait definitions, impl blocks, or
-  generic type-parameter bounds (e.g. `<T: Foo>`)
-- `hir.ark` — no HIR node or variant for trait declarations, impl-for blocks,
-  or trait-bound annotations on type parameters
-- `typechecker.ark` — no infrastructure to register trait implementations,
-  look up impls, or check `T: Bound` constraints
+Repo evidence on 2026-04-15 shows **partial groundwork already exists**:
+- `lexer.ark` already recognizes `trait` and `impl`
+- `parser.ark` already parses `trait Foo { ... }` and a simple `impl Foo { ... }`
+  block form
+- What is still missing for #495 is the richer surface:
+  - `impl Trait for Type { ... }`
+  - generic type-parameter bounds such as `fn f<T: Foo>(x: T)`
+  - HIR nodes / metadata for bound-bearing type parameters and impl targets
+  - typechecker-side impl registry and bound satisfaction checks
 
 Until all four layers are present, #495 cannot proceed.
 

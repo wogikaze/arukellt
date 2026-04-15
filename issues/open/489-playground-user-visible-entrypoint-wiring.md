@@ -4,7 +4,7 @@
 **Created**: 2026-04-13
 **Updated**: 2026-04-13
 **ID**: 489
-**Depends on**: 382, 437, 438, 464
+**Depends on**: 437, 438, 464
 **Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 40
@@ -16,6 +16,12 @@
 ## Summary
 
 The playground directory contains TypeScript modules implementing individual features (example loading, share URL, syntax highlight, runtime capability check), and `crates/ark-playground-wasm/` exposes a WASM API. However, the user-visible HTML entrypoint at `docs/playground/index.html` does not import or initialise these modules, so users cannot access them.
+
+## Parent note — 2026-04-15
+
+This issue no longer depends on #382. The browser entrypoint and user-visible wiring work
+are part of the existing playground v1 surface, while #382 now tracks the separate T2
+freestanding target track.
 
 ## Acceptance
 

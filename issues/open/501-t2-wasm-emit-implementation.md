@@ -4,7 +4,7 @@
 **Created**: 2026-04-14
 **Updated**: 2026-04-14
 **ID**: 501
-**Depends on**: 382 (ADR-020 written — I/O surface contract decided)
+**Depends on**: none
 **Track**: playground
 **Blocks v1 exit**: no
 **Priority**: 20
@@ -20,6 +20,11 @@ This issue was created when issue #382 was audited: all acceptance checkboxes in
 were incorrectly marked `[x]` (false-done), but the emitter itself was absent.  #382
 now tracks only the ADR + docs slice.  The full emitter, fixture, and runtime-proof work
 is scoped here.
+
+## Parent note — 2026-04-15
+
+This issue is directly gated by ADR-020, not by #382 as an open issue. #382 remains the
+audit/history record for the false-done rollback, but it should not block T2 emitter work.
 
 ## Current state
 

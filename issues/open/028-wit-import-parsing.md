@@ -4,7 +4,7 @@
 **Created**: 2026-03-28
 **Updated**: 2026-04-15
 **ID**: 028
-**Depends on**: none
+**Depends on**: 028b
 **Track**: component-model
 **Blocks v1 exit**: no
 
@@ -18,6 +18,13 @@
 
 Checked each acceptance item against the actual codebase. Three items are NOT implemented
 despite being marked `[x]`. See corrected criteria below.
+
+## Parent note — 2026-04-15
+
+The remaining open work from this issue is tracked as focused implementation issue
+[#028b](028b-wit-import-pipeline-wiring.md). Treat #028 as the parent acceptance issue:
+do not close it until #028b lands and the corrected acceptance items below are proven
+by repo evidence.
 
 ## Summary
 

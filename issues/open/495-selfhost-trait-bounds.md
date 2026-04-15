@@ -15,6 +15,7 @@ compiler.
 ## Depends on
 
 - #312 (selfhost generic monomorphization)
+- #504 (trait/interface syntax and impl-block infrastructure)
 
 ## Primary paths
 

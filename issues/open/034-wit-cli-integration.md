@@ -4,7 +4,7 @@
 **Created**: 2026-03-28
 **Updated**: 2026-04-13
 **ID**: 034
-**Depends on**: 030, 031
+**Depends on**: 030, 031, 028b
 **Track**: component-model
 **Blocks v1 exit**: no
 
@@ -13,6 +13,12 @@
 **Reason**: CLI accepts --wit flag but only validates file existence. Not threaded into resolver/session/component compile.
 
 **Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
+
+## Parent note — 2026-04-15
+
+The remaining `--wit` pipeline gap is tracked concretely in [#028b](028b-wit-import-pipeline-wiring.md).
+Treat this issue as blocked on #028b for the import-binding path; other CLI/docs claims still
+require evidence review before close.
 
 ## Summary
 

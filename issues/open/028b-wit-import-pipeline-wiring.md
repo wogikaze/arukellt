@@ -4,7 +4,7 @@
 **Created**: 2026-04-15
 **Updated**: 2026-04-15
 **ID**: 028b
-**Depends on**: 028 (partial — parser and MirImport struct are done)
+**Depends on**: none
 **Track**: component-model
 **Blocks v1 exit**: no
 
@@ -13,6 +13,12 @@
 Three acceptance items from issue #028 are NOT implemented. The 2026-04-15 audit confirmed
 the WIT parser is complete but the import pipeline is unwired. This issue tracks the remaining
 ~130 lines of work to close #028.
+
+## Parent extraction note — 2026-04-15
+
+This issue was extracted from #028 as the concrete implementation follow-up for the
+remaining gaps. Completing #028b does not automatically close #028; the parent issue
+must still pass evidence review against its corrected acceptance criteria.
 
 ## Missing items (from #028 audit)
 
