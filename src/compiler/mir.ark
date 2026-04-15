@@ -520,6 +520,76 @@ fn emit_phi(f: MirFunction, block_id: i32, phi: MirPhi) {
     push(block.phis, phi)
 }
 
+fn mir_local_vt_for_function(f: MirFunction, local_id: i32) -> i32 {
+    if local_id >= 0 && local_id < len(f.locals) {
+        let local = get_unchecked(f.locals, local_id)
+        return local.val_type
+    }
+    VT_VOID()
+}
+
+fn mir_find_last_value_local(block: MirBlock) -> i32 {
+    let count = len(block.instructions)
+    let mut i = count - 1
+    while i >= 0 {
+        let inst = get_unchecked(block.instructions, i)
+        if inst.dest >= 0 && inst.val_type != VT_VOID() {
+            return inst.dest
+        }
+        i = i - 1
+    }
+    0 - 1
+}
+
+fn mir_try_insert_simple_join_phi(f: MirFunction, join_block_id: i32, dest_local: i32) -> bool {
+    if join_block_id < 0 || join_block_id >= len(f.blocks) {
+        return false
+    }
+
+    let join_block = get_unchecked(f.blocks, join_block_id)
+    if len(join_block.phis) > 0 {
+        return false
+    }
+    if len(join_block.preds) != 2 {
+        return false
+    }
+
+    let pred0_id = get_unchecked(join_block.preds, 0)
+    let pred1_id = get_unchecked(join_block.preds, 1)
+    let pred0 = get_unchecked(f.blocks, pred0_id)
+    let pred1 = get_unchecked(f.blocks, pred1_id)
+
+    if !mir_block_ids_contains(pred0.dom_frontier, join_block_id) {
+        return false
+    }
+    if !mir_block_ids_contains(pred1.dom_frontier, join_block_id) {
+        return false
+    }
+
+    let pred0_local = mir_find_last_value_local(pred0)
+    let pred1_local = mir_find_last_value_local(pred1)
+    if pred0_local < 0 || pred1_local < 0 {
+        return false
+    }
+
+    let dest_vt = mir_local_vt_for_function(f, dest_local)
+    if dest_vt == VT_VOID() {
+        return false
+    }
+    if mir_local_vt_for_function(f, pred0_local) != dest_vt {
+        return false
+    }
+    if mir_local_vt_for_function(f, pred1_local) != dest_vt {
+        return false
+    }
+
+    let phi = MirPhi_new(dest_local, dest_vt)
+    mir_phi_add_arg(phi, pred0_id, pred0_local)
+    mir_phi_add_arg(phi, pred1_id, pred1_local)
+    emit_phi(f, join_block_id, phi)
+    true
+}
+
 // ── MIR Module ───────────────────────────────────────────────────────────────
 
 struct MirModule {
@@ -3251,6 +3321,53 @@ pub fn run_phi_representation_smoke() {
     stdio::println(String_from("MIR phi representation self-check OK."))
 }
 
+pub fn run_phi_insertion_smoke() {
+    let m = MirModule_new()
+    let f = MirFunction_new(String_from("phi_insert_sample"))
+    let cond = alloc_local(f, String_from("cond"), VT_I32())
+    let then_val = alloc_local(f, String_from("then_val"), VT_I32())
+    let else_val = alloc_local(f, String_from("else_val"), VT_I32())
+    let join_val = alloc_local(f, String_from("join_val"), VT_I32())
+    f.return_type = VT_I32()
+
+    let entry = alloc_block(f)
+    let then_bb = alloc_block(f)
+    let else_bb = alloc_block(f)
+    let join_bb = alloc_block(f)
+
+    emit_inst(f, entry, MirInst_const_i32(1, cond))
+    let entry_block = get_unchecked(f.blocks, entry)
+    entry_block.succ0 = then_bb
+    entry_block.succ1 = else_bb
+
+    emit_inst(f, then_bb, MirInst_const_i32(10, then_val))
+    let then_block = get_unchecked(f.blocks, then_bb)
+    then_block.succ0 = join_bb
+
+    emit_inst(f, else_bb, MirInst_const_i32(20, else_val))
+    let else_block = get_unchecked(f.blocks, else_bb)
+    else_block.succ0 = join_bb
+
+    let ret_inst = MirInst_new(MIR_RETURN())
+    ret_inst.arg0 = join_val
+    emit_inst(f, join_bb, ret_inst)
+
+    mir_compute_dominance_for_function(f)
+    if !mir_try_insert_simple_join_phi(f, join_bb, join_val) {
+        stdio::eprintln(String_from("simple join phi insertion failed"))
+        process::exit(1)
+    }
+
+    mir_expect_preds(f, join_bb, 2, then_bb, else_bb)
+    mir_expect_frontier(f, then_bb, 1, join_bb, 0)
+    mir_expect_frontier(f, else_bb, 1, join_bb, 0)
+    mir_expect_phi(f, join_bb, join_val, VT_I32(), 2, then_bb, then_val, else_bb, else_val)
+
+    push(m.functions, f)
+    dump_mir(m)
+    stdio::println(String_from("MIR phi insertion self-check OK."))
+}
+
 // ── Entry Point ──────────────────────────────────────────────────────────────
 
 fn main() {
@@ -3320,4 +3437,5 @@ fn main() {
     stdio::println(String_from("MIR dominance self-check OK."))
     stdio::println(String_from("MIR module OK."))
     run_phi_representation_smoke()
+    run_phi_insertion_smoke()
 }

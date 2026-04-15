@@ -1,0 +1,3 @@
+diamond join bb3
+phi %3 = [bb1 -> %1, bb2 -> %2] : i32
+MIR phi insertion smoke OK.
