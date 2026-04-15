@@ -19,6 +19,7 @@ fn NK_IDENT() -> i32 { 5 }
 fn NK_BINARY() -> i32 { 6 }
 fn NK_UNARY() -> i32 { 7 }
 fn NK_CALL() -> i32 { 8 }
+fn NK_CLOSURE() -> i32 { 15 }
 fn NK_BLOCK() -> i32 { 20 }
 fn NK_LET() -> i32 { 30 }
 fn NK_RETURN() -> i32 { 31 }
@@ -564,6 +565,18 @@ fn LocalScope_new() -> LocalScope {
     LocalScope { bindings: Vec_new_VarBinding() }
 }
 
+fn scope_child(parent: LocalScope) -> LocalScope {
+    let child = LocalScope_new()
+    let count = len(parent.bindings)
+    let mut i = 0
+    while i < count {
+        let binding = get_unchecked(parent.bindings, i)
+        push(child.bindings, VarBinding { name: clone(binding.name), ty: binding.ty })
+        i = i + 1
+    }
+    child
+}
+
 fn scope_define(scope: LocalScope, name: String, ty: TypeInfo) {
     push(scope.bindings, VarBinding { name: name, ty: ty })
 }
@@ -610,6 +623,25 @@ fn infer_expr(env: TypeEnv, scope: LocalScope, fn_sigs: Vec<FnSig>, node: AstNod
     // Variable reference
     if node.kind == NK_IDENT() {
         return scope_lookup(scope, clone(node.text))
+    }
+
+    if node.kind == NK_CLOSURE() {
+        let closure_scope = scope_child(scope)
+        let child_count = len(node.children)
+        if child_count == 0 {
+            return TypeInfo_simple(TY_FN())
+        }
+
+        let mut i = 0
+        while i + 1 < child_count {
+            let param = get_unchecked(node.children, i)
+            scope_define(closure_scope, clone(param.text), fresh_var(env))
+            i = i + 1
+        }
+
+        let body = get_unchecked(node.children, child_count - 1)
+        infer_expr(env, closure_scope, fn_sigs, body)
+        return TypeInfo_simple(TY_FN())
     }
 
     // Binary expression
