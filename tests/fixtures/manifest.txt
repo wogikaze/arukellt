@@ -148,6 +148,7 @@ run:functions/multiple_params.ark
 run:functions/pub_fn.ark
 run:functions/recursive.ark
 run:functions/return_value.ark
+run:generics/identity_bool.ark
 run:generics/identity_i32.ark
 run:generics/identity_string.ark
 run:generics/option_generic.ark
@@ -465,6 +466,7 @@ t3-compile:functions/multiple_params.ark
 t3-compile:functions/pub_fn.ark
 t3-compile:functions/recursive.ark
 t3-compile:functions/return_value.ark
+t3-compile:generics/identity_bool.ark
 t3-compile:generics/identity_i32.ark
 t3-compile:generics/identity_string.ark
 t3-compile:generics/option_generic.ark
@@ -632,6 +634,7 @@ t3-run:functions/multiple_params.ark
 t3-run:functions/pub_fn.ark
 t3-run:functions/recursive.ark
 t3-run:functions/return_value.ark
+t3-run:generics/identity_bool.ark
 t3-run:generics/identity_i32.ark
 t3-run:generics/identity_string.ark
 t3-run:generics/option_generic.ark

@@ -10,6 +10,7 @@ use wasm_encoder::{
     CodeSection, Function, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType,
 };
 
+use super::i31ref as i31;
 use super::peephole::PeepholeWriter;
 use super::{Ctx, nominalize_generic_type_name, normalize_intrinsic, ref_nullable};
 use super::{I32BUF, P2_RETPTR, SCRATCH};
@@ -2501,10 +2502,11 @@ impl Ctx {
                             } else {
                                 self.emit_operand(&mut w, op);
                                 // Box value types when returning from generic function with anyref return
+                                // i31ref unboxed scalar optimization (issue #070)
                                 if self.current_fn_return_ty == Type::Any {
                                     let op_vt = self.infer_operand_type(op);
                                     if op_vt == ValType::I32 {
-                                        w.instruction(&Instruction::RefI31);
+                                        i31::emit_bool_to_anyref(&mut w);
                                     }
                                 }
                                 w.instruction(&Instruction::Return);
@@ -2530,7 +2532,8 @@ impl Ctx {
                                     {
                                         let arg_vt = self.infer_operand_type(arg);
                                         if arg_vt == ValType::I32 {
-                                            w.instruction(&Instruction::RefI31);
+                                            // i31ref unboxed scalar boxing (issue #070)
+                                            i31::emit_bool_to_anyref(&mut w);
                                         }
                                     }
                                 }
@@ -2647,7 +2650,8 @@ impl Ctx {
                         {
                             let arg_vt = self.infer_operand_type(arg);
                             if arg_vt == ValType::I32 {
-                                f.instruction(&Instruction::RefI31);
+                                // i31ref unboxed scalar boxing (issue #070)
+                                i31::emit_bool_to_anyref(f);
                             }
                         }
                     }
@@ -2694,7 +2698,8 @@ impl Ctx {
                         {
                             let arg_vt = self.infer_operand_type(arg);
                             if arg_vt == ValType::I32 {
-                                f.instruction(&Instruction::RefI31);
+                                // i31ref unboxed scalar boxing (issue #070)
+                                i31::emit_bool_to_anyref(f);
                             }
                         }
                     }
@@ -2935,7 +2940,8 @@ impl Ctx {
                     if need_any {
                         let arg_vt = self.infer_operand_type(arg);
                         if arg_vt == ValType::I32 {
-                            f.instruction(&Instruction::RefI31);
+                            // i31ref unboxed scalar boxing (issue #070)
+                            i31::emit_bool_to_anyref(f);
                         }
                     }
                 }
@@ -2973,7 +2979,8 @@ impl Ctx {
                     {
                         let arg_vt = self.infer_operand_type(arg);
                         if arg_vt == ValType::I32 {
-                            f.instruction(&Instruction::RefI31);
+                            // i31ref unboxed scalar boxing (issue #070)
+                            i31::emit_bool_to_anyref(f);
                         }
                     }
                 }

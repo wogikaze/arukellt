@@ -7,6 +7,7 @@ use ark_mir::mir::*;
 use ark_typecheck::types::Type;
 use wasm_encoder::{HeapType, Instruction, MemArg, RefType as WasmRefType, ValType};
 
+use super::i31ref as i31;
 use super::peephole::PeepholeWriter;
 use super::{Ctx, SCRATCH, normalize_intrinsic, ref_nullable};
 
@@ -41,12 +42,12 @@ impl Ctx {
                             self.string_ty,
                         )));
                     } else {
-                        // Default: i32 — unbox from i31ref
+                        // Unbox i31ref (unboxed small integer) → i32 (issue #070)
                         f.instruction(&Instruction::RefCastNullable(HeapType::Abstract {
                             shared: false,
                             ty: wasm_encoder::AbstractHeapType::I31,
                         }));
-                        f.instruction(&Instruction::I31GetS);
+                        i31::emit_unbox_signed(f);
                     }
                 }
                 let local_idx = self.local_wasm_idx(id.0);
@@ -220,11 +221,12 @@ impl Ctx {
                                 .and_then(|pt| pt.get(i))
                                 .is_some_and(|t| matches!(t, Type::Any));
                             self.emit_operand_coerced(f, arg, need_i64, need_f64);
-                            // Box i32/bool → ref.i31 for anyref params
+                            // Box i32/bool → i31ref for anyref (Any) params (issue #070)
                             if need_any {
                                 let arg_vt = self.infer_operand_type(arg);
                                 if arg_vt == ValType::I32 {
-                                    f.instruction(&Instruction::RefI31);
+                                    // i32 → i31ref: WasmGC unboxed scalar, no heap alloc
+                                    i31::emit_bool_to_anyref(f);
                                 }
                             }
                         }
@@ -2869,12 +2871,14 @@ impl Ctx {
     pub(super) fn emit_anyref_unbox(&self, f: &mut PeepholeWriter<'_>, target_vt: &ValType) {
         match target_vt {
             ValType::I32 => {
-                // anyref → ref.cast (ref i31) → i31.get_s
+                // anyref → ref.cast (ref null i31) → i31.get_s
+                // Unboxes an i31ref (unboxed small integer) back to a plain i32.
+                // This is the inverse of the i31ref scalar boxing (issue #070).
                 f.instruction(&Instruction::RefCastNullable(HeapType::Abstract {
                     shared: false,
                     ty: wasm_encoder::AbstractHeapType::I31,
                 }));
-                f.instruction(&Instruction::I31GetS);
+                i31::emit_unbox_signed(f);
             }
             ValType::Ref(rt) => {
                 // anyref → ref.cast (ref $concrete_type)

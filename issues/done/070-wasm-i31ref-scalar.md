@@ -1,6 +1,6 @@
 # Wasm GC i31ref: 小整数 unboxed scalar 最適化
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
 **Updated**: 2026-04-03
 **ID**: 070

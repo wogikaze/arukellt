@@ -7,6 +7,7 @@ use ark_mir::mir::*;
 use ark_typecheck::types::Type;
 use wasm_encoder::{BlockType, HeapType, Instruction, MemArg, RefType as WasmRefType, ValType};
 
+use super::i31ref as i31;
 use super::peephole::PeepholeWriter;
 use super::{Ctx, normalize_intrinsic};
 
@@ -214,16 +215,19 @@ impl Ctx {
                         .cloned();
                     for (i, arg) in args.iter().enumerate() {
                         self.emit_operand(f, arg);
-                        // Box i32/bool/char → ref.i31 when callee expects anyref
+                        // Box small integers (bool, char, i32) → i31ref when callee
+                        // expects anyref (T = Any generic parameter).  i31ref is an
+                        // unboxed tagged immediate — no GC heap allocation.
                         if let Some(ref pts) = param_types
                             && i < pts.len()
                             && pts[i] == Type::Any
                         {
                             let arg_vt = self.infer_operand_type(arg);
                             if arg_vt == ValType::I32 {
-                                f.instruction(&Instruction::RefI31);
+                                // i32 → i31ref: WasmGC unboxed scalar (issue #070)
+                                i31::emit_bool_to_anyref(f);
                             }
-                            // ref types (String, struct, enum) are anyref-compatible
+                            // ref types (String, struct, enum) are already anyref-compatible
                         }
                     }
                     if let Some(&fn_idx) = self
@@ -283,11 +287,12 @@ impl Ctx {
                     }
                     Some(r) => {
                         self.emit_operand(f, r);
-                        // Box value types to anyref when block expects anyref
+                        // Box small integers to i31ref when if-expression block
+                        // returns anyref (generic T = Any result type, issue #070)
                         if result_is_anyref {
                             let r_vt = self.infer_operand_type(r);
                             if r_vt == ValType::I32 {
-                                f.instruction(&Instruction::RefI31);
+                                i31::emit_box(f);
                             }
                         }
                     }
@@ -302,11 +307,12 @@ impl Ctx {
                     }
                     Some(r) => {
                         self.emit_operand(f, r);
-                        // Box value types to anyref when block expects anyref
+                        // Box small integers to i31ref when if-expression block
+                        // returns anyref (generic T = Any result type, issue #070)
                         if result_is_anyref {
                             let r_vt = self.infer_operand_type(r);
                             if r_vt == ValType::I32 {
-                                f.instruction(&Instruction::RefI31);
+                                i31::emit_box(f);
                             }
                         }
                     }

@@ -11,7 +11,6 @@ graph LR
   I034["034 CLI --wit flag, --emit component workflow, docs"]
   I036["036 jco JavaScript interop smoke test"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
-  I070["070 Wasm GC i31ref: 小整数 unboxed scalar 最適化"]
   I072["072 Wasm Multi-Value: ブロック / ループの複数値返却フル活用"]
   I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
@@ -22,8 +21,7 @@ graph LR
   I118["118 Component Model: 複数エクスポート world の自動生成"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I147["147 ベンチスイート: workload taxonomy と機能マトリクス整備"]
-  I148["148 基盤: benchmark 結果保存・履歴比較・トレンドレポート"]
+  I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I170["170 v5 Migration guide"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
   I195["195 Partial execution preview + local semantic insight"]
@@ -53,7 +51,6 @@ graph LR
   I476["476 `wasm-tools compose` 統合 (v3 候補)"]
   I510["510 T3 emitter: WASI P2 import-table switch (full P2-native component)"]
   I126["126 `run_frontend()` の二重 lower を解消 (遅延 lower)"]
-  I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I201["201 Advanced debug intelligence"]
   I188["188 `ark.toml`: project / workspace metadata と `script run` surface"]
   I508["508 Legacy path removal is blocked by CoreHIR lowerer stub"]
@@ -73,7 +70,6 @@ graph LR
   I074 --> I476
   I074 --> I510
   I125 --> I126
-  I148 --> I158
   I200 --> I201
   I204 --> I188
   I285 --> I508
@@ -94,7 +90,6 @@ graph LR
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
-- **070** depends on: none; blocks: none
 - **072** depends on: none; blocks: none
 - **073** depends on: none; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476, 510
@@ -105,8 +100,7 @@ graph LR
 - **118** depends on: 117; blocks: none
 - **120** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **147** depends on: 149; blocks: none
-- **148** depends on: 140, 141, 142, 143, 145, 146; blocks: 158
+- **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 - **170** depends on: 165, 166, 169; blocks: none
 - **194** depends on: 193; blocks: none
 - **195** depends on: none; blocks: none
@@ -136,7 +130,6 @@ graph LR
 - **476** depends on: 035, done), 074; blocks: none
 - **510** depends on: 074; blocks: none
 - **126** depends on: 125; blocks: none
-- **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 - **201** depends on: 200; blocks: none
 - **188** depends on: 202, 203, 204; blocks: 205, 214
 - **508** depends on: 285; blocks: none

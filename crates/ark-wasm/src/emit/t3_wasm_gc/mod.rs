@@ -17,6 +17,7 @@
 pub(super) mod cabi_adapters;
 mod const_expr;
 mod helpers;
+pub(super) mod i31ref;
 mod layout_opt;
 mod operands;
 mod peephole;
