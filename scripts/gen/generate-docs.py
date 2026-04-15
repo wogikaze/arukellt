@@ -38,6 +38,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 DOCS = ROOT / "docs"
 DATA = DOCS / "data"
 PROJECT_STATE = DATA / "project-state.toml"
+TARGET_CONTRACT = DOCS / "target-contract.md"
 SECTIONS_FILE = DATA / "sections.toml"
 STDLIB_MANIFEST = ROOT / "std" / "manifest.toml"
 FIXTURE_MANIFEST = ROOT / "tests" / "fixtures" / "manifest.txt"
@@ -1112,19 +1113,57 @@ def render_target_table(state: dict) -> str:
         "| Target | Tier | ADR-013 Tier | Status | Run | Notes |",
         "|--------|------|--------------|--------|-----|-------|",
     ]
-    for profile in state["target_profiles"]:
-        adr_tier = profile.get("adr_tier", "—")
+    for profile in load_target_contract_summary():
         rows.append(
             "| `{}` | {} | {} | {} | {} | {} |".format(
-                profile["id"],
-                profile["tier"],
-                adr_tier,
-                profile.get("status", "Implemented" if profile.get("implemented") else "Not implemented"),
-                "Yes" if profile["run_supported"] else "No",
-                escape_table(profile["role"]),
+                profile["Target"].strip("`"),
+                profile["Tier"],
+                profile["ADR-013 Tier"],
+                profile["Status"],
+                profile["Run"],
+                escape_table(profile["Notes"]),
             )
         )
     return "\n".join(rows)
+
+
+def _parse_markdown_table_row(line: str) -> list[str]:
+    stripped = line.strip()
+    if not stripped.startswith("|") or not stripped.endswith("|"):
+        raise ValueError(f"invalid markdown table row: {line}")
+    return [cell.strip() for cell in stripped[1:-1].split("|")]
+
+
+def load_target_contract_summary() -> list[dict[str, str]]:
+    text = TARGET_CONTRACT.read_text(encoding="utf-8")
+    start = "<!-- BEGIN GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->"
+    end = "<!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->"
+    match = re.search(re.escape(start) + r"\n(.*?)\n" + re.escape(end), text, re.DOTALL)
+    if not match:
+        raise ValueError("missing current-state target summary source block in docs/target-contract.md")
+
+    lines = [line.strip() for line in match.group(1).splitlines() if line.strip()]
+    if len(lines) < 2:
+        raise ValueError("target-contract summary source block is empty")
+
+    headers = _parse_markdown_table_row(lines[0])
+    expected_headers = ["Target", "Tier", "ADR-013 Tier", "Status", "Run", "Notes"]
+    if headers != expected_headers:
+        raise ValueError(
+            "unexpected target-contract summary headers: "
+            f"expected {expected_headers}, found {headers}"
+        )
+
+    profiles: list[dict[str, str]] = []
+    for line in lines[2:]:
+        cells = _parse_markdown_table_row(line)
+        if len(cells) != len(headers):
+            raise ValueError(f"malformed target-contract summary row: {line}")
+        profiles.append(dict(zip(headers, cells)))
+
+    if not profiles:
+        raise ValueError("target-contract summary source block has no target rows")
+    return profiles
 
 
 def render_current_state_updated(state: dict) -> str:

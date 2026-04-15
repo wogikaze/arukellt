@@ -19,6 +19,21 @@ matrix job.  See `.github/workflows/ci.yml`.
 | **scaffold** | Code exists with targeted proof for shape or validation, but it is not part of the broad target-behavior guarantee tier. |
 | **none** | No implementation or test infrastructure exists. |
 
+## Current-state target summary source
+
+`docs/current-state.md` derives its generated target table from this block so the
+contract remains the single docs source for target verification status.
+
+<!-- BEGIN GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
+| Target | Tier | ADR-013 Tier | Status | Run | Notes |
+|--------|------|--------------|--------|-----|-------|
+| `wasm32-wasi-p1` | T1 | supported | stable | Yes | Supported: full fixture coverage, AtCoder/competition target |
+| `wasm32-freestanding` | T2 | scaffold | scaffold | No | Scaffold: minimal core Wasm emitter proof and validator pass; no runtime execution support yet |
+| `wasm32-wasi-p2` | T3 | primary | stable | Yes | Primary (ADR-013): canonical GC-native path, all CI gates apply |
+| `native` | T4 | scaffold | scaffold | No | Scaffold: ark-llvm exists, requires LLVM 18, no test infrastructure |
+| `wasm32-wasi-p3` | T5 | not-started | not-started | No | Not started: target id exists but no backend, runtime, or scaffold code |
+<!-- END GENERATED:CURRENT_STATE_TARGET_SUMMARY_SOURCE -->
+
 ## Target × Verification Surface
 
 ### T1 — `wasm32-wasi-p1` (CLI default)
