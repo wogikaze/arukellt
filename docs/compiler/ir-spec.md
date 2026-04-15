@@ -68,9 +68,15 @@ Wasm Emitter ──► .wasm binary  (crates/ark-wasm — emit/t3/)
 
 Two lowering paths exist:
 
-- **Legacy path** (`MirSelection::Legacy`): lowers directly from AST. Default.
-- **CoreHIR path** (`MirSelection::CoreHir`): lowers from typed HIR via
-  `lower_check_output_to_mir`. Opt-in with `--mir-select corehir`.
+- **CoreHIR path** (`MirSelection::CoreHir`): the default user-visible route. It lowers
+    from typed HIR via `lower_check_output_to_mir`, but currently falls through to the
+    legacy implementation because the real CoreHIR lowerer is still incomplete.
+- **Legacy path** (`MirSelection::Legacy`): deprecated compatibility selector that lowers
+    directly from AST when explicitly requested.
+
+For deprecation status, migration examples, and blocker details, see
+[legacy-path-status.md](legacy-path-status.md) and
+[legacy-path-migration.md](legacy-path-migration.md).
 
 ---
 

@@ -3,6 +3,7 @@
 **Updated**: 2026-04-15
 **Related issue**: [issues/open/285-legacy-path-deprecation.md](../../issues/open/285-legacy-path-deprecation.md)
 **Blocker issue**: [issues/open/508-legacy-path-removal-unblocked-by.md](../../issues/open/508-legacy-path-removal-unblocked-by.md)
+**Migration guide**: [legacy-path-migration.md](legacy-path-migration.md)
 
 ## Current Pipeline State
 
@@ -40,6 +41,9 @@ routes to the legacy AST lowerer.
 | `MirSelection::Legacy` | `crates/ark-driver/src/session.rs` | `#[deprecated]` since 0.1.0 |
 | `MirSelection::OptimizedLegacy` | `crates/ark-driver/src/session.rs` | `#[deprecated]` since 0.1.0 |
 | `--mir-select legacy` CLI flag | `crates/arukellt/src/commands.rs` | Runtime deprecation warning |
+
+See [legacy-path-migration.md](legacy-path-migration.md) for replacement examples and
+the staged warning/removal strategy.
 
 ## What Cannot Be Removed Yet
 

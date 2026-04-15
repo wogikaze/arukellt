@@ -59,6 +59,8 @@ falls back to the legacy path.
 - Removal of `lower_to_mir` is blocked until `lower_hir_to_mir` is implemented:
   see [legacy-path-status.md](legacy-path-status.md) and
   `issues/open/508-legacy-path-removal-unblocked-by.md`
+- Migration examples and warning behavior are documented in
+  [legacy-path-migration.md](legacy-path-migration.md)
 
 ## 現在の crate map
 

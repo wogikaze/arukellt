@@ -22,6 +22,9 @@
 Deprecation marking work complete. Full removal blocked by CoreHIR stub.
 See `issues/open/508-legacy-path-removal-unblocked-by.md`.
 
+Documentation slice for deprecation/migration guidance is complete. Issue remains open
+only for the fallback-removal acceptance items that are blocked by #508.
+
 **Completed:**
 - `lower_to_mir()` already had `#[deprecated]` ✓
 - `lower_legacy_only`, `lower_prefer_legacy`, `lower_any_to_mir`, `lower_corehir_via_legacy`
@@ -31,7 +34,11 @@ See `issues/open/508-legacy-path-removal-unblocked-by.md`.
 - test command default changed from `OptimizedLegacy` to `OptimizedCoreHir` ✓
 - `ARK_USE_COREHIR` env var no longer needed, ignored ✓
 - `docs/compiler/legacy-path-status.md` created documenting pipeline state ✓
+- `docs/compiler/legacy-path-migration.md` created with deprecated surface, migration
+  examples, and warning/removal strategy ✓
 - `docs/compiler/pipeline.md` updated with legacy fallback section ✓
+- `docs/compiler/ir-spec.md` corrected to describe CoreHIR as the default route and
+  legacy as deprecated ✓
 - `issues/open/508-legacy-path-removal-unblocked-by.md` created ✓
 - `lower_corehir_with_fallback` annotated with blocker comment ✓
 
@@ -61,5 +68,6 @@ CoreHIR がデフォルトになった後、legacy path (`lower_to_mir` in `func
 
 - `crates/ark-mir/src/lower/func.rs`
 - `crates/ark-mir/src/lower/mod.rs`
+- `docs/compiler/legacy-path-migration.md`
 - `docs/compiler/legacy-path-status.md`
 - `issues/open/508-legacy-path-removal-unblocked-by.md`
