@@ -23,6 +23,10 @@ pub enum SymbolKind {
     Module,
     BuiltinFn,
     BuiltinType,
+    /// A WIT-imported external function (Component Model import).
+    /// Only the name is stored; no type signature is tracked in the symbol
+    /// table for this minimal v2 pass.
+    ExternWitFn { name: String },
 }
 
 /// A resolved symbol.

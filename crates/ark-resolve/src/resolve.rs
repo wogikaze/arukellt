@@ -403,6 +403,34 @@ pub fn resolve_module_stdlib(module: ast::Module, sink: &mut DiagnosticSink) -> 
     resolve_module_with_intrinsic_prelude(module, sink)
 }
 
+/// Inject WIT-imported function names as [`ExternWitFn`] symbols into a scope.
+///
+/// For v2, only the function name is registered in the symbol table — no full
+/// type signature is stored. This allows the type-checker to accept calls to
+/// WIT-imported names without failing on "undefined symbol" errors.
+///
+/// The injection is idempotent: names already present in the scope are skipped.
+pub fn inject_wit_externs(
+    table: &mut crate::scope::SymbolTable,
+    scope: crate::scope::ScopeId,
+    names: &[&str],
+) {
+    for &name in names {
+        // Skip if already defined (handles duplicate WIT file / double-inject).
+        if table.lookup_local(scope, name).is_some() {
+            continue;
+        }
+        table.define(
+            scope,
+            name.to_string(),
+            crate::scope::SymbolKind::ExternWitFn {
+                name: name.to_string(),
+            },
+            ark_diagnostics::Span::dummy(),
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

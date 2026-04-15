@@ -144,6 +144,7 @@ dependencies = [
  "ark-typecheck",
  "ark-wasm",
  "serde",
+ "tempfile",
 ]
 
 [[package]]

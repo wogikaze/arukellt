@@ -6,15 +6,15 @@ use std::time::SystemTime;
 use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
 use ark_hir::Program;
 use ark_lexer::Lexer;
-use ark_mir::
-{
+use ark_resolve::inject_wit_externs;
+#[allow(deprecated)]
+use ark_mir::lower_legacy_only;
+use ark_mir::{
     MirModule, MirProvenance, compare_lowering_paths, dump_mir_phase, dump_phases_requested,
     eliminate_dead_functions, lower_check_output_to_mir, module_snapshot,
     optimization_pass_catalog, optimize_module, optimize_module_named, runtime_entry_name,
     set_mir_provenance, validate_backend_legal_module, validate_module,
 };
-#[allow(deprecated)]
-use ark_mir::lower_legacy_only;
 use ark_parser::{ast, parse};
 #[allow(deprecated)]
 use ark_resolve::resolved_program_entry;
@@ -178,6 +178,10 @@ pub struct Session {
     /// Set by `compile_with_entry` before the frontend runs so that
     /// `load_graph` can pass it to the module loader for target-gating.
     pub active_target: Option<TargetId>,
+    /// WIT files for Component Model host imports.
+    /// Each file is parsed and its exported function names are injected into
+    /// the resolver before type-check, and its imports populate `MirModule.imports`.
+    pub wit_files: Vec<PathBuf>,
 }
 
 impl Default for Session {
@@ -250,6 +254,7 @@ impl Session {
             lint_allow: Vec::new(),
             lint_deny: Vec::new(),
             active_target: None,
+            wit_files: Vec::new(),
         }
     }
 
@@ -465,7 +470,19 @@ impl Session {
         hint: Option<MirSelection>,
     ) -> Result<FrontendResult, String> {
         let t_total = std::time::Instant::now();
-        let resolved = self.resolve(path)?.resolved;
+        let mut resolved = self.resolve(path)?.resolved;
+
+        // Inject WIT-imported function names into the symbol table so the
+        // type-checker does not reject calls to them as undefined symbols.
+        if !self.wit_files.is_empty() {
+            let wit_names = self.collect_wit_extern_names();
+            inject_wit_externs(
+                &mut resolved.symbols,
+                resolved.global_scope,
+                &wit_names.iter().map(|s| s.as_str()).collect::<Vec<_>>(),
+            );
+        }
+
         // Preserve warnings from resolution (e.g., unused imports)
         let resolve_warnings: Vec<ark_diagnostics::Diagnostic> = self
             .sink
@@ -606,6 +623,27 @@ impl Session {
         })
     }
 
+    /// Collect all function names exported by the configured WIT files.
+    ///
+    /// Used to inject extern names into the resolver symbol table before the
+    /// type-checker runs. Silent on IO / parse errors — a malformed WIT file
+    /// will produce a diagnostic later via `preflight_wit_flags_for_component`.
+    fn collect_wit_extern_names(&self) -> Vec<String> {
+        let mut names = Vec::new();
+        for wit_path in &self.wit_files {
+            if let Ok(text) = std::fs::read_to_string(wit_path) {
+                if let Ok(doc) = ark_wasm::component::parse_wit(&text) {
+                    for iface in &doc.interfaces {
+                        for func in &iface.functions {
+                            names.push(func.name.clone());
+                        }
+                    }
+                }
+            }
+        }
+        names
+    }
+
     pub fn check(&mut self, path: &Path) -> Result<(), String> {
         let result = self.check_core_hir(path);
         // Print any warnings (including unused imports) even on success,
@@ -731,6 +769,23 @@ impl Session {
         // Validate MIR immediately after lowering, before any optimization pass.
         // This ensures structural invariants are caught regardless of MirSelection.
         validate_mir(&mir)?;
+
+        // Populate WIT-derived imports for Component Model support.
+        // Each WIT file is parsed and its function signatures are appended to
+        // mir.imports so backend consumers can emit correct component import stubs.
+        if !self.wit_files.is_empty() {
+            for wit_path in self.wit_files.clone() {
+                if let Ok(text) = std::fs::read_to_string(&wit_path) {
+                    if let Ok(doc) = ark_wasm::component::parse_wit(&text) {
+                        for iface in &doc.interfaces {
+                            let imports =
+                                ark_wasm::component::wit_interface_to_mir_imports(iface);
+                            mir.imports.extend(imports);
+                        }
+                    }
+                }
+            }
+        }
 
         // T3 MIR opt-level: blanket O0 removed 2026-04-15 (issue #486).
         // All passes in crates/ark-mir/src/passes/ are safe for T3 because they

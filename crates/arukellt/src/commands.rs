@@ -3,14 +3,72 @@
 use std::path::PathBuf;
 use std::process;
 
+use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics, wit_flags_v2_diagnostic};
 use ark_driver::{MirSelection, OptLevel, Session};
 use ark_manifest::Manifest;
 use ark_mir::mir::{MirModule, MirStmt, Operand, Rvalue};
 use ark_target::{EmitKind, TargetId};
+use ark_wasm::component::{WitDocument, WitFunction, WitType, parse_wit};
 use serde::Serialize;
 
 use crate::native;
 use crate::runtime::{RuntimeCaps, run_wasm_gc, run_wasm_p1};
+
+fn wit_type_flags_desc(ty: &WitType) -> Option<String> {
+    match ty {
+        WitType::Flags(names) => Some(format!("flags {{ {} }}", names.join(", "))),
+        WitType::List(inner)
+        | WitType::Option(inner)
+        | WitType::Own(inner)
+        | WitType::Borrow(inner) => wit_type_flags_desc(inner),
+        WitType::Result { ok, err } => ok
+            .as_deref()
+            .and_then(wit_type_flags_desc)
+            .or_else(|| err.as_deref().and_then(wit_type_flags_desc)),
+        WitType::Tuple(elems) => elems.iter().find_map(wit_type_flags_desc),
+        _ => None,
+    }
+}
+
+fn wit_function_flags_desc(func: &WitFunction) -> Option<String> {
+    func.params
+        .iter()
+        .find_map(|(_, ty)| wit_type_flags_desc(ty))
+        .or_else(|| func.result.as_ref().and_then(wit_type_flags_desc))
+}
+
+fn first_flags_diagnostic(doc: &WitDocument, path: &std::path::Path) -> Option<String> {
+    let mut sink = DiagnosticSink::new();
+    let source_map = SourceMap::new();
+    for iface in &doc.interfaces {
+        for func in &iface.functions {
+            if let Some(type_desc) = wit_function_flags_desc(func) {
+                sink.emit(wit_flags_v2_diagnostic(
+                    &path.display().to_string(),
+                    &format!("{}::{}", iface.name, func.name),
+                    &type_desc,
+                ));
+                return Some(render_diagnostics(sink.diagnostics(), &source_map));
+            }
+        }
+    }
+    None
+}
+
+fn preflight_wit_flags_for_component(wit_files: &[PathBuf]) -> Result<(), String> {
+    for wit_path in wit_files {
+        let Ok(wit_text) = std::fs::read_to_string(wit_path) else {
+            continue;
+        };
+        let Ok(doc) = parse_wit(&wit_text) else {
+            continue;
+        };
+        if let Some(rendered) = first_flags_diagnostic(&doc, wit_path) {
+            return Err(rendered);
+        }
+    }
+    Ok(())
+}
 
 pub(crate) fn cmd_init(path: PathBuf, template: crate::InitTemplate) {
     let manifest_path = path.join("ark.toml");
@@ -424,6 +482,13 @@ pub(crate) fn cmd_compile(
     if !wit_files.is_empty() && emit_kind != EmitKind::Component && emit_kind != EmitKind::All {
         eprintln!("warning: --wit flag is only used with --emit component or --emit all");
     }
+    if !wit_files.is_empty()
+        && (emit_kind == EmitKind::Component || emit_kind == EmitKind::All)
+        && let Err(rendered) = preflight_wit_flags_for_component(&wit_files)
+    {
+        eprint!("{}", rendered);
+        process::exit(1);
+    }
 
     // Validate --world flag usage
     if world.is_some()
@@ -495,6 +560,7 @@ pub(crate) fn cmd_compile(
         session.strip_debug = strip_debug;
         session.disabled_passes = no_pass.clone();
         session.p2_native = p2_native;
+        session.wit_files = wit_files.clone();
         match session.compile_component_with_world(&file, target, world_spec) {
             Ok(component) => {
                 std::fs::write(&component_output, &component).unwrap_or_else(|e| {
@@ -535,6 +601,7 @@ pub(crate) fn cmd_compile(
     session.opt_level = opt_level;
     session.strip_debug = strip_debug;
     session.disabled_passes = no_pass;
+    session.wit_files = wit_files;
     let selection = parse_mir_select(mir_select);
 
     if json {

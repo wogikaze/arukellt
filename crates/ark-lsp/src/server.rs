@@ -432,6 +432,40 @@ impl ArukellBackend {
         }
     }
 
+    fn discover_workspace_package_roots(workspace_roots: &[PathBuf]) -> Vec<PathBuf> {
+        let mut roots = Vec::new();
+        let mut seen = HashSet::new();
+
+        for workspace_root in workspace_roots {
+            let Some(project_root) = ark_manifest::Manifest::find_root(workspace_root) else {
+                continue;
+            };
+
+            let discovered = ark_manifest::Manifest::discover_path_dependency_roots(&project_root)
+                .unwrap_or_else(|_| vec![project_root.clone()]);
+
+            for root in discovered {
+                let canonical = std::fs::canonicalize(&root).unwrap_or_else(|_| root.clone());
+                if seen.insert(canonical) {
+                    roots.push(root);
+                }
+            }
+        }
+
+        roots
+    }
+
+    fn rebuild_project_index(index: &Mutex<SymbolIndex>, roots: &[PathBuf]) {
+        let mut idx = index.lock().unwrap();
+        idx.file_symbols.clear();
+        idx.indexed_files.clear();
+        drop(idx);
+
+        for root in roots {
+            Self::index_project_files(index, root);
+        }
+    }
+
     /// Collect all .ark files under a directory.
     fn walk_ark_files(dir: &PathBuf) -> Vec<PathBuf> {
         let mut files = Vec::new();
@@ -2143,6 +2177,7 @@ impl ArukellBackend {
                 ark_resolve::SymbolKind::Module => "module",
                 ark_resolve::SymbolKind::BuiltinFn => "builtin fn",
                 ark_resolve::SymbolKind::BuiltinType => "builtin type",
+                ark_resolve::SymbolKind::ExternWitFn { .. } => "extern wit fn",
             };
 
             // Try to find the type annotation or infer type from initializer.
@@ -3818,8 +3853,15 @@ impl LanguageServer for ArukellBackend {
     async fn initialized(&self, _: InitializedParams) {
         // Build symbol index from project files and stdlib manifest.
         let project_root = self.project_root.lock().unwrap().clone();
-        if let Some(ref root) = project_root {
-            Self::index_project_files(&self.symbol_index, root);
+        let workspace_roots = self.workspace_roots.lock().unwrap().clone();
+        let mut package_roots = Self::discover_workspace_package_roots(&workspace_roots);
+        if package_roots.is_empty() {
+            if let Some(root) = project_root.clone() {
+                package_roots.push(root);
+            }
+        }
+        if !package_roots.is_empty() {
+            Self::rebuild_project_index(&self.symbol_index, &package_roots);
         }
 
         // Index stdlib symbols from manifest
@@ -3838,7 +3880,11 @@ impl LanguageServer for ArukellBackend {
         };
 
         let root_msg = match project_root.as_deref() {
-            Some(root) => format!("project root: {}", root.display()),
+            Some(root) => format!(
+                "project root: {} (indexed {} package roots)",
+                root.display(),
+                package_roots.len()
+            ),
             None => "single-file mode (no ark.toml found)".to_string(),
         };
         self.client
@@ -3865,47 +3911,56 @@ impl LanguageServer for ArukellBackend {
             .iter()
             .any(|c| c.uri.path().ends_with("ark.toml"));
         if manifest_changed {
+            let workspace_roots = self.workspace_roots.lock().unwrap().clone();
             let current_root = self.project_root.lock().unwrap().clone();
-            if let Some(root) = current_root {
-                // Re-resolve from the same root to pick up changes.
-                match ark_manifest::Manifest::find_root(&root) {
-                    Some(new_root) => {
-                        *self.project_root.lock().unwrap() = Some(new_root.clone());
-                        // Rebuild symbol index from the new project root
-                        Self::index_project_files(&self.symbol_index, &new_root);
-                        {
-                            let manifest = self.stdlib_manifest.lock().unwrap();
-                            if let Some(ref m) = *manifest {
-                                let std_dir = new_root.join("std");
-                                let std_path = if std_dir.exists() {
-                                    Some(&std_dir)
-                                } else {
-                                    None
-                                };
-                                Self::index_stdlib_from_manifest(&self.symbol_index, m, std_path);
-                            }
-                        }
-                        self.client
-                            .log_message(
-                                MessageType::INFO,
-                                format!(
-                                    "ark.toml changed — project root reloaded: {}",
-                                    new_root.display()
-                                ),
-                            )
-                            .await;
-                    }
-                    None => {
-                        *self.project_root.lock().unwrap() = None;
-                        self.client
-                            .log_message(
-                                MessageType::INFO,
-                                "ark.toml removed — switched to single-file mode",
-                            )
-                            .await;
-                    }
+            let root_seeds = if workspace_roots.is_empty() {
+                current_root.clone().into_iter().collect::<Vec<_>>()
+            } else {
+                workspace_roots
+            };
+
+            let new_primary_root = root_seeds
+                .first()
+                .and_then(|seed| ark_manifest::Manifest::find_root(seed));
+
+            *self.project_root.lock().unwrap() = new_primary_root.clone();
+
+            let mut package_roots = Self::discover_workspace_package_roots(&root_seeds);
+            if package_roots.is_empty() {
+                if let Some(root) = new_primary_root.clone() {
+                    package_roots.push(root);
                 }
             }
+
+            if !package_roots.is_empty() {
+                Self::rebuild_project_index(&self.symbol_index, &package_roots);
+            } else {
+                let mut idx = self.symbol_index.lock().unwrap();
+                idx.file_symbols.clear();
+                idx.indexed_files.clear();
+            }
+
+            {
+                let manifest = self.stdlib_manifest.lock().unwrap();
+                if let Some(ref m) = *manifest {
+                    let std_path = new_primary_root
+                        .as_ref()
+                        .map(|root| root.join("std"))
+                        .filter(|path| path.exists());
+                    Self::index_stdlib_from_manifest(&self.symbol_index, m, std_path.as_ref());
+                }
+            }
+
+            let message = match new_primary_root {
+                Some(root) => format!(
+                    "ark.toml changed — project roots reloaded: {} package roots from {}",
+                    package_roots.len(),
+                    root.display()
+                ),
+                None => "ark.toml removed — switched to single-file mode".to_string(),
+            };
+
+            self.client.log_message(MessageType::INFO, message).await;
         }
         // Also rebuild index when .ark files change
         let ark_file_changed = params
