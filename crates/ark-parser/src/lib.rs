@@ -5,12 +5,20 @@ pub mod fmt;
 mod parser;
 
 use ark_diagnostics::DiagnosticSink;
+use ark_lexer::Lexer;
 use ark_lexer::Token;
 
 /// Parse a stream of tokens into a Module AST.
 pub fn parse(tokens: &[Token], sink: &mut DiagnosticSink) -> ast::Module {
     let mut p = parser::Parser::new(tokens, sink);
     p.parse_module()
+}
+
+/// Lex and parse a source string into a Module AST.
+pub fn parse_source(file_id: u32, source: &str, sink: &mut DiagnosticSink) -> ast::Module {
+    let lexer = Lexer::new(file_id, source);
+    let tokens: Vec<_> = lexer.collect();
+    parse(&tokens, sink)
 }
 
 #[cfg(test)]
@@ -204,6 +212,24 @@ mod tests {
         assert!(sink.has_errors());
         // Should still parse at least one item despite the error
         assert!(!module.items.is_empty());
+    }
+
+    #[test]
+    fn test_parse_source_matches_token_parse() {
+        let src = "fn main() { let x = 1 + 2 }";
+
+        let (tokens, _) = tokenize(0, src);
+        let mut token_sink = DiagnosticSink::new();
+        let via_tokens = parse(&tokens, &mut token_sink);
+
+        let mut source_sink = DiagnosticSink::new();
+        let via_source = parse_source(0, src, &mut source_sink);
+
+        assert!(!token_sink.has_errors());
+        assert!(!source_sink.has_errors());
+        assert_eq!(via_tokens.items.len(), via_source.items.len());
+        assert_eq!(via_tokens.imports.len(), via_source.imports.len());
+        assert_eq!(via_tokens.docs, via_source.docs);
     }
 
     #[test]

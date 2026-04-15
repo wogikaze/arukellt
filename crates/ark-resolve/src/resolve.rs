@@ -10,7 +10,7 @@ use ark_target::TargetId;
 
 use crate::analyze::{analyze_module, analyze_program};
 use crate::bind::{bind_module, bind_public_module, inject_prelude_symbols};
-use crate::load::{load_program, load_program_with_target};
+use crate::load::{load_program, load_program_with_target, load_program_with_target_and_parser};
 use crate::scope::{ScopeId, SymbolTable};
 
 /// Visibility of a declaration within its module.
@@ -99,6 +99,18 @@ pub fn load_program_graph_with_target(
     load_program_with_target(entry_path, sink, target)
 }
 
+pub fn load_program_graph_with_target_and_parser<F>(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+    parse_module: &mut F,
+) -> Result<crate::module_graph::ModuleGraph, String>
+where
+    F: FnMut(&Path, &mut DiagnosticSink) -> Result<ast::Module, String>,
+{
+    load_program_with_target_and_parser(entry_path, sink, target, parse_module)
+}
+
 pub fn analyze_loaded_program(
     graph: crate::module_graph::ModuleGraph,
     sink: &mut DiagnosticSink,
@@ -124,6 +136,19 @@ pub fn resolve_program_with_target(
     target: Option<TargetId>,
 ) -> Result<ResolvedProgram, String> {
     let graph = load_program_graph_with_target(entry_path, sink, target)?;
+    Ok(resolve_bound_program(analyze_loaded_program(graph, sink)))
+}
+
+pub fn resolve_program_with_target_and_parser<F>(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+    parse_module: &mut F,
+) -> Result<ResolvedProgram, String>
+where
+    F: FnMut(&Path, &mut DiagnosticSink) -> Result<ast::Module, String>,
+{
+    let graph = load_program_graph_with_target_and_parser(entry_path, sink, target, parse_module)?;
     Ok(resolve_bound_program(analyze_loaded_program(graph, sink)))
 }
 

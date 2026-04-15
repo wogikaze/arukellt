@@ -206,7 +206,7 @@ pub(crate) fn resolve_import_path(
     }
 }
 
-fn load_module_recursive(
+fn load_module_recursive<F>(
     module_name: String,
     path: PathBuf,
     std_root: &Path,
@@ -215,7 +215,11 @@ fn load_module_recursive(
     loaded: &mut HashMap<PathBuf, LoadedModule>,
     target: Option<TargetId>,
     registry: Option<&RegistryConfig>,
-) {
+    parse_module: &mut F,
+)
+where
+    F: FnMut(&Path, &mut DiagnosticSink) -> Result<ast::Module, String>,
+{
     // Skip sentinel paths — errors were already emitted upstream.
     if path.as_os_str() == "<host_stub>"
         || path.as_os_str() == "<target-incompatible>"
@@ -245,7 +249,7 @@ fn load_module_recursive(
         return;
     }
 
-    let module = match parse_module_file(&path, sink) {
+    let module = match parse_module(&path, sink) {
         Ok(module) => module,
         Err(msg) => {
             sink.emit(
@@ -259,7 +263,15 @@ fn load_module_recursive(
 
     for import in &module.imports {
         load_single_import(
-            import, &path, std_root, sink, visiting, loaded, target, registry,
+            import,
+            &path,
+            std_root,
+            sink,
+            visiting,
+            loaded,
+            target,
+            registry,
+            parse_module,
         );
     }
 
@@ -279,7 +291,7 @@ fn load_module_recursive(
 /// Handles all three import kinds:
 /// - `Simple` / `ModulePath`: load the single module file.
 /// - `DestructureImport { names }`: load each `base::name` sub-module separately.
-fn load_single_import(
+fn load_single_import<F>(
     import: &ast::Import,
     current_path: &Path,
     std_root: &Path,
@@ -288,7 +300,11 @@ fn load_single_import(
     loaded: &mut HashMap<PathBuf, LoadedModule>,
     target: Option<TargetId>,
     registry: Option<&RegistryConfig>,
-) {
+    parse_module: &mut F,
+)
+where
+    F: FnMut(&Path, &mut DiagnosticSink) -> Result<ast::Module, String>,
+{
     match &import.kind {
         ImportKind::DestructureImport { names } => {
             // `use a::b::{c, d}` → load `a::b::c` and `a::b::d` as separate modules.
@@ -319,6 +335,7 @@ fn load_single_import(
                     loaded,
                     target,
                     registry,
+                    parse_module,
                 );
             }
         }
@@ -385,6 +402,7 @@ fn load_single_import(
                 loaded,
                 target,
                 registry,
+                parse_module,
             );
         }
     }
@@ -402,6 +420,19 @@ pub(crate) fn load_program_with_target(
     sink: &mut DiagnosticSink,
     target: Option<TargetId>,
 ) -> Result<ModuleGraph, String> {
+    let mut parse_module = parse_module_file;
+    load_program_with_target_and_parser(entry_path, sink, target, &mut parse_module)
+}
+
+pub(crate) fn load_program_with_target_and_parser<F>(
+    entry_path: &Path,
+    sink: &mut DiagnosticSink,
+    target: Option<TargetId>,
+    parse_module: &mut F,
+) -> Result<ModuleGraph, String>
+where
+    F: FnMut(&Path, &mut DiagnosticSink) -> Result<ast::Module, String>,
+{
     let std_root = entry_path
         .ancestors()
         .find(|p| p.join("std").is_dir())
@@ -415,7 +446,7 @@ pub(crate) fn load_program_with_target(
         .map(|(root, manifest)| RegistryConfig::from_manifest(&manifest, &root));
     let registry = registry_config.as_ref();
 
-    let entry_module = parse_module_file(entry_path, sink)?;
+    let entry_module = parse_module(entry_path, sink)?;
     let mut visiting = HashSet::new();
     let mut loaded = HashMap::new();
 
@@ -429,6 +460,7 @@ pub(crate) fn load_program_with_target(
             &mut loaded,
             target,
             registry,
+            parse_module,
         );
     }
 

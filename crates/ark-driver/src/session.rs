@@ -3,9 +3,8 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
-use ark_diagnostics::{DiagnosticSink, SourceMap, render_diagnostics};
+use ark_diagnostics::{DiagnosticSink, Severity, SourceMap, render_diagnostics};
 use ark_hir::Program;
-use ark_lexer::Lexer;
 use ark_resolve::inject_wit_externs;
 #[allow(deprecated)]
 use ark_mir::lower_legacy_only;
@@ -15,7 +14,7 @@ use ark_mir::{
     optimization_pass_catalog, optimize_module, optimize_module_named, runtime_entry_name,
     set_mir_provenance, validate_backend_legal_module, validate_module,
 };
-use ark_parser::{ast, parse};
+use ark_parser::{ast, parse_source};
 #[allow(deprecated)]
 use ark_resolve::resolved_program_entry;
 use ark_resolve::{ResolvedModule, ResolvedProgram};
@@ -42,6 +41,24 @@ pub struct AnalysisResult {
     pub checker: TypeChecker,
     pub core_hir: Program,
     pub mir: MirModule,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IncrementalParseStatus {
+    Reused,
+    Reparsed,
+}
+
+#[derive(Debug, Clone)]
+pub struct IncrementalParseResult {
+    pub module: ast::Module,
+    pub status: IncrementalParseStatus,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct ParseCacheStats {
+    pub cached_files: usize,
+    pub cached_modules: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -308,6 +325,13 @@ impl Session {
         self.source_map.add_file(name, source)
     }
 
+    pub fn parse_cache_stats(&self) -> ParseCacheStats {
+        ParseCacheStats {
+            cached_files: self.file_mtime_cache.len(),
+            cached_modules: self.artifacts.parse.len(),
+        }
+    }
+
     fn load_source(&mut self, path: &Path) -> Result<(String, PhaseKey, u32), String> {
         let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
 
@@ -350,29 +374,82 @@ impl Session {
     pub fn invalidate_file(&mut self, path: &Path) {
         let canonical = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
         self.file_mtime_cache.remove(&canonical);
-        // Also clear the downstream artifact cache so the whole pipeline re-runs.
-        self.artifacts = ArtifactStore::default();
+        if let Some(key) = self.artifacts.path_keys.remove(&canonical) {
+            self.artifacts.parse.remove(&key);
+            self.artifacts.bind.remove(&key);
+            self.artifacts.load.remove(&key);
+            self.artifacts.analyze.remove(&key);
+            self.artifacts.resolve.remove(&key);
+            self.artifacts.core_hir.remove(&key);
+        }
+    }
+
+    fn parse_incremental_with_sink(
+        &mut self,
+        path: &Path,
+        sink: &mut DiagnosticSink,
+        fail_on_parse_errors: bool,
+    ) -> Result<IncrementalParseResult, String> {
+        let (source, key, file_id) = self.load_source(path)?;
+        if let Some(module) = self.artifacts.parse.get(&key) {
+            return Ok(IncrementalParseResult {
+                module: module.clone(),
+                status: IncrementalParseStatus::Reused,
+            });
+        }
+
+        let baseline = sink.diagnostics().len();
+        let module = parse_source(file_id, &source, sink);
+        let parse_failed = sink.diagnostics()[baseline..]
+            .iter()
+            .any(|diagnostic| diagnostic.severity() == Severity::Error);
+        if parse_failed {
+            if fail_on_parse_errors {
+                return Err(render_diagnostics(sink.diagnostics(), &self.source_map));
+            }
+        } else {
+            self.artifacts.parse.insert(key, module.clone());
+        }
+
+        Ok(IncrementalParseResult {
+            module,
+            status: IncrementalParseStatus::Reparsed,
+        })
+    }
+
+    pub fn parse_incremental(&mut self, path: &Path) -> Result<IncrementalParseResult, String> {
+        let mut sink = DiagnosticSink::new();
+        let result = self.parse_incremental_with_sink(path, &mut sink, true)?;
+        self.sink = sink;
+        Ok(result)
     }
 
     pub fn parse(&mut self, path: &Path) -> Result<ast::Module, String> {
-        let (source, key, file_id) = self.load_source(path)?;
-        if let Some(module) = self.artifacts.parse.get(&key) {
-            return Ok(module.clone());
+        self.parse_incremental(path).map(|result| result.module)
+    }
+
+    pub fn reparse_changed_files<I, P>(
+        &mut self,
+        paths: I,
+    ) -> Result<Vec<IncrementalParseResult>, String>
+    where
+        I: IntoIterator<Item = P>,
+        P: AsRef<Path>,
+    {
+        let paths: Vec<PathBuf> = paths
+            .into_iter()
+            .map(|path| path.as_ref().to_path_buf())
+            .collect();
+
+        for path in &paths {
+            self.invalidate_file(path);
         }
 
-        self.sink = DiagnosticSink::new();
-        let lexer = Lexer::new(file_id, &source);
-        let tokens: Vec<_> = lexer.collect();
-        let module = parse(&tokens, &mut self.sink);
-        if self.sink.has_errors() {
-            return Err(render_diagnostics(
-                self.sink.diagnostics(),
-                &self.source_map,
-            ));
+        let mut reparsed = Vec::with_capacity(paths.len());
+        for path in &paths {
+            reparsed.push(self.parse_incremental(path)?);
         }
-
-        self.artifacts.parse.insert(key, module.clone());
-        Ok(module)
+        Ok(reparsed)
     }
 
     pub fn bind(&mut self, path: &Path) -> Result<BoundArtifact, String> {
@@ -393,9 +470,20 @@ impl Session {
             return Ok(loaded.clone());
         }
 
-        self.sink = DiagnosticSink::new();
-        let program =
-            ark_resolve::resolve_program_with_target(path, &mut self.sink, self.active_target).ok();
+        let active_target = self.active_target;
+        let mut sink = DiagnosticSink::new();
+        let mut parse_module = |module_path: &Path, parse_sink: &mut DiagnosticSink| {
+            self.parse_incremental_with_sink(module_path, parse_sink, false)
+                .map(|result| result.module)
+        };
+        let program = ark_resolve::resolve_program_with_target_and_parser(
+            path,
+            &mut sink,
+            active_target,
+            &mut parse_module,
+        )
+        .ok();
+        self.sink = sink;
         if self.sink.has_errors() {
             return Err(render_diagnostics(
                 self.sink.diagnostics(),
@@ -1188,6 +1276,31 @@ fn _keep_pathbuf(_: &PathBuf, _: Option<ResolvedProgram>) {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
+    use std::time::Duration;
+
+    use tempfile::TempDir;
+
+    fn write_with_fresh_mtime(path: &Path, source: &str) {
+        let before = fs::metadata(path).and_then(|meta| meta.modified()).ok();
+        for _ in 0..8 {
+            fs::write(path, source).expect("write source");
+            let after = fs::metadata(path)
+                .and_then(|meta| meta.modified())
+                .expect("read modified time");
+            if before != Some(after) {
+                return;
+            }
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        panic!("expected file mtime to change");
+    }
+
+    fn write_module(dir: &TempDir, name: &str, source: &str) -> PathBuf {
+        let path = dir.path().join(name);
+        fs::write(&path, source).expect("write module");
+        path
+    }
 
     #[test]
     fn session_cache_key_changes_with_path() {
@@ -1214,5 +1327,65 @@ mod tests {
             "expected [memory] prefix, got: {}",
             output
         );
+    }
+
+    #[test]
+    fn parse_incremental_reuses_unchanged_ast() {
+        let dir = TempDir::new().expect("temp dir");
+        let main = write_module(&dir, "main.ark", "fn main() {}\n");
+
+        let mut session = Session::new();
+        let first = session.parse_incremental(&main).expect("first parse");
+        let second = session.parse_incremental(&main).expect("second parse");
+
+        assert_eq!(first.status, IncrementalParseStatus::Reparsed);
+        assert_eq!(second.status, IncrementalParseStatus::Reused);
+        assert_eq!(session.parse_cache_stats().cached_modules, 1);
+    }
+
+    #[test]
+    fn reparse_changed_files_only_invalidates_requested_paths() {
+        let dir = TempDir::new().expect("temp dir");
+        let main = write_module(&dir, "main.ark", "import helper\nfn main() { helper() }\n");
+        let helper = write_module(&dir, "helper.ark", "fn helper() -> i32 { 1 }\n");
+
+        let mut session = Session::new();
+        session.parse_incremental(&main).expect("parse main");
+        session.parse_incremental(&helper).expect("parse helper");
+        assert_eq!(
+            session.parse_incremental(&helper).expect("reuse helper").status,
+            IncrementalParseStatus::Reused
+        );
+
+        write_with_fresh_mtime(&main, "import helper\nfn main() { helper() + 1 }\n");
+        let reparsed = session
+            .reparse_changed_files([main.as_path()])
+            .expect("reparse changed files");
+
+        assert_eq!(reparsed.len(), 1);
+        assert_eq!(reparsed[0].status, IncrementalParseStatus::Reparsed);
+        assert_eq!(
+            session
+                .parse_incremental(&helper)
+                .expect("helper stays cached")
+                .status,
+            IncrementalParseStatus::Reused
+        );
+    }
+
+    #[test]
+    fn load_graph_uses_incremental_parse_cache_for_imports() {
+        let dir = TempDir::new().expect("temp dir");
+        let main = write_module(&dir, "main.ark", "import helper\nfn main() { helper() }\n");
+        write_module(&dir, "helper.ark", "fn helper() -> i32 { 1 }\n");
+
+        let mut session = Session::new();
+        session.load_graph(&main).expect("load graph");
+
+        let stats = session.parse_cache_stats();
+        assert_eq!(stats.cached_modules, 2);
+
+        session.load_graph(&main).expect("load graph again");
+        assert_eq!(session.parse_cache_stats().cached_modules, 2);
     }
 }
