@@ -19,9 +19,10 @@ pub enum TargetId {
     /// T1: Linear memory + WASI Preview 1 (AtCoder target)
     #[default]
     Wasm32WasiP1,
-    /// T2: Wasm GC, no WASI (browser/embedded)
-    /// STATUS: not-started — no codegen backend, no tests, no scaffold.
-    /// See docs/target-contract.md § T2 for what is needed to start this target.
+    /// T2: Wasm GC, no WASI (compile-only scaffold)
+    /// STATUS: scaffold — a minimal core-Wasm emitter exists, but run support
+    /// remains false and the target is not a browser runtime.
+    /// See docs/target-contract.md § T2 for the current scaffold scope.
     Wasm32Freestanding,
     /// T3: Wasm GC + WASI Preview 2 + Component Model (canonical target)
     Wasm32WasiP2,
@@ -87,7 +88,7 @@ impl TargetId {
                 wasi_profile: WasiProfile::None,
                 component_model: false,
                 abi_surface: AbiSurface::RawWasm,
-                implemented: false,
+                implemented: true,
                 run_supported: false,
                 default_emit_kind: EmitKind::CoreWasm,
                 experimental: false,
@@ -345,9 +346,7 @@ impl std::str::FromStr for WasiVersion {
         match s {
             "p1" => Ok(WasiVersion::P1),
             "p2" => Ok(WasiVersion::P2),
-            _ => Err(format!(
-                "unknown WASI version `{s}`. Available: p1, p2"
-            )),
+            _ => Err(format!("unknown WASI version `{s}`. Available: p1, p2")),
         }
     }
 }
@@ -368,7 +367,7 @@ pub fn targets_help() -> String {
             id.tier(),
             match id {
                 TargetId::Wasm32WasiP1 => "Linear memory + WASI Preview 1",
-                TargetId::Wasm32Freestanding => "Wasm GC, no WASI (browser/embedded)",
+                TargetId::Wasm32Freestanding => "Wasm GC, no WASI (compile-only scaffold)",
                 TargetId::Wasm32WasiP2 => "Wasm GC + WASI Preview 2 + Component Model",
                 TargetId::Native => "Native via LLVM",
                 TargetId::Wasm32WasiP3 => "Wasm GC + WASI Preview 3 (future)",
@@ -438,6 +437,12 @@ mod tests {
         assert!(t1.run_supported);
         assert_eq!(t1.memory_model, MemoryModel::LinearArena);
         assert_eq!(t1.default_emit_kind, EmitKind::CoreWasm);
+
+        let t2 = TargetId::Wasm32Freestanding.profile();
+        assert!(t2.implemented);
+        assert!(!t2.run_supported);
+        assert_eq!(t2.memory_model, MemoryModel::WasmGc);
+        assert_eq!(t2.default_emit_kind, EmitKind::CoreWasm);
 
         let t3 = TargetId::Wasm32WasiP2.profile();
         assert!(t3.implemented);

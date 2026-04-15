@@ -37,6 +37,7 @@ component-compile:component/export_variant.ark
 component-compile:component/multi_export.ark
 compile-error:component/export_unsupported_option_string.ark
 compile-error:component/export_unsupported_nested_option.ark
+compile-error:component/import_flags_type.ark
 diag:diagnostics/deprecated_prelude_println.ark
 diag:diagnostics/deprecated_std_io_import.ark
 diag:diagnostics/deprecated_time_monotonic_now.ark
@@ -214,6 +215,7 @@ run:selfhost/mir_lowering.ark
 run:selfhost/mir_match.ark
 run:selfhost/mir_loop_for.ark
 run:selfhost/parser_new_syntax.ark
+run:selfhost/trait_surface.ark
 module-diag:selfhost/resolver_circular_import/main.ark
 run:selfhost/resolver_import_basic/main.ark
 run:selfhost/resolver_stdlib_module/main.ark
@@ -775,6 +777,7 @@ run:guide/string_ops.ark
 # issue 449 / MIR-01: regression fixtures — T1 (run) coverage alongside t3-compile entries above
 run:regression/type_table/enum_match_variants.ark
 run:regression/type_table/struct_field_access.ark
+run:regression/t2_scaffold.ark
 
 run:stdlib_signal/fft.ark
 

@@ -3,6 +3,8 @@ use crate::{AbiSurface, EmitKind, MemoryModel, TargetId, TargetProfile, WasiProf
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RuntimeModel {
     T1LinearP1,
+    /// Minimal T2 scaffold: core Wasm only, no WASI, no runner support.
+    T2Freestanding,
     /// Completed T3: WasmGC types + linear-memory bridge I/O via P1 fd_write.
     T3WasmGcP2,
     T4LlvmScaffold,
@@ -86,6 +88,21 @@ pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<Backe
             AbiClass::LinearMemoryPointer,
             LayoutClass::Dynamic,
         ),
+        TargetId::Wasm32Freestanding => {
+            if emit_kind != EmitKind::CoreWasm {
+                return Err(format!(
+                    "target `{}` ({}) currently supports only core-wasm via the T2 scaffold",
+                    target,
+                    target.tier()
+                ));
+            }
+            (
+                RuntimeModel::T2Freestanding,
+                EmitCapability::CoreWasm,
+                AbiClass::WasmGcRef,
+                LayoutClass::Dynamic,
+            )
+        }
         TargetId::Wasm32WasiP2 => (
             RuntimeModel::T3WasmGcP2,
             match emit_kind {
@@ -141,6 +158,11 @@ pub fn build_backend_plan(target: TargetId, emit_kind: EmitKind) -> Result<Backe
                 name: "fd_write".to_string(),
             });
         }
+        RuntimeModel::T2Freestanding => {
+            exports.push(ExportPlan {
+                name: "memory".to_string(),
+            });
+        }
         RuntimeModel::T4LlvmScaffold => {
             exports.clear();
             exports.push(ExportPlan {
@@ -170,6 +192,11 @@ pub fn plan_matches_target_profile(plan: &BackendPlan) -> bool {
                 && plan.profile.wasi_profile == WasiProfile::P1
                 && plan.profile.abi_surface == AbiSurface::RawWasm
         }
+        RuntimeModel::T2Freestanding => {
+            plan.profile.memory_model == MemoryModel::WasmGc
+                && plan.profile.wasi_profile == WasiProfile::None
+                && !plan.profile.run_supported
+        }
         RuntimeModel::T3WasmGcP2 => {
             plan.profile.memory_model == MemoryModel::WasmGc
                 && plan.profile.wasi_profile == WasiProfile::P2
@@ -198,6 +225,14 @@ mod tests {
     fn t3_core_wasm_plan_uses_completed_runtime() {
         let plan = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::CoreWasm).unwrap();
         assert_eq!(plan.runtime_model, RuntimeModel::T3WasmGcP2);
+        assert!(plan_matches_target_profile(&plan));
+    }
+
+    #[test]
+    fn t2_core_wasm_plan_uses_scaffold_runtime() {
+        let plan = build_backend_plan(TargetId::Wasm32Freestanding, EmitKind::CoreWasm).unwrap();
+        assert_eq!(plan.runtime_model, RuntimeModel::T2Freestanding);
+        assert!(plan.exports.iter().any(|export| export.name == "memory"));
         assert!(plan_matches_target_profile(&plan));
     }
 

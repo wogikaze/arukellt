@@ -2,10 +2,12 @@
 //!
 //! Routes MIR emission through the appropriate backend based on `TargetId`.
 //! T1: linear memory + WASI p1 (fully implemented).
+//! T2: freestanding Wasm GC scaffold (minimal core Wasm module only).
 //! T3: Wasm GC + WASI p2 (in progress — currently delegates to T1).
 
 pub mod t1;
 pub use t1 as t1_wasm32_p1;
+pub mod t2_freestanding;
 pub mod t3_wasm_gc;
 
 use ark_diagnostics::{DiagnosticSink, wasm_validation_diagnostic};
@@ -59,6 +61,7 @@ pub fn emit_with_plan(
 ) -> Vec<u8> {
     let bytes = match plan.runtime_model {
         RuntimeModel::T1LinearP1 => t1_wasm32_p1::emit(mir, sink),
+        RuntimeModel::T2Freestanding => t2_freestanding::emit(mir, sink),
         RuntimeModel::T3WasmGcP2 => t3_wasm_gc::emit(mir, sink, opt_level, strip_debug),
         RuntimeModel::T4LlvmScaffold => {
             sink.emit(wasm_validation_diagnostic(
@@ -123,6 +126,16 @@ mod tests {
         let t3 = build_backend_plan(TargetId::Wasm32WasiP2, EmitKind::CoreWasm).unwrap();
         assert!(t1.exports.iter().any(|export| export.name == "_start"));
         assert!(t3.exports.iter().any(|export| export.name == "_start"));
+    }
+
+    #[test]
+    fn t2_core_wasm_plan_is_scaffolded_and_compile_only() {
+        let t2 = build_backend_plan(TargetId::Wasm32Freestanding, EmitKind::CoreWasm).unwrap();
+        assert_eq!(t2.runtime_model, RuntimeModel::T2Freestanding);
+        assert!(t2.exports.iter().any(|export| export.name == "_start"));
+        assert!(t2.exports.iter().any(|export| export.name == "memory"));
+        assert!(t2.profile.implemented);
+        assert!(!t2.profile.run_supported);
     }
 
     #[test]

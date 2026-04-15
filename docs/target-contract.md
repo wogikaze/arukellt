@@ -50,32 +50,27 @@ matrix job.  See `.github/workflows/ci.yml`.
 | validator pass | guaranteed | `wasmparser` validation runs post-emit |
 | compile-error | guaranteed | 10 `compile-error` fixtures verify expected failures |
 
-### T2 — `wasm32-freestanding` (Wasm GC, no WASI — browser/embedded)
+### T2 — `wasm32-freestanding` (Wasm GC, no WASI)
 
-**Status: ADR written, emitter not started**
+**Status: scaffold**
 
-T2 is not implemented.  No codegen backend, no tests, no scaffold.  The target
-identifier `wasm32-freestanding` is registered in `ark-target` but nothing downstream
-handles it.
+T2 now has a minimal emitter scaffold in `crates/ark-wasm`.  It produces a
+structurally valid core Wasm module for the freestanding target, exports
+`"memory"` and `"_start"`, and passes wasmparser validation on the dedicated
+regression fixture.  It does **not** implement real MIR lowering yet and does
+not imply browser/runtime execution support.
 
-The I/O surface design has been decided in [ADR-020](adr/ADR-020-t2-io-surface.md):
-T2 modules import `{ arukellt_io: { write(ptr, len), flush() } }` from the JS host
-and export their linear memory as `"memory"`.  A 1-page (64 KB) linear memory region
-is retained for I/O string marshaling; all other storage uses Wasm GC.
+The I/O surface design is still the long-term contract from [ADR-020](adr/ADR-020-t2-io-surface.md),
+but the current scaffold does not wire that host bridge yet.
 
-T2 is a **v2 playground target** — playground v1 does not require T2 and is not
-blocked on it (see ADR-017).
-
-To start the T2 emitter: implement a new codegen backend in `crates/ark-wasm` that
-emits Wasm GC instructions (no WASI), emits the two `arukellt_io` imports, exports
-`"memory"`, and lowers `println` to `write`+`flush` call pairs.  Wire it into the
-backend plan in `crates/ark-driver` and add fixture entries.
+T2 is a **v2 playground target** only in the roadmap sense.  Playground v1 does
+not require T2 and is not blocked on it (see ADR-017).
 
 | Surface | Status | Detail |
 |---------|--------|--------|
-| I/O surface | ADR written | ADR-020 defines `arukellt_io.write`/`flush` import contract |
-| codegen | none | T2 emitter not started.  No codegen, no tests, no scaffold. |
-| all other | none | Blocked on codegen implementation. |
+| I/O surface | ADR written | ADR-020 defines the long-term `arukellt_io.write`/`flush` contract |
+| codegen | scaffold | Minimal core Wasm scaffold exists; no real MIR lowering yet |
+| all other | none | No runtime/browser execution support yet |
 
 ### T4 — native (LLVM backend)
 
@@ -138,7 +133,7 @@ This document should only be updated when:
 Current fixture counts (as of this commit):
 
 ```text
-run:              209
+run:              210
 module-run:        18
 diag:              17
 module-diag:        3
@@ -148,5 +143,5 @@ component-compile:  6
 compile-error:     10
 bench:              5
 ────────────────────
-total:            434
+total:            435
 ```
