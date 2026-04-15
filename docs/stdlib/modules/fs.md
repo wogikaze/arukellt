@@ -39,8 +39,8 @@ write_string("output.txt", "hello")
 ## `std::host::fs`
 
 - Source: [`../../../std/host/fs.ark`](../../../std/host/fs.ark)
-- Manifest-backed functions: 3
-- Stability: stable 3
+- Manifest-backed functions: 6
+- Stability: experimental 3, stable 3
 
 > 🎯 **Target:** `wasm32-wasi-p2` · ✅ **Status:** implemented
 
@@ -55,6 +55,9 @@ These APIs perform host I/O. Pure path manipulation remains in `std::path`.
 | `read_to_string` | `(String) -> Result<String, String>` | `stable` | ✅ impl | Reads a UTF-8 text file into memory. |
 | `write_string` | `(String, String) -> Result<(), String>` | `stable` | ✅ impl | Writes a UTF-8 string to a file, replacing any existing contents. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `stable` | ✅ impl | Writes a byte array to a file, replacing any existing contents. |
+| `fd_seek` | `(i32, i64, i32) -> i64` | `experimental` | ✅ impl | Seeks within an open file descriptor. |
+| `fd_tell` | `(i32) -> i64` | `experimental` | ✅ impl | Returns the current file offset for an open file descriptor. |
+| `fd_fdstat_errno` | `(i32) -> i32` | `experimental` | ✅ impl | Returns the errno from fd_fdstat_get for an open file descriptor. |
 
 #### `read_to_string`
 
@@ -86,6 +89,24 @@ Write a byte sequence (Vec<i32> where each element is 0–255) to the given file
 **Availability:** Requires the --dir capability flag at runtime.
 
 **Errors:** Returns Err if the path is not writable or any byte value is out of range 0–255.
+
+#### `fd_seek`
+
+Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset.
+
+**Availability:** T1/WASI P1 only.
+
+#### `fd_tell`
+
+Return the current file offset for an open file descriptor.
+
+**Availability:** T1/WASI P1 only.
+
+#### `fd_fdstat_errno`
+
+Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success).
+
+**Availability:** T1/WASI P1 only.
 
 ## `std::fs`
 

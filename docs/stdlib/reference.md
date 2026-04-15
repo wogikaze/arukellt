@@ -9,7 +9,7 @@
 |------|-------|-------------|
 | [stable](#stable-apis) | 410 | Backward-compatible within a major version. Safe for production use. |
 | [provisional](#provisional-apis) | 5 | API is usable but may change in minor versions based on feedback. |
-| [experimental](#experimental-apis) | 170 | API may change without notice. Functionality is available but not finalized. |
+| [experimental](#experimental-apis) | 173 | API may change without notice. Functionality is available but not finalized. |
 | [deprecated](#deprecated-apis) | 3 | Superseded — see migration guidance. |
 
 ## Prelude Types
@@ -463,6 +463,9 @@ match home { Some(p) => println(p), None => println("not set") }
 
 | Name | Signature | Module | Stability | Kind | Prelude | Intrinsic | Description |
 |------|-----------|--------|-----------|------|---------|-----------|-------------|
+| `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
+| `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
+| `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
 | `read_to_string` | `(String) -> Result<String, String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_read_file` | Read the entire contents of a file at the given path and return them as a UTF-8 string. |
 | `write_bytes` | `(String, Vec<i32>) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_bytes` | Write a byte sequence (Vec<i32> where each element is 0–255) to the given file path. |
 | `write_string` | `(String, String) -> Result<(), String>` | `std::host::fs` | `stable` | `builtin` | no | `__intrinsic_fs_write_file` | Write a UTF-8 string to the given file path, creating or truncating the file. |
@@ -1471,6 +1474,9 @@ Expected output: `hello world`
 | `csv_parse_with_header` | `(String) -> Result<Vec<String>, String>` | `std::csv` | `experimental` | `builtin` | no | - | Parse a CSV document and return the header row fields. |
 | `csv_split_line` | `(String) -> Vec<String>` | `std::csv` | `experimental` | `builtin` | no | - | - |
 | `csv_stringify_row` | `(Vec<String>) -> String` | `std::csv` | `experimental` | `builtin` | no | - | Serialize a row of fields to a CSV line. |
+| `fd_fdstat_errno` | `(i32) -> i32` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_fdstat_get` | Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success). |
+| `fd_seek` | `(i32, i64, i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_seek` | Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset. |
+| `fd_tell` | `(i32) -> i64` | `std::host::fs` | `experimental` | `builtin` | no | `__intrinsic_fd_tell` | Return the current file offset for an open file descriptor. |
 | `from_utf8` | `(Vec<i32>) -> String` | `std::text` | `experimental` | `builtin` | no | - | - |
 | `functype_get_param` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the valtype constant for the i-th parameter of a FuncType. |
 | `functype_get_result` | `(Vec<i32>, i32) -> i32` | `std::wasm` | `experimental` | `builtin` | no | - | Get the valtype constant for the i-th result of a FuncType. |

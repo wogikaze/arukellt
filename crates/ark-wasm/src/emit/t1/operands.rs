@@ -6580,6 +6580,57 @@ impl EmitCtx {
                         self.call_fn(f, FN_PROC_EXIT);
                         f.instruction(&Instruction::Unreachable);
                     }
+                    "fd_seek" => {
+                        // fd_seek(fd: i32, offset: i64, whence: i32) -> i64
+                        // WASI: fd_seek(fd, offset, whence, result_ptr) -> errno
+                        // Stores new file position at SCRATCH; returns i64 offset or -1 on error.
+                        let ma = MemArg { offset: 0, align: 3, memory_index: 0 };
+                        if let (Some(fd), Some(offset), Some(whence)) =
+                            (args.first(), args.get(1), args.get(2))
+                        {
+                            self.emit_operand(f, fd);
+                            self.emit_i64_operand(f, offset);
+                            self.emit_operand(f, whence);
+                        } else {
+                            f.instruction(&Instruction::I32Const(0));
+                            f.instruction(&Instruction::I64Const(0));
+                            f.instruction(&Instruction::I32Const(0));
+                        }
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        self.call_fn(f, FN_FD_SEEK);
+                        f.instruction(&Instruction::Drop); // drop errno
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I64Load(ma));
+                    }
+                    "fd_tell" => {
+                        // fd_tell(fd: i32) -> i64
+                        // WASI: fd_tell(fd, result_ptr) -> errno
+                        // Stores current file position at SCRATCH; returns i64.
+                        let ma = MemArg { offset: 0, align: 3, memory_index: 0 };
+                        if let Some(fd) = args.first() {
+                            self.emit_operand(f, fd);
+                        } else {
+                            f.instruction(&Instruction::I32Const(0));
+                        }
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        self.call_fn(f, FN_FD_TELL);
+                        f.instruction(&Instruction::Drop); // drop errno
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        f.instruction(&Instruction::I64Load(ma));
+                    }
+                    "fd_fdstat_get" => {
+                        // fd_fdstat_get(fd: i32) -> i32 (ptr to fdstat struct or 0 on error)
+                        // WASI: fd_fdstat_get(fd, result_ptr) -> errno
+                        // Stores fdstat at SCRATCH; returns errno (0 = success).
+                        if let Some(fd) = args.first() {
+                            self.emit_operand(f, fd);
+                        } else {
+                            f.instruction(&Instruction::I32Const(0));
+                        }
+                        f.instruction(&Instruction::I32Const(SCRATCH as i32));
+                        self.call_fn(f, FN_FD_FDSTAT_GET);
+                        // Return errno: 0 = success
+                    }
                     other => {
                         // Type-aware argument emission for user functions
                         let lookup_name = other.rsplit("::").next().unwrap_or(other);
@@ -7334,7 +7385,7 @@ impl EmitCtx {
             Operand::UnaryOp(_, inner) => self.is_i64_operand(inner),
             Operand::Call(name, _) => {
                 let normalized = normalize_intrinsic_name(name.as_str());
-                if matches!(normalized, "clock_now" | "clock_now_ms") {
+                if matches!(normalized, "clock_now" | "clock_now_ms" | "fd_seek" | "fd_tell") {
                     return true;
                 }
                 // Check fn_return_types for user-defined functions returning i64

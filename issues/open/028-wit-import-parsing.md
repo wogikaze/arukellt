@@ -2,7 +2,7 @@
 
 **Status**: open
 **Created**: 2026-03-28
-**Updated**: 2026-04-13
+**Updated**: 2026-04-15
 **ID**: 028
 **Depends on**: none
 **Track**: component-model
@@ -13,6 +13,11 @@
 **Reason**: WIT parser exists but is only used in its own tests. CLI --wit flag not threaded into resolver/session/compile pipeline.
 
 **Action**: Moved from `issues/done/` to `issues/open/` by false-done audit.
+
+## Verification audit — 2026-04-15
+
+Checked each acceptance item against the actual codebase. Three items are NOT implemented
+despite being marked `[x]`. See corrected criteria below.
 
 ## Summary
 
@@ -39,16 +44,29 @@ the import pipeline that all subsequent component work depends on.
 - [x] WIT primitive types (`u8`, `u16`, `u32`, `u64`, `s8`, `s16`, `s32`, `s64`, `f32`, `f64`,
       `bool`, `char`, `string`) are parsed and mapped to `WitType` variants.
 - [x] WIT container types (`list<T>`, `option<T>`, `result<T, E>`, `tuple<...>`) are parsed.
-- [x] WIT `flags` type is parsed. At codegen time, any function whose signature includes a
+- [ ] WIT `flags` type is parsed. At codegen time, any function whose signature includes a
       `flags` type emits a `E0090` diagnostic ("WIT flags type is not supported in v2; use
       individual bool parameters instead") and the compilation fails gracefully — no panic.
-- [x] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
+      **Audit 2026-04-15**: `WitType::Flags` variant does not exist; no `flags { ... }` parsing
+      in `wit_parse.rs`; no E0090 diagnostic anywhere. MISSING.
+- [ ] `crates/ark-resolve/src/lib.rs` gains an `extern` function registration path: when
       `--wit <path>` is supplied, the resolver injects WIT-imported function signatures into
       the symbol table as externally-provided functions.
+      **Audit 2026-04-15**: `--wit` files are validated to exist in `commands.rs` but never
+      parsed or injected into the resolver symbol table. `ark-resolve` has no extern path.
+      Session has no `wit_files` field. MISSING.
 - [x] `MirModule` gains an `imports` field (`Vec<MirImport>`) that records module/name/signature
       triples for WIT-derived imports, distinct from the existing WASI `fd_write` import.
-- [x] A round-trip test exists: parse a WIT file → resolve extern bindings → lower to MIR →
+      **Audit 2026-04-15**: `MirImport` struct and `MirModule.imports: Vec<MirImport>` exist in
+      `crates/ark-mir/src/mir.rs`. However, `imports` is always initialized to `Vec::new()` and
+      is never populated during real compilation; only the unit test helper
+      `wit_interface_to_mir_imports()` produces `MirImport` values. Struct exists ✅; pipeline
+      wiring is part of the extern-registration gap ❌.
+- [ ] A round-trip test exists: parse a WIT file → resolve extern bindings → lower to MIR →
       verify `MirModule.imports` contains expected entries.
+      **Audit 2026-04-15**: `wit_to_mir_imports_roundtrip` in `wit_parse.rs` only tests
+      parse → `MirImport` conversion directly; it does not go through resolver or compiler
+      pipeline. `MirModule.imports` is never populated during compilation. MISSING.
 - [x] Existing WIT generation (`generate_wit()`, `mir_to_wit_world()`) continues to work
       without regression.
 

@@ -5,9 +5,9 @@
 
 Use this index to look up any stdlib function name — including old, deprecated, or historical names — and find the current canonical replacement.
 
-- **Canonical names:** 585
+- **Canonical names:** 588
 - **Historical/deprecated names:** 3
-- **Total entries:** 588
+- **Total entries:** 591
 
 Related:
 - [reference.md](reference.md) — full manifest-backed API reference
@@ -199,6 +199,9 @@ Current public API names, sorted alphabetically.
 | `f64_bits_lo` | `prelude` | `stable` | Numeric |
 | `f64_to_f32` | `prelude` | `stable` | Scalar Conversion |
 | `f64_to_string` | `prelude` | `stable` | Conversion |
+| `fd_fdstat_errno` | `std::host::fs` | `experimental` | Host Fs |
+| `fd_seek` | `std::host::fs` | `experimental` | Host Fs |
+| `fd_tell` | `std::host::fs` | `experimental` | Host Fs |
 | `fft` | `std::signal` | `stable` | Signal |
 | `file_name` | `std::path` | `stable` | Path |
 | `filter_f64` | `prelude` | `stable` | Collections |
@@ -805,6 +808,9 @@ All names (canonical and historical) in a single alphabetical listing for quick 
 | `f64_bits_lo` | ✅ `stable` | `prelude` | Numeric |
 | `f64_to_f32` | ✅ `stable` | `prelude` | Scalar Conversion |
 | `f64_to_string` | ✅ `stable` | `prelude` | Conversion |
+| `fd_fdstat_errno` | ✅ `experimental` | `std::host::fs` | Host Fs |
+| `fd_seek` | ✅ `experimental` | `std::host::fs` | Host Fs |
+| `fd_tell` | ✅ `experimental` | `std::host::fs` | Host Fs |
 | `fft` | ✅ `stable` | `std::signal` | Signal |
 | `file_name` | ✅ `stable` | `std::path` | Path |
 | `filter_f64` | ✅ `stable` | `prelude` | Collections |

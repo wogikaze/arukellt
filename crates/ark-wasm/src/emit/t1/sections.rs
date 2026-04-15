@@ -28,6 +28,9 @@ impl EmitCtx {
             (FN_ENVIRON_SIZES_GET, "environ_sizes_get"),
             (FN_ENVIRON_GET, "environ_get"),
             (FN_PROC_EXIT, "proc_exit"),
+            (FN_FD_SEEK, "fd_seek"),
+            (FN_FD_TELL, "fd_tell"),
+            (FN_FD_FDSTAT_GET, "fd_fdstat_get"),
         ];
         // arukellt_host imports in canonical order
         const HOST_ORDER: &[(u32, &str)] =
@@ -148,6 +151,15 @@ impl EmitCtx {
             vec![ValType::I32, ValType::I64, ValType::I32],
             vec![ValType::I32],
         );
+        // fd_seek(fd: i32, offset: i64, whence: i32, result_ptr: i32) -> i32 (errno)
+        let ty_fd_seek = self.register_type(
+            &mut types,
+            vec![ValType::I32, ValType::I64, ValType::I32, ValType::I32],
+            vec![ValType::I32],
+        );
+        // fd_tell(fd: i32, result_ptr: i32) -> i32 (errno)
+        // fd_fdstat_get(fd: i32, result_ptr: i32) -> i32 (errno)
+        // (same signature as ty_i32_i32_i32 but named for clarity)
         // http_get(url_ptr: i32, url_len: i32, resp_ptr: i32) -> i32
         let ty_http_get = ty_i32x3_i32;
         // http_request(method_ptr, method_len, url_ptr, url_len, body_ptr, body_len, resp_ptr) -> i32
@@ -187,6 +199,9 @@ impl EmitCtx {
                     x if x == FN_ENVIRON_SIZES_GET => ty_i32_i32_i32,
                     x if x == FN_ENVIRON_GET => ty_i32_i32_i32,
                     x if x == FN_PROC_EXIT => ty_i32_void,
+                    x if x == FN_FD_SEEK => ty_fd_seek,
+                    x if x == FN_FD_TELL => ty_i32_i32_i32,
+                    x if x == FN_FD_FDSTAT_GET => ty_i32_i32_i32,
                     _ => ty_fd_write,
                 };
                 imports.import(

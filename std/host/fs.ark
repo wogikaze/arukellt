@@ -16,3 +16,21 @@ pub fn write_string(path: String, contents: String) -> Result<(), String> {
 pub fn write_bytes(path: String, bytes: Vec<i32>) -> Result<(), String> {
     __intrinsic_fs_write_bytes(path, bytes)
 }
+
+/// Seeks within an open file descriptor.
+/// `whence`: 0 = SET (from start), 1 = CUR (from current), 2 = END (from end).
+/// Returns the new file offset in bytes.
+pub fn fd_seek(fd: i32, offset: i64, whence: i32) -> i64 {
+    __intrinsic_fd_seek(fd, offset, whence)
+}
+
+/// Returns the current file offset for an open file descriptor.
+pub fn fd_tell(fd: i32) -> i64 {
+    __intrinsic_fd_tell(fd)
+}
+
+/// Returns the errno from fd_fdstat_get for an open file descriptor.
+/// Returns 0 on success (fd is valid and its status was written to the internal buffer).
+pub fn fd_fdstat_errno(fd: i32) -> i32 {
+    __intrinsic_fd_fdstat_get(fd)
+}

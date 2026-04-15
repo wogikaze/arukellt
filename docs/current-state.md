@@ -203,12 +203,29 @@ The v4 optimization pipeline is fully implemented and active. See [docs/compiler
 
 - **20 MIR passes** implemented in `crates/ark-mir/src/opt/`, running up to 3 fixed-point rounds
 - **`--opt-level` 0/1/2** controls which passes run; default is O1 (9 safe passes)
-- **Dead function elimination** removes unreachable stdlib functions at O1+
+- **Dead function elimination** removes unreachable stdlib functions at O1+ (T1/T2 only — disabled for T3; see below)
 - **T3 backend peephole**: `local.set`/`local.get` → `local.tee` conversion at O1+
 - **Struct field layout reorder**: hot-field-first layout at O2
 - **Backend reachability**: only reachable functions and WASI imports are emitted
 - **MIR validation** brackets every pass for early bug detection
 - Dump support: `ARUKELLT_DUMP_PHASES=optimized-mir` shows before/after state
+
+### T3 MIR optimization re-enabled (issue #486, 2026-04-15)
+
+Prior to issue #486, T3 (`wasm32-wasi-p2`) was forced to `O0` MIR optimization to
+stabilize fixture tests. Issue #486 replaced the blanket override with per-pass gating:
+
+- T3 now runs all 9 O1 MIR passes via `passes::run_all()` (standalone path that bypasses
+  `desugar_exprs`, which is not GC-safe)
+- Three safe O2 arithmetic passes are also active for T3 at O2: `algebraic_simplify`,
+  `strength_reduction`, `string_concat_opt`
+- Dead function elimination remains **disabled for T3** — WASI-exported functions that
+  are not called from the Arukellt entry point would be incorrectly removed
+- Six O2/O3 passes remain gated via `T3_GATED_PASSES` in `session.rs` until each is
+  independently verified GC-safe (see `crates/ark-mir/src/passes/README.md`)
+
+The #122 opt-level separation work established the `passes/` directory and the unified
+`fn run(module: &mut MirModule, level: OptLevel) -> PassStats` interface that #486 builds on.
 
 ## API Baseline Notes
 

@@ -1,8 +1,8 @@
 # WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)
 
-**Status**: open
+**Status**: done
 **Created**: 2026-03-28
-**Updated**: 2026-04-03
+**Updated**: 2026-04-15
 **ID**: 073
 **Depends on**: —
 **Track**: wasi-feature

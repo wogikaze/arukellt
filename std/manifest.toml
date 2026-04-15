@@ -2414,6 +2414,39 @@ doc = "Write a byte sequence (Vec<i32> where each element is 0–255) to the giv
 errors = "Returns Err if the path is not writable or any byte value is out of range 0–255."
 availability = { t1 = true, t3 = true, note = "Requires the --dir capability flag at runtime." }
 
+[[functions]]
+name = "fd_seek"
+module = "std::host::fs"
+stability = "experimental"
+params = ["i32", "i64", "i32"]
+returns = "i64"
+intrinsic = "__intrinsic_fd_seek"
+doc_category = "host_fs"
+doc = "Seek within an open file descriptor. whence: 0=SET, 1=CUR, 2=END. Returns new offset."
+availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
+
+[[functions]]
+name = "fd_tell"
+module = "std::host::fs"
+stability = "experimental"
+params = ["i32"]
+returns = "i64"
+intrinsic = "__intrinsic_fd_tell"
+doc_category = "host_fs"
+doc = "Return the current file offset for an open file descriptor."
+availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
+
+[[functions]]
+name = "fd_fdstat_errno"
+module = "std::host::fs"
+stability = "experimental"
+params = ["i32"]
+returns = "i32"
+intrinsic = "__intrinsic_fd_fdstat_get"
+doc_category = "host_fs"
+doc = "Call fd_fdstat_get for an open fd. Returns WASI errno (0 = success)."
+availability = { t1 = true, t3 = false, note = "T1/WASI P1 only." }
+
 # === std::host::stdio ===
 
 [[functions]]

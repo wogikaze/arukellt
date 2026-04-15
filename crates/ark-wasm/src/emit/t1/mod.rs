@@ -102,10 +102,14 @@ const FN_ENVIRON_GET: u32 = 39;
 const FN_ENV_VAR: u32 = 40;
 // WASI proc_exit import (conditional)
 const FN_PROC_EXIT: u32 = 41;
+// WASI fd seek/tell/fdstat imports (conditional)
+const FN_FD_SEEK: u32 = 42;
+const FN_FD_TELL: u32 = 43;
+const FN_FD_FDSTAT_GET: u32 = 44;
 // arukellt_host HTTP imports (conditional)
-const FN_HTTP_GET: u32 = 42;
-const FN_HTTP_REQUEST: u32 = 43;
-const FN_USER_BASE: u32 = 44;
+const FN_HTTP_GET: u32 = 45;
+const FN_HTTP_REQUEST: u32 = 46;
+const FN_USER_BASE: u32 = 47;
 
 /// Normalize `__intrinsic_*` names to their canonical emit names.
 pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
@@ -197,6 +201,9 @@ pub(super) fn normalize_intrinsic_name(name: &str) -> &str {
         "__intrinsic_f64_bits_hi" => "f64_bits_hi",
         "__intrinsic_process_exit" => "process_exit",
         "__intrinsic_process_abort" => "process_abort",
+        "__intrinsic_fd_seek" => "fd_seek",
+        "__intrinsic_fd_tell" => "fd_tell",
+        "__intrinsic_fd_fdstat_get" => "fd_fdstat_get",
         "__intrinsic_http_get" => "http_get",
         "__intrinsic_http_request" => "http_request",
         // Bulk memory intrinsics (issue #066)
@@ -1392,6 +1399,15 @@ fn cfn_handle_builtin(
         }
         "exit" | "proc_exit" | "process_exit" | "process_abort" => {
             needed.insert(FN_PROC_EXIT);
+        }
+        "fd_seek" => {
+            needed.insert(FN_FD_SEEK);
+        }
+        "fd_tell" => {
+            needed.insert(FN_FD_TELL);
+        }
+        "fd_fdstat_get" => {
+            needed.insert(FN_FD_FDSTAT_GET);
         }
         "http_get" => {
             needed.insert(FN_HTTP_GET);

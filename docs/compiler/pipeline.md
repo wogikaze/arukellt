@@ -109,6 +109,23 @@ MIR optimization runs between `opt_mir()` and `plan_backend()`.
 Dead function elimination runs after MIR optimization, before backend emission.
 Backend peephole and layout optimization run during `emit_wasm()`.
 
+### T3 (`wasm32-wasi-p2`) — pass configuration (updated 2026-04-15, issue #486)
+
+T3 uses a **separate pass invocation path** (`passes::run_all()` directly, bypassing
+`desugar_exprs` which is not GC-safe). The blanket T3 `O0` MIR override that was
+present before #486 has been removed.
+
+| Level | T3 MIR passes active | Dead Function Elimination |
+|-------|----------------------|--------------------------|
+| `0` | None | Disabled |
+| `1` | All 9 O1 passes (same as T1) | **Disabled** (WASI export reachability concern) |
+| `2` | All O1 + 3 safe O2 arithmetic passes (algebraic_simplify, strength_reduction, string_concat_opt) | **Disabled** |
+
+Several O2/O3 passes remain gated for T3 (`T3_GATED_PASSES`) until each is
+independently verified GC-safe: `escape_analysis`, `type_narrowing`, `loop_unroll`,
+`licm`, `bounds_check_elim`, `inline_small_leaf`, `aggregate_simplify`, `gc_hint`,
+`branch_hint_infer`. See `crates/ark-mir/src/passes/README.md` for unlock conditions.
+
 Full documentation: [optimization.md](optimization.md)
 
 ## Diagnostics / Validation 境界

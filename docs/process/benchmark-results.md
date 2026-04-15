@@ -59,3 +59,36 @@ Current benchmark JSON uses `schema_version = arukellt-bench-v1` and stores:
 - per-benchmark `runtime` metrics (`median_ms`, `max_rss_kb`, correctness)
 - workload tags for taxonomy and future grouped reporting
 
+## Known Caveats
+
+### `binary_tree` — 1.83x GC overhead vs linear memory (T3 worst case)
+
+The `binary_tree` benchmark is the **worst-case workload for GC-native targets**.
+ADR-002 measured `binary_tree` at **1.83x slower** on T3 (`wasm32-wasi-p2`, Wasm GC)
+vs T1 (`wasm32-wasi-p1`, linear memory) at the same depth (depth=20).
+
+**Root cause**: The benchmark is recursion-heavy with a high allocation rate per call
+frame (each node allocation must go through the Wasm GC heap). `br_on_cast` dispatch
+overhead for deeply-nested enum/struct subtype hierarchies is O(n) per cast site; under
+high-frequency recursion this manifests as a compounding overhead.
+
+v4 escape analysis (`escape_analysis` pass) was expected to reduce this by scalar-replacing
+non-escaping allocations, but the pass remains **gated for T3** (see `T3_GATED_PASSES`
+in `crates/ark-driver/src/session.rs`) until it is verified GC-safe. The baseline 1.83x
+figure therefore remains the current T3 upper bound for this workload class.
+
+**Documented decision**: Per ADR-002, `binary_tree` is the sole case where linear memory
+exceeds the 1.5x threshold. Because only one case qualifies, the GC-native model is
+retained. The 1.83x figure is recorded here as the accepted GC overhead for
+recursion-heavy, allocation-dense workloads. The `roadmap-cross-cutting.md` perf gate
+sets 2.5x as the hard failure threshold.
+
+**Workaround**: For code where `binary_tree`-class performance is critical (deep
+recursion + dense heap allocation), use `--target wasm32-wasi-p1` (T1) to avoid GC
+dispatch overhead. T1 uses linear memory and produces faster results for this workload
+class at the cost of the GC-native benefits (no manual memory management, smaller T3
+binary size for other workloads).
+
+**Current T1 baseline** (from the table above): `binary_tree` compiles in 12.142 ms,
+runs in 14.849 ms, binary size 899 bytes — all correctness checks pass.
+

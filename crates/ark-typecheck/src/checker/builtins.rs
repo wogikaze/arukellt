@@ -343,6 +343,37 @@ impl TypeChecker {
                 ret: Type::Result(Box::new(Type::Unit), Box::new(Type::String)),
             },
         );
+        // WASI fd seek/tell/fdstat intrinsics
+        self.fn_sigs.insert(
+            "__intrinsic_fd_seek".into(),
+            FnSig {
+                name: "__intrinsic_fd_seek".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32, Type::I64, Type::I32],
+                ret: Type::I64,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_fd_tell".into(),
+            FnSig {
+                name: "__intrinsic_fd_tell".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::I64,
+            },
+        );
+        self.fn_sigs.insert(
+            "__intrinsic_fd_fdstat_get".into(),
+            FnSig {
+                name: "__intrinsic_fd_fdstat_get".into(),
+                type_params: vec![],
+                type_param_bounds: vec![],
+                params: vec![Type::I32],
+                ret: Type::I32,
+            },
+        );
         self.fn_sigs.insert(
             "__intrinsic_memory_copy".into(),
             FnSig {

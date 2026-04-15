@@ -87,6 +87,9 @@ parse-only:module_import/pub_use_basic.ark
 # std::host::clock and std::host::random import-acceptance fixtures (#138)
 parse-only:stdlib_host/clock_import.ark
 parse-only:stdlib_host/random_import.ark
+module-run:stdlib_host/wasi_clock.ark
+module-run:stdlib_host/wasi_random.ark
+module-run:stdlib_host/wasi_args.ark
 run:module_import/use_std_string.ark
 run:module_import/use_qualified_call_typed.ark
 run:module_import/use_whole_module.ark

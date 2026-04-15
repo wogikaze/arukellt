@@ -12,7 +12,6 @@ graph LR
   I036["036 jco JavaScript interop smoke test"]
   I054["054 std::wit + std::component: WIT 型、resource handle、canonical ABI"]
   I072["072 Wasm Multi-Value: ブロック / ループの複数値返却フル活用"]
-  I073["073 WASI P1: 全46 syscall 対応 (clock / random / proc_exit / fd_seek 等)"]
   I074["074 WASI P2 ネイティブ: P1 アダプタ不要のコンポーネント直接生成"]
   I094["094 T3: enum dispatch の br_on_cast 連鎖最適化"]
   I095["095 T3: struct フィールドレイアウト最適化 (アクセス頻度ベース)"]
@@ -20,7 +19,6 @@ graph LR
   I099["099 コンパイル速度: インクリメンタル解析 (ファイル変更差分のみ再パース)"]
   I120["120 WasmGC Post-MVP プレビュー: 将来拡張の設計調査"]
   I125["125 `compile()` のデフォルトを CoreHIR パスに移行 (Legacy パス廃止)"]
-  I158["158 v4 docs 完了: optimization / pipeline / current-state / benchmark caveat の同期"]
   I170["170 v5 Migration guide"]
   I194["194 Semantic preview / diff / ghost refactor surface"]
   I195["195 Partial execution preview + local semantic insight"]
@@ -41,6 +39,7 @@ graph LR
   I503["503 Issue #503 — Selfhost MIR: CFG and Dominance-Frontier Infrastructure for SSA"]
   I504["504 504 — Selfhost: trait/interface syntax and impl-block infrastructure"]
   I505["505 T3: br_table enum dispatch — feasible IfStmt-chain optimization"]
+  I028b["028b WIT import pipeline wiring — flags, resolver injection, pipeline integration"]
   I473["473 Resource type v3+: 継承・async drops・クロスコンポーネント転送・ハンドル GC"]
   I077["077 WASI P2: `std::host::http` facade と runtime 検証"]
   I124["124 WIT コンポーネント import — ソース構文・ark.toml・型バインディング生成"]
@@ -60,6 +59,7 @@ graph LR
   I205["205 Docs / codebase intelligence surfaces"]
   I214["214 Extension quality / packaging / marketplace readiness"]
   I037["037 jco: Wasm GC 型サポート待ち (upstream blocked) ⛔"]
+  I028 --> I028b
   I032 --> I473
   I074 --> I077
   I074 --> I124
@@ -84,13 +84,12 @@ graph LR
 
 ## Adjacency list
 
-- **028** depends on: none; blocks: none
+- **028** depends on: none; blocks: 028b
 - **032** depends on: 030; blocks: 473
 - **034** depends on: 030, 031; blocks: none
 - **036** depends on: 033; blocks: none
 - **054** depends on: 039, 044, 053; blocks: none
 - **072** depends on: none; blocks: none
-- **073** depends on: none; blocks: none
 - **074** depends on: none; blocks: 077, 124, 139, 474, 475, 476, 510
 - **094** depends on: none; blocks: none
 - **095** depends on: none; blocks: none
@@ -98,7 +97,6 @@ graph LR
 - **099** depends on: none; blocks: none
 - **120** depends on: none; blocks: none
 - **125** depends on: none; blocks: 126
-- **158** depends on: 140, 141, 142, 143, 145, 148, 155; blocks: none
 - **170** depends on: 165, 166, 169; blocks: none
 - **194** depends on: 193; blocks: none
 - **195** depends on: none; blocks: none
@@ -119,6 +117,7 @@ graph LR
 - **503** depends on: none; blocks: none
 - **504** depends on: none; blocks: none
 - **505** depends on: none; blocks: none
+- **028b** depends on: 028; blocks: none
 - **473** depends on: 032, done); blocks: none
 - **077** depends on: 074, 137; blocks: 136
 - **124** depends on: 074; blocks: none
