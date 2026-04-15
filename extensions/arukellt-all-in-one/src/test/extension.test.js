@@ -22,7 +22,8 @@ function getExtension() {
 
 async function activateExtension() {
   const ext = getExtension();
-  const api = await ext.activate();
+  await ext.activate();
+  const api = ext.exports;
   return { ext, api };
 }
 
@@ -320,6 +321,100 @@ suite("Configuration (#275)", () => {
       await new Promise((r) => setTimeout(r, 500));
     } catch (e) {
       // May require workspace, but shouldn't crash
+    }
+  });
+});
+
+// ============================================================
+// #255 — breakpoint-stop debug launch E2E
+// ============================================================
+
+suite("Debug Launch (#255)", () => {
+  test("launch stops on a breakpoint in an .ark file", async function () {
+    if (!fs.existsSync(repoDebugBinary)) {
+      this.skip();
+      return;
+    }
+
+    const { api } = await activateExtension();
+    const fixturePath = path.join(__dirname, "fixtures", "hello.ark");
+    const doc = await vscode.workspace.openTextDocument(fixturePath);
+    await vscode.window.showTextDocument(doc);
+
+    await waitFor(() => {
+      const state = api.__getTestState();
+      assert.strictEqual(state.hasClient, true);
+      assert.strictEqual(state.languageStatusText, "$(check) Ready");
+      return state;
+    }, { description: "ready language server before debug launch" });
+
+    const before = api.__getTestState();
+    const breakpointLine = 3;
+    const breakpoint = new vscode.SourceBreakpoint(
+      new vscode.Location(doc.uri, new vscode.Position(breakpointLine - 1, 0))
+    );
+
+    vscode.debug.addBreakpoints([breakpoint]);
+
+    let session;
+    try {
+      const started = await vscode.debug.startDebugging(undefined, {
+        type: "arukellt",
+        request: "launch",
+        name: "Breakpoint Stop E2E",
+        program: doc.uri.fsPath,
+      });
+
+      assert.strictEqual(started, true, "debug launch should start");
+
+      const debugState = await waitFor(() => {
+        const state = api.__getTestState();
+        assert.ok(
+          state.debugSessionStartCount > before.debugSessionStartCount,
+          "should observe a started arukellt debug session"
+        );
+        assert.strictEqual(state.activeDebugSessionType, "arukellt");
+        assert.ok(
+          state.debugStoppedEventCount > before.debugStoppedEventCount,
+          "should observe a stopped DAP event"
+        );
+        assert.ok(state.lastStoppedEvent, "stopped event payload should be recorded");
+        assert.strictEqual(state.lastStoppedEvent.reason, "breakpoint");
+        return state;
+      }, { description: "breakpoint stop event" });
+
+      session = vscode.debug.activeDebugSession;
+      assert.ok(session, "active debug session should remain available after stopping");
+      assert.strictEqual(debugState.activeDebugSessionName, "Breakpoint Stop E2E");
+
+      const threads = await session.customRequest("threads");
+      assert.ok(Array.isArray(threads.threads), "threads response should include a thread list");
+      assert.ok(threads.threads.length > 0, "threads response should include the main thread");
+
+      const stackTrace = await session.customRequest("stackTrace", {
+        threadId: threads.threads[0].id,
+        startFrame: 0,
+        levels: 1,
+      });
+      assert.ok(
+        Array.isArray(stackTrace.stackFrames),
+        "stackTrace response should include stack frames"
+      );
+      assert.ok(stackTrace.stackFrames.length > 0, "stackTrace should expose the stopped frame");
+      assert.strictEqual(stackTrace.stackFrames[0].source.path, doc.uri.fsPath);
+      assert.strictEqual(stackTrace.stackFrames[0].line, breakpointLine);
+    } finally {
+      vscode.debug.removeBreakpoints([breakpoint]);
+      if (session) {
+        await vscode.debug.stopDebugging(session);
+        await waitFor(() => {
+          const state = api.__getTestState();
+          assert.ok(
+            state.debugSessionTerminateCount > before.debugSessionTerminateCount,
+            "debug session should terminate during cleanup"
+          );
+        }, { description: "debug session termination" });
+      }
     }
   });
 });

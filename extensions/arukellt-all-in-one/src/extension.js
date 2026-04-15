@@ -16,6 +16,14 @@ let languageStatusItem = null
 let testController = null
 let projectTreeProvider = null
 let componentDiagnostics = null
+let debugSessionState = {
+  startCount: 0,
+  terminateCount: 0,
+  activeSessionName: null,
+  activeSessionType: null,
+  lastStoppedEvent: null,
+  stoppedEventCount: 0,
+}
 
 const REPO_PLAYGROUND_URL = 'https://wogikaze.github.io/arukellt/playground/'
 const ALLOWED_PLAYGROUND_BASE_URLS = new Set([REPO_PLAYGROUND_URL])
@@ -50,6 +58,11 @@ function activate(context) {
   setupProjectTreeView(context)
 
   startLanguageServer(context)
+
+  return {
+    __getTestState: getTestState,
+    verifyBootstrap,
+  }
 }
 
 function deactivate() {
@@ -1095,7 +1108,39 @@ function registerDebugAdapter(context) {
       return new vscode.DebugAdapterExecutable(command, ['debug-adapter'])
     },
   })
+  const trackerFactory = vscode.debug.registerDebugAdapterTrackerFactory('arukellt', {
+    createDebugAdapterTracker(session) {
+      debugSessionState.activeSessionName = session.name
+      debugSessionState.activeSessionType = session.type
+      debugSessionState.lastStoppedEvent = null
+      return {
+        onDidSendMessage(message) {
+          if (message && message.type === 'event' && message.event === 'stopped') {
+            debugSessionState.lastStoppedEvent = message.body || null
+            debugSessionState.stoppedEventCount++
+          }
+        },
+      }
+    },
+  })
+  const onDidStartSession = vscode.debug.onDidStartDebugSession(session => {
+    if (session.type !== 'arukellt') return
+    debugSessionState.startCount++
+    debugSessionState.activeSessionName = session.name
+    debugSessionState.activeSessionType = session.type
+  })
+  const onDidTerminateSession = vscode.debug.onDidTerminateDebugSession(session => {
+    if (session.type !== 'arukellt') return
+    debugSessionState.terminateCount++
+    if (vscode.debug.activeDebugSession?.id !== session.id) {
+      debugSessionState.activeSessionName = null
+      debugSessionState.activeSessionType = null
+    }
+  })
   context.subscriptions.push(factory)
+  context.subscriptions.push(trackerFactory)
+  context.subscriptions.push(onDidStartSession)
+  context.subscriptions.push(onDidTerminateSession)
 }
 
 // --- Language Status Item (#213) ---
@@ -1321,6 +1366,12 @@ function getTestState() {
     languageStatusText: languageStatusItem ? languageStatusItem.text : null,
     languageStatusDetail: languageStatusItem ? languageStatusItem.detail : null,
     languageStatusSeverity: languageStatusItem ? languageStatusItem.severity : null,
+    debugSessionStartCount: debugSessionState.startCount,
+    debugSessionTerminateCount: debugSessionState.terminateCount,
+    activeDebugSessionName: debugSessionState.activeSessionName,
+    activeDebugSessionType: debugSessionState.activeSessionType,
+    lastStoppedEvent: debugSessionState.lastStoppedEvent,
+    debugStoppedEventCount: debugSessionState.stoppedEventCount,
   }
 }
 
