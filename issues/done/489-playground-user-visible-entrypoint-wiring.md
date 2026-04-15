@@ -1,8 +1,8 @@
 # Playground user-visible entrypoint wiring
 
-**Status**: open
+**Status**: done
 **Created**: 2026-04-13
-**Updated**: 2026-04-13
+**Updated**: 2026-04-15
 **ID**: 489
 **Depends on**: 437, 438, 464
 **Track**: playground
@@ -22,6 +22,17 @@ The playground directory contains TypeScript modules implementing individual fea
 This issue no longer depends on #382. The browser entrypoint and user-visible wiring work
 are part of the existing playground v1 surface, while #382 now tracks the separate T2
 freestanding target track.
+
+## Completed — 2026-04-15
+
+**Evidence review**:
+- `docs/playground/index.html` is the repo-backed playground entrypoint and now wires
+  example selection, share-fragment load/save, and `pg.tokenize()` syntax highlighting.
+- `npm --prefix playground run build` succeeded during the completion slice.
+- Commit `eaea05d42b4ae9ef22b4db87ae0a2c3f7dc9364b` contains the user-visible entrypoint
+  wiring required by this issue.
+
+**Close gate**: satisfied by repo entrypoint evidence plus build proof.
 
 ## Acceptance
 

@@ -91,3 +91,13 @@ any `ark.toml` in the workspace changes.
   `did_change_watched_files`, `goto_definition`
 - `docs/ark-toml.md`
 - Spawned from: `issues/done/441-vscode-project-aware-workspace-package-ark-toml.md`
+
+## Partial slice note — 2026-04-15
+
+Wave 1 added a path-dependency discovery + multi-root indexing slice in the worktree, but
+the issue remains open because:
+- required LSP verification was blocked by unrelated workspace compile failures
+- the slice was not committed
+
+Do not close #502 from this slice alone. Resume from the partial indexing work only after the
+blocking compile state is cleared and the regression tests can be run to completion.

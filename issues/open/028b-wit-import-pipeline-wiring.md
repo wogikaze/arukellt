@@ -20,6 +20,17 @@ This issue was extracted from #028 as the concrete implementation follow-up for 
 remaining gaps. Completing #028b does not automatically close #028; the parent issue
 must still pass evidence review against its corrected acceptance criteria.
 
+## Partial slice note — 2026-04-15
+
+Wave 1 implemented the `flags` / `E0090` slice in the worktree but did **not** complete
+the issue:
+- required verification was blocked by unrelated compile failures in
+  `crates/ark-wasm/src/emit/t3_wasm_gc/mod.rs`
+- the slice was not committed
+
+Treat #028b as still open and dispatch follow-up only after the blocking worktree state is
+cleared and the slice can be verified + committed.
+
 ## Missing items (from #028 audit)
 
 ### 1. `WitType::Flags` + E0090 diagnostic (~35 lines)

@@ -29,7 +29,6 @@ graph LR
   I269["269 Rust 実装と selfhost 実装の dual period 終了条件を定義する"]
   I285["285 Legacy lowering path を隔離・撤去する"]
   I459["459 selfhost Stage 2 fixpoint 達成と dual-period 終了計画"]
-  I489["489 Playground user-visible entrypoint wiring"]
   I499["499 499 — Selfhost compiler: closure capture environment lowering"]
   I501["501 T2 (`wasm32-freestanding`) Wasm Emitter Implementation"]
   I502["502 LSP: Full Multi-Root Workspace and Cross-Package Resolution"]
@@ -106,7 +105,6 @@ graph LR
 - **269** depends on: 266, 268; blocks: none
 - **285** depends on: 284; blocks: 508
 - **459** depends on: 445, 446, 447, 448, 449; blocks: none
-- **489** depends on: 437, 438, 464; blocks: none
 - **499** depends on: none; blocks: none
 - **501** depends on: none; blocks: none
 - **502** depends on: 441; blocks: none

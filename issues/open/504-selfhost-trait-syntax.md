@@ -27,6 +27,16 @@ Repo evidence on 2026-04-15 shows **partial groundwork already exists**:
 
 Until all four layers are present, #495 cannot proceed.
 
+## Partial slice note — 2026-04-15
+
+Wave 1 added parser-side work in the worktree for `impl Trait for Type` and trait-bound syntax,
+but the slice did **not** reach done state:
+- required verification was blocked by unrelated Rust workspace compile failures
+- the slice was not committed
+
+Keep #504 open. Resume with a new slice only after the blocking compile state is cleared and the
+parser/HIR changes can be verified and committed.
+
 ## Depends on
 
 - None (foundational)
