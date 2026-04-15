@@ -472,6 +472,8 @@ fn mir_compute_dominance(m: MirModule) {
 struct MirLocal {
     name: String,
     val_type: i32,
+    ssa_name: String,
+    ssa_version: i32,
 }
 
 struct MirFunction {
@@ -499,7 +501,7 @@ fn MirFunction_new(name: String) -> MirFunction {
 fn alloc_local(f: MirFunction, name: String, vt: i32) -> i32 {
     let idx = f.next_local
     f.next_local = f.next_local + 1
-    push(f.locals, MirLocal { name: name, val_type: vt })
+    push(f.locals, MirLocal { name: clone(name), val_type: vt, ssa_name: name, ssa_version: 0 - 1 })
     idx
 }
 
@@ -526,6 +528,26 @@ fn mir_local_vt_for_function(f: MirFunction, local_id: i32) -> i32 {
         return local.val_type
     }
     VT_VOID()
+}
+
+fn mir_assign_local_ssa(f: MirFunction, local_id: i32, ssa_name: String, ssa_version: i32) {
+    if local_id < 0 || local_id >= len(f.locals) {
+        return
+    }
+    let local = get_unchecked(f.locals, local_id)
+    local.ssa_name = ssa_name
+    local.ssa_version = ssa_version
+}
+
+fn mir_assign_simple_join_phi_ssa(f: MirFunction, dest_local: i32, pred0_local: i32, pred1_local: i32) {
+    if dest_local < 0 || dest_local >= len(f.locals) {
+        return
+    }
+    let dest = get_unchecked(f.locals, dest_local)
+    let ssa_name = clone(dest.name)
+    mir_assign_local_ssa(f, pred0_local, clone(ssa_name), 1)
+    mir_assign_local_ssa(f, pred1_local, clone(ssa_name), 2)
+    mir_assign_local_ssa(f, dest_local, ssa_name, 3)
 }
 
 fn mir_find_last_value_local(block: MirBlock) -> i32 {
@@ -582,6 +604,8 @@ fn mir_try_insert_simple_join_phi(f: MirFunction, join_block_id: i32, dest_local
     if mir_local_vt_for_function(f, pred1_local) != dest_vt {
         return false
     }
+
+    mir_assign_simple_join_phi_ssa(f, dest_local, pred0_local, pred1_local)
 
     let phi = MirPhi_new(dest_local, dest_vt)
     mir_phi_add_arg(phi, pred0_id, pred0_local)
@@ -2950,7 +2974,7 @@ pub fn lower_to_mir(decls: Vec<AstNode>, check_result: TypeCheckResult) -> MirMo
                         }
                     }
                     let param_local = ctx_alloc_local(ctx, clone(param.text), pvt)
-                    push(ctx.func.params, MirLocal { name: clone(param.text), val_type: pvt })
+                    push(ctx.func.params, MirLocal { name: clone(param.text), val_type: pvt, ssa_name: clone(param.text), ssa_version: 0 - 1 })
                     // Register type for Vec/struct parameters so len/get_unchecked dispatch works
                     if len(param.type_ann) >= 1 {
                         let p_ty = get_unchecked(param.type_ann, 0)
@@ -3051,13 +3075,13 @@ pub fn dump_mir(m: MirModule) {
             let mut p = 0
             while p < phi_count {
                 let phi = get_unchecked(block.phis, p)
-                stdio::eprintln(concat(String_from("      "), mir_format_phi(phi)))
+                stdio::eprintln(concat(String_from("      "), mir_format_phi(f, phi)))
                 p = p + 1
             }
             let mut j = 0
             while j < inst_count {
                 let inst = get_unchecked(block.instructions, j)
-                stdio::eprintln(concat(String_from("      "), concat(mir_op_name(inst.op), concat(String_from(" -> %"), to_string(inst.dest)))))
+                stdio::eprintln(concat(String_from("      "), concat(mir_op_name(inst.op), concat(String_from(" -> "), mir_format_local_ref(f, inst.dest)))))
                 j = j + 1
             }
             b = b + 1
@@ -3122,7 +3146,24 @@ fn mir_value_type_name(vt: i32) -> String {
     String_from("?")
 }
 
-fn mir_format_phi_args(args: Vec<MirPhiArg>) -> String {
+fn mir_format_local_ref(f: MirFunction, local_id: i32) -> String {
+    if local_id < 0 {
+        return String_from("%-")
+    }
+    if local_id >= len(f.locals) {
+        return concat(String_from("%"), to_string(local_id))
+    }
+    let local = get_unchecked(f.locals, local_id)
+    if local.ssa_version >= 0 {
+        let mut out = String_from("%")
+        out = concat(out, clone(local.ssa_name))
+        out = concat(out, String_from("."))
+        return concat(out, to_string(local.ssa_version))
+    }
+    concat(String_from("%"), to_string(local_id))
+}
+
+fn mir_format_phi_args(f: MirFunction, args: Vec<MirPhiArg>) -> String {
     let count = len(args)
     let mut out = String_from("[")
     let mut i = 0
@@ -3133,19 +3174,19 @@ fn mir_format_phi_args(args: Vec<MirPhiArg>) -> String {
         }
         out = concat(out, String_from("bb"))
         out = concat(out, to_string(arg.pred_block))
-        out = concat(out, String_from(" -> %"))
-        out = concat(out, to_string(arg.local))
+        out = concat(out, String_from(" -> "))
+        out = concat(out, mir_format_local_ref(f, arg.local))
         i = i + 1
     }
     concat(out, String_from("]"))
 }
 
-fn mir_format_phi(phi: MirPhi) -> String {
+fn mir_format_phi(f: MirFunction, phi: MirPhi) -> String {
     let mut out = mir_op_name(phi.op)
-    out = concat(out, String_from(" %"))
-    out = concat(out, to_string(phi.dest))
+    out = concat(out, String_from(" "))
+    out = concat(out, mir_format_local_ref(f, phi.dest))
     out = concat(out, String_from(" = "))
-    out = concat(out, mir_format_phi_args(phi.args))
+    out = concat(out, mir_format_phi_args(f, phi.args))
     out = concat(out, String_from(" : "))
     concat(out, mir_value_type_name(phi.val_type))
 }
@@ -3242,7 +3283,7 @@ fn mir_expect_phi(f: MirFunction, block_id: i32, expected_dest: i32, expected_vt
         msg = concat(msg, String_from(" type="))
         msg = concat(msg, mir_value_type_name(expected_vt))
         msg = concat(msg, String_from(" actual="))
-        msg = concat(msg, mir_format_phi(phi))
+        msg = concat(msg, mir_format_phi(f, phi))
         stdio::eprintln(msg)
         process::exit(1)
     }
@@ -3259,7 +3300,7 @@ fn mir_expect_phi(f: MirFunction, block_id: i32, expected_dest: i32, expected_vt
     if expected_count > 0 {
         let arg0 = get_unchecked(phi.args, 0)
         if arg0.pred_block != expected_pred0 || arg0.local != expected_local0 {
-            let msg = concat(String_from("phi arg0 check failed for bb"), concat(to_string(block_id), concat(String_from(": actual="), mir_format_phi(phi))))
+            let msg = concat(String_from("phi arg0 check failed for bb"), concat(to_string(block_id), concat(String_from(": actual="), mir_format_phi(f, phi))))
             stdio::eprintln(msg)
             process::exit(1)
         }
@@ -3267,10 +3308,27 @@ fn mir_expect_phi(f: MirFunction, block_id: i32, expected_dest: i32, expected_vt
     if expected_count > 1 {
         let arg1 = get_unchecked(phi.args, 1)
         if arg1.pred_block != expected_pred1 || arg1.local != expected_local1 {
-            let msg = concat(String_from("phi arg1 check failed for bb"), concat(to_string(block_id), concat(String_from(": actual="), mir_format_phi(phi))))
+            let msg = concat(String_from("phi arg1 check failed for bb"), concat(to_string(block_id), concat(String_from(": actual="), mir_format_phi(f, phi))))
             stdio::eprintln(msg)
             process::exit(1)
         }
+    }
+}
+
+fn mir_expect_local_ssa(f: MirFunction, local_id: i32, expected_name: String, expected_version: i32) {
+    if local_id < 0 || local_id >= len(f.locals) {
+        stdio::eprintln(String_from("ssa local check failed: local id out of range"))
+        process::exit(1)
+    }
+    let local = get_unchecked(f.locals, local_id)
+    if !eq(clone(local.ssa_name), clone(expected_name)) || local.ssa_version != expected_version {
+        let mut msg = concat(String_from("ssa local check failed for "), mir_format_local_ref(f, local_id))
+        msg = concat(msg, String_from(": expected %"))
+        msg = concat(msg, expected_name)
+        msg = concat(msg, String_from("."))
+        msg = concat(msg, to_string(expected_version))
+        stdio::eprintln(msg)
+        process::exit(1)
     }
 }
 
@@ -3362,6 +3420,9 @@ pub fn run_phi_insertion_smoke() {
     mir_expect_frontier(f, then_bb, 1, join_bb, 0)
     mir_expect_frontier(f, else_bb, 1, join_bb, 0)
     mir_expect_phi(f, join_bb, join_val, VT_I32(), 2, then_bb, then_val, else_bb, else_val)
+    mir_expect_local_ssa(f, then_val, String_from("join_val"), 1)
+    mir_expect_local_ssa(f, else_val, String_from("join_val"), 2)
+    mir_expect_local_ssa(f, join_val, String_from("join_val"), 3)
 
     push(m.functions, f)
     dump_mir(m)
