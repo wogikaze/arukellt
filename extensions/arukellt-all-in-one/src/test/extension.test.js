@@ -11,7 +11,39 @@ const repoDebugBinary = path.join(
   "debug",
   process.platform === "win32" ? "arukellt.exe" : "arukellt"
 );
+const extensionId = "arukellt.arukellt-all-in-one";
 let originalServerPath;
+
+function getExtension() {
+  const ext = vscode.extensions.getExtension(extensionId);
+  assert.ok(ext, "Extension should be found by its ID");
+  return ext;
+}
+
+async function activateExtension() {
+  const ext = getExtension();
+  const api = await ext.activate();
+  return { ext, api };
+}
+
+async function waitFor(check, options = {}) {
+  const timeoutMs = options.timeoutMs ?? 15000;
+  const intervalMs = options.intervalMs ?? 100;
+  const description = options.description ?? "condition";
+  const deadline = Date.now() + timeoutMs;
+  let lastError;
+
+  while (Date.now() < deadline) {
+    try {
+      return await check();
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+  }
+
+  throw lastError ?? new Error(`Timed out waiting for ${description}`);
+}
 
 suiteSetup(async () => {
   if (!fs.existsSync(repoDebugBinary)) {
@@ -44,8 +76,7 @@ suiteTeardown(async () => {
 
 suite("Extension Activation (#272)", () => {
   test("extension is present", () => {
-    const ext = vscode.extensions.getExtension("arukellt.arukellt-all-in-one");
-    assert.ok(ext, "Extension should be found by its ID");
+    getExtension();
   });
 
   test("extension activates on .ark file", async () => {
@@ -56,12 +87,12 @@ suite("Extension Activation (#272)", () => {
     await vscode.window.showTextDocument(doc);
     await new Promise((r) => setTimeout(r, 2000));
 
-    const ext = vscode.extensions.getExtension("arukellt.arukellt-all-in-one");
+    const ext = getExtension();
     assert.ok(ext, "Extension should exist");
   });
 
   test("extension exports activate and deactivate", () => {
-    const ext = vscode.extensions.getExtension("arukellt.arukellt-all-in-one");
+    const ext = getExtension();
     assert.ok(ext, "Extension should exist");
     // packageJSON should have activationEvents
     assert.ok(
@@ -70,20 +101,37 @@ suite("Extension Activation (#272)", () => {
     );
   });
 
-  test("binary discovery handles missing binary gracefully", async () => {
-    // Verify that setting an invalid path doesn't crash the extension
+  test("invalid server.path surfaces a user-visible error", async () => {
+    const { api } = await activateExtension();
     const cfg = vscode.workspace.getConfiguration("arukellt");
     const original = cfg.get("server.path");
+    const missingBinary = path.join(repoRoot, ".tmp", "missing-arukellt-binary");
+
     try {
       await cfg.update(
         "server.path",
-        "/nonexistent/arukellt-fake",
+        missingBinary,
         vscode.ConfigurationTarget.Global
       );
-      // The extension should handle this gracefully (no throw)
-      await new Promise((r) => setTimeout(r, 500));
+      await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+
+      await waitFor(() => {
+        const state = api.__getTestState();
+        assert.strictEqual(state.hasClient, false, "client should not stay running with an invalid binary path");
+        assert.strictEqual(state.languageStatusText, "$(error) Error");
+        assert.match(state.languageStatusDetail ?? "", /Binary not found/);
+        assert.match(state.statusBarText ?? "", /binary missing/);
+      }, { description: "missing-binary user-facing status" });
     } finally {
       await cfg.update("server.path", original, vscode.ConfigurationTarget.Global);
+      if (fs.existsSync(repoDebugBinary)) {
+        await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+        await waitFor(() => {
+          const state = api.__getTestState();
+          assert.strictEqual(state.hasClient, true);
+          assert.strictEqual(state.languageStatusText, "$(check) Ready");
+        }, { description: "healthy language server after restore" });
+      }
     }
   });
 
@@ -193,18 +241,37 @@ suite("Test Controller (#274)", () => {
   test("test controller is registered", () => {
     // The test controller is created in activate() via vscode.tests.createTestController
     // We can verify the extension activated properly
-    const ext = vscode.extensions.getExtension("arukellt.arukellt-all-in-one");
+    const ext = getExtension();
     assert.ok(ext, "Extension with test controller should be present");
   });
 
-  test("restart command re-initializes LSP", async () => {
-    const allCommands = await vscode.commands.getCommands(true);
-    assert.ok(
-      allCommands.includes("arukellt.restartLanguageServer"),
-      "Restart command should remain registered after activation"
-    );
-    const ext = vscode.extensions.getExtension("arukellt.arukellt-all-in-one");
-    assert.ok(ext, "Extension should still be present after restart");
+  test("restart command executes and language server stays healthy", async function () {
+    if (!fs.existsSync(repoDebugBinary)) {
+      this.skip();
+      return;
+    }
+
+    const { api } = await activateExtension();
+    await waitFor(() => {
+      const state = api.__getTestState();
+      assert.strictEqual(state.hasClient, true);
+      assert.strictEqual(state.languageStatusText, "$(check) Ready");
+      return state;
+    }, { description: "initial ready language server" });
+
+    const before = api.__getTestState();
+
+    await vscode.commands.executeCommand("arukellt.restartLanguageServer");
+
+    await waitFor(() => {
+      const after = api.__getTestState();
+      assert.ok(
+        after.clientSessionId > before.clientSessionId,
+        "restart should create a fresh language client session"
+      );
+      assert.strictEqual(after.hasClient, true);
+      assert.strictEqual(after.languageStatusText, "$(check) Ready");
+    }, { description: "healthy language server after restart" });
   });
 });
 
@@ -225,7 +292,7 @@ suite("Output Channels (#275)", () => {
     // Output channels are created in activate()
     // We can't directly inspect them from the test API, but we can verify
     // the extension is active and commands work
-    const ext = vscode.extensions.getExtension("arukellt.arukellt-all-in-one");
+    const ext = getExtension();
     assert.ok(ext, "Extension should be present");
   });
 });
@@ -233,7 +300,7 @@ suite("Output Channels (#275)", () => {
 suite("Status Bar (#275)", () => {
   test("status bar item is created", async () => {
     // Status bar item is created in activate()
-    const ext = vscode.extensions.getExtension("arukellt.arukellt-all-in-one");
+    const ext = getExtension();
     assert.ok(ext, "Extension with status bar should be present");
   });
 });

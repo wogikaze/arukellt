@@ -11,6 +11,7 @@ let compilerChannel = null
 let testChannel = null
 let statusBarItem = null
 let restartCount = 0
+let clientSessionId = 0
 let languageStatusItem = null
 let testController = null
 let projectTreeProvider = null
@@ -68,6 +69,7 @@ function getCandidatePaths(configuredPath) {
   // 1. Explicitly configured server.path (if not the default placeholder)
   if (configuredPath && configuredPath !== 'arukellt') {
     candidates.push({ path: configuredPath, source: 'arukellt.server.path setting' })
+    return candidates
   }
   // 2. Repo-local builds when running the extension from a source checkout.
   const exeName = process.platform === 'win32' ? 'arukellt.exe' : 'arukellt'
@@ -235,6 +237,7 @@ function startLanguageServer(context) {
   updateLanguageStatus('starting')
 
   client = new LanguageClient('arukellt', 'Arukellt Language Server', serverOptions, clientOptions)
+  clientSessionId++
 
   client.start().then(() => {
     restartCount = 0
@@ -276,17 +279,36 @@ function startLanguageServer(context) {
   })
 }
 
+async function stopClientWithTimeout(currentClient, timeoutMs) {
+  let timeoutHandle = null
+  try {
+    await Promise.race([
+      currentClient.stop(),
+      new Promise((_, reject) => {
+        timeoutHandle = setTimeout(() => {
+          reject(new Error(`timed out after ${timeoutMs}ms`))
+        }, timeoutMs)
+      }),
+    ])
+  } finally {
+    if (timeoutHandle) {
+      clearTimeout(timeoutHandle)
+    }
+  }
+}
+
 async function restartLanguageServer(context) {
   restartCount = 0
-  if (client) {
+  const currentClient = client
+  client = null
+  if (currentClient) {
     try {
-      await client.stop(5000)
+      await stopClientWithTimeout(currentClient, 5000)
     } catch (err) {
       if (outputChannel) {
         outputChannel.appendLine(`[arukellt] restart: stop failed (${err.message}); starting a fresh client`)
       }
     }
-    client = null
     startLanguageServer(context)
     vscode.window.showInformationMessage('Arukellt language server restarted.')
   } else {
@@ -1289,8 +1311,22 @@ function setupProjectTreeView(context) {
   )
 }
 
+function getTestState() {
+  return {
+    hasClient: !!client,
+    clientSessionId,
+    restartCount,
+    statusBarText: statusBarItem ? statusBarItem.text : null,
+    statusBarTooltip: statusBarItem ? statusBarItem.tooltip : null,
+    languageStatusText: languageStatusItem ? languageStatusItem.text : null,
+    languageStatusDetail: languageStatusItem ? languageStatusItem.detail : null,
+    languageStatusSeverity: languageStatusItem ? languageStatusItem.severity : null,
+  }
+}
+
 module.exports = {
   activate,
   deactivate,
+  __getTestState: getTestState,
   verifyBootstrap,
 }
