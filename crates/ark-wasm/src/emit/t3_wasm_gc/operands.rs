@@ -12,6 +12,103 @@ use super::peephole::PeepholeWriter;
 use super::{Ctx, normalize_intrinsic};
 
 impl Ctx {
+    fn is_anyref_result_valtype(vt: &ValType) -> bool {
+        matches!(
+            vt,
+            ValType::Ref(WasmRefType {
+                heap_type: HeapType::Abstract {
+                    ty: wasm_encoder::AbstractHeapType::Any,
+                    ..
+                },
+                ..
+            })
+        )
+    }
+
+    fn try_emit_tuple_ifexpr_multivalue(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        cond: &Operand,
+        then_body: &[MirStmt],
+        then_result: Option<&Operand>,
+        else_body: &[MirStmt],
+        else_result: Option<&Operand>,
+    ) -> bool {
+        let Some((tuple_name, then_fields)) = Self::tuple_struct_init(then_result) else {
+            return false;
+        };
+        let Some((else_name, else_fields)) = Self::tuple_struct_init(else_result) else {
+            return false;
+        };
+        if tuple_name != else_name || !tuple_name.starts_with("__tuple") {
+            return false;
+        }
+
+        let Some(layout) = self.struct_layouts.get(tuple_name).cloned() else {
+            return false;
+        };
+        let Some(struct_ty_idx) = self.struct_gc_types.get(tuple_name).copied() else {
+            return false;
+        };
+
+        let result_types: Vec<ValType> = layout
+            .iter()
+            .map(|(_, field_ty)| self.field_valtype(field_ty))
+            .collect();
+        if result_types.len() < 2 {
+            return false;
+        }
+        let block_ty = self.types.add_func(&[], &result_types);
+
+        self.emit_operand(f, cond);
+        f.instruction(&Instruction::If(BlockType::FunctionType(block_ty)));
+        self.loop_break_extra_depth += 1;
+        for stmt in then_body {
+            self.emit_stmt(f, stmt);
+        }
+        self.emit_tuple_branch_values(f, &layout, then_fields);
+        f.instruction(&Instruction::Else);
+        for stmt in else_body {
+            self.emit_stmt(f, stmt);
+        }
+        self.emit_tuple_branch_values(f, &layout, else_fields);
+        self.loop_break_extra_depth -= 1;
+        f.instruction(&Instruction::End);
+        f.instruction(&Instruction::StructNew(struct_ty_idx));
+        true
+    }
+
+    fn tuple_struct_init(op: Option<&Operand>) -> Option<(&str, &[(String, Operand)])> {
+        match op {
+            Some(Operand::StructInit { name, fields }) => Some((name.as_str(), fields.as_slice())),
+            _ => None,
+        }
+    }
+
+    fn emit_tuple_branch_values(
+        &mut self,
+        f: &mut PeepholeWriter<'_>,
+        layout: &[(String, String)],
+        fields: &[(String, Operand)],
+    ) {
+        for (field_name, field_ty) in layout {
+            let expected_vt = self.field_valtype(field_ty);
+            if let Some((_, value)) = fields.iter().find(|(name, _)| name == field_name) {
+                self.emit_operand(f, value);
+                let value_vt = self.infer_operand_type(value);
+                if Self::is_anyref_result_valtype(&expected_vt) && value_vt == ValType::I32 {
+                    i31::emit_box(f);
+                } else if Self::is_anyref_result_valtype(&value_vt)
+                    && !Self::is_anyref_result_valtype(&expected_vt)
+                {
+                    self.emit_anyref_unbox(f, &expected_vt);
+                }
+            } else {
+                self.emit_default_value(f, &expected_vt);
+            }
+        }
+    }
+
     pub(super) fn emit_operand(&mut self, f: &mut PeepholeWriter<'_>, op: &Operand) {
         match op {
             Operand::ConstI32(v) => {
@@ -263,6 +360,16 @@ impl Ctx {
                 else_body,
                 else_result,
             } => {
+                if self.try_emit_tuple_ifexpr_multivalue(
+                    f,
+                    cond,
+                    then_body,
+                    then_result.as_deref(),
+                    else_body,
+                    else_result.as_deref(),
+                ) {
+                    return;
+                }
                 // Determine the result type from non-Unit branches
                 let result_vt =
                     self.infer_if_result_type(then_result.as_deref(), else_result.as_deref());

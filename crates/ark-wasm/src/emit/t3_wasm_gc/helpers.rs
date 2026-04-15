@@ -2999,10 +2999,11 @@ impl Ctx {
 mod tests {
     use ark_diagnostics::DiagnosticSink;
     use ark_mir::mir::{
-        BasicBlock, BlockId, FnId, InstanceKey, MirFunction, MirModule, Operand,
+        BasicBlock, BlockId, FnId, InstanceKey, MirFnSig, MirFunction, MirModule, Operand,
         SourceInfo, Terminator,
     };
     use ark_typecheck::types::Type;
+    use wasmparser::{BlockType, Operator, Parser, Payload};
 
     fn make_simple_func(id: u32, name: &str, ret_ty: Type, terminator: Terminator) -> MirFunction {
         MirFunction {
@@ -3086,8 +3087,10 @@ mod tests {
     /// one passive data segment containing those bytes.
     #[test]
     fn same_string_literal_deduplicates_data_segments() {
-        use ark_mir::mir::{BasicBlock, BlockId, FnId, InstanceKey, MirFunction, MirModule,
-                           MirStmt, Operand, SourceInfo, Terminator};
+        use ark_mir::mir::{
+            BasicBlock, BlockId, FnId, InstanceKey, MirFunction, MirModule, MirStmt, Operand,
+            SourceInfo, Terminator,
+        };
         use ark_typecheck::types::Type;
 
         // Build a minimal module: one function that uses "intern_dedup" twice.
@@ -3136,16 +3139,97 @@ mod tests {
         // emitted binary.  If deduplication works, the string bytes appear exactly
         // once in the data section even though the source uses the literal twice.
         let needle = b"intern_dedup";
-        let occurrences = wasm
-            .windows(needle.len())
-            .filter(|w| *w == needle)
-            .count();
+        let occurrences = wasm.windows(needle.len()).filter(|w| *w == needle).count();
 
         assert_eq!(
             occurrences, 1,
             "expected 'intern_dedup' bytes to appear exactly once in wasm binary \
              (data-segment deduplication), but found {} occurrence(s)",
             occurrences
+        );
+    }
+
+    #[test]
+    fn tuple_ifexpr_uses_multivalue_block_and_single_struct_new() {
+        let mut mir = MirModule::new();
+        let tuple_layout = vec![
+            ("0".to_string(), "i32".to_string()),
+            ("1".to_string(), "i32".to_string()),
+        ];
+        mir.struct_defs
+            .insert("__tuple2".to_string(), tuple_layout.clone());
+        mir.type_table
+            .struct_defs
+            .insert("__tuple2".to_string(), tuple_layout);
+        mir.type_table.fn_sigs.insert(
+            "pick_pair".to_string(),
+            MirFnSig {
+                name: "pick_pair".to_string(),
+                params: Vec::new(),
+                ret: "(i32, i32)".to_string(),
+            },
+        );
+
+        mir.functions.push(make_simple_func(
+            0,
+            "pick_pair",
+            Type::I32,
+            Terminator::Return(Some(Operand::IfExpr {
+                cond: Box::new(Operand::ConstBool(true)),
+                then_body: Vec::new(),
+                then_result: Some(Box::new(Operand::StructInit {
+                    name: "__tuple2".to_string(),
+                    fields: vec![
+                        ("0".to_string(), Operand::ConstI32(10)),
+                        ("1".to_string(), Operand::ConstI32(20)),
+                    ],
+                })),
+                else_body: Vec::new(),
+                else_result: Some(Box::new(Operand::StructInit {
+                    name: "__tuple2".to_string(),
+                    fields: vec![
+                        ("0".to_string(), Operand::ConstI32(30)),
+                        ("1".to_string(), Operand::ConstI32(40)),
+                    ],
+                })),
+            })),
+        ));
+        mir.entry_fn = Some(FnId(0));
+
+        let mut sink = DiagnosticSink::new();
+        let wasm = super::super::emit(&mir, &mut sink, 1, true);
+
+        let mut saw_multivalue_if = false;
+        let mut struct_new_count = 0usize;
+        for payload in Parser::new(0).parse_all(&wasm) {
+            let Ok(payload) = payload else {
+                continue;
+            };
+            if let Payload::CodeSectionEntry(body) = payload {
+                let mut reader = body.get_operators_reader().expect("operators reader");
+                while !reader.eof() {
+                    match reader.read().expect("operator") {
+                        Operator::If { blockty } => {
+                            if matches!(blockty, BlockType::FuncType(_)) {
+                                saw_multivalue_if = true;
+                            }
+                        }
+                        Operator::StructNew { .. } => {
+                            struct_new_count += 1;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+        assert!(
+            saw_multivalue_if,
+            "expected tuple-valued if-expression to use a function-typed multi-value block"
+        );
+        assert_eq!(
+            struct_new_count, 1,
+            "expected tuple-valued if-expression to materialize the tuple only once after the block"
         );
     }
 }
