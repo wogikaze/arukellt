@@ -10,6 +10,8 @@
 
 Issue #494 assigned an SSA formation pass (phi-node insertion at join points) to `src/compiler/mir.ark`. During analysis the following structural gaps were identified that block implementation:
 
+**Decision record:** [ADR-024](../../docs/adr/ADR-024-selfhost-mir-explicit-cfg-before-ssa.md) records the chosen direction: selfhost MIR must become an explicit CFG before SSA formation.
+
 ### Gap 1 — CFG is not built during HIR→MIR lowering
 
 `MirBlock` has `succ0` and `succ1` fields for successor blocks, but:
@@ -129,11 +131,12 @@ This is a ~3–5 issue decomposition:
 
 ## Note
 
-The structured control-flow approach currently used (MIR_IF/ELSE/END) is appropriate for direct Wasm emission because Wasm uses structured control flow natively. However, that representation does not support traditional SSA phi nodes, which require an explicit CFG.
-
-A design decision is needed: should the selfhost MIR pipeline move to an explicit CFG representation (which would then feed a Wasm code generator that re-structures the CFG into Wasm blocks), or should SSA be avoided entirely and the structured representation extended instead?
-
-This decision should be captured as an ADR before #503a–e work begins.
+The structured control-flow approach currently used (`MIR_IF` / `MIR_ELSE` /
+`MIR_END`) is still suitable as a backend emission concern, but it is not the
+canonical selfhost MIR representation for SSA work. The chosen direction is now
+recorded in ADR-024: the MIR pipeline must first expose an explicit CFG with
+predecessors and dominance-frontier support, then #494 can build SSA on top of
+that graph.
 
 ---
 
